@@ -164,6 +164,7 @@
     <mat-menu #hostMusicMenu="matMenu" xPosition="before" (closed)="onHostMusicMenuClosed()">
       <div
         class="session-host__music-menu-head dialog-title-header"
+        role="presentation"
         (click)="$event.stopPropagation()"
       >
         <span class="dialog-title-header__icon" aria-hidden="true">
@@ -189,7 +190,11 @@
         <mat-icon aria-hidden="true">{{ musicMuted() ? 'volume_up' : 'volume_off' }}</mat-icon>
         <span>{{ musicToggleLabel() }}</span>
       </button>
-      <div class="session-host__music-phase-picker" (click)="$event.stopPropagation()">
+      <div
+        class="session-host__music-phase-picker"
+        role="presentation"
+        (click)="$event.stopPropagation()"
+      >
         <p class="session-host__music-phase-picker-label" i18n="@@sessionHost.musicMenuPhaseLabel">
           Phase
         </p>
@@ -265,7 +270,7 @@
               mat-icon-button
               type="button"
               class="session-host__live-join-control"
-              (click)="toggleJoinInfoPopover()"
+              (click)="toggleJoinInfoPopover($event)"
               [attr.aria-expanded]="joinInfoPopoverOpen()"
               aria-haspopup="dialog"
               aria-controls="session-host-join-info"
@@ -370,6 +375,8 @@
             role="presentation"
             (click)="closeJoinInfoPopover()"
           >
+            <!-- Pointer bubbling would close the backdrop; Escape and the close button are keyboard equivalents. -->
+            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
             <div
               class="session-host__join-viewport-overlay__surface session-host__join-menu-panel"
               role="dialog"
@@ -377,12 +384,15 @@
               aria-labelledby="session-host-join-origin"
               id="session-host-join-info"
               tabindex="-1"
+              cdkTrapFocus
+              [cdkTrapFocusAutoCapture]="true"
               (click)="$event.stopPropagation()"
             >
               <button
                 mat-icon-button
                 type="button"
                 class="session-host__join-viewport-overlay__close"
+                cdkFocusInitial
                 (click)="closeJoinInfoPopover()"
                 i18n-aria-label="@@sessionHost.joinOverlayCloseAria"
                 aria-label="Beitrittsinformationen schließen"
@@ -611,7 +621,7 @@
               <ul
                 class="session-lobby__list session-lobby__list--chips"
                 role="list"
-                i18n-aria-label
+                i18n-aria-label="@@sessionHost.participantsAria"
                 aria-label="Teilnehmende"
               >
                 @for (p of lobbyParticipantsNewestFirst(); track p.id) {
@@ -774,7 +784,7 @@
                                   >
                                   <div
                                     class="session-host__finished-confidence-question-markdown markdown-body"
-                                    [innerHTML]="renderMarkdown(question.questionTextShort)"
+                                    [innerHTML]="renderMarkdown(question.questionTextShort, 4)"
                                   ></div>
                                 </header>
                                 <div class="session-host__finished-confidence-question-metrics">
@@ -1415,7 +1425,7 @@
                           class="session-host__countdown"
                           [class.session-host__countdown--urgent]="countdownSeconds()! <= 5"
                           role="timer"
-                          [attr.aria-label]="countdownSeconds() + ' Sekunden verbleibend'"
+                          [attr.aria-label]="countdownAriaLabel()"
                         >
                           {{ countdownSeconds() }}
                         </span>
@@ -1427,7 +1437,11 @@
                         [innerHTML]="renderMarkdown(q.text)"
                       ></span>
                     </mat-card-title>
-                    <div class="session-host__question-meta" aria-label="Frage-Metadaten">
+                    <div
+                      class="session-host__question-meta"
+                      i18n-aria-label="@@session.questionMetadataAria"
+                      aria-label="Frage-Metadaten"
+                    >
                       @if (showQuestionTypeIndicators(q)) {
                         <span class="session-host__question-badge">
                           {{ hostQuestionTypeLabel(q.type) }}
@@ -2308,7 +2322,7 @@
                                     ></app-answer-option-badge>
                                     <span
                                       class="session-host__round-comparison-text session-host__rich-text markdown-body"
-                                      [innerHTML]="renderMarkdown(a.text)"
+                                      [innerHTML]="renderMarkdown(a.text, 4)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
                                       <mat-icon class="session-host__answer-icon" aria-hidden="true"
@@ -2444,7 +2458,7 @@
                                     ></app-answer-option-badge>
                                     <span
                                       class="session-host__vote-dist-text session-host__rich-text markdown-body"
-                                      [innerHTML]="renderMarkdown(a.text)"
+                                      [innerHTML]="renderMarkdown(a.text, 4)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
                                       <span
@@ -2551,7 +2565,7 @@
                                 ></app-answer-option-badge>
                                 <span
                                   class="session-host__answer-text session-host__rich-text markdown-body"
-                                  [innerHTML]="renderMarkdown(a.text)"
+                                  [innerHTML]="renderMarkdown(a.text, 4)"
                                 ></span>
                                 @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
                                   <span class="session-host__answer-correct-label">
@@ -2680,7 +2694,7 @@
                                     <li>
                                       <span
                                         class="session-host__confidence-wrong-option-text markdown-body"
-                                        [innerHTML]="renderMarkdown(option.text)"
+                                        [innerHTML]="renderMarkdown(option.text, 4)"
                                       ></span>
                                       <span class="session-host__confidence-wrong-option-count">{{
                                         formatCount(option.count)

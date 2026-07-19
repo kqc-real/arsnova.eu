@@ -145,6 +145,13 @@
         </div>
       }
     </div>
+    @if (words().length > 0) {
+      <ol class="sr-only" [attr.aria-label]="title()">
+        @for (entry of words(); track entry.groupKey) {
+          <li>{{ entry.word }}: {{ wordTooltip(entry) }}</li>
+        }
+      </ol>
+    }
     @if (words().length > 0 && showSupportingSection()) {
       <div class="word-cloud__supporting">
         @if (showActionsPanel()) {

@@ -13,6 +13,15 @@ export interface MarkdownRenderResult {
 export type MarkdownImagePolicy =
   'external-https-only' | 'external-https-and-app-assets' | 'allow-relative-and-https';
 
+export interface MarkdownRenderOptions {
+  imagePolicy?: MarkdownImagePolicy;
+  /**
+   * Niedrigste Überschriftenebene für ein Markdown-`#`.
+   * Eingebettete Inhalte dürfen dadurch die Seiten-H1 nicht duplizieren.
+   */
+  headingStartLevel?: 2 | 3 | 4 | 5 | 6;
+}
+
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
 const INTERNAL_MARKDOWN_LINK_HOSTNAMES = new Set([
   'arsnova.eu',
@@ -41,7 +50,7 @@ function normalizeMathExpressionBeforeKatex(raw: string): string {
 
 export function renderMarkdownWithKatex(
   source = '',
-  options?: { imagePolicy?: MarkdownImagePolicy },
+  options?: MarkdownRenderOptions,
 ): MarkdownRenderResult {
   const input = source;
   let katexError: string | null = null;
@@ -89,6 +98,7 @@ export function renderMarkdownWithKatex(
     // Relative Asset-Pfade bleiben eine explizite Ausnahme für Demo-/Systeminhalte;
     // im lockeren Modus sind in Dev zusätzlich Loopback-HTTP-Bilder erlaubt.
     imagePolicy: options?.imagePolicy ?? 'external-https-only',
+    headingStartLevel: options?.headingStartLevel ?? 2,
   });
   const html = renderedMath.reduce(
     (current, value, index) => current.replaceAll(mathPlaceholder(index), value),
@@ -99,11 +109,23 @@ export function renderMarkdownWithKatex(
 
 function parseMarkdownEscapingInlineHtml(
   source: string,
-  options: { imagePolicy: MarkdownImagePolicy },
+  options: Required<Pick<MarkdownRenderOptions, 'imagePolicy' | 'headingStartLevel'>>,
 ): string {
   const renderer = new marked.Renderer();
+  const shallowestHeadingDepth = marked.lexer(source).reduce<number | null>((minimum, token) => {
+    if (token.type !== 'heading') {
+      return minimum;
+    }
+    return minimum === null ? token.depth : Math.min(minimum, token.depth);
+  }, null);
+  const headingOffset =
+    shallowestHeadingDepth === null ? 0 : options.headingStartLevel - shallowestHeadingDepth;
   renderer.code = (token) => renderMarkdownCodeBlockHtml(token);
   renderer.html = ({ text }) => renderTrustedInlineHtml(text);
+  renderer.heading = function ({ tokens, depth }): string {
+    const level = Math.min(6, Math.max(options.headingStartLevel, depth + headingOffset));
+    return `<h${level}>${this.parser.parseInline(tokens)}</h${level}>\n`;
+  };
   renderer.text = function (token): string {
     const inlineTokens = 'tokens' in token ? token.tokens : undefined;
     if (inlineTokens?.length) {
@@ -164,13 +186,11 @@ function renderTrustedInlineHtml(text: string): string {
 }
 
 /** Markdown → HTML ohne KaTeX (kein `$…$`-Parsing). Für lange System-Prompts mit JSON-Beispielen. */
-export function renderMarkdownWithoutKatex(
-  source = '',
-  options?: { imagePolicy?: MarkdownImagePolicy },
-): string {
+export function renderMarkdownWithoutKatex(source = '', options?: MarkdownRenderOptions): string {
   return sanitizeMarkdownHtml(
     parseMarkdownEscapingInlineHtml(source, {
       imagePolicy: options?.imagePolicy ?? 'allow-relative-and-https',
+      headingStartLevel: options?.headingStartLevel ?? 2,
     }),
   );
 }
@@ -410,6 +430,8 @@ function sanitizeMarkdownHtml(html: string): string {
       'h2',
       'h3',
       'h4',
+      'h5',
+      'h6',
       'div',
       'a',
       'button',

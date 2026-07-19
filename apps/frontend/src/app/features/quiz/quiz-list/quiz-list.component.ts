@@ -269,6 +269,7 @@ export class QuizListComponent implements OnInit {
     }
     const raw = renderMarkdownWithKatex(value, {
       imagePolicy: 'allow-relative-and-https',
+      headingStartLevel: 3,
     }).html;
     const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
     const rendered = this.sanitizer.bypassSecurityTrustHtml(html);
@@ -279,6 +280,7 @@ export class QuizListComponent implements OnInit {
   renderImportWarningQuestion(value: string): SafeHtml {
     const raw = renderMarkdownWithKatex(value, {
       imagePolicy: 'allow-relative-and-https',
+      headingStartLevel: 4,
     }).html;
     const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
     return this.sanitizer.bypassSecurityTrustHtml(html);

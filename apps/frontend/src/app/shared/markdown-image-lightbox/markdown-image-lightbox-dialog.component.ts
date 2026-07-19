@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 
@@ -12,7 +12,7 @@ export type MarkdownImageLightboxData = {
 @Component({
   selector: 'app-markdown-image-lightbox-dialog',
   standalone: true,
-  imports: [MatButton, MatDialogClose, MatIcon],
+  imports: [MatButton, MatIconButton, MatDialogClose, MatIcon],
   templateUrl: './markdown-image-lightbox-dialog.component.html',
   styleUrl: './markdown-image-lightbox-dialog.component.scss',
 })
@@ -236,6 +236,53 @@ export class MarkdownImageLightboxDialogComponent {
     this.dialogRef.close();
   }
 
+  zoomIn(): void {
+    this.setScale(this.scale + 0.5);
+  }
+
+  zoomOut(): void {
+    this.setScale(this.scale - 0.5);
+  }
+
+  resetView(): void {
+    this.resetZoom();
+  }
+
+  panImage(horizontalDirection: -1 | 0 | 1, verticalDirection: -1 | 0 | 1): void {
+    if (!this.isZoomed()) {
+      return;
+    }
+    const rect = this.viewportRef?.nativeElement.getBoundingClientRect();
+    const horizontalStep = Math.max(48, (rect?.width ?? 320) * 0.2);
+    const verticalStep = Math.max(48, (rect?.height ?? 320) * 0.2);
+    const nextTranslate = this.clampTranslate(
+      {
+        x: this.translateX - horizontalDirection * horizontalStep,
+        y: this.translateY - verticalDirection * verticalStep,
+      },
+      this.scale,
+    );
+    this.translateX = nextTranslate.x;
+    this.translateY = nextTranslate.y;
+  }
+
+  zoomPercent(): number {
+    return Math.round(this.scale * 100);
+  }
+
+  zoomStatusAriaLabel(): string {
+    const percent = this.zoomPercent();
+    return $localize`:@@markdownImageLightbox.zoomStatus:Zoom: ${percent}:percent: Prozent`;
+  }
+
+  canZoomIn(): boolean {
+    return this.scale < this.maxScale;
+  }
+
+  canZoomOut(): boolean {
+    return this.isZoomed();
+  }
+
   imageTransform(): string {
     return `translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
   }
@@ -284,6 +331,29 @@ export class MarkdownImageLightboxDialogComponent {
       this.zoomedScale,
     );
     this.scale = this.zoomedScale;
+    this.translateX = nextTranslate.x;
+    this.translateY = nextTranslate.y;
+    this.swipeOffsetY = 0;
+  }
+
+  private setScale(requestedScale: number): void {
+    const nextScale = this.clamp(requestedScale, 1, this.maxScale);
+    if (nextScale <= 1.01) {
+      this.resetZoom();
+      return;
+    }
+
+    const nextTranslate = this.clampTranslate(
+      this.projectTranslateForScale(
+        this.scale,
+        nextScale,
+        { x: this.translateX, y: this.translateY },
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+      ),
+      nextScale,
+    );
+    this.scale = nextScale;
     this.translateX = nextTranslate.x;
     this.translateY = nextTranslate.y;
     this.swipeOffsetY = 0;

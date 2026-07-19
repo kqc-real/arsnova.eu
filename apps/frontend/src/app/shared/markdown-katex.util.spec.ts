@@ -15,6 +15,23 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.katexError).toBeNull();
   });
 
+  it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {
+    const result = renderMarkdownWithKatex('# Abschnitt\n\n## Detail\n\n#### Tief', {
+      headingStartLevel: 3,
+    });
+
+    expect(result.html).toContain('<h3>Abschnitt</h3>');
+    expect(result.html).toContain('<h4>Detail</h4>');
+    expect(result.html).toContain('<h6>Tief</h6>');
+    expect(result.html).not.toContain('<h1>');
+    expect(result.html).not.toContain('<h2>');
+
+    const preLevelled = renderMarkdownWithKatex('### Bereits eingeordnet', {
+      headingStartLevel: 3,
+    });
+    expect(preLevelled.html).toContain('<h3>Bereits eingeordnet</h3>');
+  });
+
   it('rendert Markdown-Tabellen als sanitisiertes Tabellen-HTML', () => {
     const result = renderMarkdownWithKatex(
       [

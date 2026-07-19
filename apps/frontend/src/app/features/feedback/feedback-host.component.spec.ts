@@ -311,6 +311,7 @@ describe('FeedbackHostComponent', () => {
 
     expect(fixture.componentInstance.feedbackJoinPopoverOpen()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('1 Stimme');
+    expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
     fixture.destroy();
   });
 
@@ -497,7 +498,7 @@ describe('FeedbackHostComponent', () => {
     fixture.destroy();
   });
 
-  it('öffnet die Tempo-Hilfe in Details und Tendenz', () => {
+  it('öffnet die Tempo-Hilfe modal in Details und Tendenz', async () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     const comp = fixture.componentInstance;
     comp.result.set({
@@ -527,12 +528,18 @@ describe('FeedbackHostComponent', () => {
     expect(fixture.nativeElement.querySelector('.feedback-host__tempo-help')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Schweigen gilt als Zustimmung');
     expect(fixture.nativeElement.textContent).toContain('ab drei Aktiven');
+    expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
+    expect(
+      (fixture.nativeElement.querySelector('.feedback-host') as HTMLElement).hasAttribute('inert'),
+    ).toBe(true);
 
     fixture.nativeElement
       .querySelector<HTMLButtonElement>('.feedback-host__tempo-help-actions button')
       ?.click();
     fixture.detectChanges();
+    await Promise.resolve();
     expect(fixture.nativeElement.querySelector('.feedback-host__tempo-help')).toBeNull();
+    expect(document.activeElement).toBe(detailHelp);
 
     comp.tempoViewMode.set('trend');
     fixture.detectChanges();

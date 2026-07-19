@@ -2059,6 +2059,11 @@
   margin-top: 0.5rem;
 }
 
+.vote-freetext__label {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-large);
+}
+
 .vote-freetext__input {
   width: 100%;
   padding: 1rem 1.25rem;

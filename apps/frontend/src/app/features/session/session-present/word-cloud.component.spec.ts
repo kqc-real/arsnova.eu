@@ -60,6 +60,27 @@ describe('WordCloudComponent', () => {
     expect(text).toContain('Antwort anzeigen (1)');
   });
 
+  it('stellt Rang und Häufigkeit zusätzlich als Textliste bereit', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', [
+      'Motivation Teamarbeit',
+      'Motivation Feedback',
+      'Motivation',
+    ]);
+    fixture.detectChanges();
+
+    const ranking = fixture.nativeElement.querySelector(
+      'ol.sr-only[aria-label="Wortwolke"]',
+    ) as HTMLOListElement | null;
+    const entries = Array.from(ranking?.querySelectorAll('li') ?? []).map((entry) =>
+      entry.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+
+    expect(ranking).not.toBeNull();
+    expect(entries[0]).toContain('motivation: Nennungen: 3');
+    expect(entries).toHaveLength(fixture.componentInstance.words().length);
+  });
+
   it('filtert Stopwörter in der Standardansicht dauerhaft aus', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const component = fixture.componentInstance;

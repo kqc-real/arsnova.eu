@@ -562,7 +562,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nick = this.playerNickname()?.trim() ?? '';
     const team = this.playerTeamName()?.trim();
     if (team) {
-      return `${nick}, ${this.teamNameDisplayLabel(team)}`;
+      const teamLabel = this.teamNameDisplayLabel(team);
+      return $localize`:@@sessionVote.playerTeamBadgeAria:${nick}:nickname:, ${teamLabel}:teamName:`;
     }
     return nick;
   });
@@ -2381,8 +2382,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   countdownAriaLabel(): string {
-    const seconds = this.countdownSeconds();
-    return $localize`${seconds ?? 0} Sekunden verbleibend`;
+    const seconds = this.countdownSeconds() ?? 0;
+    return seconds === 1
+      ? $localize`:@@sessionVote.countdownAriaOne:1 Sekunde verbleibend`
+      : $localize`:@@sessionVote.countdownAriaMany:${seconds}:seconds: Sekunden verbleibend`;
+  }
+
+  qaVoteAriaLabel(question: QaQuestionDTO, direction: 'UP' | 'DOWN'): string {
+    if (direction === 'UP') {
+      return question.myVote === 'UP'
+        ? $localize`:@@sessionQa.removeUpvoteAria:Positivbewertung zurücknehmen`
+        : $localize`:@@sessionQa.addUpvoteAria:Positiv bewerten`;
+    }
+
+    return question.myVote === 'DOWN'
+      ? $localize`:@@sessionQa.removeDownvoteAria:Negativbewertung zurücknehmen`
+      : $localize`:@@sessionQa.addDownvoteAria:Negativ bewerten`;
   }
 
   ratingAriaLabel(): string {
@@ -2466,17 +2481,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`Reagiere mit ${emoji}`;
   }
 
-  renderMarkdown(value: string): SafeHtml {
-    const cached = this.markdownCache.get(value);
+  renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
+    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
-        renderMarkdownWithKatex(value, { imagePolicy: 'external-https-and-app-assets' }).html,
+        renderMarkdownWithKatex(value, {
+          imagePolicy: 'external-https-and-app-assets',
+          headingStartLevel,
+        }).html,
       ),
     );
-    this.markdownCache.set(value, rendered);
+    this.markdownCache.set(cacheKey, rendered);
     return rendered;
   }
 
@@ -3898,17 +3917,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onVoteSubmitPointerDown(event: PointerEvent): Promise<void> {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return;
-    }
-    if (this.voteSubmitDisabled()) {
-      return;
-    }
-    event.preventDefault();
-    await this.submitVote();
-  }
-
   async sendEmoji(emoji: string): Promise<void> {
     if (this.emojiSent()) return;
     const q = this.currentQuestion();
@@ -4054,6 +4062,38 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
   setFeedbackQuality(v: number): void {
     this.feedbackQuality.set(v);
+  }
+  onFeedbackStarKeydown(event: KeyboardEvent, group: 'overall' | 'quality', value: number): void {
+    let nextValue: number;
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        nextValue = value === 1 ? 5 : value - 1;
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        nextValue = value === 5 ? 1 : value + 1;
+        break;
+      case 'Home':
+        nextValue = 1;
+        break;
+      case 'End':
+        nextValue = 5;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    if (group === 'overall') {
+      this.setFeedbackOverall(nextValue);
+    } else {
+      this.setFeedbackQuality(nextValue);
+    }
+
+    const groupElement = (event.currentTarget as HTMLElement | null)?.parentElement;
+    const nextStar = groupElement?.querySelector<HTMLElement>(`[data-star="${nextValue}"]`);
+    nextStar?.focus();
   }
   setFeedbackRepeat(v: boolean): void {
     this.feedbackRepeat.set(this.feedbackRepeat() === v ? null : v);

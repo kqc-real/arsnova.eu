@@ -36,6 +36,7 @@ describe('MarkdownKatexEditorComponent', () => {
       providers: [{ provide: MatDialog, useValue: matDialogMock }],
     });
     const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    fixture.componentInstance.fieldId = 'markdown-editor-test-field';
     fixture.componentInstance.value = '';
     fixture.componentInstance.rows = options?.rows ?? fixture.componentInstance.rows;
     fixture.componentInstance.compact = options?.compact ?? fixture.componentInstance.compact;
@@ -55,6 +56,12 @@ describe('MarkdownKatexEditorComponent', () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     TestBed.resetTestingModule();
+  });
+
+  it('bindet die vom sichtbaren Eltern-Label verwendete Feld-ID an die Textarea', () => {
+    const { textarea } = setup();
+
+    expect(textarea.id).toBe('markdown-editor-test-field');
   });
 
   it('zeigt KaTeX-Fehler direkt in der Vorschau des Editors an', () => {

@@ -60,6 +60,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     updateQuizSettings: vi.fn(),
     deleteQuestion: vi.fn(),
     setQuestionEnabled: vi.fn(),
+    reorderQuestions: vi.fn(),
   };
 
   beforeEach(() => {
@@ -1301,6 +1302,80 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(answers).not.toBeNull();
     expect(answers?.textContent).toContain('Peer Instruction');
     expect(answers?.textContent).toContain('Mazur-Methode');
+  });
+
+  it('sortiert Fragen ohne Dragging und kündigt die neue Position an', async () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Erste Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        timer: null,
+        answers: [],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+      {
+        id: SECOND_QUESTION_ID,
+        text: 'Zweite Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 1,
+        enabled: true,
+        timer: null,
+        answers: [],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const moveDown = fixture.nativeElement.querySelector(
+      'button[aria-label="Frage 1 nach unten verschieben"]',
+    ) as HTMLButtonElement;
+    const moveUp = fixture.nativeElement.querySelector(
+      'button[aria-label="Frage 1 nach oben verschieben"]',
+    ) as HTMLButtonElement;
+    const expand = fixture.nativeElement.querySelector(
+      '.quiz-edit-question__expand-btn',
+    ) as HTMLButtonElement;
+
+    expect(moveDown).toBeTruthy();
+    expect(moveUp.disabled).toBe(true);
+    expect(expand.getAttribute('aria-label')).toBe('Frage aufklappen');
+    expand.click();
+    fixture.detectChanges();
+    expect(expand.getAttribute('aria-label')).toBe('Frage zuklappen');
+
+    moveDown.click();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(mockStore.reorderQuestions).toHaveBeenCalledWith(QUIZ_ID, 0, 1);
+    expect(fixture.componentInstance.questionReorderAnnouncement()).toBe(
+      'Frage 1 wurde an Position 2 von 2 verschoben.',
+    );
+    expect(
+      fixture.nativeElement.querySelector('.quiz-edit-list__reorder-status')?.textContent,
+    ).toContain('Position 2');
+  });
+
+  it('liefert lokalisierbare Accessible Names für Antwortaktionen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.markSingleCorrectAriaLabel(1)).toBe('Antwort 1 als richtig markieren');
+    expect(component.toggleMultipleCorrectAriaLabel(2)).toBe('Antwort 2 richtig');
+    expect(component.removeAnswerAriaLabel(3)).toBe('Antwort 3 entfernen');
   });
 
   it('löscht eine vorhandene Frage nach Bestätigung im Dialog', async () => {

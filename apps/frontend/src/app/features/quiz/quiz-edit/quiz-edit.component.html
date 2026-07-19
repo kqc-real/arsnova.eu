@@ -66,11 +66,14 @@
             <div
               class="quiz-edit-form__markdown-field"
               role="group"
-              i18n-aria-label
+              i18n-aria-label="@@quizForm.descriptionAria"
               aria-label="Quiz-Beschreibung"
             >
-              <label class="quiz-edit-form__markdown-label" i18n>Beschreibung (optional)</label>
+              <label class="quiz-edit-form__markdown-label" for="quiz-edit-description" i18n
+                >Beschreibung (optional)</label
+              >
               <app-markdown-katex-editor
+                fieldId="quiz-edit-description"
                 [value]="metadataForm.controls.description.value"
                 (valueChange)="onMetadataDescriptionChange($event)"
                 [rows]="8"
@@ -137,7 +140,7 @@
           mat-button
           type="button"
           (click)="openPreview()"
-          i18n-aria-label
+          i18n-aria-label="@@quiz.previewOpenAria"
           aria-label="Vorschau öffnen"
         >
           <mat-icon>visibility</mat-icon>
@@ -339,7 +342,7 @@
                         min="2"
                         max="8"
                         (input)="syncTeamNamesValidation()"
-                        i18n-aria-label
+                        i18n-aria-label="@@quizForm.teamCountAria"
                         aria-label="Anzahl Teams"
                       />
                       @if (teamCountControl.hasError('min')) {
@@ -354,7 +357,7 @@
                       <mat-label i18n>Zuweisen</mat-label>
                       <mat-select
                         formControlName="teamAssignment"
-                        i18n-aria-label
+                        i18n-aria-label="@@quizForm.teamAssignmentAria"
                         aria-label="Zuweisen"
                       >
                         <mat-option value="AUTO" i18n>Automatisch</mat-option>
@@ -371,7 +374,7 @@
                         (input)="syncTeamNamesValidation()"
                         i18n-placeholder
                         placeholder="Ein Team pro Zeile"
-                        i18n-aria-label
+                        i18n-aria-label="@@quizForm.customTeamNamesAria"
                         aria-label="Eigene Team-Namen"
                       ></textarea>
                       <mat-hint i18n="@@quizForm.teamNamesAutoHint"
@@ -435,7 +438,7 @@
                     min="1"
                     max="50"
                     placeholder="3"
-                    i18n-aria-label
+                    i18n-aria-label="@@quizForm.bonusCodeCountAria"
                     aria-label="Anzahl Bonus-Codes"
                   />
                   <mat-hint i18n
@@ -510,8 +513,11 @@
         }
 
         <div class="quiz-edit-form__markdown-field">
-          <label class="quiz-edit-form__markdown-label" i18n>Fragetext</label>
+          <label class="quiz-edit-form__markdown-label" for="quiz-edit-question-text" i18n
+            >Fragetext</label
+          >
           <app-markdown-katex-editor
+            fieldId="quiz-edit-question-text"
             [value]="textControl.value"
             (valueChange)="textControl.setValue($event); onLivePreviewInput()"
             [rows]="4"
@@ -533,7 +539,7 @@
             <mat-select
               formControlName="type"
               (selectionChange)="onTypeChanged()"
-              i18n-aria-label
+              i18n-aria-label="@@quizEdit.questionTypeAria"
               aria-label="Fragetyp wählen"
             >
               @for (option of questionTypeOptions; track option.value) {
@@ -547,7 +553,7 @@
               <mat-label i18n>Schwierigkeit</mat-label>
               <mat-select
                 formControlName="difficulty"
-                i18n-aria-label
+                i18n-aria-label="@@quizEdit.difficultyAria"
                 aria-label="Schwierigkeit wählen"
               >
                 @for (option of difficultyOptions; track option.value) {
@@ -710,7 +716,7 @@
             <mat-select
               [value]="null"
               (selectionChange)="applyScFormat($event.value)"
-              i18n-aria-label
+              i18n-aria-label="@@quizEdit.quickFormatAria"
               aria-label="Schnellformat wählen"
             >
               @for (format of scFormatOptions; track format.value) {
@@ -939,7 +945,7 @@
               <mat-label i18n>Skala</mat-label>
               <mat-select
                 formControlName="ratingMax"
-                i18n-aria-label
+                i18n-aria-label="@@quizEdit.ratingScaleAria"
                 aria-label="Bewertungsskala wählen"
               >
                 <mat-option [value]="5">1 bis 5</mat-option>
@@ -1245,7 +1251,7 @@
                       mat-icon-button
                       type="button"
                       (click)="setSingleCorrect(i)"
-                      [attr.aria-label]="'Antwort ' + (i + 1) + ' als richtig markieren'"
+                      [attr.aria-label]="markSingleCorrectAriaLabel(i + 1)"
                     >
                       <mat-icon>
                         {{ isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked' }}
@@ -1255,7 +1261,7 @@
                     <mat-checkbox
                       [checked]="isAnswerCorrect(i)"
                       (change)="toggleMultipleCorrect(i, $event.checked)"
-                      [attr.aria-label]="'Antwort ' + (i + 1) + ' richtig'"
+                      [attr.aria-label]="toggleMultipleCorrectAriaLabel(i + 1)"
                     >
                       Richtig
                     </mat-checkbox>
@@ -1272,8 +1278,11 @@
                 </div>
 
                 <div class="quiz-edit-answer__field">
-                  <label class="quiz-edit-answer__label">{{ answerEditorLabel(i) }}</label>
+                  <label class="quiz-edit-answer__label" [attr.for]="'quiz-edit-answer-' + i">{{
+                    answerEditorLabel(i)
+                  }}</label>
                   <app-markdown-katex-editor
+                    [fieldId]="'quiz-edit-answer-' + i"
                     [value]="answerTextControl(i).value"
                     (valueChange)="answerTextControl(i).setValue($event); onLivePreviewInput()"
                     [rows]="2"
@@ -1305,7 +1314,7 @@
                   class="quiz-edit-answer__remove"
                   [disabled]="!canRemoveAnswer()"
                   (click)="removeAnswer(i)"
-                  [attr.aria-label]="'Antwort ' + (i + 1) + ' entfernen'"
+                  [attr.aria-label]="removeAnswerAriaLabel(i + 1)"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -1414,7 +1423,11 @@
       </form>
     </ng-template>
 
-    <section class="quiz-edit-list l-stack l-stack--md" i18n-aria-label aria-label="Fragenliste">
+    <section
+      class="quiz-edit-list l-stack l-stack--md"
+      i18n-aria-label="@@quizEdit.questionsListAria"
+      aria-label="Fragenliste"
+    >
       <div class="quiz-edit-list__page-head dialog-title-header dialog-title-header--page">
         <span class="dialog-title-header__icon" aria-hidden="true">
           <mat-icon>format_list_numbered</mat-icon>
@@ -1442,12 +1455,15 @@
           </mat-card-content>
         </mat-card>
       } @else {
+        <p class="quiz-edit-list__reorder-status sr-only" aria-live="polite" aria-atomic="true">
+          {{ questionReorderAnnouncement() }}
+        </p>
         <div
           cdkDropList
           class="quiz-edit-list__drop-zone"
           (cdkDropListDropped)="onQuestionDrop($event)"
         >
-          @for (question of questions(); track question.id) {
+          @for (question of questions(); track question.id; let questionIndex = $index) {
             <mat-card
               cdkDrag
               [cdkDragDisabled]="editingQuestionId() === question.id"
@@ -1458,14 +1474,39 @@
             >
               <div class="quiz-edit-question__placeholder" *cdkDragPlaceholder></div>
               <mat-card-content class="quiz-edit-question__content">
-                <button
-                  cdkDragHandle
-                  class="quiz-edit-question__drag-handle"
-                  type="button"
-                  aria-label="Frage verschieben"
-                >
-                  <mat-icon>drag_indicator</mat-icon>
-                </button>
+                <div class="quiz-edit-question__reorder-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="quiz-edit-question__reorder-button"
+                    [disabled]="questionIndex === 0 || editingQuestionId() === question.id"
+                    [attr.aria-label]="moveQuestionUpLabel(questionIndex + 1)"
+                    (click)="moveQuestion(questionIndex, -1)"
+                  >
+                    <mat-icon aria-hidden="true">arrow_upward</mat-icon>
+                  </button>
+                  <button
+                    cdkDragHandle
+                    class="quiz-edit-question__drag-handle"
+                    type="button"
+                    [attr.aria-label]="dragQuestionLabel(questionIndex + 1)"
+                  >
+                    <mat-icon aria-hidden="true">drag_indicator</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="quiz-edit-question__reorder-button"
+                    [disabled]="
+                      questionIndex === questions().length - 1 ||
+                      editingQuestionId() === question.id
+                    "
+                    [attr.aria-label]="moveQuestionDownLabel(questionIndex + 1)"
+                    (click)="moveQuestion(questionIndex, 1)"
+                  >
+                    <mat-icon aria-hidden="true">arrow_downward</mat-icon>
+                  </button>
+                </div>
                 <div class="quiz-edit-question__body">
                   <div class="quiz-edit-question__header">
                     <p class="quiz-edit-question__meta">
@@ -1505,9 +1546,7 @@
                         type="button"
                         (click)="toggleQuestionExpanded(question.id)"
                         [attr.aria-expanded]="isQuestionExpanded(question.id)"
-                        [attr.aria-label]="
-                          isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'
-                        "
+                        [attr.aria-label]="questionExpandAriaLabel(isQuestionExpanded(question.id))"
                       >
                         <mat-icon>{{
                           isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more'
@@ -1786,7 +1825,7 @@
         mat-button
         routerLink=".."
         class="quiz-edit__bottom-action"
-        i18n-aria-label
+        i18n-aria-label="@@quizForm.backToListAria"
         aria-label="Zurück zur Quiz-Liste"
       >
         <mat-icon>arrow_back</mat-icon>
@@ -1839,7 +1878,7 @@
           class="quiz-edit__bottom-action"
           type="button"
           (click)="openPreview()"
-          i18n-aria-label
+          i18n-aria-label="@@quiz.previewOpenAria"
           aria-label="Vorschau öffnen"
         >
           <mat-icon>visibility</mat-icon>
@@ -1852,7 +1891,12 @@
   <mat-card appearance="outlined" class="quiz-edit__not-found">
     <mat-card-content>
       <p class="quiz-edit__not-found-text" i18n>Quiz nicht gefunden.</p>
-      <a mat-button routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
+      <a
+        mat-button
+        routerLink=".."
+        i18n-aria-label="@@quizForm.backToListAria"
+        aria-label="Zurück zur Quiz-Liste"
+      >
         <mat-icon>arrow_back</mat-icon>
         <span i18n>Zur Liste</span>
       </a>

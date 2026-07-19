@@ -110,6 +110,53 @@
   letter-spacing: 0.01em;
 }
 
+.markdown-image-lightbox__controls {
+  position: absolute;
+  top: max(0.5rem, env(safe-area-inset-top));
+  left: max(0.5rem, env(safe-area-inset-left));
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: calc(100% - 10rem);
+  padding: 0.25rem;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 999px;
+  background: rgb(15 18 24 / 78%);
+  color: #fff;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 24%);
+}
+
+.markdown-image-lightbox__control {
+  width: 2.75rem;
+  height: 2.75rem;
+  color: #fff;
+
+  &:focus-visible {
+    outline: 3px solid rgb(255 255 255 / 82%);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    color: rgb(255 255 255 / 38%);
+  }
+}
+
+.markdown-image-lightbox__zoom-status {
+  min-width: 3.4rem;
+  text-align: center;
+  font: var(--mat-sys-label-large);
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-image-lightbox__controls-divider {
+  width: 1px;
+  height: 1.75rem;
+  margin-inline: 0.125rem;
+  background: rgb(255 255 255 / 32%);
+}
+
 @keyframes markdown-image-lightbox-enter {
   from {
     opacity: 0;
@@ -143,6 +190,15 @@
 }
 
 @media (max-width: 599px) {
+  .markdown-image-lightbox__controls {
+    top: calc(max(0.35rem, env(safe-area-inset-top)) + 3.25rem);
+    right: max(0.35rem, env(safe-area-inset-right));
+    left: max(0.35rem, env(safe-area-inset-left));
+    justify-content: center;
+    max-width: none;
+    border-radius: 1rem;
+  }
+
   .markdown-image-lightbox__close {
     top: max(0.35rem, env(safe-area-inset-top));
     right: max(0.35rem, env(safe-area-inset-right));

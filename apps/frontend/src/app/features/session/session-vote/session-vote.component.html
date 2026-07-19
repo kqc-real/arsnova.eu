@@ -6,8 +6,7 @@
     [class.vote-page--with-bottom-actions]="showBottomActionBar()"
     [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
     [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
-    role="dialog"
-    aria-modal="true"
+    role="region"
     aria-labelledby="vote-session-end-anchor"
   >
     <header class="dialog-title-header dialog-title-header--page vote-session-end-gate__hero">
@@ -75,9 +74,15 @@
               <button
                 class="vote-feedback-card__star"
                 type="button"
+                role="radio"
+                [attr.data-star]="s"
                 [class.vote-feedback-card__star--active]="s <= feedbackOverall()"
-                [attr.aria-pressed]="s <= feedbackOverall()"
+                [attr.aria-checked]="feedbackOverall() === s"
+                [attr.tabindex]="
+                  feedbackOverall() === s || (feedbackOverall() === 0 && s === 1) ? 0 : -1
+                "
                 (click)="setFeedbackOverall(s)"
+                (keydown)="onFeedbackStarKeydown($event, 'overall', s)"
                 [attr.aria-label]="starsAriaLabel(s)"
               >
                 {{ s <= feedbackOverall() ? '★' : '☆' }}
@@ -99,9 +104,15 @@
               <button
                 class="vote-feedback-card__star"
                 type="button"
+                role="radio"
+                [attr.data-star]="s"
                 [class.vote-feedback-card__star--active]="s <= feedbackQuality()"
-                [attr.aria-pressed]="s <= feedbackQuality()"
+                [attr.aria-checked]="feedbackQuality() === s"
+                [attr.tabindex]="
+                  feedbackQuality() === s || (feedbackQuality() === 0 && s === 1) ? 0 : -1
+                "
                 (click)="setFeedbackQuality(s)"
+                (keydown)="onFeedbackStarKeydown($event, 'quality', s)"
                 [attr.aria-label]="starsAriaLabel(s)"
               >
                 {{ s <= feedbackQuality() ? '★' : '☆' }}
@@ -165,6 +176,7 @@
       [class.vote-page__bottom-actions--double]="sessionEndGateActionCount() === 2"
       [class.vote-page__bottom-actions--triple]="sessionEndGateActionCount() === 3"
       [class.vote-page__bottom-actions--with-primary]="showSessionEndGateFeedbackAction()"
+      i18n-aria-label="@@sessionVote.sessionActionsAria"
       aria-label="Session-Aktionen"
     >
       @if (showSessionEndGateFeedbackAction()) {
@@ -692,9 +704,15 @@
                     <button
                       class="vote-feedback-card__star"
                       type="button"
+                      role="radio"
+                      [attr.data-star]="s"
                       [class.vote-feedback-card__star--active]="s <= feedbackOverall()"
-                      [attr.aria-pressed]="s <= feedbackOverall()"
+                      [attr.aria-checked]="feedbackOverall() === s"
+                      [attr.tabindex]="
+                        feedbackOverall() === s || (feedbackOverall() === 0 && s === 1) ? 0 : -1
+                      "
                       (click)="setFeedbackOverall(s)"
+                      (keydown)="onFeedbackStarKeydown($event, 'overall', s)"
                       [attr.aria-label]="starsAriaLabel(s)"
                     >
                       {{ s <= feedbackOverall() ? '★' : '☆' }}
@@ -716,9 +734,15 @@
                     <button
                       class="vote-feedback-card__star"
                       type="button"
+                      role="radio"
+                      [attr.data-star]="s"
                       [class.vote-feedback-card__star--active]="s <= feedbackQuality()"
-                      [attr.aria-pressed]="s <= feedbackQuality()"
+                      [attr.aria-checked]="feedbackQuality() === s"
+                      [attr.tabindex]="
+                        feedbackQuality() === s || (feedbackQuality() === 0 && s === 1) ? 0 : -1
+                      "
                       (click)="setFeedbackQuality(s)"
+                      (keydown)="onFeedbackStarKeydown($event, 'quality', s)"
                       [attr.aria-label]="starsAriaLabel(s)"
                     >
                       {{ s <= feedbackQuality() ? '★' : '☆' }}
@@ -791,7 +815,11 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+            <div
+              class="vote-question__meta"
+              i18n-aria-label="@@session.questionMetadataAria"
+              aria-label="Frage-Metadaten"
+            >
               @if (showQuestionTypeIndicators(q)) {
                 <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
               }
@@ -849,7 +877,11 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+            <div
+              class="vote-question__meta"
+              i18n-aria-label="@@session.questionMetadataAria"
+              aria-label="Frage-Metadaten"
+            >
               @if (showQuestionTypeIndicators(q)) {
                 <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
               }
@@ -912,7 +944,11 @@
                 </span>
               }
             </div>
-            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+            <div
+              class="vote-question__meta"
+              i18n-aria-label="@@session.questionMetadataAria"
+              aria-label="Frage-Metadaten"
+            >
               @if (showQuestionTypeIndicators(q)) {
                 <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
               }
@@ -984,7 +1020,7 @@
                     ></app-answer-option-badge>
                     <span
                       class="vote-answer__text markdown-body"
-                      [innerHTML]="renderMarkdown(a.text)"
+                      [innerHTML]="renderMarkdown(a.text, 4)"
                     ></span>
                     @if (showsCorrectness) {
                       @if (a.isCorrect) {
@@ -1010,7 +1046,11 @@
             </ul>
           } @else if ($any(q).type === 'FREETEXT' && isActive()) {
             <div class="vote-freetext">
+              <label class="vote-freetext__label" for="vote-freetext-input">
+                {{ vpc.voteFreetextPlaceholder(isPlayfulPreset()) }}
+              </label>
               <textarea
+                id="vote-freetext-input"
                 class="vote-freetext__input"
                 [value]="freeTextValue()"
                 (input)="onTextVoteInput($any($event.target).value)"
@@ -1035,9 +1075,14 @@
             </div>
           } @else if ($any(q).type === 'SHORT_TEXT' && isActive()) {
             <div class="vote-freetext vote-freetext--short">
+              <label class="vote-freetext__label" for="vote-short-text-input">
+                {{ vpc.voteShortTextPlaceholder(isPlayfulPreset()) }}
+              </label>
               <input
+                id="vote-short-text-input"
                 class="vote-freetext__input vote-freetext__input--short"
                 type="text"
+                aria-describedby="vote-short-text-counter"
                 [value]="freeTextValue()"
                 (input)="onTextVoteInput($any($event.target).value)"
                 [placeholder]="vpc.voteShortTextPlaceholder(isPlayfulPreset())"
@@ -1046,6 +1091,7 @@
               />
               <div class="vote-freetext__meta">
                 <span
+                  id="vote-short-text-counter"
                   class="vote-freetext__counter"
                   [class.vote-freetext__counter--warn]="shortTextValidationError() !== null"
                 >
@@ -1844,7 +1890,7 @@
                           qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
                         "
                         (click)="voteQa(question.id, 'UP')"
-                        aria-label="Upvote"
+                        [attr.aria-label]="qaVoteAriaLabel(question, 'UP')"
                       >
                         <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
                       </button>
@@ -1863,7 +1909,7 @@
                           qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
                         "
                         (click)="voteQa(question.id, 'DOWN')"
-                        aria-label="Downvote"
+                        [attr.aria-label]="qaVoteAriaLabel(question, 'DOWN')"
                       >
                         <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
                       </button>
@@ -1986,6 +2032,7 @@
         [class.vote-page__bottom-actions--double]="finishedActionCount() === 2"
         [class.vote-page__bottom-actions--triple]="finishedActionCount() === 3"
         [class.vote-page__bottom-actions--with-primary]="showFinishedFeedbackAction()"
+        i18n-aria-label="@@sessionVote.finishedActionsAria"
         aria-label="Abschluss-Aktionen"
       >
         @if (showFinishedFeedbackAction()) {
@@ -2023,6 +2070,7 @@
     } @else if (showVoteSubmitAction()) {
       <div
         class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        i18n-aria-label="@@sessionVote.quizActionsAria"
         aria-label="Quiz-Aktionen"
       >
         <button
@@ -2033,7 +2081,6 @@
           class="vote-page__bottom-action vote-page__bottom-action--primary"
           [class.vote-submit--pending]="voteSending()"
           [disabled]="voteSubmitDisabled()"
-          (pointerdown)="onVoteSubmitPointerDown($event)"
           (click)="submitVote()"
         >
           <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
@@ -2042,6 +2089,7 @@
     } @else if (showQaSubmitAction()) {
       <div
         class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        i18n-aria-label="@@sessionVote.qaActionsAria"
         aria-label="Q&A-Aktionen"
       >
         <button

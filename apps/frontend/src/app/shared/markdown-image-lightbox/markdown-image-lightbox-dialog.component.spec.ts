@@ -58,7 +58,7 @@ describe('MarkdownImageLightboxDialogComponent', () => {
       }
     ).naturalHeight = 500;
 
-    return { component, close };
+    return { component, close, fixture };
   }
 
   it('schließt bei Klick in die Leerfläche um das sichtbare Bild', () => {
@@ -75,5 +75,38 @@ describe('MarkdownImageLightboxDialogComponent', () => {
     component.onViewportClick(new MouseEvent('click', { clientX: 500, clientY: 500 }));
 
     expect(close).not.toHaveBeenCalled();
+  });
+
+  it('bietet Zoom und Pan ohne Ziehbewegung an', () => {
+    const { component, fixture } = setup();
+
+    const zoomIn = fixture.nativeElement.querySelector(
+      'button[aria-label="Vergrößern"]',
+    ) as HTMLButtonElement;
+    expect(zoomIn).toBeTruthy();
+    expect(component.zoomPercent()).toBe(100);
+    expect(
+      fixture.nativeElement
+        .querySelector('.markdown-image-lightbox__zoom-status')
+        ?.getAttribute('aria-label'),
+    ).toBe('Zoom: 100 Prozent');
+
+    zoomIn.click();
+    fixture.detectChanges();
+
+    expect(component.zoomPercent()).toBe(150);
+    expect(component.zoomStatusAriaLabel()).toBe('Zoom: 150 Prozent');
+    expect(
+      fixture.nativeElement.querySelector(
+        'button[aria-label="Bildausschnitt nach rechts verschieben"]',
+      ),
+    ).toBeTruthy();
+
+    component.panImage(1, 0);
+    expect(component.translateX).toBeLessThan(0);
+
+    component.resetView();
+    expect(component.zoomPercent()).toBe(100);
+    expect(component.translateX).toBe(0);
   });
 });

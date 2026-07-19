@@ -140,7 +140,9 @@ describe('Quiz example imports (all formats)', () => {
       expect(firstQuestion).toBeTruthy();
 
       if (!firstQuestion) continue;
-      const renderedQuestion = renderMarkdownWithKatex(firstQuestion.text);
+      const renderedQuestion = renderMarkdownWithKatex(firstQuestion.text, {
+        headingStartLevel: 3,
+      });
       expect(renderedQuestion.katexError).toBeNull();
       expect(renderedQuestion.html).toContain('<h3');
       if (firstQuestion.text.includes('$')) {

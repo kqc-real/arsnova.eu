@@ -765,7 +765,10 @@ export class QuizPreviewComponent implements OnDestroy {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, { imagePolicy: 'allow-relative-and-https' }).html,
+      renderMarkdownWithKatex(value, {
+        imagePolicy: 'allow-relative-and-https',
+        headingStartLevel: 3,
+      }).html,
     );
     this.markdownCache.set(value, rendered);
     return rendered;
@@ -778,7 +781,10 @@ export class QuizPreviewComponent implements OnDestroy {
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
-        renderMarkdownWithKatex(value, { imagePolicy: 'allow-relative-and-https' }).html,
+        renderMarkdownWithKatex(value, {
+          imagePolicy: 'allow-relative-and-https',
+          headingStartLevel: 4,
+        }).html,
       ),
     );
     this.answerMarkdownCache.set(value, rendered);

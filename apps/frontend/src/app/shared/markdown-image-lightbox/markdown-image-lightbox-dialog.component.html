@@ -12,6 +12,100 @@
   </button>
 
   <div
+    class="markdown-image-lightbox__controls"
+    role="group"
+    i18n-aria-label="@@markdownImageLightbox.controlsAria"
+    aria-label="Bildansicht steuern"
+  >
+    <button
+      mat-icon-button
+      type="button"
+      class="markdown-image-lightbox__control"
+      [disabled]="!canZoomOut()"
+      (click)="zoomOut()"
+      i18n-aria-label="@@markdownImageLightbox.zoomOut"
+      aria-label="Verkleinern"
+    >
+      <mat-icon aria-hidden="true">remove</mat-icon>
+    </button>
+    <output
+      class="markdown-image-lightbox__zoom-status"
+      aria-live="polite"
+      [attr.aria-label]="zoomStatusAriaLabel()"
+    >
+      {{ zoomPercent() }} %
+    </output>
+    <button
+      mat-icon-button
+      type="button"
+      class="markdown-image-lightbox__control"
+      [disabled]="!canZoomIn()"
+      (click)="zoomIn()"
+      i18n-aria-label="@@markdownImageLightbox.zoomIn"
+      aria-label="Vergrößern"
+    >
+      <mat-icon aria-hidden="true">add</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      class="markdown-image-lightbox__control"
+      [disabled]="!isZoomed()"
+      (click)="resetView()"
+      i18n-aria-label="@@markdownImageLightbox.reset"
+      aria-label="Originalansicht wiederherstellen"
+    >
+      <mat-icon aria-hidden="true">center_focus_strong</mat-icon>
+    </button>
+
+    @if (isZoomed()) {
+      <span class="markdown-image-lightbox__controls-divider" aria-hidden="true"></span>
+      <button
+        mat-icon-button
+        type="button"
+        class="markdown-image-lightbox__control"
+        (click)="panImage(-1, 0)"
+        i18n-aria-label="@@markdownImageLightbox.panLeft"
+        aria-label="Bildausschnitt nach links verschieben"
+      >
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        class="markdown-image-lightbox__control"
+        (click)="panImage(0, -1)"
+        i18n-aria-label="@@markdownImageLightbox.panUp"
+        aria-label="Bildausschnitt nach oben verschieben"
+      >
+        <mat-icon aria-hidden="true">arrow_upward</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        class="markdown-image-lightbox__control"
+        (click)="panImage(0, 1)"
+        i18n-aria-label="@@markdownImageLightbox.panDown"
+        aria-label="Bildausschnitt nach unten verschieben"
+      >
+        <mat-icon aria-hidden="true">arrow_downward</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        class="markdown-image-lightbox__control"
+        (click)="panImage(1, 0)"
+        i18n-aria-label="@@markdownImageLightbox.panRight"
+        aria-label="Bildausschnitt nach rechts verschieben"
+      >
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Pointer gestures supplement the visible keyboard-operable zoom, pan, reset and close controls. -->
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+  <div
     #viewport
     class="markdown-image-lightbox__viewport"
     [class.markdown-image-lightbox__viewport--zoomed]="isZoomed()"

@@ -85,6 +85,28 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
       return;
     }
 
+    this.openMarkdownImage(image, event);
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    if (!(event.target instanceof HTMLImageElement)) {
+      return;
+    }
+    if (event.target.dataset['markdownImageLightbox'] !== 'true') {
+      return;
+    }
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      return;
+    }
+
+    this.openMarkdownImage(event.target, event);
+  }
+
+  private openMarkdownImage(image: HTMLImageElement, event: Event): void {
     const src = image.currentSrc || image.src || image.getAttribute('src');
     if (!src) {
       return;
@@ -101,7 +123,7 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
 
     this.dialog.open(MarkdownImageLightboxDialogComponent, {
       data,
-      autoFocus: false,
+      autoFocus: 'first-tabbable',
       restoreFocus: true,
       enterAnimationDuration: 180,
       exitAnimationDuration: 140,
@@ -195,6 +217,15 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
   }
 
   private syncImageState(image: HTMLImageElement): void {
+    const description =
+      image.alt.trim() || $localize`:@@markdownImageLightbox.genericImageLabel:Bild`;
+    image.setAttribute('role', 'button');
+    image.setAttribute('tabindex', '0');
+    image.setAttribute(
+      'aria-label',
+      $localize`:@@markdownImageLightbox.openImageAria:${description}:imageDescription: in Vollansicht öffnen`,
+    );
+
     if (!this.managedImages.has(image)) {
       image.addEventListener('load', this.onImageLoad);
       image.addEventListener('error', this.onImageError);

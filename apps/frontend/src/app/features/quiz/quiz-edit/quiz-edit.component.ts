@@ -348,6 +348,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
+  readonly questionReorderAnnouncement = signal('');
   readonly questionDrafts = signal<Record<string, AddQuizQuestionInput>>({});
   readonly expandedQuestionIds = signal<Set<string>>(new Set());
   readonly showSettings = signal(false);
@@ -1193,7 +1194,10 @@ export class QuizEditComponent implements OnDestroy {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
+      renderMarkdownWithKatex(source, {
+        imagePolicy: 'allow-relative-and-https',
+        headingStartLevel: 3,
+      }).html,
     );
     this.markdownCache.set(source, rendered);
     return rendered;
@@ -1207,7 +1211,10 @@ export class QuizEditComponent implements OnDestroy {
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
-        renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
+        renderMarkdownWithKatex(source, {
+          imagePolicy: 'allow-relative-and-https',
+          headingStartLevel: 4,
+        }).html,
       ),
     );
     this.answerMarkdownCache.set(source, rendered);
@@ -1236,6 +1243,24 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     return $localize`:@@quizEdit.answerLabel:Antwort ${index + 1}:answerNumber:`;
+  }
+
+  markSingleCorrectAriaLabel(answerNumber: number): string {
+    return $localize`:@@quizEdit.markAnswerCorrectAria:Antwort ${answerNumber}:answerNumber: als richtig markieren`;
+  }
+
+  toggleMultipleCorrectAriaLabel(answerNumber: number): string {
+    return $localize`:@@quizEdit.toggleAnswerCorrectAria:Antwort ${answerNumber}:answerNumber: richtig`;
+  }
+
+  removeAnswerAriaLabel(answerNumber: number): string {
+    return $localize`:@@quizEdit.removeAnswerAria:Antwort ${answerNumber}:answerNumber: entfernen`;
+  }
+
+  questionExpandAriaLabel(expanded: boolean): string {
+    return expanded
+      ? $localize`:@@quizEdit.collapseQuestionAria:Frage zuklappen`
+      : $localize`:@@quizEdit.expandQuestionAria:Frage aufklappen`;
   }
 
   answerPreviewLabel(): string {
@@ -2249,10 +2274,50 @@ export class QuizEditComponent implements OnDestroy {
     if (event.previousIndex === event.currentIndex) return;
     try {
       this.quizStore.reorderQuestions(this.id, event.previousIndex, event.currentIndex);
+      this.announceQuestionReorder(event.previousIndex, event.currentIndex);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Verschieben fehlgeschlagen.';
+      const message =
+        error instanceof Error ? error.message : $localize`Verschieben fehlgeschlagen.`;
       this.submitError.set(message);
     }
+  }
+
+  moveQuestion(index: number, direction: -1 | 1): void {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= this.questions().length) {
+      return;
+    }
+
+    try {
+      this.quizStore.reorderQuestions(this.id, index, targetIndex);
+      this.announceQuestionReorder(index, targetIndex);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : $localize`Verschieben fehlgeschlagen.`;
+      this.submitError.set(message);
+    }
+  }
+
+  moveQuestionUpLabel(position: number): string {
+    return $localize`:@@quiz.edit.moveQuestionUp:Frage ${position}:position: nach oben verschieben`;
+  }
+
+  moveQuestionDownLabel(position: number): string {
+    return $localize`:@@quiz.edit.moveQuestionDown:Frage ${position}:position: nach unten verschieben`;
+  }
+
+  dragQuestionLabel(position: number): string {
+    return $localize`:@@quiz.edit.dragQuestion:Frage ${position}:position: durch Ziehen verschieben`;
+  }
+
+  private announceQuestionReorder(previousIndex: number, currentIndex: number): void {
+    const previousPosition = previousIndex + 1;
+    const currentPosition = currentIndex + 1;
+    const total = this.questions().length;
+    const message = $localize`:@@quiz.edit.questionMovedAnnouncement:Frage ${previousPosition}:previousPosition: wurde an Position ${currentPosition}:currentPosition: von ${total}:total: verschoben.`;
+
+    this.questionReorderAnnouncement.set('');
+    queueMicrotask(() => this.questionReorderAnnouncement.set(message));
   }
 
   private showQuestionAddedFeedback(): void {
@@ -3234,12 +3299,14 @@ export class QuizEditComponent implements OnDestroy {
     this.previewTimer = setTimeout(() => {
       const questionResult = renderMarkdownWithKatex(this.textControl.value, {
         imagePolicy: 'allow-relative-and-https',
+        headingStartLevel: 3,
       });
       this.questionPreviewHtml.set(this.sanitizer.bypassSecurityTrustHtml(questionResult.html));
 
       const answerResults = this.answersArray.controls.map((answer) =>
         renderMarkdownWithKatex(answer.controls.text.value, {
           imagePolicy: 'allow-relative-and-https',
+          headingStartLevel: 4,
         }),
       );
       this.answerPreviewHtml.set(

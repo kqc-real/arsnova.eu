@@ -580,12 +580,20 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
+    (
+      fixture.componentInstance as unknown as {
+        suppressJoinMenuAutopen: boolean;
+      }
+    ).suppressJoinMenuAutopen = true;
     fixture.componentInstance.joinInfoPopoverOpen.set(true);
     fixture.detectChanges();
 
     const overlay = fixture.nativeElement.querySelector(
       '.session-host__join-viewport-overlay',
     ) as HTMLElement | null;
+    const trigger = fixture.nativeElement.querySelector(
+      '[aria-controls="session-host-join-info"]',
+    ) as HTMLButtonElement | null;
     const text = overlay?.textContent ?? '';
     const closeButton = Array.from(overlay?.querySelectorAll('button') ?? []).find((button) =>
       (button.textContent ?? '').includes('Zur Lobby'),
@@ -593,11 +601,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(text).toContain('Live-Ansicht:');
     expect(closeButton).toBeDefined();
+    expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
 
     closeButton?.click();
     fixture.detectChanges();
+    await Promise.resolve();
 
     expect(fixture.componentInstance.joinInfoPopoverOpen()).toBe(false);
+    expect(document.activeElement).toBe(trigger);
     fixture.destroy();
   });
 
@@ -5204,7 +5215,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(component.hasCurrentQuizQuestionForHost()).toBe(true);
     expect(host.textContent).toContain('Welche Antwort ist richtig?');
     expect(host.textContent).not.toContain('Frage wird aktualisiert');
-    expect(host.querySelector('.session-host__countdown')?.textContent?.trim()).toBe('12');
+    const countdown = host.querySelector('.session-host__countdown');
+    expect(countdown?.textContent?.trim()).toBe('12');
+    expect(countdown?.getAttribute('aria-label')).toBe('12 Sekunden verbleibend');
     fixture.destroy();
   });
 
@@ -6249,7 +6262,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Nachbesprechungsplan ansehen');
     expect(text).toContain('Welche Aussage stimmt?');
     expect(
-      fixture.nativeElement.querySelector('.session-host__finished-confidence-question-markdown h3')
+      fixture.nativeElement.querySelector('.session-host__finished-confidence-question-markdown h4')
         ?.textContent,
     ).toContain('Welche Aussage stimmt?');
     expect(

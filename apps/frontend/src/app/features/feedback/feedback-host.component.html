@@ -101,7 +101,7 @@
           type="button"
           class="feedback-host__next-round-cta"
           (click)="startSecondRound()"
-          i18n-aria-label
+          i18n-aria-label="@@feedback.secondRoundStartAria"
           aria-label="Zweite Abstimmung starten"
         >
           <mat-icon>replay</mat-icon>
@@ -125,7 +125,7 @@
         mat-button
         type="button"
         (click)="copyLink()"
-        i18n-aria-label
+        i18n-aria-label="@@feedback.copyJoinLinkAria"
         aria-label="Beitrittslink kopieren"
       >
         <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
@@ -140,7 +140,7 @@
         type="button"
         (click)="resetRound()"
         [disabled]="resetting()"
-        i18n-aria-label
+        i18n-aria-label="@@feedback.resetResultsAria"
         aria-label="Ergebnisse zurücksetzen"
       >
         <mat-icon>restart_alt</mat-icon>
@@ -244,6 +244,7 @@
     class="feedback-host app-live-channel-shell"
     [class.feedback-host--embedded]="embeddedInSession()"
     [class.feedback-host--with-bottom-actions]="showStandaloneBottomActionBar()"
+    [attr.inert]="tempoHelpOpen() ? '' : null"
   >
     <div class="feedback-host__wrapper">
       <section
@@ -260,7 +261,7 @@
                     mat-icon-button
                     type="button"
                     class="feedback-host__standalone-join-control"
-                    (click)="toggleFeedbackJoinPopover()"
+                    (click)="toggleFeedbackJoinPopover($event)"
                     [attr.aria-expanded]="feedbackJoinPopoverOpen()"
                     aria-haspopup="dialog"
                     aria-controls="feedback-host-join-info"
@@ -287,6 +288,8 @@
                 role="presentation"
                 (click)="closeFeedbackJoinPopover()"
               >
+                <!-- Pointer bubbling would close the backdrop; Escape and the close button are keyboard equivalents. -->
+                <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
                 <div
                   class="feedback-host__join-viewport-overlay__surface feedback-host__join-menu-panel"
                   role="dialog"
@@ -294,12 +297,15 @@
                   aria-labelledby="feedback-host-join-origin"
                   id="feedback-host-join-info"
                   tabindex="-1"
+                  cdkTrapFocus
+                  [cdkTrapFocusAutoCapture]="true"
                   (click)="$event.stopPropagation()"
                 >
                   <button
                     mat-icon-button
                     type="button"
                     class="feedback-host__join-viewport-overlay__close"
+                    cdkFocusInitial
                     (click)="closeFeedbackJoinPopover()"
                     i18n-aria-label="@@sessionHost.joinOverlayCloseAria"
                     aria-label="Beitrittsinformationen schließen"
@@ -856,12 +862,22 @@
 }
 
 @if (tempoHelpOpen()) {
-  <div class="feedback-host__tempo-help-backdrop" (click)="closeTempoHelp()">
+  <div
+    class="feedback-host__tempo-help-backdrop"
+    role="presentation"
+    tabindex="-1"
+    (click)="closeTempoHelp()"
+    (keydown.escape)="closeTempoHelp()"
+  >
+    <!-- Pointer bubbling would close the backdrop; Escape and the close button are keyboard equivalents. -->
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
     <section
       class="feedback-host__tempo-help"
       role="dialog"
       aria-modal="true"
       [attr.aria-label]="tempoHelpTitle"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
       (click)="$event.stopPropagation()"
     >
       <div class="feedback-host__tempo-help-header">
@@ -871,6 +887,7 @@
           mat-icon-button
           type="button"
           class="feedback-host__tempo-help-close"
+          cdkFocusInitial
           (click)="closeTempoHelp()"
           [attr.aria-label]="tempoHelpCloseAria"
         >

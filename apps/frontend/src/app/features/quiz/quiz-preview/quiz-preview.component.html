@@ -267,8 +267,11 @@
                 </div>
               }
 
-              <p class="quiz-preview-editor__label" i18n>Frage</p>
+              <label class="quiz-preview-editor__label" for="quiz-preview-question-text" i18n
+                >Frage</label
+              >
               <app-markdown-katex-editor
+                fieldId="quiz-preview-question-text"
                 [value]="questionDraftText()"
                 (valueChange)="onQuestionDraftChanged($event)"
                 [rows]="4"
@@ -395,9 +398,11 @@
                         questionTypeHasCorrectAnswers(question.type) && draftAnswerIsCorrect(i)
                       "
                     >
-                      <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
-                        answerOptionLabel(i)
-                      }}</span>
+                      <label
+                        class="quiz-preview-editor__answer-label"
+                        [attr.for]="'quiz-preview-answer-' + i"
+                        >{{ answerOptionLabel(i) }}</label
+                      >
                       @if (questionTypeHasCorrectAnswers(question.type)) {
                         <button
                           mat-icon-button
@@ -424,6 +429,7 @@
                       }
                       <div class="quiz-preview-editor__answer-input">
                         <app-markdown-katex-editor
+                          [fieldId]="'quiz-preview-answer-' + i"
                           [value]="answerDraftTexts()[i]"
                           (valueChange)="onAnswerDraftChanged(i, $event)"
                           [rows]="2"
@@ -515,13 +521,17 @@
     }
 
     @if (questions().length > 0) {
-      <nav class="quiz-preview__bottom-bar" i18n-aria-label aria-label="Vorschau-Steuerung">
+      <nav
+        class="quiz-preview__bottom-bar"
+        i18n-aria-label="@@quizPreview.controlsAria"
+        aria-label="Vorschau-Steuerung"
+      >
         <button
           mat-button
           type="button"
           class="quiz-preview__bottom-action"
           (click)="backToOrigin()"
-          i18n-aria-label
+          i18n-aria-label="@@contentPage.backAria"
           aria-label="Zurück zur vorherigen Seite"
         >
           <mat-icon>arrow_back</mat-icon>
@@ -534,7 +544,7 @@
             type="button"
             (click)="previousQuestion()"
             [disabled]="currentIndex() === 0"
-            i18n-aria-label
+            i18n-aria-label="@@quizPreview.previousQuestionAria"
             aria-label="Vorherige Frage"
           >
             <mat-icon>chevron_left</mat-icon>
@@ -547,7 +557,7 @@
             type="button"
             (click)="nextQuestion()"
             [disabled]="currentIndex() >= questions().length - 1"
-            i18n-aria-label
+            i18n-aria-label="@@quizPreview.nextQuestionAria"
             aria-label="Nächste Frage"
           >
             <mat-icon>chevron_right</mat-icon>
@@ -572,7 +582,7 @@
                 class="quiz-preview__bottom-action"
                 (click)="openLiveStartDialogForMode('full')"
                 [disabled]="liveStartPending() || validationWarnings().length > 0"
-                i18n-aria-label
+                i18n-aria-label="@@quizPreview.startWholeQuizAria"
                 aria-label="Ganzes Quiz starten"
               >
                 <mat-icon>{{ liveStartPending() ? 'sync' : 'restart_alt' }}</mat-icon>
@@ -585,7 +595,7 @@
                 [class.quiz-preview__valid-action--pending]="liveStartPending()"
                 (click)="openLiveStartDialogForMode('current')"
                 [disabled]="liveStartPending() || currentStartValidationWarnings().length > 0"
-                i18n-aria-label
+                i18n-aria-label="@@quizPreview.startFromQuestionAria"
                 aria-label="Ab dieser Frage live starten"
               >
                 <mat-icon>{{ liveStartPending() ? 'sync' : 'play_circle' }}</mat-icon>
@@ -619,7 +629,12 @@
   <mat-card appearance="outlined">
     <mat-card-content>
       <p class="quiz-preview__empty" i18n>Nicht gefunden.</p>
-      <a mat-button [routerLink]="['../../']" i18n-aria-label aria-label="Zurück zur Quiz-Liste">
+      <a
+        mat-button
+        [routerLink]="['../../']"
+        i18n-aria-label="@@quizForm.backToListAria"
+        aria-label="Zurück zur Quiz-Liste"
+      >
         <mat-icon>arrow_back</mat-icon>
         <span i18n>Zurück zur Liste</span>
       </a>

@@ -110,6 +110,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   private toolbarSelectionStash: { start: number; end: number } | null = null;
 
   @Input({ required: true }) value = '';
+  /** Globally unique ID used by the parent component's visible label. */
+  @Input({ required: true }) fieldId = '';
   @Input() disabled = false;
   @Input() placeholder = '';
   @Input() rows = 4;
@@ -144,6 +146,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   readonly previewResult = computed(() =>
     renderMarkdownWithKatex(this.debouncedValue(), {
       imagePolicy: 'allow-relative-and-https',
+      headingStartLevel: 3,
     }),
   );
 

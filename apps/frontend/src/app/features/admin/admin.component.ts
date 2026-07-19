@@ -549,9 +549,10 @@ export class AdminComponent implements OnInit {
   /**
    * Session-Detail: Fragen/Antworten wie in der Live-Ansicht (Markdown + KaTeX, DOMPurify im Util).
    */
-  renderQuizRichText(text: string): SafeHtml {
+  renderQuizRichText(text: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
     const { html } = renderMarkdownWithKatex(text ?? '', {
       imagePolicy: 'external-https-only',
+      headingStartLevel,
     });
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }

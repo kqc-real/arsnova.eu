@@ -1848,7 +1848,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('erfasst den Submit-Intent bereits auf Pointer-Down, bevor ein spaeterer Click verschluckt wird', async () => {
+  it('sendet erst beim Click und nicht bereits beim Pointer-Down', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -1895,17 +1895,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.countdownSeconds.set(1);
     fixture.detectChanges();
 
-    const event = {
-      button: 0,
-      pointerType: 'touch',
-      preventDefault: vi.fn(),
-    } as unknown as PointerEvent;
-    const submit = component.onVoteSubmitPointerDown(event);
-    component.countdownSeconds.set(0);
-    await submit;
+    const submitButton = fixture.nativeElement.querySelector('#vote-submit') as HTMLButtonElement;
+    submitButton.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
+    submitButton.dispatchEvent(new Event('pointercancel', { bubbles: true }));
+    await Promise.resolve();
 
-    expect(event.preventDefault).toHaveBeenCalledTimes(1);
-    expect(voteSubmitMutateMock).toHaveBeenCalledTimes(1);
+    expect(voteSubmitMutateMock).not.toHaveBeenCalled();
+
+    submitButton.click();
+    await vi.waitFor(() => expect(voteSubmitMutateMock).toHaveBeenCalledTimes(1));
     expect(voteSubmitMutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         answerIds: ['a1'],
@@ -1913,8 +1911,127 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       }),
     );
 
-    await component.submitVote();
-    expect(voteSubmitMutateMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('steuert Sterne-Radiogruppen mit den Pfeiltasten und verschiebt den Fokus', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const group = document.createElement('div');
+    const stars = [1, 2, 3, 4, 5].map((value) => {
+      const button = document.createElement('button');
+      button.dataset['star'] = String(value);
+      group.append(button);
+      return button;
+    });
+    document.body.append(group);
+    const preventDefault = vi.fn();
+
+    component.onFeedbackStarKeydown(
+      {
+        key: 'ArrowRight',
+        currentTarget: stars[1],
+        preventDefault,
+      } as unknown as KeyboardEvent,
+      'overall',
+      2,
+    );
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(component.feedbackOverall()).toBe(3);
+    expect(document.activeElement).toBe(stars[2]);
+
+    component.onFeedbackStarKeydown(
+      {
+        key: 'ArrowRight',
+        currentTarget: stars[4],
+        preventDefault,
+      } as unknown as KeyboardEvent,
+      'overall',
+      5,
+    );
+
+    expect(component.feedbackOverall()).toBe(1);
+    expect(document.activeElement).toBe(stars[0]);
+
+    group.remove();
+    fixture.destroy();
+  });
+
+  it('rendert die Sternebewertung als konsistente Radiogruppen', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.sessionSettings.set({ quizStarted: true });
+    component.showSessionEndGate.set(true);
+    fixture.detectChanges();
+
+    const groups = fixture.nativeElement.querySelectorAll(
+      '.vote-feedback-card__stars[role="radiogroup"]',
+    ) as NodeListOf<HTMLElement>;
+    const overallRadios = groups[0]?.querySelectorAll(
+      '.vote-feedback-card__star[role="radio"]',
+    ) as NodeListOf<HTMLButtonElement>;
+
+    expect(groups).toHaveLength(2);
+    expect(overallRadios).toHaveLength(5);
+    expect(overallRadios[0]?.getAttribute('tabindex')).toBe('0');
+    expect(overallRadios[1]?.getAttribute('tabindex')).toBe('-1');
+    expect(overallRadios[0]?.getAttribute('aria-checked')).toBe('false');
+
+    overallRadios[2]?.click();
+    fixture.detectChanges();
+
+    expect(overallRadios[2]?.getAttribute('aria-checked')).toBe('true');
+    expect(overallRadios[2]?.getAttribute('tabindex')).toBe('0');
+    fixture.destroy();
+  });
+
+  it('ordnet Freitext und Kurzantwort jeweils ein sichtbares Label zu', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.sessionSettings.set({ type: 'QUIZ' });
+    component.currentQuestion.set({
+      id: 'text-question',
+      text: 'Was denkst du?',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      activeAt: new Date().toISOString(),
+      timer: null,
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+    fixture.detectChanges();
+
+    const freeText = fixture.nativeElement.querySelector(
+      '#vote-freetext-input',
+    ) as HTMLTextAreaElement;
+    const freeTextLabel = fixture.nativeElement.querySelector(
+      'label[for="vote-freetext-input"]',
+    ) as HTMLLabelElement;
+    expect(freeText).not.toBeNull();
+    expect(freeTextLabel.textContent?.trim()).not.toBe('');
+
+    component.currentQuestion.update((question) => ({
+      ...question!,
+      type: 'SHORT_TEXT',
+      maxLength: 80,
+    }));
+    fixture.detectChanges();
+
+    const shortText = fixture.nativeElement.querySelector(
+      '#vote-short-text-input',
+    ) as HTMLInputElement;
+    const shortTextLabel = fixture.nativeElement.querySelector(
+      'label[for="vote-short-text-input"]',
+    ) as HTMLLabelElement;
+    expect(shortText).not.toBeNull();
+    expect(shortTextLabel.textContent?.trim()).not.toBe('');
+    expect(shortText.getAttribute('aria-describedby')).toBe('vote-short-text-counter');
     fixture.destroy();
   });
 
@@ -2984,6 +3101,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
+    const voteArrows = host.querySelectorAll('.session-qa-card__vote-arrow');
+    expect(voteArrows[0]?.getAttribute('aria-label')).toBe('Positiv bewerten');
+    expect(voteArrows[1]?.getAttribute('aria-label')).toBe('Negativ bewerten');
+    expect(component.qaVoteAriaLabel({ ...component.qaQuestions()[0]!, myVote: 'UP' }, 'UP')).toBe(
+      'Positivbewertung zurücknehmen',
+    );
     const badges = host.querySelectorAll('.session-qa-card__author-icon');
     (badges[0] as HTMLButtonElement).click();
     fixture.detectChanges();

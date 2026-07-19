@@ -1,4 +1,5 @@
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
@@ -405,6 +406,7 @@ function musicTracksForPhase(
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
     AnswerOptionBadgeComponent,
+    CdkTrapFocus,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
@@ -1256,6 +1258,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private suppressJoinMenuAutopen = false;
   /** Beitritts-Dialog (QR): volles Viewport-Overlay, mittig (Smartphone-Scanner). */
   readonly joinInfoPopoverOpen = signal(false);
+  private joinInfoFocusReturn: HTMLElement | null = null;
   private readonly markdownCache = new Map<string, SafeHtml>();
 
   private readonly injector = inject(Injector);
@@ -1878,12 +1881,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleJoinInfoPopover(): void {
-    this.joinInfoPopoverOpen.update((v) => !v);
+  toggleJoinInfoPopover(event?: Event): void {
+    if (this.joinInfoPopoverOpen()) {
+      this.closeJoinInfoPopover();
+      return;
+    }
+    const eventTarget = event?.currentTarget;
+    const activeElement = this.document.activeElement;
+    this.joinInfoFocusReturn =
+      eventTarget instanceof HTMLElement
+        ? eventTarget
+        : activeElement instanceof HTMLElement
+          ? activeElement
+          : null;
+    this.joinInfoPopoverOpen.set(true);
   }
 
   closeJoinInfoPopover(): void {
+    const focusReturn =
+      this.joinInfoFocusReturn ??
+      this.document.querySelector<HTMLElement>('[aria-controls="session-host-join-info"]');
+    this.joinInfoFocusReturn = null;
     this.joinInfoPopoverOpen.set(false);
+    queueMicrotask(() => {
+      if (focusReturn?.isConnected) {
+        focusReturn.focus({ preventScroll: true });
+      }
+    });
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -3898,18 +3922,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return q.order === 0;
   }
 
+  countdownAriaLabel(): string {
+    const seconds = this.countdownSeconds() ?? 0;
+    return seconds === 1
+      ? $localize`:@@sessionHost.countdownAriaOne:1 Sekunde verbleibend`
+      : $localize`:@@sessionHost.countdownAriaMany:${seconds}:seconds: Sekunden verbleibend`;
+  }
+
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
-  renderMarkdown(value: string): SafeHtml {
-    const cached = this.markdownCache.get(value);
+  renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
+    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
-        renderMarkdownWithKatex(value, { imagePolicy: 'external-https-and-app-assets' }).html,
+        renderMarkdownWithKatex(value, {
+          imagePolicy: 'external-https-and-app-assets',
+          headingStartLevel,
+        }).html,
       ),
     );
-    this.markdownCache.set(value, rendered);
+    this.markdownCache.set(cacheKey, rendered);
     return rendered;
   }
 

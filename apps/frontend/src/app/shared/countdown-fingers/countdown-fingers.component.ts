@@ -22,9 +22,9 @@ const FINGER_IMAGES: Record<number, string> = {
         [class.countdown-fingers--large]="size() === 'large'"
         [class.countdown-fingers--small]="size() === 'small'"
         role="img"
-        [attr.aria-label]="seconds() + ' Sekunden'"
+        [attr.aria-label]="ariaLabel()"
       >
-        <img [src]="imageSrc()" [alt]="seconds() + ' Finger'" class="countdown-fingers__img" />
+        <img [src]="imageSrc()" alt="" aria-hidden="true" class="countdown-fingers__img" />
       </div>
     }
   `,
@@ -118,4 +118,11 @@ export class CountdownFingersComponent {
     const s = this.seconds();
     return s >= 0 && s <= 5 ? (FINGER_IMAGES[s] ?? null) : null;
   });
+
+  ariaLabel(): string {
+    const seconds = this.seconds();
+    return seconds === 1
+      ? $localize`:@@countdownFingers.ariaOne:1 Sekunde, durch einen Finger dargestellt`
+      : $localize`:@@countdownFingers.ariaMany:${seconds}:seconds: Sekunden, durch Finger dargestellt`;
+  }
 }

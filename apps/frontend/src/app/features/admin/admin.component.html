@@ -371,7 +371,7 @@
                                                 <li class="admin-question__answer-row">
                                                   <div
                                                     class="admin-answer-text markdown-body"
-                                                    [innerHTML]="renderQuizRichText(answer.text)"
+                                                    [innerHTML]="renderQuizRichText(answer.text, 4)"
                                                   ></div>
                                                   @if (answer.isCorrect) {
                                                     <strong

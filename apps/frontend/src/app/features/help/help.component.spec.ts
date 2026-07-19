@@ -31,6 +31,15 @@ describe('HelpComponent', () => {
     expect(spy).toHaveBeenCalledOnce();
   });
 
+  it('benennt das Navigations-Landmark lokalisierbar', () => {
+    const fixture = TestBed.createComponent(HelpComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('nav')?.getAttribute('aria-label')).toBe(
+      'Navigation',
+    );
+  });
+
   it('zeigt keine Rekordteilnahme mehr auf der Hilfeseite', async () => {
     const fixture = TestBed.createComponent(HelpComponent);
     fixture.detectChanges();

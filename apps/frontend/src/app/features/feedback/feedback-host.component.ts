@@ -1,4 +1,5 @@
 import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import {
   Component,
   HostListener,
@@ -65,6 +66,7 @@ interface StarAverageSummary {
     MatButton,
     MatIconButton,
     MatIcon,
+    CdkTrapFocus,
     MarkdownImageLightboxDirective,
   ],
   templateUrl: './feedback-host.component.html',
@@ -101,6 +103,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private priorFeedbackQrReadyForMenu = false;
   private suppressFeedbackJoinMenuAutopen = false;
   readonly feedbackJoinPopoverOpen = signal(false);
+  private feedbackJoinFocusReturn: HTMLElement | null = null;
+  private tempoHelpFocusReturn: HTMLElement | null = null;
   readonly showEmbeddedEmptyState = computed(
     () => this.embeddedInSession() && this.result() === null,
   );
@@ -186,12 +190,22 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   /** Hostname für Join-Menü, analog Session-Host. */
-  toggleFeedbackJoinPopover(): void {
-    this.feedbackJoinPopoverOpen.update((v) => !v);
+  toggleFeedbackJoinPopover(event?: Event): void {
+    if (this.feedbackJoinPopoverOpen()) {
+      this.closeFeedbackJoinPopover();
+      return;
+    }
+    this.feedbackJoinFocusReturn = this.focusReturnTarget(event);
+    this.feedbackJoinPopoverOpen.set(true);
   }
 
   closeFeedbackJoinPopover(): void {
+    const focusReturn =
+      this.feedbackJoinFocusReturn ??
+      this.document.querySelector<HTMLElement>('[aria-controls="feedback-host-join-info"]');
+    this.feedbackJoinFocusReturn = null;
     this.feedbackJoinPopoverOpen.set(false);
+    this.restoreFocus(focusReturn);
   }
 
   /** Wie Session-Host Kanal Blitzlicht: Beitritts-URL (hier Vote-Link) kopieren. */
@@ -539,11 +553,32 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   openTempoHelp(event?: Event): void {
     event?.stopPropagation();
+    this.tempoHelpFocusReturn = this.focusReturnTarget(event);
     this.tempoHelpOpen.set(true);
   }
 
   closeTempoHelp(): void {
+    const focusReturn = this.tempoHelpFocusReturn;
+    this.tempoHelpFocusReturn = null;
     this.tempoHelpOpen.set(false);
+    this.restoreFocus(focusReturn);
+  }
+
+  private focusReturnTarget(event?: Event): HTMLElement | null {
+    const eventTarget = event?.currentTarget;
+    if (eventTarget instanceof HTMLElement) {
+      return eventTarget;
+    }
+    const activeElement = this.document.activeElement;
+    return activeElement instanceof HTMLElement ? activeElement : null;
+  }
+
+  private restoreFocus(target: HTMLElement | null): void {
+    queueMicrotask(() => {
+      if (target?.isConnected) {
+        target.focus({ preventScroll: true });
+      }
+    });
   }
 
   async startDiscussion(): Promise<void> {

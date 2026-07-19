@@ -3,7 +3,11 @@
   <div class="content-page-column">
     <div class="content-page-backdrop-sheet" aria-hidden="true" (click)="back()"></div>
     <div class="help-page l-page l-section content-page-panel">
-      <nav class="content-back" aria-label="Navigation">
+      <nav
+        class="content-back"
+        i18n-aria-label="@@contentPage.navigationAria"
+        aria-label="Navigation"
+      >
         <button
           mat-button
           type="button"
