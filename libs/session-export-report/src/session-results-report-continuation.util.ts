@@ -283,8 +283,16 @@ export async function stampQuestionContinuationsOnPdf(
   try {
     // pdf.js kann den Input-Buffer transferieren — Kopie für nachfolgendes pdf-lib.
     const bytesForExtract = pdfBytes.slice();
-    const pageTexts = questions.length > 0 ? await extractPdfPageTexts(bytesForExtract) : [];
-    const plan = questions.length > 0 ? planQuestionContinuationStamps(pageTexts, questions) : [];
+    /*
+     * pdf-lib's StandardFonts are not embedded. They are suitable for the visual
+     * profile, but would violate PDF/UA-1 when a continuation stamp is needed.
+     * The stamp is an Artifact and therefore not part of the accessible reading
+     * order; omit it from the PDF/UA profile until it can be drawn with a fully
+     * embedded Unicode font.
+     */
+    const stampContinuations = !claimPdfUa && questions.length > 0;
+    const pageTexts = stampContinuations ? await extractPdfPageTexts(bytesForExtract) : [];
+    const plan = stampContinuations ? planQuestionContinuationStamps(pageTexts, questions) : [];
 
     const pdfDoc = await PDFDocument.load(pdfBytes.slice());
     if (documentTitle) {

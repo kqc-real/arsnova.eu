@@ -7,6 +7,7 @@ import {
   neutralizePdfUaInlineMarkup,
   sanitizeXmlText,
 } from './session-results-report-pdf-ua.util';
+import { stampQuestionContinuationsOnPdf } from './session-results-report-continuation.util';
 
 describe('session-results-report-pdf-ua', () => {
   it('neutralisiert strong/em zu report-Klassen', () => {
@@ -86,6 +87,52 @@ describe('session-results-report-pdf-ua', () => {
       const link = annots!.lookup(0);
       expect(link).toBeInstanceOf(PDFDict);
       expect((link as PDFDict).has(PDFName.of('Contents'))).toBe(true);
+    } finally {
+      await browser.close();
+    }
+  }, 60_000);
+
+  it('fügt im PDF/UA-Profil keine nicht eingebetteten Fortsetzungsfonts hinzu', async () => {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(
+        `<!doctype html><html lang="de"><head><style>
+          .page { break-after: page; }
+        </style></head><body>
+          <section class="page"><h1>FRAGE 1 VON 1</h1><p>Ausgangsseite</p></section>
+          <section><h2>Antwortverteilung</h2><p>Fortsetzung der Frage</p></section>
+        </body></html>`,
+        { waitUntil: 'load' },
+      );
+      const raw = await page.pdf({
+        format: 'A4',
+        tagged: true,
+        displayHeaderFooter: false,
+      });
+      const questions = [
+        {
+          questionNumber: 1,
+          label: 'Frage 1 - Fortsetzung: Testfrage',
+          shortLabel: 'Frage 1 - Fortsetzung',
+        },
+      ];
+
+      const rawBytes = new Uint8Array(raw);
+      const visual = Buffer.from(
+        await stampQuestionContinuationsOnPdf(rawBytes, questions, { claimPdfUa: false }),
+      );
+      const pdfUa = Buffer.from(
+        await stampQuestionContinuationsOnPdf(rawBytes, questions, {
+          documentTitle: 'PDF/UA-Test',
+          localeId: 'de',
+          claimPdfUa: true,
+        }),
+      );
+
+      expect(visual.includes(Buffer.from('/BaseFont /Helvetica-Bold'))).toBe(true);
+      expect(pdfUa.includes(Buffer.from('/BaseFont /Helvetica-Bold'))).toBe(false);
+      expect(pdfUa.includes(Buffer.from('/BaseFont /Symbol'))).toBe(false);
     } finally {
       await browser.close();
     }

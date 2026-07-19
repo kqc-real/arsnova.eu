@@ -506,6 +506,36 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # ─── PDF/UA-1 Validation ────────────────────────────────────────────────────
+  pdfua:
+    name: PDF/UA-1 Validation
+    runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name != 'schedule'
+    timeout-minutes: 10
+
+    steps:
+      - name: Docs-only fast pass
+        if: needs.changes.outputs.docs_only == 'true'
+        run: echo "Docs-only change - PDF/UA validation skipped."
+
+      - name: Checkout
+        if: needs.changes.outputs.docs_only != 'true'
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+
+      - name: Validate five PDF/UA locale demos
+        if: needs.changes.outputs.docs_only != 'true'
+        run: node scripts/validate-pdfua.mjs
+
+      - name: Upload veraPDF report
+        if: always() && needs.changes.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verapdf-ua1-report
+          path: tmp/pdfua-validation/verapdf-ua1.txt
+          if-no-files-found: error
+          retention-days: 30
+
   # ─── Lighthouse Performance Audit ───────────────────────────────────────────
   lighthouse:
     name: Lighthouse CI
@@ -1290,6 +1320,7 @@ jobs:
         landing-build,
         lint,
         test,
+        pdfua,
         docker,
         typecheck,
         lighthouse,

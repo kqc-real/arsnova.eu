@@ -74,6 +74,7 @@
     "load:k6:hotpaths": "node scripts/load/run-k6.mjs scripts/load/k6-session-hotpaths-500vu.js",
     "load:artillery:500": "node scripts/load/run-artillery-500.mjs",
     "load:artillery:reconnect:500": "node scripts/load/run-artillery-reconnect-500.mjs",
+    "validate:pdfua": "node scripts/validate-pdfua.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "verify:production-serving": "node scripts/verify-production-serving.mjs",
     "prepare": "husky || true"
