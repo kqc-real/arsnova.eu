@@ -163,6 +163,31 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('lässt die mobilen Einstellungen offen, wenn Escape nur ein Untermenü schließt', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const toolbar = fixture.debugElement.query(By.directive(TopToolbarComponent))
+      .componentInstance as TopToolbarComponent;
+    const trigger = fixture.nativeElement.querySelector(
+      '.top-toolbar__menu-btn',
+    ) as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const overlay = document.createElement('div');
+    overlay.className = 'cdk-overlay-pane';
+    const menuItem = document.createElement('button');
+    overlay.append(menuItem);
+    document.body.append(overlay);
+    menuItem.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    expect(toolbar.controlsMenuOpen()).toBe(true);
+    overlay.remove();
+    fixture.destroy();
+  });
+
   it('fokussiert nach einer Folge-Navigation die neue Hauptüberschrift', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);

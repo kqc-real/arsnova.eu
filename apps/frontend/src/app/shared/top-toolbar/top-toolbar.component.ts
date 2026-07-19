@@ -239,6 +239,10 @@ export class TopToolbarComponent {
     if (!this.controlsMenuOpen()) {
       return;
     }
+    const target = event.target;
+    if (target instanceof Element && target.closest('.cdk-overlay-pane')) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this.closeControlsMenu(true);

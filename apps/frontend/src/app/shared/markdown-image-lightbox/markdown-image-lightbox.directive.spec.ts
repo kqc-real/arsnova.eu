@@ -113,6 +113,12 @@ describe('MarkdownImageLightboxDirective', () => {
 
     image.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(dialogOpen).toHaveBeenCalledOnce();
+    expect(dialogOpen.mock.calls[0]?.[1]).toEqual(
+      expect.objectContaining({
+        autoFocus: 'first-tabbable',
+        restoreFocus: true,
+      }),
+    );
 
     Object.defineProperty(image, 'complete', {
       configurable: true,

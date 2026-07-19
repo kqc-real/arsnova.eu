@@ -64,7 +64,6 @@ async function inspectTargetSizes(page) {
           rect.height === 0 ||
           rect.bottom <= 0 ||
           rect.right <= 0 ||
-          rect.top >= window.innerHeight ||
           rect.left >= window.innerWidth
         ) {
           return false;
