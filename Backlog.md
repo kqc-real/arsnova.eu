@@ -176,7 +176,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - `prefers-reduced-motion` wird respektiert (Animationen deaktiviert/reduziert).
 - Kein neuer Lighthouse-Accessibility-Score-Rückgang unter 90.
 
-### Barrierefreiheit (WCAG 2.1 AA)
+### Barrierefreiheit (WCAG 2.2 AA)
 
 - Semantisches HTML (`<label>`, `<button>`, Überschriften-Hierarchie).
 - `aria-label` / `aria-live` für dynamische Inhalte (Countdown, Zahl der Teilnehmenden, Feedback).
@@ -1304,7 +1304,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Die Auswahl wird im `localStorage` persistiert und beim nächsten Besuch wiederhergestellt.
     - Alle UI-Komponenten nutzen Material Design 3 Theme-Tokens für Farben, Hintergründe und Kontraste (ADR 0005).
     - Countdown, Leaderboard, Lobby und Beamer-Ansicht unterstützen beide Themes.
-    - Kontrastverhältnisse erfüllen WCAG 2.1 AA (mind. 4.5:1 für Text).
+    - Kontrastverhältnisse erfüllen WCAG 2.2 AA (mind. 4.5:1 für Text).
   - **Verifizierung:** ThemePresetService, Top-Toolbar (System/Dark/Light), localStorage, MD3-Tokens; siehe `docs/EPIC6-AC-PRUEFUNG.md`.
 - **Story 6.2 (Internationalisierung):** 🟡 Als Nutzer möchte ich die App in meiner Sprache verwenden können, damit ich alle Bedienelemente und Hinweise verstehe.
   - **Akzeptanzkriterien:**
@@ -1348,7 +1348,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Farbunabhängigkeit:** Richtig/Falsch-Feedback nutzt neben Farbe (grün/rot) auch Icons (✓/✗) und Text, damit farbenblinde Nutzer es erkennen können.
     - **Schriftgröße:** Text ist bis 200% Browser-Zoom ohne Layoutbruch lesbar.
     - **Reduzierte Bewegung:** Bei `prefers-reduced-motion: reduce` werden Animationen (Konfetti, Pulsen, Countdowns) deaktiviert oder stark reduziert.
-    - **Zielstandard:** WCAG 2.1 Level AA für alle öffentlich zugänglichen Ansichten.
+  - **Zielstandard:** WCAG 2.2 Level AA für alle öffentlich zugänglichen Ansichten.
 
 - **Story 6.6 (UX-Testreihen nach „Thinking Aloud“ & Umsetzung der Befunde):** 🟡 Als Produktteam möchten wir die App in **strukturierten Nutzertestreihen** mit der Methode **Thinking Aloud** beobachten und die dabei gewonnenen **UI/UX-Erkenntnisse** priorisiert **in der Implementierung nachziehen**, damit reale Verständnis- und Bedienprobleme sichtbar werden und nicht nur intern vermutet werden.
 

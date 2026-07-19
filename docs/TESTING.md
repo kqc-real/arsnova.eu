@@ -91,25 +91,26 @@ betriebliche 30-/60-Minuten-Staging-Langlauf mit freizugebender Baseline.
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                            | Inhalt                                                                                                                                                                                                                          |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                |
-| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                                                 |
-| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                     |
-| **landing-build**                      | Produktionsbuild der Astro-Landingpage                                                                                                                                                                                          |
-| **build** (Node 20 & 22)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                              |
-| **typecheck** (Node 20 & 22, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                      |
-| **lint**                               | `npm run lint` (nach build)                                                                                                                                                                                                     |
-| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                  |
-| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                 |
-| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                             |
-| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                     |
-| **lighthouse**                         | Lighthouse CI gegen `/de/` und `/en/`; Reports als Artifact                                                                                                                                                                     |
-| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis + Service-Logs als Artifact                                                                                                                                                             |
-| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                             |
-| **docker**                             | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                                      |
-| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`, `lighthouse`, `e2e`, `classroom-smokes`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
-| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                         |
+| Job / Phase                            | Inhalt                                                                                                                                                                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                         |
+| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                                                          |
+| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                              |
+| **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                                |
+| **build** (Node 20 & 22)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                                       |
+| **typecheck** (Node 20 & 22, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                               |
+| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln                                                                                                                                                                 |
+| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                           |
+| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                          |
+| **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                                      |
+| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                                      |
+| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
+| **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                                   |
+| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                       |
+| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                                      |
+| **docker**                             | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                                               |
+| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `pdfua`, `docker`, `typecheck`, `lighthouse`, `e2e`, `classroom-smokes`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
+| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                                  |
 
 Matrix: **zwei** LTS-Versionen (**20** und **22**), `fail-fast: false`.
 
@@ -123,6 +124,7 @@ Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifa
 | ------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------- | --------- |
 | `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                              | 1 Tag     |
 | `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                             | 7 Tage    |
+| `verapdf-ua1-report`      | `pdfua`            | veraPDF-Textbericht für die PDF/UA-1-Demos aller fünf Locales                                         | 30 Tage   |
 | `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                | 7 Tage    |
 | `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                      | 7 Tage    |
 | `classroom-smoke-reports` | `classroom-smokes` | Standardisiertes JSON + JUnit XML für sechs Szenarien (inkl. `channel-ws-fanout`) sowie `backend.log` | 7 Tage    |
@@ -147,27 +149,38 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgr
 
 ---
 
-## Optionale / manuelle Checks (nicht immer CI)
+## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)   | Zweck                                   |
-| ----------------------------- | --------------------------------------- |
-| `check:viewport`              | Viewport 320px-Smoke                    |
-| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                 |
-| `smoke:host-music`            | Host-Musik-/Sound-Smoke                 |
-| `smoke:short-text`            | Kurzantwort-Flow-Smoke                  |
-| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke       |
-| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss |
-| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                   |
-| `smoke:unified-session`       | Unified-Session-Flow-Skript             |
-| `lighthouse:a11y`             | Lighthouse A11y (lokal)                 |
-| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen     |
+| Befehl (Frontend-Workspace)   | Zweck                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `a11y:axe:static`             | axe für statische Kernrouten/-zustände                                   |
+| `a11y:layout`                 | Reflow, Fokus, 24px-Ziele, Skip-Link und mobiles Einstellungs-Disclosure |
+| `check:viewport`              | Alias/älterer 320px-Reflow-Smoke                                         |
+| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                                                  |
+| `smoke:host-music`            | Host-Musik-/Sound-Smoke                                                  |
+| `smoke:short-text`            | Kurzantwort-Flow inklusive axe                                           |
+| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke                                        |
+| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss                                  |
+| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                                                    |
+| `smoke:unified-session`       | Unified-Session-Flow inklusive axe                                       |
+| `lighthouse:a11y`             | Score und A11y-Einzelaudits (lokal)                                      |
+| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen                                      |
 
-**Lokaler Status 2026-07-10:** `host-music`, `quiz-sync` und
-`unified-session` bestanden. `host-present-auth`, `short-text` und
-`numeric-estimate` scheiterten auch bei isolierter Wiederholung. Diese
-manuellen Flows sind nicht alle Teil des CI-Jobs `e2e`, der derzeit nur den
-Unified-Session-Flow ausführt. Einzelheiten:
-[LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md).
+Das PDF/UA-Gate liegt im Root-Workspace:
+
+```bash
+npm run validate:pdfua
+```
+
+Es benötigt Docker und validiert die committed PDF/UA-Demos mit veraPDF 1.30.2
+gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
+[`praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md).
+
+`a11y:axe:static`, `a11y:layout`, `smoke:short-text` und
+`smoke:unified-session` sind Bestandteile des CI-Jobs `e2e`. Die beiden
+dynamischen Smokes schreiben bei gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich
+axe-JSON-Berichte. Mit `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal
+deaktivieren; CI setzt diese Ausnahme nicht.
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 

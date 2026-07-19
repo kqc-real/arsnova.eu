@@ -176,6 +176,7 @@ E2E-Flow keine vollständige Systemfreigabe ersetzen.
 
 - Angular-Hinweise: [Profiling mit Chrome DevTools](https://angular.dev/best-practices/profiling-with-chrome-devtools).
 - Projektbezug: Budget-Warnungen beim Build, Mobile-First — [`docs/ui/LIGHTHOUSE-PERFORMANCE.md`](../ui/LIGHTHOUSE-PERFORMANCE.md) (falls vorhanden) oder eigene Messnotizen.
+- **Accessibility-Lehrfall:** [`ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md`](./ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md) dokumentiert den Auditstand, zwölf A-/AA-Befunde, Grenzen automatischer Scores, einen achtteiligen Umsetzungsplan und passende Gruppenaufträge.
 
 ### 6.4 Last & Skalierung
 
@@ -290,6 +291,7 @@ Sofort an die **Betreuung**; keine öffentlichen Issue-Details zu **Exploits** o
 
 - [`README.md`](../../README.md) — Produktüberblick und Setup-Einstieg
 - [`docs/TESTING.md`](../TESTING.md) — Befehle, CI
+- [`ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md`](./ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md) — WCAG-2.2-AA-Audit, Umsetzungsplan und Lehraufgaben
 - [`HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](./HANDOUT-LAST-UND-PERFORMANCE-TESTS.md) — Last-/Performance-Werkzeuge (k6, Artillery, Playwright, Lighthouse)
 - [`Backlog.md`](../../Backlog.md) — DoD, Story **0.7**, **6.5**, **6.6**
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
@@ -366,4 +368,4 @@ Ein zweiter Lauf auf dem **gleichen** Rechner, aber per Docker auf macOS **ohne*
 
 ---
 
-_Stand: 2026-07-05 · Pflege bei Änderungen am SQM-Setup: dieses Dokument und Verweis in `docs/README.md` anpassen._
+_Stand: 2026-07-19 · Pflege bei Änderungen am SQM-Setup: dieses Dokument und Verweis in `docs/README.md` anpassen._
