@@ -584,7 +584,8 @@ async function endSessionAndScan(host, participant, hardFailures) {
   await confirmation.click();
 
   await participant
-    .locator('#vote-session-end-anchor')
+    .locator('#vote-session-end-anchor, #finished-heading')
+    .first()
     .waitFor({ state: 'visible', timeout: 30_000 });
   await scanA11y(participant, 'participant-session-ended');
   logStep(true, 'Participant session-end state passes axe');
