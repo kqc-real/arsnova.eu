@@ -3,7 +3,7 @@
  * Prüft Reflow, Fokus-Sichtbarkeit und Mindestzielgrößen bei 320 CSS-Pixel.
  * 320 CSS-Pixel entsprechen der WCAG-Reflow-Prüfung eines 1280-Pixel-
  * Viewports bei 400 % Zoom.
- * Erwartet: App läuft unter BASE_URL (z. B. npx serve dist/browser -s).
+ * Erwartet: App läuft unter BASE_URL (z. B. PORT=4173 node scripts/serve-localized-with-api.mjs).
  *
  * Run: BASE_URL=http://localhost:4173 node scripts/check-viewport-320.mjs
  */
@@ -203,7 +203,9 @@ async function main() {
   console.log(`Warte auf ${BASE_URL}/de/…`);
   const ready = await waitForServer(`${BASE_URL}/de/`);
   if (!ready) {
-    console.error('App nicht erreichbar. Starte zuerst: npx serve dist/browser -s');
+    console.error(
+      'App nicht erreichbar. Starte zuerst: PORT=4173 node scripts/serve-localized-with-api.mjs',
+    );
     process.exit(1);
   }
 

@@ -290,6 +290,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.redirectPendingJoinFromQuery()) {
         return;
       }
+      if (this.route.snapshot.data?.['focusSessionCode']) {
+        this.markJoinIntentForMotd();
+      }
       this.loadRecentSessionCodes();
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home

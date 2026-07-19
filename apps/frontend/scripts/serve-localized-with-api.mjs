@@ -92,6 +92,7 @@ for (const locale of SUPPORTED_LOCALES) {
 }
 
 app.get('/', (_, res) => res.sendFile(path.join(distBrowser, 'index.html')));
+app.get(/.*/, (_, res) => res.sendFile(path.join(distBrowser, 'index.html')));
 
 const server = createServer(app);
 

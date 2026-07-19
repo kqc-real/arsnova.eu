@@ -21,8 +21,9 @@
             break;
           }
         }
+        var joinPath = /^\/join\/?$/.test(location.pathname || '') ? 'join' : '';
         var tail = (location.search || '') + (location.hash || '');
-        location.replace('/' + chosen + '/' + tail);
+        location.replace('/' + chosen + '/' + joinPath + tail);
       })();
     </script>
   </head>

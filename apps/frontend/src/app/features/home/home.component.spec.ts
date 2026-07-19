@@ -623,6 +623,18 @@ describe('HomeComponent', () => {
   });
 
   describe('MOTD overlay', () => {
+    it('unterdrückt die MOTD am dedizierten Join-Einstieg', async () => {
+      setRouteData({ focusSessionCode: true });
+      const { trpc } = await import('../../core/trpc.client');
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.motd()).toBeNull();
+    });
+
     it('überspringt MOTD und leitet bei join-Query sofort in den Onboarding-Flow um', async () => {
       setRouteQueryParams({ join: 'abc123' });
       const { trpc } = await import('../../core/trpc.client');
