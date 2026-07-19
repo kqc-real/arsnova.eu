@@ -29,7 +29,15 @@ const browserRoot = path.join(__dirname, '..', 'dist', 'browser');
 const serverRoot = path.join(__dirname, '..', 'dist', 'server');
 
 const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
-const ROUTES = ['/', '/help', '/news-archive', '/quiz', '/legal/imprint', '/legal/privacy'];
+const ROUTES = [
+  '/',
+  '/join',
+  '/help',
+  '/news-archive',
+  '/quiz',
+  '/legal/imprint',
+  '/legal/privacy',
+];
 
 function stripLeadingSlash(route) {
   return route.startsWith('/') ? route.slice(1) : route;
@@ -86,7 +94,9 @@ async function renderRoute({
     });
   }
 
-  const { content, errors, warnings } = await inlineCriticalCssProcessor.process(html, { outputPath });
+  const { content, errors, warnings } = await inlineCriticalCssProcessor.process(html, {
+    outputPath,
+  });
   if ((errors?.length ?? 0) > 0) {
     throw new Error(errors.join('\n'));
   }

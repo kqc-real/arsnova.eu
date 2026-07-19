@@ -234,6 +234,8 @@ Tokenbasierte Card-Flaeche:
 - **Micro-Interactions:** Segment-Pulse auf aktiver Box (breathing-Effekt, 1 s), CTA-Pulse wenn 6. Zeichen eingegeben (scale 1 > 1.04 > 1, 350 ms), Shake bei ungültigem Submit (horizontale Vibration, 400 ms, mit rotem Border). Alle Animationen in `@media (prefers-reduced-motion: no-preference)`.
 - **Beschriftung** unter den Segments: zentriert **Session-Code** (`label-medium`, on-surface-variant). Laenge und Beispiel entfallen in der Zeile; Screenreader: `aria-label` am Eingabefeld („Session-Code, 6 Zeichen“).
 - Responsive: Groessere Boxen auf Desktop (3 rem x 3.5 rem vs. 2.5 rem x 3 rem Mobile).
+- **Fokusvertrag:** Die allgemeine Startseite setzt keinen Autofokus; der Skip-Link bleibt erster Tabstopp. Die sichtbare Aktion **„Code eingeben“** fokussiert das native Overlay-Eingabefeld unmittelbar.
+- **Dedizierter Einstieg:** Der codefreie Pfad `/join` verwendet dieselbe Startseiten-Komponente und darf die Code-Eingabe auf Geräten ohne groben Primärzeiger fokussieren. Bei primärer Touch-Eingabe bleibt der Fokus unverändert, damit ein direkter Link nicht ungefragt die Bildschirmtastatur öffnet; ein bewusster Klick auf „Code eingeben“ fokussiert weiterhin.
 
 ## Startseite: Hero und Onboarding
 

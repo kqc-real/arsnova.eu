@@ -49,7 +49,7 @@ Rollenrechte werden dabei **nicht nur über die URL**, sondern zusätzlich über
 | Quiz-Sammlung         | `/quiz`                                                      | Eigene Quizze lokal verwalten, importieren, exportieren, live schalten                 |
 | Quiz-Erstellung       | `/quiz/new`, `/quiz/:id`, `/quiz/:id/preview`                | Quiz anlegen, bearbeiten, prüfen, direkt aus der Vorschau starten                      |
 | Quiz-Sync             | `/quiz/sync/:docId`                                          | Quiz-Sammlung auf einem zweiten Gerät oder mit anderen Personen synchron öffnen        |
-| Join                  | `/join/:code`                                                | Einstieg für Teilnehmende in eine Session                                              |
+| Join                  | `/join`, `/join/:code`                                       | Code-Eingabe bzw. direkter Einstieg für Teilnehmende in eine Session                   |
 | Session Host          | `/session/:code/host`                                        | Lehrendensteuerung für Quiz, Q&A und Blitzlicht                                        |
 | Session Present       | `/session/:code/present`                                     | Beamer- / Raumansicht                                                                  |
 | Session Vote          | `/session/:code/vote`                                        | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |

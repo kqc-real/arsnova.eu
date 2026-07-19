@@ -45,6 +45,15 @@
       </div>
 
       <div class="home-hero-host-row">
+        <button
+          matButton="filled"
+          type="button"
+          class="home-hero-host-link"
+          (click)="focusCodeInput()"
+        >
+          <mat-icon aria-hidden="true">login</mat-icon>
+          <span i18n="@@home.step1">Code eingeben</span>
+        </button>
         <a
           matButton="tonal"
           [routerLink]="localizedPath('/quiz/new')"

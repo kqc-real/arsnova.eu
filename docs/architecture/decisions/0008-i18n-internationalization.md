@@ -38,7 +38,7 @@ Bei Sprachwechsel über Locale-Subpfad erfolgt ein **Seiten-Reload**. Alles, was
 
 | View / Route                                   | URL enthält  | Risiko State-Verlust                                                                       |
 | ---------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------ |
-| Startseite `/`                                 | –            | **Niedrig:** Nur eingegebener Session-Code weg.                                            |
+| Startseite / Code-Einstieg `/`, `/join`        | –            | **Niedrig:** Nur eingegebener Session-Code weg.                                            |
 | Join `/join/:code`                             | Session-Code | **Mittel:** Nickname/Formular weg; Code bleibt.                                            |
 | Session Host/Vote/Present `/session/:code/...` | Session-Code | **Niedrig:** State wird per tRPC aus Server wiederhergestellt.                             |
 | Quiz-Liste `/quiz`                             | –            | **Niedrig:** Liste aus Store neu ladbar.                                                   |

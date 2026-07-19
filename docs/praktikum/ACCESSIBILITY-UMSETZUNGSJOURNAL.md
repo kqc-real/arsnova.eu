@@ -928,6 +928,61 @@ Fokusvertrag regressionsgesichert.
   Browser-Regressionslauf geprüft;
 - bei einem aktiven MOTD bleibt dessen Initialfokus absichtlich vorrangig.
 
+#### Expliziter Join-Fokus
+
+**Vorher**
+
+Nach dem Entfernen des allgemeinen Start-Autofokus war die Code-Eingabe nur
+über Tab oder einen direkten Klick auf das Segmentfeld erreichbar. Es gab
+weder eine ausdrücklich benannte Aktion „Code eingeben“ noch einen codefreien,
+als Join-Absicht erkennbaren Einstieg.
+
+**Umsetzung**
+
+- die bestehende, bereits übersetzte Copy „Code eingeben“ wird als sichtbare
+  Startseitenaktion wiederverwendet und fokussiert unmittelbar das native
+  Session-Code-Feld;
+- `/join` rendert dieselbe Home-Komponente mit einem Route-Data-Fokusvertrag,
+  während `/join/:code` unverändert in das Nickname-Onboarding führt;
+- bei einem direkten `/join`-Aufruf fokussieren Geräte ohne groben
+  Primärzeiger das Feld nach der Fokusverankerung der App-Shell;
+- bei primärer Touch-Eingabe bleibt der Fokus unverändert, damit der
+  codefreie Deep Link nicht ungefragt die Bildschirmtastatur öffnet;
+- `/` behält ausdrücklich keinen Autofokus und den Skip-Link als ersten
+  Tabstopp.
+
+**Dateien**
+
+- `apps/frontend/src/app/app.routes.ts`
+- `apps/frontend/src/app/features/home/home.component.html`
+- `apps/frontend/src/app/features/home/home.component.ts`
+- `apps/frontend/src/app/features/home/home.component.spec.ts`
+- `apps/frontend/src/app/app.routes.spec.ts`
+- `apps/frontend/src/app/core/seo-route-meta.ts`
+- `apps/frontend/src/app/core/seo-route-meta.spec.ts`
+- `apps/frontend/scripts/prerender-localized.mjs`
+- `apps/frontend/scripts/check-viewport-320.mjs`
+- `apps/frontend/angular.json`
+- `apps/frontend/src/sitemap.xml`
+
+**Regression**
+
+Unit-Tests decken allgemeine Startseite, explizite Aktion, Desktop-Join-Fokus
+nachgelagerte App-Shell-Fokusverankerung, Touch-Unterdrückung und
+Join-SEO-Metadaten ab. Der 320-Pixel-Browsercheck prüft zusätzlich die Aktion
+auf `/de/`, den ausbleibenden mobilen Autofokus auf `/de/join` sowie den
+Desktop-Fokus auf demselben Pfad. Der lokalisierte Produktionsbuild rendert
+`/join` für alle fünf Locales vor; die Sitemap führt die fünf Sprachvarianten
+als Alternativen.
+
+**Offen**
+
+- das Verhalten der virtuellen Tastatur muss weiterhin auf realen iOS- und
+  Android-Geräten geprüft werden; Pointer-Media-Queries bilden hybride Geräte
+  nicht in jeder Browser-/Hardwarekombination identisch ab;
+- VoiceOver/Safari und NVDA/Firefox bleiben Bestandteil der manuellen
+  Abschlussmatrix.
+
 #### Sichtbarer Fokus am Session-Code
 
 Das eigentliche Eingabefeld ist aus Designgründen transparent und verteilt
@@ -964,11 +1019,11 @@ Startseite zusätzlich:
 
 ### Browsernachweise
 
-- 62 fokussierte Tests für App-Shell und Home sowie 968 Frontend-Tests
+- 62 fokussierte Tests für Home, Routing und SEO sowie 975 Frontend-Tests
   insgesamt erfolgreich;
 - Frontend-Typecheck und ESLint erfolgreich;
 - lokalisierter Produktionsbuild für alle fünf Locales erfolgreich;
-- Reflow, Fokus, 24-Pixel-Ziele und die neuen Tastaturverträge auf sechs
+- Reflow, Fokus, 24-Pixel-Ziele und die neuen Tastaturverträge auf sieben
   Routen bei 320 CSS-Pixel erfolgreich;
 - zusätzliche axe-Stichprobe ohne serious/critical Befund auf `/fr/`,
   `/fr/help`, `/es/`, `/es/help`, `/it/` und `/it/help` sowie Quiz-Edit,

@@ -253,10 +253,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
+    if (this.shouldAutoFocusJoinEntry()) {
+      // Die App-Shell verankert Folge-Navigationen im Hauptinhalt. Der explizite
+      // Join-Einstieg übernimmt den Fokus im Folge-Frame danach gezielt für
+      // die Code-Eingabe.
+      this.scheduleAnimationFrame(() =>
+        this.scheduleAnimationFrame(() => this.focusSessionCodeInput()),
+      );
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);
     }
+  }
+
+  private shouldAutoFocusJoinEntry(): boolean {
+    if (!isPlatformBrowser(this.platformId) || !this.route.snapshot.data?.['focusSessionCode']) {
+      return false;
+    }
+    // Auf Geräten mit primär grober Eingabe keinen automatischen Tastatur-Dialog
+    // erzwingen. Ein bewusster Klick auf „Code eingeben“ fokussiert weiterhin.
+    return typeof matchMedia !== 'function' || !matchMedia('(pointer: coarse)').matches;
   }
 
   ngOnDestroy(): void {

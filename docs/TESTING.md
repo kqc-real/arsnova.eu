@@ -153,20 +153,20 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgr
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)   | Zweck                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `a11y:axe:static`             | axe für statische Kernrouten/-zustände                                   |
-| `a11y:layout`                 | Reflow, Fokus, 24px-Ziele, Skip-Link und mobiles Einstellungs-Disclosure |
-| `check:viewport`              | Alias/älterer 320px-Reflow-Smoke                                         |
-| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                                                  |
-| `smoke:host-music`            | Host-Musik-/Sound-Smoke                                                  |
-| `smoke:short-text`            | Kurzantwort-Flow inklusive axe                                           |
-| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke                                        |
-| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss                                  |
-| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                                                    |
-| `smoke:unified-session`       | Unified-Session-Flow inklusive axe                                       |
-| `lighthouse:a11y`             | Score und A11y-Einzelaudits (lokal)                                      |
-| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen                                      |
+| Befehl (Frontend-Workspace)   | Zweck                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `a11y:axe:static`             | axe für statische Kernrouten/-zustände                                  |
+| `a11y:layout`                 | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure |
+| `check:viewport`              | Alias/älterer 320px-Reflow-Smoke                                        |
+| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                                                 |
+| `smoke:host-music`            | Host-Musik-/Sound-Smoke                                                 |
+| `smoke:short-text`            | Kurzantwort-Flow inklusive axe                                          |
+| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke                                       |
+| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss                                 |
+| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                                                   |
+| `smoke:unified-session`       | Unified-Session-Flow inklusive axe                                      |
+| `lighthouse:a11y`             | Score und A11y-Einzelaudits (lokal)                                     |
+| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen                                     |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
