@@ -253,10 +253,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
+    if (this.shouldAutoFocusJoinEntry()) {
+      // Die App-Shell verankert Folge-Navigationen im Hauptinhalt. Der explizite
+      // Join-Einstieg übernimmt den Fokus im Folge-Frame danach gezielt für
+      // die Code-Eingabe.
+      this.scheduleAnimationFrame(() =>
+        this.scheduleAnimationFrame(() => this.focusSessionCodeInput({ reveal: true })),
+      );
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);
     }
+  }
+
+  private shouldAutoFocusJoinEntry(): boolean {
+    if (!isPlatformBrowser(this.platformId) || !this.route.snapshot.data?.['focusSessionCode']) {
+      return false;
+    }
+    // Auf Geräten mit primär grober Eingabe keinen automatischen Tastatur-Dialog
+    // erzwingen. Ein bewusster Klick auf „Code eingeben“ fokussiert weiterhin.
+    return typeof matchMedia !== 'function' || !matchMedia('(pointer: coarse)').matches;
   }
 
   ngOnDestroy(): void {
@@ -272,6 +289,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       if (this.redirectPendingJoinFromQuery()) {
         return;
+      }
+      if (this.route.snapshot.data?.['focusSessionCode']) {
+        this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
@@ -430,19 +450,26 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   focusCodeInput(): void {
     this.markJoinIntentForMotd();
-    this.focusSessionCodeInput({ selectAll: this.shouldSelectAllSessionCodeOnFocus() });
+    this.focusSessionCodeInput({
+      reveal: true,
+      selectAll: this.shouldSelectAllSessionCodeOnFocus(),
+    });
   }
 
   private shouldSelectAllSessionCodeOnFocus(): boolean {
     return this.sessionCode().trim().length === 6 && this.joinError() !== null;
   }
 
-  private focusSessionCodeInput(options?: { defer?: boolean; selectAll?: boolean }): void {
+  private focusSessionCodeInput(options?: {
+    defer?: boolean;
+    reveal?: boolean;
+    selectAll?: boolean;
+  }): void {
     if (!isPlatformBrowser(this.platformId)) return;
     const el = this.sessionCodeInput?.nativeElement;
     if (!el) return;
     const run = (): void => {
-      el.focus({ preventScroll: true });
+      el.focus({ preventScroll: !options?.reveal });
       if (!options?.selectAll) return;
       try {
         el.setSelectionRange(0, el.value.length);

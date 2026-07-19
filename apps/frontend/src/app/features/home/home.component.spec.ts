@@ -80,6 +80,18 @@ function setRouteQueryParams(params: Record<string, string>) {
     useValue: {
       snapshot: {
         queryParamMap: convertToParamMap(params),
+        data: {},
+      },
+    },
+  });
+}
+
+function setRouteData(data: Record<string, unknown>) {
+  TestBed.overrideProvider(ActivatedRoute, {
+    useValue: {
+      snapshot: {
+        queryParamMap: convertToParamMap({}),
+        data,
       },
     },
   });
@@ -99,6 +111,7 @@ describe('HomeComponent', () => {
           useValue: {
             snapshot: {
               queryParamMap: convertToParamMap({}),
+              data: {},
             },
           },
         },
@@ -114,6 +127,7 @@ describe('HomeComponent', () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
     TestBed.resetTestingModule();
     localStorage.clear();
   });
@@ -141,6 +155,76 @@ describe('HomeComponent', () => {
 
       expect(segments.hasAttribute('tabindex')).toBe(false);
       expect(input).not.toBeNull();
+    });
+
+    it('fokussiert die Code-Eingabe nach der expliziten Aktion „Code eingeben“', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      const focusSpy = vi.spyOn(input, 'focus');
+      const action = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button'),
+      ).find((button) => button.textContent?.includes('Code eingeben'));
+
+      action?.click();
+
+      expect(action).toBeDefined();
+      expect(document.activeElement).toBe(input);
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: false });
+    });
+
+    it('fokussiert am dedizierten Join-Einstieg auf Geräten ohne groben Primärzeiger', () => {
+      const sentinel = document.createElement('button');
+      document.body.append(sentinel);
+      sentinel.focus();
+      const animationFrames: FrameRequestCallback[] = [];
+      vi.stubGlobal(
+        'requestAnimationFrame',
+        vi.fn((callback: FrameRequestCallback) => {
+          animationFrames.push(callback);
+          return animationFrames.length;
+        }),
+      );
+      vi.stubGlobal('cancelAnimationFrame', vi.fn());
+      setRouteData({ focusSessionCode: true });
+      const matchMedia = vi.fn().mockReturnValue({ matches: false });
+      vi.stubGlobal('matchMedia', matchMedia);
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      const focusSpy = vi.spyOn(input, 'focus');
+      const runAnimationFrame = (timestamp: number): void => {
+        const callbacks = animationFrames.splice(0);
+        callbacks.forEach((callback) => callback(timestamp));
+      };
+
+      runAnimationFrame(0);
+      expect(document.activeElement).toBe(sentinel);
+      runAnimationFrame(16);
+
+      expect(matchMedia).toHaveBeenCalledWith('(pointer: coarse)');
+      expect(document.activeElement).toBe(input);
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: false });
+      sentinel.remove();
+    });
+
+    it('öffnet am dedizierten Join-Einstieg auf Mobilgeräten nicht ungefragt die Tastatur', () => {
+      const sentinel = document.createElement('button');
+      document.body.append(sentinel);
+      sentinel.focus();
+      setRouteData({ focusSessionCode: true });
+      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+      const fixture = createHomeFixture();
+
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+
+      expect(document.activeElement).toBe(sentinel);
+      sentinel.remove();
     });
 
     it('leitet den Accessible Name des Join-Buttons aus seinem sichtbaren Text ab', () => {
@@ -539,6 +623,18 @@ describe('HomeComponent', () => {
   });
 
   describe('MOTD overlay', () => {
+    it('unterdrückt die MOTD am dedizierten Join-Einstieg', async () => {
+      setRouteData({ focusSessionCode: true });
+      const { trpc } = await import('../../core/trpc.client');
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.motd()).toBeNull();
+    });
+
     it('überspringt MOTD und leitet bei join-Query sofort in den Onboarding-Flow um', async () => {
       setRouteQueryParams({ join: 'abc123' });
       const { trpc } = await import('../../core/trpc.client');

@@ -208,6 +208,10 @@ describe('app routes', () => {
     );
   });
 
+  it('kennzeichnet den codefreien Join-Pfad als expliziten Fokus-Einstieg', () => {
+    expect(findRoute('join').data?.['focusSessionCode']).toBe(true);
+  });
+
   it('lässt Join-Links mit expliziter Locale im Route-Tree unverändert durch', () => {
     const guard = findRoute('join/:code').canActivate?.[0] as CanActivateFn;
 

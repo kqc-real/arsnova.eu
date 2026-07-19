@@ -38,7 +38,7 @@ export function resolveSeoForPath(pathRest: string): SeoRoutePayload {
   if (r === '/legal/privacy') {
     return { title: seoTitlePrivacy(), description: seoDescPrivacy() };
   }
-  if (/^\/join\//.test(r)) {
+  if (/^\/join(?:\/|$)/.test(r)) {
     return { title: seoTitleJoin(), description: seoDescJoin() };
   }
   if (/^\/session\//.test(r)) {
