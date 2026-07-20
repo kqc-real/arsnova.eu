@@ -83,7 +83,7 @@
     "@types/marked": "^5.0.2",
     "@types/node": "^20.17.19",
     "@vitest/coverage-v8": "^4.0.18",
-    "autoprefixer": "^10.4.0",
+    "autoprefixer": "^10.5.4",
     "d3-cloud": "^1.2.9",
     "jsdom": "^26.1.0",
     "playwright": "^1.49.0",
