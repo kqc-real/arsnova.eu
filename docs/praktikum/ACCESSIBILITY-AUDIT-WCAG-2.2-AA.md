@@ -21,10 +21,16 @@ vom 2026-07-20 ergänzte offene Risiken bei Überschriften, Timing,
 Fokusverdeckung und der Vollständigkeit automatischer Gates.
 
 Die bestätigten technischen Befunde sind auf `main` bis einschließlich PR #101
-behoben. Routenübergreifende axe-Tests, Angular-Template-Regeln,
-Landing-A11y-Gate, ungewichtete Lighthouse-Einzelaudits, 320-Pixel-Reflow und
-veraPDF/PDF-UA-1 sind blockierende CI-Nachweise. PR #102 ergänzt dafür eine
-zweite, PR-101-spezifische manuelle Prüfmatrix.
+mit einer Ausnahme behoben: Die persönliche Zeitanpassung gilt nur, solange die
+Frage `ACTIVE` bleibt. Gibt der Host das Ergebnis vorher frei, enden auch
+`EXTENDED`- und `OFF`-Eingabefenster. Der sichtbare Host-Hinweis macht diese
+Entscheidung transparent, garantiert die Anpassung aber nicht und schließt
+WCAG 2.2.1 daher noch nicht vollständig.
+
+Routenübergreifende axe-Tests, Angular-Template-Regeln, Landing-A11y-Gate,
+ungewichtete Lighthouse-Einzelaudits, 320-Pixel-Reflow und veraPDF/PDF-UA-1
+sind blockierende CI-Nachweise. PR #102 ergänzt dafür eine zweite,
+PR-101-spezifische manuelle Prüfmatrix.
 
 Offen bleibt die vollständige manuelle Abnahme mit VoiceOver/Safari,
 NVDA/Firefox, echtem 200-/400-%-Browserzoom, Windows Forced Colors und
@@ -242,12 +248,15 @@ bestehen PDF/UA-1. Die Reader-/Screenreader-Abnahme bleibt offen.
 - Präferenz wird am Participant und auf dem Gerät gespeichert und bei Rejoin
   wiederhergestellt;
 - persönliche Deadline und gemeinsamer Session-Timer sind getrennt;
+- die persönliche Deadline gilt derzeit nur im Status `ACTIVE`; eine vorzeitige
+  Ergebnisfreigabe durch den Host beendet auch angepasste Eingabefenster;
 - die Punktelogik bleibt am gemeinsamen Countdown, damit der
   Nachteilsausgleich keinen Zeitbonus erzeugt;
 - eine lokale Punktvorschau kennzeichnet die Nachlaufzeit mit festem
   zeitabhängigem Mindestwert;
 - der Host sieht vor „Ergebnis zeigen“, wie viele Personen mit
-  Zeitanpassung noch antworten, und bleibt für den Ablauf verantwortlich.
+  Zeitanpassung noch antworten, und bleibt für den Ablauf verantwortlich; der
+  Hinweis ersetzt keine technische Garantie des persönlichen Zeitfensters.
 
 ### 4.10 Accessibility, UX und Design
 
@@ -336,7 +345,7 @@ Commit-Referenzen.
 | 2026-07-19 | PR 3 – Dialoge und Overlays      | modale Optik bleibt bestehen; Tastaturfokus wird eingeschlossen, Hintergrund bei MOTD/Tempo inert und Fokus nach Schließen zurückgegeben | Focus-Trap-, Escape- und Rückkehrtests; visuelle Mobile-Prüfung bleibt erforderlich        |
 | 2026-07-19 | PR 4 – Interaktion und Struktur  | Reorder- und Lightbox-Buttons ergänzen sichtbare Controls; Markdown und Wortwolken erhalten stabilere Informationsstrukturen             | Komponenten-, i18n- und Build-Prüfungen; Zielgrößen, Zoom und Screenreader bleiben manuell |
 | 2026-07-20 | PR 9 – AA-Restblocker            | Headings bleiben optisch stabil; strengere Gates machen bisher verdeckte Fehler sichtbar; Offline-Toolbar erhält sicheren Abstand        | PR #101: Lighthouse, Playwright, axe, Typecheck, Tests, CodeQL und Trivy grün              |
-| 2026-07-20 | PR 9b – Timer-Nachteilsausgleich | persönlicher MD3-Timerbereich, lokale Punktvorschau und Host-Hinweis ergänzen den Live-Ablauf ohne Änderung der Fairness                 | PR #101 automatisch grün; 25 manuelle Fälle in der PR-101-Matrix bleiben offen             |
+| 2026-07-20 | PR 9b – Timer-Nachteilsausgleich | persönlicher MD3-Timerbereich, lokale Punktvorschau und Host-Hinweis ergänzen den Live-Ablauf ohne Änderung der Fairness                 | PR #101 automatisch grün; Host-Freigabe kann angepasste Eingabefenster weiterhin beenden   |
 
 Der CDK Focus Trap erhöht die betroffenen Lazy Chunks im bisherigen
 Buildvergleich jeweils nur grob um weniger als 2 kB Rohgröße. Das Initial
@@ -393,11 +402,11 @@ wie Bundle-Größe und Laufzeitkosten gehören in die fortlaufende Bewertung.
 - [ ] zeitkritische und fachliche Abläufe separat getestet
 - [ ] Vorher/Nachher-Auswirkung im Pull Request beschrieben
 
-## 5. Bestätigte A/AA-Defekte – historischer, geschlossener Befundbestand
+## 5. Bestätigte A/AA-Defekte – historischer Befundbestand
 
-Alle Einträge in diesem Abschnitt beschreiben Ausgangsbefunde. Ihr technischer
-Umsetzungsstand ist jeweils am Eintrag dokumentiert; offene manuelle Nachweise
-stehen in Abschnitt 6 und in den beiden Prüfmatrizen.
+Die Einträge beschreiben Ausgangsbefunde und ihren aktuellen Status. Bis auf
+5.13 sind die bestätigten technischen Defekte geschlossen. Offene manuelle
+Nachweise stehen in Abschnitt 6 und in den beiden Prüfmatrizen.
 
 ### 5.1 Aktion bereits beim Drücken des Zeigers
 
@@ -621,11 +630,18 @@ gepflegt.
 `apps/backend/src/routers/vote.ts` und Vote-UI in
 `apps/frontend/src/app/features/session/session-vote/`
 
-**Umsetzungsstand 2026-07-20:** Auf `main` behoben (PR #101).
-Teilnehmende können `10× Zeit` oder `Ohne Timer` wählen. Die persönliche
-Deadline wird serverseitig durchgesetzt; Scoring und gemeinsamer Ablauf bleiben
-am Session-Timer. Der Host erhält einen Hinweis auf noch offene angepasste
-Eingabefenster.
+**Umsetzungsstand 2026-07-20:** Teilweise umgesetzt, Konformitätsrisiko offen
+(PR #101). Teilnehmende können `10× Zeit` oder `Ohne Timer` wählen. Solange die
+Frage `ACTIVE` ist, setzt das Backend die persönliche Deadline durch; Scoring
+und gemeinsamer Ablauf bleiben am Session-Timer. Der Host erhält einen Hinweis
+auf noch offene angepasste Eingabefenster.
+
+Wechselt der Host vor Ablauf dieser Fenster zu `RESULTS` oder `DISCUSSION`,
+weist das Backend weitere Antworten zurück. Bei `EXTENDED` liegt der
+Statuswechsel dann vor der persönlichen Deadline; bei `OFF` existiert keine
+Deadline, die eine Abgabe außerhalb von `ACTIVE` erlauben könnte. Der
+Host-Hinweis ist damit eine informierte Ablaufentscheidung, aber keine
+technische Garantie des Nachteilsausgleichs.
 
 **Ausgangsbefund:** Für getimte Fragen gab es nur den gemeinsamen Host-Timer.
 Eine globale timerlose Session war möglich, aber kein persönlicher
@@ -633,6 +649,12 @@ Nachteilsausgleich während einer getimten Veranstaltung.
 
 **Umgesetzt:** Schema-first-Erweiterung von Prisma, Shared Contracts, tRPC,
 Vote-Deadline, MD3-Segmented-Control, Punktvorschau und Host-Fortschritt.
+
+**Noch erforderlich:** Entweder muss der Statuswechsel offene persönliche
+Fenster technisch respektieren, oder eine beanspruchte Ausnahme für
+zeitkritische Echtzeitereignisse muss fachlich begründet, eng abgegrenzt und
+manuell gegen WCAG 2.2.1 bewertet werden. Eine Vote-Annahme nach sichtbarer
+Ergebnisfreigabe darf dabei keine Lösungsdaten oder Wertungsvorteile eröffnen.
 
 ### 5.14 Unvollständige Überschriftenhierarchie auf Home und Admin
 
@@ -669,7 +691,7 @@ einer AA-Freigabe aber gezielt geprüft werden:
 | Statusmeldungen  | weder fehlende noch übermäßig häufige Ansagen                                                    |
 | Wortwolke/Charts | textuelle Alternativen für Häufigkeit, Rang und Datenbeziehungen                                 |
 | High Contrast    | Forced Colors und Betriebssystem-Hochkontrast                                                    |
-| Timing           | persönliche Modi Standard/10×/Ohne Timer mit Host-Hinweis manuell in realem Live-Ablauf prüfen   |
+| Timing           | Host-Freigabe beendet angepasste Fenster; 2.2.1 technisch schließen oder Ausnahme begründen      |
 | Locales          | alle Kernflows in `de`, `en`, `fr`, `es`, `it`                                                   |
 | PDF/UA           | veraPDF/PAC, Tagstruktur, Lesereihenfolge, Links und Alternativtexte                             |
 
@@ -952,7 +974,8 @@ PAC-Gegencheck bleiben offen.
 ### PR 9 – WCAG-AA-Restblocker und Timer-Nachteilsausgleich
 
 **Status 2026-07-20:** Auf `main` umgesetzt und automatisch validiert
-(PR #101). PR #102 ergänzt das spezifische manuelle Abnahmeprotokoll.
+(PR #101), mit offenem Konformitätsrisiko bei WCAG 2.2.1. PR #102 ergänzt das
+spezifische manuelle Abnahmeprotokoll.
 
 **Umfang**
 
@@ -973,6 +996,8 @@ PAC-Gegencheck bleiben offen.
 
 **Offene Abnahme**
 
+- Statuswechsel muss persönliche `EXTENDED`-/`OFF`-Fenster respektieren oder
+  als zulässige Echtzeit-Ausnahme begründet werden;
 - 25 Fälle der PR-101-Matrix;
 - VoiceOver/Safari, NVDA/Firefox und Windows Forced Colors;
 - echter 200-/400-%-Browserzoom und PDF-Reader.
@@ -1099,5 +1124,5 @@ Umsetzung ist:
    nachzuführen;
 4. zwischen technischem Fix und formaler WCAG-Abnahme zu unterscheiden.
 
-_Auditstand: 2026-07-20. Technische Befunde bis PR #101 aktualisiert; manuelle
-Gesamtabnahme weiterhin offen; keine Zertifizierung._
+_Auditstand: 2026-07-20. Technische Befunde bis PR #101 aktualisiert;
+WCAG 2.2.1 und manuelle Gesamtabnahme weiterhin offen; keine Zertifizierung._
