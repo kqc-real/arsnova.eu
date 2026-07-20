@@ -8,6 +8,11 @@
 **Zugehörig:** [`ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md`](./ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md),
 [`ACCESSIBILITY-UMSETZUNGSJOURNAL.md`](./ACCESSIBILITY-UMSETZUNGSJOURNAL.md)
 
+**PR-spezifische Ergänzung:** Die detaillierten Abnahmeschritte für persönliche
+Zeitanpassung, Host-Hinweis, Punktvorschau sowie die zuletzt verschärften
+Fokus-/Reflow-Gates stehen in
+[`ACCESSIBILITY-MANUELLE-PRUEFMATRIX-PR101.md`](./ACCESSIBILITY-MANUELLE-PRUEFMATRIX-PR101.md).
+
 ## Zweck
 
 Diese Matrix ist der ausführbare Nachweis für Prüfungen, die axe, Lighthouse
