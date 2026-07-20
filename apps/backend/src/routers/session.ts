@@ -3708,7 +3708,8 @@ type TimerDbClient = Pick<typeof prisma, 'participant'> & {
 };
 
 async function lockSessionRow(db: TimerDbClient, sessionId: string): Promise<void> {
-  await db.$executeRaw`SELECT 1 FROM "Session" WHERE id = ${sessionId}::uuid FOR UPDATE`;
+  // Session.id ist textuell (UUID-String); kein `::uuid`-Cast, sonst text = uuid.
+  await db.$executeRaw`SELECT 1 FROM "Session" WHERE id = ${sessionId} FOR UPDATE`;
 }
 
 async function getTimerAccommodationProgress(
