@@ -85,7 +85,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.5.4",
     "d3-cloud": "^1.2.9",
-    "jsdom": "^26.1.0",
+    "jsdom": "^29.1.1",
     "playwright": "^1.49.0",
     "postcss": "^8.4.0",
     "sharp-ico": "^0.1.5",
