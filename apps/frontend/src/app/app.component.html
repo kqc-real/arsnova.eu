@@ -176,6 +176,17 @@
                 <mat-icon class="app-footer__icon">privacy_tip</mat-icon>
                 <span class="app-footer__link-text" i18n>Datenschutz</span>
               </a>
+              <a
+                matButton
+                [routerLink]="localizedPath('/legal/accessibility')"
+                i18n-aria-label="@@app.footer.accessibilityOpenAria"
+                aria-label="Barrierefreiheit"
+              >
+                <mat-icon class="app-footer__icon">accessibility</mat-icon>
+                <span class="app-footer__link-text" i18n="@@app.footer.accessibility"
+                  >Barrierefreiheit</span
+                >
+              </a>
             }
             @if (serverStatusWidgetVisible()) {
               <app-server-status-widget

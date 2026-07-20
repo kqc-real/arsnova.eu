@@ -37,7 +37,7 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   content = signal<SafeHtml | null>(null);
   /** Aktuelle Legal-Route (für Kopfzeile); leer während des ersten Ladens. */
-  slug = signal<'imprint' | 'privacy' | ''>('');
+  slug = signal<'imprint' | 'privacy' | 'accessibility' | ''>('');
 
   back(): void {
     this.location.back();
@@ -49,15 +49,19 @@ export class LegalPageComponent implements OnInit, OnDestroy {
       '') as string;
   }
 
+  private isKnownSlug(slug: string): slug is 'imprint' | 'privacy' | 'accessibility' {
+    return slug === 'imprint' || slug === 'privacy' || slug === 'accessibility';
+  }
+
   ngOnInit(): void {
     this.route.data.pipe(takeUntil(this.destroy$)).subscribe(() => {
       const slug = this.getSlug();
       this.loading.set(true);
       this.error.set(null);
       this.content.set(null);
-      this.slug.set(slug === 'imprint' || slug === 'privacy' ? slug : '');
+      this.slug.set(this.isKnownSlug(slug) ? slug : '');
 
-      if (slug !== 'imprint' && slug !== 'privacy') {
+      if (!this.isKnownSlug(slug)) {
         this.error.set($localize`Seite nicht gefunden.`);
         this.loading.set(false);
         return;

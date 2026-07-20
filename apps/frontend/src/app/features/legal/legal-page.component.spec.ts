@@ -105,4 +105,29 @@ describe('LegalPageComponent', () => {
     expect(listItems[0].querySelector('strong')?.textContent).toBe('Auskunft');
     expect(listItems[1].querySelector('strong')?.textContent).toBe('Berichtigung');
   });
+
+  it('lädt Accessibility-Markdown und zeigt den Seiten-Titel Barrierefreiheit', async () => {
+    const route = TestBed.inject(ActivatedRoute) as {
+      snapshot: { data: { slug: string } };
+    };
+    route.snapshot.data.slug = 'accessibility';
+
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/accessibility.de.md'));
+    req.flush('# Barrierefreiheit\n\n**Stand: 20. Juli 2026**\n\nText zur **Persönliche Zeit**.');
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('.dialog-title-header__heading')?.textContent).toContain(
+      'Barrierefreiheit',
+    );
+    expect(root.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
+      'accessibility',
+    );
+    expect(root.querySelector('.legal-page__md')?.textContent).toContain('Persönliche Zeit');
+  });
 });
