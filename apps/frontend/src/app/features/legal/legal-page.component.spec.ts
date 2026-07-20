@@ -7,7 +7,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ReplaySubject } from 'rxjs';
-import { LegalPageComponent } from './legal-page.component';
+import { LegalPageComponent, stripLeadingMarkdownTitle } from './legal-page.component';
 
 describe('LegalPageComponent', () => {
   let httpMock: HttpTestingController;
@@ -42,6 +42,15 @@ describe('LegalPageComponent', () => {
     httpMock.verify();
   });
 
+  it('entfernt die führende Markdown-Überschrift unabhängig vom Heading-Level', () => {
+    expect(stripLeadingMarkdownTitle('<h2>Impressum</h2>\n<p>Text</p>\n')).toBe('<p>Text</p>\n');
+    expect(stripLeadingMarkdownTitle('<h1>Privacy</h1><p>Body</p>')).toBe('<p>Body</p>');
+    expect(stripLeadingMarkdownTitle('<h3>Barrierefreiheit</h3>\n<p>Stand</p>')).toBe(
+      '<p>Stand</p>',
+    );
+    expect(stripLeadingMarkdownTitle('<p>Nur Text</p>')).toBe('<p>Nur Text</p>');
+  });
+
   it('ruft bei Klick auf den Backdrop location.back auf', async () => {
     const fixture = TestBed.createComponent(LegalPageComponent);
     const location = TestBed.inject(Location);
@@ -72,7 +81,11 @@ describe('LegalPageComponent', () => {
 
     expect(fixture.componentInstance.content()).toBeTruthy();
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelector('.legal-page__md')?.textContent).toContain('Welt');
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.textContent).toContain('Welt');
+    expect(md?.textContent).not.toMatch(/^\s*Titel/);
+    expect(md?.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+    expect(root.querySelectorAll('h1').length).toBe(1);
   });
 
   it('rendert Listen und Fettungen aus dem Privacy-Markdown korrekt', async () => {
@@ -91,6 +104,8 @@ describe('LegalPageComponent', () => {
         '',
         'Sie haben folgende Rechte:',
         '',
+        '## Betroffenenrechte',
+        '',
         '- **Auskunft** über Ihre Daten',
         '- **Berichtigung** unrichtiger Daten',
       ].join('\n'),
@@ -100,9 +115,48 @@ describe('LegalPageComponent', () => {
     fixture.detectChanges();
 
     const root: HTMLElement = fixture.nativeElement;
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.querySelector('h1')?.textContent?.trim()).not.toBe('Datenschutz');
+    expect(md?.querySelector('h2')?.textContent?.trim()).toBe('Betroffenenrechte');
     const listItems = Array.from(root.querySelectorAll('.legal-page__md li'));
     expect(listItems).toHaveLength(2);
     expect(listItems[0].querySelector('strong')?.textContent).toBe('Auskunft');
     expect(listItems[1].querySelector('strong')?.textContent).toBe('Berichtigung');
+    // UI-h1, dann Abschnitte als h2 (kein übersprungenes Level).
+    const headingTags = Array.from(root.querySelectorAll('h1, h2, h3, h4, h5, h6')).map(
+      (el) => el.tagName,
+    );
+    expect(headingTags).toEqual(['H1', 'H2']);
+  });
+
+  it('lädt Accessibility-Markdown und zeigt den Seiten-Titel Barrierefreiheit', async () => {
+    const route = TestBed.inject(ActivatedRoute) as {
+      snapshot: { data: { slug: string } };
+    };
+    route.snapshot.data.slug = 'accessibility';
+
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/accessibility.de.md'));
+    req.flush(
+      '# Barrierefreiheit\n\n**Stand: 20. Juli 2026**\n\n## Was du nutzen kannst\n\nText zur **Persönliche Zeit**.',
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('.dialog-title-header__heading')?.textContent).toContain(
+      'Barrierefreiheit',
+    );
+    expect(root.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
+      'accessibility',
+    );
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.textContent).toContain('Persönliche Zeit');
+    expect(md?.querySelector('h1, h2')?.textContent?.trim()).not.toBe('Barrierefreiheit');
+    expect(md?.querySelector('h2')?.textContent?.trim()).toBe('Was du nutzen kannst');
+    expect(root.querySelectorAll('h1').length).toBe(1);
   });
 });

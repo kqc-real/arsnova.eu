@@ -37,6 +37,7 @@ const ROUTES = [
   '/quiz',
   '/legal/imprint',
   '/legal/privacy',
+  '/legal/accessibility',
 ];
 
 function stripLeadingSlash(route) {

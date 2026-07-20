@@ -8,5 +8,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'quiz', renderMode: RenderMode.Prerender },
   { path: 'legal/imprint', renderMode: RenderMode.Prerender },
   { path: 'legal/privacy', renderMode: RenderMode.Prerender },
+  { path: 'legal/accessibility', renderMode: RenderMode.Prerender },
   { path: '**', renderMode: RenderMode.Client },
 ];

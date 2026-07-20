@@ -275,6 +275,12 @@ const mainRoutes: Routes = [
           import('./features/legal/legal-page.component').then((m) => m.LegalPageComponent),
         data: { slug: 'privacy' },
       },
+      {
+        path: 'accessibility',
+        loadComponent: () =>
+          import('./features/legal/legal-page.component').then((m) => m.LegalPageComponent),
+        data: { slug: 'accessibility' },
+      },
       { path: '', redirectTo: 'imprint', pathMatch: 'full' },
     ],
   },

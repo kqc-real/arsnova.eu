@@ -281,6 +281,7 @@ async function main() {
     '/es/help',
     '/it/help',
     '/de/legal/privacy',
+    '/de/legal/accessibility',
     '/de/admin',
   ];
   let failed = 0;

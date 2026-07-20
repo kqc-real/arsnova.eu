@@ -187,7 +187,8 @@
               "/news-archive",
               "/quiz",
               "/legal/imprint",
-              "/legal/privacy"
+              "/legal/privacy",
+              "/legal/accessibility"
             ],
             "discoverRoutes": false
           },

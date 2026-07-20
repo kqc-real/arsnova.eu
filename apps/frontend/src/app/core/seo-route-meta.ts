@@ -38,6 +38,9 @@ export function resolveSeoForPath(pathRest: string): SeoRoutePayload {
   if (r === '/legal/privacy') {
     return { title: seoTitlePrivacy(), description: seoDescPrivacy() };
   }
+  if (r === '/legal/accessibility') {
+    return { title: seoTitleAccessibility(), description: seoDescAccessibility() };
+  }
   if (/^\/join(?:\/|$)/.test(r)) {
     return { title: seoTitleJoin(), description: seoDescJoin() };
   }
@@ -139,6 +142,14 @@ function seoTitlePrivacy(): string {
 
 function seoDescPrivacy(): string {
   return $localize`:@@seo.descPrivacy:Datenschutzerklärung: Verarbeitung personenbezogener Daten bei Nutzung von arsnova.eu.`;
+}
+
+function seoTitleAccessibility(): string {
+  return $localize`:@@seo.titleAccessibility:Barrierefreiheit – arsnova.eu`;
+}
+
+function seoDescAccessibility(): string {
+  return $localize`:@@seo.descAccessibility:Barrierefreiheit auf arsnova.eu: Tastatur, Screenreader, persönliche Zeit, Darstellung und Feedback.`;
 }
 
 function seoTitleJoin(): string {

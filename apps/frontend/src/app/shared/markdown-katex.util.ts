@@ -17,9 +17,10 @@ export interface MarkdownRenderOptions {
   imagePolicy?: MarkdownImagePolicy;
   /**
    * Niedrigste Überschriftenebene für ein Markdown-`#`.
-   * Eingebettete Inhalte dürfen dadurch die Seiten-H1 nicht duplizieren.
+   * Eingebettete Inhalte starten meist bei 2+, damit sie die Seiten-H1 nicht duplizieren.
+   * Ausnahme: Legal-Markdown mit `1`, wenn die führende `#`-Überschrift ohnehin entfernt wird.
    */
-  headingStartLevel?: 2 | 3 | 4 | 5 | 6;
+  headingStartLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));

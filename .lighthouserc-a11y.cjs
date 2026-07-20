@@ -7,6 +7,7 @@ module.exports = {
         'http://localhost:4173/de/quiz',
         'http://localhost:4173/de/help',
         'http://localhost:4173/de/legal/privacy',
+        'http://localhost:4173/de/legal/accessibility',
       ],
       numberOfRuns: 1,
       settings: {

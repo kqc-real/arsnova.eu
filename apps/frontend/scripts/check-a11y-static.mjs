@@ -16,6 +16,7 @@ const DEFAULT_ROUTES =
         '/en/help',
         '/de/legal/imprint',
         '/de/legal/privacy',
+        '/de/legal/accessibility',
       ];
 const ROUTES = (process.env.A11Y_ROUTES || DEFAULT_ROUTES.join(','))
   .split(',')

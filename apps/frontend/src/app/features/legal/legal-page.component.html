@@ -29,16 +29,20 @@
             <span class="dialog-title-header__icon" aria-hidden="true">
               @if (slug() === 'imprint') {
                 <mat-icon>gavel</mat-icon>
-              } @else {
+              } @else if (slug() === 'privacy') {
                 <mat-icon>privacy_tip</mat-icon>
+              } @else {
+                <mat-icon>accessibility</mat-icon>
               }
             </span>
             <span class="dialog-title-header__copy">
               <h1 class="dialog-title-header__heading">
                 @if (slug() === 'imprint') {
                   <span i18n="@@legal.pageTitleImprint">Impressum</span>
-                } @else {
+                } @else if (slug() === 'privacy') {
                   <span i18n="@@legal.pageTitlePrivacy">Datenschutzerklärung</span>
+                } @else {
+                  <span i18n="@@legal.pageTitleAccessibility">Barrierefreiheit</span>
                 }
               </h1>
             </span>

@@ -398,6 +398,7 @@ describe('AppComponent', () => {
     expect(text).not.toContain('So funktioniert’s');
     expect(text).not.toContain('Impressum');
     expect(text).not.toContain('Datenschutz');
+    expect(text).not.toContain('Barrierefreiheit');
 
     fixture.destroy();
   });
