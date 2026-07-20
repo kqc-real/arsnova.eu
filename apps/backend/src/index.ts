@@ -142,7 +142,7 @@ if (fs.existsSync(frontendDist)) {
       res.redirect(302, `/${chosen}/${query}`);
     });
     // Fallback für nicht-lokalisierte SPA-Routen → Root-Index (Client-Sprachwahl / Noscript-Links)
-    app.get('*', (_, res) => {
+    app.get(/.*/, (_, res) => {
       if (fs.existsSync(rootIndexPath)) {
         res.sendFile(rootIndexPath);
       } else if (fallbackIndexPath) {
@@ -153,7 +153,7 @@ if (fs.existsSync(frontendDist)) {
     });
   } else {
     app.use(express.static(frontendDist));
-    app.get('*', (_req, res, next) => {
+    app.get(/.*/, (_req, res, next) => {
       if (fs.existsSync(rootIndexPath)) {
         res.sendFile(rootIndexPath);
       } else if (fs.existsSync(csrPath)) {
