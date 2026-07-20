@@ -3702,8 +3702,18 @@ type TimerAccommodationProgressInput = {
   baseTimerSeconds: number | null;
 };
 
+type TimerDbClient = Pick<typeof prisma, 'participant'> & {
+  $executeRaw: typeof prisma.$executeRaw;
+  session: Pick<typeof prisma.session, 'update' | 'findUnique'>;
+};
+
+async function lockSessionRow(db: TimerDbClient, sessionId: string): Promise<void> {
+  await db.$executeRaw`SELECT 1 FROM "Session" WHERE id = ${sessionId}::uuid FOR UPDATE`;
+}
+
 async function getTimerAccommodationProgress(
   input: TimerAccommodationProgressInput,
+  db: TimerDbClient = prisma,
 ): Promise<{ pendingCount: number; blockingCount: number }> {
   if (
     input.round !== 1 ||
@@ -3714,7 +3724,7 @@ async function getTimerAccommodationProgress(
     return { pendingCount: 0, blockingCount: 0 };
   }
 
-  const groups = await prisma.participant.groupBy({
+  const groups = await db.participant.groupBy({
     by: ['timerAccommodation'],
     where: {
       sessionId: input.sessionId,
@@ -3762,8 +3772,9 @@ async function assertPersonalTimerGate(
     forceClosePersonalTimers?: boolean;
     action: 'revealResults' | 'startDiscussion';
   },
+  db: TimerDbClient = prisma,
 ): Promise<void> {
-  const progress = await getTimerAccommodationProgress(input);
+  const progress = await getTimerAccommodationProgress(input, db);
   if (progress.blockingCount <= 0) {
     return;
   }
@@ -4779,9 +4790,12 @@ export const sessionRouter = router({
         });
       }
 
-      await prisma.participant.update({
-        where: { id: participant.id },
-        data: { timerAccommodation: accommodation },
+      await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, participant.sessionId);
+        await tx.participant.update({
+          where: { id: participant.id },
+          data: { timerAccommodation: accommodation },
+        });
       });
       void touchParticipantPresence(participant.sessionId, participant.id);
       // Persönliche Felder liegen außerhalb des gemeinsamen ACTIVE-Caches.
@@ -5377,24 +5391,43 @@ export const sessionRouter = router({
           question.difficulty as Difficulty,
           session.quiz.timerScaleByDifficulty,
         );
-        await assertPersonalTimerGate(
-          {
-            sessionId: session.id,
-            questionId: question.id,
-            round: session.currentRound,
-            activeQuestionStartedAt: session.activeQuestionStartedAt,
-            baseTimerSeconds,
-          },
-          {
-            forceClosePersonalTimers: input.forceClosePersonalTimers,
-            action: 'revealResults',
-          },
-        );
+        await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, session.id);
+          const locked = await tx.session.findUnique({
+            where: { id: session.id },
+            select: { status: true },
+          });
+          if (!locked || locked.status !== 'ACTIVE') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Ergebnis anzeigen nur im Status ACTIVE.',
+            });
+          }
+          await assertPersonalTimerGate(
+            {
+              sessionId: session.id,
+              questionId: question.id,
+              round: session.currentRound,
+              activeQuestionStartedAt: session.activeQuestionStartedAt,
+              baseTimerSeconds,
+            },
+            {
+              forceClosePersonalTimers: input.forceClosePersonalTimers,
+              action: 'revealResults',
+            },
+            tx,
+          );
+          await tx.session.update({
+            where: { id: session.id },
+            data: { status: 'RESULTS', statusChangedAt: new Date() },
+          });
+        });
+      } else {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { status: 'RESULTS', statusChangedAt: new Date() },
+        });
       }
-      await prisma.session.update({
-        where: { id: session.id },
-        data: { status: 'RESULTS', statusChangedAt: new Date() },
-      });
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
       return {
@@ -5465,24 +5498,43 @@ export const sessionRouter = router({
           question.difficulty as Difficulty,
           session.quiz.timerScaleByDifficulty,
         );
-        await assertPersonalTimerGate(
-          {
-            sessionId: session.id,
-            questionId: question.id,
-            round: session.currentRound,
-            activeQuestionStartedAt: session.activeQuestionStartedAt,
-            baseTimerSeconds,
-          },
-          {
-            forceClosePersonalTimers: input.forceClosePersonalTimers,
-            action: 'startDiscussion',
-          },
-        );
+        await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, session.id);
+          const locked = await tx.session.findUnique({
+            where: { id: session.id },
+            select: { status: true, currentRound: true },
+          });
+          if (!locked || locked.status !== 'ACTIVE' || locked.currentRound !== 1) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Diskussionsphase nur aus Status ACTIVE.',
+            });
+          }
+          await assertPersonalTimerGate(
+            {
+              sessionId: session.id,
+              questionId: question.id,
+              round: session.currentRound,
+              activeQuestionStartedAt: session.activeQuestionStartedAt,
+              baseTimerSeconds,
+            },
+            {
+              forceClosePersonalTimers: input.forceClosePersonalTimers,
+              action: 'startDiscussion',
+            },
+            tx,
+          );
+          await tx.session.update({
+            where: { id: session.id },
+            data: { status: 'DISCUSSION', statusChangedAt: new Date() },
+          });
+        });
+      } else {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { status: 'DISCUSSION', statusChangedAt: new Date() },
+        });
       }
-      await prisma.session.update({
-        where: { id: session.id },
-        data: { status: 'DISCUSSION', statusChangedAt: new Date() },
-      });
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
       return {

@@ -9,7 +9,10 @@ const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, lo
       },
       participant: {
         groupBy: vi.fn(),
+        update: vi.fn(),
       },
+      $executeRaw: vi.fn(),
+      $transaction: vi.fn(),
     },
     hostAuthMocks: {
       extractHostTokenMock: vi.fn(),
@@ -372,6 +375,10 @@ describe('session.revealResults (Story 2.3)', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   it('wechselt von ACTIVE zu RESULTS', async () => {
