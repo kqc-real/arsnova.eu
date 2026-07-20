@@ -583,12 +583,24 @@ async function endSessionAndScan(host, participant, hardFailures) {
   await scanA11y(host, 'end-confirmation');
   await confirmation.click();
 
-  await participant
-    .locator('#vote-session-end-anchor, #finished-heading')
-    .first()
-    .waitFor({ state: 'visible', timeout: 30_000 });
-  await scanA11y(participant, 'participant-session-ended');
-  logStep(true, 'Participant session-end state passes axe');
+  await participant.waitForFunction(
+    () =>
+      Boolean(document.querySelector('#vote-session-end-anchor, #finished-heading')) ||
+      /^\/(?:de|en|fr|it|es)\/?$/.test(window.location.pathname),
+    undefined,
+    { timeout: 30_000 },
+  );
+  const returnedHome = /^\/(?:de|en|fr|it|es)\/?$/.test(new URL(participant.url()).pathname);
+  await scanA11y(
+    participant,
+    returnedHome ? 'participant-session-ended-home' : 'participant-session-ended',
+  );
+  logStep(
+    true,
+    returnedHome
+      ? 'Participant returns to the localized home after session end and passes axe'
+      : 'Participant session-end state passes axe',
+  );
 }
 
 async function main() {
