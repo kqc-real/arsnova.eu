@@ -58,6 +58,10 @@ if (fs.existsSync(frontendDist)) {
     ? path.join(frontendDist, fallbackLocale, 'index.html')
     : null;
   const hasLocalizedBuild = availableLocales.length > 0;
+  const readFirstAvailableHtml = (...candidates: Array<string | null>): string | null => {
+    const filePath = candidates.find((candidate) => candidate && fs.existsSync(candidate));
+    return filePath ? fs.readFileSync(filePath, 'utf8') : null;
+  };
 
   // PWA-Update: ngsw.json und index.html nicht cachen, damit der Service Worker neue Versionen erkennt.
   app.use((req, res, next) => {
@@ -142,22 +146,20 @@ if (fs.existsSync(frontendDist)) {
       res.redirect(302, `/${chosen}/${query}`);
     });
     // Fallback für nicht-lokalisierte SPA-Routen → Root-Index (Client-Sprachwahl / Noscript-Links)
+    const spaFallbackHtml = readFirstAvailableHtml(rootIndexPath, fallbackIndexPath);
     app.get(/.*/, (_, res) => {
-      if (fs.existsSync(rootIndexPath)) {
-        res.sendFile(rootIndexPath);
-      } else if (fallbackIndexPath) {
-        res.sendFile(fallbackIndexPath);
+      if (spaFallbackHtml) {
+        res.type('html').send(spaFallbackHtml);
       } else {
         res.status(404).send('Frontend not built');
       }
     });
   } else {
     app.use(express.static(frontendDist));
+    const spaFallbackHtml = readFirstAvailableHtml(rootIndexPath, csrPath);
     app.get(/.*/, (_req, res, next) => {
-      if (fs.existsSync(rootIndexPath)) {
-        res.sendFile(rootIndexPath);
-      } else if (fs.existsSync(csrPath)) {
-        res.sendFile(csrPath);
+      if (spaFallbackHtml) {
+        res.type('html').send(spaFallbackHtml);
       } else {
         next();
       }
