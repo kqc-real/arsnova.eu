@@ -14,6 +14,11 @@ import {
 } from '../../core/locale-from-path';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
+/** Entfernt die erste Markdown-Überschrift (h1–h6), die den Dialog-Titel doppelt. */
+export function stripLeadingMarkdownTitle(html: string): string {
+  return html.replace(/^\s*<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]>\s*/i, '');
+}
+
 @Component({
   selector: 'app-legal-page',
   imports: [MatButton, MatIcon],
@@ -75,8 +80,10 @@ export class LegalPageComponent implements OnInit, OnDestroy {
           next: (md) => {
             this.ngZone.run(() => {
               const html = renderMarkdownWithoutKatex(md);
-              const withoutH1 = html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, '');
-              this.content.set(this.sanitizer.bypassSecurityTrustHtml(withoutH1));
+              // Markdown-`# Titel` wird mit headingStartLevel 2 als <h2> gerendert;
+              // die Seitenüberschrift kommt aus dem dialog-title-header.
+              const withoutLeadingTitle = stripLeadingMarkdownTitle(html);
+              this.content.set(this.sanitizer.bypassSecurityTrustHtml(withoutLeadingTitle));
               this.loading.set(false);
             });
           },

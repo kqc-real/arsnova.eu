@@ -7,7 +7,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ReplaySubject } from 'rxjs';
-import { LegalPageComponent } from './legal-page.component';
+import { LegalPageComponent, stripLeadingMarkdownTitle } from './legal-page.component';
 
 describe('LegalPageComponent', () => {
   let httpMock: HttpTestingController;
@@ -42,6 +42,15 @@ describe('LegalPageComponent', () => {
     httpMock.verify();
   });
 
+  it('entfernt die führende Markdown-Überschrift unabhängig vom Heading-Level', () => {
+    expect(stripLeadingMarkdownTitle('<h2>Impressum</h2>\n<p>Text</p>\n')).toBe('<p>Text</p>\n');
+    expect(stripLeadingMarkdownTitle('<h1>Privacy</h1><p>Body</p>')).toBe('<p>Body</p>');
+    expect(stripLeadingMarkdownTitle('<h3>Barrierefreiheit</h3>\n<p>Stand</p>')).toBe(
+      '<p>Stand</p>',
+    );
+    expect(stripLeadingMarkdownTitle('<p>Nur Text</p>')).toBe('<p>Nur Text</p>');
+  });
+
   it('ruft bei Klick auf den Backdrop location.back auf', async () => {
     const fixture = TestBed.createComponent(LegalPageComponent);
     const location = TestBed.inject(Location);
@@ -72,7 +81,11 @@ describe('LegalPageComponent', () => {
 
     expect(fixture.componentInstance.content()).toBeTruthy();
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelector('.legal-page__md')?.textContent).toContain('Welt');
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.textContent).toContain('Welt');
+    expect(md?.textContent).not.toMatch(/^\s*Titel/);
+    expect(md?.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+    expect(root.querySelectorAll('h1').length).toBe(1);
   });
 
   it('rendert Listen und Fettungen aus dem Privacy-Markdown korrekt', async () => {
@@ -100,6 +113,8 @@ describe('LegalPageComponent', () => {
     fixture.detectChanges();
 
     const root: HTMLElement = fixture.nativeElement;
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.querySelector('h1, h2')?.textContent?.trim()).not.toBe('Datenschutz');
     const listItems = Array.from(root.querySelectorAll('.legal-page__md li'));
     expect(listItems).toHaveLength(2);
     expect(listItems[0].querySelector('strong')?.textContent).toBe('Auskunft');
@@ -128,6 +143,9 @@ describe('LegalPageComponent', () => {
     expect(root.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
       'accessibility',
     );
-    expect(root.querySelector('.legal-page__md')?.textContent).toContain('Persönliche Zeit');
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.textContent).toContain('Persönliche Zeit');
+    expect(md?.querySelector('h1, h2')?.textContent?.trim()).not.toBe('Barrierefreiheit');
+    expect(root.querySelectorAll('h1').length).toBe(1);
   });
 });
