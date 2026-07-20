@@ -3,7 +3,8 @@
 # Accessibility-Audit · WCAG 2.2 AA
 
 **Projekt:** arsnova.eu  
-**Stand:** 2026-07-19  
+**Stand:** 2026-07-20
+
 **Zweck:** Lehr- und Arbeitsgrundlage für Softwarequalitätsmanagement, Frontend-Entwicklung und Review  
 **Prüfmaßstab:** [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), Konformitätsstufe AA
 
@@ -15,13 +16,20 @@ sichtbare Fokusindikatoren, viele Live-Regionen, Reduced Motion,
 Formularfehler-Fokus, lokalisierte Oberflächen und ein eigenes PDF/UA-Profil.
 
 Eine WCAG-2.2-AA-Konformität ist dennoch **nicht nachgewiesen**. Im initialen
-Audit wurden zwölf konkrete Level-A-/AA-Defekte identifiziert. Zu diesem
-Zeitpunkt fehlten außerdem routenübergreifende axe-Tests,
-Accessibility-Regeln für Angular-Templates, ein Landing-A11y-Gate, ein
-vollständiges manuelles Prüfprotokoll und eine formale PDF/UA-Validierung.
-Der dokumentierte Umsetzungsstand vom 2026-07-19 behebt diese technischen
-Befunde und automatisiert die genannten Gates; die vollständige manuelle
-Assistive-Technology-, Zoom-, Hochkontrast- und Reader-Abnahme bleibt offen.
+Audit wurden zwölf konkrete Level-A-/AA-Defekte identifiziert. Eine Nachprüfung
+vom 2026-07-20 ergänzte offene Risiken bei Überschriften, Timing,
+Fokusverdeckung und der Vollständigkeit automatischer Gates.
+
+Die bestätigten technischen Befunde sind auf `main` bis einschließlich PR #101
+behoben. Routenübergreifende axe-Tests, Angular-Template-Regeln,
+Landing-A11y-Gate, ungewichtete Lighthouse-Einzelaudits, 320-Pixel-Reflow und
+veraPDF/PDF-UA-1 sind blockierende CI-Nachweise. PR #102 ergänzt dafür eine
+zweite, PR-101-spezifische manuelle Prüfmatrix.
+
+Offen bleibt die vollständige manuelle Abnahme mit VoiceOver/Safari,
+NVDA/Firefox, echtem 200-/400-%-Browserzoom, Windows Forced Colors und
+PDF-Readern. Deshalb wird weiterhin **keine formale WCAG-2.2-AA-Konformität
+erklärt**.
 
 Ein hoher Lighthouse-Score ist dabei kein Konformitätsnachweis: Die
 Produktionsstartseite erreichte im Audit 100 Punkte, obwohl derselbe
@@ -93,7 +101,7 @@ benötigen zusätzliche Prüfungen.
 6. Abgleich mit den neuen WCAG-2.2-Kriterien, insbesondere 2.4.11, 2.5.7 und
    2.5.8.
 
-### 3.3 Gemessene Lighthouse-Ergebnisse
+### 3.3 Historische Lighthouse-Ergebnisse des initialen Audits
 
 | Route                            | Score | Automatisch gefundener Befund                                          |
 | -------------------------------- | ----: | ---------------------------------------------------------------------- |
@@ -102,7 +110,10 @@ benötigen zusätzliche Prüfungen.
 | `https://arsnova.eu/de/help`     |   100 | kein automatischer Verstoß in diesem Zustand                           |
 
 Der Startseitenbefund zeigt eine wichtige Grenze des Scores: Ein Audit kann
-fehlschlagen, ohne den gerundeten Kategorien-Score zu senken.
+fehlschlagen, ohne den gerundeten Kategorien-Score zu senken. Die Befunde sind
+inzwischen behoben. Das aktuelle Gate blockiert auch fehlgeschlagene
+Accessibility-Audits mit Gewicht `0`; `manual`, `notApplicable` und
+`informative` bleiben ausdrücklich ausgenommen.
 
 ### 3.4 Grenzen dieses Audits
 
@@ -115,7 +126,7 @@ Nicht vollständig durchgeführt wurden:
 - Forced Colors und Betriebssystem-Hochkontrast;
 - vollständige Tastaturläufe aller Host-/Vote-Phasen;
 - alle dynamischen Zustände in allen fünf Locales;
-- formale PDF/UA-Prüfung mit veraPDF oder PAC.
+- PAC-Gegenprüfung und manuelle PDF-Reader-Abnahme.
 
 Dieses Dokument ist daher ein belastbares technisches Audit und
 Umsetzungsplan, aber **keine Zertifizierung**.
@@ -132,7 +143,8 @@ Umsetzungsplan, aber **keine Zertifizierung**.
   `apps/frontend/src/app/shared/top-toolbar/top-toolbar.component.html`
 - lokalisierte Seitentitel und korrekte `html@lang`-Werte im
   Produktionsbuild;
-- semantische Überschriften in vielen Seiten- und Dialogköpfen;
+- Startseiten-Hero als `h1`, Kartentitel als `h2`; Admin-Login als `h1` und
+  nachgelagerte Admin-/MOTD-Bereiche als `h2`;
 - Skip-Link und Hauptnavigation auch in der Landing-App:
   `apps/landing/src/layouts/BaseLayout.astro`.
 
@@ -162,6 +174,8 @@ Umsetzungsplan, aber **keine Zertifizierung**.
 - globale Regel für `prefers-reduced-motion: reduce`;
 - zusätzliche Reduced-Motion-Regeln in Vote, Dialogen, Home und Lightbox;
 - Mobile-first-Layouts und ein Playwright-Smoke für 320 CSS-Pixel;
+- Reflow-/Fokus-Smoke für fünf Locales, Join, Quiz neu, Hilfe, Legal, Admin und
+  Offline-Banner sowie expliziten Desktop-Join-Fokus;
 - flexible Dialog-, Bild-, Tabellen- und KaTeX-Breiten;
 - 44- bis 48-Pixel-Zielgrößen in wichtigen Interaktionsbereichen.
 
@@ -210,17 +224,32 @@ bestehen PDF/UA-1. Die Reader-/Screenreader-Abnahme bleibt offen.
 ### 4.8 Qualitätssicherung
 
 - Angular-Template-A11y-Lint;
-- statische und dynamische axe-Scans;
+- statische und dynamische axe-Scans; alle WCAG-A/AA-Verstöße blockieren
+  unabhängig von der axe-Impact-Einstufung;
 - Landing-axe-Gate;
-- Lighthouse-CI für fünf Routen mit Score 100 und blockierenden gewichteten
-  Einzelaudits;
+- Lighthouse-CI für fünf Routen mit Score 100 und blockierenden
+  Einzelaudits einschließlich Gewicht `0`;
 - Reflow-, Fokus- und Zielgrößen-Smokes bei 320 CSS-Pixel;
 - veraPDF-PDF/UA-1-Gate für fünf Locale-Demos;
 - Unit-Tests für ARIA-, Live-Region-, Fokus- und Tastaturverhalten;
 - verpflichtende UI-PR-Checkliste und dokumentierte Vorgaben zu Fokus,
   Kontrast, Reduced Motion, Touch-Zielen und Fehlervalidierung.
 
-### 4.9 Accessibility, UX und Design
+### 4.9 Persönliche Zeitanpassung
+
+- Teilnehmende können für getimte Fragen `Standard`, `10× Zeit` oder
+  `Ohne Timer` wählen;
+- Präferenz wird am Participant und auf dem Gerät gespeichert und bei Rejoin
+  wiederhergestellt;
+- persönliche Deadline und gemeinsamer Session-Timer sind getrennt;
+- die Punktelogik bleibt am gemeinsamen Countdown, damit der
+  Nachteilsausgleich keinen Zeitbonus erzeugt;
+- eine lokale Punktvorschau kennzeichnet die Nachlaufzeit mit festem
+  zeitabhängigem Mindestwert;
+- der Host sieht vor „Ergebnis zeigen“, wie viele Personen mit
+  Zeitanpassung noch antworten, und bleibt für den Ablauf verantwortlich.
+
+### 4.10 Accessibility, UX und Design
 
 In der Entwicklungspraxis besteht häufig die Sorge, Barrierefreiheit mache
 Oberflächen zwangsläufig unruhiger, langsamer oder weniger attraktiv. Diese
@@ -280,6 +309,10 @@ ebenfalls zum Nutzungskontext.
 | Focus Traps in modalen Overlays               | Optik bleibt gleich; Initialfokus kann als Fokusrahmen sichtbar sein    | Tab bleibt im Dialog; Hintergrundbedienung wird verhindert              | unerwarteter Initialfokus oder nicht erreichbarer Schließen-Button      |
 | Fokus-Rückgabe nach Dialogende                | normalerweise unsichtbar                                                | Arbeit wird am auslösenden Control fortgesetzt                          | Auslöser kann während des Dialogs aus dem DOM verschwinden              |
 | inerte Hintergründe bei MOTD und Tempo-Hilfe  | Hintergrund reagiert während des Dialogs nicht                          | verhindert versehentliche Eingaben und unklare Fokuswechsel             | Overlay muss auf allen Viewports zuverlässig schließbar bleiben         |
+| persönliche Zeitanpassung                     | zusätzlicher kompakter MD3-Bereich in der Vote-Ansicht                  | individuelle Bedienzeit ohne Änderung des gemeinsamen Quizablaufs       | Verständlichkeit, Platzbedarf und Screenreader-Ausgabe                  |
+| lokale Punktvorschau                          | sichtbare Zahl neben dem Countdown                                      | zeitabhängige Wertung wird vor der Abgabe transparent                   | keine irreführende Aussage in der Nachlaufzeit oder Live-Region-Spam    |
+| Host-Hinweis auf offene Zeitfenster           | zusätzliche Statuskarte oberhalb der Ergebnisaktion                     | Host trifft eine informierte Entscheidung über das Ende der Eingabe     | Aktionsleiste darf bei Zoom und Mobile nicht verdeckt werden            |
+| Offline-Banner verschiebt fixe Toolbar        | Toolbar liegt bei Offline-Zustand etwas tiefer                          | Logo, Einstellungen und Fokus bleiben sichtbar                          | dynamische Bannerhöhe und lange Übersetzungen                           |
 
 Der lokalisierte Build und Unit-Tests sichern Semantik und Verhalten ab, können
 aber keine visuelle Freigabe ersetzen. Insbesondere die neuen sichtbaren
@@ -296,30 +329,32 @@ führt zusätzlich Buch über konkrete Dateien, Verhaltensänderungen,
 Prüfergebnisse, offene manuelle Abnahmen sowie spätere PR- und
 Commit-Referenzen.
 
-| Datum      | Planschritt                     | UX-/Designwirkung                                                                                                                        | Absicherung                                                                                |
-| ---------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 2026-07-19 | PR 1 – Semantik und Eingaben    | sichtbare Vote-Labels benötigen mehr Höhe; Tab-Reihenfolge wird kürzer; Submit erfolgt erst bei `click`                                  | Komponenten- und Gesamttests, lokalisierter Build; Mobile- und Timer-Smoke noch manuell    |
-| 2026-07-19 | PR 2 – Navigation und Fokus     | Seitenwechsel erhalten einen logischen Fokus; versteckte Toolbar erscheint beim Durchtabben                                              | Fokus-Unit-Tests, Gesamttests und lokalisierter Build; 400-%-Zoom bleibt manuell           |
-| 2026-07-19 | PR 3 – Dialoge und Overlays     | modale Optik bleibt bestehen; Tastaturfokus wird eingeschlossen, Hintergrund bei MOTD/Tempo inert und Fokus nach Schließen zurückgegeben | Focus-Trap-, Escape- und Rückkehrtests; visuelle Mobile-Prüfung bleibt erforderlich        |
-| 2026-07-19 | PR 4 – Interaktion und Struktur | Reorder- und Lightbox-Buttons ergänzen sichtbare Controls; Markdown und Wortwolken erhalten stabilere Informationsstrukturen             | Komponenten-, i18n- und Build-Prüfungen; Zielgrößen, Zoom und Screenreader bleiben manuell |
+| Datum      | Planschritt                      | UX-/Designwirkung                                                                                                                        | Absicherung                                                                                |
+| ---------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 2026-07-19 | PR 1 – Semantik und Eingaben     | sichtbare Vote-Labels benötigen mehr Höhe; Tab-Reihenfolge wird kürzer; Submit erfolgt erst bei `click`                                  | Komponenten- und Gesamttests, lokalisierter Build; Mobile- und Timer-Smoke noch manuell    |
+| 2026-07-19 | PR 2 – Navigation und Fokus      | Seitenwechsel erhalten einen logischen Fokus; versteckte Toolbar erscheint beim Durchtabben                                              | Fokus-Unit-Tests, Gesamttests und lokalisierter Build; 400-%-Zoom bleibt manuell           |
+| 2026-07-19 | PR 3 – Dialoge und Overlays      | modale Optik bleibt bestehen; Tastaturfokus wird eingeschlossen, Hintergrund bei MOTD/Tempo inert und Fokus nach Schließen zurückgegeben | Focus-Trap-, Escape- und Rückkehrtests; visuelle Mobile-Prüfung bleibt erforderlich        |
+| 2026-07-19 | PR 4 – Interaktion und Struktur  | Reorder- und Lightbox-Buttons ergänzen sichtbare Controls; Markdown und Wortwolken erhalten stabilere Informationsstrukturen             | Komponenten-, i18n- und Build-Prüfungen; Zielgrößen, Zoom und Screenreader bleiben manuell |
+| 2026-07-20 | PR 9 – AA-Restblocker            | Headings bleiben optisch stabil; strengere Gates machen bisher verdeckte Fehler sichtbar; Offline-Toolbar erhält sicheren Abstand        | PR #101: Lighthouse, Playwright, axe, Typecheck, Tests, CodeQL und Trivy grün              |
+| 2026-07-20 | PR 9b – Timer-Nachteilsausgleich | persönlicher MD3-Timerbereich, lokale Punktvorschau und Host-Hinweis ergänzen den Live-Ablauf ohne Änderung der Fairness                 | PR #101 automatisch grün; 25 manuelle Fälle in der PR-101-Matrix bleiben offen             |
 
 Der CDK Focus Trap erhöht die betroffenen Lazy Chunks im bisherigen
 Buildvergleich jeweils nur grob um weniger als 2 kB Rohgröße. Das Initial
 Bundle blieb durch diesen Schritt unverändert. Auch technische Auswirkungen
 wie Bundle-Größe und Laufzeitkosten gehören in die fortlaufende Bewertung.
 
-#### Mögliche Auswirkungen der nächsten Umsetzungsschritte
+#### Mögliche Auswirkungen der noch offenen Abnahmen
 
-- **Dialog-Migrationen** können Animation, Größe und Position leicht
-  verändern, verbessern aber Fokus, Escape und Rückkehr zum Auslöser.
-- **„Nach oben“-/„Nach unten“-Buttons** machen die Quiz-Bearbeitung sichtbarer
-  und zuverlässiger, benötigen aber eine ruhige Integration ohne
-  Button-Überladung.
+- **Screenreader-Nachprüfungen** können zu kürzeren Statusmeldungen oder einer
+  angepassten Ansagereihenfolge führen.
+- **echter 200-/400-%-Zoom** kann zusätzliche Abstände für Sticky- und
+  Bottom-Aktionen erfordern.
 - **größere Touch-Ziele** können mehr Platz beanspruchen, reduzieren aber
   Fehlbedienung für alle Mobile-Nutzer:innen.
-- **Textalternativen für Charts und Wortwolken** erhöhen die Informationsdichte,
-  können jedoch als aufklappbare Tabelle oder kompakte Zusammenfassung
-  gestaltet werden.
+- **lange Übersetzungen** können kompaktere Beschriftungen oder bewusst
+  mehrzeilige Controls erfordern.
+- **Timer- und Host-Hinweise** müssen informativ bleiben, ohne den
+  zeitkritischen Live-Ablauf visuell zu überladen.
 - **stärkere Kontraste und Fokusindikatoren** verändern das visuelle Gewicht,
   schaffen aber auch auf Beamern, älteren Displays und im Freien mehr
   Klarheit.
@@ -358,7 +393,11 @@ wie Bundle-Größe und Laufzeitkosten gehören in die fortlaufende Bewertung.
 - [ ] zeitkritische und fachliche Abläufe separat getestet
 - [ ] Vorher/Nachher-Auswirkung im Pull Request beschrieben
 
-## 5. Bestätigte A/AA-Defekte
+## 5. Bestätigte A/AA-Defekte – historischer, geschlossener Befundbestand
+
+Alle Einträge in diesem Abschnitt beschreiben Ausgangsbefunde. Ihr technischer
+Umsetzungsstand ist jeweils am Eintrag dokumentiert; offene manuelle Nachweise
+stehen in Abschnitt 6 und in den beiden Prüfmatrizen.
 
 ### 5.1 Aktion bereits beim Drücken des Zeigers
 
@@ -574,6 +613,46 @@ anderssprachige Phrase ohne Sprachkennzeichnung entstehen.
 über Angular i18n oder `$localize` geführt und in allen fünf Locale-Dateien
 gepflegt.
 
+### 5.13 Keine persönliche Anpassung aktiver Quiz-Timer
+
+**WCAG:** 2.2.1 Timing Adjustable, Level A
+
+**Evidenz:** Vote-Deadline in
+`apps/backend/src/routers/vote.ts` und Vote-UI in
+`apps/frontend/src/app/features/session/session-vote/`
+
+**Umsetzungsstand 2026-07-20:** Auf `main` behoben (PR #101).
+Teilnehmende können `10× Zeit` oder `Ohne Timer` wählen. Die persönliche
+Deadline wird serverseitig durchgesetzt; Scoring und gemeinsamer Ablauf bleiben
+am Session-Timer. Der Host erhält einen Hinweis auf noch offene angepasste
+Eingabefenster.
+
+**Ausgangsbefund:** Für getimte Fragen gab es nur den gemeinsamen Host-Timer.
+Eine globale timerlose Session war möglich, aber kein persönlicher
+Nachteilsausgleich während einer getimten Veranstaltung.
+
+**Umgesetzt:** Schema-first-Erweiterung von Prisma, Shared Contracts, tRPC,
+Vote-Deadline, MD3-Segmented-Control, Punktvorschau und Host-Fortschritt.
+
+### 5.14 Unvollständige Überschriftenhierarchie auf Home und Admin
+
+**WCAG:** 1.3.1 Info and Relationships und 2.4.6 Headings and Labels
+
+**Evidenz:**
+`apps/frontend/src/app/features/home/home.component.html` und
+`apps/frontend/src/app/features/admin/`
+
+**Umsetzungsstand 2026-07-20:** Auf `main` behoben (PR #101). Der
+Startseiten-Hero ist das `h1`, Kartentitel sind `h2`; Admin-Login und
+nachgelagerte Admin-/MOTD-Bereiche besitzen eine nachvollziehbare
+`h1`-/`h2`-Struktur.
+
+**Ausgangsbefund:** Visuelle Kartentitel verwendeten Material-Titelklassen,
+bildeten aber nicht durchgängig die semantische Seitenhierarchie ab.
+
+**Umgesetzt:** Semantische Heading-Elemente bei unveränderter visueller
+Material-Darstellung und Regressionstests für die Startseite.
+
 ## 6. Weitere Risiken und noch erforderliche Nachweise
 
 Die folgenden Punkte sind nicht automatisch als Verstoß zu werten, müssen vor
@@ -590,7 +669,7 @@ einer AA-Freigabe aber gezielt geprüft werden:
 | Statusmeldungen  | weder fehlende noch übermäßig häufige Ansagen                                                    |
 | Wortwolke/Charts | textuelle Alternativen für Häufigkeit, Rang und Datenbeziehungen                                 |
 | High Contrast    | Forced Colors und Betriebssystem-Hochkontrast                                                    |
-| Timing           | konfigurierbare Timer und begründete Ausnahmen für synchrone Live-Aktivitäten                    |
+| Timing           | persönliche Modi Standard/10×/Ohne Timer mit Host-Hinweis manuell in realem Live-Ablauf prüfen   |
 | Locales          | alle Kernflows in `de`, `en`, `fr`, `es`, `it`                                                   |
 | PDF/UA           | veraPDF/PAC, Tagstruktur, Lesereihenfolge, Links und Alternativtexte                             |
 
@@ -613,12 +692,14 @@ aktuellen Zustand auf `main`:
 - Das PDF/UA-Profil wurde nicht mit einem externen Validator in CI geprüft.
 - Der dokumentierte Projektstandard war WCAG 2.1 AA; Story 6.5 war offen.
 
-**Aktueller Status 2026-07-19:** Die Tooling-Lücken wurden mit PR #91 und
-PR #92 geschlossen:
+**Aktueller Status 2026-07-20:** Die Tooling-Lücken wurden mit PR #91, PR #92
+und PR #101 geschlossen:
 Template-Lint, axe, Lighthouse-Einzelaudits, Landing-Gate, dynamische Smokes
 und veraPDF sind blockierende CI-Prüfungen. Der dokumentierte Zielstandard
-wurde auf WCAG 2.2 AA aktualisiert. Story 6.5 bleibt bis zur vollständigen
-manuellen PR-7- und Reader-Abnahme offen.
+wurde auf WCAG 2.2 AA aktualisiert. axe blockiert alle WCAG-A/AA-Verstöße
+unabhängig vom Impact; Lighthouse blockiert auch fehlgeschlagene Audits mit
+Gewicht `0`. Story 6.5 bleibt bis zur vollständigen manuellen PR-7-,
+PR-101- und Reader-Abnahme offen.
 
 ### 7.2 Bedeutung für die Lehre
 
@@ -631,9 +712,9 @@ Dieser Stand eignet sich gut, um drei Qualitätsprinzipien zu zeigen:
 
 ## 8. Umsetzungsplan
 
-Die Umsetzung sollte in kleinen, unabhängig prüfbaren Pull Requests erfolgen.
-Die Reihenfolge beginnt mit Level-A-Defekten, bevor neue AA-Gates eingeführt
-und abschließend manuelle Nachweise erstellt werden. Der tatsächliche
+Die technische Umsetzung erfolgte in kleinen, unabhängig prüfbaren Pull
+Requests: zuerst Level-A-Defekte, anschließend AA-Interaktionen, dauerhafte
+Gates, PDF/UA und die Restblocker aus der Nachprüfung. Der tatsächliche
 Arbeitsstand wird im
 [`Accessibility-Umsetzungsjournal`](./ACCESSIBILITY-UMSETZUNGSJOURNAL.md)
 fortlaufend protokolliert.
@@ -765,9 +846,10 @@ Angular-Template-A11y-Lint, statische und dynamische axe-Scans, Landing-Gate,
 Audit-Level-Lighthouse sowie
 Reflow-, Fokus- und Zielgrößen-Smokes sind in npm-Skripte und CI integriert.
 Die lokalen Nachweise umfassen zwölf statische Frontend-Zustände, drei
-Landing-Seiten, zehn Unified-Session-Zustände, vier SHORT_TEXT-Zustände,
-sechs Reflow-Routen und fünf Lighthouse-A11y-Routen mit Score 100 ohne
-fehlgeschlagenes gewichtetes Accessibility-Audit. Automatisierte Prüfungen
+Landing-Seiten, zehn Unified-Session-Zustände, vier SHORT_TEXT-Zustände und fünf
+Lighthouse-A11y-Routen mit Score 100 ohne fehlgeschlagenes
+Accessibility-Audit. PR #101 erweiterte den Reflow-/Fokus-Smoke auf
+15 Zustände plus den expliziten Desktop-Join-Fokus. Automatisierte Prüfungen
 ersetzen die manuelle Matrix aus PR 7 nicht.
 
 **Umfang**
@@ -798,7 +880,8 @@ ersetzen die manuelle Matrix aus PR 7 nicht.
 
 ### PR 7 – Manuelle Abschlussprüfung
 
-**Status 2026-07-19:** in Arbeit. Die ausführbare Matrix ist konkretisiert.
+**Status 2026-07-20:** in Arbeit. Die allgemeine und die
+PR-101-spezifische ausführbare Matrix sind konkretisiert.
 Browserprüfungen für Tastatur, 320-CSS-Pixel-Reflow, Fokus, Zielgrößen,
 zusätzliche Locale-Routen sowie emuliertes Reduced Motion und Forced Colors
 wurden durchgeführt. Dabei wurden Initialfokus, Skip-Link, der delegierte
@@ -823,7 +906,11 @@ WCAG-2.2-AA-Abnahme sind deshalb noch nicht abgeschlossen.
 Die konkrete Durchführung, die bereits erhobenen Nachweise, die behobenen
 Befunde und die verbleibenden externen Abnahmeschritte stehen im
 [`ACCESSIBILITY-UMSETZUNGSJOURNAL.md`](./ACCESSIBILITY-UMSETZUNGSJOURNAL.md)
-unter „PR 7 – Manuelle Abschlussprüfung“.
+unter „PR 7 – Manuelle Abschlussprüfung“. Die allgemeine
+[`manuelle Prüfmatrix`](./ACCESSIBILITY-MANUELLE-PRUEFMATRIX.md) wird durch die
+[`PR-101-Prüfmatrix`](./ACCESSIBILITY-MANUELLE-PRUEFMATRIX-PR101.md) mit
+25 konkreten Fällen für Timer, Host-Hinweis, Fokus, Reflow, Semantik und i18n
+ergänzt.
 
 **Abnahme**
 
@@ -862,6 +949,34 @@ PAC-Gegencheck bleiben offen.
 - dokumentiertes manuelles PDF-Protokoll;
 - aktualisierte Qualitäts- und Testdokumentation.
 
+### PR 9 – WCAG-AA-Restblocker und Timer-Nachteilsausgleich
+
+**Status 2026-07-20:** Auf `main` umgesetzt und automatisch validiert
+(PR #101). PR #102 ergänzt das spezifische manuelle Abnahmeprotokoll.
+
+**Umfang**
+
+1. Home- und Admin-Überschriftenhierarchie korrigieren;
+2. axe auf alle WCAG-A/AA-Verstöße unabhängig vom Impact verschärfen;
+3. Lighthouse-Audits mit Gewicht `0` blockieren;
+4. Reflow-/Fokus-Smoke auf zusätzliche Routen, Locales und Offline erweitern;
+5. persönliche Timer-Modi Standard/10×/Ohne Timer umsetzen;
+6. lokale Punktvorschau und informierten Host-Hinweis ergänzen;
+7. allgemeine und PR-spezifische manuelle Prüfmatrix pflegen.
+
+**Automatischer Nachweis**
+
+- Localized Build, Typecheck, Tests und ESLint;
+- axe, Lighthouse und Playwright Smoke E2E;
+- CodeQL, Trivy und Migration Drift;
+- veraPDF/PDF-UA-1.
+
+**Offene Abnahme**
+
+- 25 Fälle der PR-101-Matrix;
+- VoiceOver/Safari, NVDA/Firefox und Windows Forced Colors;
+- echter 200-/400-%-Browserzoom und PDF-Reader.
+
 ## 9. Empfohlene Reihenfolge und Definition of Done
 
 ### Reihenfolge
@@ -870,7 +985,8 @@ PAC-Gegencheck bleiben offen.
 2. PR 2 und PR 3: Fokus, Navigation und Dialoge;
 3. PR 4 und PR 5: neue WCAG-2.2-AA-Kriterien und i18n;
 4. PR 6: dauerhafte Regressionserkennung;
-5. PR 7 und PR 8: formaler Nachweis und Abschluss.
+5. PR 8 und PR 9: PDF/UA sowie technische AA-Restblocker;
+6. PR 7 und die PR-101-Matrix: formaler manueller Nachweis und Abschluss.
 
 ### Definition of Done für WCAG 2.2 AA
 
@@ -965,6 +1081,10 @@ LIGHTHOUSE_URL=http://localhost:4200/de/quiz/new \
 - [`docs/ui/PR-CHECKLIST-UI.md`](../ui/PR-CHECKLIST-UI.md)
 - [`docs/ui/STYLEGUIDE.md`](../ui/STYLEGUIDE.md)
 - [`docs/TESTING.md`](../TESTING.md)
+- [`ACCESSIBILITY-UMSETZUNGSJOURNAL.md`](./ACCESSIBILITY-UMSETZUNGSJOURNAL.md)
+- [`ACCESSIBILITY-MANUELLE-PRUEFMATRIX.md`](./ACCESSIBILITY-MANUELLE-PRUEFMATRIX.md)
+- [`ACCESSIBILITY-MANUELLE-PRUEFMATRIX-PR101.md`](./ACCESSIBILITY-MANUELLE-PRUEFMATRIX-PR101.md)
+- [`ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](./ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md)
 - [`Backlog.md`](../../Backlog.md), insbesondere Story 6.5
 - [`docs/EPIC6-AC-PRUEFUNG.md`](../EPIC6-AC-PRUEFUNG.md)
 
@@ -979,5 +1099,5 @@ Umsetzung ist:
    nachzuführen;
 4. zwischen technischem Fix und formaler WCAG-Abnahme zu unterscheiden.
 
-_Auditstand: 2026-07-19. Erstellt als Lehr- und Umsetzungsgrundlage; keine
-Zertifizierung._
+_Auditstand: 2026-07-20. Technische Befunde bis PR #101 aktualisiert; manuelle
+Gesamtabnahme weiterhin offen; keine Zertifizierung._
