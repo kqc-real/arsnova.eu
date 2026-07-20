@@ -129,11 +129,19 @@ async function inspectKeyboardFocus(page) {
       const centerX = rect.left + Math.min(rect.width, 24) / 2;
       const centerY = rect.top + Math.min(rect.height, 24) / 2;
       const topEl = document.elementFromPoint(centerX, centerY);
+      const interactiveSurface = active.closest(
+        'mat-form-field, .mat-mdc-form-field, mat-button-toggle, .mat-mdc-button-base',
+      );
+      const sameInteractiveSurface =
+        interactiveSurface instanceof Element &&
+        topEl instanceof Element &&
+        interactiveSurface.contains(topEl);
       const obscured =
         topEl instanceof Element &&
         topEl !== active &&
         !active.contains(topEl) &&
         !topEl.contains(active) &&
+        !sameInteractiveSurface &&
         getComputedStyle(topEl).pointerEvents !== 'none';
       if (obscured) {
         const label =

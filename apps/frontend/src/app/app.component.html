@@ -1,6 +1,7 @@
 <div
   class="app-layout"
   [class.app-layout--immersive-host]="isImmersiveHostView()"
+  [class.app-layout--offline]="!isOnline()"
   [style.--app-footer-visible-offset.px]="footerVisibleOffset()"
 >
   @if (!isOnline()) {

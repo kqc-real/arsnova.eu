@@ -346,7 +346,8 @@ describe('QuizListComponent', () => {
     expect(text).toContain('SQL Grundlagen');
     const link = fixture.nativeElement.querySelector('.quiz-list-item__link') as HTMLAnchorElement;
     expect(link).toBeTruthy();
-    expect(link.getAttribute('aria-label')).toContain('Datenbanken');
+    expect(link.getAttribute('aria-label')).toBeNull();
+    expect(link.textContent).toContain('Datenbanken');
   });
 
   it('zeigt auf der Demo-Quizkarte ein Untermenü mit Standard- und PDF/UA-Beispiel', () => {

@@ -254,10 +254,6 @@ export class QuizListComponent implements OnInit {
     return $localize`:@@quizList.tooltipDeleteLive:Kann nicht gelöscht werden, solange das Quiz live ist.`;
   }
 
-  getQuizOpenAriaLabel(quizName: string): string {
-    return $localize`:@@quizList.ariaQuizOpen:Quiz ${quizName}:quizName: öffnen`;
-  }
-
   getQuizActionsAriaLabel(quizName: string): string {
     return $localize`:@@quizList.ariaQuizActions:Aktionen für Quiz ${quizName}:quizName:`;
   }

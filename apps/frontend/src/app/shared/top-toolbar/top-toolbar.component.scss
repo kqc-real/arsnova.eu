@@ -52,7 +52,7 @@
 /* Fixiert für Hide-on-Scroll; gleiche Breite/Flucht wie .l-page (56rem zentriert, gleicher Inset). */
 .top-toolbar--fixed {
   position: fixed;
-  top: 0.5rem;
+  top: calc(0.5rem + var(--app-offline-banner-height, 0px));
   left: 50%;
   right: auto;
   transform: translateX(-50%);
@@ -61,10 +61,10 @@
   margin-inline: 0;
 
   @media (min-width: 600px) {
-    top: 0.75rem;
+    top: calc(0.75rem + var(--app-offline-banner-height, 0px));
   }
   @media (min-width: 840px) {
-    top: 1rem;
+    top: calc(1rem + var(--app-offline-banner-height, 0px));
   }
 }
 

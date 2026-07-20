@@ -446,11 +446,7 @@
     <mat-card appearance="outlined" class="quiz-list-item">
       <mat-card-content class="quiz-list-item__content">
         <div class="quiz-list-item__main">
-          <a
-            class="quiz-list-item__link"
-            [routerLink]="quiz.id"
-            [attr.aria-label]="getQuizOpenAriaLabel(quiz.name)"
-          >
+          <a class="quiz-list-item__link" [routerLink]="quiz.id">
             <h2 class="quiz-list-item__title">{{ quiz.name }}</h2>
             <div class="quiz-list-item__badges">
               @if (quiz.id === demoQuizId) {
