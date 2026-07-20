@@ -571,6 +571,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('ABC123');
     expect(text).toContain('Erste Frage starten');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('h1.session-lobby__hero-title'),
+    ).toBeTruthy();
     fixture.destroy();
   });
 
@@ -3199,6 +3202,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
 
     expect(questionText?.classList.contains('markdown-body')).toBe(true);
+    expect(questionText?.closest('h1.session-host__question-title')).toBeTruthy();
+    expect(questionText?.closest('[role="heading"][aria-level="1"]')).toBeNull();
     expect(answerText?.classList.contains('markdown-body')).toBe(true);
     fixture.destroy();
   });
@@ -3924,15 +3929,98 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       round: 1,
       totalVotes: 0,
       pendingTimerAccommodationCount: 1,
+      blockingTimerAccommodationCount: 1,
     });
     fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        '.session-host__timer-accommodation-warning',
-      )?.textContent,
-    ).toContain(
-      'Eine Person mit Zeitanpassung antwortet noch. „Ergebnis zeigen“ beendet ihre Eingabe.',
+    const timerWarning = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__timer-accommodation-warning',
     );
+    expect(timerWarning?.textContent).toContain(
+      'Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.',
+    );
+    const resultButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((button) => (button.textContent ?? '').includes('Ergebnis zeigen'));
+    expect(resultButton?.disabled).toBe(true);
+    expect(resultButton?.getAttribute('aria-describedby')).toBe(
+      'session-host-timer-accommodation-status',
+    );
+    fixture.destroy();
+  });
+
+  it('bietet nach Raum-Countdown Trotzdem-freigeben mit Bestaetigung an', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.hostVoteProgress.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 0,
+      pendingTimerAccommodationCount: 1,
+      blockingTimerAccommodationCount: 1,
+    });
+    fixture.componentInstance.countdownEnded.set(true);
+    fixture.detectChanges();
+
+    const timerWarning = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__timer-accommodation-warning',
+    );
+    expect(timerWarning?.textContent).toContain('Trotzdem freigeben');
+    const resultButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((button) => (button.textContent ?? '').includes('Trotzdem freigeben'));
+    expect(resultButton?.disabled).toBe(false);
+
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(true) });
+    revealResultsMutateMock.mockClear();
+    await fixture.componentInstance.revealResults();
+    expect(dialogOpenMock).toHaveBeenCalled();
+    expect(revealResultsMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      forceClosePersonalTimers: true,
+    });
     fixture.destroy();
   });
 

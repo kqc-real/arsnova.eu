@@ -139,6 +139,8 @@ async function findNumericEstimateInput(
 describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   afterEach(() => {
     vi.useRealTimers();
+    localStorage.removeItem('arsnova-live-score-preview');
+    localStorage.removeItem('arsnova-timer-accommodation');
   });
 
   it('liefert phasenabhängige Einsprung-Anker mit korrekten Fallbacks', () => {
@@ -220,7 +222,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       teamName: 'Rot',
       timerAccommodation: 'DEFAULT',
     });
-    setTimerAccommodationMutateMock.mockResolvedValue({ timerAccommodation: 'EXTENDED' });
+    setTimerAccommodationMutateMock.mockImplementation(
+      async (input: { accommodation: 'DEFAULT' | 'EXTENDED' | 'OFF' }) => ({
+        timerAccommodation: input.accommodation,
+      }),
+    );
     getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {
@@ -381,14 +387,25 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       '[data-testid="vote-timer-accommodation"]',
     ) as HTMLElement | null;
     expect(timerCard).toBeTruthy();
-    expect(timerCard?.querySelector('h3')?.textContent).toContain('Zeit anpassen');
+    expect(timerCard?.querySelector('h2')?.textContent).toContain('Zeit anpassen');
     expect(timerCard?.querySelector('mat-button-toggle-group')).toBeTruthy();
     expect(host.textContent).toContain('Zeit anpassen');
-    expect(host.textContent).toContain('Quizablauf bleibt unverändert');
-    expect(host.textContent).toContain('Punkte richten sich nach dem gemeinsamen Countdown');
-    expect(host.textContent).toContain('Standard');
+    expect(host.textContent).toContain('10× Zeit = zehnfacher Raum-Countdown');
+    expect(host.textContent).toContain('Punkte folgen dem gemeinsamen Countdown');
+    expect(host.textContent).toContain('So werden Punkte berechnet');
+    expect(host.textContent).not.toContain('danach nur Mindestpunkte');
+    const scoringInfo = host.querySelector(
+      '[data-testid="vote-scoring-info"]',
+    ) as HTMLDetailsElement | null;
+    expect(scoringInfo).toBeTruthy();
+    scoringInfo!.open = true;
+    fixture.detectChanges();
+    expect(scoringInfo!.textContent).toContain('Leicht ×1, Mittel ×2, Schwer ×3');
+    expect(scoringInfo!.textContent).toContain('ab 5× ×1,5');
+    expect(scoringInfo!.textContent).toContain('ohne Serien-Bonus');
+    expect(host.textContent).toContain('Ohne Frist');
     expect(host.textContent).toContain('10× Zeit');
-    expect(host.textContent).toContain('Ohne Timer');
+    expect(host.textContent).toContain('Standard');
 
     await component.setTimerAccommodation('EXTENDED');
     fixture.detectChanges();
@@ -399,8 +416,40 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       accommodation: 'EXTENDED',
     });
     expect(component.timerAccommodation()).toBe('EXTENDED');
-    expect(host.textContent).toContain('10× Zeit aktiv');
+    expect(host.textContent).toContain(
+      'Früh abgeben lohnt sich · nach dem Countdown nur Mindestpunkte',
+    );
+    expect(host.textContent).toContain('10× Zeit aktiv · Das Ergebnis wartet auf dich');
     expect(localStorage.getItem('arsnova-timer-accommodation')).toBe('EXTENDED');
+
+    await component.setTimerAccommodation('OFF');
+    fixture.detectChanges();
+    expect(host.textContent).toContain(
+      'Keine persönliche Frist · Punkte weiter nach dem Raum-Timer',
+    );
+    expect(host.textContent).toContain(
+      'Früh abgeben lohnt sich · nach dem Countdown nur Mindestpunkte',
+    );
+    fixture.destroy();
+  });
+
+  it('bietet die Zeitanpassung bereits in der Quiz-Lobby an', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('LOBBY');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.sessionSettings.set({ type: 'QUIZ' });
+    fixture.detectChanges();
+
+    expect(component.showLobbyTimerAccommodationControls()).toBe(true);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="vote-timer-accommodation"]',
+      ),
+    ).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown',
+    );
     fixture.destroy();
   });
 
@@ -478,6 +527,105 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         ?.querySelector('.vote-score-preview__value')
         ?.textContent?.replace(/\s+/g, ''),
     ).toContain('200Punkte');
+    expect(floatingPreview?.getAttribute('aria-live')).toBeNull();
+    expect(floatingPreview?.getAttribute('role')).not.toBe('status');
+    component.setLiveScorePreviewVisible(false);
+    fixture.detectChanges();
+    expect(component.showLiveScorePreview()).toBe(false);
+    expect(component.liveScorePreviewPoints()).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.vote-score-preview-toggle')
+        ?.textContent,
+    ).toContain('Live-Punkte anzeigen');
+    expect(localStorage.getItem('arsnova-live-score-preview')).toBe('false');
+    fixture.destroy();
+  });
+
+  it('stellt die ausgeblendete Punktvorschau aus localStorage wieder her', async () => {
+    localStorage.setItem('arsnova-live-score-preview', 'false');
+    getInfoQueryMock.mockResolvedValue({
+      id: 'session-1',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: 'Demo Quiz',
+      title: null,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+      participantCount: 1,
+      teamMode: false,
+      anonymousMode: false,
+      nicknameTheme: 'HIGH_SCHOOL',
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'score-preview-restore',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      timer: 60,
+      sessionTimer: 60,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.liveScorePreviewVisible()).toBe(false);
+
+    component.status.set('ACTIVE');
+    component.currentRound.set(1);
+    component.voteSent.set(false);
+    component.voteClosed.set(false);
+    component.sessionTimerSeconds.set(60);
+    component.scorePreviewElapsedSeconds.set(0);
+    component.currentQuestion.set({
+      id: 'score-preview-restore',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      timer: 60,
+      sessionTimer: 60,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 1,
+    });
+    fixture.detectChanges();
+
+    expect(component.liveScorePreviewAvailable()).toBe(true);
+    expect(component.liveScorePreviewPoints()).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('.vote-score-preview-toggle')
+        ?.getAttribute('aria-pressed'),
+    ).toBe('false');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="vote-score-preview"]'),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -3962,6 +4110,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
 
     expect(questionText?.classList.contains('markdown-body')).toBe(true);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'section.vote-question[aria-labelledby="vote-question-heading"] h1',
+      )?.textContent,
+    ).toContain('Frage 1');
     expect(answerText?.classList.contains('markdown-body')).toBe(true);
     fixture.destroy();
   });

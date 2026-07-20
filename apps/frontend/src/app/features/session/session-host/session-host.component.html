@@ -468,7 +468,7 @@
           <div class="session-lobby">
             @if (sessionHeading(); as heading) {
               <section class="session-lobby__hero-card">
-                <p class="session-lobby__hero-title">{{ heading }}</p>
+                <h1 class="session-lobby__hero-title">{{ heading }}</h1>
                 @if (activeChannel() === 'quiz' && session()?.quizMotifImageUrl; as motifUrl) {
                   <div class="session-lobby__quiz-motif-wrap">
                     <img
@@ -640,23 +640,6 @@
                   </li>
                 }
               </ul>
-            }
-            @if (!sessionHeading()) {
-              <div class="session-lobby__actions">
-                <button
-                  mat-flat-button
-                  color="primary"
-                  type="button"
-                  [disabled]="controlPending() || quizStartQuestionPending()"
-                  (click)="onLobbyStartSessionClick()"
-                >
-                  @if (isQaSession()) {
-                    <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
-                  } @else {
-                    <span i18n>Erste Frage starten</span>
-                  }
-                </button>
-              </div>
             }
           </div>
         } @else {
@@ -1439,17 +1422,17 @@
                           class="session-host__timer-a11y-note"
                           i18n="@@sessionHost.timerAccommodationNote"
                         >
-                          Teilnehmende können ihre persönliche Zeit bei Bedarf verlängern oder
+                          Teilnehmende können ihre persönliche Frist bei Bedarf verlängern oder
                           abschalten.
                         </p>
                       }
                     </mat-card-subtitle>
-                    <mat-card-title class="session-host__question-title">
+                    <h1 mat-card-title class="session-host__question-title">
                       <span
                         class="session-host__question-title-inner markdown-body"
                         [innerHTML]="renderMarkdown(q.text)"
                       ></span>
-                    </mat-card-title>
+                    </h1>
                     <div
                       class="session-host__question-meta"
                       i18n-aria-label="@@session.questionMetadataAria"
@@ -3537,9 +3520,16 @@
           hasCurrentQuizQuestionForHost()
         ) {
           @if (pendingTimerAccommodationCount(); as pendingCount) {
-            <p class="session-host__timer-accommodation-warning" role="status" aria-live="polite">
+            <p
+              id="session-host-timer-accommodation-status"
+              class="session-host__timer-accommodation-warning"
+              role="status"
+              aria-live="polite"
+            >
               <mat-icon aria-hidden="true">schedule</mat-icon>
-              <span>{{ pendingTimerAccommodationLabel(pendingCount) }}</span>
+              <span>{{
+                pendingTimerAccommodationLabel(pendingCount, blockingTimerAccommodationCount())
+              }}</span>
             </p>
           }
           @if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
@@ -3548,7 +3538,12 @@
               color="primary"
               type="button"
               class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
-              [disabled]="controlPending()"
+              [disabled]="controlPending() || personalTimerBlocksReveal()"
+              [attr.aria-describedby]="
+                pendingTimerAccommodationCount() > 0
+                  ? 'session-host-timer-accommodation-status'
+                  : null
+              "
               (click)="startDiscussion()"
               i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
               aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
@@ -3560,12 +3555,21 @@
               matButton="tonal"
               type="button"
               class="session-host__exit-anchor-button"
-              [disabled]="controlPending()"
+              [disabled]="controlPending() || personalTimerBlocksReveal()"
+              [attr.aria-describedby]="
+                pendingTimerAccommodationCount() > 0
+                  ? 'session-host-timer-accommodation-status'
+                  : null
+              "
               (click)="revealResults()"
             >
-              <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
-                >Ergebnis trotzdem zeigen</span
-              >
+              @if (canForceClosePersonalTimers()) {
+                <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
+              } @else {
+                <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
+                  >Ergebnis trotzdem zeigen</span
+                >
+              }
             </button>
           } @else {
             <button
@@ -3573,11 +3577,19 @@
               color="primary"
               type="button"
               class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
-              [disabled]="controlPending()"
+              [disabled]="controlPending() || personalTimerBlocksReveal()"
+              [attr.aria-describedby]="
+                pendingTimerAccommodationCount() > 0
+                  ? 'session-host-timer-accommodation-status'
+                  : null
+              "
               (click)="revealResults()"
-              i18n="@@sessionHost.revealResultsAnchor"
             >
-              Ergebnis zeigen
+              @if (canForceClosePersonalTimers()) {
+                <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
+              } @else {
+                <span i18n="@@sessionHost.revealResultsAnchor">Ergebnis zeigen</span>
+              }
             </button>
           }
         }

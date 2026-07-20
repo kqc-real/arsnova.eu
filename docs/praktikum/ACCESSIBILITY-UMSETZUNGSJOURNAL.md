@@ -1340,6 +1340,33 @@ Persönliche Präferenz am `Participant` (`timerAccommodation`: `DEFAULT` |
 - VoiceOver/NVDA für Segmented-Control und Statusansage;
 - keine WCAG-2.2-AA-Gesamtabnahme allein durch diesen Schritt.
 
+## PR 9c – Host-Override, 2.2.2-Punktvorschau und Session-Semantik
+
+**Datum:** 2026-07-20
+**Status:** umgesetzt
+**WCAG:** 2.2.1, 2.2.2, 1.3.1 / 2.4.6
+**PR/Commit:** Branch `a11y/wcag22-final-compliance` (Working Tree)
+
+### Ausgangsproblem
+
+Zweite GPT-Evaluation: persönliche Zeit nicht garantiert; Punktvorschau ohne
+Pause/Hide; Session-Titel teilweise ohne native Headings; 60 manuelle Fälle
+offen.
+
+### Konkrete Umsetzung
+
+- Host-Override `forceClosePersonalTimers` erst nach Raum-Countdown mit
+  Bestätigungsdialog und Structured Logging;
+- Punktvorschau ausblendbar, persistent, ohne `aria-live`-Spam;
+- Host-Lobby-Fallback-`h1`, natives `h1 mat-card-title` für die Frage,
+  Vote-/Fehler-/Wortwolken-Headings;
+- Audit §§5.13–5.16 und PR-101-Matrix (A09, B03–B06, D03) synchronisiert.
+
+### Offene Risiken und manuelle Abnahme
+
+- 35 + 28 manuelle Fälle weiterhin offen;
+- AA-Freigabe erst nach AT-/Zoom-/Forced-Colors-Abnahme.
+
 ## Vorlage für weitere Einträge
 
 ```markdown

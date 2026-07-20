@@ -10,7 +10,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       count: vi.fn(),
     },
     participant: {
-      count: vi.fn(),
+      groupBy: vi.fn(),
     },
   },
   hostAuthMocks: {
@@ -51,7 +51,7 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     resetVoteAggregationCachesForTests();
     prismaMock.vote.findMany.mockResolvedValue([]);
     prismaMock.vote.count.mockResolvedValue(0);
-    prismaMock.participant.count.mockResolvedValue(0);
+    prismaMock.participant.groupBy.mockResolvedValue([]);
   });
 
   it('liefert aktuelle Frage mit Antwortoptionen und isCorrect', async () => {
@@ -349,18 +349,26 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
       status: 'ACTIVE',
       currentQuestion: 0,
       currentRound: 1,
+      activeQuestionStartedAt: new Date(),
       quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
         questions: [
           {
             id: questionId,
             order: 0,
             type: 'NUMERIC_ESTIMATE',
+            timer: null,
+            difficulty: 'MEDIUM',
             answers: [],
           },
         ],
       },
     });
-    prismaMock.participant.count.mockResolvedValueOnce(2);
+    prismaMock.participant.groupBy.mockResolvedValueOnce([
+      { timerAccommodation: 'EXTENDED', _count: { _all: 1 } },
+      { timerAccommodation: 'OFF', _count: { _all: 1 } },
+    ]);
 
     const result = await caller.getHostVoteProgress({ code: CODE });
 
@@ -368,8 +376,10 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
       questionId,
       round: 1,
       pendingTimerAccommodationCount: 2,
+      blockingTimerAccommodationCount: 1,
     });
-    expect(prismaMock.participant.count).toHaveBeenCalledWith({
+    expect(prismaMock.participant.groupBy).toHaveBeenCalledWith({
+      by: ['timerAccommodation'],
       where: {
         sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
         timerAccommodation: { in: ['EXTENDED', 'OFF'] },
@@ -380,6 +390,7 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
           },
         },
       },
+      _count: { _all: true },
     });
   });
 

@@ -14,7 +14,7 @@ import {
   afterNextRender,
   untracked,
 } from '@angular/core';
-import { DecimalPipe, formatNumber } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet, formatNumber } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
@@ -114,6 +114,7 @@ const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
 /** Geräteweite Präferenz für persönliche Timer-Anpassung (WCAG 2.2.1). */
 const TIMER_ACCOMMODATION_STORAGE_KEY = 'arsnova-timer-accommodation';
+const LIVE_SCORE_PREVIEW_STORAGE_KEY = 'arsnova-live-score-preview';
 const TIMER_ACCOMMODATION_MODES = [
   'DEFAULT',
   'EXTENDED',
@@ -387,6 +388,7 @@ export function getNumericEstimateMotivation(input: {
     MatProgressSpinner,
     CountdownFingersComponent,
     DecimalPipe,
+    NgTemplateOutlet,
     FeedbackVoteComponent,
     MarkdownImageLightboxDirective,
     AnswerOptionBadgeComponent,
@@ -475,6 +477,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly sessionTimerSeconds = signal<number | null>(null);
   /** Ganzzahlige Sekunden seit Fragenstart für die lokale Punktvorschau (1-Hz). */
   readonly scorePreviewElapsedSeconds = signal(0);
+  readonly liveScorePreviewVisible = signal(true);
   readonly timerAccommodationSaving = signal(false);
   readonly timerAccommodationModes = TIMER_ACCOMMODATION_MODES;
   private questionActiveAtMs: number | null = null;
@@ -1170,8 +1173,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return typeof sessionTimer === 'number' && sessionTimer > 0;
   });
 
-  /** Lokale Punktvorschau ohne Netzwerklast; nur bei bewerteten, getimten Fragen. */
-  readonly showLiveScorePreview = computed(() => {
+  readonly showLobbyTimerAccommodationControls = computed(
+    () => this.isLobby() && !this.isStandaloneQaSession() && !!this.participantId(),
+  );
+
+  /** Verfügbarkeit der rein lokalen Punktvorschau; verursacht keine Netzwerkanfrage. */
+  readonly liveScorePreviewAvailable = computed(() => {
     if (!this.isActive() || this.voteSent() || this.voteClosed() || this.currentRound() === 2) {
       return false;
     }
@@ -1181,6 +1188,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const sessionTimer = this.sessionTimerSeconds();
     return typeof sessionTimer === 'number' && sessionTimer > 0;
   });
+  readonly showLiveScorePreview = computed(
+    () => this.liveScorePreviewAvailable() && this.liveScorePreviewVisible(),
+  );
 
   readonly liveScorePreviewPoints = computed(() => {
     if (!this.showLiveScorePreview()) {
@@ -2493,10 +2503,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'EXTENDED':
         return $localize`:@@sessionVote.timerAccommodation.extended:10× Zeit`;
       case 'OFF':
-        return $localize`:@@sessionVote.timerAccommodation.off:Ohne Timer`;
+        return $localize`:@@sessionVote.timerAccommodation.off:Ohne Frist`;
       default:
         return $localize`:@@sessionVote.timerAccommodation.default:Standard`;
     }
+  }
+
+  timerAccommodationPointsHint(): string {
+    if (this.timerAccommodation() === 'DEFAULT') {
+      return $localize`:@@sessionVote.timerAccommodation.pointsDefault:Punkte folgen dem gemeinsamen Countdown`;
+    }
+    return $localize`:@@sessionVote.timerAccommodation.pointsOvertime:Früh abgeben lohnt sich · nach dem Countdown nur Mindestpunkte`;
   }
 
   liveScorePreviewCaption(): string {
@@ -2506,6 +2523,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return this.liveScorePreviewUsesUpperBound()
       ? $localize`:@@sessionVote.scorePreview.upToNow:Volle Wertung jetzt`
       : $localize`:@@sessionVote.scorePreview.correctNow:Richtige Antwort jetzt`;
+  }
+
+  setLiveScorePreviewVisible(visible: boolean): void {
+    this.liveScorePreviewVisible.set(visible);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LIVE_SCORE_PREVIEW_STORAGE_KEY, visible ? 'true' : 'false');
+    }
+    this.syncScorePreviewTicker();
   }
 
   async setTimerAccommodation(mode: TimerAccommodation): Promise<void> {
@@ -2743,6 +2768,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '');
       this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
+      this.liveScorePreviewVisible.set(
+        localStorage.getItem(LIVE_SCORE_PREVIEW_STORAGE_KEY) !== 'false',
+      );
     }
     if (confirmedTeam) {
       this.participantTeam.set({

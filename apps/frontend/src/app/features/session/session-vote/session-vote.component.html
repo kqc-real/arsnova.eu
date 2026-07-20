@@ -1,3 +1,90 @@
+<ng-template #timerAccommodationPanel>
+  <section
+    class="vote-timer-a11y"
+    data-testid="vote-timer-accommodation"
+    aria-labelledby="vote-timer-a11y-heading"
+  >
+    <header class="vote-timer-a11y__header">
+      <mat-icon class="vote-timer-a11y__icon" aria-hidden="true">schedule</mat-icon>
+      <div>
+        <h2
+          id="vote-timer-a11y-heading"
+          class="vote-timer-a11y__title"
+          i18n="@@sessionVote.timerAccommodation.legend"
+        >
+          Zeit anpassen
+        </h2>
+        <p class="vote-timer-a11y__supporting" i18n="@@sessionVote.timerAccommodation.help">
+          Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown
+        </p>
+      </div>
+    </header>
+    <p class="vote-timer-a11y__points">{{ timerAccommodationPointsHint() }}</p>
+    <details class="vote-timer-a11y__scoring" data-testid="vote-scoring-info">
+      <summary class="vote-timer-a11y__scoring-summary">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <span i18n="@@sessionVote.scoringInfo.summary">So werden Punkte berechnet</span>
+      </summary>
+      <div class="vote-timer-a11y__scoring-body">
+        <p i18n="@@sessionVote.scoringInfo.intro">So setzt sich deine Punktezahl zusammen:</p>
+        <ol class="vote-timer-a11y__scoring-list">
+          <li i18n="@@sessionVote.scoringInfo.base">
+            Basis: Bis zu 1000 Punkte für eine richtige Antwort.
+          </li>
+          <li i18n="@@sessionVote.scoringInfo.difficulty">
+            Schwierigkeit: Leicht ×1, Mittel ×2, Schwer ×3.
+          </li>
+          <li i18n="@@sessionVote.scoringInfo.time">
+            Zeit: Je früher du beim gemeinsamen Raum-Countdown richtig antwortest, desto höher der
+            Zeitanteil. Nach Ablauf bleiben noch 10 % davon. Deine persönliche Frist ändert nur, wie
+            lange du antworten darfst – nicht diese Zeitwertung.
+          </li>
+          <li i18n="@@sessionVote.scoringInfo.streak">
+            Serie: Mehrere richtige Antworten hintereinander geben Bonus – 1× ×1,0 · 2× ×1,1 · 3×
+            ×1,2 · 4× ×1,3 · ab 5× ×1,5. Eine falsche bewertbare Antwort setzt die Serie zurück.
+            Umfragen und unbewerteter Freitext unterbrechen sie nicht.
+          </li>
+          <li i18n="@@sessionVote.scoringInfo.preview">
+            Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus.
+          </li>
+        </ol>
+      </div>
+    </details>
+    <mat-button-toggle-group
+      class="vote-timer-a11y__options"
+      [value]="timerAccommodation()"
+      [disabled]="timerAccommodationSaving()"
+      [attr.aria-label]="timerAccommodationGroupAriaLabel()"
+      (change)="setTimerAccommodation($any($event.value))"
+    >
+      @for (mode of timerAccommodationModes; track mode) {
+        <mat-button-toggle class="vote-timer-a11y__option" [value]="mode">
+          {{ timerAccommodationOptionLabel(mode) }}
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+    @if (timerAccommodation() === 'OFF') {
+      <p
+        class="vote-timer-a11y__status"
+        role="status"
+        aria-live="polite"
+        i18n="@@sessionVote.timerAccommodation.offStatus"
+      >
+        Keine persönliche Frist · Punkte weiter nach dem Raum-Timer
+      </p>
+    } @else if (timerAccommodation() === 'EXTENDED') {
+      <p
+        class="vote-timer-a11y__status"
+        role="status"
+        aria-live="polite"
+        i18n="@@sessionVote.timerAccommodation.extendedStatus"
+      >
+        10× Zeit aktiv · Das Ergebnis wartet auf dich
+      </p>
+    }
+  </section>
+</ng-template>
+
 @if (showSessionEndGate()) {
   <div
     id="vote-top"
@@ -296,7 +383,7 @@
       </div>
     }
 
-    @if ((countdownSeconds() !== null && isActive()) || liveScorePreviewPoints() !== null) {
+    @if ((countdownSeconds() !== null && isActive()) || liveScorePreviewAvailable()) {
       <div
         class="vote-countdown-floating"
         [class.vote-countdown-floating--with-tabs]="showChannelTabs()"
@@ -312,13 +399,34 @@
           </span>
         }
         @if (liveScorePreviewPoints() !== null) {
-          <p class="vote-score-preview" data-testid="vote-score-preview">
+          <div class="vote-score-preview" data-testid="vote-score-preview">
             <span class="vote-score-preview__label">{{ liveScorePreviewCaption() }}</span>
             <strong class="vote-score-preview__value">
               <span>{{ liveScorePreviewFormattedPoints() }}</span>
               <span i18n="@@sessionVote.scorePreview.pointsUnit">Punkte</span>
             </strong>
-          </p>
+            <button
+              mat-button
+              type="button"
+              class="vote-score-preview__toggle"
+              [attr.aria-pressed]="true"
+              (click)="setLiveScorePreviewVisible(false)"
+              i18n="@@sessionVote.scorePreview.hide"
+            >
+              Ausblenden
+            </button>
+          </div>
+        } @else if (liveScorePreviewAvailable()) {
+          <button
+            mat-button
+            type="button"
+            class="vote-score-preview-toggle"
+            [attr.aria-pressed]="false"
+            (click)="setLiveScorePreviewVisible(true)"
+            i18n="@@sessionVote.scorePreview.show"
+          >
+            Live-Punkte anzeigen
+          </button>
         }
       </div>
     }
@@ -471,6 +579,9 @@
               <p class="vote-lobby__hint">{{ vpc.voteLobbyHintQuiz(isPlayfulPreset()) }}</p>
             }
           </div>
+          @if (showLobbyTimerAccommodationControls()) {
+            <ng-container [ngTemplateOutlet]="timerAccommodationPanel" />
+          }
         </div>
       } @else if (isActive() && isStandaloneQaSession()) {
         <div class="vote-lobby vote-lobby--active">
@@ -817,15 +928,19 @@
         </div>
       } @else if (isQuestionOpen()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question" id="vote-question-anchor">
-            <p class="vote-question__label">
+          <section
+            class="vote-question"
+            id="vote-question-anchor"
+            aria-labelledby="vote-question-heading"
+          >
+            <h1 class="vote-question__label" id="vote-question-heading">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
                 <span class="vote-question__last-badge">{{
                   vpc.voteLastQuestionBadge(isPlayfulPreset())
                 }}</span>
               }
-            </p>
+            </h1>
             <div
               class="vote-question__meta"
               i18n-aria-label="@@session.questionMetadataAria"
@@ -875,19 +990,23 @@
                 </button>
               }
             </div>
-          </div>
+          </section>
         }
       } @else if (isDiscussion()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question" id="vote-question-anchor">
-            <p class="vote-question__label">
+          <section
+            class="vote-question"
+            id="vote-question-anchor"
+            aria-labelledby="vote-question-heading"
+          >
+            <h1 class="vote-question__label" id="vote-question-heading">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
                 <span class="vote-question__last-badge">{{
                   vpc.voteLastQuestionBadge(isPlayfulPreset())
                 }}</span>
               }
-            </p>
+            </h1>
             <div
               class="vote-question__meta"
               i18n-aria-label="@@session.questionMetadataAria"
@@ -909,7 +1028,7 @@
               class="vote-question__text markdown-body"
               [innerHTML]="renderQuestionMarkdown(q.text)"
             ></div>
-          </div>
+          </section>
           <div class="vote-discussion" role="status" aria-live="polite">
             <div class="vote-discussion__icon-ring">
               <mat-icon class="vote-discussion__icon">groups</mat-icon>
@@ -924,9 +1043,10 @@
           @if (isResults()) {
             <div id="vote-result-anchor"></div>
           }
-          <div
+          <section
             class="vote-question"
             id="vote-question-anchor"
+            aria-labelledby="vote-question-heading"
             [class.vote-question--round2]="currentRound() === 2"
           >
             @if (currentRound() === 2 && isActive() && !voteSent()) {
@@ -935,7 +1055,7 @@
               </p>
             }
             <div class="vote-question__header">
-              <p class="vote-question__label">
+              <h1 class="vote-question__label" id="vote-question-heading">
                 <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
                 @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
                   <span class="vote-question__last-badge">{{
@@ -947,7 +1067,7 @@
                     vpc.voteRoundBadge(isPlayfulPreset())
                   }}</span>
                 }
-              </p>
+              </h1>
               @if (allHaveVoted() && isActive()) {
                 <span class="vote-all-voted" role="status">
                   <mat-icon>how_to_vote</mat-icon>
@@ -976,7 +1096,7 @@
               class="vote-question__text markdown-body"
               [innerHTML]="renderQuestionMarkdown(q.text)"
             ></div>
-          </div>
+          </section>
 
           @if (isActive() && questionHasMedia(q.text) && !voteSent()) {
             <div class="vote-media-hint" role="note">
@@ -995,65 +1115,7 @@
           }
 
           @if (showTimerAccommodationControls()) {
-            <section
-              class="vote-timer-a11y"
-              data-testid="vote-timer-accommodation"
-              aria-labelledby="vote-timer-a11y-heading"
-            >
-              <header class="vote-timer-a11y__header">
-                <mat-icon class="vote-timer-a11y__icon" aria-hidden="true">schedule</mat-icon>
-                <div>
-                  <h3
-                    id="vote-timer-a11y-heading"
-                    class="vote-timer-a11y__title"
-                    i18n="@@sessionVote.timerAccommodation.legend"
-                  >
-                    Zeit anpassen
-                  </h3>
-                  <p
-                    class="vote-timer-a11y__supporting"
-                    i18n="@@sessionVote.timerAccommodation.help"
-                  >
-                    Nur für dich · Der Quizablauf bleibt unverändert
-                  </p>
-                </div>
-              </header>
-              <p class="vote-timer-a11y__points" i18n="@@sessionVote.timerAccommodation.points">
-                Punkte richten sich nach dem gemeinsamen Countdown
-              </p>
-              <mat-button-toggle-group
-                class="vote-timer-a11y__options"
-                [value]="timerAccommodation()"
-                [disabled]="timerAccommodationSaving()"
-                [attr.aria-label]="timerAccommodationGroupAriaLabel()"
-                (change)="setTimerAccommodation($any($event.value))"
-              >
-                @for (mode of timerAccommodationModes; track mode) {
-                  <mat-button-toggle class="vote-timer-a11y__option" [value]="mode">
-                    {{ timerAccommodationOptionLabel(mode) }}
-                  </mat-button-toggle>
-                }
-              </mat-button-toggle-group>
-              @if (timerAccommodation() === 'OFF') {
-                <p
-                  class="vote-timer-a11y__status"
-                  role="status"
-                  aria-live="polite"
-                  i18n="@@sessionVote.timerAccommodation.offStatus"
-                >
-                  Ohne Timer aktiv · Abgabe möglich, solange die Frage offen ist
-                </p>
-              } @else if (timerAccommodation() === 'EXTENDED') {
-                <p
-                  class="vote-timer-a11y__status"
-                  role="status"
-                  aria-live="polite"
-                  i18n="@@sessionVote.timerAccommodation.extendedStatus"
-                >
-                  10× Zeit aktiv
-                </p>
-              }
-            </section>
+            <ng-container [ngTemplateOutlet]="timerAccommodationPanel" />
           }
 
           @if (voteError()) {

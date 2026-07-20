@@ -62,21 +62,23 @@ angesagtem Namen, Rolle, Zustand und gegebenenfalls Fehlermeldung.
 | A01 | 2.1.1, 3.3.2, 4.1.2    | Vote-Ansicht per Tastatur öffnen; „Zeit anpassen“ und alle drei Segmente mit Screenreader durchlaufen. | Titel, Hilfetext, Gruppenrolle, gewählter Zustand und Optionen werden verständlich angesagt; Bedienung ohne Zeiger möglich.                                       | offen  |       |           |          |          |
 | A02 | 1.4.10, 1.4.12, 2.4.11 | Segmented-Control bei 320 CSS-Pixel, 200 % und 400 % Zoom prüfen.                                      | Beschriftungen sind vertikal zentriert, dürfen umbrechen und werden weder abgeschnitten noch vom Fokusindikator verdeckt.                                         | offen  |       |           |          |          |
 | A03 | 2.2.1                  | T2 auf `10× Zeit` setzen, gemeinsamen Countdown ablaufen lassen und Frage `ACTIVE` lassen.             | T2 kann nach 30 Sekunden weiter antworten; persönliche Restzeit und Eingabemöglichkeit bleiben erhalten.                                                          | offen  |       |           |          |          |
-| A04 | 2.2.1                  | T3 auf `Ohne Timer` setzen und gemeinsamen Countdown ablaufen lassen.                                  | Persönlicher Countdown verschwindet; Eingabe bleibt bis zur Host-Aktion möglich.                                                                                  | offen  |       |           |          |          |
+| A04 | 2.2.1                  | T3 auf `Ohne Frist` setzen und gemeinsamen Countdown ablaufen lassen.                                  | Persönlicher Countdown verschwindet; Eingabe bleibt bis zur Host-Aktion möglich; Label lautet „Ohne Frist“.                                                       | offen  |       |           |          |          |
 | A05 | 2.2.1, 3.2.2           | Zeitanpassung wechseln, Seite neu laden und Session erneut betreten.                                   | Gespeicherte Auswahl wird wiederhergestellt; der Wechsel löst keine unerwartete Navigation oder Abgabe aus.                                                       | offen  |       |           |          |          |
 | A06 | 1.3.1, 1.4.10          | Punktvorschau während des gemeinsamen Countdowns beobachten.                                           | Zahl und Einheit bleiben zusammen; der Text lautet je nach Fragetyp verständlich „Richtige Antwort jetzt“ oder „Volle Wertung jetzt“.                             | offen  |       |           |          |          |
 | A07 | 2.2.1, 3.2.4           | Punktvorschau nach Ablauf des gemeinsamen Countdowns beobachten.                                       | Der zeitabhängige Wert bleibt konstant; die Anzeige lautet „Nachlaufzeit · richtige Antwort“ und verwendet kein irreführendes „bis zu“ oder „bei voller Wertung“. | offen  |       |           |          |          |
 | A08 | 4.1.3                  | Punktvorschau mindestens 15 Sekunden mit Screenreader beobachten.                                      | Der sichtbare Sekunden-/Punkte-Ticker erzeugt keine fortlaufenden störenden Live-Ansagen.                                                                         | offen  |       |           |          |          |
+| A09 | 2.2.2                  | Punktvorschau ausblenden, Seite neu laden, wieder einblenden.                                          | Ausgeblendeter Zustand bleibt erhalten; Wiedereinblenden ist per Tastatur möglich; keine `aria-live`-Spam.                                                        | offen  |       |           |          |          |
 
 ## B – Informierte Host-Entscheidung
 
-| ID  | WCAG 2.2       | Prüfschritte                                                            | Erwartung                                                                                                             | Status | Datum | Prüfer:in | Umgebung | Artefakt |
-| --- | -------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------ | ----- | --------- | -------- | -------- |
-| B01 | 2.2.1, 3.3.2   | T2 und T3 noch nicht antworten lassen; Host-Aktionsbereich prüfen.      | Vor „Ergebnis zeigen“ erscheint die konkrete Zahl noch antwortender Personen mit Zeitanpassung.                       | offen  |       |           |          |          |
-| B02 | 4.1.3          | Während der Host-Ansicht antwortet T2, T3 bleibt offen.                 | Der Statushinweis wird höflich aktualisiert und zählt nur noch T3; keine übermäßige Wiederholung.                     | offen  |       |           |          |          |
-| B03 | 3.2.2, 3.3.2   | Host wählt trotz offener Zeitanpassung „Ergebnis zeigen“.               | Host behält die Entscheidung; der vorherige Hinweis erklärt eindeutig, dass die Aktion offene Eingabefenster beendet. | offen  |       |           |          |          |
-| B04 | 2.2.1          | Host wartet, bis T2 und T3 geantwortet haben.                           | Hinweis verschwindet bei null offenen angepassten Eingabefenstern; alle gültigen Antworten sind erfasst.              | offen  |       |           |          |          |
-| B05 | 1.4.10, 2.4.11 | Host-Hinweis und Aktionsleiste bei 320 CSS-Pixel und 400 % Zoom prüfen. | Hinweis steht vollständig oberhalb der Aktionen; Schaltflächen und Fokus werden nicht verdeckt.                       | offen  |       |           |          |          |
+| ID  | WCAG 2.2       | Prüfschritte                                                            | Erwartung                                                                                                | Status | Datum | Prüfer:in | Umgebung | Artefakt |
+| --- | -------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------ | ----- | --------- | -------- | -------- |
+| B01 | 2.2.1, 3.3.2   | T2 und T3 noch nicht antworten lassen; Host-Aktionsbereich prüfen.      | Vor „Ergebnis zeigen“ erscheint die konkrete Zahl noch antwortender Personen mit Zeitanpassung.          | offen  |       |           |          |          |
+| B02 | 4.1.3          | Während der Host-Ansicht antwortet T2, T3 bleibt offen.                 | Der Statushinweis wird höflich aktualisiert und zählt nur noch T3; keine übermäßige Wiederholung.        | offen  |       |           |          |          |
+| B03 | 2.2.1, 3.2.2   | Nach Raum-Countdown „Trotzdem freigeben“ wählen und Dialog bestätigen.  | Bestätigung erklärt Ende persönlicher Fenster; danach RESULTS; Override wird geloggt.                    | offen  |       |           |          |          |
+| B04 | 2.2.1          | Vor Raum-Countdown versuchen freizugeben, während `EXTENDED` offen ist. | Aktion bleibt gesperrt bzw. Backend lehnt Force-Close ab.                                                | offen  |       |           |          |          |
+| B05 | 2.2.1          | Host wartet, bis T2 und T3 geantwortet haben.                           | Hinweis verschwindet bei null offenen angepassten Eingabefenstern; alle gültigen Antworten sind erfasst. | offen  |       |           |          |          |
+| B06 | 1.4.10, 2.4.11 | Host-Hinweis und Aktionsleiste bei 320 CSS-Pixel und 400 % Zoom prüfen. | Hinweis steht vollständig oberhalb der Aktionen; Schaltflächen und Fokus werden nicht verdeckt.          | offen  |       |           |          |          |
 
 ## C – Fokus, Reflow und Fehlerbehandlung
 
@@ -96,9 +98,10 @@ angesagtem Namen, Rolle, Zustand und gegebenenfalls Fehlermeldung.
 | --- | ------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------ | ----- | --------- | -------- | -------- |
 | D01 | 1.3.1, 2.4.6 | Startseite über die Überschriftennavigation des Screenreaders prüfen.               | Genau ein sinnvolles `h1`; die Kartenüberschriften folgen als `h2`.                                                      | offen  |       |           |          |          |
 | D02 | 1.3.1, 2.4.6 | Admin-Login und Admin-Inhalt über Überschriftennavigation prüfen.                   | „Admin-Login“ ist `h1`; nachgelagerte Bereiche besitzen eine nachvollziehbare `h2`-Struktur.                             | offen  |       |           |          |          |
-| D03 | 2.5.3, 4.1.2 | `/quiz` öffnen und jede Quizkarte mit Screenreader sowie Sprachsteuerung ansteuern. | Der zugängliche Linkname enthält den sichtbaren Quiznamen; sichtbarer Text und Accessible Name widersprechen sich nicht. | offen  |       |           |          |          |
-| D04 | 3.1.1, 3.1.2 | A01–D03 in `en` und stichprobenartig `fr` oder `it` wiederholen.                    | Seitensprache stimmt; neue Timer- und Host-Texte enthalten keine deutschen Reste oder falschen Pronomen.                 | offen  |       |           |          |          |
-| D05 | 1.4.10       | Neue Texte in `fr` und `it` bei 320 CSS-Pixel prüfen.                               | Host-Hinweis, Segmente und Punktanzeige umbrechen ohne Überlauf oder abgeschnittene Pflichtinformation.                  | offen  |       |           |          |          |
+| D03 | 1.3.1, 2.4.6 | Host-Lobby, aktive Frage, Vote-Frage, Session-Fehler und Wortwolke prüfen.          | Lobby/Frage/Fehler haben `h1`; Vote Region+`h1`; Wortwolke `h2 mat-card-title`.                                          | offen  |       |           |          |          |
+| D04 | 2.5.3, 4.1.2 | `/quiz` öffnen und jede Quizkarte mit Screenreader sowie Sprachsteuerung ansteuern. | Der zugängliche Linkname enthält den sichtbaren Quiznamen; sichtbarer Text und Accessible Name widersprechen sich nicht. | offen  |       |           |          |          |
+| D05 | 3.1.1, 3.1.2 | A01–D04 in `en` und stichprobenartig `fr` oder `it` wiederholen.                    | Seitensprache stimmt; neue Timer- und Host-Texte enthalten keine deutschen Reste oder falschen Pronomen.                 | offen  |       |           |          |          |
+| D06 | 1.4.10       | Neue Texte in `fr` und `it` bei 320 CSS-Pixel prüfen.                               | Host-Hinweis, Segmente und Punktanzeige umbrechen ohne Überlauf oder abgeschnittene Pflichtinformation.                  | offen  |       |           |          |          |
 
 ## Automatische Vorbedingungen
 
@@ -114,17 +117,17 @@ Vor dem manuellen Lauf müssen folgende Checks für denselben Commit grün sein:
 - Prisma Migration Drift;
 - PDF/UA-1 Validation.
 
-Diese Checks sind Vorbedingungen, aber kein Ersatz für A01–D05.
+Diese Checks sind Vorbedingungen, aber kein Ersatz für A01–D06.
 
 ## Ergebniszusammenfassung
 
 | Bereich                      | Bestanden | Fehlgeschlagen | Blockiert | Offen  | Bemerkung |
 | ---------------------------- | --------- | -------------- | --------- | ------ | --------- |
-| A – Zeitanpassung und Punkte | 0         | 0              | 0         | 8      |           |
-| B – Host-Entscheidung        | 0         | 0              | 0         | 5      |           |
+| A – Zeitanpassung und Punkte | 0         | 0              | 0         | 9      |           |
+| B – Host-Entscheidung        | 0         | 0              | 0         | 6      |           |
 | C – Fokus und Reflow         | 0         | 0              | 0         | 7      |           |
-| D – Semantik und i18n        | 0         | 0              | 0         | 5      |           |
-| **Gesamt**                   | **0**     | **0**          | **0**     | **25** |           |
+| D – Semantik und i18n        | 0         | 0              | 0         | 6      |           |
+| **Gesamt**                   | **0**     | **0**          | **0**     | **28** |           |
 
 ## Freigabeentscheidung
 

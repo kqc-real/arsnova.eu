@@ -7,6 +7,9 @@ const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, lo
         findUnique: vi.fn(),
         update: vi.fn(),
       },
+      participant: {
+        groupBy: vi.fn(),
+      },
     },
     hostAuthMocks: {
       extractHostTokenMock: vi.fn(),
@@ -366,6 +369,9 @@ describe('session.revealAnswers (Story 2.3)', () => {
 describe('session.revealResults (Story 2.3)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
   it('wechselt von ACTIVE zu RESULTS', async () => {
@@ -385,6 +391,117 @@ describe('session.revealResults (Story 2.3)', () => {
 
     expect(result.status).toBe('RESULTS');
     expect(result.currentQuestion).toBe(0);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'RESULTS' }),
+      }),
+    );
+  });
+
+  it('wartet mit Ergebnissen bis garantierte Zusatzzeit beendet ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeQuestionStartedAt: new Date(),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            difficulty: 'MEDIUM',
+            numericTwoRounds: false,
+          },
+        ],
+      },
+    });
+    prismaMock.participant.groupBy.mockResolvedValue([
+      { timerAccommodation: 'EXTENDED', _count: { _all: 1 } },
+    ]);
+
+    await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({
+      code: 'PRECONDITION_FAILED',
+      message: 'Eine Person nutzt noch ihre garantierte Zusatzzeit.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('lehnt Force-Close ab solange der Raum-Countdown läuft', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeQuestionStartedAt: new Date(),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            difficulty: 'MEDIUM',
+            numericTwoRounds: false,
+          },
+        ],
+      },
+    });
+    prismaMock.participant.groupBy.mockResolvedValue([
+      { timerAccommodation: 'EXTENDED', _count: { _all: 1 } },
+    ]);
+
+    await expect(
+      caller.revealResults({ code: CODE, forceClosePersonalTimers: true }),
+    ).rejects.toMatchObject({
+      code: 'PRECONDITION_FAILED',
+      message:
+        'Persönliche Fristen dürfen erst nach Ablauf des Raum-Countdowns vorzeitig beendet werden.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('erlaubt Force-Close nach Ablauf des Raum-Countdowns trotz offener 10×-Fenster', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeQuestionStartedAt: new Date(Date.now() - 31_000),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            type: 'SINGLE_CHOICE',
+            timer: 30,
+            difficulty: 'MEDIUM',
+            numericTwoRounds: false,
+          },
+        ],
+      },
+    });
+    prismaMock.participant.groupBy.mockResolvedValue([
+      { timerAccommodation: 'EXTENDED', _count: { _all: 2 } },
+    ]);
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 0,
+    });
+
+    const result = await caller.revealResults({
+      code: CODE,
+      forceClosePersonalTimers: true,
+    });
+
+    expect(result.status).toBe('RESULTS');
     expect(prismaMock.session.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: SESSION_ID },

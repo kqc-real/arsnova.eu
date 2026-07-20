@@ -77,6 +77,9 @@ describe('WordCloudComponent', () => {
     );
 
     expect(ranking).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('h2[mat-card-title]')?.textContent).toContain(
+      'Wortwolke',
+    );
     expect(entries[0]).toContain('motivation: Nennungen: 3');
     expect(entries).toHaveLength(fixture.componentInstance.words().length);
   });

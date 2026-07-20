@@ -2033,6 +2033,18 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/**
+ * Input: Host-Steuerung mit optionalem Override für persönliche Timer-Fenster (WCAG 2.2.1).
+ * `forceClosePersonalTimers` darf serverseitig erst nach Ablauf des Raum-Countdowns greifen.
+ */
+export const HostSteeringWithTimerOverrideInputSchema = GetSessionInfoInputSchema.extend({
+  /** Offene 10×-Fenster vorzeitig beenden (nur nach Raum-Countdown). */
+  forceClosePersonalTimers: z.boolean().optional(),
+});
+export type HostSteeringWithTimerOverrideInput = z.infer<
+  typeof HostSteeringWithTimerOverrideInputSchema
+>;
+
 /** Input: Nächste Frage steuern (optional inkl. Überspringen der zuletzt gezeigten Ergebnisfrage). */
 export const NextQuestionInputSchema = GetSessionInfoInputSchema.extend({
   /** Nur für den Rücksprung-Fall: überspringt genau die bereits gezeigte Ergebnisfrage. */
@@ -2378,6 +2390,8 @@ export const HostVoteProgressDTOSchema = z.object({
   totalVotes: z.number().int().min(0),
   /** Personen mit persönlicher Zeitanpassung, die in dieser Runde noch nicht geantwortet haben. */
   pendingTimerAccommodationCount: z.number().int().min(0).optional(),
+  /** Davon Personen, deren garantiertes 10×-Zeitfenster noch läuft. */
+  blockingTimerAccommodationCount: z.number().int().min(0).optional(),
   correctVoterCount: z.number().int().min(0).optional(),
   incorrectVoterCount: z.number().int().min(0).optional(),
   peerInstructionSuggestion: PeerInstructionSuggestionDTOSchema.optional(),

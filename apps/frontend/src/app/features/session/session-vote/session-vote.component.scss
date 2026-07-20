@@ -2948,6 +2948,25 @@
   white-space: nowrap;
 }
 
+.vote-score-preview__toggle,
+.vote-score-preview-toggle {
+  pointer-events: auto;
+  min-height: 32px;
+  padding-inline: 0.5rem;
+  font: var(--mat-sys-label-medium);
+}
+
+.vote-score-preview__toggle {
+  justify-self: end;
+  margin: 0.15rem -0.35rem -0.3rem 0;
+}
+
+.vote-score-preview-toggle {
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-primary);
+}
+
 .vote-timer-a11y {
   margin: 0.75rem 0 1rem;
   padding: 1rem;
@@ -2955,12 +2974,14 @@
   border-radius: var(--mat-sys-corner-large, 12px);
   background: var(--mat-sys-surface-container-low);
   min-width: 0;
+  text-align: start;
 }
 
 .vote-timer-a11y__header {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+  text-align: start;
 }
 
 .vote-timer-a11y__icon {
@@ -2984,12 +3005,84 @@
 }
 
 .vote-timer-a11y__points {
-  margin: 0.75rem 0;
+  margin: 0.75rem 0 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--mat-sys-corner-small, 4px);
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
   font: var(--mat-sys-label-large);
+}
+
+.vote-timer-a11y__scoring {
+  margin: 0 0 0.75rem;
+  border-radius: var(--mat-sys-corner-small, 4px);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  text-align: start;
+}
+
+.vote-timer-a11y__scoring-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface);
+  text-align: start;
+}
+
+.vote-timer-a11y__scoring-summary::-webkit-details-marker {
+  display: none;
+}
+
+.vote-timer-a11y__scoring-summary mat-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  color: var(--mat-sys-primary);
+}
+
+.vote-timer-a11y__scoring-summary:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small, 4px);
+}
+
+.vote-timer-a11y__scoring-body {
+  padding: 0 0.75rem 0.75rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  text-align: start;
+}
+
+.vote-timer-a11y__scoring-body p {
+  margin: 0.65rem 0 0.4rem;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: start;
+}
+
+.vote-timer-a11y__scoring-list {
+  margin: 0;
+  padding-inline-start: 1.15rem;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface);
+  text-align: start;
+  list-style-position: outside;
+}
+
+.vote-timer-a11y__scoring-list li {
+  text-align: start;
+}
+
+.vote-timer-a11y__scoring-list li + li {
+  margin-top: 0.4rem;
 }
 
 .vote-timer-a11y__options {

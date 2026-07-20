@@ -886,7 +886,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
     }
 
-    return session.quizName ?? null;
+    return (
+      session.quizName?.trim() || $localize`:@@sessionHost.lobbyQuizHeadingFallback:Quiz-Session`
+    );
   });
   readonly qaHeading = computed(
     () =>
@@ -1241,6 +1243,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ? (progress.pendingTimerAccommodationCount ?? 0)
       : 0;
   });
+  readonly blockingTimerAccommodationCount = computed(() => {
+    if (this.effectiveStatus() !== 'ACTIVE') return 0;
+    const question = this.displayedCurrentQuestionForHost();
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, question)
+      ? (progress.blockingTimerAccommodationCount ?? 0)
+      : 0;
+  });
+  /** Persönliche 10×-Fenster blockieren Freigabe, bis Raum-Countdown endet. */
+  readonly personalTimerBlocksReveal = computed(
+    () => this.blockingTimerAccommodationCount() > 0 && !this.countdownEnded(),
+  );
+  /** Nach Raum-Countdown: Host darf persönliche Fenster mit Bestätigung schließen. */
+  readonly canForceClosePersonalTimers = computed(
+    () => this.blockingTimerAccommodationCount() > 0 && this.countdownEnded(),
+  );
   readonly readingReadyStatus = computed(() => this.participantsPayload()?.readingReady ?? null);
   readonly allConnectedParticipantsReady = computed(
     () =>
@@ -3717,6 +3735,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       left.round === right.round &&
       left.totalVotes === right.totalVotes &&
       (left.pendingTimerAccommodationCount ?? 0) === (right.pendingTimerAccommodationCount ?? 0) &&
+      (left.blockingTimerAccommodationCount ?? 0) ===
+        (right.blockingTimerAccommodationCount ?? 0) &&
       (left.correctVoterCount ?? null) === (right.correctVoterCount ?? null) &&
       (left.incorrectVoterCount ?? null) === (right.incorrectVoterCount ?? null) &&
       JSON.stringify(left.peerInstructionSuggestion ?? null) ===
@@ -3751,11 +3771,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`${formatLocaleCount(votes, this.localeId)} von ${formatLocaleCount(participants, this.localeId)}`;
   }
 
-  pendingTimerAccommodationLabel(count: number): string {
-    if (count === 1) {
-      return $localize`:@@sessionHost.timerAccommodationPendingOne:Eine Person mit Zeitanpassung antwortet noch. „Ergebnis zeigen“ beendet ihre Eingabe.`;
+  pendingTimerAccommodationLabel(count: number, blockingCount: number): string {
+    const roomCountdownEnded = this.countdownEnded();
+    if (blockingCount === 1) {
+      return roomCountdownEnded
+        ? $localize`:@@sessionHost.timerAccommodationBlockingOneForce:Eine Person nutzt noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihr persönliches Fenster.`
+        : $localize`:@@sessionHost.timerAccommodationBlockingOne:Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.`;
     }
-    return $localize`:@@sessionHost.timerAccommodationPendingMany:${formatLocaleCount(count, this.localeId)}:count: Personen mit Zeitanpassung antworten noch. „Ergebnis zeigen“ beendet ihre Eingabe.`;
+    if (blockingCount > 1) {
+      return roomCountdownEnded
+        ? $localize`:@@sessionHost.timerAccommodationBlockingManyForce:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihre persönlichen Fenster.`
+        : $localize`:@@sessionHost.timerAccommodationBlockingMany:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.`;
+    }
+    if (count === 1) {
+      return $localize`:@@sessionHost.timerAccommodationPendingOne:Eine Person antwortet ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.`;
+    }
+    return $localize`:@@sessionHost.timerAccommodationPendingMany:${formatLocaleCount(count, this.localeId)}:count: Personen antworten ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.`;
   }
 
   voteProgressAria(votes: number, participants: number, percentage: number): string {
@@ -5822,13 +5853,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async revealResults(): Promise<void> {
-    if (this.controlPending() || !this.code) return;
+    if (this.controlPending() || !this.code || this.personalTimerBlocksReveal()) return;
+    const forceClosePersonalTimers = this.canForceClosePersonalTimers();
+    if (forceClosePersonalTimers && !(await this.confirmForceClosePersonalTimers('reveal'))) {
+      return;
+    }
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
       this.stopCountdown();
       this.countdownSeconds.set(null);
-      const result = await trpc.session.revealResults.mutate({ code: this.code.toUpperCase() });
+      const result = await trpc.session.revealResults.mutate({
+        code: this.code.toUpperCase(),
+        ...(forceClosePersonalTimers ? { forceClosePersonalTimers: true } : {}),
+      });
       this.statusUpdate.set(result);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
@@ -5843,13 +5881,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async startDiscussion(): Promise<void> {
-    if (this.controlPending() || !this.code) return;
+    if (this.controlPending() || !this.code || this.personalTimerBlocksReveal()) return;
+    const forceClosePersonalTimers = this.canForceClosePersonalTimers();
+    if (forceClosePersonalTimers && !(await this.confirmForceClosePersonalTimers('discussion'))) {
+      return;
+    }
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
       this.stopCountdown();
       this.countdownSeconds.set(null);
-      const result = await trpc.session.startDiscussion.mutate({ code: this.code.toUpperCase() });
+      const result = await trpc.session.startDiscussion.mutate({
+        code: this.code.toUpperCase(),
+        ...(forceClosePersonalTimers ? { forceClosePersonalTimers: true } : {}),
+      });
       this.statusUpdate.set(result);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
@@ -5859,6 +5904,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.controlPending.set(false);
     }
+  }
+
+  private async confirmForceClosePersonalTimers(intent: 'reveal' | 'discussion'): Promise<boolean> {
+    const blockingCount = this.blockingTimerAccommodationCount();
+    const consequences =
+      blockingCount === 1
+        ? [
+            $localize`:@@sessionHost.forceClosePersonalTimersConsequenceOne:Die offene persönliche 10×-Frist dieser Person endet sofort.`,
+            $localize`:@@sessionHost.forceClosePersonalTimersConsequenceNoFurtherInput:Danach ist keine weitere Antwort mehr möglich.`,
+          ]
+        : [
+            $localize`:@@sessionHost.forceClosePersonalTimersConsequenceMany:${formatLocaleCount(blockingCount, this.localeId)}:count: offene persönliche 10×-Fristen enden sofort.`,
+            $localize`:@@sessionHost.forceClosePersonalTimersConsequenceNoFurtherInput:Danach ist keine weitere Antwort mehr möglich.`,
+          ];
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@sessionHost.forceClosePersonalTimersTitle:Persönliche Fristen beenden?`,
+        message:
+          intent === 'discussion'
+            ? $localize`:@@sessionHost.forceClosePersonalTimersMessageDiscussion:Du startest die Diskussionsphase, obwohl noch persönliche Timer laufen.`
+            : $localize`:@@sessionHost.forceClosePersonalTimersMessageReveal:Du zeigst das Ergebnis, obwohl noch persönliche Timer laufen.`,
+        consequences,
+        confirmLabel: $localize`:@@sessionHost.forceClosePersonalTimersConfirm:Trotzdem freigeben`,
+        cancelLabel: $localize`:@@sessionHost.forceClosePersonalTimersCancel:Weiter warten`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+    });
+    return (await firstValueFrom(dialogRef.afterClosed())) === true;
   }
 
   async startSecondRound(): Promise<void> {

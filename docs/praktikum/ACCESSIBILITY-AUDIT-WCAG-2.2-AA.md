@@ -244,19 +244,20 @@ bestehen PDF/UA-1. Die Reader-/Screenreader-Abnahme bleibt offen.
 ### 4.9 Persönliche Zeitanpassung
 
 - Teilnehmende können für getimte Fragen `Standard`, `10× Zeit` oder
-  `Ohne Timer` wählen;
+  `Ohne Frist` wählen (Lobby und ACTIVE);
 - Präferenz wird am Participant und auf dem Gerät gespeichert und bei Rejoin
   wiederhergestellt;
 - persönliche Deadline und gemeinsamer Session-Timer sind getrennt;
-- die persönliche Deadline gilt derzeit nur im Status `ACTIVE`; eine vorzeitige
-  Ergebnisfreigabe durch den Host beendet auch angepasste Eingabefenster;
+- `EXTENDED`-Fenster blockieren Host-Freigabe bis zum Ablauf bzw. bis zum
+  bestätigten Host-Override nach Raum-Countdown (`forceClosePersonalTimers`);
+- `Ohne Frist` endet mit Host-Freigabe (kein Host-Block); der Hinweis macht das
+  transparent;
 - die Punktelogik bleibt am gemeinsamen Countdown, damit der
   Nachteilsausgleich keinen Zeitbonus erzeugt;
-- eine lokale Punktvorschau kennzeichnet die Nachlaufzeit mit festem
-  zeitabhängigem Mindestwert;
-- der Host sieht vor „Ergebnis zeigen“, wie viele Personen mit
-  Zeitanpassung noch antworten, und bleibt für den Ablauf verantwortlich; der
-  Hinweis ersetzt keine technische Garantie des persönlichen Zeitfensters.
+- eine lokale Punktvorschau kann ausgeblendet werden (WCAG 2.2.2); der Zustand
+  bleibt geräteweit gespeichert und ohne sekündliche Live-Region;
+- der Host sieht vor „Ergebnis zeigen“, wie viele Personen mit Zeitanpassung
+  noch antworten, und bleibt für den Ablauf verantwortlich.
 
 ### 4.10 Accessibility, UX und Design
 
@@ -630,31 +631,23 @@ gepflegt.
 `apps/backend/src/routers/vote.ts` und Vote-UI in
 `apps/frontend/src/app/features/session/session-vote/`
 
-**Umsetzungsstand 2026-07-20:** Teilweise umgesetzt, Konformitätsrisiko offen
-(PR #101). Teilnehmende können `10× Zeit` oder `Ohne Timer` wählen. Solange die
-Frage `ACTIVE` ist, setzt das Backend die persönliche Deadline durch; Scoring
-und gemeinsamer Ablauf bleiben am Session-Timer. Der Host erhält einen Hinweis
-auf noch offene angepasste Eingabefenster.
-
-Wechselt der Host vor Ablauf dieser Fenster zu `RESULTS` oder `DISCUSSION`,
-weist das Backend weitere Antworten zurück. Bei `EXTENDED` liegt der
-Statuswechsel dann vor der persönlichen Deadline; bei `OFF` existiert keine
-Deadline, die eine Abgabe außerhalb von `ACTIVE` erlauben könnte. Der
-Host-Hinweis ist damit eine informierte Ablaufentscheidung, aber keine
-technische Garantie des Nachteilsausgleichs.
+**Umsetzungsstand 2026-07-20:** Weitgehend geschlossen auf Branch
+`a11y/wcag22-final-compliance`. Teilnehmende wählen `Standard`, `10× Zeit` oder
+`Ohne Frist` bereits in der Lobby und während `ACTIVE`. `EXTENDED`-Fenster
+blockieren `revealResults`/`startDiscussion`, bis die persönliche Frist endet
+oder der Host nach Ablauf des Raum-Countdowns mit Bestätigung
+`forceClosePersonalTimers` setzt (geloggt). Scoring bleibt am Session-Timer.
 
 **Ausgangsbefund:** Für getimte Fragen gab es nur den gemeinsamen Host-Timer.
 Eine globale timerlose Session war möglich, aber kein persönlicher
 Nachteilsausgleich während einer getimten Veranstaltung.
 
 **Umgesetzt:** Schema-first-Erweiterung von Prisma, Shared Contracts, tRPC,
-Vote-Deadline, MD3-Segmented-Control, Punktvorschau und Host-Fortschritt.
+Vote-Deadline, MD3-Segmented-Control, Lobby-Auswahl, Punktvorschau,
+Host-Fortschritt und bestätigter Host-Override nach Raum-Countdown.
 
-**Noch erforderlich:** Entweder muss der Statuswechsel offene persönliche
-Fenster technisch respektieren, oder eine beanspruchte Ausnahme für
-zeitkritische Echtzeitereignisse muss fachlich begründet, eng abgegrenzt und
-manuell gegen WCAG 2.2.1 bewertet werden. Eine Vote-Annahme nach sichtbarer
-Ergebnisfreigabe darf dabei keine Lösungsdaten oder Wertungsvorteile eröffnen.
+**Rest:** `Ohne Frist` bleibt bewusst host-steuerbar (kein Sabotagevektor).
+Manuelle Abnahme der Timing-Fälle in den Prüfmatrizen steht aus.
 
 ### 5.14 Unvollständige Überschriftenhierarchie auf Home und Admin
 
@@ -675,25 +668,57 @@ bildeten aber nicht durchgängig die semantische Seitenhierarchie ab.
 **Umgesetzt:** Semantische Heading-Elemente bei unveränderter visueller
 Material-Darstellung und Regressionstests für die Startseite.
 
+### 5.15 Autoaktualisierte Punktvorschau ohne Nutzerkontrolle
+
+**WCAG:** 2.2.2 Pause, Stop, Hide, Level A
+
+**Evidenz:**
+`apps/frontend/src/app/features/session/session-vote/session-vote.component.{ts,html}`
+
+**Umsetzungsstand 2026-07-20:** Geschlossen im Working Tree. Die sekündliche
+Punktvorschau besitzt „Ausblenden“ / „Live-Punkte anzeigen“, Persistenz in
+`localStorage` (`arsnova-live-score-preview`) und keine `aria-live`-Region für
+Sekundenupdates. Der Raum-Countdown bleibt als essential timing getrennt.
+
+**Ausgangsbefund (2. GPT-Evaluation):** Die optionale Punktvorschau ist
+autoaktualisierte Parallelinformation; die Essential-Ausnahme des Countdowns
+überträgt sich nicht automatisch darauf.
+
+### 5.16 Session-Überschriften nur visuell
+
+**WCAG:** 1.3.1 Info and Relationships, Level A (Risiko)
+
+**Evidenz:** Host-Lobby, Host-Frage, Vote-Frage, Session-Fehler, Wortwolke
+
+**Umsetzungsstand 2026-07-20:** Bereinigt. Lobby und Quiz-Frage nutzen natives
+`h1`; Vote hat `h1` plus benannte Region; Session-Fehler und Wortwolke nutzen
+`h1`/`h2 mat-card-title`. Nicht jeder visuelle Fragetext muss selbst Heading
+sein, solange die Seitenregion programmatisch benannt ist.
+
+**Ausgangsbefund (2. GPT-Evaluation):** Mehrere Session-Titel wirkten wie
+Überschriften, ohne durchgängig native Heading-Semantik.
+
 ## 6. Weitere Risiken und noch erforderliche Nachweise
 
 Die folgenden Punkte sind nicht automatisch als Verstoß zu werten, müssen vor
 einer AA-Freigabe aber gezielt geprüft werden:
 
-| Prüfbereich      | Nachweis                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| Kontrast         | 4,5:1 für normalen Text, 3:1 für große Schrift sowie 3:1 für UI-Komponenten und Fokusindikatoren |
-| Reflow           | keine Funktions- oder Informationsverluste bei 320 CSS-Pixel und 400 % Zoom                      |
-| Zielgröße        | 2.5.8 einschließlich 24-Pixel-Minimum und Abstands-Ausnahmen auf allen Controls                  |
-| Fokus verdeckt   | Sticky Header, Bottom-Actions, Snackbars, virtuelle Tastatur und Overlays                        |
-| Tastatur         | vollständige Kernprozesse ohne Maus oder Touch                                                   |
-| Screenreader     | NVDA/Firefox und VoiceOver/Safari, insbesondere Live-Phasen und Dialoge                          |
-| Statusmeldungen  | weder fehlende noch übermäßig häufige Ansagen                                                    |
-| Wortwolke/Charts | textuelle Alternativen für Häufigkeit, Rang und Datenbeziehungen                                 |
-| High Contrast    | Forced Colors und Betriebssystem-Hochkontrast                                                    |
-| Timing           | Host-Freigabe beendet angepasste Fenster; 2.2.1 technisch schließen oder Ausnahme begründen      |
-| Locales          | alle Kernflows in `de`, `en`, `fr`, `es`, `it`                                                   |
-| PDF/UA           | veraPDF/PAC, Tagstruktur, Lesereihenfolge, Links und Alternativtexte                             |
+| Prüfbereich      | Nachweis                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Kontrast         | 4,5:1 für normalen Text, 3:1 für große Schrift sowie 3:1 für UI-Komponenten und Fokusindikatoren        |
+| Reflow           | keine Funktions- oder Informationsverluste bei 320 CSS-Pixel und 400 % Zoom                             |
+| Zielgröße        | 2.5.8 einschließlich 24-Pixel-Minimum und Abstands-Ausnahmen auf allen Controls                         |
+| Fokus verdeckt   | Sticky Header, Bottom-Actions, Snackbars, virtuelle Tastatur und Overlays                               |
+| Tastatur         | vollständige Kernprozesse ohne Maus oder Touch                                                          |
+| Screenreader     | NVDA/Firefox und VoiceOver/Safari, insbesondere Live-Phasen und Dialoge                                 |
+| Statusmeldungen  | weder fehlende noch übermäßig häufige Ansagen                                                           |
+| Wortwolke/Charts | textuelle Alternativen für Häufigkeit, Rang und Datenbeziehungen                                        |
+| High Contrast    | Forced Colors und Betriebssystem-Hochkontrast                                                           |
+| Timing           | `EXTENDED` blockiert Freigabe; Host-Override erst nach Raum-Countdown mit Bestätigung; manuell abnehmen |
+| Locales          | alle Kernflows in `de`, `en`, `fr`, `es`, `it`                                                          |
+| PDF/UA           | veraPDF/PAC, Tagstruktur, Lesereihenfolge, Links und Alternativtexte                                    |
+| Manuelle Matrix  | 63 offene Fälle (35 allgemein + 28 PR-101); NVDA/VoiceOver/Zoom/Forced Colors                           |
+| Scoring          | Inklusionsrisiko, kein eindeutiger WCAG-Verstoß; Transparenz über Vorschau und Regeltext                |
 
 ## 7. Lücken in Tooling und Prozess
 
@@ -996,9 +1021,8 @@ spezifische manuelle Abnahmeprotokoll.
 
 **Offene Abnahme**
 
-- Statuswechsel muss persönliche `EXTENDED`-/`OFF`-Fenster respektieren oder
-  als zulässige Echtzeit-Ausnahme begründet werden;
-- 25 Fälle der PR-101-Matrix;
+- manuelle Timing-, Punktvorschau- und Heading-Fälle der Prüfmatrizen
+  (35 allgemein + 28 PR-101);
 - VoiceOver/Safari, NVDA/Firefox und Windows Forced Colors;
 - echter 200-/400-%-Browserzoom und PDF-Reader.
 

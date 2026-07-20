@@ -170,6 +170,7 @@ model Participant {
   joinedAt   DateTime @default(now())
 
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
+  @@index([sessionId, timerAccommodation]) // Host-Fortschritt für persönliche Zeitfenster
 }
 
 // Singleton-Zeile: plattformweite Kennzahlen (höchste Teilnehmerzahl je Session)
