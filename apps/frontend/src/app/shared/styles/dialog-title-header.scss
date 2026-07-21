@@ -55,6 +55,19 @@ h3.dialog-title-header__heading {
   margin: 0;
 }
 
+/**
+ * Nach SPA-Navigation setzt focusPrimaryContent() Fokus auf das Seiten-h1 (tabindex=-1).
+ * Padding + negativer Margin: Innenluft zum Fokusrahmen ohne Layoutsprung.
+ */
+h1.dialog-title-header__heading:focus,
+h1.dialog-title-header__heading:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.2rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.4rem;
+  margin: -0.25rem -0.4rem;
+}
+
 /* Volle Seiten / Kartenkopf: kein Dialog-Innenpadding */
 .dialog-title-header--page {
   padding-inline: 0;
