@@ -53,9 +53,10 @@
   bottom: calc(var(--vote-bottom-actions-bottom) + var(--app-footer-visible-offset, 0px));
   transform: translateX(-50%);
   z-index: 40;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
   box-shadow: var(--mat-sys-level3);
@@ -63,8 +64,9 @@
 }
 
 .vote-page__bottom-actions--floating .vote-page__bottom-action {
-  width: 100%;
-  max-width: none;
+  width: auto;
+  max-width: 100%;
+  min-width: 8rem;
 }
 
 .vote-page__bottom-actions--session-end {
@@ -338,10 +340,12 @@
     transform: none;
     width: auto;
     max-width: none;
+    justify-content: center;
   }
 
-  .vote-page__bottom-action {
-    width: 100%;
+  .vote-page__bottom-actions--floating .vote-page__bottom-action {
+    width: auto;
+    max-width: 100%;
   }
 
   .vote-page__bottom-actions--session-end {
