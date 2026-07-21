@@ -212,4 +212,45 @@ describe('MotdArchiveDialogComponent', () => {
     expect(snackSpy).toHaveBeenCalled();
     expect(notifySpy).toHaveBeenCalled();
   });
+
+  it('setzt inert auf zugeklappte Panel-Inhalte, damit Tab die Header erreicht', async () => {
+    getHeaderStateQuery.mockResolvedValue({
+      ...defaultHeaderState,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxEndsAtIso: '2026-01-20T00:00:00.000Z',
+      archiveUnreadCount: 1,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: '# Titel\n\n[Link](https://arsnova.eu)',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    configureDialog();
+    const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const body = root.querySelector('.motd-archive__body');
+    expect(body).toBeTruthy();
+    expect(body!.hasAttribute('inert')).toBe(true);
+
+    const header = root.querySelector<HTMLElement>('.mat-expansion-panel-header');
+    expect(header).toBeTruthy();
+    header!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(body!.hasAttribute('inert')).toBe(false);
+  });
 });

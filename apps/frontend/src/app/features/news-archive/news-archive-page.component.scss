@@ -89,6 +89,22 @@
   font-weight: 600;
 }
 
+/* In-page-Anker: Tab-Navigation zwischen Meldungen, optisch wie Überschrift. */
+.news-archive-page__entry-title-link {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.news-archive-page__entry-title-link:hover {
+  text-decoration: underline;
+}
+
+.news-archive-page__entry-title-link:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.25rem;
+}
+
 .news-archive-page__entry-meta {
   margin: 0 0 1rem;
   font: var(--mat-sys-body-large);
