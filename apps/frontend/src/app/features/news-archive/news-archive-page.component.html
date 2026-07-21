@@ -63,7 +63,13 @@
               @for (it of items(); track it.id) {
                 @let archiveMeta = formatArchiveDate(it.startsAt);
                 <section class="news-archive-page__entry" [attr.id]="'motd-archive-' + it.id">
-                  <h2 class="news-archive-page__entry-title">{{ archiveItemTitle(it.id) }}</h2>
+                  <h2 class="news-archive-page__entry-title">
+                    <a
+                      class="news-archive-page__entry-title-link"
+                      [attr.href]="'#motd-archive-' + it.id"
+                      >{{ archiveItemTitle(it.id) }}</a
+                    >
+                  </h2>
                   @if (archiveMeta) {
                     <p class="news-archive-page__entry-meta">
                       <time [attr.datetime]="it.startsAt">{{ archiveMeta }}</time>

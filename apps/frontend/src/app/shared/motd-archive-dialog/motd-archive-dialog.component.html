@@ -54,7 +54,7 @@
         <mat-accordion class="motd-archive__accordion" [multi]="true">
           @for (it of items(); track it.id) {
             @let archiveMeta = formatArchiveDate(it.startsAt);
-            <mat-expansion-panel class="motd-archive__panel">
+            <mat-expansion-panel #archivePanel class="motd-archive__panel">
               <mat-expansion-panel-header>
                 <mat-panel-title class="motd-archive__panel-title">
                   <span
@@ -70,7 +70,11 @@
                 }
               </mat-expansion-panel-header>
               @if (htmlById()[it.id]; as safe) {
-                <div class="motd-archive__body markdown-body" [innerHTML]="safe"></div>
+                <div
+                  class="motd-archive__body markdown-body"
+                  [attr.inert]="archivePanel.expanded ? null : ''"
+                  [innerHTML]="safe"
+                ></div>
               }
             </mat-expansion-panel>
           }
