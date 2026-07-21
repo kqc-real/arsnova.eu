@@ -600,6 +600,9 @@ async function endSessionAndScan(host, participant, hardFailures) {
   // Nach Session-Ende erfolgt oft ein schneller Redirect nach Home. Axe darf
   // nicht mitten in der Navigation laufen: der Tempo-Spotlight-Button existiert
   // dann schon als leere Shell ohne Text/aria-label (button-name).
+  // Nur #vote-session-end-anchor zählt als settled Gate — #finished-heading
+  // erscheint schon im transienten FINISHED-Zustand, bevor runSessionEndRedirect
+  // entscheidet (Home vs. End-Gate); sonst gewinnt gateVisible zu früh.
   const homeNamed = participant
     .waitForFunction(
       (homePathSource) => {
@@ -616,7 +619,7 @@ async function endSessionAndScan(host, participant, hardFailures) {
     )
     .then(() => 'home');
   const gateVisible = participant
-    .locator('#vote-session-end-anchor, #finished-heading')
+    .locator('#vote-session-end-anchor')
     .first()
     .waitFor({ state: 'visible', timeout: 20_000 })
     .then(() => 'gate');
