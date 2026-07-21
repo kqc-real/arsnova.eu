@@ -67,6 +67,7 @@
                     <a
                       class="news-archive-page__entry-title-link"
                       [attr.href]="'#motd-archive-' + it.id"
+                      (click)="onArchiveTitleLinkClick($event, it.id)"
                       >{{ archiveItemTitle(it.id) }}</a
                     >
                   </h2>

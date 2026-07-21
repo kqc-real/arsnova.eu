@@ -117,4 +117,55 @@ describe('NewsArchivePageComponent', () => {
     expect(links.map((l) => l.textContent?.trim())).toEqual(['Zweite Meldung', 'Erste Meldung']);
     expect(links.every((l) => l.tabIndex >= 0)).toBe(true);
   });
+
+  it('setzt den Fragment-Anker per replaceState ohne History-Push', () => {
+    const withItems: NewsArchiveInitialModel = {
+      ...emptyResolved,
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: '# Erste Meldung\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      titleById: {
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa': 'Erste Meldung',
+      },
+      htmlById: {},
+    };
+
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { data: { newsArchive: withItems } } },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    fixture.detectChanges();
+
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+    const pushStateSpy = vi.spyOn(window.history, 'pushState');
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      '.news-archive-page__entry-title-link',
+    );
+    expect(link).toBeTruthy();
+    link!.click();
+
+    expect(replaceStateSpy).toHaveBeenCalledTimes(1);
+    expect(String(replaceStateSpy.mock.calls[0]?.[2] ?? '')).toContain(
+      '#motd-archive-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    expect(pushStateSpy).not.toHaveBeenCalled();
+    replaceStateSpy.mockRestore();
+    pushStateSpy.mockRestore();
+  });
 });

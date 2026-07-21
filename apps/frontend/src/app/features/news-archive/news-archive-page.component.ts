@@ -94,6 +94,31 @@ export class NewsArchivePageComponent {
     return this.titleById()[id] ?? this.archiveItemFallbackTitle;
   }
 
+  /**
+   * In-Page-Anker ohne History-Eintrag: nativer Fragment-Klick würde
+   * `Location.back()` („Zurück“) nur zum vorherigen Hash führen.
+   * Modifier-Klicks (neuer Tab usw.) behalten das native Verhalten.
+   */
+  onArchiveTitleLinkClick(event: MouseEvent, id: string): void {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const hash = `#motd-archive-${id}`;
+    const nextUrl = `${window.location.pathname}${window.location.search}${hash}`;
+    window.history.replaceState(window.history.state, '', nextUrl);
+  }
+
   back(): void {
     this.location.back();
   }
