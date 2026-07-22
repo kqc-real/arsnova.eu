@@ -71,7 +71,7 @@ Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 
 ## 7. Weiterführend
 
-- **Härtungsplan (externes Audit + UX/NAT-Nachträge, 2026-07):** [SECURITY-HARDENING-PLAN.md](SECURITY-HARDENING-PLAN.md) — Phasen Woche 1–4, Limit-by-Tabelle für 500 TN hinter NAT; noch nicht umgesetzt
+- **Härtungsplan (externes Audit + UX/NAT-Nachträge, Plan-Review geschärft 2026-07):** [SECURITY-HARDENING-PLAN.md](SECURITY-HARDENING-PLAN.md) — W0–W4, SSRF/TOCTOU-, Soft-Cap- und Lasttest-AKs; Ist-Sicherheit ~5/10 bis Umsetzung; noch nicht implementiert
 - **Rollen & Routen:** [ADR-0006](architecture/decisions/0006-roles-routes-authorization-host-admin.md) und [ADR-0019](architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md)
 - **MOTD / Plattform-Kommunikation:** [ADR-0018](architecture/decisions/0018-message-of-the-day-platform-communication.md), [motd.md](features/motd.md)
 - **i18n & Daten in Übersetzungen:** [ADR-0008](architecture/decisions/0008-i18n-internationalization.md)
