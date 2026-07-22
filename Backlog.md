@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.8** (Komplexitätsabbau / McCabe-Refactor), **2.9** (asynchrone Quiz-Modi), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **6.5** (Barrierefreiheit – manuelle Abnahme), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.6** (UX Thinking Aloud) ist abgeschlossen ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -22,7 +22,7 @@
 | 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                                                 | 🔴   | ✅ Fertig    |
 | 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                                                    | 🔴   | ✅ Fertig    |
 | 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                                        | 🟡   | ✅ Fertig    |
-| 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                     | 🟡   | ⬜ Offen     |
+| 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                     | 🟡   | ✅ Fertig    |
 | 1    | 1.1   | Quiz erstellen                                                                     | 🔴   | ✅ Fertig    |
 | 1    | 1.2a  | Fragentypen: MC & SC                                                               | 🔴   | ✅ Fertig    |
 | 1    | 1.2b  | Fragentypen: Freitext & Umfrage                                                    | 🟡   | ✅ Fertig    |
@@ -69,7 +69,7 @@
 | 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                                               | 🟡   | ✅ Fertig    |
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)                               | 🟡   | ✅ Fertig    |
 | 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions                                   | 🔴   | ✅ Fertig    |
-| 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien                                       | 🔴   | ⬜ Offen     |
+| 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien (noch nicht beauftragt)               | 🔴   | ⬜ Offen     |
 | 3    | 3.1   | Beitreten                                                                          | 🔴   | ✅ Fertig    |
 | 3    | 3.2   | Nicknames                                                                          | 🟡   | ✅ Fertig    |
 | 3    | 3.3a  | Frage empfangen                                                                    | 🔴   | ✅ Fertig    |
@@ -99,7 +99,7 @@
 | 6    | 6.3   | Impressum & Datenschutz                                                            | 🔴   | ✅ Fertig    |
 | 6    | 6.4   | Mobile-First & Responsive                                                          | 🔴   | ✅ Fertig    |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                                             | 🔴   | 🔨 In Arbeit |
-| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                                           | 🟡   | ⬜ Offen     |
+| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                                           | 🟡   | ✅ Fertig    |
 | 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button                        | 🔴   | ✅ Fertig    |
 | 7    | 7.1   | Team-Modus                                                                         | 🟢   | ✅ Fertig    |
 | 8    | 8.1   | Q&A-Session starten                                                                | 🟢   | ✅ Fertig    |
@@ -129,7 +129,7 @@
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen     |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen     |
 
-> **Repo-Abgleich (Codebase 2026-07-22):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt (Semantik/Fokus/Overlays, automatisierte A11y-Gates, PDF/UA, Timer-Nachteilsausgleich inkl. Host-Override und Punktvorschau, Session-Headings, Erklärung zur Barrierefreiheit (`/legal/accessibility`), News-Archiv-Tastaturnavigation, Feature-MOTD — PRs #89–#106, #101, #104, #105, #116); die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme (PR 7) bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). Offen bleiben **6.6** (UX-Testreihen), beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
+> **Repo-Abgleich (Codebase 2026-07-22):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt** (menschliche Metrik, keine Relevanz für Code-Agenten). **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt (Semantik/Fokus/Overlays, automatisierte A11y-Gates, PDF/UA, Timer-Nachteilsausgleich inkl. Host-Override und Punktvorschau, Session-Headings, Erklärung zur Barrierefreiheit (`/legal/accessibility`), News-Archiv-Tastaturnavigation, Feature-MOTD — PRs #89–#106, #101, #104, #105, #116); die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme (PR 7) bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). **Story 6.6** (UX-Testreihen Thinking Aloud) ist abgeschlossen ✅. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
 > **Korrektur zum Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
 > implementiert und Story 1.2d als fertig bewertet. Offen ist seit dem lokalen
@@ -143,7 +143,7 @@
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 34 · 🟡 Should: 68 · 🟢 Could: 12 = **114 Stories gesamt** (**95** ✅ Fertig · **0** 🔨 In Arbeit · **19** ⬜ Offen)
+> **Statistik:** 🔴 Must: 34 · 🟡 Should: 68 · 🟢 Could: 12 = **114 Stories gesamt** (**96** ✅ Fertig · **1** 🔨 In Arbeit · **17** ⬜ Offen)
 
 ---
 
@@ -323,7 +323,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Performance-Hinweis:** Die Story ist selbst Teil der Performance-Absicherung und damit unmittelbar von [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md) betroffen; neue kritische Live-Features muessen hier mit passenden Lastprofilen und Messpunkten abgebildet werden.
   - **Abhängigkeiten:** Story 0.2 (tRPC WebSocket-Adapter), Story 0.5 (Rate-Limiting), Story 0.6 (CI/CD), Story 2.1a (Session-Start), Story 2.2 (Lobby), Story 3.1 (Join), Story 3.3b (Abstimmung), Story 4.5 (Freitext-Auswertung), Story 8.1–8.4 (Q&A), optional Story 1.6/1.6a/1.6b/1.6d (Sync), ADR-0013.
 
-- **Story 0.8 (Komplexitätsabbau / McCabe-Refactor):** 🟡 Als Entwickler möchte ich überhöhte zyklomatische Komplexität in priorisierten Hotspots systematisch reduzieren, damit Wartbarkeit, Änderbarkeit und Fehlersicherheit steigen, ohne funktionale Regressionen einzuführen.
+- ~~**Story 0.8 (Komplexitätsabbau / McCabe-Refactor):**~~ 🟡 ✅ **geschlossen / nicht weiterverfolgt** _(menschliche Metrik, keine Relevanz für Code-Agenten)_ — Als Entwickler möchte ich überhöhte zyklomatische Komplexität in priorisierten Hotspots systematisch reduzieren, damit Wartbarkeit, Änderbarkeit und Fehlersicherheit steigen, ohne funktionale Regressionen einzuführen.
+  - **Status:** Geschlossen analog zu nicht weitergeführten Backlog-Einträgen (vgl. Story 5.2); Inhalt bleibt als historische Referenz. Keine Umsetzung geplant.
   - **Akzeptanzkriterien:**
     - Es liegt ein reproduzierbarer Komplexitäts-Report (McCabe/Cyclomatic) für Backend und Frontend vor, der mindestens **Durchschnitt**, **P95**, **Maximum** und die **Top-Hotspots** ausweist.
     - Es gibt eine priorisierte Hotspot-Liste (mindestens Top-10) mit Datei, Funktion/Block und aktuellem Komplexitätswert als Arbeitsgrundlage.
@@ -984,7 +985,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Session ohne Desktop beenden
     - **Architekturvorgabe:** Umsetzung und Priorisierung folgen ADR-0014; Smartphone-Hosting wird als mobile Informationsarchitektur und als produktives USP-Feature behandelt, nicht als reine Responsive-Korrektur.
   - **Abhängigkeiten:** Story 2.3 (Präsentations-Steuerung), Story 2.5 (Beamer-/Host-Ansicht), Story 2.7 (Kanalwechsel und Vergleichsrunden), Story 4.4 (Ergebnis-Visualisierung), Story 6.4 (Mobile-First & Responsive), Story 6.5 (Barrierefreiheit), ADR-0014.
-- **Story 2.9 (Asynchrone Quiz-Modi und Feedback-Strategien):** 🔴 Als Lehrperson möchte ich beim Start einer Quiz-Instanz festlegen können, ob das Quiz **host-gesteuert synchron** oder **teilnehmendenindividuell asynchron** läuft und wann Rückmeldungen sichtbar werden, damit dieselben Quiz-Inhalte sowohl im Plenum als auch im eigenen Tempo bearbeitet werden können.
+- **Story 2.9 (Asynchrone Quiz-Modi und Feedback-Strategien):** 🔴 ⬜ Offen · **noch nicht beauftragt** — Als Lehrperson möchte ich beim Start einer Quiz-Instanz festlegen können, ob das Quiz **host-gesteuert synchron** oder **teilnehmendenindividuell asynchron** läuft und wann Rückmeldungen sichtbar werden, damit dieselben Quiz-Inhalte sowohl im Plenum als auch im eigenen Tempo bearbeitet werden können.
+  - **Status:** ⬜ Offen (Must); derzeit **Angebots-/Planungsstand**, noch **nicht beauftragt** (analog Epic 11).
   - **Kontext:** Der bestehende Live-Flow ist host-gesteuert: Die Lehrperson öffnet Fragen, gibt Antworten frei und löst Ergebnisse aus. Für Verlagsszenarien, Übungsphasen und Klassen mit heterogenem Arbeitstempo braucht dieselbe Session-Architektur zusätzlich einen asynchronen Pacing-Modus, ohne die bestehenden Live- und Sicherheitsregeln zu brechen.
   - **Implementierungsplan:** [`docs/implementation/STORY-2.9-IMPLEMENTATION-PLAN.md`](docs/implementation/STORY-2.9-IMPLEMENTATION-PLAN.md)
   - **Akzeptanzkriterien:**
@@ -1301,10 +1303,10 @@ Datum/Zahlen), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind
 umgesetzt; Akzeptanzkriterien geprüft (siehe
 `docs/EPIC6-AC-PRUEFUNG.md`). Story 6.5 ist technisch und automatisch
 validiert (u. a. #89–#106, #101, #104, #105, #116), bleibt aber bis zur
-manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. Story 6.6 ergänzt
-**qualitative UX-Testreihen** (Thinking Aloud) und die **konkrete Umsetzung**
-der daraus abgeleiteten UI/UX-Anpassungen. Der Epic wird erst nach Abschluss
-dieser offenen Abnahmen und Testreihen geschlossen.
+manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. Story 6.6
+(**qualitative UX-Testreihen** Thinking Aloud inkl. Umsetzung der Befunde)
+ist abgeschlossen ✅. Der Epic wird nach Abschluss der verbleibenden
+manuellen Abnahme von Story 6.5 geschlossen.
 
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**
@@ -1363,7 +1365,8 @@ dieser offenen Abnahmen und Testreihen geschlossen.
   - **Zielstandard:** WCAG 2.2 Level AA für alle öffentlich zugänglichen Ansichten.
   - **Stand (2026-07-22):** Technische Maßnahmen und automatische Gates sind auf `main` gemergt — u. a. Fokus/Overlays/Semantik (#89–#90), automatisierte Gates (#91), PDF/UA (#92), Restblocker inkl. persönlicher Timer/Host-Override/Punktvorschau/Session-Headings (#101, #104), Erklärung zur Barrierefreiheit unter `/legal/accessibility` (#105), News-Archiv-Tastatur-/Fokus-Härtung (#106), Feature-MOTD zur Initiative (#116). Story 6.5 bleibt **in Arbeit**, bis die manuelle Prüfmatrix (VoiceOver/Safari, NVDA/Firefox, 200-/400-%-Zoom, Windows High Contrast, PDF-Reader) ohne offene A/AA-Befunde abgeschlossen ist.
 
-- **Story 6.6 (UX-Testreihen nach „Thinking Aloud“ & Umsetzung der Befunde):** 🟡 Als Produktteam möchten wir die App in **strukturierten Nutzertestreihen** mit der Methode **Thinking Aloud** beobachten und die dabei gewonnenen **UI/UX-Erkenntnisse** priorisiert **in der Implementierung nachziehen**, damit reale Verständnis- und Bedienprobleme sichtbar werden und nicht nur intern vermutet werden.
+- **Story 6.6 (UX-Testreihen nach „Thinking Aloud“ & Umsetzung der Befunde):** 🟡 ✅ Als Produktteam möchten wir die App in **strukturierten Nutzertestreihen** mit der Methode **Thinking Aloud** beobachten und die dabei gewonnenen **UI/UX-Erkenntnisse** priorisiert **in der Implementierung nachziehen**, damit reale Verständnis- und Bedienprobleme sichtbar werden und nicht nur intern vermutet werden.
+  - **Status:** ✅ Fertig.
 
   **Methode „Thinking Aloud“ (Kurzbeschreibung für die Durchführung):**
   - **Grundidee:** Testpersonen bearbeiten **realistische Aufgaben** (z. B. Session beitreten, abstimmen, Quiz anlegen) und **sprechen dabei laut** über das, was sie denken, erwarten, nicht verstehen oder sie irritiert. Es geht nicht um eine Bewertung der Person, sondern um **Sichtbarkeit des mentalen Modells** und von **Reibung** in der Oberfläche.
