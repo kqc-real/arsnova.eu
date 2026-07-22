@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **6.5** (Barrierefreiheit – manuelle Abnahme), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.6** (UX Thinking Aloud) ist abgeschlossen ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **6.5** (Barrierefreiheit – manuelle Abnahme), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass); Plattform-Hygiene **0.9** (Landing Astro 6→7, geplant nach Security-Deps [#121](https://github.com/kqc-real/arsnova.eu/pull/121)) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.6** (UX Thinking Aloud) ist abgeschlossen ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -23,6 +23,7 @@
 | 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                                                    | 🔴   | ✅ Fertig    |
 | 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                                        | 🟡   | ✅ Fertig    |
 | 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                     | 🟡   | ✅ Fertig    |
+| 0    | 0.9   | Landing: Astro 6→7 (XSS-Hygiene, Cookie-Override)                                  | 🟡   | ⬜ Offen     |
 | 1    | 1.1   | Quiz erstellen                                                                     | 🔴   | ✅ Fertig    |
 | 1    | 1.2a  | Fragentypen: MC & SC                                                               | 🔴   | ✅ Fertig    |
 | 1    | 1.2b  | Fragentypen: Freitext & Umfrage                                                    | 🟡   | ✅ Fertig    |
@@ -129,7 +130,7 @@
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen     |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen     |
 
-> **Repo-Abgleich (Codebase 2026-07-22):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt** (menschliche Metrik, keine Relevanz für Code-Agenten). **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt (Semantik/Fokus/Overlays, automatisierte A11y-Gates, PDF/UA, Timer-Nachteilsausgleich inkl. Host-Override und Punktvorschau, Session-Headings, Erklärung zur Barrierefreiheit (`/legal/accessibility`), News-Archiv-Tastaturnavigation, Feature-MOTD — PRs #89–#106, #101, #104, #105, #116); die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme (PR 7) bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). **Story 6.6** (UX-Testreihen Thinking Aloud) ist abgeschlossen ✅. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
+> **Repo-Abgleich (Codebase 2026-07-22):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt** (menschliche Metrik, keine Relevanz für Code-Agenten). **Story 0.9** (Landing Astro 6→7) ist als **geplantes** Should-Ticket eingetragen (⬜ Offen; Start **nach** [#121](https://github.com/kqc-real/arsnova.eu/pull/121); Ziel ≥ 7.1.x inkl. Cookie-Override — nicht per Dependabot-Blind-Bump). **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt (Semantik/Fokus/Overlays, automatisierte A11y-Gates, PDF/UA, Timer-Nachteilsausgleich inkl. Host-Override und Punktvorschau, Session-Headings, Erklärung zur Barrierefreiheit (`/legal/accessibility`), News-Archiv-Tastaturnavigation, Feature-MOTD — PRs #89–#106, #101, #104, #105, #116); die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme (PR 7) bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). **Story 6.6** (UX-Testreihen Thinking Aloud) ist abgeschlossen ✅. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
 > **Korrektur zum Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
 > implementiert und Story 1.2d als fertig bewertet. Offen ist seit dem lokalen
@@ -143,7 +144,7 @@
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 34 · 🟡 Should: 68 · 🟢 Could: 12 = **114 Stories gesamt** (**96** ✅ Fertig · **1** 🔨 In Arbeit · **17** ⬜ Offen)
+> **Statistik:** 🔴 Must: 34 · 🟡 Should: 69 · 🟢 Could: 12 = **115 Stories gesamt** (**96** ✅ Fertig · **1** 🔨 In Arbeit · **18** ⬜ Offen)
 
 ---
 
@@ -338,6 +339,18 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - `apps/backend/src/routers/vote.ts`
     - `apps/backend/src/routers/session.ts`
     - `apps/frontend/src/app/features/quiz/data/quiz-store.service.ts`
+
+- **Story 0.9 (Landing: Astro 6→7):** 🟡 ⬜ Offen · **geplant** (Medium-Ticket, ~½–1 Tag; **nach** Merge der Security-Deps [#121](https://github.com/kqc-real/arsnova.eu/pull/121)) — Als Entwickler möchte ich die Astro-Landing-App (`apps/landing`) bewusst auf **Astro ≥ 7.1.x** migrieren, damit Dependabot-XSS-Advisories ohne 6.x-Backport geschlossen werden und die Toolchain (Vite 8/Rolldown) aktuell bleibt — **nicht** als Blind-Bump über Dependabot.
+  - **Kontext / Warum nicht sofort:** Die Landing ist statisch (kein View Transitions/Islands-XSS-Pfad im Praxisbetrieb); Design ändert sich durch Astro-Defaults praktisch nicht. Der echte Blocker im Monorepo ist **Cookie-Hoisting**: Astro 7 erwartet `cookie@2` (`parseCookie`), während Express/Backend typischerweise `cookie@0.7` (CJS, ohne Named Export) hoisten — Dependabot-Majors scheitern deshalb an `npm ci`/`build:landing`. Dependabot-Major-Ignore für `astro`/`@astrojs/*` bleibt bis zum erfolgreichen Upgrade aktiv (siehe `.github/dependabot.yml`).
+  - **Abgrenzung:** Kein Design-Rewrite der Landing; kein Angular-/App-Frontend-Scope. Offene XSS-Alerts (#125/#126/#128/#129/#131/#132) werden über den Versionssprung geschlossen, nicht über Overrides in #121.
+  - **Akzeptanzkriterien:**
+    - [ ] `apps/landing` und Root-Workspace nutzen **Astro ≥ 7.1.x** (XSS-Advisories ohne 6.x-Backport).
+    - [ ] Root-`overrides` (oder gleichwertige Auflösung) stellen `cookie@2` für Astro bereit, **ohne** Express/Backend-Cookie-Pfade zu brechen; `npm ci` im Monorepo ist grün.
+    - [ ] `npm run build:landing` (Node gemäß Workspace/`.nvmrc`-Matrix) ist grün; Landing-A11y-/CI-Gates bleiben grün.
+    - [ ] Kurzer visueller Smoke der Landing (Start + Legal-Seiten) — keine Design-Regression erwartet, aber einmal prüfen.
+    - [ ] Nach Erfolg: Dependabot-Major-Ignore für `astro`/`@astrojs/*` in `.github/dependabot.yml` entfernen oder lockern; zugehörige Dependabot-Alerts schließen sich bzw. werden verifiziert.
+  - **Aufwand (Richtwert):** ~½–1 Tag, Schwerpunkt Cookie-Override und Landing-CI — nicht „Dependabot mergen und fertig“.
+  - **Abhängigkeiten:** Security-Deps-PR [#121](https://github.com/kqc-real/arsnova.eu/pull/121) zuerst mergen; Story 0.6 (CI inkl. Landing-Build); ADR-0005 (Landing/Tailwind-Scope).
 
 ---
 
