@@ -36,7 +36,7 @@ Der Plan konsolidiert Audit, UX-Follow-up und Hörsaal-/NAT-Nachtrag. **Dieses H
 
 1. **Hörsaal-NAT:** Bis ~500 Geräte teilen eine öffentliche IP. **Keine engen IP-Limits** auf Teilnehmerpfaden (Join, Vote, Q&A, Blitzlicht, WebSocket).
 2. **Proxy = lokaler Nginx** auf demselben Host — kein CDN/WAF. `TRUST_PROXY_HOPS=1`; IP-Fix für Logs/Host-Grenzen, **nicht** für Participant-Lockouts.
-3. **UX-bewusst:** UX-neutrale Fixes zuerst; Tradeoffs (Image-Proxy, Yjs-Rotation, `accessProof`, PDF-Queue) später mit Migration/Fortschritt.
+3. **UX-bewusst:** UX-neutrale Fixes zuerst; Tradeoffs (Image-Proxy, Yjs-Rotation, `accessProof`-Cutover, PDF-Queue) später mit Migration/Fortschritt.
 4. **Erfolgsmaß:** keine offenen HIGH-Befunde + bestandene Security-/Lasttests (Plan §6.5) — **nicht** eine vage „7–8/10“-Note.
 5. **Verboten u. a.:** enge Participant-IP-Locks; Soft-Cap als Saal-Hard-Lock; Client-ID als Auth; `npm audit fix --force`; CSP sofort enforce; kurze Yjs-TTLs. Details: Plan Abschnitt 7.
 
@@ -44,10 +44,10 @@ Der Plan konsolidiert Audit, UX-Follow-up und Hörsaal-/NAT-Nachtrag. **Dieses H
 
 ## 4. Empfohlenes KI-Modell
 
-| Slice-Art    | Beispiele                                                                                                             | Modell                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Kritisch** | PDF-SSRF/TOCTOU/DNS-Rebind, `resolveClientIp`, Code-Lockout → Client-ID Soft-Cap, Yjs-Tokens, `accessProof`-Migration | **GPT-5.6 Sol high / Extra High** (oder vergleichbar stark) — **nicht** Composer 2.5 Auto allein |
-| **Hygiene**  | Node-Upgrade, Body-/Payload-Limits, einfaches Zod `.max()` für Fragen                                                 | Composer / Auto ok                                                                               |
+| Slice-Art    | Beispiele                                                                                                                                                     | Modell                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Kritisch** | PDF-SSRF/TOCTOU/DNS-Rebind + Chromium ohne Re-Fetch abgelehnter Srcs, `resolveClientIp`, Code-Lockout → Client-ID Soft-Cap, Yjs-Tokens, `accessProof`-Cutover | **GPT-5.6 Sol high / Extra High** (oder vergleichbar stark) — **nicht** Composer 2.5 Auto allein |
+| **Hygiene**  | Node-Upgrade, Body-/Payload-Limits, einfaches Zod `.max()` für Fragen                                                                                         | Composer / Auto ok                                                                               |
 
 Kritische Slices: starke Modelle für Design + Review; Hygiene kann leichter laufen.
 
@@ -69,14 +69,14 @@ Kritische Slices: starke Modelle für Design + Review; Hygiene kann leichter lau
 
 ### Woche 1 — HIGH-Kern (UX-neutral)
 
-| #    | Paket                                                              | Modell-Hinweis |
-| ---- | ------------------------------------------------------------------ | -------------- |
-| W1.1 | Node 24 (oder 22 + verbindlicher Node-24-Termin)                   | Hygiene        |
-| W1.2 | PDF-SSRF-Kern (TOCTOU/Rebind/IP-Bind/Stream/MIME)                  | **Kritisch**   |
-| W1.3 | Public Creates: Rate-Limits, Zod `.max()`, Payload, Upload-Cleanup | gemischt       |
-| W1.4 | `resolveClientIp` → nur `req.ip`                                   | **Kritisch**   |
-| W1.5 | Session-Code-Lockout → Client-ID Soft-Cap (kein Hard-Lock)         | **Kritisch**   |
-| W1.6 | Grobe Limits Session-Create / Admin-Login                          | Hygiene/mittel |
+| #    | Paket                                                                                                         | Modell-Hinweis |
+| ---- | ------------------------------------------------------------------------------------------------------------- | -------------- |
+| W1.1 | Node 24 (oder 22 + verbindlicher Node-24-Termin)                                                              | Hygiene        |
+| W1.2 | PDF-SSRF-Kern (TOCTOU/Rebind/IP-Bind/Stream/MIME; abgelehnte Srcs ersetzen **oder** Chromium-Netz blockieren) | **Kritisch**   |
+| W1.3 | Public Creates: Rate-Limits, Zod `.max()`, Payload, Upload-Cleanup                                            | gemischt       |
+| W1.4 | `resolveClientIp` → nur `req.ip`                                                                              | **Kritisch**   |
+| W1.5 | Session-Code-Lockout → Client-ID Soft-Cap (kein Hard-Lock)                                                    | **Kritisch**   |
+| W1.6 | Grobe Limits Session-Create / Admin-Login                                                                     | Hygiene/mittel |
 
 **Out-of-scope W1:** Image-Proxy-Produktisierung, PDF-Queue-UI, Yjs-Token-Rotation gebaut, `accessProof`-Cutover, CSP enforce, ZAP als PR-Gate.
 
