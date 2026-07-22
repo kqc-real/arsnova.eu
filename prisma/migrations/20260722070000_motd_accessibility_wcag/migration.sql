@@ -57,7 +57,7 @@ Mit unserer Initiative für Barrierefreiheit haben wir arsnova.eu umfassend an *
 
 Davon profitieren alle: durch größere Bedienelemente, klare Rückmeldungen und vorhersehbare Abläufe. Wer einen Screenreader nutzt, ausschließlich mit der Tastatur arbeitet, mehr Zeit benötigt oder Kontrast und Bewegung anpasst, erhält passende und verlässliche Zugänge.
 
-**[Mehr über Barrierefreiheit auf arsnova.eu erfahren](/legal/accessibility)**
+**[Mehr über Barrierefreiheit auf arsnova.eu erfahren](/de/legal/accessibility)**
 
 **Probiere aus, was für dich am besten funktioniert.**$mdde$
 )
@@ -86,7 +86,7 @@ As part of our accessibility initiative, we have comprehensively aligned arsnova
 
 Everyone benefits from larger controls, clear feedback and predictable interactions. People who use a screen reader, navigate exclusively by keyboard, need more time or adjust motion and contrast receive reliable ways to participate.
 
-**[Learn more about accessibility on arsnova.eu](/legal/accessibility)**
+**[Learn more about accessibility on arsnova.eu](/en/legal/accessibility)**
 
 **Try the settings that work best for you.**$mden$
 )
@@ -115,7 +115,7 @@ Dans le cadre de notre démarche en faveur de l’accessibilité, nous avons ent
 
 Tout le monde bénéficie de commandes plus grandes, d’indications claires et d’interactions prévisibles. Les personnes qui utilisent un lecteur d’écran, naviguent exclusivement au clavier, ont besoin de davantage de temps ou adaptent les animations et les contrastes disposent de moyens fiables pour participer.
 
-**[En savoir plus sur l’accessibilité d’arsnova.eu](/legal/accessibility)**
+**[En savoir plus sur l’accessibilité d’arsnova.eu](/fr/legal/accessibility)**
 
 **Essayez les réglages qui vous conviennent le mieux.**$mdfr$
 )
@@ -144,7 +144,7 @@ Con la nostra iniziativa per l’accessibilità abbiamo allineato in modo comple
 
 Tutte le persone beneficiano di controlli più grandi, riscontri chiari e interazioni prevedibili. Chi usa uno screen reader, naviga esclusivamente da tastiera, necessita di più tempo o personalizza movimento e contrasto dispone di modalità affidabili per partecipare.
 
-**[Scopri di più sull’accessibilità di arsnova.eu](/legal/accessibility)**
+**[Scopri di più sull’accessibilità di arsnova.eu](/it/legal/accessibility)**
 
 **Prova le impostazioni più adatte alle tue esigenze.**$mdit$
 )
@@ -173,7 +173,7 @@ Con nuestra iniciativa de accesibilidad hemos alineado de forma integral arsnova
 
 Todo el mundo se beneficia de controles más grandes, indicaciones claras e interacciones predecibles. Quienes utilizan un lector de pantalla, navegan exclusivamente con el teclado, necesitan más tiempo o personalizan el movimiento y el contraste cuentan con formas fiables de participar.
 
-**[Más información sobre la accesibilidad de arsnova.eu](/legal/accessibility)**
+**[Más información sobre la accesibilidad de arsnova.eu](/es/legal/accessibility)**
 
 **Prueba los ajustes que mejor se adapten a ti.**$mdes$
 )
