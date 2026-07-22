@@ -29,7 +29,7 @@
     "express": "^5.2.1",
     "ioredis": "^5.10.0",
     "katex": "^0.18.1",
-    "marked": "^17.0.4",
+    "marked": "^18.0.7",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.6.205",
