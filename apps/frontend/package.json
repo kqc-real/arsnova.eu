@@ -61,7 +61,7 @@
     "express": "^5.2.1",
     "highlight.js": "^11.11.1",
     "katex": "^0.18.1",
-    "marked": "^17.0.3",
+    "marked": "^18.0.7",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
     "stopword": "^3.1.5",

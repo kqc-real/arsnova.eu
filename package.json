@@ -108,8 +108,8 @@
     "typescript-eslint": "^8.56.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.4.2",
-    "prisma": "^7.4.2",
+    "@prisma/client": "^7.9.0",
+    "prisma": "^7.9.0",
     "qrcode-generator": "^2.0.4",
     "yjs": "13.6.31"
   },
