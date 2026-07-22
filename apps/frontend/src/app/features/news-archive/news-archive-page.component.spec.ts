@@ -8,11 +8,13 @@ import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service
 import type { NewsArchiveInitialModel } from './news-archive-initial';
 
 const listArchiveQuery = vi.fn();
+const getHeaderStateQuery = vi.fn();
 
 vi.mock('../../core/trpc.client', () => ({
   trpc: {
     motd: {
       listArchive: { query: (...args: unknown[]) => listArchiveQuery(...args) },
+      getHeaderState: { query: (...args: unknown[]) => getHeaderStateQuery(...args) },
     },
   },
 }));
@@ -31,14 +33,21 @@ describe('NewsArchivePageComponent', () => {
   beforeEach(() => {
     localStorage.clear();
     listArchiveQuery.mockReset();
+    getHeaderStateQuery.mockReset();
     listArchiveQuery.mockResolvedValue({ items: [], nextCursor: null });
+    getHeaderStateQuery.mockResolvedValue({
+      hasActiveOverlay: false,
+      hasArchiveEntries: false,
+      archiveMaxEndsAtIso: null,
+      archiveUnreadCount: 0,
+    });
   });
 
   afterEach(() => {
     localStorage.clear();
   });
 
-  it('nutzt Resolver-Daten ohne weiteres listArchive', () => {
+  it('zeigt Resolver-Daten und lädt nach Hydration die erste Seite live nach', async () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
@@ -56,8 +65,84 @@ describe('NewsArchivePageComponent', () => {
       TestBed.createComponent(NewsArchivePageComponent);
     fixture.detectChanges();
 
-    expect(listArchiveQuery).not.toHaveBeenCalled();
     expect(fixture.componentInstance.items().length).toBe(0);
+
+    await fixture.whenStable();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(listArchiveQuery).toHaveBeenCalled();
+    expect(getHeaderStateQuery).toHaveBeenCalled();
+  });
+
+  it('ersetzt prerenderte Einträge durch neuere Live-Daten', async () => {
+    const stale: NewsArchiveInitialModel = {
+      ...emptyResolved,
+      items: [
+        {
+          id: 'c0222222-c222-4c22-8c22-c02222222222',
+          contentVersion: 6,
+          markdown: '### Neu: Der Nachbesprechungsplan als PDF\n\nAlt',
+          startsAt: '2026-07-17T00:00:00.000Z',
+          endsAt: '2027-03-31T23:59:59.999Z',
+        },
+      ],
+      titleById: {
+        'c0222222-c222-4c22-8c22-c02222222222': 'Neu: Der Nachbesprechungsplan als PDF',
+      },
+    };
+
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: 'c0333333-c333-4c33-8c33-c03333333333',
+          contentVersion: 1,
+          markdown: '### Barrierefreiheit, die allen hilft\n\nNeu',
+          startsAt: '2026-07-22T00:00:00.000Z',
+          endsAt: '2027-03-31T23:59:59.999Z',
+        },
+        {
+          id: 'c0222222-c222-4c22-8c22-c02222222222',
+          contentVersion: 6,
+          markdown: '### Neu: Der Nachbesprechungsplan als PDF\n\nAlt',
+          startsAt: '2026-07-17T00:00:00.000Z',
+          endsAt: '2027-03-31T23:59:59.999Z',
+        },
+      ],
+      nextCursor: null,
+    });
+
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { data: { newsArchive: stale } } },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.items().map((i) => i.id)).toEqual([
+      'c0222222-c222-4c22-8c22-c02222222222',
+    ]);
+
+    await fixture.whenStable();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.items().map((i) => i.id)).toEqual([
+      'c0333333-c333-4c33-8c33-c03333333333',
+      'c0222222-c222-4c22-8c22-c02222222222',
+    ]);
+    expect(fixture.componentInstance.archiveItemTitle('c0333333-c333-4c33-8c33-c03333333333')).toBe(
+      'Barrierefreiheit, die allen hilft',
+    );
   });
 
   it('macht Meldungstitel als In-Page-Anker per Tab erreichbar', () => {

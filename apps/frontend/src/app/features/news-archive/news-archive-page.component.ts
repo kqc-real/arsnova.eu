@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, inject, signal, LOCALE_ID } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, LOCALE_ID, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -17,7 +17,7 @@ import { localizeKnownServerError } from '../../core/localize-known-server-messa
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
-import type { NewsArchiveInitialModel } from './news-archive-initial';
+import { loadNewsArchivePageModel, type NewsArchiveInitialModel } from './news-archive-initial';
 
 const ARCHIVE_DATE_LOCALE: Record<AppLocale, string> = {
   de: 'de-DE',
@@ -43,6 +43,11 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
 /**
  * Öffentliche News-Archiv-Seite (prerenderbar, semantisches HTML für Crawler).
  * Daten kommen aus {@link newsArchivePageResolver}, damit SSR/Prerender nicht im Ladezustand endet.
+ *
+ * Nach Hydration wird die erste Seite live nachgeladen: Deploy baut das Image vor
+ * `prisma migrate deploy`, und Prerender trifft dabei die noch alte Prod-API
+ * (`ARSNOVA_PRERENDER_TRPC_URL` / `https://arsnova.eu/trpc`). Ohne Browser-Refresh
+ * blieben neue MOTD-Data-Migrationen unsichtbar, bis ein späteres Redeploy die SSG neu backt.
  */
 @Component({
   selector: 'app-news-archive-page',
@@ -60,6 +65,7 @@ export class NewsArchivePageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly motdHeaderRefresh = inject(MotdHeaderRefreshService);
   private readonly location = inject(Location);
+  private readonly injector = inject(Injector);
   private readonly locale = appLocaleFromInjectedId(inject(LOCALE_ID));
 
   readonly loadingMore = signal(false);
@@ -72,17 +78,48 @@ export class NewsArchivePageComponent {
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
   private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
+  private readonly archiveLoadError = $localize`:@@motd.archiveLoadError:Archiv konnte nicht geladen werden.`;
 
   constructor() {
     const data = inject(ActivatedRoute).snapshot.data['newsArchive'] as NewsArchiveInitialModel;
+    this.applyModel(data);
+
+    afterNextRender(
+      () => {
+        void this.refreshFirstPageFromLiveApi();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private applyModel(data: NewsArchiveInitialModel): void {
     this.items.set(sortMotdArchiveItemsNewFirst(data.items));
     this.nextCursor.set(data.nextCursor);
     this.archiveMaxEndsAtIso.set(data.archiveMaxEndsAtIso);
     this.archiveUnreadCount.set(data.archiveUnreadCount);
     this.titleById.set(data.titleById);
     this.htmlById.set(data.htmlById);
-    if (data.errorMessage) {
-      this.error.set(data.errorMessage);
+    this.error.set(data.errorMessage);
+  }
+
+  /**
+   * Ersetzt die prerenderte erste Seite durch den aktuellen API-Stand.
+   * Fehler lassen die SSG-/Resolver-Daten stehen (kein leeres Archiv bei Kurzausfall).
+   */
+  private async refreshFirstPageFromLiveApi(): Promise<void> {
+    try {
+      const live = await loadNewsArchivePageModel(
+        this.locale,
+        this.sanitizer,
+        this.archiveItemFallbackTitle,
+        this.archiveLoadError,
+      );
+      if (live.errorMessage && live.items.length === 0 && this.items().length > 0) {
+        return;
+      }
+      this.applyModel(live);
+    } catch {
+      /* Prerender-/Resolver-Stand behalten */
     }
   }
 
