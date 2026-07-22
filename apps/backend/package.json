@@ -17,7 +17,7 @@
   "dependencies": {
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
-    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.4.2",
     "@trpc/server": "^11.0.0",
     "@types/pdfkit": "^0.17.5",
