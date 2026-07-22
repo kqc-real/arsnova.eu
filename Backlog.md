@@ -346,7 +346,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Akzeptanzkriterien:**
     - [ ] `apps/landing` und Root-Workspace nutzen **Astro ≥ 7.1.x** (XSS-Advisories ohne 6.x-Backport).
     - [ ] Root-`overrides` (oder gleichwertige Auflösung) stellen `cookie@2` für Astro bereit, **ohne** Express/Backend-Cookie-Pfade zu brechen; `npm ci` im Monorepo ist grün.
-    - [ ] `npm run build:landing` (Node gemäß Workspace/`.nvmrc`-Matrix) ist grün; Landing-A11y-/CI-Gates bleiben grün.
+    - [ ] `npm run build:landing` auf **Node ≥22.12** (Landing-`engines` in `apps/landing/package.json` bzw. CI-Job `landing-build` mit Node 22 — **nicht** `.nvmrc`/Node 20) ist grün; Landing-A11y-/CI-Gates bleiben grün.
     - [ ] Kurzer visueller Smoke der Landing (Start + Legal-Seiten) — keine Design-Regression erwartet, aber einmal prüfen.
     - [ ] Nach Erfolg: Dependabot-Major-Ignore für `astro`/`@astrojs/*` in `.github/dependabot.yml` entfernen oder lockern; zugehörige Dependabot-Alerts schließen sich bzw. werden verifiziert.
   - **Aufwand (Richtwert):** ~½–1 Tag, Schwerpunkt Cookie-Override und Landing-CI — nicht „Dependabot mergen und fertig“.
