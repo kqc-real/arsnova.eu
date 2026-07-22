@@ -56,6 +56,11 @@ function getMotdFeatureSeedFiles() {
     'prisma/migrations/20260714040000_motd_confidence_copy_v7/migration.sql',
     'prisma/migrations/20260715071600_motd_confidence_copy_v8/migration.sql',
     'prisma/migrations/20260715075500_motd_confidence_copy_v9/migration.sql',
+    'prisma/migrations/20260717153000_motd_session_results_pdf_report/migration.sql',
+    'prisma/migrations/20260717164000_motd_session_results_pdf_example_link/migration.sql',
+    'prisma/migrations/20260718083400_motd_session_results_pdf_nachbesprechungsplan/migration.sql',
+    'prisma/migrations/20260719071500_motd_session_results_pdf_locale_links/migration.sql',
+    'prisma/migrations/20260722070000_motd_accessibility_wcag/migration.sql',
   ];
 }
 
