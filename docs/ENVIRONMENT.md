@@ -48,6 +48,10 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 
 `HOST_SESSION_TTL_SECONDS` ist ein optionaler Backend-Reader und wird in den Example-Dateien nicht gesetzt, weil der 8h-Standard für Dev und Produktion der vorgesehene Normalfall ist.
 
+### HTTP-Body-Limit
+
+tRPC-HTTP-Anfragen sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Die Nginx-Produktionskonfiguration muss mit `client_max_body_size 2m;` denselben oder einen strengeren Wert verwenden. Das Limit ist bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+
 ### `JWT_SECRET` (`.env.example`)
 
 In **`.env.example`** und **Docker-/Deploy-Vorlagen** enthalten; im aktuellen **`apps/backend`-Quellcode** gibt es dafür keinen direkten Leser. Für **Produktions-Compose** trotzdem einen starken Wert setzen, solange Deploy-/Operations-Doku diese Variable weiter mitführt oder künftige Features darauf aufbauen.

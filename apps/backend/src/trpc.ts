@@ -5,6 +5,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import type { IncomingMessage } from 'node:http';
 import { extractAdminToken, isAdminSessionTokenValid } from './lib/adminAuth';
 import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/hostAuth';
+import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
 import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
 
 export type Context = {
@@ -15,7 +16,18 @@ export type Context = {
   hostSessionCode?: string;
 };
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    if (error.code !== 'PAYLOAD_TOO_LARGE') {
+      return shape;
+    }
+
+    return {
+      ...shape,
+      message: `Die Anfrage ist zu groß. Maximal ${TRPC_MAX_BODY_SIZE_LABEL} sind erlaubt.`,
+    };
+  },
+});
 const telemetryProcedure = t.procedure.use(async ({ path, type, next }) => {
   if (type === 'subscription' || !isTrackedLiveProcedure(path)) {
     return next();
