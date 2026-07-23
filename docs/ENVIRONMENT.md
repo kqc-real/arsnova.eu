@@ -50,7 +50,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 
 ### HTTP-Body-Limit
 
-tRPC-HTTP-Anfragen sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Die Nginx-Produktionskonfiguration muss mit `client_max_body_size 2m;` denselben oder einen strengeren Wert verwenden. Das Limit ist bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+tRPC-HTTP-Anfragen sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Die Nginx-Produktionskonfiguration verwendet mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere Requests vor dem Backend. Beide Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
 
 ### `JWT_SECRET` (`.env.example`)
 

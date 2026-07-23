@@ -105,4 +105,28 @@ describe('tRPC request body limit', () => {
       },
     });
   });
+
+  it('liefert den 413-Fehler für Batch-Requests im tRPC-Arrayformat', async () => {
+    const baseUrl = await startTestServer();
+    const response = await fetch(`${baseUrl}/trpc/echo?batch=1`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        0: { value: 'x'.repeat(TRPC_MAX_BODY_SIZE_BYTES) },
+      }),
+    });
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject([
+      {
+        error: {
+          message: `Die Anfrage ist zu groß. Maximal ${TRPC_MAX_BODY_SIZE_LABEL} sind erlaubt.`,
+          data: {
+            code: 'PAYLOAD_TOO_LARGE',
+            httpStatus: 413,
+          },
+        },
+      },
+    ]);
+  });
 });

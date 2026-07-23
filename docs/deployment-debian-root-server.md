@@ -342,14 +342,9 @@ server {
     access_log /var/log/nginx/arsnova_click_access.log;
     error_log  /var/log/nginx/arsnova_click_error.log;
 
-    # Synchron zum tRPC-Backend-Limit; übergroße Create-/Upload-Bodies enden mit HTTP 413.
-    client_max_body_size 2m;
-    error_page 413 = @payload_too_large;
-
-    location @payload_too_large {
-        default_type application/json;
-        return 413 '{"error":{"message":"Die Anfrage ist zu groß. Maximal 2 MiB sind erlaubt.","code":-32013,"data":{"code":"PAYLOAD_TOO_LARGE","httpStatus":413}}}';
-    }
+    # Infrastruktur-Hard-Cap oberhalb des 2-MiB-tRPC-Limits:
+    # tRPC erzeugt dadurch selbst die batch-kompatible HTTP-413-Fehlerantwort.
+    client_max_body_size 8m;
 
     # API + tRPC HTTP + statisches Frontend → App-Container auf Port 3000
     location / {
