@@ -176,7 +176,10 @@ const server = app.listen(PORT, () => {
 });
 
 // WebSocket-Server für tRPC-Subscriptions (Story 0.2)
-const wss = new WebSocketServer({ port: WS_PORT });
+const wss = new WebSocketServer({
+  port: WS_PORT,
+  maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
+});
 const wsHandler = applyWSSHandler({
   wss,
   router: appRouter,

@@ -48,9 +48,9 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 
 `HOST_SESSION_TTL_SECONDS` ist ein optionaler Backend-Reader und wird in den Example-Dateien nicht gesetzt, weil der 8h-Standard für Dev und Produktion der vorgesehene Normalfall ist.
 
-### HTTP-Body-Limit
+### tRPC-Payload-Limits
 
-tRPC-HTTP-Anfragen sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Die Nginx-Produktionskonfiguration verwendet mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere Requests vor dem Backend. Beide Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Übergroße WebSocket-Nachrichten werden mit Close-Code `1009` beendet. Die Nginx-Produktionskonfiguration verwendet für HTTP mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere HTTP-Requests vor dem Backend. Die Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
 
 ### `JWT_SECRET` (`.env.example`)
 
