@@ -2,6 +2,7 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
+import { QuizUploadInputSchema } from '@arsnova/shared-types';
 import express from 'express';
 import { z } from 'zod';
 import { TRPC_MAX_BODY_SIZE_BYTES, TRPC_MAX_BODY_SIZE_LABEL } from '../lib/requestLimits';
@@ -11,7 +12,7 @@ const testRouter = router({
   echo: publicProcedure
     .input(z.object({ value: z.string() }))
     .mutation(({ input }) => ({ length: input.value.length })),
-  acceptPayload: publicProcedure.input(z.unknown()).mutation(() => ({ ok: true })),
+  acceptQuizUpload: publicProcedure.input(QuizUploadInputSchema).mutation(() => ({ ok: true })),
 });
 
 describe('tRPC request body limit', () => {
@@ -63,9 +64,19 @@ describe('tRPC request body limit', () => {
     const classroomQuiz = {
       name: 'Classroom-Quiz',
       description: 'd'.repeat(5_000),
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'NOBEL_LAUREATES',
       questions: Array.from({ length: 200 }, (_, order) => ({
         text: 'f'.repeat(2_000),
         type: 'MULTIPLE_CHOICE',
+        difficulty: 'MEDIUM',
         order,
         answers: Array.from({ length: 10 }, (_, answerIndex) => ({
           text: 'a'.repeat(500),
@@ -76,7 +87,7 @@ describe('tRPC request body limit', () => {
     const body = JSON.stringify(classroomQuiz);
     expect(Buffer.byteLength(body)).toBeLessThan(TRPC_MAX_BODY_SIZE_BYTES);
 
-    const response = await fetch(`${baseUrl}/trpc/acceptPayload`, {
+    const response = await fetch(`${baseUrl}/trpc/acceptQuizUpload`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body,
