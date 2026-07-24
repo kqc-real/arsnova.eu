@@ -94,7 +94,7 @@ export const publicProcedure = telemetryProcedure;
  * Die Reihenfolge ist absichtlich: telemetry -> attempt budget -> input parser.
  */
 export const quizUploadAttemptProcedure = publicProcedure.use(async ({ ctx, next }) => {
-  const limit = await checkQuizUploadAttemptRate(resolveTrustedPublicCreateIp(ctx.req).ip);
+  const limit = await checkQuizUploadAttemptRate(resolveClientIp(ctx.req).ip);
   if (!limit.allowed) {
     throw new TRPCError({
       code: 'TOO_MANY_REQUESTS',
@@ -198,79 +198,31 @@ export const hostProcedure = telemetryProcedure.use(async ({ ctx, getRawInput, n
   });
 });
 
-function firstForwardedClientIp(header: string | string[] | undefined): string | undefined {
-  if (typeof header === 'string' && header.trim()) {
-    return header.split(',')[0]?.trim();
-  }
-  if (Array.isArray(header) && header[0]) {
-    return header[0].split(',')[0]?.trim();
-  }
-  return undefined;
-}
-
 /** Woher die IP für Rate-Limiting stammt (nur Server-Logs / Diagnose). */
-export type ClientIpSource =
-  | 'cf-connecting-ip'
-  | 'true-client-ip'
-  | 'x-forwarded-for'
-  | 'x-real-ip'
-  | 'express-req-ip'
-  | 'socket'
-  | 'missing-req';
+export type ClientIpSource = 'express-req-ip' | 'socket' | 'missing-req';
 
 export type ResolvedClientIp = { ip: string; source: ClientIpSource };
 
 /**
- * Isolierter W1.3-Helper für Redis-Keys öffentlicher Create-Pfade.
+ * Vertrauenswürdige Client-IP für Rate-Limits, Telemetrie und Logs.
  * Verwendet ausschließlich Express' nach `trust proxy` berechnetes `req.ip`;
  * Header wie CF-/True-Client-IP oder X-Forwarded-For werden nie direkt gelesen.
- */
-export function resolveTrustedPublicCreateIp(req: IncomingMessage | undefined): ResolvedClientIp {
-  if (!req) {
-    return { ip: '0.0.0.0', source: 'missing-req' };
-  }
-
-  const expressIp = (req as IncomingMessage & { ip?: string }).ip;
-  if (typeof expressIp === 'string' && expressIp.trim()) {
-    return { ip: expressIp.trim(), source: 'express-req-ip' };
-  }
-
-  const remoteAddress = req.socket?.remoteAddress;
-  return remoteAddress?.trim()
-    ? { ip: remoteAddress.trim(), source: 'socket' }
-    : { ip: '0.0.0.0', source: 'socket' };
-}
-
-/**
- * Löst die Client-IP mit Quelle auf — für Logs bei 429, ohne Raten zu raten.
+ * Ohne Express-Kontext dient nur die direkte Socket-Adresse als Fallback.
  */
 export function resolveClientIp(req: IncomingMessage | undefined): ResolvedClientIp {
   if (!req) {
     return { ip: '0.0.0.0', source: 'missing-req' };
   }
 
-  const cf = firstForwardedClientIp(req.headers['cf-connecting-ip']);
-  if (cf) return { ip: cf, source: 'cf-connecting-ip' };
-
-  const trueClient = firstForwardedClientIp(req.headers['true-client-ip']);
-  if (trueClient) return { ip: trueClient, source: 'true-client-ip' };
-
-  const xff = firstForwardedClientIp(req.headers['x-forwarded-for']);
-  if (xff) return { ip: xff, source: 'x-forwarded-for' };
-
-  const realIp = firstForwardedClientIp(req.headers['x-real-ip']);
-  if (realIp) return { ip: realIp, source: 'x-real-ip' };
-
   const expressIp = (req as IncomingMessage & { ip?: string }).ip;
   if (typeof expressIp === 'string' && expressIp.trim()) {
     return { ip: expressIp.trim(), source: 'express-req-ip' };
   }
 
-  const ra = req.socket?.remoteAddress;
-  if (ra?.trim()) {
-    return { ip: ra, source: 'socket' };
-  }
-  return { ip: '0.0.0.0', source: 'missing-req' };
+  const remoteAddress = req.socket?.remoteAddress?.trim();
+  return remoteAddress
+    ? { ip: remoteAddress, source: 'socket' }
+    : { ip: '0.0.0.0', source: 'missing-req' };
 }
 
 /** Client-IP für Rate-Limiting (siehe `resolveClientIp` für Quelle). */

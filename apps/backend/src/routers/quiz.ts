@@ -24,7 +24,7 @@ import {
   questionSupportsConfidence,
 } from '@arsnova/shared-types';
 import { TRPCError } from '@trpc/server';
-import { quizUploadAttemptProcedure, resolveTrustedPublicCreateIp, router } from '../trpc';
+import { quizUploadAttemptProcedure, resolveClientIp, router } from '../trpc';
 import { prisma } from '../db';
 import { checkQuizUploadStorageRate } from '../lib/rateLimit';
 import { calculateQuizUploadComplexity } from '../lib/publicCreateCapacity';
@@ -204,7 +204,7 @@ export const quizRouter = router({
     .output(QuizUploadOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const payloadBytes = new TextEncoder().encode(JSON.stringify(input)).byteLength;
-      const limit = await checkQuizUploadStorageRate(resolveTrustedPublicCreateIp(ctx.req).ip, {
+      const limit = await checkQuizUploadStorageRate(resolveClientIp(ctx.req).ip, {
         payloadBytes,
         complexity: calculateQuizUploadComplexity(input),
       });

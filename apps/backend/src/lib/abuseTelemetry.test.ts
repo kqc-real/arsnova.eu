@@ -183,7 +183,7 @@ describe('abuseTelemetry', () => {
   it('begrenzt 40.000 inklusive Public-Create-Ereignissen auf vier gesampelte Logs', () => {
     for (let index = 0; index < 10_000; index += 1) {
       logRateLimitRejection(
-        { path: 'motd.getCurrent', category: 'motd', ipSource: 'x-forwarded-for' },
+        { path: 'motd.getCurrent', category: 'motd', ipSource: 'express-req-ip' },
         1_000,
       );
       logRateLimitRejection(

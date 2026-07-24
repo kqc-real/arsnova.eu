@@ -21,7 +21,7 @@ import {
   type QuickFeedbackResult,
   type QuickFeedbackVoteInput,
 } from '@arsnova/shared-types';
-import { publicProcedure, resolveTrustedPublicCreateIp, router } from '../trpc';
+import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { getRedis } from '../redis';
 import { prisma } from '../db';
 import { recordVoteActivity } from '../lib/loadSignal';
@@ -390,9 +390,7 @@ export const quickFeedbackRouter = router({
         }
         await assertSessionQuickFeedbackEnabled(code);
       } else {
-        const limit = await checkQuickFeedbackStandaloneCreateRate(
-          resolveTrustedPublicCreateIp(ctx.req).ip,
-        );
+        const limit = await checkQuickFeedbackStandaloneCreateRate(resolveClientIp(ctx.req).ip);
         if (!limit.allowed) {
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
