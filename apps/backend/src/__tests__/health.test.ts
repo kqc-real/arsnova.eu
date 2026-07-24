@@ -103,10 +103,12 @@ beforeEach(() => {
   });
   vi.mocked(readAbuseSignals).mockResolvedValue({
     sessionCreatesLastMinute: 0,
+    adminLoginFailuresLastMinute: 0,
     sessionCodeFailuresLastMinute: 0,
     sessionCodeSoftCapDelaysLastMinute: 0,
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: {
+      adminLogin: 0,
       sessionCreate: 0,
       quizUpload: 0,
       quickFeedback: 0,
@@ -295,10 +297,12 @@ describe('health.stats', () => {
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
     vi.mocked(readAbuseSignals).mockResolvedValue({
       sessionCreatesLastMinute: 12,
+      adminLoginFailuresLastMinute: 15,
       sessionCodeFailuresLastMinute: 27,
       sessionCodeSoftCapDelaysLastMinute: 4,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -318,11 +322,13 @@ describe('health.stats', () => {
 
     expect(result).toMatchObject({
       sessionCreatesLastMinute: 12,
+      adminLoginFailuresLastMinute: 15,
       sessionCodeFailuresLastMinute: 27,
       sessionCodeSoftCapDelaysLastMinute: 4,
       sessionCodeGlobalSoftCapUtilizationPercent: 82,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -359,10 +365,12 @@ describe('health.stats', () => {
     });
     vi.mocked(readAbuseSignals).mockResolvedValue({
       sessionCreatesLastMinute: 0,
+      adminLoginFailuresLastMinute: 0,
       sessionCodeFailuresLastMinute: 0,
       sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 0,
         quizUpload: 0,
         quickFeedback: 0,

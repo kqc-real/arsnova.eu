@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -5,6 +6,11 @@ const {
   createAdminSessionTokenMock,
   invalidateAdminSessionTokenMock,
   verifyAdminSecretMock,
+  checkAdminLoginAttemptMock,
+  rejectInvalidAdminLoginMock,
+  requireAdminLoginAttemptPermitMock,
+  recordAdminLoginFailureMock,
+  logAdminLoginFailureMock,
   extractAdminTokenMock,
   isAdminSessionTokenValidMock,
 } = vi.hoisted(() => ({
@@ -35,6 +41,11 @@ const {
   createAdminSessionTokenMock: vi.fn(),
   invalidateAdminSessionTokenMock: vi.fn(),
   verifyAdminSecretMock: vi.fn(),
+  checkAdminLoginAttemptMock: vi.fn(),
+  rejectInvalidAdminLoginMock: vi.fn(),
+  requireAdminLoginAttemptPermitMock: vi.fn(),
+  recordAdminLoginFailureMock: vi.fn(),
+  logAdminLoginFailureMock: vi.fn(),
   extractAdminTokenMock: vi.fn(),
   isAdminSessionTokenValidMock: vi.fn(),
 }));
@@ -51,6 +62,18 @@ vi.mock('../lib/adminAuth', () => ({
   isAdminSessionTokenValid: isAdminSessionTokenValidMock,
 }));
 
+vi.mock('../lib/adminLoginProtection', () => ({
+  checkAdminLoginAttempt: checkAdminLoginAttemptMock,
+  rejectInvalidAdminLogin: rejectInvalidAdminLoginMock,
+  requireAdminLoginAttemptPermit: requireAdminLoginAttemptPermitMock,
+}));
+
+vi.mock('../lib/abuseTelemetry', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/abuseTelemetry')>()),
+  recordAdminLoginFailure: recordAdminLoginFailureMock,
+  logAdminLoginFailure: logAdminLoginFailureMock,
+}));
+
 import { adminRouter } from '../routers/admin';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
@@ -62,6 +85,24 @@ describe('admin router (Epic 9)', () => {
     vi.setSystemTime(new Date('2026-03-14T12:00:00.000Z'));
     vi.clearAllMocks();
     verifyAdminSecretMock.mockReturnValue(true);
+    checkAdminLoginAttemptMock.mockResolvedValue({ allowed: true, delayMs: 100 });
+    requireAdminLoginAttemptPermitMock.mockImplementation(
+      (decision: { allowed: boolean; retryAfterSeconds?: number }) => {
+        if (!decision.allowed) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
+            cause: { retryAfterSeconds: decision.retryAfterSeconds },
+          });
+        }
+      },
+    );
+    rejectInvalidAdminLoginMock.mockRejectedValue(
+      new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Ungültige Admin-Zugangsdaten.',
+      }),
+    );
     createAdminSessionTokenMock.mockResolvedValue({
       token: 'admin-token-1234567890-abcdefghijklmnopqrstuvwxyz',
       expiresAt: new Date('2026-03-14T12:00:00.000Z'),
@@ -81,6 +122,42 @@ describe('admin router (Epic 9)', () => {
     expect(verifyAdminSecretMock).toHaveBeenCalledWith('topsecret');
     expect(result.token).toBe('admin-token-1234567890-abcdefghijklmnopqrstuvwxyz');
     expect(result.expiresAt).toBe('2026-03-14T12:00:00.000Z');
+    expect(checkAdminLoginAttemptMock).toHaveBeenCalledOnce();
+    expect(rejectInvalidAdminLoginMock).not.toHaveBeenCalled();
+    expect(recordAdminLoginFailureMock).not.toHaveBeenCalled();
+  });
+
+  it('härtet ungültige Admin-Logins progressiv und erfasst sie', async () => {
+    verifyAdminSecretMock.mockReturnValue(false);
+    const caller = adminRouter.createCaller({ req: undefined });
+
+    await expect(caller.login({ secret: 'falsch' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+
+    expect(rejectInvalidAdminLoginMock).toHaveBeenCalledWith(100);
+    expect(recordAdminLoginFailureMock).toHaveBeenCalledOnce();
+    expect(logAdminLoginFailureMock).toHaveBeenCalledWith(100);
+    expect(createAdminSessionTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('prüft nach ausgeschöpftem Pre-Auth-Budget kein weiteres Secret', async () => {
+    checkAdminLoginAttemptMock.mockResolvedValue({
+      allowed: false,
+      delayMs: 0,
+      retryAfterSeconds: 42,
+    });
+    const caller = adminRouter.createCaller({ req: undefined });
+
+    await expect(caller.login({ secret: 'nicht-pruefen' })).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      cause: { retryAfterSeconds: 42 },
+    });
+
+    expect(verifyAdminSecretMock).not.toHaveBeenCalled();
+    expect(recordAdminLoginFailureMock).toHaveBeenCalledOnce();
+    expect(logAdminLoginFailureMock).not.toHaveBeenCalled();
+    expect(createAdminSessionTokenMock).not.toHaveBeenCalled();
   });
 
   it('setzt Legal Hold mit Default-Laufzeit', async () => {

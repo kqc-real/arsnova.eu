@@ -3040,10 +3040,13 @@ export const HealthSecurityStatsDTOSchema = z.object({
   pdfRejectedLastMinute: z.number().int().min(0),
   /** Erfolgreich erstellte Sessions der letzten Minute (global). */
   sessionCreatesLastMinute: z.number().int().min(0),
+  /** Fehlgeschlagene oder vor dem Secret-Vergleich gedrosselte Admin-Logins. */
+  adminLoginFailuresLastMinute: z.number().int().min(0),
   /** Alle tRPC-Ablehnungen mit HTTP 429 der letzten Minute. */
   rateLimit429LastMinute: z.number().int().min(0),
   /** 429-Ablehnungen der letzten Minute nach öffentlichem Pfadtyp. */
   rateLimit429ByCategoryLastMinute: z.object({
+    adminLogin: z.number().int().min(0),
     sessionCreate: z.number().int().min(0),
     quizUpload: z.number().int().min(0),
     quickFeedback: z.number().int().min(0),

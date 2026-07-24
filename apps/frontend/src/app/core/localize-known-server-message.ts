@@ -5,6 +5,10 @@
 const SESSION_NOT_FOUND_DE = 'Session nicht gefunden.';
 const SESSION_CREATE_RATE_LIMIT_DE =
   'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
+const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
+  'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
+  'Zu viele gleichzeitige Admin-Login-Versuche.',
+]);
 const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',
   'NOT_FOUND',
@@ -22,6 +26,10 @@ export function sessionNotFoundUiMessage(): string {
 
 function sessionCreateRateLimitUiMessage(): string {
   return $localize`:@@errors.sessionCreateRateLimit:Zu viele Session-Erstellungen. Bitte später erneut versuchen.`;
+}
+
+function adminLoginRateLimitUiMessage(): string {
+  return $localize`:@@errors.adminLoginRateLimit:Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.`;
 }
 
 function asRecord(value: unknown): UnknownRecord | null {
@@ -67,6 +75,9 @@ export function localizeKnownServerMessage(message: string): string {
   }
   if (normalized === SESSION_CREATE_RATE_LIMIT_DE) {
     return sessionCreateRateLimitUiMessage();
+  }
+  if (ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE.has(normalized)) {
+    return adminLoginRateLimitUiMessage();
   }
   return normalized;
 }

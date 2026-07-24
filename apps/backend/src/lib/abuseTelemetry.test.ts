@@ -17,9 +17,11 @@ vi.mock('./logger', () => ({
 
 import {
   flushAbuseTelemetry,
+  logAdminLoginFailure,
   logRateLimitRejection,
   logSessionCodeSoftCapDelay,
   readAbuseSignals,
+  recordAdminLoginFailure,
   recordRateLimitRejection,
   recordSessionCodeFailure,
   recordSessionCodeSoftCapDelay,
@@ -48,11 +50,12 @@ describe('abuseTelemetry', () => {
     vi.unstubAllEnvs();
   });
 
-  it('schreibt aggregierte Create-, Session-Code- und 429-Signale per INCRBY in Redis', async () => {
+  it('schreibt aggregierte Admin-, Create-, Session-Code- und 429-Signale per INCRBY', async () => {
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
     recordSessionCreateCompleted(25_000);
+    recordAdminLoginFailure(25_000);
     recordSessionCodeFailure(25_000);
     recordSessionCodeSoftCapDelay(25_000);
     recordRateLimitRejection('vote', 25_000);
@@ -61,9 +64,10 @@ describe('abuseTelemetry', () => {
     await flushAbuseTelemetry();
 
     expect(multi.incrby).toHaveBeenNthCalledWith(1, 'security:metric:sessionCreateCompleted:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:sessionCodeFailure:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(3, 'security:metric:sessionCodeSoftCapDelay:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(4, 'security:metric:rateLimit429:vote:2', 2);
+    expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:adminLoginFailure:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(3, 'security:metric:sessionCodeFailure:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(4, 'security:metric:sessionCodeSoftCapDelay:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(5, 'security:metric:rateLimit429:vote:2', 2);
     expect(multi.expire).toHaveBeenCalledWith('security:metric:sessionCreateCompleted:2', 120);
     expect(multi.exec).toHaveBeenCalledOnce();
   });
@@ -134,27 +138,31 @@ describe('abuseTelemetry', () => {
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
-    const values = Array.from({ length: 77 }, () => [null, '0']);
-    // Reihenfolge je Bucket: create, codeFailure, softCapDelay, sessionCreate, quizUpload,
-    // quickFeedback, sessionCode, vote, pdf, motd, other.
+    const values = Array.from({ length: 91 }, () => [null, '0']);
+    // Reihenfolge je Bucket: create, adminFailure, codeFailure, softCapDelay,
+    // adminLogin429, sessionCreate429, quizUpload, quickFeedback, sessionCode,
+    // vote, pdf, motd, other.
     values[0] = [null, '3'];
-    values[1] = [null, '7'];
-    values[2] = [null, '2'];
+    values[1] = [null, '6'];
+    values[2] = [null, '7'];
     values[3] = [null, '2'];
-    values[7] = [null, '4'];
-    values[55] = [null, '1'];
-    values[63] = [null, '5'];
+    values[5] = [null, '2'];
+    values[9] = [null, '4'];
+    values[65] = [null, '1'];
+    values[75] = [null, '5'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[66] = [null, '2'];
+    values[78] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
     await expect(readAbuseSignals(60_000)).resolves.toEqual({
       sessionCreatesLastMinute: 6,
+      adminLoginFailuresLastMinute: 6,
       sessionCodeFailuresLastMinute: 7,
       sessionCodeSoftCapDelaysLastMinute: 2,
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -165,7 +173,7 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(77);
+    expect(multi.get).toHaveBeenCalledTimes(91);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -204,6 +212,20 @@ describe('abuseTelemetry', () => {
       suppressedSinceLastLog: 1,
     });
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('ABC123');
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.');
+  });
+
+  it('loggt Admin-Fehlversuche gesampelt und ohne Secret oder IP', () => {
+    logAdminLoginFailure(100, 1_000);
+    logAdminLoginFailure(200, 2_000);
+    logAdminLoginFailure(400, 11_000);
+
+    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenLastCalledWith('admin_login_failed', {
+      delayMs: 400,
+      suppressedSinceLastLog: 1,
+    });
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('secret');
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.');
   });
 
@@ -259,10 +281,12 @@ describe('abuseTelemetry', () => {
     await expect(flushAbuseTelemetry()).resolves.toBeUndefined();
     await expect(readAbuseSignals(0)).resolves.toEqual({
       sessionCreatesLastMinute: 0,
+      adminLoginFailuresLastMinute: 0,
       sessionCodeFailuresLastMinute: 0,
       sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 0,
         quizUpload: 0,
         quickFeedback: 0,

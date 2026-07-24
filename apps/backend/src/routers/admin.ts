@@ -34,6 +34,12 @@ import {
   invalidateAdminSessionToken,
   verifyAdminSecret,
 } from '../lib/adminAuth';
+import {
+  checkAdminLoginAttempt,
+  rejectInvalidAdminLogin,
+  requireAdminLoginAttemptPermit,
+} from '../lib/adminLoginProtection';
+import { logAdminLoginFailure, recordAdminLoginFailure } from '../lib/abuseTelemetry';
 import { prisma } from '../db';
 import { adminMotdRouter } from './adminMotd';
 
@@ -458,11 +464,16 @@ export const adminRouter = router({
     .input(AdminLoginInputSchema)
     .output(AdminLoginOutputSchema)
     .mutation(async ({ input }) => {
+      const attempt = await checkAdminLoginAttempt();
+      if (!attempt.allowed) {
+        recordAdminLoginFailure();
+        requireAdminLoginAttemptPermit(attempt);
+      }
+
       if (!verifyAdminSecret(input.secret)) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Ungültige Admin-Zugangsdaten.',
-        });
+        recordAdminLoginFailure();
+        logAdminLoginFailure(attempt.delayMs);
+        return rejectInvalidAdminLogin(attempt.delayMs);
       }
 
       const session = await createAdminSessionToken();

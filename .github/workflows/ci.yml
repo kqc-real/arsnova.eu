@@ -961,6 +961,17 @@ jobs:
           RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR: '5'
         run: npx vitest run src/lib/rateLimit.sessionCreate.redis.test.ts
 
+      - name: Admin-login protection Redis regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_REDIS_ADMIN_LOGIN_TESTS: '1'
+          RATE_LIMIT_ADMIN_LOGIN_WINDOW_SECONDS: '30'
+          RATE_LIMIT_ADMIN_LOGIN_GLOBAL_ATTEMPTS_PER_WINDOW: '5'
+          RATE_LIMIT_ADMIN_LOGIN_DELAY_BASE_MS: '10'
+          RATE_LIMIT_ADMIN_LOGIN_DELAY_MAX_MS: '80'
+        run: npx vitest run src/lib/adminLoginProtection.redis.test.ts
+
       - name: Session-code protection Redis regression
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend

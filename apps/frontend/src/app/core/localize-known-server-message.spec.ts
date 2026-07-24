@@ -22,6 +22,31 @@ describe('localizeKnownServerError', () => {
     }
   });
 
+  it('lokalisiert Admin-Login-Drosselungen mit expliziter Wartezeit', () => {
+    loadTranslations({
+      'errors.adminLoginRateLimit': 'Too many admin login attempts. Please try again later.',
+      'errors.rateLimitAttention': 'IMPORTANT:',
+      'errors.rateLimitRetryAfter': 'Please try again in {$seconds} seconds.',
+    });
+    try {
+      expect(
+        localizeKnownServerError(
+          {
+            message:
+              'TOO_MANY_REQUESTS: Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
+            data: { retryAfterSeconds: 17 },
+          },
+          'Login failed.',
+        ),
+      ).toBe(
+        'IMPORTANT: Too many admin login attempts. Please try again later.\n' +
+          'Please try again in 17 seconds.',
+      );
+    } finally {
+      clearTranslations();
+    }
+  });
+
   it('verwendet retryAfterSeconds aus dem expliziten tRPC-Datenfeld', () => {
     const error = {
       message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',

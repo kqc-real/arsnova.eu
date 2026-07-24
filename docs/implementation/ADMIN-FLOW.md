@@ -52,6 +52,10 @@ In Produktion kommen dieselben Variablen aus `.env.production`:
 - `ADMIN_SESSION_TTL_SECONDS=28800` ist der Standard für 8 Stunden.
 - `ADMIN_LEGAL_HOLD_DEFAULT_DAYS=30` steuert die Default-Dauer beim Setzen eines Legal Hold.
 - `REDIS_URL` muss erreichbar sein, sonst können Admin-Login und Tokenprüfung nicht zuverlässig funktionieren.
+- Alle Login-Versuche teilen ein globales Pre-Auth-Budget von standardmäßig
+  60 Secret-Prüfungen pro 60 Sekunden. Ungültige Versuche werden zusätzlich
+  exponentiell von 100 bis 2000 ms verzögert; höchstens 25 solche Delays warten
+  gleichzeitig pro Prozess.
 
 ## 3. Authentifizierungsmodell
 
@@ -68,14 +72,20 @@ Betriebsdiagnose verwendet ausschließlich das separat rotierbare
 ### 3.2 Technischer Ablauf
 
 1. Client ruft `admin.login` mit Secret auf.
-2. Backend verifiziert Secret (`verifyAdminSecret`).
-3. Backend erstellt ein opakes Token, speichert es in Redis mit TTL.
-4. Client sendet dieses Token bei weiteren Requests als Header:
+2. Backend bucht atomar ein globales Pre-Auth-Permit. Ohne Permit wird das
+   übermittelte Secret nicht geprüft und der Request mit 429 abgewiesen.
+3. Backend verifiziert das Secret mittels Hash-Vergleich in konstanter Zeit
+   (`verifyAdminSecret`).
+4. Bei ungültigem Secret greift eine progressive Verzögerung. Es gibt bewusst
+   keinen IP-Lockout. Ein ausgeschöpftes globales Permit-Budget kann jedoch auch
+   einen legitimen Login bis zum Ablauf des kurzen Fensters sperren.
+5. Backend erstellt bei gültigem Secret ein opakes Token, speichert es in Redis mit TTL.
+6. Client sendet dieses Token bei weiteren Requests als Header:
    - `x-admin-token: <token>`  
      oder
    - `Authorization: Bearer <token>`
-5. `adminProcedure` validiert das Token zentral gegen Redis.
-6. `admin.logout` löscht das Token serverseitig aus Redis.
+7. `adminProcedure` validiert das Token zentral gegen Redis.
+8. `admin.logout` löscht das Token serverseitig aus Redis.
 
 ### 3.3 Token im Frontend
 
