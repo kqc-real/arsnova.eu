@@ -135,7 +135,7 @@ describe('buildSessionResultsPdf', () => {
   });
 
   it('begrenzt komprimierte Bytes und dekodierte Pixel je Report', async () => {
-    const options = { timeoutMs: 15_000, maxImageBytes: 400_000 };
+    const options = { timeoutMs: 15_000, maxImageBytes: PDF_MAX_EXTERNAL_IMAGE_BYTES };
     const byteFetch = vi
       .fn()
       .mockResolvedValueOnce({
@@ -168,5 +168,24 @@ describe('buildSessionResultsPdf', () => {
     await expect(pixelLoader('https://images.example.test/b.png', options)).resolves.not.toBeNull();
     await expect(pixelLoader('https://images.example.test/c.png', options)).resolves.toBeNull();
     expect(PDF_MAX_EXTERNAL_IMAGE_PIXELS).toBe(40_000_000);
+  });
+
+  it('verbraucht das Transferbudget auch bei abgebrochenen Bildstreams', async () => {
+    const fetchImage = vi.fn(
+      async (_src: string, _options?: { timeoutMs?: number; maxBytes?: number }) => {
+        throw new Error('stream limit');
+      },
+    );
+    const loader = createPdfExternalImageLoader(Date.now, fetchImage);
+    const options = { timeoutMs: 15_000, maxImageBytes: 400_000 };
+
+    for (let index = 0; index < 13; index += 1) {
+      await expect(loader(`https://images.example.test/${index}.png`, options)).rejects.toThrow(
+        'stream limit',
+      );
+    }
+    await expect(loader('https://images.example.test/stopped.png', options)).resolves.toBeNull();
+    expect(fetchImage).toHaveBeenCalledTimes(13);
+    expect(fetchImage.mock.calls.at(-1)?.[1]?.maxBytes).toBe(200_000);
   });
 });

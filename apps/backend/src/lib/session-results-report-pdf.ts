@@ -106,26 +106,34 @@ export function createPdfExternalImageLoader(
 ) => Promise<SafeExternalImage | null> {
   const deadlineAt = now() + PDF_IMAGE_INLINE_DEADLINE_MS;
   let externalImages = 0;
-  let totalBytes = 0;
+  let remainingTransferBytes = PDF_MAX_EXTERNAL_IMAGE_BYTES;
   let totalPixels = 0;
 
   return async (src, options) => {
     const remainingMs = deadlineAt - now();
-    if (externalImages >= PDF_MAX_EXTERNAL_IMAGES || remainingMs <= 0) {
-      return null;
-    }
-    externalImages += 1;
-    const image = await fetchImage(src, {
-      timeoutMs: Math.max(1, Math.min(options.timeoutMs, remainingMs)),
-      maxBytes: options.maxImageBytes,
-    });
     if (
-      totalBytes + image.bytes.byteLength > PDF_MAX_EXTERNAL_IMAGE_BYTES ||
-      totalPixels + image.pixelCount > PDF_MAX_EXTERNAL_IMAGE_PIXELS
+      externalImages >= PDF_MAX_EXTERNAL_IMAGES ||
+      remainingMs <= 0 ||
+      remainingTransferBytes <= 0
     ) {
       return null;
     }
-    totalBytes += image.bytes.byteLength;
+    externalImages += 1;
+    const reservedBytes = Math.min(options.maxImageBytes, remainingTransferBytes);
+    // Fehlschläge behalten die Reservierung konservativ als verbraucht, damit
+    // wiederholte abgebrochene Streams das Transferbudget nicht umgehen.
+    remainingTransferBytes -= reservedBytes;
+    const image = await fetchImage(src, {
+      timeoutMs: Math.max(1, Math.min(options.timeoutMs, remainingMs)),
+      maxBytes: reservedBytes,
+    });
+    if (image.bytes.byteLength > reservedBytes) {
+      return null;
+    }
+    remainingTransferBytes += reservedBytes - image.bytes.byteLength;
+    if (totalPixels + image.pixelCount > PDF_MAX_EXTERNAL_IMAGE_PIXELS) {
+      return null;
+    }
     totalPixels += image.pixelCount;
     return image;
   };
