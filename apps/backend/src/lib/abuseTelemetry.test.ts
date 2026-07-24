@@ -16,6 +16,7 @@ vi.mock('./logger', () => ({
 }));
 
 import {
+  flushAbuseTelemetry,
   logRateLimitRejection,
   readAbuseSignals,
   recordRateLimitRejection,
@@ -25,7 +26,7 @@ import {
 
 function createMulti(execResult: unknown = []) {
   return {
-    incr: vi.fn().mockReturnThis(),
+    incrby: vi.fn().mockReturnThis(),
     expire: vi.fn().mockReturnThis(),
     get: vi.fn().mockReturnThis(),
     exec: vi.fn().mockResolvedValue(execResult),
@@ -40,19 +41,82 @@ describe('abuseTelemetry', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllEnvs();
   });
 
-  it('schreibt Create-Erfolge und 429-Kategorien in kurzlebige Redis-Buckets', async () => {
+  it('schreibt aggregierte Create-Erfolge und 429-Kategorien per INCRBY in Redis', async () => {
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
-    await recordSessionCreateCompleted(25_000);
-    await recordRateLimitRejection('vote', 25_000);
+    recordSessionCreateCompleted(25_000);
+    recordRateLimitRejection('vote', 25_000);
+    recordRateLimitRejection('vote', 25_000);
+    expect(mocks.getRedis).not.toHaveBeenCalled();
+    await flushAbuseTelemetry();
 
-    expect(multi.incr).toHaveBeenNthCalledWith(1, 'security:metric:sessionCreateCompleted:2');
-    expect(multi.incr).toHaveBeenNthCalledWith(2, 'security:metric:rateLimit429:vote:2');
+    expect(multi.incrby).toHaveBeenNthCalledWith(1, 'security:metric:sessionCreateCompleted:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:rateLimit429:vote:2', 2);
     expect(multi.expire).toHaveBeenCalledWith('security:metric:sessionCreateCompleted:2', 120);
+    expect(multi.exec).toHaveBeenCalledOnce();
+  });
+
+  it('begrenzt 20.000 PDF-/MOTD-429-Events auf einen Redis-Flush', async () => {
+    vi.useFakeTimers();
+    const multi = createMulti();
+    mocks.getRedis.mockReturnValue({ multi: () => multi });
+
+    for (let index = 0; index < 10_000; index += 1) {
+      recordRateLimitRejection('pdf', 25_000);
+      recordRateLimitRejection('motd', 25_000);
+    }
+
+    expect(mocks.getRedis).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(4_999);
+    expect(mocks.getRedis).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(mocks.getRedis).toHaveBeenCalledOnce();
+    expect(multi.incrby).toHaveBeenCalledTimes(2);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:pdf:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:motd:2', 10_000);
+    expect(multi.exec).toHaveBeenCalledOnce();
+  });
+
+  it('startet bei langsamem Redis keine parallelen Flushes und hält Pending-Arbeit konstant', async () => {
+    vi.useFakeTimers();
+    let resolveFirstFlush!: (value: unknown) => void;
+    const firstMulti = createMulti();
+    firstMulti.exec.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFirstFlush = resolve;
+      }),
+    );
+    const secondMulti = createMulti();
+    mocks.getRedis
+      .mockReturnValueOnce({ multi: () => firstMulti })
+      .mockReturnValueOnce({ multi: () => secondMulti });
+
+    for (let index = 0; index < 10_000; index += 1) {
+      recordRateLimitRejection('other', 0);
+    }
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(mocks.getRedis).toHaveBeenCalledOnce();
+
+    for (let bucket = 1; bucket <= 1_000; bucket += 1) {
+      for (let event = 0; event < 10; event += 1) {
+        recordRateLimitRejection('vote', bucket * 10_000);
+      }
+    }
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(mocks.getRedis).toHaveBeenCalledOnce();
+
+    resolveFirstFlush([]);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(mocks.getRedis).toHaveBeenCalledTimes(2);
+    expect(secondMulti.incrby.mock.calls.length).toBeLessThanOrEqual(7);
+    expect(secondMulti.exec).toHaveBeenCalledOnce();
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
@@ -87,7 +151,6 @@ describe('abuseTelemetry', () => {
     const details = {
       path: 'vote.submit',
       category: 'vote' as const,
-      clientIp: '203.0.113.5',
       ipSource: 'socket',
     };
 
@@ -105,6 +168,30 @@ describe('abuseTelemetry', () => {
       ...details,
       suppressedSinceLastLog: 2,
     });
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.5');
+  });
+
+  it('begrenzt 20.000 MOTD-/PDF-Diagnoseereignisse auf zwei gesampelte Logs', () => {
+    for (let index = 0; index < 10_000; index += 1) {
+      logRateLimitRejection(
+        { path: 'motd.getCurrent', category: 'motd', ipSource: 'x-forwarded-for' },
+        1_000,
+      );
+      logRateLimitRejection(
+        { path: 'session.getSessionExportPdf', category: 'pdf', ipSource: 'socket' },
+        1_000,
+      );
+    }
+
+    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'motd' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'pdf' }),
+    );
   });
 
   it('degradiert bei Redis-Ausfall ohne Request- oder Health-Pfade zu werfen', async () => {
@@ -112,7 +199,8 @@ describe('abuseTelemetry', () => {
       throw new Error('redis unavailable');
     });
 
-    await expect(recordRateLimitRejection('other', 0)).resolves.toBeUndefined();
+    recordRateLimitRejection('other', 0);
+    await expect(flushAbuseTelemetry()).resolves.toBeUndefined();
     await expect(readAbuseSignals(0)).resolves.toEqual({
       sessionCreatesLastMinute: 0,
       rateLimit429LastMinute: 0,

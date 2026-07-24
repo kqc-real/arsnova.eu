@@ -56,6 +56,20 @@ vi.mock('../lib/sloTelemetry', () => ({
   recordLiveRequestTelemetry: vi.fn(),
 }));
 
+vi.mock('../lib/adminAuth', () => ({
+  extractAdminToken: vi.fn(() => null),
+  isAdminSessionTokenValid: vi.fn(async () => false),
+}));
+
+vi.mock('../lib/diagnosticAuth', () => ({
+  extractAdminDiagnosticSecret: vi.fn((req) => {
+    const secret = req?.headers?.['x-admin-diagnostic-secret'];
+    return typeof secret === 'string' ? secret : null;
+  }),
+  verifyAdminDiagnosticSecret: vi.fn((secret) => secret === 'valid-diagnostic-secret'),
+  consumeDiagnosticAuthFailure: vi.fn(() => true),
+}));
+
 import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
@@ -69,6 +83,12 @@ import { readSloSignals } from '../lib/sloTelemetry';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
 const caller = healthRouter.createCaller({ req: undefined });
+const authenticatedCaller = healthRouter.createCaller({
+  req: { headers: { 'x-admin-diagnostic-secret': 'valid-diagnostic-secret' } } as never,
+});
+const invalidAdminCaller = healthRouter.createCaller({
+  req: { headers: { 'x-admin-diagnostic-secret': 'invalid-diagnostic-secret' } } as never,
+});
 
 beforeEach(() => {
   vi.mocked(readPdfSignals).mockResolvedValue({
@@ -224,22 +244,6 @@ describe('health.stats', () => {
     expect(result.votesLastMinute).toBe(0);
     expect(result.sessionTransitionsLastMinute).toBe(0);
     expect(result.activeCountdownSessions).toBe(0);
-    expect(result.pdfActiveJobs).toBe(0);
-    expect(result.pdfMaxConcurrentJobs).toBe(1);
-    expect(result.pdfCompletedLastMinute).toBe(0);
-    expect(result.pdfFailedLastMinute).toBe(0);
-    expect(result.pdfRejectedLastMinute).toBe(0);
-    expect(result.sessionCreatesLastMinute).toBe(0);
-    expect(result.rateLimit429LastMinute).toBe(0);
-    expect(result.rateLimit429ByCategoryLastMinute).toEqual({
-      sessionCreate: 0,
-      sessionCode: 0,
-      vote: 0,
-      pdf: 0,
-      motd: 0,
-      other: 0,
-    });
-    expect(result.trpcWebSocketConnectionsActive).toBe(0);
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
     expect(result.dailyHighscores).toHaveLength(100);
@@ -256,7 +260,7 @@ describe('health.stats', () => {
     expect(result.loadStatus).toBe('healthy');
   });
 
-  it('exponiert rollierende PDF-Ergebnis- und Ablehnungsmetriken', async () => {
+  it('liefert rollierende PDF-Ergebnis- und Ablehnungsmetriken nur authentifiziert', async () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
     vi.mocked(readPdfSignals).mockResolvedValue({
@@ -265,7 +269,7 @@ describe('health.stats', () => {
       rejectedLastMinute: 3,
     });
 
-    const result = await caller.stats(undefined);
+    const result = await authenticatedCaller.securityStats(undefined);
 
     expect(result).toMatchObject({
       pdfActiveJobs: 0,
@@ -276,7 +280,7 @@ describe('health.stats', () => {
     });
   });
 
-  it('exponiert Create-, 429- und aktuelle WebSocket-Metriken', async () => {
+  it('liefert Create-, 429- und aktuelle WebSocket-Metriken nur authentifiziert', async () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
     vi.mocked(readAbuseSignals).mockResolvedValue({
@@ -295,7 +299,7 @@ describe('health.stats', () => {
       trpcConnectionsActive: 321,
     });
 
-    const result = await caller.stats(undefined);
+    const result = await authenticatedCaller.securityStats(undefined);
 
     expect(result).toMatchObject({
       sessionCreatesLastMinute: 12,
@@ -310,6 +314,54 @@ describe('health.stats', () => {
       },
       trpcWebSocketConnectionsActive: 321,
     });
+  });
+
+  it('verweigert health.securityStats ohne Diagnose-Secret', async () => {
+    await expect(caller.securityStats(undefined)).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  });
+
+  it('verweigert health.securityStats mit ungültigem Diagnose-Secret', async () => {
+    await expect(invalidAdminCaller.securityStats(undefined)).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  });
+
+  it('bleibt mit gültigem Diagnose-Secret bei Redis-Ausfall erreichbar', async () => {
+    vi.mocked(getRedis).mockImplementation(() => {
+      throw new Error('redis unavailable');
+    });
+    vi.mocked(readPdfSignals).mockResolvedValue({
+      completedLastMinute: 0,
+      failedLastMinute: 0,
+      rejectedLastMinute: 0,
+    });
+    vi.mocked(readAbuseSignals).mockResolvedValue({
+      sessionCreatesLastMinute: 0,
+      rateLimit429LastMinute: 0,
+      rateLimit429ByCategoryLastMinute: {
+        sessionCreate: 0,
+        sessionCode: 0,
+        vote: 0,
+        pdf: 0,
+        motd: 0,
+        other: 0,
+      },
+    });
+
+    await expect(authenticatedCaller.securityStats(undefined)).resolves.toMatchObject({
+      pdfActiveJobs: 0,
+      rateLimit429LastMinute: 0,
+      trpcWebSocketConnectionsActive: 0,
+    });
+    expect(getRedis).not.toHaveBeenCalled();
+    vi.mocked(getRedis).mockImplementation(
+      () =>
+        ({
+          scan: vi.fn().mockResolvedValue(['0', []]),
+        }) as unknown as Redis,
+    );
   });
 
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {
@@ -499,15 +551,6 @@ describe('health.stats', () => {
         'votesLastMinute',
         'sessionTransitionsLastMinute',
         'activeCountdownSessions',
-        'pdfActiveJobs',
-        'pdfMaxConcurrentJobs',
-        'pdfCompletedLastMinute',
-        'pdfFailedLastMinute',
-        'pdfRejectedLastMinute',
-        'sessionCreatesLastMinute',
-        'rateLimit429LastMinute',
-        'rateLimit429ByCategoryLastMinute',
-        'trpcWebSocketConnectionsActive',
         'completedSessions',
         'activeBlitzRounds',
         'maxParticipantsSingleSession',
@@ -520,6 +563,10 @@ describe('health.stats', () => {
     expect(keys).not.toContain('participants');
     expect(keys).not.toContain('nicknames');
     expect(keys).not.toContain('emails');
+    expect(keys).not.toContain('pdfActiveJobs');
+    expect(keys).not.toContain('sessionCreatesLastMinute');
+    expect(keys).not.toContain('rateLimit429ByCategoryLastMinute');
+    expect(keys).not.toContain('trpcWebSocketConnectionsActive');
   });
 
   it('zählt activeBlitzRounds nur einmal pro Quick-Feedback (Primär-Key qf:<code>)', async () => {

@@ -72,11 +72,13 @@ ohne Warteschlange mit tRPC
 Browser-Print-Fallback nutzen. Dadurch belegen wartende PDF-Anfragen keine zusätzliche
 Serverkapazität.
 
-Die strukturierten Log-Ereignisse `pdf:job_started`, `pdf:job_finished` und
-`pdf:concurrency_rejected` enthalten Quelle, aktive Jobs, Cap sowie kumulative
-Started-/Completed-/Failed-/Rejected-Zähler. Zusätzlich exponiert `health.stats` die
-momentane Auslastung und rollierende Completed-/Failed-/Rejected-Zähler der letzten Minute
-aus Redis. Der Cap ist absichtlich nicht per Env abschaltbar. Die aktuelle Produktion
+Die strukturierten Log-Ereignisse `pdf:job_started` und `pdf:job_finished`
+enthalten Quelle, aktive Jobs, Cap sowie kumulative Zähler. Ablehnungen werden
+nicht pro Request separat geloggt, sondern zentral gesampelt als
+`rate_limit_429` (Kategorie `pdf`). Die diagnose-authentifizierte Query
+`health.securityStats` exponiert die momentane Auslastung und bounded
+aggregierte Completed-/Failed-/Rejected-Zähler der letzten Minute aus Redis.
+Der Cap ist absichtlich nicht per Env abschaltbar. Die aktuelle Produktion
 betreibt genau einen Backend-Prozess; vor einer horizontalen Skalierung muss der Limiter
 durch einen verteilten, ausfallsicheren Semaphore ersetzt werden, damit der Cap
 instanzübergreifend bleibt.

@@ -2,11 +2,12 @@
  * Health & Server-Status (Story 0.1, 0.2, 0.4).
  * check | stats | footerBundle (Check+Stats parallel, ein Client-Request) | ping: Subscription Heartbeat
  */
-import { publicProcedure, router } from '../trpc';
+import { diagnosticProcedure, publicProcedure, router } from '../trpc';
 import {
   HealthCheckResponseSchema,
   HealthFooterBundleSchema,
   HealthPingEventSchema,
+  HealthSecurityStatsDTOSchema,
   ServerStatsDTOSchema,
 } from '@arsnova/shared-types';
 import { pingRedis, getRedis } from '../redis';
@@ -27,7 +28,11 @@ import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
-import type { ServerStatsDTO, FooterStatusDTO } from '@arsnova/shared-types';
+import type {
+  FooterStatusDTO,
+  HealthSecurityStatsDTO,
+  ServerStatsDTO,
+} from '@arsnova/shared-types';
 
 const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
 const DAILY_HIGHSCORE_DAYS = 100;
@@ -340,8 +345,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       platformRow,
       dailyHighscoreRows,
       loadSignals,
-      pdfSignals,
-      abuseSignals,
       sloSignals,
     ] = await Promise.all([
       prisma.session.count({ where: activeSessionWhere }),
@@ -354,8 +357,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       platformStatisticPromise,
       dailyHighscoreRowsPromise,
       readLoadSignals(),
-      readPdfSignals(),
-      readAbuseSignals(),
       readSloSignals(),
     ]);
     const openSessionIds = activeSessionIds.map((session) => session.id);
@@ -391,8 +392,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     const dailyHighscoresStatistics = calculateDailyHighscoresStatistics(
       dailyHighscoreStatisticsEntries,
     );
-    const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
-    const webSocketTelemetry = getWebSocketTelemetrySnapshot();
     return {
       openSessions,
       activeSessions,
@@ -400,15 +399,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       votesLastMinute: loadSignals.votesLastMinute,
       sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
       activeCountdownSessions: loadSignals.activeCountdownSessions,
-      pdfActiveJobs: pdfConcurrency.activeJobs,
-      pdfMaxConcurrentJobs: pdfConcurrency.maxConcurrentJobs,
-      pdfCompletedLastMinute: pdfSignals.completedLastMinute,
-      pdfFailedLastMinute: pdfSignals.failedLastMinute,
-      pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
-      sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
-      rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
-      rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
-      trpcWebSocketConnectionsActive: webSocketTelemetry.trpcConnectionsActive,
       completedSessions: completedSessionsTotal,
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
@@ -423,8 +413,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     };
   } catch {
     const emptyHighscores = buildDailyHighscores([]);
-    const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
-    const webSocketTelemetry = getWebSocketTelemetrySnapshot();
     return {
       openSessions: 0,
       activeSessions: 0,
@@ -432,22 +420,6 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       votesLastMinute: 0,
       sessionTransitionsLastMinute: 0,
       activeCountdownSessions: 0,
-      pdfActiveJobs: pdfConcurrency.activeJobs,
-      pdfMaxConcurrentJobs: pdfConcurrency.maxConcurrentJobs,
-      pdfCompletedLastMinute: 0,
-      pdfFailedLastMinute: 0,
-      pdfRejectedLastMinute: 0,
-      sessionCreatesLastMinute: 0,
-      rateLimit429LastMinute: 0,
-      rateLimit429ByCategoryLastMinute: {
-        sessionCreate: 0,
-        sessionCode: 0,
-        vote: 0,
-        pdf: 0,
-        motd: 0,
-        other: 0,
-      },
-      trpcWebSocketConnectionsActive: webSocketTelemetry.trpcConnectionsActive,
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
@@ -460,13 +432,19 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
   }
 }
 
-function withCurrentRuntimeTelemetry(stats: ServerStatsDTO): ServerStatsDTO {
+async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
+  const [pdfSignals, abuseSignals] = await Promise.all([readPdfSignals(), readAbuseSignals()]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
-    ...stats,
     pdfActiveJobs: pdfSnapshot.activeJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
+    pdfCompletedLastMinute: pdfSignals.completedLastMinute,
+    pdfFailedLastMinute: pdfSignals.failedLastMinute,
+    pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
+    sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
+    rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
+    rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
     trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
   };
 }
@@ -476,11 +454,11 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
   const now = Date.now();
 
   if (!forceFresh && cachedServerStats && cachedServerStats.expiresAt > now) {
-    return withCurrentRuntimeTelemetry(cachedServerStats.value);
+    return cachedServerStats.value;
   }
 
   if (!forceFresh && serverStatsInFlight) {
-    return serverStatsInFlight.then(withCurrentRuntimeTelemetry);
+    return serverStatsInFlight;
   }
 
   const request = computeServerStats().then((stats) => {
@@ -493,7 +471,7 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
 
   serverStatsInFlight = request;
   try {
-    return withCurrentRuntimeTelemetry(await request);
+    return await request;
   } finally {
     if (serverStatsInFlight === request) {
       serverStatsInFlight = null;
@@ -518,6 +496,10 @@ export const healthRouter = router({
   check: publicProcedure.output(HealthCheckResponseSchema).query(() => fetchHealthCheck()),
 
   stats: publicProcedure.output(ServerStatsDTOSchema).query(() => fetchServerStats()),
+
+  securityStats: diagnosticProcedure
+    .output(HealthSecurityStatsDTOSchema)
+    .query(() => fetchSecurityStats()),
 
   /**
    * App-Footer: ein Client-Request statt check→stats nacheinander (kürzere kritische Netzwerk-Kette / LCP).

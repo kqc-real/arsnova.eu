@@ -18,6 +18,44 @@ die Live-SLOs stehen in
 Lasttests niemals ungeplant gegen Produktion ausführen. Der Produktions-k6-Lauf
 benötigt eine explizite Workflow-Freigabe (`run_production_load=true`).
 
+## Manuelle sichere Ausführung
+
+Nach einem autorisierten Push des zu prüfenden Branches startet dieser
+Workflow-Dispatch beide isolierten Artillery-Jobs mit 500 Teilnehmenden, aber
+ausdrücklich **keinen** Produktions-k6-Lauf:
+
+```bash
+gh workflow run ci.yml \
+  --ref security/pr128-followup \
+  -f artillery_participants=500 \
+  -f artillery_ramp_seconds=60 \
+  -f run_production_load=false
+
+run_id="$(gh run list --workflow ci.yml --branch security/pr128-followup \
+  --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId')"
+gh run watch "$run_id"
+```
+
+Beide Artillery-Jobs erzeugen intern je ein separates, maskiertes
+`ADMIN_DIAGNOSTIC_SECRET` mit `openssl rand -hex 32`; weder
+`ADMIN_SECRET` noch das Diagnose-Secret werden als Workflow-Input oder Report
+übergeben.
+
+Der Workflow-k6-Job ist hart auf `https://arsnova.eu` verdrahtet und darf für
+diesen Security-Nachweis nicht aktiviert werden. Dasselbe Profil läuft sicher
+gegen ein lokales Backend:
+
+```bash
+npm run docker:up:dev
+npm run prisma:push
+npm run dev:backend
+# In einem zweiten Terminal:
+BASE_URL=http://127.0.0.1:3000 VUS=50 DURATION=30s npm run load:k6:health
+```
+
+Vor jedem Lauf Ziel-URL und Branch prüfen. `run_production_load=true` bleibt
+einer separat freigegebenen Produktionsmessung vorbehalten.
+
 ## Letzter lokaler Gesamtlauf
 
 Der vollständige lokale Lauf vom **2026-07-10** ist unter

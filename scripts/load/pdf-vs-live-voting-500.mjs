@@ -4,7 +4,8 @@
  *
  * Voraussetzung: lokales Backend mit PostgreSQL und Redis.
  *
- * REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
+ * ADMIN_DIAGNOSTIC_SECRET=<separates-starkes-diagnose-secret> \
+ *   REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
  *   npm run load:pdf-vs-voting:500
  */
 import { performance } from 'node:perf_hooks';
@@ -30,6 +31,7 @@ const EXPECTED_PDF_CAP = Math.max(1, Number(process.env.EXPECTED_PDF_CAP || 1));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_500));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
+const ADMIN_DIAGNOSTIC_SECRET = String(process.env.ADMIN_DIAGNOSTIC_SECRET || '').trim();
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -219,6 +221,15 @@ async function submitVotes(session, participantIds) {
 }
 
 async function main() {
+  if (ADMIN_DIAGNOSTIC_SECRET.length < 32) {
+    throw new Error('ADMIN_DIAGNOSTIC_SECRET fehlt oder ist zu kurz (mindestens 32 Zeichen).');
+  }
+  if (
+    process.env.ADMIN_SECRET &&
+    ADMIN_DIAGNOSTIC_SECRET === String(process.env.ADMIN_SECRET).trim()
+  ) {
+    throw new Error('ADMIN_DIAGNOSTIC_SECRET muss sich vom ADMIN_SECRET unterscheiden.');
+  }
   await waitForBackend(TRPC_URL);
   const pdfSession = await createFinishedPdfSession();
 
@@ -258,7 +269,7 @@ async function main() {
   let additionalRequestRejected = false;
   let metricsAtCap;
   let votesUnderPdfLoad;
-  const healthTrpc = createHttpTrpcSingle(TRPC_URL);
+  const healthTrpc = createHttpTrpcSingle(TRPC_URL, undefined, undefined, ADMIN_DIAGNOSTIC_SECRET);
   try {
     await sleep(100);
     for (let attempt = 0; attempt < 10 && !additionalRequestRejected; attempt += 1) {
@@ -277,13 +288,13 @@ async function main() {
         }
       }
     }
-    metricsAtCap = await healthTrpc.health.stats.query();
+    metricsAtCap = await healthTrpc.health.securityStats.query();
     votesUnderPdfLoad = await submitVotes(liveSession, participantIds);
   } finally {
     stopPdfWorkers = true;
     await Promise.all(workers);
   }
-  const metricsAfterLoad = await healthTrpc.health.stats.query();
+  const metricsAfterLoad = await healthTrpc.health.securityStats.query();
 
   let recoveryPdfSucceeded = false;
   try {
@@ -322,7 +333,7 @@ async function main() {
     );
   }
   if (metricsAtCap.pdfRejectedLastMinute < 1) {
-    failures.push('health.stats zeigt keine PDF-Ablehnung.');
+    failures.push('health.securityStats zeigt keine PDF-Ablehnung.');
   }
   if (baselineVotes.errorRate >= VOTE_ERROR_RATE_LIMIT) {
     failures.push(`Baseline-Fehlerquote ${(baselineVotes.errorRate * 100).toFixed(2)} %`);

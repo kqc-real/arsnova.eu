@@ -42,10 +42,6 @@ export class PdfConcurrencyLimiter {
   async run<T>(source: PdfJobSource, job: () => Promise<T>): Promise<T> {
     if (this.activeJobs >= this.maxConcurrentJobs) {
       this.rejectedTotal += 1;
-      logger.warn('pdf:concurrency_rejected', {
-        source,
-        ...this.snapshot(),
-      });
       void recordPdfJobOutcome('rejected');
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',

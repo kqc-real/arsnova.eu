@@ -29,6 +29,7 @@ vi.mock('../db', () => ({
 vi.mock('../lib/adminAuth', () => ({
   extractAdminToken: extractAdminTokenMock,
   isAdminSessionTokenValid: isAdminSessionTokenValidMock,
+  verifyAdminSecret: vi.fn(() => false),
 }));
 
 import { adminMotdRouter } from '../routers/adminMotd';

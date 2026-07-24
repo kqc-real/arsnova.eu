@@ -2,7 +2,8 @@ let trpcClientModule;
 try {
   trpcClientModule = await import('@trpc/client');
 } catch {
-  trpcClientModule = await import('../../../apps/frontend/node_modules/@trpc/client/dist/index.mjs');
+  trpcClientModule =
+    await import('../../../apps/frontend/node_modules/@trpc/client/dist/index.mjs');
 }
 
 let wsModule;
@@ -12,25 +13,38 @@ try {
   wsModule = await import('../../../apps/frontend/node_modules/ws/wrapper.mjs');
 }
 
-const { createTRPCProxyClient, createWSClient, httpBatchLink, httpLink, wsLink } =
-  trpcClientModule;
+const { createTRPCProxyClient, createWSClient, httpBatchLink, httpLink, wsLink } = trpcClientModule;
 const WebSocketPonyfill = globalThis.WebSocket ?? wsModule.WebSocket ?? wsModule.default;
 if (!globalThis.WebSocket && WebSocketPonyfill) {
   globalThis.WebSocket = WebSocketPonyfill;
 }
 
-export function createHttpTrpc(trpcUrl, hostToken) {
+function authHeaders(hostToken, adminToken, diagnosticSecret) {
+  return {
+    ...(hostToken ? { 'x-host-token': hostToken } : {}),
+    ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+    ...(diagnosticSecret ? { 'x-admin-diagnostic-secret': diagnosticSecret } : {}),
+  };
+}
+
+export function createHttpTrpc(trpcUrl, hostToken, adminToken, diagnosticSecret) {
   const link = httpBatchLink({
     url: trpcUrl,
-    headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+    headers:
+      hostToken || adminToken || diagnosticSecret
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+        : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
 }
 
-export function createHttpTrpcSingle(trpcUrl, hostToken) {
+export function createHttpTrpcSingle(trpcUrl, hostToken, adminToken, diagnosticSecret) {
   const link = httpLink({
     url: trpcUrl,
-    headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+    headers:
+      hostToken || adminToken || diagnosticSecret
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+        : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
 }
