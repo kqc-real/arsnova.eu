@@ -23,8 +23,10 @@ import {
   type ToleranceLevel,
   questionSupportsConfidence,
 } from '@arsnova/shared-types';
-import { publicProcedure, router } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { prisma } from '../db';
+import { checkQuizUploadRate } from '../lib/rateLimit';
 
 function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   historyScopeId: string | null;
@@ -199,7 +201,15 @@ export const quizRouter = router({
   upload: publicProcedure
     .input(QuizUploadInputSchema)
     .output(QuizUploadOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const limit = await checkQuizUploadRate(resolveClientIp(ctx.req).ip);
+      if (!limit.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Zu viele Quiz-Uploads. Bitte später erneut versuchen.',
+          cause: { retryAfterSeconds: limit.retryAfterSeconds },
+        });
+      }
       const historyScopeId = input.historyScopeId ?? null;
       const quiz = await prisma.quiz.create({
         data: {

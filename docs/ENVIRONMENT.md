@@ -20,38 +20,45 @@ Die Example-Dateien sind bewusst gleich aufgebaut:
 
 Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise liest:
 
-| Variable                                        | Erforderlich | Standard / Beispiel        | Zweck                                                                                                                                                               |
-| ----------------------------------------------- | ------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                  | ja (für DB)  | siehe `.env.example`       | PostgreSQL-Verbindung (Prisma)                                                                                                                                      |
-| `REDIS_URL`                                     | nein         | `redis://localhost:6379`   | Redis für Rate-Limits, Host-/Admin-Session-Tokens und kurzlebige Live-Hilfsdaten (z. B. Blitzlicht-/Presence-Zustand); MOTD-Interaktionszähler liegen in PostgreSQL |
-| `PORT`                                          | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                                                           |
-| `HOST`                                          | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird im aktuellen Code nur als **Fallback** für den Yjs-Child genutzt, wenn `YJS_WS_HOST` fehlt                        |
-| `WS_PORT`                                       | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                                               |
-| `YJS_WS_PORT`                                   | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                                                       |
-| `YJS_WS_HOST`                                   | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx                             |
-| `NODE_ENV`                                      | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                                               |
-| `TRUST_PROXY_HOPS`                              | nein         | `0`                        | `1` setzen, wenn Express **hinter** Nginx/Proxy läuft — dann `req.ip` und Rate-Limit pro **echtem** Client (nicht nur Proxy-IP)                                     |
-| `HOST_SESSION_TTL_SECONDS`                      | nein         | `28800` (8 h)              | TTL für Host-/Present-Besitznachweise in Redis; Werte unter 60 Sekunden fallen auf den Standard zurück                                                              |
-| `RATE_LIMIT_SESSION_CODE_ATTEMPTS`              | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                                                    |
-| `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`        | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                                               |
-| `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`       | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                                                 |
-| `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`           | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                                                |
-| `RATE_LIMIT_SESSION_CREATE_PER_HOUR`            | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                                              |
-| `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`    | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen                         |
-| `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`        | nein         | `600`                      | MOTD `getCurrent` + `getHeaderState` (gemeinsames Limit) — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                         |
-| `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST`  | nein         | —                          | Wie Session-Create: optional `true`\|`false`; ohne Override ist **Loopback** in Nicht-Prod für MOTD-Read-Limits ausgenommen (Prerender/Dev)                         |
-| `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`       | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                                              |
-| `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE` | nein         | `40`                       | MOTD `recordInteraction` — pro IP und Minute                                                                                                                        |
-| `ADMIN_SECRET`                                  | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                                                    |
-| `ADMIN_DIAGNOSTIC_SECRET`                       | für Diagnose | —                          | Separates Secret nur für `health.securityStats`; mindestens 32 Zeichen, darf nicht `ADMIN_SECRET` entsprechen                                                       |
-| `ADMIN_SESSION_TTL_SECONDS`                     | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                                                   |
-| `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`                 | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                                                         |
+| Variable                                               | Erforderlich | Standard / Beispiel        | Zweck                                                                                                                                                               |
+| ------------------------------------------------------ | ------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                         | ja (für DB)  | siehe `.env.example`       | PostgreSQL-Verbindung (Prisma)                                                                                                                                      |
+| `REDIS_URL`                                            | nein         | `redis://localhost:6379`   | Redis für Rate-Limits, Host-/Admin-Session-Tokens und kurzlebige Live-Hilfsdaten (z. B. Blitzlicht-/Presence-Zustand); MOTD-Interaktionszähler liegen in PostgreSQL |
+| `PORT`                                                 | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                                                           |
+| `HOST`                                                 | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird im aktuellen Code nur als **Fallback** für den Yjs-Child genutzt, wenn `YJS_WS_HOST` fehlt                        |
+| `WS_PORT`                                              | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                                               |
+| `YJS_WS_PORT`                                          | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                                                       |
+| `YJS_WS_HOST`                                          | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx                             |
+| `NODE_ENV`                                             | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                                               |
+| `TRUST_PROXY_HOPS`                                     | nein         | `0`                        | `1` setzen, wenn Express **hinter** Nginx/Proxy läuft — dann `req.ip` und Rate-Limit pro **echtem** Client (nicht nur Proxy-IP)                                     |
+| `HOST_SESSION_TTL_SECONDS`                             | nein         | `28800` (8 h)              | TTL für Host-/Present-Besitznachweise in Redis; Werte unter 60 Sekunden fallen auf den Standard zurück                                                              |
+| `RATE_LIMIT_SESSION_CODE_ATTEMPTS`                     | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                                                    |
+| `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`               | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                                               |
+| `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`              | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                                                 |
+| `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`                  | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                                                |
+| `RATE_LIMIT_SESSION_CREATE_PER_HOUR`                   | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                                              |
+| `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`           | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen                         |
+| `RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR`               | nein         | `600`                      | Großzügiges grobes Shared-NAT-Budget für öffentliche Quiz-Uploads                                                                                                   |
+| `RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_PER_HOUR`               | nein         | `3000`                     | Globales Stundenbudget für öffentliche Quiz-Uploads                                                                                                                 |
+| `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR` | nein         | `600`                      | Großzügiges Shared-NAT-Budget für Standalone-Blitzlicht-Erstellungen                                                                                                |
+| `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_GLOBAL_PER_HOUR` | nein         | `3000`                     | Globales Stundenbudget für Standalone-Blitzlicht-Erstellungen                                                                                                       |
+| `RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE`         | nein         | `120`                      | Host-authentifizierte Blitzlicht-Starts pro Session und Minute; kein Teilnehmer-/IP-Limit                                                                           |
+| `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`               | nein         | `600`                      | MOTD `getCurrent` + `getHeaderState` (gemeinsames Limit) — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                         |
+| `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST`         | nein         | —                          | Wie Session-Create: optional `true`\|`false`; ohne Override ist **Loopback** in Nicht-Prod für MOTD-Read-Limits ausgenommen (Prerender/Dev)                         |
+| `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`              | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                                              |
+| `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE`        | nein         | `40`                       | MOTD `recordInteraction` — pro IP und Minute                                                                                                                        |
+| `ADMIN_SECRET`                                         | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                                                    |
+| `ADMIN_DIAGNOSTIC_SECRET`                              | für Diagnose | —                          | Separates Secret nur für `health.securityStats`; mindestens 32 Zeichen, darf nicht `ADMIN_SECRET` entsprechen                                                       |
+| `ADMIN_SESSION_TTL_SECONDS`                            | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                                                   |
+| `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`                        | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                                                         |
 
 `HOST_SESSION_TTL_SECONDS` ist ein optionaler Backend-Reader und wird in den Example-Dateien nicht gesetzt, weil der 8h-Standard für Dev und Produktion der vorgesehene Normalfall ist.
 
 ### tRPC-Payload-Limits
 
 tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Übergroße WebSocket-Nachrichten werden mit Close-Code `1009` beendet. Die Nginx-Produktionskonfiguration verwendet für HTTP mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere HTTP-Requests vor dem Backend. Die Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+
+`quiz.upload` besitzt zusätzlich fachliche Zod-Caps: maximal **200 Fragen**, **10 Antwortoptionen je Frage** und **1.250.000 UTF-8-Bytes** für den validierten Quiz-Payload. Ein Classroom-Fixture mit 100 Fragen und je vier Optionen liegt darunter. Diese Grenze ergänzt das 2-MiB-Infrastrukturlimit und ist bewusst nicht per Env abschaltbar.
 
 ### PDF-Parallelitätslimit
 
@@ -126,6 +133,9 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 
 - `TRUST_PROXY_HOPS=1` (hinter Nginx/Reverse-Proxy)
 - `RATE_LIMIT_SESSION_CREATE_PER_HOUR=480`
+- `RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR=600` plus global `3000` pro Stunde
+- `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR=600` plus global `3000` pro Stunde
+- `RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE=120` pro authentifizierter Session
 - `RATE_LIMIT_SESSION_CODE_ATTEMPTS=20`
 - `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS=45`
 - `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND=2`
@@ -134,6 +144,8 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 - `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE=120`
 
 Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Code-Defaults (wenn Variablen fehlen) bleiben weiterhin konservativ (z. B. `RATE_LIMIT_SESSION_CREATE_PER_HOUR=10`).
+
+Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen.
 
 ---
 

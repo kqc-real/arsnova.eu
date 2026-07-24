@@ -59,7 +59,7 @@ describe('tRPC request body limit', () => {
     await expect(response.json()).resolves.toEqual({ result: { data: { length: 14 } } });
   });
 
-  it('lässt ein großzügig dimensioniertes Classroom-Quiz unterhalb des Limits durch', async () => {
+  it('lässt ein normales 100-Fragen-Classroom-Quiz unterhalb beider Limits durch', async () => {
     const baseUrl = await startTestServer();
     const classroomQuiz = {
       name: 'Classroom-Quiz',
@@ -73,13 +73,13 @@ describe('tRPC request body limit', () => {
       anonymousMode: false,
       teamMode: false,
       nicknameTheme: 'NOBEL_LAUREATES',
-      questions: Array.from({ length: 200 }, (_, order) => ({
-        text: 'f'.repeat(2_000),
+      questions: Array.from({ length: 100 }, (_, order) => ({
+        text: `Classroom-Frage ${order + 1}`,
         type: 'MULTIPLE_CHOICE',
         difficulty: 'MEDIUM',
         order,
-        answers: Array.from({ length: 10 }, (_, answerIndex) => ({
-          text: 'a'.repeat(500),
+        answers: Array.from({ length: 4 }, (_, answerIndex) => ({
+          text: `Antwort ${answerIndex + 1}`,
           isCorrect: answerIndex === 0,
         })),
       })),

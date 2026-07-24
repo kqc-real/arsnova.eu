@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prismaMock, platformStatisticMocks, loggerMocks } = vi.hoisted(() => ({
   prismaMock: {
+    $transaction: vi.fn(),
     session: {
       updateMany: vi.fn(),
       findMany: vi.fn(),
@@ -42,12 +43,17 @@ vi.mock('../lib/logger', () => ({
 import {
   cleanupExpiredFinishedSessions,
   cleanupExpiredSessionFeedback,
+  cleanupOrphanQuizUploads,
   cleanupStaleSessions,
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
 } from '../lib/sessionCleanup';
 
 describe('sessionCleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock),
+    );
   });
 
   it('inkrementiert den completedSessionsCounter fuer automatisch beendete verwaiste Sessions', async () => {
@@ -134,5 +140,89 @@ describe('sessionCleanup', () => {
     expect(loggerMocks.info).toHaveBeenCalledWith(
       expect.stringContaining('Session-Purge: 2 beendete Session(s)'),
     );
+  });
+
+  it('löscht verwaiste Uploads bounded und prüft Schutzbedingungen beim Delete erneut', async () => {
+    prismaMock.quiz.findMany.mockResolvedValue([
+      { id: 'orphan-1', historyScopeId: null },
+      { id: 'orphan-2', historyScopeId: null },
+    ]);
+    prismaMock.quiz.deleteMany.mockResolvedValue({ count: 1 });
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(1);
+
+    expect(prismaMock.quiz.findMany).toHaveBeenCalledWith({
+      where: {
+        createdAt: { lt: expect.any(Date) },
+        sessions: { none: {} },
+      },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+      select: { id: true, historyScopeId: true },
+    });
+    expect(prismaMock.quiz.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: { in: ['orphan-1', 'orphan-2'] },
+        createdAt: { lt: expect.any(Date) },
+        sessions: { none: {} },
+      },
+    });
+    expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'Serializable',
+    });
+  });
+
+  it('löscht keine Quiz-Sammlung, History oder Session-gebundene Quizkopie', async () => {
+    prismaMock.quiz.findMany
+      .mockResolvedValueOnce([
+        {
+          id: 'history-anchor',
+          historyScopeId: '11111111-1111-4111-8111-111111111111',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          historyScopeId: '11111111-1111-4111-8111-111111111111',
+        },
+      ]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(0);
+
+    expect(prismaMock.quiz.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          createdAt: { lt: expect.any(Date) },
+          sessions: { none: {} },
+        },
+      }),
+    );
+    expect(prismaMock.quiz.findMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        historyScopeId: {
+          in: ['11111111-1111-4111-8111-111111111111'],
+        },
+        sessions: { some: {} },
+      },
+      select: { historyScopeId: true },
+    });
+    expect(prismaMock.quiz.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('löscht moderne verwaiste Uploadkopien ohne Session-Historie im Scope', async () => {
+    const scopeId = '22222222-2222-4222-8222-222222222222';
+    prismaMock.quiz.findMany
+      .mockResolvedValueOnce([{ id: 'modern-orphan', historyScopeId: scopeId }])
+      .mockResolvedValueOnce([]);
+    prismaMock.quiz.deleteMany.mockResolvedValue({ count: 1 });
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(1);
+
+    expect(prismaMock.quiz.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: { in: ['modern-orphan'] },
+        createdAt: { lt: expect.any(Date) },
+        sessions: { none: {} },
+      },
+    });
   });
 });

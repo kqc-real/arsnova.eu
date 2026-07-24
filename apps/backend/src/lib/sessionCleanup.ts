@@ -11,6 +11,8 @@ const STALE_SESSION_HOURS = 24;
 const FINISHED_SESSION_RETENTION_HOURS = 24;
 const BONUS_TOKEN_RETENTION_DAYS = 90;
 const SESSION_FEEDBACK_RETENTION_DAYS = 90;
+export const ORPHAN_QUIZ_UPLOAD_GRACE_HOURS = 24;
+export const ORPHAN_QUIZ_CLEANUP_BATCH_SIZE = 100;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1h
 
 const ACTIVE_SESSION_STATUSES = [
@@ -85,6 +87,87 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
     );
   }
 
+  return result.count;
+}
+
+/**
+ * Löscht ausschließlich aktuell nicht an Sessions gebundene Uploadkopien.
+ * Ein historyScope bleibt erhalten, sobald irgendeine Quizkopie dieses Scopes
+ * Session-Historie besitzt. Jede Quizkopie mit eigener Sessionrelation bleibt
+ * ebenfalls erhalten.
+ * Die Bedingungen werden beim Delete erneut und in einer serialisierbaren
+ * Transaktion geprüft, damit ein paralleles session.create/attachQuiz nicht
+ * zwischen Auswahl und Löschung verloren geht.
+ */
+export async function cleanupOrphanQuizUploads(): Promise<number> {
+  const cutoff = new Date(Date.now() - ORPHAN_QUIZ_UPLOAD_GRACE_HOURS * 60 * 60 * 1000);
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const candidates = await tx.quiz.findMany({
+        where: {
+          createdAt: { lt: cutoff },
+          sessions: { none: {} },
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        take: ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+        select: { id: true, historyScopeId: true },
+      });
+
+      if (candidates.length === 0) {
+        return { count: 0 };
+      }
+
+      const candidateScopeIds = [
+        ...new Set(
+          candidates
+            .map((candidate) => candidate.historyScopeId)
+            .filter((scopeId): scopeId is string => scopeId !== null),
+        ),
+      ];
+      const protectedScopes =
+        candidateScopeIds.length === 0
+          ? []
+          : await tx.quiz.findMany({
+              where: {
+                historyScopeId: { in: candidateScopeIds },
+                sessions: { some: {} },
+              },
+              select: { historyScopeId: true },
+            });
+      const protectedScopeIds = new Set(
+        protectedScopes
+          .map((quiz) => quiz.historyScopeId)
+          .filter((scopeId): scopeId is string => scopeId !== null),
+      );
+      const deletableIds = candidates
+        .filter(
+          (candidate) =>
+            candidate.historyScopeId === null || !protectedScopeIds.has(candidate.historyScopeId),
+        )
+        .map((candidate) => candidate.id);
+      if (deletableIds.length === 0) {
+        return { count: 0 };
+      }
+
+      return tx.quiz.deleteMany({
+        where: {
+          id: { in: deletableIds },
+          createdAt: { lt: cutoff },
+          sessions: { none: {} },
+        },
+      });
+    },
+    // Eine konkurrierende Session-Bindung erzeugt einen Serialisierungskonflikt
+    // statt die neue Session über Quiz.onDelete=Cascade mitzulöschen.
+    { isolationLevel: 'Serializable' },
+  );
+
+  if (result.count > 0) {
+    logger.info(
+      `Quiz-Upload-Cleanup: ${result.count} verwaiste Upload(s) nach ` +
+        `${ORPHAN_QUIZ_UPLOAD_GRACE_HOURS}h Grace Period gelöscht.`,
+    );
+  }
   return result.count;
 }
 
@@ -172,6 +255,9 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupExpiredSessionFeedback().catch((err) => {
     logger.warn('SessionFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupOrphanQuizUploads().catch((err) => {
+    logger.warn('Quiz-Upload-Cleanup fehlgeschlagen:', (err as Error).message);
   });
   await cleanupExpiredFinishedSessions().catch((err) => {
     logger.warn('Session-Purge fehlgeschlagen:', (err as Error).message);

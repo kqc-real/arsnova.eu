@@ -10,6 +10,8 @@ const {
   invalidateFeedbackHostTokenMock,
   getActiveParticipantIdsForSessionMock,
   touchParticipantPresenceMock,
+  checkQuickFeedbackSessionCreateRateMock,
+  checkQuickFeedbackStandaloneCreateRateMock,
 } = vi.hoisted(() => ({
   redisMock: {
     get: vi.fn(),
@@ -33,6 +35,8 @@ const {
   invalidateFeedbackHostTokenMock: vi.fn(),
   getActiveParticipantIdsForSessionMock: vi.fn(),
   touchParticipantPresenceMock: vi.fn(),
+  checkQuickFeedbackSessionCreateRateMock: vi.fn(),
+  checkQuickFeedbackStandaloneCreateRateMock: vi.fn(),
 }));
 
 vi.mock('../redis', () => ({
@@ -78,10 +82,17 @@ vi.mock('../lib/presence', () => ({
   touchParticipantPresence: touchParticipantPresenceMock,
 }));
 
+vi.mock('../lib/rateLimit', () => ({
+  checkQuickFeedbackSessionCreateRate: checkQuickFeedbackSessionCreateRateMock,
+  checkQuickFeedbackStandaloneCreateRate: checkQuickFeedbackStandaloneCreateRateMock,
+}));
+
 import { quickFeedbackRouter } from '../routers/quickFeedback';
 
 const caller = quickFeedbackRouter.createCaller({ req: undefined });
-const hostCaller = quickFeedbackRouter.createCaller({ req: {} as never });
+const hostCaller = quickFeedbackRouter.createCaller({
+  req: { headers: {}, socket: { remoteAddress: '203.0.113.10' } } as never,
+});
 const VOTER_ID = '33333333-3333-4333-8333-333333333333';
 let lastTempoEvalResult: { totalVotes: number; distribution: Record<string, number> } | null = null;
 let lastTempoChoiceAction: {
@@ -101,6 +112,11 @@ describe('quickFeedback.vote und Session-Status', () => {
     invalidateFeedbackHostTokenMock.mockResolvedValue(undefined);
     getActiveParticipantIdsForSessionMock.mockResolvedValue(new Set());
     touchParticipantPresenceMock.mockResolvedValue(undefined);
+    checkQuickFeedbackSessionCreateRateMock.mockResolvedValue({ allowed: true, remaining: 119 });
+    checkQuickFeedbackStandaloneCreateRateMock.mockResolvedValue({
+      allowed: true,
+      remaining: 599,
+    });
     redisMock.set.mockResolvedValue('OK');
     redisMock.hget.mockResolvedValue(null);
     redisMock.hgetall.mockResolvedValue({});
@@ -807,6 +823,21 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(redisMock.multi).toHaveBeenCalledTimes(1);
   });
 
+  it('begrenzt Standalone-Create-Spam ohne Redis-Runde anzulegen', async () => {
+    checkQuickFeedbackStandaloneCreateRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 300,
+    });
+
+    await expect(caller.create({ type: 'MOOD' })).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      cause: { retryAfterSeconds: 300 },
+    });
+    expect(redisMock.multi).not.toHaveBeenCalled();
+    expect(createFeedbackHostTokenMock).not.toHaveBeenCalled();
+  });
+
   it('lehnt sessiongebundene Blitzlicht-Erstellung ohne Host-Token ab', async () => {
     extractHostTokenMock.mockReturnValue(null);
 
@@ -819,6 +850,28 @@ describe('quickFeedback.vote und Session-Status', () => {
       code: 'UNAUTHORIZED',
       message: 'Host-Authentifizierung erforderlich.',
     });
+    expect(checkQuickFeedbackSessionCreateRateMock).not.toHaveBeenCalled();
+  });
+
+  it('begrenzt sessiongebundene Host-Starts pro Session statt pro Hörsaal-IP', async () => {
+    checkQuickFeedbackSessionCreateRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 20,
+    });
+
+    await expect(
+      hostCaller.create({
+        type: 'MOOD',
+        sessionCode: 'ABC123',
+      }),
+    ).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      cause: { retryAfterSeconds: 20 },
+    });
+    expect(checkQuickFeedbackSessionCreateRateMock).toHaveBeenCalledWith('ABC123');
+    expect(checkQuickFeedbackStandaloneCreateRateMock).not.toHaveBeenCalled();
+    expect(redisMock.multi).not.toHaveBeenCalled();
   });
 
   it('erlaubt Standalone-Blitzlicht-Steuerung mit Blitzlicht-Host-Token', async () => {

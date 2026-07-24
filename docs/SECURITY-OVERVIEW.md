@@ -41,7 +41,18 @@ Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
 
 Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Hinter Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit `x-forwarded-for` / `x-real-ip` korrekt ausgewertet werden und nicht alle Clients im Proxy-Bucket landen.
 
+`quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
+Shared-NAT-IP-Budgets zusammen mit einem globalen Budget. Beide Budgets werden
+atomar geprüft; ein ausgeschöpftes Globalbudget erzeugt keine weiteren
+IP-Rate-Limit-Keys. Session-gebundenes `quickFeedback.create` wird zuerst als
+Host-Aktion autorisiert und danach ausschließlich pro Session begrenzt.
+Teilnehmendenpfade und saalweite NAT-IPs werden dadurch nicht gesperrt.
+
 HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
+
+Der Quiz-Upload-Vertrag begrenzt zusätzlich auf 200 Fragen, 10 Optionen je
+Frage und 1.250.000 UTF-8-Bytes. Ein 100-Fragen-Classroom-Fixture mit je vier
+Optionen ist Bestandteil der Contract-Tests.
 
 Die ressourcenintensive Playwright-PDF-Erzeugung für Session-Ergebnisberichte ist im einzelnen Backend-Prozess auf **einen aktiven Job** begrenzt. Weitere PDF-Anfragen werden ohne Warteschlange mit HTTP **429** abgewiesen. Ablehnungen werden nicht einzeln doppelt geloggt, sondern über das zentrale gesampelte `rate_limit_429` und bounded aggregierte PDF-Metriken in `health.securityStats` beobachtet. Der konservative Cap wurde gewählt, weil Cap 2 auf dem Zielhost die Vote-SLOs verfehlte. Bei einer späteren horizontalen Skalierung ist vorab ein instanzübergreifender Semaphore erforderlich.
 
@@ -81,6 +92,7 @@ Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-N
 - **Bonus-Tokens:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Session-Feedback:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Blitzlicht / Quick Feedback:** Nur Redis, TTL **30 Minuten** — kein langfristiges PII dort ([apps/backend/src/routers/quickFeedback.ts](../apps/backend/src/routers/quickFeedback.ts)).
+- **Verwaiste Quiz-Uploads:** Der stündliche Scheduler löscht höchstens 100 Uploadkopien pro Lauf, die nach **24 Stunden Grace Period** weiterhin keine Sessionrelation besitzen. Scopes mit irgendeiner Session-Historie bleiben erhalten. Eine serialisierbare Transaktion und erneut geprüfte Delete-Bedingungen verhindern den Wettlauf mit `session.create`/Attach; aktive und historische Sessionkopien werden nicht gelöscht.
 
 Aggregierte **Server-Statistiken** (`health.footerBundle`, `health.stats`) ohne Einzelpersonenbezug: aktive/abgeschlossene Sessions, Teilnehmende in aktiven Sessions, Blitz-Runden, Service-/Laststatus, Allzeit-Rekord `maxParticipantsSingleSession` aus **`PlatformStatistic`** und Tagesrekorde aus **`DailyStatistic`**.
 

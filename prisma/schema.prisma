@@ -41,6 +41,7 @@ model Quiz {
   updatedAt            DateTime   @updatedAt
 
   @@index([historyScopeId])
+  @@index([createdAt, id])
 }
 
 // Eine einzelne Frage

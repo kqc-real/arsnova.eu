@@ -35,6 +35,16 @@ const testRouter = router({
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
   }),
+  quiz: router({
+    upload: publicProcedure.mutation(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+  }),
+  quickFeedback: router({
+    create: publicProcedure.mutation(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+  }),
   example: router({
     limited: publicProcedure.query(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
@@ -61,6 +71,12 @@ describe('zentrale Security-Telemetrie', () => {
       () => testRouter.createCaller({ req: undefined }).session.join(),
     ],
     ['vote.submit', 'vote', () => testRouter.createCaller({ req: undefined }).vote.submit()],
+    ['quiz.upload', 'quizUpload', () => testRouter.createCaller({ req: undefined }).quiz.upload()],
+    [
+      'quickFeedback.create',
+      'quickFeedback',
+      () => testRouter.createCaller({ req: undefined }).quickFeedback.create(),
+    ],
     [
       'session.getSessionExportPdf',
       'pdf',

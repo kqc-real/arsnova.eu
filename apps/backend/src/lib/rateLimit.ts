@@ -6,6 +6,11 @@ import { getRedis } from '../redis';
 
 const PREFIX = 'rl:';
 
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+}
+
 export const RATE_LIMIT_ENV = {
   sessionCodeAttempts: Number(process.env['RATE_LIMIT_SESSION_CODE_ATTEMPTS']) || 5,
   sessionCodeWindowMinutes: Number(process.env['RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES']) || 5,
@@ -17,7 +22,90 @@ export const RATE_LIMIT_ENV = {
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
+  quizUploadPerIpPerHour: positiveIntegerEnv('RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR', 600),
+  quizUploadGlobalPerHour: positiveIntegerEnv('RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_PER_HOUR', 3000),
+  quickFeedbackStandalonePerIpPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR',
+    600,
+  ),
+  quickFeedbackStandaloneGlobalPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_GLOBAL_PER_HOUR',
+    3000,
+  ),
+  quickFeedbackSessionPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE',
+    120,
+  ),
 } as const;
+
+const FIXED_WINDOW_BUDGET_SCRIPT = `
+local keyCount = #KEYS
+local windowSeconds = tonumber(ARGV[keyCount + 1])
+
+for index = 1, keyCount do
+  local current = tonumber(redis.call('GET', KEYS[index])) or 0
+  local limit = tonumber(ARGV[index])
+  if current >= limit then
+    local ttl = redis.call('TTL', KEYS[index])
+    if ttl < 1 then
+      ttl = windowSeconds
+    end
+    return { 0, index, ttl }
+  end
+end
+
+local minimumRemaining = nil
+for index = 1, keyCount do
+  local count = redis.call('INCR', KEYS[index])
+  if count == 1 then
+    redis.call('EXPIRE', KEYS[index], windowSeconds)
+  end
+  local remaining = tonumber(ARGV[index]) - count
+  if minimumRemaining == nil or remaining < minimumRemaining then
+    minimumRemaining = remaining
+  end
+end
+
+return { 1, minimumRemaining or 0, 0 }
+`;
+
+type FixedWindowBudget = { key: string; limit: number };
+
+/**
+ * Prüft mehrere feste Budgets atomar. Erst wenn alle Budgets frei sind,
+ * werden alle Zähler erhöht. Das verhindert TOCTOU-Bypässe und erzeugt bei
+ * ausgeschöpftem Globalbudget keine weiteren angreiferkontrollierten IP-Keys.
+ */
+export async function checkFixedWindowBudgets(
+  budgets: readonly FixedWindowBudget[],
+  windowSeconds: number,
+): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds?: number }> {
+  if (budgets.length === 0) {
+    return { allowed: true, remaining: 0 };
+  }
+
+  const redis = getRedis();
+  const result = (await redis.eval(
+    FIXED_WINDOW_BUDGET_SCRIPT,
+    budgets.length,
+    ...budgets.map((budget) => `${PREFIX}${budget.key}`),
+    ...budgets.map((budget) => String(budget.limit)),
+    String(windowSeconds),
+  )) as unknown;
+  if (!Array.isArray(result) || result.length < 3) {
+    throw new Error('Unerwartete Redis-Antwort beim Public-Create-Rate-Limit.');
+  }
+
+  const allowed = Number(result[0]) === 1;
+  if (allowed) {
+    return { allowed: true, remaining: Math.max(0, Number(result[1]) || 0) };
+  }
+  return {
+    allowed: false,
+    remaining: 0,
+    retryAfterSeconds: Math.max(1, Number(result[2]) || windowSeconds),
+  };
+}
 
 function isLoopbackIp(ip: string): boolean {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';
@@ -189,6 +277,44 @@ export async function checkSessionCreateRate(ip: string): Promise<{
   retryAfterSeconds?: number;
 }> {
   return checkSlidingWindow(`sessioncreate:${ip}`, RATE_LIMIT_ENV.sessionCreatePerHour, 3600);
+}
+
+export async function checkQuizUploadRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      { key: `quizUpload:global`, limit: RATE_LIMIT_ENV.quizUploadGlobalPerHour },
+      { key: `quizUpload:ip:${ip}`, limit: RATE_LIMIT_ENV.quizUploadPerIpPerHour },
+    ],
+    3600,
+  );
+}
+
+export async function checkQuickFeedbackStandaloneCreateRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'quickFeedback:standalone:global',
+        limit: RATE_LIMIT_ENV.quickFeedbackStandaloneGlobalPerHour,
+      },
+      {
+        key: `quickFeedback:standalone:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.quickFeedbackStandalonePerIpPerHour,
+      },
+    ],
+    3600,
+  );
+}
+
+export async function checkQuickFeedbackSessionCreateRate(sessionCode: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: `quickFeedback:session:${sessionCode.toUpperCase()}`,
+        limit: RATE_LIMIT_ENV.quickFeedbackSessionPerMinute,
+      },
+    ],
+    60,
+  );
 }
 
 export async function checkMotdGetCurrentRate(ip: string) {

@@ -21,7 +21,7 @@ import {
   type QuickFeedbackResult,
   type QuickFeedbackVoteInput,
 } from '@arsnova/shared-types';
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { getRedis } from '../redis';
 import { prisma } from '../db';
 import { recordVoteActivity } from '../lib/loadSignal';
@@ -38,6 +38,10 @@ import {
   tempoBucketStartMs,
   type TempoBucketSnapshot,
 } from '../lib/quickFeedbackTempo';
+import {
+  checkQuickFeedbackSessionCreateRate,
+  checkQuickFeedbackStandaloneCreateRate,
+} from '../lib/rateLimit';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const QUICK_FEEDBACK_POLL_ACTIVE_MS = 500;
@@ -376,7 +380,24 @@ export const quickFeedbackRouter = router({
       const sessionBound = !!input.sessionCode;
       if (input.sessionCode) {
         await assertHostSessionAccessFromContext(ctx, code);
+        const limit = await checkQuickFeedbackSessionCreateRate(code);
+        if (!limit.allowed) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Zu viele Blitzlicht-Starts. Bitte kurz warten.',
+            cause: { retryAfterSeconds: limit.retryAfterSeconds },
+          });
+        }
         await assertSessionQuickFeedbackEnabled(code);
+      } else {
+        const limit = await checkQuickFeedbackStandaloneCreateRate(resolveClientIp(ctx.req).ip);
+        if (!limit.allowed) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Zu viele Blitzlicht-Erstellungen. Bitte später erneut versuchen.',
+            cause: { retryAfterSeconds: limit.retryAfterSeconds },
+          });
+        }
       }
       const key = feedbackKey(code);
 

@@ -1313,6 +1313,10 @@ export const SessionOnboardingProfileInputSchema = z.object({
 export type SessionOnboardingProfileInput = z.infer<typeof SessionOnboardingProfileInputSchema>;
 
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
+export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
+export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 10;
+export const QUIZ_UPLOAD_MAX_PAYLOAD_BYTES = 1_250_000;
+
 export const AnswerOptionInputSchema = z.object({
   text: z.string().min(1, { error: 'Antworttext darf nicht leer sein' }).max(500),
   isCorrect: z.boolean(),
@@ -1328,7 +1332,7 @@ export const AddQuestionInputSchema = z
     difficulty: DifficultyEnum.optional().default('MEDIUM'),
     order: z.number().int().min(0),
     // Bei SHORT_TEXT werden hier die gültigen Musterlösungen/Varianten gespeichert.
-    answers: z.array(AnswerOptionInputSchema).max(10),
+    answers: z.array(AnswerOptionInputSchema).max(QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION),
     skipReadingPhase: z.boolean().optional(),
     ratingMin: z.number().int().min(0).max(10).optional(), // Nur bei RATING
     ratingMax: z.number().int().min(1).max(10).optional(), // Nur bei RATING
@@ -1689,35 +1693,46 @@ export const AddQuestionInputSchema = z
 export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
-export const QuizUploadInputSchema = z.object({
-  historyScopeId: z.uuid().optional(),
-  name: z.string().min(1).max(200),
-  description: z.string().max(5000).optional(),
-  /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
-  motifImageUrl: QuizMotifImageUrlInputSchema,
-  showLeaderboard: z.boolean(),
-  allowCustomNicknames: z.boolean(),
-  defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
-  timerScaleByDifficulty: z.boolean().optional(),
-  enableSoundEffects: z.boolean(),
-  enableRewardEffects: z.boolean(),
-  enableMotivationMessages: z.boolean(),
-  enableEmojiReactions: z.boolean(),
-  showQuestionTypeIndicators: z.boolean().optional(),
-  anonymousMode: z.boolean(),
-  teamMode: z.boolean(),
-  teamCount: z.number().int().min(2).max(8).nullable().optional(),
-  teamAssignment: TeamAssignmentEnum.optional(),
-  teamNames: TeamNamesSchema.optional(),
-  backgroundMusic: z.string().max(50).nullable().optional(),
-  nicknameTheme: NicknameThemeEnum,
-  bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
-  readingPhaseEnabled: z.boolean().optional(),
-  preset: QuizPresetEnum.optional(),
-  questions: z
-    .array(AddQuestionInputSchema)
-    .min(1, { error: 'Mindestens eine Frage erforderlich' }),
-});
+export const QuizUploadInputSchema = z
+  .object({
+    historyScopeId: z.uuid().optional(),
+    name: z.string().min(1).max(200),
+    description: z.string().max(5000).optional(),
+    /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
+    motifImageUrl: QuizMotifImageUrlInputSchema,
+    showLeaderboard: z.boolean(),
+    allowCustomNicknames: z.boolean(),
+    defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+    timerScaleByDifficulty: z.boolean().optional(),
+    enableSoundEffects: z.boolean(),
+    enableRewardEffects: z.boolean(),
+    enableMotivationMessages: z.boolean(),
+    enableEmojiReactions: z.boolean(),
+    showQuestionTypeIndicators: z.boolean().optional(),
+    anonymousMode: z.boolean(),
+    teamMode: z.boolean(),
+    teamCount: z.number().int().min(2).max(8).nullable().optional(),
+    teamAssignment: TeamAssignmentEnum.optional(),
+    teamNames: TeamNamesSchema.optional(),
+    backgroundMusic: z.string().max(50).nullable().optional(),
+    nicknameTheme: NicknameThemeEnum,
+    bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
+    readingPhaseEnabled: z.boolean().optional(),
+    preset: QuizPresetEnum.optional(),
+    questions: z
+      .array(AddQuestionInputSchema)
+      .min(1, { error: 'Mindestens eine Frage erforderlich' })
+      .max(QUIZ_UPLOAD_MAX_QUESTIONS),
+  })
+  .superRefine((value, ctx) => {
+    const payloadBytes = new TextEncoder().encode(JSON.stringify(value)).byteLength;
+    if (payloadBytes > QUIZ_UPLOAD_MAX_PAYLOAD_BYTES) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Quiz-Upload darf maximal ${QUIZ_UPLOAD_MAX_PAYLOAD_BYTES} Bytes groß sein.`,
+      });
+    }
+  });
 export type QuizUploadInput = z.input<typeof QuizUploadInputSchema>;
 
 /** Output: Antwort auf quiz.upload (Story 2.1a). */
@@ -3018,6 +3033,8 @@ export const HealthSecurityStatsDTOSchema = z.object({
   /** 429-Ablehnungen der letzten Minute nach öffentlichem Pfadtyp. */
   rateLimit429ByCategoryLastMinute: z.object({
     sessionCreate: z.number().int().min(0),
+    quizUpload: z.number().int().min(0),
+    quickFeedback: z.number().int().min(0),
     sessionCode: z.number().int().min(0),
     vote: z.number().int().min(0),
     pdf: z.number().int().min(0),

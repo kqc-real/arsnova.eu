@@ -1,15 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, checkQuizUploadRateMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       create: vi.fn(),
     },
   },
+  checkQuizUploadRateMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/rateLimit', () => ({
+  checkQuizUploadRate: checkQuizUploadRateMock,
 }));
 
 import { quizRouter } from '../routers/quiz';
@@ -21,6 +26,7 @@ describe('quiz.upload (Story 2.1a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.create.mockResolvedValue({ id: QUIZ_ID });
+    checkQuizUploadRateMock.mockResolvedValue({ allowed: true, remaining: 599 });
   });
 
   it('erstellt Quiz mit Fragen und Antworten und liefert quizId', async () => {
@@ -65,6 +71,41 @@ describe('quiz.upload (Story 2.1a)', () => {
     });
     expect(createCall.data.motifImageUrl).toBeNull();
     expect(createCall.data.timerScaleByDifficulty).toBe(true);
+  });
+
+  it('begrenzt Upload-Spam vor jedem Datenbankschreibzugriff', async () => {
+    checkQuizUploadRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 120,
+    });
+    const input = {
+      name: 'Spam',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    };
+
+    await expect(caller.upload(input)).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      cause: { retryAfterSeconds: 120 },
+    });
+    expect(prismaMock.quiz.create).not.toHaveBeenCalled();
   });
 
   it('speichert SHORT_TEXT-Konfiguration und Musterlösungen', async () => {

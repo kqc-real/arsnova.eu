@@ -13,6 +13,7 @@ const redisMock = {
   setex: vi.fn().mockResolvedValue('OK'),
   ttl: vi.fn().mockResolvedValue(-1),
   zrange: vi.fn().mockResolvedValue([]),
+  eval: vi.fn().mockResolvedValue([1, 10, 0]),
 };
 
 vi.mock('../redis', () => ({
@@ -28,6 +29,8 @@ import {
   checkMotdGetCurrentRate,
   checkMotdListArchiveRate,
   checkMotdRecordInteractionRate,
+  checkFixedWindowBudgets,
+  checkQuizUploadRate,
   RATE_LIMIT_ENV,
 } from '../lib/rateLimit';
 
@@ -41,6 +44,46 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
     expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
     expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
+    expect(RATE_LIMIT_ENV.quizUploadPerIpPerHour).toBe(600);
+    expect(RATE_LIMIT_ENV.quizUploadGlobalPerHour).toBe(3000);
+    expect(RATE_LIMIT_ENV.quickFeedbackStandalonePerIpPerHour).toBe(600);
+    expect(RATE_LIMIT_ENV.quickFeedbackStandaloneGlobalPerHour).toBe(3000);
+    expect(RATE_LIMIT_ENV.quickFeedbackSessionPerMinute).toBe(120);
+  });
+});
+
+describe('atomare Public-Create-Budgets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    redisMock.eval.mockResolvedValue([1, 10, 0]);
+  });
+
+  it('prüft Global- und Shared-NAT-IP-Budget in genau einem atomaren Redis-Aufruf', async () => {
+    await expect(checkQuizUploadRate('203.0.113.9')).resolves.toEqual({
+      allowed: true,
+      remaining: 10,
+    });
+
+    expect(redisMock.eval).toHaveBeenCalledOnce();
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('INCR'"),
+      2,
+      'rl:quizUpload:global',
+      'rl:quizUpload:ip:203.0.113.9',
+      '3000',
+      '600',
+      '3600',
+    );
+  });
+
+  it('übernimmt Retry-After aus dem abgelehnten Budget', async () => {
+    redisMock.eval.mockResolvedValue([0, 1, 47]);
+
+    await expect(checkFixedWindowBudgets([{ key: 'abuse', limit: 2 }], 60)).resolves.toEqual({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 47,
+    });
   });
 });
 
