@@ -1,11 +1,11 @@
 # =============================================================================
 # arsnova.eu – Multi-Stage Dockerfile
 # Stage 1: Install dependencies + build
-# Stage 2: Production image (node:20-alpine)
+# Stage 2: Production image (node:24-alpine)
 # =============================================================================
 
 # ─── Stage 1: Build ─────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ RUN npx tsc -b apps/backend/tsconfig.json \
 RUN npm run build:localize -w @arsnova/frontend
 
 # ─── Stage 2: Production ────────────────────────────────────────────────────
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 WORKDIR /app
 

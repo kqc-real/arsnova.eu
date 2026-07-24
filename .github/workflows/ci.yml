@@ -153,10 +153,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -200,11 +200,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -228,7 +228,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: Docs-only fast pass
@@ -267,11 +267,11 @@ jobs:
         run: npx tsc --project apps/frontend/tsconfig.app.json --noEmit
 
       - name: Frontend localized production build (alle Locales)
-        if: needs.changes.outputs.docs_only != 'true' && matrix.node-version == 22
+        if: needs.changes.outputs.docs_only != 'true' && matrix.node-version == 24
         run: npm run build:localize -w @arsnova/frontend
 
       - name: Upload frontend production build
-        if: needs.changes.outputs.docs_only != 'true' && matrix.node-version == 22
+        if: needs.changes.outputs.docs_only != 'true' && matrix.node-version == 24
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: frontend-dist-browser
@@ -294,11 +294,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -346,7 +346,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: Docs-only fast pass
@@ -396,11 +396,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -431,11 +431,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -475,11 +475,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -560,11 +560,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -639,11 +639,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Download frontend production build
@@ -747,11 +747,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -914,11 +914,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -1043,10 +1043,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -1170,10 +1170,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies

@@ -45,6 +45,10 @@ HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** be
 
 Die ressourcenintensive Playwright-PDF-Erzeugung für Session-Ergebnisberichte ist im einzelnen Backend-Prozess auf **einen aktiven Job** begrenzt. Weitere PDF-Anfragen werden ohne Warteschlange mit HTTP **429** abgewiesen; Start, Abschluss, Fehler und Ablehnungen sind über strukturierte `pdf:*`-Log-Ereignisse sowie rollierende Redis-Metriken in `health.stats` beobachtbar. Der konservative Cap wurde gewählt, weil Cap 2 auf dem Zielhost die Vote-SLOs verfehlte. Bei einer späteren horizontalen Skalierung ist vorab ein instanzübergreifender Semaphore erforderlich.
 
+Builder und Produktionscontainer verwenden **Node.js 24 LTS** (`node:24-alpine`). `.nvmrc` pinnt die lokal empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI und Produktionsimage entfernt.
+
+Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-NODE-24-ABNAHME.md](implementation/W0.3-W1.1-NODE-24-ABNAHME.md) dokumentiert.
+
 ---
 
 ## 5. Aufbewahrung & Löschung

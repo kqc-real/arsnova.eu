@@ -6,7 +6,7 @@
 
 Marketing- und Informationsseite für arsnova.eu. Astro 6 + Tailwind 3 (PostCSS), SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
 
-**Node.js:** Landing-Build und `dev:landing` benötigen **Node ≥ 22.12** (Astro 6). CI nutzt bereits Node 22.
+**Node.js:** Landing-Build und `dev:landing` benötigen **Node ≥ 22.12** (Astro 6). CI und `.nvmrc` nutzen Node 24 LTS.
 
 ## Entwicklung
 

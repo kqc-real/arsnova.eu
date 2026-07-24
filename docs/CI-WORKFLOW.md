@@ -68,7 +68,7 @@ flowchart TD
 
   Z --> B[dependency-review<br/>nur pull_request]
   Z --> C[actionlint<br/>nicht bei schedule]
-  Z --> D[build<br/>Node 20 + Node 22<br/>skip bei docs_only/schedule]
+  Z --> D[build<br/>Node 22 + Node 24<br/>skip bei docs_only/schedule]
   Z --> E[typecheck<br/>skip bei docs_only/schedule]
   Z --> F[audit<br/>skip bei docs_only/schedule]
   Z --> G[trivy-fs<br/>skip bei docs_only/schedule]
@@ -133,7 +133,7 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Bei allen Events außer `schedule`.
 - **Warum?** Verhindert CI-Fehler durch fehlerhafte YAML-/Workflow-Logik.
 
-### 4.3 build (Node-Matrix: 20 und 22)
+### 4.3 build (Node-Matrix: 22 und 24)
 
 - **Was?**
   1. `npm ci`
@@ -382,7 +382,7 @@ Mehr Details und Spezialfälle stehen in [TESTING.md](TESTING.md).
 - **Gate**: Ein Muss-Check. Wenn rot, stoppt die Pipeline vor dem nächsten kritischen Schritt.
 - **needs**: Abhängigkeit zwischen Jobs. Ein Job startet erst, wenn seine Vorgänger grün sind.
 - **Artifact**: Datei/Ordner aus einem Job, die in späteren Jobs wiederverwendet wird.
-- **Matrix**: Derselbe Job läuft in mehreren Umgebungen (hier Node 20 und 22).
+- **Matrix**: Derselbe Job läuft in mehreren Umgebungen (hier Node 22 und 24).
 - **Smoke-Test**: Kurzer End-to-End-Test, der die wichtigsten Kernfunktionen prüft.
 
 ---
@@ -417,13 +417,13 @@ Hinweise:
 
 Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Protection für `main` diese Checks als **required** gesetzt werden (GitHub-Display-Namen aus dem Workflow):
 
-1. `Build & Validate (Node 20)`
-2. `Build & Validate (Node 22)`
+1. `Build & Validate (Node 22)`
+2. `Build & Validate (Node 24)`
 3. `Build Landing`
 4. `Changed Files Format`
 5. `Migration Drift`
 6. `lint`
-7. `Typecheck (workspaces)` (Matrix: Node 20 und 22)
+7. `Typecheck (workspaces)` (Matrix: Node 22 und 24)
 8. `Tests`
 9. `PDF/UA-1 Validation`
 10. `Lighthouse CI`

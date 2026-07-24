@@ -63,7 +63,7 @@ Wichtig: arsnova.eu ersetzt keine organisationsweite IAM-, LMS-, Prüfungs- oder
 | Kurzzeitdaten      | Redis 7 für Rate-Limits, Token-TTLs, Presence-/Live-Hilfsdaten, Blitzlicht  |
 | Local-first Sync   | Yjs / y-websocket für Quiz-Sammlungen                                       |
 | Deployment         | Docker Compose, Nginx Reverse Proxy, Let's Encrypt, GitHub Actions optional |
-| Qualitätssicherung | TypeScript, ESLint, Prettier, Vitest, CI-Matrix für Node 20 und 22          |
+| Qualitätssicherung | TypeScript, ESLint, Prettier, Vitest, CI-Matrix für Node 22 und 24          |
 
 Die Architektur ist als Living Documentation gepflegt:
 
@@ -120,7 +120,7 @@ Für eine technische Evaluation reicht ein lokaler Lauf mit PostgreSQL und Redis
 
 ### Voraussetzungen
 
-- Node.js gemäß [`.nvmrc`](./.nvmrc): Node 20 ist der Referenzpfad; Node 22 wird in CI ebenfalls geprüft.
+- Node.js gemäß [`.nvmrc`](./.nvmrc): Node 24 LTS ist der Referenz- und Produktionspfad; Node 22 wird in CI als Kompatibilitätspfad geprüft.
 - npm mit dem mitgelieferten Lockfile.
 - Docker / Docker Compose für PostgreSQL und Redis.
 

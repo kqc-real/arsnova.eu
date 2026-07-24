@@ -14,14 +14,14 @@ Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als 
 
 ### Voraussetzungen
 
-| Tool                    | Version                                                                          | Prüfbefehl               |
-| ----------------------- | -------------------------------------------------------------------------------- | ------------------------ |
-| Node.js                 | **LTS 20.x** oder **22.x** empfohlen (`.nvmrc` = 20.19.0; `nvm use` / `fnm use`) | `node -v`                |
-| npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                        | `npm -v`                 |
-| Docker & Docker Compose | aktuell                                                                          | `docker compose version` |
-| Git                     | aktuell                                                                          | `git -v`                 |
+| Tool                    | Version                                                                         | Prüfbefehl               |
+| ----------------------- | ------------------------------------------------------------------------------- | ------------------------ |
+| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.12+ unterstützt | `node -v`                |
+| npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                       | `npm -v`                 |
+| Docker & Docker Compose | aktuell                                                                         | `docker compose version` |
+| Git                     | aktuell                                                                         | `git -v`                 |
 
-**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **20.19.0** oder eine passende **22.x LTS**. Odd-/Current-Majors (z. B. **21**, **23**) sind für lokale Builds **nicht** unterstützt. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); dort ist auch **24.x** erlaubt, die **CI** baut aber weiterhin mit **Node 20 und 22** (GitHub Actions).
+**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.12+ LTS** bleibt als Kompatibilitätspfad unterstützt. EOL- und ungerade Majors sind nicht unterstützt. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
 
 ### Windows? Bitte direkt WSL2 nutzen
 
@@ -152,7 +152,7 @@ belegt die Korrekturen der damals roten Gates.
 | Symptom                                 | Wahrscheinliche Ursache                                        | Direkt ausprobieren                                                   |
 | --------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
 | `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet      | Docker starten, dann `docker compose version` prüfen                  |
-| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                 | `node -v` prüfen; dann `nvm use` oder Node 20/22 installieren         |
+| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                 | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren         |
 | Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en` |
 | Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt | `npm run setup:dev` erneut ausführen                                  |
 | Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                  | `npm run free-dev-ports` und dann erneut `npm run dev`                |
@@ -262,7 +262,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                    |
 | Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                    |
 | Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                              |
-| CI/CD-Pipeline                                                          | GitHub Actions: Prisma, TypeScript, Tests, Docker sowie Template-A11y, axe, Lighthouse, Reflow und PDF/UA (Node 20/22)                  |
+| CI/CD-Pipeline                                                          | GitHub Actions: Prisma, TypeScript, Tests, Docker sowie Template-A11y, axe, Lighthouse, Reflow und PDF/UA (Node 22/24)                  |
 | Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                     |
 | Last-/Performance-Teststrecke                                           | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler QA-Nachlauf grün |
 

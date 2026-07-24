@@ -13,7 +13,7 @@ Du arbeitest in einem npm-Workspaces-Monorepo für arsnova.eu.
 
 ## Stack-Fakten
 
-- **Runtime:** Node 20 aus `.nvmrc` oder passende Node 22 LTS; CI prüft Node 20 und 22.
+- **Runtime:** Node 24.18.0 LTS aus `.nvmrc`; Node 22.12+ bleibt als Kompatibilitätspfad unterstützt. CI prüft Node 22 und 24.
 - **Package Manager:** npm mit Workspaces und `package-lock.json`.
 - **API:** tRPC über Shared Zod Contracts.
 - **Persistenz:** PostgreSQL für persistente Daten; Redis für Rate-Limits, Token-TTLs und Live-Hilfsdaten.
