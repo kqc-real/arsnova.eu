@@ -37,6 +37,7 @@ import {
   QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
   QUIZ_UPLOAD_MAX_COMPLEXITY,
   SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
+  SESSION_CREATE_GLOBAL_PER_WINDOW_PRODUCTION_DEFAULT,
 } from '../lib/publicCreateCapacity';
 
 describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
@@ -45,6 +46,7 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.sessionCreatePerHour).toBe(10);
     expect(RATE_LIMIT_ENV.sessionCreateGlobalPerHour).toBe(120);
     expect(SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT).toBe(120);
+    expect(SESSION_CREATE_GLOBAL_PER_WINDOW_PRODUCTION_DEFAULT).toBe(2400);
     expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
     expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
     expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
@@ -61,6 +63,20 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
       QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT * 2,
     );
     expect(QUIZ_UPLOAD_MAX_COMPLEXITY).toBe(2_201);
+  });
+
+  it('behält ohne neue Env-Variable die produktive Rollout-Kapazität', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR', '');
+    vi.resetModules();
+
+    try {
+      const { RATE_LIMIT_ENV: productionLimits } = await import('../lib/rateLimit');
+      expect(productionLimits.sessionCreateGlobalPerHour).toBe(2400);
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });
 

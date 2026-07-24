@@ -41,7 +41,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `RATE_LIMIT_SESSION_CODE_MAX_CONCURRENT_DELAYS`        | nein         | `100`                      | Maximale gleichzeitig wartende ungültige Code-Abfragen pro Backend-Prozess; weitere werden mit 429 abgewiesen                                                       |
 | `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`                  | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                                                |
 | `RATE_LIMIT_SESSION_CREATE_PER_HOUR`                   | nein         | `10`                       | Grobes Shared-NAT-IP-Budget für Session-Erstellungen pro festem Stundenfenster                                                                                      |
-| `RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR`            | nein         | `120`                      | Globales Session-Create-Budget gegen verteilten Spam; wird atomar mit dem IP-Budget gebucht                                                                         |
+| `RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR`            | nein         | `120` (`2400` in Prod)     | Globales Session-Create-Budget gegen verteilten Spam; wird atomar mit dem IP-Budget gebucht. Der höhere Prod-Fallback schützt bestehende Deployments ohne neue Env  |
 | `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`           | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen                         |
 | `RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_HOUR`       | nein         | `600`                      | Grobes Shared-NAT-Versuchslimit vor fachlicher Zod-Validierung                                                                                                      |
 | `RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_HOUR`       | nein         | `1200`                     | Globales Versuchslimit vor Zod; zählt auch ungültige Uploads                                                                                                        |
@@ -176,7 +176,12 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 - `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE=180`
 - `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE=120`
 
-Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Code-Defaults (wenn Variablen fehlen) bleiben weiterhin konservativ (`10` Session-Erstellungen pro IP und `120` global pro Stunde).
+Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Ohne Variablen
+gelten 10 Session-Erstellungen pro IP sowie 120 global pro Stunde. Für
+`NODE_ENV=production` fällt ausschließlich das neue Globalbudget auf 2400
+zurück, damit bestehende persistente `.env.production`-Dateien beim ersten
+Rollout nicht unbemerkt auf 120/h begrenzt werden. Die Variable soll trotzdem
+explizit in die produktive Env übernommen werden.
 
 Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt `X-Forwarded-For` mit `$remote_addr`; `TRUST_PROXY_HOPS=1` lässt Express genau diesem Hop vertrauen. Der separate tRPC-WebSocket-Server ergänzt Upgrade-Requests mit derselben `proxy-addr`-/Hop-Vertrauensfunktion. Ohne konfigurierten Proxy-Hop wird auch dort ausschließlich die direkte Socket-Adresse verwendet. Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen.
 

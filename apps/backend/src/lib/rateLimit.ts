@@ -12,6 +12,7 @@ import {
   QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
   QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
   SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
+  SESSION_CREATE_GLOBAL_PER_WINDOW_PRODUCTION_DEFAULT,
   SESSION_CREATE_PER_IP_PER_WINDOW_DEFAULT,
 } from './publicCreateCapacity';
 
@@ -34,7 +35,9 @@ export const RATE_LIMIT_ENV = {
   ),
   sessionCreateGlobalPerHour: positiveIntegerEnv(
     'RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR',
-    SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
+    process.env['NODE_ENV'] === 'production'
+      ? SESSION_CREATE_GLOBAL_PER_WINDOW_PRODUCTION_DEFAULT
+      : SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
   ),
   /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute (`getCurrent` + `getHeaderState` teilen sich das Limit) */
   motdGetCurrentPerMinute: Number(process.env['RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE']) || 600,
