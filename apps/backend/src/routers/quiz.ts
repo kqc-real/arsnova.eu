@@ -23,8 +23,11 @@ import {
   type ToleranceLevel,
   questionSupportsConfidence,
 } from '@arsnova/shared-types';
-import { publicProcedure, router } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { quizUploadAttemptProcedure, resolveTrustedPublicCreateIp, router } from '../trpc';
 import { prisma } from '../db';
+import { checkQuizUploadStorageRate } from '../lib/rateLimit';
+import { calculateQuizUploadComplexity } from '../lib/publicCreateCapacity';
 
 function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   historyScopeId: string | null;
@@ -196,10 +199,22 @@ export const quizRouter = router({
    * Quiz inkl. Fragen und Antwortoptionen in der DB anlegen (Story 2.1a).
    * Wird vom Frontend vor session.create aufgerufen; die zurückgegebene quizId wird an session.create übergeben.
    */
-  upload: publicProcedure
+  upload: quizUploadAttemptProcedure
     .input(QuizUploadInputSchema)
     .output(QuizUploadOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(input)).byteLength;
+      const limit = await checkQuizUploadStorageRate(resolveTrustedPublicCreateIp(ctx.req).ip, {
+        payloadBytes,
+        complexity: calculateQuizUploadComplexity(input),
+      });
+      if (!limit.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Zu viele Quiz-Uploads. Bitte später erneut versuchen.',
+          cause: { retryAfterSeconds: limit.retryAfterSeconds },
+        });
+      }
       const historyScopeId = input.historyScopeId ?? null;
       const quiz = await prisma.quiz.create({
         data: {

@@ -4,6 +4,10 @@ import {
   AnswerOptionStudentDTOSchema,
   JoinSessionInputSchema,
   previewMaxCorrectScoreAtElapsedSeconds,
+  QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION,
+  QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
+  QUIZ_UPLOAD_MAX_QUESTIONS,
+  QuizUploadInputSchema,
   QuestionRevealedDTOSchema,
   QuestionStudentDTOSchema,
   resolvePersonalTimerSeconds,
@@ -18,6 +22,81 @@ const questionId = '10000000-0000-4000-8000-000000000003';
 const answerId = '10000000-0000-4000-8000-000000000004';
 
 describe('öffentliche Contract-Schemas', () => {
+  const quizUploadBase = {
+    name: 'Classroom-Quiz',
+    showLeaderboard: true,
+    allowCustomNicknames: true,
+    enableSoundEffects: true,
+    enableRewardEffects: true,
+    enableMotivationMessages: true,
+    enableEmojiReactions: true,
+    anonymousMode: false,
+    teamMode: false,
+    nicknameTheme: 'NOBEL_LAUREATES' as const,
+  };
+
+  it('akzeptiert ein normales Classroom-Quiz deutlich unter den Upload-Caps', () => {
+    const questions = Array.from({ length: 100 }, (_, order) => ({
+      text: `Frage ${order + 1}`,
+      type: 'MULTIPLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order,
+      answers: Array.from({ length: 4 }, (_, answer) => ({
+        text: `Antwort ${answer + 1}`,
+        isCorrect: answer === 0,
+      })),
+    }));
+
+    expect(QuizUploadInputSchema.safeParse({ ...quizUploadBase, questions }).success).toBe(true);
+  });
+
+  it('weist zu viele Fragen und Antwortoptionen zurück', () => {
+    const question = {
+      text: 'Frage',
+      type: 'MULTIPLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      answers: Array.from({ length: QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION + 1 }, (_, index) => ({
+        text: `Antwort ${index}`,
+        isCorrect: index === 0,
+      })),
+    };
+    expect(
+      QuizUploadInputSchema.safeParse({
+        ...quizUploadBase,
+        questions: [question],
+      }).success,
+    ).toBe(false);
+    expect(
+      QuizUploadInputSchema.safeParse({
+        ...quizUploadBase,
+        questions: Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS + 1 }, (_, order) => ({
+          ...question,
+          order,
+          answers: [{ text: 'Antwort', isCorrect: true }],
+        })),
+      }).success,
+    ).toBe(false);
+  });
+
+  it('weist fachlich zu große Quiz-Payloads unterhalb der 2-MiB-Infrastrukturgrenze zurück', () => {
+    const questions = Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS }, (_, order) => ({
+      text: 'F'.repeat(2000),
+      type: 'MULTIPLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order,
+      answers: Array.from({ length: QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION }, (_, answer) => ({
+        text: `${answer}${'A'.repeat(498)}`,
+        isCorrect: answer === 0,
+      })),
+    }));
+    const payload = { ...quizUploadBase, description: 'D'.repeat(5000), questions };
+    const payloadBytes = new TextEncoder().encode(JSON.stringify(payload)).byteLength;
+    expect(payloadBytes).toBeGreaterThan(QUIZ_UPLOAD_MAX_PAYLOAD_BYTES);
+    expect(payloadBytes).toBeLessThan(2 * 1024 * 1024);
+    expect(QuizUploadInputSchema.safeParse(payload).success).toBe(false);
+  });
+
   it('weist Lösungsdaten in studentischen Antwortoptionen strikt zurück', () => {
     const result = AnswerOptionStudentDTOSchema.safeParse({
       id: answerId,

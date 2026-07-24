@@ -61,7 +61,7 @@ describe('abuseTelemetry', () => {
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
-  it('begrenzt 20.000 PDF-/MOTD-429-Events auf einen Redis-Flush', async () => {
+  it('begrenzt 40.000 inklusive Public-Create-429-Events auf einen Redis-Flush', async () => {
     vi.useFakeTimers();
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
@@ -69,6 +69,8 @@ describe('abuseTelemetry', () => {
     for (let index = 0; index < 10_000; index += 1) {
       recordRateLimitRejection('pdf', 25_000);
       recordRateLimitRejection('motd', 25_000);
+      recordRateLimitRejection('quizUpload', 25_000);
+      recordRateLimitRejection('quickFeedback', 25_000);
     }
 
     expect(mocks.getRedis).not.toHaveBeenCalled();
@@ -77,9 +79,14 @@ describe('abuseTelemetry', () => {
     await vi.advanceTimersByTimeAsync(1);
 
     expect(mocks.getRedis).toHaveBeenCalledOnce();
-    expect(multi.incrby).toHaveBeenCalledTimes(2);
+    expect(multi.incrby).toHaveBeenCalledTimes(4);
     expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:pdf:2', 10_000);
     expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:motd:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:quizUpload:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith(
+      'security:metric:rateLimit429:quickFeedback:2',
+      10_000,
+    );
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
@@ -120,15 +127,15 @@ describe('abuseTelemetry', () => {
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
-    const values = Array.from({ length: 49 }, () => [null, '0']);
-    // Reihenfolge je Bucket: create, sessionCreate, sessionCode, vote, pdf, motd, other.
+    const values = Array.from({ length: 63 }, () => [null, '0']);
+    // Reihenfolge je Bucket: create, sessionCreate, quizUpload, quickFeedback, sessionCode, vote, pdf, motd, other.
     values[0] = [null, '3'];
     values[1] = [null, '2'];
-    values[3] = [null, '4'];
-    values[35] = [null, '1'];
-    values[39] = [null, '5'];
+    values[5] = [null, '4'];
+    values[45] = [null, '1'];
+    values[51] = [null, '5'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[42] = [null, '2'];
+    values[54] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
@@ -137,6 +144,8 @@ describe('abuseTelemetry', () => {
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
+        quizUpload: 0,
+        quickFeedback: 0,
         sessionCode: 0,
         vote: 4,
         pdf: 5,
@@ -144,7 +153,7 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(49);
+    expect(multi.get).toHaveBeenCalledTimes(63);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -171,7 +180,7 @@ describe('abuseTelemetry', () => {
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.5');
   });
 
-  it('begrenzt 20.000 MOTD-/PDF-Diagnoseereignisse auf zwei gesampelte Logs', () => {
+  it('begrenzt 40.000 inklusive Public-Create-Ereignissen auf vier gesampelte Logs', () => {
     for (let index = 0; index < 10_000; index += 1) {
       logRateLimitRejection(
         { path: 'motd.getCurrent', category: 'motd', ipSource: 'x-forwarded-for' },
@@ -181,9 +190,21 @@ describe('abuseTelemetry', () => {
         { path: 'session.getSessionExportPdf', category: 'pdf', ipSource: 'socket' },
         1_000,
       );
+      logRateLimitRejection(
+        { path: 'quiz.upload', category: 'quizUpload', ipSource: 'express-req-ip' },
+        1_000,
+      );
+      logRateLimitRejection(
+        {
+          path: 'quickFeedback.create',
+          category: 'quickFeedback',
+          ipSource: 'express-req-ip',
+        },
+        1_000,
+      );
     }
 
-    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenCalledTimes(4);
     expect(mocks.warn).toHaveBeenCalledWith(
       'rate_limit_429',
       expect.objectContaining({ category: 'motd' }),
@@ -191,6 +212,14 @@ describe('abuseTelemetry', () => {
     expect(mocks.warn).toHaveBeenCalledWith(
       'rate_limit_429',
       expect.objectContaining({ category: 'pdf' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'quizUpload' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'quickFeedback' }),
     );
   });
 
@@ -206,6 +235,8 @@ describe('abuseTelemetry', () => {
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 0,
+        quizUpload: 0,
+        quickFeedback: 0,
         sessionCode: 0,
         vote: 0,
         pdf: 0,

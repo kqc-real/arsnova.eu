@@ -1,15 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock } = vi.hoisted(() => ({
-  prismaMock: {
-    quiz: {
-      create: vi.fn(),
+const { prismaMock, checkQuizUploadAttemptRateMock, checkQuizUploadStorageRateMock } = vi.hoisted(
+  () => ({
+    prismaMock: {
+      quiz: {
+        create: vi.fn(),
+      },
     },
-  },
-}));
+    checkQuizUploadAttemptRateMock: vi.fn(),
+    checkQuizUploadStorageRateMock: vi.fn(),
+  }),
+);
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/rateLimit', () => ({
+  checkQuizUploadAttemptRate: checkQuizUploadAttemptRateMock,
+  checkQuizUploadStorageRate: checkQuizUploadStorageRateMock,
 }));
 
 import { quizRouter } from '../routers/quiz';
@@ -21,6 +30,8 @@ describe('quiz.upload (Story 2.1a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.create.mockResolvedValue({ id: QUIZ_ID });
+    checkQuizUploadAttemptRateMock.mockResolvedValue({ allowed: true, remaining: 1199 });
+    checkQuizUploadStorageRateMock.mockResolvedValue({ allowed: true, remaining: 299 });
   });
 
   it('erstellt Quiz mit Fragen und Antworten und liefert quizId', async () => {
@@ -53,6 +64,11 @@ describe('quiz.upload (Story 2.1a)', () => {
     const result = await caller.upload(input);
 
     expect(result.quizId).toBe(QUIZ_ID);
+    expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledWith('0.0.0.0');
+    expect(checkQuizUploadStorageRateMock).toHaveBeenCalledWith('0.0.0.0', {
+      payloadBytes: expect.any(Number),
+      complexity: 4,
+    });
     expect(prismaMock.quiz.create).toHaveBeenCalledTimes(1);
     const createCall = prismaMock.quiz.create.mock.calls[0]![0];
     expect(createCall.data.name).toBe('Test-Quiz');
@@ -65,6 +81,83 @@ describe('quiz.upload (Story 2.1a)', () => {
     });
     expect(createCall.data.motifImageUrl).toBeNull();
     expect(createCall.data.timerScaleByDifficulty).toBe(true);
+  });
+
+  it('begrenzt Upload-Spam vor jedem Datenbankschreibzugriff', async () => {
+    checkQuizUploadStorageRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 120,
+    });
+    const input = {
+      name: 'Spam',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    };
+
+    await expect(caller.upload(input)).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      cause: { retryAfterSeconds: 120 },
+    });
+    expect(prismaMock.quiz.create).not.toHaveBeenCalled();
+  });
+
+  it('ignoriert gefälschte Proxy-Header für beide Quiz-Upload-Budgets', async () => {
+    const trustedIpCaller = quizRouter.createCaller({
+      req: {
+        ip: '198.51.100.77',
+        headers: {
+          'cf-connecting-ip': '203.0.113.1',
+          'true-client-ip': '203.0.113.2',
+          'x-forwarded-for': '203.0.113.3',
+        },
+        socket: { remoteAddress: '127.0.0.1' },
+      } as never,
+    });
+
+    await trustedIpCaller.upload({
+      name: 'Trusted IP',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'NOBEL_LAUREATES',
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    });
+
+    expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledWith('198.51.100.77');
+    expect(checkQuizUploadStorageRateMock).toHaveBeenCalledWith(
+      '198.51.100.77',
+      expect.any(Object),
+    );
   });
 
   it('speichert SHORT_TEXT-Konfiguration und Musterlösungen', async () => {

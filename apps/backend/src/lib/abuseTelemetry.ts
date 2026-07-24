@@ -12,7 +12,15 @@ const FLUSH_INTERVAL_MS = 5_000;
 const RATE_LIMIT_LOG_INTERVAL_MS = 10_000;
 const MAX_COUNTER_VALUE = Number.MAX_SAFE_INTEGER;
 
-export type RateLimitCategory = 'sessionCreate' | 'sessionCode' | 'vote' | 'pdf' | 'motd' | 'other';
+export type RateLimitCategory =
+  | 'sessionCreate'
+  | 'quizUpload'
+  | 'quickFeedback'
+  | 'sessionCode'
+  | 'vote'
+  | 'pdf'
+  | 'motd'
+  | 'other';
 
 type AbuseCounterName = 'sessionCreateCompleted' | `rateLimit429:${RateLimitCategory}`;
 
@@ -24,6 +32,8 @@ export type AbuseSignals = {
 
 const RATE_LIMIT_CATEGORIES: RateLimitCategory[] = [
   'sessionCreate',
+  'quizUpload',
+  'quickFeedback',
   'sessionCode',
   'vote',
   'pdf',

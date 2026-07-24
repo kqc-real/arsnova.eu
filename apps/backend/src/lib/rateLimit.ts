@@ -3,8 +3,26 @@
  * Sliding-Window; Limits über Umgebungsvariablen konfigurierbar.
  */
 import { getRedis } from '../redis';
+import {
+  PUBLIC_CREATE_WINDOW_SECONDS,
+  QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+} from './publicCreateCapacity';
 
 const PREFIX = 'rl:';
+
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+}
+
+function boundedPositiveIntegerEnv(name: string, fallback: number, maximum: number): number {
+  return Math.min(positiveIntegerEnv(name, fallback), maximum);
+}
 
 export const RATE_LIMIT_ENV = {
   sessionCodeAttempts: Number(process.env['RATE_LIMIT_SESSION_CODE_ATTEMPTS']) || 5,
@@ -17,7 +35,133 @@ export const RATE_LIMIT_ENV = {
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
+  quizUploadAttemptPerIpPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_HOUR',
+    QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadAttemptGlobalPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_HOUR',
+    QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadPerIpPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR',
+    QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_PER_HOUR',
+    QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalBytesPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_BYTES_PER_HOUR',
+    QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalComplexityPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_HOUR',
+    QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+  ),
+  quickFeedbackStandalonePerIpPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR',
+    600,
+  ),
+  quickFeedbackStandaloneGlobalPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_GLOBAL_PER_HOUR',
+    3000,
+  ),
+  quickFeedbackSessionPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE',
+    120,
+  ),
 } as const;
+
+const FIXED_WINDOW_BUDGET_SCRIPT = `
+local keyCount = #KEYS
+local windowSeconds = tonumber(ARGV[(keyCount * 2) + 1])
+
+for index = 1, keyCount do
+  local current = tonumber(redis.call('GET', KEYS[index])) or 0
+  local limit = tonumber(ARGV[(index * 2) - 1])
+  local cost = tonumber(ARGV[index * 2])
+  if current + cost > limit then
+    local ttl = redis.call('TTL', KEYS[index])
+    if ttl < 1 then
+      ttl = windowSeconds
+    end
+    return { 0, index, ttl }
+  end
+end
+
+local minimumRemaining = nil
+for index = 1, keyCount do
+  local limit = tonumber(ARGV[(index * 2) - 1])
+  local cost = tonumber(ARGV[index * 2])
+  local previous = tonumber(redis.call('GET', KEYS[index])) or 0
+  local count = redis.call('INCRBY', KEYS[index], cost)
+  if previous == 0 then
+    redis.call('EXPIRE', KEYS[index], windowSeconds)
+  end
+  local remaining = limit - count
+  if minimumRemaining == nil or remaining < minimumRemaining then
+    minimumRemaining = remaining
+  end
+end
+
+return { 1, minimumRemaining or 0, 0 }
+`;
+
+type FixedWindowBudget = { key: string; limit: number; cost?: number };
+
+/**
+ * Prüft mehrere feste Budgets atomar. Erst wenn alle Budgets frei sind,
+ * werden alle Zähler erhöht. Das verhindert TOCTOU-Bypässe und erzeugt bei
+ * ausgeschöpftem Globalbudget keine weiteren angreiferkontrollierten IP-Keys.
+ */
+export async function checkFixedWindowBudgets(
+  budgets: readonly FixedWindowBudget[],
+  windowSeconds: number,
+): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds?: number }> {
+  if (budgets.length === 0) {
+    return { allowed: true, remaining: 0 };
+  }
+  if (
+    budgets.some(
+      (budget) =>
+        !Number.isSafeInteger(budget.limit) ||
+        budget.limit <= 0 ||
+        !Number.isSafeInteger(budget.cost ?? 1) ||
+        (budget.cost ?? 1) <= 0,
+    )
+  ) {
+    throw new Error('Ungültiges Public-Create-Budget.');
+  }
+
+  const redis = getRedis();
+  const result = (await redis.eval(
+    FIXED_WINDOW_BUDGET_SCRIPT,
+    budgets.length,
+    ...budgets.map((budget) => `${PREFIX}${budget.key}`),
+    ...budgets.flatMap((budget) => [String(budget.limit), String(budget.cost ?? 1)]),
+    String(windowSeconds),
+  )) as unknown;
+  if (!Array.isArray(result) || result.length < 3) {
+    throw new Error('Unerwartete Redis-Antwort beim Public-Create-Rate-Limit.');
+  }
+
+  const allowed = Number(result[0]) === 1;
+  if (allowed) {
+    return { allowed: true, remaining: Math.max(0, Number(result[1]) || 0) };
+  }
+  return {
+    allowed: false,
+    remaining: 0,
+    retryAfterSeconds: Math.max(1, Number(result[2]) || windowSeconds),
+  };
+}
 
 function isLoopbackIp(ip: string): boolean {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';
@@ -189,6 +333,73 @@ export async function checkSessionCreateRate(ip: string): Promise<{
   retryAfterSeconds?: number;
 }> {
   return checkSlidingWindow(`sessioncreate:${ip}`, RATE_LIMIT_ENV.sessionCreatePerHour, 3600);
+}
+
+export async function checkQuizUploadAttemptRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'quizUpload:attempt:global',
+        limit: RATE_LIMIT_ENV.quizUploadAttemptGlobalPerHour,
+      },
+      {
+        key: `quizUpload:attempt:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.quizUploadAttemptPerIpPerHour,
+      },
+    ],
+    PUBLIC_CREATE_WINDOW_SECONDS,
+  );
+}
+
+export async function checkQuizUploadStorageRate(
+  ip: string,
+  weight: { payloadBytes: number; complexity: number },
+) {
+  return checkFixedWindowBudgets(
+    [
+      { key: 'quizUpload:accepted:global', limit: RATE_LIMIT_ENV.quizUploadGlobalPerHour },
+      { key: `quizUpload:accepted:ip:${ip}`, limit: RATE_LIMIT_ENV.quizUploadPerIpPerHour },
+      {
+        key: 'quizUpload:accepted:bytes:global',
+        limit: RATE_LIMIT_ENV.quizUploadGlobalBytesPerHour,
+        cost: weight.payloadBytes,
+      },
+      {
+        key: 'quizUpload:accepted:complexity:global',
+        limit: RATE_LIMIT_ENV.quizUploadGlobalComplexityPerHour,
+        cost: weight.complexity,
+      },
+    ],
+    PUBLIC_CREATE_WINDOW_SECONDS,
+  );
+}
+
+export async function checkQuickFeedbackStandaloneCreateRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'quickFeedback:standalone:global',
+        limit: RATE_LIMIT_ENV.quickFeedbackStandaloneGlobalPerHour,
+      },
+      {
+        key: `quickFeedback:standalone:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.quickFeedbackStandalonePerIpPerHour,
+      },
+    ],
+    3600,
+  );
+}
+
+export async function checkQuickFeedbackSessionCreateRate(sessionCode: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: `quickFeedback:session:${sessionCode.toUpperCase()}`,
+        limit: RATE_LIMIT_ENV.quickFeedbackSessionPerMinute,
+      },
+    ],
+    60,
+  );
 }
 
 export async function checkMotdGetCurrentRate(ip: string) {

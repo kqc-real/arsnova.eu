@@ -101,6 +101,8 @@ beforeEach(() => {
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: {
       sessionCreate: 0,
+      quizUpload: 0,
+      quickFeedback: 0,
       sessionCode: 0,
       vote: 0,
       pdf: 0,
@@ -288,6 +290,8 @@ describe('health.stats', () => {
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
+        quizUpload: 0,
+        quickFeedback: 0,
         sessionCode: 1,
         vote: 3,
         pdf: 1,
@@ -306,6 +310,8 @@ describe('health.stats', () => {
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
+        quizUpload: 0,
+        quickFeedback: 0,
         sessionCode: 1,
         vote: 3,
         pdf: 1,
@@ -342,6 +348,8 @@ describe('health.stats', () => {
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 0,
+        quizUpload: 0,
+        quickFeedback: 0,
         sessionCode: 0,
         vote: 0,
         pdf: 0,

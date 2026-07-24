@@ -12,6 +12,7 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 - Feld **`Session.quickFeedbackEnabled`**: Blitzlicht-Kanal für dieselbe Session ([ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md)).
 - **`quickFeedback.create`** mit `sessionCode`: Backend prüft, ob die Session existiert und Blitzlicht aktiviert ist (`assertSessionQuickFeedbackEnabled`).
 - **Standalone** (Startseite): `create` ohne Session-Code erzeugt einen neuen 6-stelligen Code und schreibt nur Redis-Keys.
+- **Create-Limits:** Standalone-Create nutzt großzügige kombinierte Global-/Shared-NAT-Budgets. Der IP-Key stammt nur aus Express' gemäß `TRUST_PROXY_HOPS` berechnetem `req.ip`, nicht aus rohen Proxy-Headern. Session-Create wird nach erfolgreicher Host-Prüfung pro Session begrenzt (120/Minute im Standardprofil), niemals eng pro Hörsaal-IP.
 - **Session-Ende:** `session.end` ist nicht `quickFeedback.end`. Die Session setzt `FINISHED` und der Session-Vote verlaesst jeden aktiven Kanal; `quickFeedback.end` beendet nur die Redis-Runde zum Code.
 
 ## Autorisierung

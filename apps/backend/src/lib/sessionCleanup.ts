@@ -3,15 +3,29 @@
  * Session-Purge nach Retention-Fenster (Epic 9) und
  * abgelaufene Bonus-Tokens (Story 4.6).
  */
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { logger } from './logger';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
+import {
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+  ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+  ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
+} from './publicCreateCapacity';
 
 const STALE_SESSION_HOURS = 24;
 const FINISHED_SESSION_RETENTION_HOURS = 24;
 const BONUS_TOKEN_RETENTION_DAYS = 90;
 const SESSION_FEEDBACK_RETENTION_DAYS = 90;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1h
+
+export {
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+  ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+  ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
+} from './publicCreateCapacity';
 
 const ACTIVE_SESSION_STATUSES = [
   'LOBBY',
@@ -86,6 +100,136 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
   }
 
   return result.count;
+}
+
+/**
+ * Löscht sessionlose Uploadkopien nach der Grace Period.
+ *
+ * Geschützt bleiben nur Quizzes mit eigener Sessionrelation. Ein History-Scope-
+ * Anker (irgendeine Geschwisterkopie mit Session) schützt höchstens
+ * {@link ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE} neueste sessionlose
+ * Kopien desselben Scopes — ältere Geschwister werden bounded mitgelöscht.
+ * Scopes ohne jede Session sowie Uploads ohne historyScopeId werden nach der
+ * Grace Period vollständig bereinigt.
+ *
+ * Die Bedingungen werden beim Delete erneut und in einer serialisierbaren
+ * Transaktion geprüft, damit ein paralleles session.create/attachQuiz nicht
+ * zwischen Auswahl und Löschung verloren geht.
+ */
+export async function cleanupOrphanQuizUploads(): Promise<number> {
+  const cutoff = new Date(Date.now() - ORPHAN_QUIZ_UPLOAD_GRACE_HOURS * 60 * 60 * 1000);
+  let deletedCount = 0;
+
+  for (let batch = 0; batch < ORPHAN_QUIZ_CLEANUP_MAX_BATCHES; batch += 1) {
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const deleted = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+          WITH candidates AS (
+            SELECT candidate."id"
+            FROM "Quiz" AS candidate
+            WHERE candidate."createdAt" < ${cutoff}
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "Session" AS own_session
+                WHERE own_session."quizId" = candidate."id"
+              )
+              AND (
+                candidate."historyScopeId" IS NULL
+                OR NOT EXISTS (
+                  SELECT 1
+                  FROM "Quiz" AS scoped_quiz
+                  INNER JOIN "Session" AS scoped_session
+                    ON scoped_session."quizId" = scoped_quiz."id"
+                  WHERE scoped_quiz."historyScopeId" = candidate."historyScopeId"
+                )
+                OR (
+                  SELECT COUNT(*)::int
+                  FROM (
+                    SELECT 1
+                    FROM "Quiz" AS newer_sessionless
+                    WHERE newer_sessionless."historyScopeId" = candidate."historyScopeId"
+                      AND NOT EXISTS (
+                        SELECT 1
+                        FROM "Session" AS newer_session
+                        WHERE newer_session."quizId" = newer_sessionless."id"
+                      )
+                      AND (
+                        newer_sessionless."createdAt" > candidate."createdAt"
+                        OR (
+                          newer_sessionless."createdAt" = candidate."createdAt"
+                          AND newer_sessionless."id" > candidate."id"
+                        )
+                      )
+                    LIMIT ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+                  ) AS bounded_newer
+                ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+              )
+            ORDER BY candidate."createdAt" ASC, candidate."id" ASC
+            LIMIT ${ORPHAN_QUIZ_CLEANUP_BATCH_SIZE}
+            FOR UPDATE OF candidate SKIP LOCKED
+          )
+          DELETE FROM "Quiz" AS target
+          USING candidates
+          WHERE target."id" = candidates."id"
+            AND target."createdAt" < ${cutoff}
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "Session" AS own_session
+              WHERE own_session."quizId" = target."id"
+            )
+            AND (
+              target."historyScopeId" IS NULL
+              OR NOT EXISTS (
+                SELECT 1
+                FROM "Quiz" AS scoped_quiz
+                INNER JOIN "Session" AS scoped_session
+                  ON scoped_session."quizId" = scoped_quiz."id"
+                WHERE scoped_quiz."historyScopeId" = target."historyScopeId"
+              )
+              OR (
+                SELECT COUNT(*)::int
+                FROM (
+                  SELECT 1
+                  FROM "Quiz" AS newer_sessionless
+                  WHERE newer_sessionless."historyScopeId" = target."historyScopeId"
+                    AND NOT EXISTS (
+                      SELECT 1
+                      FROM "Session" AS newer_session
+                      WHERE newer_session."quizId" = newer_sessionless."id"
+                    )
+                    AND (
+                      newer_sessionless."createdAt" > target."createdAt"
+                      OR (
+                        newer_sessionless."createdAt" = target."createdAt"
+                        AND newer_sessionless."id" > target."id"
+                      )
+                    )
+                  LIMIT ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+                ) AS bounded_newer
+              ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+            )
+          RETURNING target."id"
+        `);
+        return { count: deleted.length };
+      },
+      // Eine konkurrierende Session-Bindung erzeugt einen Serialisierungskonflikt
+      // statt die neue Session über Quiz.onDelete=Cascade mitzulöschen.
+      { isolationLevel: 'Serializable' },
+    );
+
+    deletedCount += result.count;
+    if (result.count < ORPHAN_QUIZ_CLEANUP_BATCH_SIZE) {
+      break;
+    }
+  }
+
+  if (deletedCount > 0) {
+    logger.info(
+      `Quiz-Upload-Cleanup: ${deletedCount} verwaiste Upload(s) nach ` +
+        `${ORPHAN_QUIZ_UPLOAD_GRACE_HOURS}h Grace Period gelöscht.`,
+    );
+  }
+  return deletedCount;
 }
 
 export async function cleanupExpiredFinishedSessions(): Promise<number> {
@@ -172,6 +316,9 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupExpiredSessionFeedback().catch((err) => {
     logger.warn('SessionFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupOrphanQuizUploads().catch((err) => {
+    logger.warn('Quiz-Upload-Cleanup fehlgeschlagen:', (err as Error).message);
   });
   await cleanupExpiredFinishedSessions().catch((err) => {
     logger.warn('Session-Purge fehlgeschlagen:', (err as Error).message);

@@ -18,6 +18,7 @@ import {
   recordSessionCreateCompleted,
   type RateLimitCategory,
 } from './lib/abuseTelemetry';
+import { checkQuizUploadAttemptRate } from './lib/rateLimit';
 
 export type Context = {
   req?: IncomingMessage;
@@ -41,6 +42,8 @@ const t = initTRPC.context<Context>().create({
 });
 function classifyRateLimitPath(path: string): RateLimitCategory {
   if (path === 'session.create') return 'sessionCreate';
+  if (path === 'quiz.upload') return 'quizUpload';
+  if (path === 'quickFeedback.create') return 'quickFeedback';
   if (path === 'session.join') return 'sessionCode';
   if (path === 'vote.submit') return 'vote';
   if (path === 'session.getSessionExportPdf' || path === 'session.getLastSessionExportPdfForQuiz') {
@@ -85,6 +88,22 @@ export const router = t.router;
 
 /** Öffentliche Procedure (kein Auth nötig) */
 export const publicProcedure = telemetryProcedure;
+
+/**
+ * Grobes Upload-Versuchslimit vor fachlicher Zod-Validierung.
+ * Die Reihenfolge ist absichtlich: telemetry -> attempt budget -> input parser.
+ */
+export const quizUploadAttemptProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const limit = await checkQuizUploadAttemptRate(resolveTrustedPublicCreateIp(ctx.req).ip);
+  if (!limit.allowed) {
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Zu viele Quiz-Upload-Versuche. Bitte später erneut versuchen.',
+      cause: { retryAfterSeconds: limit.retryAfterSeconds },
+    });
+  }
+  return next();
+});
 
 /** Admin-geschützte Procedure (Token via Authorization oder x-admin-token). */
 export const adminProcedure = telemetryProcedure.use(async ({ ctx, next }) => {
@@ -200,6 +219,27 @@ export type ClientIpSource =
   | 'missing-req';
 
 export type ResolvedClientIp = { ip: string; source: ClientIpSource };
+
+/**
+ * Isolierter W1.3-Helper für Redis-Keys öffentlicher Create-Pfade.
+ * Verwendet ausschließlich Express' nach `trust proxy` berechnetes `req.ip`;
+ * Header wie CF-/True-Client-IP oder X-Forwarded-For werden nie direkt gelesen.
+ */
+export function resolveTrustedPublicCreateIp(req: IncomingMessage | undefined): ResolvedClientIp {
+  if (!req) {
+    return { ip: '0.0.0.0', source: 'missing-req' };
+  }
+
+  const expressIp = (req as IncomingMessage & { ip?: string }).ip;
+  if (typeof expressIp === 'string' && expressIp.trim()) {
+    return { ip: expressIp.trim(), source: 'express-req-ip' };
+  }
+
+  const remoteAddress = req.socket?.remoteAddress;
+  return remoteAddress?.trim()
+    ? { ip: remoteAddress.trim(), source: 'socket' }
+    : { ip: '0.0.0.0', source: 'socket' };
+}
 
 /**
  * Löst die Client-IP mit Quelle auf — für Logs bei 429, ohne Raten zu raten.

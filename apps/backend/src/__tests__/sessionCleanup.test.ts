@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prismaMock, platformStatisticMocks, loggerMocks } = vi.hoisted(() => ({
   prismaMock: {
+    $transaction: vi.fn(),
+    $queryRaw: vi.fn(),
     session: {
       updateMany: vi.fn(),
       findMany: vi.fn(),
@@ -42,12 +44,19 @@ vi.mock('../lib/logger', () => ({
 import {
   cleanupExpiredFinishedSessions,
   cleanupExpiredSessionFeedback,
+  cleanupOrphanQuizUploads,
   cleanupStaleSessions,
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+  ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
 } from '../lib/sessionCleanup';
 
 describe('sessionCleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock),
+    );
   });
 
   it('inkrementiert den completedSessionsCounter fuer automatisch beendete verwaiste Sessions', async () => {
@@ -134,5 +143,84 @@ describe('sessionCleanup', () => {
     expect(loggerMocks.info).toHaveBeenCalledWith(
       expect.stringContaining('Session-Purge: 2 beendete Session(s)'),
     );
+  });
+
+  it('löscht verwaiste Uploads bounded und prüft Schutzbedingungen beim Delete erneut', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 'orphan-1' }, { id: 'orphan-2' }]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(2);
+
+    const query = prismaMock.$queryRaw.mock.calls[0]?.[0] as { strings?: string[] };
+    const sql = query.strings?.join('?') ?? '';
+    expect(sql).toContain('DELETE FROM "Quiz" AS target');
+    expect(sql).toContain('RETURNING target."id"');
+    expect(sql).toContain('newer_sessionless');
+    expect(sql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
+    expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'Serializable',
+    });
+  });
+
+  it('begrenzt sessionlose History-Geschwister trotz aktivem Scope-Anker', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 'excess-sibling' }]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(1);
+
+    const query = prismaMock.$queryRaw.mock.calls[0]?.[0] as {
+      strings?: string[];
+      values?: unknown[];
+    };
+    const sql = query.strings?.join('?') ?? '';
+    expect(sql).toContain('newer_sessionless."historyScopeId" = candidate."historyScopeId"');
+    expect(sql).toContain('newer_sessionless."historyScopeId" = target."historyScopeId"');
+    expect(sql).toContain('bounded_newer');
+    expect(sql).toContain(') >= ?');
+    expect(query.values).toEqual(
+      expect.arrayContaining([
+        ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+        ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+      ]),
+    );
+    // Keep-Set-Suche ist auf den Grenzwert begrenzt (nicht voller Scope-COUNT).
+    expect(sql.match(/AS bounded_newer/g)).toHaveLength(2);
+  });
+
+  it('überspringt 100 geschützte alte Scopes vor LIMIT und löscht das spätere echte Orphan', async () => {
+    const protectedOldCandidates = Array.from(
+      { length: ORPHAN_QUIZ_CLEANUP_BATCH_SIZE },
+      (_, index) => `protected-${index}`,
+    );
+    expect(protectedOldCandidates).toHaveLength(100);
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 'later-real-orphan' }]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(1);
+
+    const query = prismaMock.$queryRaw.mock.calls[0]?.[0] as { strings?: string[] };
+    const sql = query.strings?.join('?') ?? '';
+    expect(sql).toContain('scoped_quiz."historyScopeId" = candidate."historyScopeId"');
+    expect(sql).toContain('scoped_quiz."historyScopeId" = target."historyScopeId"');
+    expect(sql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
+    expect(sql.indexOf('scoped_session')).toBeLessThan(sql.indexOf('LIMIT'));
+  });
+
+  it('löscht keine Quiz-Sammlung, History oder Session-gebundene Quizkopie', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(0);
+
+    expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
+  });
+
+  it('holt bis zu 1.300 Orphans pro Stundenlauf bounded auf', async () => {
+    const batch = Array.from({ length: ORPHAN_QUIZ_CLEANUP_BATCH_SIZE }, (_, index) => ({
+      id: `orphan-${index}`,
+    }));
+    prismaMock.$queryRaw.mockResolvedValue(batch);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(
+      ORPHAN_QUIZ_CLEANUP_BATCH_SIZE * ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+    );
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(ORPHAN_QUIZ_CLEANUP_MAX_BATCHES);
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(ORPHAN_QUIZ_CLEANUP_MAX_BATCHES);
   });
 });

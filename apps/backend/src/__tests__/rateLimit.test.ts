@@ -13,6 +13,7 @@ const redisMock = {
   setex: vi.fn().mockResolvedValue('OK'),
   ttl: vi.fn().mockResolvedValue(-1),
   zrange: vi.fn().mockResolvedValue([]),
+  eval: vi.fn().mockResolvedValue([1, 10, 0]),
 };
 
 vi.mock('../redis', () => ({
@@ -28,8 +29,16 @@ import {
   checkMotdGetCurrentRate,
   checkMotdListArchiveRate,
   checkMotdRecordInteractionRate,
+  checkFixedWindowBudgets,
+  checkQuizUploadAttemptRate,
+  checkQuizUploadStorageRate,
   RATE_LIMIT_ENV,
 } from '../lib/rateLimit';
+import {
+  ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN,
+  QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_MAX_COMPLEXITY,
+} from '../lib/publicCreateCapacity';
 
 describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
   it('hat korrekte Standardwerte', () => {
@@ -41,6 +50,121 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
     expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
     expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
+    expect(RATE_LIMIT_ENV.quizUploadAttemptPerIpPerHour).toBe(600);
+    expect(RATE_LIMIT_ENV.quizUploadAttemptGlobalPerHour).toBe(1200);
+    expect(RATE_LIMIT_ENV.quizUploadPerIpPerHour).toBe(300);
+    expect(RATE_LIMIT_ENV.quizUploadGlobalPerHour).toBe(600);
+    expect(RATE_LIMIT_ENV.quizUploadGlobalBytesPerHour).toBe(64 * 1024 * 1024);
+    expect(RATE_LIMIT_ENV.quizUploadGlobalComplexityPerHour).toBe(100_000);
+    expect(RATE_LIMIT_ENV.quickFeedbackStandalonePerIpPerHour).toBe(600);
+    expect(RATE_LIMIT_ENV.quickFeedbackStandaloneGlobalPerHour).toBe(3000);
+    expect(RATE_LIMIT_ENV.quickFeedbackSessionPerMinute).toBe(120);
+    expect(ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN).toBeGreaterThan(
+      QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT * 2,
+    );
+    expect(QUIZ_UPLOAD_MAX_COMPLEXITY).toBe(2_201);
+  });
+});
+
+describe('atomare Public-Create-Budgets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    redisMock.eval.mockResolvedValue([1, 10, 0]);
+  });
+
+  it('prüft das grobe Versuchslimit atomar vor der Payload-Validierung', async () => {
+    await expect(checkQuizUploadAttemptRate('203.0.113.9')).resolves.toEqual({
+      allowed: true,
+      remaining: 10,
+    });
+
+    expect(redisMock.eval).toHaveBeenCalledOnce();
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('INCRBY'"),
+      2,
+      'rl:quizUpload:attempt:global',
+      'rl:quizUpload:attempt:ip:203.0.113.9',
+      '1200',
+      '1',
+      '600',
+      '1',
+      '3600',
+    );
+  });
+
+  it('bucht Maximalpayload und Komplexität gemeinsam mit Count-/NAT-Budget', async () => {
+    await checkQuizUploadStorageRate('203.0.113.9', {
+      payloadBytes: 1_250_000,
+      complexity: 2_201,
+    });
+
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.any(String),
+      4,
+      'rl:quizUpload:accepted:global',
+      'rl:quizUpload:accepted:ip:203.0.113.9',
+      'rl:quizUpload:accepted:bytes:global',
+      'rl:quizUpload:accepted:complexity:global',
+      '600',
+      '1',
+      '300',
+      '1',
+      String(64 * 1024 * 1024),
+      '1250000',
+      '100000',
+      '2201',
+      '3600',
+    );
+  });
+
+  it('bucht kleine Classroom-Uploads mit kleinen Gewichten im selben atomaren Aufruf', async () => {
+    await checkQuizUploadStorageRate('198.51.100.4', {
+      payloadBytes: 32_000,
+      complexity: 501,
+    });
+
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.any(String),
+      4,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+      '600',
+      '1',
+      '300',
+      '1',
+      String(64 * 1024 * 1024),
+      '32000',
+      '100000',
+      '501',
+      '3600',
+    );
+  });
+
+  it('lehnt atomar ab, wenn ein globales gewichtetes Budget erschöpft ist', async () => {
+    redisMock.eval.mockResolvedValue([0, 3, 180]);
+
+    await expect(
+      checkQuizUploadStorageRate('198.51.100.4', {
+        payloadBytes: 1_250_000,
+        complexity: 2_201,
+      }),
+    ).resolves.toEqual({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 180,
+    });
+  });
+
+  it('übernimmt Retry-After aus dem abgelehnten Budget', async () => {
+    redisMock.eval.mockResolvedValue([0, 1, 47]);
+
+    await expect(checkFixedWindowBudgets([{ key: 'abuse', limit: 2 }], 60)).resolves.toEqual({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 47,
+    });
   });
 });
 
