@@ -121,6 +121,7 @@
   "overrides": {
     "@hono/node-server": "2.0.11",
     "fast-uri": "^3.1.4",
+    "find-my-way": "^9.7.0",
     "hono": "^4.12.5",
     "minimatch": "^10.2.1",
     "sharp": "^0.35.0",

@@ -4,7 +4,7 @@
 
 Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollständiges Threat-Model und keine Rechtsberatung; technische Tiefe: Handbuch, ADRs, Prisma, `session.ts` / DTO-Schicht.
 
-**Stand:** 2026-07-05 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, Server-Status (`health.footerBundle` / `health.stats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
+**Stand:** 2026-07-23 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, Server-Status (`health.footerBundle` / `health.stats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
 
 ---
 
@@ -40,6 +40,8 @@ Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
 ## 4. Missbrauch & Last (Rate-Limiting)
 
 Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Hinter Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit `x-forwarded-for` / `x-real-ip` korrekt ausgewertet werden und nicht alle Clients im Proxy-Bucket landen.
+
+HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
 
 ---
 

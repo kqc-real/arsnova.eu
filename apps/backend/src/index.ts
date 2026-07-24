@@ -15,6 +15,7 @@ import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
 import { logger } from './lib/logger';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
+import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
 
 const PORT = Number(process.env['PORT']) || 3000;
@@ -38,6 +39,7 @@ app.use(
   createExpressMiddleware({
     router: appRouter,
     createContext: async ({ req }) => ({ req }),
+    maxBodySize: TRPC_MAX_BODY_SIZE_BYTES,
   }),
 );
 
@@ -174,7 +176,10 @@ const server = app.listen(PORT, () => {
 });
 
 // WebSocket-Server für tRPC-Subscriptions (Story 0.2)
-const wss = new WebSocketServer({ port: WS_PORT });
+const wss = new WebSocketServer({
+  port: WS_PORT,
+  maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
+});
 const wsHandler = applyWSSHandler({
   wss,
   router: appRouter,

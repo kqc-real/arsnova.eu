@@ -342,6 +342,10 @@ server {
     access_log /var/log/nginx/arsnova_click_access.log;
     error_log  /var/log/nginx/arsnova_click_error.log;
 
+    # Infrastruktur-Hard-Cap oberhalb des 2-MiB-tRPC-Limits:
+    # tRPC erzeugt dadurch selbst die batch-kompatible HTTP-413-Fehlerantwort.
+    client_max_body_size 8m;
+
     # API + tRPC HTTP + statisches Frontend → App-Container auf Port 3000
     location / {
         proxy_pass http://app_http;
