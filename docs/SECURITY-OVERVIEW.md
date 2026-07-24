@@ -45,6 +45,17 @@ HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** be
 
 Die ressourcenintensive Playwright-PDF-Erzeugung für Session-Ergebnisberichte ist im einzelnen Backend-Prozess auf **einen aktiven Job** begrenzt. Weitere PDF-Anfragen werden ohne Warteschlange mit HTTP **429** abgewiesen. Ablehnungen werden nicht einzeln doppelt geloggt, sondern über das zentrale gesampelte `rate_limit_429` und bounded aggregierte PDF-Metriken in `health.securityStats` beobachtet. Der konservative Cap wurde gewählt, weil Cap 2 auf dem Zielhost die Vote-SLOs verfehlte. Bei einer späteren horizontalen Skalierung ist vorab ein instanzübergreifender Semaphore erforderlich.
 
+Externe Bilder in serverseitigen PDF-Berichten durchlaufen einen
+DNS-/TOCTOU-gehärteten Loader: alle A-/AAAA-Ziele müssen öffentlich routbar
+sein, der Connect wird an eine validierte IP gebunden, Redirects werden je Hop
+neu geprüft, Antworten streamend begrenzt und MIME plus Magic Bytes validiert.
+Abgelehnte Quellen werden im HTML durch eine lokale Data-URL ersetzt.
+Playwright blockiert zusätzlich alle verbleibenden HTTP(S)- und
+`file:`-Requests; lokale Assets müssen nach `realpath` im Asset-Root bleiben.
+Die Abnahme ist in
+[W1.2-PDF-SSRF-ABNAHME.md](implementation/W1.2-PDF-SSRF-ABNAHME.md)
+dokumentiert.
+
 W0.4 bündelt operative Security- und Kapazitätsdaten in der
 admin-authentifizierten Query `health.securityStats`: erfolgreiche
 Session-Erstellungen, sämtliche tRPC-429 nach Kategorie, PDF-Auslastung und

@@ -52,6 +52,19 @@ Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachwe
 
 Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Backend-PDF und Browser-Print-Fallback teilen sich die Lib `@arsnova/session-export-report`.
 
+Der Backend-Pfad bettet externe Bilder ausschließlich über den
+DNS-/TOCTOU-gehärteten Loader ein. Private, lokale, reservierte oder nicht
+eindeutig öffentliche Ziele, übergroße Antworten und MIME-/Magic-Mismatches
+werden durch einen lokalen Platzhalter ersetzt. Redirects werden je Hop erneut
+geprüft, die Verbindung bleibt an die validierte IP gebunden. Lokale Assets
+müssen nach `realpath` innerhalb eines erlaubten Asset-Roots liegen.
+Bildanzahl, externe Gesamtbytes, dekodierte Pixel und die gesamte
+Inlining-Dauer sind zusätzlich pro Bericht begrenzt.
+Anschließend blockiert Playwright sämtliche verbleibenden HTTP(S)- und
+`file:`-Requests; benötigte Report-Stylesheets werden vorher aus lokalen
+Paketen einschließlich KaTeX-Schriften eingebettet. Details und Tests:
+[W1.2-PDF-SSRF-ABNAHME.md](../implementation/W1.2-PDF-SSRF-ABNAHME.md).
+
 Die Playwright-PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **einen aktiven
 Job** begrenzt. Das gilt gemeinsam für Host- und Historienberichte. Ein weiterer Job wird
 ohne Warteschlange mit tRPC
