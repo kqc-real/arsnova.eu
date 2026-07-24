@@ -3988,12 +3988,7 @@ export const QuickFeedbackVoteInputSchema = z.object({
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 
-export const QuickFeedbackIsActiveInputSchema = z.object({
-  sessionCode: z.string().trim().length(6),
-  anonymousClientId: z.uuid().optional(),
-});
-
-/** Aktive Blitzlicht-Runde; unbekannte Codes durchlaufen den zentralen Enumerationsschutz. */
+/** Nur Redis-EXISTS; inaktive Codes werden anschließend über `session.getInfo` geprüft. */
 export const QuickFeedbackIsActiveOutputSchema = z.object({ active: z.boolean() });
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 

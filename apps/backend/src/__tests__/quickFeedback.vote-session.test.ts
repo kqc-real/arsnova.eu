@@ -208,7 +208,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     await expect(
       caller.isActive({
         sessionCode: 'ABC123',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
       }),
     ).resolves.toEqual({ active: true });
 
@@ -216,21 +215,17 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
   });
 
-  it('schützt fehlende Codes bereits im vorgeschalteten isActive-Lookup', async () => {
+  it('liefert inaktive Redis-Codes ohne zusätzlichen Session-Nachschlag', async () => {
     redisMock.exists.mockResolvedValue(0);
-    prismaMock.session.findUnique.mockResolvedValue(null);
 
     await expect(
       caller.isActive({
         sessionCode: 'BAD999',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
       }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    ).resolves.toEqual({ active: false });
 
-    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
-      '11111111-1111-4111-8111-111111111111',
-      'BAD999',
-    );
+    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
   });
 
   it('lehnt ab, wenn die Live-Session beendet ist', async () => {

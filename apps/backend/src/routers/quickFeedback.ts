@@ -9,7 +9,6 @@ import {
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackTypeInputSchema,
   QuickFeedbackVoteInputSchema,
-  QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
@@ -586,27 +585,17 @@ export const quickFeedbackRouter = router({
     }),
 
   /**
-   * Prüfung, ob für den Code eine Blitzlicht-Runde in Redis liegt. Fehlt sowohl
-   * Blitzlicht als auch Session, greift derselbe Enumerationsschutz wie bei
-   * `session.getInfo`.
+   * Leichtgewichtige Redis-Prüfung vor dem eigentlichen Session-Lookup. Ein
+   * inaktiver Code wird anschließend über `session.getInfo` geschützt.
    */
   isActive: publicProcedure
-    .input(QuickFeedbackIsActiveInputSchema)
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .output(QuickFeedbackIsActiveOutputSchema)
     .query(async ({ input }) => {
       const code = input.sessionCode.toUpperCase();
       const redis = getRedis();
       const n = await redis.exists(feedbackKey(code));
-      if (n === 1) return { active: true };
-
-      const session = await prisma.session.findUnique({
-        where: { code },
-        select: { id: true },
-      });
-      if (!session) {
-        await rejectInvalidSessionCode(input.anonymousClientId, code);
-      }
-      return { active: false };
+      return { active: n === 1 };
     }),
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {

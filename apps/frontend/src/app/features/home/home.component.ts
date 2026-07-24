@@ -724,7 +724,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const anonymousClientId = getAnonymousClientId();
     const { active: fbActive } = await trpc.quickFeedback.isActive.query({
       sessionCode: code,
-      anonymousClientId,
     });
     if (fbActive) {
       return 'feedback';
