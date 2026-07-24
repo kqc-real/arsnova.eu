@@ -92,7 +92,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 | 0.3 Yjs WebSocket  | y-websocket Relay in Backend-Diagramm ✓                   | y-websocket-Server (Port 3002) im Backend integriert                                                                                                                                                                                                 |
 | 0.4 Server-Status  | ServerStatusWidget im Frontend-Diagramm ✓                 | `health.footerBundle` für Footer-Dot, `health.stats` für Detaildialog, Polling 5 min im Footer, 30-s Dialog-/Server-Cache, Service-/Laststatus und DailyStatistic; Details + Mermaid: [server-status-widget.md](../features/server-status-widget.md) |
 | 0.5 Rate-Limiting  | RateLimitService in Backend-Diagramm ✓                    | Redis Sliding-Window, TOO_MANY_REQUESTS, Env-konfigurierbar implementiert                                                                                                                                                                            |
-| 0.6 CI/CD          | Nicht in Architektur-Diagrammen (korrekt, da Dev-Tooling) | GitHub Actions: Build, Lint, Test, Docker-Build, Matrix Node 20/22 ✓                                                                                                                                                                                 |
+| 0.6 CI/CD          | Nicht in Architektur-Diagrammen (korrekt, da Dev-Tooling) | GitHub Actions: Build, Lint, Test, Docker-Build, Matrix Node 22/24 ✓                                                                                                                                                                                 |
 
 ### Epic 1: Quiz-Verwaltung
 

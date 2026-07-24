@@ -22,7 +22,7 @@ npm run setup:dev
 npm run dev
 ```
 
-Für den Einstieg ist Node 20 aus `.nvmrc` oder eine passende Node-22-LTS-Version der Standardweg. Windows-Nutzer:innen verwenden bitte WSL2/Ubuntu wie im Onboarding beschrieben.
+Für den Einstieg ist Node 24.18.0 LTS aus `.nvmrc` der Standardweg; Node 22.12+ bleibt als CI-geprüfter Kompatibilitätspfad unterstützt. Windows-Nutzer:innen verwenden bitte WSL2/Ubuntu wie im Onboarding beschrieben.
 
 ---
 

@@ -53,7 +53,7 @@
             ],
             "styles": ["src/styles.scss"],
             "scripts": [],
-            "allowedCommonJsDependencies": ["d3-cloud"],
+            "allowedCommonJsDependencies": ["d3-cloud", "pako"],
             "inlineStyleLanguage": "scss",
             "i18nMissingTranslation": "warning"
           },

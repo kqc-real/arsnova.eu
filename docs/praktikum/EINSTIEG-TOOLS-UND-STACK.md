@@ -69,7 +69,7 @@ Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir di
 ### Node.js und npm
 
 - **Was:** Node.js führt JavaScript/TypeScript-Werkzeuge aus; npm installiert Abhängigkeiten und startet Skripte.
-- **Im Projekt:** Für den Einstieg **Node 20.19.0** aus `.nvmrc` oder eine passende **Node 22 LTS** nutzen. Die CI baut mit Node 20 und 22; `package.json` beschreibt die vollständige Engine-Regel.
+- **Im Projekt:** Für den Einstieg **Node 24.18.0 LTS** aus `.nvmrc` nutzen; **Node 22.12+ LTS** bleibt unterstützt. Die CI baut mit Node 22 und 24; `package.json` beschreibt die vollständige Engine-Regel.
 - **Merksatz:** Wenn `npm run dev` sofort scheitert, zuerst `node -v` prüfen.
 
 ---

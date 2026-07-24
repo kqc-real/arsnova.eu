@@ -261,10 +261,10 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] **Prisma-Validierung:** `prisma validate` prüft das Schema auf Korrektheit.
     - [x] **Linting:** ESLint prüft alle `.ts`-Dateien auf Regelverstöße (Root-Config: `eslint.config.mjs`).
     - [x] **Security-Audit:** CI-Job `Security Audit` mit `npm audit --audit-level=high --omit=dev`, Dependency Review ab High, Trivy für High/Critical, CycloneDX-SBOM und separatem CodeQL-SAST-Workflow.
-    - [x] **Docker-Image:** Multi-Stage-Dockerfile baut ein produktionsfertiges Image (`node:20-alpine`).
+    - [x] **Docker-Image:** Multi-Stage-Dockerfile baut ein produktionsfertiges Image (`node:24-alpine`).
     - [x] **Docker-Build:** CI baut das Docker-Image erfolgreich (kein Push in Registry, nur Build-Test).
     - [x] **Caching:** `node_modules` wird via `actions/cache` zwischengespeichert, um CI-Laufzeit zu verkürzen.
-    - [x] **Matrix-Test:** Pipeline läuft auf Node.js 20 und 22 (Kompatibilitätstest).
+    - [x] **Matrix-Test:** Pipeline läuft auf Node.js 22 und 24 (Kompatibilitätstest).
     - [x] **Tests:** Job `test` führt Backend-Unit-Tests aus (Vitest: health.check, health.stats, Rate-Limiting).
     - [x] **Status-Badge:** README.md enthält ein CI-Status-Badge (`![CI](https://github.com/...)`).
 - **Story 0.7 (Last- & Performance-Tests mit E2E-Szenarien):** ✅ Als Entwickler möchte ich reproduzierbare Last- und Performance-Tests mit realitätsnahen E2E-Szenarien haben, damit Engpässe in Live-Sessions, Join-Flows, Freitext, Q&A und Synchronisierung früh erkannt und vor Releases messbar bewertet werden können.
@@ -346,7 +346,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Akzeptanzkriterien:**
     - [ ] `apps/landing` und Root-Workspace nutzen **Astro ≥ 7.1.x** (XSS-Advisories ohne 6.x-Backport).
     - [ ] Root-`overrides` (oder gleichwertige Auflösung) stellen `cookie@2` für Astro bereit, **ohne** Express/Backend-Cookie-Pfade zu brechen; `npm ci` im Monorepo ist grün.
-    - [ ] `npm run build:landing` auf **Node ≥22.12** (Landing-`engines` in `apps/landing/package.json` bzw. CI-Job `landing-build` mit Node 22 — **nicht** `.nvmrc`/Node 20) ist grün; Landing-A11y-/CI-Gates bleiben grün.
+    - [ ] `npm run build:landing` auf **Node ≥22.12** (Landing-`engines` in `apps/landing/package.json`; CI-Job `landing-build` und `.nvmrc` nutzen Node 24) ist grün; Landing-A11y-/CI-Gates bleiben grün.
     - [ ] Kurzer visueller Smoke der Landing (Start + Legal-Seiten) — keine Design-Regression erwartet, aber einmal prüfen.
     - [ ] Nach Erfolg: Dependabot-Major-Ignore für `astro`/`@astrojs/*` in `.github/dependabot.yml` entfernen oder lockern; zugehörige Dependabot-Alerts schließen sich bzw. werden verifiziert.
   - **Aufwand (Richtwert):** ~½–1 Tag, Schwerpunkt Cookie-Override und Landing-CI — nicht „Dependabot mergen und fertig“.
