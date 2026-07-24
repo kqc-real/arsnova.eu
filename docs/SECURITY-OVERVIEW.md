@@ -60,16 +60,20 @@ keine weiteren IP-Rate-Limit-Keys. Session-gebundenes `quickFeedback.create`
 wird zuerst als Host-Aktion autorisiert und danach ausschließlich pro Session
 begrenzt.
 
-Für `session.join` lädt das Backend zuerst die Session. Existiert sie und ist
-noch nicht beendet, werden Client-, Code- und Global-Fehlbudget weder gelesen
-noch gebucht; Rejoins werden auch nicht durch die separate Join-Wellen-
-Glättung verzögert. Nur nicht existente Codes buchen die anwendbaren Zähler
-atomar per Lua. Die zufällige browserweite UUID ist kein Proof und enthält keine PII;
-Client-ID und Code werden für Redis-Keys mit SHA-256 gehasht. Das Clientbudget
-antwortet bei Erschöpfung mit 429. Code- und Global-Soft-Caps führen ab 80 %
-progressiv zu höchstens 1.500 ms Delay plus aggregierter Telemetrie, niemals zu
-einem saalweiten Hard-Lock. Nach vollem Globalbudget werden keine neuen
-Client-/Code-Keys angelegt. Alle Keys haben ein festes 300-Sekunden-TTL.
+Der reguläre Join-Ablauf und direkte öffentliche Code-Orakel prüfen zuerst, ob
+die Session beziehungsweise das Standalone-Blitzlicht existiert. Gültige
+Lookups, Joins und Rejoins buchen kein Fehlbudget; Rejoins werden auch nicht
+durch die separate Join-Wellen-Glättung verzögert. Nur nicht existente Codes
+buchen die anwendbaren Zähler atomar per Lua. Die zufällige browserweite UUID
+ist kein Proof und enthält keine PII; Client-ID und Code werden für Redis-Keys
+mit SHA-256 gehasht. Das Clientbudget antwortet bei Erschöpfung mit 429. Code-
+und Global-Soft-Caps führen ab 80 % progressiv zu höchstens 1.500 ms Delay plus
+aggregierter Telemetrie, niemals zu einem saalweiten Hard-Lock. Pro
+Backend-Prozess warten höchstens 100 bereits als ungültig erkannte Requests
+gleichzeitig; weitere ungültige Requests erhalten 429, während gültige
+Codeabfragen keine Delay-Slots verwenden. Nach vollem Globalbudget werden
+keine neuen Client-/Code-Keys angelegt. Alle Keys haben ein festes
+300-Sekunden-TTL.
 Redis-Ausfall beeinflusst gültige Joins nicht; der ohnehin ungültige Pfad ist
 fail-closed. Für während des Deployments weiter aktive Service-Worker-Clients
 der Vorgängerversion ist die UUID vorübergehend optional. Ohne UUID gelten

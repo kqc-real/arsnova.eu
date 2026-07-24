@@ -34,6 +34,10 @@ export const SESSION_CODE_PROTECTION_LIMITS = {
     configuredDelayMaxMs,
   ),
   delayMaxMs: configuredDelayMaxMs,
+  maxConcurrentDelays: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_SESSION_CODE_MAX_CONCURRENT_DELAYS',
+    100,
+  ),
 } as const;
 
 const SESSION_CODE_FAILURE_LUA = `
@@ -97,6 +101,36 @@ export type SessionCodeFailureDecision = {
   globalUtilizationPercent: number;
   retryAfterSeconds?: number;
 };
+
+let activeDelayedRequests = 0;
+
+/**
+ * Begrenzt absichtlich wartende, bereits als ungültig erkannte Requests pro
+ * Prozess. Bei voller Warteschlange wird nur der ungültige Request abgewiesen;
+ * gültige Session-Lookups rufen diese Funktion nie auf.
+ */
+export async function waitForInvalidSessionCodeDelay(delayMs: number): Promise<boolean> {
+  if (delayMs <= 0) return true;
+  if (activeDelayedRequests >= SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays) return false;
+
+  activeDelayedRequests += 1;
+  try {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    return true;
+  } finally {
+    activeDelayedRequests -= 1;
+  }
+}
+
+export function sessionCodeDelaySnapshot(): {
+  active: number;
+  maximum: number;
+} {
+  return {
+    active: activeDelayedRequests,
+    maximum: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays,
+  };
+}
 
 function stableHash(value: string): string {
   return createHash('sha256').update(value).digest('hex');
@@ -181,4 +215,5 @@ export async function readSessionCodeGlobalSoftCapUtilization(): Promise<number>
 
 export function resetSessionCodeProtectionForTests(): void {
   utilizationReadWarned = false;
+  activeDelayedRequests = 0;
 }

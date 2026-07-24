@@ -11,6 +11,7 @@ import {
   sessionNotFoundUiMessage,
 } from '../../../core/localize-known-server-message';
 import { trpc } from '../../../core/trpc.client';
+import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import {
   feedbackDisplayIcon,
@@ -337,7 +338,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private async refreshSessionMeta(): Promise<void> {
     try {
       const requestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+      const session = await trpc.session.getInfo.query({
+        code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeSample(session.serverTime, requestedAt);
       this.showHomeCta.set(false);
       this.session.set(session);

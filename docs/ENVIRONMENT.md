@@ -38,6 +38,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `RATE_LIMIT_SESSION_CODE_GLOBAL_SOFT_CAP_PER_WINDOW`   | nein         | `5000`                     | Globales Soft-Cap; ab Erschöpfung keine neuen Client-/Code-Keys, aber weiterhin nur bounded Delay                                                                   |
 | `RATE_LIMIT_SESSION_CODE_DELAY_BASE_MS`                | nein         | `100`                      | Startwert des progressiven Soft-Cap-Delays ab 80 % Auslastung                                                                                                       |
 | `RATE_LIMIT_SESSION_CODE_DELAY_MAX_MS`                 | nein         | `1500`                     | Obergrenze des Soft-Cap-Delays; gültige Joins und Rejoins werden nie dadurch verzögert                                                                              |
+| `RATE_LIMIT_SESSION_CODE_MAX_CONCURRENT_DELAYS`        | nein         | `100`                      | Maximale gleichzeitig wartende ungültige Code-Abfragen pro Backend-Prozess; weitere werden mit 429 abgewiesen                                                       |
 | `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`                  | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                                                |
 | `RATE_LIMIT_SESSION_CREATE_PER_HOUR`                   | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                                              |
 | `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`           | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen                         |
@@ -178,16 +179,19 @@ Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Cod
 
 Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt `X-Forwarded-For` mit `$remote_addr`; `TRUST_PROXY_HOPS=1` lässt Express genau diesem Hop vertrauen. Der separate tRPC-WebSocket-Server ergänzt Upgrade-Requests mit derselben `proxy-addr`-/Hop-Vertrauensfunktion. Ohne konfigurierten Proxy-Hop wird auch dort ausschließlich die direkte Socket-Adresse verwendet. Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen.
 
-`session.join` verwendet dagegen keinerlei IP-Key oder Participant-IP-Lock.
-Das Backend lädt zuerst die Session; gültige, nicht beendete Sessions und
-Rejoins berühren das Fehlbudget nicht. Nur nicht existente Codes buchen in
-einem Lua-Aufruf die anwendbaren Budgets. Client-IDs und Codes stehen nur als
-SHA-256-Hash in den Redis-Keys. Während des Service-Worker-Rollouts buchen
-Vorgängerclients ohne `anonymousClientId` nur Code- und Globalbudget; sie
-erzeugen weder einen Client- noch einen IP-Ersatzkey. Ab 80 % Code- oder Globalauslastung
-steigt der Delay progressiv bis zum konfigurierten Maximum; er bleibt ein
-Soft-Cap ohne saalweite Ablehnung. Ist das globale Budget voll, erzeugt der
-Pfad keine neuen angreiferkontrollierten Keys. Ein Redis-Ausfall lässt gültige
+Öffentliche Session-Code-Lookups und `session.join` verwenden keinerlei IP-Key
+oder Participant-IP-Lock. Das Backend stellt zuerst fest, ob Session oder
+Standalone-Blitzlicht existieren; gültige Lookups, Joins und Rejoins berühren
+das Fehlbudget nicht. Nur nicht existente Codes buchen in einem Lua-Aufruf die
+anwendbaren Budgets. Client-IDs und Codes stehen nur als SHA-256-Hash in den
+Redis-Keys. Während des Service-Worker-Rollouts buchen Vorgängerclients ohne
+`anonymousClientId` nur Code- und Globalbudget; sie erzeugen weder einen
+Client- noch einen IP-Ersatzkey. Ab 80 % Code- oder Globalauslastung steigt der
+Delay progressiv bis zum konfigurierten Maximum; er bleibt ein Soft-Cap ohne
+saalweite Ablehnung. Pro Prozess ist die Anzahl gleichzeitig wartender
+ungültiger Requests begrenzt; bei voller Wartemenge erhalten nur weitere
+ungültige Requests 429. Ist das globale Budget voll, erzeugt der Pfad keine
+neuen angreiferkontrollierten Keys. Ein Redis-Ausfall lässt gültige Lookups und
 Joins unbeeinträchtigt, während der ungültige Pfad fail-closed fehlschlägt.
 
 ---

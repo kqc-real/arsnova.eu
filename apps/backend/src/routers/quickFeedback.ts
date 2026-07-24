@@ -1,6 +1,7 @@
 /**
  * Quick-Feedback Router – One-Shot-Feedback (Mood / Sterne / ABCD / YesNo).
- * Lightweight, Redis-only (kein Prisma), auto-expire nach 30 Minuten.
+ * Standalone-Daten liegen mit 30 Minuten TTL in Redis; sessiongebundene Pfade
+ * gleichen zusätzlich mit PostgreSQL ab.
  */
 import { TRPCError } from '@trpc/server';
 import {
@@ -8,6 +9,7 @@ import {
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackTypeInputSchema,
   QuickFeedbackVoteInputSchema,
+  QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
@@ -42,6 +44,7 @@ import {
   checkQuickFeedbackSessionCreateRate,
   checkQuickFeedbackStandaloneCreateRate,
 } from '../lib/rateLimit';
+import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const QUICK_FEEDBACK_POLL_ACTIVE_MS = 500;
@@ -130,6 +133,16 @@ type SessionQuickFeedbackGate = {
 
 function feedbackKey(code: string): string {
   return `qf:${code}`;
+}
+
+async function protectMissingQuickFeedbackCode(code: string): Promise<void> {
+  const session = await prisma.session.findUnique({
+    where: { code },
+    select: { id: true },
+  });
+  if (!session) {
+    await rejectInvalidSessionCode(undefined, code);
+  }
 }
 
 function votersKey(code: string): string {
@@ -573,23 +586,39 @@ export const quickFeedbackRouter = router({
     }),
 
   /**
-   * Leichtgewichtige Prüfung, ob für den Code eine Blitzlicht-Runde in Redis liegt.
-   * Im Gegensatz zu `results` kein NOT_FOUND/HTTP-404 bei fehlendem Key (Lighthouse / Netzwerk-Tab).
+   * Prüfung, ob für den Code eine Blitzlicht-Runde in Redis liegt. Fehlt sowohl
+   * Blitzlicht als auch Session, greift derselbe Enumerationsschutz wie bei
+   * `session.getInfo`.
    */
   isActive: publicProcedure
-    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .input(QuickFeedbackIsActiveInputSchema)
     .output(QuickFeedbackIsActiveOutputSchema)
     .query(async ({ input }) => {
+      const code = input.sessionCode.toUpperCase();
       const redis = getRedis();
-      const n = await redis.exists(feedbackKey(input.sessionCode.toUpperCase()));
-      return { active: n === 1 };
+      const n = await redis.exists(feedbackKey(code));
+      if (n === 1) return { active: true };
+
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!session) {
+        await rejectInvalidSessionCode(input.anonymousClientId, code);
+      }
+      return { active: false };
     }),
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {
     const code = input.sessionCode.toUpperCase();
     const redis = getRedis();
     const key = feedbackKey(code);
-    const result = await loadQuickFeedbackForVote(code);
+    const result = await loadQuickFeedbackForVote(code).catch(async (error: unknown) => {
+      if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
+        await protectMissingQuickFeedbackCode(code);
+      }
+      throw error;
+    });
 
     const gate =
       result.sessionBound === true ? await assertSessionAllowsQuickFeedbackVote(code) : null;
@@ -670,6 +699,7 @@ export const quickFeedbackRouter = router({
       const raw = await redis.get(key);
 
       if (!raw) {
+        await protectMissingQuickFeedbackCode(code);
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
@@ -709,7 +739,10 @@ export const quickFeedbackRouter = router({
           }
         }
         const raw = await redis.get(key);
-        if (!raw) return;
+        if (!raw) {
+          await protectMissingQuickFeedbackCode(code);
+          return;
+        }
 
         const result = JSON.parse(raw) as StoredQuickFeedbackResult;
         await enrichOpinionShift(result, code);

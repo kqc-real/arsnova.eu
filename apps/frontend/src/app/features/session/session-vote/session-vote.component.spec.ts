@@ -833,7 +833,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Team-Punkte');
     expect(text).toContain('3 Mitglieder');
     expect(text).toContain('∅');
-    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    );
     fixture.destroy();
   });
 

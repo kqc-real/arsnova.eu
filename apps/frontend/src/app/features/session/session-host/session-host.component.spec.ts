@@ -283,6 +283,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('crypto', {
+      randomUUID: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
       subtle: {
         digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer),
       },
@@ -5867,7 +5868,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect.objectContaining({ onData: expect.any(Function) }),
     );
     expect(onStatusChangedSubscribeMock).toHaveBeenCalledWith(
-      { code: 'ABC123' },
+      expect.objectContaining({
+        code: 'ABC123',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
       expect.objectContaining({ onData: expect.any(Function) }),
     );
     expect(onCurrentQuestionForHostChangedSubscribeMock).toHaveBeenCalledWith(
@@ -6236,7 +6240,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('td.session-host__lb-col--name')?.textContent ?? '',
     ).toContain('Team A');
-    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'ABC123',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
+    );
     fixture.destroy();
   });
 

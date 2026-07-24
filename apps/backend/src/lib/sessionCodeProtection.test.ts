@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   eval: vi.fn(),
@@ -17,7 +17,10 @@ vi.mock('./logger', () => ({
 import {
   checkInvalidSessionCodeFailure,
   readSessionCodeGlobalSoftCapUtilization,
+  resetSessionCodeProtectionForTests,
   SESSION_CODE_PROTECTION_LIMITS,
+  sessionCodeDelaySnapshot,
+  waitForInvalidSessionCodeDelay,
 } from './sessionCodeProtection';
 
 const CLIENT_A = '11111111-1111-4111-8111-111111111111';
@@ -38,7 +41,13 @@ describe('Session-Code-Fehlbudgets', () => {
       globalSoftCapPerWindow: 5_000,
       delayBaseMs: 100,
       delayMaxMs: 1_500,
+      maxConcurrentDelays: 100,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    resetSessionCodeProtectionForTests();
   });
 
   it('kombiniert Client-, Code- und Globalbudget in genau einem Lua-Aufruf', async () => {
@@ -100,6 +109,25 @@ describe('Session-Code-Fehlbudgets', () => {
       delayMs: 825,
       globalUtilizationPercent: 92,
     });
+  });
+
+  it('begrenzt gleichzeitig wartende Soft-Cap-Requests pro Prozess', async () => {
+    vi.useFakeTimers();
+    const waiting = Array.from({ length: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays }, () =>
+      waitForInvalidSessionCodeDelay(1_500),
+    );
+
+    expect(sessionCodeDelaySnapshot()).toEqual({
+      active: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays,
+      maximum: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays,
+    });
+    await expect(waitForInvalidSessionCodeDelay(1_500)).resolves.toBe(false);
+
+    await vi.runAllTimersAsync();
+    await expect(Promise.all(waiting)).resolves.toEqual(
+      Array.from({ length: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays }, () => true),
+    );
+    expect(sessionCodeDelaySnapshot().active).toBe(0);
   });
 
   it('begrenzt Key-Kardinalität nach ausgeschöpftem Globalbudget im Lua-Pfad', async () => {

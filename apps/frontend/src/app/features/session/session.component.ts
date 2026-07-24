@@ -4,6 +4,7 @@ import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/m
 import { MatIcon } from '@angular/material/icon';
 import { filter } from 'rxjs';
 import { trpc } from '../../core/trpc.client';
+import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 import { recordServerTimeSample } from './session-server-clock';
 
@@ -46,7 +47,10 @@ export class SessionComponent implements OnInit, OnDestroy {
       if (info.status !== 'ok') throw new Error('Backend nicht erreichbar');
       recordServerTimeSample(info.timestamp, healthRequestedAt);
       const sessionRequestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({ code: code.toUpperCase() });
+      const session = await trpc.session.getInfo.query({
+        code: code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeSample(session.serverTime, sessionRequestedAt);
       this.session.set(session);
     } catch (e: unknown) {

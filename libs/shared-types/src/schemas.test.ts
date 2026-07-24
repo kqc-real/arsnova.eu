@@ -3,6 +3,7 @@ import {
   AnswerOptionRevealedDTOSchema,
   AnswerOptionStudentDTOSchema,
   JoinSessionInputSchema,
+  PublicSessionCodeLookupInputSchema,
   previewMaxCorrectScoreAtElapsedSeconds,
   QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION,
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
@@ -195,6 +196,22 @@ describe('öffentliche Contract-Schemas', () => {
         code: 'ABC123',
         nickname: 'x'.repeat(31),
         anonymousClientId,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('akzeptiert die optionale Throttle-ID nur als UUID', () => {
+    expect(PublicSessionCodeLookupInputSchema.safeParse({ code: 'ABC123' }).success).toBe(true);
+    expect(
+      PublicSessionCodeLookupInputSchema.safeParse({
+        code: 'ABC123',
+        anonymousClientId,
+      }).success,
+    ).toBe(true);
+    expect(
+      PublicSessionCodeLookupInputSchema.safeParse({
+        code: 'ABC123',
+        anonymousClientId: 'manipuliert',
       }).success,
     ).toBe(false);
   });

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const PARTICIPANT_ID = '11111111-1111-4111-8111-111111111111';
@@ -8,8 +9,7 @@ const CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 const {
   prismaMock,
   rateLimitMocks,
-  sessionCodeProtectionMocks,
-  telemetryMocks,
+  invalidSessionCodeMocks,
   statsMocks,
   presenceMocks,
   joinAdmissionMocks,
@@ -27,13 +27,8 @@ const {
   rateLimitMocks: {
     checkSessionCreateRate: vi.fn(),
   },
-  sessionCodeProtectionMocks: {
-    checkInvalidSessionCodeFailure: vi.fn(),
-  },
-  telemetryMocks: {
-    recordSessionCodeFailure: vi.fn(),
-    recordSessionCodeSoftCapDelay: vi.fn(),
-    logSessionCodeSoftCapDelay: vi.fn(),
+  invalidSessionCodeMocks: {
+    rejectInvalidSessionCode: vi.fn(),
   },
   statsMocks: {
     updateMaxParticipantsSingleSession: vi.fn(),
@@ -55,14 +50,11 @@ vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: rateLimitMocks.checkSessionCreateRate,
 }));
 
-vi.mock('../lib/sessionCodeProtection', () => ({
-  checkInvalidSessionCodeFailure: sessionCodeProtectionMocks.checkInvalidSessionCodeFailure,
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMocks.rejectInvalidSessionCode,
 }));
 
 vi.mock('../lib/abuseTelemetry', () => ({
-  recordSessionCodeFailure: telemetryMocks.recordSessionCodeFailure,
-  recordSessionCodeSoftCapDelay: telemetryMocks.recordSessionCodeSoftCapDelay,
-  logSessionCodeSoftCapDelay: telemetryMocks.logSessionCodeSoftCapDelay,
   logRateLimitRejection: vi.fn(),
   recordRateLimitRejection: vi.fn(),
   recordSessionCreateCompleted: vi.fn(),
@@ -128,11 +120,12 @@ function buildSession() {
 describe('session.join', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
-      allowed: true,
-      delayMs: 0,
-      globalUtilizationPercent: 0,
-    });
+    invalidSessionCodeMocks.rejectInvalidSessionCode.mockRejectedValue(
+      new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Session nicht gefunden.',
+      }),
+    );
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
     prismaMock.session.findUnique.mockResolvedValue(buildSession());
     prismaMock.participant.count.mockResolvedValue(3);
@@ -207,7 +200,7 @@ describe('session.join', () => {
   });
 
   it('lässt Rejoins auch bei ausgefallenem oder ausgeschöpftem Globalbudget unverzögert', async () => {
-    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockRejectedValue(
+    invalidSessionCodeMocks.rejectInvalidSessionCode.mockRejectedValue(
       new Error('global budget unavailable'),
     );
     prismaMock.participant.findFirst.mockResolvedValue({
@@ -224,18 +217,18 @@ describe('session.join', () => {
       rejoinToken: PARTICIPANT_ID,
     });
 
-    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).not.toHaveBeenCalled();
+    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).not.toHaveBeenCalled();
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).not.toHaveBeenCalled();
   });
 
   it('wendet den Client-Cap ausschließlich auf nicht existente Codes an', async () => {
     prismaMock.session.findUnique.mockResolvedValue(null);
-    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
-      allowed: false,
-      delayMs: 0,
-      globalUtilizationPercent: 20,
-      retryAfterSeconds: 42,
-    });
+    invalidSessionCodeMocks.rejectInvalidSessionCode.mockRejectedValue(
+      new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Zu viele Fehlversuche.',
+      }),
+    );
 
     await expect(
       caller.join({
@@ -245,7 +238,7 @@ describe('session.join', () => {
       }),
     ).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
 
-    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).toHaveBeenCalledWith(
+    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       CLIENT_ID,
       'ZZZ999',
     );
@@ -261,19 +254,14 @@ describe('session.join', () => {
       }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).toHaveBeenCalledWith(
+    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       undefined,
       'ZZZ999',
     );
   });
 
-  it('verzögert Soft-Cap-Fehler bounded und zeichnet nur aggregierte Telemetrie auf', async () => {
+  it('delegiert ungültige Codes an den zentralen Fehlerpfad', async () => {
     prismaMock.session.findUnique.mockResolvedValue(null);
-    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
-      allowed: true,
-      delayMs: 5,
-      globalUtilizationPercent: 88,
-    });
 
     await expect(
       caller.join({
@@ -283,14 +271,9 @@ describe('session.join', () => {
       }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(telemetryMocks.recordSessionCodeFailure).toHaveBeenCalledOnce();
-    expect(telemetryMocks.recordSessionCodeSoftCapDelay).toHaveBeenCalledOnce();
-    expect(telemetryMocks.logSessionCodeSoftCapDelay).toHaveBeenCalledWith({
-      delayMs: 5,
-      globalUtilizationPercent: 88,
-    });
-    expect(JSON.stringify(telemetryMocks.logSessionCodeSoftCapDelay.mock.calls)).not.toContain(
+    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       CLIENT_ID,
+      'ZZZ999',
     );
   });
 
@@ -308,7 +291,7 @@ describe('session.join', () => {
       ),
     );
 
-    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).not.toHaveBeenCalled();
+    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).not.toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledTimes(500);
   });
 });

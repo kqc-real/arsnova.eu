@@ -2048,6 +2048,12 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Öffentliche Code-Abfrage mit optionaler Throttle-ID für den SW-Rollout. */
+export const PublicSessionCodeLookupInputSchema = GetSessionInfoInputSchema.extend({
+  anonymousClientId: z.uuid().optional(),
+});
+export type PublicSessionCodeLookupInput = z.infer<typeof PublicSessionCodeLookupInputSchema>;
+
 /**
  * Input: Host-Steuerung mit optionalem Override für persönliche Timer-Fenster (WCAG 2.2.1).
  * `forceClosePersonalTimers` darf serverseitig erst nach Ablauf des Raum-Countdowns greifen.
@@ -3982,7 +3988,12 @@ export const QuickFeedbackVoteInputSchema = z.object({
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 
-/** Nur Redis-EXISTS – kein 404, damit Probes (z. B. Home „Letzte Sessions“) keine Konsolen-Fehler erzeugen. */
+export const QuickFeedbackIsActiveInputSchema = z.object({
+  sessionCode: z.string().trim().length(6),
+  anonymousClientId: z.uuid().optional(),
+});
+
+/** Aktive Blitzlicht-Runde; unbekannte Codes durchlaufen den zentralen Enumerationsschutz. */
 export const QuickFeedbackIsActiveOutputSchema = z.object({ active: z.boolean() });
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 
