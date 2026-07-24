@@ -39,7 +39,7 @@ Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
 
 ## 4. Missbrauch & Last (Rate-Limiting)
 
-Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden nie direkt ausgewertet. Hinter genau einem Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit Express den vom vertrauenswürdigen Proxy überschriebenen `X-Forwarded-For`-Wert berücksichtigt und nicht alle Clients im Proxy-Bucket landen.
+Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden nie direkt ausgewertet. Hinter genau einem Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit Express den vom vertrauenswürdigen Proxy überschriebenen `X-Forwarded-For`-Wert berücksichtigt und nicht alle Clients im Proxy-Bucket landen. Der separate tRPC-WebSocket-Server verwendet für Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
 Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header

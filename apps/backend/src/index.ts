@@ -19,6 +19,7 @@ import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
+import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import {
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
@@ -35,8 +36,9 @@ const app = express();
 const isProduction = process.env['NODE_ENV'] === 'production';
 /** Hinter Nginx/Proxy: `X-Forwarded-For` / `req.ip` korrekt (Rate-Limit pro echtem Client). */
 const trustProxyHops = Number(process.env['TRUST_PROXY_HOPS'] ?? 0);
+const trustProxy = createTrustProxyFunction(trustProxyHops);
 if (Number.isFinite(trustProxyHops) && trustProxyHops > 0) {
-  app.set('trust proxy', trustProxyHops);
+  app.set('trust proxy', trustProxy);
 }
 app.use(compression());
 app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
@@ -194,7 +196,7 @@ const wsHandler = applyWSSHandler({
   wss,
   router: appRouter,
   createContext: async ({ req, info }) => ({
-    req,
+    req: attachTrustedClientIp(req, trustProxy),
     connectionParams: info.connectionParams,
   }),
 });
