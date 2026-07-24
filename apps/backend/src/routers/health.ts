@@ -25,6 +25,8 @@ import { readLoadSignals } from '../lib/loadSignal';
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
+import { readAbuseSignals } from '../lib/abuseTelemetry';
+import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import type { ServerStatsDTO, FooterStatusDTO } from '@arsnova/shared-types';
 
 const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
@@ -339,6 +341,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dailyHighscoreRows,
       loadSignals,
       pdfSignals,
+      abuseSignals,
       sloSignals,
     ] = await Promise.all([
       prisma.session.count({ where: activeSessionWhere }),
@@ -352,6 +355,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dailyHighscoreRowsPromise,
       readLoadSignals(),
       readPdfSignals(),
+      readAbuseSignals(),
       readSloSignals(),
     ]);
     const openSessionIds = activeSessionIds.map((session) => session.id);
@@ -388,6 +392,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dailyHighscoreStatisticsEntries,
     );
     const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
+    const webSocketTelemetry = getWebSocketTelemetrySnapshot();
     return {
       openSessions,
       activeSessions,
@@ -400,6 +405,10 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       pdfCompletedLastMinute: pdfSignals.completedLastMinute,
       pdfFailedLastMinute: pdfSignals.failedLastMinute,
       pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
+      sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
+      rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
+      rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
+      trpcWebSocketConnectionsActive: webSocketTelemetry.trpcConnectionsActive,
       completedSessions: completedSessionsTotal,
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
@@ -415,6 +424,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
   } catch {
     const emptyHighscores = buildDailyHighscores([]);
     const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
+    const webSocketTelemetry = getWebSocketTelemetrySnapshot();
     return {
       openSessions: 0,
       activeSessions: 0,
@@ -427,6 +437,17 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       pdfCompletedLastMinute: 0,
       pdfFailedLastMinute: 0,
       pdfRejectedLastMinute: 0,
+      sessionCreatesLastMinute: 0,
+      rateLimit429LastMinute: 0,
+      rateLimit429ByCategoryLastMinute: {
+        sessionCreate: 0,
+        sessionCode: 0,
+        vote: 0,
+        pdf: 0,
+        motd: 0,
+        other: 0,
+      },
+      trpcWebSocketConnectionsActive: webSocketTelemetry.trpcConnectionsActive,
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
@@ -439,12 +460,14 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
   }
 }
 
-function withCurrentPdfConcurrency(stats: ServerStatsDTO): ServerStatsDTO {
-  const snapshot = pdfConcurrencyLimiter.snapshot();
+function withCurrentRuntimeTelemetry(stats: ServerStatsDTO): ServerStatsDTO {
+  const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
+  const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
     ...stats,
-    pdfActiveJobs: snapshot.activeJobs,
-    pdfMaxConcurrentJobs: snapshot.maxConcurrentJobs,
+    pdfActiveJobs: pdfSnapshot.activeJobs,
+    pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
+    trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
   };
 }
 
@@ -453,11 +476,11 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
   const now = Date.now();
 
   if (!forceFresh && cachedServerStats && cachedServerStats.expiresAt > now) {
-    return withCurrentPdfConcurrency(cachedServerStats.value);
+    return withCurrentRuntimeTelemetry(cachedServerStats.value);
   }
 
   if (!forceFresh && serverStatsInFlight) {
-    return serverStatsInFlight.then(withCurrentPdfConcurrency);
+    return serverStatsInFlight.then(withCurrentRuntimeTelemetry);
   }
 
   const request = computeServerStats().then((stats) => {
@@ -470,7 +493,7 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
 
   serverStatsInFlight = request;
   try {
-    return withCurrentPdfConcurrency(await request);
+    return withCurrentRuntimeTelemetry(await request);
   } finally {
     if (serverStatsInFlight === request) {
       serverStatsInFlight = null;

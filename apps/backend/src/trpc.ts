@@ -7,6 +7,12 @@ import { extractAdminToken, isAdminSessionTokenValid } from './lib/adminAuth';
 import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/hostAuth';
 import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
 import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
+import {
+  logRateLimitRejection,
+  recordRateLimitRejection,
+  recordSessionCreateCompleted,
+  type RateLimitCategory,
+} from './lib/abuseTelemetry';
 
 export type Context = {
   req?: IncomingMessage;
@@ -28,27 +34,46 @@ const t = initTRPC.context<Context>().create({
     };
   },
 });
-const telemetryProcedure = t.procedure.use(async ({ path, type, next }) => {
-  if (type === 'subscription' || !isTrackedLiveProcedure(path)) {
-    return next();
+function classifyRateLimitPath(path: string): RateLimitCategory {
+  if (path === 'session.create') return 'sessionCreate';
+  if (path === 'session.join') return 'sessionCode';
+  if (path === 'vote.submit') return 'vote';
+  if (path === 'session.getSessionExportPdf' || path === 'session.getLastSessionExportPdfForQuiz') {
+    return 'pdf';
   }
+  if (path.startsWith('motd.')) return 'motd';
+  return 'other';
+}
 
+const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => {
+  const trackLiveRequest = type !== 'subscription' && isTrackedLiveProcedure(path);
   const startedAt = Date.now();
-  try {
-    const result = await next();
-    void recordLiveRequestTelemetry({ durationMs: Date.now() - startedAt });
-    return result;
-  } catch (err) {
-    const errorCode =
-      err && typeof err === 'object' && 'code' in err
-        ? String((err as { code?: unknown }).code)
-        : undefined;
+  const result = await next();
+  const errorCode = result.ok ? undefined : result.error.code;
+
+  if (result.ok && path === 'session.create') {
+    void recordSessionCreateCompleted();
+  }
+  if (!result.ok) {
+    if (errorCode === 'TOO_MANY_REQUESTS') {
+      const category = classifyRateLimitPath(path);
+      const resolved = resolveClientIp(ctx.req);
+      logRateLimitRejection({
+        path,
+        category,
+        clientIp: resolved.ip,
+        ipSource: resolved.source,
+      });
+      void recordRateLimitRejection(category);
+    }
+  }
+  if (trackLiveRequest) {
     void recordLiveRequestTelemetry({
       durationMs: Date.now() - startedAt,
       errorCode,
     });
-    throw err;
   }
+  return result;
 });
 
 /** tRPC Router Builder */

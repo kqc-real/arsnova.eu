@@ -42,6 +42,14 @@ vi.mock('../lib/pdfTelemetry', () => ({
   recordPdfJobOutcome: vi.fn(),
 }));
 
+vi.mock('../lib/abuseTelemetry', () => ({
+  readAbuseSignals: vi.fn(),
+}));
+
+vi.mock('../lib/websocketTelemetry', () => ({
+  getWebSocketTelemetrySnapshot: vi.fn(),
+}));
+
 vi.mock('../lib/sloTelemetry', () => ({
   readSloSignals: vi.fn(),
   isTrackedLiveProcedure: vi.fn(() => false),
@@ -55,6 +63,8 @@ import { countActiveParticipantsForSessions } from '../lib/presence';
 import { getActiveParticipantCountsForSessions } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
 import { readPdfSignals } from '../lib/pdfTelemetry';
+import { readAbuseSignals } from '../lib/abuseTelemetry';
+import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
@@ -65,6 +75,21 @@ beforeEach(() => {
     completedLastMinute: 0,
     failedLastMinute: 0,
     rejectedLastMinute: 0,
+  });
+  vi.mocked(readAbuseSignals).mockResolvedValue({
+    sessionCreatesLastMinute: 0,
+    rateLimit429LastMinute: 0,
+    rateLimit429ByCategoryLastMinute: {
+      sessionCreate: 0,
+      sessionCode: 0,
+      vote: 0,
+      pdf: 0,
+      motd: 0,
+      other: 0,
+    },
+  });
+  vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
+    trpcConnectionsActive: 0,
   });
 });
 
@@ -204,6 +229,17 @@ describe('health.stats', () => {
     expect(result.pdfCompletedLastMinute).toBe(0);
     expect(result.pdfFailedLastMinute).toBe(0);
     expect(result.pdfRejectedLastMinute).toBe(0);
+    expect(result.sessionCreatesLastMinute).toBe(0);
+    expect(result.rateLimit429LastMinute).toBe(0);
+    expect(result.rateLimit429ByCategoryLastMinute).toEqual({
+      sessionCreate: 0,
+      sessionCode: 0,
+      vote: 0,
+      pdf: 0,
+      motd: 0,
+      other: 0,
+    });
+    expect(result.trpcWebSocketConnectionsActive).toBe(0);
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
     expect(result.dailyHighscores).toHaveLength(100);
@@ -237,6 +273,42 @@ describe('health.stats', () => {
       pdfCompletedLastMinute: 7,
       pdfFailedLastMinute: 1,
       pdfRejectedLastMinute: 3,
+    });
+  });
+
+  it('exponiert Create-, 429- und aktuelle WebSocket-Metriken', async () => {
+    vi.mocked(prisma.session.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+    vi.mocked(readAbuseSignals).mockResolvedValue({
+      sessionCreatesLastMinute: 12,
+      rateLimit429LastMinute: 9,
+      rateLimit429ByCategoryLastMinute: {
+        sessionCreate: 2,
+        sessionCode: 1,
+        vote: 3,
+        pdf: 1,
+        motd: 2,
+        other: 0,
+      },
+    });
+    vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
+      trpcConnectionsActive: 321,
+    });
+
+    const result = await caller.stats(undefined);
+
+    expect(result).toMatchObject({
+      sessionCreatesLastMinute: 12,
+      rateLimit429LastMinute: 9,
+      rateLimit429ByCategoryLastMinute: {
+        sessionCreate: 2,
+        sessionCode: 1,
+        vote: 3,
+        pdf: 1,
+        motd: 2,
+        other: 0,
+      },
+      trpcWebSocketConnectionsActive: 321,
     });
   });
 
@@ -432,6 +504,10 @@ describe('health.stats', () => {
         'pdfCompletedLastMinute',
         'pdfFailedLastMinute',
         'pdfRejectedLastMinute',
+        'sessionCreatesLastMinute',
+        'rateLimit429LastMinute',
+        'rateLimit429ByCategoryLastMinute',
+        'trpcWebSocketConnectionsActive',
         'completedSessions',
         'activeBlitzRounds',
         'maxParticipantsSingleSession',

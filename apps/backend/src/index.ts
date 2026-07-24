@@ -17,6 +17,10 @@ import { logger } from './lib/logger';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
+import {
+  recordTrpcWebSocketConnected,
+  recordTrpcWebSocketDisconnected,
+} from './lib/websocketTelemetry';
 
 const PORT = Number(process.env['PORT']) || 3000;
 const WS_PORT = Number(process.env['WS_PORT']) || 3001;
@@ -179,6 +183,10 @@ const server = app.listen(PORT, () => {
 const wss = new WebSocketServer({
   port: WS_PORT,
   maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
+});
+wss.on('connection', (socket) => {
+  recordTrpcWebSocketConnected();
+  socket.once('close', recordTrpcWebSocketDisconnected);
 });
 const wsHandler = applyWSSHandler({
   wss,
