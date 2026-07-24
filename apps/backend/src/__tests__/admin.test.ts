@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -5,6 +6,7 @@ const {
   createAdminSessionTokenMock,
   invalidateAdminSessionTokenMock,
   verifyAdminSecretMock,
+  rejectInvalidAdminLoginMock,
   extractAdminTokenMock,
   isAdminSessionTokenValidMock,
 } = vi.hoisted(() => ({
@@ -35,6 +37,7 @@ const {
   createAdminSessionTokenMock: vi.fn(),
   invalidateAdminSessionTokenMock: vi.fn(),
   verifyAdminSecretMock: vi.fn(),
+  rejectInvalidAdminLoginMock: vi.fn(),
   extractAdminTokenMock: vi.fn(),
   isAdminSessionTokenValidMock: vi.fn(),
 }));
@@ -51,6 +54,10 @@ vi.mock('../lib/adminAuth', () => ({
   isAdminSessionTokenValid: isAdminSessionTokenValidMock,
 }));
 
+vi.mock('../lib/adminLoginProtection', () => ({
+  rejectInvalidAdminLogin: rejectInvalidAdminLoginMock,
+}));
+
 import { adminRouter } from '../routers/admin';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
@@ -62,6 +69,12 @@ describe('admin router (Epic 9)', () => {
     vi.setSystemTime(new Date('2026-03-14T12:00:00.000Z'));
     vi.clearAllMocks();
     verifyAdminSecretMock.mockReturnValue(true);
+    rejectInvalidAdminLoginMock.mockRejectedValue(
+      new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Ungültige Admin-Zugangsdaten.',
+      }),
+    );
     createAdminSessionTokenMock.mockResolvedValue({
       token: 'admin-token-1234567890-abcdefghijklmnopqrstuvwxyz',
       expiresAt: new Date('2026-03-14T12:00:00.000Z'),
@@ -81,6 +94,19 @@ describe('admin router (Epic 9)', () => {
     expect(verifyAdminSecretMock).toHaveBeenCalledWith('topsecret');
     expect(result.token).toBe('admin-token-1234567890-abcdefghijklmnopqrstuvwxyz');
     expect(result.expiresAt).toBe('2026-03-14T12:00:00.000Z');
+    expect(rejectInvalidAdminLoginMock).not.toHaveBeenCalled();
+  });
+
+  it('härtet nur ungültige Admin-Logins progressiv', async () => {
+    verifyAdminSecretMock.mockReturnValue(false);
+    const caller = adminRouter.createCaller({ req: undefined });
+
+    await expect(caller.login({ secret: 'falsch' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+
+    expect(rejectInvalidAdminLoginMock).toHaveBeenCalledOnce();
+    expect(createAdminSessionTokenMock).not.toHaveBeenCalled();
   });
 
   it('setzt Legal Hold mit Default-Laufzeit', async () => {

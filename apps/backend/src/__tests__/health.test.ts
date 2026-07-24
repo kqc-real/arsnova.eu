@@ -107,6 +107,7 @@ beforeEach(() => {
     sessionCodeSoftCapDelaysLastMinute: 0,
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: {
+      adminLogin: 0,
       sessionCreate: 0,
       quizUpload: 0,
       quickFeedback: 0,
@@ -299,6 +300,7 @@ describe('health.stats', () => {
       sessionCodeSoftCapDelaysLastMinute: 4,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -323,6 +325,7 @@ describe('health.stats', () => {
       sessionCodeGlobalSoftCapUtilizationPercent: 82,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -363,6 +366,7 @@ describe('health.stats', () => {
       sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 0,
         quizUpload: 0,
         quickFeedback: 0,

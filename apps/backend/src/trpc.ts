@@ -64,6 +64,7 @@ const t = initTRPC.context<Context>().create({
   },
 });
 function classifyRateLimitPath(path: string): RateLimitCategory {
+  if (path === 'admin.login') return 'adminLogin';
   if (path === 'session.create') return 'sessionCreate';
   if (path === 'quiz.upload') return 'quizUpload';
   if (path === 'quickFeedback.create') return 'quickFeedback';

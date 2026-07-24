@@ -3044,6 +3044,7 @@ export const HealthSecurityStatsDTOSchema = z.object({
   rateLimit429LastMinute: z.number().int().min(0),
   /** 429-Ablehnungen der letzten Minute nach öffentlichem Pfadtyp. */
   rateLimit429ByCategoryLastMinute: z.object({
+    adminLogin: z.number().int().min(0),
     sessionCreate: z.number().int().min(0),
     quizUpload: z.number().int().min(0),
     quickFeedback: z.number().int().min(0),

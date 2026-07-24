@@ -140,12 +140,12 @@ describe('abuseTelemetry', () => {
     values[0] = [null, '3'];
     values[1] = [null, '7'];
     values[2] = [null, '2'];
-    values[3] = [null, '2'];
-    values[7] = [null, '4'];
-    values[55] = [null, '1'];
-    values[63] = [null, '5'];
+    values[4] = [null, '2'];
+    values[8] = [null, '4'];
+    values[60] = [null, '1'];
+    values[69] = [null, '5'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[66] = [null, '2'];
+    values[72] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
@@ -155,6 +155,7 @@ describe('abuseTelemetry', () => {
       sessionCodeSoftCapDelaysLastMinute: 2,
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 2,
         quizUpload: 0,
         quickFeedback: 0,
@@ -165,7 +166,7 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(77);
+    expect(multi.get).toHaveBeenCalledTimes(84);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -263,6 +264,7 @@ describe('abuseTelemetry', () => {
       sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
         sessionCreate: 0,
         quizUpload: 0,
         quickFeedback: 0,

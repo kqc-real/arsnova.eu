@@ -111,6 +111,10 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   Viele Erfolge mit anschließend steigenden `sessionCreate`-429 zeigen ein
   ausgeschöpftes globales oder Shared-NAT-IP-Budget. Das globale Budget ist ein
   Create-Notanker; laufende Sessions und Teilnehmerpfade bleiben unberührt.
+- Bei `adminLogin`: 429 zeigen ein ausgeschöpftes globales Fehlbudget oder eine
+  volle prozesslokale Delay-Kapazität. Keine IP-Sperre ergänzen. Gültige
+  Zugangsdaten umgehen das Fehlbudget; bei anhaltenden Wellen `ADMIN_SECRET`
+  kontrolliert rotieren und die Logs auf `admin.login` korrelieren.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge
   IP-Sperre aktivieren; Votes werden participant-bezogen begrenzt.
 - Bei `sessionCode`: Client-Cap-429 zusammen mit

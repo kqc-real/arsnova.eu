@@ -13,6 +13,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { formatLocaleCount } from '../../core/locale-number.util';
+import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
@@ -177,7 +178,7 @@ export class AdminComponent implements OnInit {
       await this.loadSessions();
     } catch (error) {
       this.loginError.set(
-        this.extractErrorMessage(error, $localize`:@@admin.errorLogin:Login fehlgeschlagen.`),
+        localizeKnownServerError(error, $localize`:@@admin.errorLogin:Login fehlgeschlagen.`),
       );
       setAdminToken(null);
       this.authenticated.set(false);
