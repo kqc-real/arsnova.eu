@@ -41,6 +41,19 @@ describe.skipIf(!RUN_REDIS)('Session-Code-Schutz mit echtem Redis', () => {
     await closeRedis();
   });
 
+  it('bucht Legacy-Clients ohne ID nur in Code- und Globalbudget', async () => {
+    createdKeys.add(codeKey(CODE));
+
+    await expect(checkInvalidSessionCodeFailure(undefined, CODE)).resolves.toMatchObject({
+      allowed: true,
+    });
+
+    const redis = getRedis();
+    expect(await redis.exists(`${KEY_PREFIX}client:legacy-compat`)).toBe(0);
+    expect(await redis.exists(codeKey(CODE))).toBe(1);
+    expect(await redis.exists(`${KEY_PREFIX}global`)).toBe(1);
+  });
+
   it('führt Client-Cap, Code-Delay und Kardinalitätsgrenze atomar aus', async () => {
     expect(SESSION_CODE_PROTECTION_LIMITS).toMatchObject({
       windowSeconds: 30,

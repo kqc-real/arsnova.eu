@@ -55,6 +55,18 @@ describe('Session-Code-Fehlbudgets', () => {
     expect(codeKey).toMatch(/^security:session-code:code:[0-9a-f]{64}$/);
     expect(JSON.stringify(mocks.eval.mock.calls[0])).not.toContain(CLIENT_A);
     expect(JSON.stringify(mocks.eval.mock.calls[0])).not.toContain('203.0.113.');
+    expect(mocks.eval.mock.calls[0]!.at(-1)).toBe('1');
+  });
+
+  it('überspringt den Client-Cap für gecachte Legacy-Clients ohne neue Client-Keys', async () => {
+    await checkInvalidSessionCodeFailure(undefined, 'ABC123');
+
+    const call = mocks.eval.mock.calls[0]!;
+    expect(call[3]).toBe('security:session-code:client:legacy-compat');
+    expect(call.at(-1)).toBe('0');
+    expect(String(call[0])).toContain(
+      "if hasClientId then clientCount = redis.call('INCR', clientKey) end",
+    );
   });
 
   it('trennt zwei Clients unabhängig von einer gemeinsamen IP', async () => {

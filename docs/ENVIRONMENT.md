@@ -181,8 +181,10 @@ Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Expre
 `session.join` verwendet dagegen keinerlei IP-Key oder Participant-IP-Lock.
 Das Backend lädt zuerst die Session; gültige, nicht beendete Sessions und
 Rejoins berühren das Fehlbudget nicht. Nur nicht existente Codes buchen in
-einem Lua-Aufruf Client-, Code- und Globalbudget. Client-IDs und Codes stehen
-nur als SHA-256-Hash in den Redis-Keys. Ab 80 % Code- oder Globalauslastung
+einem Lua-Aufruf die anwendbaren Budgets. Client-IDs und Codes stehen nur als
+SHA-256-Hash in den Redis-Keys. Während des Service-Worker-Rollouts buchen
+Vorgängerclients ohne `anonymousClientId` nur Code- und Globalbudget; sie
+erzeugen weder einen Client- noch einen IP-Ersatzkey. Ab 80 % Code- oder Globalauslastung
 steigt der Delay progressiv bis zum konfigurierten Maximum; er bleibt ein
 Soft-Cap ohne saalweite Ablehnung. Ist das globale Budget voll, erzeugt der
 Pfad keine neuen angreiferkontrollierten Keys. Ein Redis-Ausfall lässt gültige

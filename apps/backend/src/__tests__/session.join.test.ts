@@ -251,6 +251,22 @@ describe('session.join', () => {
     );
   });
 
+  it('akzeptiert gecachte Legacy-Clients ohne anonymousClientId mit Code-/Globalbudget', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.join({
+        code: 'ZZZ999',
+        nickname: 'Ada',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).toHaveBeenCalledWith(
+      undefined,
+      'ZZZ999',
+    );
+  });
+
   it('verzögert Soft-Cap-Fehler bounded und zeichnet nur aggregierte Telemetrie auf', async () => {
     prismaMock.session.findUnique.mockResolvedValue(null);
     sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({

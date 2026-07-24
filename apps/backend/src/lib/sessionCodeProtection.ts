@@ -47,15 +47,19 @@ local windowSeconds = tonumber(ARGV[4])
 local delayBaseMs = tonumber(ARGV[5])
 local delayMaxMs = tonumber(ARGV[6])
 local softCapStartPercent = tonumber(ARGV[7])
+local hasClientId = ARGV[8] == '1'
 
 local globalCount = tonumber(redis.call('GET', globalKey)) or 0
-local clientCount = tonumber(redis.call('GET', clientKey)) or 0
+local clientCount = 0
 
-if clientCount >= clientLimit then
-  local retryAfter = redis.call('TTL', clientKey)
-  if retryAfter < 1 then retryAfter = windowSeconds end
-  local utilization = math.min(100, math.floor((globalCount * 100) / globalSoftCap))
-  return {0, 0, utilization, retryAfter}
+if hasClientId then
+  clientCount = tonumber(redis.call('GET', clientKey)) or 0
+  if clientCount >= clientLimit then
+    local retryAfter = redis.call('TTL', clientKey)
+    if retryAfter < 1 then retryAfter = windowSeconds end
+    local utilization = math.min(100, math.floor((globalCount * 100) / globalSoftCap))
+    return {0, 0, utilization, retryAfter}
+  end
 end
 
 -- Sobald das globale Budget voll ist, werden keine angreiferkontrollierten
@@ -67,11 +71,11 @@ end
 
 local codeCount = tonumber(redis.call('GET', codeKey)) or 0
 globalCount = redis.call('INCR', globalKey)
-clientCount = redis.call('INCR', clientKey)
+if hasClientId then clientCount = redis.call('INCR', clientKey) end
 codeCount = redis.call('INCR', codeKey)
 
 if globalCount == 1 then redis.call('EXPIRE', globalKey, windowSeconds) end
-if clientCount == 1 then redis.call('EXPIRE', clientKey, windowSeconds) end
+if hasClientId and clientCount == 1 then redis.call('EXPIRE', clientKey, windowSeconds) end
 if codeCount == 1 then redis.call('EXPIRE', codeKey, windowSeconds) end
 
 local globalUtilization = math.min(100, math.floor((globalCount * 100) / globalSoftCap))
@@ -112,15 +116,18 @@ function globalKey(): string {
 }
 
 export async function checkInvalidSessionCodeFailure(
-  anonymousClientId: string,
+  anonymousClientId: string | undefined,
   normalizedCode: string,
 ): Promise<SessionCodeFailureDecision> {
   const limits = SESSION_CODE_PROTECTION_LIMITS;
+  const hasClientId = anonymousClientId !== undefined;
   const raw = await getRedis().eval(
     SESSION_CODE_FAILURE_LUA,
     3,
     globalKey(),
-    `${KEY_PREFIX}client:${stableHash(anonymousClientId)}`,
+    hasClientId
+      ? `${KEY_PREFIX}client:${stableHash(anonymousClientId)}`
+      : `${KEY_PREFIX}client:legacy-compat`,
     `${KEY_PREFIX}code:${stableHash(normalizedCode)}`,
     String(limits.clientFailuresPerWindow),
     String(limits.codeSoftCapPerWindow),
@@ -129,6 +136,7 @@ export async function checkInvalidSessionCodeFailure(
     String(limits.delayBaseMs),
     String(limits.delayMaxMs),
     String(SOFT_CAP_START_PERCENT),
+    hasClientId ? '1' : '0',
   );
   if (!Array.isArray(raw) || raw.length < 4) {
     throw new Error('Unerwartete Redis-Antwort beim Session-Code-Schutz.');

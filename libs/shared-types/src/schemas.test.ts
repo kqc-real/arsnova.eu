@@ -175,8 +175,9 @@ describe('öffentliche Contract-Schemas', () => {
       JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada', anonymousClientId })
         .success,
     ).toBe(true);
+    // Übergangskompatibilität für noch aktive Service-Worker-Clients der Vorgängerversion.
     expect(JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada' }).success).toBe(
-      false,
+      true,
     );
     expect(
       JoinSessionInputSchema.safeParse({

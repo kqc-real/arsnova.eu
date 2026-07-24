@@ -2417,8 +2417,12 @@ export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
-  /** Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder Besitznachweis. */
-  anonymousClientId: z.uuid(),
+  /**
+   * Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder
+   * Besitznachweis. Während des Service-Worker-Rollouts optional für gecachte
+   * Clients der Vorgängerversion.
+   */
+  anonymousClientId: z.uuid().optional(),
   teamId: z.uuid().optional(),
   rejoinToken: z.uuid().optional(),
 });

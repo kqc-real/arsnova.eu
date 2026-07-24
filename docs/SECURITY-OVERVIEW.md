@@ -63,15 +63,19 @@ begrenzt.
 Für `session.join` lädt das Backend zuerst die Session. Existiert sie und ist
 noch nicht beendet, werden Client-, Code- und Global-Fehlbudget weder gelesen
 noch gebucht; Rejoins werden auch nicht durch die separate Join-Wellen-
-Glättung verzögert. Nur nicht existente Codes buchen alle drei Zähler atomar
-per Lua. Die zufällige browserweite UUID ist kein Proof und enthält keine PII;
+Glättung verzögert. Nur nicht existente Codes buchen die anwendbaren Zähler
+atomar per Lua. Die zufällige browserweite UUID ist kein Proof und enthält keine PII;
 Client-ID und Code werden für Redis-Keys mit SHA-256 gehasht. Das Clientbudget
 antwortet bei Erschöpfung mit 429. Code- und Global-Soft-Caps führen ab 80 %
 progressiv zu höchstens 1.500 ms Delay plus aggregierter Telemetrie, niemals zu
 einem saalweiten Hard-Lock. Nach vollem Globalbudget werden keine neuen
 Client-/Code-Keys angelegt. Alle Keys haben ein festes 300-Sekunden-TTL.
 Redis-Ausfall beeinflusst gültige Joins nicht; der ohnehin ungültige Pfad ist
-fail-closed.
+fail-closed. Für während des Deployments weiter aktive Service-Worker-Clients
+der Vorgängerversion ist die UUID vorübergehend optional. Ohne UUID gelten
+weiter Code- und Globalbudget, aber kein Client-Cap; insbesondere wird weder
+ein Ersatz-IP-Bucket noch ein Legacy-Client-Key angelegt. Diese
+Rollout-Ausnahme ist für einen späteren Cutover vorgesehen.
 
 HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
 
