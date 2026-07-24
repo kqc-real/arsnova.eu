@@ -3,6 +3,8 @@
  * Bekannte Texte werden für die aktuelle UI-Locale übersetzt.
  */
 const SESSION_NOT_FOUND_DE = 'Session nicht gefunden.';
+const SESSION_CREATE_RATE_LIMIT_DE =
+  'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
 const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',
   'NOT_FOUND',
@@ -16,6 +18,10 @@ type UnknownRecord = Record<string, unknown>;
 
 export function sessionNotFoundUiMessage(): string {
   return $localize`:@@session.notFound:Session nicht gefunden.`;
+}
+
+function sessionCreateRateLimitUiMessage(): string {
+  return $localize`:@@errors.sessionCreateRateLimit:Zu viele Session-Erstellungen. Bitte später erneut versuchen.`;
 }
 
 function asRecord(value: unknown): UnknownRecord | null {
@@ -58,6 +64,9 @@ export function localizeKnownServerMessage(message: string): string {
   const normalized = stripTrpcCodePrefix(message);
   if (normalized === SESSION_NOT_FOUND_DE) {
     return sessionNotFoundUiMessage();
+  }
+  if (normalized === SESSION_CREATE_RATE_LIMIT_DE) {
+    return sessionCreateRateLimitUiMessage();
   }
   return normalized;
 }

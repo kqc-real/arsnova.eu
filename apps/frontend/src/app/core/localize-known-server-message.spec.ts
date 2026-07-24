@@ -1,7 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { localizeKnownServerError } from './localize-known-server-message';
+import { clearTranslations, loadTranslations } from '@angular/localize';
+import {
+  localizeKnownServerError,
+  localizeKnownServerMessage,
+} from './localize-known-server-message';
 
 describe('localizeKnownServerError', () => {
+  it('lokalisiert die bekannte Session-Create-Drosselung auch mit tRPC-Präfix', () => {
+    loadTranslations({
+      'errors.sessionCreateRateLimit':
+        'Too many session creation attempts. Please try again later.',
+    });
+    try {
+      expect(
+        localizeKnownServerMessage(
+          'TOO_MANY_REQUESTS: Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
+        ),
+      ).toBe('Too many session creation attempts. Please try again later.');
+    } finally {
+      clearTranslations();
+    }
+  });
+
   it('verwendet retryAfterSeconds aus dem expliziten tRPC-Datenfeld', () => {
     const error = {
       message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
