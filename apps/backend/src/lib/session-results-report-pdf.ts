@@ -88,15 +88,11 @@ async function inlineTrustedReportStylesheets(html: string): Promise<string> {
   const katexCss = await inlineKatexWoff2Fonts(rawKatexCss, katexCssPath);
   return html
     .replace(
-      new RegExp(
-        `<link[^>]+href="${EXPORT_REPORT_KATEX_CSS_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`,
-      ),
+      `<link rel="stylesheet" href="${EXPORT_REPORT_KATEX_CSS_URL}" crossorigin="anonymous" />`,
       `<style data-pdf-source="katex">${katexCss}</style>`,
     )
     .replace(
-      new RegExp(
-        `<link[^>]+href="${EXPORT_REPORT_HLJS_CSS_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`,
-      ),
+      `<link rel="stylesheet" href="${EXPORT_REPORT_HLJS_CSS_URL}" crossorigin="anonymous" />`,
       `<style data-pdf-source="highlight">${highlightCss}</style>`,
     );
 }
