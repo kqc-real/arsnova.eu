@@ -9,6 +9,7 @@ import {
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackTypeInputSchema,
   QuickFeedbackVoteInputSchema,
+  QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
@@ -585,17 +586,26 @@ export const quickFeedbackRouter = router({
     }),
 
   /**
-   * Leichtgewichtige Redis-Prüfung vor dem eigentlichen Session-Lookup. Ein
-   * inaktiver Code wird anschließend über `session.getInfo` geschützt.
+   * Rückwärtskompatibler kombinierter Join-Resolver: aktives Blitzlicht wird
+   * allein in Redis erkannt; andernfalls folgt genau ein Session-Lookup.
    */
   isActive: publicProcedure
-    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .input(QuickFeedbackIsActiveInputSchema)
     .output(QuickFeedbackIsActiveOutputSchema)
     .query(async ({ input }) => {
       const code = input.sessionCode.toUpperCase();
       const redis = getRedis();
       const n = await redis.exists(feedbackKey(code));
-      return { active: n === 1 };
+      if (n === 1) return { active: true };
+
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: { status: true },
+      });
+      if (!session) {
+        return rejectInvalidSessionCode(input.anonymousClientId, code);
+      }
+      return { active: false, sessionStatus: session.status };
     }),
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {

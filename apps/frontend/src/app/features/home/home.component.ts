@@ -722,12 +722,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async resolveJoinTarget(code: string): Promise<'feedback' | 'join' | 'finished'> {
     const anonymousClientId = getAnonymousClientId();
-    const { active: fbActive } = await trpc.quickFeedback.isActive.query({
+    const resolution = await trpc.quickFeedback.isActive.query({
       sessionCode: code,
+      anonymousClientId,
     });
-    if (fbActive) {
+    if (resolution.active) {
       return 'feedback';
     }
+    if (resolution.sessionStatus) {
+      return resolution.sessionStatus === 'FINISHED' ? 'finished' : 'join';
+    }
+    // Kompatibilitätsfallback für einen alten Backend-Stand während Rolling Deployments.
     const session = await trpc.session.getInfo.query({ code, anonymousClientId });
     return session.status === 'FINISHED' ? 'finished' : 'join';
   }

@@ -60,6 +60,7 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
     path === 'session.submitSessionFeedback' ||
     path === 'session.getHasSubmittedFeedback' ||
     path === 'session.getSessionFeedbackSummary' ||
+    path === 'quickFeedback.isActive' ||
     path === 'quickFeedback.vote' ||
     path === 'quickFeedback.results' ||
     path === 'quickFeedback.onResults'

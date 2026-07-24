@@ -3988,8 +3988,16 @@ export const QuickFeedbackVoteInputSchema = z.object({
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 
-/** Nur Redis-EXISTS; inaktive Codes werden anschließend über `session.getInfo` geprüft. */
-export const QuickFeedbackIsActiveOutputSchema = z.object({ active: z.boolean() });
+/** Rückwärtskompatibler kombinierter Join-Resolver für Blitzlicht und Session. */
+export const QuickFeedbackIsActiveInputSchema = z.object({
+  sessionCode: z.string().trim().length(6),
+  anonymousClientId: z.uuid().optional(),
+});
+export const QuickFeedbackIsActiveOutputSchema = z.object({
+  active: z.boolean(),
+  /** Bei inaktivem Blitzlicht liefert der eine DB-Lookup direkt den Session-Status. */
+  sessionStatus: SessionStatusEnum.optional(),
+});
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 
 export const QuickFeedbackResultSchema = z.object({
