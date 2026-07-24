@@ -8,6 +8,7 @@
  *   npm run load:pdf-vs-voting:500
  */
 import { performance } from 'node:perf_hooks';
+import { arch, cpus, platform, release, totalmem } from 'node:os';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
 import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
@@ -17,6 +18,7 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 500));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 75));
 const PDF_QUESTIONS = Math.max(5, Number(process.env.PDF_QUESTIONS || 20));
+const PDF_VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.PDF_VOTE_COOLDOWN_MS || 1_100));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_500));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
@@ -107,28 +109,56 @@ async function createFinishedPdfSession() {
     teamMode: false,
   });
   const hostTrpc = createHttpTrpcSingle(TRPC_URL, created.hostToken);
+  const participantIds = await joinParticipants(created, 'PDF');
+  let acceptedVotes = 0;
 
   for (let index = 0; index < PDF_QUESTIONS; index += 1) {
     const opened = await hostTrpc.session.nextQuestion.mutate({ code: created.code });
     if (opened.status === 'QUESTION_OPEN') {
       await hostTrpc.session.revealAnswers.mutate({ code: created.code });
     }
+    const question = await publicTrpc.session.getCurrentQuestionForStudent.query({
+      code: created.code,
+    });
+    if (!question?.id || !question.answers?.[0]?.id) {
+      throw new Error(`PDF-Testfrage ${index + 1} konnte nicht geladen werden.`);
+    }
+    const votes = await submitVotes(
+      {
+        sessionId: created.sessionId,
+        questionId: question.id,
+        answerId: question.answers[0].id,
+      },
+      participantIds,
+    );
+    if (votes.failed > 0) {
+      throw new Error(
+        `PDF-Testfrage ${index + 1}: ${votes.failed}/${votes.attempted} Votes fehlgeschlagen.`,
+      );
+    }
+    acceptedVotes += votes.successful;
     await hostTrpc.session.revealResults.mutate({ code: created.code });
+    await sleep(PDF_VOTE_COOLDOWN_MS);
   }
   const finished = await hostTrpc.session.nextQuestion.mutate({ code: created.code });
   if (finished.status !== 'FINISHED') {
     throw new Error(`PDF-Testsession endet mit ${finished.status} statt FINISHED.`);
   }
-  return { code: created.code, hostToken: created.hostToken };
+  return {
+    code: created.code,
+    hostToken: created.hostToken,
+    participants: participantIds.length,
+    votes: acceptedVotes,
+  };
 }
 
-async function joinParticipants(session) {
+async function joinParticipants(session, nicknamePrefix = 'LIVE') {
   const trpc = createHttpTrpcSingle(TRPC_URL);
   const indexes = Array.from({ length: PARTICIPANTS }, (_, index) => index);
   return mapConcurrent(indexes, JOIN_CONCURRENCY, async (index) => {
     const joined = await trpc.session.join.mutate({
       code: session.code,
-      nickname: `W02-${String(index + 1).padStart(4, '0')}`,
+      nickname: `${nicknamePrefix}-${String(index + 1).padStart(4, '0')}`,
     });
     return joined.participantId;
   });
@@ -174,11 +204,14 @@ async function submitVotes(session, participantIds) {
 
 async function main() {
   await waitForBackend(TRPC_URL);
-  const [pdfSession, liveSession] = await Promise.all([
-    createFinishedPdfSession(),
-    createArtillery500Session(TRPC_URL),
-  ]);
-  const participantIds = await joinParticipants(liveSession);
+  const pdfSession = await createFinishedPdfSession();
+
+  const baselineSession = await createArtillery500Session(TRPC_URL);
+  const baselineParticipantIds = await joinParticipants(baselineSession, 'BASE');
+  const baselineVotes = await submitVotes(baselineSession, baselineParticipantIds);
+
+  const liveSession = await createArtillery500Session(TRPC_URL);
+  const participantIds = await joinParticipants(liveSession, 'LOAD');
 
   let stopPdfWorkers = false;
   const pdfMetrics = { completed: 0, failed: 0, rejected: 0 };
@@ -208,7 +241,7 @@ async function main() {
   const probeTrpc = createHttpTrpcSingle(TRPC_URL, pdfSession.hostToken);
   let thirdRequestRejected = false;
   let metricsAtCap;
-  let votes;
+  let votesUnderPdfLoad;
   const healthTrpc = createHttpTrpcSingle(TRPC_URL);
   try {
     await sleep(100);
@@ -229,7 +262,7 @@ async function main() {
       }
     }
     metricsAtCap = await healthTrpc.health.stats.query();
-    votes = await submitVotes(liveSession, participantIds);
+    votesUnderPdfLoad = await submitVotes(liveSession, participantIds);
   } finally {
     stopPdfWorkers = true;
     await Promise.all(workers);
@@ -249,6 +282,15 @@ async function main() {
   }
 
   const failures = [];
+  if (pdfSession.participants !== PARTICIPANTS) {
+    failures.push(`PDF-Fixture-Teilnehmende: ${pdfSession.participants}/${PARTICIPANTS}`);
+  }
+  if (pdfSession.votes !== PARTICIPANTS * PDF_QUESTIONS) {
+    failures.push(`PDF-Fixture-Votes: ${pdfSession.votes}/${PARTICIPANTS * PDF_QUESTIONS}`);
+  }
+  if (baselineParticipantIds.length !== PARTICIPANTS) {
+    failures.push(`Baseline-Teilnehmende: ${baselineParticipantIds.length}/${PARTICIPANTS}`);
+  }
   if (participantIds.length !== PARTICIPANTS) {
     failures.push(`Teilnehmende: ${participantIds.length}/${PARTICIPANTS}`);
   }
@@ -266,14 +308,23 @@ async function main() {
   if (metricsAtCap.pdfRejectedLastMinute < 1) {
     failures.push('health.stats zeigt keine PDF-Ablehnung.');
   }
-  if (votes.errorRate >= VOTE_ERROR_RATE_LIMIT) {
-    failures.push(`Vote-Fehlerquote ${(votes.errorRate * 100).toFixed(2)} %`);
+  if (baselineVotes.errorRate >= VOTE_ERROR_RATE_LIMIT) {
+    failures.push(`Baseline-Fehlerquote ${(baselineVotes.errorRate * 100).toFixed(2)} %`);
   }
-  if (votes.p95Ms >= VOTE_P95_LIMIT_MS) {
-    failures.push(`Vote-p95 ${votes.p95Ms} ms`);
+  if (baselineVotes.p95Ms >= VOTE_P95_LIMIT_MS) {
+    failures.push(`Baseline-p95 ${baselineVotes.p95Ms} ms`);
   }
-  if (votes.p99Ms >= VOTE_P99_LIMIT_MS) {
-    failures.push(`Vote-p99 ${votes.p99Ms} ms`);
+  if (baselineVotes.p99Ms >= VOTE_P99_LIMIT_MS) {
+    failures.push(`Baseline-p99 ${baselineVotes.p99Ms} ms`);
+  }
+  if (votesUnderPdfLoad.errorRate >= VOTE_ERROR_RATE_LIMIT) {
+    failures.push(`PDF-Last-Fehlerquote ${(votesUnderPdfLoad.errorRate * 100).toFixed(2)} %`);
+  }
+  if (votesUnderPdfLoad.p95Ms >= VOTE_P95_LIMIT_MS) {
+    failures.push(`PDF-Last-p95 ${votesUnderPdfLoad.p95Ms} ms`);
+  }
+  if (votesUnderPdfLoad.p99Ms >= VOTE_P99_LIMIT_MS) {
+    failures.push(`PDF-Last-p99 ${votesUnderPdfLoad.p99Ms} ms`);
   }
   if (metricsAfterLoad.pdfActiveJobs !== 0) {
     failures.push(`PDF-Recovery: noch ${metricsAfterLoad.pdfActiveJobs} Jobs aktiv.`);
@@ -286,12 +337,24 @@ async function main() {
     scenario: 'pdf-vs-live-voting-500',
     participants: {
       target: PARTICIPANTS,
+      baselineJoined: baselineParticipantIds.length,
       joined: participantIds.length,
       sourceIp: '127.0.0.1',
       distinctParticipantIds: new Set(participantIds).size,
     },
+    system: {
+      targetEnvironment: process.env.TARGET_ENVIRONMENT || 'local',
+      platform: platform(),
+      release: release(),
+      arch: arch(),
+      logicalCpuCount: cpus().length,
+      totalMemoryBytes: totalmem(),
+      nodeVersion: process.version,
+    },
     pdf: {
       questionsPerReport: PDF_QUESTIONS,
+      fixtureParticipants: pdfSession.participants,
+      fixtureVotes: pdfSession.votes,
       thirdRequestRejected,
       workerResults: pdfMetrics,
       metricsAtCap: {
@@ -307,7 +370,16 @@ async function main() {
       },
       recoveryPdfSucceeded,
     },
-    votes,
+    votes: {
+      baseline: baselineVotes,
+      underPdfLoad: votesUnderPdfLoad,
+      delta: {
+        p50Ms: Math.round((votesUnderPdfLoad.p50Ms - baselineVotes.p50Ms) * 100) / 100,
+        p95Ms: Math.round((votesUnderPdfLoad.p95Ms - baselineVotes.p95Ms) * 100) / 100,
+        p99Ms: Math.round((votesUnderPdfLoad.p99Ms - baselineVotes.p99Ms) * 100) / 100,
+        errorRate: votesUnderPdfLoad.errorRate - baselineVotes.errorRate,
+      },
+    },
     thresholds: {
       p95Ms: VOTE_P95_LIMIT_MS,
       p99Ms: VOTE_P99_LIMIT_MS,
@@ -322,7 +394,12 @@ async function main() {
       participants: PARTICIPANTS,
       joinConcurrency: JOIN_CONCURRENCY,
       pdfQuestions: PDF_QUESTIONS,
+      pdfParticipants: pdfSession.participants,
+      pdfVotes: pdfSession.votes,
       sameSourceIp: true,
+      targetEnvironment: summary.system.targetEnvironment,
+      logicalCpuCount: summary.system.logicalCpuCount,
+      totalMemoryBytes: summary.system.totalMemoryBytes,
     },
     metrics: summary,
     failures,
