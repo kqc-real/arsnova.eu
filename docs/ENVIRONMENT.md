@@ -76,6 +76,12 @@ Das stündliche Cleanup verarbeitet nach 24 Stunden Grace Period höchstens
 Kapazität über dem maximalen Count-Burst von 1.200 akzeptierten Uploads, der
 beim Übergang zwischen zwei festen 600er-Stundenfenstern möglich ist. Das
 64-MiB-/100.000-Komplexitätsbudget senkt die Rate großer Quizzes zusätzlich.
+Direkt sessiongebundene Quizzes bleiben erhalten. Pro `historyScopeId` bleiben
+nach der Grace Period höchstens **5** sessionlose Geschwisterkopien erhalten,
+solange noch ein Session-Anker im Scope existiert; ältere sessionlose Uploads
+werden mitgelöscht. Scopes ohne jede Session sowie Uploads ohne Scope werden
+nach der Grace Period vollständig bereinigt — ein alleiniger Scope-Anker
+schützt keine unbegrenzte Geschwistermenge.
 
 ### PDF-Parallelitätslimit
 

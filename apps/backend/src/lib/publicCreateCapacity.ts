@@ -39,6 +39,15 @@ export const ORPHAN_QUIZ_CLEANUP_BATCH_SIZE = 100;
 export const ORPHAN_QUIZ_CLEANUP_MAX_BATCHES = 13;
 export const ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN =
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE * ORPHAN_QUIZ_CLEANUP_MAX_BATCHES;
+/**
+ * Pro History-Scope bleiben nach der Grace Period höchstens so viele
+ * sessionlose Uploadkopien erhalten, solange irgendeine Kopie des Scopes
+ * noch eine Session besitzt. Direkt sessiongebundene Quizzes sind davon
+ * unberührt. Ohne Session-Anker im Scope werden alle sessionlosen Kopien
+ * nach der Grace Period gelöscht — der Scope-Anker allein schützt also
+ * keine unbegrenzte Geschwistermenge.
+ */
+export const ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE = 5;
 
 export function calculateQuizUploadComplexity(input: Pick<QuizUploadInput, 'questions'>): number {
   return (

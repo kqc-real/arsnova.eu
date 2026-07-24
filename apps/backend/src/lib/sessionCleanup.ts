@@ -10,6 +10,7 @@ import { incrementCompletedSessionsTotal } from './platformStatistic';
 import {
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
   ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
   ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
 } from './publicCreateCapacity';
 
@@ -22,6 +23,7 @@ const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1h
 export {
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
   ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
   ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
 } from './publicCreateCapacity';
 
@@ -101,10 +103,15 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
 }
 
 /**
- * Löscht ausschließlich aktuell nicht an Sessions gebundene Uploadkopien.
- * Ein historyScope bleibt erhalten, sobald irgendeine Quizkopie dieses Scopes
- * Session-Historie besitzt. Jede Quizkopie mit eigener Sessionrelation bleibt
- * ebenfalls erhalten.
+ * Löscht sessionlose Uploadkopien nach der Grace Period.
+ *
+ * Geschützt bleiben nur Quizzes mit eigener Sessionrelation. Ein History-Scope-
+ * Anker (irgendeine Geschwisterkopie mit Session) schützt höchstens
+ * {@link ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE} neueste sessionlose
+ * Kopien desselben Scopes — ältere Geschwister werden bounded mitgelöscht.
+ * Scopes ohne jede Session sowie Uploads ohne historyScopeId werden nach der
+ * Grace Period vollständig bereinigt.
+ *
  * Die Bedingungen werden beim Delete erneut und in einer serialisierbaren
  * Transaktion geprüft, damit ein paralleles session.create/attachQuiz nicht
  * zwischen Auswahl und Löschung verloren geht.
@@ -135,6 +142,23 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
                     ON scoped_session."quizId" = scoped_quiz."id"
                   WHERE scoped_quiz."historyScopeId" = candidate."historyScopeId"
                 )
+                OR (
+                  SELECT COUNT(*)::int
+                  FROM "Quiz" AS newer_sessionless
+                  WHERE newer_sessionless."historyScopeId" = candidate."historyScopeId"
+                    AND NOT EXISTS (
+                      SELECT 1
+                      FROM "Session" AS newer_session
+                      WHERE newer_session."quizId" = newer_sessionless."id"
+                    )
+                    AND (
+                      newer_sessionless."createdAt" > candidate."createdAt"
+                      OR (
+                        newer_sessionless."createdAt" = candidate."createdAt"
+                        AND newer_sessionless."id" > candidate."id"
+                      )
+                    )
+                ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
               )
             ORDER BY candidate."createdAt" ASC, candidate."id" ASC
             LIMIT ${ORPHAN_QUIZ_CLEANUP_BATCH_SIZE}
@@ -158,6 +182,23 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
                   ON scoped_session."quizId" = scoped_quiz."id"
                 WHERE scoped_quiz."historyScopeId" = target."historyScopeId"
               )
+              OR (
+                SELECT COUNT(*)::int
+                FROM "Quiz" AS newer_sessionless
+                WHERE newer_sessionless."historyScopeId" = target."historyScopeId"
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM "Session" AS newer_session
+                    WHERE newer_session."quizId" = newer_sessionless."id"
+                  )
+                  AND (
+                    newer_sessionless."createdAt" > target."createdAt"
+                    OR (
+                      newer_sessionless."createdAt" = target."createdAt"
+                      AND newer_sessionless."id" > target."id"
+                    )
+                  )
+              ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
             )
           RETURNING target."id"
         `);

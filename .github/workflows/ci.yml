@@ -213,11 +213,20 @@ jobs:
 
       - name: Apply versioned migrations
         if: needs.changes.outputs.docs_only != 'true'
-        run: npx prisma migrate deploy --schema prisma/schema.prisma
+        run: |
+          npx prisma generate --schema prisma/schema.prisma
+          npx prisma migrate deploy --schema prisma/schema.prisma
 
       - name: Reject migration/schema drift
         if: needs.changes.outputs.docs_only != 'true'
         run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+      - name: Orphan quiz cleanup PostgreSQL regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_PG_CLEANUP_TESTS: '1'
+        run: npx vitest run src/__tests__/sessionCleanup.orphan-scope.pg.test.ts
 
   # ─── Build & Validate ────────────────────────────────────────────────────────
   build:

@@ -48,6 +48,7 @@ import {
   cleanupStaleSessions,
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
   ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
 } from '../lib/sessionCleanup';
 
 describe('sessionCleanup', () => {
@@ -153,10 +154,28 @@ describe('sessionCleanup', () => {
     const sql = query.strings?.join('?') ?? '';
     expect(sql).toContain('DELETE FROM "Quiz" AS target');
     expect(sql).toContain('RETURNING target."id"');
-    expect(sql.match(/NOT EXISTS/g)).toHaveLength(4);
+    expect(sql).toContain('newer_sessionless');
+    expect(sql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
     expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
       isolationLevel: 'Serializable',
     });
+  });
+
+  it('begrenzt sessionlose History-Geschwister trotz aktivem Scope-Anker', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 'excess-sibling' }]);
+
+    await expect(cleanupOrphanQuizUploads()).resolves.toBe(1);
+
+    const query = prismaMock.$queryRaw.mock.calls[0]?.[0] as {
+      strings?: string[];
+      values?: unknown[];
+    };
+    const sql = query.strings?.join('?') ?? '';
+    expect(sql).toContain('newer_sessionless."historyScopeId" = candidate."historyScopeId"');
+    expect(sql).toContain('newer_sessionless."historyScopeId" = target."historyScopeId"');
+    expect(sql).toContain(') >= ?');
+    expect(query.values).toContain(ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE);
+    expect(sql.indexOf('newer_sessionless')).toBeLessThan(sql.indexOf('LIMIT'));
   });
 
   it('überspringt 100 geschützte alte Scopes vor LIMIT und löscht das spätere echte Orphan', async () => {
