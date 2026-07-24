@@ -157,7 +157,7 @@ describe('session.getLastSessionExportForQuiz', () => {
     expect(result.contentBase64.length).toBeGreaterThan(0);
   });
 
-  it('lädt und rendert beim dritten parallelen PDF-Request keine Exportdaten', async () => {
+  it('lädt und rendert einen zusätzlichen parallelen PDF-Request nicht', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
     prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
     prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
@@ -172,20 +172,19 @@ describe('session.getLastSessionExportForQuiz', () => {
     const input = { quizId: QUIZ_ID, accessProof, localeId: 'de' as const };
 
     const first = caller.getLastSessionExportPdfForQuiz(input);
-    const second = caller.getLastSessionExportPdfForQuiz(input);
     await vi.waitFor(() => {
-      expect(buildSessionResultsPdfMock).toHaveBeenCalledTimes(2);
+      expect(buildSessionResultsPdfMock).toHaveBeenCalledOnce();
     });
 
     try {
       await expect(caller.getLastSessionExportPdfForQuiz(input)).rejects.toMatchObject({
         code: 'TOO_MANY_REQUESTS',
       });
-      expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
-      expect(buildSessionResultsPdfMock).toHaveBeenCalledTimes(2);
+      expect(prismaMock.session.findUnique).toHaveBeenCalledOnce();
+      expect(buildSessionResultsPdfMock).toHaveBeenCalledOnce();
     } finally {
       releaseRendering();
     }
-    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    await expect(first).resolves.toMatchObject({ mimeType: 'application/pdf' });
   });
 });

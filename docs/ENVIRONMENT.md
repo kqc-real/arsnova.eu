@@ -54,7 +54,7 @@ tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begren
 
 ### PDF-Parallelitätslimit
 
-Die ressourcenintensiven Playwright-PDF-Pfade für Session-Ergebnisberichte teilen sich pro Backend-Prozess einen festen Cap von **zwei gleichzeitig aktiven Jobs** (`PDF_MAX_CONCURRENT_JOBS` in `apps/backend/src/lib/pdfConcurrencyLimiter.ts`). Weitere Jobs werden ohne Queue mit HTTP 429 abgewiesen. Der Cap ist nicht per Env konfigurierbar oder abschaltbar; Änderungen erfordern Code-, Lasttest- und Deployment-Review. Die aktuelle Produktion läuft mit genau einem Backend-Prozess. Horizontale Skalierung setzt deshalb zuerst einen instanzübergreifenden Semaphore voraus.
+Die ressourcenintensiven Playwright-PDF-Pfade für Session-Ergebnisberichte teilen sich pro Backend-Prozess einen festen Cap von **einem aktiven Job** (`PDF_MAX_CONCURRENT_JOBS` in `apps/backend/src/lib/pdfConcurrencyLimiter.ts`). Weitere Jobs werden ohne Queue mit HTTP 429 abgewiesen. Der konservative Cap folgt aus der Zielhost-Lastabnahme: Cap 2 ließ die Vote-Latenz deutlich über die SLOs steigen. Der Cap ist nicht per Env konfigurierbar oder abschaltbar; Änderungen erfordern Code-, Lasttest- und Deployment-Review. Die aktuelle Produktion läuft mit genau einem Backend-Prozess. Horizontale Skalierung setzt deshalb zuerst einen instanzübergreifenden Semaphore voraus.
 
 ### `JWT_SECRET` (`.env.example`)
 

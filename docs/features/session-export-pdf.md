@@ -52,9 +52,9 @@ Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachwe
 
 Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Backend-PDF und Browser-Print-Fallback teilen sich die Lib `@arsnova/session-export-report`.
 
-Die Playwright-PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **zwei gleichzeitig
-aktive Jobs** begrenzt. Das gilt gemeinsam für Host- und Historienberichte. Ein dritter Job
-wird ohne Warteschlange mit tRPC
+Die Playwright-PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **einen aktiven
+Job** begrenzt. Das gilt gemeinsam für Host- und Historienberichte. Ein weiterer Job wird
+ohne Warteschlange mit tRPC
 `TOO_MANY_REQUESTS` (HTTP 429) abgewiesen; der Ergebnisbericht kann dann den bestehenden
 Browser-Print-Fallback nutzen. Dadurch belegen wartende PDF-Anfragen keine zusätzliche
 Serverkapazität.

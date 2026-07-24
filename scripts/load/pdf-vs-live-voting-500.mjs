@@ -14,11 +14,18 @@ import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 
-const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
+const TRPC_URLS = String(
+  process.env.TRPC_URLS || process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc',
+)
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+const TRPC_URL = TRPC_URLS[0];
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 500));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 75));
 const PDF_QUESTIONS = Math.max(5, Number(process.env.PDF_QUESTIONS || 20));
 const PDF_VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.PDF_VOTE_COOLDOWN_MS || 1_100));
+const EXPECTED_PDF_CAP = Math.max(1, Number(process.env.EXPECTED_PDF_CAP || 1));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_500));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
@@ -54,6 +61,10 @@ function isTooManyRequests(error) {
     error?.shape?.data?.code === 'TOO_MANY_REQUESTS' ||
     String(error?.message ?? error).includes('TOO_MANY_REQUESTS')
   );
+}
+
+function trpcUrlForIndex(index) {
+  return TRPC_URLS[index % TRPC_URLS.length];
 }
 
 function pdfQuizPayload() {
@@ -153,9 +164,9 @@ async function createFinishedPdfSession() {
 }
 
 async function joinParticipants(session, nicknamePrefix = 'LIVE') {
-  const trpc = createHttpTrpcSingle(TRPC_URL);
   const indexes = Array.from({ length: PARTICIPANTS }, (_, index) => index);
   return mapConcurrent(indexes, JOIN_CONCURRENCY, async (index) => {
+    const trpc = createHttpTrpcSingle(trpcUrlForIndex(index));
     const joined = await trpc.session.join.mutate({
       code: session.code,
       nickname: `${nicknamePrefix}-${String(index + 1).padStart(4, '0')}`,
@@ -165,27 +176,31 @@ async function joinParticipants(session, nicknamePrefix = 'LIVE') {
 }
 
 async function submitVotes(session, participantIds) {
-  const trpc = createHttpTrpcSingle(TRPC_URL);
-  const results = await mapConcurrent(participantIds, PARTICIPANTS, async (participantId) => {
-    const startedAt = performance.now();
-    try {
-      await trpc.vote.submit.mutate({
-        sessionId: session.sessionId,
-        participantId,
-        questionId: session.questionId,
-        answerIds: [session.answerId],
-        responseTimeMs: 500,
-        round: 1,
-      });
-      return { ok: true, durationMs: performance.now() - startedAt };
-    } catch (error) {
-      return {
-        ok: false,
-        durationMs: performance.now() - startedAt,
-        error: String(error?.message ?? error),
-      };
-    }
-  });
+  const results = await mapConcurrent(
+    participantIds,
+    PARTICIPANTS,
+    async (participantId, index) => {
+      const trpc = createHttpTrpcSingle(trpcUrlForIndex(index));
+      const startedAt = performance.now();
+      try {
+        await trpc.vote.submit.mutate({
+          sessionId: session.sessionId,
+          participantId,
+          questionId: session.questionId,
+          answerIds: [session.answerId],
+          responseTimeMs: 500,
+          round: 1,
+        });
+        return { ok: true, durationMs: performance.now() - startedAt };
+      } catch (error) {
+        return {
+          ok: false,
+          durationMs: performance.now() - startedAt,
+          error: String(error?.message ?? error),
+        };
+      }
+    },
+  );
   const successful = results.filter((result) => result.ok);
   const failed = results.filter((result) => !result.ok);
   const durations = successful.map((result) => result.durationMs);
@@ -237,15 +252,15 @@ async function main() {
       }
     };
   };
-  const workers = [createPdfWorker()(), createPdfWorker()()];
+  const workers = Array.from({ length: EXPECTED_PDF_CAP }, () => createPdfWorker()());
   const probeTrpc = createHttpTrpcSingle(TRPC_URL, pdfSession.hostToken);
-  let thirdRequestRejected = false;
+  let additionalRequestRejected = false;
   let metricsAtCap;
   let votesUnderPdfLoad;
   const healthTrpc = createHttpTrpcSingle(TRPC_URL);
   try {
     await sleep(100);
-    for (let attempt = 0; attempt < 10 && !thirdRequestRejected; attempt += 1) {
+    for (let attempt = 0; attempt < 10 && !additionalRequestRejected; attempt += 1) {
       try {
         await probeTrpc.session.getSessionExportPdf.query({
           code: pdfSession.code,
@@ -254,7 +269,7 @@ async function main() {
         });
       } catch (error) {
         if (isTooManyRequests(error)) {
-          thirdRequestRejected = true;
+          additionalRequestRejected = true;
           pdfMetrics.rejected += 1;
         } else {
           throw error;
@@ -294,12 +309,12 @@ async function main() {
   if (participantIds.length !== PARTICIPANTS) {
     failures.push(`Teilnehmende: ${participantIds.length}/${PARTICIPANTS}`);
   }
-  if (!thirdRequestRejected) {
-    failures.push('Dritter paralleler PDF-Request wurde nicht mit 429 abgelehnt.');
+  if (!additionalRequestRejected) {
+    failures.push('Zusätzlicher paralleler PDF-Request wurde nicht mit 429 abgelehnt.');
   }
   if (
     metricsAtCap.pdfActiveJobs !== metricsAtCap.pdfMaxConcurrentJobs ||
-    metricsAtCap.pdfMaxConcurrentJobs !== 2
+    metricsAtCap.pdfMaxConcurrentJobs !== EXPECTED_PDF_CAP
   ) {
     failures.push(
       `PDF-Cap nicht sichtbar: aktiv=${metricsAtCap.pdfActiveJobs}, cap=${metricsAtCap.pdfMaxConcurrentJobs}`,
@@ -365,7 +380,7 @@ async function main() {
       questionsPerReport: PDF_QUESTIONS,
       fixtureParticipants: pdfSession.participants,
       fixtureVotes: pdfSession.votes,
-      thirdRequestRejected,
+      additionalRequestRejected,
       workerResults: pdfMetrics,
       metricsAtCap: {
         activeJobs: metricsAtCap.pdfActiveJobs,
@@ -406,7 +421,9 @@ async function main() {
       pdfQuestions: PDF_QUESTIONS,
       pdfParticipants: pdfSession.participants,
       pdfVotes: pdfSession.votes,
+      expectedPdfCap: EXPECTED_PDF_CAP,
       sameSourceIp: true,
+      transportChannels: TRPC_URLS.length,
       targetEnvironment: summary.system.targetEnvironment,
       targetLogicalCpuCount: summary.system.target.logicalCpuCount,
       targetTotalMemoryBytes: summary.system.target.totalMemoryBytes,

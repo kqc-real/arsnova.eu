@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { logger } from './logger';
 import { recordPdfJobOutcome } from './pdfTelemetry';
 
-export const PDF_MAX_CONCURRENT_JOBS = 2;
+export const PDF_MAX_CONCURRENT_JOBS = 1;
 
 export type PdfJobSource = 'session-history' | 'session-host';
 

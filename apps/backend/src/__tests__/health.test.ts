@@ -200,7 +200,7 @@ describe('health.stats', () => {
     expect(result.sessionTransitionsLastMinute).toBe(0);
     expect(result.activeCountdownSessions).toBe(0);
     expect(result.pdfActiveJobs).toBe(0);
-    expect(result.pdfMaxConcurrentJobs).toBe(2);
+    expect(result.pdfMaxConcurrentJobs).toBe(1);
     expect(result.pdfCompletedLastMinute).toBe(0);
     expect(result.pdfFailedLastMinute).toBe(0);
     expect(result.pdfRejectedLastMinute).toBe(0);
@@ -233,7 +233,7 @@ describe('health.stats', () => {
 
     expect(result).toMatchObject({
       pdfActiveJobs: 0,
-      pdfMaxConcurrentJobs: 2,
+      pdfMaxConcurrentJobs: 1,
       pdfCompletedLastMinute: 7,
       pdfFailedLastMinute: 1,
       pdfRejectedLastMinute: 3,
