@@ -5,6 +5,25 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { QuizPreviewComponent } from './quiz-preview.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
 
+const { quizUploadMutationMock, sessionCreateMutationMock } = vi.hoisted(() => ({
+  quizUploadMutationMock: vi.fn(),
+  sessionCreateMutationMock: vi.fn(),
+}));
+
+vi.mock('../../../core/trpc.client', () => ({
+  clearPendingHostSessionCode: vi.fn(),
+  setHostToken: vi.fn(),
+  setPendingHostSessionCode: vi.fn(),
+  trpc: {
+    quiz: {
+      upload: { mutate: quizUploadMutationMock },
+    },
+    session: {
+      create: { mutate: sessionCreateMutationMock },
+    },
+  },
+}));
+
 const QUIZ_ID = 'baf6b8e5-9425-495e-953d-ab4a95c8bf68';
 
 describe('QuizPreviewComponent', () => {
@@ -92,6 +111,25 @@ describe('QuizPreviewComponent', () => {
   const toUploadPayload = (document: QuizDocument) => ({
     historyScopeId: document.id,
     name: document.name,
+    motifImageUrl: document.motifImageUrl,
+    showLeaderboard: document.settings.showLeaderboard,
+    allowCustomNicknames: document.settings.allowCustomNicknames,
+    defaultTimer: document.settings.defaultTimer,
+    timerScaleByDifficulty: document.settings.timerScaleByDifficulty,
+    enableSoundEffects: document.settings.enableSoundEffects,
+    enableRewardEffects: document.settings.enableRewardEffects,
+    enableMotivationMessages: document.settings.enableMotivationMessages,
+    enableEmojiReactions: document.settings.enableEmojiReactions,
+    showQuestionTypeIndicators: document.settings.showQuestionTypeIndicators,
+    anonymousMode: document.settings.anonymousMode,
+    teamMode: document.settings.teamMode,
+    teamCount: document.settings.teamCount ?? undefined,
+    teamAssignment: document.settings.teamAssignment,
+    teamNames: document.settings.teamNames,
+    backgroundMusic: document.settings.backgroundMusic ?? undefined,
+    nicknameTheme: document.settings.nicknameTheme,
+    bonusTokenCount: document.settings.bonusTokenCount ?? undefined,
+    readingPhaseEnabled: document.settings.readingPhaseEnabled,
     preset: document.settings.preset,
     questions: [...document.questions]
       .filter((question) => question.enabled !== false)
@@ -127,6 +165,7 @@ describe('QuizPreviewComponent', () => {
   const mockStore = {
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
     getUploadPayload: vi.fn(() => toUploadPayload(quiz)),
+    setLastServerUploadAccess: vi.fn(),
     updateQuestion: vi.fn(),
     updateQuizSettings: vi.fn(),
   };
@@ -136,6 +175,7 @@ describe('QuizPreviewComponent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    quizUploadMutationMock.mockResolvedValue({ quizId: 'server-quiz-id' });
     TestBed.configureTestingModule({
       imports: [QuizPreviewComponent],
       providers: [
@@ -698,6 +738,24 @@ describe('QuizPreviewComponent', () => {
     } finally {
       quiz.questions.pop();
     }
+  });
+
+  it('zeigt beim gedrosselten Live-Start die konkrete Wartezeit', async () => {
+    sessionCreateMutationMock.mockRejectedValueOnce({
+      message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
+      data: { retryAfterSeconds: 31 },
+    });
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    await component['startLiveSession']('full');
+
+    expect(component.liveStartError()).toBe(
+      'WICHTIG: Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
+        'Bitte in 31 Sekunden erneut versuchen.',
+    );
+    expect(sessionCreateMutationMock).toHaveBeenCalledOnce();
   });
 
   it('blockiert den Ab-hier-Start nicht wegen früherer ungültiger Fragen', () => {

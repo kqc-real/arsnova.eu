@@ -577,6 +577,23 @@ describe('HomeComponent', () => {
       expect(comp.joinError()).toBeNull();
     });
 
+    it('zeigt beim gedrosselten Q&A-Schnellstart die konkrete Wartezeit', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockRejectedValueOnce({
+        message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
+        data: { retryAfterSeconds: 23 },
+      });
+
+      const comp = createHomeComponent();
+
+      await comp.openHeroHostTab('qa');
+
+      expect(comp.joinError()).toBe(
+        'WICHTIG: Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
+          'Bitte in 23 Sekunden erneut versuchen.',
+      );
+    });
+
     it('startet im seriösen Preset eine neue Q&A-Host-Session mit Oberstufen-Pseudonymen', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
