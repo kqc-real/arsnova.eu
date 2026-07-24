@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { buildSessionResultsPdfMock, prismaMock } = vi.hoisted(() => ({
+  buildSessionResultsPdfMock: vi.fn(),
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
@@ -22,7 +23,7 @@ vi.mock('../db', () => ({
 }));
 
 vi.mock('../lib/session-results-report-pdf', () => ({
-  buildSessionResultsPdf: vi.fn(async () => Buffer.from('%PDF-1.4\n% test')),
+  buildSessionResultsPdf: buildSessionResultsPdfMock,
   buildSessionResultsPdfFilename: vi.fn(() => 'arsnova-results-test-ABC123.pdf'),
 }));
 
@@ -72,9 +73,32 @@ const QUIZ_INPUT = {
   ],
 };
 
+function finishedSessionFixture() {
+  return {
+    id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+    code: SESSION_CODE,
+    status: 'FINISHED',
+    type: 'QUIZ',
+    endedAt: new Date('2026-03-10T12:00:00.000Z'),
+    answerDisplayOrder: null,
+    quiz: {
+      name: 'Chemie',
+      teamMode: false,
+      teamCount: null,
+      teamNames: [],
+      questions: [],
+    },
+    votes: [],
+    bonusTokens: [],
+    sessionFeedbacks: [],
+    participants: [{ id: 'p1' }],
+  };
+}
+
 describe('session.getLastSessionExportForQuiz', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    buildSessionResultsPdfMock.mockResolvedValue(Buffer.from('%PDF-1.4\n% test'));
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
       ...QUIZ_INPUT,
@@ -120,25 +144,7 @@ describe('session.getLastSessionExportForQuiz', () => {
   it('liefert PDF fuer die zuletzt beendete Session', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
     prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: SESSION_CODE,
-      status: 'FINISHED',
-      type: 'QUIZ',
-      endedAt: new Date('2026-03-10T12:00:00.000Z'),
-      answerDisplayOrder: null,
-      quiz: {
-        name: 'Chemie',
-        teamMode: false,
-        teamCount: null,
-        teamNames: [],
-        questions: [],
-      },
-      votes: [],
-      bonusTokens: [],
-      sessionFeedbacks: [],
-      participants: [{ id: 'p1' }],
-    });
+    prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
 
     const result = await caller.getLastSessionExportPdfForQuiz({
       quizId: QUIZ_ID,
@@ -149,5 +155,37 @@ describe('session.getLastSessionExportForQuiz', () => {
     expect(result.mimeType).toBe('application/pdf');
     expect(result.fileName).toBe('arsnova-results-test-ABC123.pdf');
     expect(result.contentBase64.length).toBeGreaterThan(0);
+  });
+
+  it('lädt und rendert beim dritten parallelen PDF-Request keine Exportdaten', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
+    prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
+    let releaseRendering!: () => void;
+    const renderingBlocked = new Promise<void>((resolve) => {
+      releaseRendering = resolve;
+    });
+    buildSessionResultsPdfMock.mockImplementation(async () => {
+      await renderingBlocked;
+      return Buffer.from('%PDF-1.4\n% test');
+    });
+    const input = { quizId: QUIZ_ID, accessProof, localeId: 'de' as const };
+
+    const first = caller.getLastSessionExportPdfForQuiz(input);
+    const second = caller.getLastSessionExportPdfForQuiz(input);
+    await vi.waitFor(() => {
+      expect(buildSessionResultsPdfMock).toHaveBeenCalledTimes(2);
+    });
+
+    try {
+      await expect(caller.getLastSessionExportPdfForQuiz(input)).rejects.toMatchObject({
+        code: 'TOO_MANY_REQUESTS',
+      });
+      expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
+      expect(buildSessionResultsPdfMock).toHaveBeenCalledTimes(2);
+    } finally {
+      releaseRendering();
+    }
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
   });
 });

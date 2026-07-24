@@ -6788,11 +6788,12 @@ export const sessionRouter = router({
     .output(SessionExportPdfOutputSchema)
     .query(async ({ input }) => {
       const code = await resolveLastFinishedSessionCodeForQuiz(input.quizId, input.accessProof);
-      const data = await loadFinishedQuizSessionExportData(code);
       const profile = input.profile ?? 'visual';
-      const pdf = await pdfConcurrencyLimiter.run('session-history', () =>
-        buildSessionResultsPdf(data, { localeId: input.localeId, profile }),
-      );
+      const { data, pdf } = await pdfConcurrencyLimiter.run('session-history', async () => {
+        const data = await loadFinishedQuizSessionExportData(code);
+        const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
+        return { data, pdf };
+      });
       return {
         fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode, profile),
         mimeType: 'application/pdf' as const,
@@ -7103,11 +7104,12 @@ export const sessionRouter = router({
     .input(GetSessionExportPdfInputSchema)
     .output(SessionExportPdfOutputSchema)
     .query(async ({ input }) => {
-      const data = await loadFinishedQuizSessionExportData(input.code);
       const profile = input.profile ?? 'visual';
-      const pdf = await pdfConcurrencyLimiter.run('session-host', () =>
-        buildSessionResultsPdf(data, { localeId: input.localeId, profile }),
-      );
+      const { data, pdf } = await pdfConcurrencyLimiter.run('session-host', async () => {
+        const data = await loadFinishedQuizSessionExportData(input.code);
+        const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
+        return { data, pdf };
+      });
       return {
         fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode, profile),
         mimeType: 'application/pdf' as const,

@@ -73,6 +73,7 @@
     "load:k6:health": "node scripts/load/run-k6.mjs scripts/load/k6-trpc-health-50vu.js",
     "load:k6:session": "node scripts/load/run-k6.mjs scripts/load/k6-trpc-session-50vu.js",
     "load:k6:hotpaths": "node scripts/load/run-k6.mjs scripts/load/k6-session-hotpaths-500vu.js",
+    "load:pdf-vs-voting:500": "node scripts/load/pdf-vs-live-voting-500.mjs",
     "load:artillery:500": "node scripts/load/run-artillery-500.mjs",
     "load:artillery:reconnect:500": "node scripts/load/run-artillery-reconnect-500.mjs",
     "validate:pdfua": "node scripts/validate-pdfua.mjs",
