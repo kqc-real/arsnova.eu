@@ -2980,6 +2980,27 @@ export const ServerStatsDTOSchema = z.object({
   sessionTransitionsLastMinute: z.number(),
   /** Sessions mit aktivem Countdown im aktuellen Zeitfenster. */
   activeCountdownSessions: z.number(),
+  /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
+  completedSessions: z.number(),
+  activeBlitzRounds: z.number(),
+  /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
+  maxParticipantsSingleSession: z.number().int().min(0),
+  /** Verlauf der Session-Tagesrekorde der letzten 100 UTC-Tage in chronologischer Reihenfolge. */
+  dailyHighscores: z.array(DailyHighscoreEntrySchema).length(100),
+  /** Deskriptive Statistik über die täglichen Highscores. */
+  dailyHighscoresStatistics: DailyHighscoresStatisticsSchema,
+  /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
+  maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
+  /** Betriebsstatus (SLO-nah) für den Footer. */
+  serviceStatus: z.enum(['stable', 'limited', 'critical']),
+  /** Lastindikator für Diagnose im Detaildialog. */
+  loadStatus: z.enum(['healthy', 'busy', 'overloaded']),
+});
+
+export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
+
+/** Admin-only Betriebs- und Security-Metriken; nicht Teil der öffentlichen Produktstatistik. */
+export const HealthSecurityStatsDTOSchema = z.object({
   /** Momentan aktive serverseitige Playwright-PDF-Jobs. */
   pdfActiveJobs: z.number().int().min(0),
   /** Hartes Parallelitätslimit für serverseitige Playwright-PDF-Jobs. */
@@ -3005,24 +3026,9 @@ export const ServerStatsDTOSchema = z.object({
   }),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
-  /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
-  completedSessions: z.number(),
-  activeBlitzRounds: z.number(),
-  /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
-  maxParticipantsSingleSession: z.number().int().min(0),
-  /** Verlauf der Session-Tagesrekorde der letzten 100 UTC-Tage in chronologischer Reihenfolge. */
-  dailyHighscores: z.array(DailyHighscoreEntrySchema).length(100),
-  /** Deskriptive Statistik über die täglichen Highscores. */
-  dailyHighscoresStatistics: DailyHighscoresStatisticsSchema,
-  /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
-  maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
-  /** Betriebsstatus (SLO-nah) für den Footer. */
-  serviceStatus: z.enum(['stable', 'limited', 'critical']),
-  /** Lastindikator für Diagnose im Detaildialog. */
-  loadStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });
 
-export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
+export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;
 
 /** Schlanke Footer-Antwort für den grünen Punkt im App-Footer. */
 export const FooterStatusDTOSchema = z.object({

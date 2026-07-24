@@ -408,12 +408,13 @@ describe('motd router', () => {
       'motd:rate_limit_429',
       expect.objectContaining({
         procedure: 'getCurrent',
-        clientIp: '0.0.0.0',
         ipSource: 'missing-req',
-        redisKey: 'rl:motd:getCurrent:0.0.0.0',
         retryAfterSeconds: 12,
       }),
     );
+    const loggedDetails = loggerMock.warn.mock.calls.at(-1)?.[1];
+    expect(loggedDetails).not.toHaveProperty('clientIp');
+    expect(loggedDetails).not.toHaveProperty('redisKey');
   });
 
   it('listArchive wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {

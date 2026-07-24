@@ -23,18 +23,9 @@ import {
   checkMotdGetCurrentRate,
   checkMotdListArchiveRate,
   checkMotdRecordInteractionRate,
-  redisKeyMotdGetCurrent,
-  redisKeyMotdListArchive,
-  redisKeyMotdRecordInteraction,
   shouldBypassMotdGetCurrentRate,
 } from '../lib/rateLimit';
-import {
-  publicProcedure,
-  resolveClientIp,
-  router,
-  type Context,
-  type ResolvedClientIp,
-} from '../trpc';
+import { publicProcedure, resolveClientIp, router, type Context } from '../trpc';
 
 /**
  * Obergrenze gleichzeitig aktiver PUBLISHED-MOTDs für die Overlay-Auswahl (Sortierung im Speicher).
@@ -217,21 +208,18 @@ async function fetchArchiveHeaderStats(locale: AppLocale, now: Date, seen: Date 
   };
 }
 
-/** Belegt bei jedem MOTD-429: welche IP, welcher Redis-Schlüssel, welches Limit — ohne Raten. */
+/** Datenschutzarme Diagnose eines MOTD-429 ohne Client-IP oder IP-haltigen Redis-Schlüssel. */
 function logMotdRateLimit429(
   procedure: 'getCurrent' | 'getHeaderState' | 'listArchive' | 'recordInteraction',
-  resolved: ResolvedClientIp,
-  redisKey: string,
+  ipSource: string,
   limitPerMinute: number,
   retryAfterSeconds: number | undefined,
 ): void {
   logger.warn('motd:rate_limit_429', {
     event: 'motd_rate_limit_429',
     procedure,
-    clientIp: resolved.ip,
-    ipSource: resolved.source,
+    ipSource,
     limitPerMinute,
-    redisKey,
     retryAfterSeconds: retryAfterSeconds ?? null,
   });
 }
@@ -253,8 +241,7 @@ export const motdRouter = router({
         if (!limit.allowed) {
           logMotdRateLimit429(
             'getCurrent',
-            resolved,
-            redisKeyMotdGetCurrent(ip),
+            resolved.source,
             RATE_LIMIT_ENV.motdGetCurrentPerMinute,
             limit.retryAfterSeconds,
           );
@@ -285,8 +272,7 @@ export const motdRouter = router({
       if (!limit.allowed) {
         logMotdRateLimit429(
           'listArchive',
-          resolved,
-          redisKeyMotdListArchive(ip),
+          resolved.source,
           RATE_LIMIT_ENV.motdListArchivePerMinute,
           limit.retryAfterSeconds,
         );
@@ -350,8 +336,7 @@ export const motdRouter = router({
         if (!limit.allowed) {
           logMotdRateLimit429(
             'getHeaderState',
-            resolved,
-            redisKeyMotdGetCurrent(ip),
+            resolved.source,
             RATE_LIMIT_ENV.motdGetCurrentPerMinute,
             limit.retryAfterSeconds,
           );
@@ -397,8 +382,7 @@ export const motdRouter = router({
       if (!limit.allowed) {
         logMotdRateLimit429(
           'recordInteraction',
-          resolved,
-          redisKeyMotdRecordInteraction(ip),
+          resolved.source,
           RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
           limit.retryAfterSeconds,
         );

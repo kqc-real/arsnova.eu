@@ -4,7 +4,7 @@
 
 Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollständiges Threat-Model und keine Rechtsberatung; technische Tiefe: Handbuch, ADRs, Prisma, `session.ts` / DTO-Schicht.
 
-**Stand:** 2026-07-23 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, Server-Status (`health.footerBundle` / `health.stats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
+**Stand:** 2026-07-24 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
 
 ---
 
@@ -30,7 +30,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 - **Blitzlicht-Host:** Standalone-Blitzlicht (`/feedback/:code`) nutzt ein eigenes **Feedback-Host-Token** via `x-feedback-host-token`. Session-gebundenes Blitzlicht nutzt dagegen das normale Session-Host-Token. Dadurch bleiben Session-Host und Standalone-Blitzlicht getrennte Besitzkontexte.
 - **Teilnehmende:** Öffentliche Join-/Vote-Pfade mit Session-Code. Teilnehmerdaten sind auf Minimalzwecke geschnitten: Nickname-Kollisionen für Join, eigener Datensatz für Vote, keine öffentliche Voll-Liste. Rate-Limits greifen je nach Pfad unterschiedlich: Session-Code-Fehlversuche und Session-Erstellung pro IP, Vote-Submit pro Teilnehmenden-ID.
 - **Quiz-Sammlungs-Historie:** Endpunkte wie `session.getBonusTokensForQuiz`, `session.getLastSessionAnalysisForQuiz` und `session.getActiveQuizIds` verlangen zusätzlich einen **besitzgebundenen `accessProof`** zur hochgeladenen Quizkopie. Die Historie ist damit nicht mehr allein über `quizId` öffentlich enumerierbar.
-- **Admin:** Separater Pfad `/admin`; **`ADMIN_SECRET`** (Env), danach Admin-Session mit TTL in Redis. Token-Transport über `Authorization: Bearer ...` oder `x-admin-token`; Schutz zentral über `adminProcedure`. Umgesetzt sind Recherche, Detailansicht, Legal Hold, Einzel-/Massenlöschung, Behördenexport, Quiz-Import-Export und Rekord-Reset. Für Betrieb und Go-Live gelten die gleichen Secrets- und Proxy-Annahmen wie in [ENVIRONMENT.md](ENVIRONMENT.md) und [docs/deployment-debian-root-server.md](deployment-debian-root-server.md).
+- **Admin:** Separater Pfad `/admin`; **`ADMIN_SECRET`** (Env), danach Admin-Session mit TTL in Redis. Token-Transport über `Authorization: Bearer ...` oder `x-admin-token`; Schutz zentral über `adminProcedure`. Umgesetzt sind Recherche, Detailansicht, Legal Hold, Einzel-/Massenlöschung, Behördenexport, Quiz-Import-Export, Rekord-Reset und `health.securityStats`. Für Betrieb und Go-Live gelten die gleichen Secrets- und Proxy-Annahmen wie in [ENVIRONMENT.md](ENVIRONMENT.md) und [docs/deployment-debian-root-server.md](deployment-debian-root-server.md).
 - **MOTD (Epic 10):** **Öffentlich:** `motd.getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction` — **rate-limited** pro IP ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). **Schreibend:** nur Admin-Prozeduren — MOTD, Vorlagen, Statistiken und Audit-Log `MotdAuditLog`. Für die praktische Prüfung siehe [TESTING.md](TESTING.md).
 
 Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
@@ -43,15 +43,20 @@ Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellun
 
 HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
 
-Die ressourcenintensive Playwright-PDF-Erzeugung für Session-Ergebnisberichte ist im einzelnen Backend-Prozess auf **einen aktiven Job** begrenzt. Weitere PDF-Anfragen werden ohne Warteschlange mit HTTP **429** abgewiesen; Start, Abschluss, Fehler und Ablehnungen sind über strukturierte `pdf:*`-Log-Ereignisse sowie rollierende Redis-Metriken in `health.stats` beobachtbar. Der konservative Cap wurde gewählt, weil Cap 2 auf dem Zielhost die Vote-SLOs verfehlte. Bei einer späteren horizontalen Skalierung ist vorab ein instanzübergreifender Semaphore erforderlich.
+Die ressourcenintensive Playwright-PDF-Erzeugung für Session-Ergebnisberichte ist im einzelnen Backend-Prozess auf **einen aktiven Job** begrenzt. Weitere PDF-Anfragen werden ohne Warteschlange mit HTTP **429** abgewiesen; Start, Abschluss, Fehler und Ablehnungen sind über strukturierte `pdf:*`-Log-Ereignisse sowie admin-geschützte Metriken in `health.securityStats` beobachtbar. Der konservative Cap wurde gewählt, weil Cap 2 auf dem Zielhost die Vote-SLOs verfehlte. Bei einer späteren horizontalen Skalierung ist vorab ein instanzübergreifender Semaphore erforderlich.
 
-W0.4 bündelt die Betriebsbeobachtung in `health.stats`: erfolgreiche
+W0.4 bündelt operative Security- und Kapazitätsdaten in der
+admin-authentifizierten Query `health.securityStats`: erfolgreiche
 Session-Erstellungen, sämtliche tRPC-429 nach Kategorie, PDF-Auslastung und
-aktive tRPC-WebSocket-Verbindungen. Strukturierte `rate_limit_429`- und
-`pdf:*`-Ereignisse liefern die Detaildiagnose. Verbindliche initiale Schwellen
-und On-Call-Maßnahmen sind im
+aktive tRPC-WebSocket-Verbindungen. Öffentliche UX- und Produktstatistiken
+einschließlich `serviceStatus` und `loadStatus` bleiben in `health.stats`.
+Create-/429-Zähler werden pro Prozess bounded aggregiert und höchstens alle
+fünf Sekunden nach Redis geflusht. Strukturierte `rate_limit_429`-Ereignisse
+enthalten keine Client-IP, sondern nur Pfad, Kategorie und `ipSource`;
+`pdf:*`-Ereignisse liefern weitere Detaildiagnose. Verbindliche initiale
+manuelle Schwellen und On-Call-Maßnahmen sind im
 [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md)
-dokumentiert; automatische Alarmierung bleibt W3.7.
+dokumentiert; automatische Auswertung und Alarmierung bleiben W3.7.
 
 Builder und Produktionscontainer verwenden **Node.js 24 LTS** (`node:24-alpine`). `.nvmrc` pinnt die lokal empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI und Produktionsimage entfernt.
 
@@ -67,6 +72,11 @@ Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-N
 - **Blitzlicht / Quick Feedback:** Nur Redis, TTL **30 Minuten** — kein langfristiges PII dort ([apps/backend/src/routers/quickFeedback.ts](../apps/backend/src/routers/quickFeedback.ts)).
 
 Aggregierte **Server-Statistiken** (`health.footerBundle`, `health.stats`) ohne Einzelpersonenbezug: aktive/abgeschlossene Sessions, Teilnehmende in aktiven Sessions, Blitz-Runden, Service-/Laststatus, Allzeit-Rekord `maxParticipantsSingleSession` aus **`PlatformStatistic`** und Tagesrekorde aus **`DailyStatistic`**.
+
+Strukturierte App-Logs werden minimiert: `rate_limit_429` enthält keine
+vollständige IP-Adresse. Zugriff und Rotation sind Betriebspflicht; der
+Normalbetrieb soll die kürzeste tragfähige Aufbewahrung verwenden (Richtwert
+höchstens 14 Tage), längere Sicherung nur dokumentiert für konkrete Incidents.
 
 ---
 

@@ -61,7 +61,6 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
       logRateLimitRejection({
         path,
         category,
-        clientIp: resolved.ip,
         ipSource: resolved.source,
       });
       void recordRateLimitRejection(category);

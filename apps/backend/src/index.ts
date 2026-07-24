@@ -14,6 +14,7 @@ import { WebSocketServer } from 'ws';
 import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
 import { logger } from './lib/logger';
+import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
@@ -225,15 +226,20 @@ try {
   logger.warn('Yjs WebSocket nicht gestartet:', (e as Error).message);
 }
 
-function shutdown(): void {
+let shuttingDown = false;
+
+async function shutdown(): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
   stopSessionCleanupScheduler();
   wsHandler.broadcastReconnectNotification();
   wss.close();
   server.close();
   if (yjsChild) yjsChild.kill();
-  closeRedis();
+  await shutdownAbuseTelemetry();
+  await closeRedis();
   process.exit(0);
 }
 
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on('SIGTERM', () => void shutdown());
+process.on('SIGINT', () => void shutdown());

@@ -78,5 +78,8 @@ describe('zentrale Security-Telemetrie', () => {
     expect(mocks.logRateLimitRejection).toHaveBeenCalledWith(
       expect.objectContaining({ path, category }),
     );
+    expect(mocks.logRateLimitRejection).not.toHaveBeenCalledWith(
+      expect.objectContaining({ clientIp: expect.anything() }),
+    );
   });
 });

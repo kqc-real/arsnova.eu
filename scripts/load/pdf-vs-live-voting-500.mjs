@@ -4,7 +4,8 @@
  *
  * Voraussetzung: lokales Backend mit PostgreSQL und Redis.
  *
- * REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
+ * ADMIN_TOKEN=<admin-session-token> \
+ *   REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
  *   npm run load:pdf-vs-voting:500
  */
 import { performance } from 'node:perf_hooks';
@@ -30,6 +31,7 @@ const EXPECTED_PDF_CAP = Math.max(1, Number(process.env.EXPECTED_PDF_CAP || 1));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_500));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
+const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || '').trim();
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -219,6 +221,11 @@ async function submitVotes(session, participantIds) {
 }
 
 async function main() {
+  if (!ADMIN_TOKEN) {
+    throw new Error(
+      'ADMIN_TOKEN fehlt. Der Lasttest benötigt ein gültiges Admin-Session-Token für health.securityStats.',
+    );
+  }
   await waitForBackend(TRPC_URL);
   const pdfSession = await createFinishedPdfSession();
 
@@ -258,7 +265,7 @@ async function main() {
   let additionalRequestRejected = false;
   let metricsAtCap;
   let votesUnderPdfLoad;
-  const healthTrpc = createHttpTrpcSingle(TRPC_URL);
+  const healthTrpc = createHttpTrpcSingle(TRPC_URL, undefined, ADMIN_TOKEN);
   try {
     await sleep(100);
     for (let attempt = 0; attempt < 10 && !additionalRequestRejected; attempt += 1) {
@@ -277,13 +284,13 @@ async function main() {
         }
       }
     }
-    metricsAtCap = await healthTrpc.health.stats.query();
+    metricsAtCap = await healthTrpc.health.securityStats.query();
     votesUnderPdfLoad = await submitVotes(liveSession, participantIds);
   } finally {
     stopPdfWorkers = true;
     await Promise.all(workers);
   }
-  const metricsAfterLoad = await healthTrpc.health.stats.query();
+  const metricsAfterLoad = await healthTrpc.health.securityStats.query();
 
   let recoveryPdfSucceeded = false;
   try {
@@ -322,7 +329,7 @@ async function main() {
     );
   }
   if (metricsAtCap.pdfRejectedLastMinute < 1) {
-    failures.push('health.stats zeigt keine PDF-Ablehnung.');
+    failures.push('health.securityStats zeigt keine PDF-Ablehnung.');
   }
   if (baselineVotes.errorRate >= VOTE_ERROR_RATE_LIMIT) {
     failures.push(`Baseline-Fehlerquote ${(baselineVotes.errorRate * 100).toFixed(2)} %`);

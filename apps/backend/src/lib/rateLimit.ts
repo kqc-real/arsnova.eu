@@ -6,17 +6,6 @@ import { getRedis } from '../redis';
 
 const PREFIX = 'rl:';
 
-/** Vollständiger Redis-Schlüssel (wie `checkSlidingWindow`) — für Logs bei 429. */
-export function redisKeyMotdGetCurrent(ip: string): string {
-  return `${PREFIX}motd:getCurrent:${ip}`;
-}
-export function redisKeyMotdListArchive(ip: string): string {
-  return `${PREFIX}motd:listArchive:${ip}`;
-}
-export function redisKeyMotdRecordInteraction(ip: string): string {
-  return `${PREFIX}motd:recordInteraction:${ip}`;
-}
-
 export const RATE_LIMIT_ENV = {
   sessionCodeAttempts: Number(process.env['RATE_LIMIT_SESSION_CODE_ATTEMPTS']) || 5,
   sessionCodeWindowMinutes: Number(process.env['RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES']) || 5,
