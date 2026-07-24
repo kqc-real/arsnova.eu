@@ -173,9 +173,16 @@ describe('sessionCleanup', () => {
     const sql = query.strings?.join('?') ?? '';
     expect(sql).toContain('newer_sessionless."historyScopeId" = candidate."historyScopeId"');
     expect(sql).toContain('newer_sessionless."historyScopeId" = target."historyScopeId"');
+    expect(sql).toContain('bounded_newer');
     expect(sql).toContain(') >= ?');
-    expect(query.values).toContain(ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE);
-    expect(sql.indexOf('newer_sessionless')).toBeLessThan(sql.indexOf('LIMIT'));
+    expect(query.values).toEqual(
+      expect.arrayContaining([
+        ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+        ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
+      ]),
+    );
+    // Keep-Set-Suche ist auf den Grenzwert begrenzt (nicht voller Scope-COUNT).
+    expect(sql.match(/AS bounded_newer/g)).toHaveLength(2);
   });
 
   it('überspringt 100 geschützte alte Scopes vor LIMIT und löscht das spätere echte Orphan', async () => {

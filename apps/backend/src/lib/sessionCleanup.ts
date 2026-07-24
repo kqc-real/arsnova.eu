@@ -144,20 +144,24 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
                 )
                 OR (
                   SELECT COUNT(*)::int
-                  FROM "Quiz" AS newer_sessionless
-                  WHERE newer_sessionless."historyScopeId" = candidate."historyScopeId"
-                    AND NOT EXISTS (
-                      SELECT 1
-                      FROM "Session" AS newer_session
-                      WHERE newer_session."quizId" = newer_sessionless."id"
-                    )
-                    AND (
-                      newer_sessionless."createdAt" > candidate."createdAt"
-                      OR (
-                        newer_sessionless."createdAt" = candidate."createdAt"
-                        AND newer_sessionless."id" > candidate."id"
+                  FROM (
+                    SELECT 1
+                    FROM "Quiz" AS newer_sessionless
+                    WHERE newer_sessionless."historyScopeId" = candidate."historyScopeId"
+                      AND NOT EXISTS (
+                        SELECT 1
+                        FROM "Session" AS newer_session
+                        WHERE newer_session."quizId" = newer_sessionless."id"
                       )
-                    )
+                      AND (
+                        newer_sessionless."createdAt" > candidate."createdAt"
+                        OR (
+                          newer_sessionless."createdAt" = candidate."createdAt"
+                          AND newer_sessionless."id" > candidate."id"
+                        )
+                      )
+                    LIMIT ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+                  ) AS bounded_newer
                 ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
               )
             ORDER BY candidate."createdAt" ASC, candidate."id" ASC
@@ -184,20 +188,24 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
               )
               OR (
                 SELECT COUNT(*)::int
-                FROM "Quiz" AS newer_sessionless
-                WHERE newer_sessionless."historyScopeId" = target."historyScopeId"
-                  AND NOT EXISTS (
-                    SELECT 1
-                    FROM "Session" AS newer_session
-                    WHERE newer_session."quizId" = newer_sessionless."id"
-                  )
-                  AND (
-                    newer_sessionless."createdAt" > target."createdAt"
-                    OR (
-                      newer_sessionless."createdAt" = target."createdAt"
-                      AND newer_sessionless."id" > target."id"
+                FROM (
+                  SELECT 1
+                  FROM "Quiz" AS newer_sessionless
+                  WHERE newer_sessionless."historyScopeId" = target."historyScopeId"
+                    AND NOT EXISTS (
+                      SELECT 1
+                      FROM "Session" AS newer_session
+                      WHERE newer_session."quizId" = newer_sessionless."id"
                     )
-                  )
+                    AND (
+                      newer_sessionless."createdAt" > target."createdAt"
+                      OR (
+                        newer_sessionless."createdAt" = target."createdAt"
+                        AND newer_sessionless."id" > target."id"
+                      )
+                    )
+                  LIMIT ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
+                ) AS bounded_newer
               ) >= ${ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE}
             )
           RETURNING target."id"

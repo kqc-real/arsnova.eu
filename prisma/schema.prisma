@@ -40,7 +40,7 @@ model Quiz {
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
-  @@index([historyScopeId])
+  @@index([historyScopeId, createdAt, id])
   @@index([createdAt, id])
 }
 

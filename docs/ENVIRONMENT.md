@@ -79,9 +79,11 @@ beim Übergang zwischen zwei festen 600er-Stundenfenstern möglich ist. Das
 Direkt sessiongebundene Quizzes bleiben erhalten. Pro `historyScopeId` bleiben
 nach der Grace Period höchstens **5** sessionlose Geschwisterkopien erhalten,
 solange noch ein Session-Anker im Scope existiert; ältere sessionlose Uploads
-werden mitgelöscht. Scopes ohne jede Session sowie Uploads ohne Scope werden
-nach der Grace Period vollständig bereinigt — ein alleiniger Scope-Anker
-schützt keine unbegrenzte Geschwistermenge.
+werden mitgelöscht. Die Keep-Set-Prüfung sucht höchstens fünf neuere Geschwister
+(`LIMIT`, Index `(historyScopeId, createdAt, id)`), statt einen ganzen Scope zu
+zählen. Scopes ohne jede Session sowie Uploads ohne Scope werden nach der Grace
+Period vollständig bereinigt — ein alleiniger Scope-Anker schützt keine
+unbegrenzte Geschwistermenge.
 
 ### PDF-Parallelitätslimit
 
