@@ -15,6 +15,7 @@ import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
+import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
@@ -236,7 +237,7 @@ async function shutdown(): Promise<void> {
   wss.close();
   server.close();
   if (yjsChild) yjsChild.kill();
-  await shutdownAbuseTelemetry();
+  await Promise.all([shutdownAbuseTelemetry(), shutdownPdfTelemetry()]);
   await closeRedis();
   process.exit(0);
 }

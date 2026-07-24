@@ -19,25 +19,32 @@ if (!globalThis.WebSocket && WebSocketPonyfill) {
   globalThis.WebSocket = WebSocketPonyfill;
 }
 
-function authHeaders(hostToken, adminToken) {
+function authHeaders(hostToken, adminToken, diagnosticSecret) {
   return {
     ...(hostToken ? { 'x-host-token': hostToken } : {}),
     ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+    ...(diagnosticSecret ? { 'x-admin-diagnostic-secret': diagnosticSecret } : {}),
   };
 }
 
-export function createHttpTrpc(trpcUrl, hostToken, adminToken) {
+export function createHttpTrpc(trpcUrl, hostToken, adminToken, diagnosticSecret) {
   const link = httpBatchLink({
     url: trpcUrl,
-    headers: hostToken || adminToken ? () => authHeaders(hostToken, adminToken) : undefined,
+    headers:
+      hostToken || adminToken || diagnosticSecret
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+        : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
 }
 
-export function createHttpTrpcSingle(trpcUrl, hostToken, adminToken) {
+export function createHttpTrpcSingle(trpcUrl, hostToken, adminToken, diagnosticSecret) {
   const link = httpLink({
     url: trpcUrl,
-    headers: hostToken || adminToken ? () => authHeaders(hostToken, adminToken) : undefined,
+    headers:
+      hostToken || adminToken || diagnosticSecret
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+        : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
 }

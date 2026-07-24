@@ -6,7 +6,8 @@
  *   npm run load:k6:health
  *
  * Umgebungsvariablen (an k6 durchgereicht): BASE_URL, SESSION_CODE, MODE, VUS,
- * DURATION_SECONDS, PARTICIPANT_IDS, QUESTION_ID, SESSION_ID, ANSWER_ID
+ * DURATION/DURATION_SECONDS, Thresholds, PARTICIPANT_IDS, QUESTION_ID,
+ * SESSION_ID, ANSWER_ID
  */
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -17,7 +18,12 @@ const K6_ENV_KEYS = [
   'SESSION_CODE',
   'MODE',
   'VUS',
+  'DURATION',
   'DURATION_SECONDS',
+  'ERROR_RATE_LIMIT',
+  'P95_LIMIT_MS',
+  'P99_LIMIT_MS',
+  'CHECK_RATE_LIMIT',
   'PARTICIPANT_IDS',
   'QUESTION_ID',
   'SESSION_ID',
@@ -68,9 +74,7 @@ function dockerNeedsHostGateway() {
 
 function runDockerK6() {
   const useHostGateway = dockerNeedsHostGateway();
-  const defaultBase = useHostGateway
-    ? 'http://host.docker.internal:3000'
-    : 'http://127.0.0.1:3000';
+  const defaultBase = useHostGateway ? 'http://host.docker.internal:3000' : 'http://127.0.0.1:3000';
   const env = collectK6Env(defaultBase);
 
   /** @type {string[]} */
@@ -112,8 +116,12 @@ if (commandExists('k6')) {
 } else {
   console.error('Weder k6 noch Docker gefunden.');
   console.error('');
-  console.error('Option A (empfohlen): Docker starten — npm run load:k6:health nutzt grafana/k6 automatisch.');
-  console.error('Option B: k6 lokal installieren — brew install k6 (macOS) bzw. https://k6.io/docs/get-started/installation/');
+  console.error(
+    'Option A (empfohlen): Docker starten — npm run load:k6:health nutzt grafana/k6 automatisch.',
+  );
+  console.error(
+    'Option B: k6 lokal installieren — brew install k6 (macOS) bzw. https://k6.io/docs/get-started/installation/',
+  );
   console.error('Doku: docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md');
   process.exit(1);
 }

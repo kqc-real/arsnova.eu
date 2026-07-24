@@ -405,16 +405,14 @@ describe('motd router', () => {
     });
     expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
     expect(loggerMock.warn).toHaveBeenCalledWith(
-      'motd:rate_limit_429',
+      'rate_limit_429',
       expect.objectContaining({
-        procedure: 'getCurrent',
+        path: 'getCurrent',
+        category: 'other',
         ipSource: 'missing-req',
-        retryAfterSeconds: 12,
       }),
     );
-    const loggedDetails = loggerMock.warn.mock.calls.at(-1)?.[1];
-    expect(loggedDetails).not.toHaveProperty('clientIp');
-    expect(loggedDetails).not.toHaveProperty('redisKey');
+    expect(loggerMock.warn).not.toHaveBeenCalledWith('motd:rate_limit_429', expect.anything());
   });
 
   it('listArchive wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {

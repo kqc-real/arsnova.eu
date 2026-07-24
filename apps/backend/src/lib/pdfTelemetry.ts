@@ -3,8 +3,11 @@ import { logger } from './logger';
 
 const BUCKET_SECONDS = 10;
 const WINDOW_SECONDS = 60;
-const WINDOW_BUCKETS = WINDOW_SECONDS / BUCKET_SECONDS;
+// Zusätzlicher Rand-Bucket: kein <60s altes Ereignis fällt am Bucket-Rand heraus.
+const WINDOW_BUCKETS = WINDOW_SECONDS / BUCKET_SECONDS + 1;
 const BUCKET_TTL_SECONDS = WINDOW_SECONDS * 2;
+const FLUSH_INTERVAL_MS = 5_000;
+const MAX_COUNTER_VALUE = Number.MAX_SAFE_INTEGER;
 
 type PdfCounterName = 'completed' | 'failed' | 'rejected';
 
@@ -16,6 +19,10 @@ export type PdfSignals = {
 
 let recordWarned = false;
 let readWarned = false;
+let flushTimer: NodeJS.Timeout | null = null;
+let flushInFlight: Promise<void> | null = null;
+let stopping = false;
+const pendingBuckets = new Map<number, Map<PdfCounterName, number>>();
 
 function currentBucket(nowMs: number): number {
   return Math.floor(nowMs / (BUCKET_SECONDS * 1000));
@@ -34,20 +41,116 @@ function parseRedisInteger(value: unknown): number {
   return 0;
 }
 
-export async function recordPdfJobOutcome(
-  outcome: PdfCounterName,
-  nowMs: number = Date.now(),
-): Promise<void> {
-  if (process.env['NODE_ENV'] === 'test') return;
-  try {
-    const key = counterBucketKey(outcome, currentBucket(nowMs));
-    await getRedis().multi().incr(key).expire(key, BUCKET_TTL_SECONDS).exec();
-  } catch (error) {
-    if (!recordWarned) {
-      recordWarned = true;
-      logger.warn('pdfTelemetry.record: Redis nicht erreichbar, PDF-Metrik entfällt.', error);
-    }
+function scheduleFlush(): void {
+  if (
+    stopping ||
+    flushTimer ||
+    flushInFlight ||
+    pendingBuckets.size === 0 ||
+    process.env['NODE_ENV'] === 'test'
+  ) {
+    return;
   }
+
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    void flushPdfTelemetry();
+  }, FLUSH_INTERVAL_MS);
+  flushTimer.unref();
+}
+
+export function recordPdfJobOutcome(outcome: PdfCounterName, nowMs: number = Date.now()): void {
+  if (process.env['NODE_ENV'] === 'test' || stopping) return;
+
+  const bucket = currentBucket(nowMs);
+  let counters = pendingBuckets.get(bucket);
+  if (!counters) {
+    if (pendingBuckets.size >= WINDOW_BUCKETS) {
+      pendingBuckets.delete(Math.min(...pendingBuckets.keys()));
+    }
+    counters = new Map();
+    pendingBuckets.set(bucket, counters);
+  }
+  counters.set(outcome, Math.min(MAX_COUNTER_VALUE, (counters.get(outcome) ?? 0) + 1));
+  scheduleFlush();
+}
+
+/** Ein einzelner, bounded INCRBY-/EXPIRE-Flush; keine parallelen Redis-Pipelines. */
+export function flushPdfTelemetry(): Promise<void> {
+  if (flushInFlight) return flushInFlight;
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+
+  const batch = Array.from(pendingBuckets, ([bucket, counters]) =>
+    Array.from(counters, ([counter, count]) => ({ bucket, counter, count })),
+  ).flat();
+  pendingBuckets.clear();
+  if (batch.length === 0) return Promise.resolve();
+
+  const request = (async () => {
+    try {
+      const multi = getRedis().multi();
+      for (const entry of batch) {
+        const key = counterBucketKey(entry.counter, entry.bucket);
+        multi.incrby(key, entry.count).expire(key, BUCKET_TTL_SECONDS);
+      }
+      await multi.exec();
+    } catch (error) {
+      if (!recordWarned) {
+        recordWarned = true;
+        logger.warn('pdfTelemetry.flush: Redis nicht erreichbar, PDF-Metrik entfällt.', error);
+      }
+    }
+  })();
+
+  flushInFlight = request;
+  void request.finally(() => {
+    if (flushInFlight === request) {
+      flushInFlight = null;
+      scheduleFlush();
+    }
+  });
+  return request;
+}
+
+export function resetPdfTelemetryForTests(): void {
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = null;
+  flushInFlight = null;
+  stopping = false;
+  pendingBuckets.clear();
+  recordWarned = false;
+  readWarned = false;
+}
+
+/** Best-effort-Drain für SIGTERM/SIGINT; blockiert den Shutdown nicht unbegrenzt. */
+export async function shutdownPdfTelemetry(timeoutMs: number = 1_000): Promise<void> {
+  stopping = true;
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = null;
+
+  let timedOut = false;
+  let timeout: NodeJS.Timeout | undefined;
+  const drain = (async () => {
+    if (flushInFlight) await flushInFlight;
+    if (!timedOut && pendingBuckets.size > 0) await flushPdfTelemetry();
+  })();
+  await Promise.race([
+    drain,
+    new Promise<void>((resolve) => {
+      timeout = setTimeout(
+        () => {
+          timedOut = true;
+          resolve();
+        },
+        Math.max(0, timeoutMs),
+      );
+    }),
+  ]);
+  if (timeout) clearTimeout(timeout);
+  pendingBuckets.clear();
 }
 
 export async function readPdfSignals(nowMs: number = Date.now()): Promise<PdfSignals> {

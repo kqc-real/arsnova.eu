@@ -253,6 +253,7 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Runner [../scripts/load/run-artillery-500.mjs](../scripts/load/run-artillery-500.mjs).
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Artefakt:** `artillery-500-reports` (standardisierte JSON-/JUnit-Reports, Artillery-Report + `backend.log`).
+- **Sicher manuell:** `gh workflow run ci.yml --ref <branch> -f artillery_participants=500 -f artillery_ramp_seconds=60 -f run_production_load=false`. Derselbe Dispatch startet auch `artillery-reconnect-500`; `false` verhindert den hart gegen Produktion gerichteten k6-Job.
 - **Letzter lokaler Nachweis:** Artillery 500/500 und der 5-Minuten-Soak
   bestanden im Gesamtlauf; Yjs und das 600er Timer-Fairness-Latenzgate bestanden
   im [QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md).
@@ -271,6 +272,9 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Im Schedule nur mit `PRODUCTION_LOAD_ENABLED=true`; manuell nur mit
   `run_production_load=true`.
 - **Warum?** Regelmäßige Lastsicht, ohne jeden PR-Run zu verlangsamen.
+- **Security-Follow-up:** Nicht gegen Produktion auslösen. Lokal stattdessen
+  `BASE_URL=http://127.0.0.1:3000 VUS=50 DURATION=30s npm run load:k6:health`
+  gegen ein eigens gestartetes Dev-Backend verwenden.
 
 ### 4.13 trivy-fs
 

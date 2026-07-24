@@ -61,13 +61,14 @@ describe('abuseTelemetry', () => {
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
-  it('begrenzt eine 429-Welle mit tausenden Events auf einen Redis-Flush', async () => {
+  it('begrenzt 20.000 PDF-/MOTD-429-Events auf einen Redis-Flush', async () => {
     vi.useFakeTimers();
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
-    for (let index = 0; index < 20_000; index += 1) {
-      recordRateLimitRejection('vote', 25_000);
+    for (let index = 0; index < 10_000; index += 1) {
+      recordRateLimitRejection('pdf', 25_000);
+      recordRateLimitRejection('motd', 25_000);
     }
 
     expect(mocks.getRedis).not.toHaveBeenCalled();
@@ -76,8 +77,9 @@ describe('abuseTelemetry', () => {
     await vi.advanceTimersByTimeAsync(1);
 
     expect(mocks.getRedis).toHaveBeenCalledOnce();
-    expect(multi.incrby).toHaveBeenCalledOnce();
-    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:vote:2', 20_000);
+    expect(multi.incrby).toHaveBeenCalledTimes(2);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:pdf:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:motd:2', 10_000);
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
@@ -167,6 +169,29 @@ describe('abuseTelemetry', () => {
       suppressedSinceLastLog: 2,
     });
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.5');
+  });
+
+  it('begrenzt 20.000 MOTD-/PDF-Diagnoseereignisse auf zwei gesampelte Logs', () => {
+    for (let index = 0; index < 10_000; index += 1) {
+      logRateLimitRejection(
+        { path: 'motd.getCurrent', category: 'motd', ipSource: 'x-forwarded-for' },
+        1_000,
+      );
+      logRateLimitRejection(
+        { path: 'session.getSessionExportPdf', category: 'pdf', ipSource: 'socket' },
+        1_000,
+      );
+    }
+
+    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'motd' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'pdf' }),
+    );
   });
 
   it('degradiert bei Redis-Ausfall ohne Request- oder Health-Pfade zu werfen', async () => {

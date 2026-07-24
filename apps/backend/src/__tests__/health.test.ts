@@ -57,11 +57,13 @@ vi.mock('../lib/sloTelemetry', () => ({
 }));
 
 vi.mock('../lib/adminAuth', () => ({
-  extractAdminToken: vi.fn((req) => {
-    const token = req?.headers?.['x-admin-token'];
-    return typeof token === 'string' ? token : null;
+  extractAdminToken: vi.fn(() => null),
+  isAdminSessionTokenValid: vi.fn(async () => false),
+  extractAdminDiagnosticSecret: vi.fn((req) => {
+    const secret = req?.headers?.['x-admin-diagnostic-secret'];
+    return typeof secret === 'string' ? secret : null;
   }),
-  isAdminSessionTokenValid: vi.fn(async (token) => token === 'valid-admin-token'),
+  verifyAdminSecret: vi.fn((secret) => secret === 'valid-diagnostic-secret'),
 }));
 
 import { pingRedis, getRedis } from '../redis';
@@ -78,10 +80,10 @@ import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from 
 
 const caller = healthRouter.createCaller({ req: undefined });
 const authenticatedCaller = healthRouter.createCaller({
-  req: { headers: { 'x-admin-token': 'valid-admin-token' } } as never,
+  req: { headers: { 'x-admin-diagnostic-secret': 'valid-diagnostic-secret' } } as never,
 });
 const invalidAdminCaller = healthRouter.createCaller({
-  req: { headers: { 'x-admin-token': 'invalid-admin-token' } } as never,
+  req: { headers: { 'x-admin-diagnostic-secret': 'invalid-diagnostic-secret' } } as never,
 });
 
 beforeEach(() => {
@@ -310,16 +312,52 @@ describe('health.stats', () => {
     });
   });
 
-  it('verweigert health.securityStats ohne Admin-Session', async () => {
+  it('verweigert health.securityStats ohne Diagnose-Secret', async () => {
     await expect(caller.securityStats(undefined)).rejects.toMatchObject({
       code: 'UNAUTHORIZED',
     });
   });
 
-  it('verweigert health.securityStats mit ungültiger Admin-Session', async () => {
+  it('verweigert health.securityStats mit ungültigem Diagnose-Secret', async () => {
     await expect(invalidAdminCaller.securityStats(undefined)).rejects.toMatchObject({
       code: 'UNAUTHORIZED',
     });
+  });
+
+  it('bleibt mit gültigem Diagnose-Secret bei Redis-Ausfall erreichbar', async () => {
+    vi.mocked(getRedis).mockImplementation(() => {
+      throw new Error('redis unavailable');
+    });
+    vi.mocked(readPdfSignals).mockResolvedValue({
+      completedLastMinute: 0,
+      failedLastMinute: 0,
+      rejectedLastMinute: 0,
+    });
+    vi.mocked(readAbuseSignals).mockResolvedValue({
+      sessionCreatesLastMinute: 0,
+      rateLimit429LastMinute: 0,
+      rateLimit429ByCategoryLastMinute: {
+        sessionCreate: 0,
+        sessionCode: 0,
+        vote: 0,
+        pdf: 0,
+        motd: 0,
+        other: 0,
+      },
+    });
+
+    await expect(authenticatedCaller.securityStats(undefined)).resolves.toMatchObject({
+      pdfActiveJobs: 0,
+      rateLimit429LastMinute: 0,
+      trpcWebSocketConnectionsActive: 0,
+    });
+    expect(getRedis).not.toHaveBeenCalled();
+    vi.mocked(getRedis).mockImplementation(
+      () =>
+        ({
+          scan: vi.fn().mockResolvedValue(['0', []]),
+        }) as unknown as Redis,
+    );
   });
 
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {

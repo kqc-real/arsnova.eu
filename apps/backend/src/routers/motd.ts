@@ -15,11 +15,9 @@ import {
   MotdRecordInteractionOutputSchema,
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
-import { logger } from '../lib/logger';
 import { pickLocaleFromAcceptLanguage } from '../lib/pick-locale-from-accept-language';
 import { localesToMap, resolveMotdMarkdown } from '../lib/motdMarkdown';
 import {
-  RATE_LIMIT_ENV,
   checkMotdGetCurrentRate,
   checkMotdListArchiveRate,
   checkMotdRecordInteractionRate,
@@ -208,22 +206,6 @@ async function fetchArchiveHeaderStats(locale: AppLocale, now: Date, seen: Date 
   };
 }
 
-/** Datenschutzarme Diagnose eines MOTD-429 ohne Client-IP oder IP-haltigen Redis-Schlüssel. */
-function logMotdRateLimit429(
-  procedure: 'getCurrent' | 'getHeaderState' | 'listArchive' | 'recordInteraction',
-  ipSource: string,
-  limitPerMinute: number,
-  retryAfterSeconds: number | undefined,
-): void {
-  logger.warn('motd:rate_limit_429', {
-    event: 'motd_rate_limit_429',
-    procedure,
-    ipSource,
-    limitPerMinute,
-    retryAfterSeconds: retryAfterSeconds ?? null,
-  });
-}
-
 export const motdRouter = router({
   /**
    * Liefert höchstens eine aktive Overlay-MOTD (PUBLISHED, Zeitfenster).
@@ -239,12 +221,6 @@ export const motdRouter = router({
       if (!shouldBypassMotdGetCurrentRate(ip)) {
         const limit = await checkMotdGetCurrentRate(ip);
         if (!limit.allowed) {
-          logMotdRateLimit429(
-            'getCurrent',
-            resolved.source,
-            RATE_LIMIT_ENV.motdGetCurrentPerMinute,
-            limit.retryAfterSeconds,
-          );
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
             message: 'Zu viele Anfragen. Bitte kurz warten.',
@@ -270,12 +246,6 @@ export const motdRouter = router({
       const ip = resolved.ip;
       const limit = await checkMotdListArchiveRate(ip);
       if (!limit.allowed) {
-        logMotdRateLimit429(
-          'listArchive',
-          resolved.source,
-          RATE_LIMIT_ENV.motdListArchivePerMinute,
-          limit.retryAfterSeconds,
-        );
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message: 'Zu viele Anfragen. Bitte kurz warten.',
@@ -334,12 +304,6 @@ export const motdRouter = router({
       if (!shouldBypassMotdGetCurrentRate(ip)) {
         const limit = await checkMotdGetCurrentRate(ip);
         if (!limit.allowed) {
-          logMotdRateLimit429(
-            'getHeaderState',
-            resolved.source,
-            RATE_LIMIT_ENV.motdGetCurrentPerMinute,
-            limit.retryAfterSeconds,
-          );
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
             message: 'Zu viele Anfragen. Bitte kurz warten.',
@@ -380,12 +344,6 @@ export const motdRouter = router({
       const ip = resolved.ip;
       const limit = await checkMotdRecordInteractionRate(ip);
       if (!limit.allowed) {
-        logMotdRateLimit429(
-          'recordInteraction',
-          resolved.source,
-          RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
-          limit.retryAfterSeconds,
-        );
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message: 'Zu viele Anfragen. Bitte kurz warten.',

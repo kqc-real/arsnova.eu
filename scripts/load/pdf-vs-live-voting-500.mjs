@@ -4,7 +4,7 @@
  *
  * Voraussetzung: lokales Backend mit PostgreSQL und Redis.
  *
- * ADMIN_TOKEN=<admin-session-token> \
+ * ADMIN_DIAGNOSTIC_SECRET=<ADMIN_SECRET> \
  *   REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
  *   npm run load:pdf-vs-voting:500
  */
@@ -31,7 +31,7 @@ const EXPECTED_PDF_CAP = Math.max(1, Number(process.env.EXPECTED_PDF_CAP || 1));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_500));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
-const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || '').trim();
+const ADMIN_DIAGNOSTIC_SECRET = String(process.env.ADMIN_DIAGNOSTIC_SECRET || '').trim();
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -221,9 +221,9 @@ async function submitVotes(session, participantIds) {
 }
 
 async function main() {
-  if (!ADMIN_TOKEN) {
+  if (!ADMIN_DIAGNOSTIC_SECRET) {
     throw new Error(
-      'ADMIN_TOKEN fehlt. Der Lasttest benötigt ein gültiges Admin-Session-Token für health.securityStats.',
+      'ADMIN_DIAGNOSTIC_SECRET fehlt. Der Lasttest benötigt das ADMIN_SECRET nur für health.securityStats.',
     );
   }
   await waitForBackend(TRPC_URL);
@@ -265,7 +265,7 @@ async function main() {
   let additionalRequestRejected = false;
   let metricsAtCap;
   let votesUnderPdfLoad;
-  const healthTrpc = createHttpTrpcSingle(TRPC_URL, undefined, ADMIN_TOKEN);
+  const healthTrpc = createHttpTrpcSingle(TRPC_URL, undefined, undefined, ADMIN_DIAGNOSTIC_SECRET);
   try {
     await sleep(100);
     for (let attempt = 0; attempt < 10 && !additionalRequestRejected; attempt += 1) {

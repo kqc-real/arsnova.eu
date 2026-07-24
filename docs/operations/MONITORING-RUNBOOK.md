@@ -7,15 +7,17 @@
 
 1. In arsnova.eu den Betriebsstatus im Footer öffnen. Der Detaildialog zeigt die
    allgemeine Live-Last.
-2. Für Security-Signale ein gültiges Admin-Session-Token aus dem Login unter
-   `/admin` verwenden und `health.securityStats` abfragen. Das `ADMIN_SECRET`
-   niemals direkt als Bearer-Token oder in Shell-Historien einsetzen:
+2. Für Security-Signale das starke `ADMIN_SECRET` über den ausschließlich für
+   diese read-only Diagnose vorgesehenen Header `x-admin-diagnostic-secret`
+   senden. Dieser Pfad prüft das Secret konstantzeitig und ohne Redis. Das
+   Secret niemals als Bearer-Token oder als Befehlsargument in der
+   Shell-Historie einsetzen:
 
    ```bash
-   read -rs ADMIN_TOKEN
-   export ADMIN_TOKEN
+   read -rsp 'ADMIN_SECRET: ' ADMIN_DIAGNOSTIC_SECRET; echo
+   export ADMIN_DIAGNOSTIC_SECRET
    curl -fsS \
-     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+     -H "x-admin-diagnostic-secret: ${ADMIN_DIAGNOSTIC_SECRET}" \
      'https://arsnova.eu/trpc/health.securityStats' \
      | jq '.result.data.json | {
      sessionCreatesLastMinute,
@@ -27,7 +29,7 @@
      pdfRejectedLastMinute,
      trpcWebSocketConnectionsActive
    }'
-   unset ADMIN_TOKEN
+   unset ADMIN_DIAGNOSTIC_SECRET
    ```
 
 3. `serviceStatus`, `loadStatus` und bisherige Produktstatistiken bleiben
@@ -42,16 +44,19 @@
 `health.securityStats` enthält rollierende 60-Sekunden-Zähler in Redis. Der
 vollständige Rand-Bucket wird konservativ mitgezählt, damit kein weniger als
 60 Sekunden altes Ereignis fehlt; dadurch kann die Anzeige höchstens einen
-10-Sekunden-Bucket zu früh warnen. Create-/429-Ereignisse werden pro
-Backend-Prozess im Speicher aggregiert und alle fünf Sekunden mit einer
-gebündelten `INCRBY`-/`EXPIRE`-Pipeline geschrieben. Es läuft höchstens ein
-Flush; bei langsamem Redis bleiben höchstens sieben Zeit-Buckets je Zähler
-pending. Ein Redis-Ausfall verwirft den betroffenen Batch kontrolliert, statt
-Request-Pfade zu blockieren oder unbegrenzt Arbeit aufzustauen. Beim Shutdown
-erfolgt ein zeitlich begrenzter Best-Effort-Flush.
+10-Sekunden-Bucket zu früh warnen. Create-, 429- und PDF-Ergebnisereignisse
+werden pro Backend-Prozess im Speicher aggregiert und alle fünf Sekunden mit
+einer gebündelten `INCRBY`-/`EXPIRE`-Pipeline geschrieben. Je
+Telemetriegruppe läuft höchstens ein Flush; bei langsamem Redis bleiben
+höchstens sieben Zeit-Buckets je Zähler pending. Ein Redis-Ausfall verwirft den
+betroffenen Batch kontrolliert, statt Request-Pfade zu blockieren oder
+unbegrenzt Arbeit aufzustauen. Beim Shutdown erfolgt ein zeitlich begrenzter
+Best-Effort-Flush.
 
 Aktive PDF-Jobs und tRPC-WebSocket-Verbindungen werden bei jeder
-admin-authentifizierten Antwort frisch aus dem Backend-Prozess gelesen.
+diagnose-authentifizierten Antwort frisch aus dem Backend-Prozess gelesen. Die
+Diagnose-Authentifizierung selbst benötigt kein Redis; deshalb bleibt der
+Endpunkt während eines Redis-Incidents erreichbar.
 Rollierende Werte können wegen des Flush-Intervalls bis zu fünf Sekunden
 verzögert sein. Bei Redis-Ausfall degradieren sie auf null; deshalb immer
 zugleich `health.check.redis` und die Container-Logs prüfen.
@@ -103,7 +108,9 @@ docker compose -f docker-compose.prod.yml logs --since 10m app | rg 'pdf:'
 ```
 
 - `pdfActiveJobs == pdfMaxConcurrentJobs` ist während eines Exports normal.
-- Wiederholte `pdf:concurrency_rejected`-Ereignisse oder Fehler eskalieren.
+- `rateLimit429ByCategoryLastMinute.pdf`, `pdfRejectedLastMinute` und
+  PDF-Fehler gemeinsam bewerten. Ein separates Reject-Log pro Anfrage gibt es
+  bewusst nicht.
 - Den Cap nicht spontan erhöhen: Cap 2 verfehlte auf dem Zielhost die
   Live-Voting-SLOs. Erst Ursache und CPU-/Speicherdruck klären.
 

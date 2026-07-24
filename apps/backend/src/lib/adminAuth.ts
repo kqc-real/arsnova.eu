@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from 'crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { IncomingMessage } from 'http';
 import { TRPCError } from '@trpc/server';
 import { getRedis } from '../redis';
@@ -42,14 +42,18 @@ export function extractAdminToken(req?: IncomingMessage): string | null {
   return match[1].trim();
 }
 
+/** Separater Header für den Redis-unabhängigen, read-only Diagnosepfad. */
+export function extractAdminDiagnosticSecret(req?: IncomingMessage): string | null {
+  if (!req) return null;
+  const direct = req.headers['x-admin-diagnostic-secret'];
+  if (typeof direct !== 'string' || direct.trim().length === 0) return null;
+  return direct.trim();
+}
+
 export function verifyAdminSecret(candidateSecret: string): boolean {
   const configuredSecret = getAdminSecret();
-  const configured = Buffer.from(configuredSecret, 'utf8');
-  const candidate = Buffer.from(candidateSecret.trim(), 'utf8');
-
-  if (configured.length !== candidate.length) {
-    return false;
-  }
+  const configured = createHash('sha256').update(configuredSecret, 'utf8').digest();
+  const candidate = createHash('sha256').update(candidateSecret.trim(), 'utf8').digest();
   return timingSafeEqual(configured, candidate);
 }
 

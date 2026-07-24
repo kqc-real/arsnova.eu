@@ -61,17 +61,20 @@ Die ressourcenintensiven Playwright-PDF-Pfade für Session-Ergebnisberichte teil
 `health.stats` bleibt öffentlich und liefert UX-/Produktstatistiken sowie
 `serviceStatus` und `loadStatus`. Operative PDF-, Create-/429- und
 tRPC-WebSocket-Metriken liegen ausschließlich in der admin-geschützten Query
-`health.securityStats`; sie akzeptiert ein gültiges Admin-Session-Token via
-`Authorization: Bearer ...` oder `x-admin-token`, niemals direkt das
-`ADMIN_SECRET`.
+`health.securityStats`. Damit diese Diagnose bei Redis-Ausfall funktioniert,
+akzeptiert ausschließlich diese read-only Query das starke `ADMIN_SECRET` im
+Header `x-admin-diagnostic-secret`. Die Prüfung erfolgt konstantzeitig und ohne
+Redis; normale Admin-Prozeduren akzeptieren diesen Header nicht und verwenden
+weiterhin Admin-Session-Tokens.
 
-Create-/429-Ereignisse werden im Prozess bounded aggregiert und alle fünf
-Sekunden mit einer Redis-Pipeline geflusht. Langsames oder ausgefallenes Redis
-erzeugt weder parallele Flushes noch eine angriffsabhängig wachsende Queue;
-betroffene Batches dürfen zugunsten stabiler Request-Pfade entfallen.
+Create-/429- und PDF-Ergebnisereignisse werden im Prozess bounded aggregiert
+und alle fünf Sekunden mit Redis-Pipelines geflusht. Langsames oder
+ausgefallenes Redis erzeugt weder parallele Flushes noch eine
+angriffsabhängig wachsende Queue; betroffene Batches dürfen zugunsten stabiler
+Request-Pfade entfallen.
 `rate_limit_429` enthält aus Datenschutzgründen keine vollständige IP, sondern
-nur Pfad, Kategorie und `ipSource`. `pdf:*` sind die zugehörigen strukturierten
-Backend-Log-Ereignisse. Logrotation und kurze Aufbewahrung sind Betreiberpflicht
+nur Pfad, Kategorie und `ipSource`. Zusätzliche MOTD-/PDF-429-Speziallogs gibt
+es bewusst nicht. Logrotation und kurze Aufbewahrung sind Betreiberpflicht
 (Richtwert im Normalbetrieb höchstens 14 Tage).
 
 Die initialen Warn-/Kritisch-Schwellen, CPU-Diagnose und manuellen
@@ -82,10 +85,10 @@ gemeinsam genutzten NAT-IP. Automatische Alarmierung ist erst Bestandteil von
 W3.7.
 
 Der reproduzierbare PDF-vs.-Voting-Lasttest liest `health.securityStats` und
-erwartet deshalb `ADMIN_TOKEN` nur in der Umgebung des Lasttest-Prozesses.
-Dabei handelt es sich um ein kurzlebiges Admin-Session-Token aus `admin.login`,
-nicht um eine zusätzliche Backend-Konfiguration; nicht in `.env` oder Reports
-persistieren und nach dem Lauf aus der Shell entfernen.
+erwartet deshalb `ADMIN_DIAGNOSTIC_SECRET` nur in der Umgebung des
+Lasttest-Prozesses. Der Wert entspricht dem starken `ADMIN_SECRET`, ist keine
+zusätzliche Backend-Konfiguration, darf nicht in Reports oder Shell-Historien
+gelangen und muss nach dem Lauf aus der Shell entfernt werden.
 
 ### `JWT_SECRET` (`.env.example`)
 
@@ -131,20 +134,21 @@ Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Cod
 
 ## Schnelldiagnose
 
-| Symptom                                                           | Prüfen                                                                                                                                                                                                          |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prisma-Fehler / keine DB                                          | `DATABASE_URL`, Container `postgres`, `npx prisma db push`                                                                                                                                                      |
-| Rate-Limits, Admin-Session oder Blitzlicht verhalten sich seltsam | `REDIS_URL`, Container `redis`                                                                                                                                                                                  |
-| tRPC-WebSocket hängt                                              | `WS_PORT` frei, Frontend-Proxy auf gleichen WS-Port                                                                                                                                                             |
-| Quiz-Sync zwischen Geräten tot / `wss://…/yjs-ws` schlägt fehl    | Container: `HOST=0.0.0.0` oder `YJS_WS_HOST=0.0.0.0`, Nginx `location /yjs-ws` → `127.0.0.1:3002`, Prozess läuft                                                                                                |
-| Admin-Login scheitert                                             | `ADMIN_SECRET` gesetzt und mit Eingabe übereinstimmend                                                                                                                                                          |
-| Alle Clients landen im selben Rate-Limit-Bucket                   | `TRUST_PROXY_HOPS=1`, Nginx-Header `X-Forwarded-For` / `X-Real-IP`, Backend-Neustart nach Env-Änderung                                                                                                          |
-| Server-Status zeigt nur Fallbackwerte                             | `DATABASE_URL`, `REDIS_URL`, `health.footerBundle`, `health.stats`, PostgreSQL-Tabellen `PlatformStatistic` / `DailyStatistic`, Redis-Erreichbarkeit                                                            |
-| MOTD/API 429 (Too Many Requests)                                  | Backend-Log `motd:rate_limit_429` mit Procedure, `ipSource`, Limit und Retry-Zeit sowie admin-geschützte Aggregate in `health.securityStats`; Client-IP und IP-haltiger Redis-Key werden bewusst nicht geloggt. |
+| Symptom                                                           | Prüfen                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prisma-Fehler / keine DB                                          | `DATABASE_URL`, Container `postgres`, `npx prisma db push`                                                                                                                                                                      |
+| Rate-Limits, Admin-Session oder Blitzlicht verhalten sich seltsam | `REDIS_URL`, Container `redis`                                                                                                                                                                                                  |
+| tRPC-WebSocket hängt                                              | `WS_PORT` frei, Frontend-Proxy auf gleichen WS-Port                                                                                                                                                                             |
+| Quiz-Sync zwischen Geräten tot / `wss://…/yjs-ws` schlägt fehl    | Container: `HOST=0.0.0.0` oder `YJS_WS_HOST=0.0.0.0`, Nginx `location /yjs-ws` → `127.0.0.1:3002`, Prozess läuft                                                                                                                |
+| Admin-Login scheitert                                             | `ADMIN_SECRET` gesetzt und mit Eingabe übereinstimmend                                                                                                                                                                          |
+| Alle Clients landen im selben Rate-Limit-Bucket                   | `TRUST_PROXY_HOPS=1`, Nginx-Header `X-Forwarded-For` / `X-Real-IP`, Backend-Neustart nach Env-Änderung                                                                                                                          |
+| Server-Status zeigt nur Fallbackwerte                             | `DATABASE_URL`, `REDIS_URL`, `health.footerBundle`, `health.stats`, PostgreSQL-Tabellen `PlatformStatistic` / `DailyStatistic`, Redis-Erreichbarkeit                                                                            |
+| MOTD/API 429 (Too Many Requests)                                  | Zentrales gesampeltes `rate_limit_429` mit Pfad, Kategorie und `ipSource` sowie diagnose-geschützte Aggregate in `health.securityStats`; spezielle MOTD-Logs, Client-IP und IP-haltiger Redis-Key werden bewusst nicht geloggt. |
 
 ### MOTD 429 / „keine Last, aber 429“ – Vorgehen (belegbar)
 
-1. **Backend-Log suchen**: `motd:rate_limit_429` (Event-Objekt ohne Client-IP).
+1. **Backend-Log suchen**: zentrales `rate_limit_429` mit Kategorie `motd`
+   (gesampelt, ohne Client-IP).
 2. **IP-Quelle prüfen (`ipSource`)**:
    - `x-forwarded-for` / `x-real-ip`: Reverse-Proxy liefert Client-IP mit.
    - `express-req-ip`: Express hat bereits eine IP entschieden (nur korrekt, wenn Proxy-Setup passt).

@@ -2,7 +2,7 @@
  * Health & Server-Status (Story 0.1, 0.2, 0.4).
  * check | stats | footerBundle (Check+Stats parallel, ein Client-Request) | ping: Subscription Heartbeat
  */
-import { adminProcedure, publicProcedure, router } from '../trpc';
+import { diagnosticProcedure, publicProcedure, router } from '../trpc';
 import {
   HealthCheckResponseSchema,
   HealthFooterBundleSchema,
@@ -497,7 +497,7 @@ export const healthRouter = router({
 
   stats: publicProcedure.output(ServerStatsDTOSchema).query(() => fetchServerStats()),
 
-  securityStats: adminProcedure
+  securityStats: diagnosticProcedure
     .output(HealthSecurityStatsDTOSchema)
     .query(() => fetchSecurityStats()),
 
