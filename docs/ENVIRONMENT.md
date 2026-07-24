@@ -32,9 +32,13 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `NODE_ENV`                                             | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                                               |
 | `TRUST_PROXY_HOPS`                                     | nein         | `0`                        | `1` setzen, wenn Express **hinter** Nginx/Proxy läuft — dann `req.ip` und Rate-Limit pro **echtem** Client (nicht nur Proxy-IP)                                     |
 | `HOST_SESSION_TTL_SECONDS`                             | nein         | `28800` (8 h)              | TTL für Host-/Present-Besitznachweise in Redis; Werte unter 60 Sekunden fallen auf den Standard zurück                                                              |
-| `RATE_LIMIT_SESSION_CODE_ATTEMPTS`                     | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                                                    |
-| `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`               | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                                               |
-| `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`              | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                                                 |
+| `RATE_LIMIT_SESSION_CODE_WINDOW_SECONDS`               | nein         | `300`                      | Festes Fenster ausschließlich für nicht existente Session-Codes; nur nach unten konfigurierbar                                                                      |
+| `RATE_LIMIT_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW`   | nein         | `20`                       | Ungültige Codes pro anonymer Browser-Client-ID; danach 429. Die ID wird nur gehasht im Redis-Key verwendet                                                          |
+| `RATE_LIMIT_SESSION_CODE_CODE_SOFT_CAP_PER_WINDOW`     | nein         | `600`                      | Soft-Cap je nicht existentem Code; erzeugt progressiven Delay und Telemetrie, keinen Hard-Lock                                                                      |
+| `RATE_LIMIT_SESSION_CODE_GLOBAL_SOFT_CAP_PER_WINDOW`   | nein         | `5000`                     | Globales Soft-Cap; ab Erschöpfung keine neuen Client-/Code-Keys, aber weiterhin nur bounded Delay                                                                   |
+| `RATE_LIMIT_SESSION_CODE_DELAY_BASE_MS`                | nein         | `100`                      | Startwert des progressiven Soft-Cap-Delays ab 80 % Auslastung                                                                                                       |
+| `RATE_LIMIT_SESSION_CODE_DELAY_MAX_MS`                 | nein         | `1500`                     | Obergrenze des Soft-Cap-Delays; gültige Joins und Rejoins werden nie dadurch verzögert                                                                              |
+| `RATE_LIMIT_SESSION_CODE_MAX_CONCURRENT_DELAYS`        | nein         | `100`                      | Maximale gleichzeitig wartende ungültige Code-Abfragen pro Backend-Prozess; weitere werden mit 429 abgewiesen                                                       |
 | `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`                  | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                                                |
 | `RATE_LIMIT_SESSION_CREATE_PER_HOUR`                   | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                                              |
 | `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`           | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen                         |
@@ -162,8 +166,10 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 - Persistierbare Quiz-Uploads: `300` pro Shared-NAT-IP und `600` global, zusätzlich 64 MiB und 100.000 Komplexitätseinheiten pro Stunde
 - `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR=600` plus global `3000` pro Stunde
 - `RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE=120` pro authentifizierter Session
-- `RATE_LIMIT_SESSION_CODE_ATTEMPTS=20`
-- `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS=45`
+- `RATE_LIMIT_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW=20`
+- `RATE_LIMIT_SESSION_CODE_CODE_SOFT_CAP_PER_WINDOW=600`
+- `RATE_LIMIT_SESSION_CODE_GLOBAL_SOFT_CAP_PER_WINDOW=5000`
+- `RATE_LIMIT_SESSION_CODE_DELAY_MAX_MS=1500`
 - `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND=2`
 - `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE=1200`
 - `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE=180`
@@ -171,7 +177,22 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 
 Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Code-Defaults (wenn Variablen fehlen) bleiben weiterhin konservativ (z. B. `RATE_LIMIT_SESSION_CREATE_PER_HOUR=10`).
 
-Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt `X-Forwarded-For` mit `$remote_addr`; `TRUST_PROXY_HOPS=1` lässt Express genau diesem Hop vertrauen. Der separate tRPC-WebSocket-Server ergänzt Upgrade-Requests mit derselben `proxy-addr`-/Hop-Vertrauensfunktion. Ohne konfigurierten Proxy-Hop wird auch dort ausschließlich die direkte Socket-Adresse verwendet. Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen. Der Session-Code-Lockout bleibt bis W1.5 unverändert; W1.4 erhöht oder verschärft keine Teilnehmer-IP-Schwelle.
+Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt `X-Forwarded-For` mit `$remote_addr`; `TRUST_PROXY_HOPS=1` lässt Express genau diesem Hop vertrauen. Der separate tRPC-WebSocket-Server ergänzt Upgrade-Requests mit derselben `proxy-addr`-/Hop-Vertrauensfunktion. Ohne konfigurierten Proxy-Hop wird auch dort ausschließlich die direkte Socket-Adresse verwendet. Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen.
+
+Öffentliche Session-Code-Lookups und `session.join` verwenden keinerlei IP-Key
+oder Participant-IP-Lock. Das Backend stellt zuerst fest, ob Session oder
+Standalone-Blitzlicht existieren; gültige Lookups, Joins und Rejoins berühren
+das Fehlbudget nicht. Nur nicht existente Codes buchen in einem Lua-Aufruf die
+anwendbaren Budgets. Client-IDs und Codes stehen nur als SHA-256-Hash in den
+Redis-Keys. Während des Service-Worker-Rollouts buchen Vorgängerclients ohne
+`anonymousClientId` nur Code- und Globalbudget; sie erzeugen weder einen
+Client- noch einen IP-Ersatzkey. Ab 80 % Code- oder Globalauslastung steigt der
+Delay progressiv bis zum konfigurierten Maximum; er bleibt ein Soft-Cap ohne
+saalweite Ablehnung. Pro Prozess ist die Anzahl gleichzeitig wartender
+ungültiger Requests begrenzt; bei voller Wartemenge erhalten nur weitere
+ungültige Requests 429. Ist das globale Budget voll, erzeugt der Pfad keine
+neuen angreiferkontrollierten Keys. Ein Redis-Ausfall lässt gültige Lookups und
+Joins unbeeinträchtigt, während der ungültige Pfad fail-closed fehlschlägt.
 
 ---
 

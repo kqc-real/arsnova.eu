@@ -80,7 +80,11 @@ export async function joinSession(userContext, events) {
     const trpc = createHttpTrpcSingle(ctx.trpcUrl);
     const index = nextParticipantIndex();
     const nickname = `art-${String(index).padStart(3, '0')}`.slice(0, 30);
-    const joined = await trpc.session.join.mutate({ code: ctx.code, nickname });
+    const joined = await trpc.session.join.mutate({
+      code: ctx.code,
+      nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     userContext.vars.sessionId = joined.id;
     userContext.vars.participantId = joined.participantId;
     userContext.vars.participantIndex = index;

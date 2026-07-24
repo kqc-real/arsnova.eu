@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 
 const {
   redisMock,
@@ -12,6 +13,7 @@ const {
   touchParticipantPresenceMock,
   checkQuickFeedbackSessionCreateRateMock,
   checkQuickFeedbackStandaloneCreateRateMock,
+  rejectInvalidSessionCodeMock,
 } = vi.hoisted(() => ({
   redisMock: {
     get: vi.fn(),
@@ -21,6 +23,7 @@ const {
     set: vi.fn(),
     sismember: vi.fn(),
     eval: vi.fn(),
+    exists: vi.fn(),
     multi: vi.fn(),
   },
   prismaMock: {
@@ -37,6 +40,7 @@ const {
   touchParticipantPresenceMock: vi.fn(),
   checkQuickFeedbackSessionCreateRateMock: vi.fn(),
   checkQuickFeedbackStandaloneCreateRateMock: vi.fn(),
+  rejectInvalidSessionCodeMock: vi.fn(),
 }));
 
 vi.mock('../redis', () => ({
@@ -87,6 +91,10 @@ vi.mock('../lib/rateLimit', () => ({
   checkQuickFeedbackStandaloneCreateRate: checkQuickFeedbackStandaloneCreateRateMock,
 }));
 
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: rejectInvalidSessionCodeMock,
+}));
+
 import { quickFeedbackRouter } from '../routers/quickFeedback';
 
 const caller = quickFeedbackRouter.createCaller({ req: undefined });
@@ -122,6 +130,8 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.hgetall.mockResolvedValue({});
     redisMock.hdel.mockResolvedValue(1);
     redisMock.sismember.mockResolvedValue(0);
+    redisMock.exists.mockResolvedValue(0);
+    rejectInvalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
     lastTempoEvalResult = null;
     lastTempoChoiceAction = null;
     redisMock.eval.mockImplementation(
@@ -190,6 +200,50 @@ describe('quickFeedback.vote und Session-Status', () => {
       expire: vi.fn().mockReturnThis(),
       exec: vi.fn().mockResolvedValue([]),
     });
+  });
+
+  it('liefert aktive Standalone-Runden ohne Session-Nachschlag', async () => {
+    redisMock.exists.mockResolvedValue(1);
+
+    await expect(
+      caller.isActive({
+        sessionCode: 'ABC123',
+      }),
+    ).resolves.toEqual({ active: true });
+
+    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('löst inaktive Blitzlicht-Codes mit genau einem Session-Nachschlag auf', async () => {
+    redisMock.exists.mockResolvedValue(0);
+    prismaMock.session.findUnique.mockResolvedValue({ status: 'LOBBY' });
+
+    await expect(
+      caller.isActive({
+        sessionCode: 'ABC123',
+      }),
+    ).resolves.toEqual({ active: false, sessionStatus: 'LOBBY' });
+
+    expect(prismaMock.session.findUnique).toHaveBeenCalledOnce();
+    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('schützt Codes, für die weder Blitzlicht noch Session existieren', async () => {
+    redisMock.exists.mockResolvedValue(0);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.isActive({
+        sessionCode: 'BAD999',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+      'BAD999',
+    );
   });
 
   it('lehnt ab, wenn die Live-Session beendet ist', async () => {

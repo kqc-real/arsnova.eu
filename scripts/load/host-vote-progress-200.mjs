@@ -141,6 +141,7 @@ async function joinParticipants(publicTrpc, code) {
       await publicTrpc.session.join.mutate({
         code,
         nickname: `Load ${String(index + 1).padStart(3, '0')}`,
+        anonymousClientId: globalThis.crypto.randomUUID(),
       }),
     );
   }

@@ -394,6 +394,31 @@ describe('HomeComponent', () => {
       expect(navSpy).toHaveBeenCalledWith(['join', 'TEST01']);
     });
 
+    it('nutzt den kombinierten Resolver ohne zweiten Session-Lookup', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.isActive.query).mockResolvedValueOnce({
+        active: false,
+        sessionStatus: 'LOBBY',
+      });
+      vi.mocked(trpc.session.getInfo.query).mockClear();
+
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      comp.sessionCode.set('TEST01');
+      await comp.joinSession();
+
+      expect(trpc.quickFeedback.isActive.query).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionCode: 'TEST01',
+          anonymousClientId: expect.any(String),
+        }),
+      );
+      expect(trpc.session.getInfo.query).not.toHaveBeenCalled();
+      expect(navSpy).toHaveBeenCalledWith(['join', 'TEST01']);
+    });
+
     it('navigiert zur Blitzlicht-Abstimmung wenn eine aktive Runde existiert', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.quickFeedback.isActive.query).mockResolvedValueOnce({ active: true });

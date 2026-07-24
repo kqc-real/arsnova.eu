@@ -14,6 +14,7 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { trpc } from '../../core/trpc.client';
+import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { localizePath } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { feedbackOptions, feedbackTitle, isTempoFeedbackType } from './feedback.config';
@@ -247,7 +248,10 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private async redirectStandaloneQuizSession(code: string): Promise<boolean> {
     try {
-      const session = await trpc.session.getInfo.query({ code });
+      const session = await trpc.session.getInfo.query({
+        code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       if (session.type === 'QUIZ' && session.status !== 'FINISHED') {
         await this.router.navigateByUrl(
           this.localizedPath(`/session/${code}/vote?tab=quickFeedback`),

@@ -42,6 +42,7 @@ import {
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { navigateToHostSession } from '../../core/session-host-navigation';
+import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import {
@@ -511,7 +512,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     try {
-      const session = await trpc.session.getInfo.query({ code });
+      const session = await trpc.session.getInfo.query({
+        code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
       await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
         queryParams,
@@ -717,11 +721,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async resolveJoinTarget(code: string): Promise<'feedback' | 'join' | 'finished'> {
-    const { active: fbActive } = await trpc.quickFeedback.isActive.query({ sessionCode: code });
-    if (fbActive) {
+    const anonymousClientId = getAnonymousClientId();
+    const resolution = await trpc.quickFeedback.isActive.query({
+      sessionCode: code,
+      anonymousClientId,
+    });
+    if (resolution.active) {
       return 'feedback';
     }
-    const session = await trpc.session.getInfo.query({ code });
+    if (resolution.sessionStatus) {
+      return resolution.sessionStatus === 'FINISHED' ? 'finished' : 'join';
+    }
+    // Kompatibilitätsfallback für einen alten Backend-Stand während Rolling Deployments.
+    const session = await trpc.session.getInfo.query({ code, anonymousClientId });
     return session.status === 'FINISHED' ? 'finished' : 'join';
   }
 

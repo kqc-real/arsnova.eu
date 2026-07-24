@@ -35,8 +35,6 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
-  isSessionCodeLockedOut: vi.fn(),
-  recordFailedSessionCodeAttempt: vi.fn(),
 }));
 
 vi.mock('../lib/hostAuth', async () => {

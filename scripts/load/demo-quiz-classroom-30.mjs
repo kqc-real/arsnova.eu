@@ -602,6 +602,7 @@ async function run() {
     publicTrpc.session.join.mutate({
       code,
       nickname: kindergartenNickname(index, QUIZ_CONTENT_LOCALE),
+      anonymousClientId: globalThis.crypto.randomUUID(),
     }),
   );
 

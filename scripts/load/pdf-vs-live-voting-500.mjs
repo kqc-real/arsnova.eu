@@ -173,6 +173,7 @@ async function joinParticipants(session, nicknamePrefix = 'LIVE') {
     const joined = await trpc.session.join.mutate({
       code: session.code,
       nickname: `${nicknamePrefix}-${String(index + 1).padStart(4, '0')}`,
+      anonymousClientId: globalThis.crypto.randomUUID(),
     });
     return joined.participantId;
   });

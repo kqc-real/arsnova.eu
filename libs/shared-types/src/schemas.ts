@@ -2048,6 +2048,12 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Öffentliche Code-Abfrage mit optionaler Throttle-ID für den SW-Rollout. */
+export const PublicSessionCodeLookupInputSchema = GetSessionInfoInputSchema.extend({
+  anonymousClientId: z.uuid().optional(),
+});
+export type PublicSessionCodeLookupInput = z.infer<typeof PublicSessionCodeLookupInputSchema>;
+
 /**
  * Input: Host-Steuerung mit optionalem Override für persönliche Timer-Fenster (WCAG 2.2.1).
  * `forceClosePersonalTimers` darf serverseitig erst nach Ablauf des Raum-Countdowns greifen.
@@ -2417,6 +2423,12 @@ export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
+  /**
+   * Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder
+   * Besitznachweis. Während des Service-Worker-Rollouts optional für gecachte
+   * Clients der Vorgängerversion.
+   */
+  anonymousClientId: z.uuid().optional(),
   teamId: z.uuid().optional(),
   rejoinToken: z.uuid().optional(),
 });
@@ -3041,6 +3053,12 @@ export const HealthSecurityStatsDTOSchema = z.object({
     motd: z.number().int().min(0),
     other: z.number().int().min(0),
   }),
+  /** Nicht existente Session-Codes, die in der letzten Minute geprüft wurden. */
+  sessionCodeFailuresLastMinute: z.number().int().min(0),
+  /** Ungültige Code-Prüfungen mit globaler oder codebezogener Soft-Cap-Verzögerung. */
+  sessionCodeSoftCapDelaysLastMinute: z.number().int().min(0),
+  /** Aktuelle Auslastung des globalen Fehlbudgets im laufenden Fenster. */
+  sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
 });
@@ -3970,8 +3988,16 @@ export const QuickFeedbackVoteInputSchema = z.object({
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 
-/** Nur Redis-EXISTS – kein 404, damit Probes (z. B. Home „Letzte Sessions“) keine Konsolen-Fehler erzeugen. */
-export const QuickFeedbackIsActiveOutputSchema = z.object({ active: z.boolean() });
+/** Rückwärtskompatibler kombinierter Join-Resolver für Blitzlicht und Session. */
+export const QuickFeedbackIsActiveInputSchema = z.object({
+  sessionCode: z.string().trim().length(6),
+  anonymousClientId: z.uuid().optional(),
+});
+export const QuickFeedbackIsActiveOutputSchema = z.object({
+  active: z.boolean(),
+  /** Bei inaktivem Blitzlicht liefert der eine DB-Lookup direkt den Session-Status. */
+  sessionStatus: SessionStatusEnum.optional(),
+});
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 
 export const QuickFeedbackResultSchema = z.object({

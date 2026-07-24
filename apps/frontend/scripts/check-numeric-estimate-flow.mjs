@@ -199,7 +199,11 @@ async function joinAndVote(publicTrpc, code, questionId, round) {
   for (const participant of participants) {
     const sessionParticipant =
       round === 1
-        ? await publicTrpc.session.join.mutate({ code, nickname: participant.nickname })
+        ? await publicTrpc.session.join.mutate({
+            code,
+            nickname: participant.nickname,
+            anonymousClientId: globalThis.crypto.randomUUID(),
+          })
         : participant.joined;
     participant.joined = sessionParticipant;
     joined.push(sessionParticipant);

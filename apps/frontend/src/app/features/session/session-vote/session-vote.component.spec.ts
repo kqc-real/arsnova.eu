@@ -833,7 +833,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Team-Punkte');
     expect(text).toContain('3 Mitglieder');
     expect(text).toContain('∅');
-    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    );
     fixture.destroy();
   });
 
@@ -3358,6 +3360,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(joinMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: 'Grüner Frosch 2',
+      anonymousClientId: expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      ),
+      rejoinToken: undefined,
     });
     expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({

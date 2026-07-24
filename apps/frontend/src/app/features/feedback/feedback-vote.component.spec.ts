@@ -91,7 +91,9 @@ describe('FeedbackVoteComponent', () => {
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getInfoQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    );
     expect(quickFeedbackResultsQueryMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/vote?tab=quickFeedback', {
       replaceUrl: true,
@@ -110,7 +112,9 @@ describe('FeedbackVoteComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
-    expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getInfoQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    );
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent ?? '').toContain('Ja · Nein · Vielleicht');
@@ -146,7 +150,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
-    expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getInfoQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    );
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');

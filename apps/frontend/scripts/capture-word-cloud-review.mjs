@@ -55,18 +55,54 @@ const QUIZ_PAYLOAD = {
 };
 
 const QUIZ_RESPONSES = [
-  { nickname: 'Curie', freeText: 'Die Visualisierung macht Regression und Trend im Datensatz verständlich.' },
-  { nickname: 'Einstein', freeText: 'Praxisbezug hilft, Korrelation, Ausreißer und Interpretation einzuordnen.' },
-  { nickname: 'Planck', freeText: 'Regression, Median und Varianz bleiben für die Klausur wichtig.' },
-  { nickname: 'Bohr', freeText: 'Die Formel zur Standardabweichung ist mit Beispiel deutlich klarer geworden.' },
-  { nickname: 'Franklin', freeText: 'Visualisierung und Datensatz erklären Unsicherheit besser als reine Theorie.' },
-  { nickname: 'Meitner', freeText: 'Praxisprojekt, Prognose und Kreuzvalidierung passen jetzt gut zusammen.' },
-  { nickname: 'Sagan', freeText: 'Interpretation von p-Wert, Trend und Korrelation ist jetzt greifbar.' },
-  { nickname: 'Lovelace', freeText: 'Wie wir Modelle validieren und visualisieren, bleibt besonders hängen.' },
-  { nickname: 'Feynman', freeText: 'Ausreißer, Median und Visualisierung helfen beim Verständnis des Datensatzes.' },
-  { nickname: 'Hawking', freeText: 'Welche Prognose sinnvoll ist, hängt stark von Datensatz und Validierung ab.' },
-  { nickname: 'Noether', freeText: 'Regression und Visualisierung machen Datensatz und Trend konkret nachvollziehbar.' },
-  { nickname: 'Turing', freeText: 'Korrelation, Validierung und Prognose brauchen immer eine saubere Interpretation.' },
+  {
+    nickname: 'Curie',
+    freeText: 'Die Visualisierung macht Regression und Trend im Datensatz verständlich.',
+  },
+  {
+    nickname: 'Einstein',
+    freeText: 'Praxisbezug hilft, Korrelation, Ausreißer und Interpretation einzuordnen.',
+  },
+  {
+    nickname: 'Planck',
+    freeText: 'Regression, Median und Varianz bleiben für die Klausur wichtig.',
+  },
+  {
+    nickname: 'Bohr',
+    freeText: 'Die Formel zur Standardabweichung ist mit Beispiel deutlich klarer geworden.',
+  },
+  {
+    nickname: 'Franklin',
+    freeText: 'Visualisierung und Datensatz erklären Unsicherheit besser als reine Theorie.',
+  },
+  {
+    nickname: 'Meitner',
+    freeText: 'Praxisprojekt, Prognose und Kreuzvalidierung passen jetzt gut zusammen.',
+  },
+  {
+    nickname: 'Sagan',
+    freeText: 'Interpretation von p-Wert, Trend und Korrelation ist jetzt greifbar.',
+  },
+  {
+    nickname: 'Lovelace',
+    freeText: 'Wie wir Modelle validieren und visualisieren, bleibt besonders hängen.',
+  },
+  {
+    nickname: 'Feynman',
+    freeText: 'Ausreißer, Median und Visualisierung helfen beim Verständnis des Datensatzes.',
+  },
+  {
+    nickname: 'Hawking',
+    freeText: 'Welche Prognose sinnvoll ist, hängt stark von Datensatz und Validierung ab.',
+  },
+  {
+    nickname: 'Noether',
+    freeText: 'Regression und Visualisierung machen Datensatz und Trend konkret nachvollziehbar.',
+  },
+  {
+    nickname: 'Turing',
+    freeText: 'Korrelation, Validierung und Prognose brauchen immer eine saubere Interpretation.',
+  },
 ];
 
 function createTrpcClient(hostToken) {
@@ -120,7 +156,11 @@ async function createQuizSession() {
   }
 
   for (const response of QUIZ_RESPONSES) {
-    const join = await publicTrpc.session.join.mutate({ code, nickname: response.nickname });
+    const join = await publicTrpc.session.join.mutate({
+      code,
+      nickname: response.nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     await publicTrpc.vote.submit.mutate({
       sessionId: join.id,
       participantId: join.participantId,
@@ -137,7 +177,10 @@ async function waitForWordCloud(card) {
   await card.waitFor({ state: 'visible', timeout: 30_000 });
   await card.locator('.word-cloud__word').first().waitFor({ state: 'visible', timeout: 30_000 });
   await card.locator('.word-cloud__visual--cloud').waitFor({ state: 'visible', timeout: 30_000 });
-  await card.locator('.word-cloud__word--positioned').first().waitFor({ state: 'visible', timeout: 30_000 });
+  await card
+    .locator('.word-cloud__word--positioned')
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
 }
 
 async function captureDialog(page, targetPath) {
@@ -145,7 +188,10 @@ async function captureDialog(page, targetPath) {
   const dialog = page.locator('.word-cloud-dialog');
   await dialog.waitFor({ state: 'visible', timeout: 30_000 });
   await dialog.locator('.word-cloud__visual--cloud').waitFor({ state: 'visible', timeout: 30_000 });
-  await dialog.locator('.word-cloud__word--positioned').first().waitFor({ state: 'visible', timeout: 30_000 });
+  await dialog
+    .locator('.word-cloud__word--positioned')
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
   await page.waitForTimeout(1400);
   await page.screenshot({ path: targetPath });
 }

@@ -25,9 +25,6 @@ function boundedPositiveIntegerEnv(name: string, fallback: number, maximum: numb
 }
 
 export const RATE_LIMIT_ENV = {
-  sessionCodeAttempts: Number(process.env['RATE_LIMIT_SESSION_CODE_ATTEMPTS']) || 5,
-  sessionCodeWindowMinutes: Number(process.env['RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES']) || 5,
-  sessionCodeLockoutSeconds: Number(process.env['RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS']) || 60,
   voteRequestsPerSecond: Number(process.env['RATE_LIMIT_VOTE_REQUESTS_PER_SECOND']) || 1,
   sessionCreatePerHour: Number(process.env['RATE_LIMIT_SESSION_CREATE_PER_HOUR']) || 10,
   /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute (`getCurrent` + `getHeaderState` teilen sich das Limit) */
@@ -202,7 +199,7 @@ export function shouldBypassMotdGetCurrentRate(ip: string): boolean {
 /**
  * Prüft Sliding-Window für einen Key: Anzahl Aufrufe in den letzten windowSeconds Sekunden.
  * Gibt { allowed, remaining, retryAfterSeconds } zurück.
- * Bei Lockout: keyLockout wird gesetzt (z. B. "lockout:sessioncode:ip").
+ * Bei optionalem Lockout wird ein separater, vom Aufrufer bestimmter Key gesetzt.
  */
 export async function checkSlidingWindow(
   key: string,
@@ -257,56 +254,6 @@ export async function checkSlidingWindow(
     allowed: true,
     remaining: limit - count - 1,
   };
-}
-
-/**
- * Prüft, ob IP nach zu vielen Fehlversuchen gesperrt ist (Story 0.5).
- */
-export async function isSessionCodeLockedOut(ip: string): Promise<{
-  locked: boolean;
-  retryAfterSeconds?: number;
-}> {
-  const redis = getRedis();
-  const locked = await redis.get(`${PREFIX}lockout:${ip}`);
-  if (locked !== '1') return { locked: false };
-  const ttl = await redis.ttl(`${PREFIX}lockout:${ip}`);
-  return {
-    locked: true,
-    retryAfterSeconds: ttl > 0 ? ttl : RATE_LIMIT_ENV.sessionCodeLockoutSeconds,
-  };
-}
-
-/**
- * Zeichnet einen Fehlversuch beim Session-Code auf; setzt Lockout bei Überschreitung (Story 0.5).
- * Nur aufrufen, wenn der eingegebene Code ungültig war.
- */
-export async function recordFailedSessionCodeAttempt(ip: string): Promise<{
-  locked: boolean;
-  retryAfterSeconds?: number;
-}> {
-  const result = await checkSlidingWindow(
-    `sessioncode:${ip}`,
-    RATE_LIMIT_ENV.sessionCodeAttempts,
-    RATE_LIMIT_ENV.sessionCodeWindowMinutes * 60,
-    ip,
-    RATE_LIMIT_ENV.sessionCodeLockoutSeconds,
-  );
-  return {
-    locked: !result.allowed,
-    retryAfterSeconds: result.retryAfterSeconds,
-  };
-}
-
-/**
- * Session-Code-Eingabe (Story 3.1): Prüft Lockout vor Versuch.
- */
-export async function checkSessionCodeAttempt(ip: string): Promise<{
-  allowed: boolean;
-  retryAfterSeconds?: number;
-}> {
-  const { locked, retryAfterSeconds } = await isSessionCodeLockedOut(ip);
-  if (locked) return { allowed: false, retryAfterSeconds };
-  return { allowed: true };
 }
 
 /**

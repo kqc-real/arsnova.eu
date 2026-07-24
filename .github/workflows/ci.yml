@@ -952,6 +952,19 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run build:libs
 
+      - name: Session-code protection Redis regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_REDIS_SESSION_CODE_TESTS: '1'
+          RATE_LIMIT_SESSION_CODE_WINDOW_SECONDS: '30'
+          RATE_LIMIT_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW: '3'
+          RATE_LIMIT_SESSION_CODE_CODE_SOFT_CAP_PER_WINDOW: '5'
+          RATE_LIMIT_SESSION_CODE_GLOBAL_SOFT_CAP_PER_WINDOW: '10'
+          RATE_LIMIT_SESSION_CODE_DELAY_BASE_MS: '10'
+          RATE_LIMIT_SESSION_CODE_DELAY_MAX_MS: '20'
+        run: npx vitest run src/lib/sessionCodeProtection.redis.test.ts
+
       - name: Run classroom scenario smokes
         if: needs.changes.outputs.docs_only != 'true'
         run: |

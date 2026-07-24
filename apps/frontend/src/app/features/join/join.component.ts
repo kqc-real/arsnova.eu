@@ -31,6 +31,7 @@ import { recordServerTimeIso } from '../session/session-server-clock';
 import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
 import { setConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import {
   edgeEmojiMarkerPosition,
   extractEdgeEmoji,
@@ -334,7 +335,10 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const session = await trpc.session.getInfo.query({ code: this.code });
+      const session = await trpc.session.getInfo.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeIso(session.serverTime);
       if (session.status === 'FINISHED') {
         this.errorSessionFinished.set(true);
@@ -390,7 +394,10 @@ export class JoinComponent implements OnInit, OnDestroy {
     if (this.joining() || this.loading()) return;
     if (typeof document !== 'undefined' && document.hidden) return;
     try {
-      const session = await trpc.session.getInfo.query({ code: this.code });
+      const session = await trpc.session.getInfo.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeIso(session.serverTime);
       if (session.status === 'FINISHED') {
         this.session.set(session);
@@ -432,7 +439,10 @@ export class JoinComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      const payload = await trpc.session.getTeams.query({ code: this.code });
+      const payload = await trpc.session.getTeams.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       this.teams.set(payload.teams);
     } catch {
       this.teams.set([]);
@@ -441,7 +451,10 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   private async loadParticipants(): Promise<void> {
     try {
-      const payload = await trpc.session.getParticipantNicknames.query({ code: this.code });
+      const payload = await trpc.session.getParticipantNicknames.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       const set = new Set(payload.nicknames.map((nickname) => toParticipantNicknameKey(nickname)));
       this.takenNicknames.set(set);
       this.lastParticipantsRefreshAt = Date.now();
@@ -504,6 +517,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,
+        anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
       });
@@ -535,6 +549,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,
+        anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
       });

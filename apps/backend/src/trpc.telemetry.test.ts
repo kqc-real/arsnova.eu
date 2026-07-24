@@ -26,6 +26,9 @@ const testRouter = router({
     join: publicProcedure.mutation(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
+    getInfo: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
     getSessionExportPdf: publicProcedure.query(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
@@ -69,6 +72,11 @@ describe('zentrale Security-Telemetrie', () => {
       'session.join',
       'sessionCode',
       () => testRouter.createCaller({ req: undefined }).session.join(),
+    ],
+    [
+      'session.getInfo',
+      'sessionCode',
+      () => testRouter.createCaller({ req: undefined }).session.getInfo(),
     ],
     ['vote.submit', 'vote', () => testRouter.createCaller({ req: undefined }).vote.submit()],
     ['quiz.upload', 'quizUpload', () => testRouter.createCaller({ req: undefined }).quiz.upload()],

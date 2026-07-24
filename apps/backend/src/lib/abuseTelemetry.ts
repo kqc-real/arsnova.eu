@@ -22,10 +22,16 @@ export type RateLimitCategory =
   | 'motd'
   | 'other';
 
-type AbuseCounterName = 'sessionCreateCompleted' | `rateLimit429:${RateLimitCategory}`;
+type AbuseCounterName =
+  | 'sessionCreateCompleted'
+  | 'sessionCodeFailure'
+  | 'sessionCodeSoftCapDelay'
+  | `rateLimit429:${RateLimitCategory}`;
 
 export type AbuseSignals = {
   sessionCreatesLastMinute: number;
+  sessionCodeFailuresLastMinute: number;
+  sessionCodeSoftCapDelaysLastMinute: number;
   rateLimit429LastMinute: number;
   rateLimit429ByCategoryLastMinute: Record<RateLimitCategory, number>;
 };
@@ -51,6 +57,8 @@ const rateLimitLogStates = new Map<
   RateLimitCategory,
   { lastLoggedAtMs: number; suppressedSinceLastLog: number }
 >();
+let sessionCodeSoftCapLogState: { lastLoggedAtMs: number; suppressedSinceLastLog: number } | null =
+  null;
 
 function currentBucket(nowMs: number): number {
   return Math.floor(nowMs / (BUCKET_SECONDS * 1000));
@@ -106,6 +114,14 @@ function recordCounter(counter: AbuseCounterName, nowMs: number): void {
 
 export function recordSessionCreateCompleted(nowMs: number = Date.now()): void {
   recordCounter('sessionCreateCompleted', nowMs);
+}
+
+export function recordSessionCodeFailure(nowMs: number = Date.now()): void {
+  recordCounter('sessionCodeFailure', nowMs);
+}
+
+export function recordSessionCodeSoftCapDelay(nowMs: number = Date.now()): void {
+  recordCounter('sessionCodeSoftCapDelay', nowMs);
 }
 
 export function recordRateLimitRejection(
@@ -187,6 +203,25 @@ export function logRateLimitRejection(
   });
 }
 
+export function logSessionCodeSoftCapDelay(
+  details: { delayMs: number; globalUtilizationPercent: number },
+  nowMs: number = Date.now(),
+): void {
+  if (
+    sessionCodeSoftCapLogState &&
+    nowMs - sessionCodeSoftCapLogState.lastLoggedAtMs < RATE_LIMIT_LOG_INTERVAL_MS
+  ) {
+    sessionCodeSoftCapLogState.suppressedSinceLastLog += 1;
+    return;
+  }
+  logger.warn('session_code_soft_cap_delay', {
+    delayMs: details.delayMs,
+    globalUtilizationPercent: details.globalUtilizationPercent,
+    suppressedSinceLastLog: sessionCodeSoftCapLogState?.suppressedSinceLastLog ?? 0,
+  });
+  sessionCodeSoftCapLogState = { lastLoggedAtMs: nowMs, suppressedSinceLastLog: 0 };
+}
+
 export function resetAbuseTelemetryForTests(): void {
   if (flushTimer) clearTimeout(flushTimer);
   flushTimer = null;
@@ -194,6 +229,7 @@ export function resetAbuseTelemetryForTests(): void {
   stopping = false;
   pendingBuckets.clear();
   rateLimitLogStates.clear();
+  sessionCodeSoftCapLogState = null;
   recordWarned = false;
   readWarned = false;
 }
@@ -232,6 +268,8 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
   ) as Record<RateLimitCategory, number>;
   const empty: AbuseSignals = {
     sessionCreatesLastMinute: 0,
+    sessionCodeFailuresLastMinute: 0,
+    sessionCodeSoftCapDelaysLastMinute: 0,
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: emptyByCategory,
   };
@@ -241,6 +279,8 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
     const bucket = currentBucket(nowMs);
     const counters: AbuseCounterName[] = [
       'sessionCreateCompleted',
+      'sessionCodeFailure',
+      'sessionCodeSoftCapDelay',
       ...RATE_LIMIT_CATEGORIES.map((category): AbuseCounterName => `rateLimit429:${category}`),
     ];
     const multi = getRedis().multi();
@@ -255,14 +295,18 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
 
     const signals: AbuseSignals = {
       sessionCreatesLastMinute: 0,
+      sessionCodeFailuresLastMinute: 0,
+      sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: { ...emptyByCategory },
     };
     for (let offset = 0; offset < WINDOW_BUCKETS; offset++) {
       const cursor = offset * counters.length;
       signals.sessionCreatesLastMinute += parseRedisInteger(result[cursor]?.[1]);
+      signals.sessionCodeFailuresLastMinute += parseRedisInteger(result[cursor + 1]?.[1]);
+      signals.sessionCodeSoftCapDelaysLastMinute += parseRedisInteger(result[cursor + 2]?.[1]);
       RATE_LIMIT_CATEGORIES.forEach((category, categoryIndex) => {
-        const count = parseRedisInteger(result[cursor + categoryIndex + 1]?.[1]);
+        const count = parseRedisInteger(result[cursor + categoryIndex + 3]?.[1]);
         signals.rateLimit429ByCategoryLastMinute[category] += count;
         signals.rateLimit429LastMinute += count;
       });

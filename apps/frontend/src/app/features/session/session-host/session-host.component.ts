@@ -57,6 +57,7 @@ import {
   type SupportedLocale,
 } from '../../../core/locale-from-path';
 import { trpc } from '../../../core/trpc.client';
+import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import {
@@ -2002,7 +2003,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async reloadSessionInfo(): Promise<SessionInfoDTO> {
     const requestedAt = Date.now();
-    const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+    const session = await trpc.session.getInfo.query({
+      code: this.code.toUpperCase(),
+      anonymousClientId: getAnonymousClientId(),
+    });
     recordServerTimeSample(session.serverTime, requestedAt);
     this.sessionUnavailable.set(false);
     this.session.set(session);
@@ -2034,7 +2038,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.statusSub = trpc.session.onStatusChanged.subscribe(
-      { code: this.code.toUpperCase() },
+      {
+        code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      },
       {
         onData: (data) => {
           if (data.serverTime) {
@@ -2645,7 +2652,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
+      const entries = await trpc.session.getLeaderboard.query({
+        code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      });
       return this.hasPotentialBonusRecipients(entries);
     } catch {
       return false;
@@ -3869,7 +3879,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const payload = await trpc.session.getTeams.query({ code: this.code.toUpperCase() });
+      const payload = await trpc.session.getTeams.query({
+        code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      });
       this.lobbyTeams.set(payload.teams);
     } catch {
       // Subscription/polling can transiently fail; keep the last stable team list to avoid lobby flicker.
@@ -6017,10 +6030,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.code || this.leaderboardLoading()) return;
     this.leaderboardLoading.set(true);
     try {
-      const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
+      const entries = await trpc.session.getLeaderboard.query({
+        code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
+      });
       this.leaderboard.set(entries);
       const teamEntries = await trpc.session.getTeamLeaderboard.query({
         code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
       });
       this.teamLeaderboard.set(teamEntries);
     } catch {
@@ -6039,6 +6056,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const summary = await trpc.session.getSessionConfidenceSummary.query({
         code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
       });
       this.finishedConfidenceSummary.set(summary);
     } catch {
@@ -6051,6 +6069,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const summary = await trpc.session.getSessionFeedbackSummary.query({
         code: this.code.toUpperCase(),
+        anonymousClientId: getAnonymousClientId(),
       });
       if (summary.totalResponses > 0) {
         this.feedbackSummary.set(summary);

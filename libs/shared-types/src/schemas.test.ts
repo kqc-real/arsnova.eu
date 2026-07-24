@@ -3,6 +3,7 @@ import {
   AnswerOptionRevealedDTOSchema,
   AnswerOptionStudentDTOSchema,
   JoinSessionInputSchema,
+  PublicSessionCodeLookupInputSchema,
   previewMaxCorrectScoreAtElapsedSeconds,
   QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION,
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
@@ -20,6 +21,7 @@ const sessionId = '10000000-0000-4000-8000-000000000001';
 const participantId = '10000000-0000-4000-8000-000000000002';
 const questionId = '10000000-0000-4000-8000-000000000003';
 const answerId = '10000000-0000-4000-8000-000000000004';
+const anonymousClientId = '10000000-0000-4000-8000-000000000005';
 
 describe('öffentliche Contract-Schemas', () => {
   const quizUploadBase = {
@@ -170,14 +172,47 @@ describe('öffentliche Contract-Schemas', () => {
   });
 
   it('erzwingt Session-Code und begrenzte Anzeigenamen', () => {
+    expect(
+      JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada', anonymousClientId })
+        .success,
+    ).toBe(true);
+    // Übergangskompatibilität für noch aktive Service-Worker-Clients der Vorgängerversion.
     expect(JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada' }).success).toBe(
       true,
     );
-    expect(JoinSessionInputSchema.safeParse({ code: 'ABC12', nickname: 'Ada' }).success).toBe(
-      false,
-    );
     expect(
-      JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'x'.repeat(31) }).success,
+      JoinSessionInputSchema.safeParse({
+        code: 'ABC123',
+        nickname: 'Ada',
+        anonymousClientId: 'keine-uuid',
+      }).success,
+    ).toBe(false);
+    expect(
+      JoinSessionInputSchema.safeParse({ code: 'ABC12', nickname: 'Ada', anonymousClientId })
+        .success,
+    ).toBe(false);
+    expect(
+      JoinSessionInputSchema.safeParse({
+        code: 'ABC123',
+        nickname: 'x'.repeat(31),
+        anonymousClientId,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('akzeptiert die optionale Throttle-ID nur als UUID', () => {
+    expect(PublicSessionCodeLookupInputSchema.safeParse({ code: 'ABC123' }).success).toBe(true);
+    expect(
+      PublicSessionCodeLookupInputSchema.safeParse({
+        code: 'ABC123',
+        anonymousClientId,
+      }).success,
+    ).toBe(true);
+    expect(
+      PublicSessionCodeLookupInputSchema.safeParse({
+        code: 'ABC123',
+        anonymousClientId: 'manipuliert',
+      }).success,
     ).toBe(false);
   });
 

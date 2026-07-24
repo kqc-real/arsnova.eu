@@ -41,6 +41,7 @@ import {
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import * as vpc from './session-vote-participant-copy';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import {
@@ -739,7 +740,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const takenNicknames = new Set<string>();
 
     try {
-      const payload = await trpc.session.getParticipantNicknames.query({ code: this.code });
+      const payload = await trpc.session.getParticipantNicknames.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       participantCountHint = Math.max(0, payload.participantCount);
       for (const nickname of payload.nicknames) {
         takenNicknames.add(this.normalizeNicknameKey(nickname));
@@ -761,6 +765,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const join = await trpc.session.join.mutate({
           code: this.code,
           nickname,
+          anonymousClientId: getAnonymousClientId(),
           rejoinToken,
         });
         if (join.timerAccommodation) {
@@ -2808,7 +2813,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private async loadSessionInfo(): Promise<boolean> {
     try {
       const requestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({ code: this.code });
+      const session = await trpc.session.getInfo.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeSample(session.serverTime, requestedAt);
       this.sessionId.set(session.id);
       this.status.set(session.status as SessionStatus);
@@ -2925,7 +2933,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     this.statusSub = trpc.session.onStatusChanged.subscribe(
-      { code: this.code },
+      {
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      },
       {
         onError: () => {
           this.statusSub?.unsubscribe();
@@ -3043,7 +3054,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.lastSessionInfoRetryAt = now;
     try {
       const requestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({ code: this.code });
+      const session = await trpc.session.getInfo.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       recordServerTimeSample(session.serverTime, requestedAt);
       const nextStatus = session.status as SessionStatus;
       const prevStatus = this.status();
@@ -3608,7 +3622,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     let sessionId = this.sessionId();
     if (!sessionId && this.code) {
       try {
-        const session = await trpc.session.getInfo.query({ code: this.code });
+        const session = await trpc.session.getInfo.query({
+          code: this.code,
+          anonymousClientId: getAnonymousClientId(),
+        });
         sessionId = session.id;
         this.sessionId.set(session.id);
         this.sessionSettings.set(session);
@@ -4362,7 +4379,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      const payload = await trpc.session.getTeams.query({ code: this.code });
+      const payload = await trpc.session.getTeams.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       this.sessionTeams.set(payload.teams);
     } catch {
       this.sessionTeams.set([]);
@@ -4375,7 +4395,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      const leaderboard = await trpc.session.getTeamLeaderboard.query({ code: this.code });
+      const leaderboard = await trpc.session.getTeamLeaderboard.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       this.teamLeaderboard.set(leaderboard);
     } catch {
       this.teamLeaderboard.set([]);
@@ -4497,7 +4520,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   async loadFeedbackSummary(): Promise<void> {
     try {
-      const summary = await trpc.session.getSessionFeedbackSummary.query({ code: this.code });
+      const summary = await trpc.session.getSessionFeedbackSummary.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
       if (summary.totalResponses > 0) {
         this.feedbackSummary.set(summary);
       }

@@ -185,6 +185,7 @@ async function run() {
       publicTrpc.session.join.mutate({
         code: session.code,
         nickname: `Fanout TN ${String(index + 1).padStart(2, '0')}`,
+        anonymousClientId: globalThis.crypto.randomUUID(),
       }),
   );
   const qaStart = await hostTrpc.session.startQa.mutate({ code: session.code });

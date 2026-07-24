@@ -13,6 +13,7 @@ import {
   CreateSessionOutputSchema,
   GetCurrentQuestionForStudentInputSchema,
   GetSessionInfoInputSchema,
+  PublicSessionCodeLookupInputSchema,
   HostSteeringWithTimerOverrideInputSchema,
   NextQuestionInputSchema,
   GetLiveFreetextInputSchema,
@@ -147,6 +148,7 @@ import {
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import { logger } from '../lib/logger';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
+import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import {
   clearReadingReady,
   getReadingReadyParticipantIds,
@@ -204,12 +206,7 @@ import {
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
-import {
-  checkSessionCreateRate,
-  isSessionCodeLockedOut,
-  recordFailedSessionCodeAttempt,
-  shouldBypassSessionCreateRate,
-} from '../lib/rateLimit';
+import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
@@ -4589,7 +4586,7 @@ export const sessionRouter = router({
 
   /** Session-Info per Code (für Beitritt, Story 3.1, 3.2). Enthält Nickname-Konfiguration bei QUIZ. */
   getInfo: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
     .query(async ({ input }) => {
       const code = input.code.toUpperCase();
@@ -4676,7 +4673,12 @@ export const sessionRouter = router({
             }),
           };
         },
-      );
+      ).catch(async (error: unknown) => {
+        if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
+          await rejectInvalidSessionCode(input.anonymousClientId, code);
+        }
+        throw error;
+      });
       return {
         ...payload,
         serverTime: new Date().toISOString(),
@@ -4700,7 +4702,7 @@ export const sessionRouter = router({
 
   /** Öffentliche Nickname-Liste für Kollisionserkennung beim Join. */
   getParticipantNicknames: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(SessionParticipantNicknamesPayloadSchema)
     .query(async ({ input }) => {
       const code = input.code.toUpperCase();
@@ -4718,7 +4720,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, code);
       }
       const payload = {
         nicknames: session.participants.map((participant) => participant.nickname),
@@ -4739,7 +4741,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(undefined, code);
       }
 
       const participant = await prisma.participant.findFirst({
@@ -4860,7 +4862,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(undefined, code);
       }
       if (session.status !== 'QUESTION_OPEN') {
         throw new TRPCError({
@@ -4912,7 +4914,7 @@ export const sessionRouter = router({
 
   /** Teams einer Session für manuellen Join / Team-Lobby (Story 7.1). */
   getTeams: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(SessionTeamsPayloadSchema)
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -4932,7 +4934,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
       }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       if (!onboardingProfile.teamMode) {
@@ -5059,25 +5061,30 @@ export const sessionRouter = router({
       return { preferredChannel: input.channel };
     }),
 
-  onStatusChanged: publicProcedure.input(GetSessionInfoInputSchema).subscription(async function* ({
-    input,
-  }) {
-    const code = input.code.toUpperCase();
-    let lastJson = '';
-    while (true) {
-      const payloadBase = await fetchStatusSnapshot(code);
-      const json = JSON.stringify(payloadBase);
-      if (json !== lastJson) {
-        lastJson = json;
-        yield { ...payloadBase, serverTime: new Date().toISOString() };
+  onStatusChanged: publicProcedure
+    .input(PublicSessionCodeLookupInputSchema)
+    .subscription(async function* ({ input }) {
+      const code = input.code.toUpperCase();
+      let lastJson = '';
+      while (true) {
+        const payloadBase = await fetchStatusSnapshot(code).catch(async (error: unknown) => {
+          if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
+            await rejectInvalidSessionCode(input.anonymousClientId, code);
+          }
+          throw error;
+        });
+        const json = JSON.stringify(payloadBase);
+        if (json !== lastJson) {
+          lastJson = json;
+          yield { ...payloadBase, serverTime: new Date().toISOString() };
+        }
+        const waitMs = FAST_STATUS_POLL_SET.has(payloadBase.status)
+          ? STATUS_EVENT_WAIT_ACTIVE_MS
+          : STATUS_EVENT_WAIT_IDLE_MS;
+        const currentVersion = getSessionStatusSignalVersion(code);
+        await waitForSessionStatusSignal(code, currentVersion, waitMs);
       }
-      const waitMs = FAST_STATUS_POLL_SET.has(payloadBase.status)
-        ? STATUS_EVENT_WAIT_ACTIVE_MS
-        : STATUS_EVENT_WAIT_IDLE_MS;
-      const currentVersion = getSessionStatusSignalVersion(code);
-      await waitForSessionStatusSignal(code, currentVersion, waitMs);
-    }
-  }),
+    }),
 
   /** Nächste Frage öffnen (Story 2.3). LOBBY/PAUSED/RESULTS/DISCUSSION → QUESTION_OPEN oder ACTIVE; bei Lesephase aus: direkt ACTIVE.
    * Zusätzlich: ACTIVE + currentQuestion null (z. B. nach Q&A-Start aus der Lobby) erlaubt den Start der ersten Quiz-Frage. */
@@ -5689,7 +5696,10 @@ export const sessionRouter = router({
           _count: { select: { participants: true } },
         },
       });
-      if (!session?.quiz) return null;
+      if (!session) {
+        return rejectInvalidSessionCode(undefined, code);
+      }
+      if (!session.quiz) return null;
       if (session.status === 'LOBBY') return null;
       const quiz = session.quiz;
       const idx = session.currentQuestion;
@@ -6134,21 +6144,12 @@ export const sessionRouter = router({
       };
     }),
 
-  /** Session beitreten (Story 3.1). Rate-Limit: 5 Fehlversuche/5 Min, 60s Lockout (Story 0.5). */
+  /** Session beitreten (Story 3.1). Ungültige Codes: Client-Cap plus Code-/Global-Soft-Caps. */
   join: publicProcedure
     .input(JoinSessionInputSchema)
     .output(JoinSessionOutputSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const ip = getClientIp(ctx);
-      const lockout = await isSessionCodeLockedOut(ip);
-      if (lockout.locked) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: 'Zu viele Fehlversuche. Bitte warten Sie vor dem nächsten Versuch.',
-          cause: { retryAfterSeconds: lockout.retryAfterSeconds },
-        });
-      }
       const session = await prisma.session.findUnique({
         where: { code },
         include: {
@@ -6169,16 +6170,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        const after = await recordFailedSessionCodeAttempt(ip);
-        if (after.locked) {
-          throw new TRPCError({
-            code: 'TOO_MANY_REQUESTS',
-            message:
-              'Ungültiger Code. Zu viele Fehlversuche – bitte warten Sie vor dem nächsten Versuch.',
-            cause: { retryAfterSeconds: after.retryAfterSeconds },
-          });
-        }
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, code);
       }
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
@@ -6318,7 +6310,7 @@ export const sessionRouter = router({
 
   /** Leaderboard: Ranking aller Teilnehmer nach Gesamtpunktzahl (Story 4.1). */
   getLeaderboard: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(z.array(LeaderboardEntryDTOSchema))
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -6340,7 +6332,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
       }
       if (!session.quiz?.showLeaderboard) {
         return [];
@@ -6448,7 +6440,7 @@ export const sessionRouter = router({
 
   /** Team-Leaderboard: Ranking aller Teams nach harmonisierten Team-Punkten (Story 7.1). */
   getTeamLeaderboard: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(z.array(TeamLeaderboardEntryDTOSchema))
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -6458,7 +6450,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
       }
       if (!session.quiz?.teamMode) {
         return [];
@@ -6827,7 +6819,10 @@ export const sessionRouter = router({
           participants: { select: { id: true } },
         },
       });
-      if (!session?.quiz) {
+      if (!session) {
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
+      }
+      if (!session.quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
       }
       if (!['RESULTS', 'FINISHED', 'DISCUSSION', 'PAUSED'].includes(session.status)) {
@@ -7031,7 +7026,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
       }
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
@@ -7127,7 +7122,7 @@ export const sessionRouter = router({
         select: { id: true, status: true, quizStarted: true },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
       }
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
@@ -7178,7 +7173,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
       }
       const existing = await prisma.sessionFeedback.findUnique({
         where: {
@@ -7193,13 +7188,20 @@ export const sessionRouter = router({
    * Öffentlich wie Session-Feedback: nur aggregierte Daten, kein Host-Token nötig.
    */
   getSessionConfidenceSummary: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(GetSessionConfidenceSummaryOutputSchema)
-    .query(async ({ input }) => loadSessionConfidenceSummaryByCode(input.code)),
+    .query(async ({ input }) =>
+      loadSessionConfidenceSummaryByCode(input.code).catch(async (error: unknown) => {
+        if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
+          await rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        }
+        throw error;
+      }),
+    ),
 
   /** Aggregierte Session-Bewertung abrufen (Story 4.8). Für Dozent und Teilnehmende. */
   getSessionFeedbackSummary: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(PublicSessionCodeLookupInputSchema)
     .output(SessionFeedbackSummarySchema)
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -7207,7 +7209,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
       }
 
       const feedbacks = await prisma.sessionFeedback.findMany({

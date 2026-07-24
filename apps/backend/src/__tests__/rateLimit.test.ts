@@ -22,8 +22,6 @@ vi.mock('../redis', () => ({
 
 import {
   checkSlidingWindow,
-  checkSessionCodeAttempt,
-  recordFailedSessionCodeAttempt,
   checkVoteRate,
   checkSessionCreateRate,
   checkMotdGetCurrentRate,
@@ -42,9 +40,6 @@ import {
 
 describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
   it('hat korrekte Standardwerte', () => {
-    expect(RATE_LIMIT_ENV.sessionCodeAttempts).toBe(5);
-    expect(RATE_LIMIT_ENV.sessionCodeWindowMinutes).toBe(5);
-    expect(RATE_LIMIT_ENV.sessionCodeLockoutSeconds).toBe(60);
     expect(RATE_LIMIT_ENV.voteRequestsPerSecond).toBe(1);
     expect(RATE_LIMIT_ENV.sessionCreatePerHour).toBe(10);
     expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
@@ -217,52 +212,6 @@ describe('checkSlidingWindow', () => {
     expect(result.allowed).toBe(false);
     expect(result.retryAfterSeconds).toBe(45);
     expect(redisMock.zcard).not.toHaveBeenCalled();
-  });
-});
-
-describe('checkSessionCodeAttempt (Story 3.1)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    redisMock.get.mockResolvedValue(null);
-  });
-
-  it('erlaubt Versuch wenn kein Lockout besteht', async () => {
-    const result = await checkSessionCodeAttempt('192.168.1.1');
-    expect(result.allowed).toBe(true);
-  });
-
-  it('blockiert Versuch wenn IP gesperrt ist', async () => {
-    redisMock.get.mockResolvedValue('1');
-    redisMock.ttl.mockResolvedValue(30);
-
-    const result = await checkSessionCodeAttempt('192.168.1.1');
-
-    expect(result.allowed).toBe(false);
-    expect(result.retryAfterSeconds).toBe(30);
-  });
-});
-
-describe('recordFailedSessionCodeAttempt (Story 0.5)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    redisMock.get.mockResolvedValue(null);
-  });
-
-  it('gibt locked=false zurück wenn noch Versuche übrig', async () => {
-    redisMock.zcard.mockResolvedValue(2);
-
-    const result = await recordFailedSessionCodeAttempt('10.0.0.1');
-    expect(result.locked).toBe(false);
-  });
-
-  it('gibt locked=true zurück wenn Limit erreicht', async () => {
-    redisMock.zcard.mockResolvedValue(5);
-    redisMock.zrange.mockResolvedValue([]);
-
-    const result = await recordFailedSessionCodeAttempt('10.0.0.1');
-
-    expect(result.locked).toBe(true);
-    expect(result.retryAfterSeconds).toBeGreaterThan(0);
   });
 });
 

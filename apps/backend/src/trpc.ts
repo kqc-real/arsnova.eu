@@ -44,7 +44,29 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
   if (path === 'session.create') return 'sessionCreate';
   if (path === 'quiz.upload') return 'quizUpload';
   if (path === 'quickFeedback.create') return 'quickFeedback';
-  if (path === 'session.join') return 'sessionCode';
+  if (
+    path === 'session.join' ||
+    path === 'session.getInfo' ||
+    path === 'session.getParticipantNicknames' ||
+    path === 'session.getParticipantSelf' ||
+    path === 'session.confirmReadingReady' ||
+    path === 'session.getTeams' ||
+    path === 'session.onStatusChanged' ||
+    path === 'session.getCurrentQuestionForStudent' ||
+    path === 'session.getLeaderboard' ||
+    path === 'session.getTeamLeaderboard' ||
+    path === 'session.getPersonalScorecard' ||
+    path === 'session.getPersonalResult' ||
+    path === 'session.submitSessionFeedback' ||
+    path === 'session.getHasSubmittedFeedback' ||
+    path === 'session.getSessionFeedbackSummary' ||
+    path === 'quickFeedback.isActive' ||
+    path === 'quickFeedback.vote' ||
+    path === 'quickFeedback.results' ||
+    path === 'quickFeedback.onResults'
+  ) {
+    return 'sessionCode';
+  }
   if (path === 'vote.submit') return 'vote';
   if (path === 'session.getSessionExportPdf' || path === 'session.getLastSessionExportPdfForQuiz') {
     return 'pdf';

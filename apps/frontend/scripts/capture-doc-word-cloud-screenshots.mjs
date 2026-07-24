@@ -11,8 +11,7 @@ const DESKTOP = { width: 1440, height: 1100 };
 const CONTEXT_VIEWPORT = { width: 1440, height: 2400 };
 const QA_PRESENTER_SELECTOR = '.session-present__word-cloud-card';
 const QUIZ_PRESENTER_SELECTOR = '.session-present__word-cloud-stage';
-const QA_SCREENSHOT =
-  '/Users/kqc/arsnova.eu/docs/screenshots/QA-Word-Cloud-Stopwoerter.png';
+const QA_SCREENSHOT = '/Users/kqc/arsnova.eu/docs/screenshots/QA-Word-Cloud-Stopwoerter.png';
 const QA_PRESENTER_CONTEXT_SCREENSHOT =
   '/Users/kqc/arsnova.eu/docs/screenshots/QA-Word-Cloud-Presenter-Kontext.png';
 const QA_HOST_CONTEXT_SCREENSHOT =
@@ -106,16 +105,46 @@ const QUIZ_PAYLOAD = {
 };
 
 const QUIZ_RESPONSES = [
-  { nickname: 'Curie', freeText: 'Die Visualisierung macht Regression und Trend im Datensatz verständlich.' },
-  { nickname: 'Einstein', freeText: 'Praxisbezug hilft, Korrelation, Ausreißer und Interpretation einzuordnen.' },
-  { nickname: 'Planck', freeText: 'Regression, Median und Varianz bleiben für die Klausur wichtig.' },
-  { nickname: 'Bohr', freeText: 'Die Formel zur Standardabweichung ist mit Beispiel deutlich klarer geworden.' },
-  { nickname: 'Franklin', freeText: 'Visualisierung und Datensatz erklären Unsicherheit besser als reine Theorie.' },
-  { nickname: 'Meitner', freeText: 'Praxisprojekt, Prognose und Kreuzvalidierung passen jetzt gut zusammen.' },
-  { nickname: 'Sagan', freeText: 'Interpretation von p-Wert, Trend und Korrelation ist jetzt greifbar.' },
-  { nickname: 'Lovelace', freeText: 'Wie wir Modelle validieren und visualisieren, bleibt besonders haengen.' },
-  { nickname: 'Feynman', freeText: 'Ausreißer, Median und Visualisierung helfen beim Verstaendnis des Datensatzes.' },
-  { nickname: 'Hawking', freeText: 'Welche Prognose sinnvoll ist, haengt stark von Datensatz und Validierung ab.' },
+  {
+    nickname: 'Curie',
+    freeText: 'Die Visualisierung macht Regression und Trend im Datensatz verständlich.',
+  },
+  {
+    nickname: 'Einstein',
+    freeText: 'Praxisbezug hilft, Korrelation, Ausreißer und Interpretation einzuordnen.',
+  },
+  {
+    nickname: 'Planck',
+    freeText: 'Regression, Median und Varianz bleiben für die Klausur wichtig.',
+  },
+  {
+    nickname: 'Bohr',
+    freeText: 'Die Formel zur Standardabweichung ist mit Beispiel deutlich klarer geworden.',
+  },
+  {
+    nickname: 'Franklin',
+    freeText: 'Visualisierung und Datensatz erklären Unsicherheit besser als reine Theorie.',
+  },
+  {
+    nickname: 'Meitner',
+    freeText: 'Praxisprojekt, Prognose und Kreuzvalidierung passen jetzt gut zusammen.',
+  },
+  {
+    nickname: 'Sagan',
+    freeText: 'Interpretation von p-Wert, Trend und Korrelation ist jetzt greifbar.',
+  },
+  {
+    nickname: 'Lovelace',
+    freeText: 'Wie wir Modelle validieren und visualisieren, bleibt besonders haengen.',
+  },
+  {
+    nickname: 'Feynman',
+    freeText: 'Ausreißer, Median und Visualisierung helfen beim Verstaendnis des Datensatzes.',
+  },
+  {
+    nickname: 'Hawking',
+    freeText: 'Welche Prognose sinnvoll ist, haengt stark von Datensatz und Validierung ab.',
+  },
 ];
 
 function createTrpcClient(hostToken) {
@@ -234,7 +263,11 @@ async function createQaSession(publicTrpc) {
 
   const participants = new Map();
   for (const nickname of QA_PARTICIPANTS) {
-    const joined = await publicTrpc.session.join.mutate({ code, nickname });
+    const joined = await publicTrpc.session.join.mutate({
+      code,
+      nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     participants.set(nickname, joined);
   }
 
@@ -280,7 +313,11 @@ async function createQuizSession(publicTrpc) {
   }
 
   for (const response of QUIZ_RESPONSES) {
-    const join = await publicTrpc.session.join.mutate({ code, nickname: response.nickname });
+    const join = await publicTrpc.session.join.mutate({
+      code,
+      nickname: response.nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     await publicTrpc.vote.submit.mutate({
       sessionId: join.id,
       participantId: join.participantId,
@@ -297,7 +334,9 @@ async function main() {
   const frontendOrigin = new URL(BASE_URL).origin;
   const ready = await waitForServer(frontendOrigin);
   if (!ready) {
-    console.warn(`Warnung: Frontend-Vorabcheck fehlgeschlagen (${frontendOrigin}), versuche dennoch Screenshots.`);
+    console.warn(
+      `Warnung: Frontend-Vorabcheck fehlgeschlagen (${frontendOrigin}), versuche dennoch Screenshots.`,
+    );
   }
 
   const publicTrpc = createTrpcClient();

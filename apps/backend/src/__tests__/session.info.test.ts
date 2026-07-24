@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 
 const QUIZ_ID = 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, invalidSessionCodeMock } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -11,6 +12,7 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
     },
   },
+  invalidSessionCodeMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -19,8 +21,10 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
-  isSessionCodeLockedOut: vi.fn(),
-  recordFailedSessionCodeAttempt: vi.fn(),
+}));
+
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
 import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
@@ -31,6 +35,23 @@ describe('session.getInfo (ADR-0009)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetSessionReadCachesForTests();
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+  });
+
+  it('bucht einen fehlgeschlagenen Join-Lookup im zentralen Enumerationsschutz', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.getInfo({
+        code: 'BAD999',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+      'BAD999',
+    );
   });
 
   it('liefert Kanalinformationen für eine Quiz-Session mit Q&A und Blitz-Feedback', async () => {
