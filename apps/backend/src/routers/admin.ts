@@ -34,7 +34,6 @@ import {
   invalidateAdminSessionToken,
   verifyAdminSecret,
 } from '../lib/adminAuth';
-import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { adminMotdRouter } from './adminMotd';
 
@@ -963,9 +962,7 @@ export const adminRouter = router({
       } else {
         fileName = `${fileName}.pdf`;
         mimeType = 'application/pdf';
-        fileBuffer = await pdfConcurrencyLimiter.run('admin-authority', () =>
-          buildAuthorityPdf(payload, payloadHash),
-        );
+        fileBuffer = await buildAuthorityPdf(payload, payloadHash);
       }
 
       await prisma.adminAuditLog.create({

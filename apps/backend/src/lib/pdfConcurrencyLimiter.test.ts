@@ -29,7 +29,7 @@ describe('PdfConcurrencyLimiter', () => {
       startedTotal: 2,
     });
 
-    const rejected = limiter.run('admin-authority', async () => 'unexpected');
+    const rejected = limiter.run('session-host', async () => 'unexpected');
     await expect(rejected).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
       message:

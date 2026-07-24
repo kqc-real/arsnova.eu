@@ -52,19 +52,21 @@ Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachwe
 
 Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Backend-PDF und Browser-Print-Fallback teilen sich die Lib `@arsnova/session-export-report`.
 
-Die serverweite PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **zwei gleichzeitig
-aktive Jobs** begrenzt. Das gilt gemeinsam für Host-/Historienberichte und
-Admin-Behördenexporte. Ein dritter Job wird ohne Warteschlange mit tRPC
+Die Playwright-PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **zwei gleichzeitig
+aktive Jobs** begrenzt. Das gilt gemeinsam für Host- und Historienberichte. Ein dritter Job
+wird ohne Warteschlange mit tRPC
 `TOO_MANY_REQUESTS` (HTTP 429) abgewiesen; der Ergebnisbericht kann dann den bestehenden
 Browser-Print-Fallback nutzen. Dadurch belegen wartende PDF-Anfragen keine zusätzliche
 Serverkapazität.
 
 Die strukturierten Log-Ereignisse `pdf:job_started`, `pdf:job_finished` und
 `pdf:concurrency_rejected` enthalten Quelle, aktive Jobs, Cap sowie kumulative
-Started-/Completed-/Failed-/Rejected-Zähler. Der Cap ist absichtlich nicht per Env
-abschaltbar. Die aktuelle Produktion betreibt genau einen Backend-Prozess; vor einer
-horizontalen Skalierung muss der Limiter durch einen verteilten, ausfallsicheren Semaphore
-ersetzt werden, damit der Cap instanzübergreifend bleibt.
+Started-/Completed-/Failed-/Rejected-Zähler. Zusätzlich exponiert `health.stats` die
+momentane Auslastung und rollierende Completed-/Failed-/Rejected-Zähler der letzten Minute
+aus Redis. Der Cap ist absichtlich nicht per Env abschaltbar. Die aktuelle Produktion
+betreibt genau einen Backend-Prozess; vor einer horizontalen Skalierung muss der Limiter
+durch einen verteilten, ausfallsicheren Semaphore ersetzt werden, damit der Cap
+instanzübergreifend bleibt.
 
 | Schicht                                            | Ort                                                                                                                                         |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |

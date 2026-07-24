@@ -1,9 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { logger } from './logger';
+import { recordPdfJobOutcome } from './pdfTelemetry';
 
 export const PDF_MAX_CONCURRENT_JOBS = 2;
 
-export type PdfJobSource = 'session-history' | 'session-host' | 'admin-authority';
+export type PdfJobSource = 'session-history' | 'session-host';
 
 export type PdfConcurrencySnapshot = {
   activeJobs: number;
@@ -45,6 +46,7 @@ export class PdfConcurrencyLimiter {
         source,
         ...this.snapshot(),
       });
+      void recordPdfJobOutcome('rejected');
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',
         message:
@@ -63,9 +65,11 @@ export class PdfConcurrencyLimiter {
     try {
       const result = await job();
       this.completedTotal += 1;
+      void recordPdfJobOutcome('completed');
       return result;
     } catch (error) {
       this.failedTotal += 1;
+      void recordPdfJobOutcome('failed');
       throw error;
     } finally {
       this.activeJobs -= 1;
