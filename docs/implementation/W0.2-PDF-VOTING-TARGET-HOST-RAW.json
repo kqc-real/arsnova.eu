@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "scenario": "pdf-vs-live-voting-500",
+  "timestamp": "2026-07-24T08:34:13.622Z",
+  "environment": {
+    "participants": 500,
+    "joinConcurrency": 75,
+    "voteConcurrency": 75,
+    "pdfQuestions": 20,
+    "pdfParticipants": 500,
+    "pdfVotes": 10000,
+    "expectedPdfCap": 1,
+    "sameSourceIp": true,
+    "transportChannels": 10,
+    "targetEnvironment": "production-host-isolated-container",
+    "targetLogicalCpuCount": 8,
+    "targetTotalMemoryBytes": 16346640384,
+    "loadGeneratorLogicalCpuCount": 12,
+    "loadGeneratorTotalMemoryBytes": 17179869184
+  },
+  "metrics": {
+    "scenario": "pdf-vs-live-voting-500",
+    "participants": {
+      "target": 500,
+      "baselineJoined": 500,
+      "joined": 500,
+      "sourceIp": "127.0.0.1",
+      "distinctParticipantIds": 500
+    },
+    "system": {
+      "targetEnvironment": "production-host-isolated-container",
+      "target": {
+        "platform": "linux",
+        "release": "6.12.57+deb13-arm64",
+        "arch": "arm64",
+        "logicalCpuCount": 8,
+        "totalMemoryBytes": 16346640384,
+        "nodeVersion": "v20.20.2"
+      },
+      "loadGenerator": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64",
+        "logicalCpuCount": 12,
+        "totalMemoryBytes": 17179869184,
+        "nodeVersion": "v20.19.0"
+      }
+    },
+    "pdf": {
+      "questionsPerReport": 20,
+      "fixtureParticipants": 500,
+      "fixtureVotes": 10000,
+      "additionalRequestRejected": true,
+      "workerResults": {
+        "completed": 1,
+        "failed": 0,
+        "rejected": 1
+      },
+      "metricsAtCap": {
+        "activeJobs": 1,
+        "maxConcurrentJobs": 1,
+        "completedLastMinute": 0,
+        "failedLastMinute": 0,
+        "rejectedLastMinute": 1
+      },
+      "metricsAfterLoad": {
+        "activeJobs": 0,
+        "maxConcurrentJobs": 1
+      },
+      "recoveryPdfSucceeded": true
+    },
+    "votes": {
+      "baseline": {
+        "attempted": 500,
+        "successful": 500,
+        "failed": 0,
+        "errorRate": 0,
+        "p50Ms": 504.86,
+        "p95Ms": 542.94,
+        "p99Ms": 570.96,
+        "maxMs": 577.78,
+        "errors": []
+      },
+      "underPdfLoad": {
+        "attempted": 500,
+        "successful": 500,
+        "failed": 0,
+        "errorRate": 0,
+        "p50Ms": 580.27,
+        "p95Ms": 712.15,
+        "p99Ms": 724.86,
+        "maxMs": 748.45,
+        "errors": []
+      },
+      "delta": {
+        "p50Ms": 75.41,
+        "p95Ms": 169.21,
+        "p99Ms": 153.9,
+        "errorRate": 0
+      }
+    },
+    "thresholds": {
+      "p95Ms": 1500,
+      "p99Ms": 3000,
+      "errorRate": 0.01
+    }
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ]
+}

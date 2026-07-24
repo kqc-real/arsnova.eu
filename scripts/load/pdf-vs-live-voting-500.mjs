@@ -23,6 +23,7 @@ const TRPC_URLS = String(
 const TRPC_URL = TRPC_URLS[0];
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 500));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 75));
+const VOTE_CONCURRENCY = Math.max(1, Number(process.env.VOTE_CONCURRENCY || 75));
 const PDF_QUESTIONS = Math.max(5, Number(process.env.PDF_QUESTIONS || 20));
 const PDF_VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.PDF_VOTE_COOLDOWN_MS || 1_100));
 const EXPECTED_PDF_CAP = Math.max(1, Number(process.env.EXPECTED_PDF_CAP || 1));
@@ -178,7 +179,7 @@ async function joinParticipants(session, nicknamePrefix = 'LIVE') {
 async function submitVotes(session, participantIds) {
   const results = await mapConcurrent(
     participantIds,
-    PARTICIPANTS,
+    VOTE_CONCURRENCY,
     async (participantId, index) => {
       const trpc = createHttpTrpcSingle(trpcUrlForIndex(index));
       const startedAt = performance.now();
@@ -418,6 +419,7 @@ async function main() {
     environment: {
       participants: PARTICIPANTS,
       joinConcurrency: JOIN_CONCURRENCY,
+      voteConcurrency: VOTE_CONCURRENCY,
       pdfQuestions: PDF_QUESTIONS,
       pdfParticipants: pdfSession.participants,
       pdfVotes: pdfSession.votes,
