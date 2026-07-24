@@ -63,35 +63,7 @@ import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-l
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
-
-function resolveLiveStartErrorDetail(error: unknown): string | null {
-  if (error instanceof Error) {
-    const message = error.message.trim();
-    return message.length > 0 ? message : null;
-  }
-
-  if (typeof error !== 'object' || error === null) {
-    return null;
-  }
-
-  const candidate = error as {
-    message?: unknown;
-    data?: { message?: unknown };
-    shape?: { message?: unknown };
-  };
-
-  if (typeof candidate.message === 'string' && candidate.message.trim().length > 0) {
-    return candidate.message.trim();
-  }
-  if (typeof candidate.data?.message === 'string' && candidate.data.message.trim().length > 0) {
-    return candidate.data.message.trim();
-  }
-  if (typeof candidate.shape?.message === 'string' && candidate.shape.message.trim().length > 0) {
-    return candidate.shape.message.trim();
-  }
-
-  return null;
-}
+import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 
 type LiveStartMode = 'full' | 'current';
 type PreviewValidationWarning = { index: number; message: string };
@@ -1097,9 +1069,9 @@ export class QuizPreviewComponent implements OnDestroy {
         clearPendingHostSessionCode();
       }
     } catch (error) {
-      const fallbackMessage = $localize`Veranstaltung konnte nicht gestartet werden.`;
-      const detail = resolveLiveStartErrorDetail(error);
-      this.liveStartError.set(detail ? `${fallbackMessage} ${detail}` : fallbackMessage);
+      this.liveStartError.set(
+        localizeKnownServerError(error, $localize`Veranstaltung konnte nicht gestartet werden.`),
+      );
     } finally {
       this.liveStartPending.set(false);
     }

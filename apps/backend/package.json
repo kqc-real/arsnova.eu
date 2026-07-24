@@ -46,6 +46,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@trpc/client": "^11.18.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

@@ -546,9 +546,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             });
       setHostToken(result.code, result.hostToken);
       await navigateToHostSession(this.router, result.code, tab);
-    } catch {
+    } catch (error) {
       this.joinError.set(
-        $localize`:@@home.heroChipStartError:Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.`,
+        localizeKnownServerError(
+          error,
+          $localize`:@@home.heroChipStartError:Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.`,
+        ),
       );
     }
   }
