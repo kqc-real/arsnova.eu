@@ -56,6 +56,17 @@ tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begren
 
 Die ressourcenintensiven Playwright-PDF-Pfade für Session-Ergebnisberichte teilen sich pro Backend-Prozess einen festen Cap von **einem aktiven Job** (`PDF_MAX_CONCURRENT_JOBS` in `apps/backend/src/lib/pdfConcurrencyLimiter.ts`). Weitere Jobs werden ohne Queue mit HTTP 429 abgewiesen. Der konservative Cap folgt aus der Zielhost-Lastabnahme: Cap 2 ließ die Vote-Latenz deutlich über die SLOs steigen. Der Cap ist nicht per Env konfigurierbar oder abschaltbar; Änderungen erfordern Code-, Lasttest- und Deployment-Review. Die aktuelle Produktion läuft mit genau einem Backend-Prozess. Horizontale Skalierung setzt deshalb zuerst einen instanzübergreifenden Semaphore voraus.
 
+### Security- und Lastmonitoring
+
+`health.stats` liefert neben Live- und PDF-Last rollierende Create- und
+429-Zähler sowie die aktuelle Anzahl der tRPC-WebSocket-Verbindungen.
+`rate_limit_429` und `pdf:*` sind die zugehörigen strukturierten
+Backend-Log-Ereignisse. Die initialen Warn-/Kritisch-Schwellen, CPU-Diagnose und
+On-Call-Maßnahmen stehen im
+[Monitoring-Runbook](operations/MONITORING-RUNBOOK.md). Diese Beobachtung
+ergänzt die Limits, verschärft aber keine Teilnehmerpfade anhand einer
+gemeinsam genutzten NAT-IP.
+
 ### `JWT_SECRET` (`.env.example`)
 
 In **`.env.example`** und **Docker-/Deploy-Vorlagen** enthalten; im aktuellen **`apps/backend`-Quellcode** gibt es dafür keinen direkten Leser. Für **Produktions-Compose** trotzdem einen starken Wert setzen, solange Deploy-/Operations-Doku diese Variable weiter mitführt oder künftige Features darauf aufbauen.

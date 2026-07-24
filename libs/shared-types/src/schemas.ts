@@ -2990,6 +2990,21 @@ export const ServerStatsDTOSchema = z.object({
   pdfFailedLastMinute: z.number().int().min(0),
   /** Wegen ausgeschöpfter Parallelität abgelehnte PDF-Jobs der letzten Minute. */
   pdfRejectedLastMinute: z.number().int().min(0),
+  /** Erfolgreich erstellte Sessions der letzten Minute (global). */
+  sessionCreatesLastMinute: z.number().int().min(0),
+  /** Alle tRPC-Ablehnungen mit HTTP 429 der letzten Minute. */
+  rateLimit429LastMinute: z.number().int().min(0),
+  /** 429-Ablehnungen der letzten Minute nach öffentlichem Pfadtyp. */
+  rateLimit429ByCategoryLastMinute: z.object({
+    sessionCreate: z.number().int().min(0),
+    sessionCode: z.number().int().min(0),
+    vote: z.number().int().min(0),
+    pdf: z.number().int().min(0),
+    motd: z.number().int().min(0),
+    other: z.number().int().min(0),
+  }),
+  /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
+  trpcWebSocketConnectionsActive: z.number().int().min(0),
   /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),

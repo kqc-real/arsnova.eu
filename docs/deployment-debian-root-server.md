@@ -615,6 +615,7 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 - [ ] Admin-Login, Legal-Hold, Löschung, Behördenexport, MOTD-Admin und Rekord-Reset getestet
 - [ ] Test-Session mit Host-, Present- und Teilnehmergerät inkl. tRPC-WebSocket und Yjs-Sync durchgeführt
 - [ ] `health.footerBundle` / Footer-Dot und `health.stats` / Detaildialog prüfen
+- [ ] [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md) mit On-Call durchgesprochen; Schwellen und Diagnosebefehle zugänglich
 - [ ] Fail2ban aktiv (optional)
 - [ ] Unattended-Upgrades für Sicherheits-Updates
 - [ ] Backups für PostgreSQL (z. B. cron + pg_dump) geplant und Restore praktisch getestet
