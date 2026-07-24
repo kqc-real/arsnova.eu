@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { readFile, realpath } from 'node:fs/promises';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 function candidateAssetRoots(): string[] {
   const cwd = process.cwd();
@@ -20,10 +20,32 @@ function candidateAssetRoots(): string[] {
 export async function readSessionExportLocalAsset(
   relativePath: string,
 ): Promise<Uint8Array | null> {
-  const normalized = relativePath.replace(/^\/+/, '');
+  if (!relativePath || isAbsolute(relativePath) || relativePath.includes('\0')) {
+    return null;
+  }
   for (const root of candidateAssetRoots()) {
     try {
-      const data = await readFile(join(root, normalized));
+      const realRoot = await realpath(root);
+      const candidate = resolve(realRoot, relativePath);
+      const candidateRelative = relative(realRoot, candidate);
+      if (
+        candidateRelative === '' ||
+        candidateRelative.startsWith(`..${sep}`) ||
+        candidateRelative === '..' ||
+        isAbsolute(candidateRelative)
+      ) {
+        continue;
+      }
+      const realCandidate = await realpath(candidate);
+      const realCandidateRelative = relative(realRoot, realCandidate);
+      if (
+        realCandidateRelative.startsWith(`..${sep}`) ||
+        realCandidateRelative === '..' ||
+        isAbsolute(realCandidateRelative)
+      ) {
+        continue;
+      }
+      const data = await readFile(realCandidate);
       return new Uint8Array(data);
     } catch {
       // nächster Kandidat
