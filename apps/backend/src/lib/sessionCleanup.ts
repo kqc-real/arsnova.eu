@@ -3,17 +3,27 @@
  * Session-Purge nach Retention-Fenster (Epic 9) und
  * abgelaufene Bonus-Tokens (Story 4.6).
  */
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { logger } from './logger';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
+import {
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+  ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
+} from './publicCreateCapacity';
 
 const STALE_SESSION_HOURS = 24;
 const FINISHED_SESSION_RETENTION_HOURS = 24;
 const BONUS_TOKEN_RETENTION_DAYS = 90;
 const SESSION_FEEDBACK_RETENTION_DAYS = 90;
-export const ORPHAN_QUIZ_UPLOAD_GRACE_HOURS = 24;
-export const ORPHAN_QUIZ_CLEANUP_BATCH_SIZE = 100;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1h
+
+export {
+  ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
+  ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
+  ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
+} from './publicCreateCapacity';
 
 const ACTIVE_SESSION_STATUSES = [
   'LOBBY',
@@ -101,74 +111,76 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
  */
 export async function cleanupOrphanQuizUploads(): Promise<number> {
   const cutoff = new Date(Date.now() - ORPHAN_QUIZ_UPLOAD_GRACE_HOURS * 60 * 60 * 1000);
-  const result = await prisma.$transaction(
-    async (tx) => {
-      const candidates = await tx.quiz.findMany({
-        where: {
-          createdAt: { lt: cutoff },
-          sessions: { none: {} },
-        },
-        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-        take: ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
-        select: { id: true, historyScopeId: true },
-      });
+  let deletedCount = 0;
 
-      if (candidates.length === 0) {
-        return { count: 0 };
-      }
+  for (let batch = 0; batch < ORPHAN_QUIZ_CLEANUP_MAX_BATCHES; batch += 1) {
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const deleted = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+          WITH candidates AS (
+            SELECT candidate."id"
+            FROM "Quiz" AS candidate
+            WHERE candidate."createdAt" < ${cutoff}
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "Session" AS own_session
+                WHERE own_session."quizId" = candidate."id"
+              )
+              AND (
+                candidate."historyScopeId" IS NULL
+                OR NOT EXISTS (
+                  SELECT 1
+                  FROM "Quiz" AS scoped_quiz
+                  INNER JOIN "Session" AS scoped_session
+                    ON scoped_session."quizId" = scoped_quiz."id"
+                  WHERE scoped_quiz."historyScopeId" = candidate."historyScopeId"
+                )
+              )
+            ORDER BY candidate."createdAt" ASC, candidate."id" ASC
+            LIMIT ${ORPHAN_QUIZ_CLEANUP_BATCH_SIZE}
+            FOR UPDATE OF candidate SKIP LOCKED
+          )
+          DELETE FROM "Quiz" AS target
+          USING candidates
+          WHERE target."id" = candidates."id"
+            AND target."createdAt" < ${cutoff}
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "Session" AS own_session
+              WHERE own_session."quizId" = target."id"
+            )
+            AND (
+              target."historyScopeId" IS NULL
+              OR NOT EXISTS (
+                SELECT 1
+                FROM "Quiz" AS scoped_quiz
+                INNER JOIN "Session" AS scoped_session
+                  ON scoped_session."quizId" = scoped_quiz."id"
+                WHERE scoped_quiz."historyScopeId" = target."historyScopeId"
+              )
+            )
+          RETURNING target."id"
+        `);
+        return { count: deleted.length };
+      },
+      // Eine konkurrierende Session-Bindung erzeugt einen Serialisierungskonflikt
+      // statt die neue Session über Quiz.onDelete=Cascade mitzulöschen.
+      { isolationLevel: 'Serializable' },
+    );
 
-      const candidateScopeIds = [
-        ...new Set(
-          candidates
-            .map((candidate) => candidate.historyScopeId)
-            .filter((scopeId): scopeId is string => scopeId !== null),
-        ),
-      ];
-      const protectedScopes =
-        candidateScopeIds.length === 0
-          ? []
-          : await tx.quiz.findMany({
-              where: {
-                historyScopeId: { in: candidateScopeIds },
-                sessions: { some: {} },
-              },
-              select: { historyScopeId: true },
-            });
-      const protectedScopeIds = new Set(
-        protectedScopes
-          .map((quiz) => quiz.historyScopeId)
-          .filter((scopeId): scopeId is string => scopeId !== null),
-      );
-      const deletableIds = candidates
-        .filter(
-          (candidate) =>
-            candidate.historyScopeId === null || !protectedScopeIds.has(candidate.historyScopeId),
-        )
-        .map((candidate) => candidate.id);
-      if (deletableIds.length === 0) {
-        return { count: 0 };
-      }
+    deletedCount += result.count;
+    if (result.count < ORPHAN_QUIZ_CLEANUP_BATCH_SIZE) {
+      break;
+    }
+  }
 
-      return tx.quiz.deleteMany({
-        where: {
-          id: { in: deletableIds },
-          createdAt: { lt: cutoff },
-          sessions: { none: {} },
-        },
-      });
-    },
-    // Eine konkurrierende Session-Bindung erzeugt einen Serialisierungskonflikt
-    // statt die neue Session über Quiz.onDelete=Cascade mitzulöschen.
-    { isolationLevel: 'Serializable' },
-  );
-
-  if (result.count > 0) {
+  if (deletedCount > 0) {
     logger.info(
-      `Quiz-Upload-Cleanup: ${result.count} verwaiste Upload(s) nach ` +
+      `Quiz-Upload-Cleanup: ${deletedCount} verwaiste Upload(s) nach ` +
         `${ORPHAN_QUIZ_UPLOAD_GRACE_HOURS}h Grace Period gelöscht.`,
     );
   }
-  return result.count;
+  return deletedCount;
 }
 
 export async function cleanupExpiredFinishedSessions(): Promise<number> {

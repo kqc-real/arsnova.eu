@@ -823,6 +823,24 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(redisMock.multi).toHaveBeenCalledTimes(1);
   });
 
+  it('ignoriert gefälschte Proxy-Header für den Standalone-Create-Bucket', async () => {
+    const trustedIpCaller = quickFeedbackRouter.createCaller({
+      req: {
+        ip: '198.51.100.77',
+        headers: {
+          'cf-connecting-ip': '203.0.113.1',
+          'true-client-ip': '203.0.113.2',
+          'x-forwarded-for': '203.0.113.3',
+        },
+        socket: { remoteAddress: '127.0.0.1' },
+      } as never,
+    });
+
+    await trustedIpCaller.create({ type: 'MOOD' });
+
+    expect(checkQuickFeedbackStandaloneCreateRateMock).toHaveBeenCalledWith('198.51.100.77');
+  });
+
   it('begrenzt Standalone-Create-Spam ohne Redis-Runde anzulegen', async () => {
     checkQuickFeedbackStandaloneCreateRateMock.mockResolvedValue({
       allowed: false,

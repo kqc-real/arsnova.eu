@@ -3,12 +3,25 @@
  * Sliding-Window; Limits über Umgebungsvariablen konfigurierbar.
  */
 import { getRedis } from '../redis';
+import {
+  PUBLIC_CREATE_WINDOW_SECONDS,
+  QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+  QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+} from './publicCreateCapacity';
 
 const PREFIX = 'rl:';
 
 function positiveIntegerEnv(name: string, fallback: number): number {
   const value = Number(process.env[name]);
   return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+}
+
+function boundedPositiveIntegerEnv(name: string, fallback: number, maximum: number): number {
+  return Math.min(positiveIntegerEnv(name, fallback), maximum);
 }
 
 export const RATE_LIMIT_ENV = {
@@ -22,8 +35,36 @@ export const RATE_LIMIT_ENV = {
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
-  quizUploadPerIpPerHour: positiveIntegerEnv('RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR', 600),
-  quizUploadGlobalPerHour: positiveIntegerEnv('RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_PER_HOUR', 3000),
+  quizUploadAttemptPerIpPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_HOUR',
+    QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadAttemptGlobalPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_HOUR',
+    QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ATTEMPT_GLOBAL_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadPerIpPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_PER_IP_PER_HOUR',
+    QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ACCEPTED_PER_IP_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_PER_HOUR',
+    QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalBytesPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_BYTES_PER_HOUR',
+    QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
+  ),
+  quizUploadGlobalComplexityPerHour: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_HOUR',
+    QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+    QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+  ),
   quickFeedbackStandalonePerIpPerHour: positiveIntegerEnv(
     'RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR',
     600,
@@ -40,12 +81,13 @@ export const RATE_LIMIT_ENV = {
 
 const FIXED_WINDOW_BUDGET_SCRIPT = `
 local keyCount = #KEYS
-local windowSeconds = tonumber(ARGV[keyCount + 1])
+local windowSeconds = tonumber(ARGV[(keyCount * 2) + 1])
 
 for index = 1, keyCount do
   local current = tonumber(redis.call('GET', KEYS[index])) or 0
-  local limit = tonumber(ARGV[index])
-  if current >= limit then
+  local limit = tonumber(ARGV[(index * 2) - 1])
+  local cost = tonumber(ARGV[index * 2])
+  if current + cost > limit then
     local ttl = redis.call('TTL', KEYS[index])
     if ttl < 1 then
       ttl = windowSeconds
@@ -56,11 +98,14 @@ end
 
 local minimumRemaining = nil
 for index = 1, keyCount do
-  local count = redis.call('INCR', KEYS[index])
-  if count == 1 then
+  local limit = tonumber(ARGV[(index * 2) - 1])
+  local cost = tonumber(ARGV[index * 2])
+  local previous = tonumber(redis.call('GET', KEYS[index])) or 0
+  local count = redis.call('INCRBY', KEYS[index], cost)
+  if previous == 0 then
     redis.call('EXPIRE', KEYS[index], windowSeconds)
   end
-  local remaining = tonumber(ARGV[index]) - count
+  local remaining = limit - count
   if minimumRemaining == nil or remaining < minimumRemaining then
     minimumRemaining = remaining
   end
@@ -69,7 +114,7 @@ end
 return { 1, minimumRemaining or 0, 0 }
 `;
 
-type FixedWindowBudget = { key: string; limit: number };
+type FixedWindowBudget = { key: string; limit: number; cost?: number };
 
 /**
  * Prüft mehrere feste Budgets atomar. Erst wenn alle Budgets frei sind,
@@ -83,13 +128,24 @@ export async function checkFixedWindowBudgets(
   if (budgets.length === 0) {
     return { allowed: true, remaining: 0 };
   }
+  if (
+    budgets.some(
+      (budget) =>
+        !Number.isSafeInteger(budget.limit) ||
+        budget.limit <= 0 ||
+        !Number.isSafeInteger(budget.cost ?? 1) ||
+        (budget.cost ?? 1) <= 0,
+    )
+  ) {
+    throw new Error('Ungültiges Public-Create-Budget.');
+  }
 
   const redis = getRedis();
   const result = (await redis.eval(
     FIXED_WINDOW_BUDGET_SCRIPT,
     budgets.length,
     ...budgets.map((budget) => `${PREFIX}${budget.key}`),
-    ...budgets.map((budget) => String(budget.limit)),
+    ...budgets.flatMap((budget) => [String(budget.limit), String(budget.cost ?? 1)]),
     String(windowSeconds),
   )) as unknown;
   if (!Array.isArray(result) || result.length < 3) {
@@ -279,13 +335,42 @@ export async function checkSessionCreateRate(ip: string): Promise<{
   return checkSlidingWindow(`sessioncreate:${ip}`, RATE_LIMIT_ENV.sessionCreatePerHour, 3600);
 }
 
-export async function checkQuizUploadRate(ip: string) {
+export async function checkQuizUploadAttemptRate(ip: string) {
   return checkFixedWindowBudgets(
     [
-      { key: `quizUpload:global`, limit: RATE_LIMIT_ENV.quizUploadGlobalPerHour },
-      { key: `quizUpload:ip:${ip}`, limit: RATE_LIMIT_ENV.quizUploadPerIpPerHour },
+      {
+        key: 'quizUpload:attempt:global',
+        limit: RATE_LIMIT_ENV.quizUploadAttemptGlobalPerHour,
+      },
+      {
+        key: `quizUpload:attempt:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.quizUploadAttemptPerIpPerHour,
+      },
     ],
-    3600,
+    PUBLIC_CREATE_WINDOW_SECONDS,
+  );
+}
+
+export async function checkQuizUploadStorageRate(
+  ip: string,
+  weight: { payloadBytes: number; complexity: number },
+) {
+  return checkFixedWindowBudgets(
+    [
+      { key: 'quizUpload:accepted:global', limit: RATE_LIMIT_ENV.quizUploadGlobalPerHour },
+      { key: `quizUpload:accepted:ip:${ip}`, limit: RATE_LIMIT_ENV.quizUploadPerIpPerHour },
+      {
+        key: 'quizUpload:accepted:bytes:global',
+        limit: RATE_LIMIT_ENV.quizUploadGlobalBytesPerHour,
+        cost: weight.payloadBytes,
+      },
+      {
+        key: 'quizUpload:accepted:complexity:global',
+        limit: RATE_LIMIT_ENV.quizUploadGlobalComplexityPerHour,
+        cost: weight.complexity,
+      },
+    ],
+    PUBLIC_CREATE_WINDOW_SECONDS,
   );
 }
 

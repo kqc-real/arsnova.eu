@@ -24,9 +24,10 @@ import {
   questionSupportsConfidence,
 } from '@arsnova/shared-types';
 import { TRPCError } from '@trpc/server';
-import { publicProcedure, resolveClientIp, router } from '../trpc';
+import { quizUploadAttemptProcedure, resolveTrustedPublicCreateIp, router } from '../trpc';
 import { prisma } from '../db';
-import { checkQuizUploadRate } from '../lib/rateLimit';
+import { checkQuizUploadStorageRate } from '../lib/rateLimit';
+import { calculateQuizUploadComplexity } from '../lib/publicCreateCapacity';
 
 function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   historyScopeId: string | null;
@@ -198,11 +199,15 @@ export const quizRouter = router({
    * Quiz inkl. Fragen und Antwortoptionen in der DB anlegen (Story 2.1a).
    * Wird vom Frontend vor session.create aufgerufen; die zurückgegebene quizId wird an session.create übergeben.
    */
-  upload: publicProcedure
+  upload: quizUploadAttemptProcedure
     .input(QuizUploadInputSchema)
     .output(QuizUploadOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const limit = await checkQuizUploadRate(resolveClientIp(ctx.req).ip);
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(input)).byteLength;
+      const limit = await checkQuizUploadStorageRate(resolveTrustedPublicCreateIp(ctx.req).ip, {
+        payloadBytes,
+        complexity: calculateQuizUploadComplexity(input),
+      });
       if (!limit.allowed) {
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',

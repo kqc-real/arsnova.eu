@@ -61,7 +61,7 @@ describe('abuseTelemetry', () => {
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
-  it('begrenzt 20.000 PDF-/MOTD-429-Events auf einen Redis-Flush', async () => {
+  it('begrenzt 40.000 inklusive Public-Create-429-Events auf einen Redis-Flush', async () => {
     vi.useFakeTimers();
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
@@ -69,6 +69,8 @@ describe('abuseTelemetry', () => {
     for (let index = 0; index < 10_000; index += 1) {
       recordRateLimitRejection('pdf', 25_000);
       recordRateLimitRejection('motd', 25_000);
+      recordRateLimitRejection('quizUpload', 25_000);
+      recordRateLimitRejection('quickFeedback', 25_000);
     }
 
     expect(mocks.getRedis).not.toHaveBeenCalled();
@@ -77,9 +79,14 @@ describe('abuseTelemetry', () => {
     await vi.advanceTimersByTimeAsync(1);
 
     expect(mocks.getRedis).toHaveBeenCalledOnce();
-    expect(multi.incrby).toHaveBeenCalledTimes(2);
+    expect(multi.incrby).toHaveBeenCalledTimes(4);
     expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:pdf:2', 10_000);
     expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:motd:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith('security:metric:rateLimit429:quizUpload:2', 10_000);
+    expect(multi.incrby).toHaveBeenCalledWith(
+      'security:metric:rateLimit429:quickFeedback:2',
+      10_000,
+    );
     expect(multi.exec).toHaveBeenCalledOnce();
   });
 
@@ -173,7 +180,7 @@ describe('abuseTelemetry', () => {
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.5');
   });
 
-  it('begrenzt 20.000 MOTD-/PDF-Diagnoseereignisse auf zwei gesampelte Logs', () => {
+  it('begrenzt 40.000 inklusive Public-Create-Ereignissen auf vier gesampelte Logs', () => {
     for (let index = 0; index < 10_000; index += 1) {
       logRateLimitRejection(
         { path: 'motd.getCurrent', category: 'motd', ipSource: 'x-forwarded-for' },
@@ -183,9 +190,21 @@ describe('abuseTelemetry', () => {
         { path: 'session.getSessionExportPdf', category: 'pdf', ipSource: 'socket' },
         1_000,
       );
+      logRateLimitRejection(
+        { path: 'quiz.upload', category: 'quizUpload', ipSource: 'express-req-ip' },
+        1_000,
+      );
+      logRateLimitRejection(
+        {
+          path: 'quickFeedback.create',
+          category: 'quickFeedback',
+          ipSource: 'express-req-ip',
+        },
+        1_000,
+      );
     }
 
-    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenCalledTimes(4);
     expect(mocks.warn).toHaveBeenCalledWith(
       'rate_limit_429',
       expect.objectContaining({ category: 'motd' }),
@@ -193,6 +212,14 @@ describe('abuseTelemetry', () => {
     expect(mocks.warn).toHaveBeenCalledWith(
       'rate_limit_429',
       expect.objectContaining({ category: 'pdf' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'quizUpload' }),
+    );
+    expect(mocks.warn).toHaveBeenCalledWith(
+      'rate_limit_429',
+      expect.objectContaining({ category: 'quickFeedback' }),
     );
   });
 

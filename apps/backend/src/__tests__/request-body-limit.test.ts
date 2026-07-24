@@ -1,22 +1,37 @@
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { QuizUploadInputSchema } from '@arsnova/shared-types';
 import express from 'express';
 import { z } from 'zod';
 import { TRPC_MAX_BODY_SIZE_BYTES, TRPC_MAX_BODY_SIZE_LABEL } from '../lib/requestLimits';
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, quizUploadAttemptProcedure, router } from '../trpc';
+
+const { checkQuizUploadAttemptRateMock } = vi.hoisted(() => ({
+  checkQuizUploadAttemptRateMock: vi.fn(),
+}));
+
+vi.mock('../lib/rateLimit', () => ({
+  checkQuizUploadAttemptRate: checkQuizUploadAttemptRateMock,
+}));
 
 const testRouter = router({
   echo: publicProcedure
     .input(z.object({ value: z.string() }))
     .mutation(({ input }) => ({ length: input.value.length })),
-  acceptQuizUpload: publicProcedure.input(QuizUploadInputSchema).mutation(() => ({ ok: true })),
+  acceptQuizUpload: quizUploadAttemptProcedure
+    .input(QuizUploadInputSchema)
+    .mutation(() => ({ ok: true })),
 });
 
 describe('tRPC request body limit', () => {
   let server: Server | undefined;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    checkQuizUploadAttemptRateMock.mockResolvedValue({ allowed: true, remaining: 1199 });
+  });
 
   afterEach(
     () =>
@@ -36,6 +51,7 @@ describe('tRPC request body limit', () => {
       '/trpc',
       createExpressMiddleware({
         router: testRouter,
+        createContext: ({ req }) => ({ req }),
         maxBodySize: TRPC_MAX_BODY_SIZE_BYTES,
       }),
     );
@@ -115,6 +131,34 @@ describe('tRPC request body limit', () => {
         },
       },
     });
+  });
+
+  it('verbraucht das Versuchslimit vor Zod auch für ungültige knapp-2-MiB-Uploads', async () => {
+    checkQuizUploadAttemptRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 60,
+    });
+    const baseUrl = await startTestServer();
+    const body = JSON.stringify({
+      name: 'ungültig',
+      invalidPadding: 'x'.repeat(1_900_000),
+    });
+    expect(Buffer.byteLength(body)).toBeLessThan(TRPC_MAX_BODY_SIZE_BYTES);
+
+    const response = await fetch(`${baseUrl}/trpc/acceptQuizUpload`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'cf-connecting-ip': '203.0.113.1',
+        'x-forwarded-for': '203.0.113.2',
+      },
+      body,
+    });
+
+    expect(response.status).toBe(429);
+    expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledOnce();
+    expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledWith('127.0.0.1');
   });
 
   it('liefert den 413-Fehler für Batch-Requests im tRPC-Arrayformat', async () => {

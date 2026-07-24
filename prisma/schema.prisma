@@ -151,6 +151,7 @@ model Session {
   @@index([status, startedAt, id])
   @@index([status, endedAt])
   @@index([legalHoldUntil])
+  @@index([quizId])
 }
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)
