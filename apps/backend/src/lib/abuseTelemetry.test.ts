@@ -18,8 +18,11 @@ vi.mock('./logger', () => ({
 import {
   flushAbuseTelemetry,
   logRateLimitRejection,
+  logSessionCodeSoftCapDelay,
   readAbuseSignals,
   recordRateLimitRejection,
+  recordSessionCodeFailure,
+  recordSessionCodeSoftCapDelay,
   recordSessionCreateCompleted,
   resetAbuseTelemetryForTests,
 } from './abuseTelemetry';
@@ -45,18 +48,22 @@ describe('abuseTelemetry', () => {
     vi.unstubAllEnvs();
   });
 
-  it('schreibt aggregierte Create-Erfolge und 429-Kategorien per INCRBY in Redis', async () => {
+  it('schreibt aggregierte Create-, Session-Code- und 429-Signale per INCRBY in Redis', async () => {
     const multi = createMulti();
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
     recordSessionCreateCompleted(25_000);
+    recordSessionCodeFailure(25_000);
+    recordSessionCodeSoftCapDelay(25_000);
     recordRateLimitRejection('vote', 25_000);
     recordRateLimitRejection('vote', 25_000);
     expect(mocks.getRedis).not.toHaveBeenCalled();
     await flushAbuseTelemetry();
 
     expect(multi.incrby).toHaveBeenNthCalledWith(1, 'security:metric:sessionCreateCompleted:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:rateLimit429:vote:2', 2);
+    expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:sessionCodeFailure:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(3, 'security:metric:sessionCodeSoftCapDelay:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(4, 'security:metric:rateLimit429:vote:2', 2);
     expect(multi.expire).toHaveBeenCalledWith('security:metric:sessionCreateCompleted:2', 120);
     expect(multi.exec).toHaveBeenCalledOnce();
   });
@@ -127,20 +134,25 @@ describe('abuseTelemetry', () => {
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
-    const values = Array.from({ length: 63 }, () => [null, '0']);
-    // Reihenfolge je Bucket: create, sessionCreate, quizUpload, quickFeedback, sessionCode, vote, pdf, motd, other.
+    const values = Array.from({ length: 77 }, () => [null, '0']);
+    // Reihenfolge je Bucket: create, codeFailure, softCapDelay, sessionCreate, quizUpload,
+    // quickFeedback, sessionCode, vote, pdf, motd, other.
     values[0] = [null, '3'];
-    values[1] = [null, '2'];
-    values[5] = [null, '4'];
-    values[45] = [null, '1'];
-    values[51] = [null, '5'];
+    values[1] = [null, '7'];
+    values[2] = [null, '2'];
+    values[3] = [null, '2'];
+    values[7] = [null, '4'];
+    values[55] = [null, '1'];
+    values[63] = [null, '5'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[54] = [null, '2'];
+    values[66] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
     await expect(readAbuseSignals(60_000)).resolves.toEqual({
       sessionCreatesLastMinute: 6,
+      sessionCodeFailuresLastMinute: 7,
+      sessionCodeSoftCapDelaysLastMinute: 2,
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
@@ -153,7 +165,7 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(63);
+    expect(multi.get).toHaveBeenCalledTimes(77);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -178,6 +190,21 @@ describe('abuseTelemetry', () => {
       suppressedSinceLastLog: 2,
     });
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.5');
+  });
+
+  it('loggt Soft-Cap-Delays gesampelt und ohne IDs, Codes oder IPs', () => {
+    logSessionCodeSoftCapDelay({ delayMs: 500, globalUtilizationPercent: 90 }, 1_000);
+    logSessionCodeSoftCapDelay({ delayMs: 600, globalUtilizationPercent: 91 }, 2_000);
+    logSessionCodeSoftCapDelay({ delayMs: 700, globalUtilizationPercent: 92 }, 11_000);
+
+    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenLastCalledWith('session_code_soft_cap_delay', {
+      delayMs: 700,
+      globalUtilizationPercent: 92,
+      suppressedSinceLastLog: 1,
+    });
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('ABC123');
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('203.0.113.');
   });
 
   it('begrenzt 40.000 inklusive Public-Create-Ereignissen auf vier gesampelte Logs', () => {
@@ -232,6 +259,8 @@ describe('abuseTelemetry', () => {
     await expect(flushAbuseTelemetry()).resolves.toBeUndefined();
     await expect(readAbuseSignals(0)).resolves.toEqual({
       sessionCreatesLastMinute: 0,
+      sessionCodeFailuresLastMinute: 0,
+      sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 0,

@@ -31,6 +31,7 @@ import { recordServerTimeIso } from '../session/session-server-clock';
 import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
 import { setConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import {
   edgeEmojiMarkerPosition,
   extractEdgeEmoji,
@@ -504,6 +505,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,
+        anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
       });
@@ -535,6 +537,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,
+        anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
       });

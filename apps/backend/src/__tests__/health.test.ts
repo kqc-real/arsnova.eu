@@ -46,6 +46,10 @@ vi.mock('../lib/abuseTelemetry', () => ({
   readAbuseSignals: vi.fn(),
 }));
 
+vi.mock('../lib/sessionCodeProtection', () => ({
+  readSessionCodeGlobalSoftCapUtilization: vi.fn(),
+}));
+
 vi.mock('../lib/websocketTelemetry', () => ({
   getWebSocketTelemetrySnapshot: vi.fn(),
 }));
@@ -78,6 +82,7 @@ import { getActiveParticipantCountsForSessions } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
 import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
+import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
@@ -98,6 +103,8 @@ beforeEach(() => {
   });
   vi.mocked(readAbuseSignals).mockResolvedValue({
     sessionCreatesLastMinute: 0,
+    sessionCodeFailuresLastMinute: 0,
+    sessionCodeSoftCapDelaysLastMinute: 0,
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: {
       sessionCreate: 0,
@@ -110,6 +117,7 @@ beforeEach(() => {
       other: 0,
     },
   });
+  vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(0);
   vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
     trpcConnectionsActive: 0,
   });
@@ -287,6 +295,8 @@ describe('health.stats', () => {
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
     vi.mocked(readAbuseSignals).mockResolvedValue({
       sessionCreatesLastMinute: 12,
+      sessionCodeFailuresLastMinute: 27,
+      sessionCodeSoftCapDelaysLastMinute: 4,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
@@ -299,6 +309,7 @@ describe('health.stats', () => {
         other: 0,
       },
     });
+    vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(82);
     vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
       trpcConnectionsActive: 321,
     });
@@ -307,6 +318,9 @@ describe('health.stats', () => {
 
     expect(result).toMatchObject({
       sessionCreatesLastMinute: 12,
+      sessionCodeFailuresLastMinute: 27,
+      sessionCodeSoftCapDelaysLastMinute: 4,
+      sessionCodeGlobalSoftCapUtilizationPercent: 82,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
@@ -345,6 +359,8 @@ describe('health.stats', () => {
     });
     vi.mocked(readAbuseSignals).mockResolvedValue({
       sessionCreatesLastMinute: 0,
+      sessionCodeFailuresLastMinute: 0,
+      sessionCodeSoftCapDelaysLastMinute: 0,
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 0,

@@ -252,7 +252,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Express + tRPC-Server                                                   | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                           |
 | Angular 21.2.x Frontend                                                 | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                         |
 | tRPC-Client                                                             | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                          |
-| Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting (Sliding-Window), Session-Code-Lockout                                                    |
+| Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting, NAT-tauglicher Session-Code-Soft-Cap                                                     |
 | tRPC WebSocket                                                          | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                |
 | Yjs y-websocket Relay                                                   | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                    |
 | Server-Status (Epic 0.4)                                                | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus              |

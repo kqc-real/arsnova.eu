@@ -185,7 +185,11 @@ async function run() {
 
   const nicknames = Array.from({ length: PARTICIPANTS }, (_, index) => `Reconnect ${index + 1}`);
   const joinResults = await mapLimit(nicknames, JOIN_CONCURRENCY, async (nickname) =>
-    publicTrpc.session.join.mutate({ code, nickname }),
+    publicTrpc.session.join.mutate({
+      code,
+      nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    }),
   );
   if (joinResults.length !== PARTICIPANTS) {
     throw new Error(`Join unvollständig: ${joinResults.length}/${PARTICIPANTS}`);

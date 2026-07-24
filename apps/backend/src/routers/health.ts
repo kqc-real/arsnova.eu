@@ -27,6 +27,7 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
+import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import type {
   FooterStatusDTO,
@@ -433,7 +434,11 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
 }
 
 async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
-  const [pdfSignals, abuseSignals] = await Promise.all([readPdfSignals(), readAbuseSignals()]);
+  const [pdfSignals, abuseSignals, sessionCodeGlobalSoftCapUtilizationPercent] = await Promise.all([
+    readPdfSignals(),
+    readAbuseSignals(),
+    readSessionCodeGlobalSoftCapUtilization(),
+  ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
@@ -445,6 +450,9 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
     rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
     rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
+    sessionCodeFailuresLastMinute: abuseSignals.sessionCodeFailuresLastMinute,
+    sessionCodeSoftCapDelaysLastMinute: abuseSignals.sessionCodeSoftCapDelaysLastMinute,
+    sessionCodeGlobalSoftCapUtilizationPercent,
     trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
   };
 }

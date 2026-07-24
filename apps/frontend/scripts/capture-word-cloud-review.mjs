@@ -120,7 +120,11 @@ async function createQuizSession() {
   }
 
   for (const response of QUIZ_RESPONSES) {
-    const join = await publicTrpc.session.join.mutate({ code, nickname: response.nickname });
+    const join = await publicTrpc.session.join.mutate({
+      code,
+      nickname: response.nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     await publicTrpc.vote.submit.mutate({
       sessionId: join.id,
       participantId: join.participantId,

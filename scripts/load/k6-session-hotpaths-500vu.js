@@ -95,9 +95,14 @@ function joinWave() {
   const pollUrl = `${base}/trpc/session.getInfo,session.getParticipantNicknames?batch=1&input=${pollInput}`;
 
   const nick = `k6-${__VU}-${__ITER}-${Date.now()}`.slice(0, 30);
-  const joinRes = http.post(joinUrl, JSON.stringify({ code: sessionCode, nickname: nick }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const anonymousClientId = `00000000-0000-4000-8000-${String(__VU).padStart(6, '0')}${String(__ITER).padStart(6, '0')}`;
+  const joinRes = http.post(
+    joinUrl,
+    JSON.stringify({ code: sessionCode, nickname: nick, anonymousClientId }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
   check(joinRes, { 'join 200': (response) => response.status === 200 });
 
   const end = Date.now() + durationSeconds * 1000;

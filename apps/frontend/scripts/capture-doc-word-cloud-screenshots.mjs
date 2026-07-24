@@ -234,7 +234,11 @@ async function createQaSession(publicTrpc) {
 
   const participants = new Map();
   for (const nickname of QA_PARTICIPANTS) {
-    const joined = await publicTrpc.session.join.mutate({ code, nickname });
+    const joined = await publicTrpc.session.join.mutate({
+      code,
+      nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     participants.set(nickname, joined);
   }
 
@@ -280,7 +284,11 @@ async function createQuizSession(publicTrpc) {
   }
 
   for (const response of QUIZ_RESPONSES) {
-    const join = await publicTrpc.session.join.mutate({ code, nickname: response.nickname });
+    const join = await publicTrpc.session.join.mutate({
+      code,
+      nickname: response.nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    });
     await publicTrpc.vote.submit.mutate({
       sessionId: join.id,
       participantId: join.participantId,

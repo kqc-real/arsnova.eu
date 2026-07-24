@@ -3,36 +3,49 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const PARTICIPANT_ID = '11111111-1111-4111-8111-111111111111';
 const TEAM_ID = '22222222-2222-4222-8222-222222222222';
+const CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 
-const { prismaMock, rateLimitMocks, statsMocks, presenceMocks, joinAdmissionMocks } = vi.hoisted(
-  () => ({
-    prismaMock: {
-      session: {
-        findUnique: vi.fn(),
-      },
-      participant: {
-        findFirst: vi.fn(),
-        create: vi.fn(),
-        count: vi.fn(),
-      },
+const {
+  prismaMock,
+  rateLimitMocks,
+  sessionCodeProtectionMocks,
+  telemetryMocks,
+  statsMocks,
+  presenceMocks,
+  joinAdmissionMocks,
+} = vi.hoisted(() => ({
+  prismaMock: {
+    session: {
+      findUnique: vi.fn(),
     },
-    rateLimitMocks: {
-      checkSessionCreateRate: vi.fn(),
-      isSessionCodeLockedOut: vi.fn(),
-      recordFailedSessionCodeAttempt: vi.fn(),
+    participant: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      count: vi.fn(),
     },
-    statsMocks: {
-      updateMaxParticipantsSingleSession: vi.fn(),
-      updateDailyMaxParticipants: vi.fn(),
-    },
-    presenceMocks: {
-      touchParticipantPresence: vi.fn(),
-    },
-    joinAdmissionMocks: {
-      awaitJoinAdmissionSlot: vi.fn(),
-    },
-  }),
-);
+  },
+  rateLimitMocks: {
+    checkSessionCreateRate: vi.fn(),
+  },
+  sessionCodeProtectionMocks: {
+    checkInvalidSessionCodeFailure: vi.fn(),
+  },
+  telemetryMocks: {
+    recordSessionCodeFailure: vi.fn(),
+    recordSessionCodeSoftCapDelay: vi.fn(),
+    logSessionCodeSoftCapDelay: vi.fn(),
+  },
+  statsMocks: {
+    updateMaxParticipantsSingleSession: vi.fn(),
+    updateDailyMaxParticipants: vi.fn(),
+  },
+  presenceMocks: {
+    touchParticipantPresence: vi.fn(),
+  },
+  joinAdmissionMocks: {
+    awaitJoinAdmissionSlot: vi.fn(),
+  },
+}));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -40,8 +53,19 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: rateLimitMocks.checkSessionCreateRate,
-  isSessionCodeLockedOut: rateLimitMocks.isSessionCodeLockedOut,
-  recordFailedSessionCodeAttempt: rateLimitMocks.recordFailedSessionCodeAttempt,
+}));
+
+vi.mock('../lib/sessionCodeProtection', () => ({
+  checkInvalidSessionCodeFailure: sessionCodeProtectionMocks.checkInvalidSessionCodeFailure,
+}));
+
+vi.mock('../lib/abuseTelemetry', () => ({
+  recordSessionCodeFailure: telemetryMocks.recordSessionCodeFailure,
+  recordSessionCodeSoftCapDelay: telemetryMocks.recordSessionCodeSoftCapDelay,
+  logSessionCodeSoftCapDelay: telemetryMocks.logSessionCodeSoftCapDelay,
+  logRateLimitRejection: vi.fn(),
+  recordRateLimitRejection: vi.fn(),
+  recordSessionCreateCompleted: vi.fn(),
 }));
 
 vi.mock('../lib/platformStatistic', () => ({
@@ -60,6 +84,9 @@ vi.mock('../lib/joinAdmission', () => ({
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
+const sameIpCaller = sessionRouter.createCaller({
+  req: { socket: { remoteAddress: '203.0.113.50' } } as never,
+});
 
 function buildSession() {
   return {
@@ -101,7 +128,11 @@ function buildSession() {
 describe('session.join', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    rateLimitMocks.isSessionCodeLockedOut.mockResolvedValue({ locked: false });
+    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
+      allowed: true,
+      delayMs: 0,
+      globalUtilizationPercent: 0,
+    });
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
     prismaMock.session.findUnique.mockResolvedValue(buildSession());
     prismaMock.participant.count.mockResolvedValue(3);
@@ -118,6 +149,7 @@ describe('session.join', () => {
     const result = await caller.join({
       code: 'abc123',
       nickname: 'Ada',
+      anonymousClientId: CLIENT_ID,
       rejoinToken: PARTICIPANT_ID,
     });
 
@@ -155,6 +187,7 @@ describe('session.join', () => {
     const result = await caller.join({
       code: 'ABC123',
       nickname: '  Ada Lovelace  ',
+      anonymousClientId: CLIENT_ID,
     });
 
     expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
@@ -171,5 +204,95 @@ describe('session.join', () => {
     expect(result.participantCount).toBe(4);
     expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
     expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
+  });
+
+  it('lässt Rejoins auch bei ausgefallenem oder ausgeschöpftem Globalbudget unverzögert', async () => {
+    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockRejectedValue(
+      new Error('global budget unavailable'),
+    );
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: PARTICIPANT_ID,
+      teamId: null,
+      team: null,
+      timerAccommodation: 'DEFAULT',
+    });
+
+    await caller.join({
+      code: 'ABC123',
+      nickname: 'Ada',
+      anonymousClientId: CLIENT_ID,
+      rejoinToken: PARTICIPANT_ID,
+    });
+
+    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).not.toHaveBeenCalled();
+    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).not.toHaveBeenCalled();
+  });
+
+  it('wendet den Client-Cap ausschließlich auf nicht existente Codes an', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
+      allowed: false,
+      delayMs: 0,
+      globalUtilizationPercent: 20,
+      retryAfterSeconds: 42,
+    });
+
+    await expect(
+      caller.join({
+        code: 'ZZZ999',
+        nickname: 'Ada',
+        anonymousClientId: CLIENT_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
+
+    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).toHaveBeenCalledWith(
+      CLIENT_ID,
+      'ZZZ999',
+    );
+  });
+
+  it('verzögert Soft-Cap-Fehler bounded und zeichnet nur aggregierte Telemetrie auf', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    sessionCodeProtectionMocks.checkInvalidSessionCodeFailure.mockResolvedValue({
+      allowed: true,
+      delayMs: 5,
+      globalUtilizationPercent: 88,
+    });
+
+    await expect(
+      caller.join({
+        code: 'ZZZ999',
+        nickname: 'Ada',
+        anonymousClientId: CLIENT_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(telemetryMocks.recordSessionCodeFailure).toHaveBeenCalledOnce();
+    expect(telemetryMocks.recordSessionCodeSoftCapDelay).toHaveBeenCalledOnce();
+    expect(telemetryMocks.logSessionCodeSoftCapDelay).toHaveBeenCalledWith({
+      delayMs: 5,
+      globalUtilizationPercent: 88,
+    });
+    expect(JSON.stringify(telemetryMocks.logSessionCodeSoftCapDelay.mock.calls)).not.toContain(
+      CLIENT_ID,
+    );
+  });
+
+  it('lässt 500 gültige Join-Inputs aus demselben Netz ohne Fehlbudget durch', async () => {
+    prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
+    prismaMock.participant.count.mockResolvedValue(500);
+
+    await Promise.all(
+      Array.from({ length: 500 }, (_, index) =>
+        sameIpCaller.join({
+          code: 'ABC123',
+          nickname: `TN ${index}`.slice(0, 30),
+          anonymousClientId: `${String(index).padStart(8, '0')}-0000-4000-8000-000000000000`,
+        }),
+      ),
+    );
+
+    expect(sessionCodeProtectionMocks.checkInvalidSessionCodeFailure).not.toHaveBeenCalled();
+    expect(prismaMock.participant.create).toHaveBeenCalledTimes(500);
   });
 });

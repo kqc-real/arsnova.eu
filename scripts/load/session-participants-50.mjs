@@ -74,7 +74,11 @@ async function virtualUser(id) {
     const res = await fetch(JOIN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: SESSION_CODE, nickname }),
+      body: JSON.stringify({
+        code: SESSION_CODE,
+        nickname,
+        anonymousClientId: globalThis.crypto.randomUUID(),
+      }),
     });
     const dt = performance.now() - tJoin;
     pushLatency(dt);

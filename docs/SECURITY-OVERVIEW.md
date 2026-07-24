@@ -28,7 +28,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 - **Host / Present:** `session.create` liefert ein **Host-Token**; das Frontend speichert es pro Session-Code in `sessionStorage`. Host-only-Prozeduren laufen zentral über **`hostProcedure`** und erwarten `x-host-token`. Die Routen `/session/:code/host` und `/session/:code/present` sind clientseitig tokengebunden; ohne Token Redirect auf Join oder Zugriff verweigert.
 - **Q&A-Moderation (Lesepfade):** Host-Härtung gilt nicht nur für schreibende Moderationsaktionen, sondern auch für Moderator-Lesepfade. `qa.list` und `qa.onQuestionsUpdated` mit `moderatorView: true` prüfen serverseitig den Host-Kontext gegen den **Session-Code aus der Datenbank**; `PENDING`-/Moderationsdaten werden damit nicht mehr allein über eine frei gesetzte Input-Flag ausgeliefert.
 - **Blitzlicht-Host:** Standalone-Blitzlicht (`/feedback/:code`) nutzt ein eigenes **Feedback-Host-Token** via `x-feedback-host-token`. Session-gebundenes Blitzlicht nutzt dagegen das normale Session-Host-Token. Dadurch bleiben Session-Host und Standalone-Blitzlicht getrennte Besitzkontexte.
-- **Teilnehmende:** Öffentliche Join-/Vote-Pfade mit Session-Code. Teilnehmerdaten sind auf Minimalzwecke geschnitten: Nickname-Kollisionen für Join, eigener Datensatz für Vote, keine öffentliche Voll-Liste. Rate-Limits greifen je nach Pfad unterschiedlich: Session-Code-Fehlversuche und Session-Erstellung pro IP, Vote-Submit pro Teilnehmenden-ID.
+- **Teilnehmende:** Öffentliche Join-/Vote-Pfade mit Session-Code. Teilnehmerdaten sind auf Minimalzwecke geschnitten: Nickname-Kollisionen für Join, eigener Datensatz für Vote, keine öffentliche Voll-Liste. Ungültige Session-Codes werden nach anonymer Browser-Client-ID sowie Code-/Global-Soft-Cap geschützt; es gibt keinen Join-IP-Lock. Session-Erstellung bleibt grob IP-basiert, Vote-Submit wird pro Teilnehmenden-ID begrenzt.
 - **Quiz-Sammlungs-Historie:** Endpunkte wie `session.getBonusTokensForQuiz`, `session.getLastSessionAnalysisForQuiz` und `session.getActiveQuizIds` verlangen zusätzlich einen **besitzgebundenen `accessProof`** zur hochgeladenen Quizkopie. Die Historie ist damit nicht mehr allein über `quizId` öffentlich enumerierbar.
 - **Admin:** Separater Pfad `/admin`; **`ADMIN_SECRET`** (Env), danach Admin-Session mit TTL in Redis. Token-Transport über `Authorization: Bearer ...` oder `x-admin-token`; Schutz zentral über `adminProcedure`. Die ausschließlich lesende Betriebsdiagnose `health.securityStats` verwendet dagegen das unabhängig rotierbare **`ADMIN_DIAGNOSTIC_SECRET`** im Header `x-admin-diagnostic-secret`, konstantzeitig und ohne Redis geprüft. Fehlende, kürzere als 32 Zeichen oder mit `ADMIN_SECRET` identische Diagnose-Secrets schließen den Zugang; falsche Versuche besitzen ein globales, speicher-konstantes Fehlerbudget. Dieser Header gilt für keinen anderen Admin-Endpunkt. Umgesetzt sind Recherche, Detailansicht, Legal Hold, Einzel-/Massenlöschung, Behördenexport, Quiz-Import-Export und Rekord-Reset. Für Betrieb und Go-Live gelten die gleichen Secrets- und Proxy-Annahmen wie in [ENVIRONMENT.md](ENVIRONMENT.md) und [docs/deployment-debian-root-server.md](deployment-debian-root-server.md).
 - **MOTD (Epic 10):** **Öffentlich:** `motd.getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction` — **rate-limited** pro IP ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). **Schreibend:** nur Admin-Prozeduren — MOTD, Vorlagen, Statistiken und Audit-Log `MotdAuditLog`. Für die praktische Prüfung siehe [TESTING.md](TESTING.md).
@@ -39,16 +39,39 @@ Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
 
 ## 4. Missbrauch & Last (Rate-Limiting)
 
-Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden nie direkt ausgewertet. Hinter genau einem Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit Express den vom vertrauenswürdigen Proxy überschriebenen `X-Forwarded-For`-Wert berücksichtigt und nicht alle Clients im Proxy-Bucket landen. Der separate tRPC-WebSocket-Server verwendet für Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
+Redis-basierte Limits schützen ungültige Session-Codes nach anonymer
+Browser-Client-ID plus Code-/Globalbudget, Session-Erstellung grob **pro IP**,
+Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** —
+konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md),
+`sessionCodeProtection.ts`, `rateLimit.ts`). Alle IP-basierten
+Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe
+`CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und
+`X-Real-IP`-Header werden nie direkt ausgewertet. `session.join` verwendet
+überhaupt keinen IP-Key. Hinter genau einem Nginx muss `TRUST_PROXY_HOPS=1`
+gesetzt sein, damit andere grobe IP-Budgets nicht alle Clients dem
+Proxy-Bucket zuordnen. Der separate tRPC-WebSocket-Server verwendet für
+Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
 Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header
-ändern weder dort noch bei Session-Create, Session-Code- oder MOTD-Buckets die
+ändern weder dort noch bei Session-Create- oder MOTD-Buckets die
 IP. Alle Budgets werden atomar geprüft; ein ausgeschöpftes Globalbudget erzeugt
 keine weiteren IP-Rate-Limit-Keys. Session-gebundenes `quickFeedback.create`
 wird zuerst als Host-Aktion autorisiert und danach ausschließlich pro Session
-begrenzt. Der noch IP-basierte Session-Code-Lockout wird in W1.5 separat
-NAT-tauglich ersetzt; W1.4 verschärft seine Schwellen nicht.
+begrenzt.
+
+Für `session.join` lädt das Backend zuerst die Session. Existiert sie und ist
+noch nicht beendet, werden Client-, Code- und Global-Fehlbudget weder gelesen
+noch gebucht; Rejoins werden auch nicht durch die separate Join-Wellen-
+Glättung verzögert. Nur nicht existente Codes buchen alle drei Zähler atomar
+per Lua. Die zufällige browserweite UUID ist kein Proof und enthält keine PII;
+Client-ID und Code werden für Redis-Keys mit SHA-256 gehasht. Das Clientbudget
+antwortet bei Erschöpfung mit 429. Code- und Global-Soft-Caps führen ab 80 %
+progressiv zu höchstens 1.500 ms Delay plus aggregierter Telemetrie, niemals zu
+einem saalweiten Hard-Lock. Nach vollem Globalbudget werden keine neuen
+Client-/Code-Keys angelegt. Alle Keys haben ein festes 300-Sekunden-TTL.
+Redis-Ausfall beeinflusst gültige Joins nicht; der ohnehin ungültige Pfad ist
+fail-closed.
 
 HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
 
@@ -78,8 +101,10 @@ dokumentiert.
 
 W0.4 bündelt operative Security- und Kapazitätsdaten in der
 admin-authentifizierten Query `health.securityStats`: erfolgreiche
-Session-Erstellungen, sämtliche tRPC-429 nach Kategorie, PDF-Auslastung und
-aktive tRPC-WebSocket-Verbindungen. Öffentliche UX- und Produktstatistiken
+Session-Erstellungen, sämtliche tRPC-429 nach Kategorie,
+Session-Code-Fehler/Soft-Cap-Delays und aktuelle globale
+Soft-Cap-Auslastung, PDF-Auslastung sowie aktive tRPC-WebSocket-Verbindungen.
+Öffentliche UX- und Produktstatistiken
 einschließlich `serviceStatus` und `loadStatus` bleiben in `health.stats`.
 Create-/429- und PDF-Zähler werden pro Prozess bounded aggregiert und höchstens
 alle fünf Sekunden nach Redis geflusht. Strukturierte `rate_limit_429`-Ereignisse
@@ -129,7 +154,7 @@ Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 
 ## 7. Weiterführend
 
-- **Härtungsplan (externes Audit + UX/NAT-Nachträge, Plan-Review geschärft 2026-07):** [SECURITY-HARDENING-PLAN.md](SECURITY-HARDENING-PLAN.md) — W0–W4, SSRF/TOCTOU-, Soft-Cap- und Lasttest-AKs; Ist-Sicherheit ~5/10 bis Umsetzung; noch nicht implementiert
+- **Härtungsplan (externes Audit + UX/NAT-Nachträge, Plan-Review geschärft 2026-07):** [SECURITY-HARDENING-PLAN.md](SECURITY-HARDENING-PLAN.md) — W0–W4, SSRF/TOCTOU-, Soft-Cap- und Lasttest-AKs; einzelne W0/W1-Slices sind umgesetzt, der Gesamtplan noch nicht abgeschlossen
 - **Rollen & Routen:** [ADR-0006](architecture/decisions/0006-roles-routes-authorization-host-admin.md) und [ADR-0019](architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md)
 - **MOTD / Plattform-Kommunikation:** [ADR-0018](architecture/decisions/0018-message-of-the-day-platform-communication.md), [motd.md](features/motd.md)
 - **i18n & Daten in Übersetzungen:** [ADR-0008](architecture/decisions/0008-i18n-internationalization.md)

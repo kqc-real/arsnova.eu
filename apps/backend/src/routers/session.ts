@@ -147,6 +147,12 @@ import {
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import { logger } from '../lib/logger';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
+import { checkInvalidSessionCodeFailure } from '../lib/sessionCodeProtection';
+import {
+  logSessionCodeSoftCapDelay,
+  recordSessionCodeFailure,
+  recordSessionCodeSoftCapDelay,
+} from '../lib/abuseTelemetry';
 import {
   clearReadingReady,
   getReadingReadyParticipantIds,
@@ -204,12 +210,7 @@ import {
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
-import {
-  checkSessionCreateRate,
-  isSessionCodeLockedOut,
-  recordFailedSessionCodeAttempt,
-  shouldBypassSessionCreateRate,
-} from '../lib/rateLimit';
+import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
@@ -6134,21 +6135,12 @@ export const sessionRouter = router({
       };
     }),
 
-  /** Session beitreten (Story 3.1). Rate-Limit: 5 Fehlversuche/5 Min, 60s Lockout (Story 0.5). */
+  /** Session beitreten (Story 3.1). Ungültige Codes: Client-Cap plus Code-/Global-Soft-Caps. */
   join: publicProcedure
     .input(JoinSessionInputSchema)
     .output(JoinSessionOutputSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const ip = getClientIp(ctx);
-      const lockout = await isSessionCodeLockedOut(ip);
-      if (lockout.locked) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: 'Zu viele Fehlversuche. Bitte warten Sie vor dem nächsten Versuch.',
-          cause: { retryAfterSeconds: lockout.retryAfterSeconds },
-        });
-      }
       const session = await prisma.session.findUnique({
         where: { code },
         include: {
@@ -6169,14 +6161,23 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        const after = await recordFailedSessionCodeAttempt(ip);
-        if (after.locked) {
+        recordSessionCodeFailure();
+        const decision = await checkInvalidSessionCodeFailure(input.anonymousClientId, code);
+        if (!decision.allowed) {
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
             message:
               'Ungültiger Code. Zu viele Fehlversuche – bitte warten Sie vor dem nächsten Versuch.',
-            cause: { retryAfterSeconds: after.retryAfterSeconds },
+            cause: { retryAfterSeconds: decision.retryAfterSeconds },
           });
+        }
+        if (decision.delayMs > 0) {
+          recordSessionCodeSoftCapDelay();
+          logSessionCodeSoftCapDelay({
+            delayMs: decision.delayMs,
+            globalUtilizationPercent: decision.globalUtilizationPercent,
+          });
+          await new Promise((resolve) => setTimeout(resolve, decision.delayMs));
         }
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }

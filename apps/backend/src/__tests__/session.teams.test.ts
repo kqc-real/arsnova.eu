@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  prismaMock,
-  isSessionCodeLockedOutMock,
-  recordFailedSessionCodeAttemptMock,
-  hostAuthMocks,
-  joinAdmissionMocks,
-} = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, joinAdmissionMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -28,8 +22,6 @@ const {
     },
     $executeRaw: vi.fn().mockResolvedValue(1),
   },
-  isSessionCodeLockedOutMock: vi.fn(),
-  recordFailedSessionCodeAttemptMock: vi.fn(),
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
@@ -45,8 +37,6 @@ vi.mock('../db', () => ({
 }));
 
 vi.mock('../lib/rateLimit', () => ({
-  isSessionCodeLockedOut: isSessionCodeLockedOutMock,
-  recordFailedSessionCodeAttempt: recordFailedSessionCodeAttemptMock,
   checkSessionCreateRate: vi.fn(),
 }));
 
@@ -75,8 +65,6 @@ const PARTICIPANT_ID = '33333333-3333-4333-8333-333333333333';
 describe('session team mode (Story 7.1)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    isSessionCodeLockedOutMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
-    recordFailedSessionCodeAttemptMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
@@ -155,7 +143,12 @@ describe('session team mode (Story 7.1)', () => {
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
     prismaMock.participant.count.mockResolvedValue(3);
 
-    const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: undefined });
+    const result = await caller.join({
+      code: 'ABC123',
+      nickname: 'Ada',
+      anonymousClientId: '33333333-3333-4333-8333-333333333333',
+      teamId: undefined,
+    });
 
     expect(prismaMock.participant.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID },
@@ -196,7 +189,12 @@ describe('session team mode (Story 7.1)', () => {
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
     prismaMock.participant.count.mockResolvedValue(1);
 
-    const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: TEAM_A_ID });
+    const result = await caller.join({
+      code: 'ABC123',
+      nickname: 'Ada',
+      anonymousClientId: '33333333-3333-4333-8333-333333333333',
+      teamId: TEAM_A_ID,
+    });
 
     expect(prismaMock.participant.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID },

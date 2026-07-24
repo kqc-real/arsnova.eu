@@ -10,6 +10,9 @@ import { trpc } from '../../core/trpc.client';
 import { consumeParticipantJoinArrival } from '../../core/participant-join-arrival';
 import { peekConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import { NICKNAME_LISTS } from './nickname-themes';
+import { resetAnonymousClientIdForTests } from '../../core/anonymous-client-id';
+
+const ANONYMOUS_CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 
 const mockSession = {
   id: 'sess-1',
@@ -72,6 +75,8 @@ vi.mock('../../core/trpc.client', () => ({
 describe('JoinComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    localStorage.setItem('arsnova-anonymous-client-id', ANONYMOUS_CLIENT_ID);
+    resetAnonymousClientIdForTests();
     sessionStorage.clear();
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue(mockSession);
     vi.mocked(trpc.session.getTeams.query).mockResolvedValue({ teams: [], teamCount: 0 });
@@ -408,6 +413,7 @@ describe('JoinComponent', () => {
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: 'Ada Yonath',
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
     });
     expect(consumeParticipantJoinArrival('ABC123')).toBe(true);
@@ -470,6 +476,7 @@ describe('JoinComponent', () => {
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: longNickname.slice(0, 30),
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
     });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
@@ -490,6 +497,7 @@ describe('JoinComponent', () => {
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: 'Ada Yonath',
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: participantIds.existing,
     });
   });
@@ -546,6 +554,7 @@ describe('JoinComponent', () => {
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: 'Ada',
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
       teamId: 'team-b',
       rejoinToken: undefined,
     });

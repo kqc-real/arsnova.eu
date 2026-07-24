@@ -521,9 +521,12 @@ TRUST_PROXY_HOPS=1
 ADMIN_SESSION_TTL_SECONDS=28800
 ADMIN_LEGAL_HOLD_DEFAULT_DAYS=30
 
-RATE_LIMIT_SESSION_CODE_ATTEMPTS=20
-RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES=5
-RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS=45
+RATE_LIMIT_SESSION_CODE_WINDOW_SECONDS=300
+RATE_LIMIT_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW=20
+RATE_LIMIT_SESSION_CODE_CODE_SOFT_CAP_PER_WINDOW=600
+RATE_LIMIT_SESSION_CODE_GLOBAL_SOFT_CAP_PER_WINDOW=5000
+RATE_LIMIT_SESSION_CODE_DELAY_BASE_MS=100
+RATE_LIMIT_SESSION_CODE_DELAY_MAX_MS=1500
 RATE_LIMIT_VOTE_REQUESTS_PER_SECOND=2
 RATE_LIMIT_SESSION_CREATE_PER_HOUR=480
 RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST=false
@@ -538,6 +541,12 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
 `openssl rand -base64 48` erzeugen. Die beiden Admin-Secrets dürfen nie
 identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
 das Backend 8 Stunden.
+
+Die Session-Code-Werte gelten ausschließlich für nicht existente Codes.
+Gültige, nicht beendete Sessions werden vor Redis geladen und umgehen sämtliche
+Fehlbudgets. Deshalb dürfen Betreiber hier keinen IP-Lock ergänzen: 500 Geräte
+hinter derselben NAT-IP müssen unabhängig bleiben. Die angegebenen Werte sind
+statische Maxima und können per Env nur abgesenkt werden.
 
 ### 6.3 WebSocket-URLs im Frontend
 

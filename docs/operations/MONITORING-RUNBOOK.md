@@ -22,6 +22,9 @@
      'https://arsnova.eu/trpc/health.securityStats' \
      | jq '.result.data.json | {
      sessionCreatesLastMinute,
+     sessionCodeFailuresLastMinute,
+     sessionCodeSoftCapDelaysLastMinute,
+     sessionCodeGlobalSoftCapUtilizationPercent,
      rateLimit429LastMinute,
      rateLimit429ByCategoryLastMinute,
      pdfActiveJobs,
@@ -45,7 +48,8 @@
 `health.securityStats` enthält rollierende 60-Sekunden-Zähler in Redis. Der
 vollständige Rand-Bucket wird konservativ mitgezählt, damit kein weniger als
 60 Sekunden altes Ereignis fehlt; dadurch kann die Anzeige höchstens einen
-10-Sekunden-Bucket zu früh warnen. Create-, 429- und PDF-Ergebnisereignisse
+10-Sekunden-Bucket zu früh warnen. Create-, Session-Code-, 429- und
+PDF-Ergebnisereignisse
 werden pro Backend-Prozess im Speicher aggregiert und alle fünf Sekunden mit
 einer gebündelten `INCRBY`-/`EXPIRE`-Pipeline geschrieben. Je
 Telemetriegruppe läuft höchstens ein Flush; bei langsamem Redis bleiben
@@ -78,7 +82,10 @@ genutzten Hörsaal-IP gedrosselt.
 | ---------------------------------- | ----------------: | ----------------: |
 | Erfolgreiche Session-Erstellungen  |          ≥ 30/min |          ≥ 60/min |
 | Alle 429-Ablehnungen               |          ≥ 50/min |         ≥ 200/min |
-| Code-Lockout-429 (`sessionCode`)   |          ≥ 30/min |         ≥ 100/min |
+| Ungültige Session-Codes            |         ≥ 100/min |         ≥ 500/min |
+| Session-Code-Soft-Cap-Delays       |          ≥ 10/min |         ≥ 100/min |
+| Globale Code-Soft-Cap-Auslastung   |            ≥ 80 % |            ≥ 95 % |
+| Client-Cap-429 (`sessionCode`)     |          ≥ 30/min |         ≥ 100/min |
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
 | PDF-Fehler                         |           ≥ 1/min |           ≥ 3/min |
 | Aktive tRPC-WebSockets             |             ≥ 600 |             ≥ 800 |
@@ -104,8 +111,11 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   Hohe Create-Rate ohne 429 kann verteilten Missbrauch anzeigen.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge
   IP-Sperre aktivieren; Votes werden participant-bezogen begrenzt.
-- Bei `sessionCode`: Lockout-Muster prüfen. Änderungen am NAT-kompatiblen
-  Code-Lockout gehören in W1.5 und benötigen einen Lasttest.
+- Bei `sessionCode`: Client-Cap-429 zusammen mit
+  `sessionCodeFailuresLastMinute`, `sessionCodeSoftCapDelaysLastMinute` und der
+  globalen Auslastung prüfen. Keinen IP-Lock ergänzen. Ein hoher Delay-Wert bei
+  weiterhin erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung;
+  die 500er-NAT-Abnahme aus W1.5 heranziehen.
 
 ### PDF-Sättigung
 

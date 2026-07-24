@@ -174,7 +174,11 @@ async function createClassroomSession(publicTrpc) {
 async function joinParticipants(publicTrpc, code) {
   const nicknames = Array.from({ length: PARTICIPANTS }, (_, index) => `TN ${index + 1}`);
   return mapLimit(nicknames, JOIN_CONCURRENCY, async (nickname) =>
-    publicTrpc.session.join.mutate({ code, nickname }),
+    publicTrpc.session.join.mutate({
+      code,
+      nickname,
+      anonymousClientId: globalThis.crypto.randomUUID(),
+    }),
   );
 }
 

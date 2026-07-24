@@ -18,8 +18,6 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
-  isSessionCodeLockedOut: vi.fn(),
-  recordFailedSessionCodeAttempt: vi.fn(),
 }));
 
 import { sessionRouter } from '../routers/session';

@@ -41,6 +41,7 @@ import {
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import * as vpc from './session-vote-participant-copy';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import {
@@ -761,6 +762,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const join = await trpc.session.join.mutate({
           code: this.code,
           nickname,
+          anonymousClientId: getAnonymousClientId(),
           rejoinToken,
         });
         if (join.timerAccommodation) {

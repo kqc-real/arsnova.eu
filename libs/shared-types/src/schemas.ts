@@ -2417,6 +2417,8 @@ export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
+  /** Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder Besitznachweis. */
+  anonymousClientId: z.uuid(),
   teamId: z.uuid().optional(),
   rejoinToken: z.uuid().optional(),
 });
@@ -3041,6 +3043,12 @@ export const HealthSecurityStatsDTOSchema = z.object({
     motd: z.number().int().min(0),
     other: z.number().int().min(0),
   }),
+  /** Nicht existente Session-Codes, die in der letzten Minute geprüft wurden. */
+  sessionCodeFailuresLastMinute: z.number().int().min(0),
+  /** Ungültige Code-Prüfungen mit globaler oder codebezogener Soft-Cap-Verzögerung. */
+  sessionCodeSoftCapDelaysLastMinute: z.number().int().min(0),
+  /** Aktuelle Auslastung des globalen Fehlbudgets im laufenden Fenster. */
+  sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
 });
