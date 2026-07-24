@@ -36,12 +36,15 @@ import {
   ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN,
   QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT,
   QUIZ_UPLOAD_MAX_COMPLEXITY,
+  SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
 } from '../lib/publicCreateCapacity';
 
 describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
   it('hat korrekte Standardwerte', () => {
     expect(RATE_LIMIT_ENV.voteRequestsPerSecond).toBe(1);
     expect(RATE_LIMIT_ENV.sessionCreatePerHour).toBe(10);
+    expect(RATE_LIMIT_ENV.sessionCreateGlobalPerHour).toBe(120);
+    expect(SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT).toBe(120);
     expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
     expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
     expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
@@ -240,29 +243,39 @@ describe('checkVoteRate (Story 3.3b)', () => {
   });
 });
 
-describe('checkSessionCreateRate (Story 2.1a)', () => {
+describe('checkSessionCreateRate (W1.6a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    redisMock.get.mockResolvedValue(null);
+    redisMock.eval.mockResolvedValue([1, 6, 0]);
   });
 
-  it('erlaubt Session-Erstellung wenn Limit nicht erreicht', async () => {
-    redisMock.zcard.mockResolvedValue(3);
+  it('bucht globales und Shared-NAT-IP-Budget atomar', async () => {
+    await expect(checkSessionCreateRate('172.16.0.1')).resolves.toEqual({
+      allowed: true,
+      remaining: 6,
+    });
 
-    const result = await checkSessionCreateRate('172.16.0.1');
-
-    expect(result.allowed).toBe(true);
-    expect(result.remaining).toBe(6); // 10 - 3 - 1
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('INCRBY'"),
+      2,
+      'rl:sessionCreate:global',
+      'rl:sessionCreate:ip:172.16.0.1',
+      '120',
+      '1',
+      '10',
+      '1',
+      '3600',
+    );
   });
 
-  it('blockiert Session-Erstellung bei 10 Sessions pro Stunde', async () => {
-    redisMock.zcard.mockResolvedValue(10);
-    redisMock.zrange.mockResolvedValue([]);
+  it('übernimmt die Wartezeit eines erschöpften Globalbudgets', async () => {
+    redisMock.eval.mockResolvedValue([0, 1, 900]);
 
-    const result = await checkSessionCreateRate('172.16.0.1');
-
-    expect(result.allowed).toBe(false);
-    expect(result.remaining).toBe(0);
+    await expect(checkSessionCreateRate('172.16.0.1')).resolves.toEqual({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 900,
+    });
   });
 });
 

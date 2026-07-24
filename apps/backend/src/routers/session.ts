@@ -3945,7 +3945,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
 }
 
 export const sessionRouter = router({
-  /** Session erstellen (Story 2.1a). Rate-Limit: 10/h pro IP (Story 0.5). */
+  /** Session erstellen (Story 2.1a). Grobes globales und Shared-NAT-IP-Budget. */
   create: publicProcedure
     .input(CreateSessionInputSchema)
     .output(CreateSessionOutputSchema)
@@ -3956,7 +3956,7 @@ export const sessionRouter = router({
         if (!limit.allowed) {
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
-            message: `Maximal ${limit.remaining === 0 ? '0' : '10'} Sessions pro Stunde. Bitte später erneut versuchen.`,
+            message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
             cause: { retryAfterSeconds: limit.retryAfterSeconds },
           });
         }

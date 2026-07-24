@@ -108,7 +108,9 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   der vorherigen Ausgabe zusammengefassten Ablehnungen. Die Redis-Zähler
   erfassen weiterhin jede Ablehnung.
 - Bei `sessionCreate`: erfolgreiche Create-Rate und 429 gemeinsam bewerten.
-  Hohe Create-Rate ohne 429 kann verteilten Missbrauch anzeigen.
+  Viele Erfolge mit anschließend steigenden `sessionCreate`-429 zeigen ein
+  ausgeschöpftes globales oder Shared-NAT-IP-Budget. Das globale Budget ist ein
+  Create-Notanker; laufende Sessions und Teilnehmerpfade bleiben unberührt.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge
   IP-Sperre aktivieren; Votes werden participant-bezogen begrenzt.
 - Bei `sessionCode`: Client-Cap-429 zusammen mit

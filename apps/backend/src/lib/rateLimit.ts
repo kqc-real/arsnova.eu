@@ -11,6 +11,8 @@ import {
   QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
   QUIZ_UPLOAD_GLOBAL_BYTES_PER_WINDOW_DEFAULT,
   QUIZ_UPLOAD_GLOBAL_COMPLEXITY_PER_WINDOW_DEFAULT,
+  SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
+  SESSION_CREATE_PER_IP_PER_WINDOW_DEFAULT,
 } from './publicCreateCapacity';
 
 const PREFIX = 'rl:';
@@ -26,7 +28,14 @@ function boundedPositiveIntegerEnv(name: string, fallback: number, maximum: numb
 
 export const RATE_LIMIT_ENV = {
   voteRequestsPerSecond: Number(process.env['RATE_LIMIT_VOTE_REQUESTS_PER_SECOND']) || 1,
-  sessionCreatePerHour: Number(process.env['RATE_LIMIT_SESSION_CREATE_PER_HOUR']) || 10,
+  sessionCreatePerHour: positiveIntegerEnv(
+    'RATE_LIMIT_SESSION_CREATE_PER_HOUR',
+    SESSION_CREATE_PER_IP_PER_WINDOW_DEFAULT,
+  ),
+  sessionCreateGlobalPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR',
+    SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT,
+  ),
   /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute (`getCurrent` + `getHeaderState` teilen sich das Limit) */
   motdGetCurrentPerMinute: Number(process.env['RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE']) || 600,
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
@@ -271,15 +280,25 @@ export async function checkVoteRate(participantId: string): Promise<{
   return { allowed, retryAfterSeconds };
 }
 
-/**
- * Session-Erstellung (Story 2.1a): 10 Sessions pro IP pro Stunde.
- */
+/** Session-Erstellung: grobes globales und Shared-NAT-IP-Budget pro Stunde. */
 export async function checkSessionCreateRate(ip: string): Promise<{
   allowed: boolean;
   remaining: number;
   retryAfterSeconds?: number;
 }> {
-  return checkSlidingWindow(`sessioncreate:${ip}`, RATE_LIMIT_ENV.sessionCreatePerHour, 3600);
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'sessionCreate:global',
+        limit: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
+      },
+      {
+        key: `sessionCreate:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.sessionCreatePerHour,
+      },
+    ],
+    PUBLIC_CREATE_WINDOW_SECONDS,
+  );
 }
 
 export async function checkQuizUploadAttemptRate(ip: string) {

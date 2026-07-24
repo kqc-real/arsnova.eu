@@ -952,6 +952,15 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run build:libs
 
+      - name: Session-create budget Redis regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_REDIS_SESSION_CREATE_TESTS: '1'
+          RATE_LIMIT_SESSION_CREATE_PER_HOUR: '3'
+          RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR: '5'
+        run: npx vitest run src/lib/rateLimit.sessionCreate.redis.test.ts
+
       - name: Session-code protection Redis regression
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend

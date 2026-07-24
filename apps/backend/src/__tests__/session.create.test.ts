@@ -382,10 +382,16 @@ describe('session.create (Story 2.1a)', () => {
   });
 
   it('wirft TOO_MANY_REQUESTS wenn Rate-Limit überschritten', async () => {
-    checkSessionCreateRateMock.mockResolvedValue({ allowed: false, remaining: 0 });
+    checkSessionCreateRateMock.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 900,
+    });
 
     await expect(caller.create({ quizId: QUIZ_ID })).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
+      message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
+      cause: { retryAfterSeconds: 900 },
     });
 
     expect(prismaMock.session.create).not.toHaveBeenCalled();

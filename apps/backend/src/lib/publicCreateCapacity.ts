@@ -6,6 +6,13 @@ import {
 } from '@arsnova/shared-types';
 
 export const PUBLIC_CREATE_WINDOW_SECONDS = 60 * 60;
+/**
+ * Grobe Session-Create-Budgets pro festem Stundenfenster. Das globale Budget
+ * ist der verteilte Notanker; das IP-Budget bleibt bewusst großzügig
+ * konfigurierbar für mehrere Hosts hinter Shared NAT.
+ */
+export const SESSION_CREATE_PER_IP_PER_WINDOW_DEFAULT = 10;
+export const SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT = 120;
 export const QUIZ_UPLOAD_MAX_COMPLEXITY =
   1 + QUIZ_UPLOAD_MAX_QUESTIONS * (1 + QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION);
 
