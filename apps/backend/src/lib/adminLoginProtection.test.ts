@@ -11,8 +11,9 @@ vi.mock('../redis', () => ({
 
 import {
   ADMIN_LOGIN_PROTECTION_LIMITS,
-  checkAdminLoginFailure,
+  checkAdminLoginAttempt,
   rejectInvalidAdminLogin,
+  requireAdminLoginAttemptPermit,
   resetAdminLoginProtectionForTests,
   waitForInvalidAdminLoginDelay,
 } from './adminLoginProtection';
@@ -28,8 +29,8 @@ describe('progressiver Admin-Login-Schutz', () => {
     resetAdminLoginProtectionForTests();
   });
 
-  it('nutzt ein einziges globales Fehlbudget ohne IP-Schlüssel', async () => {
-    await expect(checkAdminLoginFailure()).resolves.toEqual({
+  it('nutzt ein einziges globales Pre-Auth-Budget ohne IP-Schlüssel', async () => {
+    await expect(checkAdminLoginAttempt()).resolves.toEqual({
       allowed: true,
       delayMs: 100,
     });
@@ -38,7 +39,7 @@ describe('progressiver Admin-Login-Schutz', () => {
     expect(redisMock.eval).toHaveBeenCalledWith(
       expect.stringContaining("redis.call('INCR', key)"),
       1,
-      'security:admin-login:global-failures',
+      'security:admin-login:global-attempts',
       '60',
       '60',
       '100',
@@ -50,7 +51,7 @@ describe('progressiver Admin-Login-Schutz', () => {
   it('übernimmt progressive Verzögerungen begrenzt aus Redis', async () => {
     redisMock.eval.mockResolvedValue([1, 1_600, 0]);
 
-    await expect(checkAdminLoginFailure()).resolves.toEqual({
+    await expect(checkAdminLoginAttempt()).resolves.toEqual({
       allowed: true,
       delayMs: 1_600,
     });
@@ -59,22 +60,28 @@ describe('progressiver Admin-Login-Schutz', () => {
   it('liefert nach ausgeschöpftem Globalbudget eine Wartezeit', async () => {
     redisMock.eval.mockResolvedValue([0, 0, 37]);
 
-    await expect(checkAdminLoginFailure()).resolves.toEqual({
+    const decision = await checkAdminLoginAttempt();
+    expect(decision).toEqual({
       allowed: false,
       delayMs: 0,
       retryAfterSeconds: 37,
     });
-    await expect(rejectInvalidAdminLogin()).rejects.toMatchObject({
-      code: 'TOO_MANY_REQUESTS',
-      cause: { retryAfterSeconds: 37 },
-    });
+    let thrown: unknown;
+    try {
+      requireAdminLoginAttemptPermit(decision);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(TRPCError);
+    expect(thrown).toMatchObject({ code: 'TOO_MANY_REQUESTS' });
+    expect((thrown as TRPCError).cause).toMatchObject({ retryAfterSeconds: 37 });
   });
 
   it('verzögert ungültige Zugangsdaten vor der einheitlichen Ablehnung', async () => {
     vi.useFakeTimers();
     redisMock.eval.mockResolvedValue([1, 400, 0]);
 
-    const rejection = rejectInvalidAdminLogin();
+    const rejection = rejectInvalidAdminLogin(400);
     await vi.advanceTimersByTimeAsync(399);
     let settled = false;
     void rejection.catch(() => {

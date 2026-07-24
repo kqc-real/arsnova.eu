@@ -16,8 +16,8 @@ const configuredDelayMaxMs = boundedPositiveIntegerEnv(
 
 export const ADMIN_LOGIN_PROTECTION_LIMITS = {
   windowSeconds: boundedPositiveIntegerEnv('RATE_LIMIT_ADMIN_LOGIN_WINDOW_SECONDS', 60, 3_600),
-  globalFailuresPerWindow: boundedPositiveIntegerEnv(
-    'RATE_LIMIT_ADMIN_LOGIN_GLOBAL_FAILURES_PER_WINDOW',
+  globalAttemptsPerWindow: boundedPositiveIntegerEnv(
+    'RATE_LIMIT_ADMIN_LOGIN_GLOBAL_ATTEMPTS_PER_WINDOW',
     60,
     1_000,
   ),
@@ -70,13 +70,17 @@ function parseRedisNumber(value: unknown): number {
   return 0;
 }
 
-export async function checkAdminLoginFailure(): Promise<AdminLoginFailureDecision> {
+/**
+ * Bucht vor jedem Secret-Vergleich atomar ein globales Prüf-Permit.
+ * Ohne Permit darf der Aufrufer das Admin-Secret nicht vergleichen.
+ */
+export async function checkAdminLoginAttempt(): Promise<AdminLoginFailureDecision> {
   const limits = ADMIN_LOGIN_PROTECTION_LIMITS;
   const raw = await getRedis().eval(
     ADMIN_LOGIN_FAILURE_LUA,
     1,
-    `${KEY_PREFIX}global-failures`,
-    String(limits.globalFailuresPerWindow),
+    `${KEY_PREFIX}global-attempts`,
+    String(limits.globalAttemptsPerWindow),
     String(limits.windowSeconds),
     String(limits.delayBaseMs),
     String(limits.delayMaxMs),
@@ -117,17 +121,18 @@ export async function waitForInvalidAdminLoginDelay(delayMs: number): Promise<bo
   }
 }
 
-export async function rejectInvalidAdminLogin(): Promise<never> {
-  const decision = await checkAdminLoginFailure();
-  if (!decision.allowed) {
-    throw new TRPCError({
-      code: 'TOO_MANY_REQUESTS',
-      message: 'Zu viele fehlgeschlagene Admin-Logins. Bitte später erneut versuchen.',
-      cause: { retryAfterSeconds: decision.retryAfterSeconds },
-    });
-  }
+export function requireAdminLoginAttemptPermit(decision: AdminLoginFailureDecision): void {
+  if (decision.allowed) return;
 
-  const delayed = await waitForInvalidAdminLoginDelay(decision.delayMs);
+  throw new TRPCError({
+    code: 'TOO_MANY_REQUESTS',
+    message: 'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
+    cause: { retryAfterSeconds: decision.retryAfterSeconds },
+  });
+}
+
+export async function rejectInvalidAdminLogin(delayMs: number): Promise<never> {
+  const delayed = await waitForInvalidAdminLoginDelay(delayMs);
   if (!delayed) {
     throw new TRPCError({
       code: 'TOO_MANY_REQUESTS',

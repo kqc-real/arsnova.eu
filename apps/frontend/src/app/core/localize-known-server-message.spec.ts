@@ -24,7 +24,7 @@ describe('localizeKnownServerError', () => {
 
   it('lokalisiert Admin-Login-Drosselungen mit expliziter Wartezeit', () => {
     loadTranslations({
-      'errors.adminLoginRateLimit': 'Too many failed admin logins. Please try again later.',
+      'errors.adminLoginRateLimit': 'Too many admin login attempts. Please try again later.',
       'errors.rateLimitAttention': 'IMPORTANT:',
       'errors.rateLimitRetryAfter': 'Please try again in {$seconds} seconds.',
     });
@@ -33,13 +33,13 @@ describe('localizeKnownServerError', () => {
         localizeKnownServerError(
           {
             message:
-              'TOO_MANY_REQUESTS: Zu viele fehlgeschlagene Admin-Logins. Bitte später erneut versuchen.',
+              'TOO_MANY_REQUESTS: Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
             data: { retryAfterSeconds: 17 },
           },
           'Login failed.',
         ),
       ).toBe(
-        'IMPORTANT: Too many failed admin logins. Please try again later.\n' +
+        'IMPORTANT: Too many admin login attempts. Please try again later.\n' +
           'Please try again in 17 seconds.',
       );
     } finally {

@@ -448,6 +448,7 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     pdfFailedLastMinute: pdfSignals.failedLastMinute,
     pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
     sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
+    adminLoginFailuresLastMinute: abuseSignals.adminLoginFailuresLastMinute,
     rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
     rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
     sessionCodeFailuresLastMinute: abuseSignals.sessionCodeFailuresLastMinute,

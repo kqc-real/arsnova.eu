@@ -967,7 +967,7 @@ jobs:
         env:
           RUN_REDIS_ADMIN_LOGIN_TESTS: '1'
           RATE_LIMIT_ADMIN_LOGIN_WINDOW_SECONDS: '30'
-          RATE_LIMIT_ADMIN_LOGIN_GLOBAL_FAILURES_PER_WINDOW: '5'
+          RATE_LIMIT_ADMIN_LOGIN_GLOBAL_ATTEMPTS_PER_WINDOW: '5'
           RATE_LIMIT_ADMIN_LOGIN_DELAY_BASE_MS: '10'
           RATE_LIMIT_ADMIN_LOGIN_DELAY_MAX_MS: '80'
         run: npx vitest run src/lib/adminLoginProtection.redis.test.ts

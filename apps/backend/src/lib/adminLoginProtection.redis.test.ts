@@ -1,9 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { closeRedis, getRedis } from '../redis';
-import { ADMIN_LOGIN_PROTECTION_LIMITS, checkAdminLoginFailure } from './adminLoginProtection';
+import { ADMIN_LOGIN_PROTECTION_LIMITS, checkAdminLoginAttempt } from './adminLoginProtection';
 
 const RUN_REDIS = process.env['RUN_REDIS_ADMIN_LOGIN_TESTS'] === '1';
-const GLOBAL_KEY = 'security:admin-login:global-failures';
+const GLOBAL_KEY = 'security:admin-login:global-attempts';
 
 describe.skipIf(!RUN_REDIS)('Admin-Login-Schutz mit echtem Redis', () => {
   beforeEach(async () => {
@@ -15,15 +15,15 @@ describe.skipIf(!RUN_REDIS)('Admin-Login-Schutz mit echtem Redis', () => {
     await closeRedis();
   });
 
-  it('begrenzt parallele verteilte Fehlversuche atomar mit progressivem Delay', async () => {
+  it('begrenzt parallele verteilte Secret-Prüfungen atomar mit progressivem Delay', async () => {
     expect(ADMIN_LOGIN_PROTECTION_LIMITS).toMatchObject({
       windowSeconds: 30,
-      globalFailuresPerWindow: 5,
+      globalAttemptsPerWindow: 5,
       delayBaseMs: 10,
       delayMaxMs: 80,
     });
 
-    const decisions = await Promise.all(Array.from({ length: 20 }, () => checkAdminLoginFailure()));
+    const decisions = await Promise.all(Array.from({ length: 20 }, () => checkAdminLoginAttempt()));
 
     const allowed = decisions.filter((decision) => decision.allowed);
     const rejected = decisions.filter((decision) => !decision.allowed);

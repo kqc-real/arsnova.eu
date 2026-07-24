@@ -231,8 +231,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="errors.adminLoginRateLimit" datatype="html">
-        <source>Zu viele fehlgeschlagene Admin-Logins. Bitte später erneut versuchen.</source>
-        <target>Trop de connexions administrateur ont échoué. Réessaie plus tard.</target>
+        <source>Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.</source>
+        <target>Trop de tentatives de connexion administrateur. Réessaie plus tard.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
           <context context-type="linenumber">32</context>

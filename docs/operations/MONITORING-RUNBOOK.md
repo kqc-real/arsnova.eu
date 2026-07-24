@@ -22,6 +22,7 @@
      'https://arsnova.eu/trpc/health.securityStats' \
      | jq '.result.data.json | {
      sessionCreatesLastMinute,
+     adminLoginFailuresLastMinute,
      sessionCodeFailuresLastMinute,
      sessionCodeSoftCapDelaysLastMinute,
      sessionCodeGlobalSoftCapUtilizationPercent,
@@ -112,9 +113,13 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   ausgeschöpftes globales oder Shared-NAT-IP-Budget. Das globale Budget ist ein
   Create-Notanker; laufende Sessions und Teilnehmerpfade bleiben unberührt.
 - Bei `adminLogin`: 429 zeigen ein ausgeschöpftes globales Fehlbudget oder eine
-  volle prozesslokale Delay-Kapazität. Keine IP-Sperre ergänzen. Gültige
-  Zugangsdaten umgehen das Fehlbudget; bei anhaltenden Wellen `ADMIN_SECRET`
-  kontrolliert rotieren und die Logs auf `admin.login` korrelieren.
+  volle prozesslokale Delay-Kapazität.
+  `adminLoginFailuresLastMinute` erfasst zusätzlich die langsameren
+  `UNAUTHORIZED`-Fehlversuche unterhalb der 429-Schwelle. Keine IP-Sperre
+  ergänzen. Das Pre-Auth-Budget kann legitime Logins bis zum Fensterende
+  blockieren; bei anhaltenden Wellen `ADMIN_SECRET` kontrolliert rotieren und
+  die gesampelten Logs `admin_login_failed` und `rate_limit_429` für
+  `admin.login` korrelieren.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge
   IP-Sperre aktivieren; Votes werden participant-bezogen begrenzt.
 - Bei `sessionCode`: Client-Cap-429 zusammen mit

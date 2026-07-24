@@ -6,7 +6,7 @@ const SESSION_NOT_FOUND_DE = 'Session nicht gefunden.';
 const SESSION_CREATE_RATE_LIMIT_DE =
   'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
 const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
-  'Zu viele fehlgeschlagene Admin-Logins. Bitte später erneut versuchen.',
+  'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
   'Zu viele gleichzeitige Admin-Login-Versuche.',
 ]);
 const TRPC_CODE_PREFIXES = [
@@ -29,7 +29,7 @@ function sessionCreateRateLimitUiMessage(): string {
 }
 
 function adminLoginRateLimitUiMessage(): string {
-  return $localize`:@@errors.adminLoginRateLimit:Zu viele fehlgeschlagene Admin-Logins. Bitte später erneut versuchen.`;
+  return $localize`:@@errors.adminLoginRateLimit:Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.`;
 }
 
 function asRecord(value: unknown): UnknownRecord | null {
