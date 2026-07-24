@@ -3,12 +3,12 @@
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { IncomingMessage } from 'node:http';
+import { extractAdminToken, isAdminSessionTokenValid } from './lib/adminAuth';
 import {
+  consumeDiagnosticAuthFailure,
   extractAdminDiagnosticSecret,
-  extractAdminToken,
-  isAdminSessionTokenValid,
-  verifyAdminSecret,
-} from './lib/adminAuth';
+  verifyAdminDiagnosticSecret,
+} from './lib/diagnosticAuth';
 import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/hostAuth';
 import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
 import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
@@ -110,18 +110,24 @@ export const adminProcedure = telemetryProcedure.use(async ({ ctx, next }) => {
 });
 
 /**
- * Read-only Betriebsdiagnose mit statischem ADMIN_SECRET.
+ * Read-only Betriebsdiagnose mit separatem ADMIN_DIAGNOSTIC_SECRET.
  * Bewusst unabhängig von Redis, damit health.securityStats im Redis-Incident erreichbar bleibt.
  */
 export const diagnosticProcedure = telemetryProcedure.use(async ({ ctx, next }) => {
   const secret = extractAdminDiagnosticSecret(ctx.req);
-  if (!secret || !verifyAdminSecret(secret)) {
+  if (secret && verifyAdminDiagnosticSecret(secret)) {
+    return next();
+  }
+  if (!consumeDiagnosticAuthFailure()) {
     throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Diagnose-Authentifizierung erforderlich.',
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Zu viele fehlgeschlagene Diagnose-Authentifizierungen.',
     });
   }
-  return next();
+  throw new TRPCError({
+    code: 'UNAUTHORIZED',
+    message: 'Diagnose-Authentifizierung erforderlich.',
+  });
 });
 
 function extractSessionCodeFromInput(input: unknown): string | null {

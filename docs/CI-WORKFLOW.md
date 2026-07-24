@@ -253,7 +253,7 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Runner [../scripts/load/run-artillery-500.mjs](../scripts/load/run-artillery-500.mjs).
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Artefakt:** `artillery-500-reports` (standardisierte JSON-/JUnit-Reports, Artillery-Report + `backend.log`).
-- **Sicher manuell:** `gh workflow run ci.yml --ref <branch> -f artillery_participants=500 -f artillery_ramp_seconds=60 -f run_production_load=false`. Derselbe Dispatch startet auch `artillery-reconnect-500`; `false` verhindert den hart gegen Produktion gerichteten k6-Job.
+- **Sicher manuell:** `gh workflow run ci.yml --ref <branch> -f artillery_participants=500 -f artillery_ramp_seconds=60 -f run_production_load=false`. Derselbe Dispatch startet auch `artillery-reconnect-500`; `false` verhindert den hart gegen Produktion gerichteten k6-Job. Beide Jobs erzeugen ein eigenes ephemeres, maskiertes `ADMIN_DIAGNOSTIC_SECRET`; `ADMIN_SECRET` wird dafür nie verwendet.
 - **Letzter lokaler Nachweis:** Artillery 500/500 und der 5-Minuten-Soak
   bestanden im Gesamtlauf; Yjs und das 600er Timer-Fairness-Latenzgate bestanden
   im [QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md).

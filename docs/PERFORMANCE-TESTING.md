@@ -36,6 +36,11 @@ run_id="$(gh run list --workflow ci.yml --branch security/pr128-followup \
 gh run watch "$run_id"
 ```
 
+Beide Artillery-Jobs erzeugen intern je ein separates, maskiertes
+`ADMIN_DIAGNOSTIC_SECRET` mit `openssl rand -hex 32`; weder
+`ADMIN_SECRET` noch das Diagnose-Secret werden als Workflow-Input oder Report
+übergeben.
+
 Der Workflow-k6-Job ist hart auf `https://arsnova.eu` verdrahtet und darf für
 diesen Security-Nachweis nicht aktiviert werden. Dasselbe Profil läuft sicher
 gegen ein lokales Backend:

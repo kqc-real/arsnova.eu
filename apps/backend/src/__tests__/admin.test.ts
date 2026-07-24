@@ -47,7 +47,6 @@ vi.mock('../lib/adminAuth', () => ({
   createAdminSessionToken: createAdminSessionTokenMock,
   invalidateAdminSessionToken: invalidateAdminSessionTokenMock,
   verifyAdminSecret: verifyAdminSecretMock,
-  extractAdminDiagnosticSecret: vi.fn(() => null),
   extractAdminToken: extractAdminTokenMock,
   isAdminSessionTokenValid: isAdminSessionTokenValidMock,
 }));

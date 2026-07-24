@@ -545,6 +545,7 @@ jobs:
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-jwt-secret
       ADMIN_SECRET: ci-admin-secret
+      ADMIN_DIAGNOSTIC_SECRET: ci-diagnostic-secret-distinct-from-admin-0001
       NODE_ENV: development
       PORT: 3000
       HOST: 0.0.0.0
@@ -732,6 +733,7 @@ jobs:
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-jwt-secret
       ADMIN_SECRET: ci-admin-secret
+      ADMIN_DIAGNOSTIC_SECRET: ci-diagnostic-secret-distinct-from-admin-0001
       NODE_ENV: development
       PORT: 3000
       HOST: 0.0.0.0
@@ -897,6 +899,7 @@ jobs:
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-jwt-secret
       ADMIN_SECRET: ci-admin-secret
+      ADMIN_DIAGNOSTIC_SECRET: ci-diagnostic-secret-distinct-from-admin-0001
       NODE_ENV: development
       PORT: 3000
       HOST: 0.0.0.0
@@ -1040,6 +1043,12 @@ jobs:
       ARTILLERY_RAMP_SECONDS: ${{ inputs.artillery_ramp_seconds || vars.ARTILLERY_RAMP_SECONDS || '60' }}
 
     steps:
+      - name: Generate ephemeral diagnostic secret
+        run: |
+          diagnostic_secret="$(openssl rand -hex 32)"
+          echo "::add-mask::$diagnostic_secret"
+          echo "ADMIN_DIAGNOSTIC_SECRET=$diagnostic_secret" >> "$GITHUB_ENV"
+
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
@@ -1167,6 +1176,12 @@ jobs:
       ARTILLERY_RAMP_SECONDS: ${{ inputs.artillery_ramp_seconds || vars.ARTILLERY_RAMP_SECONDS || '60' }}
 
     steps:
+      - name: Generate ephemeral diagnostic secret
+        run: |
+          diagnostic_secret="$(openssl rand -hex 32)"
+          echo "::add-mask::$diagnostic_secret"
+          echo "ADMIN_DIAGNOSTIC_SECRET=$diagnostic_secret" >> "$GITHUB_ENV"
+
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 

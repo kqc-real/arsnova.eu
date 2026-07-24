@@ -43,6 +43,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`       | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                                              |
 | `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE` | nein         | `40`                       | MOTD `recordInteraction` — pro IP und Minute                                                                                                                        |
 | `ADMIN_SECRET`                                  | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                                                    |
+| `ADMIN_DIAGNOSTIC_SECRET`                       | für Diagnose | —                          | Separates Secret nur für `health.securityStats`; mindestens 32 Zeichen, darf nicht `ADMIN_SECRET` entsprechen                                                       |
 | `ADMIN_SESSION_TTL_SECONDS`                     | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                                                   |
 | `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`                 | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                                                         |
 
@@ -62,10 +63,13 @@ Die ressourcenintensiven Playwright-PDF-Pfade für Session-Ergebnisberichte teil
 `serviceStatus` und `loadStatus`. Operative PDF-, Create-/429- und
 tRPC-WebSocket-Metriken liegen ausschließlich in der admin-geschützten Query
 `health.securityStats`. Damit diese Diagnose bei Redis-Ausfall funktioniert,
-akzeptiert ausschließlich diese read-only Query das starke `ADMIN_SECRET` im
-Header `x-admin-diagnostic-secret`. Die Prüfung erfolgt konstantzeitig und ohne
-Redis; normale Admin-Prozeduren akzeptieren diesen Header nicht und verwenden
-weiterhin Admin-Session-Tokens.
+akzeptiert ausschließlich diese read-only Query das separate
+`ADMIN_DIAGNOSTIC_SECRET` im Header `x-admin-diagnostic-secret`. Die Prüfung
+erfolgt konstantzeitig und ohne Redis; normale Admin-Prozeduren akzeptieren
+diesen Header nicht und verwenden weiterhin Admin-Session-Tokens.
+`ADMIN_DIAGNOSTIC_SECRET` muss mindestens 32 Zeichen lang sein und einen
+anderen Wert als `ADMIN_SECRET` besitzen. Fehlt es oder verletzt eine dieser
+Regeln, bleibt der Diagnosezugang geschlossen.
 
 Create-/429- und PDF-Ergebnisereignisse werden im Prozess bounded aggregiert
 und alle fünf Sekunden mit Redis-Pipelines geflusht. Langsames oder
@@ -86,9 +90,10 @@ W3.7.
 
 Der reproduzierbare PDF-vs.-Voting-Lasttest liest `health.securityStats` und
 erwartet deshalb `ADMIN_DIAGNOSTIC_SECRET` nur in der Umgebung des
-Lasttest-Prozesses. Der Wert entspricht dem starken `ADMIN_SECRET`, ist keine
-zusätzliche Backend-Konfiguration, darf nicht in Reports oder Shell-Historien
-gelangen und muss nach dem Lauf aus der Shell entfernt werden.
+Lasttest-Prozesses. Der Wert ist ein separates, ausschließlich lesendes
+Diagnose-Credential, darf nicht in Reports oder Shell-Historien gelangen und
+muss nach dem Lauf aus der Shell entfernt werden. `ADMIN_SECRET` darf dafür
+niemals eingesetzt werden.
 
 ### `JWT_SECRET` (`.env.example`)
 
@@ -104,16 +109,16 @@ Zusätzlich zu den Backend-Variablen (angepasste Hosts: `postgres`, `redis` im N
 
 Für einen öffentlichen Betrieb müssen mindestens diese Werte bewusst gesetzt und geprüft sein:
 
-| Bereich                | Variablen / Prüfung                                                                                                                      |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Datenbank              | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DATABASE_URL`; Passwort und URL müssen zusammenpassen                              |
-| Redis                  | `REDIS_URL=redis://redis:6379` im Compose-Netzwerk; Redis nicht öffentlich exponieren                                                    |
-| Secrets                | `ADMIN_SECRET` stark und eindeutig pro Installation; `JWT_SECRET` weiterhin stark setzen, solange Deploy-/Operations-Vorlagen ihn führen |
-| Reverse Proxy          | `TRUST_PROXY_HOPS=1` hinter genau einem Nginx/Proxy, damit Rate-Limits echte Client-IPs sehen                                            |
-| WebSockets             | `WS_PORT=3001`, `YJS_WS_PORT=3002`, `YJS_WS_HOST=0.0.0.0`; Nginx routet `/trpc-ws` und `/yjs-ws`                                         |
-| Admin                  | `ADMIN_SESSION_TTL_SECONDS`, `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`; Login, Legal-Hold, Löschung und Export testen                              |
-| Rate-Limits            | Produktionsprofil aus `.env.production.example` übernehmen und nach realem NAT-/Proxy-Umfeld anpassen                                    |
-| Nicht in Env steuerbar | Session-Retention, BonusToken-Retention und SessionFeedback-Retention sind aktuell Code-Konstanten                                       |
+| Bereich                | Variablen / Prüfung                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Datenbank              | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DATABASE_URL`; Passwort und URL müssen zusammenpassen                                                              |
+| Redis                  | `REDIS_URL=redis://redis:6379` im Compose-Netzwerk; Redis nicht öffentlich exponieren                                                                                    |
+| Secrets                | `ADMIN_SECRET` und separates `ADMIN_DIAGNOSTIC_SECRET` stark und verschieden setzen; `JWT_SECRET` weiterhin stark setzen, solange Deploy-/Operations-Vorlagen ihn führen |
+| Reverse Proxy          | `TRUST_PROXY_HOPS=1` hinter genau einem Nginx/Proxy, damit Rate-Limits echte Client-IPs sehen                                                                            |
+| WebSockets             | `WS_PORT=3001`, `YJS_WS_PORT=3002`, `YJS_WS_HOST=0.0.0.0`; Nginx routet `/trpc-ws` und `/yjs-ws`                                                                         |
+| Admin                  | `ADMIN_SESSION_TTL_SECONDS`, `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`; Login, Legal-Hold, Löschung und Export testen                                                              |
+| Rate-Limits            | Produktionsprofil aus `.env.production.example` übernehmen und nach realem NAT-/Proxy-Umfeld anpassen                                                                    |
+| Nicht in Env steuerbar | Session-Retention, BonusToken-Retention und SessionFeedback-Retention sind aktuell Code-Konstanten                                                                       |
 
 ### Empfohlenes Profil: hochfrequentierter Betrieb
 

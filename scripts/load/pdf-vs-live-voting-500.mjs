@@ -4,7 +4,7 @@
  *
  * Voraussetzung: lokales Backend mit PostgreSQL und Redis.
  *
- * ADMIN_DIAGNOSTIC_SECRET=<ADMIN_SECRET> \
+ * ADMIN_DIAGNOSTIC_SECRET=<separates-starkes-diagnose-secret> \
  *   REPORT_FILE=output/load/pdf-vs-live-voting-500.json \
  *   npm run load:pdf-vs-voting:500
  */
@@ -221,10 +221,14 @@ async function submitVotes(session, participantIds) {
 }
 
 async function main() {
-  if (!ADMIN_DIAGNOSTIC_SECRET) {
-    throw new Error(
-      'ADMIN_DIAGNOSTIC_SECRET fehlt. Der Lasttest benötigt das ADMIN_SECRET nur für health.securityStats.',
-    );
+  if (ADMIN_DIAGNOSTIC_SECRET.length < 32) {
+    throw new Error('ADMIN_DIAGNOSTIC_SECRET fehlt oder ist zu kurz (mindestens 32 Zeichen).');
+  }
+  if (
+    process.env.ADMIN_SECRET &&
+    ADMIN_DIAGNOSTIC_SECRET === String(process.env.ADMIN_SECRET).trim()
+  ) {
+    throw new Error('ADMIN_DIAGNOSTIC_SECRET muss sich vom ADMIN_SECRET unterscheiden.');
   }
   await waitForBackend(TRPC_URL);
   const pdfSession = await createFinishedPdfSession();

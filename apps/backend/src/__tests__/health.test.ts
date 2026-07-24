@@ -59,11 +59,15 @@ vi.mock('../lib/sloTelemetry', () => ({
 vi.mock('../lib/adminAuth', () => ({
   extractAdminToken: vi.fn(() => null),
   isAdminSessionTokenValid: vi.fn(async () => false),
+}));
+
+vi.mock('../lib/diagnosticAuth', () => ({
   extractAdminDiagnosticSecret: vi.fn((req) => {
     const secret = req?.headers?.['x-admin-diagnostic-secret'];
     return typeof secret === 'string' ? secret : null;
   }),
-  verifyAdminSecret: vi.fn((secret) => secret === 'valid-diagnostic-secret'),
+  verifyAdminDiagnosticSecret: vi.fn((secret) => secret === 'valid-diagnostic-secret'),
+  consumeDiagnosticAuthFailure: vi.fn(() => true),
 }));
 
 import { pingRedis, getRedis } from '../redis';

@@ -42,14 +42,6 @@ export function extractAdminToken(req?: IncomingMessage): string | null {
   return match[1].trim();
 }
 
-/** Separater Header für den Redis-unabhängigen, read-only Diagnosepfad. */
-export function extractAdminDiagnosticSecret(req?: IncomingMessage): string | null {
-  if (!req) return null;
-  const direct = req.headers['x-admin-diagnostic-secret'];
-  if (typeof direct !== 'string' || direct.trim().length === 0) return null;
-  return direct.trim();
-}
-
 export function verifyAdminSecret(candidateSecret: string): boolean {
   const configuredSecret = getAdminSecret();
   const configured = createHash('sha256').update(configuredSecret, 'utf8').digest();

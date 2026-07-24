@@ -507,6 +507,7 @@ DATABASE_URL="postgresql://arsnova_user:<starkes-Passwort>@postgres:5432/arsnova
 REDIS_URL="redis://redis:6379"
 JWT_SECRET=<starker-zufälliger-Schlüssel>
 ADMIN_SECRET=<starker-admin-schlüssel>
+ADMIN_DIAGNOSTIC_SECRET=<separat-setzen>
 
 NODE_ENV=production
 PORT=3000
@@ -531,7 +532,11 @@ RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE=180
 RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE=120
 ```
 
-Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`, `ADMIN_SECRET` mit `openssl rand -base64 48` erzeugen. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt das Backend 8 Stunden.
+Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
+`ADMIN_SECRET` und `ADMIN_DIAGNOSTIC_SECRET` jeweils separat mit
+`openssl rand -base64 48` erzeugen. Die beiden Admin-Secrets dürfen nie
+identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
+das Backend 8 Stunden.
 
 ### 6.3 WebSocket-URLs im Frontend
 
@@ -610,7 +615,7 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 - [ ] Nginx: TLS 1.2/1.3, HSTS, Security-Headers (Referrer-Policy, Permissions-Policy)
 - [ ] Let's Encrypt Zertifikat installiert, Timer für Erneuerung aktiv
 - [ ] Docker: App-Ports nur auf 127.0.0.1 gebunden
-- [ ] Starke Passwörter, `JWT_SECRET`, `ADMIN_SECRET`; keine Defaults aus `.env.example`
+- [ ] Starke Passwörter, `JWT_SECRET`, `ADMIN_SECRET` und separates `ADMIN_DIAGNOSTIC_SECRET`; keine Defaults aus `.env.example`
 - [ ] `.env.production` entspricht `.env.production.example`; `TRUST_PROXY_HOPS=1` hinter Nginx gesetzt
 - [ ] Admin-Login, Legal-Hold, Löschung, Behördenexport, MOTD-Admin und Rekord-Reset getestet
 - [ ] Test-Session mit Host-, Present- und Teilnehmergerät inkl. tRPC-WebSocket und Yjs-Sync durchgeführt

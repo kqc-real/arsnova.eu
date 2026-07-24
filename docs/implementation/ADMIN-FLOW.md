@@ -60,6 +60,11 @@ In Produktion kommen dieselben Variablen aus `.env.production`:
 Der `ADMIN_SECRET` ist **nur** für `admin.login` gedacht.  
 Alle geschützten Admin-Prozeduren (`admin.listSessions`, `admin.getSessionDetail`, `admin.deleteSession`, `admin.exportForAuthorities`, ...) akzeptieren **nur** ein gültiges Admin-Session-Token.
 
+`health.securityStats` gehört nicht zum Admin-UI-Flow. Die read-only
+Betriebsdiagnose verwendet ausschließlich das separat rotierbare
+`ADMIN_DIAGNOSTIC_SECRET` im Header `x-admin-diagnostic-secret`.
+`ADMIN_SECRET` und Admin-Session-Tokens autorisieren diesen Diagnosepfad nicht.
+
 ### 3.2 Technischer Ablauf
 
 1. Client ruft `admin.login` mit Secret auf.

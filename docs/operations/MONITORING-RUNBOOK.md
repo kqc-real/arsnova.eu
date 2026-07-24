@@ -7,14 +7,15 @@
 
 1. In arsnova.eu den Betriebsstatus im Footer öffnen. Der Detaildialog zeigt die
    allgemeine Live-Last.
-2. Für Security-Signale das starke `ADMIN_SECRET` über den ausschließlich für
-   diese read-only Diagnose vorgesehenen Header `x-admin-diagnostic-secret`
-   senden. Dieser Pfad prüft das Secret konstantzeitig und ohne Redis. Das
-   Secret niemals als Bearer-Token oder als Befehlsargument in der
-   Shell-Historie einsetzen:
+2. Für Security-Signale das separate starke `ADMIN_DIAGNOSTIC_SECRET` über den
+   ausschließlich für diese read-only Diagnose vorgesehenen Header
+   `x-admin-diagnostic-secret` senden. Dieser Pfad prüft das Secret
+   konstantzeitig und ohne Redis. `ADMIN_SECRET` funktioniert hier ausdrücklich
+   nicht. Das Diagnose-Secret niemals als Befehlsargument in der Shell-Historie
+   einsetzen:
 
    ```bash
-   read -rsp 'ADMIN_SECRET: ' ADMIN_DIAGNOSTIC_SECRET; echo
+   read -rsp 'ADMIN_DIAGNOSTIC_SECRET: ' ADMIN_DIAGNOSTIC_SECRET; echo
    export ADMIN_DIAGNOSTIC_SECRET
    curl -fsS \
      -H "x-admin-diagnostic-secret: ${ADMIN_DIAGNOSTIC_SECRET}" \
@@ -60,6 +61,12 @@ Endpunkt während eines Redis-Incidents erreichbar.
 Rollierende Werte können wegen des Flush-Intervalls bis zu fünf Sekunden
 verzögert sein. Bei Redis-Ausfall degradieren sie auf null; deshalb immer
 zugleich `health.check.redis` und die Container-Logs prüfen.
+
+Fehlgeschlagene Diagnose-Authentifizierungen teilen pro Backend-Prozess ein
+festes Budget von 30 Versuchen je Minute. Danach antworten weitere falsche
+Credentials mit 429. Ein korrektes Diagnose-Secret wird vor diesem Gate geprüft
+und bleibt dadurch auch bei ausgeschöpftem Fehlerbudget nutzbar. Der Pfad
+erzeugt keine speziellen Auth-Fehlerlogs.
 
 ## Initiale Betriebsschwellen
 
