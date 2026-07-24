@@ -30,12 +30,35 @@ export type Context = {
 
 const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
+    const cause =
+      error.cause && typeof error.cause === 'object'
+        ? (error.cause as unknown as Record<string, unknown>)
+        : null;
+    const retryAfterSeconds = cause?.['retryAfterSeconds'];
+    const safeRetryAfterSeconds =
+      error.code === 'TOO_MANY_REQUESTS' &&
+      typeof retryAfterSeconds === 'number' &&
+      Number.isFinite(retryAfterSeconds) &&
+      retryAfterSeconds > 0
+        ? Math.ceil(retryAfterSeconds)
+        : null;
+    const formattedShape =
+      safeRetryAfterSeconds === null
+        ? shape
+        : {
+            ...shape,
+            data: {
+              ...shape.data,
+              retryAfterSeconds: safeRetryAfterSeconds,
+            },
+          };
+
     if (error.code !== 'PAYLOAD_TOO_LARGE') {
-      return shape;
+      return formattedShape;
     }
 
     return {
-      ...shape,
+      ...formattedShape,
       message: `Die Anfrage ist zu groß. Maximal ${TRPC_MAX_BODY_SIZE_LABEL} sind erlaubt.`,
     };
   },

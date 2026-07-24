@@ -43,17 +43,13 @@ function extractRetryAfterSeconds(error: unknown): number | null {
   const root = asRecord(error);
   if (!root) return null;
 
-  const directCause = asRecord(root['cause']);
   const rootData = asRecord(root['data']);
-  const dataCause = asRecord(rootData?.['cause']);
   const shape = asRecord(root['shape']);
   const shapeData = asRecord(shape?.['data']);
-  const shapeCause = asRecord(shapeData?.['cause']);
 
   return (
-    readRetryAfterSeconds(directCause?.['retryAfterSeconds']) ??
-    readRetryAfterSeconds(dataCause?.['retryAfterSeconds']) ??
-    readRetryAfterSeconds(shapeCause?.['retryAfterSeconds']) ??
+    readRetryAfterSeconds(rootData?.['retryAfterSeconds']) ??
+    readRetryAfterSeconds(shapeData?.['retryAfterSeconds']) ??
     null
   );
 }
