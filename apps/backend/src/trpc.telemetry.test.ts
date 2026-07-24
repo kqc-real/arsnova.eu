@@ -4,7 +4,7 @@ import { TRPCError } from '@trpc/server';
 const mocks = vi.hoisted(() => ({
   recordRateLimitRejection: vi.fn(),
   recordSessionCreateCompleted: vi.fn(),
-  warn: vi.fn(),
+  logRateLimitRejection: vi.fn(),
 }));
 
 vi.mock('./lib/sloTelemetry', () => ({
@@ -13,14 +13,9 @@ vi.mock('./lib/sloTelemetry', () => ({
 }));
 
 vi.mock('./lib/abuseTelemetry', () => ({
+  logRateLimitRejection: mocks.logRateLimitRejection,
   recordRateLimitRejection: mocks.recordRateLimitRejection,
   recordSessionCreateCompleted: mocks.recordSessionCreateCompleted,
-}));
-
-vi.mock('./lib/logger', () => ({
-  logger: {
-    warn: mocks.warn,
-  },
 }));
 
 import { publicProcedure, router } from './trpc';
@@ -80,8 +75,7 @@ describe('zentrale Security-Telemetrie', () => {
     await expect(call()).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
 
     expect(mocks.recordRateLimitRejection).toHaveBeenCalledWith(category);
-    expect(mocks.warn).toHaveBeenCalledWith(
-      'rate_limit_429',
+    expect(mocks.logRateLimitRejection).toHaveBeenCalledWith(
       expect.objectContaining({ path, category }),
     );
   });

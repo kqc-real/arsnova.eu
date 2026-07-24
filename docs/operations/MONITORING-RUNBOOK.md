@@ -31,8 +31,11 @@
      | rg 'rate_limit_429|pdf:'
    ```
 
-`health.stats` enthält rollierende 60-Sekunden-Zähler in Redis. Aktive PDF-Jobs
-und tRPC-WebSocket-Verbindungen werden bei jeder Antwort frisch aus dem
+`health.stats` enthält rollierende 60-Sekunden-Zähler in Redis. Der vollständige
+Rand-Bucket wird konservativ mitgezählt, damit kein weniger als 60 Sekunden
+altes Ereignis fehlt; dadurch kann die Anzeige höchstens einen
+10-Sekunden-Bucket zu früh warnen. Aktive PDF-Jobs und
+tRPC-WebSocket-Verbindungen werden bei jeder Antwort frisch aus dem
 Backend-Prozess gelesen. Ein Redis-Ausfall lässt die rollierenden Werte
 kontrolliert auf null degradieren; deshalb immer zugleich `health.check.redis`
 und die Container-Logs prüfen.
@@ -64,7 +67,10 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
 
 - `rateLimit429ByCategoryLastMinute` bestimmt den betroffenen Pfadtyp.
 - `rate_limit_429` in den App-Logs enthält Procedure, Kategorie und die vom
-  Backend ermittelte IP-Quelle.
+  Backend ermittelte IP-Quelle. Das Ereignis wird pro Kategorie höchstens
+  einmal in zehn Sekunden ausgegeben; `suppressedSinceLastLog` nennt die seit
+  der vorherigen Ausgabe zusammengefassten Ablehnungen. Die Redis-Zähler
+  erfassen weiterhin jede Ablehnung.
 - Bei `sessionCreate`: erfolgreiche Create-Rate und 429 gemeinsam bewerten.
   Hohe Create-Rate ohne 429 kann verteilten Missbrauch anzeigen.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge

@@ -16,9 +16,11 @@ vi.mock('./logger', () => ({
 }));
 
 import {
+  logRateLimitRejection,
   readAbuseSignals,
   recordRateLimitRejection,
   recordSessionCreateCompleted,
+  resetAbuseTelemetryForTests,
 } from './abuseTelemetry';
 
 function createMulti(execResult: unknown = []) {
@@ -34,6 +36,7 @@ describe('abuseTelemetry', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv('NODE_ENV', 'development');
+    resetAbuseTelemetryForTests();
   });
 
   afterEach(() => {
@@ -52,19 +55,21 @@ describe('abuseTelemetry', () => {
     expect(multi.expire).toHaveBeenCalledWith('security:metric:sessionCreateCompleted:2', 120);
   });
 
-  it('aggregiert Create- und 429-Signale über eine Minute', async () => {
-    const values = Array.from({ length: 42 }, () => [null, '0']);
+  it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
+    const values = Array.from({ length: 49 }, () => [null, '0']);
     // Reihenfolge je Bucket: create, sessionCreate, sessionCode, vote, pdf, motd, other.
     values[0] = [null, '3'];
     values[1] = [null, '2'];
     values[3] = [null, '4'];
     values[35] = [null, '1'];
     values[39] = [null, '5'];
+    // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
+    values[42] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
     await expect(readAbuseSignals(60_000)).resolves.toEqual({
-      sessionCreatesLastMinute: 4,
+      sessionCreatesLastMinute: 6,
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
         sessionCreate: 2,
@@ -75,7 +80,31 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(42);
+    expect(multi.get).toHaveBeenCalledTimes(49);
+  });
+
+  it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
+    const details = {
+      path: 'vote.submit',
+      category: 'vote' as const,
+      clientIp: '203.0.113.5',
+      ipSource: 'socket',
+    };
+
+    logRateLimitRejection(details, 1_000);
+    logRateLimitRejection(details, 2_000);
+    logRateLimitRejection(details, 3_000);
+    logRateLimitRejection(details, 11_000);
+
+    expect(mocks.warn).toHaveBeenCalledTimes(2);
+    expect(mocks.warn).toHaveBeenNthCalledWith(1, 'rate_limit_429', {
+      ...details,
+      suppressedSinceLastLog: 0,
+    });
+    expect(mocks.warn).toHaveBeenNthCalledWith(2, 'rate_limit_429', {
+      ...details,
+      suppressedSinceLastLog: 2,
+    });
   });
 
   it('degradiert bei Redis-Ausfall ohne Request- oder Health-Pfade zu werfen', async () => {

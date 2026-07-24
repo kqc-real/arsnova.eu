@@ -8,11 +8,11 @@ import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/host
 import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
 import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
 import {
+  logRateLimitRejection,
   recordRateLimitRejection,
   recordSessionCreateCompleted,
   type RateLimitCategory,
 } from './lib/abuseTelemetry';
-import { logger } from './lib/logger';
 
 export type Context = {
   req?: IncomingMessage;
@@ -58,7 +58,7 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
     if (errorCode === 'TOO_MANY_REQUESTS') {
       const category = classifyRateLimitPath(path);
       const resolved = resolveClientIp(ctx.req);
-      logger.warn('rate_limit_429', {
+      logRateLimitRejection({
         path,
         category,
         clientIp: resolved.ip,

@@ -3,8 +3,12 @@ import { logger } from './logger';
 
 const BUCKET_SECONDS = 10;
 const WINDOW_SECONDS = 60;
-const WINDOW_BUCKETS = WINDOW_SECONDS / BUCKET_SECONDS;
+// Ein zusätzlicher Rand-Bucket verhindert, dass Ereignisse unter 60 Sekunden
+// am Bucket-Anfang verschwinden. Die Anzeige überzählt dadurch konservativ um
+// höchstens einen 10-Sekunden-Bucket, statt Security-Schwellen zu unterschätzen.
+const WINDOW_BUCKETS = WINDOW_SECONDS / BUCKET_SECONDS + 1;
 const BUCKET_TTL_SECONDS = WINDOW_SECONDS * 2;
+const RATE_LIMIT_LOG_INTERVAL_MS = 10_000;
 
 export type RateLimitCategory = 'sessionCreate' | 'sessionCode' | 'vote' | 'pdf' | 'motd' | 'other';
 
@@ -27,6 +31,10 @@ const RATE_LIMIT_CATEGORIES: RateLimitCategory[] = [
 
 let recordWarned = false;
 let readWarned = false;
+const rateLimitLogStates = new Map<
+  RateLimitCategory,
+  { lastLoggedAtMs: number; suppressedSinceLastLog: number }
+>();
 
 function currentBucket(nowMs: number): number {
   return Math.floor(nowMs / (BUCKET_SECONDS * 1000));
@@ -70,6 +78,35 @@ export function recordRateLimitRejection(
   nowMs: number = Date.now(),
 ): Promise<void> {
   return recordCounter(`rateLimit429:${category}`, nowMs);
+}
+
+export function logRateLimitRejection(
+  details: {
+    path: string;
+    category: RateLimitCategory;
+    clientIp: string;
+    ipSource: string;
+  },
+  nowMs: number = Date.now(),
+): void {
+  const previous = rateLimitLogStates.get(details.category);
+  if (previous && nowMs - previous.lastLoggedAtMs < RATE_LIMIT_LOG_INTERVAL_MS) {
+    previous.suppressedSinceLastLog += 1;
+    return;
+  }
+
+  logger.warn('rate_limit_429', {
+    ...details,
+    suppressedSinceLastLog: previous?.suppressedSinceLastLog ?? 0,
+  });
+  rateLimitLogStates.set(details.category, {
+    lastLoggedAtMs: nowMs,
+    suppressedSinceLastLog: 0,
+  });
+}
+
+export function resetAbuseTelemetryForTests(): void {
+  rateLimitLogStates.clear();
 }
 
 export async function readAbuseSignals(nowMs: number = Date.now()): Promise<AbuseSignals> {
