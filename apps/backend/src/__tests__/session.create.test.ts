@@ -1,3 +1,4 @@
+import type { IncomingMessage } from 'node:http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -399,5 +400,24 @@ describe('session.create (Story 2.1a)', () => {
     expect(result.sessionId).toBe(SESSION_ID);
     expect(checkSessionCreateRateMock).not.toHaveBeenCalled();
     expect(prismaMock.session.create).toHaveBeenCalled();
+  });
+
+  it('verwendet für den Rate-Limit-Bucket nur Express req.ip', async () => {
+    const req = {
+      headers: {
+        'cf-connecting-ip': '203.0.113.1',
+        'true-client-ip': '203.0.113.2',
+        'x-forwarded-for': '203.0.113.3',
+        'x-real-ip': '203.0.113.4',
+      },
+      ip: '198.51.100.77',
+      socket: { remoteAddress: '127.0.0.1' },
+    } as unknown as IncomingMessage;
+    const trustedIpCaller = sessionRouter.createCaller({ req });
+
+    await trustedIpCaller.create({ quizId: QUIZ_ID });
+
+    expect(shouldBypassSessionCreateRateMock).toHaveBeenCalledWith('198.51.100.77');
+    expect(checkSessionCreateRateMock).toHaveBeenCalledWith('198.51.100.77');
   });
 });

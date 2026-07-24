@@ -39,16 +39,16 @@ Die App **ersetzt keine** organisationsweite IAM- oder VPN-Lösung.
 
 ## 4. Missbrauch & Last (Rate-Limiting)
 
-Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Hinter Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit `x-forwarded-for` / `x-real-ip` korrekt ausgewertet werden und nicht alle Clients im Proxy-Bucket landen.
+Redis-basierte Limits u. a. für Session-Code-Fehlversuche und Session-Erstellung **pro IP**, Votes **pro Teilnehmenden-ID** sowie die **MOTD-Öffentliche-API pro IP** — konfigurierbar über Env ([ENVIRONMENT.md](ENVIRONMENT.md), `rateLimit.ts`). Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden nie direkt ausgewertet. Hinter genau einem Nginx muss `TRUST_PROXY_HOPS=1` gesetzt sein, damit Express den vom vertrauenswürdigen Proxy überschriebenen `X-Forwarded-For`-Wert berücksichtigt und nicht alle Clients im Proxy-Bucket landen. Der separate tRPC-WebSocket-Server verwendet für Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
-Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Die Redis-Keys stammen
-ausschließlich aus Express' gemäß `TRUST_PROXY_HOPS` berechnetem `req.ip`;
-gefälschte CF-/True-Client-/XFF-Header ändern den Bucket nicht. Alle Budgets
-werden atomar geprüft; ein ausgeschöpftes Globalbudget erzeugt keine weiteren
-IP-Rate-Limit-Keys. Session-gebundenes `quickFeedback.create` wird zuerst als
-Host-Aktion autorisiert und danach ausschließlich pro Session begrenzt.
-Teilnehmendenpfade und saalweite NAT-IPs werden dadurch nicht gesperrt.
+Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header
+ändern weder dort noch bei Session-Create, Session-Code- oder MOTD-Buckets die
+IP. Alle Budgets werden atomar geprüft; ein ausgeschöpftes Globalbudget erzeugt
+keine weiteren IP-Rate-Limit-Keys. Session-gebundenes `quickFeedback.create`
+wird zuerst als Host-Aktion autorisiert und danach ausschließlich pro Session
+begrenzt. Der noch IP-basierte Session-Code-Lockout wird in W1.5 separat
+NAT-tauglich ersetzt; W1.4 verschärft seine Schwellen nicht.
 
 HTTP-Anfragen und WebSocket-Nachrichten an tRPC sind im Backend auf **2 MiB** begrenzt; Nginx setzt für HTTP davor ein **8-MiB-Infrastruktur-Hard-Cap**. HTTP-Requests oberhalb des Anwendungslimits werden dadurch regulär von tRPC mit HTTP **413** und dem auch für Batch-Requests passenden Code `PAYLOAD_TOO_LARGE` abgewiesen; übergroße WebSocket-Nachrichten schließen mit Code `1009`, bevor ein Resolver ausgeführt wird. Das schützt insbesondere öffentliche Create-/Quiz-Upload-Pfade; fachliche Array- und Feldgrenzen bleiben zusätzlich erforderlich.
 

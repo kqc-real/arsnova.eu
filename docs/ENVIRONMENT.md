@@ -171,7 +171,7 @@ Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schu
 
 Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Code-Defaults (wenn Variablen fehlen) bleiben weiterhin konservativ (z. B. `RATE_LIMIT_SESSION_CREATE_PER_HOUR=10`).
 
-Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Quiz- und Standalone-Blitzlicht-Keys verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe CF-/True-Client-/XFF-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt deshalb `X-Forwarded-For` mit `$remote_addr`. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen.
+Alle IP-basierten Backend-Entscheidungen verwenden ausschließlich das von Express gemäß `TRUST_PROXY_HOPS` abgeleitete `req.ip`; rohe `CF-Connecting-IP`-, `True-Client-IP`-, `X-Forwarded-For`- und `X-Real-IP`-Header werden ignoriert. Der dokumentierte Einzel-Nginx überschreibt `X-Forwarded-For` mit `$remote_addr`; `TRUST_PROXY_HOPS=1` lässt Express genau diesem Hop vertrauen. Der separate tRPC-WebSocket-Server ergänzt Upgrade-Requests mit derselben `proxy-addr`-/Hop-Vertrauensfunktion. Ohne konfigurierten Proxy-Hop wird auch dort ausschließlich die direkte Socket-Adresse verwendet. Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprüft. Das verhindert Parallelitäts-Bypässe; nach ausgeschöpftem Globalbudget entstehen keine weiteren IP-Keys. Die hohen IP-Schwellen sind nur ein grobes Zusatzsignal für Shared-NAT. Das Globalbudget ist der verteilte Notanker und kann bei einer gezielten verteilten Welle legitime Creates vorübergehend ablehnen; Join, Vote, Q&A und Blitzlicht-Votes sind davon nicht betroffen. Der Session-Code-Lockout bleibt bis W1.5 unverändert; W1.4 erhöht oder verschärft keine Teilnehmer-IP-Schwelle.
 
 ---
 
@@ -193,9 +193,9 @@ Die Public-Create-Budgets werden in einem atomaren Redis-Skript gemeinsam geprü
 1. **Backend-Log suchen**: zentrales `rate_limit_429` mit Kategorie `motd`
    (gesampelt, ohne Client-IP).
 2. **IP-Quelle prüfen (`ipSource`)**:
-   - `x-forwarded-for` / `x-real-ip`: Reverse-Proxy liefert Client-IP mit.
-   - `express-req-ip`: Express hat bereits eine IP entschieden (nur korrekt, wenn Proxy-Setup passt).
-   - `socket`: direkte Verbindung, kein Proxy-Header.
+   - `express-req-ip`: Express hat anhand des konfigurierten Trust-Proxy-Modells entschieden.
+   - `socket`: kein Express-IP-Kontext; direkte Socket-Adresse als Fallback.
+   - `missing-req`: kein Request bzw. keine Socket-Adresse verfügbar.
 3. **Wenn alle Clients in einen Bucket fallen**:
    - `TRUST_PROXY_HOPS=1` setzen (typisch hinter Nginx) und Backend neu starten.
 4. **Wenn es ein Trigger-/Loop-Problem im Client ist**:
