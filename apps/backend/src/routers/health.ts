@@ -22,6 +22,8 @@ import {
   getActiveParticipantCountsForSessions,
 } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
+import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
+import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import type { ServerStatsDTO, FooterStatusDTO } from '@arsnova/shared-types';
 
@@ -336,6 +338,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       platformRow,
       dailyHighscoreRows,
       loadSignals,
+      pdfSignals,
       sloSignals,
     ] = await Promise.all([
       prisma.session.count({ where: activeSessionWhere }),
@@ -348,6 +351,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       platformStatisticPromise,
       dailyHighscoreRowsPromise,
       readLoadSignals(),
+      readPdfSignals(),
       readSloSignals(),
     ]);
     const openSessionIds = activeSessionIds.map((session) => session.id);
@@ -383,6 +387,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     const dailyHighscoresStatistics = calculateDailyHighscoresStatistics(
       dailyHighscoreStatisticsEntries,
     );
+    const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
     return {
       openSessions,
       activeSessions,
@@ -390,6 +395,11 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       votesLastMinute: loadSignals.votesLastMinute,
       sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
       activeCountdownSessions: loadSignals.activeCountdownSessions,
+      pdfActiveJobs: pdfConcurrency.activeJobs,
+      pdfMaxConcurrentJobs: pdfConcurrency.maxConcurrentJobs,
+      pdfCompletedLastMinute: pdfSignals.completedLastMinute,
+      pdfFailedLastMinute: pdfSignals.failedLastMinute,
+      pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
       completedSessions: completedSessionsTotal,
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
@@ -404,6 +414,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     };
   } catch {
     const emptyHighscores = buildDailyHighscores([]);
+    const pdfConcurrency = pdfConcurrencyLimiter.snapshot();
     return {
       openSessions: 0,
       activeSessions: 0,
@@ -411,6 +422,11 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       votesLastMinute: 0,
       sessionTransitionsLastMinute: 0,
       activeCountdownSessions: 0,
+      pdfActiveJobs: pdfConcurrency.activeJobs,
+      pdfMaxConcurrentJobs: pdfConcurrency.maxConcurrentJobs,
+      pdfCompletedLastMinute: 0,
+      pdfFailedLastMinute: 0,
+      pdfRejectedLastMinute: 0,
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
@@ -423,16 +439,25 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
   }
 }
 
+function withCurrentPdfConcurrency(stats: ServerStatsDTO): ServerStatsDTO {
+  const snapshot = pdfConcurrencyLimiter.snapshot();
+  return {
+    ...stats,
+    pdfActiveJobs: snapshot.activeJobs,
+    pdfMaxConcurrentJobs: snapshot.maxConcurrentJobs,
+  };
+}
+
 async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<ServerStatsDTO> {
   const forceFresh = options?.forceFresh === true;
   const now = Date.now();
 
   if (!forceFresh && cachedServerStats && cachedServerStats.expiresAt > now) {
-    return cachedServerStats.value;
+    return withCurrentPdfConcurrency(cachedServerStats.value);
   }
 
   if (!forceFresh && serverStatsInFlight) {
-    return serverStatsInFlight;
+    return serverStatsInFlight.then(withCurrentPdfConcurrency);
   }
 
   const request = computeServerStats().then((stats) => {
@@ -445,7 +470,7 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
 
   serverStatsInFlight = request;
   try {
-    return await request;
+    return withCurrentPdfConcurrency(await request);
   } finally {
     if (serverStatsInFlight === request) {
       serverStatsInFlight = null;

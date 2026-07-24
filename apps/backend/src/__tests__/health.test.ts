@@ -37,6 +37,11 @@ vi.mock('../lib/loadSignal', () => ({
   readLoadSignals: vi.fn(),
 }));
 
+vi.mock('../lib/pdfTelemetry', () => ({
+  readPdfSignals: vi.fn(),
+  recordPdfJobOutcome: vi.fn(),
+}));
+
 vi.mock('../lib/sloTelemetry', () => ({
   readSloSignals: vi.fn(),
   isTrackedLiveProcedure: vi.fn(() => false),
@@ -49,10 +54,19 @@ import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
 import { countActiveParticipantsForSessions } from '../lib/presence';
 import { getActiveParticipantCountsForSessions } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
+import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
 const caller = healthRouter.createCaller({ req: undefined });
+
+beforeEach(() => {
+  vi.mocked(readPdfSignals).mockResolvedValue({
+    completedLastMinute: 0,
+    failedLastMinute: 0,
+    rejectedLastMinute: 0,
+  });
+});
 
 describe('health.check', () => {
   beforeEach(() => {
@@ -185,6 +199,11 @@ describe('health.stats', () => {
     expect(result.votesLastMinute).toBe(0);
     expect(result.sessionTransitionsLastMinute).toBe(0);
     expect(result.activeCountdownSessions).toBe(0);
+    expect(result.pdfActiveJobs).toBe(0);
+    expect(result.pdfMaxConcurrentJobs).toBe(1);
+    expect(result.pdfCompletedLastMinute).toBe(0);
+    expect(result.pdfFailedLastMinute).toBe(0);
+    expect(result.pdfRejectedLastMinute).toBe(0);
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
     expect(result.dailyHighscores).toHaveLength(100);
@@ -199,6 +218,26 @@ describe('health.stats', () => {
     expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
     expect(result.serviceStatus).toBe('stable');
     expect(result.loadStatus).toBe('healthy');
+  });
+
+  it('exponiert rollierende PDF-Ergebnis- und Ablehnungsmetriken', async () => {
+    vi.mocked(prisma.session.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+    vi.mocked(readPdfSignals).mockResolvedValue({
+      completedLastMinute: 7,
+      failedLastMinute: 1,
+      rejectedLastMinute: 3,
+    });
+
+    const result = await caller.stats(undefined);
+
+    expect(result).toMatchObject({
+      pdfActiveJobs: 0,
+      pdfMaxConcurrentJobs: 1,
+      pdfCompletedLastMinute: 7,
+      pdfFailedLastMinute: 1,
+      pdfRejectedLastMinute: 3,
+    });
   });
 
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {
@@ -388,6 +427,11 @@ describe('health.stats', () => {
         'votesLastMinute',
         'sessionTransitionsLastMinute',
         'activeCountdownSessions',
+        'pdfActiveJobs',
+        'pdfMaxConcurrentJobs',
+        'pdfCompletedLastMinute',
+        'pdfFailedLastMinute',
+        'pdfRejectedLastMinute',
         'completedSessions',
         'activeBlitzRounds',
         'maxParticipantsSingleSession',

@@ -2980,6 +2980,16 @@ export const ServerStatsDTOSchema = z.object({
   sessionTransitionsLastMinute: z.number(),
   /** Sessions mit aktivem Countdown im aktuellen Zeitfenster. */
   activeCountdownSessions: z.number(),
+  /** Momentan aktive serverseitige Playwright-PDF-Jobs. */
+  pdfActiveJobs: z.number().int().min(0),
+  /** Hartes Parallelitätslimit für serverseitige Playwright-PDF-Jobs. */
+  pdfMaxConcurrentJobs: z.number().int().min(1),
+  /** Erfolgreich abgeschlossene Playwright-PDF-Jobs der letzten Minute. */
+  pdfCompletedLastMinute: z.number().int().min(0),
+  /** Fehlgeschlagene Playwright-PDF-Jobs der letzten Minute. */
+  pdfFailedLastMinute: z.number().int().min(0),
+  /** Wegen ausgeschöpfter Parallelität abgelehnte PDF-Jobs der letzten Minute. */
+  pdfRejectedLastMinute: z.number().int().min(0),
   /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),
