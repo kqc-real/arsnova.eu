@@ -3057,6 +3057,16 @@ export const HealthSecurityStatsDTOSchema = z.object({
   sessionCreatesLastMinute: z.number().int().min(0),
   /** Fehlgeschlagene oder vor dem Secret-Vergleich gedrosselte Admin-Logins. */
   adminLoginFailuresLastMinute: z.number().int().min(0),
+  /** CSP-Report-Requests der letzten Minute (nur aggregiert, ohne Rohdaten/PII). */
+  cspReportsReceivedLastMinute: z.number().int().min(0),
+  /** Verworfen wegen ungültiger Form, Kardinalitätscap oder Redis-Fallback. */
+  cspReportsDroppedLastMinute: z.number().int().min(0),
+  /** Regulär am Redis-gestützten globalen/IP-Budget abgelehnte CSP-Reports. */
+  cspReportsRateLimitedLastMinute: z.number().int().min(0),
+  /** Minimierte CSP-Verstöße der Kategorie `eval`. */
+  cspReportsEvalLastMinute: z.number().int().min(0),
+  /** Script-Verstöße gegen externe HTTPS-Quellen. */
+  cspReportsScriptHttpsLastMinute: z.number().int().min(0),
   /** Alle tRPC-Ablehnungen mit HTTP 429 der letzten Minute. */
   rateLimit429LastMinute: z.number().int().min(0),
   /** 429-Ablehnungen der letzten Minute nach öffentlichem Pfadtyp. */

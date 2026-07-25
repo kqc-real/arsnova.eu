@@ -153,6 +153,20 @@ und On-Call-Maßnahmen sind im
 [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md)
 dokumentiert; automatische Auswertung und Alarmierung bleiben W3.7.
 
+W2.4a ergänzt als enge Browser-Reporting-Ausnahme `POST /csp-report`.
+Der Endpunkt akzeptiert zwei CSP-Medientypen, begrenzt den Raw Body vor
+`JSON.parse` auf 32 KiB und verwirft malformed oder überkomplexe Payloads ohne
+Fehleroracle. Eine Feld-Allowlist schließt insbesondere `script-sample`,
+`sample`, Referrer, Original-Policy, User-Agent und unbekannte Felder aus.
+HTTP(S)-URLs werden vor jeder Aggregation auf Origin und Pfad ohne
+Query/Fragment/Userinfo minimiert; besondere Schemes werden statisch
+kategorisiert. Redis sieht ausschließlich HMAC-Digests und feste Keys.
+Globales und grobes trusted-`req.ip`-Budget werden atomar global-first gebucht,
+damit ein volles Globalbudget keine neuen IP-/Dimensionskeys erzeugt. Bei
+Redis-Ausfall gilt ein hartes lokales Drop-Cap; Rohreports werden weder
+persistiert noch geloggt. Diagnoseaggregate bleiben ausschließlich über
+`health.securityStats` zugänglich.
+
 Builder und Produktionscontainer verwenden **Node.js 24 LTS** (`node:24-alpine`). `.nvmrc` pinnt die lokal empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI und Produktionsimage entfernt.
 
 Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-NODE-24-ABNAHME.md](implementation/W0.3-W1.1-NODE-24-ABNAHME.md) dokumentiert.
@@ -175,6 +189,7 @@ Ressourcen-/Egress-Grenzen bleiben W2.1b. Abnahme und Rollback:
 - **Bonus-Tokens:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Session-Feedback:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Blitzlicht / Quick Feedback:** Nur Redis, TTL **30 Minuten** — kein langfristiges PII dort ([apps/backend/src/routers/quickFeedback.ts](../apps/backend/src/routers/quickFeedback.ts)).
+- **CSP-Report-Aggregate:** Nur Redis, standardmäßig höchstens **7 Tage**; maximal 256 HMAC-gehashte Dimensionen je 10-s-Bucket. Keine Rohreports, Roh-URLs oder IP-Adressen werden gespeichert.
 - **Verwaiste Quiz-Uploads:** Der stündliche Scheduler löscht nach **24 Stunden Grace Period** höchstens 13 atomare Batches zu je 100 Uploadkopien. Geschützt bleiben Quizzes mit eigener Sessionrelation sowie höchstens **5** neueste sessionlose Kopien je `historyScopeId` mit Session-Anker; ältere Scope-Geschwister, scopelose Orphans und Scopes ohne Session werden gelöscht. Die Keep-Set-Prüfung ist auf fünf neuere Zeilen begrenzt und nutzt `(historyScopeId, createdAt, id)`. `FOR UPDATE SKIP LOCKED` und serialisierbare Transaktionen verhindern Starvation und den Wettlauf mit `session.create`/Attach.
 
 Aggregierte **Server-Statistiken** (`health.footerBundle`, `health.stats`) ohne Einzelpersonenbezug: aktive/abgeschlossene Sessions, Teilnehmende in aktiven Sessions, Blitz-Runden, Service-/Laststatus, Allzeit-Rekord `maxParticipantsSingleSession` aus **`PlatformStatistic`** und Tagesrekorde aus **`DailyStatistic`**.
@@ -189,6 +204,11 @@ höchstens 14 Tage), längere Sicherung nur dokumentiert für konkrete Incidents
 ## 6. Transport & Infrastruktur (Grenzen der App)
 
 TLS-Terminierung, Firewall, Secret-Management auf dem Server und Härtung des Host-Systems sind **Betriebssache** — siehe [deployment-debian-root-server.md](deployment-debian-root-server.md), Docker-/Compose-Vorlagen.
+
+W2.4a liefert absichtlich noch keinen CSP- oder
+`Content-Security-Policy-Report-Only`-Header aus. Die Policy-Aktivierung folgt
+als W2.4b erst nach Deployment und Endpoint-Smoke; dadurch kann der
+Report-Ingest selbst keine CSP-Report-Rekursion auslösen.
 
 Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 

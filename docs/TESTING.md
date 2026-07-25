@@ -145,6 +145,26 @@ npm run verify:production-serving
 docker compose -f docker-compose.prod.yml --env-file .env.production config
 ```
 
+Für W2.4a zusätzlich:
+
+```bash
+npm test -w @arsnova/backend -- --run \
+  src/lib/cspReportIngest.test.ts \
+  src/__tests__/health.test.ts
+npm test -w @arsnova/shared-types -- --run \
+  src/health-security-stats.test.ts
+RUN_REDIS_CSP_REPORT_TESTS=1 npm test -w @arsnova/backend -- --run \
+  src/lib/cspReportIngest.redis.test.ts
+curl -i -X POST http://127.0.0.1:3000/csp-report \
+  -H 'Content-Type: application/csp-report' \
+  --data '{"csp-report":{"effective-directive":"script-src","blocked-uri":"eval"}}'
+```
+
+Der Redis-Test prüft konkurrierendes global-first Rate-Limiting, dass nach
+vollem Globalbudget keine neuen IP-Keys entstehen, sowie das atomare
+256-Dimensionscap und TTLs. Der HTTP-Smoke muss `204` ohne Body und ohne
+CSP-/Report-Only-Header liefern. Policy-Aktivierung gehört nicht zu W2.4a.
+
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.
 
 Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgres/Redis starten → Prisma migrate deploy → App starten → Healthcheck**. Der Deploy ist erst erfolgreich, wenn der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet und die Frontend-Shell unter `/de/` ausgeliefert wird. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
