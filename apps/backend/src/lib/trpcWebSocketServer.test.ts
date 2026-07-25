@@ -138,8 +138,8 @@ afterEach(async () => {
 describe('resolveTrpcWebSocketConfig', () => {
   it('verwendet 500er-taugliche Defaults und begrenzt Env-Werte statisch', () => {
     expect(resolveTrpcWebSocketConfig({})).toMatchObject({
-      maxConnections: 1_000,
-      maxConnectionsPerSession: 1_000,
+      maxConnections: 1_200,
+      maxConnectionsPerSession: 1_100,
       maxConnectionsPerParticipant: 2,
       maxUpgradesPerMinute: 3_000,
       maxMessagesPerWindow: 120,
@@ -183,7 +183,7 @@ describe('TrpcWebSocketServer', () => {
     await waitForResolverInvocations(2);
     expect(getWebSocketTelemetrySnapshot()).toMatchObject({
       trpcBoundConnectionsActive: 1,
-      trpcSessionConnectionLimit: 1_000,
+      trpcSessionConnectionLimit: 1_100,
       trpcParticipantConnectionLimit: 2,
     });
   });

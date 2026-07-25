@@ -233,6 +233,52 @@ describe('trpc.client host transport', () => {
     reboundSubscription.unsubscribe();
   });
 
+  it('löst den Binding-Refresh auf, wenn die letzte Subscription während Reconnect endet', async () => {
+    await loadClientModule('/de/session/aaa111/vote', () => {
+      globalThis.window.localStorage.setItem(
+        'arsnova-participant-BBB222',
+        '22222222-2222-4222-8222-222222222222',
+      );
+    });
+    const splitOptions = splitLinkMock.mock.calls[0]?.[0] as {
+      condition: (op: { type: string }) => boolean;
+      true: (runtime: unknown) => (input: unknown) => {
+        subscribe(observer: unknown): { unsubscribe(): void };
+      };
+    };
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+      connectionParams: () => Record<string, string> | null;
+    };
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    const link = splitOptions.true({});
+    const activeSubscription = link({
+      op: { id: 1, type: 'subscription', path: 'session.onStatusChanged' },
+      next: vi.fn(),
+    }).subscribe({});
+    await vi.waitFor(() => expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(1));
+
+    globalThis.window.history.replaceState({}, '', '/de/session/bbb222/vote');
+    pauseReconnect = true;
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    const nextSubscription = link({
+      op: { id: 2, type: 'subscription', path: 'session.onStatusChanged' },
+      next: vi.fn(),
+    }).subscribe({});
+    await vi.waitFor(() => expect(wsTransportCloseMock).toHaveBeenCalledTimes(1));
+    expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(1);
+
+    activeSubscription.unsubscribe();
+    emitConnectionState('idle');
+
+    await vi.waitFor(() => expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(2));
+    expect(wsOptions.connectionParams()).toEqual({
+      sessionCode: 'BBB222',
+      participantId: '22222222-2222-4222-8222-222222222222',
+    });
+    expect(wsClientCloseMock).not.toHaveBeenCalled();
+    nextSubscription.unsubscribe();
+  });
+
   it('erhält eine aktive Subscription nach Participant-Binding-Wechsel', async () => {
     const { refreshTrpcWsBinding } = await loadClientModule('/session/abc123/vote');
     const splitOptions = splitLinkMock.mock.calls[0]?.[0] as {

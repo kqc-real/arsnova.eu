@@ -258,11 +258,19 @@ function reconnectWsForBindingChange(): Promise<void> {
   if (connection.state === 'connecting') {
     return new Promise<void>((resolve) => {
       let subscription: { unsubscribe(): void } | null = null;
+      let transitionScheduled = false;
       subscription = wsClient.connectionState.subscribe({
         next(state) {
-          if (state.state !== 'pending' && state.state !== 'idle') return;
+          if (transitionScheduled || (state.state !== 'pending' && state.state !== 'idle')) {
+            return;
+          }
+          transitionScheduled = true;
           queueMicrotask(() => {
             subscription?.unsubscribe();
+            if (state.state === 'idle') {
+              resolve();
+              return;
+            }
             void reconnectWsForBindingChange().then(resolve);
           });
         },
@@ -285,6 +293,10 @@ function reconnectWsForBindingChange(): Promise<void> {
 
     stateSubscription = wsClient.connectionState.subscribe({
       next(state) {
+        if (closeObserved && state.state === 'idle') {
+          finish();
+          return;
+        }
         if (
           closeObserved &&
           state.state === 'pending' &&
