@@ -203,12 +203,13 @@ function truncateUtf8(value: string, maximumBytes: number): string {
  */
 function hasBoundedJsonShape(raw: unknown): boolean {
   if (!Buffer.isBuffer(raw)) return false;
+  const bytes = Buffer.from(raw);
   const containers: Array<{ kind: 'array' | 'object'; commas: number }> = [];
   let inString = false;
   let escaped = false;
   let stringStart = 0;
-  for (let index = 0; index < raw.length; index += 1) {
-    const byte = raw[index]!;
+  for (let index = 0; index < bytes.length; index += 1) {
+    const byte = bytes[index]!;
     if (inString) {
       if (escaped) {
         escaped = false;
@@ -360,12 +361,17 @@ function minimizeReport(
 
 export function parseCspReportPayload(raw: unknown): MinimizedCspReport[] | null {
   if (!Buffer.isBuffer(raw)) return null;
-  if (raw.length === 0 || raw.length > CSP_REPORT_MAX_BODY_BYTES || !hasBoundedJsonShape(raw)) {
+  const bytes = Buffer.from(raw);
+  if (
+    bytes.length === 0 ||
+    bytes.length > CSP_REPORT_MAX_BODY_BYTES ||
+    !hasBoundedJsonShape(bytes)
+  ) {
     return null;
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw.toString('utf8')) as unknown;
+    parsed = JSON.parse(bytes.toString('utf8')) as unknown;
   } catch {
     return null;
   }
@@ -586,7 +592,12 @@ export function createCspReportRouter(options?: {
   );
   router.use(async (req, res) => {
     res.set('Cache-Control', 'no-store');
-    const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+    const body: unknown = req.body;
+    if (typeof body === 'string' || Array.isArray(body) || !Buffer.isBuffer(body)) {
+      res.status(204).end();
+      return;
+    }
+    const raw = Buffer.from(body);
     const result = options?.ingest
       ? await options.ingest.ingest(req.ip ?? 'unknown', parseCspReportPayload(raw))
       : await defaultIngest!.ingestRaw(req.ip ?? 'unknown', raw);
