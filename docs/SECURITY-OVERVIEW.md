@@ -205,10 +205,23 @@ höchstens 14 Tage), längere Sicherung nur dokumentiert für konkrete Incidents
 
 TLS-Terminierung, Firewall, Secret-Management auf dem Server und Härtung des Host-Systems sind **Betriebssache** — siehe [deployment-debian-root-server.md](deployment-debian-root-server.md), Docker-/Compose-Vorlagen.
 
-W2.4a liefert absichtlich noch keinen CSP- oder
-`Content-Security-Policy-Report-Only`-Header aus. Die Policy-Aktivierung folgt
-als W2.4b erst nach Deployment und Endpoint-Smoke; dadurch kann der
-Report-Ingest selbst keine CSP-Report-Rekursion auslösen.
+W2.4b liefert hinter dem rollout-sicheren, standardmäßig deaktivierten Flag
+`CSP_REPORT_ONLY_ENABLED` ausschließlich
+`Content-Security-Policy-Report-Only` aus. Der Header wird erst beim Schreiben
+einer erfolgreichen GET-/HEAD-HTML-Antwort gesetzt. `/csp-report` liegt vor der
+Middleware; tRPC, 204-Antworten sowie JS-/CSS-/JSON-Assets erhalten ebenfalls
+keinen Header. Dadurch entstehen weder Report-Rekursion noch API-/Asset-Stürme.
+Die statische Policy erlaubt die nachgewiesenen aktuellen Angular-Inline-
+Bootscripts (`'unsafe-inline'`), den Font-Preload-`onload` und die von Zod 4
+über `Function` kompilierten Validatoren (`'unsafe-eval'`) sowie Inline-Styles
+von Material/KaTeX nur im Report-Only-Modus. Bildquellen decken lokale, HTTPS-,
+`data:`- und `blob:`-Markdown-Inhalte ab, `connect-src` die Same-Origin-HTTP-
+und sicheren WebSocket-Pfade, `worker-src` den Service Worker. Die beiden
+Script-Ausnahmen sind durch den Produktions-Browser-Smoke belegt und müssen vor
+einem späteren Enforcement-Slice strukturell entfernt oder durch Nonces/Hashes
+ersetzt werden.
+Ein Enforcement-Header, Nonces/Hashes, CORS-Änderungen und die Landing-/GitHub-
+Pages-Auslieferung bleiben ausdrücklich außerhalb dieses Slices.
 
 Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 

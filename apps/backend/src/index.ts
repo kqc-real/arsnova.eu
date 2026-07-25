@@ -21,6 +21,7 @@ import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedPr
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 import { createCspReportRouter } from './lib/cspReportIngest';
+import { createCspReportOnlyMiddleware } from './lib/cspReportOnly';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -39,6 +40,9 @@ if (Number.isFinite(trustProxyHops) && trustProxyHops > 0) {
 // Browser-Reporting-Ausnahme vom tRPC-only-Grundsatz: Raw-Body-Cap, eigenes RL,
 // keine Auth- oder Antwort-Payload. Muss vor CORS, tRPC und SPA-Fallback liegen.
 app.use('/csp-report', createCspReportRouter());
+// Nur erfolgreiche HTML-Dokumentantworten erhalten die optionale Beobachtungspolicy.
+// Der Report-Ingest liegt davor und kann daher nie rekursiv einen CSP-Header ausliefern.
+app.use(createCspReportOnlyMiddleware());
 app.use(compression());
 app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
 app.use(

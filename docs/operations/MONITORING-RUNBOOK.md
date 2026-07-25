@@ -1,7 +1,7 @@
 # Security- und Lastmonitoring
 
 **Stand:** 2026-07-25
-**Gültig für:** W0.4 und W2.4a; automatische Alarmierung folgt separat in W3.7.
+**Gültig für:** W0.4, W2.4a und W2.4b; automatische Alarmierung folgt separat in W3.7.
 
 ## Primärer Blick
 
@@ -262,3 +262,27 @@ HMAC-Digests über das gesamte Retentionsfenster. Die Generations-TTL wird nicht
 durch Requests verlängert; nach standardmäßig sieben Tagen beginnt eine neue
 leere Generation. Ein steigender `dropped`-Zähler bei 256 Dimensionen ist
 deshalb erwarteter Overflow-Schutz, kein Anlass zur Lockerung.
+
+## W2.4b Report-Only-Beobachtungsfenster
+
+Nach dem Endpoint-Smoke `CSP_REPORT_ONLY_ENABLED=true` aktivieren und 24–72
+Stunden beobachten. Vorher und nachher jeweils verifizieren:
+
+- genau ein `Content-Security-Policy-Report-Only` auf lokalisierten
+  HTML-Dokumenten;
+- kein `Content-Security-Policy`-Enforcement;
+- kein CSP-Header auf `/csp-report`, `/trpc`, Service-Worker-/JS-/CSS-/JSON-
+  Assets oder 204-Antworten;
+- tRPC-HTTP, `/trpc-ws`, `/yjs-ws`, Service-Worker-Update, Markdown-/KaTeX-
+  Bilder und PDF-/Blob-Downloads funktional.
+
+`unsafe-eval` ist für die beobachtete Zod-4-Validator-Kompilierung bereits in
+der initialen Report-Only-Policy enthalten; ein späteres Entfernungsexperiment
+würde über `cspReportsEvalLastMinute` sichtbar.
+`cspReportsScriptHttpsLastMinute` zählt ausschließlich externe HTTPS-
+Scriptquellen. Ein legitimes Signal wird zuerst mit Browser, Route und
+aktuellem Build reproduziert; die Policy wird nicht ohne Evidenz erweitert. Bei Report-Sturm,
+unerwarteten Kernflow-Problemen oder unklarer Header-Duplizierung:
+`CSP_REPORT_ONLY_ENABLED=false`, App neu starten und den Header-Scope erneut
+prüfen. Der Ingest bleibt dabei aktiv. Nginx ist nicht Eigentümer des CSP-
+Headers; dort kein `add_header` oder `always` ergänzen.
