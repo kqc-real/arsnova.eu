@@ -59,7 +59,8 @@ RUN apk upgrade --no-cache \
 
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
-    PUBLIC_FRONTEND_URL=http://127.0.0.1:3000
+    PUBLIC_FRONTEND_URL=http://127.0.0.1:3000 \
+    HOME=/tmp
 
 # Copy package manifests + npm config, install production deps only
 COPY package.json package-lock.json .npmrc ./
@@ -89,7 +90,12 @@ COPY --from=builder /app/apps/frontend/dist/browser apps/frontend/dist
 
 # Entrypoint: versionierte Migrationen vor dem App-Start anwenden
 COPY scripts/docker-entrypoint.sh /app/scripts/
+COPY scripts/container-runtime-smoke.mjs /app/scripts/
 RUN chmod +x /app/scripts/docker-entrypoint.sh
+
+# App, Prisma-Migrationen und Chromium benötigen keine Root-Rechte.
+USER node
+
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 
 # Health check

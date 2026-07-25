@@ -1440,15 +1440,36 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
+      - name: Validate production Compose
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          set -euo pipefail
+          cp .env.production.example .env.production
+          trap 'rm -f .env.production' EXIT
+          docker compose -f docker-compose.prod.yml --env-file .env.production config --quiet
+
       - name: Build Docker image
         if: needs.changes.outputs.docs_only != 'true'
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: .
           push: false
+          load: true
           tags: arsnova-eu:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify hardened container and Chromium PDF
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          docker run --rm \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777 \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --entrypoint node \
+            "arsnova-eu:ci-${GITHUB_SHA}" \
+            /app/scripts/container-runtime-smoke.mjs
 
   # ─── Deploy Freshness Check (nur aktueller main-HEAD darf deployen) ──────────
   deploy-freshness:

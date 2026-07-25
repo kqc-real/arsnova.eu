@@ -487,6 +487,10 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
 - `postgres`, `redis` und `app` laufen in einem internen Docker-Netzwerk.
 - App-Ports `3000`, `3001`, `3002` sind nur auf `127.0.0.1` gebunden; externer Zugriff läuft ausschließlich über Nginx/TLS.
 - `.env.production` wird per `env_file` in die Container geladen. Das vermeidet leere Secrets, wenn `docker compose` ohne Shell-Export gestartet wird.
+- Der App-Container läuft non-root, ohne Linux-Capabilities und mit
+  `no-new-privileges`. Sein Root-Dateisystem ist read-only; ausschließlich das
+  begrenzte, flüchtige `/tmp`-`tmpfs` ist für Chromium und notwendige temporäre
+  Dateien beschreibbar.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
 
@@ -626,6 +630,7 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 - [ ] Nginx: TLS 1.2/1.3, HSTS, Security-Headers (Referrer-Policy, Permissions-Policy)
 - [ ] Let's Encrypt Zertifikat installiert, Timer für Erneuerung aktiv
 - [ ] Docker: App-Ports nur auf 127.0.0.1 gebunden
+- [ ] Docker: App läuft non-root; `CapEff` ist leer, `NoNewPrivs` aktiv und nur `/tmp` beschreibbar
 - [ ] Starke Passwörter, `JWT_SECRET`, `ADMIN_SECRET` und separates `ADMIN_DIAGNOSTIC_SECRET`; keine Defaults aus `.env.example`
 - [ ] `.env.production` entspricht `.env.production.example`; `TRUST_PROXY_HOPS=1` hinter Nginx gesetzt
 - [ ] Admin-Login, Legal-Hold, Löschung, Behördenexport, MOTD-Admin und Rekord-Reset getestet
