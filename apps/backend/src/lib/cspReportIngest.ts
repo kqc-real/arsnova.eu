@@ -460,11 +460,7 @@ export class CspReportIngest {
     const reportList = reports ?? [];
     const dimensions = reportList.map((report) => this.digest('dimension', JSON.stringify(report)));
     const evalCount = reportList.filter((report) => report.blockedUri === 'category:eval').length;
-    const scriptHttpsCount = reportList.filter(
-      (report) =>
-        report.effectiveDirective?.startsWith('script-src') === true &&
-        report.blockedUri?.startsWith('https://') === true,
-    ).length;
+    const scriptHttpsCount = reportList.filter(isExternalHttpsScriptReport).length;
 
     try {
       const result = (await this.redis.eval(
@@ -504,6 +500,21 @@ function redisCounter(value: unknown): number {
   if (typeof value !== 'string') return 0;
   const parsed = Number.parseInt(value, 10);
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+function isExternalHttpsScriptReport(report: MinimizedCspReport): boolean {
+  if (
+    report.effectiveDirective?.startsWith('script-src') !== true ||
+    report.blockedUri?.startsWith('https://') !== true ||
+    report.documentUri?.startsWith('http') !== true
+  ) {
+    return false;
+  }
+  try {
+    return new URL(report.blockedUri).origin !== new URL(report.documentUri).origin;
+  } catch {
+    return false;
+  }
 }
 
 export async function readCspReportSignals(nowMs: number = Date.now()): Promise<CspReportSignals> {

@@ -188,6 +188,32 @@ describe('CSP-Report-Redis-Aggregation', () => {
     });
   });
 
+  it('zählt nur fremde HTTPS-Origins als Script-HTTPS-Signal', async () => {
+    const redis = new FakeRedis();
+    const ingest = new CspReportIngest({
+      redis,
+      hashSecret: 'test-secret-with-sufficient-entropy',
+      now: () => 60_000,
+    });
+    await ingest.ingest('203.0.113.4', [
+      {
+        effectiveDirective: 'script-src-elem',
+        documentUri: 'https://arsnova.eu/de/quiz',
+        blockedUri: 'https://arsnova.eu/main.js',
+      },
+    ]);
+    await ingest.ingest('203.0.113.4', [
+      {
+        effectiveDirective: 'script-src-elem',
+        documentUri: 'https://arsnova.eu/de/quiz',
+        blockedUri: 'https://cdn.example/main.js',
+      },
+    ]);
+
+    expect(redis.calls[0]!.args[7]).toBe('0');
+    expect(redis.calls[1]!.args[7]).toBe('1');
+  });
+
   it('fällt bei Redis-Ausfall auf ein hartes lokales Globalcap und 204/drop zurück', async () => {
     const redis = new FakeRedis();
     redis.error = new Error('Redis unavailable');
