@@ -492,7 +492,11 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   begrenzte, flüchtige `/tmp`-`tmpfs` ist für Chromium und notwendige temporäre
   Dateien beschreibbar.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
-- Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
+- Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `WS_HOST`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
+- Der tRPC-WebSocket-Server begrenzt global aktive Verbindungen und Upgrades
+  sowie Nachrichten je Verbindung/global. Die 1.000-/3.000-Defaults tragen
+  500er-Veranstaltungen und Reconnect-Wellen ohne IP-Lockout; das 2-MiB-Cap
+  bleibt codefest.
 - Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt
   Einzelpayloads standardmäßig auf 16 MiB und nutzt gestufte Nachrichten- und
   Bytebudgets je Verbindung, Raum und Backend-Prozess ohne IP-Lockout.
@@ -526,6 +530,11 @@ NODE_ENV=production
 PORT=3000
 HOST=0.0.0.0
 WS_PORT=3001
+WS_HOST=0.0.0.0
+TRPC_WS_MAX_CONNECTIONS=1000
+TRPC_WS_MAX_UPGRADES_PER_MINUTE=3000
+TRPC_WS_MAX_MESSAGES_PER_10_SECONDS=120
+TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS=30000
 YJS_WS_PORT=3002
 YJS_WS_HOST=0.0.0.0
 YJS_WS_MAX_CONNECTIONS=1000

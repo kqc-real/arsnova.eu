@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  configureTrpcWebSocketTelemetry,
   configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
+  recordTrpcWebSocketPayloadRejected,
+  recordTrpcWebSocketRateLimitedMessage,
+  recordTrpcWebSocketRejectedUpgrade,
   recordYjsWebSocketAwarenessRejected,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
@@ -25,12 +29,22 @@ describe('websocketTelemetry', () => {
     vi.restoreAllMocks();
   });
 
-  it('zählt aktive tRPC-WebSocket-Verbindungen', () => {
+  it('zählt tRPC-WebSocket-Verbindungen, Cap und Ablehnungen', () => {
+    configureTrpcWebSocketTelemetry({ connectionLimit: 1_000 });
     recordTrpcWebSocketConnected();
     recordTrpcWebSocketConnected();
     recordTrpcWebSocketDisconnected();
+    recordTrpcWebSocketRejectedUpgrade();
+    recordTrpcWebSocketPayloadRejected();
+    recordTrpcWebSocketRateLimitedMessage();
 
-    expect(getWebSocketTelemetrySnapshot().trpcConnectionsActive).toBe(1);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcConnectionsActive: 1,
+      trpcConnectionLimit: 1_000,
+      trpcRejectedUpgradesLastMinute: 1,
+      trpcPayloadRejectedLastMinute: 1,
+      trpcRateLimitedMessagesLastMinute: 1,
+    });
   });
 
   it('fällt bei doppelten Close-Ereignissen nicht unter null', () => {

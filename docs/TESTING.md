@@ -294,6 +294,11 @@ Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-50
 
 Quiz-only: Join → WS-Status subscribe → Disconnect-Welle → Reconnect-Welle → Host `revealResults` → Assert `RESULTS` bei allen TN.
 
+W2.3a prüft die serverseitigen tRPC-WebSocket-Caps zusätzlich in
+`apps/backend/src/lib/trpcWebSocketServer.test.ts`: echte 429-/503-Upgrades,
+Abbruch vor dem Resolver, unverändertes 2-MiB-Payload-Cap und eine vollständige
+500-Client-Verbindungs-/Reconnect-Welle mit den Produktionsdefaults.
+
 ```bash
 npm run dev:backend
 PARTICIPANTS=500 npm run load:artillery:reconnect:500
