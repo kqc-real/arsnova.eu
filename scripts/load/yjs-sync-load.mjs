@@ -113,6 +113,39 @@ function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
+/** Wartet auf connection-close aller Clients, bevor der Raum neu verbunden wird. */
+async function waitForProviderCloses(clients, timeoutMs) {
+  await Promise.all(
+    clients.map(
+      (client) =>
+        new Promise((resolve, reject) => {
+          const provider = client.provider;
+          if (!provider.wsconnected && !provider.wsconnecting) {
+            resolve();
+            return;
+          }
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(
+              new Error(
+                `Client ${client.index + 1} schloss die Verbindung nicht innerhalb von ${timeoutMs} ms.`,
+              ),
+            );
+          }, timeoutMs);
+          const onClose = () => {
+            cleanup();
+            resolve();
+          };
+          const cleanup = () => {
+            clearTimeout(timeout);
+            provider.off('connection-close', onClose);
+          };
+          provider.on('connection-close', onClose);
+        }),
+    ),
+  );
+}
+
 function percentile(values, percentage) {
   if (values.length === 0) return null;
   const sorted = [...values].sort((left, right) => left - right);
@@ -428,7 +461,7 @@ async function execute(config) {
         client.intentionalDisconnect = true;
         client.provider.disconnect();
       }
-      await sleep(250);
+      await waitForProviderCloses(reconnectingClients, config.phaseTimeoutMs);
       const payloadReconnectStartedAt = performance.now();
       const payloadReconnectWave = await settleConnectionWave(
         reconnectingClients,
@@ -444,7 +477,7 @@ async function execute(config) {
         client.intentionalDisconnect = true;
         client.provider.disconnect();
       }
-      await sleep(250);
+      await waitForProviderCloses(clients, config.phaseTimeoutMs);
       const payloadRestartStartedAt = performance.now();
       const payloadRestartWave = await settleConnectionWave(
         clients,
@@ -466,7 +499,7 @@ async function execute(config) {
         client.intentionalDisconnect = true;
         client.provider.disconnect();
       }
-      await sleep(250);
+      await waitForProviderCloses(reconnectingClients, config.phaseTimeoutMs);
       await runUpdateWave(reconnectingClients, config.updateConcurrency, 'offline', runId);
       const onlineClients = clients.filter((client) => !reconnectingClients.includes(client));
       if (onlineClients.length > 0) {

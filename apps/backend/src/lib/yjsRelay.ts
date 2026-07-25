@@ -21,6 +21,8 @@ const ROOM_PATH_PATTERN =
 const UPGRADE_WINDOW_MS = 60_000;
 const MESSAGE_WINDOW_MS = 10_000;
 const MIB = 1024 * 1024;
+/** Obere Schranke für teure Exact-Compactions je Raum und 10-Sekunden-Fenster. */
+const MAX_EXACT_COMPACTIONS_PER_ROOM_PER_WINDOW = 30;
 
 export interface YjsRelayLimits {
   maxConnections: number;
@@ -213,8 +215,10 @@ class FixedWindowCounter {
   private startedAt = 0;
   private count = 0;
 
+  constructor(private readonly windowMs: number = UPGRADE_WINDOW_MS) {}
+
   consume(limit: number, now = Date.now()): boolean {
-    if (now - this.startedAt >= UPGRADE_WINDOW_MS) {
+    if (now - this.startedAt >= this.windowMs) {
       this.startedAt = now;
       this.count = 0;
     }
@@ -224,7 +228,7 @@ class FixedWindowCounter {
   }
 
   get expiresAt(): number {
-    return this.startedAt + UPGRADE_WINDOW_MS;
+    return this.startedAt + this.windowMs;
   }
 }
 
@@ -328,6 +332,18 @@ function extractYjsUpdate(data: RawData): Uint8Array | null {
     throw new Error('Unvollständiger Yjs-Update-Payload');
   }
   return bytes.subarray(cursor.offset, cursor.offset + updateLength);
+}
+
+/** y-protocols sync step 1 (messageSync=0, syncStep1=0) löst große Sync-Antworten aus. */
+function isYjsSyncStep1(data: RawData): boolean {
+  try {
+    const bytes = rawDataBytes(data);
+    const cursor = { offset: 0 };
+    if (readVarUint(bytes, cursor) !== 0) return false;
+    return readVarUint(bytes, cursor) === 0;
+  } catch {
+    return false;
+  }
 }
 
 interface AwarenessEntry {
@@ -443,6 +459,9 @@ export class YjsRelayServer {
   private readonly documentReservations = new Map<string, DocumentReservation>();
   private readonly roomConnections = new Map<string, number>();
   private readonly roomAwarenessOwners = new Map<string, Map<number, WebSocket>>();
+  /** Bekannte bzw. kürzlich getrennte Awareness-IDs je Raum (für Null-Removals). */
+  private readonly roomKnownAwarenessIds = new Map<string, Set<number>>();
+  private readonly roomExactCompactionWindows = new Map<string, FixedWindowCounter>();
   private connectionsActive = 0;
   private documentBytesReserved = 0;
 
@@ -630,6 +649,7 @@ export class YjsRelayServer {
       if (awarenessEntries) {
         const roomAwarenessOwners =
           this.roomAwarenessOwners.get(room) ?? new Map<number, WebSocket>();
+        const knownAwarenessIds = this.roomKnownAwarenessIds.get(room) ?? new Set<number>();
         let newlyOwnedClientId: number | null = null;
         for (const entry of awarenessEntries) {
           if (entry.stateBytes > this.config.maxAwarenessStateBytes) {
@@ -637,11 +657,18 @@ export class YjsRelayServer {
             webSocket.terminate();
             return;
           }
-          // Bekannte Raum-IDs (inkl. eigener) dürfen Provider rebroadcasten.
+          // Aktive Ownership-IDs dürfen Provider rebroadcasten (State oder Null).
           if (roomAwarenessOwners.has(entry.clientId)) continue;
-          // Null-States (JSON `null`, typisch 4 Bytes) entfernen abwesende Peers
-          // und beanspruchen keine Ownership — auch nach Disconnect-Rebroadcast.
-          if (entry.isNullState) continue;
+          // Null-Removals nur für zuvor bekannte bzw. kürzlich getrennte IDs —
+          // sonst wächst Awareness.meta fensterübergreifend unbeschränkt.
+          if (entry.isNullState) {
+            if (!knownAwarenessIds.has(entry.clientId)) {
+              recordYjsWebSocketAwarenessRejected();
+              webSocket.terminate();
+              return;
+            }
+            continue;
+          }
           // Ein Provider darf genau eine neue lokale ID mit State einführen.
           if (
             (ownedAwarenessClientId !== null && entry.clientId !== ownedAwarenessClientId) ||
@@ -657,6 +684,8 @@ export class YjsRelayServer {
           ownedAwarenessClientId = newlyOwnedClientId;
           roomAwarenessOwners.set(newlyOwnedClientId, webSocket);
           this.roomAwarenessOwners.set(room, roomAwarenessOwners);
+          knownAwarenessIds.add(newlyOwnedClientId);
+          this.roomKnownAwarenessIds.set(room, knownAwarenessIds);
         }
       }
       const documentAdmission = this.admitDocumentUpdate(room, data);
@@ -667,6 +696,18 @@ export class YjsRelayServer {
       }
       if (documentAdmission === false) {
         recordYjsWebSocketDocumentRejected();
+        webSocket.terminate();
+        return;
+      }
+
+      // Sync-Step-1 vor dem Protokollhandler: große encodeStateAsUpdate-Antworten
+      // dürfen das Outbound-Budget nicht umgehen, indem sie erst nach Allokation fallen.
+      if (
+        isYjsSyncStep1(data) &&
+        !this.canAdmitEstimatedSyncResponse(room, connectionOutboundWindow, now)
+      ) {
+        if (typeof documentAdmission === 'function') documentAdmission();
+        recordYjsWebSocketOutboundRejected();
         webSocket.terminate();
         return;
       }
@@ -720,9 +761,16 @@ export class YjsRelayServer {
         roomAwarenessOwners?.get(ownedAwarenessClientId) === webSocket
       ) {
         roomAwarenessOwners.delete(ownedAwarenessClientId);
+        const knownAwarenessIds = this.roomKnownAwarenessIds.get(room) ?? new Set<number>();
+        knownAwarenessIds.add(ownedAwarenessClientId);
+        this.roomKnownAwarenessIds.set(room, knownAwarenessIds);
       }
       if (remaining === 0 || roomAwarenessOwners?.size === 0) {
         this.roomAwarenessOwners.delete(room);
+      }
+      if (remaining === 0) {
+        this.roomKnownAwarenessIds.delete(room);
+        this.roomExactCompactionWindows.delete(room);
       }
 
       const doc = docs.get(room);
@@ -739,6 +787,38 @@ export class YjsRelayServer {
         docs.delete(room);
       }
     });
+  }
+
+  private estimatedSyncResponseBytes(room: string): number {
+    const reservation = this.documentReservations.get(room);
+    if (reservation) return Math.max(reservation.reservedBytes, 64);
+    // Dokument ohne Reservierung: konservativ das Raumlimit als Antwortgröße.
+    if (docs.has(room)) return this.config.maxDocumentBytesPerRoom;
+    return 64;
+  }
+
+  private canAdmitEstimatedSyncResponse(
+    room: string,
+    connectionOutboundWindow: FixedWindowByteBudget,
+    now: number,
+  ): boolean {
+    const estimatedBytes = this.estimatedSyncResponseBytes(room);
+    this.pruneRoomOutboundWindows(now);
+    const roomOutboundWindow = this.roomOutboundWindows.get(room) ?? new FixedWindowByteBudget();
+    this.roomOutboundWindows.set(room, roomOutboundWindow);
+    return (
+      this.globalOutboundWindow.allows(
+        this.config.maxOutboundBytesGlobalPerWindow,
+        estimatedBytes,
+        now,
+      ) &&
+      roomOutboundWindow.allows(
+        this.config.maxOutboundBytesPerRoomPerWindow,
+        estimatedBytes,
+        now,
+      ) &&
+      connectionOutboundWindow.allows(this.config.maxOutboundBytesPerWindow, estimatedBytes, now)
+    );
   }
 
   private pruneRoomUpgradeWindows(now: number): void {
@@ -812,6 +892,17 @@ export class YjsRelayServer {
       reservation.reservedBytes = projectedRoomBytes;
       this.documentBytesReserved = projectedGlobalBytes;
       return rollback;
+    }
+
+    // Exact-Compaction ist teuer (vollständiger Clone + zweifaches Encode).
+    // Pro Raum und 10-Sekunden-Fenster nur begrenzt zulassen.
+    let compactionWindow = this.roomExactCompactionWindows.get(room);
+    if (!compactionWindow) {
+      compactionWindow = new FixedWindowCounter(MESSAGE_WINDOW_MS);
+      this.roomExactCompactionWindows.set(room, compactionWindow);
+    }
+    if (!compactionWindow.consume(MAX_EXACT_COMPACTIONS_PER_ROOM_PER_WINDOW, Date.now())) {
+      return false;
     }
 
     const candidate = new Y.Doc({ gc: true });

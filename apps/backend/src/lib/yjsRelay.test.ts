@@ -307,22 +307,32 @@ describe('YjsRelayServer', () => {
     }
   });
 
-  it('behandelt JSON-null Awareness-Removals fremder IDs nicht als Ownership', async () => {
+  it('erlaubt JSON-null Awareness-Removals nur für zuvor bekannte IDs', async () => {
     const baseUrl = await startRelay();
-    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const owner = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const peer = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
     // awarenessFrame codiert state:null als JSON.stringify(null) → 4 Bytes.
     expect(Buffer.byteLength(JSON.stringify(null), 'utf8')).toBe(4);
 
-    socket.send(awarenessFrame([{ clientId: 100, state: { syncClient: {} } }]));
+    owner.send(awarenessFrame([{ clientId: 100, state: { syncClient: {} } }]));
+    peer.send(awarenessFrame([{ clientId: 200, state: { syncClient: {} } }]));
     await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(socket.readyState).toBe(WebSocket.OPEN);
+    expect(owner.readyState).toBe(WebSocket.OPEN);
+    expect(peer.readyState).toBe(WebSocket.OPEN);
 
-    // Provider-Rebroadcast nach Peer-Disconnect: fremde ID mit Null-State.
-    socket.send(awarenessFrame([{ clientId: 999, clock: 2, state: null }]));
+    // Peer trennt: ID 200 bleibt als kürzlich bekannt; Owner darf Null rebroadcasten.
+    peer.terminate();
     await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(socket.readyState).toBe(WebSocket.OPEN);
+    owner.send(awarenessFrame([{ clientId: 200, clock: 2, state: null }]));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(owner.readyState).toBe(WebSocket.OPEN);
     expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+
+    // Unbekannte Null-IDs werden abgelehnt (kein unbegrenztes Awareness.meta-Wachstum).
+    const closed = new Promise<number>((resolve) => owner.once('close', (code) => resolve(code)));
+    owner.send(awarenessFrame([{ clientId: 999, clock: 2, state: null }]));
+    await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
   });
 
   it('verhindert persistentes Wachstum durch wechselnde Awareness-IDs', async () => {
@@ -573,6 +583,7 @@ describe('YjsRelayServer', () => {
     reconnect.send(validPaddedSyncStep1(4));
 
     await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsOutboundRejectedLastMinute).toBeGreaterThan(0);
     sourceDoc.destroy();
   });
 
