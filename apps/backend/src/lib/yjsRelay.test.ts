@@ -1,6 +1,7 @@
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WebSocket, { type RawData } from 'ws';
+import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import {
   DEFAULT_YJS_RELAY_LIMITS,
@@ -124,6 +125,14 @@ function createLibraryDoc(payloadBytes: number, id = 'library-boundary'): Y.Doc 
   return doc;
 }
 
+async function waitForCondition(predicate: () => boolean, timeoutMs = 2_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  expect(predicate()).toBe(true);
+}
+
 function decodeVarUint(bytes: Uint8Array, cursor: { offset: number }): number {
   let value = 0;
   let multiplier = 1;
@@ -237,29 +246,49 @@ describe('YjsRelayServer', () => {
     );
   });
 
-  it('leitet einen begrenzten Awareness-State je Verbindung weiter', async () => {
+  it('hält zwei echte Provider trotz Peer-Awareness-Rebroadcast verbunden', async () => {
     const baseUrl = await startRelay({ maxAwarenessStateBytes: 512 });
-    const source = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
-    const observer = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
-    const forwarded = new Promise<RawData>((resolve) => observer.once('message', resolve));
-    const frame = awarenessFrame([
-      {
-        clientId: 42,
-        state: {
-          syncClient: {
-            deviceId: 'device-a',
-            deviceLabel: 'Tablet',
-            browserLabel: 'Firefox',
-          },
-        },
-      },
-    ]);
+    const firstDoc = new Y.Doc();
+    const secondDoc = new Y.Doc();
+    const WebSocketPolyfill = WebSocket as unknown as typeof globalThis.WebSocket;
+    const first = new WebsocketProvider(baseUrl, ROOM_A, firstDoc, {
+      WebSocketPolyfill,
+      connect: false,
+    });
+    const second = new WebsocketProvider(baseUrl, ROOM_A, secondDoc, {
+      WebSocketPolyfill,
+      connect: false,
+    });
+    try {
+      first.awareness.setLocalStateField('syncClient', { deviceId: 'device-a' });
+      second.awareness.setLocalStateField('syncClient', { deviceId: 'device-b' });
+      first.connect();
+      second.connect();
 
-    source.send(frame);
+      await waitForCondition(
+        () =>
+          first.wsconnected &&
+          second.wsconnected &&
+          first.awareness.getStates().size === 2 &&
+          second.awareness.getStates().size === 2,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-    await expect(forwarded).resolves.toEqual(frame);
-    expect(source.readyState).toBe(WebSocket.OPEN);
-    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+      expect(first.wsconnected).toBe(true);
+      expect(second.wsconnected).toBe(true);
+      expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+
+      // Peer-Disconnect sendet Null-State-Removals; der verbleibende Provider
+      // muss verbunden bleiben (kein Awareness-Reject wegen verwaister IDs).
+      first.destroy();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(second.wsconnected).toBe(true);
+      expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+    } finally {
+      second.destroy();
+      firstDoc.destroy();
+      secondDoc.destroy();
+    }
   });
 
   it('verhindert persistentes Wachstum durch wechselnde Awareness-IDs', async () => {
@@ -283,6 +312,22 @@ describe('YjsRelayServer', () => {
           clientId: 200,
           state: { syncClient: {}, padding: 'x'.repeat(256) },
         },
+      ]),
+    );
+
+    await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
+  });
+
+  it('verwirft zu viele Awareness-Einträge vor unbeschränkter Allokation', async () => {
+    const baseUrl = await startRelay({ maxConnectionsPerRoom: 2 });
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socket.once('close', (code) => resolve(code)));
+    socket.send(
+      awarenessFrame([
+        { clientId: 300, state: null },
+        { clientId: 300, clock: 2, state: null },
+        { clientId: 300, clock: 3, state: null },
       ]),
     );
 

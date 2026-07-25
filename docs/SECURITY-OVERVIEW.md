@@ -58,9 +58,11 @@ Der Yjs-Relay begrenzt Einzelpayloads standardmäßig auf 16 MiB, aktive
 Verbindungen global und pro Raum sowie Upgrade-, Nachrichten- und Bytebudgets
 je Verbindung, Raum und Backend-Prozess. Der zusammengeführte Zustand ist auf
 15 MiB je Raum und 256 MiB global begrenzt; tatsächlich versendete Bytes haben
-eigene gestufte Budgets gegen Sync-/Reconnect-Verstärkung. Pro Verbindung ist
-genau eine Awareness-ID mit höchstens 4 KiB State zulässig; dadurch begrenzt
-das Raum-Verbindungscap auch persistent gehaltene Präsenzdaten. Diese Grenzen sind
+eigene gestufte Budgets gegen Sync-/Reconnect-Verstärkung. Pro Verbindung darf
+höchstens eine neue Awareness-ID mit maximal 4 KiB State eingeführt werden;
+bereits bekannte Peer-IDs dürfen Provider standardkonform rebroadcasten.
+Dadurch begrenzt das Raum-Verbindungscap auch persistent gehaltene
+Präsenzdaten. Diese Grenzen sind
 bewusst nicht IP-basiert, damit Einrichtungen hinter gemeinsamem NAT nicht
 ausgesperrt werden. Nicht kanonische Raumpfade und Query-Parameter werden vor
 dem Upgrade abgewiesen; inaktive In-Memory-Dokumente und ihre Reservierungen

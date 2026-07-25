@@ -335,7 +335,10 @@ interface AwarenessEntry {
   stateBytes: number;
 }
 
-function extractAwarenessEntries(data: RawData): AwarenessEntry[] | null {
+function extractAwarenessEntries(
+  data: RawData,
+  maxEntries: number,
+): AwarenessEntry[] | 'limit-exceeded' | null {
   const bytes = rawDataBytes(data);
   const outerCursor = { offset: 0 };
   const messageType = readVarUint(bytes, outerCursor);
@@ -351,6 +354,7 @@ function extractAwarenessEntries(data: RawData): AwarenessEntry[] | null {
   const update = bytes.subarray(outerCursor.offset, outerCursor.offset + updateLength);
   const cursor = { offset: 0 };
   const entryCount = readVarUint(update, cursor);
+  if (entryCount > maxEntries) return 'limit-exceeded';
   const entries: AwarenessEntry[] = [];
   for (let index = 0; index < entryCount; index += 1) {
     const clientId = readVarUint(update, cursor);
@@ -418,6 +422,7 @@ export class YjsRelayServer {
   private readonly roomOutboundWindows = new Map<string, FixedWindowByteBudget>();
   private readonly documentReservations = new Map<string, DocumentReservation>();
   private readonly roomConnections = new Map<string, number>();
+  private readonly roomAwarenessOwners = new Map<string, Map<number, WebSocket>>();
   private connectionsActive = 0;
   private documentBytesReserved = 0;
 
@@ -497,7 +502,7 @@ export class YjsRelayServer {
     recordYjsWebSocketConnected(room);
 
     const connectionMessageWindow = new FixedWindowMessageBudget();
-    const awarenessClientIds = new Set<number>();
+    let ownedAwarenessClientId: number | null = null;
     let rateLimited = false;
     let payloadRejected = false;
     const connectionOutboundWindow = new FixedWindowByteBudget();
@@ -585,33 +590,49 @@ export class YjsRelayServer {
         webSocket.terminate();
         return;
       }
-      let awarenessEntries: AwarenessEntry[] | null;
+      let awarenessEntries: AwarenessEntry[] | 'limit-exceeded' | null;
       try {
-        awarenessEntries = extractAwarenessEntries(data);
+        awarenessEntries = extractAwarenessEntries(data, this.config.maxConnectionsPerRoom);
       } catch {
         recordYjsWebSocketProtocolError();
         webSocket.terminate();
         return;
       }
+      if (awarenessEntries === 'limit-exceeded') {
+        recordYjsWebSocketAwarenessRejected();
+        webSocket.terminate();
+        return;
+      }
       if (awarenessEntries) {
-        const nextClientIds = new Set(awarenessClientIds);
+        const roomAwarenessOwners =
+          this.roomAwarenessOwners.get(room) ?? new Map<number, WebSocket>();
+        let newlyOwnedClientId: number | null = null;
         for (const entry of awarenessEntries) {
-          nextClientIds.add(entry.clientId);
           if (entry.stateBytes > this.config.maxAwarenessStateBytes) {
             recordYjsWebSocketAwarenessRejected();
             webSocket.terminate();
             return;
           }
+          // Bekannte Raum-IDs (inkl. eigener) dürfen Provider rebroadcasten.
+          if (roomAwarenessOwners.has(entry.clientId)) continue;
+          // Null-States entfernen abwesende Peers und beanspruchen keine ID.
+          if (entry.stateBytes === 0) continue;
+          // Ein Provider darf genau eine neue lokale ID mit State einführen.
+          if (
+            (ownedAwarenessClientId !== null && entry.clientId !== ownedAwarenessClientId) ||
+            (newlyOwnedClientId !== null && entry.clientId !== newlyOwnedClientId)
+          ) {
+            recordYjsWebSocketAwarenessRejected();
+            webSocket.terminate();
+            return;
+          }
+          newlyOwnedClientId = entry.clientId;
         }
-        // Ein y-websocket-Provider besitzt genau eine lokale Awareness-ID.
-        // Zusammen mit dem Verbindungs-Cap begrenzt dies auch Raumanzahl und
-        // Raumbytes persistent, unabhängig von den zurücksetzenden Zeitfenstern.
-        if (nextClientIds.size > 1) {
-          recordYjsWebSocketAwarenessRejected();
-          webSocket.terminate();
-          return;
+        if (newlyOwnedClientId !== null) {
+          ownedAwarenessClientId = newlyOwnedClientId;
+          roomAwarenessOwners.set(newlyOwnedClientId, webSocket);
+          this.roomAwarenessOwners.set(room, roomAwarenessOwners);
         }
-        for (const clientId of nextClientIds) awarenessClientIds.add(clientId);
       }
       const documentAdmission = this.admitDocumentUpdate(room, data);
       if (documentAdmission === 'protocol-error') {
@@ -667,6 +688,17 @@ export class YjsRelayServer {
       if (remaining === 0) this.roomConnections.delete(room);
       else this.roomConnections.set(room, remaining);
       recordYjsWebSocketDisconnected(room);
+
+      const roomAwarenessOwners = this.roomAwarenessOwners.get(room);
+      if (
+        ownedAwarenessClientId !== null &&
+        roomAwarenessOwners?.get(ownedAwarenessClientId) === webSocket
+      ) {
+        roomAwarenessOwners.delete(ownedAwarenessClientId);
+      }
+      if (remaining === 0 || roomAwarenessOwners?.size === 0) {
+        this.roomAwarenessOwners.delete(room);
+      }
 
       const doc = docs.get(room);
       if (doc?.conns.size === 0) {

@@ -497,9 +497,10 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   Einzelpayloads standardmäßig auf 16 MiB und nutzt gestufte Nachrichten- und
   Bytebudgets je Verbindung, Raum und Backend-Prozess ohne IP-Lockout.
   Zusätzlich begrenzen 15 MiB Dokumentzustand je Raum / 256 MiB global den
-  Heap. Eine Awareness-ID mit höchstens 4 KiB State je Verbindung begrenzt
-  flüchtige Gerätepräsenz persistent; eigene Ausgangsbudgets begrenzen die
-  Sync-/Reconnect-Verstärkung.
+  Heap. Höchstens eine neu eingeführte Awareness-ID je Verbindung mit maximal
+  4 KiB State begrenzt flüchtige Gerätepräsenz persistent; bekannte Peer-IDs
+  bleiben für Provider-Rebroadcasts zulässig. Eigene Ausgangsbudgets begrenzen
+  die Sync-/Reconnect-Verstärkung.
 
 Start immer mit der Repo-Datei:
 
