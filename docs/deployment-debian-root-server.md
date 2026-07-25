@@ -386,12 +386,17 @@ server {
 }
 ```
 
-`/csp-report` läuft in W2.4a bewusst durch denselben HTTP-Proxy. Nginx
+`/csp-report` läuft durch denselben HTTP-Proxy. Nginx
 überschreibt dabei externe `X-Forwarded-For`-Werte; mit
 `TRUST_PROXY_HOPS=1` verwendet der Backend-Endpunkt ausschließlich dieses
-trusted `req.ip`. Kein separater Nginx-Body-Parser und kein CSP-/Report-Only-
-Header werden in W2.4a ergänzt. Das anwendungsseitige 32-KiB-Limit liefert
-dadurch deterministisch eine leere 413-Antwort.
+trusted `req.ip`. Kein separater Nginx-Body-Parser wird ergänzt. Eigentümer des
+`Content-Security-Policy-Report-Only`-Headers ist ausschließlich Express:
+**keinen** gleichnamigen `add_header` in Nginx ergänzen. Das vermeidet doppelte
+Policies sowie `add_header`-Vererbungsfallen in den WebSocket-/API-Locations.
+Insbesondere wäre `add_header ... always` hier falsch, weil es Reports auf
+Fehler-, API- und `/csp-report`-Antworten vervielfachen könnte. Das
+anwendungsseitige 32-KiB-Limit liefert weiterhin deterministisch eine leere
+413-Antwort.
 
 Hinweis für Nginx **ab 1.25.1**: Falls `nginx -t` wegen `listen ... http2` nur eine Deprecation-Warnung ausgibt, kannst du stattdessen `listen 443 ssl;`, `listen [::]:443 ssl;` und darunter `http2 on;` verwenden.
 
@@ -601,7 +606,13 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
 identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
 das Backend 8 Stunden.
 
-Nach einem W2.4a-Deployment den Ingest ohne Policy-Aktivierung prüfen:
+W2.4b wird bewusst zweistufig ausgerollt:
+
+1. App mit `CSP_REPORT_ONLY_ENABLED=false` deployen. Dieses Deployment enthält
+   `navigationRequestStrategy: freshness`; dadurch holt ein aktualisierter
+   Angular Service Worker Online-Navigationen aus dem Netz und verwendet sein
+   App-Shell-HTML nur noch als Offline-Fallback.
+2. Den Ingest ohne Policy-Aktivierung prüfen:
 
 ```bash
 curl -i -X POST https://arsnova.eu/csp-report \
@@ -610,9 +621,36 @@ curl -i -X POST https://arsnova.eu/csp-report \
 ```
 
 Erwartet: `204`, kein Antwortkörper und kein
-`Content-Security-Policy-Report-Only`-Header. Rollback erfolgt durch Deployment
-des vorherigen App-Commits; optional können ausschließlich Keys unter `csp:*`
-gelöscht werden. PostgreSQL und Schema-Migrationen sind nicht betroffen.
+`Content-Security-Policy-Report-Only`-Header.
+
+3. Vor Aktivierung in einem bestehenden PWA-Browser prüfen, dass der neue
+   `/de/ngsw-worker.js` installiert/aktiv ist und eine Online-Navigation den
+   aktuellen Netzwerk-Response verwendet.
+4. `CSP_REPORT_ONLY_ENABLED=true` setzen und nur den App-Container neu
+   erstellen/starten.
+5. Header-Scope auch mit kontrollierendem Service Worker prüfen:
+
+```bash
+curl -fsSI https://arsnova.eu/de/ \
+  | rg -i '^content-security-policy-report-only:'
+curl -fsSI https://arsnova.eu/de/ngsw-worker.js \
+  | rg -i '^content-security-policy' && exit 1 || true
+curl -fsSI 'https://arsnova.eu/trpc/health.stats' \
+  | rg -i '^content-security-policy' && exit 1 || true
+curl -si -X POST https://arsnova.eu/csp-report \
+  -H 'Content-Type: application/csp-report' \
+  --data '{"csp-report":{"effective-directive":"script-src"}}' \
+  | rg -i '^content-security-policy' && exit 1 || true
+```
+
+Erwartet: genau ein Report-Only-Header auf HTML; kein Enforcement-Header und
+kein CSP-Header auf API, Asset oder Report-Ingest. Danach 24–72 Stunden die
+aggregierten CSP-Signale beobachten. Erst ein späteres, getrenntes Security-
+Review darf über Nonces/Hashes oder Enforcement entscheiden. Rollback:
+`CSP_REPORT_ONLY_ENABLED=false`, App neu starten und denselben Scope-Smoke
+wiederholen. Redis-/PostgreSQL-Daten und Schema-Migrationen sind nicht
+betroffen; die vorhandenen CSP-Aggregate dürfen für einen bewusst neuen
+Beobachtungszeitraum optional unter `csp:*` gelöscht werden.
 
 Die Session-Code-Werte gelten ausschließlich für nicht existente Codes.
 Gültige, nicht beendete Sessions werden vor Redis geladen und umgehen sämtliche

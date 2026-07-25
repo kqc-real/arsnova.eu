@@ -1,17 +1,13 @@
 {
   "$schema": "../../node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
+  "navigationRequestStrategy": "freshness",
   "assetGroups": [
     {
       "name": "app-shell",
       "installMode": "prefetch",
       "resources": {
-        "files": [
-          "/index.html",
-          "/manifest.webmanifest",
-          "/*.css",
-          "/*.js"
-        ]
+        "files": ["/index.html", "/manifest.webmanifest", "/*.css", "/*.js"]
       }
     },
     {
@@ -19,10 +15,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": [
-          "/assets/**",
-          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
-        ]
+        "files": ["/assets/**", "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
       }
     }
   ]

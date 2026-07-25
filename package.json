@@ -79,6 +79,8 @@
     "validate:pdfua": "node scripts/validate-pdfua.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "verify:production-serving": "node scripts/verify-production-serving.mjs",
+    "verify:csp-report-only": "node scripts/verify-csp-report-only.mjs",
+    "verify:csp-browser": "node scripts/verify-csp-browser.mjs",
     "prepare": "husky || true"
   },
   "devDependencies": {
