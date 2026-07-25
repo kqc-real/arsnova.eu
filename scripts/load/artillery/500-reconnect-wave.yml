@@ -1,11 +1,11 @@
 config:
-  target: "{{ $processEnvironment.ARTILLERY_HTTP_TARGET }}"
+  target: '{{ $processEnvironment.ARTILLERY_HTTP_TARGET }}'
   phases:
-    - duration: "{{ $processEnvironment.ARTILLERY_RAMP_SECONDS }}"
-      arrivalCount: "{{ $processEnvironment.ARTILLERY_MAX_VUS }}"
-      maxVusers: "{{ $processEnvironment.ARTILLERY_MAX_VUS }}"
+    - duration: '{{ $processEnvironment.ARTILLERY_RAMP_SECONDS }}'
+      arrivalCount: '{{ $processEnvironment.ARTILLERY_MAX_VUS }}'
+      maxVusers: '{{ $processEnvironment.ARTILLERY_MAX_VUS }}'
       name: reconnect-wave
-  processor: "./processor.mjs"
+  processor: './processor.mjs'
   plugins:
     expect: {}
 
@@ -16,7 +16,7 @@ scenarios:
       - function: connectParticipantStatusWs
       - think: 1
       - function: disconnectParticipantStatusWs
-      - think: 0.25
+      - function: waitForReconnectJitter
       - function: reconnectParticipantStatusWs
       - think: 1
       - function: waitForReconnectResultsPhase

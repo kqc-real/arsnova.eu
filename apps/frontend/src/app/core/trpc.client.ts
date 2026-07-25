@@ -3,9 +3,12 @@ import {
   createWSClient,
   httpBatchLink,
   splitLink,
+  type TRPCLink,
   wsLink,
 } from '@trpc/client';
+import { observable } from '@trpc/server/observable';
 import type { AppRouter } from '@arsnova/api';
+import type { TrpcWebSocketParticipantBinding } from '@arsnova/shared-types';
 import { getFeedbackHostToken, normalizeFeedbackCode } from './feedback-host-token';
 import {
   getHostToken,
@@ -16,6 +19,7 @@ import { getTrpcWsUrl } from './ws-urls';
 
 const isBrowser = globalThis.window !== undefined;
 const SUPPORTED_LOCALES = new Set(['de', 'en', 'fr', 'it', 'es']);
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** SSR/Prerender: relatives `/trpc` in Node nicht zuverlässig – öffentliche Produktions-API als Fallback. */
 const DEFAULT_PRERENDER_TRPC_URL = 'https://arsnova.eu/trpc';
@@ -61,14 +65,18 @@ function normalizeRouteCode(
 
 function resolveRouteHostSessionCode(): string | null {
   const segments = getRouteSegments();
-  if (segments[0] !== 'session') {
-    return null;
-  }
-
   if (segments[2] !== 'host' && segments[2] !== 'present') {
     return null;
   }
 
+  return resolveRouteSessionCode();
+}
+
+function resolveRouteSessionCode(): string | null {
+  const segments = getRouteSegments();
+  if (segments[0] !== 'session') {
+    return null;
+  }
   return normalizeRouteCode(segments[1], normalizeHostSessionCode);
 }
 
@@ -112,15 +120,40 @@ function createTrpcHeaders(): Record<string, string> {
   return headers;
 }
 
+function resolveWsParticipantBinding(): TrpcWebSocketParticipantBinding | null {
+  const hostSessionCode = resolveRouteHostSessionCode();
+  const sessionCode = hostSessionCode ?? resolveRouteSessionCode();
+  const storedParticipantId =
+    sessionCode && !hostSessionCode
+      ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
+      : null;
+  return sessionCode
+    ? {
+        sessionCode,
+        ...(storedParticipantId && UUID_PATTERN.test(storedParticipantId)
+          ? { participantId: storedParticipantId }
+          : {}),
+      }
+    : null;
+}
+
+export function createWsBindingFingerprint(
+  binding: TrpcWebSocketParticipantBinding | null,
+): string | null {
+  return binding ? `${binding.sessionCode}:${binding.participantId ?? ''}` : null;
+}
+
 function createWsConnectionParams(): Record<string, string> | null {
   const feedbackCode = resolveRouteFeedbackCode();
   const feedbackHostToken = feedbackCode ? getFeedbackHostToken(feedbackCode) : null;
   const hostToken = resolveActiveHostToken();
-  if (!hostToken && !feedbackHostToken) {
+  const participantBinding = resolveWsParticipantBinding();
+  if (!hostToken && !feedbackHostToken && !participantBinding) {
     return null;
   }
 
   return {
+    ...(participantBinding ?? {}),
     ...(hostToken ? { 'x-host-token': hostToken } : {}),
     ...(feedbackHostToken ? { 'x-feedback-host-token': feedbackHostToken } : {}),
   };
@@ -135,9 +168,9 @@ if (isBrowser) {
  * Zufalls-Jitter (0–349ms) entkoppelt Reconnects nach Deploy — weniger Lastspitze auf dem Server.
  * Nach Deploy: siehe docs/deployment-debian-root-server.md § 7.1.
  */
-function retryDelayMs(attempt: number): number {
+export function retryDelayMs(attempt: number, random: () => number = Math.random): number {
   const base = Math.min(500 * Math.pow(2, attempt), 10_000);
-  const jitter = Math.floor(Math.random() * 350);
+  const jitter = Math.floor(random() * 350);
   return base + jitter;
 }
 
@@ -188,6 +221,10 @@ export function clearPendingHostSessionCode(): void {
   pendingHostSessionCode = null;
 }
 
+let activeWsBindingFingerprint = createWsBindingFingerprint(
+  isBrowser ? resolveWsParticipantBinding() : null,
+);
+let bindingRefreshPromise: Promise<void> = Promise.resolve();
 const wsClient = isBrowser
   ? createWSClient({
       url: getTrpcWsUrl(),
@@ -196,6 +233,123 @@ const wsClient = isBrowser
       /** Erst bei erster Subscription verbinden – vermeidet Konsolen-Fehler ohne Backend (z. B. Lighthouse). */
       lazy: { enabled: true, closeMs: 60_000 },
     })
+  : null;
+
+/**
+ * Schließt eine wiederverwendete physische Verbindung kontrolliert, sobald
+ * SPA-Route oder lokal gespeicherte Participant-ID ein anderes Binding ergeben.
+ * Der nächste Subscription-Start öffnet den lazy Client mit frischen Params.
+ */
+export function refreshTrpcWsBinding(): boolean {
+  if (!wsClient) return false;
+  const nextFingerprint = createWsBindingFingerprint(resolveWsParticipantBinding());
+  if (nextFingerprint === activeWsBindingFingerprint) return false;
+  activeWsBindingFingerprint = nextFingerprint;
+  bindingRefreshPromise = bindingRefreshPromise
+    .catch(() => undefined)
+    .then(() => reconnectWsForBindingChange());
+  return true;
+}
+
+function reconnectWsForBindingChange(): Promise<void> {
+  if (!wsClient) return Promise.resolve();
+  const connection = wsClient.connection;
+  if (!connection || connection.state === 'closed') return Promise.resolve();
+  if (connection.state === 'connecting') {
+    return new Promise<void>((resolve) => {
+      let subscription: { unsubscribe(): void } | null = null;
+      let transitionScheduled = false;
+      subscription = wsClient.connectionState.subscribe({
+        next(state) {
+          if (transitionScheduled || (state.state !== 'pending' && state.state !== 'idle')) {
+            return;
+          }
+          transitionScheduled = true;
+          queueMicrotask(() => {
+            subscription?.unsubscribe();
+            if (state.state === 'idle') {
+              resolve();
+              return;
+            }
+            void reconnectWsForBindingChange().then(resolve);
+          });
+        },
+      });
+    });
+  }
+
+  return new Promise<void>((resolve) => {
+    const previousConnectionId = connection.id;
+    let closeObserved = false;
+    let settled = false;
+    let stateSubscription: { unsubscribe(): void } | null = null;
+
+    const finish = (): void => {
+      if (settled) return;
+      settled = true;
+      stateSubscription?.unsubscribe();
+      resolve();
+    };
+
+    stateSubscription = wsClient.connectionState.subscribe({
+      next(state) {
+        if (closeObserved && state.state === 'idle') {
+          finish();
+          return;
+        }
+        if (
+          closeObserved &&
+          state.state === 'pending' &&
+          wsClient.connection?.id !== previousConnectionId
+        ) {
+          finish();
+        }
+      },
+    });
+
+    connection.ws.addEventListener(
+      'close',
+      () => {
+        closeObserved = true;
+        queueMicrotask(() => {
+          // Ohne aktive Subscription reconnectet der lazy Client nicht selbst.
+          // Dann darf die wartende neue Operation den frischen Socket öffnen.
+          if (wsClient.connectionState.get().state !== 'connecting') finish();
+        });
+      },
+      { once: true },
+    );
+    // Nur den Transport schließen: `WsClient.close()` würde aktive
+    // Subscription-Requests abschließen statt sie beim Reconnect erneut zu senden.
+    connection.ws.close(3001, 'binding changed');
+  });
+}
+
+async function waitForBindingRefresh(): Promise<void> {
+  let pending: Promise<void>;
+  do {
+    pending = bindingRefreshPromise;
+    await pending;
+  } while (pending !== bindingRefreshPromise);
+}
+
+const bindingAwareWsLink: TRPCLink<AppRouter> | null = wsClient
+  ? (runtime) => {
+      const execute = wsLink<AppRouter>({ client: wsClient })(runtime);
+      return ({ op, next }) =>
+        observable((observer) => {
+          let subscription: { unsubscribe(): void } | null = null;
+          let cancelled = false;
+          void waitForBindingRefresh().then(() => {
+            if (cancelled) return;
+            subscription = execute({ op, next }).subscribe(observer);
+          });
+          return () => {
+            cancelled = true;
+            subscription?.unsubscribe();
+          };
+        });
+    }
   : null;
 
 /**
@@ -227,10 +381,13 @@ if (wsClient) {
  */
 export const trpc = createTRPCProxyClient<AppRouter>({
   links: [
-    isBrowser && wsClient
+    isBrowser && wsClient && bindingAwareWsLink
       ? splitLink({
-          condition: (op) => op.type === 'subscription',
-          true: wsLink({ client: wsClient }),
+          condition: (op) => {
+            if (op.type === 'subscription') refreshTrpcWsBinding();
+            return op.type === 'subscription';
+          },
+          true: bindingAwareWsLink,
           false: httpBatchLink({
             url: resolveTrpcBatchLinkUrl(),
             headers() {

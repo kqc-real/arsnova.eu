@@ -1,6 +1,7 @@
 import type { AddressInfo } from 'node:net';
 import { connect as netConnect } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import WebSocket from 'ws';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ import {
 
 const servers: TrpcWebSocketServer[] = [];
 const sockets: WebSocket[] = [];
+const trpcWsClients: Array<ReturnType<typeof createWSClient>> = [];
 let resolverInvocations = 0;
 
 const testRouter = router({
@@ -28,6 +30,12 @@ const testRouter = router({
   }),
   updates: publicProcedure.subscription(async function* () {
     yield { status: 'ready' as const };
+  }),
+  persistentUpdates: publicProcedure.subscription(async function* ({ signal }) {
+    yield { status: 'ready' as const };
+    await new Promise<void>((resolve) => {
+      signal?.addEventListener('abort', () => resolve(), { once: true });
+    });
   }),
 });
 
@@ -89,6 +97,25 @@ function echoMessage(id: number, value = 'ok'): string {
   });
 }
 
+function connectionParamsMessage(
+  sessionCode: string,
+  participantId?: string,
+  extra: Record<string, unknown> = {},
+): string {
+  return JSON.stringify({
+    method: 'connectionParams',
+    data: { sessionCode, ...(participantId ? { participantId } : {}), ...extra },
+  });
+}
+
+async function waitForTelemetry(predicate: () => boolean): Promise<void> {
+  const deadline = Date.now() + 2_000;
+  while (!predicate() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  expect(predicate()).toBe(true);
+}
+
 async function waitForResolverInvocations(expected: number): Promise<void> {
   const deadline = Date.now() + 2_000;
   while (resolverInvocations < expected && Date.now() < deadline) {
@@ -103,6 +130,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  await Promise.all(trpcWsClients.splice(0).map((client) => client.close()));
   for (const socket of sockets.splice(0)) socket.terminate();
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });
@@ -110,7 +138,9 @@ afterEach(async () => {
 describe('resolveTrpcWebSocketConfig', () => {
   it('verwendet 500er-taugliche Defaults und begrenzt Env-Werte statisch', () => {
     expect(resolveTrpcWebSocketConfig({})).toMatchObject({
-      maxConnections: 1_000,
+      maxConnections: 1_200,
+      maxConnectionsPerSession: 1_100,
+      maxConnectionsPerParticipant: 2,
       maxUpgradesPerMinute: 3_000,
       maxMessagesPerWindow: 120,
       maxMessagesGlobalPerWindow: 30_000,
@@ -118,20 +148,210 @@ describe('resolveTrpcWebSocketConfig', () => {
     expect(
       resolveTrpcWebSocketConfig({
         TRPC_WS_MAX_CONNECTIONS: '999999',
+        TRPC_WS_MAX_CONNECTIONS_PER_SESSION: '999999',
+        TRPC_WS_MAX_CONNECTIONS_PER_PARTICIPANT: '999999',
         TRPC_WS_MAX_UPGRADES_PER_MINUTE: '999999',
         TRPC_WS_MAX_MESSAGES_PER_10_SECONDS: '999999',
         TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS: '999999',
       }),
     ).toMatchObject({
       maxConnections: 5_000,
+      maxConnectionsPerSession: 5_000,
+      maxConnectionsPerParticipant: 10,
       maxUpgradesPerMinute: 30_000,
       maxMessagesPerWindow: 1_200,
       maxMessagesGlobalPerWindow: 300_000,
     });
+    expect(
+      resolveTrpcWebSocketConfig({
+        TRPC_WS_MAX_CONNECTIONS_PER_SESSION: '100',
+      }).maxConnectionsPerSession,
+    ).toBe(750);
   });
 });
 
 describe('TrpcWebSocketServer', () => {
+  it('bindet einen gültigen Session-Code und eine Participant-UUID genau einmal pro Socket', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+
+    socket.send(connectionParamsMessage('abc123', '11111111-1111-4111-8111-111111111111'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+
+    socket.send(echoMessage(1));
+    socket.send(echoMessage(2));
+    await waitForResolverInvocations(2);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcBoundConnectionsActive: 1,
+      trpcSessionConnectionLimit: 1_100,
+      trpcParticipantConnectionLimit: 2,
+    });
+  });
+
+  it('beendet nur die dritte Verbindung desselben Participants', async () => {
+    const url = await startServer({ maxConnectionsPerParticipant: 2 });
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const first = await connect(url);
+    const second = await connect(url);
+    const third = await connect(url);
+    first.send(connectionParamsMessage('ABC123', participantId));
+    second.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    const thirdClosed = new Promise<number>((resolve) =>
+      third.once('close', (code) => resolve(code)),
+    );
+    third.send(connectionParamsMessage('ABC123', participantId));
+
+    await expect(thirdClosed).resolves.toBe(1008);
+    expect(first.readyState).toBe(WebSocket.OPEN);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().trpcParticipantCapRejectedLastMinute).toBe(1);
+  });
+
+  it('blockiert zwei Participants derselben NAT-IP nicht gegenseitig', async () => {
+    const url = await startServer({ maxConnectionsPerParticipant: 1 });
+    const first = await connect(url);
+    const second = await connect(url);
+    first.send(connectionParamsMessage('ABC123', '11111111-1111-4111-8111-111111111111'));
+    second.send(connectionParamsMessage('ABC123', '22222222-2222-4222-8222-222222222222'));
+
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    expect(first.readyState).toBe(WebSocket.OPEN);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('erzwingt das großzügige Session-Cap über verschiedene Participants', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 2 });
+    const first = await connect(url);
+    const second = await connect(url);
+    const third = await connect(url);
+    first.send(connectionParamsMessage('ABC123', '11111111-1111-4111-8111-111111111111'));
+    second.send(connectionParamsMessage('ABC123', '22222222-2222-4222-8222-222222222222'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    const thirdClosed = new Promise<number>((resolve) =>
+      third.once('close', (code) => resolve(code)),
+    );
+    third.send(connectionParamsMessage('ABC123', '33333333-3333-4333-8333-333333333333'));
+
+    await expect(thirdClosed).resolves.toBe(1008);
+    expect(getWebSocketTelemetrySnapshot().trpcSessionCapRejectedLastMinute).toBe(1);
+  });
+
+  it('gibt Session- und Participant-Zähler nach Close exakt frei', async () => {
+    const url = await startServer({
+      maxConnectionsPerSession: 1,
+      maxConnectionsPerParticipant: 1,
+    });
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const first = await connect(url);
+    first.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    await close(first);
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 0);
+
+    const second = await connect(url);
+    second.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('gibt beim Sessionwechsel A frei und bindet den neuen physischen Socket an B', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 1 });
+    const first = await connect(url);
+    first.send(connectionParamsMessage('AAA111', '11111111-1111-4111-8111-111111111111'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    await close(first);
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 0);
+
+    const second = await connect(url);
+    second.send(connectionParamsMessage('BBB222', '22222222-2222-4222-8222-222222222222'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+
+    expect(second.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcBoundConnectionsActive: 1,
+      trpcSessionCapRejectedLastMinute: 0,
+      trpcParticipantCapRejectedLastMinute: 0,
+    });
+  });
+
+  it('erhält eine aktive tRPC-Subscription beim Transport-Reconnect mit neuem Binding', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 1 });
+    let binding = {
+      sessionCode: 'AAA111',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    };
+    const client = createWSClient({
+      url,
+      WebSocket: WebSocket as unknown as typeof globalThis.WebSocket,
+      connectionParams: () => binding,
+      retryDelayMs: () => 0,
+      lazy: { enabled: true, closeMs: 60_000 },
+    });
+    trpcWsClients.push(client);
+    const trpc = createTRPCProxyClient<typeof testRouter>({
+      links: [wsLink({ client })],
+    });
+    let dataEvents = 0;
+    let subscriptionErrors = 0;
+    const subscription = trpc.persistentUpdates.subscribe(undefined, {
+      onData() {
+        dataEvents += 1;
+      },
+      onError() {
+        subscriptionErrors += 1;
+      },
+    });
+    await waitForTelemetry(
+      () => dataEvents === 1 && getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1,
+    );
+    const previousConnectionId = client.connection?.id;
+
+    binding = {
+      sessionCode: 'BBB222',
+      participantId: '22222222-2222-4222-8222-222222222222',
+    };
+    client.connection?.ws.close(3001, 'binding changed');
+
+    await waitForTelemetry(
+      () =>
+        dataEvents >= 2 &&
+        client.connection?.id !== previousConnectionId &&
+        getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1,
+    );
+    expect(subscriptionErrors).toBe(0);
+
+    // A muss nach dem Close freigegeben sein, obwohl dieselbe Subscription
+    // auf der neuen, an B gebundenen Verbindung weiterläuft.
+    const newSessionAClient = await connect(url);
+    newSessionAClient.send(
+      connectionParamsMessage('AAA111', '33333333-3333-4333-8333-333333333333'),
+    );
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    expect(newSessionAClient.readyState).toBe(WebSocket.OPEN);
+    subscription.unsubscribe();
+  });
+
+  it('behandelt ungültige Binding-Signale fail-safe und verarbeitet normale Frames weiter', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+    socket.send(connectionParamsMessage('TOO-LONG', 'not-a-uuid'));
+    socket.send(echoMessage(1));
+
+    await waitForResolverInvocations(1);
+    expect(getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive).toBe(0);
+    expect(socket.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('bleibt für Legacy-Clients ohne connectionParams kompatibel', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+    socket.send(echoMessage(1));
+
+    await waitForResolverInvocations(1);
+    expect(getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive).toBe(0);
+  });
+
   it('weist Verbindungen oberhalb des globalen Caps vor dem Upgrade mit 503 ab', async () => {
     const url = await startServer({ maxConnections: 1 });
     await connect(url);

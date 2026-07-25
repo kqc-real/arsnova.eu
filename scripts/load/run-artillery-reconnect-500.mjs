@@ -36,12 +36,12 @@ const ARRIVAL_RATE = Math.max(
   Number(process.env.ARTILLERY_ARRIVAL_RATE || Math.ceil(PARTICIPANTS / RAMP_SECONDS)),
 );
 const MIN_JOIN_RATIO = Number(process.env.ARTILLERY_MIN_JOIN_RATIO || 0.95);
-const MIN_RECONNECT_RATIO = Number(process.env.ARTILLERY_MIN_RECONNECT_RATIO || 0.9);
+const MIN_RECONNECT_RATIO = Number(process.env.ARTILLERY_MIN_RECONNECT_RATIO || 0.95);
 const MIN_WS_RATIO = Number(process.env.ARTILLERY_MIN_WS_RATIO || 0.9);
 const MIN_RESULTS_AFTER_RECONNECT_RATIO = Number(
   process.env.ARTILLERY_MIN_RESULTS_AFTER_RECONNECT_RATIO || 0.9,
 );
-const RECONNECT_MS_MAX = Math.max(500, Number(process.env.ARTILLERY_RECONNECT_MS_MAX || 3_000));
+const RECONNECT_MS_MAX = Math.max(30_000, Number(process.env.ARTILLERY_RECONNECT_MS_MAX || 30_000));
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
 const RECONNECT_STABLE_TICKS = Math.max(
   2,
@@ -228,6 +228,7 @@ async function main() {
   hostMonitor.stop();
 
   const reconnects = runtime.reconnects ?? 0;
+  const reconnectsWithinWindow = runtime.reconnectsWithinWindow ?? 0;
   const reconnectAvgMs =
     reconnects > 0 ? Math.round((runtime.reconnectMsSum ?? 0) / reconnects) : null;
 
@@ -245,6 +246,7 @@ async function main() {
         statusEvents: runtime.wsStatusEvents ?? 0,
         errors: runtime.wsErrors ?? 0,
         reconnects,
+        reconnectsWithinWindow,
         reconnectErrors: runtime.reconnectErrors ?? 0,
         reconnectResultsSeen: runtime.reconnectResultsSeen ?? 0,
         reconnectResultsMissing: runtime.reconnectResultsMissing ?? 0,
@@ -262,6 +264,7 @@ async function main() {
     },
     limits: {
       reconnectMsMax: RECONNECT_MS_MAX,
+      reconnectWithinWindowRatio: MIN_RECONNECT_RATIO,
       resultsWaitMs: RESULTS_WAIT_MS,
       statusAfterReconnectLimitMs: STATUS_AFTER_RECONNECT_LIMIT_MS,
     },
@@ -278,14 +281,16 @@ async function main() {
   if (reconnects < PARTICIPANTS * MIN_RECONNECT_RATIO) {
     failures.push(`Reconnects: ${reconnects}/${PARTICIPANTS}`);
   }
+  if (reconnectsWithinWindow < PARTICIPANTS * MIN_RECONNECT_RATIO) {
+    failures.push(
+      `Reconnects innerhalb ${RECONNECT_MS_MAX}ms: ${reconnectsWithinWindow}/${PARTICIPANTS}`,
+    );
+  }
   if ((runtime.reconnectResultsSeen ?? 0) < PARTICIPANTS * MIN_RESULTS_AFTER_RECONNECT_RATIO) {
     failures.push(`RESULTS nach Reconnect: ${runtime.reconnectResultsSeen ?? 0}/${PARTICIPANTS}`);
   }
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
-  }
-  if ((runtime.reconnectMsMax ?? 0) > RECONNECT_MS_MAX) {
-    failures.push(`Reconnect-Latenz max: ${runtime.reconnectMsMax ?? 0}ms > ${RECONNECT_MS_MAX}ms`);
   }
   if (statusSnapshot?.status !== 'RESULTS' && hostMonitor.state.lastStatus !== 'RESULTS') {
     failures.push(
@@ -310,6 +315,7 @@ async function main() {
       arrivalRate: ARRIVAL_RATE,
       minJoinRatio: MIN_JOIN_RATIO,
       minReconnectRatio: MIN_RECONNECT_RATIO,
+      reconnectWindowMs: RECONNECT_MS_MAX,
       minWsRatio: MIN_WS_RATIO,
       minResultsAfterReconnectRatio: MIN_RESULTS_AFTER_RECONNECT_RATIO,
     },

@@ -28,7 +28,9 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `HOST`                                                 | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird nur als Fallback für die Bind-Adresse des Yjs-Relays genutzt, wenn `YJS_WS_HOST` fehlt                            |
 | `WS_PORT`                                              | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                                               |
 | `WS_HOST`                                              | nein         | `0.0.0.0`                  | Bind-Adresse des tRPC-WebSocket-Servers                                                                                                                             |
-| `TRPC_WS_MAX_CONNECTIONS`                              | nein         | `1000`                     | Globales tRPC-WebSocket-Verbindungscap je Backend-Prozess; Code-Maximum `5000`                                                                                      |
+| `TRPC_WS_MAX_CONNECTIONS`                              | nein         | `1200`                     | Globales tRPC-WebSocket-Verbindungscap je Backend-Prozess mit Reserve oberhalb zweier 500er-Kohorten; Code-Maximum `5000`                                           |
+| `TRPC_WS_MAX_CONNECTIONS_PER_SESSION`                  | nein         | `1100`                     | Cap je gültigem Session-Code-Throttle-Signal; stale 500er-Reconnect-Kohorte plus Steuer-Reserve, Code-Minimum `750`, Maximum `5000`, kein Authentifizierungsbeweis  |
+| `TRPC_WS_MAX_CONNECTIONS_PER_PARTICIPANT`              | nein         | `2`                        | Cap je gültigem Session-/Participant-UUID-Tupel; Code-Maximum `10`, kein IP-Key und kein Authentifizierungsbeweis                                                   |
 | `TRPC_WS_MAX_UPGRADES_PER_MINUTE`                      | nein         | `3000`                     | Globales Upgrade-Budget ohne IP-Bucket; sechs volle 500er-Wellen, Code-Maximum `30000`                                                                              |
 | `TRPC_WS_MAX_MESSAGES_PER_10_SECONDS`                  | nein         | `120`                      | Nachrichtenbudget je tRPC-WebSocket und 10 Sekunden; Code-Maximum `1200`                                                                                            |
 | `TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS`           | nein         | `30000`                    | Globales Nachrichtenbudget je Backend-Prozess und 10 Sekunden; Code-Maximum `300000`                                                                                |
@@ -96,12 +98,19 @@ tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begren
 
 Der tRPC-WebSocket-Server begrenzt zusätzlich pro Backend-Prozess aktive
 Verbindungen, Upgrade-Versuche sowie Nachrichten je Verbindung und global.
-Die Defaults lassen 1.000 gleichzeitige Verbindungen und 3.000 Upgrades pro
-Minute zu. Damit passen zwei 500er-Kohorten beziehungsweise sechs vollständige
-500er-Reconnect-Wellen in die Standardbudgets. Es gibt bewusst kein IP-Bucket:
+Die Defaults lassen 1.200 gleichzeitige Verbindungen und 3.000 Upgrades pro
+Minute zu. Damit passen zwei 500er-Kohorten plus Steuer-/Public-Reserve
+beziehungsweise sechs vollständige 500er-Reconnect-Wellen in die
+Standardbudgets. Es gibt bewusst kein IP-Bucket:
 Teilnehmende hinter derselben Schul-/Hochschul-NAT blockieren einander nicht.
-Participant-/Session-Binding und clientseitiger Reconnect-Jitter folgen separat
-in W2.3b.
+Gültige, normalisierte Session-Codes begrenzen standardmäßig auf 1.100
+Verbindungen und lassen damit neben 500 aktiven Sockets eine vollständige
+500er-Ersatzkohorte sowie 100 Host-/Presenter-Sockets zu; ein
+Session-/Participant-UUID-Tupel begrenzt auf zwei. Beide Werte sind
+nur prozesslokale Throttle-Signale und ausdrücklich kein Authentifizierungs-
+oder Besitznachweis. Fehlende beziehungsweise ungültige Signale bleiben für
+Rolling Deployments unter den globalen W2.3a-Caps kompatibel. Der Produktclient
+reconnectet mit exponentiellem Backoff plus 0–349 ms Jitter.
 
 `quiz.upload` besitzt zusätzlich fachliche Zod-Caps: maximal **200 Fragen**, **10 Antwortoptionen je Frage** und **1.250.000 UTF-8-Bytes** für den validierten Quiz-Payload. Ein Classroom-Fixture mit 100 Fragen und je vier Optionen liegt darunter. Diese Grenze ergänzt das 2-MiB-Infrastrukturlimit und ist bewusst nicht per Env abschaltbar.
 

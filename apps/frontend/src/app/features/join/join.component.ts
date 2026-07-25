@@ -7,7 +7,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
-import { trpc } from '../../core/trpc.client';
+import { refreshTrpcWsBinding, trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
@@ -525,6 +525,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);
@@ -557,6 +558,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);

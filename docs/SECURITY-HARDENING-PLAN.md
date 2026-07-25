@@ -220,7 +220,13 @@ Nachrichtenbudgets je Verbindung/global. Die Defaults reservieren zwei
 IP-Limits bleiben ausdrücklich ausgeschlossen. Schema-first Telemetrie und
 Abnahme stehen in
 [W2.3A-TRPC-WEBSOCKET-LIMITS-ABNAHME.md](implementation/W2.3A-TRPC-WEBSOCKET-LIMITS-ABNAHME.md).
-Participant-/Session-Binding und Reconnect-Jitter bleiben W2.3b.
+**W2.3b** ergänzt ein optionales, nicht authentifizierendes Session-/
+Participant-UUID-Binding mit prozesslokalen Session- und Participant-Caps.
+Fehlende oder ungültige Signale bleiben unter den globalen W2.3a-Caps
+kompatibel; es gibt weiterhin kein IP-Bucket. Produktclient und
+Artillery-Abnahme verwenden exponentielles Backoff plus Jitter; das formale
+Gate bleibt 95 % Reconnects binnen 30 Sekunden. Details:
+[W2.3B-TRPC-WS-PARTICIPANT-RECONNECT-ABNAHME.md](implementation/W2.3B-TRPC-WS-PARTICIPANT-RECONNECT-ABNAHME.md).
 Signierte langlebige Share-Tokens und manuelle Rotation bleiben der getrennte
 Slice B aus W3.4; das Zielbild ist in
 [ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md)

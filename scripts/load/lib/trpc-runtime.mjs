@@ -49,12 +49,26 @@ export function createHttpTrpcSingle(trpcUrl, hostToken, adminToken, diagnosticS
   return createTRPCProxyClient({ links: [link] });
 }
 
-export function createHostWsTrpc(wsUrl, hostToken) {
+export function productionRetryDelayMs(attempt, random = Math.random) {
+  const base = Math.min(500 * Math.pow(2, attempt), 10_000);
+  return base + Math.floor(random() * 350);
+}
+
+function participantConnectionParams(sessionCode, participantId, extra = {}) {
+  return {
+    ...(sessionCode ? { sessionCode: String(sessionCode).trim().toUpperCase() } : {}),
+    ...(participantId ? { participantId } : {}),
+    ...extra,
+  };
+}
+
+export function createHostWsTrpc(wsUrl, hostToken, sessionCode) {
   const wsClient = createWSClient({
     url: wsUrl,
-    connectionParams: () => ({ 'x-host-token': hostToken }),
+    connectionParams: () =>
+      participantConnectionParams(sessionCode, null, { 'x-host-token': hostToken }),
     lazy: { enabled: false, closeMs: 0 },
-    retryDelayMs: () => 1_000,
+    retryDelayMs: productionRetryDelayMs,
   });
   const trpc = createTRPCProxyClient({
     links: [wsLink({ client: wsClient })],
@@ -62,11 +76,15 @@ export function createHostWsTrpc(wsUrl, hostToken) {
   return { trpc, wsClient };
 }
 
-export function createPublicWsTrpc(wsUrl) {
+export function createPublicWsTrpc(wsUrl, binding = {}) {
   const wsClient = createWSClient({
     url: wsUrl,
+    connectionParams:
+      binding.sessionCode || binding.participantId
+        ? () => participantConnectionParams(binding.sessionCode, binding.participantId)
+        : undefined,
     lazy: { enabled: false, closeMs: 0 },
-    retryDelayMs: () => 1_000,
+    retryDelayMs: productionRetryDelayMs,
   });
   const trpc = createTRPCProxyClient({
     links: [wsLink({ client: wsClient })],

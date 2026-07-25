@@ -3,11 +3,15 @@ import {
   configureTrpcWebSocketTelemetry,
   configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
+  recordTrpcWebSocketBindingConnected,
+  recordTrpcWebSocketBindingDisconnected,
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
+  recordTrpcWebSocketParticipantCapRejected,
   recordTrpcWebSocketPayloadRejected,
   recordTrpcWebSocketRateLimitedMessage,
   recordTrpcWebSocketRejectedUpgrade,
+  recordTrpcWebSocketSessionCapRejected,
   recordYjsWebSocketAwarenessRejected,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
@@ -30,10 +34,19 @@ describe('websocketTelemetry', () => {
   });
 
   it('zählt tRPC-WebSocket-Verbindungen, Cap und Ablehnungen', () => {
-    configureTrpcWebSocketTelemetry({ connectionLimit: 1_000 });
+    configureTrpcWebSocketTelemetry({
+      connectionLimit: 1_000,
+      sessionConnectionLimit: 800,
+      participantConnectionLimit: 2,
+    });
     recordTrpcWebSocketConnected();
     recordTrpcWebSocketConnected();
     recordTrpcWebSocketDisconnected();
+    recordTrpcWebSocketBindingConnected();
+    recordTrpcWebSocketBindingDisconnected();
+    recordTrpcWebSocketBindingConnected();
+    recordTrpcWebSocketSessionCapRejected();
+    recordTrpcWebSocketParticipantCapRejected();
     recordTrpcWebSocketRejectedUpgrade();
     recordTrpcWebSocketPayloadRejected();
     recordTrpcWebSocketRateLimitedMessage();
@@ -41,6 +54,11 @@ describe('websocketTelemetry', () => {
     expect(getWebSocketTelemetrySnapshot()).toMatchObject({
       trpcConnectionsActive: 1,
       trpcConnectionLimit: 1_000,
+      trpcBoundConnectionsActive: 1,
+      trpcSessionConnectionLimit: 800,
+      trpcParticipantConnectionLimit: 2,
+      trpcSessionCapRejectedLastMinute: 1,
+      trpcParticipantCapRejectedLastMinute: 1,
       trpcRejectedUpgradesLastMinute: 1,
       trpcPayloadRejectedLastMinute: 1,
       trpcRateLimitedMessagesLastMinute: 1,

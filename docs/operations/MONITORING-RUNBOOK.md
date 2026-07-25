@@ -161,6 +161,12 @@ docker compose -f docker-compose.prod.yml logs --since 10m app | rg 'pdf:'
 steht in `trpcWebSocketConnectionLimit`. Upgrade-, Payload- und
 Nachrichtenraten-Ablehnungen stehen in den drei entsprechenden
 `trpcWebSocket*LastMinute`-Feldern.
+`trpcWebSocketBoundConnectionsActive` zählt nur Verbindungen mit gültigem
+Session-Signal. Die Felder `trpcWebSocketSessionCapRejectedLastMinute` und
+`trpcWebSocketParticipantCapRejectedLastMinute` zeigen Cap-Ablehnungen
+aggregiert ohne Codes oder UUIDs; die zugehörigen Limits stehen ebenfalls im
+DTO. Participant-UUID und Session-Code sind nur Throttle-Signale, keine
+Authentifizierung.
 `yjsWebSocketConnectionsActive` Port 3002 und
 `yjsWebSocketRoomsActive` die momentan verbundenen Quiz-Sammlungen. Zur
 Gegenprüfung auf dem Host:
@@ -177,6 +183,10 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
   2-MiB-Limit; Rate-Schließungen ein ausgeschöpftes Verbindungs- oder
   Globalbudget. Bei einer realen 500er-Veranstaltung zuerst Reconnect-Welle und
   Clientfehler korrelieren, nicht nach IP drosseln.
+- Session-/Participant-Cap-Ablehnungen mit gebundenen Verbindungen und dem
+  500er-Reconnect-Gate korrelieren. Bei legitimer Last zuerst Client-Doppel-
+  verbindungen und Rollout-Overlap prüfen; keine IDs loggen und keinen
+  IP-Bucket ergänzen.
 - Yjs-Upgrade-Ablehnungen können ungültige Pfade, Upgrade-Raten oder
   Verbindungs-Caps bedeuten. Payload-Ablehnungen weisen auf Nachrichten über
   das konfigurierte Einzelpayload-Limit (Standard 16 MiB) hin;

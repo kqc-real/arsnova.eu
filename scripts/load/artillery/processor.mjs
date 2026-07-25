@@ -1,7 +1,11 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHttpTrpcSingle, createPublicWsTrpc } from '../lib/trpc-runtime.mjs';
+import {
+  createHttpTrpcSingle,
+  createPublicWsTrpc,
+  productionRetryDelayMs,
+} from '../lib/trpc-runtime.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_STATE_FILE = resolve(__dirname, '.runtime-state.json');
@@ -44,6 +48,7 @@ function readRuntimeState() {
       reconnectResultsMissing: 0,
       reconnectMsSum: 0,
       reconnectMsMax: 0,
+      reconnectsWithinWindow: 0,
       questionReads: 0,
       questionReadErrors: 0,
       infoPolls: 0,
@@ -101,7 +106,10 @@ export async function joinSession(userContext, events) {
 export async function connectParticipantStatusWs(userContext, events) {
   try {
     const ctx = loadSessionContext();
-    const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl);
+    const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl, {
+      sessionCode: ctx.code,
+      participantId: userContext.vars.participantId,
+    });
     const subscription = trpc.session.onStatusChanged.subscribe(
       { code: ctx.code },
       {
@@ -285,15 +293,26 @@ export async function disconnectParticipantStatusWs(userContext, events) {
   events.emit('counter', 'custom.ws_disconnected', 1);
 }
 
+export async function waitForReconnectJitter(userContext, events) {
+  const delayMs = productionRetryDelayMs(0);
+  userContext.vars._reconnectStartedAt = performance.now();
+  userContext.vars._reconnectJitterMs = delayMs;
+  events.emit('histogram', 'custom.reconnect_jitter_ms', delayMs);
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
 export async function reconnectParticipantStatusWs(userContext, events) {
   disconnectParticipantStatusWs(userContext, events);
 
   const ctx = loadSessionContext();
-  const startedAt = performance.now();
+  const startedAt = userContext.vars._reconnectStartedAt ?? performance.now();
   userContext.vars._reconnectReady = false;
   userContext.vars._reconnectResultsSeen = false;
 
-  const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl);
+  const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl, {
+    sessionCode: ctx.code,
+    participantId: userContext.vars.participantId,
+  });
   const subscription = trpc.session.onStatusChanged.subscribe(
     { code: ctx.code },
     {
@@ -307,6 +326,9 @@ export async function reconnectParticipantStatusWs(userContext, events) {
         writeRuntimeState({
           reconnectMsMax: Math.max(current.reconnectMsMax ?? 0, ms),
           reconnectMsSum: (current.reconnectMsSum ?? 0) + ms,
+          reconnectsWithinWindow:
+            (current.reconnectsWithinWindow ?? 0) +
+            (ms <= Number(process.env.ARTILLERY_RECONNECT_LIMIT_MS || 30_000) ? 1 : 0),
         });
         events.emit('counter', 'custom.reconnect_ok', 1);
       },
@@ -330,7 +352,7 @@ export async function reconnectParticipantStatusWs(userContext, events) {
   bumpRuntimeState('wsConnections');
   events.emit('counter', 'custom.ws_reconnected', 1);
 
-  const timeoutMs = Number(process.env.ARTILLERY_RECONNECT_LIMIT_MS || 3_000);
+  const timeoutMs = Number(process.env.ARTILLERY_RECONNECT_LIMIT_MS || 30_000);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (userContext.vars._reconnectReady) {

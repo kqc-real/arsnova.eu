@@ -53,6 +53,18 @@ Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe
 gesetzt sein, damit andere grobe IP-Budgets nicht alle Clients dem
 Proxy-Bucket zuordnen. Der separate tRPC-WebSocket-Server verwendet für
 Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
+Der tRPC-WebSocket-Server übernimmt zusätzlich aus dem begrenzt geparsten
+`connectionParams`-Frame einen normalisierten Session-Code und optional die
+lokal gespeicherte Participant-UUID. Host-/Present-Routen senden dabei nur den
+Session-Code, damit eine eventuell gespeicherte Participant-ID nicht das
+Participant-Budget einer Steuerverbindung belastet. Der Server begrenzt pro
+Prozess standardmäßig auf 1.100 Verbindungen je Session (500 aktive plus eine
+vollständige stale Reconnect-Kohorte und 100 Steuer-Sockets) sowie global auf
+1.200. Ein Session-/Participant-Tupel ist auf zwei Verbindungen begrenzt.
+Das Signal enthält keine PII, ist rotierbar und daher ausdrücklich
+**keine Authentifizierung**. Fehlende oder ungültige Signale bleiben unter den
+globalen Caps kompatibel; es existiert kein WebSocket-IP-Bucket. Zähler werden
+beim Socket-Close genau einmal freigegeben und leere Schlüssel gelöscht.
 
 Der Yjs-Relay begrenzt Einzelpayloads standardmäßig auf 16 MiB, aktive
 Verbindungen global und pro Raum sowie Upgrade-, Nachrichten- und Bytebudgets

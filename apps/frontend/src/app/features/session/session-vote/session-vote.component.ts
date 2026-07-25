@@ -22,7 +22,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { trpc } from '../../../core/trpc.client';
+import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
   resolveConfidenceLabelHigh,
   resolveConfidenceLabelLow,
@@ -3654,6 +3654,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, participantId);
           localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, join.nickname);
+          refreshTrpcWsBinding();
         }
       } catch (error) {
         this.showQaError(

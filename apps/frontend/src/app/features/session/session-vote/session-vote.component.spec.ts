@@ -82,6 +82,7 @@ const {
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
+  refreshTrpcWsBinding: vi.fn(),
   trpc: {
     vote: {
       submit: { mutate: voteSubmitMutateMock },

@@ -2055,6 +2055,21 @@ export const PublicSessionCodeLookupInputSchema = GetSessionInfoInputSchema.exte
 export type PublicSessionCodeLookupInput = z.infer<typeof PublicSessionCodeLookupInputSchema>;
 
 /**
+ * Optionales, nicht authentifizierendes Throttle-Signal des tRPC-WebSocket-Clients.
+ * Der Session-Code wird kanonisiert; eine Participant-ID ist nur zusammen mit
+ * einem gültigen Code sinnvoll. Zusätzliche connectionParams (z. B. Host-Token)
+ * werden vom Transport unabhängig verarbeitet.
+ */
+export const TrpcWebSocketParticipantBindingSchema = z.object({
+  sessionCode: z
+    .string()
+    .regex(/^[A-Za-z0-9]{6}$/)
+    .transform((value) => value.toUpperCase()),
+  participantId: z.uuid().optional(),
+});
+export type TrpcWebSocketParticipantBinding = z.infer<typeof TrpcWebSocketParticipantBindingSchema>;
+
+/**
  * Input: Host-Steuerung mit optionalem Override für persönliche Timer-Fenster (WCAG 2.2.1).
  * `forceClosePersonalTimers` darf serverseitig erst nach Ablauf des Raum-Countdowns greifen.
  */
@@ -3066,6 +3081,16 @@ export const HealthSecurityStatsDTOSchema = z.object({
   trpcWebSocketConnectionsActive: z.number().int().min(0),
   /** Hartes globales Verbindungslimit des tRPC-WebSocket-Servers. */
   trpcWebSocketConnectionLimit: z.number().int().min(1),
+  /** Verbindungen mit gültigem Session-Code-Throttle-Signal, ohne Offenlegung des Codes. */
+  trpcWebSocketBoundConnectionsActive: z.number().int().min(0),
+  /** Großzügiges Verbindungscap je signalisiertem Session-Code. */
+  trpcWebSocketSessionConnectionLimit: z.number().int().min(1),
+  /** Verbindungscap je signalisiertem Session-/Participant-Tupel. */
+  trpcWebSocketParticipantConnectionLimit: z.number().int().min(1),
+  /** Wegen des Session-Caps geschlossene tRPC-WebSockets der letzten Minute. */
+  trpcWebSocketSessionCapRejectedLastMinute: z.number().int().min(0),
+  /** Wegen des Participant-Caps geschlossene tRPC-WebSockets der letzten Minute. */
+  trpcWebSocketParticipantCapRejectedLastMinute: z.number().int().min(0),
   /** Wegen Upgrade-Rate oder Verbindungscap abgelehnte tRPC-WebSocket-Upgrades. */
   trpcWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
   /** Wegen Überschreitung des festen 2-MiB-Payload-Limits verworfene Nachrichten. */
