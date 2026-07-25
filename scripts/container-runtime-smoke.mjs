@@ -51,6 +51,21 @@ async function assertProcessRestrictions() {
   assert(/^CapEff:\s+0+$/m.test(status), 'Effektive Linux-Capabilities sind nicht leer');
 }
 
+async function assertWorkerSocketMountReadOnly() {
+  const probe = '/run/pdf-worker/app-must-not-write';
+  try {
+    await writeFile(probe, 'must not be writable');
+  } catch (error) {
+    assert(
+      error && typeof error === 'object' && ['EACCES', 'EROFS'].includes(error.code),
+      `Unerwarteter Socket-Mount-Probe-Fehler: ${String(error)}`,
+    );
+    return;
+  }
+  await rm(probe, { force: true });
+  throw new Error('App kann in das PDF-Worker-Socket-Volume schreiben');
+}
+
 async function assertPdfRuntime() {
   const questions = Array.from({ length: 200 }, (_, questionOrder) => ({
     questionOrder,
@@ -67,21 +82,25 @@ async function assertPdfRuntime() {
       isCorrect: optionIndex === 0,
     })),
   }));
-  const pdf = await buildSessionResultsPdf({
-    sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-    sessionCode: 'ABC123',
-    quizName: 'Container Runtime Smoke – 200 Fragen',
-    finishedAt: '2026-07-25T00:00:00.000Z',
-    participantCount: 500,
-    teamMode: false,
-    questions,
-  });
+  const pdf = await buildSessionResultsPdf(
+    {
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      sessionCode: 'ABC123',
+      quizName: 'Container Runtime Smoke – 200 Fragen',
+      finishedAt: '2026-07-25T00:00:00.000Z',
+      participantCount: 500,
+      teamMode: false,
+      questions,
+    },
+    { profile: 'pdfUa' },
+  );
   assert(pdf.subarray(0, 4).toString('utf8') === '%PDF', 'Chromium erzeugte keine PDF-Datei');
 }
 
 await assertProcessRestrictions();
 await assertReadOnlyRootFilesystem();
 await assertWritableTmp();
+await assertWorkerSocketMountReadOnly();
 await assertPdfRuntime();
 
 console.log('Container-Härtung und Chromium-PDF-Smoke erfolgreich.');

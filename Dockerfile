@@ -91,7 +91,11 @@ COPY --from=builder /app/apps/frontend/dist/browser apps/frontend/dist
 # Entrypoint: versionierte Migrationen vor dem App-Start anwenden
 COPY scripts/docker-entrypoint.sh /app/scripts/
 COPY scripts/container-runtime-smoke.mjs /app/scripts/
-RUN chmod +x /app/scripts/docker-entrypoint.sh
+COPY scripts/pdf-worker-healthcheck.mjs /app/scripts/
+COPY scripts/pdf-worker-runtime-smoke.mjs /app/scripts/
+RUN chmod +x /app/scripts/docker-entrypoint.sh \
+    && mkdir -p /run/pdf-worker \
+    && chown node:node /run/pdf-worker
 
 # App, Prisma-Migrationen und Chromium benötigen keine Root-Rechte.
 USER node

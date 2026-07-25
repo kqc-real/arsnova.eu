@@ -42,6 +42,38 @@ services:
       timeout: 5s
       retries: 5
 
+  pdf-worker:
+    image: arsnova-eu:production
+    container_name: arsnova-v3-pdf-worker
+    restart: always
+    init: true
+    entrypoint: ['node', 'apps/backend/dist/pdf-worker.js']
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    volumes:
+      - pdf_worker_socket:/run/pdf-worker
+    environment:
+      NODE_ENV: 'production'
+      HOME: /tmp
+      PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
+      PDF_WORKER_RENDER_TIMEOUT_MS: '60000'
+    healthcheck:
+      test: ['CMD', 'node', '/app/scripts/pdf-worker-healthcheck.mjs']
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 5
+    stop_grace_period: 15s
+
   app:
     image: arsnova-eu:production
     build:
@@ -56,6 +88,8 @@ services:
       - no-new-privileges:true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    volumes:
+      - pdf_worker_socket:/run/pdf-worker:ro
     env_file:
       - .env.production
     ports:
@@ -69,7 +103,11 @@ services:
       WS_PORT: '3001'
       YJS_WS_PORT: '3002'
       NODE_ENV: 'production'
+      PDF_RENDER_MODE: worker
+      PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
     depends_on:
+      pdf-worker:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -90,3 +128,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  pdf_worker_socket:

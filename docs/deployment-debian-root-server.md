@@ -509,13 +509,28 @@ sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
 Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod.yml`](../docker-compose.prod.yml). Diese Datei ist die Quelle der Wahrheit; die wichtigsten Eigenschaften:
 
 - `postgres`, `redis` und `app` laufen in einem internen Docker-Netzwerk.
+  Der separate `pdf-worker` besitzt mit `network_mode: none` überhaupt keinen
+  Netzwerk-Stack außerhalb von Loopback.
 - App-Ports `3000`, `3001`, `3002` sind nur auf `127.0.0.1` gebunden; externer Zugriff läuft ausschließlich über Nginx/TLS.
-- `.env.production` wird per `env_file` in die Container geladen. Das vermeidet leere Secrets, wenn `docker compose` ohne Shell-Export gestartet wird.
+- `.env.production` wird per `env_file` nur in Datenbank, Redis und App geladen.
+  Das vermeidet leere App-Secrets, während der PDF-Worker bewusst keine
+  Datenbank-, Redis-, JWT-, Admin- oder Diagnose-Secrets erhält.
 - Der App-Container läuft non-root, ohne Linux-Capabilities und mit
-  `no-new-privileges`. Sein Root-Dateisystem ist read-only; ausschließlich das
-  begrenzte, flüchtige `/tmp`-`tmpfs` ist für Chromium und notwendige temporäre
-  Dateien beschreibbar.
+  `no-new-privileges`. Sein Root-Dateisystem ist read-only.
+- Chromium läuft ausschließlich im ebenfalls non-root/capability-freien
+  PDF-Worker. Dessen Rootfs ist read-only, `/tmp` ein 256-MiB-`tmpfs`; Compose
+  begrenzt auf 128 PIDs, 1 GiB RAM und eine CPU. Der Worker besitzt kein
+  Netzwerk und kommuniziert nur über einen `0600`-Unix-Socket. Die App mountet
+  dieses Socket-Volume read-only.
+- Produktion erzwingt `PDF_RENDER_MODE=worker`; ein fehlender Worker führt
+  fail-closed zum PDF-Fehler, nicht zu einem In-Process-Fallback.
+- Eine harte Worker-Gesamtdeadline von 60 Sekunden liegt unter dem
+  75-Sekunden-App-Timeout. Bei Überschreitung wird der Worker non-zero beendet;
+  `restart: always` räumt hängende Chromium-Prozesse weg, startet mit neu
+  angelegtem `0600`-Socket und deckt zusätzlich Docker-Daemon-/Host-Neustarts
+  konsistent mit dem App-Service ab.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
+- Der Worker-Healthcheck prüft ausschließlich `/health` auf dem Unix-Socket.
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `WS_HOST`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
 - Der tRPC-WebSocket-Server begrenzt global aktive Verbindungen und Upgrades
   sowie Nachrichten je Verbindung/global. Die 1.200-/3.000-Defaults tragen

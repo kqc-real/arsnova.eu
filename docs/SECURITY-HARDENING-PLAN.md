@@ -196,13 +196,13 @@ Statt „max. 20 Verbindungen pro IP“:
 
 ### Woche 2 — Defense-in-Depth + Sync-Konzept
 
-| #    | Arbeitspaket                                                                                                                                                                                                                                                                                          | Akzeptanzkriterien                                                                 |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| W2.1 | **Container:** Non-Root, `cap_drop`, `no-new-privileges`. Chromium: **Sandbox ohne `--no-sandbox`** **oder** isolierter PDF-Worker. PDF-Worker: **read-only rootfs**, tmpfs `/tmp`, `pids_limit`, CPU/RAM-Limits, seccomp/AppArmor, **eingeschränkter Egress**                                        | Deploy + PDF-Export in CI/Staging grün; Sandbox- bzw. Worker-Isolation nachweisbar |
-| W2.2 | **Story 1.6c Slice A:** Yjs-Relay Rate-Limit / Conn-/Payload-Grenzen; ADR/Konzept für signierte Share-Tokens + manuelle Rotation                                                                                                                                                                      | Backlog-AKs Rate-Limit + dokumentierter Härtungspfad; Local-First-Smoke ok         |
-| W2.3 | WS: **W2.3a** globale/Verbindungs-Limits für tRPC-Upgrade, Verbindung und Nachrichtenrate ohne IP-Bucket; **W2.3b** Participant-/Session-Binding und Client **jittered Reconnect**                                                                                                                    | 500er-Reconnect-Welle ohne Totalausfall; 2-MiB-Payload-Cap bleibt bindend          |
-| W2.4 | **W2.4a umgesetzt:** sicherer Report-Ingest mit **Rate-Limit**, Payload-**Minimierung**, definierter **Retention**. **W2.4b umgesetzt:** ausschließlich HTML-begrenzte CSP-Report-Only-Policy hinter standardmäßig deaktiviertem Rollout-/Rollback-Flag; 24–72 h beobachten, Enforcement bleibt offen | Reports sammeln unter RL; keine PII-Lawine; App ungebrochen                        |
-| W2.5 | **Umgesetzt:** HTTP-CORS in Produktion entfernt; feste enge Localhost-Freigabe nur für Angular-Dev                                                                                                                                                                                                    | Same-Origin-Flows ok                                                               |
+| #    | Arbeitspaket                                                                                                                                                                                                                                                                                          | Akzeptanzkriterien                                                         |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| W2.1 | **Umgesetzt:** W2.1a Non-Root/read-only Baseline; W2.1b isolierter, netzloser PDF-Worker mit Unix-Socket, PID-/CPU-/RAM-Grenzen und ohne App-Secrets                                                                                                                                                  | Deploy + PDF-Export in CI/Staging grün; Worker-Isolation nachweisbar       |
+| W2.2 | **Story 1.6c Slice A:** Yjs-Relay Rate-Limit / Conn-/Payload-Grenzen; ADR/Konzept für signierte Share-Tokens + manuelle Rotation                                                                                                                                                                      | Backlog-AKs Rate-Limit + dokumentierter Härtungspfad; Local-First-Smoke ok |
+| W2.3 | WS: **W2.3a** globale/Verbindungs-Limits für tRPC-Upgrade, Verbindung und Nachrichtenrate ohne IP-Bucket; **W2.3b** Participant-/Session-Binding und Client **jittered Reconnect**                                                                                                                    | 500er-Reconnect-Welle ohne Totalausfall; 2-MiB-Payload-Cap bleibt bindend  |
+| W2.4 | **W2.4a umgesetzt:** sicherer Report-Ingest mit **Rate-Limit**, Payload-**Minimierung**, definierter **Retention**. **W2.4b umgesetzt:** ausschließlich HTML-begrenzte CSP-Report-Only-Policy hinter standardmäßig deaktiviertem Rollout-/Rollback-Flag; 24–72 h beobachten, Enforcement bleibt offen | Reports sammeln unter RL; keine PII-Lawine; App ungebrochen                |
+| W2.5 | **Umgesetzt:** HTTP-CORS in Produktion entfernt; feste enge Localhost-Freigabe nur für Angular-Dev                                                                                                                                                                                                    | Same-Origin-Flows ok                                                       |
 
 **Umsetzungsstand 2026-07-25:** W2.2 Slice A ersetzt den ungefilterten
 Yjs-Paket-Entry durch einen Relay mit UUID-Pfad-, 16-MiB-Einzelpayload-,
@@ -238,6 +238,13 @@ Nicht-Browser-Requests ohne `Origin` bleiben zulässig. Nur die lokale Angular-
 Entwicklung auf Port 4200 erhält eine exakte, credentials-freie Freigabe für
 die benötigten Methoden und Header. Abnahme und Rollback:
 [W2.5-CORS-SAME-ORIGIN-ABNAHME.md](implementation/W2.5-CORS-SAME-ORIGIN-ABNAHME.md).
+**W2.1b** entscheidet sich nach praktischem Alpine-/Docker-Sandboxversuch für
+einen isolierten PDF-Worker. Der bestehende App-Container behält
+`no-new-privileges`, Default-Seccomp und leere Capabilities; der Worker läuft
+ohne Netzwerk und Secrets mit read-only Rootfs, 256-MiB-`/tmp`, 128 PIDs, 1 GiB
+RAM und einer CPU. Ein `0600`-Unix-Socket ersetzt einen netzwerkfähigen
+Worker-Port. Details:
+[W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 
 ### Woche 3–4 — Tradeoffs bewusst + Hygiene
 

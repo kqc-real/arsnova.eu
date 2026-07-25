@@ -174,12 +174,23 @@ Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-N
 Der Produktions-App-Container läuft als unprivilegierter `node`-User, ohne
 Linux-Capabilities und mit gesperrter Privilegieneskalation. Sein
 Root-Dateisystem ist read-only; ein begrenztes `tmpfs` unter `/tmp` nimmt
-Chromium-Profile und andere notwendige temporäre Dateien auf. CI prüft UID,
-`NoNewPrivs`, effektive Capabilities, Schreibpfade und einen echten
-Chromium-PDF-Lauf. Chromium verwendet innerhalb dieser Containergrenze vorerst
-weiterhin `--no-sandbox`; Sandbox oder isolierter PDF-Worker sowie
-Ressourcen-/Egress-Grenzen bleiben W2.1b. Abnahme und Rollback:
+andere notwendige temporäre Dateien auf.
 [W2.1A-CONTAINER-BASELINE-ABNAHME.md](implementation/W2.1A-CONTAINER-BASELINE-ABNAHME.md).
+
+W2.1b verlagert den Chromium-PDF-Lauf in einen separaten Worker ohne Netzwerk
+und ohne App-Secrets. Die App übergibt ausschließlich vollständig vorbereiteten
+Reportinhalt über einen `0600`-Unix-Socket, dessen Volume sie read-only mountet.
+Der Worker läuft non-root, capability-frei, mit `no-new-privileges`,
+Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`; Compose begrenzt
+zusätzlich auf 128 PIDs, 1 GiB RAM und eine CPU. Produktion ist fail-closed auf
+den Worker festgelegt. Chromium verwendet dort weiterhin `--no-sandbox`, liegt
+aber in einer eigenen Container-, Ressourcen- und Egress-Grenze. CI prüft diese
+Laufzeitkontrollen und einen echten Maximalbericht. Eine worker-interne
+60-Sekunden-Gesamtdeadline beendet bei hängendem Chromium den Container
+non-zero; `restart: always` stellt Socket und Worker sowohl danach als auch nach
+Docker-Daemon-/Host-Neustarts sauber wieder her.
+Entscheidung, verworfene In-Container-Sandbox und Rollback:
+[W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 
 ---
 
