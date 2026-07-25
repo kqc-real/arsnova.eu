@@ -2,7 +2,7 @@
 
 # Umgebungsvariablen (Referenz)
 
-**Stand:** 2026-07-24
+**Stand:** 2026-07-25
 
 **Lokal:** Vorlage [`../.env.example`](../.env.example) nach `.env` kopieren und anpassen.  
 **Produktion (Docker):** Vorlage [`.env.production.example`](../.env.production.example) → `.env.production`; siehe auch [deployment-debian-root-server.md](deployment-debian-root-server.md).
@@ -25,10 +25,15 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `DATABASE_URL`                                         | ja (für DB)  | siehe `.env.example`       | PostgreSQL-Verbindung (Prisma)                                                                                                                                      |
 | `REDIS_URL`                                            | nein         | `redis://localhost:6379`   | Redis für Rate-Limits, Host-/Admin-Session-Tokens und kurzlebige Live-Hilfsdaten (z. B. Blitzlicht-/Presence-Zustand); MOTD-Interaktionszähler liegen in PostgreSQL |
 | `PORT`                                                 | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                                                           |
-| `HOST`                                                 | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird im aktuellen Code nur als **Fallback** für den Yjs-Child genutzt, wenn `YJS_WS_HOST` fehlt                        |
+| `HOST`                                                 | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird nur als Fallback für die Bind-Adresse des Yjs-Relays genutzt, wenn `YJS_WS_HOST` fehlt                            |
 | `WS_PORT`                                              | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                                               |
-| `YJS_WS_PORT`                                          | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                                                       |
-| `YJS_WS_HOST`                                          | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx                             |
+| `YJS_WS_PORT`                                          | nein         | `3002`                     | Gehärteter Yjs-Relay für den Quiz-Sync                                                                                                                              |
+| `YJS_WS_HOST`                                          | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Relays. **Nicht** nur `127.0.0.1` im Container, sonst scheitert `wss://…/yjs-ws` hinter Nginx                                                  |
+| `YJS_WS_MAX_CONNECTIONS`                               | nein         | `1000`                     | Globales Verbindungscap je Backend-Prozess; Code-Maximum `2000`                                                                                                     |
+| `YJS_WS_MAX_CONNECTIONS_PER_ROOM`                      | nein         | `200`                      | Verbindungscap je `quiz-library-room-<UUID>` mit Reconnect-Reserve; Code-Maximum `500`                                                                              |
+| `YJS_WS_MAX_UPGRADES_PER_MINUTE`                       | nein         | `3000`                     | Globales Upgrade-Budget ohne IP-Bucket; Code-Maximum `6000`                                                                                                         |
+| `YJS_WS_MAX_UPGRADES_PER_ROOM_PER_MINUTE`              | nein         | `600`                      | Upgrade-Budget je Raum ohne IP-Bucket; Code-Maximum `1200`                                                                                                          |
+| `YJS_WS_MAX_MESSAGES_PER_10_SECONDS`                   | nein         | `600`                      | Nachrichtenbudget je Verbindung und 10 Sekunden; Code-Maximum `1200`. Einzelpayloads sind fest auf 2 MiB begrenzt                                                   |
 | `NODE_ENV`                                             | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                                               |
 | `TRUST_PROXY_HOPS`                                     | nein         | `0`                        | `1` setzen, wenn Express **hinter** Nginx/Proxy läuft — dann `req.ip` und Rate-Limit pro **echtem** Client (nicht nur Proxy-IP)                                     |
 | `HOST_SESSION_TTL_SECONDS`                             | nein         | `28800` (8 h)              | TTL für Host-/Present-Besitznachweise in Redis; Werte unter 60 Sekunden fallen auf den Standard zurück                                                              |

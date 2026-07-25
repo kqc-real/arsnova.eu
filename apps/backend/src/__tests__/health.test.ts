@@ -122,6 +122,13 @@ beforeEach(() => {
   vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(0);
   vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
     trpcConnectionsActive: 0,
+    yjsConnectionsActive: 0,
+    yjsRoomsActive: 0,
+    yjsConnectionLimit: 1_000,
+    yjsPerRoomConnectionLimit: 200,
+    yjsRejectedUpgradesLastMinute: 0,
+    yjsPayloadRejectedLastMinute: 0,
+    yjsRateLimitedMessagesLastMinute: 0,
   });
 });
 
@@ -316,6 +323,13 @@ describe('health.stats', () => {
     vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(82);
     vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
       trpcConnectionsActive: 321,
+      yjsConnectionsActive: 45,
+      yjsRoomsActive: 12,
+      yjsConnectionLimit: 1_000,
+      yjsPerRoomConnectionLimit: 200,
+      yjsRejectedUpgradesLastMinute: 7,
+      yjsPayloadRejectedLastMinute: 3,
+      yjsRateLimitedMessagesLastMinute: 2,
     });
 
     const result = await authenticatedCaller.securityStats(undefined);
@@ -339,6 +353,13 @@ describe('health.stats', () => {
         other: 0,
       },
       trpcWebSocketConnectionsActive: 321,
+      yjsWebSocketConnectionsActive: 45,
+      yjsWebSocketRoomsActive: 12,
+      yjsWebSocketConnectionLimit: 1_000,
+      yjsWebSocketPerRoomConnectionLimit: 200,
+      yjsWebSocketRejectedUpgradesLastMinute: 7,
+      yjsWebSocketPayloadRejectedLastMinute: 3,
+      yjsWebSocketRateLimitedMessagesLastMinute: 2,
     });
   });
 
@@ -386,6 +407,7 @@ describe('health.stats', () => {
       pdfActiveJobs: 0,
       rateLimit429LastMinute: 0,
       trpcWebSocketConnectionsActive: 0,
+      yjsWebSocketConnectionsActive: 0,
     });
     expect(getRedis).not.toHaveBeenCalled();
     vi.mocked(getRedis).mockImplementation(

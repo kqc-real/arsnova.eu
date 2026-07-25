@@ -32,7 +32,12 @@
      pdfMaxConcurrentJobs,
      pdfFailedLastMinute,
      pdfRejectedLastMinute,
-     trpcWebSocketConnectionsActive
+     trpcWebSocketConnectionsActive,
+     yjsWebSocketConnectionsActive,
+     yjsWebSocketRoomsActive,
+     yjsWebSocketRejectedUpgradesLastMinute,
+     yjsWebSocketPayloadRejectedLastMinute,
+     yjsWebSocketRateLimitedMessagesLastMinute
    }'
    unset ADMIN_DIAGNOSTIC_SECRET
    ```
@@ -90,6 +95,10 @@ genutzten Hörsaal-IP gedrosselt.
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
 | PDF-Fehler                         |           ≥ 1/min |           ≥ 3/min |
 | Aktive tRPC-WebSockets             |             ≥ 600 |             ≥ 800 |
+| Aktive Yjs-WebSockets              |             ≥ 700 |             ≥ 900 |
+| Abgelehnte Yjs-Upgrades/min        |              ≥ 50 |             ≥ 200 |
+| Yjs-Payload-Ablehnungen/min        |               ≥ 1 |              ≥ 10 |
+| Yjs-Message-Rate-Schließungen/min  |              ≥ 10 |              ≥ 50 |
 | Container-CPU, 5 Minuten anhaltend | ≥ 80 % des Limits | ≥ 95 % des Limits |
 | `serviceStatus`                    |         `limited` |        `critical` |
 
@@ -144,16 +153,22 @@ docker compose -f docker-compose.prod.yml logs --since 10m app | rg 'pdf:'
 
 ### WebSocket-Anstieg
 
-`trpcWebSocketConnectionsActive` zählt Port 3001. Für die Gesamtzahl inklusive
-Yjs-Port 3002 auf dem Host zusätzlich prüfen:
+`trpcWebSocketConnectionsActive` zählt Port 3001,
+`yjsWebSocketConnectionsActive` Port 3002 und
+`yjsWebSocketRoomsActive` die momentan verbundenen Quiz-Sammlungen. Zur
+Gegenprüfung auf dem Host:
 
 ```bash
 ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
 ```
 
 - Kurzzeitige Reconnect-Wellen nach einem Deployment sind erwartbar.
-- Bei anhaltend ≥ 800 Verbindungen `serviceStatus`, CPU, Speicher und
-  Reconnect-Logs zusammen bewerten.
+- Bei anhaltend hohen Verbindungen `serviceStatus`, CPU, Speicher und
+  Reconnect-Lasttest zusammen bewerten.
+- Yjs-Upgrade-Ablehnungen können ungültige Pfade, Upgrade-Raten oder
+  Verbindungs-Caps bedeuten. Payload-Ablehnungen weisen auf Nachrichten über
+  2 MiB hin; Message-Rate-Schließungen auf mehr als das konfigurierte
+  Zehn-Sekunden-Budget einer Verbindung.
 - Keine IP-basierte WS-Sperre als Sofortmaßnahme setzen; viele legitime Clients
   können dieselbe NAT-IP teilen.
 

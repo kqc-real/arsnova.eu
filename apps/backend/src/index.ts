@@ -2,7 +2,6 @@
  * Backend-Einstieg: Express + tRPC WebSocket + Yjs WebSocket (Story 0.1, 0.2, 0.3)
  */
 import './load-env';
-import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import compression from 'compression';
@@ -24,10 +23,10 @@ import {
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
 } from './lib/websocketTelemetry';
+import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 
 const PORT = Number(process.env['PORT']) || 3000;
 const WS_PORT = Number(process.env['WS_PORT']) || 3001;
-const YJS_WS_PORT = Number(process.env['YJS_WS_PORT']) || 3002;
 
 // Redis beim Start initialisieren (Story 0.1)
 getRedis();
@@ -202,32 +201,12 @@ const wsHandler = applyWSSHandler({
 });
 logger.info(`   WebSocket (tRPC): ws://localhost:${WS_PORT}`);
 
-// Story 0.3: Yjs WebSocket-Server (Zwei-Tabs-Sync für Quiz)
-let yjsChild: ReturnType<typeof spawn> | null = null;
-try {
-  const serverPath = path.join(
-    path.dirname(require.resolve('@y/websocket-server/package.json')),
-    'src',
-    'server.js',
-  );
-  /** Bind-Adresse: In Docker muss 0.0.0.0 sein, sonst erreicht Nginx (Port-Mapping) den Prozess nicht. */
-  const yjsHost = process.env['YJS_WS_HOST'] ?? process.env['HOST'] ?? '127.0.0.1';
-  yjsChild = spawn(process.execPath, [serverPath], {
-    env: { ...process.env, PORT: String(YJS_WS_PORT), HOST: yjsHost },
-    stdio: 'ignore',
-  });
-  yjsChild.on('error', (err) => {
-    logger.warn('Yjs WebSocket-Server Fehler:', (err as Error).message);
-  });
-  yjsChild.on('exit', (code, signal) => {
-    if (code !== 0 && signal === null) {
-      logger.warn(`Yjs WebSocket-Server beendet mit Exit-Code ${String(code)}`);
-    }
-  });
-  logger.info(`   Yjs WebSocket: ws://${yjsHost}:${YJS_WS_PORT}`);
-} catch (e) {
-  logger.warn('Yjs WebSocket nicht gestartet:', (e as Error).message);
-}
+// Story 0.3 / W2.2: gehärteter Yjs-Relay für geteilte Quiz-Sammlungen.
+const yjsRelayConfig = resolveYjsRelayConfig();
+const yjsRelay = new YjsRelayServer(yjsRelayConfig);
+yjsRelay.listen(() => {
+  logger.info(`   Yjs WebSocket: ws://${yjsRelayConfig.host}:${yjsRelayConfig.port}`);
+});
 
 let shuttingDown = false;
 
@@ -238,8 +217,7 @@ async function shutdown(): Promise<void> {
   wsHandler.broadcastReconnectNotification();
   wss.close();
   server.close();
-  if (yjsChild) yjsChild.kill();
-  await Promise.all([shutdownAbuseTelemetry(), shutdownPdfTelemetry()]);
+  await Promise.all([yjsRelay.close(), shutdownAbuseTelemetry(), shutdownPdfTelemetry()]);
   await closeRedis();
   process.exit(0);
 }

@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
+  recordYjsWebSocketConnected,
+  recordYjsWebSocketDisconnected,
+  recordYjsWebSocketPayloadRejected,
+  recordYjsWebSocketRateLimitedMessage,
+  recordYjsWebSocketRejectedUpgrade,
   resetWebSocketTelemetryForTests,
 } from './websocketTelemetry';
 
@@ -16,12 +22,36 @@ describe('websocketTelemetry', () => {
     recordTrpcWebSocketConnected();
     recordTrpcWebSocketDisconnected();
 
-    expect(getWebSocketTelemetrySnapshot()).toEqual({ trpcConnectionsActive: 1 });
+    expect(getWebSocketTelemetrySnapshot().trpcConnectionsActive).toBe(1);
   });
 
   it('fällt bei doppelten Close-Ereignissen nicht unter null', () => {
     recordTrpcWebSocketDisconnected();
 
-    expect(getWebSocketTelemetrySnapshot()).toEqual({ trpcConnectionsActive: 0 });
+    expect(getWebSocketTelemetrySnapshot().trpcConnectionsActive).toBe(0);
+  });
+
+  it('zählt Yjs-Verbindungen, Räume, Caps und Ablehnungen', () => {
+    configureYjsWebSocketTelemetry({
+      connectionLimit: 1_000,
+      perRoomConnectionLimit: 100,
+    });
+    recordYjsWebSocketConnected('quiz-library-room-a');
+    recordYjsWebSocketConnected('quiz-library-room-a');
+    recordYjsWebSocketConnected('quiz-library-room-b');
+    recordYjsWebSocketDisconnected('quiz-library-room-a');
+    recordYjsWebSocketRejectedUpgrade();
+    recordYjsWebSocketPayloadRejected();
+    recordYjsWebSocketRateLimitedMessage();
+
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      yjsConnectionsActive: 2,
+      yjsRoomsActive: 2,
+      yjsConnectionLimit: 1_000,
+      yjsPerRoomConnectionLimit: 100,
+      yjsRejectedUpgradesLastMinute: 1,
+      yjsPayloadRejectedLastMinute: 1,
+      yjsRateLimitedMessagesLastMinute: 1,
+    });
   });
 });

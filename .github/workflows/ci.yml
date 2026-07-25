@@ -1498,6 +1498,10 @@ jobs:
           docker compose -f docker-compose.prod.yml --env-file .env.production \
             exec -T app node /app/scripts/container-runtime-smoke.mjs
 
+          # Produktionsimage/Compose: Yjs-Protokoll, Offline-Update und Reconnect
+          # gegen den gehärteten Relay auf dem tatsächlich veröffentlichten Port.
+          CLIENTS=30 UPDATE_CONCURRENCY=15 npm run load:yjs:sync
+
   # ─── Deploy Freshness Check (nur aktueller main-HEAD darf deployen) ──────────
   deploy-freshness:
     name: Deploy Freshness Check

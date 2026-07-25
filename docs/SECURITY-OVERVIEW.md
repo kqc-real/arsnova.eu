@@ -12,6 +12,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 
 - **Accountfrei:** Kein Nutzer-/Login-Modell für Lehrende oder Teilnehmende. Identität **realer Personen** hält die App nicht fest; Pseudonyme und freiwillige Einreichung von Bonus-Codes sind dokumentiert ([bonus-codes](features/bonus-codes.md)).
 - **Local-First (Quiz):** Dauerhafte **Quiz-Sammlung** primär im Browser (Yjs); Server erhält eine **flüchtige Kopie** für die Live-Session ([ADR-0004](architecture/decisions/0004-use-yjs-for-local-first-storage.md), Handbook §3.1).
+- **Quiz-Sync-Zugriff:** Der Relay akzeptiert ausschließlich `quiz-library-room-<UUID>`. Die Raum-UUID bleibt bis zum separaten Share-Token-Slice ein langlebiges Bearer-Secret: Wer den Link kennt, kann lesen und schreiben. Das Zielbild für signierte Share-Tokens und manuelle Rotation dokumentiert [ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md).
 
 ---
 
@@ -52,6 +53,14 @@ Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe
 gesetzt sein, damit andere grobe IP-Budgets nicht alle Clients dem
 Proxy-Bucket zuordnen. Der separate tRPC-WebSocket-Server verwendet für
 Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
+
+Der Yjs-Relay begrenzt Einzelpayloads fest auf 2 MiB, aktive Verbindungen global
+und pro Raum sowie Upgrade- und Nachrichtenraten. Diese Grenzen sind bewusst
+nicht IP-basiert, damit Einrichtungen hinter gemeinsamem NAT nicht
+ausgesperrt werden. Nicht kanonische Raumpfade und Query-Parameter werden vor
+dem Upgrade abgewiesen; inaktive In-Memory-Dokumente werden nach der letzten
+Verbindung freigegeben. Aktive Yjs-Verbindungen/Räume und Ablehnungen sind nur
+über das diagnose-authentifizierte `health.securityStats` sichtbar.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
 Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header

@@ -3064,6 +3064,20 @@ export const HealthSecurityStatsDTOSchema = z.object({
   sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
+  /** Momentan aktive Verbindungen am Yjs-Relay. */
+  yjsWebSocketConnectionsActive: z.number().int().min(0),
+  /** Momentan aktive Quiz-Sammlungsräume am Yjs-Relay. */
+  yjsWebSocketRoomsActive: z.number().int().min(0),
+  /** Hartes globales Verbindungslimit des Yjs-Relays. */
+  yjsWebSocketConnectionLimit: z.number().int().min(1),
+  /** Hartes Verbindungslimit je Yjs-Raum. */
+  yjsWebSocketPerRoomConnectionLimit: z.number().int().min(1),
+  /** Abgelehnte Yjs-Upgrades der letzten Minute (Pfad, Rate oder Verbindungscap). */
+  yjsWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
+  /** Wegen Überschreitung des 2-MiB-Limits verworfene Yjs-Nachrichten der letzten Minute. */
+  yjsWebSocketPayloadRejectedLastMinute: z.number().int().min(0),
+  /** Wegen Nachrichtenrate geschlossene Yjs-Verbindungen der letzten Minute. */
+  yjsWebSocketRateLimitedMessagesLastMinute: z.number().int().min(0),
 });
 
 export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;

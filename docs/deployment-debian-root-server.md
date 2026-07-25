@@ -493,6 +493,9 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   Dateien beschreibbar.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
+- Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt Payloads
+  fest auf 2 MiB und nutzt großzügige globale/raumbezogene Caps ohne
+  IP-Lockout.
 
 Start immer mit der Repo-Datei:
 
@@ -520,6 +523,11 @@ HOST=0.0.0.0
 WS_PORT=3001
 YJS_WS_PORT=3002
 YJS_WS_HOST=0.0.0.0
+YJS_WS_MAX_CONNECTIONS=1000
+YJS_WS_MAX_CONNECTIONS_PER_ROOM=200
+YJS_WS_MAX_UPGRADES_PER_MINUTE=3000
+YJS_WS_MAX_UPGRADES_PER_ROOM_PER_MINUTE=600
+YJS_WS_MAX_MESSAGES_PER_10_SECONDS=600
 TRUST_PROXY_HOPS=1
 
 ADMIN_SESSION_TTL_SECONDS=28800
@@ -619,7 +627,12 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 | **Emoji-Reaktionen in der Live-Session**    | Werden im Backend **nur im RAM** gehalten — nach App-Neustart **leer**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **Prisma `migrate deploy`**                 | Kann die DB kurz **sperren**; bei großen Migrationen Deploy-Zeitfenster planen. Schema-Änderungen ohne kompatible App-Version vermeiden (Blue/Green oder wartungsbedingter Stop).                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-**Yjs** (`/yjs-ws`, Quiz-Sync zwischen Geräten): Eigener WebSocket — Verbindungsabbruch beim Backend-Neustart analog; Wiederverbindung hängt vom Yjs-Provider im Client ab (siehe `getYjsWsUrl()`).
+**Yjs** (`/yjs-ws`, Quiz-Sync zwischen Geräten): Eigener WebSocket —
+Verbindungsabbruch beim Backend-Neustart analog; der Yjs-Provider verbindet
+automatisch wieder und synchronisiert lokal entstandene Offline-Änderungen.
+Die Raum-UUID bleibt bis zum Share-Token-Slice der Bearer-Nachweis. Caps nicht
+spontan anheben oder durch enge IP-Limits ersetzen; zuerst
+`health.securityStats` und den Yjs-Reconnect-Lasttest auswerten.
 
 ---
 
@@ -633,6 +646,7 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 - [ ] Docker: App läuft non-root; `CapEff` ist leer, `NoNewPrivs` aktiv und nur `/tmp` beschreibbar
 - [ ] Starke Passwörter, `JWT_SECRET`, `ADMIN_SECRET` und separates `ADMIN_DIAGNOSTIC_SECRET`; keine Defaults aus `.env.example`
 - [ ] `.env.production` entspricht `.env.production.example`; `TRUST_PROXY_HOPS=1` hinter Nginx gesetzt
+- [ ] Yjs-Sync inkl. Offline-Änderung/Reconnect bestanden; Diagnosemetriken zeigen aktive Räume und keine unerwarteten Ablehnungen
 - [ ] Admin-Login, Legal-Hold, Löschung, Behördenexport, MOTD-Admin und Rekord-Reset getestet
 - [ ] Test-Session mit Host-, Present- und Teilnehmergerät inkl. tRPC-WebSocket und Yjs-Sync durchgeführt
 - [ ] `health.footerBundle` / Footer-Dot und `health.stats` / Detaildialog prüfen

@@ -204,6 +204,16 @@ Statt „max. 20 Verbindungen pro IP“:
 | W2.4 | CSP **Report-Only** verschärfen: Report-Endpoint mit **Rate-Limit**, Payload-**Minimierung**, definierter **Retention**; `unsafe-eval`/`https:` in script-src beobachten                                                                                       | Reports sammeln unter RL; keine PII-Lawine; App ungebrochen                        |
 | W2.5 | CORS in Produktion auf eigene Origins beschränken oder entfernen                                                                                                                                                                                               | Same-Origin-Flows ok                                                               |
 
+**Umsetzungsstand 2026-07-25:** W2.2 Slice A ersetzt den ungefilterten
+Yjs-Paket-Entry durch einen Relay mit UUID-Pfad-, 2-MiB-Payload-,
+Verbindungs-/Upgrade-/Nachrichtenraten-Grenzen und Diagnosemetriken. Die
+Abnahme steht in
+[W2.2-YJS-RELAY-HARDENING-ABNAHME.md](implementation/W2.2-YJS-RELAY-HARDENING-ABNAHME.md).
+Signierte langlebige Share-Tokens und manuelle Rotation bleiben der getrennte
+Slice B aus W3.4; das Zielbild ist in
+[ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md)
+festgehalten.
+
 ### Woche 3–4 — Tradeoffs bewusst + Hygiene
 
 | #    | Arbeitspaket                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Akzeptanzkriterien                                                                                                     |

@@ -3,17 +3,18 @@
 # Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen
-**Stand:** 2026-07-11
+**Stand:** 2026-07-25
 **Status:** Living Document
 
-**Repo-Abgleich 2026-07-11:** Die Sync-Architektur ist weiterhin
+**Repo-Abgleich 2026-07-25:** Die Sync-Architektur ist weiterhin
 frontendzentriert. `QuizStoreService` ist die zentrale Implementierung,
 `getYjsWsUrl()` liefert lokale Direkt- und Proxy-Pfade und der Yjs-Stack ist im
 Frontend auf `yjs@13.6.31`, der Server auf das Yjs-13-kompatible
 `@y/websocket-server@0.1.1` gepinnt. Neben dem browserbasierten
 `check-quiz-sync-flow.mjs` existiert mit `scripts/load/yjs-sync-load.mjs` ein
-Mehrclient-Lasttest. Browser-Smoke und Mehrclient-Reconnect bestanden im
-QA-Nachlauf vom 2026-07-11.
+Mehrclient-Lasttest. W2.2 ersetzt den ungefilterten Paket-Entry durch einen
+gehärteten, protokollkompatiblen Relay. Browser-Smoke und Mehrclient-Reconnect
+bleiben die verpflichtende Abnahme.
 
 ## 1. Zweck
 
@@ -64,7 +65,7 @@ flowchart LR
     end
 
     subgraph Relay["Backend / Relay"]
-        YWS[y-websocket<br/>/yjs-ws oder :3002]
+        YWS[gehärteter Yjs-Relay<br/>/yjs-ws oder :3002]
     end
 
     UIA --> STOREA
@@ -126,9 +127,9 @@ Der Frontend-Sync ist derzeit an den **Yjs-13er-Strang** gebunden:
 Hintergrund: `y-websocket@3.0.0` und `y-indexeddb@9.0.12` erwarten weiterhin `yjs@^13`.
 Ein Upgrade des Frontends auf `yjs@14` fuehrte lokal reproduzierbar dazu, dass die Yjs-
 Initialisierung im Browser schon vor dem WebSocket-Aufbau scheitert und die UI dauerhaft
-`Offline (nur lokal)` anzeigt. Der Backend-Relay `@y/websocket-server` behaelt deshalb
-seine eigene `@y/y`-/`yjs`-14er-Kopie, waehrend Root und Frontend per Dependency und
-`overrides` auf `13.6.30` gepinnt bleiben.
+`Offline (nur lokal)` anzeigt. Der Backend-Relay verwendet deshalb weiterhin das
+Yjs-13-kompatible Protokoll aus `@y/websocket-server/utils`, während Root und
+Frontend auf dem Yjs-13er-Strang bleiben.
 
 ## 5. Einstiegswege in die Synchronisierung
 
@@ -219,8 +220,10 @@ Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktu
 anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
 im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
 
-Stand 2026-05-31 bleibt die Sicherheitsgrenze unveraendert: Der Yjs-Relay autorisiert keine
-Raeume fachlich. Der Sync-Link bzw. die Room-ID ist weiterhin das Bearer-Secret.
+Stand W2.2 autorisiert der Yjs-Relay Räume noch nicht über ein separates Token:
+Der Sync-Link bzw. die Room-ID ist weiterhin das Bearer-Secret. Der Relay nimmt
+aber nur noch kanonische `quiz-library-room-<UUID>`-Pfade an und begrenzt
+Payload, Verbindungen, Upgrades und Nachrichtenrate.
 
 ## 7. Datenfluss bei lokalen Änderungen
 
@@ -387,6 +390,13 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
 - Die Startseite extrahiert nur explizit erlaubte Sync-URLs (`/quiz/sync/:docId`) oder rohe IDs im erlaubten Format.
 - Ungültige Werte werden früh zurückgewiesen und nicht an den Store übergeben.
 - Die Raum-ID-Erzeugung basiert auf `crypto.randomUUID()` sofern verfügbar.
+- Der Relay akzeptiert ausschließlich `quiz-library-room-<UUID>`, normalisiert
+  die UUID und verwirft abweichende Pfade oder Query-Parameter vor dem Upgrade.
+- Einzelne WebSocket-Nachrichten sind auf 2 MiB begrenzt. Großzügige globale und
+  raumbezogene Verbindungs-/Upgrade-Caps sowie ein Nachrichtenbudget wirken ohne
+  enge IP-Limits.
+- Aktive Yjs-Verbindungen/Räume sowie Upgrade-, Payload- und
+  Nachrichtenraten-Ablehnungen sind über `health.securityStats` sichtbar.
 
 Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
 
@@ -462,9 +472,10 @@ Damit ist Stufe A inhaltlich weitgehend vorbereitet, aber die Story 1.6c insgesa
 
 Nach der UI-Nachschärfung ist die nächste sinnvolle Sicherheitsinvestition nicht ein Vollumbau, sondern:
 
-1. Missbrauchsschutz für Sync-Raum-Zugriffe ergänzen
-2. Share-Token und Rotation konzipieren
-3. serverseitige Prüfpfade für die Share-Auflösung priorisieren
+1. W2.2-Missbrauchsschutz und Telemetrie anhand realer Last beobachten
+2. Zielbild aus [ADR-0033](decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md)
+   als eigenen Slice B mit Migration und Recovery umsetzen
+3. erst dann Frontend-Linkformat und serverseitige Share-Auflösung ändern
 
 So bleibt das Feature verständlich und gewinnt schrittweise an Schutz, ohne den Local-First-Ansatz aufzugeben.
 
