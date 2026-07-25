@@ -22,7 +22,7 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arsnova_user -d arsnova_v3"]
+      test: ['CMD-SHELL', 'pg_isready -U arsnova_user -d arsnova_v3']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -37,30 +37,38 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
 
   app:
+    image: arsnova-eu:production
     build:
       context: .
       dockerfile: Dockerfile
     container_name: arsnova-v3-app
     restart: always
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
     env_file:
       - .env.production
     ports:
-      - "127.0.0.1:3000:3000"
-      - "127.0.0.1:3001:3001"
-      - "127.0.0.1:3002:3002"
+      - '127.0.0.1:3000:3000'
+      - '127.0.0.1:3001:3001'
+      - '127.0.0.1:3002:3002'
     environment:
       # Fixe Laufzeitwerte; DATABASE_URL, REDIS_URL, JWT_SECRET, ADMIN_* kommen aus `.env.production`
-      PORT: "3000"
-      HOST: "0.0.0.0"
-      WS_PORT: "3001"
-      YJS_WS_PORT: "3002"
-      NODE_ENV: "production"
+      PORT: '3000'
+      HOST: '0.0.0.0'
+      WS_PORT: '3001'
+      YJS_WS_PORT: '3002'
+      NODE_ENV: 'production'
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,7 +77,7 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/trpc/health.check"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/trpc/health.check']
       interval: 30s
       timeout: 10s
       start_period: 45s

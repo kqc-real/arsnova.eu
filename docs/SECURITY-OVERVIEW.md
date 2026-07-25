@@ -4,7 +4,7 @@
 
 Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollständiges Threat-Model und keine Rechtsberatung; technische Tiefe: Handbuch, ADRs, Prisma, `session.ts` / DTO-Schicht.
 
-**Stand:** 2026-07-24 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
+**Stand:** 2026-07-25 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
 
 ---
 
@@ -126,6 +126,16 @@ dokumentiert; automatische Auswertung und Alarmierung bleiben W3.7.
 Builder und Produktionscontainer verwenden **Node.js 24 LTS** (`node:24-alpine`). `.nvmrc` pinnt die lokal empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI und Produktionsimage entfernt.
 
 Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-NODE-24-ABNAHME.md](implementation/W0.3-W1.1-NODE-24-ABNAHME.md) dokumentiert.
+
+Der Produktions-App-Container läuft als unprivilegierter `node`-User, ohne
+Linux-Capabilities und mit gesperrter Privilegieneskalation. Sein
+Root-Dateisystem ist read-only; ein begrenztes `tmpfs` unter `/tmp` nimmt
+Chromium-Profile und andere notwendige temporäre Dateien auf. CI prüft UID,
+`NoNewPrivs`, effektive Capabilities, Schreibpfade und einen echten
+Chromium-PDF-Lauf. Chromium verwendet innerhalb dieser Containergrenze vorerst
+weiterhin `--no-sandbox`; Sandbox oder isolierter PDF-Worker sowie
+Ressourcen-/Egress-Grenzen bleiben W2.1b. Abnahme und Rollback:
+[W2.1A-CONTAINER-BASELINE-ABNAHME.md](implementation/W2.1A-CONTAINER-BASELINE-ABNAHME.md).
 
 ---
 

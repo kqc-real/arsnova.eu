@@ -1446,9 +1446,57 @@ jobs:
         with:
           context: .
           push: false
-          tags: arsnova-eu:ci-${{ github.sha }}
+          load: true
+          tags: arsnova-eu:production
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify hardened production Compose runtime
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          set -euo pipefail
+          cat > .env.production <<'EOF'
+          POSTGRES_USER=arsnova_user
+          POSTGRES_PASSWORD=container-smoke-password
+          POSTGRES_DB=arsnova_v3
+          DATABASE_URL=postgresql://arsnova_user:container-smoke-password@postgres:5432/arsnova_v3?schema=public
+          REDIS_URL=redis://redis:6379
+          JWT_SECRET=container-smoke-jwt-secret-0000000000000001
+          ADMIN_SECRET=container-smoke-admin-secret-00000000000001
+          ADMIN_DIAGNOSTIC_SECRET=container-smoke-diagnostic-secret-000000001
+          NODE_ENV=production
+          HOST=0.0.0.0
+          PORT=3000
+          WS_PORT=3001
+          YJS_WS_PORT=3002
+          YJS_WS_HOST=0.0.0.0
+          TRUST_PROXY_HOPS=1
+          EOF
+          cleanup() {
+            docker compose -f docker-compose.prod.yml --env-file .env.production \
+              down --volumes --remove-orphans >/dev/null 2>&1 || true
+            rm -f .env.production
+          }
+          trap cleanup EXIT
+
+          docker compose -f docker-compose.prod.yml --env-file .env.production config --quiet
+          docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
+
+          for attempt in {1..60}; do
+            state="$(docker inspect --format '{{.State.Status}}' arsnova-v3-app)"
+            health="$(docker inspect --format '{{.State.Health.Status}}' arsnova-v3-app)"
+            if [[ "$health" == "healthy" ]]; then
+              break
+            fi
+            if [[ "$state" == "exited" || "$state" == "dead" || "$attempt" -eq 60 ]]; then
+              docker compose -f docker-compose.prod.yml --env-file .env.production logs app
+              exit 1
+            fi
+            sleep 2
+          done
+
+          docker compose -f docker-compose.prod.yml --env-file .env.production \
+            exec -T app node /app/scripts/container-runtime-smoke.mjs
 
   # ─── Deploy Freshness Check (nur aktueller main-HEAD darf deployen) ──────────
   deploy-freshness:
