@@ -1,6 +1,7 @@
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import WebSocket from 'ws';
+import WebSocket, { type RawData } from 'ws';
+import * as Y from 'yjs';
 import {
   DEFAULT_YJS_RELAY_LIMITS,
   resolveYjsRelayConfig,
@@ -14,6 +15,7 @@ const servers: YjsRelayServer[] = [];
 const sockets: WebSocket[] = [];
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   for (const socket of sockets.splice(0)) socket.terminate();
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });
@@ -44,12 +46,83 @@ function connect(url: string): Promise<WebSocket> {
   });
 }
 
+async function connectAfterInitialSync(url: string): Promise<WebSocket> {
+  const socket = new WebSocket(url);
+  sockets.push(socket);
+  await Promise.all([
+    new Promise<void>((resolve, reject) => {
+      socket.once('open', () => resolve());
+      socket.once('error', reject);
+    }),
+    new Promise<void>((resolve) => socket.once('message', () => resolve())),
+  ]);
+  return socket;
+}
+
 function validPaddedSyncStep1(size: number): Buffer {
   const frame = Buffer.alloc(size, 0);
   // y-websocket messageSync, y-protocols messageYjsSyncStep1,
   // varUint8Array length 1, leerer Yjs-State-Vector.
   frame.set([0, 0, 1, 0]);
   return frame;
+}
+
+function encodeVarUint(value: number): number[] {
+  const bytes: number[] = [];
+  let remaining = value;
+  do {
+    let byte = remaining & 0x7f;
+    remaining = Math.floor(remaining / 128);
+    if (remaining > 0) byte |= 0x80;
+    bytes.push(byte);
+  } while (remaining > 0);
+  return bytes;
+}
+
+function yjsUpdateFrame(doc: Y.Doc): Buffer {
+  const update = Y.encodeStateAsUpdate(doc);
+  return Buffer.from([0, 2, ...encodeVarUint(update.byteLength), ...update]);
+}
+
+function createLibraryDoc(payloadBytes: number, id = 'library-boundary'): Y.Doc {
+  const doc = new Y.Doc();
+  doc.getMap('quiz-library').set(
+    'quizzes',
+    JSON.stringify([
+      {
+        id,
+        name: 'Große Quiz-Sammlung',
+        description: 'x'.repeat(payloadBytes),
+        questions: [],
+      },
+    ]),
+  );
+  return doc;
+}
+
+function decodeVarUint(bytes: Uint8Array, cursor: { offset: number }): number {
+  let value = 0;
+  let multiplier = 1;
+  while (true) {
+    const byte = bytes[cursor.offset++];
+    if (byte === undefined) throw new Error('Unvollständiger Test-VarUint');
+    value += (byte & 0x7f) * multiplier;
+    if (byte < 0x80) return value;
+    multiplier *= 128;
+  }
+}
+
+function applySyncResponse(doc: Y.Doc, data: RawData): void {
+  const bytes = Array.isArray(data)
+    ? Buffer.concat(data)
+    : data instanceof ArrayBuffer
+      ? new Uint8Array(data)
+      : data;
+  const cursor = { offset: 0 };
+  expect(decodeVarUint(bytes, cursor)).toBe(0);
+  expect(decodeVarUint(bytes, cursor)).toBe(1);
+  const length = decodeVarUint(bytes, cursor);
+  Y.applyUpdate(doc, bytes.subarray(cursor.offset, cursor.offset + length));
 }
 
 function expectUpgradeRejected(url: string, status: number): Promise<void> {
@@ -88,6 +161,11 @@ describe('resolveYjsRelayConfig', () => {
         YJS_WS_MAX_BYTES_PER_ROOM_PER_10_SECONDS: '9999999999',
         YJS_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS: '999999',
         YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS: '9999999999',
+        YJS_WS_MAX_DOCUMENT_BYTES_PER_ROOM: '9999999999',
+        YJS_WS_MAX_DOCUMENT_BYTES_GLOBAL: '9999999999',
+        YJS_WS_MAX_OUTBOUND_BYTES_PER_10_SECONDS: '9999999999',
+        YJS_WS_MAX_OUTBOUND_BYTES_PER_ROOM_PER_10_SECONDS: '9999999999',
+        YJS_WS_MAX_OUTBOUND_BYTES_GLOBAL_PER_10_SECONDS: '9999999999',
       }),
     ).toMatchObject({
       maxConnections: 2_000,
@@ -101,6 +179,11 @@ describe('resolveYjsRelayConfig', () => {
       maxBytesPerRoomPerWindow: 512 * 1024 * 1024,
       maxMessagesGlobalPerWindow: 60_000,
       maxBytesGlobalPerWindow: 2_048 * 1024 * 1024,
+      maxDocumentBytesPerRoom: 30 * 1024 * 1024,
+      maxDocumentBytesGlobal: 512 * 1024 * 1024,
+      maxOutboundBytesPerWindow: 64 * 1024 * 1024,
+      maxOutboundBytesPerRoomPerWindow: 512 * 1024 * 1024,
+      maxOutboundBytesGlobalPerWindow: 2_048 * 1024 * 1024,
     });
   });
 });
@@ -212,19 +295,128 @@ describe('YjsRelayServer', () => {
     consoleError.mockRestore();
   });
 
-  it('akzeptiert Sammlungsframes am konfigurierten Limit und weist größere mit 1009 ab', async () => {
-    const maxPayloadBytes = 64 * 1024;
+  it('synchronisiert eine echte Sammlung knapp unter dem Dokumentlimit beim Reconnect', async () => {
+    const documentLimit = 64 * 1024;
     const baseUrl = await startRelay({
-      maxPayloadBytes,
-      maxBytesPerWindow: maxPayloadBytes * 2,
+      maxPayloadBytes: 128 * 1024,
+      maxDocumentBytesPerRoom: documentLimit,
+      maxDocumentBytesGlobal: documentLimit * 4,
+      maxBytesPerWindow: 256 * 1024,
+      maxOutboundBytesPerWindow: 256 * 1024,
+      maxOutboundBytesPerRoomPerWindow: 512 * 1024,
     });
-    const accepted = await connect(`${baseUrl}/${ROOM_A}`);
-    const response = new Promise<void>((resolve) => accepted.once('message', () => resolve()));
-    const boundaryFrame = validPaddedSyncStep1(maxPayloadBytes);
-    accepted.send(boundaryFrame);
-    await expect(response).resolves.toBeUndefined();
+    const sourceDoc = createLibraryDoc(60 * 1024);
+    const source = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const sourceBroadcast = new Promise<void>((resolve) => source.once('message', () => resolve()));
+    source.send(yjsUpdateFrame(sourceDoc));
+    await sourceBroadcast;
 
-    const rejected = await connect(`${baseUrl}/${ROOM_B}`);
+    const reconnect = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const syncResponse = new Promise<RawData>((resolve) => reconnect.once('message', resolve));
+    reconnect.send(validPaddedSyncStep1(4));
+    const reconnectDoc = new Y.Doc();
+    applySyncResponse(reconnectDoc, await syncResponse);
+
+    expect(reconnectDoc.getMap('quiz-library').get('quizzes')).toBe(
+      sourceDoc.getMap('quiz-library').get('quizzes'),
+    );
+    sourceDoc.destroy();
+    reconnectDoc.destroy();
+  });
+
+  it('verwirft eine echte Sammlung oberhalb des Dokumentlimits vor Zustandsänderung', async () => {
+    const documentLimit = 64 * 1024;
+    const baseUrl = await startRelay({
+      maxPayloadBytes: 128 * 1024,
+      maxDocumentBytesPerRoom: documentLimit,
+      maxDocumentBytesGlobal: documentLimit * 4,
+      maxBytesPerWindow: 256 * 1024,
+    });
+    const oversizedDoc = createLibraryDoc(70 * 1024);
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socket.once('close', resolve));
+
+    socket.send(yjsUpdateFrame(oversizedDoc));
+
+    await expect(closed).resolves.toBe(1006);
+    oversizedDoc.destroy();
+  });
+
+  it('begrenzt wachsende Dokumente unabhängig von neuen Eingangszeitfenstern', async () => {
+    let now = Date.now();
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const baseUrl = await startRelay({
+      maxDocumentBytesPerRoom: 20 * 1024,
+      maxDocumentBytesGlobal: 100 * 1024,
+      maxPayloadBytes: 64 * 1024,
+    });
+    const sourceDoc = new Y.Doc();
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+
+    for (let index = 0; index < 3; index += 1) {
+      sourceDoc.getMap('quiz-library').set(`chunk-${index}`, 'x'.repeat(5 * 1024));
+      const broadcast = new Promise<void>((resolve) => socket.once('message', () => resolve()));
+      socket.send(yjsUpdateFrame(sourceDoc));
+      await broadcast;
+      now += 10_001;
+    }
+
+    sourceDoc.getMap('quiz-library').set('chunk-3', 'x'.repeat(5 * 1024));
+    const closed = new Promise<number>((resolve) => socket.once('close', resolve));
+    socket.send(yjsUpdateFrame(sourceDoc));
+
+    await expect(closed).resolves.toBe(1006);
+    sourceDoc.destroy();
+  });
+
+  it('begrenzt den Dokumentzustand global über viele neu erzeugte Räume', async () => {
+    const baseUrl = await startRelay({
+      maxDocumentBytesPerRoom: 64 * 1024,
+      maxDocumentBytesGlobal: 90 * 1024,
+      maxPayloadBytes: 128 * 1024,
+    });
+    const roomADoc = createLibraryDoc(50 * 1024, 'room-a');
+    const roomBDoc = createLibraryDoc(50 * 1024, 'room-b');
+    const socketA = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const accepted = new Promise<void>((resolve) => socketA.once('message', () => resolve()));
+    socketA.send(yjsUpdateFrame(roomADoc));
+    await accepted;
+
+    const socketB = await connectAfterInitialSync(`${baseUrl}/${ROOM_B}`);
+    const closed = new Promise<number>((resolve) => socketB.once('close', resolve));
+    socketB.send(yjsUpdateFrame(roomBDoc));
+
+    await expect(closed).resolves.toBe(1006);
+    roomADoc.destroy();
+    roomBDoc.destroy();
+  });
+
+  it('begrenzt tatsächlich versendete Sync-Bytes bei Reconnect-Verstärkung', async () => {
+    const baseUrl = await startRelay({
+      maxDocumentBytesPerRoom: 64 * 1024,
+      maxDocumentBytesGlobal: 128 * 1024,
+      maxOutboundBytesPerWindow: 64 * 1024,
+      maxOutboundBytesPerRoomPerWindow: 30 * 1024,
+      maxOutboundBytesGlobalPerWindow: 128 * 1024,
+    });
+    const sourceDoc = createLibraryDoc(20 * 1024);
+    const source = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const accepted = new Promise<void>((resolve) => source.once('message', () => resolve()));
+    source.send(yjsUpdateFrame(sourceDoc));
+    await accepted;
+
+    const reconnect = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => reconnect.once('close', resolve));
+    reconnect.send(validPaddedSyncStep1(4));
+
+    await expect(closed).resolves.toBe(1006);
+    sourceDoc.destroy();
+  });
+
+  it('weist WebSocket-Frames über dem Transportlimit mit 1009 ab', async () => {
+    const maxPayloadBytes = 64 * 1024;
+    const baseUrl = await startRelay({ maxPayloadBytes });
+    const rejected = await connect(`${baseUrl}/${ROOM_A}`);
     const closed = new Promise<number>((resolve) => rejected.once('close', resolve));
 
     rejected.send(Buffer.alloc(maxPayloadBytes + 1));

@@ -463,6 +463,8 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     yjsWebSocketPayloadRejectedLastMinute: webSocketSnapshot.yjsPayloadRejectedLastMinute,
     yjsWebSocketRateLimitedMessagesLastMinute: webSocketSnapshot.yjsRateLimitedMessagesLastMinute,
     yjsWebSocketProtocolErrorsLastMinute: webSocketSnapshot.yjsProtocolErrorsLastMinute,
+    yjsWebSocketDocumentRejectedLastMinute: webSocketSnapshot.yjsDocumentRejectedLastMinute,
+    yjsWebSocketOutboundRejectedLastMinute: webSocketSnapshot.yjsOutboundRejectedLastMinute,
   };
 }
 

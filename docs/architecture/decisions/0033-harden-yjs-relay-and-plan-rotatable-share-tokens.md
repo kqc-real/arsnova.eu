@@ -37,6 +37,12 @@ Der Backend-Prozess betreibt einen eigenen Yjs-Relay und verwendet
 - großzügige globale und raumbezogene Verbindungscaps,
 - globale und raumbezogene Upgrade-Budgets sowie gestufte Nachrichten- und
   Bytebudgets je Verbindung, Raum und Backend-Prozess,
+- ein 15-MiB-Cap je zusammengeführtem In-Memory-Dokument und ein globales
+  256-MiB-Dokumentbudget; Reservierungen wachsen nicht mit dem Zeitfenster
+  zurück und werden beim Löschen des letzten Raum-Clients freigegeben,
+- gestufte Budgets für tatsächlich versendete Bytes (32 MiB je Verbindung,
+  256 MiB je Raum und 1 GiB global pro zehn Sekunden), damit kleine
+  Sync-Anfragen keinen unbeschränkten großen Zustand vervielfachen,
 - protokollseitige Parserfehler ohne attacker-kontrollierte Logausgabe mit
   Diagnosezähler und sofortiger Verbindungstrennung,
 - keine IP-basierten Yjs-Buckets,
@@ -96,7 +102,8 @@ keine Frontendänderung in W2.2.
 - Caps und Budgets sind pro Backend-Prozess; horizontale Skalierung benötigt
   gemeinsame Admission-Control und Yjs-Pub/Sub oder Sticky Sessions.
 - 16 MiB sind eine bewusst großzügige, aber endliche Produktgrenze für die
-  vollständig serialisierte Sammlung. Sammlungen darüber können nicht
+  vollständig serialisierte Transportnachricht; der zusammengeführte
+  Dokumentzustand bleibt mit 15 MiB etwas darunter. Sammlungen darüber können nicht
   synchronisiert werden; die Grenze kann betrieblich bis maximal 32 MiB
   angehoben werden. Eine spätere normalisierte CRDT-Struktur bleibt eine
   eigenständige Produkt-/Migrationsentscheidung.

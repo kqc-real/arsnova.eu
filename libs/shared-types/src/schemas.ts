@@ -3080,6 +3080,10 @@ export const HealthSecurityStatsDTOSchema = z.object({
   yjsWebSocketRateLimitedMessagesLastMinute: z.number().int().min(0),
   /** Wegen ungültiger Yjs-/Awareness-Protokollframes geschlossene Verbindungen. */
   yjsWebSocketProtocolErrorsLastMinute: z.number().int().min(0),
+  /** Wegen Raum- oder Globalcap nicht übernommene Yjs-Dokumentupdates. */
+  yjsWebSocketDocumentRejectedLastMinute: z.number().int().min(0),
+  /** Wegen ausgeschöpfter ausgehender Bytebudgets geschlossene Verbindungen. */
+  yjsWebSocketOutboundRejectedLastMinute: z.number().int().min(0),
 });
 
 export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;

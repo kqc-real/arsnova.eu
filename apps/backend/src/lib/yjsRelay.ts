@@ -2,10 +2,13 @@ import { createServer, type IncomingMessage, type Server as HttpServer } from 'n
 import type { Duplex } from 'node:stream';
 import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import { docs, setupWSConnection } from '@y/websocket-server/utils';
+import * as Y from 'yjs';
 import {
   configureYjsWebSocketTelemetry,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
+  recordYjsWebSocketDocumentRejected,
+  recordYjsWebSocketOutboundRejected,
   recordYjsWebSocketPayloadRejected,
   recordYjsWebSocketProtocolError,
   recordYjsWebSocketRateLimitedMessage,
@@ -30,6 +33,11 @@ export interface YjsRelayLimits {
   maxBytesPerRoomPerWindow: number;
   maxMessagesGlobalPerWindow: number;
   maxBytesGlobalPerWindow: number;
+  maxDocumentBytesPerRoom: number;
+  maxDocumentBytesGlobal: number;
+  maxOutboundBytesPerWindow: number;
+  maxOutboundBytesPerRoomPerWindow: number;
+  maxOutboundBytesGlobalPerWindow: number;
 }
 
 export interface YjsRelayConfig extends YjsRelayLimits {
@@ -49,6 +57,11 @@ const STATIC_LIMIT_MAXIMA: YjsRelayLimits = {
   maxBytesPerRoomPerWindow: 512 * MIB,
   maxMessagesGlobalPerWindow: 60_000,
   maxBytesGlobalPerWindow: 2_048 * MIB,
+  maxDocumentBytesPerRoom: 30 * MIB,
+  maxDocumentBytesGlobal: 512 * MIB,
+  maxOutboundBytesPerWindow: 64 * MIB,
+  maxOutboundBytesPerRoomPerWindow: 512 * MIB,
+  maxOutboundBytesGlobalPerWindow: 2_048 * MIB,
 };
 
 export const DEFAULT_YJS_RELAY_LIMITS: YjsRelayLimits = {
@@ -63,6 +76,11 @@ export const DEFAULT_YJS_RELAY_LIMITS: YjsRelayLimits = {
   maxBytesPerRoomPerWindow: 256 * MIB,
   maxMessagesGlobalPerWindow: 30_000,
   maxBytesGlobalPerWindow: 1_024 * MIB,
+  maxDocumentBytesPerRoom: 15 * MIB,
+  maxDocumentBytesGlobal: 256 * MIB,
+  maxOutboundBytesPerWindow: 32 * MIB,
+  maxOutboundBytesPerRoomPerWindow: 256 * MIB,
+  maxOutboundBytesGlobalPerWindow: 1_024 * MIB,
 };
 
 function readBoundedPositiveInteger(
@@ -148,6 +166,36 @@ export function resolveYjsRelayConfig(env: NodeJS.ProcessEnv = process.env): Yjs
       DEFAULT_YJS_RELAY_LIMITS.maxBytesGlobalPerWindow,
       STATIC_LIMIT_MAXIMA.maxBytesGlobalPerWindow,
     ),
+    maxDocumentBytesPerRoom: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_DOCUMENT_BYTES_PER_ROOM',
+      DEFAULT_YJS_RELAY_LIMITS.maxDocumentBytesPerRoom,
+      STATIC_LIMIT_MAXIMA.maxDocumentBytesPerRoom,
+    ),
+    maxDocumentBytesGlobal: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_DOCUMENT_BYTES_GLOBAL',
+      DEFAULT_YJS_RELAY_LIMITS.maxDocumentBytesGlobal,
+      STATIC_LIMIT_MAXIMA.maxDocumentBytesGlobal,
+    ),
+    maxOutboundBytesPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_OUTBOUND_BYTES_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxOutboundBytesPerWindow,
+      STATIC_LIMIT_MAXIMA.maxOutboundBytesPerWindow,
+    ),
+    maxOutboundBytesPerRoomPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_OUTBOUND_BYTES_PER_ROOM_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxOutboundBytesPerRoomPerWindow,
+      STATIC_LIMIT_MAXIMA.maxOutboundBytesPerRoomPerWindow,
+    ),
+    maxOutboundBytesGlobalPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_OUTBOUND_BYTES_GLOBAL_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxOutboundBytesGlobalPerWindow,
+      STATIC_LIMIT_MAXIMA.maxOutboundBytesGlobalPerWindow,
+    ),
   };
 }
 
@@ -192,6 +240,31 @@ class FixedWindowMessageBudget {
   }
 }
 
+class FixedWindowByteBudget {
+  private startedAt = 0;
+  private bytes = 0;
+
+  allows(maxBytes: number, messageBytes: number, now = Date.now()): boolean {
+    if (now - this.startedAt >= MESSAGE_WINDOW_MS) {
+      this.startedAt = now;
+      this.bytes = 0;
+    }
+    return messageBytes <= maxBytes - this.bytes;
+  }
+
+  commit(messageBytes: number, now = Date.now()): void {
+    if (now - this.startedAt >= MESSAGE_WINDOW_MS) {
+      this.startedAt = now;
+      this.bytes = 0;
+    }
+    this.bytes += messageBytes;
+  }
+
+  get expiresAt(): number {
+    return this.startedAt + MESSAGE_WINDOW_MS;
+  }
+}
+
 function rawDataByteLength(data: RawData): number {
   if (Array.isArray(data)) return data.reduce((total, part) => total + part.byteLength, 0);
   return data.byteLength;
@@ -208,6 +281,60 @@ function hasKnownYjsMessageType(data: RawData): boolean {
   }
   // @y/websocket-server@0.1.1 kennt nur messageSync=0 und messageAwareness=1.
   return firstByte === 0 || firstByte === 1;
+}
+
+function rawDataBytes(data: RawData): Uint8Array {
+  if (Array.isArray(data)) return Buffer.concat(data);
+  if (data instanceof ArrayBuffer) return new Uint8Array(data);
+  return data;
+}
+
+function readVarUint(bytes: Uint8Array, cursor: { offset: number }): number {
+  let value = 0;
+  let multiplier = 1;
+  for (let index = 0; index < 8; index += 1) {
+    const byte = bytes[cursor.offset];
+    if (byte === undefined) throw new Error('Unvollständiger Yjs-VarUint');
+    cursor.offset += 1;
+    value += (byte & 0x7f) * multiplier;
+    if (byte < 0x80) {
+      if (!Number.isSafeInteger(value)) throw new Error('Yjs-VarUint außerhalb des Zahlenbereichs');
+      return value;
+    }
+    multiplier *= 128;
+  }
+  throw new Error('Yjs-VarUint ist zu lang');
+}
+
+function extractYjsUpdate(data: RawData): Uint8Array | null {
+  const bytes = rawDataBytes(data);
+  const cursor = { offset: 0 };
+  const messageType = readVarUint(bytes, cursor);
+  if (messageType !== 0) return null;
+  const syncType = readVarUint(bytes, cursor);
+  if (syncType !== 1 && syncType !== 2) return null;
+  const updateLength = readVarUint(bytes, cursor);
+  if (updateLength > bytes.byteLength - cursor.offset) {
+    throw new Error('Unvollständiger Yjs-Update-Payload');
+  }
+  return bytes.subarray(cursor.offset, cursor.offset + updateLength);
+}
+
+function outboundDataByteLength(data: unknown): number {
+  if (typeof data === 'string') return Buffer.byteLength(data);
+  if (data instanceof ArrayBuffer) return data.byteLength;
+  if (ArrayBuffer.isView(data)) return data.byteLength;
+  if (Array.isArray(data)) {
+    return data.reduce(
+      (total, part) => total + (ArrayBuffer.isView(part) ? part.byteLength : 0),
+      0,
+    );
+  }
+  return 0;
+}
+
+interface DocumentReservation {
+  reservedBytes: number;
 }
 
 function parseRoomName(request: IncomingMessage): string | null {
@@ -239,8 +366,12 @@ export class YjsRelayServer {
   private readonly roomUpgradeWindows = new Map<string, FixedWindowCounter>();
   private readonly globalMessageWindow = new FixedWindowMessageBudget();
   private readonly roomMessageWindows = new Map<string, FixedWindowMessageBudget>();
+  private readonly globalOutboundWindow = new FixedWindowByteBudget();
+  private readonly roomOutboundWindows = new Map<string, FixedWindowByteBudget>();
+  private readonly documentReservations = new Map<string, DocumentReservation>();
   private readonly roomConnections = new Map<string, number>();
   private connectionsActive = 0;
+  private documentBytesReserved = 0;
 
   constructor(private readonly config: YjsRelayConfig) {
     this.webSocketServer = new WebSocketServer({
@@ -320,12 +451,47 @@ export class YjsRelayServer {
     const connectionMessageWindow = new FixedWindowMessageBudget();
     let rateLimited = false;
     let payloadRejected = false;
+    const connectionOutboundWindow = new FixedWindowByteBudget();
     webSocket.on('error', (error: Error & { code?: string }) => {
       if (!payloadRejected && error.code === 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH') {
         payloadRejected = true;
         recordYjsWebSocketPayloadRejected();
       }
       // `ws` schließt Protokoll-/Payload-Verstöße selbst; kein attacker-kontrolliertes Log.
+    });
+
+    const originalSend = webSocket.send;
+    Object.defineProperty(webSocket, 'send', {
+      configurable: true,
+      value: (data: unknown, ...args: unknown[]): void => {
+        const now = Date.now();
+        this.pruneRoomOutboundWindows(now);
+        const roomOutboundWindow =
+          this.roomOutboundWindows.get(room) ?? new FixedWindowByteBudget();
+        this.roomOutboundWindows.set(room, roomOutboundWindow);
+        const messageBytes = outboundDataByteLength(data);
+        const admitted =
+          this.globalOutboundWindow.allows(
+            this.config.maxOutboundBytesGlobalPerWindow,
+            messageBytes,
+            now,
+          ) &&
+          roomOutboundWindow.allows(
+            this.config.maxOutboundBytesPerRoomPerWindow,
+            messageBytes,
+            now,
+          ) &&
+          connectionOutboundWindow.allows(this.config.maxOutboundBytesPerWindow, messageBytes, now);
+        if (!admitted) {
+          recordYjsWebSocketOutboundRejected();
+          webSocket.terminate();
+          return;
+        }
+        this.globalOutboundWindow.commit(messageBytes, now);
+        roomOutboundWindow.commit(messageBytes, now);
+        connectionOutboundWindow.commit(messageBytes, now);
+        Reflect.apply(originalSend, webSocket, [data, ...args]);
+      },
     });
 
     setupWSConnection(webSocket, request, { docName: room, gc: true });
@@ -370,6 +536,17 @@ export class YjsRelayServer {
         webSocket.terminate();
         return;
       }
+      const documentAdmission = this.admitDocumentUpdate(room, data);
+      if (documentAdmission === 'protocol-error') {
+        recordYjsWebSocketProtocolError();
+        webSocket.terminate();
+        return;
+      }
+      if (documentAdmission === false) {
+        recordYjsWebSocketDocumentRejected();
+        webSocket.terminate();
+        return;
+      }
 
       // @y/websocket-server@0.1.1 fängt Parserfehler selbst und schreibt sie
       // ungefiltert nach console.error. Der gepinnte synchrone Handler wird
@@ -401,6 +578,7 @@ export class YjsRelayServer {
         protocolDoc?.off('error', markProtocolError);
       }
       if (protocolError) {
+        if (typeof documentAdmission === 'function') documentAdmission();
         recordYjsWebSocketProtocolError();
         webSocket.terminate();
       }
@@ -415,6 +593,14 @@ export class YjsRelayServer {
 
       const doc = docs.get(room);
       if (doc?.conns.size === 0) {
+        const reservation = this.documentReservations.get(room);
+        if (reservation) {
+          this.documentBytesReserved = Math.max(
+            0,
+            this.documentBytesReserved - reservation.reservedBytes,
+          );
+          this.documentReservations.delete(room);
+        }
         doc.destroy();
         docs.delete(room);
       }
@@ -434,6 +620,86 @@ export class YjsRelayServer {
       if (budget.expiresAt <= now && !this.roomConnections.has(room)) {
         this.roomMessageWindows.delete(room);
       }
+    }
+  }
+
+  private pruneRoomOutboundWindows(now: number): void {
+    for (const [room, budget] of this.roomOutboundWindows) {
+      if (budget.expiresAt <= now && !this.roomConnections.has(room)) {
+        this.roomOutboundWindows.delete(room);
+      }
+    }
+  }
+
+  private admitDocumentUpdate(
+    room: string,
+    data: RawData,
+  ): false | 'protocol-error' | null | (() => void) {
+    let update: Uint8Array | null;
+    try {
+      update = extractYjsUpdate(data);
+    } catch {
+      return 'protocol-error';
+    }
+    if (!update) return null;
+
+    const doc = docs.get(room);
+    if (!doc) return false;
+    let reservation = this.documentReservations.get(room);
+    const previousRoomBytes = reservation?.reservedBytes;
+    const previousGlobalBytes = this.documentBytesReserved;
+    const rollback = (): void => {
+      this.documentBytesReserved = previousGlobalBytes;
+      if (previousRoomBytes === undefined) this.documentReservations.delete(room);
+      else {
+        const current = this.documentReservations.get(room);
+        if (current) current.reservedBytes = previousRoomBytes;
+      }
+    };
+    if (!reservation) {
+      const initialSize = Y.encodeStateAsUpdate(doc as unknown as Y.Doc).byteLength;
+      if (
+        initialSize > this.config.maxDocumentBytesPerRoom ||
+        initialSize > this.config.maxDocumentBytesGlobal - this.documentBytesReserved
+      ) {
+        return false;
+      }
+      reservation = { reservedBytes: initialSize };
+      this.documentReservations.set(room, reservation);
+      this.documentBytesReserved += initialSize;
+    }
+
+    const projectedRoomBytes = reservation.reservedBytes + update.byteLength;
+    const projectedGlobalBytes = this.documentBytesReserved + update.byteLength;
+    if (
+      projectedRoomBytes <= this.config.maxDocumentBytesPerRoom &&
+      projectedGlobalBytes <= this.config.maxDocumentBytesGlobal
+    ) {
+      reservation.reservedBytes = projectedRoomBytes;
+      this.documentBytesReserved = projectedGlobalBytes;
+      return rollback;
+    }
+
+    const candidate = new Y.Doc({ gc: true });
+    try {
+      Y.applyUpdate(candidate, Y.encodeStateAsUpdate(doc as unknown as Y.Doc));
+      Y.applyUpdate(candidate, update);
+      const exactSize = Y.encodeStateAsUpdate(candidate).byteLength;
+      const globalAfterCompaction =
+        this.documentBytesReserved - reservation.reservedBytes + exactSize;
+      if (
+        exactSize > this.config.maxDocumentBytesPerRoom ||
+        globalAfterCompaction > this.config.maxDocumentBytesGlobal
+      ) {
+        return false;
+      }
+      reservation.reservedBytes = exactSize;
+      this.documentBytesReserved = globalAfterCompaction;
+      return rollback;
+    } catch {
+      return 'protocol-error';
+    } finally {
+      candidate.destroy();
     }
   }
 }

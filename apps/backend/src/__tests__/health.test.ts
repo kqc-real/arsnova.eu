@@ -130,6 +130,8 @@ beforeEach(() => {
     yjsPayloadRejectedLastMinute: 0,
     yjsRateLimitedMessagesLastMinute: 0,
     yjsProtocolErrorsLastMinute: 0,
+    yjsDocumentRejectedLastMinute: 0,
+    yjsOutboundRejectedLastMinute: 0,
   });
 });
 
@@ -332,6 +334,8 @@ describe('health.stats', () => {
       yjsPayloadRejectedLastMinute: 3,
       yjsRateLimitedMessagesLastMinute: 2,
       yjsProtocolErrorsLastMinute: 1,
+      yjsDocumentRejectedLastMinute: 4,
+      yjsOutboundRejectedLastMinute: 5,
     });
 
     const result = await authenticatedCaller.securityStats(undefined);
@@ -363,6 +367,8 @@ describe('health.stats', () => {
       yjsWebSocketPayloadRejectedLastMinute: 3,
       yjsWebSocketRateLimitedMessagesLastMinute: 2,
       yjsWebSocketProtocolErrorsLastMinute: 1,
+      yjsWebSocketDocumentRejectedLastMinute: 4,
+      yjsWebSocketOutboundRejectedLastMinute: 5,
     });
   });
 

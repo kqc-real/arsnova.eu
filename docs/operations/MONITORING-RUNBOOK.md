@@ -171,7 +171,9 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
   Message-Rate-Schließungen auf ein ausgeschöpftes Nachrichten- oder Bytebudget
   einer Verbindung, eines Raums oder des Backend-Prozesses. Protokollfehler
   weisen auf ungültige Yjs-/Awareness-Frames hin; deren Inhalt wird nicht
-  geloggt.
+  geloggt. Dokumentablehnungen zeigen das 15-MiB-Raum- oder
+  256-MiB-Globalcap an; Ausgangsablehnungen begrenzen tatsächlich versendete
+  Sync-/Reconnect-Bytes.
 - Keine IP-basierte WS-Sperre als Sofortmaßnahme setzen; viele legitime Clients
   können dieselbe NAT-IP teilen.
 

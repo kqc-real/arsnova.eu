@@ -496,6 +496,8 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
 - Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt
   Einzelpayloads standardmäßig auf 16 MiB und nutzt gestufte Nachrichten- und
   Bytebudgets je Verbindung, Raum und Backend-Prozess ohne IP-Lockout.
+  Zusätzlich begrenzen 15 MiB Dokumentzustand je Raum / 256 MiB global den
+  Heap sowie eigene Ausgangsbudgets die Sync-/Reconnect-Verstärkung.
 
 Start immer mit der Repo-Datei:
 
@@ -534,6 +536,11 @@ YJS_WS_MAX_MESSAGES_PER_ROOM_PER_10_SECONDS=6000
 YJS_WS_MAX_BYTES_PER_ROOM_PER_10_SECONDS=268435456
 YJS_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS=30000
 YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS=1073741824
+YJS_WS_MAX_DOCUMENT_BYTES_PER_ROOM=15728640
+YJS_WS_MAX_DOCUMENT_BYTES_GLOBAL=268435456
+YJS_WS_MAX_OUTBOUND_BYTES_PER_10_SECONDS=33554432
+YJS_WS_MAX_OUTBOUND_BYTES_PER_ROOM_PER_10_SECONDS=268435456
+YJS_WS_MAX_OUTBOUND_BYTES_GLOBAL_PER_10_SECONDS=1073741824
 TRUST_PROXY_HOPS=1
 
 ADMIN_SESSION_TTL_SECONDS=28800

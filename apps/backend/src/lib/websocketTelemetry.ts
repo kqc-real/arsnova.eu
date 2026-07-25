@@ -39,6 +39,8 @@ const yjsRejectedUpgrades = new RollingCounter();
 const yjsPayloadRejected = new RollingCounter();
 const yjsRateLimitedMessages = new RollingCounter();
 const yjsProtocolErrors = new RollingCounter();
+const yjsDocumentRejected = new RollingCounter();
+const yjsOutboundRejected = new RollingCounter();
 
 export function recordTrpcWebSocketConnected(): void {
   trpcConnectionsActive += 1;
@@ -84,6 +86,14 @@ export function recordYjsWebSocketProtocolError(): void {
   yjsProtocolErrors.increment();
 }
 
+export function recordYjsWebSocketDocumentRejected(): void {
+  yjsDocumentRejected.increment();
+}
+
+export function recordYjsWebSocketOutboundRejected(): void {
+  yjsOutboundRejected.increment();
+}
+
 export function getWebSocketTelemetrySnapshot(): {
   trpcConnectionsActive: number;
   yjsConnectionsActive: number;
@@ -94,6 +104,8 @@ export function getWebSocketTelemetrySnapshot(): {
   yjsPayloadRejectedLastMinute: number;
   yjsRateLimitedMessagesLastMinute: number;
   yjsProtocolErrorsLastMinute: number;
+  yjsDocumentRejectedLastMinute: number;
+  yjsOutboundRejectedLastMinute: number;
 } {
   return {
     trpcConnectionsActive,
@@ -105,6 +117,8 @@ export function getWebSocketTelemetrySnapshot(): {
     yjsPayloadRejectedLastMinute: yjsPayloadRejected.sum(),
     yjsRateLimitedMessagesLastMinute: yjsRateLimitedMessages.sum(),
     yjsProtocolErrorsLastMinute: yjsProtocolErrors.sum(),
+    yjsDocumentRejectedLastMinute: yjsDocumentRejected.sum(),
+    yjsOutboundRejectedLastMinute: yjsOutboundRejected.sum(),
   };
 }
 
@@ -118,4 +132,6 @@ export function resetWebSocketTelemetryForTests(): void {
   yjsPayloadRejected.reset();
   yjsRateLimitedMessages.reset();
   yjsProtocolErrors.reset();
+  yjsDocumentRejected.reset();
+  yjsOutboundRejected.reset();
 }

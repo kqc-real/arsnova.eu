@@ -362,6 +362,8 @@ function printSummary(report) {
   console.log(`Clients: ${report.config.clients} (${report.reconnect.clients} reconnectet)`);
   console.log(`Initial Connect: ${format(report.initial.connect)}`);
   console.log(`Initial Sync:    ${format(report.initial.sync)}`);
+  console.log(`Groß-Reconnect:  ${format(report.reconnect.largeLibrarySync)}`);
+  console.log(`Relay-Neustart:  ${format(report.reconnect.emptyRelayResync)}`);
   console.log(`Reconnect:       ${format(report.reconnect.connect)}`);
   console.log(`Resync:          ${format(report.reconnect.sync)}`);
   console.log(
@@ -378,6 +380,8 @@ async function execute(config) {
   const clients = Array.from({ length: config.clients }, (_, index) => createClient(index, config));
   const failures = [];
   let initialResults = [];
+  let payloadReconnectResults = [];
+  let payloadRestartResults = [];
   let reconnectResults = [];
   let initialConvergence = null;
   let reconnectConvergence = null;
@@ -400,6 +404,14 @@ async function execute(config) {
     failures.push(...initialWave.failures);
 
     if (initialWave.failures.length === 0) {
+      console.log('Fuehre konfliktfreie und konfliktbehaftete Updates aus …');
+      await runUpdateWave(clients, config.updateConcurrency, 'initial', runId);
+      initialConvergence = await waitForConvergence(
+        clients,
+        config.phaseTimeoutMs,
+        'Initiale Update-Welle',
+      );
+
       console.log(
         `Synchronisiere reale Quiz-Sammlung mit mindestens ${config.libraryPayloadBytes} Bytes …`,
       );
@@ -409,15 +421,47 @@ async function execute(config) {
       );
       await waitForConvergence(clients, config.phaseTimeoutMs, 'Sammlungs-Payload-Gate');
 
-      console.log('Fuehre konfliktfreie und konfliktbehaftete Updates aus …');
-      await runUpdateWave(clients, config.updateConcurrency, 'initial', runId);
-      initialConvergence = await waitForConvergence(
+      console.log(
+        `Reconnecte ${reconnectingClients.length} Clients mit weiterhin aktiver großer Sammlung …`,
+      );
+      for (const client of reconnectingClients) {
+        client.intentionalDisconnect = true;
+        client.provider.disconnect();
+      }
+      await sleep(250);
+      const payloadReconnectStartedAt = performance.now();
+      const payloadReconnectWave = await settleConnectionWave(
+        reconnectingClients,
+        payloadReconnectStartedAt,
+        Math.max(config.phaseTimeoutMs, config.syncP95LimitMs * 2),
+      );
+      payloadReconnectResults = payloadReconnectWave.results;
+      failures.push(...payloadReconnectWave.failures);
+      await waitForConvergence(clients, config.phaseTimeoutMs, 'Reconnect mit großer Sammlung');
+
+      console.log('Leere den Relay-Raum und lade den vollständigen Clientzustand erneut hoch …');
+      for (const client of clients) {
+        client.intentionalDisconnect = true;
+        client.provider.disconnect();
+      }
+      await sleep(250);
+      const payloadRestartStartedAt = performance.now();
+      const payloadRestartWave = await settleConnectionWave(
+        clients,
+        payloadRestartStartedAt,
+        Math.max(config.phaseTimeoutMs, config.syncP95LimitMs * 2),
+      );
+      payloadRestartResults = payloadRestartWave.results;
+      failures.push(...payloadRestartWave.failures);
+      await waitForConvergence(
         clients,
         config.phaseTimeoutMs,
-        'Initiale Update-Welle',
+        'Vollständiger Re-Upload nach leerem Relay-Raum',
       );
 
-      console.log(`Trenne und reconnecte ${reconnectingClients.length} Clients …`);
+      console.log(
+        `Trenne und reconnecte ${reconnectingClients.length} Clients mit Offline-Updates …`,
+      );
       for (const client of reconnectingClients) {
         client.intentionalDisconnect = true;
         client.provider.disconnect();
@@ -460,6 +504,12 @@ async function execute(config) {
 
   const initialConnect = metrics(initialResults.map(({ connectMs }) => connectMs));
   const initialSync = metrics(initialResults.map(({ syncMs }) => syncMs));
+  const payloadReconnectConnect = metrics(
+    payloadReconnectResults.map(({ connectMs }) => connectMs),
+  );
+  const payloadReconnectSync = metrics(payloadReconnectResults.map(({ syncMs }) => syncMs));
+  const payloadRestartConnect = metrics(payloadRestartResults.map(({ connectMs }) => connectMs));
+  const payloadRestartSync = metrics(payloadRestartResults.map(({ syncMs }) => syncMs));
   const reconnectConnect = metrics(reconnectResults.map(({ connectMs }) => connectMs));
   const reconnectSync = metrics(reconnectResults.map(({ syncMs }) => syncMs));
   const providerErrors = clients.flatMap((client) =>
@@ -477,6 +527,26 @@ async function execute(config) {
   if (initialSync.p95Ms === null || initialSync.p95Ms > config.syncP95LimitMs) {
     failures.push(
       `Initial Sync-p95 ${initialSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
+    );
+  }
+  if (payloadReconnectConnect.samples !== reconnectingClients.length) {
+    failures.push(
+      `Nur ${payloadReconnectConnect.samples}/${reconnectingClients.length} Clients mit großer Sammlung reconnectet.`,
+    );
+  }
+  if (payloadReconnectSync.p95Ms === null || payloadReconnectSync.p95Ms > config.syncP95LimitMs) {
+    failures.push(
+      `Große-Sammlung-Resync-p95 ${payloadReconnectSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
+    );
+  }
+  if (payloadRestartConnect.samples !== clients.length) {
+    failures.push(
+      `Nur ${payloadRestartConnect.samples}/${clients.length} Clients nach leerem Relay-Raum reconnectet.`,
+    );
+  }
+  if (payloadRestartSync.p95Ms === null || payloadRestartSync.p95Ms > config.syncP95LimitMs) {
+    failures.push(
+      `Vollständiger-Re-Upload-p95 ${payloadRestartSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
     );
   }
   if (reconnectConnect.samples !== reconnectingClients.length) {
@@ -519,6 +589,10 @@ async function execute(config) {
     },
     reconnect: {
       clients: reconnectingClients.length,
+      largeLibraryConnect: payloadReconnectConnect,
+      largeLibrarySync: payloadReconnectSync,
+      emptyRelayReconnect: payloadRestartConnect,
+      emptyRelayResync: payloadRestartSync,
       connect: reconnectConnect,
       sync: reconnectSync,
       convergenceMs: reconnectConvergence?.latencyMs ?? null,

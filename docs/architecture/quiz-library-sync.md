@@ -397,8 +397,12 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
   Großzügige Verbindungs-/Upgrade-Caps sowie gestufte Nachrichten- und
   Bytebudgets je Verbindung, Raum und Backend-Prozess wirken ohne enge
   IP-Limits.
+- Der zusammengeführte In-Memory-Zustand bleibt auf 15 MiB je Raum und 256 MiB
+  global begrenzt. Ausgehende Bytebudgets zählen den tatsächlichen Versand und
+  begrenzen die Vervielfachung eines großen Zustands durch Sync-Anfragen.
 - Aktive Yjs-Verbindungen/Räume sowie Upgrade-, Payload-, Budget- und
-  Protokoll-Ablehnungen sind über `health.securityStats` sichtbar.
+  Protokoll-, Dokument- und Ausgangs-Ablehnungen sind über
+  `health.securityStats` sichtbar.
 
 Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
 

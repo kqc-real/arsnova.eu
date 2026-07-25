@@ -56,13 +56,16 @@ Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
 
 Der Yjs-Relay begrenzt Einzelpayloads standardmäßig auf 16 MiB, aktive
 Verbindungen global und pro Raum sowie Upgrade-, Nachrichten- und Bytebudgets
-je Verbindung, Raum und Backend-Prozess. Diese Grenzen sind bewusst nicht
-IP-basiert, damit Einrichtungen hinter gemeinsamem NAT nicht ausgesperrt
-werden. Nicht kanonische Raumpfade und Query-Parameter werden vor dem Upgrade
-abgewiesen; inaktive In-Memory-Dokumente werden nach der letzten Verbindung
-freigegeben. Ungültige Protokollframes werden ohne attacker-kontrollierte Logs
-gezählt und getrennt. Aktive Yjs-Verbindungen/Räume und Ablehnungen sind nur
-über das diagnose-authentifizierte `health.securityStats` sichtbar.
+je Verbindung, Raum und Backend-Prozess. Der zusammengeführte Zustand ist auf
+15 MiB je Raum und 256 MiB global begrenzt; tatsächlich versendete Bytes haben
+eigene gestufte Budgets gegen Sync-/Reconnect-Verstärkung. Diese Grenzen sind
+bewusst nicht IP-basiert, damit Einrichtungen hinter gemeinsamem NAT nicht
+ausgesperrt werden. Nicht kanonische Raumpfade und Query-Parameter werden vor
+dem Upgrade abgewiesen; inaktive In-Memory-Dokumente und ihre Reservierungen
+werden nach der letzten Verbindung freigegeben. Ungültige Protokollframes
+werden ohne attacker-kontrollierte Logs gezählt und getrennt. Aktive
+Yjs-Verbindungen/Räume und Ablehnungen sind nur über das
+diagnose-authentifizierte `health.securityStats` sichtbar.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
 Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header
