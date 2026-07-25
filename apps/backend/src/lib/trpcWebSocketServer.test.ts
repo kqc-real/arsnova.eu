@@ -1,4 +1,5 @@
 import type { AddressInfo } from 'node:net';
+import { connect as netConnect } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import WebSocket from 'ws';
@@ -140,6 +141,52 @@ describe('TrpcWebSocketServer', () => {
       trpcConnectionsActive: 1,
       trpcConnectionLimit: 1,
       trpcRejectedUpgradesLastMinute: 1,
+    });
+  });
+
+  it('gibt Pending-Slots nach abgelehnten Handshakes wieder frei', async () => {
+    const url = await startServer({ maxConnections: 1 });
+    const port = Number(new URL(url).port);
+
+    // Ungültiger Sec-WebSocket-Key: `ws` bricht den Handshake ab, ohne den
+    // Success-Callback zu rufen. Ohne Close/Error-Release bliebe der Slot belegt.
+    await new Promise<void>((resolve, reject) => {
+      const socket = netConnect({ host: '127.0.0.1', port }, () => {
+        socket.write(
+          'GET / HTTP/1.1\r\n' +
+            'Host: 127.0.0.1\r\n' +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Sec-WebSocket-Key: invalid\r\n' +
+            'Sec-WebSocket-Version: 13\r\n' +
+            '\r\n',
+        );
+      });
+      let settled = false;
+      const finish = (): void => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      socket.once('data', (chunk) => {
+        expect(chunk.toString('utf8')).toContain('400');
+        socket.end();
+      });
+      socket.once('close', finish);
+      socket.once('error', finish);
+      socket.setTimeout(2_000, () => {
+        socket.destroy();
+        reject(new Error('Malformed-Upgrade-Handshake timeout'));
+      });
+    });
+    // Ein Tick, damit der Server-Socket Close/Error den Pending-Slot freigibt.
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const legitimate = await connect(url);
+    expect(legitimate.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcConnectionsActive: 1,
+      trpcRejectedUpgradesLastMinute: 0,
     });
   });
 

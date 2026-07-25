@@ -147,8 +147,22 @@ export class TrpcWebSocketServer {
       }
 
       this.upgradesPending += 1;
-      this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
+      // `ws` ruft den Success-Callback bei ungültigem Handshake nicht auf und
+      // zerstört den Socket direkt. Pending-Slots müssen deshalb auch auf
+      // Close/Error freigegeben werden, sonst bleiben sie dauerhaft belegt.
+      let pendingReleased = false;
+      const releasePendingUpgrade = (): void => {
+        if (pendingReleased) return;
+        pendingReleased = true;
         this.upgradesPending = Math.max(0, this.upgradesPending - 1);
+        socket.off('close', releasePendingUpgrade);
+        socket.off('error', releasePendingUpgrade);
+      };
+      socket.once('close', releasePendingUpgrade);
+      socket.once('error', releasePendingUpgrade);
+
+      this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
+        releasePendingUpgrade();
         this.attachConnectionGuard(webSocket);
         this.webSocketServer.emit('connection', webSocket, request);
       });
