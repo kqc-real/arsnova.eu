@@ -16,7 +16,7 @@
  *   TRPC_URL=http://127.0.0.1:3000/trpc WS_URL=ws://127.0.0.1:3001 node scripts/load/ws-reconnect-wave-classroom-30.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
-import { createHttpTrpc, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
+import { createHttpTrpc, createPublicWsTrpc, productionRetryDelayMs } from './lib/trpc-runtime.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
@@ -129,9 +129,10 @@ async function createClassroomSession(publicTrpc) {
   return { code, hostToken, hostTrpc };
 }
 
-function connectParticipant(code, phase) {
+function connectParticipant(code, participantId, phase) {
   const state = {
     phase,
+    participantId,
     subscription: null,
     wsClient: null,
     started: false,
@@ -143,7 +144,7 @@ function connectParticipant(code, phase) {
     phaseStartedAt: performance.now(),
   };
 
-  const { trpc, wsClient } = createPublicWsTrpc(WS_URL);
+  const { trpc, wsClient } = createPublicWsTrpc(WS_URL, { sessionCode: code, participantId });
   state.wsClient = wsClient;
   state.subscription = trpc.session.onStatusChanged.subscribe(
     { code },
@@ -196,7 +197,9 @@ async function run() {
   }
 
   /** @type {ReturnType<typeof connectParticipant>[]} */
-  let clients = Array.from({ length: PARTICIPANTS }, () => connectParticipant(code, 'initial'));
+  let clients = joinResults.map((joined) =>
+    connectParticipant(code, joined.participantId, 'initial'),
+  );
 
   await sleep(WS_READY_MS);
   await waitForCondition('Initiale WS-Verbindungen', INITIAL_CONNECT_LIMIT_MS, () =>
@@ -212,8 +215,9 @@ async function run() {
   clients = await mapLimit(
     Array.from({ length: PARTICIPANTS }, (_, index) => index),
     WS_CONCURRENCY,
-    async () => {
-      const client = connectParticipant(code, 'reconnect');
+    async (index) => {
+      await sleep(productionRetryDelayMs(0));
+      const client = connectParticipant(code, joinResults[index].participantId, 'reconnect');
       client.phaseStartedAt = reconnectWaveStartedAt;
       return client;
     },

@@ -4,7 +4,7 @@ import { createHostWsTrpc, createHttpTrpc } from '../lib/trpc-runtime.mjs';
  * Host-WebSocket-Monitor fuer Vote-Progress und Status-Fan-out waehrend Artillery-Lauf.
  */
 export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken }) {
-  const { trpc, wsClient } = createHostWsTrpc(wsUrl, hostToken);
+  const { trpc, wsClient } = createHostWsTrpc(wsUrl, hostToken, code);
   const hostHttp = createHttpTrpc(trpcUrl, hostToken);
 
   const state = {
@@ -22,10 +22,7 @@ export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken }) {
     {
       onData(data) {
         state.progressMessages += 1;
-        state.progressMaxTotalVotes = Math.max(
-          state.progressMaxTotalVotes,
-          data?.totalVotes ?? 0,
-        );
+        state.progressMaxTotalVotes = Math.max(state.progressMaxTotalVotes, data?.totalVotes ?? 0);
       },
       onError() {
         state.subscriptionErrors += 1;

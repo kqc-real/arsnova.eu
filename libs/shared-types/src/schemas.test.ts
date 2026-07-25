@@ -15,6 +15,7 @@ import {
   SetTimerAccommodationInputSchema,
   SubmitVoteInputSchema,
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
+  TrpcWebSocketParticipantBindingSchema,
 } from './schemas.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
@@ -285,5 +286,32 @@ describe('öffentliche Contract-Schemas', () => {
         elapsedSeconds: 120,
       }),
     ).toBe(200);
+  });
+});
+
+describe('tRPC-WebSocket-Participant-Binding', () => {
+  it('normalisiert den Code und akzeptiert eine UUID als optionales Throttle-Signal', () => {
+    expect(
+      TrpcWebSocketParticipantBindingSchema.parse({
+        sessionCode: 'ab12cd',
+        participantId,
+        'x-host-token': 'bleibt Transport-Metadatum',
+      }),
+    ).toEqual({ sessionCode: 'AB12CD', participantId });
+  });
+
+  it('verwirft nicht kanonisch begrenzbare Codes und ungültige Participant-IDs', () => {
+    expect(
+      TrpcWebSocketParticipantBindingSchema.safeParse({
+        sessionCode: 'TOO-LONG',
+        participantId,
+      }).success,
+    ).toBe(false);
+    expect(
+      TrpcWebSocketParticipantBindingSchema.safeParse({
+        sessionCode: 'ABC123',
+        participantId: 'not-a-uuid',
+      }).success,
+    ).toBe(false);
   });
 });

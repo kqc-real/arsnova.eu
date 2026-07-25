@@ -118,6 +118,14 @@ SOAK_DURATION_MINUTES=30 npm run load:soak:live-session
 SOAK_DURATION_MINUTES=60 npm run load:soak:live-session
 ```
 
+Das Reconnect-Profil bindet jede physische Teilnehmer-Verbindung mit
+Session-Code und der beim Join ausgegebenen UUID. Vor der Neuverbindung wartet
+es wie der Produktclient 500 ms plus zufällige 0–349 ms; weitere automatische
+Versuche verwenden exponentielles Backoff bis 10 s mit demselben Jitter.
+Formales W2.3b-Gate sind mindestens 95 % erfolgreiche Reconnects innerhalb von
+30 Sekunden. Fachlicher `RESULTS`-Fan-out und Subscription-Fehler bleiben
+zusätzliche, getrennt ausgewiesene Qualitätsmetriken.
+
 Der Yjs-Lauf prüft initiale und konkurrierende Updates, trennt standardmäßig
 20 % der Clients, erzeugt während der Offline-Phase weitere Änderungen und
 fordert nach Reconnect einen gemeinsamen State Vector. Die W2.2-Grenzen sind

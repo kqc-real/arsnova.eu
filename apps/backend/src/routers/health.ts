@@ -456,6 +456,12 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     sessionCodeGlobalSoftCapUtilizationPercent,
     trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
     trpcWebSocketConnectionLimit: webSocketSnapshot.trpcConnectionLimit,
+    trpcWebSocketBoundConnectionsActive: webSocketSnapshot.trpcBoundConnectionsActive,
+    trpcWebSocketSessionConnectionLimit: webSocketSnapshot.trpcSessionConnectionLimit,
+    trpcWebSocketParticipantConnectionLimit: webSocketSnapshot.trpcParticipantConnectionLimit,
+    trpcWebSocketSessionCapRejectedLastMinute: webSocketSnapshot.trpcSessionCapRejectedLastMinute,
+    trpcWebSocketParticipantCapRejectedLastMinute:
+      webSocketSnapshot.trpcParticipantCapRejectedLastMinute,
     trpcWebSocketRejectedUpgradesLastMinute: webSocketSnapshot.trpcRejectedUpgradesLastMinute,
     trpcWebSocketPayloadRejectedLastMinute: webSocketSnapshot.trpcPayloadRejectedLastMinute,
     trpcWebSocketRateLimitedMessagesLastMinute: webSocketSnapshot.trpcRateLimitedMessagesLastMinute,

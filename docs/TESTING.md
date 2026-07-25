@@ -294,17 +294,26 @@ Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-50
 
 Quiz-only: Join → WS-Status subscribe → Disconnect-Welle → Reconnect-Welle → Host `revealResults` → Assert `RESULTS` bei allen TN.
 
-W2.3a prüft die serverseitigen tRPC-WebSocket-Caps zusätzlich in
+W2.3a/W2.3b prüfen die serverseitigen tRPC-WebSocket-Caps zusätzlich in
 `apps/backend/src/lib/trpcWebSocketServer.test.ts`: echte 429-/503-Upgrades,
 Abbruch vor dem Resolver, unverändertes 2-MiB-Payload-Cap und eine vollständige
-500-Client-Verbindungs-/Reconnect-Welle mit den Produktionsdefaults.
+500-Client-Verbindungs-/Reconnect-Welle mit den Produktionsdefaults. Dazu
+kommen gültiges Session-/Participant-Binding, das Zwei-Verbindungs-Cap,
+Session-Cap, Counter-Freigabe, Legacy-/Malformed-Kompatibilität und zwei
+Participants derselben NAT-IP.
 
 ```bash
 npm run dev:backend
 PARTICIPANTS=500 npm run load:artillery:reconnect:500
 ```
 
-Skripte: [`scripts/load/run-artillery-reconnect-500.mjs`](../scripts/load/run-artillery-reconnect-500.mjs), [`scripts/load/artillery/500-reconnect-wave.yml`](../scripts/load/artillery/500-reconnect-wave.yml). CI-Job `artillery-reconnect-500` (Schedule/Manuell, Standard 100 TN auf Runner). Classroom-Smoke (30 TN): `npm run load:smoke:ws-reconnect-wave-classroom-30`.
+Der Reconnect verwendet wie der Produktclient 500 ms exponentiellen
+Erst-Backoff plus 0–349 ms Jitter. Formales Gate: mindestens 95 % sind binnen
+30 Sekunden erneut verbunden. Skripte:
+[`scripts/load/run-artillery-reconnect-500.mjs`](../scripts/load/run-artillery-reconnect-500.mjs),
+[`scripts/load/artillery/500-reconnect-wave.yml`](../scripts/load/artillery/500-reconnect-wave.yml).
+CI-Job `artillery-reconnect-500` (Schedule/Manuell, Standard 100 TN auf Runner).
+Classroom-Smoke (30 TN): `npm run load:smoke:ws-reconnect-wave-classroom-30`.
 
 Session- und Hotpath-Skripte benötigen `SESSION_CODE` (6 Zeichen) bzw. bei Hotpath-Modi `PARTICIPANT_IDS`, `QUESTION_ID` usw. — siehe Kommentarkopf in den Skripten.
 

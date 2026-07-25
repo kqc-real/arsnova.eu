@@ -89,6 +89,25 @@ function echoMessage(id: number, value = 'ok'): string {
   });
 }
 
+function connectionParamsMessage(
+  sessionCode: string,
+  participantId?: string,
+  extra: Record<string, unknown> = {},
+): string {
+  return JSON.stringify({
+    method: 'connectionParams',
+    data: { sessionCode, ...(participantId ? { participantId } : {}), ...extra },
+  });
+}
+
+async function waitForTelemetry(predicate: () => boolean): Promise<void> {
+  const deadline = Date.now() + 2_000;
+  while (!predicate() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  expect(predicate()).toBe(true);
+}
+
 async function waitForResolverInvocations(expected: number): Promise<void> {
   const deadline = Date.now() + 2_000;
   while (resolverInvocations < expected && Date.now() < deadline) {
@@ -111,6 +130,8 @@ describe('resolveTrpcWebSocketConfig', () => {
   it('verwendet 500er-taugliche Defaults und begrenzt Env-Werte statisch', () => {
     expect(resolveTrpcWebSocketConfig({})).toMatchObject({
       maxConnections: 1_000,
+      maxConnectionsPerSession: 800,
+      maxConnectionsPerParticipant: 2,
       maxUpgradesPerMinute: 3_000,
       maxMessagesPerWindow: 120,
       maxMessagesGlobalPerWindow: 30_000,
@@ -118,20 +139,133 @@ describe('resolveTrpcWebSocketConfig', () => {
     expect(
       resolveTrpcWebSocketConfig({
         TRPC_WS_MAX_CONNECTIONS: '999999',
+        TRPC_WS_MAX_CONNECTIONS_PER_SESSION: '999999',
+        TRPC_WS_MAX_CONNECTIONS_PER_PARTICIPANT: '999999',
         TRPC_WS_MAX_UPGRADES_PER_MINUTE: '999999',
         TRPC_WS_MAX_MESSAGES_PER_10_SECONDS: '999999',
         TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS: '999999',
       }),
     ).toMatchObject({
       maxConnections: 5_000,
+      maxConnectionsPerSession: 5_000,
+      maxConnectionsPerParticipant: 10,
       maxUpgradesPerMinute: 30_000,
       maxMessagesPerWindow: 1_200,
       maxMessagesGlobalPerWindow: 300_000,
     });
+    expect(
+      resolveTrpcWebSocketConfig({
+        TRPC_WS_MAX_CONNECTIONS_PER_SESSION: '100',
+      }).maxConnectionsPerSession,
+    ).toBe(750);
   });
 });
 
 describe('TrpcWebSocketServer', () => {
+  it('bindet einen gültigen Session-Code und eine Participant-UUID genau einmal pro Socket', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+
+    socket.send(connectionParamsMessage('abc123', '11111111-1111-4111-8111-111111111111'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+
+    socket.send(echoMessage(1));
+    socket.send(echoMessage(2));
+    await waitForResolverInvocations(2);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcBoundConnectionsActive: 1,
+      trpcSessionConnectionLimit: 800,
+      trpcParticipantConnectionLimit: 2,
+    });
+  });
+
+  it('beendet nur die dritte Verbindung desselben Participants', async () => {
+    const url = await startServer({ maxConnectionsPerParticipant: 2 });
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const first = await connect(url);
+    const second = await connect(url);
+    const third = await connect(url);
+    first.send(connectionParamsMessage('ABC123', participantId));
+    second.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    const thirdClosed = new Promise<number>((resolve) =>
+      third.once('close', (code) => resolve(code)),
+    );
+    third.send(connectionParamsMessage('ABC123', participantId));
+
+    await expect(thirdClosed).resolves.toBe(1008);
+    expect(first.readyState).toBe(WebSocket.OPEN);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().trpcParticipantCapRejectedLastMinute).toBe(1);
+  });
+
+  it('blockiert zwei Participants derselben NAT-IP nicht gegenseitig', async () => {
+    const url = await startServer({ maxConnectionsPerParticipant: 1 });
+    const first = await connect(url);
+    const second = await connect(url);
+    first.send(connectionParamsMessage('ABC123', '11111111-1111-4111-8111-111111111111'));
+    second.send(connectionParamsMessage('ABC123', '22222222-2222-4222-8222-222222222222'));
+
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    expect(first.readyState).toBe(WebSocket.OPEN);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('erzwingt das großzügige Session-Cap über verschiedene Participants', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 2 });
+    const first = await connect(url);
+    const second = await connect(url);
+    const third = await connect(url);
+    first.send(connectionParamsMessage('ABC123', '11111111-1111-4111-8111-111111111111'));
+    second.send(connectionParamsMessage('ABC123', '22222222-2222-4222-8222-222222222222'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    const thirdClosed = new Promise<number>((resolve) =>
+      third.once('close', (code) => resolve(code)),
+    );
+    third.send(connectionParamsMessage('ABC123', '33333333-3333-4333-8333-333333333333'));
+
+    await expect(thirdClosed).resolves.toBe(1008);
+    expect(getWebSocketTelemetrySnapshot().trpcSessionCapRejectedLastMinute).toBe(1);
+  });
+
+  it('gibt Session- und Participant-Zähler nach Close exakt frei', async () => {
+    const url = await startServer({
+      maxConnectionsPerSession: 1,
+      maxConnectionsPerParticipant: 1,
+    });
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const first = await connect(url);
+    first.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    await close(first);
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 0);
+
+    const second = await connect(url);
+    second.send(connectionParamsMessage('ABC123', participantId));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    expect(second.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('behandelt ungültige Binding-Signale fail-safe und verarbeitet normale Frames weiter', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+    socket.send(connectionParamsMessage('TOO-LONG', 'not-a-uuid'));
+    socket.send(echoMessage(1));
+
+    await waitForResolverInvocations(1);
+    expect(getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive).toBe(0);
+    expect(socket.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('bleibt für Legacy-Clients ohne connectionParams kompatibel', async () => {
+    const url = await startServer();
+    const socket = await connect(url);
+    socket.send(echoMessage(1));
+
+    await waitForResolverInvocations(1);
+    expect(getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive).toBe(0);
+  });
+
   it('weist Verbindungen oberhalb des globalen Caps vor dem Upgrade mit 503 ab', async () => {
     const url = await startServer({ maxConnections: 1 });
     await connect(url);

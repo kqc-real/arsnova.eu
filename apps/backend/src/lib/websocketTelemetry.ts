@@ -1,5 +1,8 @@
 let trpcConnectionsActive = 0;
 let trpcConnectionLimit = 1;
+let trpcBoundConnectionsActive = 0;
+let trpcSessionConnectionLimit = 1;
+let trpcParticipantConnectionLimit = 1;
 let yjsConnectionsActive = 0;
 let yjsConnectionLimit = 1;
 let yjsPerRoomConnectionLimit = 1;
@@ -41,6 +44,8 @@ class RollingCounter {
 const trpcRejectedUpgrades = new RollingCounter();
 const trpcPayloadRejected = new RollingCounter();
 const trpcRateLimitedMessages = new RollingCounter();
+const trpcSessionCapRejected = new RollingCounter();
+const trpcParticipantCapRejected = new RollingCounter();
 const yjsRejectedUpgrades = new RollingCounter();
 const yjsPayloadRejected = new RollingCounter();
 const yjsRateLimitedMessages = new RollingCounter();
@@ -49,8 +54,14 @@ const yjsDocumentRejected = new RollingCounter();
 const yjsAwarenessRejected = new RollingCounter();
 const yjsOutboundRejected = new RollingCounter();
 
-export function configureTrpcWebSocketTelemetry(limits: { connectionLimit: number }): void {
+export function configureTrpcWebSocketTelemetry(limits: {
+  connectionLimit: number;
+  sessionConnectionLimit: number;
+  participantConnectionLimit: number;
+}): void {
   trpcConnectionLimit = limits.connectionLimit;
+  trpcSessionConnectionLimit = limits.sessionConnectionLimit;
+  trpcParticipantConnectionLimit = limits.participantConnectionLimit;
 }
 
 export function recordTrpcWebSocketConnected(): void {
@@ -71,6 +82,22 @@ export function recordTrpcWebSocketPayloadRejected(): void {
 
 export function recordTrpcWebSocketRateLimitedMessage(): void {
   trpcRateLimitedMessages.increment();
+}
+
+export function recordTrpcWebSocketBindingConnected(): void {
+  trpcBoundConnectionsActive += 1;
+}
+
+export function recordTrpcWebSocketBindingDisconnected(): void {
+  trpcBoundConnectionsActive = Math.max(0, trpcBoundConnectionsActive - 1);
+}
+
+export function recordTrpcWebSocketSessionCapRejected(): void {
+  trpcSessionCapRejected.increment();
+}
+
+export function recordTrpcWebSocketParticipantCapRejected(): void {
+  trpcParticipantCapRejected.increment();
 }
 
 export function configureYjsWebSocketTelemetry(limits: {
@@ -124,6 +151,11 @@ export function recordYjsWebSocketOutboundRejected(): void {
 export function getWebSocketTelemetrySnapshot(): {
   trpcConnectionsActive: number;
   trpcConnectionLimit: number;
+  trpcBoundConnectionsActive: number;
+  trpcSessionConnectionLimit: number;
+  trpcParticipantConnectionLimit: number;
+  trpcSessionCapRejectedLastMinute: number;
+  trpcParticipantCapRejectedLastMinute: number;
   trpcRejectedUpgradesLastMinute: number;
   trpcPayloadRejectedLastMinute: number;
   trpcRateLimitedMessagesLastMinute: number;
@@ -142,6 +174,11 @@ export function getWebSocketTelemetrySnapshot(): {
   return {
     trpcConnectionsActive,
     trpcConnectionLimit,
+    trpcBoundConnectionsActive,
+    trpcSessionConnectionLimit,
+    trpcParticipantConnectionLimit,
+    trpcSessionCapRejectedLastMinute: trpcSessionCapRejected.sum(),
+    trpcParticipantCapRejectedLastMinute: trpcParticipantCapRejected.sum(),
     trpcRejectedUpgradesLastMinute: trpcRejectedUpgrades.sum(),
     trpcPayloadRejectedLastMinute: trpcPayloadRejected.sum(),
     trpcRateLimitedMessagesLastMinute: trpcRateLimitedMessages.sum(),
@@ -162,9 +199,14 @@ export function getWebSocketTelemetrySnapshot(): {
 export function resetWebSocketTelemetryForTests(): void {
   trpcConnectionsActive = 0;
   trpcConnectionLimit = 1;
+  trpcBoundConnectionsActive = 0;
+  trpcSessionConnectionLimit = 1;
+  trpcParticipantConnectionLimit = 1;
   trpcRejectedUpgrades.reset();
   trpcPayloadRejected.reset();
   trpcRateLimitedMessages.reset();
+  trpcSessionCapRejected.reset();
+  trpcParticipantCapRejected.reset();
   yjsConnectionsActive = 0;
   yjsConnectionLimit = 1;
   yjsPerRoomConnectionLimit = 1;

@@ -6,6 +6,7 @@ import {
   wsLink,
 } from '@trpc/client';
 import type { AppRouter } from '@arsnova/api';
+import type { TrpcWebSocketParticipantBinding } from '@arsnova/shared-types';
 import { getFeedbackHostToken, normalizeFeedbackCode } from './feedback-host-token';
 import {
   getHostToken,
@@ -16,6 +17,7 @@ import { getTrpcWsUrl } from './ws-urls';
 
 const isBrowser = globalThis.window !== undefined;
 const SUPPORTED_LOCALES = new Set(['de', 'en', 'fr', 'it', 'es']);
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** SSR/Prerender: relatives `/trpc` in Node nicht zuverlässig – öffentliche Produktions-API als Fallback. */
 const DEFAULT_PRERENDER_TRPC_URL = 'https://arsnova.eu/trpc';
@@ -61,14 +63,18 @@ function normalizeRouteCode(
 
 function resolveRouteHostSessionCode(): string | null {
   const segments = getRouteSegments();
-  if (segments[0] !== 'session') {
-    return null;
-  }
-
   if (segments[2] !== 'host' && segments[2] !== 'present') {
     return null;
   }
 
+  return resolveRouteSessionCode();
+}
+
+function resolveRouteSessionCode(): string | null {
+  const segments = getRouteSegments();
+  if (segments[0] !== 'session') {
+    return null;
+  }
   return normalizeRouteCode(segments[1], normalizeHostSessionCode);
 }
 
@@ -116,11 +122,24 @@ function createWsConnectionParams(): Record<string, string> | null {
   const feedbackCode = resolveRouteFeedbackCode();
   const feedbackHostToken = feedbackCode ? getFeedbackHostToken(feedbackCode) : null;
   const hostToken = resolveActiveHostToken();
-  if (!hostToken && !feedbackHostToken) {
+  const sessionCode = resolveRouteSessionCode();
+  const storedParticipantId = sessionCode
+    ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
+    : null;
+  const participantBinding: TrpcWebSocketParticipantBinding | null = sessionCode
+    ? {
+        sessionCode,
+        ...(storedParticipantId && UUID_PATTERN.test(storedParticipantId)
+          ? { participantId: storedParticipantId }
+          : {}),
+      }
+    : null;
+  if (!hostToken && !feedbackHostToken && !participantBinding) {
     return null;
   }
 
   return {
+    ...(participantBinding ?? {}),
     ...(hostToken ? { 'x-host-token': hostToken } : {}),
     ...(feedbackHostToken ? { 'x-feedback-host-token': feedbackHostToken } : {}),
   };
@@ -135,9 +154,9 @@ if (isBrowser) {
  * Zufalls-Jitter (0–349ms) entkoppelt Reconnects nach Deploy — weniger Lastspitze auf dem Server.
  * Nach Deploy: siehe docs/deployment-debian-root-server.md § 7.1.
  */
-function retryDelayMs(attempt: number): number {
+export function retryDelayMs(attempt: number, random: () => number = Math.random): number {
   const base = Math.min(500 * Math.pow(2, attempt), 10_000);
-  const jitter = Math.floor(Math.random() * 350);
+  const jitter = Math.floor(random() * 350);
   return base + jitter;
 }
 

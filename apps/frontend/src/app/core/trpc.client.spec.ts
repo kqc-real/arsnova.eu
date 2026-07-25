@@ -16,11 +16,13 @@ const getFeedbackHostTokenMock = vi.fn();
 const normalizeFeedbackCodeMock = vi.fn((code: string) => code.trim().toUpperCase());
 const getTrpcWsUrlMock = vi.fn(() => 'ws://localhost:3001');
 
-async function loadClientModule(pathname: string) {
+async function loadClientModule(pathname: string, beforeImport?: () => void) {
   vi.resetModules();
   vi.clearAllMocks();
   globalThis.window.sessionStorage.clear();
+  globalThis.window.localStorage.clear();
   globalThis.window.history.replaceState({}, '', pathname);
+  beforeImport?.();
 
   vi.doMock('@trpc/client', () => ({
     createTRPCProxyClient: createTRPCProxyClientMock,
@@ -75,16 +77,45 @@ describe('trpc.client host transport', () => {
 
     const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
       connectionParams: () =>
-        | Promise<Record<string, string> | undefined>
-        | Record<string, string>
-        | undefined;
+        Promise<Record<string, string> | undefined> | Record<string, string> | undefined;
     };
     const connectionParams = await wsOptions.connectionParams();
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
     expect(connectionParams).toEqual({
+      sessionCode: 'ABC123',
       'x-host-token': 'host-token-123',
     });
+  });
+
+  it('sendet normalisierten Session-Code und lokal gespeicherte Participant-ID als Throttle-Signal', async () => {
+    await loadClientModule('/de/session/abc123/vote', () => {
+      globalThis.window.localStorage.setItem(
+        'arsnova-participant-ABC123',
+        '11111111-1111-4111-8111-111111111111',
+      );
+    });
+
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+      connectionParams: () => Record<string, string> | null;
+    };
+
+    expect(wsOptions.connectionParams()).toEqual({
+      sessionCode: 'ABC123',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    });
+  });
+
+  it('ignoriert eine ungültige lokale Participant-ID und behält das Session-Signal', async () => {
+    await loadClientModule('/session/abc123', () => {
+      globalThis.window.localStorage.setItem('arsnova-participant-ABC123', 'ungueltig');
+    });
+
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+      connectionParams: () => Record<string, string> | null;
+    };
+
+    expect(wsOptions.connectionParams()).toEqual({ sessionCode: 'ABC123' });
   });
 
   it('sendet Blitzlicht-Host-Token ueber WebSocket-Connection-Params fuer Standalone-Host-Subscriptions', async () => {
@@ -94,9 +125,7 @@ describe('trpc.client host transport', () => {
 
     const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
       connectionParams: () =>
-        | Promise<Record<string, string> | undefined>
-        | Record<string, string>
-        | undefined;
+        Promise<Record<string, string> | undefined> | Record<string, string> | undefined;
     };
     const connectionParams = await wsOptions.connectionParams();
 
@@ -118,5 +147,15 @@ describe('trpc.client host transport', () => {
 
     expect(normalizeFeedbackCodeMock).toHaveBeenCalledWith('abc123');
     expect(headers).toEqual({ 'x-feedback-host-token': 'feedback-token-456' });
+  });
+});
+
+describe('trpc.client reconnect jitter', () => {
+  it('verwendet exponentielles Backoff mit begrenztem 0–349-ms-Jitter', async () => {
+    const { retryDelayMs } = await loadClientModule('/');
+
+    expect(retryDelayMs(0, () => 0)).toBe(500);
+    expect(retryDelayMs(1, () => 0.5)).toBe(1_175);
+    expect(retryDelayMs(8, () => 0.999999)).toBe(10_349);
   });
 });
