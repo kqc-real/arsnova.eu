@@ -9,7 +9,6 @@ import express from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import { WebSocketServer } from 'ws';
 import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
 import { logger } from './lib/logger';
@@ -19,14 +18,10 @@ import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-lang
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
-import {
-  recordTrpcWebSocketConnected,
-  recordTrpcWebSocketDisconnected,
-} from './lib/websocketTelemetry';
+import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 
 const PORT = Number(process.env['PORT']) || 3000;
-const WS_PORT = Number(process.env['WS_PORT']) || 3001;
 
 // Redis beim Start initialisieren (Story 0.1)
 getRedis();
@@ -182,24 +177,20 @@ const server = app.listen(PORT, () => {
   startSessionCleanupScheduler();
 });
 
-// WebSocket-Server für tRPC-Subscriptions (Story 0.2)
-const wss = new WebSocketServer({
-  port: WS_PORT,
-  maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
-});
-wss.on('connection', (socket) => {
-  recordTrpcWebSocketConnected();
-  socket.once('close', recordTrpcWebSocketDisconnected);
-});
+// WebSocket-Server für tRPC-Subscriptions (Story 0.2 / W2.3a)
+const trpcWebSocketConfig = resolveTrpcWebSocketConfig();
+const trpcWebSocketServer = new TrpcWebSocketServer(trpcWebSocketConfig);
 const wsHandler = applyWSSHandler({
-  wss,
+  wss: trpcWebSocketServer.webSocketServer,
   router: appRouter,
   createContext: async ({ req, info }) => ({
     req: attachTrustedClientIp(req, trustProxy),
     connectionParams: info.connectionParams,
   }),
 });
-logger.info(`   WebSocket (tRPC): ws://localhost:${WS_PORT}`);
+trpcWebSocketServer.listen(() => {
+  logger.info(`   WebSocket (tRPC): ws://${trpcWebSocketConfig.host}:${trpcWebSocketConfig.port}`);
+});
 
 // Story 0.3 / W2.2: gehärteter Yjs-Relay für geteilte Quiz-Sammlungen.
 const yjsRelayConfig = resolveYjsRelayConfig();
@@ -215,9 +206,13 @@ async function shutdown(): Promise<void> {
   shuttingDown = true;
   stopSessionCleanupScheduler();
   wsHandler.broadcastReconnectNotification();
-  wss.close();
   server.close();
-  await Promise.all([yjsRelay.close(), shutdownAbuseTelemetry(), shutdownPdfTelemetry()]);
+  await Promise.all([
+    trpcWebSocketServer.close(),
+    yjsRelay.close(),
+    shutdownAbuseTelemetry(),
+    shutdownPdfTelemetry(),
+  ]);
   await closeRedis();
   process.exit(0);
 }

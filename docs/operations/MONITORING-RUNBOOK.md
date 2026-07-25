@@ -95,6 +95,9 @@ genutzten Hörsaal-IP gedrosselt.
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
 | PDF-Fehler                         |           ≥ 1/min |           ≥ 3/min |
 | Aktive tRPC-WebSockets             |             ≥ 600 |             ≥ 800 |
+| Abgelehnte tRPC-Upgrades/min       |              ≥ 50 |             ≥ 200 |
+| tRPC-Payload-Ablehnungen/min       |               ≥ 1 |              ≥ 10 |
+| tRPC-Message-Rate-Schließungen/min |              ≥ 10 |              ≥ 50 |
 | Aktive Yjs-WebSockets              |             ≥ 700 |             ≥ 900 |
 | Abgelehnte Yjs-Upgrades/min        |              ≥ 50 |             ≥ 200 |
 | Yjs-Payload-Ablehnungen/min        |               ≥ 1 |              ≥ 10 |
@@ -154,7 +157,10 @@ docker compose -f docker-compose.prod.yml logs --since 10m app | rg 'pdf:'
 
 ### WebSocket-Anstieg
 
-`trpcWebSocketConnectionsActive` zählt Port 3001,
+`trpcWebSocketConnectionsActive` zählt Port 3001; das konfigurierte Hard-Cap
+steht in `trpcWebSocketConnectionLimit`. Upgrade-, Payload- und
+Nachrichtenraten-Ablehnungen stehen in den drei entsprechenden
+`trpcWebSocket*LastMinute`-Feldern.
 `yjsWebSocketConnectionsActive` Port 3002 und
 `yjsWebSocketRoomsActive` die momentan verbundenen Quiz-Sammlungen. Zur
 Gegenprüfung auf dem Host:
@@ -166,6 +172,11 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
 - Kurzzeitige Reconnect-Wellen nach einem Deployment sind erwartbar.
 - Bei anhaltend hohen Verbindungen `serviceStatus`, CPU, Speicher und
   Reconnect-Lasttest zusammen bewerten.
+- tRPC-Upgrade-Ablehnungen bedeuten ein ausgeschöpftes globales Minuten- oder
+  Verbindungscap. Payload-Ablehnungen bestätigen das unveränderte feste
+  2-MiB-Limit; Rate-Schließungen ein ausgeschöpftes Verbindungs- oder
+  Globalbudget. Bei einer realen 500er-Veranstaltung zuerst Reconnect-Welle und
+  Clientfehler korrelieren, nicht nach IP drosseln.
 - Yjs-Upgrade-Ablehnungen können ungültige Pfade, Upgrade-Raten oder
   Verbindungs-Caps bedeuten. Payload-Ablehnungen weisen auf Nachrichten über
   das konfigurierte Einzelpayload-Limit (Standard 16 MiB) hin;

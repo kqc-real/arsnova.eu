@@ -200,7 +200,7 @@ Statt „max. 20 Verbindungen pro IP“:
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | W2.1 | **Container:** Non-Root, `cap_drop`, `no-new-privileges`. Chromium: **Sandbox ohne `--no-sandbox`** **oder** isolierter PDF-Worker. PDF-Worker: **read-only rootfs**, tmpfs `/tmp`, `pids_limit`, CPU/RAM-Limits, seccomp/AppArmor, **eingeschränkter Egress** | Deploy + PDF-Export in CI/Staging grün; Sandbox- bzw. Worker-Isolation nachweisbar |
 | W2.2 | **Story 1.6c Slice A:** Yjs-Relay Rate-Limit / Conn-/Payload-Grenzen; ADR/Konzept für signierte Share-Tokens + manuelle Rotation                                                                                                                               | Backlog-AKs Rate-Limit + dokumentierter Härtungspfad; Local-First-Smoke ok         |
-| W2.3 | WS: Limits pro Participant-ID / Session / global; Message-Size/Rate; Client **jittered Reconnect**                                                                                                                                                             | Reconnect-Welle in Lasttest ohne Totalausfall (Kriterien 6.5)                      |
+| W2.3 | WS: **W2.3a** globale/Verbindungs-Limits für tRPC-Upgrade, Verbindung und Nachrichtenrate ohne IP-Bucket; **W2.3b** Participant-/Session-Binding und Client **jittered Reconnect**                                                                             | 500er-Reconnect-Welle ohne Totalausfall; 2-MiB-Payload-Cap bleibt bindend          |
 | W2.4 | CSP **Report-Only** verschärfen: Report-Endpoint mit **Rate-Limit**, Payload-**Minimierung**, definierter **Retention**; `unsafe-eval`/`https:` in script-src beobachten                                                                                       | Reports sammeln unter RL; keine PII-Lawine; App ungebrochen                        |
 | W2.5 | CORS in Produktion auf eigene Origins beschränken oder entfernen                                                                                                                                                                                               | Same-Origin-Flows ok                                                               |
 
@@ -212,6 +212,15 @@ Raum und Backend-Prozess. Ein 15-MiB-Dokumentcap je Raum, ein globales
 Heap-Wachstum und Reconnect-Verstärkung. Parserfehler werden ohne ungefilterte
 Logausgabe gezählt und fail-closed getrennt. Die Abnahme steht in
 [W2.2-YJS-RELAY-HARDENING-ABNAHME.md](implementation/W2.2-YJS-RELAY-HARDENING-ABNAHME.md).
+
+**W2.3a** kapselt zusätzlich den tRPC-WebSocket-Server auf Port 3001 mit einem
+globalen Verbindungscap, einem globalen Upgrade-Minutenbudget und
+Nachrichtenbudgets je Verbindung/global. Die Defaults reservieren zwei
+500er-Kohorten und sechs vollständige 500er-Reconnect-Wellen pro Minute; enge
+IP-Limits bleiben ausdrücklich ausgeschlossen. Schema-first Telemetrie und
+Abnahme stehen in
+[W2.3A-TRPC-WEBSOCKET-LIMITS-ABNAHME.md](implementation/W2.3A-TRPC-WEBSOCKET-LIMITS-ABNAHME.md).
+Participant-/Session-Binding und Reconnect-Jitter bleiben W2.3b.
 Signierte langlebige Share-Tokens und manuelle Rotation bleiben der getrennte
 Slice B aus W3.4; das Zielbild ist in
 [ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md)
