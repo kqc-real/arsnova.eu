@@ -177,7 +177,8 @@ function truncateUtf8(value: string, maximumBytes: number): string {
  * arbeitet direkt auf dem bereits auf 32 KiB begrenzten Raw-Buffer und baut
  * keine attacker-kontrollierte Objektstruktur auf.
  */
-function hasBoundedJsonShape(raw: Buffer): boolean {
+function hasBoundedJsonShape(raw: unknown): boolean {
+  if (!Buffer.isBuffer(raw)) return false;
   const containers: Array<{ kind: 'array' | 'object'; commas: number }> = [];
   let inString = false;
   let escaped = false;
@@ -333,7 +334,8 @@ function minimizeReport(
   return Object.keys(report).length > 0 ? report : null;
 }
 
-export function parseCspReportPayload(raw: Buffer): MinimizedCspReport[] | null {
+export function parseCspReportPayload(raw: unknown): MinimizedCspReport[] | null {
+  if (!Buffer.isBuffer(raw)) return null;
   if (raw.length === 0 || raw.length > CSP_REPORT_MAX_BODY_BYTES || !hasBoundedJsonShape(raw)) {
     return null;
   }

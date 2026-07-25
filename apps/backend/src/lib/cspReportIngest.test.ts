@@ -62,6 +62,11 @@ class FakeRedis implements CspRedisClient {
 }
 
 describe('CSP-Report-Parser und Minimierung', () => {
+  it('verwirft zur Laufzeit String-/Array-Type-Confusion vor Buffer-Zugriffen', () => {
+    expect(parseCspReportPayload('{"csp-report":{}}')).toBeNull();
+    expect(parseCspReportPayload([1, 2, 3])).toBeNull();
+  });
+
   it('akzeptiert Legacy- und Reporting-API-Formate mit höchstens zehn Reports', () => {
     expect(parseCspReportPayload(Buffer.from(JSON.stringify(VALID_REPORT)))).toHaveLength(1);
     const reports = Array.from({ length: 10 }, () => ({
