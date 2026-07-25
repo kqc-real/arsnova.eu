@@ -39,6 +39,21 @@ export function validateCreateBudgetProfile(perIpBudget, globalBudget, createAtt
   }
 }
 
+export function validateEnumerationBoundary(results, clientFailuresPerWindow) {
+  const notFound = results.filter((result) => result === 'notFound').length;
+  const tooManyRequests = results.filter((result) => result === 'tooManyRequests').length;
+  if (
+    !Number.isSafeInteger(clientFailuresPerWindow) ||
+    clientFailuresPerWindow < 1 ||
+    notFound !== clientFailuresPerWindow ||
+    tooManyRequests !== results.length - clientFailuresPerWindow
+  ) {
+    throw new Error(
+      `Enumeration-Grenze stimmt nicht: NOT_FOUND=${notFound}, 429=${tooManyRequests}, Client-Limit=${clientFailuresPerWindow}.`,
+    );
+  }
+}
+
 export function assertAbuseRunAuthorized(env, trpcUrl) {
   if (env.LOAD_ACCEPTANCE_APPROVED !== ISOLATED_APPROVAL) {
     throw new Error(`Explizite Freigabe fehlt: LOAD_ACCEPTANCE_APPROVED=${ISOLATED_APPROVAL}`);
@@ -107,6 +122,12 @@ async function run() {
     1,
     100_000,
   );
+  const expectedSessionCodeClientFailuresPerWindow = boundedInteger(
+    'ABUSE_EXPECTED_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW',
+    20,
+    1,
+    100,
+  );
   const signalTimeoutMs = boundedInteger('ABUSE_SIGNAL_TIMEOUT_MS', 1_200_000, 5_000, 1_800_000);
 
   if (process.env.LOAD_ACCEPTANCE_VALIDATE_ONLY === '1') {
@@ -134,6 +155,13 @@ async function run() {
   if (capacityStats.sessionCreateGlobalPerHour !== expectedSessionCreateGlobalPerHour) {
     throw new Error(
       `Effektives globales Session-Create-Budget ${capacityStats.sessionCreateGlobalPerHour} stimmt nicht mit ${expectedSessionCreateGlobalPerHour} überein.`,
+    );
+  }
+  if (
+    capacityStats.sessionCodeClientFailuresPerWindow !== expectedSessionCodeClientFailuresPerWindow
+  ) {
+    throw new Error(
+      `Effektives Session-Code-Client-Limit ${capacityStats.sessionCodeClientFailuresPerWindow} stimmt nicht mit ${expectedSessionCodeClientFailuresPerWindow} überein.`,
     );
   }
   validateCreateBudgetProfile(
@@ -223,6 +251,11 @@ async function run() {
   if (acceptedJoins !== validJoins) failures.push(`Gültige Joins: ${acceptedJoins}/${validJoins}`);
   if (code429 < 1) failures.push('Enumeration erreichte den Client-429-Cap nicht.');
   if (codeUnexpected > 0) failures.push(`Unerwartete Enumeration-Ergebnisse: ${codeUnexpected}`);
+  try {
+    validateEnumerationBoundary(enumerationResults, expectedSessionCodeClientFailuresPerWindow);
+  } catch (error) {
+    failures.push(error instanceof Error ? error.message : String(error));
+  }
   if (create429 < 1) failures.push('Create-Spam erreichte das Shared-NAT-IP-Budget nicht.');
   if (createUnexpected > 0) failures.push(`Unerwartete Create-Ergebnisse: ${createUnexpected}`);
   if ((securityStats.sessionCodeFailuresLastMinute ?? 0) < codeGuesses) {
@@ -268,6 +301,7 @@ async function run() {
       createAttempts,
       sessionCreatePerHour: expectedSessionCreatePerHour,
       sessionCreateGlobalPerHour: expectedSessionCreateGlobalPerHour,
+      sessionCodeClientFailuresPerWindow: expectedSessionCodeClientFailuresPerWindow,
       sameSourceNat: true,
     },
     metrics: summary,

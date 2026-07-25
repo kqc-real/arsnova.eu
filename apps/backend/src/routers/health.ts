@@ -27,7 +27,10 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
-import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
+import {
+  SESSION_CODE_PROTECTION_LIMITS,
+  readSessionCodeGlobalSoftCapUtilization,
+} from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
 import { RATE_LIMIT_ENV } from '../lib/rateLimit';
@@ -448,6 +451,7 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
   return {
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
     sessionCreateGlobalPerHour: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
+    sessionCodeClientFailuresPerWindow: SESSION_CODE_PROTECTION_LIMITS.clientFailuresPerWindow,
     pdfActiveJobs: pdfSnapshot.activeJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
     pdfCompletedLastMinute: pdfSignals.completedLastMinute,

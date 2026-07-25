@@ -40,6 +40,7 @@ const HEALTH_INTERVAL_MS = 5_000;
 const RUN_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const REPORT_TIME_TOLERANCE_MS = 1_000;
 const activeChildHandles = new Set();
+let terminationSignal = null;
 
 const RUNNERS = {
   'artillery-live-500': {
@@ -272,6 +273,9 @@ function runnerEnvironment(id, slos, target) {
         ABUSE_CREATE_ATTEMPTS: String(target.sessionCreatePerHour + 1),
         ABUSE_EXPECTED_SESSION_CREATE_PER_HOUR: String(target.sessionCreatePerHour),
         ABUSE_EXPECTED_SESSION_CREATE_GLOBAL_PER_HOUR: String(target.sessionCreateGlobalPerHour),
+        ABUSE_EXPECTED_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW: String(
+          target.sessionCodeClientFailuresPerWindow,
+        ),
       };
     default:
       return { ...common };
@@ -291,10 +295,11 @@ export function validateAcceptanceConfig(config) {
     config.target.dataClass !== 'isolated-ephemeral' ||
     config.target.loadGeneratorNetwork !== 'single-source-nat' ||
     config.target.sessionCreatePerHour !== 480 ||
-    config.target.sessionCreateGlobalPerHour !== 2400
+    config.target.sessionCreateGlobalPerHour !== 2400 ||
+    config.target.sessionCodeClientFailuresPerWindow !== 20
   ) {
     throw new Error(
-      'Zielprofil muss Node 24, Produktionsimage, Nginx, 480 IP-/2400 globale Creates/h und isolierte Daten festschreiben.',
+      'Zielprofil muss Node 24, Produktionsimage, Nginx, 480 IP-/2400 globale Creates/h, 20 Codefehler/Client und isolierte Daten festschreiben.',
     );
   }
   assertExactSet(config.target.dependencies, new Set(['postgresql', 'redis']), 'Dependencies');
@@ -568,7 +573,8 @@ export function validateTargetEvidence(evidence, env, now = Date.now(), minimumV
     evidence.disposableData !== true ||
     evidence.singleSourceNat !== true ||
     evidence.sessionCreatePerHour !== 480 ||
-    evidence.sessionCreateGlobalPerHour !== 2400
+    evidence.sessionCreateGlobalPerHour !== 2400 ||
+    evidence.sessionCodeClientFailuresPerWindow !== 20
   ) {
     throw new Error('Zielhost-Evidenz erfüllt das verbindliche Produktionsprofil nicht.');
   }
@@ -838,11 +844,19 @@ export async function terminateActiveChildren() {
   await Promise.allSettled([...activeChildHandles].map((handle) => handle.terminate()));
 }
 
+export function assertExecutionNotCancelled() {
+  if (terminationSignal) {
+    throw new Error(`Acceptance-Lauf durch ${terminationSignal} abgebrochen.`);
+  }
+}
+
 export function installTerminationSignalHandlers(processRef = process) {
   let interrupted = false;
+  terminationSignal = null;
   const handler = (signal) => {
     if (interrupted) return;
     interrupted = true;
+    terminationSignal = signal;
     processRef.exitCode = signal === 'SIGINT' ? 130 : 143;
     void terminateActiveChildren();
   };
@@ -897,6 +911,7 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
   });
   try {
     for (const phase of plan) {
+      assertExecutionNotCancelled();
       await preparePhaseArtifacts(phase, phaseSignal);
       const phaseStartedAt = new Date();
       const commonEnv = {
@@ -924,9 +939,11 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
         );
       }
     }
+    assertExecutionNotCancelled();
   } finally {
     await rm(phaseSignal, { force: true });
   }
+  assertExecutionNotCancelled();
   const manifest = {
     schemaVersion: 1,
     kind: 'security-load-acceptance',
@@ -948,6 +965,7 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
       singleSourceNat: evidence.singleSourceNat,
       sessionCreatePerHour: evidence.sessionCreatePerHour,
       sessionCreateGlobalPerHour: evidence.sessionCreateGlobalPerHour,
+      sessionCodeClientFailuresPerWindow: evidence.sessionCodeClientFailuresPerWindow,
     },
     operator: evidence.operator,
     coverage: config.coverage,

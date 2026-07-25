@@ -14,5 +14,6 @@
   "disposableData": true,
   "singleSourceNat": true,
   "sessionCreatePerHour": 480,
-  "sessionCreateGlobalPerHour": 2400
+  "sessionCreateGlobalPerHour": 2400,
+  "sessionCodeClientFailuresPerWindow": 20
 }

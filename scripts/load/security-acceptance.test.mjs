@@ -10,6 +10,7 @@ import { join, resolve } from 'node:path';
 import {
   buildAcceptancePlan,
   createAcceptanceRunContext,
+  assertExecutionNotCancelled,
   installTerminationSignalHandlers,
   monitorTargetHealth,
   parseArguments,
@@ -41,6 +42,7 @@ import {
   assertAbuseRunAuthorized,
   isProductionHost,
   validateCreateBudgetProfile,
+  validateEnumerationBoundary,
 } from './security-abuse-parallel.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -117,6 +119,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
     singleSourceNat: true,
     sessionCreatePerHour: 480,
     sessionCreateGlobalPerHour: 2400,
+    sessionCodeClientFailuresPerWindow: 20,
   };
   assert.equal(
     validateTargetEvidence(
@@ -298,6 +301,27 @@ test('schließt das globale Create-Budget als 429-Ursache aus', () => {
   assert.doesNotThrow(() => validateCreateBudgetProfile(480, 2400, 481));
   assert.throws(() => validateCreateBudgetProfile(480, 100, 481), /globale Session-Create-Budget/i);
   assert.throws(() => validateCreateBudgetProfile(480, 960, 481), /globale Session-Create-Budget/i);
+});
+
+test('prüft die Enumeration exakt am bestätigten Client-Limit', () => {
+  assert.doesNotThrow(() =>
+    validateEnumerationBoundary(
+      [...Array(20).fill('notFound'), ...Array(5).fill('tooManyRequests')],
+      20,
+    ),
+  );
+  assert.throws(
+    () => validateEnumerationBoundary(Array(25).fill('tooManyRequests'), 20),
+    /Enumeration-Grenze/,
+  );
+  assert.throws(
+    () =>
+      validateEnumerationBoundary(
+        [...Array(21).fill('notFound'), ...Array(4).fill('tooManyRequests')],
+        20,
+      ),
+    /Enumeration-Grenze/,
+  );
 });
 
 test('bindet den ausführenden Harness an einen sauberen Commit', () => {
@@ -662,6 +686,7 @@ test('beendet aktive Prozessgruppen bei Operator-Abbruch', async () => {
   processRef.emit('SIGTERM', 'SIGTERM');
   await assert.rejects(phasePromise, /sleeper abgebrochen/);
   assert.equal(processRef.exitCode, 143);
+  assert.throws(() => assertExecutionNotCancelled(), /SIGTERM/);
   removeSignalHandlers();
   await terminateActiveChildren();
 });
