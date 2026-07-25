@@ -333,6 +333,20 @@ function extractYjsUpdate(data: RawData): Uint8Array | null {
 interface AwarenessEntry {
   clientId: number;
   stateBytes: number;
+  /** Yjs codiert Removals als JSON `null` (4 Bytes), nicht als leeren State. */
+  isNullState: boolean;
+}
+
+const awarenessStateDecoder = new TextDecoder();
+
+function decodeAwarenessStateIsNull(stateBytes: Uint8Array): boolean {
+  let state: unknown;
+  try {
+    state = JSON.parse(awarenessStateDecoder.decode(stateBytes));
+  } catch {
+    throw new Error('Ungültiger Yjs-Awareness-State');
+  }
+  return state === null;
 }
 
 function extractAwarenessEntries(
@@ -363,8 +377,11 @@ function extractAwarenessEntries(
     if (stateBytes > update.byteLength - cursor.offset) {
       throw new Error('Unvollständiger Yjs-Awareness-State');
     }
+    const stateSlice = update.subarray(cursor.offset, cursor.offset + stateBytes);
     cursor.offset += stateBytes;
-    entries.push({ clientId, stateBytes });
+    // Leerer Payload ist kein gültiges y-protocols-Encoding; Removals sind JSON `null`.
+    const isNullState = stateBytes === 0 || decodeAwarenessStateIsNull(stateSlice);
+    entries.push({ clientId, stateBytes, isNullState });
   }
   if (cursor.offset !== update.byteLength) {
     throw new Error('Unerwartete Bytes im Yjs-Awareness-Update');
@@ -615,8 +632,9 @@ export class YjsRelayServer {
           }
           // Bekannte Raum-IDs (inkl. eigener) dürfen Provider rebroadcasten.
           if (roomAwarenessOwners.has(entry.clientId)) continue;
-          // Null-States entfernen abwesende Peers und beanspruchen keine ID.
-          if (entry.stateBytes === 0) continue;
+          // Null-States (JSON `null`, typisch 4 Bytes) entfernen abwesende Peers
+          // und beanspruchen keine Ownership — auch nach Disconnect-Rebroadcast.
+          if (entry.isNullState) continue;
           // Ein Provider darf genau eine neue lokale ID mit State einführen.
           if (
             (ownedAwarenessClientId !== null && entry.clientId !== ownedAwarenessClientId) ||

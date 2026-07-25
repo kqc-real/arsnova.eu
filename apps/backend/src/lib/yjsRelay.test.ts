@@ -291,6 +291,24 @@ describe('YjsRelayServer', () => {
     }
   });
 
+  it('behandelt JSON-null Awareness-Removals fremder IDs nicht als Ownership', async () => {
+    const baseUrl = await startRelay();
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    // awarenessFrame codiert state:null als JSON.stringify(null) → 4 Bytes.
+    expect(Buffer.byteLength(JSON.stringify(null), 'utf8')).toBe(4);
+
+    socket.send(awarenessFrame([{ clientId: 100, state: { syncClient: {} } }]));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(socket.readyState).toBe(WebSocket.OPEN);
+
+    // Provider-Rebroadcast nach Peer-Disconnect: fremde ID mit Null-State.
+    socket.send(awarenessFrame([{ clientId: 999, clock: 2, state: null }]));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(socket.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+  });
+
   it('verhindert persistentes Wachstum durch wechselnde Awareness-IDs', async () => {
     const baseUrl = await startRelay();
     const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
