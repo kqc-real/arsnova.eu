@@ -398,6 +398,18 @@ Fehler-, API- und `/csp-report`-Antworten vervielfachen könnte. Das
 anwendungsseitige 32-KiB-Limit liefert weiterhin deterministisch eine leere
 413-Antwort.
 
+W2.5 betreibt HTTP in Produktion bewusst **ohne CORS-Middleware**: Frontend,
+`/trpc` und `/csp-report` liegen unter derselben Origin. In Nginx deshalb keine
+`Access-Control-Allow-*`-Header ergänzen und insbesondere keine Origin aus
+`$host`, `Host` oder `X-Forwarded-Host` ableiten/reflektieren. Docker-
+Healthchecks, `curl` und Lasttests ohne `Origin` funktionieren unverändert.
+WebSocket-Upgrades auf `/trpc-ws` und `/yjs-ws` sind von HTTP-CORS unabhängig.
+Falls ein legitimer externer Browser-Consumer erst nach dem Rollout belegt wird,
+auf den vorherigen Release zurückrollen und eine exakte HTTPS-Allowlist separat
+reviewen; `cors({})` beziehungsweise `Access-Control-Allow-Origin: *` nicht als
+Dauer-Rollback aktivieren. Siehe
+[W2.5-Abnahme](implementation/W2.5-CORS-SAME-ORIGIN-ABNAHME.md).
+
 Hinweis für Nginx **ab 1.25.1**: Falls `nginx -t` wegen `listen ... http2` nur eine Deprecation-Warnung ausgibt, kannst du stattdessen `listen 443 ssl;`, `listen [::]:443 ssl;` und darunter `http2 on;` verwenden.
 
 Konfiguration testen und aktivieren:

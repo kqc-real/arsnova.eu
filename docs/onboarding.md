@@ -290,7 +290,7 @@ Das folgende Diagramm zeigt eine vereinfachte **Backend-/Frontend-Architektur** 
 graph TB
     subgraph Entry["Entry Point"]
         express[Express Server - Port 3000]
-        cors[CORS Middleware]
+        cors["Dev-CORS - Prod ohne CORS"]
         trpcmw["tRPC Middleware"]
     end
 

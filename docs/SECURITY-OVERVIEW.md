@@ -225,8 +225,20 @@ der Cache API verzögert werden; offline bleibt die Shell verfügbar.
 `frame-ancestors 'self'` ist nur Zielpolicy: Browser werten diese Direktive in
 Report-Only nicht aus. Bis zum getrennten Enforcement-Slice erzwingt Nginx
 `X-Frame-Options: SAMEORIGIN` die Framing-Grenze.
-Ein Enforcement-Header, Nonces/Hashes, CORS-Änderungen und die Landing-/GitHub-
-Pages-Auslieferung bleiben ausdrücklich außerhalb dieses Slices.
+Ein Enforcement-Header, Nonces/Hashes und die Landing-/GitHub-Pages-Auslieferung
+bleiben ausdrücklich außerhalb dieses Slices.
+
+W2.5 entfernt die HTTP-CORS-Middleware in Produktion vollständig: Angular-App,
+tRPC-HTTP und `/csp-report` werden unter derselben Origin ausgeliefert, und es
+gibt keinen nachgewiesenen legitimen Cross-Origin-Browser-Consumer. Requests
+ohne `Origin` (Docker-Healthcheck, CLI, Lasttests) bleiben normale HTTP-Requests.
+Lokale Angular-Entwicklung erlaubt ausschließlich die kanonischen Origins
+`http://localhost:4200`, `http://127.0.0.1:4200` und `http://[::1]:4200`, nur
+`GET`/`POST`/`OPTIONS` sowie die benötigten Content-/Token-Header, ohne
+Credentials oder Wildcard. `/csp-report` bleibt auch lokal vor CORS und erhält
+keine Freigabe. WebSocket-Origin-Prüfung ist eine separate Transportkontrolle;
+HTTP-CORS authentifiziert weder tRPC noch tRPC-/Yjs-WebSockets. Details und
+Rollback: [W2.5-CORS-SAME-ORIGIN-ABNAHME.md](implementation/W2.5-CORS-SAME-ORIGIN-ABNAHME.md).
 
 Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 

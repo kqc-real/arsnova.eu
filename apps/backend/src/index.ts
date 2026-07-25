@@ -6,7 +6,6 @@ import path from 'path';
 import fs from 'fs';
 import compression from 'compression';
 import express from 'express';
-import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import { appRouter } from './routers';
@@ -22,6 +21,7 @@ import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSo
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 import { createCspReportRouter } from './lib/cspReportIngest';
 import { createCspReportOnlyMiddleware } from './lib/cspReportOnly';
+import { createHttpCorsMiddleware } from './lib/httpCors';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -30,7 +30,6 @@ getRedis();
 
 const app = express();
 app.disable('x-powered-by');
-const isProduction = process.env['NODE_ENV'] === 'production';
 /** Hinter Nginx/Proxy: `X-Forwarded-For` / `req.ip` korrekt (Rate-Limit pro echtem Client). */
 const trustProxyHops = Number(process.env['TRUST_PROXY_HOPS'] ?? 0);
 const trustProxy = createTrustProxyFunction(trustProxyHops);
@@ -44,7 +43,10 @@ app.use('/csp-report', createCspReportRouter());
 // Der Report-Ingest liegt davor und kann daher nie rekursiv einen CSP-Header ausliefern.
 app.use(createCspReportOnlyMiddleware());
 app.use(compression());
-app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
+const httpCorsMiddleware = createHttpCorsMiddleware(process.env['NODE_ENV']);
+if (httpCorsMiddleware) {
+  app.use(httpCorsMiddleware);
+}
 app.use(
   '/trpc',
   createExpressMiddleware({

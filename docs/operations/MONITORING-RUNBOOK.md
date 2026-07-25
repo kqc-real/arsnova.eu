@@ -1,7 +1,7 @@
 # Security- und Lastmonitoring
 
 **Stand:** 2026-07-25
-**Gültig für:** W0.4, W2.4a und W2.4b; automatische Alarmierung folgt separat in W3.7.
+**Gültig für:** W0.4, W2.4a, W2.4b und W2.5; automatische Alarmierung folgt separat in W3.7.
 
 ## Primärer Blick
 
@@ -76,6 +76,13 @@ Endpunkt während eines Redis-Incidents erreichbar.
 Rollierende Werte können wegen des Flush-Intervalls bis zu fünf Sekunden
 verzögert sein. Bei Redis-Ausfall degradieren sie auf null; deshalb immer
 zugleich `health.check.redis` und die Container-Logs prüfen.
+
+Nach einem W2.5-Deploy zusätzlich einmal mit fremdem `Origin` gegen
+`/trpc/health.check` prüfen: Die normale Antwort darf eintreffen, aber
+`Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` und weitere
+`Access-Control-Allow-*`-Header müssen fehlen. Nginx darf diese Header ebenfalls
+nicht hinzufügen. CLI-/Healthcheck-Requests ohne `Origin` bleiben zulässig;
+CORS ist keine Authentifizierungs- oder WebSocket-Zugriffskontrolle.
 
 Fehlgeschlagene Diagnose-Authentifizierungen teilen pro Backend-Prozess ein
 festes Budget von 30 Versuchen je Minute. Danach antworten weitere falsche

@@ -202,7 +202,7 @@ Statt „max. 20 Verbindungen pro IP“:
 | W2.2 | **Story 1.6c Slice A:** Yjs-Relay Rate-Limit / Conn-/Payload-Grenzen; ADR/Konzept für signierte Share-Tokens + manuelle Rotation                                                                                                                                                                      | Backlog-AKs Rate-Limit + dokumentierter Härtungspfad; Local-First-Smoke ok         |
 | W2.3 | WS: **W2.3a** globale/Verbindungs-Limits für tRPC-Upgrade, Verbindung und Nachrichtenrate ohne IP-Bucket; **W2.3b** Participant-/Session-Binding und Client **jittered Reconnect**                                                                                                                    | 500er-Reconnect-Welle ohne Totalausfall; 2-MiB-Payload-Cap bleibt bindend          |
 | W2.4 | **W2.4a umgesetzt:** sicherer Report-Ingest mit **Rate-Limit**, Payload-**Minimierung**, definierter **Retention**. **W2.4b umgesetzt:** ausschließlich HTML-begrenzte CSP-Report-Only-Policy hinter standardmäßig deaktiviertem Rollout-/Rollback-Flag; 24–72 h beobachten, Enforcement bleibt offen | Reports sammeln unter RL; keine PII-Lawine; App ungebrochen                        |
-| W2.5 | CORS in Produktion auf eigene Origins beschränken oder entfernen                                                                                                                                                                                                                                      | Same-Origin-Flows ok                                                               |
+| W2.5 | **Umgesetzt:** HTTP-CORS in Produktion entfernt; feste enge Localhost-Freigabe nur für Angular-Dev                                                                                                                                                                                                    | Same-Origin-Flows ok                                                               |
 
 **Umsetzungsstand 2026-07-25:** W2.2 Slice A ersetzt den ungefilterten
 Yjs-Paket-Entry durch einen Relay mit UUID-Pfad-, 16-MiB-Einzelpayload-,
@@ -231,6 +231,13 @@ Signierte langlebige Share-Tokens und manuelle Rotation bleiben der getrennte
 Slice B aus W3.4; das Zielbild ist in
 [ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md)
 festgehalten.
+**W2.5** installiert in Produktion keine CORS-Middleware mehr. Angular,
+tRPC-HTTP und CSP-Reporting laufen nachweislich same-origin; Landingpage,
+Lasttests und Betriebsskripte benötigen keinen Cross-Origin-Browserzugriff.
+Nicht-Browser-Requests ohne `Origin` bleiben zulässig. Nur die lokale Angular-
+Entwicklung auf Port 4200 erhält eine exakte, credentials-freie Freigabe für
+die benötigten Methoden und Header. Abnahme und Rollback:
+[W2.5-CORS-SAME-ORIGIN-ABNAHME.md](implementation/W2.5-CORS-SAME-ORIGIN-ABNAHME.md).
 
 ### Woche 3–4 — Tradeoffs bewusst + Hygiene
 

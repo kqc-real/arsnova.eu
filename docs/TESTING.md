@@ -191,6 +191,29 @@ Online-Navigationen Runtime-Header nicht aus einem alten App-Shell-Cache
 übernehmen. Die vorhandenen A11y-Gates gegen diesen Build ausführen. Ein legitimer Report ist
 Beobachtungsevidenz und darf nicht allein zum Aufweiten von `script-src` führen.
 
+Für W2.5 zusätzlich:
+
+```bash
+npm test -w @arsnova/backend -- --run \
+  src/lib/httpCors.test.ts \
+  src/lib/cspReportIngest.test.ts \
+  src/lib/trpcWebSocketServer.test.ts \
+  src/lib/yjsRelay.test.ts
+npm run typecheck -w @arsnova/backend
+NODE_ENV=production curl -si \
+  -H 'Origin: https://evil.example' \
+  http://127.0.0.1:3000/trpc/health.check
+```
+
+Der CORS-Test prüft Same-Origin-/No-Origin-Verkehr, fremde und gespoofte
+Origins, `null`, exakte Localhost-Dev-Origins, den benötigten Tokenheader-
+Preflight, `Vary: Origin`, das Fehlen von Wildcard/Credentials sowie
+`/csp-report` ohne CORS-Freigabe. Beim manuellen Produktions-Smoke muss die
+fachliche Antwort unverändert eintreffen, aber jeder
+`Access-Control-Allow-*`-Header fehlen. Die WebSocket-Tests sind der
+Regression-Smoke dafür, dass HTTP-CORS die separaten tRPC-/Yjs-Server nicht
+verändert.
+
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.
 
 Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgres/Redis starten → Prisma migrate deploy → App starten → Healthcheck**. Der Deploy ist erst erfolgreich, wenn der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet und die Frontend-Shell unter `/de/` ausgeliefert wird. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.

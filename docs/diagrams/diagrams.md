@@ -20,7 +20,7 @@ Express · tRPC v11 · Prisma 7.4.x · Redis · WebSocket · Yjs (Epic 0 umgeset
 graph LR
     subgraph Entry["Entry Point"]
         express[Express Server - Port 3000]
-        cors[CORS Middleware]
+        cors["Dev-CORS - Prod ohne CORS"]
         trpcmw["tRPC Middleware (trpc)"]
     end
 
