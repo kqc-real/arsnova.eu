@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server as HttpServer } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import { docs, setupWSConnection } from '@y/websocket-server/utils';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './requestLimits';
 import {
@@ -230,7 +230,13 @@ export class YjsRelayServer {
       }
       // `ws` schließt Protokoll-/Payload-Verstöße selbst; kein attacker-kontrolliertes Log.
     });
-    webSocket.on('message', () => {
+
+    setupWSConnection(webSocket, request, { docName: room, gc: true });
+    const protocolMessageListeners = webSocket.rawListeners('message') as Array<
+      (data: RawData, isBinary: boolean) => void
+    >;
+    webSocket.removeAllListeners('message');
+    webSocket.on('message', (data, isBinary) => {
       if (rateLimited) return;
       const now = Date.now();
       if (now - messageWindowStartedAt >= MESSAGE_WINDOW_MS) {
@@ -238,13 +244,17 @@ export class YjsRelayServer {
         messagesInWindow = 0;
       }
       messagesInWindow += 1;
-      if (messagesInWindow <= this.config.maxMessagesPerWindow) return;
-      rateLimited = true;
-      recordYjsWebSocketRateLimitedMessage();
-      webSocket.close(1013, 'message rate exceeded');
+      if (messagesInWindow > this.config.maxMessagesPerWindow) {
+        rateLimited = true;
+        recordYjsWebSocketRateLimitedMessage();
+        webSocket.terminate();
+        return;
+      }
+      for (const listener of protocolMessageListeners) {
+        listener.call(webSocket, data, isBinary);
+      }
     });
 
-    setupWSConnection(webSocket, request, { docName: room, gc: true });
     webSocket.once('close', () => {
       this.connectionsActive = Math.max(0, this.connectionsActive - 1);
       const remaining = Math.max(0, (this.roomConnections.get(room) ?? 0) - 1);

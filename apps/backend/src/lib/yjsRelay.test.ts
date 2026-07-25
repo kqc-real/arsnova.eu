@@ -116,7 +116,7 @@ describe('YjsRelayServer', () => {
     await expectUpgradeRejected(`${baseUrl}/${ROOM_A}`, 429);
   });
 
-  it('schließt Verbindungen nach überschrittener Nachrichtenrate', async () => {
+  it('terminiert Verbindungen vor Verarbeitung der Nachricht über dem Rate-Limit', async () => {
     const baseUrl = await startRelay({ maxMessagesPerWindow: 1 });
     const socket = await connect(`${baseUrl}/${ROOM_A}`);
     const closed = new Promise<number>((resolve) => socket.once('close', resolve));
@@ -124,7 +124,7 @@ describe('YjsRelayServer', () => {
     socket.send(Buffer.from([99]));
     socket.send(Buffer.from([99]));
 
-    await expect(closed).resolves.toBe(1013);
+    await expect(closed).resolves.toBe(1006);
   });
 
   it('weist Nachrichten über 2 MiB mit WebSocket-Code 1009 ab', async () => {

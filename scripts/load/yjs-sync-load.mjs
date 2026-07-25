@@ -17,7 +17,6 @@ import process from 'node:process';
 import WebSocket from 'ws';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { writeScenarioReport } from './lib/reporting.mjs';
 
 const EXIT_OK = 0;
 const EXIT_TEST_FAILED = 1;
@@ -515,6 +514,7 @@ async function main() {
   const report = await execute(config);
   printSummary(report);
   if (config.reportFile) {
+    const { writeScenarioReport } = await import('./lib/reporting.mjs');
     await writeScenarioReport({
       filePath: config.reportFile,
       scenario: report.scenario,

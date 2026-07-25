@@ -1500,7 +1500,12 @@ jobs:
 
           # Produktionsimage/Compose: Yjs-Protokoll, Offline-Update und Reconnect
           # gegen den gehärteten Relay auf dem tatsächlich veröffentlichten Port.
-          CLIENTS=30 UPDATE_CONCURRENCY=15 npm run load:yjs:sync
+          docker compose -f docker-compose.prod.yml --env-file .env.production \
+            exec -T \
+            -e YJS_WS_URL=ws://127.0.0.1:3002 \
+            -e CLIENTS=30 \
+            -e UPDATE_CONCURRENCY=15 \
+            app node --input-type=module < scripts/load/yjs-sync-load.mjs
 
   # ─── Deploy Freshness Check (nur aktueller main-HEAD darf deployen) ──────────
   deploy-freshness:
