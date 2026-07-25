@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createTRPCProxyClientMock = vi.fn((opts) => opts);
+const wsCloseMock = vi.fn();
 const createWSClientMock = vi.fn(() => ({
+  close: wsCloseMock,
   connectionState: {
     subscribe: vi.fn(),
   },
 }));
 const httpBatchLinkMock = vi.fn((opts) => opts);
 const splitLinkMock = vi.fn((opts) => opts);
-const wsLinkMock = vi.fn((opts) => opts);
+const wsRequestSubscribeMock = vi.fn(() => ({ unsubscribe: vi.fn() }));
+const wsLinkMock = vi.fn(() => () => () => ({ subscribe: wsRequestSubscribeMock }));
 const getHostTokenMock = vi.fn();
 const normalizeHostSessionCodeMock = vi.fn((code: string) => code.trim().toUpperCase());
 const storeHostTokenMock = vi.fn();
@@ -116,6 +119,83 @@ describe('trpc.client host transport', () => {
     };
 
     expect(wsOptions.connectionParams()).toEqual({ sessionCode: 'ABC123' });
+  });
+
+  it('schließt den wiederverwendeten WebSocket bei A→B-Navigation und bindet B neu', async () => {
+    await loadClientModule('/de/session/aaa111/vote', () => {
+      globalThis.window.localStorage.setItem(
+        'arsnova-participant-AAA111',
+        '11111111-1111-4111-8111-111111111111',
+      );
+      globalThis.window.localStorage.setItem(
+        'arsnova-participant-BBB222',
+        '22222222-2222-4222-8222-222222222222',
+      );
+    });
+    const splitOptions = splitLinkMock.mock.calls[0]?.[0] as {
+      condition: (op: { type: string }) => boolean;
+      true: (runtime: unknown) => (input: unknown) => {
+        subscribe(observer: unknown): { unsubscribe(): void };
+      };
+    };
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+      connectionParams: () => Record<string, string> | null;
+    };
+
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    expect(wsCloseMock).not.toHaveBeenCalled();
+    expect(wsOptions.connectionParams()).toMatchObject({
+      sessionCode: 'AAA111',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    });
+
+    globalThis.window.history.replaceState({}, '', '/fr/session/bbb222/vote');
+    let releaseClose!: () => void;
+    wsCloseMock.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        releaseClose = resolve;
+      }),
+    );
+
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    const reboundLink = splitOptions.true({});
+    const reboundObservable = reboundLink({
+      op: { id: 1, type: 'subscription', path: 'session.onStatusChanged' },
+      next: vi.fn(),
+    });
+    const reboundSubscription = reboundObservable.subscribe({});
+    await vi.waitFor(() => expect(wsCloseMock).toHaveBeenCalledTimes(1));
+    expect(wsRequestSubscribeMock).not.toHaveBeenCalled();
+    releaseClose();
+    await vi.waitFor(() => expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(1));
+    expect(wsOptions.connectionParams()).toMatchObject({
+      sessionCode: 'BBB222',
+      participantId: '22222222-2222-4222-8222-222222222222',
+    });
+
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    expect(wsCloseMock).toHaveBeenCalledTimes(1);
+    reboundSubscription.unsubscribe();
+  });
+
+  it('erneuert das Binding nach Speicherung einer Participant-ID in derselben Session', async () => {
+    const { refreshTrpcWsBinding } = await loadClientModule('/session/abc123/vote');
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+      connectionParams: () => Record<string, string> | null;
+    };
+
+    globalThis.window.localStorage.setItem(
+      'arsnova-participant-ABC123',
+      '11111111-1111-4111-8111-111111111111',
+    );
+
+    expect(refreshTrpcWsBinding()).toBe(true);
+    await vi.waitFor(() => expect(wsCloseMock).toHaveBeenCalledTimes(1));
+    expect(wsOptions.connectionParams()).toEqual({
+      sessionCode: 'ABC123',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    });
+    expect(refreshTrpcWsBinding()).toBe(false);
   });
 
   it('sendet Blitzlicht-Host-Token ueber WebSocket-Connection-Params fuer Standalone-Host-Subscriptions', async () => {

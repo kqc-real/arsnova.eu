@@ -246,6 +246,26 @@ describe('TrpcWebSocketServer', () => {
     expect(second.readyState).toBe(WebSocket.OPEN);
   });
 
+  it('gibt beim Sessionwechsel A frei und bindet den neuen physischen Socket an B', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 1 });
+    const first = await connect(url);
+    first.send(connectionParamsMessage('AAA111', '11111111-1111-4111-8111-111111111111'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+    await close(first);
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 0);
+
+    const second = await connect(url);
+    second.send(connectionParamsMessage('BBB222', '22222222-2222-4222-8222-222222222222'));
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1);
+
+    expect(second.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot()).toMatchObject({
+      trpcBoundConnectionsActive: 1,
+      trpcSessionCapRejectedLastMinute: 0,
+      trpcParticipantCapRejectedLastMinute: 0,
+    });
+  });
+
   it('behandelt ungültige Binding-Signale fail-safe und verarbeitet normale Frames weiter', async () => {
     const url = await startServer();
     const socket = await connect(url);

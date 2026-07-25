@@ -35,6 +35,7 @@ const { participantIds } = vi.hoisted(() => ({
 }));
 
 vi.mock('../../core/trpc.client', () => ({
+  refreshTrpcWsBinding: vi.fn(),
   trpc: {
     session: {
       getInfo: {

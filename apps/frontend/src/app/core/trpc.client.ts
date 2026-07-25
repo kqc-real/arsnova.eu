@@ -3,8 +3,10 @@ import {
   createWSClient,
   httpBatchLink,
   splitLink,
+  type TRPCLink,
   wsLink,
 } from '@trpc/client';
+import { observable } from '@trpc/server/observable';
 import type { AppRouter } from '@arsnova/api';
 import type { TrpcWebSocketParticipantBinding } from '@arsnova/shared-types';
 import { getFeedbackHostToken, normalizeFeedbackCode } from './feedback-host-token';
@@ -118,15 +120,12 @@ function createTrpcHeaders(): Record<string, string> {
   return headers;
 }
 
-function createWsConnectionParams(): Record<string, string> | null {
-  const feedbackCode = resolveRouteFeedbackCode();
-  const feedbackHostToken = feedbackCode ? getFeedbackHostToken(feedbackCode) : null;
-  const hostToken = resolveActiveHostToken();
+function resolveWsParticipantBinding(): TrpcWebSocketParticipantBinding | null {
   const sessionCode = resolveRouteSessionCode();
   const storedParticipantId = sessionCode
     ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
     : null;
-  const participantBinding: TrpcWebSocketParticipantBinding | null = sessionCode
+  return sessionCode
     ? {
         sessionCode,
         ...(storedParticipantId && UUID_PATTERN.test(storedParticipantId)
@@ -134,6 +133,19 @@ function createWsConnectionParams(): Record<string, string> | null {
           : {}),
       }
     : null;
+}
+
+export function createWsBindingFingerprint(
+  binding: TrpcWebSocketParticipantBinding | null,
+): string | null {
+  return binding ? `${binding.sessionCode}:${binding.participantId ?? ''}` : null;
+}
+
+function createWsConnectionParams(): Record<string, string> | null {
+  const feedbackCode = resolveRouteFeedbackCode();
+  const feedbackHostToken = feedbackCode ? getFeedbackHostToken(feedbackCode) : null;
+  const hostToken = resolveActiveHostToken();
+  const participantBinding = resolveWsParticipantBinding();
   if (!hostToken && !feedbackHostToken && !participantBinding) {
     return null;
   }
@@ -207,6 +219,10 @@ export function clearPendingHostSessionCode(): void {
   pendingHostSessionCode = null;
 }
 
+let activeWsBindingFingerprint = createWsBindingFingerprint(
+  isBrowser ? resolveWsParticipantBinding() : null,
+);
+let bindingRefreshPromise: Promise<void> = Promise.resolve();
 const wsClient = isBrowser
   ? createWSClient({
       url: getTrpcWsUrl(),
@@ -215,6 +231,47 @@ const wsClient = isBrowser
       /** Erst bei erster Subscription verbinden – vermeidet Konsolen-Fehler ohne Backend (z. B. Lighthouse). */
       lazy: { enabled: true, closeMs: 60_000 },
     })
+  : null;
+
+/**
+ * Schließt eine wiederverwendete physische Verbindung kontrolliert, sobald
+ * SPA-Route oder lokal gespeicherte Participant-ID ein anderes Binding ergeben.
+ * Der nächste Subscription-Start öffnet den lazy Client mit frischen Params.
+ */
+export function refreshTrpcWsBinding(): boolean {
+  if (!wsClient) return false;
+  const nextFingerprint = createWsBindingFingerprint(resolveWsParticipantBinding());
+  if (nextFingerprint === activeWsBindingFingerprint) return false;
+  activeWsBindingFingerprint = nextFingerprint;
+  bindingRefreshPromise = bindingRefreshPromise.catch(() => undefined).then(() => wsClient.close());
+  return true;
+}
+
+async function waitForBindingRefresh(): Promise<void> {
+  let pending: Promise<void>;
+  do {
+    pending = bindingRefreshPromise;
+    await pending;
+  } while (pending !== bindingRefreshPromise);
+}
+
+const bindingAwareWsLink: TRPCLink<AppRouter> | null = wsClient
+  ? (runtime) => {
+      const execute = wsLink<AppRouter>({ client: wsClient })(runtime);
+      return ({ op, next }) =>
+        observable((observer) => {
+          let subscription: { unsubscribe(): void } | null = null;
+          let cancelled = false;
+          void waitForBindingRefresh().then(() => {
+            if (cancelled) return;
+            subscription = execute({ op, next }).subscribe(observer);
+          });
+          return () => {
+            cancelled = true;
+            subscription?.unsubscribe();
+          };
+        });
+    }
   : null;
 
 /**
@@ -246,10 +303,13 @@ if (wsClient) {
  */
 export const trpc = createTRPCProxyClient<AppRouter>({
   links: [
-    isBrowser && wsClient
+    isBrowser && wsClient && bindingAwareWsLink
       ? splitLink({
-          condition: (op) => op.type === 'subscription',
-          true: wsLink({ client: wsClient }),
+          condition: (op) => {
+            if (op.type === 'subscription') refreshTrpcWsBinding();
+            return op.type === 'subscription';
+          },
+          true: bindingAwareWsLink,
           false: httpBatchLink({
             url: resolveTrpcBatchLinkUrl(),
             headers() {
