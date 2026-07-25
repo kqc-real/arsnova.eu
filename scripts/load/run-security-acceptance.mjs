@@ -525,7 +525,7 @@ export async function runPhase(phase, commonEnv, { monitor } = {}) {
   }
 }
 
-async function executePlan(config, plan, artifactDirectory, evidence) {
+async function executePlan(config, plan, artifactDirectory, evidence, authorizedTrpcUrl) {
   const reports = {};
   const phaseSignal = resolve(artifactDirectory, '.pdf-vote-with-abuse.ready');
   await mkdir(artifactDirectory, { recursive: true });
@@ -537,7 +537,7 @@ async function executePlan(config, plan, artifactDirectory, evidence) {
     };
     const executablePhase = phase.parallel ? phase : { ...phase, runners: [phase.runners[0]] };
     await runPhase(executablePhase, commonEnv, {
-      monitor: monitorTargetHealth(evidence.trpcUrl),
+      monitor: monitorTargetHealth(authorizedTrpcUrl),
     });
     for (const runner of phase.runners) {
       reports[runner.id] = validateScenarioReport(
@@ -625,7 +625,11 @@ async function main() {
   validateSoakProbeEnvironment(process.env);
   assertAcceptanceExecutionAuthorized(process.env, trpcUrl, evidence);
   console.log(
-    JSON.stringify(await executePlan(config, plan, args.artifactDirectory, evidence), null, 2),
+    JSON.stringify(
+      await executePlan(config, plan, args.artifactDirectory, evidence, trpcUrl),
+      null,
+      2,
+    ),
   );
 }
 
