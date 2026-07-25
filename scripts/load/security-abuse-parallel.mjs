@@ -82,6 +82,12 @@ async function run() {
   const validJoins = boundedInteger('ABUSE_VALID_JOINS', 50, 1, 500);
   const codeGuesses = boundedInteger('ABUSE_CODE_GUESSES', 25, 21, 100);
   const createAttempts = boundedInteger('ABUSE_CREATE_ATTEMPTS', 481, 11, 10_001);
+  const expectedSessionCreatePerHour = boundedInteger(
+    'ABUSE_EXPECTED_SESSION_CREATE_PER_HOUR',
+    480,
+    1,
+    10_000,
+  );
   const signalTimeoutMs = boundedInteger('ABUSE_SIGNAL_TIMEOUT_MS', 1_200_000, 5_000, 1_800_000);
 
   if (process.env.LOAD_ACCEPTANCE_VALIDATE_ONLY === '1') {
@@ -99,6 +105,13 @@ async function run() {
 
   await waitForBackend(trpcUrl);
   const publicTrpc = createHttpTrpcSingle(trpcUrl);
+  const healthTrpc = createHttpTrpcSingle(trpcUrl, undefined, undefined, diagnosticSecret);
+  const capacityStats = await healthTrpc.health.securityStats.query();
+  if (capacityStats.sessionCreatePerHour !== expectedSessionCreatePerHour) {
+    throw new Error(
+      `Effektives Session-Create-Budget ${capacityStats.sessionCreatePerHour} stimmt nicht mit ${expectedSessionCreatePerHour} überein.`,
+    );
+  }
   const session = await createArtillery500Session(trpcUrl);
   const waitedForSignalMs = await waitForSignal(signalFile, signalTimeoutMs);
   const startedAt = performance.now();
@@ -168,7 +181,6 @@ async function run() {
   ]);
   await new Promise((resolve) => setTimeout(resolve, 1_000));
 
-  const healthTrpc = createHttpTrpcSingle(trpcUrl, undefined, undefined, diagnosticSecret);
   const securityStats = await healthTrpc.health.securityStats.query();
   const failures = [];
   const acceptedJoins = joinResults.filter((result) => result === 'accepted').length;

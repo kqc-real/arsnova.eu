@@ -30,6 +30,7 @@ import { readAbuseSignals } from '../lib/abuseTelemetry';
 import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
+import { RATE_LIMIT_ENV } from '../lib/rateLimit';
 import type {
   FooterStatusDTO,
   HealthSecurityStatsDTO,
@@ -445,6 +446,7 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
+    sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
     pdfActiveJobs: pdfSnapshot.activeJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
     pdfCompletedLastMinute: pdfSignals.completedLastMinute,

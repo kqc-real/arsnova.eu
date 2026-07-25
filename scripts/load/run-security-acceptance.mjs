@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
@@ -268,6 +269,7 @@ function runnerEnvironment(id, slos, target) {
       return {
         ...common,
         ABUSE_CREATE_ATTEMPTS: String(target.sessionCreatePerHour + 1),
+        ABUSE_EXPECTED_SESSION_CREATE_PER_HOUR: String(target.sessionCreatePerHour),
       };
     default:
       return { ...common };
@@ -380,6 +382,15 @@ function normalizeTargetUrl(value, protocols) {
   return `${url.protocol}//${url.host}${pathname}${url.search}`;
 }
 
+function canonicalHostname(value) {
+  return new URL(value).hostname.toLowerCase().replace(/\.+$/, '');
+}
+
+function canonicalTlsAuthority(value) {
+  const url = new URL(value);
+  return `${canonicalHostname(value)}:${url.port || '443'}`;
+}
+
 export function createAcceptanceRunContext(
   evidence,
   trpcUrl,
@@ -393,14 +404,27 @@ export function createAcceptanceRunContext(
   return {
     runId,
     gitCommit: evidence.gitCommit,
+    harnessCommit: evidence.gitCommit,
     target: {
-      trpcUrl: normalizeTargetUrl(trpcUrl, ['http:', 'https:']),
+      trpcUrl: normalizeTargetUrl(trpcUrl, ['https:']),
       trpcOrigin: new URL(trpcUrl).origin,
-      wsUrl: normalizeTargetUrl(wsUrl, ['ws:', 'wss:']),
+      wsUrl: normalizeTargetUrl(wsUrl, ['wss:']),
       wsOrigin: new URL(wsUrl).origin,
     },
     startedAt: new Date(startedAt).toISOString(),
   };
+}
+
+export function validateHarnessCheckout(
+  expectedCommit,
+  runGit = (args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim(),
+) {
+  const actualCommit = runGit(['rev-parse', 'HEAD']);
+  const dirty = runGit(['status', '--porcelain', '--untracked-files=all']);
+  if (actualCommit !== expectedCommit || dirty !== '') {
+    throw new Error('Load-Harness muss sauber auf dem freigegebenen Ziel-Commit ausgecheckt sein.');
+  }
+  return actualCommit;
 }
 
 export function runArtifactDirectory(baseDirectory, runId) {
@@ -429,6 +453,7 @@ export function validateEvidenceEnvelope(envelope, runner, runContext, phaseId) 
   const expected = {
     runId: runContext.runId,
     gitCommit: runContext.gitCommit,
+    harnessCommit: runContext.harnessCommit,
     target: runContext.target,
     phaseId,
     runnerId: runner.id,
@@ -484,6 +509,7 @@ export async function validateRunnerArtifacts(
     kind: 'security-load-runner-evidence',
     runId: runContext.runId,
     gitCommit: runContext.gitCommit,
+    harnessCommit: runContext.harnessCommit,
     target: runContext.target,
     phaseId,
     runnerId: runner.id,
@@ -505,13 +531,13 @@ export async function validateRunnerArtifacts(
   return { report, envelope, envelopeSha256: await sha256File(runner.envelopeFile) };
 }
 
-function productionTarget(trpcUrl) {
+export function productionTarget(trpcUrl) {
   if (!trpcUrl) return false;
-  const hostname = new URL(trpcUrl).hostname.toLowerCase();
+  const hostname = canonicalHostname(trpcUrl);
   return hostname === 'arsnova.eu' || hostname.endsWith('.arsnova.eu');
 }
 
-export function validateTargetEvidence(evidence, env, now = Date.now()) {
+export function validateTargetEvidence(evidence, env, now = Date.now(), minimumValidityMs = 0) {
   requireObject(evidence, 'targetEvidence');
   if (evidence.schemaVersion !== 1) {
     throw new Error('Unbekannte Zielhost-Evidenzversion.');
@@ -557,17 +583,14 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
     throw new Error('Das erwartete Session-Create-Budget muss explizit als 480 bestätigt werden.');
   }
   if (
-    normalizeTargetUrl(String(env.TRPC_URL || ''), ['http:', 'https:']) !==
-      normalizeTargetUrl(evidence.trpcUrl, ['http:', 'https:']) ||
-    normalizeTargetUrl(String(env.WS_URL || ''), ['ws:', 'wss:']) !==
-      normalizeTargetUrl(evidence.wsUrl, ['ws:', 'wss:'])
+    normalizeTargetUrl(String(env.TRPC_URL || ''), ['https:']) !==
+      normalizeTargetUrl(evidence.trpcUrl, ['https:']) ||
+    normalizeTargetUrl(String(env.WS_URL || ''), ['wss:']) !==
+      normalizeTargetUrl(evidence.wsUrl, ['wss:'])
   ) {
     throw new Error('TRPC_URL/WS_URL stimmen nicht mit der Zielhost-Evidenz überein.');
   }
-  if (
-    new URL(evidence.trpcUrl).hostname.toLowerCase() !==
-    new URL(evidence.wsUrl).hostname.toLowerCase()
-  ) {
+  if (canonicalTlsAuthority(evidence.trpcUrl) !== canonicalTlsAuthority(evidence.wsUrl)) {
     throw new Error('TRPC_URL und WS_URL müssen denselben Nginx-Zielhost verwenden.');
   }
   if (String(env.TRPC_URLS || '').trim() || String(env.ARTILLERY_HTTP_TARGET || '').trim()) {
@@ -579,7 +602,7 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
     !Number.isFinite(approvedAt) ||
     !Number.isFinite(expiresAt) ||
     approvedAt > now ||
-    expiresAt <= now ||
+    expiresAt <= now + minimumValidityMs ||
     expiresAt - approvedAt > MAX_APPROVAL_WINDOW_MS
   ) {
     throw new Error('Zielhost-Freigabe ist ungültig, abgelaufen oder länger als vier Stunden.');
@@ -587,12 +610,12 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
   return evidence;
 }
 
-export function assertAcceptanceExecutionAuthorized(env, trpcUrl, evidence) {
+export function assertAcceptanceExecutionAuthorized(env, trpcUrl, evidence, minimumValidityMs = 0) {
   if (Number(process.versions.node.split('.')[0]) !== 24) {
     throw new Error('Die formale Abnahme muss mit Node 24 orchestriert werden.');
   }
   assertAbuseRunAuthorized(env, trpcUrl);
-  validateTargetEvidence(evidence, env);
+  validateTargetEvidence(evidence, env, Date.now(), minimumValidityMs);
   const effectiveTargets = [trpcUrl, String(env.WS_URL || '')];
   if (
     effectiveTargets.some((target) => productionTarget(target)) &&
@@ -600,6 +623,13 @@ export function assertAcceptanceExecutionAuthorized(env, trpcUrl, evidence) {
   ) {
     throw new Error('Produktionslast ist ohne separate schriftliche Userfreigabe gesperrt.');
   }
+}
+
+function maximumPlanDurationMs(plan) {
+  return plan.reduce(
+    (total, phase) => total + Math.max(...phase.runners.map((runner) => runner.timeoutMs)),
+    0,
+  );
 }
 
 async function loadJson(filePath) {
@@ -631,14 +661,27 @@ export function sanitizeChildEnvironment(env) {
   };
 }
 
-export function validateSoakProbeEnvironment(env) {
-  for (const name of ['SOAK_BACKEND_PID', 'SOAK_REDIS_URL', 'SOAK_DATABASE_URL']) {
+export function validateSoakProbeEnvironment(
+  env,
+  inspectCommand = (pid) =>
+    execFileSync('ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf8' }).trim(),
+) {
+  for (const name of [
+    'SOAK_BACKEND_PID',
+    'SOAK_BACKEND_EXPECTED_COMMAND',
+    'SOAK_REDIS_URL',
+    'SOAK_DATABASE_URL',
+  ]) {
     if (typeof env[name] !== 'string' || env[name].trim() === '') {
       throw new Error(`${name} ist für die formale Recovery-Abnahme erforderlich.`);
     }
   }
   if (!/^[1-9]\d*$/.test(env.SOAK_BACKEND_PID)) {
     throw new Error('SOAK_BACKEND_PID muss eine positive Ganzzahl sein.');
+  }
+  const actualCommand = inspectCommand(Number(env.SOAK_BACKEND_PID));
+  if (actualCommand !== env.SOAK_BACKEND_EXPECTED_COMMAND) {
+    throw new Error('SOAK_BACKEND_PID gehört nicht zum explizit bestätigten Backend-Prozess.');
   }
   new URL(env.SOAK_REDIS_URL);
   new URL(env.SOAK_DATABASE_URL);
@@ -743,7 +786,10 @@ export function monitorTargetHealth(
       const checkStartedAt = Date.now();
       try {
         const response = await fetchFn(healthUrl, { signal: AbortSignal.timeout(5_000) });
-        healthy = response.ok === true;
+        const payload = response.ok === true ? await response.json() : null;
+        const root = Array.isArray(payload) ? payload[0] : payload;
+        const health = root?.result?.data?.json ?? root?.result?.data;
+        healthy = health?.status === 'ok' && health?.redis === 'ok';
       } catch {
         healthy = false;
       }
@@ -784,6 +830,7 @@ export function validateAcceptanceManifest(manifest, runContext, expectedRunnerI
     manifest.status !== 'RUN_COMPLETE_AWAITING_SLO_REVIEW' ||
     manifest.runId !== runContext.runId ||
     manifest.gitCommit !== runContext.gitCommit ||
+    manifest.harnessCommit !== runContext.harnessCommit ||
     JSON.stringify(manifest.target) !== JSON.stringify(runContext.target)
   ) {
     throw new Error('Acceptance-Manifest ist nicht an den aktuellen Run gebunden.');
@@ -854,6 +901,7 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
     status: 'RUN_COMPLETE_AWAITING_SLO_REVIEW',
     runId: runContext.runId,
     gitCommit: runContext.gitCommit,
+    harnessCommit: runContext.harnessCommit,
     startedAt: runContext.startedAt,
     generatedAt: new Date().toISOString(),
     configId: config.id,
@@ -944,7 +992,14 @@ async function main() {
     throw new Error('Ein separates starkes ADMIN_DIAGNOSTIC_SECRET ist erforderlich.');
   }
   validateSoakProbeEnvironment(process.env);
-  assertAcceptanceExecutionAuthorized(process.env, trpcUrl, evidence);
+  const preflightPlan = buildAcceptancePlan(config, args.artifactDirectory);
+  validateHarnessCheckout(evidence.gitCommit);
+  assertAcceptanceExecutionAuthorized(
+    process.env,
+    trpcUrl,
+    evidence,
+    maximumPlanDurationMs(preflightPlan),
+  );
   const runContext = createAcceptanceRunContext(evidence, trpcUrl, wsUrl);
   const artifactDirectory = runArtifactDirectory(args.artifactDirectory, runContext.runId);
   const plan = buildAcceptancePlan(config, artifactDirectory);

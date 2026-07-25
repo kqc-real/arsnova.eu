@@ -11,6 +11,7 @@ import {
   createAcceptanceRunContext,
   monitorTargetHealth,
   parseArguments,
+  productionTarget,
   preparePhaseArtifacts,
   runArtifactDirectory,
   runPhase,
@@ -18,6 +19,7 @@ import {
   validateAcceptanceConfig,
   validateAcceptanceManifest,
   validateEvidenceEnvelope,
+  validateHarnessCheckout,
   validateRunnerArtifacts,
   validateScenarioReport,
   validateSoakProbeEnvironment,
@@ -170,6 +172,21 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
           LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
+          WS_URL: evidence.wsUrl,
+        },
+        now,
+        3 * 60 * 60 * 1_000 + 1,
+      ),
+    /abgelaufen/,
+  );
+  assert.throws(
+    () =>
+      validateTargetEvidence(
+        evidence,
+        {
+          LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
+          TRPC_URL: evidence.trpcUrl,
           WS_URL: 'wss://arsnova.eu',
         },
         now,
@@ -218,6 +235,34 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         now,
       ),
     /Ungültiges Ziel/,
+  );
+  assert.throws(
+    () =>
+      validateTargetEvidence(
+        { ...evidence, wsUrl: 'wss://isolated-load.example.org:3001' },
+        {
+          LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
+          TRPC_URL: evidence.trpcUrl,
+          WS_URL: 'wss://isolated-load.example.org:3001',
+        },
+        now,
+      ),
+    /denselben Nginx-Zielhost/,
+  );
+  assert.equal(productionTarget('https://arsnova.eu./trpc'), true);
+  assert.equal(productionTarget('https://stage.arsnova.eu./trpc'), true);
+});
+
+test('bindet den ausführenden Harness an einen sauberen Commit', () => {
+  const commit = 'a'.repeat(40);
+  assert.equal(
+    validateHarnessCheckout(commit, (args) => (args[0] === 'rev-parse' ? commit : '')),
+    commit,
+  );
+  assert.throws(
+    () => validateHarnessCheckout(commit, (args) => (args[0] === 'rev-parse' ? commit : ' M x')),
+    /sauber/,
   );
 });
 
@@ -278,11 +323,28 @@ test('bindet alle Child-Ziele und verlangt messbare Recovery-Probes', () => {
   assert.equal(sanitized.SOAK_VALIDATE_ONLY, '');
   assert.throws(() => validateSoakProbeEnvironment({}), /SOAK_BACKEND_PID/);
   assert.doesNotThrow(() =>
-    validateSoakProbeEnvironment({
-      SOAK_BACKEND_PID: '123',
-      SOAK_REDIS_URL: 'redis://127.0.0.1:6379',
-      SOAK_DATABASE_URL: 'postgresql://user:secret@127.0.0.1/db',
-    }),
+    validateSoakProbeEnvironment(
+      {
+        SOAK_BACKEND_PID: '123',
+        SOAK_BACKEND_EXPECTED_COMMAND: 'node dist/index.js',
+        SOAK_REDIS_URL: 'redis://127.0.0.1:6379',
+        SOAK_DATABASE_URL: 'postgresql://user:secret@127.0.0.1/db',
+      },
+      () => 'node dist/index.js',
+    ),
+  );
+  assert.throws(
+    () =>
+      validateSoakProbeEnvironment(
+        {
+          SOAK_BACKEND_PID: '123',
+          SOAK_BACKEND_EXPECTED_COMMAND: 'node dist/index.js',
+          SOAK_REDIS_URL: 'redis://127.0.0.1:6379',
+          SOAK_DATABASE_URL: 'postgresql://user:secret@127.0.0.1/db',
+        },
+        () => 'sleep 999',
+      ),
+    /gehört nicht/,
   );
 });
 
@@ -404,6 +466,7 @@ test('bindet Report und JUnit kryptographisch an Run, Commit, Ziel und Phase', a
     status: 'RUN_COMPLETE_AWAITING_SLO_REVIEW',
     runId: runContext.runId,
     gitCommit: runContext.gitCommit,
+    harnessCommit: runContext.harnessCommit,
     target: runContext.target,
   };
   assert.equal(validateAcceptanceManifest(manifest, runContext).runId, runContext.runId);
@@ -556,7 +619,10 @@ test('bricht nach anhaltendem Health-Ausfall ab', async () => {
     monitorTargetHealth('https://isolated.example/trpc', {
       failureWindowMs: 30,
       intervalMs: 5,
-      fetchFn: async () => ({ ok: false }),
+      fetchFn: async () => ({
+        ok: true,
+        json: async () => ({ result: { data: { json: { status: 'ok', redis: 'unavailable' } } } }),
+      }),
     }).promise,
     /30 ms/,
   );
