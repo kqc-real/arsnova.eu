@@ -4,10 +4,14 @@ import type { Page } from 'playwright';
 import { z } from 'zod';
 
 export const PDF_WORKER_DEFAULT_SOCKET_PATH = '/run/pdf-worker/render.sock';
-export const PDF_WORKER_MAX_REQUEST_BYTES = 16 * 1024 * 1024;
-export const PDF_WORKER_MAX_RESPONSE_BYTES = 32 * 1024 * 1024;
+export const PDF_WORKER_MAX_HTML_BYTES = 64 * 1024 * 1024;
+export const PDF_WORKER_MAX_REQUEST_BYTES = 72 * 1024 * 1024;
+export const PDF_WORKER_MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 export const PDF_WORKER_REQUEST_TIMEOUT_MS = 75_000;
 export const PDF_WORKER_BODY_TIMEOUT_MS = 5_000;
+export const PDF_WORKER_RENDER_TIMEOUT_DEFAULT_MS = 60_000;
+export const PDF_WORKER_RENDER_TIMEOUT_MIN_MS = 5_000;
+export const PDF_WORKER_RENDER_TIMEOUT_MAX_MS = 70_000;
 
 export type PdfRenderMode = 'local' | 'worker';
 type PdfOptions = NonNullable<Parameters<Page['pdf']>[0]>;
@@ -36,13 +40,17 @@ const PdfOptionsSchema = z
 
 const PdfWorkerRequestSchema = z
   .object({
-    html: z
-      .string()
-      .min(1)
-      .max(12 * 1024 * 1024),
+    html: z.string().min(1).max(PDF_WORKER_MAX_HTML_BYTES),
     pdfOptions: PdfOptionsSchema,
   })
   .strict();
+
+class PdfWorkerRenderDeadlineError extends Error {
+  constructor() {
+    super('PDF worker render deadline exceeded');
+    this.name = 'PdfWorkerRenderDeadlineError';
+  }
+}
 
 export interface PdfWorkerRenderRequest {
   html: string;
@@ -70,6 +78,27 @@ export function resolvePdfRenderMode(
   if (!mode) return 'local';
   if (mode === 'local' || mode === 'worker') return mode;
   throw new Error(`Ungültiger PDF_RENDER_MODE: ${mode}`);
+}
+
+export function resolvePdfWorkerRenderTimeoutMs(
+  configuredValue = process.env['PDF_WORKER_RENDER_TIMEOUT_MS'],
+): number {
+  const value = configuredValue?.trim();
+  if (!value) return PDF_WORKER_RENDER_TIMEOUT_DEFAULT_MS;
+  if (!/^\d+$/.test(value)) {
+    throw new Error('PDF_WORKER_RENDER_TIMEOUT_MS muss eine ganze Zahl sein');
+  }
+  const timeoutMs = Number(value);
+  if (
+    !Number.isSafeInteger(timeoutMs) ||
+    timeoutMs < PDF_WORKER_RENDER_TIMEOUT_MIN_MS ||
+    timeoutMs > PDF_WORKER_RENDER_TIMEOUT_MAX_MS
+  ) {
+    throw new Error(
+      `PDF_WORKER_RENDER_TIMEOUT_MS muss zwischen ${PDF_WORKER_RENDER_TIMEOUT_MIN_MS} und ${PDF_WORKER_RENDER_TIMEOUT_MAX_MS} liegen`,
+    );
+  }
+  return timeoutMs;
 }
 
 function socketPathFromEnvironment(): string {
@@ -138,18 +167,39 @@ function emptyResponse(response: ServerResponse, status: number) {
   response.end();
 }
 
+function fatalResponse(response: ServerResponse, status: number, onFinished?: () => void) {
+  let callbackCalled = false;
+  const callOnce = () => {
+    if (callbackCalled) return;
+    callbackCalled = true;
+    onFinished?.();
+  };
+  response.once('finish', callOnce);
+  response.once('close', callOnce);
+  response.writeHead(status, {
+    'content-length': '0',
+    'cache-control': 'no-store',
+  });
+  response.end();
+  const fallback = setTimeout(callOnce, 100);
+  fallback.unref();
+}
+
 export async function createPdfWorkerServer(options: {
   socketPath?: string;
   bodyTimeoutMs?: number;
+  renderTimeoutMs?: number;
   render(payload: PdfWorkerRenderRequest): Promise<Buffer>;
   onError?: (error: unknown) => void;
+  onRenderDeadline?: () => void;
 }): Promise<PdfWorkerServer> {
   const socketPath = options.socketPath ?? socketPathFromEnvironment();
-  let workerBusy = false;
+  const renderTimeoutMs = options.renderTimeoutMs ?? resolvePdfWorkerRenderTimeoutMs();
+  let lifecycle: 'ready' | 'busy' | 'fatal' = 'ready';
   const server = createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
       request.resume();
-      emptyResponse(response, 204);
+      emptyResponse(response, lifecycle === 'fatal' ? 503 : 204);
       return;
     }
     if (
@@ -172,12 +222,12 @@ export async function createPdfWorkerServer(options: {
       emptyResponse(response, 413);
       return;
     }
-    if (workerBusy) {
+    if (lifecycle !== 'ready') {
       request.resume();
       emptyResponse(response, 503);
       return;
     }
-    workerBusy = true;
+    lifecycle = 'busy';
 
     const chunks: Buffer[] = [];
     let bytes = 0;
@@ -185,7 +235,7 @@ export async function createPdfWorkerServer(options: {
     let bodyComplete = false;
     const bodyTimeout = setTimeout(() => {
       if (bodyComplete) return;
-      workerBusy = false;
+      lifecycle = 'ready';
       emptyResponse(response, 408);
       request.destroy();
     }, options.bodyTimeoutMs ?? PDF_WORKER_BODY_TIMEOUT_MS);
@@ -200,18 +250,18 @@ export async function createPdfWorkerServer(options: {
     });
     request.once('error', (error) => {
       clearTimeout(bodyTimeout);
-      if (!bodyComplete) workerBusy = false;
+      if (!bodyComplete) lifecycle = 'ready';
       options.onError?.(error);
     });
     request.once('aborted', () => {
       clearTimeout(bodyTimeout);
-      if (!bodyComplete) workerBusy = false;
+      if (!bodyComplete) lifecycle = 'ready';
     });
     request.once('end', async () => {
       bodyComplete = true;
       clearTimeout(bodyTimeout);
       if (oversized || bytes !== declaredLength) {
-        workerBusy = false;
+        lifecycle = 'ready';
         emptyResponse(response, oversized ? 413 : 400);
         return;
       }
@@ -220,13 +270,23 @@ export async function createPdfWorkerServer(options: {
       try {
         parsed = PdfWorkerRequestSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
       } catch {
-        workerBusy = false;
+        lifecycle = 'ready';
         emptyResponse(response, 400);
         return;
       }
 
+      let renderDeadline: NodeJS.Timeout | undefined;
       try {
-        const pdf = await options.render(parsed);
+        const deadline = new Promise<never>((_resolve, reject) => {
+          renderDeadline = setTimeout(
+            () => reject(new PdfWorkerRenderDeadlineError()),
+            renderTimeoutMs,
+          );
+        });
+        const pdf = await Promise.race([
+          Promise.resolve().then(() => options.render(parsed)),
+          deadline,
+        ]);
         if (
           pdf.byteLength > PDF_WORKER_MAX_RESPONSE_BYTES ||
           pdf.subarray(0, 4).toString('utf8') !== '%PDF'
@@ -240,10 +300,16 @@ export async function createPdfWorkerServer(options: {
         });
         response.end(pdf);
       } catch (error) {
+        if (error instanceof PdfWorkerRenderDeadlineError) {
+          lifecycle = 'fatal';
+          fatalResponse(response, 504, options.onRenderDeadline);
+          return;
+        }
         options.onError?.(error);
         emptyResponse(response, 500);
       } finally {
-        workerBusy = false;
+        if (renderDeadline) clearTimeout(renderDeadline);
+        if (lifecycle !== 'fatal') lifecycle = 'ready';
       }
     });
   });

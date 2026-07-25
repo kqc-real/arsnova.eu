@@ -185,8 +185,10 @@ Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`; Compose begrenzt
 zusätzlich auf 128 PIDs, 1 GiB RAM und eine CPU. Produktion ist fail-closed auf
 den Worker festgelegt. Chromium verwendet dort weiterhin `--no-sandbox`, liegt
 aber in einer eigenen Container-, Ressourcen- und Egress-Grenze. CI prüft diese
-Laufzeitkontrollen und einen echten Maximalbericht. Entscheidung, verworfene
-In-Container-Sandbox und Rollback:
+Laufzeitkontrollen und einen echten Maximalbericht. Eine worker-interne
+60-Sekunden-Gesamtdeadline beendet bei hängendem Chromium den Container
+non-zero; `restart: on-failure` stellt Socket und Worker sauber wieder her.
+Entscheidung, verworfene In-Container-Sandbox und Rollback:
 [W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 
 ---

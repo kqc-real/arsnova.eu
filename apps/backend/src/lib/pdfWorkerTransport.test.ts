@@ -4,11 +4,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  PDF_WORKER_MAX_HTML_BYTES,
   PDF_WORKER_MAX_REQUEST_BYTES,
   PDF_WORKER_MAX_RESPONSE_BYTES,
+  PDF_WORKER_RENDER_TIMEOUT_DEFAULT_MS,
+  PDF_WORKER_RENDER_TIMEOUT_MAX_MS,
+  PDF_WORKER_RENDER_TIMEOUT_MIN_MS,
+  PDF_WORKER_REQUEST_TIMEOUT_MS,
   createPdfWorkerServer,
   renderPdfViaWorker,
   resolvePdfRenderMode,
+  resolvePdfWorkerRenderTimeoutMs,
   type PdfWorkerServer,
 } from './pdfWorkerTransport';
 
@@ -27,6 +33,17 @@ async function createSocketPath(): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'arsnova-pdf-worker-'));
   tempDirectories.push(directory);
   return join(directory, 'render.sock');
+}
+
+async function getHealthStatus(socketPath: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const request = httpRequest({ socketPath, path: '/health', method: 'GET' }, (response) => {
+      response.resume();
+      response.once('end', () => resolve(response.statusCode ?? 0));
+    });
+    request.once('error', reject);
+    request.end();
+  });
 }
 
 afterEach(async () => {
@@ -50,6 +67,40 @@ describe('PDF-Worker-Transport', () => {
     expect(() => resolvePdfRenderMode('production', 'unexpected')).toThrow(
       'Ungültiger PDF_RENDER_MODE',
     );
+  });
+
+  it('begrenzt die Worker-Deadline sicher unterhalb des App-Timeouts', () => {
+    expect(resolvePdfWorkerRenderTimeoutMs(undefined)).toBe(PDF_WORKER_RENDER_TIMEOUT_DEFAULT_MS);
+    expect(resolvePdfWorkerRenderTimeoutMs(String(PDF_WORKER_RENDER_TIMEOUT_MIN_MS))).toBe(
+      PDF_WORKER_RENDER_TIMEOUT_MIN_MS,
+    );
+    expect(resolvePdfWorkerRenderTimeoutMs(String(PDF_WORKER_RENDER_TIMEOUT_MAX_MS))).toBe(
+      PDF_WORKER_RENDER_TIMEOUT_MAX_MS,
+    );
+    expect(PDF_WORKER_RENDER_TIMEOUT_MAX_MS).toBeLessThan(PDF_WORKER_REQUEST_TIMEOUT_MS);
+    expect(() => resolvePdfWorkerRenderTimeoutMs('4999')).toThrow('muss zwischen');
+    expect(() => resolvePdfWorkerRenderTimeoutMs('70001')).toThrow('muss zwischen');
+    expect(() => resolvePdfWorkerRenderTimeoutMs('60s')).toThrow('muss eine ganze Zahl sein');
+  });
+
+  it('dimensioniert den Transport für 100 zulässige 400-kB-Bilder', () => {
+    const maximumBase64ImageBytes = Math.ceil((100 * 400_000 * 4) / 3);
+    expect(PDF_WORKER_MAX_HTML_BYTES).toBeGreaterThan(maximumBase64ImageBytes + 4 * 1024 * 1024);
+    expect(PDF_WORKER_MAX_REQUEST_BYTES).toBeGreaterThan(PDF_WORKER_MAX_HTML_BYTES);
+    expect(PDF_WORKER_MAX_RESPONSE_BYTES).toBeGreaterThan(40_000_000);
+  });
+
+  it('überträgt einen bildreichen Report oberhalb des früheren 12-MiB-Caps', async () => {
+    const socketPath = await createSocketPath();
+    const html = `<main>${'a'.repeat(13 * 1024 * 1024)}</main>`;
+    const render = vi.fn(async () => Buffer.from('%PDF-image-heavy'));
+    const worker = await createPdfWorkerServer({ socketPath, render });
+    workers.push(worker);
+
+    await expect(renderPdfViaWorker({ html, pdfOptions }, { socketPath })).resolves.toEqual(
+      Buffer.from('%PDF-image-heavy'),
+    );
+    expect(render).toHaveBeenCalledWith({ html, pdfOptions });
   });
 
   it('überträgt HTML ausschließlich über einen 0600-Unix-Socket', async () => {
@@ -208,5 +259,26 @@ describe('PDF-Worker-Transport', () => {
     ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
     releaseFirst();
     await expect(first).resolves.toEqual(Buffer.from('%PDF'));
+  });
+
+  it('wird bei einer Render-Deadline fatal und fordert einen Prozess-Exit an', async () => {
+    const socketPath = await createSocketPath();
+    const onRenderDeadline = vi.fn();
+    const worker = await createPdfWorkerServer({
+      socketPath,
+      renderTimeoutMs: 20,
+      onRenderDeadline,
+      render: () => new Promise<Buffer>(() => undefined),
+    });
+    workers.push(worker);
+
+    await expect(renderPdfViaWorker({ html: 'hang', pdfOptions }, { socketPath })).rejects.toThrow(
+      'PDF-Worker antwortete mit Status 504',
+    );
+    expect(onRenderDeadline).toHaveBeenCalledOnce();
+    await expect(getHealthStatus(socketPath)).resolves.toBe(503);
+    await expect(
+      renderPdfViaWorker({ html: 'after-timeout', pdfOptions }, { socketPath }),
+    ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
   });
 });

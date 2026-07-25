@@ -19,6 +19,10 @@ async function main(): Promise<void> {
         errorName: error instanceof Error ? error.name : 'unknown',
       });
     },
+    onRenderDeadline() {
+      logger.error('pdf-worker:render_timeout');
+      process.exit(1);
+    },
   });
 
   logger.info('pdf-worker:ready', { socketPath });

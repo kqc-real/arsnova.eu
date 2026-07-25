@@ -193,6 +193,10 @@ docker compose -f docker-compose.prod.yml logs --since 10m app pdf-worker \
   einen In-Process-Fallback. Worker neu starten und Socket-Volume,
   PID-/RAM-/CPU-Limit sowie `/tmp` prüfen; App-Secrets oder Netzwerk nicht
   hinzufügen.
+- `pdf-worker:render_timeout` beendet den Worker absichtlich non-zero. Prüfen,
+  dass `RestartCount` steigt und der Worker wieder healthy wird. Wiederholte
+  Timeouts deuten auf CPU-/RAM-Druck oder problematischen Reportinhalt; die
+  Deadline nicht über 70 Sekunden und den App-Timeout nicht darunter setzen.
 - Den Cap nicht spontan erhöhen: Cap 2 verfehlte auf dem Zielhost die
   Live-Voting-SLOs. Erst Ursache und CPU-/Speicherdruck klären.
 

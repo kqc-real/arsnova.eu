@@ -45,7 +45,7 @@ services:
   pdf-worker:
     image: arsnova-eu:production
     container_name: arsnova-v3-pdf-worker
-    restart: always
+    restart: on-failure
     init: true
     entrypoint: ['node', 'apps/backend/dist/pdf-worker.js']
     read_only: true
@@ -65,6 +65,7 @@ services:
       NODE_ENV: 'production'
       HOME: /tmp
       PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
+      PDF_WORKER_RENDER_TIMEOUT_MS: '60000'
     healthcheck:
       test: ['CMD', 'node', '/app/scripts/pdf-worker-healthcheck.mjs']
       interval: 10s

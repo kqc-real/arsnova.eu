@@ -1496,9 +1496,49 @@ jobs:
           done
 
           docker compose -f docker-compose.prod.yml --env-file .env.production \
-            exec -T app node /app/scripts/container-runtime-smoke.mjs
-          docker compose -f docker-compose.prod.yml --env-file .env.production \
             exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
+
+          # Fail-fast-Lifecycle: Ein non-zero Worker-Exit muss Chromium mitsamt
+          # Container beenden, den 0600-Socket neu anlegen und wieder healthy werden.
+          worker_restarts_before="$(
+            docker inspect --format '{{.RestartCount}}' arsnova-v3-pdf-worker
+          )"
+          docker compose -f docker-compose.prod.yml --env-file .env.production \
+            exec -T pdf-worker node --input-type=module <<'NODE' || true
+          import { readdirSync, readFileSync } from 'node:fs';
+          const workerPid = readdirSync('/proc').find((entry) => {
+            if (!/^\d+$/.test(entry)) return false;
+            try {
+              return readFileSync(`/proc/${entry}/cmdline`, 'utf8').startsWith(
+                'node\0apps/backend/dist/pdf-worker.js\0',
+              );
+            } catch {
+              return false;
+            }
+          });
+          if (!workerPid) process.exit(2);
+          process.kill(Number(workerPid), 'SIGKILL');
+          NODE
+          for attempt in {1..30}; do
+            worker_restarts_after="$(
+              docker inspect --format '{{.RestartCount}}' arsnova-v3-pdf-worker
+            )"
+            worker_health="$(
+              docker inspect --format '{{.State.Health.Status}}' arsnova-v3-pdf-worker
+            )"
+            if [[ "$worker_restarts_after" -gt "$worker_restarts_before" && "$worker_health" == "healthy" ]]; then
+              break
+            fi
+            if [[ "$attempt" -eq 30 ]]; then
+              docker compose -f docker-compose.prod.yml --env-file .env.production \
+                logs pdf-worker
+              exit 1
+            fi
+            sleep 1
+          done
+
+          docker compose -f docker-compose.prod.yml --env-file .env.production \
+            exec -T app node /app/scripts/container-runtime-smoke.mjs
 
           # Produktionsimage/Compose: Yjs-Protokoll, Offline-Update und Reconnect
           # gegen den gehärteten Relay auf dem tatsächlich veröffentlichten Port.
