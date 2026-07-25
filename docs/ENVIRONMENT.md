@@ -125,7 +125,10 @@ JS-/CSS-/JSON-Antworten und 204-Antworten bleiben ohne CSP-Header; ein
 `Content-Security-Policy`-Enforcement-Header wird nie gesetzt. Die Policy ist
 nicht über Env konfigurierbar, sodass kein Header-Injection-Pfad entsteht.
 Rollback: Flag auf `false`, App neu deployen/starten und mit dem Header-Smoke
-prüfen.
+prüfen. HTML-Dokumente werden unabhängig vom Flag mit `no-store` ausgeliefert,
+damit ein 304 weder eine alte headerfreie Antwort noch einen alten
+Report-Only-Header konserviert. `npm run start:prod` lässt explizit gesetzte
+Prozessvariablen Vorrang vor Werten aus der lokalen `.env`.
 
 Der tRPC-WebSocket-Server begrenzt zusätzlich pro Backend-Prozess aktive
 Verbindungen, Upgrade-Versuche sowie Nachrichten je Verbindung und global.

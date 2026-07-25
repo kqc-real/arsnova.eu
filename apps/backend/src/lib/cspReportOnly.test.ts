@@ -1,5 +1,5 @@
 import express from 'express';
-import type { Server } from 'http';
+import { request as httpRequest, type IncomingHttpHeaders, type Server } from 'http';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   CSP_REPORT_ONLY_HEADER,
@@ -9,6 +9,22 @@ import {
 } from './cspReportOnly';
 
 const servers: Server[] = [];
+
+async function rawGet(
+  url: string,
+  headers: Record<string, string>,
+): Promise<{ status: number; headers: IncomingHttpHeaders }> {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(url, { method: 'GET', headers }, (response) => {
+      response.resume();
+      response.once('end', () =>
+        resolve({ status: response.statusCode ?? 0, headers: response.headers }),
+      );
+    });
+    request.once('error', reject);
+    request.end();
+  });
+}
 
 async function startApp(enabled: boolean): Promise<string> {
   const app = express();
@@ -124,5 +140,25 @@ describe('CSP Report-Only Policy', () => {
 
     expect(response.headers.get(CSP_REPORT_ONLY_HEADER)).toBeNull();
     expect(response.headers.get('content-security-policy')).toBeNull();
+    expect(response.headers.get('cache-control')).toContain('no-store');
+  });
+
+  it('liefert HTML bei Flag-Wechsel nie als 304 aus einem alten Policy-Cache', async () => {
+    for (const enabled of [false, true]) {
+      const baseUrl = await startApp(enabled);
+      const initial = await fetch(`${baseUrl}/de/quiz/ABC123`);
+      const etag = initial.headers.get('etag');
+      expect(etag).toBeTruthy();
+
+      const revalidated = await rawGet(`${baseUrl}/de/quiz/ABC123`, {
+        Accept: 'text/html',
+        'If-None-Match': etag!,
+      });
+      expect(revalidated.status).toBe(200);
+      expect(revalidated.headers['cache-control']).toContain('no-store');
+      expect(revalidated.headers[CSP_REPORT_ONLY_HEADER.toLowerCase()]).toBe(
+        enabled ? CSP_REPORT_ONLY_POLICY : undefined,
+      );
+    }
   });
 });

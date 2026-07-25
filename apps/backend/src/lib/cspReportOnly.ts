@@ -46,6 +46,19 @@ function isExcludedPath(path: string): boolean {
   );
 }
 
+function isPotentialDocumentRequest(
+  method: string,
+  path: string,
+  accept: string | undefined,
+  fetchDestination: string | undefined,
+): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false;
+  if (isExcludedPath(path)) return false;
+  if (fetchDestination === 'document' || accept?.toLowerCase().includes('text/html')) return true;
+  const lastSegment = path.split('/').at(-1) ?? '';
+  return lastSegment === '' || lastSegment.endsWith('.html') || !lastSegment.includes('.');
+}
+
 function isHtmlDocumentResponse(method: string, response: Response): boolean {
   if (method !== 'GET' && method !== 'HEAD') return false;
   if (response.statusCode < 200 || response.statusCode >= 300 || response.statusCode === 204) {
@@ -63,22 +76,33 @@ function isHtmlDocumentResponse(method: string, response: Response): boolean {
 export function createCspReportOnlyMiddleware(
   enabled = isCspReportOnlyEnabled(process.env['CSP_REPORT_ONLY_ENABLED']),
 ): RequestHandler {
-  if (!enabled) return (_req, _res, next) => next();
-
   return (req, res, next) => {
     if (isExcludedPath(req.path)) {
       next();
       return;
     }
 
+    if (
+      isPotentialDocumentRequest(req.method, req.path, req.get('Accept'), req.get('Sec-Fetch-Dest'))
+    ) {
+      // Ein 304 übernimmt CSP-Metadaten aus dem Browsercache. Bedingte HTML-
+      // Navigationen deshalb unabhängig vom Flag als vollständige 200 liefern,
+      // damit Aktivierung und Rollback sofort wirksam sind.
+      delete req.headers['if-none-match'];
+      delete req.headers['if-modified-since'];
+    }
+
     const originalWriteHead = res.writeHead.bind(res);
     res.writeHead = ((...args: Parameters<Response['writeHead']>) => {
-      if (
-        isHtmlDocumentResponse(req.method, res) &&
-        !res.hasHeader(CSP_REPORT_ONLY_HEADER) &&
-        !res.hasHeader('Content-Security-Policy')
-      ) {
-        res.setHeader(CSP_REPORT_ONLY_HEADER, CSP_REPORT_ONLY_POLICY);
+      if (isHtmlDocumentResponse(req.method, res)) {
+        res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        if (
+          enabled &&
+          !res.hasHeader(CSP_REPORT_ONLY_HEADER) &&
+          !res.hasHeader('Content-Security-Policy')
+        ) {
+          res.setHeader(CSP_REPORT_ONLY_HEADER, CSP_REPORT_ONLY_POLICY);
+        }
       }
       return originalWriteHead(...args);
     }) as Response['writeHead'];
