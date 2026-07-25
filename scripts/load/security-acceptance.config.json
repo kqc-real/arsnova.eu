@@ -8,7 +8,8 @@
     "dependencies": ["postgresql", "redis"],
     "dataClass": "isolated-ephemeral",
     "loadGeneratorNetwork": "single-source-nat",
-    "sessionCreatePerHour": 480
+    "sessionCreatePerHour": 480,
+    "sessionCreateGlobalPerHour": 2400
   },
   "slos": [
     {

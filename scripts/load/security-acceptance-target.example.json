@@ -13,5 +13,6 @@
   "redis": true,
   "disposableData": true,
   "singleSourceNat": true,
-  "sessionCreatePerHour": 480
+  "sessionCreatePerHour": 480,
+  "sessionCreateGlobalPerHour": 2400
 }

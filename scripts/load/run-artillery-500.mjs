@@ -176,7 +176,7 @@ async function main() {
     participants: PARTICIPANTS,
     createdAt: new Date().toISOString(),
   };
-  writeFileSync(SESSION_FILE, JSON.stringify(sessionPayload, null, 2));
+  writeFileSync(SESSION_FILE, JSON.stringify(sessionPayload, null, 2), { mode: 0o600 });
 
   const hostMonitor = startHostMonitor({
     trpcUrl: TRPC_URL,
@@ -369,4 +369,6 @@ try {
     failures: [message],
   }).catch((reportError) => console.error('Fehlerreport fehlgeschlagen:', reportError));
   process.exitCode = 1;
+} finally {
+  rmSync(SESSION_FILE, { force: true });
 }

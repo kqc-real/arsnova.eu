@@ -21,9 +21,22 @@ function boundedInteger(name, fallback, minimum, maximum) {
   return value;
 }
 
-function isProductionHost(url) {
-  const hostname = new URL(url).hostname.toLowerCase();
+export function isProductionHost(url) {
+  const hostname = new URL(url).hostname.toLowerCase().replace(/\.+$/, '');
   return hostname === 'arsnova.eu' || hostname.endsWith('.arsnova.eu');
+}
+
+export function validateCreateBudgetProfile(perIpBudget, globalBudget, createAttempts) {
+  if (
+    !Number.isSafeInteger(perIpBudget) ||
+    !Number.isSafeInteger(globalBudget) ||
+    !Number.isSafeInteger(createAttempts) ||
+    globalBudget < perIpBudget + createAttempts
+  ) {
+    throw new Error(
+      'Das globale Session-Create-Budget muss den bisherigen IP-Maximalverbrauch plus den vollständigen Abuse-Lauf aufnehmen.',
+    );
+  }
 }
 
 export function assertAbuseRunAuthorized(env, trpcUrl) {
@@ -88,6 +101,12 @@ async function run() {
     1,
     10_000,
   );
+  const expectedSessionCreateGlobalPerHour = boundedInteger(
+    'ABUSE_EXPECTED_SESSION_CREATE_GLOBAL_PER_HOUR',
+    2_400,
+    1,
+    100_000,
+  );
   const signalTimeoutMs = boundedInteger('ABUSE_SIGNAL_TIMEOUT_MS', 1_200_000, 5_000, 1_800_000);
 
   if (process.env.LOAD_ACCEPTANCE_VALIDATE_ONLY === '1') {
@@ -112,6 +131,16 @@ async function run() {
       `Effektives Session-Create-Budget ${capacityStats.sessionCreatePerHour} stimmt nicht mit ${expectedSessionCreatePerHour} überein.`,
     );
   }
+  if (capacityStats.sessionCreateGlobalPerHour !== expectedSessionCreateGlobalPerHour) {
+    throw new Error(
+      `Effektives globales Session-Create-Budget ${capacityStats.sessionCreateGlobalPerHour} stimmt nicht mit ${expectedSessionCreateGlobalPerHour} überein.`,
+    );
+  }
+  validateCreateBudgetProfile(
+    capacityStats.sessionCreatePerHour,
+    capacityStats.sessionCreateGlobalPerHour,
+    createAttempts,
+  );
   const session = await createArtillery500Session(trpcUrl);
   const waitedForSignalMs = await waitForSignal(signalFile, signalTimeoutMs);
   const startedAt = performance.now();
@@ -233,7 +262,14 @@ async function run() {
 
   await writeScenarioReport({
     scenario: summary.scenario,
-    environment: { validJoins, codeGuesses, createAttempts, sameSourceNat: true },
+    environment: {
+      validJoins,
+      codeGuesses,
+      createAttempts,
+      sessionCreatePerHour: expectedSessionCreatePerHour,
+      sessionCreateGlobalPerHour: expectedSessionCreateGlobalPerHour,
+      sameSourceNat: true,
+    },
     metrics: summary,
     failures,
   });

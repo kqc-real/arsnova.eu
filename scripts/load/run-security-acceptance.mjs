@@ -39,6 +39,7 @@ const HEALTH_FAILURE_WINDOW_MS = 30_000;
 const HEALTH_INTERVAL_MS = 5_000;
 const RUN_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const REPORT_TIME_TOLERANCE_MS = 1_000;
+const activeChildHandles = new Set();
 
 const RUNNERS = {
   'artillery-live-500': {
@@ -270,6 +271,7 @@ function runnerEnvironment(id, slos, target) {
         ...common,
         ABUSE_CREATE_ATTEMPTS: String(target.sessionCreatePerHour + 1),
         ABUSE_EXPECTED_SESSION_CREATE_PER_HOUR: String(target.sessionCreatePerHour),
+        ABUSE_EXPECTED_SESSION_CREATE_GLOBAL_PER_HOUR: String(target.sessionCreateGlobalPerHour),
       };
     default:
       return { ...common };
@@ -288,10 +290,11 @@ export function validateAcceptanceConfig(config) {
     config.target.ingress !== 'nginx' ||
     config.target.dataClass !== 'isolated-ephemeral' ||
     config.target.loadGeneratorNetwork !== 'single-source-nat' ||
-    config.target.sessionCreatePerHour !== 480
+    config.target.sessionCreatePerHour !== 480 ||
+    config.target.sessionCreateGlobalPerHour !== 2400
   ) {
     throw new Error(
-      'Zielprofil muss Node 24, Produktionsimage, Nginx, 480 Creates/h und isolierte Daten festschreiben.',
+      'Zielprofil muss Node 24, Produktionsimage, Nginx, 480 IP-/2400 globale Creates/h und isolierte Daten festschreiben.',
     );
   }
   assertExactSet(config.target.dependencies, new Set(['postgresql', 'redis']), 'Dependencies');
@@ -564,7 +567,8 @@ export function validateTargetEvidence(evidence, env, now = Date.now(), minimumV
     evidence.redis !== true ||
     evidence.disposableData !== true ||
     evidence.singleSourceNat !== true ||
-    evidence.sessionCreatePerHour !== 480
+    evidence.sessionCreatePerHour !== 480 ||
+    evidence.sessionCreateGlobalPerHour !== 2400
   ) {
     throw new Error('Zielhost-Evidenz erfüllt das verbindliche Produktionsprofil nicht.');
   }
@@ -810,6 +814,7 @@ export function monitorTargetHealth(
 
 export async function runPhase(phase, commonEnv, { monitor } = {}) {
   const handles = phase.runners.map((runner) => startChild(runner, commonEnv));
+  for (const handle of handles) activeChildHandles.add(handle);
   try {
     const completions = Promise.all(handles.map((handle) => handle.completion));
     if (monitor) await Promise.race([completions, monitor.promise]);
@@ -819,7 +824,34 @@ export async function runPhase(phase, commonEnv, { monitor } = {}) {
     throw error;
   } finally {
     monitor?.stop();
+    for (const handle of handles) activeChildHandles.delete(handle);
+    await Promise.allSettled(
+      phase.runners
+        .map((runner) => runner.env?.ARTILLERY_SCRATCH_DIR)
+        .filter(Boolean)
+        .map((scratchDirectory) => rm(scratchDirectory, { recursive: true, force: true })),
+    );
   }
+}
+
+export async function terminateActiveChildren() {
+  await Promise.allSettled([...activeChildHandles].map((handle) => handle.terminate()));
+}
+
+export function installTerminationSignalHandlers(processRef = process) {
+  let interrupted = false;
+  const handler = (signal) => {
+    if (interrupted) return;
+    interrupted = true;
+    processRef.exitCode = signal === 'SIGINT' ? 130 : 143;
+    void terminateActiveChildren();
+  };
+  processRef.on('SIGINT', handler);
+  processRef.on('SIGTERM', handler);
+  return () => {
+    processRef.off('SIGINT', handler);
+    processRef.off('SIGTERM', handler);
+  };
 }
 
 export function validateAcceptanceManifest(manifest, runContext, expectedRunnerIds = []) {
@@ -915,6 +947,7 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
       disposableData: evidence.disposableData,
       singleSourceNat: evidence.singleSourceNat,
       sessionCreatePerHour: evidence.sessionCreatePerHour,
+      sessionCreateGlobalPerHour: evidence.sessionCreateGlobalPerHour,
     },
     operator: evidence.operator,
     coverage: config.coverage,
@@ -1013,8 +1046,11 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch((error) => {
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exitCode = 1;
-  });
+  const removeSignalHandlers = installTerminationSignalHandlers();
+  main()
+    .catch((error) => {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exitCode ??= 1;
+    })
+    .finally(removeSignalHandlers);
 }

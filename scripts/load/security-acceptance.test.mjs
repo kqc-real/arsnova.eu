@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
 import { access, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
@@ -9,6 +10,7 @@ import { join, resolve } from 'node:path';
 import {
   buildAcceptancePlan,
   createAcceptanceRunContext,
+  installTerminationSignalHandlers,
   monitorTargetHealth,
   parseArguments,
   productionTarget,
@@ -16,6 +18,7 @@ import {
   runArtifactDirectory,
   runPhase,
   sanitizeChildEnvironment,
+  terminateActiveChildren,
   validateAcceptanceConfig,
   validateAcceptanceManifest,
   validateEvidenceEnvelope,
@@ -36,6 +39,8 @@ import {
   ISOLATED_APPROVAL,
   PRODUCTION_APPROVAL,
   assertAbuseRunAuthorized,
+  isProductionHost,
+  validateCreateBudgetProfile,
 } from './security-abuse-parallel.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -77,6 +82,13 @@ test('lehnt fehlende Coverage, manipulierte SLOs und unbekannte Runner ab', () =
   const duplicateSlo = structuredClone(config);
   duplicateSlo.slos[1] = structuredClone(duplicateSlo.slos[0]);
   assert.throws(() => validateAcceptanceConfig(duplicateSlo), /Produkt-SLOs unvollständig/);
+
+  const insufficientGlobalCreateBudget = structuredClone(config);
+  insufficientGlobalCreateBudget.target.sessionCreateGlobalPerHour = 100;
+  assert.throws(
+    () => validateAcceptanceConfig(insufficientGlobalCreateBudget),
+    /2400 globale Creates/,
+  );
 });
 
 test('erzwingt genau einen expliziten CLI-Modus', () => {
@@ -104,6 +116,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
     disposableData: true,
     singleSourceNat: true,
     sessionCreatePerHour: 480,
+    sessionCreateGlobalPerHour: 2400,
   };
   assert.equal(
     validateTargetEvidence(
@@ -117,6 +130,20 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
       now,
     ),
     evidence,
+  );
+  assert.throws(
+    () =>
+      validateTargetEvidence(
+        { ...evidence, sessionCreateGlobalPerHour: 100 },
+        {
+          LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
+          TRPC_URL: evidence.trpcUrl,
+          WS_URL: evidence.wsUrl,
+        },
+        now,
+      ),
+    /Produktionsprofil/,
   );
   assert.throws(
     () =>
@@ -252,6 +279,25 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
   );
   assert.equal(productionTarget('https://arsnova.eu./trpc'), true);
   assert.equal(productionTarget('https://stage.arsnova.eu./trpc'), true);
+});
+
+test('kanonisiert Produktions-FQDN auch im direkten Abuse-Runner', () => {
+  assert.equal(isProductionHost('https://arsnova.eu./trpc'), true);
+  assert.equal(isProductionHost('https://stage.arsnova.eu./trpc'), true);
+  assert.throws(
+    () =>
+      assertAbuseRunAuthorized(
+        { LOAD_ACCEPTANCE_APPROVED: ISOLATED_APPROVAL },
+        'https://arsnova.eu./trpc',
+      ),
+    /Produktionslast/,
+  );
+});
+
+test('schließt das globale Create-Budget als 429-Ursache aus', () => {
+  assert.doesNotThrow(() => validateCreateBudgetProfile(480, 2400, 481));
+  assert.throws(() => validateCreateBudgetProfile(480, 100, 481), /globale Session-Create-Budget/i);
+  assert.throws(() => validateCreateBudgetProfile(480, 960, 481), /globale Session-Create-Budget/i);
 });
 
 test('bindet den ausführenden Harness an einen sauberen Commit', () => {
@@ -590,6 +636,61 @@ test('beendet parallele Geschwister nach dem ersten Fehler', async () => {
     /failure abgebrochen/,
   );
   assert.ok(Date.now() - startedAt < 2_000);
+});
+
+test('beendet aktive Prozessgruppen bei Operator-Abbruch', async () => {
+  const processRef = new EventEmitter();
+  processRef.exitCode = undefined;
+  const removeSignalHandlers = installTerminationSignalHandlers(processRef);
+  const phasePromise = runPhase(
+    {
+      id: 'test-interrupt',
+      parallel: false,
+      runners: [
+        {
+          id: 'sleeper',
+          command: [process.execPath, '-e', 'setInterval(() => {}, 1000)'],
+          timeoutMs: 10_000,
+          env: {},
+        },
+      ],
+    },
+    {},
+    { monitor: null },
+  );
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
+  processRef.emit('SIGTERM', 'SIGTERM');
+  await assert.rejects(phasePromise, /sleeper abgebrochen/);
+  assert.equal(processRef.exitCode, 143);
+  removeSignalHandlers();
+  await terminateActiveChildren();
+});
+
+test('entfernt Artillery-Scratch mit Host-Token auf Erfolg und Fehler', async () => {
+  for (const exitCode of [0, 2]) {
+    const directory = await mkdtemp(join(tmpdir(), 'arsnova-scratch-cleanup-'));
+    const scratch = join(directory, 'scratch');
+    await writeFile(scratch, 'host-token');
+    const phasePromise = runPhase(
+      {
+        id: `scratch-${exitCode}`,
+        parallel: false,
+        runners: [
+          {
+            id: `runner-${exitCode}`,
+            command: [process.execPath, '-e', `process.exit(${exitCode})`],
+            timeoutMs: 10_000,
+            env: { ARTILLERY_SCRATCH_DIR: scratch },
+          },
+        ],
+      },
+      {},
+      { monitor: null },
+    );
+    if (exitCode === 0) await phasePromise;
+    else await assert.rejects(phasePromise, /abgebrochen/);
+    await assert.rejects(access(scratch));
+  }
 });
 
 test('erzwingt ein Hard-Timeout pro Child-Prozess', async () => {

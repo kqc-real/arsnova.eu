@@ -447,6 +447,7 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
+    sessionCreateGlobalPerHour: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
     pdfActiveJobs: pdfSnapshot.activeJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
     pdfCompletedLastMinute: pdfSignals.completedLastMinute,
