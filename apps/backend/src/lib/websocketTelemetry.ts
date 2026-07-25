@@ -30,7 +30,9 @@ class RollingCounter {
   private prune(now: number): void {
     const oldestIncluded = now - TELEMETRY_WINDOW_MS;
     for (const bucket of this.buckets.keys()) {
-      if (bucket < oldestIncluded) this.buckets.delete(bucket);
+      // Der Schlüssel ist der Bucket-Beginn. Erst löschen, wenn auch sein
+      // spätestes mögliches Ereignis vollständig außerhalb der Minute liegt.
+      if (bucket + TELEMETRY_BUCKET_MS <= oldestIncluded) this.buckets.delete(bucket);
     }
   }
 }

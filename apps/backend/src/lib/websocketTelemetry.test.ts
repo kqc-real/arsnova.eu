@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
@@ -18,6 +18,10 @@ import {
 describe('websocketTelemetry', () => {
   beforeEach(() => {
     resetWebSocketTelemetryForTests();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('zählt aktive tRPC-WebSocket-Verbindungen', () => {
@@ -62,5 +66,17 @@ describe('websocketTelemetry', () => {
       yjsDocumentRejectedLastMinute: 1,
       yjsOutboundRejectedLastMinute: 1,
     });
+  });
+
+  it('behält Ereignisse am Ende des ältesten Zehn-Sekunden-Buckets eine volle Minute', () => {
+    let now = 9_999;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    recordYjsWebSocketProtocolError();
+
+    now = 69_998;
+    expect(getWebSocketTelemetrySnapshot().yjsProtocolErrorsLastMinute).toBe(1);
+
+    now = 70_000;
+    expect(getWebSocketTelemetrySnapshot().yjsProtocolErrorsLastMinute).toBe(0);
   });
 });

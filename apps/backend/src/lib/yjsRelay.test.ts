@@ -298,7 +298,7 @@ describe('YjsRelayServer', () => {
   it('synchronisiert eine echte Sammlung knapp unter dem Dokumentlimit beim Reconnect', async () => {
     const documentLimit = 64 * 1024;
     const baseUrl = await startRelay({
-      maxPayloadBytes: 128 * 1024,
+      maxPayloadBytes: 64 * 1024,
       maxDocumentBytesPerRoom: documentLimit,
       maxDocumentBytesGlobal: documentLimit * 4,
       maxBytesPerWindow: 256 * 1024,
@@ -306,6 +306,7 @@ describe('YjsRelayServer', () => {
       maxOutboundBytesPerRoomPerWindow: 512 * 1024,
     });
     const sourceDoc = createLibraryDoc(60 * 1024);
+    expect(yjsUpdateFrame(sourceDoc).byteLength).toBeLessThan(64 * 1024);
     const source = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
     const sourceBroadcast = new Promise<void>((resolve) => source.once('message', () => resolve()));
     source.send(yjsUpdateFrame(sourceDoc));
