@@ -256,6 +256,9 @@ und die kürzeste tragfähige Frist festlegen (Richtwert höchstens 14 Tage im
 Normalbetrieb). Längere Sicherung ist nur incidentbezogen, zugriffsbeschränkt
 und dokumentiert zulässig.
 
-CSP-Reports besitzen keinen eigenen Rohlog. Redis speichert nur feste
-60-s-Telemetriekeys sowie höchstens 256 HMAC-Digests je 10-s-Bucket; die
-Dimensions- und Zählerkeys laufen standardmäßig nach sieben Tagen ab.
+CSP-Reports besitzen keinen eigenen Rohlog. Redis verwendet sieben feste
+60-s-Telemetrie-Ringslots sowie genau ein Set und einen Hash für höchstens 256
+HMAC-Digests über das gesamte Retentionsfenster. Die Generations-TTL wird nicht
+durch Requests verlängert; nach standardmäßig sieben Tagen beginnt eine neue
+leere Generation. Ein steigender `dropped`-Zähler bei 256 Dimensionen ist
+deshalb erwarteter Overflow-Schutz, kein Anlass zur Lockerung.

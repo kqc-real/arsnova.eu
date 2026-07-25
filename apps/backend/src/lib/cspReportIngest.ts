@@ -8,7 +8,7 @@ const MAX_JSON_DEPTH = 8;
 const MAX_JSON_STRING_TOKEN_BYTES = 2_048;
 const MAX_RELEVANT_STRING_BYTES = 512;
 const MAX_MINIMIZED_URL_BYTES = 256;
-const MAX_DISTINCT_DIMENSIONS_PER_BUCKET = 256;
+const MAX_DISTINCT_DIMENSIONS_PER_RETENTION = 256;
 const BUCKET_SECONDS = 10;
 const WINDOW_SECONDS = 60;
 const DEFAULT_RETENTION_SECONDS = 7 * 24 * 60 * 60;
@@ -68,12 +68,19 @@ local received = tonumber(ARGV[5])
 local dropped = tonumber(ARGV[6])
 local evalCount = tonumber(ARGV[7])
 local scriptHttpsCount = tonumber(ARGV[8])
-local dimensionCount = tonumber(ARGV[9])
+local telemetryBucket = ARGV[9]
+local dimensionCount = tonumber(ARGV[10])
+
+-- Sieben feste Telemetrie-Slots bilden 60 Sekunden plus Rand-Bucket ab.
+if redis.call('HGET', KEYS[3], '_bucket') ~= telemetryBucket then
+  redis.call('DEL', KEYS[3])
+  redis.call('HSET', KEYS[3], '_bucket', telemetryBucket)
+  redis.call('EXPIRE', KEYS[3], 120)
+end
 
 local globalCurrent = tonumber(redis.call('GET', KEYS[1])) or 0
 if globalCurrent + 1 > globalLimit then
   redis.call('HINCRBY', KEYS[3], 'rateLimited', 1)
-  redis.call('EXPIRE', KEYS[3], 120)
   return { 0, 1, retryAfter }
 end
 
@@ -82,7 +89,6 @@ if ipCurrent + 1 > ipLimit then
   redis.call('INCR', KEYS[1])
   redis.call('EXPIRE', KEYS[1], 120)
   redis.call('HINCRBY', KEYS[3], 'rateLimited', 1)
-  redis.call('EXPIRE', KEYS[3], 120)
   return { 0, 2, retryAfter }
 end
 
@@ -94,20 +100,38 @@ redis.call('HINCRBY', KEYS[3], 'received', received)
 redis.call('HINCRBY', KEYS[3], 'dropped', dropped)
 redis.call('HINCRBY', KEYS[3], 'eval', evalCount)
 redis.call('HINCRBY', KEYS[3], 'scriptHttps', scriptHttpsCount)
-redis.call('EXPIRE', KEYS[3], 120)
 
-for index = 1, dimensionCount do
-  local digest = ARGV[9 + index]
-  local known = redis.call('SISMEMBER', KEYS[4], digest)
-  if known == 1 or redis.call('SCARD', KEYS[4]) < ${MAX_DISTINCT_DIMENSIONS_PER_BUCKET} then
-    redis.call('SADD', KEYS[4], digest)
-    redis.call('HINCRBY', KEYS[5], digest, 1)
-  else
-    redis.call('HINCRBY', KEYS[3], 'dropped', 1)
+if dimensionCount > 0 then
+  local membersExists = redis.call('EXISTS', KEYS[4])
+  local countsExists = redis.call('EXISTS', KEYS[5])
+  local membersTtl = redis.call('TTL', KEYS[4])
+  local countsTtl = redis.call('TTL', KEYS[5])
+  local newGeneration = membersExists == 0 or countsExists == 0
+    or membersTtl < 1 or countsTtl < 1
+    or membersTtl > retention or countsTtl > retention
+
+  if newGeneration then
+    redis.call('DEL', KEYS[4], KEYS[5])
+  end
+
+  for index = 1, dimensionCount do
+    local digest = ARGV[10 + index]
+    local known = redis.call('SISMEMBER', KEYS[4], digest)
+    if known == 1 or redis.call('SCARD', KEYS[4]) < ${MAX_DISTINCT_DIMENSIONS_PER_RETENTION} then
+      redis.call('SADD', KEYS[4], digest)
+      redis.call('HINCRBY', KEYS[5], digest, 1)
+    else
+      redis.call('HINCRBY', KEYS[3], 'dropped', 1)
+    end
+  end
+
+  -- Requests verlängern die Retention nicht. Erst die nächste Generation
+  -- erhält nach vollständigem Ablauf wieder eine neue feste TTL.
+  if newGeneration then
+    redis.call('EXPIRE', KEYS[4], retention)
+    redis.call('EXPIRE', KEYS[5], retention)
   end
 end
-redis.call('EXPIRE', KEYS[4], retention)
-redis.call('EXPIRE', KEYS[5], retention)
 return { 1, 0, 0 }
 `;
 
@@ -448,9 +472,9 @@ export class CspReportIngest {
         5,
         `csp:rl:global:${minute}`,
         `csp:rl:ip:${minute}:${this.digest('ip', safeIp)}`,
-        `csp:telemetry:${bucket}`,
-        `csp:dimensions:${bucket}:members`,
-        `csp:dimensions:${bucket}:counts`,
+        `csp:telemetry:${bucket % (WINDOW_SECONDS / BUCKET_SECONDS + 1)}`,
+        'csp:dimensions:members',
+        'csp:dimensions:counts',
         String(this.config.globalPerMinute),
         String(this.config.ipPerMinute),
         String(Math.max(1, retryAfter)),
@@ -459,6 +483,7 @@ export class CspReportIngest {
         reports === null ? '1' : '0',
         String(evalCount),
         String(scriptHttpsCount),
+        String(bucket),
         String(dimensions.length),
         ...dimensions,
       )) as unknown;
@@ -493,13 +518,16 @@ export async function readCspReportSignals(nowMs: number = Date.now()): Promise<
     const currentBucket = Math.floor(nowMs / (BUCKET_SECONDS * 1000));
     const multi = getRedis().multi();
     for (let offset = 0; offset < WINDOW_SECONDS / BUCKET_SECONDS + 1; offset += 1) {
-      multi.hgetall(`csp:telemetry:${currentBucket - offset}`);
+      multi.hgetall(
+        `csp:telemetry:${(currentBucket - offset) % (WINDOW_SECONDS / BUCKET_SECONDS + 1)}`,
+      );
     }
     const results = await multi.exec();
     if (!results) return empty;
-    return results.reduce<CspReportSignals>((signals, entry) => {
+    return results.reduce<CspReportSignals>((signals, entry, index) => {
       const counters =
         entry?.[0] === null && isPlainObject(entry[1]) ? (entry[1] as Record<string, unknown>) : {};
+      if (counters['_bucket'] !== String(currentBucket - index)) return signals;
       signals.receivedLastMinute += redisCounter(counters['received']);
       signals.droppedLastMinute += redisCounter(counters['dropped']);
       signals.rateLimitedLastMinute += redisCounter(counters['rateLimited']);

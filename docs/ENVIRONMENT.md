@@ -79,7 +79,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `CSP_REPORT_GLOBAL_PER_MINUTE`                         | nein         | `6000`                     | Globales Redis-Budget für `POST /csp-report`; nur bis zum statischen Maximum 6000 konfigurierbar                                                                    |
 | `CSP_REPORT_PER_IP_PER_MINUTE`                         | nein         | `120`                      | Grobes Shared-NAT-Budget ausschließlich aus trusted `req.ip`; nur bis zum statischen Maximum 120 konfigurierbar                                                     |
 | `CSP_REPORT_FALLBACK_GLOBAL_PER_MINUTE`                | nein         | `6000`                     | Hartes prozesslokales Drop-Cap bei Redis-Ausfall; der Endpoint bleibt 204 und speichert nichts                                                                      |
-| `CSP_REPORT_RETENTION_SECONDS`                         | nein         | `604800` (7 Tage)          | TTL der ausschließlich gehashten 10-s-Aggregationsdimensionen; nur bis sieben Tage konfigurierbar                                                                   |
+| `CSP_REPORT_RETENTION_SECONDS`                         | nein         | `604800` (7 Tage)          | TTL einer festen Generation mit insgesamt höchstens 256 gehashten Dimensionen; nur bis sieben Tage konfigurierbar                                                   |
 | `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`               | nein         | `600`                      | MOTD `getCurrent` + `getHeaderState` (gemeinsames Limit) — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                         |
 | `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST`         | nein         | —                          | Wie Session-Create: optional `true`\|`false`; ohne Override ist **Loopback** in Nicht-Prod für MOTD-Read-Limits ausgenommen (Prerender/Dev)                         |
 | `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`              | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                                              |
@@ -110,7 +110,11 @@ und zehn Reports. Falsche Typen liefern 415, Oversize 413, regulär
 ausgeschöpfte Redis-Budgets 429; malformed Reports und Redis-Ausfälle werden
 ohne Antwortkörper mit 204 verworfen. Es gibt weder Rohreport-, User-Agent-,
 Referrer- noch URL-Logging. Redis erhält nur feste Telemetrie-Keys und
-HMAC-Digests; pro 10-s-Bucket sind höchstens 256 Dimensionen zulässig.
+HMAC-Digests. Zwei feste Generationskeys enthalten über das gesamte
+Retentionsfenster höchstens 256 Dimensionen. Ihre TTL wird nur beim
+Generationsstart gesetzt und nicht durch Requests verlängert. Nach Ablauf
+beginnt atomar eine leere Generation. Die 60-s-Telemetrie verwendet unabhängig
+davon sieben feste Ring-Slots.
 
 W2.4a setzt bewusst noch keinen `Content-Security-Policy-Report-Only`- oder
 enforcenden CSP-Header. Policy und Browser-Smoke folgen erst in W2.4b.

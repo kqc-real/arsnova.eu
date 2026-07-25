@@ -162,7 +162,9 @@ curl -i -X POST http://127.0.0.1:3000/csp-report \
 
 Der Redis-Test prüft konkurrierendes global-first Rate-Limiting, dass nach
 vollem Globalbudget keine neuen IP-Keys entstehen, sowie das atomare
-256-Dimensionscap und TTLs. Der HTTP-Smoke muss `204` ohne Body und ohne
+256-Dimensionscap über die gesamte Retentionsgeneration, konstant zwei
+Aggregationskeys über viele Zeit-Buckets und eine nicht durch Requests
+verlängerte TTL. Der HTTP-Smoke muss `204` ohne Body und ohne
 CSP-/Report-Only-Header liefern. Policy-Aktivierung gehört nicht zu W2.4a.
 
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.

@@ -40,8 +40,9 @@ describe.skipIf(!RUN_REDIS)('CSP-Report-Ingest mit echtem Redis', () => {
     });
   });
 
-  it('hält das Distinct-Cap auch bei Race auf 256 und setzt Retention-TTLs', async () => {
-    const now = () => 1_720_000_000_000;
+  it('hält 256 Dimensionen und zwei Aggregationskeys über viele Zeit-Buckets konstant', async () => {
+    let nowMs = 1_720_000_000_000;
+    const now = () => nowMs;
     const ingest = new CspReportIngest({
       hashSecret: 'redis-integration-test-secret',
       now,
@@ -57,14 +58,31 @@ describe.skipIf(!RUN_REDIS)('CSP-Report-Ingest mit echtem Redis', () => {
       ),
     );
 
-    const [membersKey] = await getRedis().keys('csp:dimensions:*:members');
-    const [countsKey] = await getRedis().keys('csp:dimensions:*:counts');
-    expect(membersKey).toBeDefined();
-    expect(countsKey).toBeDefined();
-    expect(await getRedis().scard(membersKey!)).toBe(256);
-    expect(await getRedis().hlen(countsKey!)).toBe(256);
-    expect(await getRedis().ttl(membersKey!)).toBeGreaterThan(0);
-    expect(await getRedis().ttl(membersKey!)).toBeLessThanOrEqual(600);
+    const membersKey = 'csp:dimensions:members';
+    const countsKey = 'csp:dimensions:counts';
+    expect(await getRedis().scard(membersKey)).toBe(256);
+    expect(await getRedis().hlen(countsKey)).toBe(256);
+    const initialTtl = await getRedis().ttl(membersKey);
+    expect(initialTtl).toBeGreaterThan(0);
+    expect(initialTtl).toBeLessThanOrEqual(600);
+
+    await new Promise((resolve) => setTimeout(resolve, 1_100));
+    for (let index = 0; index < 200; index += 1) {
+      nowMs += 10_000;
+      await ingest.ingest(`2001:db8:1::${index + 1}`, [
+        { effectiveDirective: `later-${index}`, blockedUri: 'category:eval' },
+      ]);
+    }
+
+    expect(await getRedis().keys('csp:dimensions:*')).toEqual(
+      expect.arrayContaining([membersKey, countsKey]),
+    );
+    expect(await getRedis().keys('csp:dimensions:*')).toHaveLength(2);
+    expect(await getRedis().keys('csp:telemetry:*')).toHaveLength(7);
+    expect(await getRedis().scard(membersKey)).toBe(256);
+    expect(await getRedis().hlen(countsKey)).toBe(256);
+    expect(await getRedis().ttl(membersKey)).toBeLessThan(initialTtl);
+    expect(await getRedis().ttl(countsKey)).toBeLessThan(initialTtl);
   });
 
   it('isoliert 500 CSP-Clients derselben NAT-IP von den übrigen App-Pfaden', async () => {

@@ -162,7 +162,11 @@ describe('CSP-Report-Redis-Aggregation', () => {
     const serialized = JSON.stringify(redis.calls);
     expect(serialized).not.toMatch(/2001:db8|arsnova|example|app\.js|main\.js|alice|secret/);
     expect(redis.calls[0]!.keys.every((key) => key.length < 160)).toBe(true);
-    expect(redis.calls[0]!.args.length).toBeGreaterThanOrEqual(9);
+    expect(redis.calls[0]!.keys.slice(3)).toEqual([
+      'csp:dimensions:members',
+      'csp:dimensions:counts',
+    ]);
+    expect(redis.calls[0]!.args.length).toBeGreaterThanOrEqual(10);
   });
 
   it('ordnet regulär erschöpfte globale und IP-Budgets als 429 ein', async () => {
@@ -226,6 +230,8 @@ describe('CSP-Report-Redis-Aggregation', () => {
     expect(script.indexOf('globalCurrent')).toBeLessThan(script.indexOf("redis.call('INCR'"));
     expect(script).toContain('SCARD');
     expect(script).toContain('256');
+    expect(script).toContain('newGeneration');
+    expect(script).toContain("redis.call('HGET', KEYS[3], '_bucket')");
     expect(script).toContain('EXPIRE');
   });
 });
