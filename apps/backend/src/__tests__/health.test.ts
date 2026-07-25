@@ -131,6 +131,7 @@ beforeEach(() => {
     yjsRateLimitedMessagesLastMinute: 0,
     yjsProtocolErrorsLastMinute: 0,
     yjsDocumentRejectedLastMinute: 0,
+    yjsAwarenessRejectedLastMinute: 0,
     yjsOutboundRejectedLastMinute: 0,
   });
 });
@@ -335,6 +336,7 @@ describe('health.stats', () => {
       yjsRateLimitedMessagesLastMinute: 2,
       yjsProtocolErrorsLastMinute: 1,
       yjsDocumentRejectedLastMinute: 4,
+      yjsAwarenessRejectedLastMinute: 6,
       yjsOutboundRejectedLastMinute: 5,
     });
 
@@ -368,6 +370,7 @@ describe('health.stats', () => {
       yjsWebSocketRateLimitedMessagesLastMinute: 2,
       yjsWebSocketProtocolErrorsLastMinute: 1,
       yjsWebSocketDocumentRejectedLastMinute: 4,
+      yjsWebSocketAwarenessRejectedLastMinute: 6,
       yjsWebSocketOutboundRejectedLastMinute: 5,
     });
   });

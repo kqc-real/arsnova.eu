@@ -1,5 +1,5 @@
 import type { AddressInfo } from 'node:net';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WebSocket, { type RawData } from 'ws';
 import * as Y from 'yjs';
 import {
@@ -8,11 +8,19 @@ import {
   YjsRelayServer,
   type YjsRelayConfig,
 } from './yjsRelay';
+import {
+  getWebSocketTelemetrySnapshot,
+  resetWebSocketTelemetryForTests,
+} from './websocketTelemetry';
 
 const ROOM_A = 'quiz-library-room-6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const ROOM_B = 'quiz-library-room-7b9fedde-6a90-4dfb-a287-565bda0681be';
 const servers: YjsRelayServer[] = [];
 const sockets: WebSocket[] = [];
+
+beforeEach(() => {
+  resetWebSocketTelemetryForTests();
+});
 
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -82,6 +90,22 @@ function encodeVarUint(value: number): number[] {
 function yjsUpdateFrame(doc: Y.Doc): Buffer {
   const update = Y.encodeStateAsUpdate(doc);
   return Buffer.from([0, 2, ...encodeVarUint(update.byteLength), ...update]);
+}
+
+function awarenessFrame(
+  entries: Array<{ clientId: number; clock?: number; state: unknown }>,
+): Buffer {
+  const update: number[] = [...encodeVarUint(entries.length)];
+  for (const entry of entries) {
+    const state = Buffer.from(JSON.stringify(entry.state));
+    update.push(
+      ...encodeVarUint(entry.clientId),
+      ...encodeVarUint(entry.clock ?? 1),
+      ...encodeVarUint(state.byteLength),
+      ...state,
+    );
+  }
+  return Buffer.from([1, ...encodeVarUint(update.length), ...update]);
 }
 
 function createLibraryDoc(payloadBytes: number, id = 'library-boundary'): Y.Doc {
@@ -163,6 +187,7 @@ describe('resolveYjsRelayConfig', () => {
         YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS: '9999999999',
         YJS_WS_MAX_DOCUMENT_BYTES_PER_ROOM: '9999999999',
         YJS_WS_MAX_DOCUMENT_BYTES_GLOBAL: '9999999999',
+        YJS_WS_MAX_AWARENESS_STATE_BYTES: '9999999999',
         YJS_WS_MAX_OUTBOUND_BYTES_PER_10_SECONDS: '9999999999',
         YJS_WS_MAX_OUTBOUND_BYTES_PER_ROOM_PER_10_SECONDS: '9999999999',
         YJS_WS_MAX_OUTBOUND_BYTES_GLOBAL_PER_10_SECONDS: '9999999999',
@@ -181,6 +206,7 @@ describe('resolveYjsRelayConfig', () => {
       maxBytesGlobalPerWindow: 2_048 * 1024 * 1024,
       maxDocumentBytesPerRoom: 30 * 1024 * 1024,
       maxDocumentBytesGlobal: 512 * 1024 * 1024,
+      maxAwarenessStateBytes: 16 * 1024,
       maxOutboundBytesPerWindow: 64 * 1024 * 1024,
       maxOutboundBytesPerRoomPerWindow: 512 * 1024 * 1024,
       maxOutboundBytesGlobalPerWindow: 2_048 * 1024 * 1024,
@@ -209,6 +235,59 @@ describe('YjsRelayServer', () => {
       `${baseUrl}/quiz-library-room-8cafeeee-7ba1-4efc-b398-676ceb1792cf`,
       503,
     );
+  });
+
+  it('leitet einen begrenzten Awareness-State je Verbindung weiter', async () => {
+    const baseUrl = await startRelay({ maxAwarenessStateBytes: 512 });
+    const source = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const observer = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const forwarded = new Promise<RawData>((resolve) => observer.once('message', resolve));
+    const frame = awarenessFrame([
+      {
+        clientId: 42,
+        state: {
+          syncClient: {
+            deviceId: 'device-a',
+            deviceLabel: 'Tablet',
+            browserLabel: 'Firefox',
+          },
+        },
+      },
+    ]);
+
+    source.send(frame);
+
+    await expect(forwarded).resolves.toEqual(frame);
+    expect(source.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+  });
+
+  it('verhindert persistentes Wachstum durch wechselnde Awareness-IDs', async () => {
+    const baseUrl = await startRelay();
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socket.once('close', (code) => resolve(code)));
+    socket.send(awarenessFrame([{ clientId: 100, state: { syncClient: {} } }]));
+    socket.send(awarenessFrame([{ clientId: 101, clock: 2, state: { syncClient: {} } }]));
+
+    await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
+  });
+
+  it('verwirft Awareness-States oberhalb des persistenten Bytecaps', async () => {
+    const baseUrl = await startRelay({ maxAwarenessStateBytes: 128 });
+    const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socket.once('close', (code) => resolve(code)));
+    socket.send(
+      awarenessFrame([
+        {
+          clientId: 200,
+          state: { syncClient: {}, padding: 'x'.repeat(256) },
+        },
+      ]),
+    );
+
+    await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
   });
 
   it('begrenzt Upgrade-Versuche global ohne IP-Limit', async () => {

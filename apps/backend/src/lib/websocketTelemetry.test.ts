@@ -4,6 +4,7 @@ import {
   getWebSocketTelemetrySnapshot,
   recordTrpcWebSocketConnected,
   recordTrpcWebSocketDisconnected,
+  recordYjsWebSocketAwarenessRejected,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
   recordYjsWebSocketDocumentRejected,
@@ -52,6 +53,7 @@ describe('websocketTelemetry', () => {
     recordYjsWebSocketRateLimitedMessage();
     recordYjsWebSocketProtocolError();
     recordYjsWebSocketDocumentRejected();
+    recordYjsWebSocketAwarenessRejected();
     recordYjsWebSocketOutboundRejected();
 
     expect(getWebSocketTelemetrySnapshot()).toMatchObject({
@@ -64,6 +66,7 @@ describe('websocketTelemetry', () => {
       yjsRateLimitedMessagesLastMinute: 1,
       yjsProtocolErrorsLastMinute: 1,
       yjsDocumentRejectedLastMinute: 1,
+      yjsAwarenessRejectedLastMinute: 1,
       yjsOutboundRejectedLastMinute: 1,
     });
   });

@@ -5,6 +5,7 @@ import { docs, setupWSConnection } from '@y/websocket-server/utils';
 import * as Y from 'yjs';
 import {
   configureYjsWebSocketTelemetry,
+  recordYjsWebSocketAwarenessRejected,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
   recordYjsWebSocketDocumentRejected,
@@ -35,6 +36,7 @@ export interface YjsRelayLimits {
   maxBytesGlobalPerWindow: number;
   maxDocumentBytesPerRoom: number;
   maxDocumentBytesGlobal: number;
+  maxAwarenessStateBytes: number;
   maxOutboundBytesPerWindow: number;
   maxOutboundBytesPerRoomPerWindow: number;
   maxOutboundBytesGlobalPerWindow: number;
@@ -59,6 +61,7 @@ const STATIC_LIMIT_MAXIMA: YjsRelayLimits = {
   maxBytesGlobalPerWindow: 2_048 * MIB,
   maxDocumentBytesPerRoom: 30 * MIB,
   maxDocumentBytesGlobal: 512 * MIB,
+  maxAwarenessStateBytes: 16 * 1024,
   maxOutboundBytesPerWindow: 64 * MIB,
   maxOutboundBytesPerRoomPerWindow: 512 * MIB,
   maxOutboundBytesGlobalPerWindow: 2_048 * MIB,
@@ -78,6 +81,7 @@ export const DEFAULT_YJS_RELAY_LIMITS: YjsRelayLimits = {
   maxBytesGlobalPerWindow: 1_024 * MIB,
   maxDocumentBytesPerRoom: 15 * MIB,
   maxDocumentBytesGlobal: 256 * MIB,
+  maxAwarenessStateBytes: 4 * 1024,
   maxOutboundBytesPerWindow: 32 * MIB,
   maxOutboundBytesPerRoomPerWindow: 256 * MIB,
   maxOutboundBytesGlobalPerWindow: 1_024 * MIB,
@@ -177,6 +181,12 @@ export function resolveYjsRelayConfig(env: NodeJS.ProcessEnv = process.env): Yjs
       'YJS_WS_MAX_DOCUMENT_BYTES_GLOBAL',
       DEFAULT_YJS_RELAY_LIMITS.maxDocumentBytesGlobal,
       STATIC_LIMIT_MAXIMA.maxDocumentBytesGlobal,
+    ),
+    maxAwarenessStateBytes: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_AWARENESS_STATE_BYTES',
+      DEFAULT_YJS_RELAY_LIMITS.maxAwarenessStateBytes,
+      STATIC_LIMIT_MAXIMA.maxAwarenessStateBytes,
     ),
     maxOutboundBytesPerWindow: readBoundedPositiveInteger(
       env,
@@ -320,6 +330,44 @@ function extractYjsUpdate(data: RawData): Uint8Array | null {
   return bytes.subarray(cursor.offset, cursor.offset + updateLength);
 }
 
+interface AwarenessEntry {
+  clientId: number;
+  stateBytes: number;
+}
+
+function extractAwarenessEntries(data: RawData): AwarenessEntry[] | null {
+  const bytes = rawDataBytes(data);
+  const outerCursor = { offset: 0 };
+  const messageType = readVarUint(bytes, outerCursor);
+  if (messageType !== 1) return null;
+  const updateLength = readVarUint(bytes, outerCursor);
+  if (
+    updateLength > bytes.byteLength - outerCursor.offset ||
+    outerCursor.offset + updateLength !== bytes.byteLength
+  ) {
+    throw new Error('Ungültige Yjs-Awareness-Payloadlänge');
+  }
+
+  const update = bytes.subarray(outerCursor.offset, outerCursor.offset + updateLength);
+  const cursor = { offset: 0 };
+  const entryCount = readVarUint(update, cursor);
+  const entries: AwarenessEntry[] = [];
+  for (let index = 0; index < entryCount; index += 1) {
+    const clientId = readVarUint(update, cursor);
+    readVarUint(update, cursor); // Awareness-Clock
+    const stateBytes = readVarUint(update, cursor);
+    if (stateBytes > update.byteLength - cursor.offset) {
+      throw new Error('Unvollständiger Yjs-Awareness-State');
+    }
+    cursor.offset += stateBytes;
+    entries.push({ clientId, stateBytes });
+  }
+  if (cursor.offset !== update.byteLength) {
+    throw new Error('Unerwartete Bytes im Yjs-Awareness-Update');
+  }
+  return entries;
+}
+
 function outboundDataByteLength(data: unknown): number {
   if (typeof data === 'string') return Buffer.byteLength(data);
   if (data instanceof ArrayBuffer) return data.byteLength;
@@ -449,6 +497,7 @@ export class YjsRelayServer {
     recordYjsWebSocketConnected(room);
 
     const connectionMessageWindow = new FixedWindowMessageBudget();
+    const awarenessClientIds = new Set<number>();
     let rateLimited = false;
     let payloadRejected = false;
     const connectionOutboundWindow = new FixedWindowByteBudget();
@@ -535,6 +584,34 @@ export class YjsRelayServer {
         recordYjsWebSocketProtocolError();
         webSocket.terminate();
         return;
+      }
+      let awarenessEntries: AwarenessEntry[] | null;
+      try {
+        awarenessEntries = extractAwarenessEntries(data);
+      } catch {
+        recordYjsWebSocketProtocolError();
+        webSocket.terminate();
+        return;
+      }
+      if (awarenessEntries) {
+        const nextClientIds = new Set(awarenessClientIds);
+        for (const entry of awarenessEntries) {
+          nextClientIds.add(entry.clientId);
+          if (entry.stateBytes > this.config.maxAwarenessStateBytes) {
+            recordYjsWebSocketAwarenessRejected();
+            webSocket.terminate();
+            return;
+          }
+        }
+        // Ein y-websocket-Provider besitzt genau eine lokale Awareness-ID.
+        // Zusammen mit dem Verbindungs-Cap begrenzt dies auch Raumanzahl und
+        // Raumbytes persistent, unabhängig von den zurücksetzenden Zeitfenstern.
+        if (nextClientIds.size > 1) {
+          recordYjsWebSocketAwarenessRejected();
+          webSocket.terminate();
+          return;
+        }
+        for (const clientId of nextClientIds) awarenessClientIds.add(clientId);
       }
       const documentAdmission = this.admitDocumentUpdate(room, data);
       if (documentAdmission === 'protocol-error') {

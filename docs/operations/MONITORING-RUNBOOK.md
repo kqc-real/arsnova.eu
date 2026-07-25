@@ -99,6 +99,7 @@ genutzten Hörsaal-IP gedrosselt.
 | Abgelehnte Yjs-Upgrades/min        |              ≥ 50 |             ≥ 200 |
 | Yjs-Payload-Ablehnungen/min        |               ≥ 1 |              ≥ 10 |
 | Yjs-Message-Rate-Schließungen/min  |              ≥ 10 |              ≥ 50 |
+| Yjs-Awareness-Ablehnungen/min      |               ≥ 1 |              ≥ 10 |
 | Container-CPU, 5 Minuten anhaltend | ≥ 80 % des Limits | ≥ 95 % des Limits |
 | `serviceStatus`                    |         `limited` |        `critical` |
 
@@ -172,8 +173,9 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
   einer Verbindung, eines Raums oder des Backend-Prozesses. Protokollfehler
   weisen auf ungültige Yjs-/Awareness-Frames hin; deren Inhalt wird nicht
   geloggt. Dokumentablehnungen zeigen das 15-MiB-Raum- oder
-  256-MiB-Globalcap an; Ausgangsablehnungen begrenzen tatsächlich versendete
-  Sync-/Reconnect-Bytes.
+  256-MiB-Globalcap an. Awareness-Ablehnungen zeigen wechselnde/mehrere
+  Client-IDs oder einen JSON-State über 4 KiB an; Ausgangsablehnungen begrenzen
+  tatsächlich versendete Sync-/Reconnect-Bytes.
 - Keine IP-basierte WS-Sperre als Sofortmaßnahme setzen; viele legitime Clients
   können dieselbe NAT-IP teilen.
 

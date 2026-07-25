@@ -41,6 +41,9 @@ Dieses Dokument ergänzt insbesondere:
 - **Origin / Ursprungsgerät:** Das Gerät, auf dem eine Sammlung erstmals bewusst für andere Geräte freigegeben wurde.
 - **Remote-Änderung:** Eine Änderung, die über Yjs von einem anderen Gerät übernommen wird.
 - **Awareness:** Flüchtige Präsenzdaten von `y-websocket`, etwa Gerätetyp und Browser anderer aktiver Clients.
+  Der Relay akzeptiert je WebSocket genau eine Awareness-Client-ID und
+  höchstens 4 KiB JSON-State; zusammen mit dem Raum-Verbindungscap bleibt der
+  flüchtige Zustand auch über Transport-Zeitfenster hinweg begrenzt.
 
 ## 3. Architekturüberblick
 
