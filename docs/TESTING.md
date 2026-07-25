@@ -171,6 +171,7 @@ Für W2.4b zusätzlich:
 
 ```bash
 npm test -w @arsnova/backend -- --run src/lib/cspReportOnly.test.ts
+npm test -w @arsnova/frontend -- --run src/app/core/csp-service-worker-config.spec.ts
 npm run typecheck -w @arsnova/backend
 npm run build:localize -w @arsnova/frontend
 CSP_REPORT_ONLY_ENABLED=true npm run start:prod
@@ -185,7 +186,9 @@ Production-Smoke prüft den echten lokalisierten Build einschließlich
 Service-Worker-/Manifest-Assets. Der Playwright-Smoke lädt deutsche und
 englische Routen, wartet auf den aktiven Service Worker und schlägt bei
 Browserfehlern oder aktuellen Policy-Violations fehl. Zusätzlich die
-vorhandenen A11y-Gates gegen diesen Build ausführen. Ein legitimer Report ist
+Service-Worker-Spec stellt `navigationRequestStrategy: freshness` sicher, damit
+Online-Navigationen Runtime-Header nicht aus einem alten App-Shell-Cache
+übernehmen. Die vorhandenen A11y-Gates gegen diesen Build ausführen. Ein legitimer Report ist
 Beobachtungsevidenz und darf nicht allein zum Aufweiten von `script-src` führen.
 
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.

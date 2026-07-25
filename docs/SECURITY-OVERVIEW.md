@@ -219,7 +219,12 @@ von Material/KaTeX nur im Report-Only-Modus. Bildquellen decken lokale, HTTPS-,
 und sicheren WebSocket-Pfade, `worker-src` den Service Worker. Die beiden
 Script-Ausnahmen sind durch den Produktions-Browser-Smoke belegt und müssen vor
 einem späteren Enforcement-Slice strukturell entfernt oder durch Nonces/Hashes
-ersetzt werden.
+ersetzt werden. Online-Navigationen verwenden im Angular Service Worker die
+Strategie `freshness`, damit Flagwechsel nicht durch alte App-Shell-Header aus
+der Cache API verzögert werden; offline bleibt die Shell verfügbar.
+`frame-ancestors 'self'` ist nur Zielpolicy: Browser werten diese Direktive in
+Report-Only nicht aus. Bis zum getrennten Enforcement-Slice erzwingt Nginx
+`X-Frame-Options: SAMEORIGIN` die Framing-Grenze.
 Ein Enforcement-Header, Nonces/Hashes, CORS-Änderungen und die Landing-/GitHub-
 Pages-Auslieferung bleiben ausdrücklich außerhalb dieses Slices.
 

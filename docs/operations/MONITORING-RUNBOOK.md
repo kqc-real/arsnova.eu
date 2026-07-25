@@ -275,6 +275,9 @@ Stunden beobachten. Vorher und nachher jeweils verifizieren:
   Assets oder 204-Antworten;
 - tRPC-HTTP, `/trpc-ws`, `/yjs-ws`, Service-Worker-Update, Markdown-/KaTeX-
   Bilder und PDF-/Blob-Downloads funktional.
+- bestehender PWA-Client kontrolliert die Seite mit dem aktualisierten Service
+  Worker; Online-Navigation liefert wegen der konfigurierten Freshness-Strategie
+  den aktuellen Runtime-Header statt eines alten App-Shell-Headers.
 
 `unsafe-eval` ist für die beobachtete Zod-4-Validator-Kompilierung bereits in
 der initialen Report-Only-Policy enthalten; ein späteres Entfernungsexperiment
@@ -286,3 +289,7 @@ unerwarteten Kernflow-Problemen oder unklarer Header-Duplizierung:
 `CSP_REPORT_ONLY_ENABLED=false`, App neu starten und den Header-Scope erneut
 prüfen. Der Ingest bleibt dabei aktiv. Nginx ist nicht Eigentümer des CSP-
 Headers; dort kein `add_header` oder `always` ergänzen.
+
+`frame-ancestors` wird in Report-Only von Browsern ignoriert und ist in diesem
+Beobachtungsfenster nicht validierbar. Bis zu einem getrennten Enforcement-
+Slice bleibt Nginx `X-Frame-Options: SAMEORIGIN` die aktive Framing-Kontrolle.

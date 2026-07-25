@@ -608,7 +608,10 @@ das Backend 8 Stunden.
 
 W2.4b wird bewusst zweistufig ausgerollt:
 
-1. App mit `CSP_REPORT_ONLY_ENABLED=false` deployen.
+1. App mit `CSP_REPORT_ONLY_ENABLED=false` deployen. Dieses Deployment enthält
+   `navigationRequestStrategy: freshness`; dadurch holt ein aktualisierter
+   Angular Service Worker Online-Navigationen aus dem Netz und verwendet sein
+   App-Shell-HTML nur noch als Offline-Fallback.
 2. Den Ingest ohne Policy-Aktivierung prüfen:
 
 ```bash
@@ -620,9 +623,12 @@ curl -i -X POST https://arsnova.eu/csp-report \
 Erwartet: `204`, kein Antwortkörper und kein
 `Content-Security-Policy-Report-Only`-Header.
 
-3. `CSP_REPORT_ONLY_ENABLED=true` setzen und nur den App-Container neu
+3. Vor Aktivierung in einem bestehenden PWA-Browser prüfen, dass der neue
+   `/de/ngsw-worker.js` installiert/aktiv ist und eine Online-Navigation den
+   aktuellen Netzwerk-Response verwendet.
+4. `CSP_REPORT_ONLY_ENABLED=true` setzen und nur den App-Container neu
    erstellen/starten.
-4. Header-Scope prüfen:
+5. Header-Scope auch mit kontrollierendem Service Worker prüfen:
 
 ```bash
 curl -fsSI https://arsnova.eu/de/ \

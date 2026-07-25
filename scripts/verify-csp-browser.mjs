@@ -47,6 +47,17 @@ try {
   }
 
   const serviceWorkerPage = await context.newPage();
+  serviceWorkerPage.on('pageerror', (error) =>
+    pageErrors.push(`/de/ (Service Worker): ${error.message}`),
+  );
+  serviceWorkerPage.on('console', (message) => {
+    const text = message.text();
+    if (!text.startsWith('__ARSNOVA_CSP__')) return;
+    violations.push({
+      route: '/de/ (Service Worker)',
+      ...JSON.parse(text.slice('__ARSNOVA_CSP__'.length)),
+    });
+  });
   await serviceWorkerPage.goto(`${base}/de/`, { waitUntil: 'networkidle', timeout: 20_000 });
   let workerScript = context
     .serviceWorkers()
@@ -62,6 +73,16 @@ try {
   }
   if (!workerScript.endsWith('/de/ngsw-worker.js')) {
     throw new Error(`Unerwarteter Service Worker: ${workerScript || 'keiner'}`);
+  }
+  const controlledNavigation = await serviceWorkerPage.reload({
+    waitUntil: 'networkidle',
+    timeout: 20_000,
+  });
+  if (
+    !controlledNavigation?.fromServiceWorker() ||
+    !controlledNavigation.headers()['content-security-policy-report-only']
+  ) {
+    throw new Error('Service-Worker-Navigation lieferte nicht den aktuellen Report-Only-Header');
   }
 
   if (pageErrors.length > 0) {
