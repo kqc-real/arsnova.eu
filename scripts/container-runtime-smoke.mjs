@@ -1,6 +1,9 @@
-import { access, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm, statfs, writeFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
+import { join } from 'node:path';
 import { buildSessionResultsPdf } from '../apps/backend/dist/lib/session-results-report-pdf.js';
+
+const EXPECTED_TMPFS_BYTES = 256 * 1024 * 1024;
 
 function assert(condition, message) {
   if (!condition) {
@@ -25,10 +28,20 @@ async function assertReadOnlyRootFilesystem() {
 }
 
 async function assertWritableTmp() {
-  const probe = `/tmp/arsnova-runtime-smoke-${process.pid}`;
-  await writeFile(probe, 'ok');
-  await access(probe, constants.R_OK | constants.W_OK);
-  await rm(probe);
+  const tempDirectory = await mkdtemp('/tmp/arsnova-runtime-smoke-');
+  try {
+    const probe = join(tempDirectory, 'write-probe');
+    await writeFile(probe, 'ok', { flag: 'wx', mode: 0o600 });
+    await access(probe, constants.R_OK | constants.W_OK);
+    const filesystem = await statfs('/tmp');
+    const totalBytes = Number(filesystem.bsize) * Number(filesystem.blocks);
+    assert(
+      totalBytes <= EXPECTED_TMPFS_BYTES,
+      `/tmp ist größer als das produktive 256-MiB-Limit (${totalBytes} Byte)`,
+    );
+  } finally {
+    await rm(tempDirectory, { recursive: true, force: true });
+  }
 }
 
 async function assertProcessRestrictions() {
@@ -39,26 +52,29 @@ async function assertProcessRestrictions() {
 }
 
 async function assertPdfRuntime() {
+  const questions = Array.from({ length: 200 }, (_, questionOrder) => ({
+    questionOrder,
+    questionTextShort: `Frage ${questionOrder + 1}`,
+    questionTextFull:
+      `## Frage ${questionOrder + 1}\n\n` +
+      'Ein repräsentativer **Markdown-Bericht** mit Formel $x^2 + y^2 = z^2$ und zehn Optionen.',
+    type: 'SINGLE_CHOICE',
+    participantCount: 500,
+    optionDistribution: Array.from({ length: 10 }, (_, optionIndex) => ({
+      text: `Option ${optionIndex + 1}`,
+      count: optionIndex === 0 ? 500 : 0,
+      percentage: optionIndex === 0 ? 100 : 0,
+      isCorrect: optionIndex === 0,
+    })),
+  }));
   const pdf = await buildSessionResultsPdf({
     sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
     sessionCode: 'ABC123',
-    quizName: 'Container Runtime Smoke',
+    quizName: 'Container Runtime Smoke – 200 Fragen',
     finishedAt: '2026-07-25T00:00:00.000Z',
-    participantCount: 1,
+    participantCount: 500,
     teamMode: false,
-    questions: [
-      {
-        questionOrder: 0,
-        questionTextShort: 'Was ist 2+2?',
-        questionTextFull: 'Was ist **2+2**?',
-        type: 'SINGLE_CHOICE',
-        participantCount: 1,
-        optionDistribution: [
-          { text: '4', count: 1, percentage: 100, isCorrect: true },
-          { text: '5', count: 0, percentage: 0, isCorrect: false },
-        ],
-      },
-    ],
+    questions,
   });
   assert(pdf.subarray(0, 4).toString('utf8') === '%PDF', 'Chromium erzeugte keine PDF-Datei');
 }
