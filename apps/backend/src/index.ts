@@ -20,6 +20,7 @@ import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
+import { createCspReportRouter } from './lib/cspReportIngest';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -27,6 +28,7 @@ const PORT = Number(process.env['PORT']) || 3000;
 getRedis();
 
 const app = express();
+app.disable('x-powered-by');
 const isProduction = process.env['NODE_ENV'] === 'production';
 /** Hinter Nginx/Proxy: `X-Forwarded-For` / `req.ip` korrekt (Rate-Limit pro echtem Client). */
 const trustProxyHops = Number(process.env['TRUST_PROXY_HOPS'] ?? 0);
@@ -34,6 +36,9 @@ const trustProxy = createTrustProxyFunction(trustProxyHops);
 if (Number.isFinite(trustProxyHops) && trustProxyHops > 0) {
   app.set('trust proxy', trustProxy);
 }
+// Browser-Reporting-Ausnahme vom tRPC-only-Grundsatz: Raw-Body-Cap, eigenes RL,
+// keine Auth- oder Antwort-Payload. Muss vor CORS, tRPC und SPA-Fallback liegen.
+app.use('/csp-report', createCspReportRouter());
 app.use(compression());
 app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
 app.use(

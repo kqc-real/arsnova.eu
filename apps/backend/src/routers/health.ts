@@ -29,6 +29,7 @@ import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
 import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
+import { readCspReportSignals } from '../lib/cspReportIngest';
 import type {
   FooterStatusDTO,
   HealthSecurityStatsDTO,
@@ -434,11 +435,13 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
 }
 
 async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
-  const [pdfSignals, abuseSignals, sessionCodeGlobalSoftCapUtilizationPercent] = await Promise.all([
-    readPdfSignals(),
-    readAbuseSignals(),
-    readSessionCodeGlobalSoftCapUtilization(),
-  ]);
+  const [pdfSignals, abuseSignals, cspReportSignals, sessionCodeGlobalSoftCapUtilizationPercent] =
+    await Promise.all([
+      readPdfSignals(),
+      readAbuseSignals(),
+      readCspReportSignals(),
+      readSessionCodeGlobalSoftCapUtilization(),
+    ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
@@ -449,6 +452,11 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     pdfRejectedLastMinute: pdfSignals.rejectedLastMinute,
     sessionCreatesLastMinute: abuseSignals.sessionCreatesLastMinute,
     adminLoginFailuresLastMinute: abuseSignals.adminLoginFailuresLastMinute,
+    cspReportsReceivedLastMinute: cspReportSignals.receivedLastMinute,
+    cspReportsDroppedLastMinute: cspReportSignals.droppedLastMinute,
+    cspReportsRateLimitedLastMinute: cspReportSignals.rateLimitedLastMinute,
+    cspReportsEvalLastMinute: cspReportSignals.evalLastMinute,
+    cspReportsScriptHttpsLastMinute: cspReportSignals.scriptHttpsLastMinute,
     rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
     rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
     sessionCodeFailuresLastMinute: abuseSignals.sessionCodeFailuresLastMinute,

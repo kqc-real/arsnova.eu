@@ -76,6 +76,10 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_PER_IP_PER_HOUR` | nein         | `600`                      | Großzügiges Shared-NAT-Budget für Standalone-Blitzlicht-Erstellungen                                                                                                |
 | `RATE_LIMIT_QUICK_FEEDBACK_STANDALONE_GLOBAL_PER_HOUR` | nein         | `3000`                     | Globales Stundenbudget für Standalone-Blitzlicht-Erstellungen                                                                                                       |
 | `RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE`         | nein         | `120`                      | Host-authentifizierte Blitzlicht-Starts pro Session und Minute; kein Teilnehmer-/IP-Limit                                                                           |
+| `CSP_REPORT_GLOBAL_PER_MINUTE`                         | nein         | `6000`                     | Globales Redis-Budget für `POST /csp-report`; nur bis zum statischen Maximum 6000 konfigurierbar                                                                    |
+| `CSP_REPORT_PER_IP_PER_MINUTE`                         | nein         | `120`                      | Grobes Shared-NAT-Budget ausschließlich aus trusted `req.ip`; nur bis zum statischen Maximum 120 konfigurierbar                                                     |
+| `CSP_REPORT_FALLBACK_GLOBAL_PER_MINUTE`                | nein         | `6000`                     | Hartes prozesslokales Drop-Cap bei Redis-Ausfall; der Endpoint bleibt 204 und speichert nichts                                                                      |
+| `CSP_REPORT_RETENTION_SECONDS`                         | nein         | `604800` (7 Tage)          | TTL einer festen Generation mit insgesamt höchstens 256 gehashten Dimensionen; nur bis sieben Tage konfigurierbar                                                   |
 | `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`               | nein         | `600`                      | MOTD `getCurrent` + `getHeaderState` (gemeinsames Limit) — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                         |
 | `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST`         | nein         | —                          | Wie Session-Create: optional `true`\|`false`; ohne Override ist **Loopback** in Nicht-Prod für MOTD-Read-Limits ausgenommen (Prerender/Dev)                         |
 | `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`              | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                                              |
@@ -87,6 +91,7 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `RATE_LIMIT_ADMIN_LOGIN_MAX_CONCURRENT_DELAYS`         | nein         | `25`                       | Maximale Anzahl absichtlich wartender Admin-Login-Requests pro Backend-Prozess                                                                                      |
 | `ADMIN_SECRET`                                         | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                                                    |
 | `ADMIN_DIAGNOSTIC_SECRET`                              | für Diagnose | —                          | Separates Secret nur für `health.securityStats`; mindestens 32 Zeichen, darf nicht `ADMIN_SECRET` entsprechen                                                       |
+| `CSP_REPORT_HASH_SECRET`                               | empfohlen    | `JWT_SECRET`               | Separater HMAC-Schlüssel (mind. 32 UTF-8-Bytes) für IP-/Dimensionshashes; sonst ausreichend starkes `JWT_SECRET`, zuletzt prozesslokaler Zufallswert                |
 | `ADMIN_SESSION_TTL_SECONDS`                            | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                                                   |
 | `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`                        | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                                                         |
 
@@ -95,6 +100,24 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 ### tRPC-Payload-Limits
 
 tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Übergroße WebSocket-Nachrichten werden mit Close-Code `1009` beendet. Die Nginx-Produktionskonfiguration verwendet für HTTP mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere HTTP-Requests vor dem Backend. Die Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+
+### CSP-Report-Ingest (W2.4a)
+
+`POST /csp-report` ist die begründete Browser-Reporting-Ausnahme vom
+tRPC-only-Grundsatz. Er akzeptiert ausschließlich `application/csp-report` und
+`application/reports+json` (optional `charset=utf-8`), maximal 32 KiB Raw Body
+und zehn Reports. Falsche Typen liefern 415, Oversize 413, regulär
+ausgeschöpfte Redis-Budgets 429; malformed Reports und Redis-Ausfälle werden
+ohne Antwortkörper mit 204 verworfen. Es gibt weder Rohreport-, User-Agent-,
+Referrer- noch URL-Logging. Redis erhält nur feste Telemetrie-Keys und
+HMAC-Digests. Zwei feste Generationskeys enthalten über das gesamte
+Retentionsfenster höchstens 256 Dimensionen. Ihre TTL wird nur beim
+Generationsstart gesetzt und nicht durch Requests verlängert. Nach Ablauf
+beginnt atomar eine leere Generation. Die 60-s-Telemetrie verwendet unabhängig
+davon sieben feste Ring-Slots.
+
+W2.4a setzt bewusst noch keinen `Content-Security-Policy-Report-Only`- oder
+enforcenden CSP-Header. Policy und Browser-Smoke folgen erst in W2.4b.
 
 Der tRPC-WebSocket-Server begrenzt zusätzlich pro Backend-Prozess aktive
 Verbindungen, Upgrade-Versuche sowie Nachrichten je Verbindung und global.

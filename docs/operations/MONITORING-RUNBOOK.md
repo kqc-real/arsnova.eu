@@ -1,7 +1,7 @@
 # Security- und Lastmonitoring
 
-**Stand:** 2026-07-24  
-**Gültig für:** W0.4; automatische Alarmierung folgt separat in W3.7.
+**Stand:** 2026-07-25
+**Gültig für:** W0.4 und W2.4a; automatische Alarmierung folgt separat in W3.7.
 
 ## Primärer Blick
 
@@ -28,6 +28,11 @@
      sessionCodeGlobalSoftCapUtilizationPercent,
      rateLimit429LastMinute,
      rateLimit429ByCategoryLastMinute,
+     cspReportsReceivedLastMinute,
+     cspReportsDroppedLastMinute,
+     cspReportsRateLimitedLastMinute,
+     cspReportsEvalLastMinute,
+     cspReportsScriptHttpsLastMinute,
      pdfActiveJobs,
      pdfMaxConcurrentJobs,
      pdfFailedLastMinute,
@@ -94,6 +99,10 @@ genutzten Hörsaal-IP gedrosselt.
 | Client-Cap-429 (`sessionCode`)     |          ≥ 30/min |         ≥ 100/min |
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
 | PDF-Fehler                         |           ≥ 1/min |           ≥ 3/min |
+| CSP-Reports verworfen              |          ≥ 10/min |         ≥ 100/min |
+| CSP-Report-429                     |          ≥ 50/min |         ≥ 500/min |
+| CSP `eval`                         |           ≥ 1/min |          ≥ 10/min |
+| CSP Script-HTTPS                   |          ≥ 10/min |         ≥ 100/min |
 | Aktive tRPC-WebSockets             |             ≥ 600 |             ≥ 800 |
 | Abgelehnte tRPC-Upgrades/min       |              ≥ 50 |             ≥ 200 |
 | tRPC-Payload-Ablehnungen/min       |               ≥ 1 |              ≥ 10 |
@@ -140,6 +149,25 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   globalen Auslastung prüfen. Keinen IP-Lock ergänzen. Ein hoher Delay-Wert bei
   weiterhin erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung;
   die 500er-NAT-Abnahme aus W1.5 heranziehen.
+
+### CSP-Report-Welle
+
+- `cspReportsReceivedLastMinute` zeigt Requests, nicht einzelne Rohreports;
+  ein Request kann höchstens zehn Reports enthalten.
+- `cspReportsDroppedLastMinute` steigt bei malformed Payloads,
+  Dimensionscap oder kontrolliertem Drop. Gleichzeitig
+  `health.check.redis` prüfen: Bei Redis-Ausfall liefert der Ingest weiter 204
+  und begrenzt sich prozesslokal, die Redis-Telemetrie kann dann null sein.
+- `cspReportsRateLimitedLastMinute` bedeutet regulär ausgeschöpftes globales
+  oder grobes trusted-IP-Budget (HTTP 429). Keine IP und keine Roh-URL stehen
+  in Health, Redis-Dimensionen oder App-Logs.
+- `eval` und Script-HTTPS sind Beobachtungssignale für W2.4b, keine
+  Policy-Freigabe. Vor W2.4b Browser-/Deployment-Smoke und bekannte
+  Drittquellen getrennt prüfen.
+- Sofortmaßnahme bei Missbrauch: Werte nur nach unten anpassen oder auf den
+  vorherigen App-Commit zurückrollen. Nicht spontan CSP aktivieren. Das
+  Löschen von `csp:*` entfernt ausschließlich Aggregate; Standard-TTL ist
+  sieben Tage.
 
 ### PDF-Sättigung
 
@@ -227,3 +255,10 @@ Betreiber müssen deshalb im Docker-Logging-Treiber eine Rotation konfigurieren
 und die kürzeste tragfähige Frist festlegen (Richtwert höchstens 14 Tage im
 Normalbetrieb). Längere Sicherung ist nur incidentbezogen, zugriffsbeschränkt
 und dokumentiert zulässig.
+
+CSP-Reports besitzen keinen eigenen Rohlog. Redis verwendet sieben feste
+60-s-Telemetrie-Ringslots sowie genau ein Set und einen Hash für höchstens 256
+HMAC-Digests über das gesamte Retentionsfenster. Die Generations-TTL wird nicht
+durch Requests verlängert; nach standardmäßig sieben Tagen beginnt eine neue
+leere Generation. Ein steigender `dropped`-Zähler bei 256 Dimensionen ist
+deshalb erwarteter Overflow-Schutz, kein Anlass zur Lockerung.

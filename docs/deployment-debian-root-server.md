@@ -386,6 +386,13 @@ server {
 }
 ```
 
+`/csp-report` läuft in W2.4a bewusst durch denselben HTTP-Proxy. Nginx
+überschreibt dabei externe `X-Forwarded-For`-Werte; mit
+`TRUST_PROXY_HOPS=1` verwendet der Backend-Endpunkt ausschließlich dieses
+trusted `req.ip`. Kein separater Nginx-Body-Parser und kein CSP-/Report-Only-
+Header werden in W2.4a ergänzt. Das anwendungsseitige 32-KiB-Limit liefert
+dadurch deterministisch eine leere 413-Antwort.
+
 Hinweis für Nginx **ab 1.25.1**: Falls `nginx -t` wegen `listen ... http2` nur eine Deprecation-Warnung ausgibt, kannst du stattdessen `listen 443 ssl;`, `listen [::]:443 ssl;` und darunter `http2 on;` verwenden.
 
 Konfiguration testen und aktivieren:
@@ -531,6 +538,7 @@ REDIS_URL="redis://redis:6379"
 JWT_SECRET=<starker-zufälliger-Schlüssel>
 ADMIN_SECRET=<starker-admin-schlüssel>
 ADMIN_DIAGNOSTIC_SECRET=<separat-setzen>
+CSP_REPORT_HASH_SECRET=<separater-zufälliger-csp-report-hash-schlüssel>
 
 NODE_ENV=production
 PORT=3000
@@ -577,6 +585,10 @@ RATE_LIMIT_VOTE_REQUESTS_PER_SECOND=2
 RATE_LIMIT_SESSION_CREATE_PER_HOUR=480
 RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR=2400
 RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST=false
+CSP_REPORT_GLOBAL_PER_MINUTE=6000
+CSP_REPORT_PER_IP_PER_MINUTE=120
+CSP_REPORT_FALLBACK_GLOBAL_PER_MINUTE=6000
+CSP_REPORT_RETENTION_SECONDS=604800
 RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE=1200
 RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST=false
 RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE=180
@@ -588,6 +600,19 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
 `openssl rand -base64 48` erzeugen. Die beiden Admin-Secrets dürfen nie
 identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
 das Backend 8 Stunden.
+
+Nach einem W2.4a-Deployment den Ingest ohne Policy-Aktivierung prüfen:
+
+```bash
+curl -i -X POST https://arsnova.eu/csp-report \
+  -H 'Content-Type: application/csp-report' \
+  --data '{"csp-report":{"effective-directive":"script-src","blocked-uri":"eval"}}'
+```
+
+Erwartet: `204`, kein Antwortkörper und kein
+`Content-Security-Policy-Report-Only`-Header. Rollback erfolgt durch Deployment
+des vorherigen App-Commits; optional können ausschließlich Keys unter `csp:*`
+gelöscht werden. PostgreSQL und Schema-Migrationen sind nicht betroffen.
 
 Die Session-Code-Werte gelten ausschließlich für nicht existente Codes.
 Gültige, nicht beendete Sessions werden vor Redis geladen und umgehen sämtliche

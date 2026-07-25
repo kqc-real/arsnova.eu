@@ -46,6 +46,10 @@ vi.mock('../lib/abuseTelemetry', () => ({
   readAbuseSignals: vi.fn(),
 }));
 
+vi.mock('../lib/cspReportIngest', () => ({
+  readCspReportSignals: vi.fn(),
+}));
+
 vi.mock('../lib/sessionCodeProtection', () => ({
   readSessionCodeGlobalSoftCapUtilization: vi.fn(),
 }));
@@ -82,6 +86,7 @@ import { getActiveParticipantCountsForSessions } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
 import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
+import { readCspReportSignals } from '../lib/cspReportIngest';
 import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
@@ -118,6 +123,13 @@ beforeEach(() => {
       motd: 0,
       other: 0,
     },
+  });
+  vi.mocked(readCspReportSignals).mockResolvedValue({
+    receivedLastMinute: 0,
+    droppedLastMinute: 0,
+    rateLimitedLastMinute: 0,
+    evalLastMinute: 0,
+    scriptHttpsLastMinute: 0,
   });
   vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(0);
   vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
@@ -334,6 +346,13 @@ describe('health.stats', () => {
       },
     });
     vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(82);
+    vi.mocked(readCspReportSignals).mockResolvedValue({
+      receivedLastMinute: 21,
+      droppedLastMinute: 4,
+      rateLimitedLastMinute: 3,
+      evalLastMinute: 2,
+      scriptHttpsLastMinute: 5,
+    });
     vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
       trpcConnectionsActive: 321,
       trpcConnectionLimit: 1_000,
@@ -363,6 +382,11 @@ describe('health.stats', () => {
     expect(result).toMatchObject({
       sessionCreatesLastMinute: 12,
       adminLoginFailuresLastMinute: 15,
+      cspReportsReceivedLastMinute: 21,
+      cspReportsDroppedLastMinute: 4,
+      cspReportsRateLimitedLastMinute: 3,
+      cspReportsEvalLastMinute: 2,
+      cspReportsScriptHttpsLastMinute: 5,
       sessionCodeFailuresLastMinute: 27,
       sessionCodeSoftCapDelaysLastMinute: 4,
       sessionCodeGlobalSoftCapUtilizationPercent: 82,
