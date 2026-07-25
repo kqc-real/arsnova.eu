@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { mkdir, readFile, rm } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, readFile, rm, stat } from 'node:fs/promises';
+import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { writeJsonAtomic } from './lib/reporting.mjs';
 import {
@@ -35,6 +36,8 @@ const REQUIRED_SLOS = new Set([
 const MAX_APPROVAL_WINDOW_MS = 4 * 60 * 60 * 1_000;
 const HEALTH_FAILURE_WINDOW_MS = 30_000;
 const HEALTH_INTERVAL_MS = 5_000;
+const RUN_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const REPORT_TIME_TOLERANCE_MS = 1_000;
 
 const RUNNERS = {
   'artillery-live-500': {
@@ -111,7 +114,13 @@ function validateSlos(slos) {
   const statusP95 = requireFiniteNumber(websocket, 'statusP95Ms', 'websocket', { minimum: 1 });
   requireFiniteNumber(websocket, 'statusP99Ms', 'websocket', { minimum: statusP95 });
   const reconnect = byId.reconnect;
-  requireFiniteNumber(reconnect, 'withinMs', 'reconnect', { minimum: 1, maximum: 60_000 });
+  const reconnectWithinMs = requireFiniteNumber(reconnect, 'withinMs', 'reconnect', {
+    minimum: 1,
+    maximum: 60_000,
+  });
+  if (!Number.isInteger(reconnectWithinMs)) {
+    throw new Error('reconnect.withinMs muss eine ganze Millisekundenzahl sein.');
+  }
   requireFiniteNumber(reconnect, 'ratioMin', 'reconnect', { minimum: 0.9, maximum: 1 });
   const pdf = byId['pdf-vs-vote'];
   const pdfP95 = requireFiniteNumber(pdf, 'p95Ms', 'pdf-vs-vote', { minimum: 1 });
@@ -254,10 +263,145 @@ export function buildAcceptancePlan(config, artifactDirectory) {
       expectedScenario: RUNNERS[id].expectedScenario,
       reportFile: resolve(artifactDirectory, `${id}.json`),
       junitFile: resolve(artifactDirectory, `${id}.junit.xml`),
+      envelopeFile: resolve(artifactDirectory, `${id}.evidence.json`),
       timeoutMs: RUNNERS[id].timeoutMs,
       env: runnerEnvironment(id, slos),
     })),
   }));
+}
+
+function normalizeTargetUrl(value, protocols) {
+  const url = new URL(value);
+  if (!protocols.includes(url.protocol) || url.username || url.password || url.hash) {
+    throw new Error(`Ungültiges Ziel ${value}.`);
+  }
+  const pathname = url.pathname === '/' ? '' : url.pathname.replace(/\/+$/, '');
+  return `${url.protocol}//${url.host}${pathname}${url.search}`;
+}
+
+export function createAcceptanceRunContext(
+  evidence,
+  trpcUrl,
+  wsUrl,
+  { runId = randomUUID(), startedAt = new Date() } = {},
+) {
+  if (!RUN_ID_PATTERN.test(runId)) throw new Error('Ungültige Acceptance-Run-ID.');
+  if (!/^[a-f0-9]{40}$/.test(evidence.gitCommit)) {
+    throw new Error('Acceptance-Run benötigt einen vollständigen Commit.');
+  }
+  return {
+    runId,
+    gitCommit: evidence.gitCommit,
+    target: {
+      trpcUrl: normalizeTargetUrl(trpcUrl, ['http:', 'https:']),
+      trpcOrigin: new URL(trpcUrl).origin,
+      wsUrl: normalizeTargetUrl(wsUrl, ['ws:', 'wss:']),
+      wsOrigin: new URL(wsUrl).origin,
+    },
+    startedAt: new Date(startedAt).toISOString(),
+  };
+}
+
+export function runArtifactDirectory(baseDirectory, runId) {
+  if (!RUN_ID_PATTERN.test(runId)) throw new Error('Ungültige Acceptance-Run-ID.');
+  return resolve(baseDirectory, 'runs', runId);
+}
+
+async function sha256File(filePath) {
+  return createHash('sha256')
+    .update(await readFile(filePath))
+    .digest('hex');
+}
+
+export async function preparePhaseArtifacts(phase, phaseSignal) {
+  const files = phase.runners.flatMap((runner) => [
+    runner.reportFile,
+    runner.junitFile,
+    runner.envelopeFile,
+  ]);
+  await Promise.all(files.map((filePath) => rm(filePath, { force: true })));
+  if (phase.id === 'pdf-vote-with-abuse') await rm(phaseSignal, { force: true });
+}
+
+export function validateEvidenceEnvelope(envelope, runner, runContext, phaseId) {
+  requireObject(envelope, 'evidenceEnvelope');
+  const expected = {
+    runId: runContext.runId,
+    gitCommit: runContext.gitCommit,
+    target: runContext.target,
+    phaseId,
+    runnerId: runner.id,
+    scenario: runner.expectedScenario,
+  };
+  for (const [key, value] of Object.entries(expected)) {
+    if (JSON.stringify(envelope[key]) !== JSON.stringify(value)) {
+      throw new Error(`Evidence-Envelope stimmt bei ${key} nicht mit dem Acceptance-Run überein.`);
+    }
+  }
+  if (
+    envelope.schemaVersion !== 1 ||
+    envelope.kind !== 'security-load-runner-evidence' ||
+    !Number.isFinite(Date.parse(envelope.phaseStartedAt)) ||
+    !Number.isFinite(Date.parse(envelope.phaseEndedAt)) ||
+    !/^[a-f0-9]{64}$/.test(envelope.report?.sha256 ?? '') ||
+    !/^[a-f0-9]{64}$/.test(envelope.junit?.sha256 ?? '')
+  ) {
+    throw new Error('Evidence-Envelope ist unvollständig.');
+  }
+  return envelope;
+}
+
+export async function validateRunnerArtifacts(
+  runner,
+  runContext,
+  phaseId,
+  phaseStartedAt,
+  phaseEndedAt,
+) {
+  const [reportStat, junitStat] = await Promise.all([
+    stat(runner.reportFile),
+    stat(runner.junitFile),
+  ]);
+  const report = validateScenarioReport(await loadJson(runner.reportFile), runner.expectedScenario);
+  if (report.gitCommit !== runContext.gitCommit) {
+    throw new Error(`${runner.id} Report-Commit stimmt nicht mit dem Acceptance-Run überein.`);
+  }
+  const reportTimestamp = Date.parse(report.timestamp);
+  const startedMs = new Date(phaseStartedAt).getTime();
+  const endedMs = new Date(phaseEndedAt).getTime();
+  if (
+    !Number.isFinite(reportTimestamp) ||
+    reportTimestamp < startedMs - REPORT_TIME_TOLERANCE_MS ||
+    reportTimestamp > endedMs + REPORT_TIME_TOLERANCE_MS ||
+    reportStat.mtimeMs < startedMs - REPORT_TIME_TOLERANCE_MS ||
+    junitStat.mtimeMs < startedMs - REPORT_TIME_TOLERANCE_MS
+  ) {
+    throw new Error(`${runner.id} lieferte keinen frischen Report für die aktuelle Phase.`);
+  }
+  const envelope = {
+    schemaVersion: 1,
+    kind: 'security-load-runner-evidence',
+    runId: runContext.runId,
+    gitCommit: runContext.gitCommit,
+    target: runContext.target,
+    phaseId,
+    runnerId: runner.id,
+    scenario: runner.expectedScenario,
+    phaseStartedAt: new Date(phaseStartedAt).toISOString(),
+    phaseEndedAt: new Date(phaseEndedAt).toISOString(),
+    report: {
+      file: basename(runner.reportFile),
+      timestamp: report.timestamp,
+      sha256: await sha256File(runner.reportFile),
+    },
+    junit: {
+      file: basename(runner.junitFile),
+      sha256: await sha256File(runner.junitFile),
+    },
+  };
+  await writeJsonAtomic(runner.envelopeFile, envelope);
+  validateEvidenceEnvelope(await loadJson(runner.envelopeFile), runner, runContext, phaseId);
+  return { report, envelope, envelopeSha256: await sha256File(runner.envelopeFile) };
 }
 
 function productionTarget(trpcUrl) {
@@ -308,18 +452,12 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
     );
   }
   if (
-    String(env.TRPC_URL || '').replace(/\/$/, '') !== evidence.trpcUrl.replace(/\/$/, '') ||
-    String(env.WS_URL || '').replace(/\/$/, '') !== evidence.wsUrl.replace(/\/$/, '')
+    normalizeTargetUrl(String(env.TRPC_URL || ''), ['http:', 'https:']) !==
+      normalizeTargetUrl(evidence.trpcUrl, ['http:', 'https:']) ||
+    normalizeTargetUrl(String(env.WS_URL || ''), ['ws:', 'wss:']) !==
+      normalizeTargetUrl(evidence.wsUrl, ['ws:', 'wss:'])
   ) {
     throw new Error('TRPC_URL/WS_URL stimmen nicht mit der Zielhost-Evidenz überein.');
-  }
-  new URL(evidence.trpcUrl);
-  new URL(evidence.wsUrl);
-  if (!/^https?:$/.test(new URL(evidence.trpcUrl).protocol)) {
-    throw new Error('targetEvidence.trpcUrl muss HTTP(S) verwenden.');
-  }
-  if (!/^wss?:$/.test(new URL(evidence.wsUrl).protocol)) {
-    throw new Error('targetEvidence.wsUrl muss WS(S) verwenden.');
   }
   if (String(env.TRPC_URLS || '').trim() || String(env.ARTILLERY_HTTP_TARGET || '').trim()) {
     throw new Error('Alternative Zielvariablen TRPC_URLS/ARTILLERY_HTTP_TARGET sind unzulässig.');
@@ -525,40 +663,91 @@ export async function runPhase(phase, commonEnv, { monitor } = {}) {
   }
 }
 
-async function executePlan(config, plan, artifactDirectory, evidence, authorizedTrpcUrl) {
-  const reports = {};
-  const phaseSignal = resolve(artifactDirectory, '.pdf-vote-with-abuse.ready');
-  await mkdir(artifactDirectory, { recursive: true });
-  await rm(phaseSignal, { force: true });
-  for (const phase of plan) {
-    const commonEnv = {
-      LOAD_ACCEPTANCE_APPROVED: ISOLATED_APPROVAL,
-      LOAD_ACCEPTANCE_PHASE_SIGNAL: phaseSignal,
-    };
-    const executablePhase = phase.parallel ? phase : { ...phase, runners: [phase.runners[0]] };
-    await runPhase(executablePhase, commonEnv, {
-      monitor: monitorTargetHealth(authorizedTrpcUrl),
-    });
-    for (const runner of phase.runners) {
-      reports[runner.id] = validateScenarioReport(
-        await loadJson(runner.reportFile),
-        runner.expectedScenario,
-      );
+export function validateAcceptanceManifest(manifest, runContext, expectedRunnerIds = []) {
+  requireObject(manifest, 'acceptanceManifest');
+  if (
+    manifest.schemaVersion !== 1 ||
+    manifest.kind !== 'security-load-acceptance' ||
+    manifest.status !== 'RUN_COMPLETE_AWAITING_SLO_REVIEW' ||
+    manifest.runId !== runContext.runId ||
+    manifest.gitCommit !== runContext.gitCommit ||
+    JSON.stringify(manifest.target) !== JSON.stringify(runContext.target)
+  ) {
+    throw new Error('Acceptance-Manifest ist nicht an den aktuellen Run gebunden.');
+  }
+  if (expectedRunnerIds.length > 0) {
+    requireObject(manifest.reports, 'acceptanceManifest.reports');
+    assertExactSet(Object.keys(manifest.reports), new Set(expectedRunnerIds), 'Manifest-Runner');
+    for (const [runnerId, artifacts] of Object.entries(manifest.reports)) {
+      if (
+        !/^[a-f0-9]{64}$/.test(artifacts.envelopeSha256 ?? '') ||
+        !/^[a-f0-9]{64}$/.test(artifacts.reportSha256 ?? '') ||
+        !/^[a-f0-9]{64}$/.test(artifacts.junitSha256 ?? '')
+      ) {
+        throw new Error(`Acceptance-Manifest enthält ungebundene Artefakte für ${runnerId}.`);
+      }
     }
   }
-  await rm(phaseSignal, { force: true });
+  return manifest;
+}
+
+async function executePlan(config, plan, artifactDirectory, evidence, runContext) {
+  const reports = {};
+  const phaseSignal = resolve(artifactDirectory, '.pdf-vote-with-abuse.ready');
+  const manifestPath = resolve(artifactDirectory, 'acceptance-manifest.json');
+  await mkdir(artifactDirectory, { recursive: true });
+  await Promise.all([rm(phaseSignal, { force: true }), rm(manifestPath, { force: true })]);
+  await writeJsonAtomic(resolve(artifactDirectory, 'run-metadata.json'), {
+    schemaVersion: 1,
+    kind: 'security-load-run',
+    status: 'RUNNING',
+    ...runContext,
+  });
+  try {
+    for (const phase of plan) {
+      await preparePhaseArtifacts(phase, phaseSignal);
+      const phaseStartedAt = new Date();
+      const commonEnv = {
+        LOAD_ACCEPTANCE_APPROVED: ISOLATED_APPROVAL,
+        LOAD_ACCEPTANCE_PHASE_SIGNAL: phaseSignal,
+        LOAD_ACCEPTANCE_RUN_ID: runContext.runId,
+        LOAD_ACCEPTANCE_GIT_COMMIT: runContext.gitCommit,
+        GITHUB_SHA: runContext.gitCommit,
+        LOAD_ACCEPTANCE_TRPC_URL: runContext.target.trpcUrl,
+        LOAD_ACCEPTANCE_WS_URL: runContext.target.wsUrl,
+        LOAD_ACCEPTANCE_PHASE_ID: phase.id,
+      };
+      const executablePhase = phase.parallel ? phase : { ...phase, runners: [phase.runners[0]] };
+      await runPhase(executablePhase, commonEnv, {
+        monitor: monitorTargetHealth(runContext.target.trpcUrl),
+      });
+      const phaseEndedAt = new Date();
+      for (const runner of phase.runners) {
+        reports[runner.id] = await validateRunnerArtifacts(
+          runner,
+          runContext,
+          phase.id,
+          phaseStartedAt,
+          phaseEndedAt,
+        );
+      }
+    }
+  } finally {
+    await rm(phaseSignal, { force: true });
+  }
   const manifest = {
     schemaVersion: 1,
     kind: 'security-load-acceptance',
     status: 'RUN_COMPLETE_AWAITING_SLO_REVIEW',
+    runId: runContext.runId,
+    gitCommit: runContext.gitCommit,
+    startedAt: runContext.startedAt,
     generatedAt: new Date().toISOString(),
     configId: config.id,
-    target: {
-      gitCommit: evidence.gitCommit,
+    target: runContext.target,
+    deploymentEvidence: {
       nodeVersion: evidence.nodeVersion,
       image: evidence.image,
-      trpcUrl: evidence.trpcUrl,
-      wsUrl: evidence.wsUrl,
       ingress: evidence.ingress,
       postgresql: evidence.postgresql,
       redis: evidence.redis,
@@ -569,18 +758,36 @@ async function executePlan(config, plan, artifactDirectory, evidence, authorized
     coverage: config.coverage,
     slos: config.slos,
     reports: Object.fromEntries(
-      Object.entries(reports).map(([id, report]) => [
+      Object.entries(reports).map(([id, result]) => [
         id,
         {
-          file: plan.flatMap((phase) => phase.runners).find((runner) => runner.id === id)
-            .reportFile,
-          timestamp: report.timestamp,
+          envelopeFile: basename(
+            plan.flatMap((phase) => phase.runners).find((runner) => runner.id === id).envelopeFile,
+          ),
+          envelopeSha256: result.envelopeSha256,
+          reportFile: result.envelope.report.file,
+          reportSha256: result.envelope.report.sha256,
+          junitFile: result.envelope.junit.file,
+          junitSha256: result.envelope.junit.sha256,
+          timestamp: result.report.timestamp,
+          phaseId: result.envelope.phaseId,
         },
       ]),
     ),
     releaseDecision: null,
   };
-  await writeJsonAtomic(resolve(artifactDirectory, 'acceptance-manifest.json'), manifest);
+  const expectedRunnerIds = plan.flatMap((phase) => phase.runners.map((runner) => runner.id));
+  validateAcceptanceManifest(manifest, runContext, expectedRunnerIds);
+  await writeJsonAtomic(manifestPath, manifest);
+  validateAcceptanceManifest(await loadJson(manifestPath), runContext, expectedRunnerIds);
+  await writeJsonAtomic(resolve(artifactDirectory, 'run-metadata.json'), {
+    schemaVersion: 1,
+    kind: 'security-load-run',
+    status: 'COMPLETE',
+    ...runContext,
+    completedAt: manifest.generatedAt,
+    manifestSha256: await sha256File(manifestPath),
+  });
   return manifest;
 }
 
@@ -605,12 +812,12 @@ export function parseArguments(argv) {
 async function main() {
   const args = parseArguments(process.argv.slice(2));
   const config = validateAcceptanceConfig(await loadJson(args.configPath));
-  const plan = buildAcceptancePlan(config, args.artifactDirectory);
   if (args.mode === '--validate') {
     console.log('§6.5-Konfiguration gültig; keine Requests gesendet.');
     return;
   }
   if (args.mode === '--plan') {
+    const plan = buildAcceptancePlan(config, args.artifactDirectory);
     console.log(JSON.stringify({ target: config.target, slos: config.slos, plan }, null, 2));
     return;
   }
@@ -624,9 +831,12 @@ async function main() {
   }
   validateSoakProbeEnvironment(process.env);
   assertAcceptanceExecutionAuthorized(process.env, trpcUrl, evidence);
+  const runContext = createAcceptanceRunContext(evidence, trpcUrl, wsUrl);
+  const artifactDirectory = runArtifactDirectory(args.artifactDirectory, runContext.runId);
+  const plan = buildAcceptancePlan(config, artifactDirectory);
   console.log(
     JSON.stringify(
-      await executePlan(config, plan, args.artifactDirectory, evidence, trpcUrl),
+      await executePlan(config, plan, artifactDirectory, evidence, runContext),
       null,
       2,
     ),

@@ -1,21 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { access, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import {
   buildAcceptancePlan,
+  createAcceptanceRunContext,
   monitorTargetHealth,
   parseArguments,
+  preparePhaseArtifacts,
+  runArtifactDirectory,
   runPhase,
   sanitizeChildEnvironment,
   validateAcceptanceConfig,
+  validateAcceptanceManifest,
+  validateEvidenceEnvelope,
+  validateRunnerArtifacts,
   validateScenarioReport,
   validateSoakProbeEnvironment,
   validateTargetEvidence,
 } from './run-security-acceptance.mjs';
 import { summarizeDurations } from './lib/percentiles.mjs';
+import { parseReconnectLimitMs } from './lib/reconnect-threshold.mjs';
 import {
   ISOLATED_APPROVAL,
   PRODUCTION_APPROVAL,
@@ -234,6 +243,184 @@ test('bindet alle Child-Ziele und verlangt messbare Recovery-Probes', () => {
 test('berechnet p99 für verbindliche Vote- und Live-Latenzen', () => {
   const summary = summarizeDurations(Array.from({ length: 100 }, (_, index) => index + 1));
   assert.deepEqual(summary, { p50Ms: 50, p95Ms: 95, p99Ms: 99, maxMs: 100 });
+});
+
+test('übergibt strengere Reconnect-SLOs ohne verstecktes 30s-Clamping', () => {
+  assert.equal(parseReconnectLimitMs('10000'), 10_000);
+  assert.equal(parseReconnectLimitMs('1'), 1);
+  const strictConfig = structuredClone(config);
+  strictConfig.slos.find((slo) => slo.id === 'reconnect').withinMs = 10_000;
+  const strictPlan = buildAcceptancePlan(strictConfig, '/tmp/strict-reconnect');
+  assert.equal(
+    strictPlan.find((phase) => phase.id === 'reconnect-500').runners[0].env
+      .ARTILLERY_RECONNECT_MS_MAX,
+    '10000',
+  );
+  assert.equal(strictConfig.slos.find((slo) => slo.id === 'reconnect').withinMs, 10_000);
+});
+
+test('bindet Report und JUnit kryptographisch an Run, Commit, Ziel und Phase', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 's65-evidence-'));
+  const runner = {
+    id: 'runner',
+    expectedScenario: 'scenario',
+    reportFile: join(directory, 'runner.json'),
+    junitFile: join(directory, 'runner.junit.xml'),
+    envelopeFile: join(directory, 'runner.evidence.json'),
+  };
+  const evidence = {
+    gitCommit: 'a'.repeat(40),
+  };
+  const runContext = createAcceptanceRunContext(
+    evidence,
+    'https://isolated.example/trpc/',
+    'wss://isolated.example/',
+    {
+      runId: '123e4567-e89b-42d3-a456-426614174000',
+      startedAt: '2026-07-25T17:00:00Z',
+    },
+  );
+  const phaseStartedAt = new Date(Date.now() - 100);
+  await writeFile(
+    runner.reportFile,
+    JSON.stringify({
+      schemaVersion: 1,
+      scenario: runner.expectedScenario,
+      timestamp: new Date().toISOString(),
+      gitCommit: runContext.gitCommit,
+      assertions: [{ name: 'scenario', passed: true }],
+    }),
+  );
+  await writeFile(runner.junitFile, '<testsuite/>');
+  const phaseEndedAt = new Date();
+  const { envelope } = await validateRunnerArtifacts(
+    runner,
+    runContext,
+    'phase',
+    phaseStartedAt,
+    phaseEndedAt,
+  );
+  assert.equal(validateEvidenceEnvelope(envelope, runner, runContext, 'phase'), envelope);
+  assert.throws(
+    () =>
+      validateEvidenceEnvelope({ ...envelope, runId: randomUUID() }, runner, runContext, 'phase'),
+    /runId/,
+  );
+  assert.throws(
+    () =>
+      validateEvidenceEnvelope(
+        { ...envelope, gitCommit: 'b'.repeat(40) },
+        runner,
+        runContext,
+        'phase',
+      ),
+    /gitCommit/,
+  );
+  assert.throws(
+    () =>
+      validateEvidenceEnvelope(
+        { ...envelope, target: { ...envelope.target, trpcUrl: 'https://other/trpc' } },
+        runner,
+        runContext,
+        'phase',
+      ),
+    /target/,
+  );
+  assert.throws(
+    () => validateEvidenceEnvelope({ ...envelope, phaseId: 'other' }, runner, runContext, 'phase'),
+    /phaseId/,
+  );
+  const manifest = {
+    schemaVersion: 1,
+    kind: 'security-load-acceptance',
+    status: 'RUN_COMPLETE_AWAITING_SLO_REVIEW',
+    runId: runContext.runId,
+    gitCommit: runContext.gitCommit,
+    target: runContext.target,
+  };
+  assert.equal(validateAcceptanceManifest(manifest, runContext).runId, runContext.runId);
+  assert.throws(
+    () => validateAcceptanceManifest({ ...manifest, runId: randomUUID() }, runContext),
+    /nicht an den aktuellen Run/,
+  );
+  await writeFile(
+    runner.reportFile,
+    JSON.stringify({
+      schemaVersion: 1,
+      scenario: runner.expectedScenario,
+      timestamp: new Date().toISOString(),
+      gitCommit: 'b'.repeat(40),
+      assertions: [{ name: 'scenario', passed: true }],
+    }),
+  );
+  await assert.rejects(
+    validateRunnerArtifacts(runner, runContext, 'phase', phaseStartedAt, new Date()),
+    /Report-Commit/,
+  );
+});
+
+test('verwirft alte, fehlende und nicht run-spezifische Artefakte fail-closed', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 's65-stale-'));
+  const runner = {
+    id: 'runner',
+    expectedScenario: 'scenario',
+    reportFile: join(directory, 'runner.json'),
+    junitFile: join(directory, 'runner.junit.xml'),
+    envelopeFile: join(directory, 'runner.evidence.json'),
+  };
+  const runContext = createAcceptanceRunContext(
+    { gitCommit: 'a'.repeat(40) },
+    'https://isolated.example/trpc',
+    'wss://isolated.example',
+  );
+  const manifestFile = join(directory, 'acceptance-manifest.json');
+  await assert.rejects(
+    validateRunnerArtifacts(runner, runContext, 'phase', new Date(), new Date()),
+  );
+  await assert.rejects(access(manifestFile));
+
+  await writeFile(
+    runner.reportFile,
+    JSON.stringify({
+      schemaVersion: 1,
+      scenario: 'scenario',
+      timestamp: '2020-01-01T00:00:00.000Z',
+      gitCommit: runContext.gitCommit,
+      assertions: [{ name: 'old-green', passed: true }],
+    }),
+  );
+  await writeFile(runner.junitFile, '<testsuite/>');
+  await assert.rejects(
+    validateRunnerArtifacts(runner, runContext, 'phase', new Date(Date.now() - 100), new Date()),
+    /keinen frischen Report/,
+  );
+  await preparePhaseArtifacts({ id: 'phase', runners: [runner] }, join(directory, '.signal'));
+  await assert.rejects(access(runner.reportFile));
+  await assert.rejects(access(runner.junitFile));
+  await assert.rejects(access(runner.envelopeFile));
+  assert.throws(() => runArtifactDirectory(directory, '../escape'), /Run-ID/);
+});
+
+test('trennt parallele und aufeinanderfolgende Runs durch sichere Pfade', () => {
+  const evidence = { gitCommit: 'a'.repeat(40) };
+  const first = createAcceptanceRunContext(
+    evidence,
+    'https://isolated.example/trpc',
+    'wss://isolated.example',
+  );
+  const second = createAcceptanceRunContext(
+    evidence,
+    'https://isolated.example/trpc',
+    'wss://isolated.example',
+  );
+  assert.notEqual(first.runId, second.runId);
+  const directory = runArtifactDirectory('/tmp/s65-runs', first.runId);
+  const plan = buildAcceptancePlan(config, directory);
+  const files = plan.flatMap((phase) =>
+    phase.runners.flatMap((runner) => [runner.reportFile, runner.junitFile, runner.envelopeFile]),
+  );
+  assert.equal(new Set(files).size, files.length);
+  assert.ok(files.every((file) => file.startsWith(directory)));
 });
 
 test('beendet parallele Geschwister nach dem ersten Fehler', async () => {

@@ -16,6 +16,7 @@ import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeScenarioReport } from './lib/reporting.mjs';
+import { parseReconnectLimitMs } from './lib/reconnect-threshold.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtilleryReconnectSession } from './artillery/setup-session.mjs';
@@ -41,7 +42,7 @@ const MIN_WS_RATIO = Number(process.env.ARTILLERY_MIN_WS_RATIO || 0.9);
 const MIN_RESULTS_AFTER_RECONNECT_RATIO = Number(
   process.env.ARTILLERY_MIN_RESULTS_AFTER_RECONNECT_RATIO || 0.9,
 );
-const RECONNECT_MS_MAX = Math.max(30_000, Number(process.env.ARTILLERY_RECONNECT_MS_MAX || 30_000));
+const RECONNECT_MS_MAX = parseReconnectLimitMs(process.env.ARTILLERY_RECONNECT_MS_MAX);
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
 const RECONNECT_STABLE_TICKS = Math.max(
   2,
