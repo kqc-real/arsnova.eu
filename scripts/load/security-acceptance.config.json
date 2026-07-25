@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "security-hardening-section-6.5",
+  "target": {
+    "nodeMajor": 24,
+    "deployment": "production-image",
+    "ingress": "nginx",
+    "dependencies": ["postgresql", "redis"],
+    "dataClass": "isolated-ephemeral",
+    "loadGeneratorNetwork": "single-source-nat",
+    "sessionCreatePerHour": 480,
+    "sessionCreateGlobalPerHour": 2400,
+    "sessionCodeClientFailuresPerWindow": 20
+  },
+  "slos": [
+    {
+      "id": "join",
+      "sli": "session.join client latency and failed-request ratio",
+      "load": "500 participants from one source IP with distinct anonymous client IDs",
+      "p95Ms": 1000,
+      "p99Ms": 2000,
+      "errorRateExclusiveMax": 0.005
+    },
+    {
+      "id": "vote",
+      "sli": "vote.submit client latency and failed-request ratio",
+      "load": "500 votes in one burst",
+      "p95Ms": 1000,
+      "p99Ms": 2000,
+      "errorRateExclusiveMax": 0.005
+    },
+    {
+      "id": "websocket",
+      "sli": "successful tRPC WebSocket connection ratio and host-state fan-out latency",
+      "load": "500 concurrent participant connections",
+      "connectionRatioMin": 0.99,
+      "statusP95Ms": 1500,
+      "statusP99Ms": 3000
+    },
+    {
+      "id": "reconnect",
+      "sli": "participants reconnected after a coordinated disconnect wave",
+      "load": "500 jittered reconnects",
+      "withinMs": 30000,
+      "ratioMin": 0.95
+    },
+    {
+      "id": "pdf-vs-vote",
+      "sli": "vote.submit latency and failed-request ratio while the PDF cap is saturated",
+      "load": "500 votes with one active PDF job and excess PDF requests",
+      "p95Ms": 1500,
+      "p99Ms": 3000,
+      "errorRateExclusiveMax": 0.01,
+      "pdfConcurrencyCap": 1
+    },
+    {
+      "id": "live-error-rate",
+      "sli": "failed live-path requests excluding expected abuse rejections",
+      "load": "normal 500-participant Join/Vote/WS run",
+      "errorRateExclusiveMax": 0.005
+    }
+  ],
+  "coverage": [
+    "same-nat-500",
+    "enumeration",
+    "websocket-burst",
+    "reconnect-wave",
+    "vote-burst",
+    "pdf-vs-vote",
+    "metrics",
+    "recovery",
+    "parallel-abuse"
+  ],
+  "phases": [
+    {
+      "id": "live-500",
+      "parallel": false,
+      "runners": ["artillery-live-500"],
+      "covers": ["same-nat-500", "websocket-burst"]
+    },
+    {
+      "id": "reconnect-500",
+      "parallel": false,
+      "runners": ["artillery-reconnect-500"],
+      "covers": ["reconnect-wave"]
+    },
+    {
+      "id": "vote-burst-500",
+      "parallel": false,
+      "runners": ["vote-burst-500"],
+      "covers": ["vote-burst"]
+    },
+    {
+      "id": "recovery",
+      "parallel": false,
+      "runners": ["soak-recovery"],
+      "covers": ["metrics", "recovery"]
+    },
+    {
+      "id": "pdf-vote-with-abuse",
+      "parallel": true,
+      "runners": ["pdf-vs-vote-500", "security-abuse"],
+      "covers": ["enumeration", "pdf-vs-vote", "metrics", "parallel-abuse"]
+    }
+  ],
+  "abortCriteria": [
+    "target evidence does not match the tested commit and Node-24 production image",
+    "target is not an isolated Nginx/Redis/PostgreSQL environment with disposable data",
+    "operator approval is absent or expired",
+    "any runner exits non-zero or emits an invalid/missing report",
+    "live error rate or latency exceeds its configured SLO",
+    "service health becomes unavailable for more than 30 seconds",
+    "database, Redis, worker, or host resource saturation threatens the target"
+  ]
+}

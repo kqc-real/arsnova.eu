@@ -276,6 +276,13 @@ Vor dem Abnahmelauf: **Produkt-SLOs** für Join/Vote/WS (Latenz-p95, Fehlerquote
 
 Referenz: [implementation/LASTTEST-500-TEILNEHMENDE.md](implementation/LASTTEST-500-TEILNEHMENDE.md), [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md).
 
+**Operationalisierung 2026-07-25:** Verbindliche SLOs, vollständige
+Szenariomatrix, zweistufig gesperrte Orchestrierung, maschinenlesbare Reports
+und Freigabevermerk sind in
+[S6.5-SECURITY-LOAD-ACCEPTANCE.md](implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
+festgelegt. Der Node-24-Zielhostlauf ist noch nicht ausgeführt; die formale
+Abnahme bleibt bis zu echten Reports und Operatorfreigabe offen.
+
 ### 6.6 Maßnahme: Owner / Ticket / Deps / Rollback
 
 Pro Arbeitspaket (W0–W3) vor Umsetzung ausfüllen:

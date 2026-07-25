@@ -13,7 +13,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
-import { createRuntimeMetrics } from './lib/runtime-metrics.mjs';
+import { createRuntimeMetrics, isRequiredProbeHealthy } from './lib/runtime-metrics.mjs';
 import { writeLoadReport } from './lib/reporting.mjs';
 
 function numberFromEnv(name, defaultValue, { integer = false, min = 0 } = {}) {
@@ -69,6 +69,7 @@ const config = Object.freeze({
   httpP95LimitMs: numberFromEnv('SOAK_HTTP_P95_LIMIT_MS', 2_000, { min: 1 }),
   eventLoopP99LimitMs: numberFromEnv('SOAK_EVENT_LOOP_P99_LIMIT_MS', 200, { min: 1 }),
   memoryGrowthLimitMb: numberFromEnv('SOAK_MEMORY_GROWTH_LIMIT_MB', 256, { min: 0 }),
+  requireExternalProbes: booleanFromEnv('SOAK_REQUIRE_EXTERNAL_PROBES'),
   validateOnly: booleanFromEnv('SOAK_VALIDATE_ONLY'),
 });
 
@@ -278,7 +279,30 @@ function evaluateGates(metricsReport, functionalErrors) {
     measurable: memoryMeasurable,
     limit: config.memoryGrowthLimitMb,
     observed: memoryMeasurable ? Math.round((memoryGrowth / 1024 / 1024) * 100) / 100 : null,
-    passed: !memoryMeasurable || memoryGrowth <= config.memoryGrowthLimitMb * 1024 * 1024,
+    passed:
+      (!config.requireExternalProbes && !memoryMeasurable) ||
+      (memoryMeasurable && memoryGrowth <= config.memoryGrowthLimitMb * 1024 * 1024),
+  });
+  const redisMeasurable =
+    metricsReport.redisPing.available === true && metricsReport.redisPing.successfulSamples > 0;
+  const redisHealthy = isRequiredProbeHealthy(metricsReport.redisPing);
+  gates.push({
+    name: 'redis-ping-errors',
+    measurable: redisMeasurable,
+    limit: 0,
+    observed: metricsReport.redisPing.errors,
+    passed: !config.requireExternalProbes || redisHealthy,
+  });
+  const postgresMeasurable =
+    metricsReport.postgresSelect1.available === true &&
+    metricsReport.postgresSelect1.successfulSamples > 0;
+  const postgresHealthy = isRequiredProbeHealthy(metricsReport.postgresSelect1);
+  gates.push({
+    name: 'postgres-select1-errors',
+    measurable: postgresMeasurable,
+    limit: 0,
+    observed: metricsReport.postgresSelect1.errors,
+    passed: !config.requireExternalProbes || postgresHealthy,
   });
   return gates;
 }

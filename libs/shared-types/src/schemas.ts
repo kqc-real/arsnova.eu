@@ -3043,6 +3043,12 @@ export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
 
 /** Admin-only Betriebs- und Security-Metriken; nicht Teil der öffentlichen Produktstatistik. */
 export const HealthSecurityStatsDTOSchema = z.object({
+  /** Effektives Shared-NAT-IP-Budget für öffentliche Session-Erstellungen pro Stunde. */
+  sessionCreatePerHour: z.number().int().min(1),
+  /** Effektives globales Budget für öffentliche Session-Erstellungen pro Stunde. */
+  sessionCreateGlobalPerHour: z.number().int().min(1),
+  /** Effektive Zahl ungültiger Codes pro Client und Schutzfenster vor 429. */
+  sessionCodeClientFailuresPerWindow: z.number().int().min(1),
   /** Momentan aktive serverseitige Playwright-PDF-Jobs. */
   pdfActiveJobs: z.number().int().min(0),
   /** Hartes Parallelitätslimit für serverseitige Playwright-PDF-Jobs. */

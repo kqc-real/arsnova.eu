@@ -51,6 +51,9 @@ vi.mock('../lib/cspReportIngest', () => ({
 }));
 
 vi.mock('../lib/sessionCodeProtection', () => ({
+  SESSION_CODE_PROTECTION_LIMITS: {
+    clientFailuresPerWindow: 20,
+  },
   readSessionCodeGlobalSoftCapUtilization: vi.fn(),
 }));
 
@@ -380,6 +383,7 @@ describe('health.stats', () => {
     const result = await authenticatedCaller.securityStats(undefined);
 
     expect(result).toMatchObject({
+      sessionCodeClientFailuresPerWindow: 20,
       sessionCreatesLastMinute: 12,
       adminLoginFailuresLastMinute: 15,
       cspReportsReceivedLastMinute: 21,

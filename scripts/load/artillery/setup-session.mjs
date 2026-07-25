@@ -1,6 +1,6 @@
 import { createHttpTrpc } from '../lib/trpc-runtime.mjs';
 
-const QUIZ_PAYLOAD = {
+export const ARTILLERY_QUIZ_PAYLOAD = {
   name: `Artillery 500 Live ${Date.now()}`,
   description: undefined,
   motifImageUrl: null,
@@ -43,7 +43,7 @@ const QUIZ_PAYLOAD = {
  */
 export async function createArtillery500Session(trpcUrl) {
   const publicTrpc = createHttpTrpc(trpcUrl);
-  const { quizId } = await publicTrpc.quiz.upload.mutate(QUIZ_PAYLOAD);
+  const { quizId } = await publicTrpc.quiz.upload.mutate(ARTILLERY_QUIZ_PAYLOAD);
   const created = await publicTrpc.session.create.mutate({
     quizId,
     type: 'QUIZ',
@@ -75,6 +75,7 @@ export async function createArtillery500Session(trpcUrl) {
   }
 
   return {
+    quizId,
     code: created.code,
     hostToken: created.hostToken,
     sessionId: created.sessionId,
@@ -85,7 +86,7 @@ export async function createArtillery500Session(trpcUrl) {
 }
 
 const RECONNECT_QUIZ_PAYLOAD = {
-  ...QUIZ_PAYLOAD,
+  ...ARTILLERY_QUIZ_PAYLOAD,
   name: `Artillery Reconnect ${Date.now()}`,
 };
 
@@ -120,6 +121,7 @@ export async function createArtilleryReconnectSession(trpcUrl) {
   }
 
   return {
+    quizId,
     code: created.code,
     hostToken: created.hostToken,
     sessionId: created.sessionId,

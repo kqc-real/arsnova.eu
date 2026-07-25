@@ -3,7 +3,7 @@ import { createHostWsTrpc, createHttpTrpc } from '../lib/trpc-runtime.mjs';
 /**
  * Host-WebSocket-Monitor fuer Vote-Progress und Status-Fan-out waehrend Artillery-Lauf.
  */
-export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken }) {
+export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken, onRevealStarted }) {
   const { trpc, wsClient } = createHostWsTrpc(wsUrl, hostToken, code);
   const hostHttp = createHttpTrpc(trpcUrl, hostToken);
 
@@ -13,6 +13,7 @@ export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken }) {
     statusMessages: 0,
     lastStatus: null,
     resultsSeenAt: null,
+    revealRequestedAt: null,
     subscriptionErrors: 0,
     revealed: false,
   };
@@ -50,6 +51,8 @@ export function startHostMonitor({ trpcUrl, wsUrl, code, hostToken }) {
     state,
     async revealResultsOnce() {
       if (state.revealed) return state.lastStatus;
+      state.revealRequestedAt = Date.now();
+      onRevealStarted?.(state.revealRequestedAt);
       const result = await hostHttp.session.revealResults.mutate({ code });
       state.revealed = true;
       state.lastStatus = result.status;
