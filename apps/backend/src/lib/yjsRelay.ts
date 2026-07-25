@@ -24,6 +24,22 @@ const MIB = 1024 * 1024;
 /** Obere Schranke für teure Exact-Compactions je Raum und 10-Sekunden-Fenster. */
 const MAX_EXACT_COMPACTIONS_PER_ROOM_PER_WINDOW = 30;
 
+/**
+ * Persistentes Limit bekannter Awareness-IDs je Raum relativ zu maxConnectionsPerRoom.
+ * Erlaubt Reconnect-Churn, verhindert aber unbegrenztes meta-Tombstone-Wachstum,
+ * solange ein Peer den Raum offen hält.
+ */
+const KNOWN_AWARENESS_IDS_PER_CONNECTION_SLOT = 2;
+
+type YjsRoomAwareness = {
+  meta: Map<number, unknown>;
+  states: Map<number, unknown>;
+};
+
+type YjsRoomDoc = {
+  awareness?: YjsRoomAwareness;
+};
+
 export interface YjsRelayLimits {
   maxConnections: number;
   maxConnectionsPerRoom: number;
@@ -681,11 +697,21 @@ export class YjsRelayServer {
           newlyOwnedClientId = entry.clientId;
         }
         if (newlyOwnedClientId !== null) {
+          if (
+            !this.rememberAwarenessId(
+              room,
+              newlyOwnedClientId,
+              roomAwarenessOwners,
+              knownAwarenessIds,
+            )
+          ) {
+            recordYjsWebSocketAwarenessRejected();
+            webSocket.terminate();
+            return;
+          }
           ownedAwarenessClientId = newlyOwnedClientId;
           roomAwarenessOwners.set(newlyOwnedClientId, webSocket);
           this.roomAwarenessOwners.set(room, roomAwarenessOwners);
-          knownAwarenessIds.add(newlyOwnedClientId);
-          this.roomKnownAwarenessIds.set(room, knownAwarenessIds);
         }
       }
       const documentAdmission = this.admitDocumentUpdate(room, data);
@@ -762,8 +788,18 @@ export class YjsRelayServer {
       ) {
         roomAwarenessOwners.delete(ownedAwarenessClientId);
         const knownAwarenessIds = this.roomKnownAwarenessIds.get(room) ?? new Set<number>();
-        knownAwarenessIds.add(ownedAwarenessClientId);
-        this.roomKnownAwarenessIds.set(room, knownAwarenessIds);
+        const remembered = this.rememberAwarenessId(
+          room,
+          ownedAwarenessClientId,
+          roomAwarenessOwners ?? new Map(),
+          knownAwarenessIds,
+        );
+        if (!remembered) {
+          // Bound mit aktiven Owners voll: kein Tombstone, meta sofort bereinigen.
+          const awareness = (docs.get(room) as YjsRoomDoc | undefined)?.awareness;
+          awareness?.meta.delete(ownedAwarenessClientId);
+          awareness?.states.delete(ownedAwarenessClientId);
+        }
       }
       if (remaining === 0 || roomAwarenessOwners?.size === 0) {
         this.roomAwarenessOwners.delete(room);
@@ -787,6 +823,56 @@ export class YjsRelayServer {
         docs.delete(room);
       }
     });
+  }
+
+  private maxKnownAwarenessIdsPerRoom(): number {
+    return this.config.maxConnectionsPerRoom * KNOWN_AWARENESS_IDS_PER_CONNECTION_SLOT;
+  }
+
+  /**
+   * Merkt eine Awareness-ID persistent pro Raum. Bei vollem Bound werden älteste
+   * nicht mehr aktiv besessene IDs inkl. Awareness-meta-Tombstones entfernt.
+   */
+  private rememberAwarenessId(
+    room: string,
+    clientId: number,
+    owners: Map<number, WebSocket>,
+    known: Set<number>,
+  ): boolean {
+    if (known.has(clientId)) {
+      // LRU: ans Ende verschieben.
+      known.delete(clientId);
+      known.add(clientId);
+      this.roomKnownAwarenessIds.set(room, known);
+      return true;
+    }
+    const limit = this.maxKnownAwarenessIdsPerRoom();
+    if (known.size >= limit) {
+      this.evictUnownedKnownAwarenessIds(room, known, owners, known.size - limit + 1);
+    }
+    if (known.size >= limit) return false;
+    known.add(clientId);
+    this.roomKnownAwarenessIds.set(room, known);
+    return true;
+  }
+
+  private evictUnownedKnownAwarenessIds(
+    room: string,
+    known: Set<number>,
+    owners: Map<number, WebSocket>,
+    needed: number,
+  ): void {
+    if (needed <= 0) return;
+    const awareness = (docs.get(room) as YjsRoomDoc | undefined)?.awareness;
+    let removed = 0;
+    for (const clientId of [...known]) {
+      if (removed >= needed) break;
+      if (owners.has(clientId)) continue;
+      known.delete(clientId);
+      awareness?.meta.delete(clientId);
+      awareness?.states.delete(clientId);
+      removed += 1;
+    }
   }
 
   private estimatedSyncResponseBytes(room: string): number {

@@ -346,6 +346,39 @@ describe('YjsRelayServer', () => {
     expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
   });
 
+  it('begrenzt bekannte Awareness-IDs über Verbindungswechsel bei dauerhaft aktivem Peer', async () => {
+    // maxConnectionsPerRoom=2 → bekannt-Limit = 4 (2× Slot). Sticky-Peer hält den Raum offen.
+    const baseUrl = await startRelay({ maxConnectionsPerRoom: 2 });
+    const sticky = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+    sticky.send(awarenessFrame([{ clientId: 100, state: { syncClient: {} } }]));
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    for (let index = 0; index < 6; index += 1) {
+      const peer = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
+      const clientId = 200 + index;
+      peer.send(awarenessFrame([{ clientId, state: { syncClient: { index } } }]));
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      expect(peer.readyState).toBe(WebSocket.OPEN);
+      peer.terminate();
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+
+    expect(sticky.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+
+    // Jüngste Tombstone-ID bleibt bekannt und darf als Null rebroadcastet werden.
+    sticky.send(awarenessFrame([{ clientId: 205, clock: 2, state: null }]));
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect(sticky.readyState).toBe(WebSocket.OPEN);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(0);
+
+    // Älteste Tombstone-ID (200) wurde evictet → Null-Removal unbekannt → Reject.
+    const closed = new Promise<number>((resolve) => sticky.once('close', (code) => resolve(code)));
+    sticky.send(awarenessFrame([{ clientId: 200, clock: 2, state: null }]));
+    await expect(closed).resolves.toBe(1006);
+    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
+  });
+
   it('verwirft Awareness-States oberhalb des persistenten Bytecaps vor Decode', async () => {
     const baseUrl = await startRelay({ maxAwarenessStateBytes: 128 });
     const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
