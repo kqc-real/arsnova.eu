@@ -16,3 +16,7 @@ export function summarizeDurations(values) {
     maxMs: Math.round(Math.max(0, ...values)),
   };
 }
+
+export function violatesExclusiveUpperBound(observed, limit) {
+  return !Number.isFinite(observed) || observed >= limit;
+}

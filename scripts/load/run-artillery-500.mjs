@@ -20,7 +20,7 @@ import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
-import { summarizeDurations } from './lib/percentiles.mjs';
+import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
@@ -277,7 +277,10 @@ async function main() {
   if ((runtime.joinDurationMs?.length ?? 0) < PARTICIPANTS * MIN_JOIN_RATIO) {
     failures.push(`Join-Latenzsamples: ${runtime.joinDurationMs?.length ?? 0}/${PARTICIPANTS}`);
   }
-  if (joinLatency.p95Ms > JOIN_P95_LIMIT_MS || joinLatency.p99Ms > JOIN_P99_LIMIT_MS) {
+  if (
+    violatesExclusiveUpperBound(joinLatency.p95Ms, JOIN_P95_LIMIT_MS) ||
+    violatesExclusiveUpperBound(joinLatency.p99Ms, JOIN_P99_LIMIT_MS)
+  ) {
     failures.push(
       `Join-Latenz p95=${joinLatency.p95Ms}ms/p99=${joinLatency.p99Ms}ms (Limits ${JOIN_P95_LIMIT_MS}/${JOIN_P99_LIMIT_MS}ms)`,
     );

@@ -13,7 +13,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
-import { createRuntimeMetrics } from './lib/runtime-metrics.mjs';
+import { createRuntimeMetrics, isRequiredProbeHealthy } from './lib/runtime-metrics.mjs';
 import { writeLoadReport } from './lib/reporting.mjs';
 
 function numberFromEnv(name, defaultValue, { integer = false, min = 0 } = {}) {
@@ -285,22 +285,24 @@ function evaluateGates(metricsReport, functionalErrors) {
   });
   const redisMeasurable =
     metricsReport.redisPing.available === true && metricsReport.redisPing.successfulSamples > 0;
+  const redisHealthy = isRequiredProbeHealthy(metricsReport.redisPing);
   gates.push({
-    name: 'redis-ping-measurable',
+    name: 'redis-ping-errors',
     measurable: redisMeasurable,
-    limit: true,
-    observed: redisMeasurable,
-    passed: !config.requireExternalProbes || redisMeasurable,
+    limit: 0,
+    observed: metricsReport.redisPing.errors,
+    passed: !config.requireExternalProbes || redisHealthy,
   });
   const postgresMeasurable =
     metricsReport.postgresSelect1.available === true &&
     metricsReport.postgresSelect1.successfulSamples > 0;
+  const postgresHealthy = isRequiredProbeHealthy(metricsReport.postgresSelect1);
   gates.push({
-    name: 'postgres-select1-measurable',
+    name: 'postgres-select1-errors',
     measurable: postgresMeasurable,
-    limit: true,
-    observed: postgresMeasurable,
-    passed: !config.requireExternalProbes || postgresMeasurable,
+    limit: 0,
+    observed: metricsReport.postgresSelect1.errors,
+    passed: !config.requireExternalProbes || postgresHealthy,
   });
   return gates;
 }

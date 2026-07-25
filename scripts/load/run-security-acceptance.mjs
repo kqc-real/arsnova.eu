@@ -64,15 +64,68 @@ const RUNNERS = {
     script: 'scripts/load/security-abuse-parallel.mjs',
     expectedScenario: 'security-abuse-parallel',
     timeoutMs: 30 * 60_000,
-    env: { ABUSE_VALID_JOINS: '50', ABUSE_CODE_GUESSES: '25', ABUSE_CREATE_ATTEMPTS: '15' },
+    env: {
+      ABUSE_VALID_JOINS: '50',
+      ABUSE_CODE_GUESSES: '25',
+      ABUSE_CREATE_ATTEMPTS: '15',
+      ABUSE_SIGNAL_TIMEOUT_MS: '1200000',
+    },
   },
   'soak-recovery': {
     script: 'scripts/load/soak-live-session.mjs',
     expectedScenario: 'soak-live-session',
     timeoutMs: 10 * 60_000,
-    env: { SOAK_DURATION_MINUTES: '5', SOAK_REQUIRE_EXTERNAL_PROBES: '1' },
+    env: {
+      SOAK_DURATION_MINUTES: '5',
+      SOAK_PARTICIPANTS: '20',
+      SOAK_JOIN_WAVE_SIZE: '5',
+      SOAK_JOIN_WAVE_DELAY_MS: '250',
+      SOAK_VOTE_CONCURRENCY: '10',
+      SOAK_CYCLE_PAUSE_MS: '2000',
+      SOAK_MAX_CYCLES: String(Number.MAX_SAFE_INTEGER),
+      SOAK_RECONNECT_EVERY_CYCLES: '0',
+      SOAK_RECONNECT_CLIENTS: '5',
+      SOAK_RECONNECT_TIMEOUT_MS: '5000',
+      SOAK_METRICS_INTERVAL_MS: '10000',
+      SOAK_HTTP_P95_LIMIT_MS: '2000',
+      SOAK_EVENT_LOOP_P99_LIMIT_MS: '200',
+      SOAK_MEMORY_GROWTH_LIMIT_MB: '256',
+      SOAK_REQUIRE_EXTERNAL_PROBES: '1',
+    },
   },
 };
+const EXPECTED_PHASES = [
+  {
+    id: 'live-500',
+    parallel: false,
+    runners: ['artillery-live-500'],
+    covers: ['same-nat-500', 'websocket-burst'],
+  },
+  {
+    id: 'reconnect-500',
+    parallel: false,
+    runners: ['artillery-reconnect-500'],
+    covers: ['reconnect-wave'],
+  },
+  {
+    id: 'vote-burst-500',
+    parallel: false,
+    runners: ['vote-burst-500'],
+    covers: ['vote-burst'],
+  },
+  {
+    id: 'recovery',
+    parallel: false,
+    runners: ['soak-recovery'],
+    covers: ['metrics', 'recovery'],
+  },
+  {
+    id: 'pdf-vote-with-abuse',
+    parallel: true,
+    runners: ['pdf-vs-vote-500', 'security-abuse'],
+    covers: ['enumeration', 'pdf-vs-vote', 'metrics', 'parallel-abuse'],
+  },
+];
 
 function requireObject(value, label) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -155,6 +208,11 @@ function runnerEnvironment(id, slos) {
       return {
         ...common,
         PARTICIPANTS: '500',
+        ARTILLERY_RAMP_SECONDS: '90',
+        ARTILLERY_ARRIVAL_RATE: '6',
+        ARTILLERY_VOTE_REVEAL_THRESHOLD: '498',
+        ARTILLERY_JOIN_STABLE_TICKS: '6',
+        ARTILLERY_RESULTS_WAIT_MS: '25000',
         ARTILLERY_MIN_JOIN_RATIO: String(1 - slos.join.errorRateExclusiveMax),
         ARTILLERY_MIN_VOTE_RATIO: String(1 - slos.vote.errorRateExclusiveMax),
         ARTILLERY_MIN_WS_RATIO: String(slos.websocket.connectionRatioMin),
@@ -167,6 +225,14 @@ function runnerEnvironment(id, slos) {
       return {
         ...common,
         PARTICIPANTS: '500',
+        ARTILLERY_RAMP_SECONDS: '90',
+        ARTILLERY_ARRIVAL_RATE: '6',
+        ARTILLERY_MIN_RESULTS_AFTER_RECONNECT_RATIO: '0.9',
+        ARTILLERY_JOIN_STABLE_TICKS: '6',
+        ARTILLERY_RECONNECT_STABLE_TICKS: '4',
+        ARTILLERY_REVEAL_WATCH_BUFFER_MS: '60000',
+        ARTILLERY_RESULTS_WAIT_MS: '155000',
+        ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS: '5000',
         ARTILLERY_MIN_JOIN_RATIO: String(1 - slos.join.errorRateExclusiveMax),
         ARTILLERY_MIN_RECONNECT_RATIO: String(slos.reconnect.ratioMin),
         ARTILLERY_MIN_WS_RATIO: String(slos.websocket.connectionRatioMin),
@@ -176,6 +242,12 @@ function runnerEnvironment(id, slos) {
       return {
         ...common,
         PARTICIPANTS: '500',
+        TIMER_SECONDS: '8',
+        JOIN_CONCURRENCY: '60',
+        GRACE_MS: '2000',
+        WITHIN_GRACE_REVEAL_OFFSET_MS: '100',
+        OUTSIDE_GRACE_REVEAL_OFFSET_MS: '2300',
+        SETTLE_AFTER_VOTES_MS: '500',
         VOTE_P95_LIMIT_MS: String(slos.vote.p95Ms),
         VOTE_P99_LIMIT_MS: String(slos.vote.p99Ms),
       };
@@ -183,6 +255,10 @@ function runnerEnvironment(id, slos) {
       return {
         ...common,
         PARTICIPANTS: '500',
+        JOIN_CONCURRENCY: '75',
+        VOTE_CONCURRENCY: '75',
+        PDF_QUESTIONS: '20',
+        PDF_VOTE_COOLDOWN_MS: '1100',
         EXPECTED_PDF_CAP: String(slos['pdf-vs-vote'].pdfConcurrencyCap),
         VOTE_P95_LIMIT_MS: String(slos['pdf-vs-vote'].p95Ms),
         VOTE_P99_LIMIT_MS: String(slos['pdf-vs-vote'].p99Ms),
@@ -223,6 +299,20 @@ export function validateAcceptanceConfig(config) {
   validateSlos(config.slos);
   if (!Array.isArray(config.phases) || config.phases.length === 0) {
     throw new Error('Mindestens eine Abnahmephase ist erforderlich.');
+  }
+  if (
+    config.phases.length !== EXPECTED_PHASES.length ||
+    config.phases.some((phase, index) => {
+      const expected = EXPECTED_PHASES[index];
+      return (
+        phase.id !== expected.id ||
+        phase.parallel !== expected.parallel ||
+        JSON.stringify(phase.runners) !== JSON.stringify(expected.runners) ||
+        JSON.stringify(phase.covers) !== JSON.stringify(expected.covers)
+      );
+    })
+  ) {
+    throw new Error('Phasen müssen exakt der verbindlichen Runner-/Coverage-Matrix entsprechen.');
   }
   const covered = [];
   for (const phase of config.phases) {
@@ -515,6 +605,8 @@ export function sanitizeChildEnvironment(env) {
     TRPC_URLS: '',
     ARTILLERY_HTTP_TARGET: '',
     BASE_URL: '',
+    LOAD_ACCEPTANCE_VALIDATE_ONLY: '',
+    SOAK_VALIDATE_ONLY: '',
   };
 }
 

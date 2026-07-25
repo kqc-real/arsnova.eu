@@ -14,7 +14,7 @@
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
-import { summarizeDurations } from './lib/percentiles.mjs';
+import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
 
 let trpcClientModule;
 try {
@@ -313,14 +313,14 @@ async function run() {
   if (active?.votes.accepted !== PARTICIPANTS) {
     failures.push(`ACTIVE akzeptierte ${active?.votes.accepted ?? 0}/${PARTICIPANTS} Votes.`);
   }
-  if ((active?.votes.p95Ms ?? Number.POSITIVE_INFINITY) > VOTE_P95_LIMIT_MS) {
+  if (violatesExclusiveUpperBound(active?.votes.p95Ms, VOTE_P95_LIMIT_MS)) {
     failures.push(
-      `ACTIVE Vote-p95 ${active?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+      `ACTIVE Vote-p95 ${active?.votes.p95Ms ?? 'fehlt'} ms >= ${VOTE_P95_LIMIT_MS} ms.`,
     );
   }
-  if ((active?.votes.p99Ms ?? Number.POSITIVE_INFINITY) > VOTE_P99_LIMIT_MS) {
+  if (violatesExclusiveUpperBound(active?.votes.p99Ms, VOTE_P99_LIMIT_MS)) {
     failures.push(
-      `ACTIVE Vote-p99 ${active?.votes.p99Ms ?? 'fehlt'} ms > ${VOTE_P99_LIMIT_MS} ms.`,
+      `ACTIVE Vote-p99 ${active?.votes.p99Ms ?? 'fehlt'} ms >= ${VOTE_P99_LIMIT_MS} ms.`,
     );
   }
   if (active?.snapshot.totalVotes !== PARTICIPANTS) {
@@ -329,14 +329,14 @@ async function run() {
   if (withinGrace?.votes.accepted !== PARTICIPANTS) {
     failures.push(`Karenz akzeptierte ${withinGrace?.votes.accepted ?? 0}/${PARTICIPANTS} Votes.`);
   }
-  if ((withinGrace?.votes.p95Ms ?? Number.POSITIVE_INFINITY) > VOTE_P95_LIMIT_MS) {
+  if (violatesExclusiveUpperBound(withinGrace?.votes.p95Ms, VOTE_P95_LIMIT_MS)) {
     failures.push(
-      `Karenz Vote-p95 ${withinGrace?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+      `Karenz Vote-p95 ${withinGrace?.votes.p95Ms ?? 'fehlt'} ms >= ${VOTE_P95_LIMIT_MS} ms.`,
     );
   }
-  if ((withinGrace?.votes.p99Ms ?? Number.POSITIVE_INFINITY) > VOTE_P99_LIMIT_MS) {
+  if (violatesExclusiveUpperBound(withinGrace?.votes.p99Ms, VOTE_P99_LIMIT_MS)) {
     failures.push(
-      `Karenz Vote-p99 ${withinGrace?.votes.p99Ms ?? 'fehlt'} ms > ${VOTE_P99_LIMIT_MS} ms.`,
+      `Karenz Vote-p99 ${withinGrace?.votes.p99Ms ?? 'fehlt'} ms >= ${VOTE_P99_LIMIT_MS} ms.`,
     );
   }
   if (withinGrace?.snapshot.totalVotes !== PARTICIPANTS) {

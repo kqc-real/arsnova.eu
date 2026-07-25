@@ -23,8 +23,9 @@ import {
   validateSoakProbeEnvironment,
   validateTargetEvidence,
 } from './run-security-acceptance.mjs';
-import { summarizeDurations } from './lib/percentiles.mjs';
+import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
 import { parseReconnectLimitMs } from './lib/reconnect-threshold.mjs';
+import { isRequiredProbeHealthy } from './lib/runtime-metrics.mjs';
 import {
   ISOLATED_APPROVAL,
   PRODUCTION_APPROVAL,
@@ -57,7 +58,11 @@ test('lehnt fehlende Coverage, manipulierte SLOs und unbekannte Runner ab', () =
 
   const unknownRunner = structuredClone(config);
   unknownRunner.phases[0].runners = ['shell-injection'];
-  assert.throws(() => validateAcceptanceConfig(unknownRunner), /Unbekannter Runner/);
+  assert.throws(() => validateAcceptanceConfig(unknownRunner), /Runner-\/Coverage-Matrix/);
+
+  const substitutedRunner = structuredClone(config);
+  substitutedRunner.phases.at(-1).runners[1] = 'soak-recovery';
+  assert.throws(() => validateAcceptanceConfig(substitutedRunner), /Runner-\/Coverage-Matrix/);
 
   const missingThreshold = structuredClone(config);
   delete missingThreshold.slos.find((slo) => slo.id === 'vote').p99Ms;
@@ -230,6 +235,8 @@ test('bindet alle Child-Ziele und verlangt messbare Recovery-Probes', () => {
   });
   assert.equal(sanitized.TRPC_URLS, '');
   assert.equal(sanitized.ARTILLERY_HTTP_TARGET, '');
+  assert.equal(sanitized.LOAD_ACCEPTANCE_VALIDATE_ONLY, '');
+  assert.equal(sanitized.SOAK_VALIDATE_ONLY, '');
   assert.throws(() => validateSoakProbeEnvironment({}), /SOAK_BACKEND_PID/);
   assert.doesNotThrow(() =>
     validateSoakProbeEnvironment({
@@ -243,6 +250,8 @@ test('bindet alle Child-Ziele und verlangt messbare Recovery-Probes', () => {
 test('berechnet p99 für verbindliche Vote- und Live-Latenzen', () => {
   const summary = summarizeDurations(Array.from({ length: 100 }, (_, index) => index + 1));
   assert.deepEqual(summary, { p50Ms: 50, p95Ms: 95, p99Ms: 99, maxMs: 100 });
+  assert.equal(violatesExclusiveUpperBound(1_999, 2_000), false);
+  assert.equal(violatesExclusiveUpperBound(2_000, 2_000), true);
 });
 
 test('übergibt strengere Reconnect-SLOs ohne verstecktes 30s-Clamping', () => {
@@ -257,6 +266,20 @@ test('übergibt strengere Reconnect-SLOs ohne verstecktes 30s-Clamping', () => {
     '10000',
   );
   assert.equal(strictConfig.slos.find((slo) => slo.id === 'reconnect').withinMs, 10_000);
+  const pdfRunner = strictPlan
+    .find((phase) => phase.id === 'pdf-vote-with-abuse')
+    .runners.find((runner) => runner.id === 'pdf-vs-vote-500');
+  assert.equal(pdfRunner.env.JOIN_CONCURRENCY, '75');
+  assert.equal(pdfRunner.env.VOTE_CONCURRENCY, '75');
+});
+
+test('verlangt fehlerfreie Redis- und PostgreSQL-Probereihen', () => {
+  assert.equal(isRequiredProbeHealthy({ available: true, successfulSamples: 1, errors: 0 }), true);
+  assert.equal(isRequiredProbeHealthy({ available: true, successfulSamples: 1, errors: 9 }), false);
+  assert.equal(
+    isRequiredProbeHealthy({ available: false, successfulSamples: 0, errors: 10 }),
+    false,
+  );
 });
 
 test('bindet Report und JUnit kryptographisch an Run, Commit, Ziel und Phase', async () => {

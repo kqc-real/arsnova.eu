@@ -45,6 +45,10 @@ function summarizeSamples(samples) {
   };
 }
 
+export function isRequiredProbeHealthy(summary) {
+  return summary?.available === true && summary?.successfulSamples > 0 && summary?.errors === 0;
+}
+
 async function importWithFallback(packageName, fallbackUrl) {
   try {
     return await import(packageName);
