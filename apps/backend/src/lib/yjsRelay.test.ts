@@ -109,6 +109,22 @@ function awarenessFrame(
   return Buffer.from([1, ...encodeVarUint(update.length), ...update]);
 }
 
+/** Awareness-Frame mit Roh-State-Bytes (ohne JSON.stringify), für Cap-vor-Decode-Tests. */
+function awarenessFrameWithRawState(
+  entries: Array<{ clientId: number; clock?: number; stateBytes: Buffer }>,
+): Buffer {
+  const update: number[] = [...encodeVarUint(entries.length)];
+  for (const entry of entries) {
+    update.push(
+      ...encodeVarUint(entry.clientId),
+      ...encodeVarUint(entry.clock ?? 1),
+      ...encodeVarUint(entry.stateBytes.byteLength),
+      ...entry.stateBytes,
+    );
+  }
+  return Buffer.from([1, ...encodeVarUint(update.length), ...update]);
+}
+
 function createLibraryDoc(payloadBytes: number, id = 'library-boundary'): Y.Doc {
   const doc = new Y.Doc();
   doc.getMap('quiz-library').set(
@@ -320,21 +336,25 @@ describe('YjsRelayServer', () => {
     expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
   });
 
-  it('verwirft Awareness-States oberhalb des persistenten Bytecaps', async () => {
+  it('verwirft Awareness-States oberhalb des persistenten Bytecaps vor Decode', async () => {
     const baseUrl = await startRelay({ maxAwarenessStateBytes: 128 });
     const socket = await connectAfterInitialSync(`${baseUrl}/${ROOM_A}`);
     const closed = new Promise<number>((resolve) => socket.once('close', (code) => resolve(code)));
+    // Ungültiges JSON oberhalb des Caps: bei Decode-zuerst wäre das ein Protocol-Error,
+    // bei Cap-vor-Decode Awareness-Reject ohne TextDecoder/JSON.parse.
     socket.send(
-      awarenessFrame([
+      awarenessFrameWithRawState([
         {
           clientId: 200,
-          state: { syncClient: {}, padding: 'x'.repeat(256) },
+          stateBytes: Buffer.alloc(256, 0x41),
         },
       ]),
     );
 
     await expect(closed).resolves.toBe(1006);
-    expect(getWebSocketTelemetrySnapshot().yjsAwarenessRejectedLastMinute).toBe(1);
+    const telemetry = getWebSocketTelemetrySnapshot();
+    expect(telemetry.yjsAwarenessRejectedLastMinute).toBe(1);
+    expect(telemetry.yjsProtocolErrorsLastMinute).toBe(0);
   });
 
   it('verwirft zu viele Awareness-Einträge vor unbeschränkter Allokation', async () => {

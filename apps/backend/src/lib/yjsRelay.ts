@@ -352,6 +352,7 @@ function decodeAwarenessStateIsNull(stateBytes: Uint8Array): boolean {
 function extractAwarenessEntries(
   data: RawData,
   maxEntries: number,
+  maxAwarenessStateBytes: number,
 ): AwarenessEntry[] | 'limit-exceeded' | null {
   const bytes = rawDataBytes(data);
   const outerCursor = { offset: 0 };
@@ -377,6 +378,8 @@ function extractAwarenessEntries(
     if (stateBytes > update.byteLength - cursor.offset) {
       throw new Error('Unvollständiger Yjs-Awareness-State');
     }
+    // Cap vor UTF-8-/JSON-Materialisierung: nur gebundene States werden decodiert.
+    if (stateBytes > maxAwarenessStateBytes) return 'limit-exceeded';
     const stateSlice = update.subarray(cursor.offset, cursor.offset + stateBytes);
     cursor.offset += stateBytes;
     // Leerer Payload ist kein gültiges y-protocols-Encoding; Removals sind JSON `null`.
@@ -609,7 +612,11 @@ export class YjsRelayServer {
       }
       let awarenessEntries: AwarenessEntry[] | 'limit-exceeded' | null;
       try {
-        awarenessEntries = extractAwarenessEntries(data, this.config.maxConnectionsPerRoom);
+        awarenessEntries = extractAwarenessEntries(
+          data,
+          this.config.maxConnectionsPerRoom,
+          this.config.maxAwarenessStateBytes,
+        );
       } catch {
         recordYjsWebSocketProtocolError();
         webSocket.terminate();
