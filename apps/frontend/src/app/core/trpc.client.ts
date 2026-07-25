@@ -121,10 +121,12 @@ function createTrpcHeaders(): Record<string, string> {
 }
 
 function resolveWsParticipantBinding(): TrpcWebSocketParticipantBinding | null {
-  const sessionCode = resolveRouteSessionCode();
-  const storedParticipantId = sessionCode
-    ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
-    : null;
+  const hostSessionCode = resolveRouteHostSessionCode();
+  const sessionCode = hostSessionCode ?? resolveRouteSessionCode();
+  const storedParticipantId =
+    sessionCode && !hostSessionCode
+      ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
+      : null;
   return sessionCode
     ? {
         sessionCode,

@@ -498,7 +498,9 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   500er-Veranstaltungen und Reconnect-Wellen ohne IP-Lockout; das 2-MiB-Cap
   bleibt codefest.
 - Gültige `connectionParams` binden als reines Throttle-Signal zusätzlich an
-  Session (Standard 800) und Session-/Participant-UUID (Standard 2). Die UUID
+  Session (Standard 1.000 mit vollständiger 500er-Reconnect-Reserve) und
+  Session-/Participant-UUID (Standard 2). Host-/Present-Steuerverbindungen
+  senden keine eventuell lokal gespeicherte Participant-ID. Die UUID
   ist kein Authentifizierungsbeweis; Legacy-, Host- und Public-Verbindungen
   ohne gültiges Signal bleiben unter den globalen Caps kompatibel.
 - Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt
@@ -536,7 +538,7 @@ HOST=0.0.0.0
 WS_PORT=3001
 WS_HOST=0.0.0.0
 TRPC_WS_MAX_CONNECTIONS=1000
-TRPC_WS_MAX_CONNECTIONS_PER_SESSION=800
+TRPC_WS_MAX_CONNECTIONS_PER_SESSION=1000
 TRPC_WS_MAX_CONNECTIONS_PER_PARTICIPANT=2
 TRPC_WS_MAX_UPGRADES_PER_MINUTE=3000
 TRPC_WS_MAX_MESSAGES_PER_10_SECONDS=120

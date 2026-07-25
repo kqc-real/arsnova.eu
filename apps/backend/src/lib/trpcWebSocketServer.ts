@@ -46,8 +46,8 @@ export const STATIC_TRPC_WS_LIMIT_MAXIMA: Readonly<TrpcWebSocketLimits> = {
 export const DEFAULT_TRPC_WS_LIMITS: Readonly<TrpcWebSocketLimits> = {
   // Zwei gleichzeitige 500er-Kohorten bleiben möglich.
   maxConnections: 1_000,
-  // Eine volle 500er-Veranstaltung plus großzügige Host-/Reconnect-Reserve.
-  maxConnectionsPerSession: 800,
+  // Eine volle 500er-Kohorte plus vollständige Reserve für stale Reconnect-Sockets.
+  maxConnectionsPerSession: 1_000,
   // Zwei Browser-Tabs oder ein kurzer Reconnect-Overlap je Participant.
   maxConnectionsPerParticipant: 2,
   // Sechs vollständige 500er-Reconnect-Wellen pro Minute, ohne NAT/IP-Bucket.

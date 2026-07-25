@@ -130,7 +130,12 @@ describe('trpc.client host transport', () => {
   it('sendet Host-Token ueber WebSocket-Connection-Params fuer Host-Subscriptions', async () => {
     getHostTokenMock.mockReturnValue('host-token-123');
 
-    await loadClientModule('/en/session/abc123/host');
+    await loadClientModule('/en/session/abc123/host', () => {
+      globalThis.window.localStorage.setItem(
+        'arsnova-participant-ABC123',
+        '11111111-1111-4111-8111-111111111111',
+      );
+    });
 
     const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
       connectionParams: () =>

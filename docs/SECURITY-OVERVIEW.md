@@ -55,9 +55,12 @@ Proxy-Bucket zuordnen. Der separate tRPC-WebSocket-Server verwendet für
 Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
 Der tRPC-WebSocket-Server übernimmt zusätzlich aus dem begrenzt geparsten
 `connectionParams`-Frame einen normalisierten Session-Code und optional die
-lokal gespeicherte Participant-UUID. Er begrenzt damit pro Prozess auf
-standardmäßig 800 Verbindungen je Session und zwei je Session-/Participant-
-Tupel. Das Signal enthält keine PII, ist rotierbar und daher ausdrücklich
+lokal gespeicherte Participant-UUID. Host-/Present-Routen senden dabei nur den
+Session-Code, damit eine eventuell gespeicherte Participant-ID nicht das
+Participant-Budget einer Steuerverbindung belastet. Der Server begrenzt pro
+Prozess standardmäßig auf 1.000 Verbindungen je Session (500 aktive plus eine
+vollständige stale Reconnect-Kohorte) und zwei je Session-/Participant-Tupel.
+Das Signal enthält keine PII, ist rotierbar und daher ausdrücklich
 **keine Authentifizierung**. Fehlende oder ungültige Signale bleiben unter den
 globalen Caps kompatibel; es existiert kein WebSocket-IP-Bucket. Zähler werden
 beim Socket-Close genau einmal freigegeben und leere Schlüssel gelöscht.
