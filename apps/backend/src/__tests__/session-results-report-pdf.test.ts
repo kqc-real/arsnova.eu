@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SessionExportDTO } from '@arsnova/shared-types';
+import type { PdfWorkerRenderRequest } from '../lib/pdfWorkerTransport';
 import {
   buildSessionResultsPdf,
   buildSessionResultsPdfFilename,
@@ -19,15 +20,27 @@ const mocks = vi.hoisted(() => ({
   ),
   setContent: vi.fn(async (_html: string, _options?: unknown) => undefined),
   fetchSafeExternalImage: vi.fn(),
+  launch: vi.fn(),
+  renderPdfViaWorker: vi.fn(async (_request: PdfWorkerRenderRequest) =>
+    Buffer.from('%PDF-1.4\n% worker'),
+  ),
 }));
 
 vi.mock('../lib/safeExternalImageFetch', () => ({
   fetchSafeExternalImage: mocks.fetchSafeExternalImage,
 }));
 
+vi.mock('../lib/pdfWorkerTransport', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/pdfWorkerTransport')>();
+  return {
+    ...actual,
+    renderPdfViaWorker: mocks.renderPdfViaWorker,
+  };
+});
+
 vi.mock('playwright', () => ({
   chromium: {
-    launch: vi.fn(async () => ({
+    launch: mocks.launch.mockImplementation(async () => ({
       newPage: vi.fn(async () => ({
         route: mocks.route,
         setContent: mocks.setContent,
@@ -67,6 +80,29 @@ describe('buildSessionResultsPdf', () => {
   it('erzeugt eine gültige PDF-Datei', async () => {
     const buffer = await buildSessionResultsPdf(sampleExport);
     expect(buffer.subarray(0, 4).toString('utf8')).toBe('%PDF');
+  });
+
+  it('rendert in Produktion fail-closed über den isolierten Worker', async () => {
+    const previousNodeEnv = process.env['NODE_ENV'];
+    const previousRenderMode = process.env['PDF_RENDER_MODE'];
+    process.env['NODE_ENV'] = 'production';
+    delete process.env['PDF_RENDER_MODE'];
+    const launchCallsBefore = mocks.launch.mock.calls.length;
+    try {
+      const buffer = await buildSessionResultsPdf(sampleExport);
+      expect(buffer.subarray(0, 4).toString('utf8')).toBe('%PDF');
+      expect(mocks.renderPdfViaWorker).toHaveBeenCalledOnce();
+      expect(mocks.renderPdfViaWorker.mock.calls[0]?.[0]).toMatchObject({
+        html: expect.stringContaining('Demo Quiz'),
+        pdfOptions: expect.objectContaining({ format: 'A4', tagged: true }),
+      });
+      expect(mocks.launch).toHaveBeenCalledTimes(launchCallsBefore);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env['NODE_ENV'];
+      else process.env['NODE_ENV'] = previousNodeEnv;
+      if (previousRenderMode === undefined) delete process.env['PDF_RENDER_MODE'];
+      else process.env['PDF_RENDER_MODE'] = previousRenderMode;
+    }
   });
 
   it('ersetzt abgelehnte Bilder, inlinet CSS und sperrt Chromium-Netzwerk', async () => {

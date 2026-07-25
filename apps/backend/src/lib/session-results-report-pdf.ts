@@ -16,6 +16,11 @@ import {
 } from '@arsnova/session-export-report';
 import { readSessionExportLocalAsset } from './session-export-asset-reader';
 import { fetchSafeExternalImage, type SafeExternalImage } from './safeExternalImageFetch';
+import {
+  renderPdfViaWorker,
+  resolvePdfRenderMode,
+  type PdfWorkerRenderRequest,
+} from './pdfWorkerTransport';
 
 export { buildSessionResultsPdfFilename };
 
@@ -60,6 +65,28 @@ function resolveChromiumLaunchOptions(): LaunchOptions {
     // Docker/Alpine: kein Sandbox-Namespace, kleines /dev/shm
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   };
+}
+
+export async function renderSessionResultsPdfHtmlLocally(
+  request: PdfWorkerRenderRequest,
+): Promise<Buffer> {
+  let browser: Browser | undefined;
+  try {
+    browser = await chromium.launch(resolveChromiumLaunchOptions());
+    const page = await browser.newPage();
+    await page.route(/^(?:https?|file):/i, (route) => route.abort('blockedbyclient'));
+    // `load` statt `networkidle`: fehlende Asset-URLs sollen den PDF-Export nicht hängen lassen.
+    await page.setContent(request.html, { waitUntil: 'load', timeout: 60_000 });
+    return Buffer.from(await page.pdf(request.pdfOptions));
+  } finally {
+    await browser?.close();
+  }
+}
+
+async function renderSessionResultsPdfHtml(request: PdfWorkerRenderRequest): Promise<Buffer> {
+  return resolvePdfRenderMode() === 'worker'
+    ? renderPdfViaWorker(request)
+    : renderSessionResultsPdfHtmlLocally(request);
 }
 
 async function inlineKatexWoff2Fonts(css: string, cssPath: string): Promise<string> {
@@ -163,33 +190,22 @@ export async function buildSessionResultsPdf(
   });
   html = await inlineTrustedReportStylesheets(html);
 
-  let browser: Browser | undefined;
-  try {
-    browser = await chromium.launch(resolveChromiumLaunchOptions());
-    const page = await browser.newPage();
-    await page.route(/^(?:https?|file):/i, (route) => route.abort('blockedbyclient'));
-    // `load` statt `networkidle`: fehlende Asset-URLs sollen den PDF-Export nicht hängen lassen.
-    await page.setContent(html, { waitUntil: 'load', timeout: 60_000 });
-    const rawPdf = Buffer.from(
-      await page.pdf(
-        buildSessionResultsPlaywrightPdfOptions(
-          labels,
-          {
-            quizName: data.quizName,
-            sessionCode: data.sessionCode,
-          },
-          profile,
-        ),
-      ),
-    );
-    const documentTitle = `${labels.documentTitle} — ${data.quizName}`;
-    const stamped = await stampQuestionContinuationsOnPdf(
-      new Uint8Array(rawPdf),
-      buildQuestionContinuationStamps(data, labels),
-      { documentTitle, localeId, claimPdfUa: profile === 'pdfUa' },
-    );
-    return Buffer.from(stamped);
-  } finally {
-    await browser?.close();
-  }
+  const rawPdf = await renderSessionResultsPdfHtml({
+    html,
+    pdfOptions: buildSessionResultsPlaywrightPdfOptions(
+      labels,
+      {
+        quizName: data.quizName,
+        sessionCode: data.sessionCode,
+      },
+      profile,
+    ),
+  });
+  const documentTitle = `${labels.documentTitle} — ${data.quizName}`;
+  const stamped = await stampQuestionContinuationsOnPdf(
+    new Uint8Array(rawPdf),
+    buildQuestionContinuationStamps(data, labels),
+    { documentTitle, localeId, claimPdfUa: profile === 'pdfUa' },
+  );
+  return Buffer.from(stamped);
 }

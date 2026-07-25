@@ -180,13 +180,19 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
 
 ```bash
 docker stats --no-stream
-docker compose -f docker-compose.prod.yml logs --since 10m app | rg 'pdf:'
+docker compose -f docker-compose.prod.yml ps app pdf-worker
+docker compose -f docker-compose.prod.yml logs --since 10m app pdf-worker \
+  | rg 'pdf:|pdf-worker:'
 ```
 
 - `pdfActiveJobs == pdfMaxConcurrentJobs` ist während eines Exports normal.
 - `rateLimit429ByCategoryLastMinute.pdf`, `pdfRejectedLastMinute` und
   PDF-Fehler gemeinsam bewerten. Ein separates Reject-Log pro Anfrage gibt es
   bewusst nicht.
+- Ein ungesunder Worker oder `pdf-worker:render_failed` ist kein Anlass für
+  einen In-Process-Fallback. Worker neu starten und Socket-Volume,
+  PID-/RAM-/CPU-Limit sowie `/tmp` prüfen; App-Secrets oder Netzwerk nicht
+  hinzufügen.
 - Den Cap nicht spontan erhöhen: Cap 2 verfehlte auf dem Zielhost die
   Live-Voting-SLOs. Erst Ursache und CPU-/Speicherdruck klären.
 

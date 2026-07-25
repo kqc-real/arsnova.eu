@@ -145,6 +145,29 @@ npm run verify:production-serving
 docker compose -f docker-compose.prod.yml --env-file .env.production config
 ```
 
+Für W2.1b zusätzlich:
+
+```bash
+npm test -w @arsnova/backend -- --run \
+  src/lib/pdfWorkerTransport.test.ts \
+  src/__tests__/session-results-report-pdf.test.ts \
+  src/__tests__/session-results-report-pdf.ssrf.test.ts
+npm run typecheck -w @arsnova/backend
+docker compose -f docker-compose.prod.yml --env-file .env.production build app
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
+docker compose -f docker-compose.prod.yml --env-file .env.production \
+  exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
+docker compose -f docker-compose.prod.yml --env-file .env.production \
+  exec -T app node /app/scripts/container-runtime-smoke.mjs
+npm run validate:pdfua
+```
+
+Der Worker-Smoke prüft im echten Compose-Service Netzwerk-/Secret-Abwesenheit,
+UID, Capabilities, `NoNewPrivs`, read-only Rootfs, Socketmodus und die
+PID-/RAM-/CPU-/`tmpfs`-Grenzen. Der App-Smoke prüft den read-only Socket-Mount
+und rendert einen 200-Fragen-/500-Teilnehmenden-Bericht im `pdfUa`-Profil über
+den Unix-Socket. Produktion darf nicht auf lokales Chromium zurückfallen.
+
 Für W2.4a zusätzlich:
 
 ```bash
