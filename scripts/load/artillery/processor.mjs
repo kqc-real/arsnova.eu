@@ -49,6 +49,9 @@ function readRuntimeState() {
       reconnectMsSum: 0,
       reconnectMsMax: 0,
       reconnectsWithinWindow: 0,
+      joinDurationMs: [],
+      wsConnectDurationMs: [],
+      statusFanoutDurationMs: [],
       questionReads: 0,
       questionReadErrors: 0,
       infoPolls: 0,
@@ -69,6 +72,28 @@ function bumpRuntimeState(field, delta = 1) {
   writeRuntimeState({ [field]: (current[field] ?? 0) + delta });
 }
 
+function recordRuntimeDuration(field, durationMs) {
+  const current = readRuntimeState();
+  const values = Array.isArray(current[field]) ? current[field] : [];
+  writeRuntimeState({ [field]: [...values, Math.max(0, Math.round(durationMs))].slice(-2_000) });
+}
+
+function recordResultsFanout(userContext, events) {
+  if (userContext.vars._resultsFanoutRecorded) return;
+  const timestampFile = process.env.ARTILLERY_REVEAL_TIMESTAMP_FILE;
+  if (!timestampFile) return;
+  try {
+    const revealStartedAt = Number(readFileSync(timestampFile, 'utf8').trim());
+    if (!Number.isFinite(revealStartedAt) || revealStartedAt <= 0) return;
+    const durationMs = Math.max(0, Date.now() - revealStartedAt);
+    userContext.vars._resultsFanoutRecorded = true;
+    recordRuntimeDuration('statusFanoutDurationMs', durationMs);
+    events.emit('histogram', 'custom.status_fanout_ms', durationMs);
+  } catch {
+    // Reveal wurde noch nicht gestartet.
+  }
+}
+
 function nextParticipantIndex() {
   participantCounter += 1;
   return participantCounter;
@@ -80,6 +105,7 @@ function tempoValueForIndex(index) {
 }
 
 export async function joinSession(userContext, events) {
+  const startedAt = performance.now();
   try {
     const ctx = loadSessionContext();
     const trpc = createHttpTrpcSingle(ctx.trpcUrl);
@@ -95,6 +121,9 @@ export async function joinSession(userContext, events) {
     userContext.vars.participantIndex = index;
     userContext.vars.nickname = nickname;
     bumpRuntimeState('joins');
+    const durationMs = performance.now() - startedAt;
+    recordRuntimeDuration('joinDurationMs', durationMs);
+    events.emit('histogram', 'custom.join_duration_ms', durationMs);
     events.emit('counter', 'custom.joins_ok', 1);
   } catch (error) {
     bumpRuntimeState('joinErrors');
@@ -104,31 +133,75 @@ export async function joinSession(userContext, events) {
 }
 
 export async function connectParticipantStatusWs(userContext, events) {
+  const startedAt = performance.now();
   try {
     const ctx = loadSessionContext();
     const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl, {
       sessionCode: ctx.code,
       participantId: userContext.vars.participantId,
     });
+    let connectionSettled = false;
+    let resolveStarted;
+    let rejectStarted;
+    const started = new Promise((resolve, reject) => {
+      resolveStarted = resolve;
+      rejectStarted = reject;
+    });
     const subscription = trpc.session.onStatusChanged.subscribe(
       { code: ctx.code },
       {
-        onData() {
-          bumpRuntimeState('wsStatusEvents');
+        onStarted() {
+          if (connectionSettled) return;
+          connectionSettled = true;
+          const durationMs = performance.now() - startedAt;
+          bumpRuntimeState('wsConnections');
+          recordRuntimeDuration('wsConnectDurationMs', durationMs);
+          events.emit('histogram', 'custom.ws_connect_ms', durationMs);
+          events.emit('counter', 'custom.ws_connected', 1);
+          resolveStarted();
         },
-        onError() {
+        onData(data) {
+          bumpRuntimeState('wsStatusEvents');
+          if (data?.status === 'RESULTS') recordResultsFanout(userContext, events);
+        },
+        onError(error) {
           bumpRuntimeState('wsErrors');
+          events.emit('counter', 'custom.ws_failed', 1);
+          if (!connectionSettled) {
+            connectionSettled = true;
+            rejectStarted(error instanceof Error ? error : new Error(String(error)));
+          }
         },
       },
     );
     userContext.vars._statusSub = subscription;
     userContext.vars._statusWsClient = wsClient;
-    bumpRuntimeState('wsConnections');
-    events.emit('counter', 'custom.ws_connected', 1);
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    const timeoutMs = Number(process.env.ARTILLERY_WS_CONNECT_TIMEOUT_MS || 10_000);
+    let timeout;
+    try {
+      await Promise.race([
+        started,
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => {
+            if (!connectionSettled) {
+              connectionSettled = true;
+              bumpRuntimeState('wsErrors');
+              events.emit('counter', 'custom.ws_failed', 1);
+            }
+            reject(new Error('WebSocket onStarted Timeout.'));
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
   } catch (error) {
-    bumpRuntimeState('wsErrors');
-    events.emit('counter', 'custom.ws_failed', 1);
+    if (!userContext.vars._statusSub) {
+      bumpRuntimeState('wsErrors');
+      events.emit('counter', 'custom.ws_failed', 1);
+    }
+    userContext.vars._statusSub?.unsubscribe?.();
+    userContext.vars._statusWsClient?.close?.();
     throw error;
   }
 }
@@ -322,6 +395,7 @@ export async function reconnectParticipantStatusWs(userContext, events) {
         const ms = Math.round(performance.now() - startedAt);
         userContext.vars._reconnectMs = ms;
         bumpRuntimeState('reconnects');
+        bumpRuntimeState('wsConnections');
         const current = readRuntimeState();
         writeRuntimeState({
           reconnectMsMax: Math.max(current.reconnectMsMax ?? 0, ms),
@@ -334,6 +408,7 @@ export async function reconnectParticipantStatusWs(userContext, events) {
       },
       onData(data) {
         bumpRuntimeState('wsStatusEvents');
+        if (data?.status === 'RESULTS') recordResultsFanout(userContext, events);
         if (data?.status === 'RESULTS' && !userContext.vars._reconnectResultsSeen) {
           userContext.vars._reconnectResultsSeen = true;
           bumpRuntimeState('reconnectResultsSeen');
@@ -349,7 +424,6 @@ export async function reconnectParticipantStatusWs(userContext, events) {
   );
   userContext.vars._statusSub = subscription;
   userContext.vars._statusWsClient = wsClient;
-  bumpRuntimeState('wsConnections');
   events.emit('counter', 'custom.ws_reconnected', 1);
 
   const timeoutMs = Number(process.env.ARTILLERY_RECONNECT_LIMIT_MS || 30_000);

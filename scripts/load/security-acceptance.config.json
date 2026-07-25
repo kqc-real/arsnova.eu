@@ -88,16 +88,16 @@
       "covers": ["vote-burst"]
     },
     {
-      "id": "pdf-vote-with-abuse",
-      "parallel": true,
-      "runners": ["pdf-vs-vote-500", "security-abuse"],
-      "covers": ["enumeration", "pdf-vs-vote", "metrics", "parallel-abuse"]
-    },
-    {
       "id": "recovery",
       "parallel": false,
       "runners": ["soak-recovery"],
       "covers": ["metrics", "recovery"]
+    },
+    {
+      "id": "pdf-vote-with-abuse",
+      "parallel": true,
+      "runners": ["pdf-vs-vote-500", "security-abuse"],
+      "covers": ["enumeration", "pdf-vs-vote", "metrics", "parallel-abuse"]
     }
   ],
   "abortCriteria": [

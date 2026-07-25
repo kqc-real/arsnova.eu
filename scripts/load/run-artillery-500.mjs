@@ -20,6 +20,7 @@ import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
+import { summarizeDurations } from './lib/percentiles.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
@@ -38,6 +39,10 @@ const ARRIVAL_RATE = Math.max(
 const MIN_JOIN_RATIO = Number(process.env.ARTILLERY_MIN_JOIN_RATIO || 0.95);
 const MIN_VOTE_RATIO = Number(process.env.ARTILLERY_MIN_VOTE_RATIO || 0.9);
 const MIN_WS_RATIO = Number(process.env.ARTILLERY_MIN_WS_RATIO || 0.9);
+const JOIN_P95_LIMIT_MS = Number(process.env.ARTILLERY_JOIN_P95_LIMIT_MS || 1_000);
+const JOIN_P99_LIMIT_MS = Number(process.env.ARTILLERY_JOIN_P99_LIMIT_MS || 2_000);
+const STATUS_P95_LIMIT_MS = Number(process.env.ARTILLERY_STATUS_P95_LIMIT_MS || 1_500);
+const STATUS_P99_LIMIT_MS = Number(process.env.ARTILLERY_STATUS_P99_LIMIT_MS || 3_000);
 const VOTE_REVEAL_THRESHOLD = Math.max(
   1,
   Number(process.env.ARTILLERY_VOTE_REVEAL_THRESHOLD || Math.floor(PARTICIPANTS * MIN_VOTE_RATIO)),
@@ -48,6 +53,7 @@ const RESULTS_WAIT_MS = Math.max(5_000, Number(process.env.ARTILLERY_RESULTS_WAI
 const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
 const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
 const RESULTS_READY_FILE = resolve(ARTILLERY_DIR, '.results-ready.flag');
+const REVEAL_TIMESTAMP_FILE = resolve(ARTILLERY_DIR, '.reveal-started-at');
 const ARTILLERY_REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-live-${Date.now()}.json`);
 
 function sleep(ms) {
@@ -74,6 +80,7 @@ function runArtillery() {
       ARTILLERY_MAX_VUS: String(PARTICIPANTS),
       ARTILLERY_RESULTS_WAIT_MS: String(RESULTS_WAIT_MS),
       ARTILLERY_RESULTS_READY_FILE: RESULTS_READY_FILE,
+      ARTILLERY_REVEAL_TIMESTAMP_FILE: REVEAL_TIMESTAMP_FILE,
     };
 
     mkdirSync(dirname(ARTILLERY_REPORT_FILE), { recursive: true });
@@ -142,6 +149,7 @@ async function main() {
   await waitForBackend(TRPC_URL);
   rmSync(STATE_FILE, { force: true });
   rmSync(RESULTS_READY_FILE, { force: true });
+  rmSync(REVEAL_TIMESTAMP_FILE, { force: true });
   writeFileSync(RESULTS_READY_FILE, '0');
 
   const session = await createArtillery500Session(TRPC_URL);
@@ -164,6 +172,9 @@ async function main() {
     wsUrl: WS_URL,
     code: session.code,
     hostToken: session.hostToken,
+    onRevealStarted(timestamp) {
+      writeFileSync(REVEAL_TIMESTAMP_FILE, String(timestamp));
+    },
   });
   await sleep(750);
 
@@ -197,6 +208,9 @@ async function main() {
   const runtime = readState();
   const publicHttp = createHttpTrpc(TRPC_URL);
   const statusSnapshot = await publicHttp.session.getInfo.query({ code: session.code });
+  const joinLatency = summarizeDurations(runtime.joinDurationMs ?? []);
+  const wsConnectLatency = summarizeDurations(runtime.wsConnectDurationMs ?? []);
+  const statusFanoutLatency = summarizeDurations(runtime.statusFanoutDurationMs ?? []);
 
   hostMonitor.stop();
 
@@ -226,6 +240,14 @@ async function main() {
         hostLastStatus: hostMonitor.state.lastStatus,
         hostResultsSeen: hostMonitor.state.resultsSeenAt !== null,
       },
+      latency: {
+        join: { samples: runtime.joinDurationMs?.length ?? 0, ...joinLatency },
+        wsConnect: { samples: runtime.wsConnectDurationMs?.length ?? 0, ...wsConnectLatency },
+        statusFanout: {
+          samples: runtime.statusFanoutDurationMs?.length ?? 0,
+          ...statusFanoutLatency,
+        },
+      },
     },
     reveal: threshold,
     snapshots: {
@@ -248,6 +270,30 @@ async function main() {
   }
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
+  }
+  if ((runtime.wsErrors ?? 0) > 0) {
+    failures.push(`Teilnehmer-WS-Fehler: ${runtime.wsErrors}`);
+  }
+  if ((runtime.joinDurationMs?.length ?? 0) < PARTICIPANTS * MIN_JOIN_RATIO) {
+    failures.push(`Join-Latenzsamples: ${runtime.joinDurationMs?.length ?? 0}/${PARTICIPANTS}`);
+  }
+  if (joinLatency.p95Ms > JOIN_P95_LIMIT_MS || joinLatency.p99Ms > JOIN_P99_LIMIT_MS) {
+    failures.push(
+      `Join-Latenz p95=${joinLatency.p95Ms}ms/p99=${joinLatency.p99Ms}ms (Limits ${JOIN_P95_LIMIT_MS}/${JOIN_P99_LIMIT_MS}ms)`,
+    );
+  }
+  if ((runtime.statusFanoutDurationMs?.length ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
+    failures.push(
+      `Status-Fan-out-Samples: ${runtime.statusFanoutDurationMs?.length ?? 0}/${PARTICIPANTS}`,
+    );
+  }
+  if (
+    statusFanoutLatency.p95Ms > STATUS_P95_LIMIT_MS ||
+    statusFanoutLatency.p99Ms > STATUS_P99_LIMIT_MS
+  ) {
+    failures.push(
+      `Status-Fan-out p95=${statusFanoutLatency.p95Ms}ms/p99=${statusFanoutLatency.p99Ms}ms (Limits ${STATUS_P95_LIMIT_MS}/${STATUS_P99_LIMIT_MS}ms)`,
+    );
   }
   if (hostMonitor.state.progressMaxTotalVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
     failures.push(`Host-WS-Progress: ${hostMonitor.state.progressMaxTotalVotes}/${PARTICIPANTS}`);
@@ -273,6 +319,10 @@ async function main() {
       minJoinRatio: MIN_JOIN_RATIO,
       minVoteRatio: MIN_VOTE_RATIO,
       minWsRatio: MIN_WS_RATIO,
+      joinP95LimitMs: JOIN_P95_LIMIT_MS,
+      joinP99LimitMs: JOIN_P99_LIMIT_MS,
+      statusP95LimitMs: STATUS_P95_LIMIT_MS,
+      statusP99LimitMs: STATUS_P99_LIMIT_MS,
     },
     metrics: summary,
     failures,

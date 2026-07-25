@@ -14,6 +14,7 @@
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
+import { summarizeDurations } from './lib/percentiles.mjs';
 
 let trpcClientModule;
 try {
@@ -29,6 +30,7 @@ const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 600));
 const TIMER_SECONDS = Math.max(2, Number(process.env.TIMER_SECONDS || 8));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 60));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
+const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 2_000));
 const GRACE_MS = Math.max(0, Number(process.env.GRACE_MS || 2_000));
 const WITHIN_GRACE_REVEAL_OFFSET_MS = Math.max(
   0,
@@ -60,21 +62,6 @@ async function waitUntil(targetMs) {
   if (remaining > 0) {
     await sleep(remaining);
   }
-}
-
-function percentile(values, p) {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
-  return sorted[index] ?? 0;
-}
-
-function summarizeDurations(values) {
-  return {
-    p50Ms: Math.round(percentile(values, 50)),
-    p95Ms: Math.round(percentile(values, 95)),
-    maxMs: Math.round(Math.max(0, ...values)),
-  };
 }
 
 function summarizeErrors(results) {
@@ -331,6 +318,11 @@ async function run() {
       `ACTIVE Vote-p95 ${active?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
     );
   }
+  if ((active?.votes.p99Ms ?? Number.POSITIVE_INFINITY) > VOTE_P99_LIMIT_MS) {
+    failures.push(
+      `ACTIVE Vote-p99 ${active?.votes.p99Ms ?? 'fehlt'} ms > ${VOTE_P99_LIMIT_MS} ms.`,
+    );
+  }
   if (active?.snapshot.totalVotes !== PARTICIPANTS) {
     failures.push(`ACTIVE-Progress meldete ${active?.snapshot.totalVotes ?? 'null'} Votes.`);
   }
@@ -340,6 +332,11 @@ async function run() {
   if ((withinGrace?.votes.p95Ms ?? Number.POSITIVE_INFINITY) > VOTE_P95_LIMIT_MS) {
     failures.push(
       `Karenz Vote-p95 ${withinGrace?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+    );
+  }
+  if ((withinGrace?.votes.p99Ms ?? Number.POSITIVE_INFINITY) > VOTE_P99_LIMIT_MS) {
+    failures.push(
+      `Karenz Vote-p99 ${withinGrace?.votes.p99Ms ?? 'fehlt'} ms > ${VOTE_P99_LIMIT_MS} ms.`,
     );
   }
   if (withinGrace?.snapshot.totalVotes !== PARTICIPANTS) {
@@ -365,6 +362,7 @@ async function run() {
       timerSeconds: TIMER_SECONDS,
       graceMs: GRACE_MS,
       voteP95LimitMs: VOTE_P95_LIMIT_MS,
+      voteP99LimitMs: VOTE_P99_LIMIT_MS,
     },
     metrics: summary,
     failures,

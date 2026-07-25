@@ -69,6 +69,7 @@ const config = Object.freeze({
   httpP95LimitMs: numberFromEnv('SOAK_HTTP_P95_LIMIT_MS', 2_000, { min: 1 }),
   eventLoopP99LimitMs: numberFromEnv('SOAK_EVENT_LOOP_P99_LIMIT_MS', 200, { min: 1 }),
   memoryGrowthLimitMb: numberFromEnv('SOAK_MEMORY_GROWTH_LIMIT_MB', 256, { min: 0 }),
+  requireExternalProbes: booleanFromEnv('SOAK_REQUIRE_EXTERNAL_PROBES'),
   validateOnly: booleanFromEnv('SOAK_VALIDATE_ONLY'),
 });
 
@@ -278,7 +279,28 @@ function evaluateGates(metricsReport, functionalErrors) {
     measurable: memoryMeasurable,
     limit: config.memoryGrowthLimitMb,
     observed: memoryMeasurable ? Math.round((memoryGrowth / 1024 / 1024) * 100) / 100 : null,
-    passed: !memoryMeasurable || memoryGrowth <= config.memoryGrowthLimitMb * 1024 * 1024,
+    passed:
+      (!config.requireExternalProbes && !memoryMeasurable) ||
+      (memoryMeasurable && memoryGrowth <= config.memoryGrowthLimitMb * 1024 * 1024),
+  });
+  const redisMeasurable =
+    metricsReport.redisPing.available === true && metricsReport.redisPing.successfulSamples > 0;
+  gates.push({
+    name: 'redis-ping-measurable',
+    measurable: redisMeasurable,
+    limit: true,
+    observed: redisMeasurable,
+    passed: !config.requireExternalProbes || redisMeasurable,
+  });
+  const postgresMeasurable =
+    metricsReport.postgresSelect1.available === true &&
+    metricsReport.postgresSelect1.successfulSamples > 0;
+  gates.push({
+    name: 'postgres-select1-measurable',
+    measurable: postgresMeasurable,
+    limit: true,
+    observed: postgresMeasurable,
+    passed: !config.requireExternalProbes || postgresMeasurable,
   });
   return gates;
 }
