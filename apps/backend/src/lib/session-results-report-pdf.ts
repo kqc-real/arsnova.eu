@@ -35,6 +35,7 @@ export const PDF_MAX_REPORT_IMAGES = 100;
 export const PDF_MAX_EXTERNAL_IMAGES = 50;
 export const PDF_MAX_EXTERNAL_IMAGE_BYTES = 5_000_000;
 export const PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE = PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES;
+export const PDF_MAX_INLINED_IMAGE_BYTES = 24 * 1024 * 1024;
 export const PDF_MAX_EXTERNAL_IMAGE_PIXELS = 40_000_000;
 export const PDF_IMAGE_INLINE_DEADLINE_MS = 30_000;
 
@@ -189,6 +190,7 @@ export async function buildSessionResultsPdf(
     maxImageBytes: PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE,
     replaceUnresolvedImages: true,
     maxImages: PDF_MAX_REPORT_IMAGES,
+    maxInlinedImageBytes: PDF_MAX_INLINED_IMAGE_BYTES,
   });
   html = await inlineTrustedReportStylesheets(html);
 

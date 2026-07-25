@@ -6,11 +6,13 @@ import {
   buildSessionResultsPdfFilename,
   createPdfExternalImageLoader,
   PDF_IMAGE_INLINE_DEADLINE_MS,
+  PDF_MAX_INLINED_IMAGE_BYTES,
   PDF_MAX_EXTERNAL_IMAGE_BYTES,
   PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE,
   PDF_MAX_EXTERNAL_IMAGE_PIXELS,
   PDF_MAX_EXTERNAL_IMAGES,
 } from '../lib/session-results-report-pdf';
+import { PDF_WORKER_MAX_HTML_BYTES } from '../lib/pdfWorkerTransport';
 
 const mocks = vi.hoisted(() => ({
   route: vi.fn(
@@ -140,6 +142,32 @@ describe('buildSessionResultsPdf', () => {
     expect(routeHandler).toBeDefined();
     await routeHandler!({ abort });
     expect(abort).toHaveBeenCalledWith('blockedbyclient');
+  });
+
+  it('begrenzt wiederholte 2-MiB-Bilder vor dem Worker-Transport', async () => {
+    const imageUrl = 'https://images.example.test/repeated.png';
+    mocks.fetchSafeExternalImage.mockResolvedValueOnce({
+      bytes: new Uint8Array(PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE),
+      mimeType: 'image/png',
+      width: 1,
+      height: 1,
+      pixelCount: 1,
+    });
+    const exportWithRepeatedImage: SessionExportDTO = {
+      ...sampleExport,
+      questions: Array.from({ length: 30 }, (_, index) => ({
+        ...sampleExport.questions[0],
+        questionOrder: index,
+        questionTextFull: `![wiederholt](${imageUrl})`,
+      })),
+    };
+
+    await buildSessionResultsPdf(exportWithRepeatedImage);
+
+    const html = String(mocks.setContent.mock.calls.at(-1)?.[0]);
+    expect(Buffer.byteLength(html)).toBeLessThan(PDF_WORKER_MAX_HTML_BYTES);
+    expect(Buffer.byteLength(html)).toBeLessThan(PDF_MAX_INLINED_IMAGE_BYTES + 10_000_000);
+    expect(html).toContain('data:image/gif;base64,');
   });
 
   it('baut einen sprachneutralen Dateinamen', () => {

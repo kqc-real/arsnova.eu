@@ -15,6 +15,8 @@ export interface InlineExportImagesOptions {
   replaceUnresolvedImages?: boolean;
   /** Maximale Anzahl unterschiedlicher nicht-data:-Bildquellen pro Report. */
   maxImages?: number;
+  /** Maximale Summe expandierter Data-URL-Bytes über alle Bildvorkommen. */
+  maxInlinedImageBytes?: number;
 }
 
 const IMG_TAG_RE = /<img\b([^>]*?)\bsrc="([^"]+)"([^>]*)>/gi;
@@ -139,6 +141,7 @@ export async function inlineExportImagesInHtml(
   const cache = new Map<string, string | null>();
   const matches = [...html.matchAll(IMG_TAG_RE)];
   let attemptedImages = 0;
+  let inlinedImageBytes = 0;
 
   for (const match of matches) {
     const src = match[2];
@@ -157,6 +160,15 @@ export async function inlineExportImagesInHtml(
   return html.replace(IMG_TAG_RE, (full, before, src, after) => {
     const dataUrl = cache.get(src);
     if (!dataUrl && !options.replaceUnresolvedImages) return full;
-    return `<img${before}src="${dataUrl ?? TRANSPARENT_IMAGE_PLACEHOLDER}"${after}>`;
+    let replacement = dataUrl ?? TRANSPARENT_IMAGE_PLACEHOLDER;
+    if (dataUrl && options.maxInlinedImageBytes !== undefined) {
+      const expandedBytes = new TextEncoder().encode(dataUrl).byteLength;
+      if (inlinedImageBytes + expandedBytes > options.maxInlinedImageBytes) {
+        replacement = TRANSPARENT_IMAGE_PLACEHOLDER;
+      } else {
+        inlinedImageBytes += expandedBytes;
+      }
+    }
+    return `<img${before}src="${replacement}"${after}>`;
   });
 }

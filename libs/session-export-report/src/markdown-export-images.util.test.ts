@@ -96,4 +96,23 @@ describe('inlineExportImagesInHtml', () => {
     expect(inlined).not.toContain('https://images.example.test/');
     expect(inlined.match(/data:image\/gif;base64,/g)).toHaveLength(1);
   });
+
+  it('zählt wiederholte Data-URL-Expansion gegen ein Gesamtbudget', async () => {
+    const fetchExternalImage = vi.fn().mockResolvedValue({
+      bytes: new Uint8Array([1, 2, 3, 4]),
+      mimeType: 'image/png',
+    });
+    const src = 'https://images.example.test/repeated.png';
+    const html = `<img src="${src}"><img src="${src}"><img src="${src}">`;
+
+    const inlined = await inlineExportImagesInHtml(html, {
+      fetchExternalImage,
+      replaceUnresolvedImages: true,
+      maxInlinedImageBytes: 30,
+    });
+
+    expect(fetchExternalImage).toHaveBeenCalledOnce();
+    expect(inlined.match(/data:image\/png;base64,/g)).toHaveLength(1);
+    expect(inlined.match(/data:image\/gif;base64,/g)).toHaveLength(2);
+  });
 });
