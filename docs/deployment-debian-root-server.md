@@ -526,8 +526,9 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   fail-closed zum PDF-Fehler, nicht zu einem In-Process-Fallback.
 - Eine harte Worker-Gesamtdeadline von 60 Sekunden liegt unter dem
   75-Sekunden-App-Timeout. Bei Überschreitung wird der Worker non-zero beendet;
-  `restart: on-failure` räumt hängende Chromium-Prozesse weg und startet mit
-  neu angelegtem `0600`-Socket.
+  `restart: always` räumt hängende Chromium-Prozesse weg, startet mit neu
+  angelegtem `0600`-Socket und deckt zusätzlich Docker-Daemon-/Host-Neustarts
+  konsistent mit dem App-Service ab.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Der Worker-Healthcheck prüft ausschließlich `/health` auf dem Unix-Socket.
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `WS_HOST`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.

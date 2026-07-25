@@ -187,7 +187,8 @@ den Worker festgelegt. Chromium verwendet dort weiterhin `--no-sandbox`, liegt
 aber in einer eigenen Container-, Ressourcen- und Egress-Grenze. CI prüft diese
 Laufzeitkontrollen und einen echten Maximalbericht. Eine worker-interne
 60-Sekunden-Gesamtdeadline beendet bei hängendem Chromium den Container
-non-zero; `restart: on-failure` stellt Socket und Worker sauber wieder her.
+non-zero; `restart: always` stellt Socket und Worker sowohl danach als auch nach
+Docker-Daemon-/Host-Neustarts sauber wieder her.
 Entscheidung, verworfene In-Container-Sandbox und Rollback:
 [W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 

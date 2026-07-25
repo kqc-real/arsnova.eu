@@ -167,10 +167,12 @@ UID, Capabilities, `NoNewPrivs`, read-only Rootfs, Socketmodus und die
 PID-/RAM-/CPU-/`tmpfs`-Grenzen. Der App-Smoke prüft den read-only Socket-Mount
 und rendert einen 200-Fragen-/500-Teilnehmenden-Bericht im `pdfUa`-Profil über
 den Unix-Socket. CI beendet den Worker dazwischen einmal hart und erwartet einen
-healthy `restart: on-failure`, bevor der PDF-Smoke Socket-Cleanup und
-Wiederanbindung bestätigt. Der Unit-Test mit einem nie auflösenden Renderer
-prüft zusätzlich worker-interne Deadline, 504, fatalen Healthstatus und
-Exit-Callback. Produktion darf nicht auf lokales Chromium zurückfallen.
+healthy `restart: always`, bevor der PDF-Smoke Socket-Cleanup und
+Wiederanbindung bestätigt; die exakte Policy wird am laufenden Container
+assertiert und deckt auch Host-/Daemon-Neustarts ab. Der Unit-Test mit einem nie
+auflösenden Renderer prüft zusätzlich worker-interne Deadline, 504, fatalen
+Healthstatus und Exit-Callback. Produktion darf nicht auf lokales Chromium
+zurückfallen.
 
 Für W2.4a zusätzlich:
 

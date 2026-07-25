@@ -1500,6 +1500,13 @@ jobs:
 
           # Fail-fast-Lifecycle: Ein non-zero Worker-Exit muss Chromium mitsamt
           # Container beenden, den 0600-Socket neu anlegen und wieder healthy werden.
+          worker_restart_policy="$(
+            docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' arsnova-v3-pdf-worker
+          )"
+          if [[ "$worker_restart_policy" != "always" ]]; then
+            echo "Unerwartete PDF-Worker-Restart-Policy: $worker_restart_policy"
+            exit 1
+          fi
           worker_restarts_before="$(
             docker inspect --format '{{.RestartCount}}' arsnova-v3-pdf-worker
           )"

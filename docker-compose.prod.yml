@@ -45,7 +45,7 @@ services:
   pdf-worker:
     image: arsnova-eu:production
     container_name: arsnova-v3-pdf-worker
-    restart: on-failure
+    restart: always
     init: true
     entrypoint: ['node', 'apps/backend/dist/pdf-worker.js']
     read_only: true
