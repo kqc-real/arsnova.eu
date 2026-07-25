@@ -7,6 +7,7 @@ import {
   createPdfExternalImageLoader,
   PDF_IMAGE_INLINE_DEADLINE_MS,
   PDF_MAX_EXTERNAL_IMAGE_BYTES,
+  PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE,
   PDF_MAX_EXTERNAL_IMAGE_PIXELS,
   PDF_MAX_EXTERNAL_IMAGES,
 } from '../lib/session-results-report-pdf';
@@ -119,6 +120,10 @@ describe('buildSessionResultsPdf', () => {
     };
 
     await buildSessionResultsPdf(exportWithImage);
+    expect(mocks.fetchSafeExternalImage).toHaveBeenCalledWith(
+      imageUrl,
+      expect.objectContaining({ maxBytes: PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE }),
+    );
 
     const html = String(mocks.setContent.mock.calls.at(-1)?.[0]);
     expect(html).not.toContain(imageUrl);

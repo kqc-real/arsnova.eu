@@ -16,6 +16,7 @@ import {
 } from '@arsnova/session-export-report';
 import { readSessionExportLocalAsset } from './session-export-asset-reader';
 import { fetchSafeExternalImage, type SafeExternalImage } from './safeExternalImageFetch';
+import { PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES } from './pdfImageNormalizer';
 import {
   renderPdfViaWorker,
   resolvePdfRenderMode,
@@ -33,6 +34,7 @@ export interface BuildSessionResultsPdfOptions {
 export const PDF_MAX_REPORT_IMAGES = 100;
 export const PDF_MAX_EXTERNAL_IMAGES = 50;
 export const PDF_MAX_EXTERNAL_IMAGE_BYTES = 5_000_000;
+export const PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE = PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES;
 export const PDF_MAX_EXTERNAL_IMAGE_PIXELS = 40_000_000;
 export const PDF_IMAGE_INLINE_DEADLINE_MS = 30_000;
 
@@ -184,7 +186,7 @@ export async function buildSessionResultsPdf(
     readLocalAsset: readSessionExportLocalAsset,
     fetchExternal: true,
     fetchExternalImage: createPdfExternalImageLoader(),
-    maxImageBytes: 400_000,
+    maxImageBytes: PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE,
     replaceUnresolvedImages: true,
     maxImages: PDF_MAX_REPORT_IMAGES,
   });

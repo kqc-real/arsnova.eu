@@ -7,13 +7,16 @@
 import { logger } from './lib/logger';
 import { PDF_WORKER_DEFAULT_SOCKET_PATH, createPdfWorkerServer } from './lib/pdfWorkerTransport';
 import { renderSessionResultsPdfHtmlLocally } from './lib/session-results-report-pdf';
+import { configurePdfImageNormalizer, normalizePdfWorkerRequest } from './lib/pdfImageNormalizer';
 
 const socketPath = process.env['PDF_WORKER_SOCKET_PATH']?.trim() || PDF_WORKER_DEFAULT_SOCKET_PATH;
+configurePdfImageNormalizer();
 
 async function main(): Promise<void> {
   const worker = await createPdfWorkerServer({
     socketPath,
-    render: renderSessionResultsPdfHtmlLocally,
+    render: async (request) =>
+      renderSessionResultsPdfHtmlLocally(await normalizePdfWorkerRequest(request)),
     onError(error) {
       logger.error('pdf-worker:render_failed', {
         errorName: error instanceof Error ? error.name : 'unknown',

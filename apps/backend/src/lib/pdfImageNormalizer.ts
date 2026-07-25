@@ -1,0 +1,164 @@
+import sharp from 'sharp';
+
+export const PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES = 2 * 1024 * 1024;
+export const PDF_IMAGE_NORMALIZER_MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
+export const PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES = 16 * 1024 * 1024;
+export const PDF_IMAGE_NORMALIZER_MAX_DIMENSION = 4_096;
+export const PDF_IMAGE_NORMALIZER_MAX_PIXELS = 16_000_000;
+export const PDF_IMAGE_NORMALIZER_MAX_IMAGES = 100;
+export const PDF_IMAGE_NORMALIZER_DEADLINE_MS = 20_000;
+export const PDF_IMAGE_NORMALIZATION_PLACEHOLDER =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+const DATA_IMAGE_SRC_RE = /\bsrc=(["'])(data:image\/[^"']+)\1/gi;
+const ALLOWED_INPUT_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);
+
+export type NormalizedPdfImage = {
+  bytes: Buffer;
+  mimeType: 'image/webp';
+};
+
+export function configurePdfImageNormalizer(): void {
+  sharp.cache(false);
+  sharp.concurrency(1);
+}
+
+export async function normalizePdfImageBytes(
+  input: Uint8Array,
+  declaredMimeType: string,
+  options: { timeoutMs?: number } = {},
+): Promise<NormalizedPdfImage> {
+  if (
+    input.byteLength < 1 ||
+    input.byteLength > PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES ||
+    !ALLOWED_INPUT_MIME_TYPES.has(declaredMimeType.toLowerCase())
+  ) {
+    throw new Error('Unzulässiges PDF-Bild.');
+  }
+
+  const source = Buffer.from(input);
+  const decoderOptions = {
+    failOn: 'error' as const,
+    limitInputPixels: PDF_IMAGE_NORMALIZER_MAX_PIXELS,
+    sequentialRead: true,
+  };
+  const timeoutSeconds = Math.max(1, Math.ceil((options.timeoutMs ?? 10_000) / 1_000));
+  const metadata = await sharp(source, decoderOptions)
+    .timeout({ seconds: timeoutSeconds })
+    .metadata();
+  const detectedMimeType =
+    metadata.format === 'jpeg' ? 'image/jpeg' : metadata.format ? `image/${metadata.format}` : null;
+  const normalizedDeclared =
+    declaredMimeType.toLowerCase() === 'image/jpg' ? 'image/jpeg' : declaredMimeType.toLowerCase();
+  if (
+    detectedMimeType !== normalizedDeclared ||
+    !metadata.width ||
+    !metadata.height ||
+    metadata.width * metadata.height > PDF_IMAGE_NORMALIZER_MAX_PIXELS ||
+    (metadata.pages ?? 1) !== 1
+  ) {
+    throw new Error('Bildformat oder dekodierte Bildgröße ist unzulässig.');
+  }
+
+  const { data, info } = await sharp(source, decoderOptions)
+    .timeout({ seconds: timeoutSeconds })
+    .rotate()
+    .resize({
+      width: PDF_IMAGE_NORMALIZER_MAX_DIMENSION,
+      height: PDF_IMAGE_NORMALIZER_MAX_DIMENSION,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 85, effort: 4, smartSubsample: true })
+    .toBuffer({ resolveWithObject: true });
+
+  if (
+    data.byteLength < 1 ||
+    data.byteLength > PDF_IMAGE_NORMALIZER_MAX_OUTPUT_BYTES ||
+    info.width > PDF_IMAGE_NORMALIZER_MAX_DIMENSION ||
+    info.height > PDF_IMAGE_NORMALIZER_MAX_DIMENSION ||
+    info.width * info.height > PDF_IMAGE_NORMALIZER_MAX_PIXELS
+  ) {
+    throw new Error('Normalisiertes PDF-Bild überschreitet das Ausgabelimit.');
+  }
+  return { bytes: data, mimeType: 'image/webp' };
+}
+
+function withDeadline<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  return Promise.race([
+    operation,
+    new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(new Error('PDF-Bildnormalisierung überschritt Deadline.')),
+        timeoutMs,
+      );
+      timer.unref?.();
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+export async function normalizePdfImageDataUrlsInHtml(
+  html: string,
+  options: {
+    deadlineMs?: number;
+    normalizeImage?: typeof normalizePdfImageBytes;
+  } = {},
+): Promise<string> {
+  const deadlineAt = Date.now() + (options.deadlineMs ?? PDF_IMAGE_NORMALIZER_DEADLINE_MS);
+  const normalizeImage = options.normalizeImage ?? normalizePdfImageBytes;
+  const sources = [...new Set([...html.matchAll(DATA_IMAGE_SRC_RE)].map((match) => match[2]))];
+  const replacements = new Map<string, string>();
+  let totalOutputBytes = 0;
+
+  for (const source of sources.slice(0, PDF_IMAGE_NORMALIZER_MAX_IMAGES)) {
+    const match = source.match(/^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/=]+)$/i);
+    const remainingMs = deadlineAt - Date.now();
+    if (!match || remainingMs <= 0) {
+      replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+      continue;
+    }
+    try {
+      const bytes = Buffer.from(match[2], 'base64');
+      if (bytes.byteLength > PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES) {
+        throw new Error('PDF-Bild überschreitet das Eingabelimit.');
+      }
+      const normalized = await withDeadline(
+        normalizeImage(bytes, match[1].toLowerCase(), { timeoutMs: remainingMs }),
+        remainingMs,
+      );
+      if (
+        totalOutputBytes + normalized.bytes.byteLength >
+        PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES
+      ) {
+        throw new Error('PDF-Bilder überschreiten das Gesamtausgabelimit.');
+      }
+      totalOutputBytes += normalized.bytes.byteLength;
+      replacements.set(
+        source,
+        `data:${normalized.mimeType};base64,${normalized.bytes.toString('base64')}`,
+      );
+    } catch {
+      replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+    }
+  }
+  for (const source of sources.slice(PDF_IMAGE_NORMALIZER_MAX_IMAGES)) {
+    replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+  }
+
+  return html.replace(DATA_IMAGE_SRC_RE, (full, quote: string, source: string) => {
+    const replacement = replacements.get(source);
+    return replacement ? `src=${quote}${replacement}${quote}` : full;
+  });
+}
+
+export async function normalizePdfWorkerRequest<T extends { html: string }>(
+  request: T,
+): Promise<T> {
+  return {
+    ...request,
+    html: await normalizePdfImageDataUrlsInHtml(request.html),
+  };
+}
