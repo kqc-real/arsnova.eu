@@ -1,16 +1,59 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createTRPCProxyClientMock = vi.fn((opts) => opts);
-const wsCloseMock = vi.fn();
+const wsClientCloseMock = vi.fn();
+const wsTransportCloseMock = vi.fn();
+type MockConnectionState = 'idle' | 'connecting' | 'pending';
+let mockConnectionState: MockConnectionState = 'pending';
+let mockConnectionId = 1;
+let pauseReconnect = false;
+const connectionStateObservers = new Set<{
+  next(state: { state: MockConnectionState; error: null }): void;
+}>();
+const transportCloseListeners = new Set<() => void>();
+
+function emitConnectionState(state: MockConnectionState): void {
+  mockConnectionState = state;
+  connectionStateObservers.forEach((observer) => observer.next({ state, error: null }));
+}
+
+function completeMockReconnect(): void {
+  mockConnectionId += 1;
+  emitConnectionState('pending');
+}
+
+const mockTransport = {
+  addEventListener: vi.fn((event: string, listener: () => void) => {
+    if (event === 'close') transportCloseListeners.add(listener);
+  }),
+  close: wsTransportCloseMock,
+};
+wsTransportCloseMock.mockImplementation(() => {
+  emitConnectionState('connecting');
+  transportCloseListeners.forEach((listener) => listener());
+  transportCloseListeners.clear();
+  if (!pauseReconnect) queueMicrotask(completeMockReconnect);
+});
+
 const createWSClientMock = vi.fn(() => ({
-  close: wsCloseMock,
+  close: wsClientCloseMock,
+  get connection() {
+    return { id: mockConnectionId, state: 'open' as const, ws: mockTransport };
+  },
   connectionState: {
-    subscribe: vi.fn(),
+    get: () => ({ state: mockConnectionState, error: null }),
+    subscribe: vi.fn(
+      (observer: { next(state: { state: MockConnectionState; error: null }): void }) => {
+        connectionStateObservers.add(observer);
+        observer.next({ state: mockConnectionState, error: null });
+        return { unsubscribe: () => connectionStateObservers.delete(observer) };
+      },
+    ),
   },
 }));
 const httpBatchLinkMock = vi.fn((opts) => opts);
 const splitLinkMock = vi.fn((opts) => opts);
-const wsRequestSubscribeMock = vi.fn(() => ({ unsubscribe: vi.fn() }));
+const wsRequestSubscribeMock = vi.fn((_observer: unknown) => ({ unsubscribe: vi.fn() }));
 const wsLinkMock = vi.fn(() => () => () => ({ subscribe: wsRequestSubscribeMock }));
 const getHostTokenMock = vi.fn();
 const normalizeHostSessionCodeMock = vi.fn((code: string) => code.trim().toUpperCase());
@@ -22,6 +65,17 @@ const getTrpcWsUrlMock = vi.fn(() => 'ws://localhost:3001');
 async function loadClientModule(pathname: string, beforeImport?: () => void) {
   vi.resetModules();
   vi.clearAllMocks();
+  mockConnectionState = 'pending';
+  mockConnectionId = 1;
+  pauseReconnect = false;
+  connectionStateObservers.clear();
+  transportCloseListeners.clear();
+  wsTransportCloseMock.mockImplementation(() => {
+    emitConnectionState('connecting');
+    transportCloseListeners.forEach((listener) => listener());
+    transportCloseListeners.clear();
+    if (!pauseReconnect) queueMicrotask(completeMockReconnect);
+  });
   globalThis.window.sessionStorage.clear();
   globalThis.window.localStorage.clear();
   globalThis.window.history.replaceState({}, '', pathname);
@@ -143,19 +197,14 @@ describe('trpc.client host transport', () => {
     };
 
     expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
-    expect(wsCloseMock).not.toHaveBeenCalled();
+    expect(wsTransportCloseMock).not.toHaveBeenCalled();
     expect(wsOptions.connectionParams()).toMatchObject({
       sessionCode: 'AAA111',
       participantId: '11111111-1111-4111-8111-111111111111',
     });
 
     globalThis.window.history.replaceState({}, '', '/fr/session/bbb222/vote');
-    let releaseClose!: () => void;
-    wsCloseMock.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        releaseClose = resolve;
-      }),
-    );
+    pauseReconnect = true;
 
     expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
     const reboundLink = splitOptions.true({});
@@ -164,9 +213,9 @@ describe('trpc.client host transport', () => {
       next: vi.fn(),
     });
     const reboundSubscription = reboundObservable.subscribe({});
-    await vi.waitFor(() => expect(wsCloseMock).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(wsTransportCloseMock).toHaveBeenCalledTimes(1));
     expect(wsRequestSubscribeMock).not.toHaveBeenCalled();
-    releaseClose();
+    completeMockReconnect();
     await vi.waitFor(() => expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(1));
     expect(wsOptions.connectionParams()).toMatchObject({
       sessionCode: 'BBB222',
@@ -174,15 +223,39 @@ describe('trpc.client host transport', () => {
     });
 
     expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
-    expect(wsCloseMock).toHaveBeenCalledTimes(1);
+    expect(wsTransportCloseMock).toHaveBeenCalledTimes(1);
+    expect(wsClientCloseMock).not.toHaveBeenCalled();
     reboundSubscription.unsubscribe();
   });
 
-  it('erneuert das Binding nach Speicherung einer Participant-ID in derselben Session', async () => {
+  it('erhält eine aktive Subscription nach Participant-Binding-Wechsel', async () => {
     const { refreshTrpcWsBinding } = await loadClientModule('/session/abc123/vote');
+    const splitOptions = splitLinkMock.mock.calls[0]?.[0] as {
+      condition: (op: { type: string }) => boolean;
+      true: (runtime: unknown) => (input: unknown) => {
+        subscribe(observer: unknown): { unsubscribe(): void };
+      };
+    };
     const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
       connectionParams: () => Record<string, string> | null;
     };
+    const activeObserver = {
+      next: vi.fn(),
+      error: vi.fn(),
+      complete: vi.fn(),
+    };
+    expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
+    const activeLink = splitOptions.true({});
+    const activeObservable = activeLink({
+      op: { id: 1, type: 'subscription', path: 'session.onStatusChanged' },
+      next: vi.fn(),
+    });
+    const activeSubscription = activeObservable.subscribe(activeObserver);
+    await vi.waitFor(() => expect(wsRequestSubscribeMock).toHaveBeenCalledTimes(1));
+    const delegatedObserver = wsRequestSubscribeMock.mock.calls[0]?.[0] as {
+      next(value: unknown): void;
+    };
+    delegatedObserver.next({ status: 'LOBBY' });
 
     globalThis.window.localStorage.setItem(
       'arsnova-participant-ABC123',
@@ -190,12 +263,19 @@ describe('trpc.client host transport', () => {
     );
 
     expect(refreshTrpcWsBinding()).toBe(true);
-    await vi.waitFor(() => expect(wsCloseMock).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(wsTransportCloseMock).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(mockConnectionId).toBe(2));
+    expect(wsClientCloseMock).not.toHaveBeenCalled();
+    expect(activeObserver.complete).not.toHaveBeenCalled();
+    delegatedObserver.next({ status: 'ACTIVE' });
+    expect(activeObserver.next).toHaveBeenNthCalledWith(1, { status: 'LOBBY' });
+    expect(activeObserver.next).toHaveBeenNthCalledWith(2, { status: 'ACTIVE' });
     expect(wsOptions.connectionParams()).toEqual({
       sessionCode: 'ABC123',
       participantId: '11111111-1111-4111-8111-111111111111',
     });
     expect(refreshTrpcWsBinding()).toBe(false);
+    activeSubscription.unsubscribe();
   });
 
   it('sendet Blitzlicht-Host-Token ueber WebSocket-Connection-Params fuer Standalone-Host-Subscriptions', async () => {

@@ -1,6 +1,7 @@
 import type { AddressInfo } from 'node:net';
 import { connect as netConnect } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import WebSocket from 'ws';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ import {
 
 const servers: TrpcWebSocketServer[] = [];
 const sockets: WebSocket[] = [];
+const trpcWsClients: Array<ReturnType<typeof createWSClient>> = [];
 let resolverInvocations = 0;
 
 const testRouter = router({
@@ -28,6 +30,12 @@ const testRouter = router({
   }),
   updates: publicProcedure.subscription(async function* () {
     yield { status: 'ready' as const };
+  }),
+  persistentUpdates: publicProcedure.subscription(async function* ({ signal }) {
+    yield { status: 'ready' as const };
+    await new Promise<void>((resolve) => {
+      signal?.addEventListener('abort', () => resolve(), { once: true });
+    });
   }),
 });
 
@@ -122,6 +130,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  await Promise.all(trpcWsClients.splice(0).map((client) => client.close()));
   for (const socket of sockets.splice(0)) socket.terminate();
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });
@@ -264,6 +273,63 @@ describe('TrpcWebSocketServer', () => {
       trpcSessionCapRejectedLastMinute: 0,
       trpcParticipantCapRejectedLastMinute: 0,
     });
+  });
+
+  it('erhält eine aktive tRPC-Subscription beim Transport-Reconnect mit neuem Binding', async () => {
+    const url = await startServer({ maxConnectionsPerSession: 1 });
+    let binding = {
+      sessionCode: 'AAA111',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    };
+    const client = createWSClient({
+      url,
+      WebSocket: WebSocket as unknown as typeof globalThis.WebSocket,
+      connectionParams: () => binding,
+      retryDelayMs: () => 0,
+      lazy: { enabled: true, closeMs: 60_000 },
+    });
+    trpcWsClients.push(client);
+    const trpc = createTRPCProxyClient<typeof testRouter>({
+      links: [wsLink({ client })],
+    });
+    let dataEvents = 0;
+    let subscriptionErrors = 0;
+    const subscription = trpc.persistentUpdates.subscribe(undefined, {
+      onData() {
+        dataEvents += 1;
+      },
+      onError() {
+        subscriptionErrors += 1;
+      },
+    });
+    await waitForTelemetry(
+      () => dataEvents === 1 && getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1,
+    );
+    const previousConnectionId = client.connection?.id;
+
+    binding = {
+      sessionCode: 'BBB222',
+      participantId: '22222222-2222-4222-8222-222222222222',
+    };
+    client.connection?.ws.close(3001, 'binding changed');
+
+    await waitForTelemetry(
+      () =>
+        dataEvents >= 2 &&
+        client.connection?.id !== previousConnectionId &&
+        getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 1,
+    );
+    expect(subscriptionErrors).toBe(0);
+
+    // A muss nach dem Close freigegeben sein, obwohl dieselbe Subscription
+    // auf der neuen, an B gebundenen Verbindung weiterläuft.
+    const newSessionAClient = await connect(url);
+    newSessionAClient.send(
+      connectionParamsMessage('AAA111', '33333333-3333-4333-8333-333333333333'),
+    );
+    await waitForTelemetry(() => getWebSocketTelemetrySnapshot().trpcBoundConnectionsActive === 2);
+    expect(newSessionAClient.readyState).toBe(WebSocket.OPEN);
+    subscription.unsubscribe();
   });
 
   it('behandelt ungültige Binding-Signale fail-safe und verarbeitet normale Frames weiter', async () => {

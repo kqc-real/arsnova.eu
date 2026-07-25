@@ -243,8 +243,72 @@ export function refreshTrpcWsBinding(): boolean {
   const nextFingerprint = createWsBindingFingerprint(resolveWsParticipantBinding());
   if (nextFingerprint === activeWsBindingFingerprint) return false;
   activeWsBindingFingerprint = nextFingerprint;
-  bindingRefreshPromise = bindingRefreshPromise.catch(() => undefined).then(() => wsClient.close());
+  bindingRefreshPromise = bindingRefreshPromise
+    .catch(() => undefined)
+    .then(() => reconnectWsForBindingChange());
   return true;
+}
+
+function reconnectWsForBindingChange(): Promise<void> {
+  if (!wsClient) return Promise.resolve();
+  const connection = wsClient.connection;
+  if (!connection || connection.state === 'closed') return Promise.resolve();
+  if (connection.state === 'connecting') {
+    return new Promise<void>((resolve) => {
+      let subscription: { unsubscribe(): void } | null = null;
+      subscription = wsClient.connectionState.subscribe({
+        next(state) {
+          if (state.state !== 'pending' && state.state !== 'idle') return;
+          queueMicrotask(() => {
+            subscription?.unsubscribe();
+            void reconnectWsForBindingChange().then(resolve);
+          });
+        },
+      });
+    });
+  }
+
+  return new Promise<void>((resolve) => {
+    const previousConnectionId = connection.id;
+    let closeObserved = false;
+    let settled = false;
+    let stateSubscription: { unsubscribe(): void } | null = null;
+
+    const finish = (): void => {
+      if (settled) return;
+      settled = true;
+      stateSubscription?.unsubscribe();
+      resolve();
+    };
+
+    stateSubscription = wsClient.connectionState.subscribe({
+      next(state) {
+        if (
+          closeObserved &&
+          state.state === 'pending' &&
+          wsClient.connection?.id !== previousConnectionId
+        ) {
+          finish();
+        }
+      },
+    });
+
+    connection.ws.addEventListener(
+      'close',
+      () => {
+        closeObserved = true;
+        queueMicrotask(() => {
+          // Ohne aktive Subscription reconnectet der lazy Client nicht selbst.
+          // Dann darf die wartende neue Operation den frischen Socket öffnen.
+          if (wsClient.connectionState.get().state !== 'connecting') finish();
+        });
+      },
+      { once: true },
+    );
+    // Nur den Transport schließen: `WsClient.close()` würde aktive
+    // Subscription-Requests abschließen statt sie beim Reconnect erneut zu senden.
+    connection.ws.close(3001, 'binding changed');
+  });
 }
 
 async function waitForBindingRefresh(): Promise<void> {
