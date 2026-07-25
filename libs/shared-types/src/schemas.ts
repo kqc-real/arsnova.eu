@@ -3064,6 +3064,14 @@ export const HealthSecurityStatsDTOSchema = z.object({
   sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
+  /** Hartes globales Verbindungslimit des tRPC-WebSocket-Servers. */
+  trpcWebSocketConnectionLimit: z.number().int().min(1),
+  /** Wegen Upgrade-Rate oder Verbindungscap abgelehnte tRPC-WebSocket-Upgrades. */
+  trpcWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
+  /** Wegen Überschreitung des festen 2-MiB-Payload-Limits verworfene Nachrichten. */
+  trpcWebSocketPayloadRejectedLastMinute: z.number().int().min(0),
+  /** Wegen Verbindungs- oder Globalbudget geschlossene tRPC-WebSockets. */
+  trpcWebSocketRateLimitedMessagesLastMinute: z.number().int().min(0),
   /** Momentan aktive Verbindungen am Yjs-Relay. */
   yjsWebSocketConnectionsActive: z.number().int().min(0),
   /** Momentan aktive Quiz-Sammlungsräume am Yjs-Relay. */

@@ -122,6 +122,10 @@ beforeEach(() => {
   vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(0);
   vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
     trpcConnectionsActive: 0,
+    trpcConnectionLimit: 1_000,
+    trpcRejectedUpgradesLastMinute: 0,
+    trpcPayloadRejectedLastMinute: 0,
+    trpcRateLimitedMessagesLastMinute: 0,
     yjsConnectionsActive: 0,
     yjsRoomsActive: 0,
     yjsConnectionLimit: 1_000,
@@ -327,6 +331,10 @@ describe('health.stats', () => {
     vi.mocked(readSessionCodeGlobalSoftCapUtilization).mockResolvedValue(82);
     vi.mocked(getWebSocketTelemetrySnapshot).mockReturnValue({
       trpcConnectionsActive: 321,
+      trpcConnectionLimit: 1_000,
+      trpcRejectedUpgradesLastMinute: 6,
+      trpcPayloadRejectedLastMinute: 2,
+      trpcRateLimitedMessagesLastMinute: 8,
       yjsConnectionsActive: 45,
       yjsRoomsActive: 12,
       yjsConnectionLimit: 1_000,
@@ -361,6 +369,10 @@ describe('health.stats', () => {
         other: 0,
       },
       trpcWebSocketConnectionsActive: 321,
+      trpcWebSocketConnectionLimit: 1_000,
+      trpcWebSocketRejectedUpgradesLastMinute: 6,
+      trpcWebSocketPayloadRejectedLastMinute: 2,
+      trpcWebSocketRateLimitedMessagesLastMinute: 8,
       yjsWebSocketConnectionsActive: 45,
       yjsWebSocketRoomsActive: 12,
       yjsWebSocketConnectionLimit: 1_000,

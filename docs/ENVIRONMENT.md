@@ -27,6 +27,11 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `PORT`                                                 | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                                                           |
 | `HOST`                                                 | nein         | —                          | **Kein** eigener Reader für den HTTP-Server. Wird nur als Fallback für die Bind-Adresse des Yjs-Relays genutzt, wenn `YJS_WS_HOST` fehlt                            |
 | `WS_PORT`                                              | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                                               |
+| `WS_HOST`                                              | nein         | `0.0.0.0`                  | Bind-Adresse des tRPC-WebSocket-Servers                                                                                                                             |
+| `TRPC_WS_MAX_CONNECTIONS`                              | nein         | `1000`                     | Globales tRPC-WebSocket-Verbindungscap je Backend-Prozess; Code-Maximum `5000`                                                                                      |
+| `TRPC_WS_MAX_UPGRADES_PER_MINUTE`                      | nein         | `3000`                     | Globales Upgrade-Budget ohne IP-Bucket; sechs volle 500er-Wellen, Code-Maximum `30000`                                                                              |
+| `TRPC_WS_MAX_MESSAGES_PER_10_SECONDS`                  | nein         | `120`                      | Nachrichtenbudget je tRPC-WebSocket und 10 Sekunden; Code-Maximum `1200`                                                                                            |
+| `TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS`           | nein         | `30000`                    | Globales Nachrichtenbudget je Backend-Prozess und 10 Sekunden; Code-Maximum `300000`                                                                                |
 | `YJS_WS_PORT`                                          | nein         | `3002`                     | Gehärteter Yjs-Relay für den Quiz-Sync                                                                                                                              |
 | `YJS_WS_HOST`                                          | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Relays. **Nicht** nur `127.0.0.1` im Container, sonst scheitert `wss://…/yjs-ws` hinter Nginx                                                  |
 | `YJS_WS_MAX_CONNECTIONS`                               | nein         | `1000`                     | Globales Verbindungscap je Backend-Prozess; Code-Maximum `2000`                                                                                                     |
@@ -88,6 +93,15 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 ### tRPC-Payload-Limits
 
 tRPC-HTTP-Anfragen und tRPC-WebSocket-Nachrichten sind fest auf **2 MiB** begrenzt (`TRPC_MAX_BODY_SIZE_BYTES` in `apps/backend/src/lib/requestLimits.ts`). Übergroße WebSocket-Nachrichten werden mit Close-Code `1009` beendet. Die Nginx-Produktionskonfiguration verwendet für HTTP mit `client_max_body_size 8m;` ein separates Infrastruktur-Hard-Cap oberhalb dieser Grenze. Dadurch erzeugt tRPC die anwendungsspezifische, auch für `httpBatchLink` kompatible HTTP-413-Antwort; Nginx verwirft nur deutlich größere HTTP-Requests vor dem Backend. Die Limits sind bewusst nicht per Env abschaltbar; Änderungen erfordern Code-, Test- und Deployment-Review.
+
+Der tRPC-WebSocket-Server begrenzt zusätzlich pro Backend-Prozess aktive
+Verbindungen, Upgrade-Versuche sowie Nachrichten je Verbindung und global.
+Die Defaults lassen 1.000 gleichzeitige Verbindungen und 3.000 Upgrades pro
+Minute zu. Damit passen zwei 500er-Kohorten beziehungsweise sechs vollständige
+500er-Reconnect-Wellen in die Standardbudgets. Es gibt bewusst kein IP-Bucket:
+Teilnehmende hinter derselben Schul-/Hochschul-NAT blockieren einander nicht.
+Participant-/Session-Binding und clientseitiger Reconnect-Jitter folgen separat
+in W2.3b.
 
 `quiz.upload` besitzt zusätzlich fachliche Zod-Caps: maximal **200 Fragen**, **10 Antwortoptionen je Frage** und **1.250.000 UTF-8-Bytes** für den validierten Quiz-Payload. Ein Classroom-Fixture mit 100 Fragen und je vier Optionen liegt darunter. Diese Grenze ergänzt das 2-MiB-Infrastrukturlimit und ist bewusst nicht per Env abschaltbar.
 
