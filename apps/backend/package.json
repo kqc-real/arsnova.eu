@@ -22,7 +22,6 @@
     "@trpc/server": "^11.0.0",
     "@types/pdfkit": "^0.17.5",
     "@y/websocket-server": "0.1.1",
-    "@y/y": "^14.0.0-22",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
@@ -43,6 +42,7 @@
     "undici": "^7.28.0",
     "ws": "^8.21.1",
     "y-websocket": "^3.0.0",
+    "yjs": "^13.6.31",
     "zod": "^4.0.0"
   },
   "devDependencies": {

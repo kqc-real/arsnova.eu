@@ -455,6 +455,17 @@ async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     sessionCodeSoftCapDelaysLastMinute: abuseSignals.sessionCodeSoftCapDelaysLastMinute,
     sessionCodeGlobalSoftCapUtilizationPercent,
     trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
+    yjsWebSocketConnectionsActive: webSocketSnapshot.yjsConnectionsActive,
+    yjsWebSocketRoomsActive: webSocketSnapshot.yjsRoomsActive,
+    yjsWebSocketConnectionLimit: webSocketSnapshot.yjsConnectionLimit,
+    yjsWebSocketPerRoomConnectionLimit: webSocketSnapshot.yjsPerRoomConnectionLimit,
+    yjsWebSocketRejectedUpgradesLastMinute: webSocketSnapshot.yjsRejectedUpgradesLastMinute,
+    yjsWebSocketPayloadRejectedLastMinute: webSocketSnapshot.yjsPayloadRejectedLastMinute,
+    yjsWebSocketRateLimitedMessagesLastMinute: webSocketSnapshot.yjsRateLimitedMessagesLastMinute,
+    yjsWebSocketProtocolErrorsLastMinute: webSocketSnapshot.yjsProtocolErrorsLastMinute,
+    yjsWebSocketDocumentRejectedLastMinute: webSocketSnapshot.yjsDocumentRejectedLastMinute,
+    yjsWebSocketAwarenessRejectedLastMinute: webSocketSnapshot.yjsAwarenessRejectedLastMinute,
+    yjsWebSocketOutboundRejectedLastMinute: webSocketSnapshot.yjsOutboundRejectedLastMinute,
   };
 }
 

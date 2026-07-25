@@ -1,6 +1,7 @@
 node_modules
 dist
 .angular
+**/.angular
 .git
 .github
 *.md

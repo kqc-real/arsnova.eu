@@ -3064,6 +3064,28 @@ export const HealthSecurityStatsDTOSchema = z.object({
   sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */
   trpcWebSocketConnectionsActive: z.number().int().min(0),
+  /** Momentan aktive Verbindungen am Yjs-Relay. */
+  yjsWebSocketConnectionsActive: z.number().int().min(0),
+  /** Momentan aktive Quiz-Sammlungsräume am Yjs-Relay. */
+  yjsWebSocketRoomsActive: z.number().int().min(0),
+  /** Hartes globales Verbindungslimit des Yjs-Relays. */
+  yjsWebSocketConnectionLimit: z.number().int().min(1),
+  /** Hartes Verbindungslimit je Yjs-Raum. */
+  yjsWebSocketPerRoomConnectionLimit: z.number().int().min(1),
+  /** Abgelehnte Yjs-Upgrades der letzten Minute (Pfad, Rate oder Verbindungscap). */
+  yjsWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
+  /** Wegen Überschreitung des konfigurierten Einzelpayload-Limits verworfene Yjs-Nachrichten. */
+  yjsWebSocketPayloadRejectedLastMinute: z.number().int().min(0),
+  /** Wegen Nachrichten- oder Bytebudgets geschlossene Yjs-Verbindungen der letzten Minute. */
+  yjsWebSocketRateLimitedMessagesLastMinute: z.number().int().min(0),
+  /** Wegen ungültiger Yjs-/Awareness-Protokollframes geschlossene Verbindungen. */
+  yjsWebSocketProtocolErrorsLastMinute: z.number().int().min(0),
+  /** Wegen Raum- oder Globalcap nicht übernommene Yjs-Dokumentupdates. */
+  yjsWebSocketDocumentRejectedLastMinute: z.number().int().min(0),
+  /** Wegen Awareness-Eintrags-, neuer ID- oder Zustandsgrößenlimits geschlossene Verbindungen. */
+  yjsWebSocketAwarenessRejectedLastMinute: z.number().int().min(0),
+  /** Wegen ausgeschöpfter ausgehender Bytebudgets geschlossene Verbindungen. */
+  yjsWebSocketOutboundRejectedLastMinute: z.number().int().min(0),
 });
 
 export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;

@@ -17,7 +17,6 @@ import process from 'node:process';
 import WebSocket from 'ws';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { writeScenarioReport } from './lib/reporting.mjs';
 
 const EXIT_OK = 0;
 const EXIT_TEST_FAILED = 1;
@@ -38,6 +37,7 @@ Konfiguration:
   UPDATE_CONCURRENCY     Gleichzeitige Update-Worker (Default: 15)
   CONNECT_P95_LIMIT_MS   Obergrenze fuer Connect-p95 (Default: 3000)
   SYNC_P95_LIMIT_MS      Obergrenze fuer Sync-p95 (Default: 5000)
+  LIBRARY_PAYLOAD_BYTES  Reale Sammlungsgröße für das Payload-Gate (Default: 3145728)
   REPORT_FILE            Optionaler Pfad fuer einen atomar geschriebenen JSON-Report
 
 Optionale Teststeuerung:
@@ -98,6 +98,7 @@ function readConfig() {
     updateConcurrency: Math.min(clients, readPositiveInteger('UPDATE_CONCURRENCY', 15)),
     connectP95LimitMs: readPositiveInteger('CONNECT_P95_LIMIT_MS', 3_000),
     syncP95LimitMs: readPositiveInteger('SYNC_P95_LIMIT_MS', 5_000),
+    libraryPayloadBytes: readPositiveInteger('LIBRARY_PAYLOAD_BYTES', 3 * 1024 * 1024),
     phaseTimeoutMs: readPositiveInteger('PHASE_TIMEOUT_MS', 15_000),
     reconnectPercent: readPercent('RECONNECT_PERCENT', 20),
     reportFile: String(process.env.REPORT_FILE || '').trim() || null,
@@ -110,6 +111,39 @@ class ConfigurationError extends Error {}
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+/** Wartet auf connection-close aller Clients, bevor der Raum neu verbunden wird. */
+async function waitForProviderCloses(clients, timeoutMs) {
+  await Promise.all(
+    clients.map(
+      (client) =>
+        new Promise((resolve, reject) => {
+          const provider = client.provider;
+          if (!provider.wsconnected && !provider.wsconnecting) {
+            resolve();
+            return;
+          }
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(
+              new Error(
+                `Client ${client.index + 1} schloss die Verbindung nicht innerhalb von ${timeoutMs} ms.`,
+              ),
+            );
+          }, timeoutMs);
+          const onClose = () => {
+            cleanup();
+            resolve();
+          };
+          const cleanup = () => {
+            clearTimeout(timeout);
+            provider.off('connection-close', onClose);
+          };
+          provider.on('connection-close', onClose);
+        }),
+    ),
+  );
 }
 
 function percentile(values, percentage) {
@@ -301,6 +335,22 @@ function applyConflictingUpdate(client, phase, runId) {
   );
 }
 
+function applyLargeLibrarySnapshot(client, payloadBytes, runId) {
+  const root = client.doc.getMap(ROOT_KEY);
+  root.set(
+    QUIZZES_KEY,
+    JSON.stringify([
+      {
+        id: `payload-gate-${runId}`,
+        name: 'Sammlungs-Payload-Gate',
+        description: 'x'.repeat(payloadBytes),
+        updatedAt: new Date().toISOString(),
+        questions: [],
+      },
+    ]),
+  );
+}
+
 async function runUpdateWave(clients, concurrency, phase, runId) {
   await mapLimit(clients, concurrency, async (client) => {
     client.doc.transact(() => applyConflictFreeUpdate(client, phase, runId), `${phase}-unique`);
@@ -345,6 +395,8 @@ function printSummary(report) {
   console.log(`Clients: ${report.config.clients} (${report.reconnect.clients} reconnectet)`);
   console.log(`Initial Connect: ${format(report.initial.connect)}`);
   console.log(`Initial Sync:    ${format(report.initial.sync)}`);
+  console.log(`Groß-Reconnect:  ${format(report.reconnect.largeLibrarySync)}`);
+  console.log(`Relay-Neustart:  ${format(report.reconnect.emptyRelayResync)}`);
   console.log(`Reconnect:       ${format(report.reconnect.connect)}`);
   console.log(`Resync:          ${format(report.reconnect.sync)}`);
   console.log(
@@ -361,6 +413,8 @@ async function execute(config) {
   const clients = Array.from({ length: config.clients }, (_, index) => createClient(index, config));
   const failures = [];
   let initialResults = [];
+  let payloadReconnectResults = [];
+  let payloadRestartResults = [];
   let reconnectResults = [];
   let initialConvergence = null;
   let reconnectConvergence = null;
@@ -391,12 +445,61 @@ async function execute(config) {
         'Initiale Update-Welle',
       );
 
-      console.log(`Trenne und reconnecte ${reconnectingClients.length} Clients …`);
+      console.log(
+        `Synchronisiere reale Quiz-Sammlung mit mindestens ${config.libraryPayloadBytes} Bytes …`,
+      );
+      clients[0].doc.transact(
+        () => applyLargeLibrarySnapshot(clients[0], config.libraryPayloadBytes, runId),
+        'library-payload-gate',
+      );
+      await waitForConvergence(clients, config.phaseTimeoutMs, 'Sammlungs-Payload-Gate');
+
+      console.log(
+        `Reconnecte ${reconnectingClients.length} Clients mit weiterhin aktiver großer Sammlung …`,
+      );
       for (const client of reconnectingClients) {
         client.intentionalDisconnect = true;
         client.provider.disconnect();
       }
-      await sleep(250);
+      await waitForProviderCloses(reconnectingClients, config.phaseTimeoutMs);
+      const payloadReconnectStartedAt = performance.now();
+      const payloadReconnectWave = await settleConnectionWave(
+        reconnectingClients,
+        payloadReconnectStartedAt,
+        Math.max(config.phaseTimeoutMs, config.syncP95LimitMs * 2),
+      );
+      payloadReconnectResults = payloadReconnectWave.results;
+      failures.push(...payloadReconnectWave.failures);
+      await waitForConvergence(clients, config.phaseTimeoutMs, 'Reconnect mit großer Sammlung');
+
+      console.log('Leere den Relay-Raum und lade den vollständigen Clientzustand erneut hoch …');
+      for (const client of clients) {
+        client.intentionalDisconnect = true;
+        client.provider.disconnect();
+      }
+      await waitForProviderCloses(clients, config.phaseTimeoutMs);
+      const payloadRestartStartedAt = performance.now();
+      const payloadRestartWave = await settleConnectionWave(
+        clients,
+        payloadRestartStartedAt,
+        Math.max(config.phaseTimeoutMs, config.syncP95LimitMs * 2),
+      );
+      payloadRestartResults = payloadRestartWave.results;
+      failures.push(...payloadRestartWave.failures);
+      await waitForConvergence(
+        clients,
+        config.phaseTimeoutMs,
+        'Vollständiger Re-Upload nach leerem Relay-Raum',
+      );
+
+      console.log(
+        `Trenne und reconnecte ${reconnectingClients.length} Clients mit Offline-Updates …`,
+      );
+      for (const client of reconnectingClients) {
+        client.intentionalDisconnect = true;
+        client.provider.disconnect();
+      }
+      await waitForProviderCloses(reconnectingClients, config.phaseTimeoutMs);
       await runUpdateWave(reconnectingClients, config.updateConcurrency, 'offline', runId);
       const onlineClients = clients.filter((client) => !reconnectingClients.includes(client));
       if (onlineClients.length > 0) {
@@ -434,6 +537,12 @@ async function execute(config) {
 
   const initialConnect = metrics(initialResults.map(({ connectMs }) => connectMs));
   const initialSync = metrics(initialResults.map(({ syncMs }) => syncMs));
+  const payloadReconnectConnect = metrics(
+    payloadReconnectResults.map(({ connectMs }) => connectMs),
+  );
+  const payloadReconnectSync = metrics(payloadReconnectResults.map(({ syncMs }) => syncMs));
+  const payloadRestartConnect = metrics(payloadRestartResults.map(({ connectMs }) => connectMs));
+  const payloadRestartSync = metrics(payloadRestartResults.map(({ syncMs }) => syncMs));
   const reconnectConnect = metrics(reconnectResults.map(({ connectMs }) => connectMs));
   const reconnectSync = metrics(reconnectResults.map(({ syncMs }) => syncMs));
   const providerErrors = clients.flatMap((client) =>
@@ -451,6 +560,26 @@ async function execute(config) {
   if (initialSync.p95Ms === null || initialSync.p95Ms > config.syncP95LimitMs) {
     failures.push(
       `Initial Sync-p95 ${initialSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
+    );
+  }
+  if (payloadReconnectConnect.samples !== reconnectingClients.length) {
+    failures.push(
+      `Nur ${payloadReconnectConnect.samples}/${reconnectingClients.length} Clients mit großer Sammlung reconnectet.`,
+    );
+  }
+  if (payloadReconnectSync.p95Ms === null || payloadReconnectSync.p95Ms > config.syncP95LimitMs) {
+    failures.push(
+      `Große-Sammlung-Resync-p95 ${payloadReconnectSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
+    );
+  }
+  if (payloadRestartConnect.samples !== clients.length) {
+    failures.push(
+      `Nur ${payloadRestartConnect.samples}/${clients.length} Clients nach leerem Relay-Raum reconnectet.`,
+    );
+  }
+  if (payloadRestartSync.p95Ms === null || payloadRestartSync.p95Ms > config.syncP95LimitMs) {
+    failures.push(
+      `Vollständiger-Re-Upload-p95 ${payloadRestartSync.p95Ms ?? 'fehlt'} ms ueberschreitet ${config.syncP95LimitMs} ms.`,
     );
   }
   if (reconnectConnect.samples !== reconnectingClients.length) {
@@ -483,6 +612,7 @@ async function execute(config) {
       updateConcurrency: config.updateConcurrency,
       connectP95LimitMs: config.connectP95LimitMs,
       syncP95LimitMs: config.syncP95LimitMs,
+      libraryPayloadBytes: config.libraryPayloadBytes,
     },
     initial: {
       connect: initialConnect,
@@ -492,6 +622,10 @@ async function execute(config) {
     },
     reconnect: {
       clients: reconnectingClients.length,
+      largeLibraryConnect: payloadReconnectConnect,
+      largeLibrarySync: payloadReconnectSync,
+      emptyRelayReconnect: payloadRestartConnect,
+      emptyRelayResync: payloadRestartSync,
       connect: reconnectConnect,
       sync: reconnectSync,
       convergenceMs: reconnectConvergence?.latencyMs ?? null,
@@ -515,6 +649,7 @@ async function main() {
   const report = await execute(config);
   printSummary(report);
   if (config.reportFile) {
+    const { writeScenarioReport } = await import('./lib/reporting.mjs');
     await writeScenarioReport({
       filePath: config.reportFile,
       scenario: report.scenario,

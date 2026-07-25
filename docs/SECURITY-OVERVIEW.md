@@ -12,6 +12,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 
 - **Accountfrei:** Kein Nutzer-/Login-Modell für Lehrende oder Teilnehmende. Identität **realer Personen** hält die App nicht fest; Pseudonyme und freiwillige Einreichung von Bonus-Codes sind dokumentiert ([bonus-codes](features/bonus-codes.md)).
 - **Local-First (Quiz):** Dauerhafte **Quiz-Sammlung** primär im Browser (Yjs); Server erhält eine **flüchtige Kopie** für die Live-Session ([ADR-0004](architecture/decisions/0004-use-yjs-for-local-first-storage.md), Handbook §3.1).
+- **Quiz-Sync-Zugriff:** Der Relay akzeptiert ausschließlich `quiz-library-room-<UUID>`. Die Raum-UUID bleibt bis zum separaten Share-Token-Slice ein langlebiges Bearer-Secret: Wer den Link kennt, kann lesen und schreiben. Das Zielbild für signierte Share-Tokens und manuelle Rotation dokumentiert [ADR-0033](architecture/decisions/0033-harden-yjs-relay-and-plan-rotatable-share-tokens.md).
 
 ---
 
@@ -52,6 +53,23 @@ Backend-Entscheidungen verwenden ausschließlich Express' `req.ip`; rohe
 gesetzt sein, damit andere grobe IP-Budgets nicht alle Clients dem
 Proxy-Bucket zuordnen. Der separate tRPC-WebSocket-Server verwendet für
 Upgrade-Requests dieselbe `proxy-addr`-/Hop-Vertrauensfunktion wie Express.
+
+Der Yjs-Relay begrenzt Einzelpayloads standardmäßig auf 16 MiB, aktive
+Verbindungen global und pro Raum sowie Upgrade-, Nachrichten- und Bytebudgets
+je Verbindung, Raum und Backend-Prozess. Der zusammengeführte Zustand ist auf
+15 MiB je Raum und 256 MiB global begrenzt; tatsächlich versendete Bytes haben
+eigene gestufte Budgets gegen Sync-/Reconnect-Verstärkung. Pro Verbindung darf
+höchstens eine neue Awareness-ID mit maximal 4 KiB State eingeführt werden;
+bereits bekannte Peer-IDs dürfen Provider standardkonform rebroadcasten.
+Dadurch begrenzt das Raum-Verbindungscap auch persistent gehaltene
+Präsenzdaten. Diese Grenzen sind
+bewusst nicht IP-basiert, damit Einrichtungen hinter gemeinsamem NAT nicht
+ausgesperrt werden. Nicht kanonische Raumpfade und Query-Parameter werden vor
+dem Upgrade abgewiesen; inaktive In-Memory-Dokumente und ihre Reservierungen
+werden nach der letzten Verbindung freigegeben. Ungültige Protokollframes
+werden ohne attacker-kontrollierte Logs gezählt und getrennt. Aktive
+Yjs-Verbindungen/Räume und Ablehnungen sind nur über das
+diagnose-authentifizierte `health.securityStats` sichtbar.
 
 `quiz.upload` und Standalone-`quickFeedback.create` verwenden großzügige
 Shared-NAT-IP-Budgets zusammen mit globalen Budgets. Gefälschte Proxy-Header

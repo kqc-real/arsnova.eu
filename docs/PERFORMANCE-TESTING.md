@@ -118,6 +118,14 @@ SOAK_DURATION_MINUTES=30 npm run load:soak:live-session
 SOAK_DURATION_MINUTES=60 npm run load:soak:live-session
 ```
 
+Der Yjs-Lauf prüft initiale und konkurrierende Updates, trennt standardmäßig
+20 % der Clients, erzeugt während der Offline-Phase weitere Änderungen und
+fordert nach Reconnect einen gemeinsamen State Vector. Die W2.2-Grenzen sind
+raum-/global bzw. verbindungsbezogen, nicht IP-basiert. Der 30-Client-Lauf ist
+das bestehende Merge-Gate; höhere Raumlasten sind separate
+Skalierungscharakterisierung und dürfen nicht ohne eigene Baseline zum Gate
+erklärt werden.
+
 Die k6-Szenarien decken Health, Session-Join/Polling und gezielte Session-Hotpaths ab:
 
 ```bash
