@@ -392,11 +392,13 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
 - Die Raum-ID-Erzeugung basiert auf `crypto.randomUUID()` sofern verfügbar.
 - Der Relay akzeptiert ausschließlich `quiz-library-room-<UUID>`, normalisiert
   die UUID und verwirft abweichende Pfade oder Query-Parameter vor dem Upgrade.
-- Einzelne WebSocket-Nachrichten sind auf 2 MiB begrenzt. Großzügige globale und
-  raumbezogene Verbindungs-/Upgrade-Caps sowie ein Nachrichtenbudget wirken ohne
-  enge IP-Limits.
-- Aktive Yjs-Verbindungen/Räume sowie Upgrade-, Payload- und
-  Nachrichtenraten-Ablehnungen sind über `health.securityStats` sichtbar.
+- Einzelne WebSocket-Nachrichten sind standardmäßig auf 16 MiB begrenzt, weil
+  die vollständige Quiz-Sammlung als ein JSON-String im Yjs-Dokument liegt.
+  Großzügige Verbindungs-/Upgrade-Caps sowie gestufte Nachrichten- und
+  Bytebudgets je Verbindung, Raum und Backend-Prozess wirken ohne enge
+  IP-Limits.
+- Aktive Yjs-Verbindungen/Räume sowie Upgrade-, Payload-, Budget- und
+  Protokoll-Ablehnungen sind über `health.securityStats` sichtbar.
 
 Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
 

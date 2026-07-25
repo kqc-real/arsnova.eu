@@ -205,9 +205,10 @@ Statt „max. 20 Verbindungen pro IP“:
 | W2.5 | CORS in Produktion auf eigene Origins beschränken oder entfernen                                                                                                                                                                                               | Same-Origin-Flows ok                                                               |
 
 **Umsetzungsstand 2026-07-25:** W2.2 Slice A ersetzt den ungefilterten
-Yjs-Paket-Entry durch einen Relay mit UUID-Pfad-, 2-MiB-Payload-,
-Verbindungs-/Upgrade-/Nachrichtenraten-Grenzen und Diagnosemetriken. Die
-Abnahme steht in
+Yjs-Paket-Entry durch einen Relay mit UUID-Pfad-, 16-MiB-Einzelpayload-,
+Verbindungs-/Upgrade- sowie gestuften Nachrichten-/Bytebudgets je Verbindung,
+Raum und Backend-Prozess. Parserfehler werden ohne ungefilterte Logausgabe
+gezählt und fail-closed getrennt. Die Abnahme steht in
 [W2.2-YJS-RELAY-HARDENING-ABNAHME.md](implementation/W2.2-YJS-RELAY-HARDENING-ABNAHME.md).
 Signierte langlebige Share-Tokens und manuelle Rotation bleiben der getrennte
 Slice B aus W3.4; das Zielbild ist in

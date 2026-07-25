@@ -30,10 +30,15 @@ Der Backend-Prozess betreibt einen eigenen Yjs-Relay und verwendet
 
 - ausschließlich Pfade `quiz-library-room-<UUID>`,
 - kanonische Kleinschreibung der UUID als interner Dokumentname,
-- festes Payload-Limit von 2 MiB,
+- konfigurierbares Einzelpayload-Limit von standardmäßig 16 MiB (hartes
+  Code-Maximum 32 MiB), damit die als ein Yjs-String serialisierte
+  Quiz-Sammlung nicht bereits nach zwei größeren Quiz-Uploads dauerhaft vom
+  Reconnect ausgeschlossen wird,
 - großzügige globale und raumbezogene Verbindungscaps,
-- globale und raumbezogene Upgrade-Budgets sowie ein Nachrichtenbudget je
-  Verbindung,
+- globale und raumbezogene Upgrade-Budgets sowie gestufte Nachrichten- und
+  Bytebudgets je Verbindung, Raum und Backend-Prozess,
+- protokollseitige Parserfehler ohne attacker-kontrollierte Logausgabe mit
+  Diagnosezähler und sofortiger Verbindungstrennung,
 - keine IP-basierten Yjs-Buckets,
 - Freigabe ungenutzter In-Memory-Dokumente nach der letzten Verbindung,
 - schema-definierte Diagnosemetriken für aktive Räume/Verbindungen und
@@ -90,6 +95,11 @@ keine Frontendänderung in W2.2.
 - Bis Slice B bleibt Kenntnis der Raum-UUID voller Schreibzugriff.
 - Caps und Budgets sind pro Backend-Prozess; horizontale Skalierung benötigt
   gemeinsame Admission-Control und Yjs-Pub/Sub oder Sticky Sessions.
+- 16 MiB sind eine bewusst großzügige, aber endliche Produktgrenze für die
+  vollständig serialisierte Sammlung. Sammlungen darüber können nicht
+  synchronisiert werden; die Grenze kann betrieblich bis maximal 32 MiB
+  angehoben werden. Eine spätere normalisierte CRDT-Struktur bleibt eine
+  eigenständige Produkt-/Migrationsentscheidung.
 - Das spätere Rotationsmodell benötigt langlebige minimale Metadaten und einen
   Recovery-Entscheid für verlorene Rotations-Capabilities.
 - Ein Gerät mit altem Token arbeitet nach Rotation weiter lokal, kann seine

@@ -207,7 +207,8 @@ BASE_URL=http://localhost:4200 LOCALE=de npm run smoke:quiz-sync -w @arsnova/fro
 
 Die Relay-Unit-/Integrationssuite prüft zusätzlich strikte
 `quiz-library-room-<UUID>`-Upgrades, globale und raumbezogene Connection-/
-Upgrade-Caps, 2-MiB-Payloads und das Nachrichtenbudget:
+Upgrade-Caps, die 16-MiB-Produktgrenze, viele kleine und wiederholte große
+Frames, gestufte Nachrichten-/Bytebudgets sowie kontrollierte Parserfehler:
 
 ```bash
 npm test -w @arsnova/backend -- --run src/lib/yjsRelay.test.ts

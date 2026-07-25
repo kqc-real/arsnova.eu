@@ -493,9 +493,9 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   Dateien beschreibbar.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
-- Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt Payloads
-  fest auf 2 MiB und nutzt großzügige globale/raumbezogene Caps ohne
-  IP-Lockout.
+- Der Yjs-Relay akzeptiert nur `quiz-library-room-<UUID>`, begrenzt
+  Einzelpayloads standardmäßig auf 16 MiB und nutzt gestufte Nachrichten- und
+  Bytebudgets je Verbindung, Raum und Backend-Prozess ohne IP-Lockout.
 
 Start immer mit der Repo-Datei:
 
@@ -527,7 +527,13 @@ YJS_WS_MAX_CONNECTIONS=1000
 YJS_WS_MAX_CONNECTIONS_PER_ROOM=200
 YJS_WS_MAX_UPGRADES_PER_MINUTE=3000
 YJS_WS_MAX_UPGRADES_PER_ROOM_PER_MINUTE=600
+YJS_WS_MAX_PAYLOAD_BYTES=16777216
 YJS_WS_MAX_MESSAGES_PER_10_SECONDS=600
+YJS_WS_MAX_BYTES_PER_10_SECONDS=33554432
+YJS_WS_MAX_MESSAGES_PER_ROOM_PER_10_SECONDS=6000
+YJS_WS_MAX_BYTES_PER_ROOM_PER_10_SECONDS=268435456
+YJS_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS=30000
+YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS=1073741824
 TRUST_PROXY_HOPS=1
 
 ADMIN_SESSION_TTL_SECONDS=28800

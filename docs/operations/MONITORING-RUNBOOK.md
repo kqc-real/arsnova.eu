@@ -167,8 +167,11 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
   Reconnect-Lasttest zusammen bewerten.
 - Yjs-Upgrade-Ablehnungen können ungültige Pfade, Upgrade-Raten oder
   Verbindungs-Caps bedeuten. Payload-Ablehnungen weisen auf Nachrichten über
-  2 MiB hin; Message-Rate-Schließungen auf mehr als das konfigurierte
-  Zehn-Sekunden-Budget einer Verbindung.
+  das konfigurierte Einzelpayload-Limit (Standard 16 MiB) hin;
+  Message-Rate-Schließungen auf ein ausgeschöpftes Nachrichten- oder Bytebudget
+  einer Verbindung, eines Raums oder des Backend-Prozesses. Protokollfehler
+  weisen auf ungültige Yjs-/Awareness-Frames hin; deren Inhalt wird nicht
+  geloggt.
 - Keine IP-basierte WS-Sperre als Sofortmaßnahme setzen; viele legitime Clients
   können dieselbe NAT-IP teilen.
 

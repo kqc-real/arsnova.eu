@@ -3074,10 +3074,12 @@ export const HealthSecurityStatsDTOSchema = z.object({
   yjsWebSocketPerRoomConnectionLimit: z.number().int().min(1),
   /** Abgelehnte Yjs-Upgrades der letzten Minute (Pfad, Rate oder Verbindungscap). */
   yjsWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
-  /** Wegen Überschreitung des 2-MiB-Limits verworfene Yjs-Nachrichten der letzten Minute. */
+  /** Wegen Überschreitung des konfigurierten Einzelpayload-Limits verworfene Yjs-Nachrichten. */
   yjsWebSocketPayloadRejectedLastMinute: z.number().int().min(0),
-  /** Wegen Nachrichtenrate geschlossene Yjs-Verbindungen der letzten Minute. */
+  /** Wegen Nachrichten- oder Bytebudgets geschlossene Yjs-Verbindungen der letzten Minute. */
   yjsWebSocketRateLimitedMessagesLastMinute: z.number().int().min(0),
+  /** Wegen ungültiger Yjs-/Awareness-Protokollframes geschlossene Verbindungen. */
+  yjsWebSocketProtocolErrorsLastMinute: z.number().int().min(0),
 });
 
 export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;

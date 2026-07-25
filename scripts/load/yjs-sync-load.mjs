@@ -37,6 +37,7 @@ Konfiguration:
   UPDATE_CONCURRENCY     Gleichzeitige Update-Worker (Default: 15)
   CONNECT_P95_LIMIT_MS   Obergrenze fuer Connect-p95 (Default: 3000)
   SYNC_P95_LIMIT_MS      Obergrenze fuer Sync-p95 (Default: 5000)
+  LIBRARY_PAYLOAD_BYTES  Reale Sammlungsgröße für das Payload-Gate (Default: 3145728)
   REPORT_FILE            Optionaler Pfad fuer einen atomar geschriebenen JSON-Report
 
 Optionale Teststeuerung:
@@ -97,6 +98,7 @@ function readConfig() {
     updateConcurrency: Math.min(clients, readPositiveInteger('UPDATE_CONCURRENCY', 15)),
     connectP95LimitMs: readPositiveInteger('CONNECT_P95_LIMIT_MS', 3_000),
     syncP95LimitMs: readPositiveInteger('SYNC_P95_LIMIT_MS', 5_000),
+    libraryPayloadBytes: readPositiveInteger('LIBRARY_PAYLOAD_BYTES', 3 * 1024 * 1024),
     phaseTimeoutMs: readPositiveInteger('PHASE_TIMEOUT_MS', 15_000),
     reconnectPercent: readPercent('RECONNECT_PERCENT', 20),
     reportFile: String(process.env.REPORT_FILE || '').trim() || null,
@@ -300,6 +302,22 @@ function applyConflictingUpdate(client, phase, runId) {
   );
 }
 
+function applyLargeLibrarySnapshot(client, payloadBytes, runId) {
+  const root = client.doc.getMap(ROOT_KEY);
+  root.set(
+    QUIZZES_KEY,
+    JSON.stringify([
+      {
+        id: `payload-gate-${runId}`,
+        name: 'Sammlungs-Payload-Gate',
+        description: 'x'.repeat(payloadBytes),
+        updatedAt: new Date().toISOString(),
+        questions: [],
+      },
+    ]),
+  );
+}
+
 async function runUpdateWave(clients, concurrency, phase, runId) {
   await mapLimit(clients, concurrency, async (client) => {
     client.doc.transact(() => applyConflictFreeUpdate(client, phase, runId), `${phase}-unique`);
@@ -382,6 +400,15 @@ async function execute(config) {
     failures.push(...initialWave.failures);
 
     if (initialWave.failures.length === 0) {
+      console.log(
+        `Synchronisiere reale Quiz-Sammlung mit mindestens ${config.libraryPayloadBytes} Bytes …`,
+      );
+      clients[0].doc.transact(
+        () => applyLargeLibrarySnapshot(clients[0], config.libraryPayloadBytes, runId),
+        'library-payload-gate',
+      );
+      await waitForConvergence(clients, config.phaseTimeoutMs, 'Sammlungs-Payload-Gate');
+
       console.log('Fuehre konfliktfreie und konfliktbehaftete Updates aus …');
       await runUpdateWave(clients, config.updateConcurrency, 'initial', runId);
       initialConvergence = await waitForConvergence(
@@ -482,6 +509,7 @@ async function execute(config) {
       updateConcurrency: config.updateConcurrency,
       connectP95LimitMs: config.connectP95LimitMs,
       syncP95LimitMs: config.syncP95LimitMs,
+      libraryPayloadBytes: config.libraryPayloadBytes,
     },
     initial: {
       connect: initialConnect,

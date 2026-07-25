@@ -2,12 +2,12 @@ import { createServer, type IncomingMessage, type Server as HttpServer } from 'n
 import type { Duplex } from 'node:stream';
 import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import { docs, setupWSConnection } from '@y/websocket-server/utils';
-import { TRPC_MAX_BODY_SIZE_BYTES } from './requestLimits';
 import {
   configureYjsWebSocketTelemetry,
   recordYjsWebSocketConnected,
   recordYjsWebSocketDisconnected,
   recordYjsWebSocketPayloadRejected,
+  recordYjsWebSocketProtocolError,
   recordYjsWebSocketRateLimitedMessage,
   recordYjsWebSocketRejectedUpgrade,
 } from './websocketTelemetry';
@@ -16,13 +16,20 @@ const ROOM_PATH_PATTERN =
   /^\/quiz-library-room-([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 const UPGRADE_WINDOW_MS = 60_000;
 const MESSAGE_WINDOW_MS = 10_000;
+const MIB = 1024 * 1024;
 
 export interface YjsRelayLimits {
   maxConnections: number;
   maxConnectionsPerRoom: number;
   maxUpgradesPerMinute: number;
   maxUpgradesPerRoomPerMinute: number;
+  maxPayloadBytes: number;
   maxMessagesPerWindow: number;
+  maxBytesPerWindow: number;
+  maxMessagesPerRoomPerWindow: number;
+  maxBytesPerRoomPerWindow: number;
+  maxMessagesGlobalPerWindow: number;
+  maxBytesGlobalPerWindow: number;
 }
 
 export interface YjsRelayConfig extends YjsRelayLimits {
@@ -35,7 +42,13 @@ const STATIC_LIMIT_MAXIMA: YjsRelayLimits = {
   maxConnectionsPerRoom: 500,
   maxUpgradesPerMinute: 6_000,
   maxUpgradesPerRoomPerMinute: 1_200,
+  maxPayloadBytes: 32 * MIB,
   maxMessagesPerWindow: 1_200,
+  maxBytesPerWindow: 64 * MIB,
+  maxMessagesPerRoomPerWindow: 12_000,
+  maxBytesPerRoomPerWindow: 512 * MIB,
+  maxMessagesGlobalPerWindow: 60_000,
+  maxBytesGlobalPerWindow: 2_048 * MIB,
 };
 
 export const DEFAULT_YJS_RELAY_LIMITS: YjsRelayLimits = {
@@ -43,7 +56,13 @@ export const DEFAULT_YJS_RELAY_LIMITS: YjsRelayLimits = {
   maxConnectionsPerRoom: 200,
   maxUpgradesPerMinute: 3_000,
   maxUpgradesPerRoomPerMinute: 600,
+  maxPayloadBytes: 16 * MIB,
   maxMessagesPerWindow: 600,
+  maxBytesPerWindow: 32 * MIB,
+  maxMessagesPerRoomPerWindow: 6_000,
+  maxBytesPerRoomPerWindow: 256 * MIB,
+  maxMessagesGlobalPerWindow: 30_000,
+  maxBytesGlobalPerWindow: 1_024 * MIB,
 };
 
 function readBoundedPositiveInteger(
@@ -87,11 +106,47 @@ export function resolveYjsRelayConfig(env: NodeJS.ProcessEnv = process.env): Yjs
       DEFAULT_YJS_RELAY_LIMITS.maxUpgradesPerRoomPerMinute,
       STATIC_LIMIT_MAXIMA.maxUpgradesPerRoomPerMinute,
     ),
+    maxPayloadBytes: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_PAYLOAD_BYTES',
+      DEFAULT_YJS_RELAY_LIMITS.maxPayloadBytes,
+      STATIC_LIMIT_MAXIMA.maxPayloadBytes,
+    ),
     maxMessagesPerWindow: readBoundedPositiveInteger(
       env,
       'YJS_WS_MAX_MESSAGES_PER_10_SECONDS',
       DEFAULT_YJS_RELAY_LIMITS.maxMessagesPerWindow,
       STATIC_LIMIT_MAXIMA.maxMessagesPerWindow,
+    ),
+    maxBytesPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_BYTES_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxBytesPerWindow,
+      STATIC_LIMIT_MAXIMA.maxBytesPerWindow,
+    ),
+    maxMessagesPerRoomPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_MESSAGES_PER_ROOM_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxMessagesPerRoomPerWindow,
+      STATIC_LIMIT_MAXIMA.maxMessagesPerRoomPerWindow,
+    ),
+    maxBytesPerRoomPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_BYTES_PER_ROOM_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxBytesPerRoomPerWindow,
+      STATIC_LIMIT_MAXIMA.maxBytesPerRoomPerWindow,
+    ),
+    maxMessagesGlobalPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxMessagesGlobalPerWindow,
+      STATIC_LIMIT_MAXIMA.maxMessagesGlobalPerWindow,
+    ),
+    maxBytesGlobalPerWindow: readBoundedPositiveInteger(
+      env,
+      'YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS',
+      DEFAULT_YJS_RELAY_LIMITS.maxBytesGlobalPerWindow,
+      STATIC_LIMIT_MAXIMA.maxBytesGlobalPerWindow,
     ),
   };
 }
@@ -113,6 +168,46 @@ class FixedWindowCounter {
   get expiresAt(): number {
     return this.startedAt + UPGRADE_WINDOW_MS;
   }
+}
+
+class FixedWindowMessageBudget {
+  private startedAt = 0;
+  private messages = 0;
+  private bytes = 0;
+
+  consume(maxMessages: number, maxBytes: number, messageBytes: number, now = Date.now()): boolean {
+    if (now - this.startedAt >= MESSAGE_WINDOW_MS) {
+      this.startedAt = now;
+      this.messages = 0;
+      this.bytes = 0;
+    }
+    if (this.messages >= maxMessages || messageBytes > maxBytes - this.bytes) return false;
+    this.messages += 1;
+    this.bytes += messageBytes;
+    return true;
+  }
+
+  get expiresAt(): number {
+    return this.startedAt + MESSAGE_WINDOW_MS;
+  }
+}
+
+function rawDataByteLength(data: RawData): number {
+  if (Array.isArray(data)) return data.reduce((total, part) => total + part.byteLength, 0);
+  return data.byteLength;
+}
+
+function hasKnownYjsMessageType(data: RawData): boolean {
+  let firstByte: number | undefined;
+  if (Array.isArray(data)) {
+    firstByte = data.find((part) => part.byteLength > 0)?.[0];
+  } else if (data instanceof ArrayBuffer) {
+    firstByte = data.byteLength > 0 ? new Uint8Array(data, 0, 1)[0] : undefined;
+  } else {
+    firstByte = data.byteLength > 0 ? data[0] : undefined;
+  }
+  // @y/websocket-server@0.1.1 kennt nur messageSync=0 und messageAwareness=1.
+  return firstByte === 0 || firstByte === 1;
 }
 
 function parseRoomName(request: IncomingMessage): string | null {
@@ -139,16 +234,19 @@ function rejectUpgrade(socket: Duplex, status: 400 | 429 | 503): void {
 
 export class YjsRelayServer {
   private readonly httpServer: HttpServer;
-  private readonly webSocketServer = new WebSocketServer({
-    noServer: true,
-    maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
-  });
+  private readonly webSocketServer: WebSocketServer;
   private readonly globalUpgradeWindow = new FixedWindowCounter();
   private readonly roomUpgradeWindows = new Map<string, FixedWindowCounter>();
+  private readonly globalMessageWindow = new FixedWindowMessageBudget();
+  private readonly roomMessageWindows = new Map<string, FixedWindowMessageBudget>();
   private readonly roomConnections = new Map<string, number>();
   private connectionsActive = 0;
 
   constructor(private readonly config: YjsRelayConfig) {
+    this.webSocketServer = new WebSocketServer({
+      noServer: true,
+      maxPayload: config.maxPayloadBytes,
+    });
     configureYjsWebSocketTelemetry({
       connectionLimit: config.maxConnections,
       perRoomConnectionLimit: config.maxConnectionsPerRoom,
@@ -219,8 +317,7 @@ export class YjsRelayServer {
     this.roomConnections.set(room, (this.roomConnections.get(room) ?? 0) + 1);
     recordYjsWebSocketConnected(room);
 
-    let messageWindowStartedAt = Date.now();
-    let messagesInWindow = 0;
+    const connectionMessageWindow = new FixedWindowMessageBudget();
     let rateLimited = false;
     let payloadRejected = false;
     webSocket.on('error', (error: Error & { code?: string }) => {
@@ -239,19 +336,73 @@ export class YjsRelayServer {
     webSocket.on('message', (data, isBinary) => {
       if (rateLimited) return;
       const now = Date.now();
-      if (now - messageWindowStartedAt >= MESSAGE_WINDOW_MS) {
-        messageWindowStartedAt = now;
-        messagesInWindow = 0;
-      }
-      messagesInWindow += 1;
-      if (messagesInWindow > this.config.maxMessagesPerWindow) {
+      this.pruneRoomMessageWindows(now);
+      const roomMessageWindow = this.roomMessageWindows.get(room) ?? new FixedWindowMessageBudget();
+      this.roomMessageWindows.set(room, roomMessageWindow);
+      const messageBytes = rawDataByteLength(data);
+      const admitted =
+        this.globalMessageWindow.consume(
+          this.config.maxMessagesGlobalPerWindow,
+          this.config.maxBytesGlobalPerWindow,
+          messageBytes,
+          now,
+        ) &&
+        roomMessageWindow.consume(
+          this.config.maxMessagesPerRoomPerWindow,
+          this.config.maxBytesPerRoomPerWindow,
+          messageBytes,
+          now,
+        ) &&
+        connectionMessageWindow.consume(
+          this.config.maxMessagesPerWindow,
+          this.config.maxBytesPerWindow,
+          messageBytes,
+          now,
+        );
+      if (!admitted) {
         rateLimited = true;
         recordYjsWebSocketRateLimitedMessage();
         webSocket.terminate();
         return;
       }
-      for (const listener of protocolMessageListeners) {
-        listener.call(webSocket, data, isBinary);
+      if (!hasKnownYjsMessageType(data)) {
+        recordYjsWebSocketProtocolError();
+        webSocket.terminate();
+        return;
+      }
+
+      // @y/websocket-server@0.1.1 fängt Parserfehler selbst und schreibt sie
+      // ungefiltert nach console.error. Der gepinnte synchrone Handler wird
+      // deshalb kontrolliert ausgeführt: keine attacker-kontrollierten Logs,
+      // ein Diagnosezähler und sofortige Trennung bei ungültigem Protokoll.
+      const originalConsoleError = console.error;
+      let protocolError = false;
+      const protocolDoc = docs.get(room) as
+        | {
+            on(event: 'error', listener: () => void): void;
+            off(event: 'error', listener: () => void): void;
+          }
+        | undefined;
+      const markProtocolError = (): void => {
+        protocolError = true;
+      };
+      protocolDoc?.on('error', markProtocolError);
+      console.error = () => {
+        protocolError = true;
+      };
+      try {
+        for (const listener of protocolMessageListeners) {
+          listener.call(webSocket, data, isBinary);
+        }
+      } catch {
+        protocolError = true;
+      } finally {
+        console.error = originalConsoleError;
+        protocolDoc?.off('error', markProtocolError);
+      }
+      if (protocolError) {
+        recordYjsWebSocketProtocolError();
+        webSocket.terminate();
       }
     });
 
@@ -274,6 +425,14 @@ export class YjsRelayServer {
     for (const [room, counter] of this.roomUpgradeWindows) {
       if (counter.expiresAt <= now && !this.roomConnections.has(room)) {
         this.roomUpgradeWindows.delete(room);
+      }
+    }
+  }
+
+  private pruneRoomMessageWindows(now: number): void {
+    for (const [room, budget] of this.roomMessageWindows) {
+      if (budget.expiresAt <= now && !this.roomConnections.has(room)) {
+        this.roomMessageWindows.delete(room);
       }
     }
   }

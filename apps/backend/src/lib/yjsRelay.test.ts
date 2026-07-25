@@ -1,7 +1,6 @@
 import type { AddressInfo } from 'node:net';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
-import { TRPC_MAX_BODY_SIZE_BYTES } from './requestLimits';
 import {
   DEFAULT_YJS_RELAY_LIMITS,
   resolveYjsRelayConfig,
@@ -45,6 +44,14 @@ function connect(url: string): Promise<WebSocket> {
   });
 }
 
+function validPaddedSyncStep1(size: number): Buffer {
+  const frame = Buffer.alloc(size, 0);
+  // y-websocket messageSync, y-protocols messageYjsSyncStep1,
+  // varUint8Array length 1, leerer Yjs-State-Vector.
+  frame.set([0, 0, 1, 0]);
+  return frame;
+}
+
 function expectUpgradeRejected(url: string, status: number): Promise<void> {
   const socket = new WebSocket(url);
   sockets.push(socket);
@@ -74,14 +81,26 @@ describe('resolveYjsRelayConfig', () => {
         YJS_WS_MAX_CONNECTIONS_PER_ROOM: '999999',
         YJS_WS_MAX_UPGRADES_PER_MINUTE: '999999',
         YJS_WS_MAX_UPGRADES_PER_ROOM_PER_MINUTE: '999999',
+        YJS_WS_MAX_PAYLOAD_BYTES: '9999999999',
         YJS_WS_MAX_MESSAGES_PER_10_SECONDS: '999999',
+        YJS_WS_MAX_BYTES_PER_10_SECONDS: '9999999999',
+        YJS_WS_MAX_MESSAGES_PER_ROOM_PER_10_SECONDS: '999999',
+        YJS_WS_MAX_BYTES_PER_ROOM_PER_10_SECONDS: '9999999999',
+        YJS_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS: '999999',
+        YJS_WS_MAX_BYTES_GLOBAL_PER_10_SECONDS: '9999999999',
       }),
     ).toMatchObject({
       maxConnections: 2_000,
       maxConnectionsPerRoom: 500,
       maxUpgradesPerMinute: 6_000,
       maxUpgradesPerRoomPerMinute: 1_200,
+      maxPayloadBytes: 32 * 1024 * 1024,
       maxMessagesPerWindow: 1_200,
+      maxBytesPerWindow: 64 * 1024 * 1024,
+      maxMessagesPerRoomPerWindow: 12_000,
+      maxBytesPerRoomPerWindow: 512 * 1024 * 1024,
+      maxMessagesGlobalPerWindow: 60_000,
+      maxBytesGlobalPerWindow: 2_048 * 1024 * 1024,
     });
   });
 });
@@ -121,18 +140,94 @@ describe('YjsRelayServer', () => {
     const socket = await connect(`${baseUrl}/${ROOM_A}`);
     const closed = new Promise<number>((resolve) => socket.once('close', resolve));
 
-    socket.send(Buffer.from([99]));
-    socket.send(Buffer.from([99]));
+    socket.send(validPaddedSyncStep1(4));
+    socket.send(validPaddedSyncStep1(4));
 
     await expect(closed).resolves.toBe(1006);
   });
 
-  it('weist Nachrichten über 2 MiB mit WebSocket-Code 1009 ab', async () => {
+  it('begrenzt viele kleine Frames zusätzlich global über Räume hinweg', async () => {
+    const baseUrl = await startRelay({ maxMessagesGlobalPerWindow: 3 });
+    const socketA = await connect(`${baseUrl}/${ROOM_A}`);
+    const socketB = await connect(`${baseUrl}/${ROOM_B}`);
+    const closed = new Promise<number>((resolve) => socketB.once('close', resolve));
+
+    socketA.send(validPaddedSyncStep1(4));
+    socketA.send(validPaddedSyncStep1(4));
+    socketB.send(validPaddedSyncStep1(4));
+    socketB.send(validPaddedSyncStep1(4));
+
+    await expect(closed).resolves.toBe(1006);
+  });
+
+  it('teilt das Nachrichtenbudget zwischen Verbindungen desselben Raums', async () => {
+    const baseUrl = await startRelay({ maxMessagesPerRoomPerWindow: 2 });
+    const socketA = await connect(`${baseUrl}/${ROOM_A}`);
+    const socketB = await connect(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socketB.once('close', resolve));
+
+    socketA.send(validPaddedSyncStep1(4));
+    socketB.send(validPaddedSyncStep1(4));
+    socketB.send(validPaddedSyncStep1(4));
+
+    await expect(closed).resolves.toBe(1006);
+  });
+
+  it('begrenzt wiederholte große Frames anhand des Bytebudgets vor dem Parser', async () => {
+    const baseUrl = await startRelay({ maxBytesPerWindow: 100 });
+    const socket = await connect(`${baseUrl}/${ROOM_A}`);
+    const closed = new Promise<number>((resolve) => socket.once('close', resolve));
+    const validLargeSyncStep1 = validPaddedSyncStep1(60);
+
+    socket.send(validLargeSyncStep1);
+    socket.send(validLargeSyncStep1);
+
+    await expect(closed).resolves.toBe(1006);
+  });
+
+  it('teilt das Bytebudget global zwischen unterschiedlichen Räumen', async () => {
+    const baseUrl = await startRelay({ maxBytesGlobalPerWindow: 100 });
+    const socketA = await connect(`${baseUrl}/${ROOM_A}`);
+    const socketB = await connect(`${baseUrl}/${ROOM_B}`);
+    const closed = new Promise<number>((resolve) => socketB.once('close', resolve));
+    const validLargeSyncStep1 = validPaddedSyncStep1(60);
+
+    socketA.send(validLargeSyncStep1);
+    socketB.send(validLargeSyncStep1);
+
+    await expect(closed).resolves.toBe(1006);
+  });
+
+  it('unterdrückt ungefilterte Parserlogs und terminiert ungültige Yjs-Frames', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const baseUrl = await startRelay();
     const socket = await connect(`${baseUrl}/${ROOM_A}`);
     const closed = new Promise<number>((resolve) => socket.once('close', resolve));
 
-    socket.send(Buffer.alloc(TRPC_MAX_BODY_SIZE_BYTES + 1));
+    // Bekannter Sync-Typ ohne erforderlichen Subtyp löst den Paketparser aus.
+    socket.send(Buffer.from([0]));
+
+    await expect(closed).resolves.toBe(1006);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('akzeptiert Sammlungsframes am konfigurierten Limit und weist größere mit 1009 ab', async () => {
+    const maxPayloadBytes = 64 * 1024;
+    const baseUrl = await startRelay({
+      maxPayloadBytes,
+      maxBytesPerWindow: maxPayloadBytes * 2,
+    });
+    const accepted = await connect(`${baseUrl}/${ROOM_A}`);
+    const response = new Promise<void>((resolve) => accepted.once('message', () => resolve()));
+    const boundaryFrame = validPaddedSyncStep1(maxPayloadBytes);
+    accepted.send(boundaryFrame);
+    await expect(response).resolves.toBeUndefined();
+
+    const rejected = await connect(`${baseUrl}/${ROOM_B}`);
+    const closed = new Promise<number>((resolve) => rejected.once('close', resolve));
+
+    rejected.send(Buffer.alloc(maxPayloadBytes + 1));
 
     await expect(closed).resolves.toBe(1009);
   });
