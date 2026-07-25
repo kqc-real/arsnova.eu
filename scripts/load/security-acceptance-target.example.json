@@ -12,5 +12,6 @@
   "postgresql": true,
   "redis": true,
   "disposableData": true,
-  "singleSourceNat": true
+  "singleSourceNat": true,
+  "sessionCreatePerHour": 480
 }

@@ -24,6 +24,7 @@ import { startHostMonitor } from './artillery/host-monitor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
+const ARTILLERY_SCRATCH_DIR = resolve(process.env.ARTILLERY_SCRATCH_DIR || ARTILLERY_DIR);
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
@@ -63,10 +64,14 @@ const STATUS_AFTER_RECONNECT_LIMIT_MS = Math.max(
   Number(process.env.ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS || 5_000),
 );
 
-const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
-const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
-const RESULTS_READY_FILE = resolve(ARTILLERY_DIR, '.results-ready.flag');
-const ARTILLERY_REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-reconnect-${Date.now()}.json`);
+const SESSION_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.session.json');
+const STATE_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.runtime-state.json');
+const RESULTS_READY_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.results-ready.flag');
+const ARTILLERY_REPORT_FILE = resolve(
+  ARTILLERY_SCRATCH_DIR,
+  'reports',
+  `500-reconnect-${Date.now()}.json`,
+);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -168,6 +173,7 @@ async function waitForReconnectRevealMoment(hostMonitor, timeoutMs) {
 
 async function main() {
   await waitForBackend(TRPC_URL);
+  mkdirSync(ARTILLERY_SCRATCH_DIR, { recursive: true });
   rmSync(STATE_FILE, { force: true });
   rmSync(RESULTS_READY_FILE, { force: true });
   writeFileSync(RESULTS_READY_FILE, '0');

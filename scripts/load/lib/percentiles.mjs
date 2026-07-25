@@ -20,3 +20,13 @@ export function summarizeDurations(values) {
 export function violatesExclusiveUpperBound(observed, limit) {
   return !Number.isFinite(observed) || observed >= limit;
 }
+
+export function violatesExclusiveRate(errors, total, limit) {
+  return (
+    !Number.isInteger(errors) ||
+    !Number.isInteger(total) ||
+    total < 1 ||
+    errors < 0 ||
+    errors / total >= limit
+  );
+}

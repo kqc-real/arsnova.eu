@@ -7,7 +7,8 @@
     "ingress": "nginx",
     "dependencies": ["postgresql", "redis"],
     "dataClass": "isolated-ephemeral",
-    "loadGeneratorNetwork": "single-source-nat"
+    "loadGeneratorNetwork": "single-source-nat",
+    "sessionCreatePerHour": 480
   },
   "slos": [
     {

@@ -23,7 +23,11 @@ import {
   validateSoakProbeEnvironment,
   validateTargetEvidence,
 } from './run-security-acceptance.mjs';
-import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
+import {
+  summarizeDurations,
+  violatesExclusiveRate,
+  violatesExclusiveUpperBound,
+} from './lib/percentiles.mjs';
 import { parseReconnectLimitMs } from './lib/reconnect-threshold.mjs';
 import { isRequiredProbeHealthy } from './lib/runtime-metrics.mjs';
 import {
@@ -97,12 +101,14 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
     redis: true,
     disposableData: true,
     singleSourceNat: true,
+    sessionCreatePerHour: 480,
   };
   assert.equal(
     validateTargetEvidence(
       evidence,
       {
         LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+        LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
         TRPC_URL: evidence.trpcUrl,
         WS_URL: evidence.wsUrl,
       },
@@ -116,6 +122,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         { ...evidence, expiresAt: '2026-07-25T16:30:00Z' },
         {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
           WS_URL: evidence.wsUrl,
         },
@@ -129,6 +136,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         { ...evidence, image: 'arsnova-eu:latest' },
         {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
           WS_URL: evidence.wsUrl,
         },
@@ -146,6 +154,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         },
         {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
           WS_URL: evidence.wsUrl,
         },
@@ -159,6 +168,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         evidence,
         {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
           WS_URL: 'wss://arsnova.eu',
         },
@@ -172,6 +182,7 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         evidence,
         {
           LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
           TRPC_URL: evidence.trpcUrl,
           WS_URL: evidence.wsUrl,
           TRPC_URLS: 'https://arsnova.eu/trpc',
@@ -179,6 +190,34 @@ test('prüft Commit, Laufzeit und isoliertes Zielhostprofil', () => {
         now,
       ),
     /Alternative Zielvariablen/,
+  );
+  assert.throws(
+    () =>
+      validateTargetEvidence(
+        { ...evidence, wsUrl: 'wss://other-isolated.example.org' },
+        {
+          LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
+          TRPC_URL: evidence.trpcUrl,
+          WS_URL: 'wss://other-isolated.example.org',
+        },
+        now,
+      ),
+    /denselben Nginx-Zielhost/,
+  );
+  assert.throws(
+    () =>
+      validateTargetEvidence(
+        { ...evidence, trpcUrl: `${evidence.trpcUrl}?token=secret` },
+        {
+          LOAD_ACCEPTANCE_EXPECTED_COMMIT: gitCommit,
+          LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR: '480',
+          TRPC_URL: `${evidence.trpcUrl}?token=secret`,
+          WS_URL: evidence.wsUrl,
+        },
+        now,
+      ),
+    /Ungültiges Ziel/,
   );
 });
 
@@ -252,6 +291,8 @@ test('berechnet p99 für verbindliche Vote- und Live-Latenzen', () => {
   assert.deepEqual(summary, { p50Ms: 50, p95Ms: 95, p99Ms: 99, maxMs: 100 });
   assert.equal(violatesExclusiveUpperBound(1_999, 2_000), false);
   assert.equal(violatesExclusiveUpperBound(2_000, 2_000), true);
+  assert.equal(violatesExclusiveRate(2, 500, 0.005), false);
+  assert.equal(violatesExclusiveRate(3, 500, 0.005), true);
 });
 
 test('übergibt strengere Reconnect-SLOs ohne verstecktes 30s-Clamping', () => {
@@ -271,6 +312,10 @@ test('übergibt strengere Reconnect-SLOs ohne verstecktes 30s-Clamping', () => {
     .runners.find((runner) => runner.id === 'pdf-vs-vote-500');
   assert.equal(pdfRunner.env.JOIN_CONCURRENCY, '75');
   assert.equal(pdfRunner.env.VOTE_CONCURRENCY, '75');
+  const abuseRunner = strictPlan
+    .find((phase) => phase.id === 'pdf-vote-with-abuse')
+    .runners.find((runner) => runner.id === 'security-abuse');
+  assert.equal(abuseRunner.env.ABUSE_CREATE_ATTEMPTS, '481');
 });
 
 test('verlangt fehlerfreie Redis- und PostgreSQL-Probereihen', () => {
@@ -439,11 +484,19 @@ test('trennt parallele und aufeinanderfolgende Runs durch sichere Pfade', () => 
   assert.notEqual(first.runId, second.runId);
   const directory = runArtifactDirectory('/tmp/s65-runs', first.runId);
   const plan = buildAcceptancePlan(config, directory);
+  const secondDirectory = runArtifactDirectory('/tmp/s65-runs', second.runId);
+  const secondPlan = buildAcceptancePlan(config, secondDirectory);
   const files = plan.flatMap((phase) =>
     phase.runners.flatMap((runner) => [runner.reportFile, runner.junitFile, runner.envelopeFile]),
   );
   assert.equal(new Set(files).size, files.length);
   assert.ok(files.every((file) => file.startsWith(directory)));
+  const firstScratch = plan.find((phase) => phase.id === 'live-500').runners[0].env
+    .ARTILLERY_SCRATCH_DIR;
+  const secondScratch = secondPlan.find((phase) => phase.id === 'live-500').runners[0].env
+    .ARTILLERY_SCRATCH_DIR;
+  assert.notEqual(firstScratch, secondScratch);
+  assert.ok(firstScratch.startsWith(directory));
 });
 
 test('beendet parallele Geschwister nach dem ersten Fehler', async () => {

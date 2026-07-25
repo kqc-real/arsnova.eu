@@ -20,10 +20,15 @@ import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
-import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
+import {
+  summarizeDurations,
+  violatesExclusiveRate,
+  violatesExclusiveUpperBound,
+} from './lib/percentiles.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
+const ARTILLERY_SCRATCH_DIR = resolve(process.env.ARTILLERY_SCRATCH_DIR || ARTILLERY_DIR);
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
@@ -43,6 +48,7 @@ const JOIN_P95_LIMIT_MS = Number(process.env.ARTILLERY_JOIN_P95_LIMIT_MS || 1_00
 const JOIN_P99_LIMIT_MS = Number(process.env.ARTILLERY_JOIN_P99_LIMIT_MS || 2_000);
 const STATUS_P95_LIMIT_MS = Number(process.env.ARTILLERY_STATUS_P95_LIMIT_MS || 1_500);
 const STATUS_P99_LIMIT_MS = Number(process.env.ARTILLERY_STATUS_P99_LIMIT_MS || 3_000);
+const LIVE_ERROR_RATE_LIMIT = Number(process.env.ARTILLERY_LIVE_ERROR_RATE_LIMIT || 0.005);
 const VOTE_REVEAL_THRESHOLD = Math.max(
   1,
   Number(process.env.ARTILLERY_VOTE_REVEAL_THRESHOLD || Math.floor(PARTICIPANTS * MIN_VOTE_RATIO)),
@@ -50,11 +56,15 @@ const VOTE_REVEAL_THRESHOLD = Math.max(
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
 const RESULTS_WAIT_MS = Math.max(5_000, Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 25_000));
 
-const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
-const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
-const RESULTS_READY_FILE = resolve(ARTILLERY_DIR, '.results-ready.flag');
-const REVEAL_TIMESTAMP_FILE = resolve(ARTILLERY_DIR, '.reveal-started-at');
-const ARTILLERY_REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-live-${Date.now()}.json`);
+const SESSION_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.session.json');
+const STATE_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.runtime-state.json');
+const RESULTS_READY_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.results-ready.flag');
+const REVEAL_TIMESTAMP_FILE = resolve(ARTILLERY_SCRATCH_DIR, '.reveal-started-at');
+const ARTILLERY_REPORT_FILE = resolve(
+  ARTILLERY_SCRATCH_DIR,
+  'reports',
+  `500-live-${Date.now()}.json`,
+);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -147,6 +157,7 @@ async function waitForRevealMoment(hostMonitor, timeoutMs) {
 
 async function main() {
   await waitForBackend(TRPC_URL);
+  mkdirSync(ARTILLERY_SCRATCH_DIR, { recursive: true });
   rmSync(STATE_FILE, { force: true });
   rmSync(RESULTS_READY_FILE, { force: true });
   rmSync(REVEAL_TIMESTAMP_FILE, { force: true });
@@ -271,8 +282,10 @@ async function main() {
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
   }
-  if ((runtime.wsErrors ?? 0) > 0) {
-    failures.push(`Teilnehmer-WS-Fehler: ${runtime.wsErrors}`);
+  if (violatesExclusiveRate(runtime.wsErrors ?? 0, PARTICIPANTS, LIVE_ERROR_RATE_LIMIT)) {
+    failures.push(
+      `Teilnehmer-WS-Fehlerquote: ${runtime.wsErrors ?? 0}/${PARTICIPANTS} (Limit < ${LIVE_ERROR_RATE_LIMIT})`,
+    );
   }
   if ((runtime.joinDurationMs?.length ?? 0) < PARTICIPANTS * MIN_JOIN_RATIO) {
     failures.push(`Join-Latenzsamples: ${runtime.joinDurationMs?.length ?? 0}/${PARTICIPANTS}`);
@@ -326,6 +339,7 @@ async function main() {
       joinP99LimitMs: JOIN_P99_LIMIT_MS,
       statusP95LimitMs: STATUS_P95_LIMIT_MS,
       statusP99LimitMs: STATUS_P99_LIMIT_MS,
+      liveErrorRateLimit: LIVE_ERROR_RATE_LIMIT,
     },
     metrics: summary,
     failures,

@@ -81,7 +81,7 @@ async function run() {
   const diagnosticSecret = String(process.env.ADMIN_DIAGNOSTIC_SECRET || '').trim();
   const validJoins = boundedInteger('ABUSE_VALID_JOINS', 50, 1, 500);
   const codeGuesses = boundedInteger('ABUSE_CODE_GUESSES', 25, 21, 100);
-  const createAttempts = boundedInteger('ABUSE_CREATE_ATTEMPTS', 15, 11, 50);
+  const createAttempts = boundedInteger('ABUSE_CREATE_ATTEMPTS', 481, 11, 10_001);
   const signalTimeoutMs = boundedInteger('ABUSE_SIGNAL_TIMEOUT_MS', 1_200_000, 5_000, 1_800_000);
 
   if (process.env.LOAD_ACCEPTANCE_VALIDATE_ONLY === '1') {

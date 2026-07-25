@@ -67,7 +67,6 @@ const RUNNERS = {
     env: {
       ABUSE_VALID_JOINS: '50',
       ABUSE_CODE_GUESSES: '25',
-      ABUSE_CREATE_ATTEMPTS: '15',
       ABUSE_SIGNAL_TIMEOUT_MS: '1200000',
     },
   },
@@ -201,7 +200,7 @@ function validateSlos(slos) {
   return byId;
 }
 
-function runnerEnvironment(id, slos) {
+function runnerEnvironment(id, slos, target) {
   const common = RUNNERS[id].env ?? {};
   switch (id) {
     case 'artillery-live-500':
@@ -220,6 +219,7 @@ function runnerEnvironment(id, slos) {
         ARTILLERY_JOIN_P99_LIMIT_MS: String(slos.join.p99Ms),
         ARTILLERY_STATUS_P95_LIMIT_MS: String(slos.websocket.statusP95Ms),
         ARTILLERY_STATUS_P99_LIMIT_MS: String(slos.websocket.statusP99Ms),
+        ARTILLERY_LIVE_ERROR_RATE_LIMIT: String(slos['live-error-rate'].errorRateExclusiveMax),
       };
     case 'artillery-reconnect-500':
       return {
@@ -264,6 +264,11 @@ function runnerEnvironment(id, slos) {
         VOTE_P99_LIMIT_MS: String(slos['pdf-vs-vote'].p99Ms),
         VOTE_ERROR_RATE_LIMIT: String(slos['pdf-vs-vote'].errorRateExclusiveMax),
       };
+    case 'security-abuse':
+      return {
+        ...common,
+        ABUSE_CREATE_ATTEMPTS: String(target.sessionCreatePerHour + 1),
+      };
     default:
       return { ...common };
   }
@@ -280,10 +285,11 @@ export function validateAcceptanceConfig(config) {
     config.target.deployment !== 'production-image' ||
     config.target.ingress !== 'nginx' ||
     config.target.dataClass !== 'isolated-ephemeral' ||
-    config.target.loadGeneratorNetwork !== 'single-source-nat'
+    config.target.loadGeneratorNetwork !== 'single-source-nat' ||
+    config.target.sessionCreatePerHour !== 480
   ) {
     throw new Error(
-      'Zielprofil muss Node 24, Produktionsimage, Nginx und isolierte Daten festschreiben.',
+      'Zielprofil muss Node 24, Produktionsimage, Nginx, 480 Creates/h und isolierte Daten festschreiben.',
     );
   }
   assertExactSet(config.target.dependencies, new Set(['postgresql', 'redis']), 'Dependencies');
@@ -355,14 +361,19 @@ export function buildAcceptancePlan(config, artifactDirectory) {
       junitFile: resolve(artifactDirectory, `${id}.junit.xml`),
       envelopeFile: resolve(artifactDirectory, `${id}.evidence.json`),
       timeoutMs: RUNNERS[id].timeoutMs,
-      env: runnerEnvironment(id, slos),
+      env: {
+        ...runnerEnvironment(id, slos, config.target),
+        ...(id.startsWith('artillery-')
+          ? { ARTILLERY_SCRATCH_DIR: resolve(artifactDirectory, 'scratch', id) }
+          : {}),
+      },
     })),
   }));
 }
 
 function normalizeTargetUrl(value, protocols) {
   const url = new URL(value);
-  if (!protocols.includes(url.protocol) || url.username || url.password || url.hash) {
+  if (!protocols.includes(url.protocol) || url.username || url.password || url.search || url.hash) {
     throw new Error(`Ungültiges Ziel ${value}.`);
   }
   const pathname = url.pathname === '/' ? '' : url.pathname.replace(/\/+$/, '');
@@ -526,7 +537,8 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
     evidence.postgresql !== true ||
     evidence.redis !== true ||
     evidence.disposableData !== true ||
-    evidence.singleSourceNat !== true
+    evidence.singleSourceNat !== true ||
+    evidence.sessionCreatePerHour !== 480
   ) {
     throw new Error('Zielhost-Evidenz erfüllt das verbindliche Produktionsprofil nicht.');
   }
@@ -541,6 +553,9 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
       'LOAD_ACCEPTANCE_EXPECTED_COMMIT stimmt nicht mit der Zielhost-Evidenz überein.',
     );
   }
+  if (String(env.LOAD_ACCEPTANCE_EXPECTED_SESSION_CREATE_PER_HOUR || '') !== '480') {
+    throw new Error('Das erwartete Session-Create-Budget muss explizit als 480 bestätigt werden.');
+  }
   if (
     normalizeTargetUrl(String(env.TRPC_URL || ''), ['http:', 'https:']) !==
       normalizeTargetUrl(evidence.trpcUrl, ['http:', 'https:']) ||
@@ -548,6 +563,12 @@ export function validateTargetEvidence(evidence, env, now = Date.now()) {
       normalizeTargetUrl(evidence.wsUrl, ['ws:', 'wss:'])
   ) {
     throw new Error('TRPC_URL/WS_URL stimmen nicht mit der Zielhost-Evidenz überein.');
+  }
+  if (
+    new URL(evidence.trpcUrl).hostname.toLowerCase() !==
+    new URL(evidence.wsUrl).hostname.toLowerCase()
+  ) {
+    throw new Error('TRPC_URL und WS_URL müssen denselben Nginx-Zielhost verwenden.');
   }
   if (String(env.TRPC_URLS || '').trim() || String(env.ARTILLERY_HTTP_TARGET || '').trim()) {
     throw new Error('Alternative Zielvariablen TRPC_URLS/ARTILLERY_HTTP_TARGET sind unzulässig.');
@@ -845,6 +866,7 @@ async function executePlan(config, plan, artifactDirectory, evidence, runContext
       redis: evidence.redis,
       disposableData: evidence.disposableData,
       singleSourceNat: evidence.singleSourceNat,
+      sessionCreatePerHour: evidence.sessionCreatePerHour,
     },
     operator: evidence.operator,
     coverage: config.coverage,
