@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "operator": "Release Engineering",
+  "approvedAt": "2026-07-25T16:00:00Z",
+  "expiresAt": "2026-07-25T20:00:00Z",
+  "gitCommit": "replace-with-tested-commit",
+  "nodeVersion": "24.18.0",
+  "image": "arsnova-eu@sha256:replace-with-tested-image-digest",
+  "trpcUrl": "https://isolated-load.example.org/trpc",
+  "wsUrl": "wss://isolated-load.example.org",
+  "ingress": "nginx",
+  "postgresql": true,
+  "redis": true,
+  "disposableData": true,
+  "singleSourceNat": true
+}

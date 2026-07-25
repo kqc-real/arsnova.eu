@@ -76,6 +76,8 @@
     "load:pdf-vs-voting:500": "node scripts/load/pdf-vs-live-voting-500.mjs",
     "load:artillery:500": "node scripts/load/run-artillery-500.mjs",
     "load:artillery:reconnect:500": "node scripts/load/run-artillery-reconnect-500.mjs",
+    "load:security-acceptance:validate": "node --test scripts/load/security-acceptance.test.mjs && node scripts/load/run-security-acceptance.mjs --validate",
+    "load:security-acceptance:plan": "node scripts/load/run-security-acceptance.mjs --plan",
     "validate:pdfua": "node scripts/validate-pdfua.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "verify:production-serving": "node scripts/verify-production-serving.mjs",

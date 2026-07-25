@@ -10,6 +10,7 @@
  */
 import { performance } from 'node:perf_hooks';
 import { arch, cpus, platform, release, totalmem } from 'node:os';
+import { writeFile } from 'node:fs/promises';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
 import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
@@ -32,6 +33,7 @@ const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 3_000));
 const VOTE_ERROR_RATE_LIMIT = Math.max(0, Number(process.env.VOTE_ERROR_RATE_LIMIT || 0.01));
 const ADMIN_DIAGNOSTIC_SECRET = String(process.env.ADMIN_DIAGNOSTIC_SECRET || '').trim();
+const LOAD_ACCEPTANCE_PHASE_SIGNAL = String(process.env.LOAD_ACCEPTANCE_PHASE_SIGNAL || '').trim();
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -290,6 +292,12 @@ async function main() {
       }
     }
     metricsAtCap = await healthTrpc.health.securityStats.query();
+    if (LOAD_ACCEPTANCE_PHASE_SIGNAL) {
+      await writeFile(LOAD_ACCEPTANCE_PHASE_SIGNAL, `${Date.now()}\n`, {
+        encoding: 'utf8',
+        mode: 0o600,
+      });
+    }
     votesUnderPdfLoad = await submitVotes(liveSession, participantIds);
   } finally {
     stopPdfWorkers = true;

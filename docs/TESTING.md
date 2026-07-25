@@ -413,6 +413,20 @@ Erst-Backoff plus 0–349 ms Jitter. Formales Gate: mindestens 95 % sind binnen
 CI-Job `artillery-reconnect-500` (Schedule/Manuell, Standard 100 TN auf Runner).
 Classroom-Smoke (30 TN): `npm run load:smoke:ws-reconnect-wave-classroom-30`.
 
+Die formale Security-/Lasttest-Abnahme aus Plan §6.5 wird ohne Last geprüft mit:
+
+```bash
+npm run load:security-acceptance:validate
+```
+
+Der Test validiert verbindliche Join-/Vote-/WS-/Reconnect-/PDF-SLOs, die
+vollständige Szenario-Coverage, ausschließlich bekannte Runner, das
+Node-24-/Nginx-/Redis-/PostgreSQL-Zielprofil, befristete Zielhost-Evidenz,
+standardisierte Reports sowie die separate Produktionssperre. Ein echter
+500er-Lauf ist ausdrücklich kein PR-Gate; der operatorgesteuerte Ablauf steht
+in
+[S6.5-SECURITY-LOAD-ACCEPTANCE.md](implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md).
+
 Session- und Hotpath-Skripte benötigen `SESSION_CODE` (6 Zeichen) bzw. bei Hotpath-Modi `PARTICIPANT_IDS`, `QUESTION_ID` usw. — siehe Kommentarkopf in den Skripten.
 
 Weitere Node-Last-Smokes (ohne k6): `npm run load:simulate:50`, `npm run load:simulate:session:50` (erfordert `SESSION_CODE`).

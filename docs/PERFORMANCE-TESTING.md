@@ -18,6 +18,13 @@ die Live-SLOs stehen in
 Lasttests niemals ungeplant gegen Produktion ausführen. Der Produktions-k6-Lauf
 benötigt eine explizite Workflow-Freigabe (`run_production_load=true`).
 
+Die verbindlichen Produkt-SLOs und der vollständige, operatorgesteuerte
+§6.5-Abnahmepfad stehen in
+[S6.5-SECURITY-LOAD-ACCEPTANCE.md](implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md).
+`npm run load:security-acceptance:validate` prüft Konfiguration und
+Orchestrator netzwerkfrei. Ein Zielhostlauf ist kein PR-Check und bleibt ohne
+separate Freigabe gesperrt.
+
 ## Manuelle sichere Ausführung
 
 Nach einem autorisierten Push des zu prüfenden Branches startet dieser
