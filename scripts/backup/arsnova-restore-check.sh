@@ -109,7 +109,8 @@ docker run -d --rm \
 
 ready=false
 for _ in {1..60}; do
-  if docker exec "$CONTAINER_NAME" pg_isready -U postgres >/dev/null 2>&1; then
+  if docker exec "$CONTAINER_NAME" sh -eu -c \
+    'test "$(cat /proc/1/comm)" = postgres && pg_isready -U postgres >/dev/null'; then
     ready=true
     break
   fi

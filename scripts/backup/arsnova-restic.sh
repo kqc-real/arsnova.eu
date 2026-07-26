@@ -44,5 +44,5 @@ require_root_owned_private_file "$RESTIC_PASSWORD_FILE" "Restic-Passwortdatei"
 require_root_owned_private_file "$ARSNOVA_BACKUP_SSH_CONFIG" "SSH-Konfiguration"
 
 exec restic \
-  -o "sftp.command=ssh -F ${ARSNOVA_BACKUP_SSH_CONFIG}" \
+  -o "sftp.command=ssh -F ${ARSNOVA_BACKUP_SSH_CONFIG} arsnova-storagebox -s sftp" \
   "$@"
