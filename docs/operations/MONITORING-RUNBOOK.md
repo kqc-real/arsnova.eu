@@ -262,6 +262,14 @@ wertet dieselben Signale zusätzlich jede Minute automatisiert aus. Dieses
 Runbook bleibt die verbindliche On-Call-Referenz; die Alarmierung verändert
 keine Rate-Limits und sperrt keine Nutzer.
 
+Angemeldete Admins können den aktuellen aggregierten Snapshot außerdem im
+dritten Tab **Monitoring** unter `/admin` einsehen. Die Ansicht aktualisiert sich
+alle 60 Sekunden und bietet die vollständige Antwort zusätzlich als
+aufklappbares JSON an. Dafür wird ausschließlich die bestehende Admin-Session
+verwendet; `ADMIN_DIAGNOSTIC_SECRET` wird weder an den Browser übertragen noch
+im Frontend gespeichert. Der Tab zeigt Live-Werte, ersetzt aber weder
+Webhook-Alarme noch den externen Heartbeat und speichert keine Zeitreihe.
+
 ## Automatische Alarmierung (W3.7)
 
 `arsnova-monitor.timer` startet einmal pro Minute einen vom App-Container

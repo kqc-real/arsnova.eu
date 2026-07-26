@@ -45,8 +45,8 @@
         <div class="admin-shell__titles">
           <h1 class="admin-shell__title" i18n="@@admin.shellTitle">Interne Verwaltung</h1>
           <p class="admin-shell__subtitle" i18n="@@admin.shellSubtitle">
-            Sessions prüfen, Exporte erstellen und Startseiten-Meldungen pflegen. Wechsle über die
-            Registerkarten zwischen den Bereichen.
+            Sessions prüfen, Startseiten-Meldungen pflegen und den Betrieb überwachen. Wechsle über
+            die Registerkarten zwischen den Bereichen.
           </p>
         </div>
         <div class="admin-actions admin-actions--toolbar">
@@ -533,6 +533,11 @@
         </mat-tab>
         <mat-tab i18n-label="@@admin.tabMotd" label="Startseiten-Meldungen">
           <app-admin-motd-panel />
+        </mat-tab>
+        <mat-tab i18n-label="@@admin.tabMonitoring" label="Monitoring">
+          <ng-template matTabContent>
+            <app-admin-monitoring-panel (sessionExpired)="handleAdminSessionExpired()" />
+          </ng-template>
         </mat-tab>
       </mat-tab-group>
     </div>

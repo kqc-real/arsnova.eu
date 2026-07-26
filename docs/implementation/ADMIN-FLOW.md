@@ -69,6 +69,13 @@ Betriebsdiagnose verwendet ausschließlich das separat rotierbare
 `ADMIN_DIAGNOSTIC_SECRET` im Header `x-admin-diagnostic-secret`.
 `ADMIN_SECRET` und Admin-Session-Tokens autorisieren diesen Diagnosepfad nicht.
 
+Der dritte Admin-Tab **Monitoring** nutzt stattdessen
+`admin.monitoringStats`. Diese read-only `adminProcedure` verwendet dieselbe
+aggregierte Datensammlung, wird aber ausschließlich durch das bestehende
+Admin-Session-Token autorisiert. Das Diagnose-Secret gelangt dadurch weder in
+den Browser noch in den Admin-Token-Speicher. Bei abgelaufener oder widerrufener
+Admin-Session verwirft der Tab den Snapshot und kehrt zur Anmeldung zurück.
+
 ### 3.2 Technischer Ablauf
 
 1. Client ruft `admin.login` mit Secret auf.

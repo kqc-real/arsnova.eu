@@ -438,7 +438,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
   }
 }
 
-async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
+export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
   const [pdfSignals, abuseSignals, cspReportSignals, sessionCodeGlobalSoftCapUtilizationPercent] =
     await Promise.all([
       readPdfSignals(),

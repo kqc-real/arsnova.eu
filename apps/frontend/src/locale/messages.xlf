@@ -2528,6 +2528,228 @@
           <context context-type="linenumber">295</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.monitoringTitle" datatype="html">
+        <source>Live-Monitoring</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringIntro" datatype="html">
+        <source> Aggregierte Betriebs- und Security-Metriken der letzten Minute. Die Ansicht aktualisiert sich automatisch alle 60 Sekunden. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">5,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRefresh" datatype="html">
+        <source>Aktualisieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringUpdated" datatype="html">
+        <source>Zuletzt aktualisiert:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionsTitle" datatype="html">
+        <source>Sessions und Schutzlimits</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLastMinute" datatype="html">
+        <source>Letzte Minute</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCreates" datatype="html">
+        <source>Erstellte Sessions</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringInvalidCodes" datatype="html">
+        <source>Ungültige Session-Codes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSoftCapDelays" datatype="html">
+        <source>Soft-Cap-Verzögerungen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
+        <source>Globale Soft-Cap-Auslastung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">49</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
+        <source>429-Ablehnungen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfTitle" datatype="html">
+        <source>PDF-Erstellung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCapacityAndMinute" datatype="html">
+        <source> Aktuelle Kapazität und letzte Minute </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">63,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfActive" datatype="html">
+        <source>Aktive Jobs</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">70</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfCompleted" datatype="html">
+        <source>Abgeschlossen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">77</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfFailed" datatype="html">
+        <source>Fehlgeschlagen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">81</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfRejected" datatype="html">
+        <source>Abgelehnt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringTrpcTitle" datatype="html">
+        <source>tRPC-WebSockets</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">94</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringConnectionsAndMinute" datatype="html">
+        <source> Aktuelle Verbindungen und letzte Minute </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">95,97</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">127,129</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringConnections" datatype="html">
+        <source>Verbindungen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">134</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRejectedUpgrades" datatype="html">
+        <source>Abgelehnte Upgrades</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">109</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRejectedPayloads" datatype="html">
+        <source>Abgelehnte Payloads</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRateLimitedMessages" datatype="html">
+        <source>Rate-limitierte Nachrichten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringYjsTitle" datatype="html">
+        <source>Yjs-WebSockets</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">126</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringActiveRooms" datatype="html">
+        <source>Aktive Räume</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">141</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringProtocolErrors" datatype="html">
+        <source>Protokollfehler</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">149</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringJsonSummary" datatype="html">
+        <source>Vollständige JSON-Daten anzeigen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringJsonHelp" datatype="html">
+        <source> Der Snapshot enthält nur aggregierte Werte, keine IP-Adressen, Session-Codes oder Raum-IDs. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">159,161</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLoading" datatype="html">
+        <source>Monitoring-Daten werden geladen…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">167</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLoadError" datatype="html">
+        <source>Monitoring-Daten konnten nicht geladen werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.motd.title" datatype="html">
         <source>Startseiten-Meldungen</source>
         <context-group purpose="location">
@@ -3181,7 +3403,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.shellSubtitle" datatype="html">
-        <source> Sessions prüfen, Exporte erstellen und Startseiten-Meldungen pflegen. Wechsle über die Registerkarten zwischen den Bereichen. </source>
+        <source> Sessions prüfen, Startseiten-Meldungen pflegen und den Betrieb überwachen. Wechsle über die Registerkarten zwischen den Bereichen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">47,50</context>
@@ -3533,204 +3755,218 @@
           <context context-type="linenumber">534</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.tabMonitoring" datatype="html">
+        <source>Monitoring</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">537</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.errorLogin" datatype="html">
         <source>Login fehlgeschlagen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">184</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.sessionExpired" datatype="html">
+        <source>Deine Admin-Sitzung ist abgelaufen. Bitte melde dich erneut an.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
+          <context context-type="linenumber">204</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorLookupSession" datatype="html">
         <source>Session konnte nicht geladen werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">225</context>
+          <context context-type="linenumber">239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorDetailSession" datatype="html">
         <source>Session-Detail konnte nicht geladen werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">264</context>
+          <context context-type="linenumber">278</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.legalHoldSetDone" datatype="html">
         <source>Sperre aktiviert bis <x id="untilText" equiv-text="untilText"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">294</context>
+          <context context-type="linenumber">308</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.legalHoldReleaseDone" datatype="html">
         <source>Sperre wurde aufgehoben.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">297</context>
+          <context context-type="linenumber">311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorLegalHold" datatype="html">
         <source>Legal Hold konnte nicht aktualisiert werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">305</context>
+          <context context-type="linenumber">319</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionDeleted" datatype="html">
         <source>Session <x id="sessionCode" equiv-text="result.sessionCode"/> wurde endgültig gelöscht.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">333</context>
+          <context context-type="linenumber">347</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorDeleteSession" datatype="html">
         <source>Session konnte nicht gelöscht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">344</context>
+          <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.deleteAllDone" datatype="html">
         <source><x id="sessionCount" equiv-text="result.deletedSessionCount"/> Sessions und <x id="quizCount" equiv-text="result.deletedQuizCount"/> Quizze wurden endgültig gelöscht.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorDeleteAllSessions" datatype="html">
         <source>Alle Sessions konnten nicht gelöscht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">403</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.resetRecordDone" datatype="html">
         <source>Rekord zurückgesetzt: vorher <x id="previousValue" equiv-text="result.previousMaxParticipantsSingleSession"/>, jetzt <x id="currentValue" equiv-text="result.currentMaxParticipantsSingleSession"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">417</context>
+          <context context-type="linenumber">431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorResetRecord" datatype="html">
         <source>Rekord-User-Zahl konnte nicht zurückgesetzt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">424</context>
+          <context context-type="linenumber">438</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.exportDoneCompliance" datatype="html">
         <source>Compliance-Bericht erstellt: <x id="fileName" equiv-text="result.fileName"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">453</context>
+          <context context-type="linenumber">467</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorExport" datatype="html">
         <source>Export konnte nicht erstellt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">459</context>
+          <context context-type="linenumber">473</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">487</context>
+          <context context-type="linenumber">501</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.exportDoneQuizImport" datatype="html">
         <source>Quiz-Importdatei erstellt: <x id="fileName" equiv-text="result.fileName"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">481</context>
+          <context context-type="linenumber">495</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.retentionRunning" datatype="html">
         <source>Laufend</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">498</context>
+          <context context-type="linenumber">512</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.retentionPost" datatype="html">
         <source>Nachlauf</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">500</context>
+          <context context-type="linenumber">514</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.retentionPurged" datatype="html">
         <source>Bereinigt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">502</context>
+          <context context-type="linenumber">516</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusLobby" datatype="html">
         <source>Lobby</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">525</context>
+          <context context-type="linenumber">539</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusQuestionOpen" datatype="html">
         <source>Frage offen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">527</context>
+          <context context-type="linenumber">541</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusActive" datatype="html">
         <source>Aktiv</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">529</context>
+          <context context-type="linenumber">543</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusPaused" datatype="html">
         <source>Pausiert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">531</context>
+          <context context-type="linenumber">545</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusResults" datatype="html">
         <source>Ergebnisse</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">533</context>
+          <context context-type="linenumber">547</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusDiscussion" datatype="html">
         <source>Diskussion</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">535</context>
+          <context context-type="linenumber">549</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusFinished" datatype="html">
         <source>Beendet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">537</context>
+          <context context-type="linenumber">551</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionTypeQuiz" datatype="html">
         <source>Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">544</context>
+          <context context-type="linenumber">558</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionTypeQa" datatype="html">
         <source>Fragerunde</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">546</context>
+          <context context-type="linenumber">560</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.errorListSessions" datatype="html">
         <source>Sessions konnten nicht geladen werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
-          <context context-type="linenumber">591</context>
+          <context context-type="linenumber">605</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedback" datatype="html">
@@ -6841,120 +7077,124 @@
         <source>Ungültige Quiz-Daten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1013</context>
+          <context context-type="linenumber">1018</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2901330476904339699" datatype="html">
         <source>Ungültige Quiz-Metadaten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1048</context>
+          <context context-type="linenumber">1053</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizStore.uploadNeedsActiveQuestion" datatype="html">
         <source>Mindestens eine aktive Frage ist für den Live-Start nötig.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1361</context>
+          <context context-type="linenumber">1366</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3802010542028113857" datatype="html">
         <source>Ungültige Quiz-Daten für Live-Start.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1459</context>
+          <context context-type="linenumber">1464</context>
         </context-group>
       </trans-unit>
       <trans-unit id="98653809044312890" datatype="html">
         <source>Ungültige Import-Datei.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1476</context>
+          <context context-type="linenumber">1481</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1489</context>
+          <context context-type="linenumber">1494</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1501</context>
+          <context context-type="linenumber">1506</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7659357251880978274" datatype="html">
         <source>Ungültige Sync-ID.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1954</context>
+          <context context-type="linenumber">1959</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2494091707087550472" datatype="html">
         <source>Sync-Link kann nur im Browser erstellt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2034</context>
+          <context context-type="linenumber">2039</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2131879080472045913" datatype="html">
         <source>Abgesicherter Sync-Link konnte nicht erstellt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2056</context>
+          <context context-type="linenumber">2061</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4558032115971134336" datatype="html">
         <source>Sync-Link kann für diese Sammlung nicht ungültig gemacht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2081</context>
+          <context context-type="linenumber">2086</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9182794756914972903" datatype="html">
         <source>Sync-Link ist noch nicht bereit.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2084</context>
+          <context context-type="linenumber">2089</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4363224716062944377" datatype="html">
         <source>Nur das Gerät, das den Sync-Link erstellt hat, kann ihn ungültig machen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2089</context>
+          <context context-type="linenumber">2094</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5192293521473365783" datatype="html">
         <source>Sync-Link konnte nicht ungültig gemacht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2109</context>
+          <context context-type="linenumber">2114</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2756001557720038090" datatype="html">
         <source>Ungültiger Sync-Share-Token wurde ignoriert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2709</context>
+          <context context-type="linenumber">2728</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">2750</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8868891700529845294" datatype="html">
         <source>Ein älterer Sync-Link wurde ignoriert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2721</context>
+          <context context-type="linenumber">2762</context>
         </context-group>
       </trans-unit>
       <trans-unit id="345322272033479836" datatype="html">
         <source>Ungültige Quiz-Einstellungen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2944</context>
+          <context context-type="linenumber">2996</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5143514353984065697" datatype="html">
         <source>Ungültige Frage.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">3056</context>
+          <context context-type="linenumber">3108</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5893501665486949127" datatype="html">
@@ -11138,56 +11378,56 @@
         <source>Sync-Link wurde kopiert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">102</context>
+          <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateConfirm" datatype="html">
         <source>Alten Sync-Link ungültig machen? Andere Geräte brauchen danach den neuen Link. Lokal gespeicherte Quizze bleiben erhalten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">112</context>
+          <context context-type="linenumber">114</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateDone" datatype="html">
         <source>Alter Sync-Link ist ungültig. Der neue Link wurde kopiert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">125</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateFailed" datatype="html">
         <source>Sync-Link konnte nicht ungültig gemacht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">129</context>
+          <context context-type="linenumber">131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.secureLinkDone" datatype="html">
         <source>Neuer abgesicherter Sync-Link ist bereit.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">145</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.secureLinkFailed" datatype="html">
         <source>Abgesicherter Sync-Link konnte nicht erstellt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">149</context>
+          <context context-type="linenumber">151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2298576743619897022" datatype="html">
         <source>Clipboard API nicht verfügbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">159</context>
+          <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.copyFailed" datatype="html">
         <source>Kopieren nicht möglich. Bitte manuell markieren und kopieren.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">165</context>
+          <context context-type="linenumber">167</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPage.newTitle" datatype="html">
