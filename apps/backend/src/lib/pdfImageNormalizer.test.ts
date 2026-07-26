@@ -22,6 +22,13 @@ function imageBytesFromHtml(html: string): Buffer {
   return Buffer.from(encoded, 'base64');
 }
 
+function inlinedDataUrlBytes(html: string): number {
+  return [...html.matchAll(/\bsrc=(["'])(data:image\/[^"']+)\1/gi)].reduce(
+    (sum, match) => sum + Buffer.byteLength(match[2], 'utf8'),
+    0,
+  );
+}
+
 describe('pdfImageNormalizer', () => {
   it('deaktiviert Worker-Caches und begrenzt native Decode-Parallelität', () => {
     configurePdfImageNormalizer();
@@ -117,6 +124,53 @@ describe('pdfImageNormalizer', () => {
     expect(normalized.match(/data:image\/webp;base64,/g)).toHaveLength(2);
   });
 
+  it('belastet das Ausgabelimit pro Vorkommen mit exakter Grenze', async () => {
+    const source = dataUrl('image/png', Buffer.from('fake'));
+    const normalizedBytes = Buffer.alloc(100, 1);
+    const normalizedDataUrl = dataUrl('image/webp', normalizedBytes);
+    const normalizeImage = vi.fn(async () => ({
+      bytes: normalizedBytes,
+      mimeType: 'image/webp' as const,
+    }));
+    const exactBudget = Buffer.byteLength(normalizedDataUrl, 'utf8') * 2;
+
+    const exact = await normalizePdfImageDataUrlsInHtml(
+      `<img src="${source}"><img src="${source}">`,
+      { normalizeImage, maxTotalOutputBytes: exactBudget },
+    );
+    const oneOver = await normalizePdfImageDataUrlsInHtml(
+      `<img src="${source}"><img src="${source}"><img src="${source}">`,
+      { normalizeImage, maxTotalOutputBytes: exactBudget },
+    );
+
+    expect(normalizeImage).toHaveBeenCalledTimes(2);
+    expect(exact.match(/data:image\/webp;base64,/g)).toHaveLength(2);
+    expect(inlinedDataUrlBytes(exact)).toBe(exactBudget);
+    expect(oneOver.match(/data:image\/webp;base64,/g)).toBeNull();
+    expect(oneOver.split(PDF_IMAGE_NORMALIZATION_PLACEHOLDER)).toHaveLength(4);
+    expect(inlinedDataUrlBytes(oneOver)).toBeLessThanOrEqual(exactBudget);
+  });
+
+  it('normalisiert häufige Duplikate einmal und hält das tatsächliche Inlinebudget', async () => {
+    const source = dataUrl('image/png', Buffer.from('fake'));
+    const normalizeImage = vi.fn(async () => ({
+      bytes: Buffer.alloc(100, 1),
+      mimeType: 'image/webp' as const,
+    }));
+    const maxTotalOutputBytes = 1_000;
+    const html = Array.from({ length: 100 }, () => `<img src="${source}">`).join('');
+
+    const normalized = await normalizePdfImageDataUrlsInHtml(html, {
+      normalizeImage,
+      maxTotalOutputBytes,
+    });
+
+    expect(normalizeImage).toHaveBeenCalledOnce();
+    expect(normalized).not.toContain(source);
+    expect(normalized.match(/data-pdf-image-omitted="budget"/g)).toHaveLength(100);
+    expect(inlinedDataUrlBytes(normalized)).toBeLessThanOrEqual(maxTotalOutputBytes);
+  });
+
   it('wird bei hängender Normalisierung fatal und startet kein Chromium', async () => {
     const source = dataUrl('image/png', Buffer.from('fake'));
     const chromiumRender = vi.fn(async () => Buffer.from('%PDF'));
@@ -159,6 +213,9 @@ describe('pdfImageNormalizer', () => {
       normalizeImage: async () => ({ bytes: chunk, mimeType: 'image/webp' }),
     });
 
-    expect(normalized.split(PDF_IMAGE_NORMALIZATION_PLACEHOLDER)).toHaveLength(2);
+    expect(normalized).toContain(PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+    expect(inlinedDataUrlBytes(normalized)).toBeLessThanOrEqual(
+      PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES,
+    );
   });
 });

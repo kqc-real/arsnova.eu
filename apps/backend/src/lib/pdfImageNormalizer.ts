@@ -118,19 +118,55 @@ export async function normalizePdfImageDataUrlsInHtml(
     deadlineMs?: number;
     normalizeImage?: typeof normalizePdfImageBytes;
     onDeadline?: () => void;
+    maxTotalOutputBytes?: number;
   } = {},
 ): Promise<string> {
   const deadlineAt = Date.now() + (options.deadlineMs ?? PDF_IMAGE_NORMALIZER_DEADLINE_MS);
   const normalizeImage = options.normalizeImage ?? normalizePdfImageBytes;
-  const sources = [...new Set([...html.matchAll(DATA_IMAGE_SRC_RE)].map((match) => match[2]))];
+  const matches = [...html.matchAll(DATA_IMAGE_SRC_RE)];
+  const occurrences = new Map<string, number>();
+  for (const match of matches) {
+    occurrences.set(match[2], (occurrences.get(match[2]) ?? 0) + 1);
+  }
+  const sources = [...occurrences.keys()];
   const replacements = new Map<string, string>();
+  const maxTotalOutputBytes = Math.min(
+    options.maxTotalOutputBytes ?? PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES,
+    PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES,
+  );
+  if (!Number.isSafeInteger(maxTotalOutputBytes) || maxTotalOutputBytes < 1) {
+    throw new Error('Ungültiges PDF-Bild-Gesamtausgabelimit.');
+  }
   let totalOutputBytes = 0;
+
+  const setBudgetedReplacement = (source: string, candidate: string): void => {
+    const occurrenceCount = occurrences.get(source) ?? 0;
+    if (!Number.isSafeInteger(occurrenceCount) || occurrenceCount < 1) {
+      throw new Error('Ungültige PDF-Bild-Vorkommenszahl.');
+    }
+    const candidates =
+      candidate === PDF_IMAGE_NORMALIZATION_PLACEHOLDER
+        ? [PDF_IMAGE_NORMALIZATION_PLACEHOLDER, '']
+        : [candidate, PDF_IMAGE_NORMALIZATION_PLACEHOLDER, ''];
+    const remainingBytes = maxTotalOutputBytes - totalOutputBytes;
+    for (const replacement of candidates) {
+      const replacementBytes = Buffer.byteLength(replacement, 'utf8');
+      if (
+        replacementBytes === 0 ||
+        replacementBytes <= Math.floor(remainingBytes / occurrenceCount)
+      ) {
+        totalOutputBytes += replacementBytes * occurrenceCount;
+        replacements.set(source, replacement);
+        return;
+      }
+    }
+  };
 
   for (const source of sources.slice(0, PDF_IMAGE_NORMALIZER_MAX_IMAGES)) {
     const match = source.match(/^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/=]+)$/i);
     const remainingMs = deadlineAt - Date.now();
     if (!match || remainingMs <= 0) {
-      replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+      setBudgetedReplacement(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
       continue;
     }
     try {
@@ -143,29 +179,23 @@ export async function normalizePdfImageDataUrlsInHtml(
         remainingMs,
         options.onDeadline,
       );
-      if (
-        totalOutputBytes + normalized.bytes.byteLength >
-        PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES
-      ) {
-        throw new Error('PDF-Bilder überschreiten das Gesamtausgabelimit.');
-      }
-      totalOutputBytes += normalized.bytes.byteLength;
-      replacements.set(
+      setBudgetedReplacement(
         source,
         `data:${normalized.mimeType};base64,${normalized.bytes.toString('base64')}`,
       );
     } catch (error) {
       if (error instanceof PdfImageNormalizationDeadlineError) throw error;
-      replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+      setBudgetedReplacement(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
     }
   }
   for (const source of sources.slice(PDF_IMAGE_NORMALIZER_MAX_IMAGES)) {
-    replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+    setBudgetedReplacement(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
   }
 
   return html.replace(DATA_IMAGE_SRC_RE, (full, quote: string, source: string) => {
     const replacement = replacements.get(source);
-    return replacement ? `src=${quote}${replacement}${quote}` : full;
+    if (replacement === undefined) return full;
+    return replacement ? `src=${quote}${replacement}${quote}` : 'data-pdf-image-omitted="budget"';
   });
 }
 
