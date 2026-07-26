@@ -141,6 +141,58 @@ jobs:
       - name: Run actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7
 
+      - name: Validate backup shell scripts
+        run: |
+          bash -n scripts/backup/*.sh
+          shellcheck scripts/backup/*.sh
+          sudo install -o root -g root -m 0750 scripts/backup/*.sh /usr/local/sbin/
+          sudo install -o root -g root -m 0700 -d \
+            /etc/arsnova-backup \
+            /var/lib/arsnova-backup \
+            /var/lib/arsnova-restore-check \
+            /var/cache/arsnova-restic
+          sudo systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
+          systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 05:15:00'
+          sudo install -o root -g root -m 0644 deploy/systemd/*.service /etc/systemd/system/
+          sudo install -o root -g root -m 0700 -d \
+            /etc/systemd/system/arsnova-backup.service.d \
+            /etc/systemd/system/arsnova-restore-check.service.d \
+            /home/deploy/arsnova.eu
+          printf '%s\n' \
+            '#!/usr/bin/env bash' \
+            'set -euo pipefail' \
+            'exec 8>/run/lock/arsnova-restic.lock' \
+            'flock -n 8' \
+            | sudo tee /usr/local/sbin/arsnova-systemd-lock-smoke.sh >/dev/null
+          sudo chmod 0750 /usr/local/sbin/arsnova-systemd-lock-smoke.sh
+          printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-systemd-lock-smoke.sh\n' \
+            | sudo tee /etc/systemd/system/arsnova-backup.service.d/smoke.conf >/dev/null
+          printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-systemd-lock-smoke.sh\n' \
+            | sudo tee /etc/systemd/system/arsnova-restore-check.service.d/smoke.conf >/dev/null
+          sudo touch /etc/arsnova-backup/backup.env
+          sudo chown root:root /etc/arsnova-backup/backup.env
+          sudo chmod 0600 /etc/arsnova-backup/backup.env
+          sudo systemctl daemon-reload
+          sudo systemctl start arsnova-backup.service
+          sudo systemctl start arsnova-restore-check.service
+          restore_fixture="$(mktemp -d)"
+          installed_env="$(mktemp)"
+          trap 'sudo rm -rf "$restore_fixture"; rm -f "$installed_env"' EXIT
+          sudo chown root:root "$restore_fixture"
+          sudo chmod 0700 "$restore_fixture"
+          sudo install -o root -g root -m 0700 -d "$restore_fixture/snapshot/config"
+          printf 'NODE_ENV=production\n' | sudo tee "$restore_fixture/snapshot/config/env.production" >/dev/null
+          printf 'custom-dump\n' | sudo tee "$restore_fixture/snapshot/postgres.dump" >/dev/null
+          if sudo -u nobody cat "$restore_fixture/snapshot/postgres.dump" >/dev/null 2>&1; then
+            echo "Root-only Restore-Fixture ist ungeschützt." >&2
+            exit 1
+          fi
+          restored_env="$(sudo find "$restore_fixture" -type f -path '*/config/env.production' -print -quit)"
+          sudo install -o "$(id -u)" -g "$(id -g)" -m 0600 "$restored_env" "$installed_env"
+          test "$(stat -c '%u:%g:%a' "$installed_env")" = "$(id -u):$(id -g):600"
+          dump="$(sudo find "$restore_fixture" -type f -name postgres.dump -print -quit)"
+          sudo cat "$dump" | cmp - <(printf 'custom-dump\n')
+
   format:
     name: Changed Files Format
     runs-on: ubuntu-latest

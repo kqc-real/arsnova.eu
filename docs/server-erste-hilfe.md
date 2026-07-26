@@ -496,125 +496,34 @@ $COMPOSE exec -T postgres pg_dump -U arsnova_user -d arsnova_v3 | gzip -9 > "bac
 
 Danach erst invasive Maßnahmen planen.
 
-### Automatische PostgreSQL-Sicherung einrichten
+### Automatische verschlüsselte Offsite-Sicherung
 
-Für Produktion reicht ein Docker-Volume nicht aus. Es schützt gegen Container-Neustarts, aber nicht gegen Volume-Löschung, Dateisystemschäden, Bedienfehler oder Serververlust. Mindestens täglich sollte ein `pg_dump` erzeugt und regelmäßig per Restore-Test geprüft werden.
+Ein Docker-Volume oder lokaler Dump schützt nicht gegen Hostverlust,
+Dateisystemschäden oder Ransomware. W3.6 stellt deshalb täglich einen
+PostgreSQL-Custom-Dump und die Produktionskonfiguration clientseitig
+verschlüsselt in einem separaten Restic-Repository auf einer Hetzner Storage
+Box bereit.
 
-Backup-Verzeichnis anlegen:
+Die versionierten Skripte, gehärteten systemd-Units, 14-Tage-Retention,
+Schlüsselverwaltung und Wiederherstellung sind im
+[Backup-/Restore-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md) beschrieben.
+Die temporären Klartextdateien werden nach jedem Lauf entfernt.
 
-```bash
-sudo install -o deploy -g deploy -m 0700 -d /home/deploy/backups/postgres
-```
-
-Backup-Script anlegen:
-
-```bash
-sudo tee /usr/local/sbin/arsnova-pg-backup.sh >/dev/null <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-APP_DIR="/home/deploy/arsnova.eu"
-BACKUP_DIR="/home/deploy/backups/postgres"
-RETENTION_DAYS="30"
-MAX_BACKUP_DIR_BYTES="$((5 * 1024 * 1024 * 1024))"
-
-cd "$APP_DIR"
-
-COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
-STAMP="$(date +%F-%H%M%S)"
-OUT="$BACKUP_DIR/arsnova-postgres-$STAMP.sql.gz"
-
-install -o deploy -g deploy -m 0700 -d "$BACKUP_DIR"
-
-$COMPOSE exec -T postgres pg_dump -U arsnova_user -d arsnova_v3 | gzip -9 > "$OUT"
-
-chown deploy:deploy "$OUT"
-chmod 0600 "$OUT"
-
-find "$BACKUP_DIR" -type f -name "arsnova-postgres-*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
-
-while [ "$(du -sb "$BACKUP_DIR" | awk '{print $1}')" -gt "$MAX_BACKUP_DIR_BYTES" ]; do
-  oldest="$(find "$BACKUP_DIR" -type f -name "arsnova-postgres-*.sql.gz" -printf '%T@ %p\n' | sort -n | head -n 1 | cut -d' ' -f2-)"
-  [ -n "$oldest" ] || break
-  rm -f "$oldest"
-done
-
-echo "Created backup: $OUT"
-EOF
-
-sudo chmod 0750 /usr/local/sbin/arsnova-pg-backup.sh
-```
-
-systemd Service anlegen:
+Schnellprüfung:
 
 ```bash
-sudo tee /etc/systemd/system/arsnova-pg-backup.service >/dev/null <<'EOF'
-[Unit]
-Description=arsnova.eu PostgreSQL backup
-After=docker.service
-Requires=docker.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/arsnova-pg-backup.sh
-EOF
+sudo systemctl start arsnova-backup.service
+sudo systemctl start arsnova-restore-check.service
+sudo systemctl status arsnova-backup.service arsnova-restore-check.service
+systemctl list-timers arsnova-backup.timer arsnova-restore-check.timer
+sudo journalctl -u arsnova-backup.service -u arsnova-restore-check.service -n 100 --no-pager
+sudo cat /var/lib/arsnova-backup/last-success
+sudo cat /var/lib/arsnova-restore-check/last-success
 ```
 
-systemd Timer anlegen:
-
-```bash
-sudo tee /etc/systemd/system/arsnova-pg-backup.timer >/dev/null <<'EOF'
-[Unit]
-Description=Daily arsnova.eu PostgreSQL backup
-
-[Timer]
-OnCalendar=*-*-* 02:30:00
-Persistent=true
-RandomizedDelaySec=15m
-
-[Install]
-WantedBy=timers.target
-EOF
-```
-
-Aktivieren und prüfen:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now arsnova-pg-backup.timer
-sudo systemctl start arsnova-pg-backup.service
-sudo journalctl -u arsnova-pg-backup.service -n 50 --no-pager
-systemctl list-timers arsnova-pg-backup.timer
-ls -lh /home/deploy/backups/postgres
-du -sh /home/deploy/backups/postgres
-```
-
-Zusätzlich prüfen, ob bereits andere Backup-Jobs existieren:
-
-```bash
-sudo crontab -l
-crontab -l
-sudo ls -la /etc/cron.d /etc/cron.daily /etc/cron.weekly
-systemctl list-timers --all | grep -Ei 'postgres|backup|dump|pg|arsnova'
-```
-
-### Restore-Test
-
-Ein Backup gilt erst dann als belastbar, wenn es testweise wiederhergestellt wurde. Der folgende Test legt eine separate Datenbank im bestehenden PostgreSQL-Container an und entfernt sie danach wieder.
-
-```bash
-cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
-LATEST="$(ls -1t /home/deploy/backups/postgres/arsnova-postgres-*.sql.gz | head -n 1)"
-
-$COMPOSE exec -T postgres dropdb -U arsnova_user --if-exists arsnova_restore_check
-$COMPOSE exec -T postgres createdb -U arsnova_user arsnova_restore_check
-gunzip -c "$LATEST" | $COMPOSE exec -T postgres psql -U arsnova_user -d arsnova_restore_check >/dev/null
-$COMPOSE exec -T postgres psql -U arsnova_user -d arsnova_restore_check -c '\dt'
-$COMPOSE exec -T postgres dropdb -U arsnova_user arsnova_restore_check
-```
-
-Lokale Dumps schützen nicht gegen kompletten Serververlust. Für echte Produktion sollten die Dateien zusätzlich extern kopiert werden, z. B. per Storage Box, S3-kompatiblem Speicher, `rsync`, `restic` oder `borg`.
+Der Restore-Test verwendet einen temporären PostgreSQL-Container ohne Netzwerk
+und ohne Produktions-Volume. Vierteljährlich muss derselbe Test zusätzlich auf
+einem frischen Wiederherstellungshost ausgeführt werden.
 
 <a id="redis" name="redis"></a>
 
@@ -754,7 +663,7 @@ Der externe Monitor sollte bei diesen Fällen alarmieren:
 Der lokale Check prüft:
 
 - `/`-Belegung und Inodes
-- Alter des letzten PostgreSQL-Dumps
+- Alter des letzten erfolgreichen Offsite-Backups und Restore-Tests
 - fehlgeschlagene systemd Units
 - aktive Wartungstimer
 - Containerstatus und Docker-Healthchecks
@@ -770,6 +679,7 @@ ALERT_FAIL_URL=""
 DISK_WARN_PERCENT="80"
 INODE_WARN_PERCENT="80"
 BACKUP_MAX_AGE_SECONDS="108000"
+RESTORE_MAX_AGE_SECONDS="3456000"
 CERT_WARN_SECONDS="1814400"
 EOF
 
@@ -791,8 +701,10 @@ fi
 DISK_WARN_PERCENT="${DISK_WARN_PERCENT:-80}"
 INODE_WARN_PERCENT="${INODE_WARN_PERCENT:-80}"
 BACKUP_MAX_AGE_SECONDS="${BACKUP_MAX_AGE_SECONDS:-108000}"
+RESTORE_MAX_AGE_SECONDS="${RESTORE_MAX_AGE_SECONDS:-3456000}"
 CERT_WARN_SECONDS="${CERT_WARN_SECONDS:-1814400}"
-BACKUP_DIR="/home/deploy/backups/postgres"
+BACKUP_MARKER="/var/lib/arsnova-backup/last-success"
+RESTORE_MARKER="/var/lib/arsnova-restore-check/last-success"
 APP_DIR="/home/deploy/arsnova.eu"
 COMPOSE="docker compose -f $APP_DIR/docker-compose.prod.yml --env-file $APP_DIR/.env.production"
 
@@ -808,13 +720,21 @@ if [ "$inode_used" -ge "$INODE_WARN_PERCENT" ]; then
   problems+=("Inodes / are ${inode_used}% used")
 fi
 
-latest_backup="$(find "$BACKUP_DIR" -type f -name 'arsnova-postgres-*.sql.gz' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n 1 | cut -d' ' -f2- || true)"
-if [ -z "$latest_backup" ]; then
-  problems+=("No PostgreSQL dump found in $BACKUP_DIR")
+if [ ! -f "$BACKUP_MARKER" ]; then
+  problems+=("No successful offsite backup marker found: $BACKUP_MARKER")
 else
-  backup_age="$(( $(date +%s) - $(stat -c %Y "$latest_backup") ))"
+  backup_age="$(( $(date +%s) - $(stat -c %Y "$BACKUP_MARKER") ))"
   if [ "$backup_age" -gt "$BACKUP_MAX_AGE_SECONDS" ]; then
-    problems+=("Latest PostgreSQL dump is ${backup_age}s old: $latest_backup")
+    problems+=("Latest offsite backup is ${backup_age}s old")
+  fi
+fi
+
+if [ ! -f "$RESTORE_MARKER" ]; then
+  problems+=("No successful isolated restore marker found: $RESTORE_MARKER")
+else
+  restore_age="$(( $(date +%s) - $(stat -c %Y "$RESTORE_MARKER") ))"
+  if [ "$restore_age" -gt "$RESTORE_MAX_AGE_SECONDS" ]; then
+    problems+=("Latest isolated restore check is ${restore_age}s old")
   fi
 fi
 
@@ -823,7 +743,7 @@ if [ -n "$failed_units" ]; then
   problems+=("Failed systemd units: $(echo "$failed_units" | paste -sd ',' -)")
 fi
 
-for timer in certbot.timer arsnova-pg-backup.timer docker-build-cache-prune.timer; do
+for timer in certbot.timer arsnova-backup.timer arsnova-restore-check.timer docker-build-cache-prune.timer; do
   if ! systemctl is-active --quiet "$timer"; then
     problems+=("Timer inactive: $timer")
   fi
@@ -923,7 +843,9 @@ df -h
 df -ih
 systemctl --failed
 systemctl list-timers --all | grep -Ei 'arsnova|backup|docker|certbot|maintenance'
-find /home/deploy/backups/postgres -type f -name 'arsnova-postgres-*.sql.gz' -mtime -2 -ls
+sudo cat /var/lib/arsnova-backup/last-success /var/lib/arsnova-restore-check/last-success
+sudo ARSNOVA_BACKUP_CONFIG=/etc/arsnova-backup/backup.env \
+  /usr/local/sbin/arsnova-restic.sh snapshots
 sudo certbot certificates
 docker compose -f /home/deploy/arsnova.eu/docker-compose.prod.yml --env-file /home/deploy/arsnova.eu/.env.production ps
 curl -fsS http://127.0.0.1:3000/trpc/health.check

@@ -187,7 +187,7 @@ sudo dpkg-reconfigure -plow unattended-upgrades   # "Yes" wählen
 - **Firewall:** Zusätzlich zur UFW (Abschnitt 2.3) bietet die **Hetzner Cloud** eine **Cloud Firewall** in der Konsole (Netzwerk-Ebene). Optional: Regeln dort setzen (SSH 22, HTTP 80, HTTPS 443) und UFW nur als zweite Ebene nutzen oder weglassen. Bei **Root-Servern** nur UFW.
 - **SSH vor UFW:** Vor `ufw enable` unbedingt Port 22 freigeben, sonst Aussperrung (bei Cloud: ggf. Konsole/Recovery nutzen).
 - **DNS:** Wenn die Domain bei Hetzner (DNS) verwaltet wird: A- und ggf. AAAA-Einträge auf die Server-IP (bzw. IPv6) zeigen lassen, bevor Let's Encrypt läuft.
-- **Backups/Snapshots:** In der Hetzner Cloud Snapshots/Backups der Maschine einplanen; für DB-Sicherheit zusätzlich pg_dump (siehe Checkliste 8).
+- **Backups/Snapshots:** Host-Snapshots sind nur eine Zusatzebene. PostgreSQL und Produktionskonfiguration gemäß [W3.6-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md) clientseitig verschlüsselt in einen getrennten Storage-Box-Subaccount sichern und den Restore isoliert prüfen.
 
 ---
 
@@ -840,7 +840,7 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 - [ ] [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md) mit On-Call durchgesprochen; Schwellen und Diagnosebefehle zugänglich
 - [ ] Fail2ban aktiv (optional)
 - [ ] Unattended-Upgrades für Sicherheits-Updates
-- [ ] Backups für PostgreSQL (z. B. cron + pg_dump) geplant und Restore praktisch getestet
+- [ ] W3.6 eingerichtet: verschlüsseltes Restic-Offsite-Backup, beide systemd-Timer aktiv und isolierter Restore gemäß [Backup-/Restore-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md) erfolgreich
 
 ---
 

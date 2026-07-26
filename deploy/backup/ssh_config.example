@@ -1,0 +1,12 @@
+# Nach /etc/arsnova-backup/ssh_config kopieren, anpassen und auf 0600 setzen.
+# Port 23 verwendet bei Hetzner den normalen OpenSSH-Key im Subaccount.
+
+Host arsnova-storagebox
+  HostName <subaccount>.your-storagebox.de
+  User <subaccount>
+  Port 23
+  IdentityFile /etc/arsnova-backup/storagebox_ed25519
+  UserKnownHostsFile /etc/arsnova-backup/known_hosts
+  IdentitiesOnly yes
+  BatchMode yes
+  StrictHostKeyChecking yes
