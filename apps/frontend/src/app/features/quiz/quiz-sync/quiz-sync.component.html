@@ -16,6 +16,7 @@
         matButton="filled"
         type="button"
         class="quiz-sync__link-copy"
+        [disabled]="copyDisabled()"
         (click)="copySyncLink()"
       >
         <mat-icon>link</mat-icon>
@@ -26,7 +27,7 @@
           matButton="tonal"
           type="button"
           class="quiz-sync__invalidate"
-          [disabled]="invalidatePending()"
+          [disabled]="invalidatePending() || copyDisabled()"
           (click)="invalidateSyncLink()"
         >
           <mat-icon>link_off</mat-icon>
@@ -34,6 +35,20 @@
         </button>
       }
     </div>
+    @if (syncShareStatus() === 'pending') {
+      <p class="quiz-sync__hint" role="status" i18n="@@quizSync.sharePending">
+        Sync-Link wird abgesichert …
+      </p>
+    }
+    @if (syncShareStatus() === 'legacy') {
+      <p class="quiz-sync__hint" role="status" i18n="@@quizSync.shareLegacy">
+        Verbindung ohne Share-Token (Übergangsmodus). Zum Teilen brauchst du einen abgesicherten
+        Link vom Ursprungsgerät.
+      </p>
+    }
+    @if (syncShareError()) {
+      <p class="quiz-sync__error" role="alert">{{ syncShareError() }}</p>
+    }
     <p class="quiz-sync__security-hint" i18n="@@quizSync.securityHint">
       Wer den Sync-Link hat, kann die Sammlung lesen und ändern. Mit „ungültig machen“ stirbt der
       alte Link; bereits geöffnete Geräte arbeiten lokal weiter, bis sie den neuen Link importieren.

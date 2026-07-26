@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -22,12 +22,16 @@ export class QuizSyncComponent {
   readonly localizedPath = localizePath;
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly quizStore = inject(QuizStoreService);
 
   readonly docId = this.route.snapshot.paramMap.get('docId') ?? '';
   readonly syncConnectionState = this.quizStore.syncConnectionState;
   readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly canInvalidateSyncLink = this.quizStore.canInvalidateSyncLink;
+  readonly syncShareStatus = this.quizStore.syncShareStatus;
+  readonly syncShareError = this.quizStore.syncShareError;
+  readonly syncShareReady = computed(() => !!this.quizStore.syncShareToken());
   readonly syncError = signal<string | null>(null);
   readonly copyStatus = signal<string | null>(null);
   readonly invalidatePending = signal(false);
@@ -46,17 +50,38 @@ export class QuizSyncComponent {
     }
     return $localize`:@@quizSync.stateOffline:Offline (nur lokal)`;
   });
-  readonly syncLink = computed(() => this.quizStore.buildSyncShareLink(this.docId));
+  readonly syncLink = computed(() =>
+    this.quizStore.buildSyncShareLink(this.quizStore.syncRoomId()),
+  );
+  readonly copyDisabled = computed(
+    () => !this.syncShareReady() || this.syncShareStatus() === 'pending',
+  );
 
   constructor() {
     try {
       const shareToken = this.route.snapshot.queryParamMap.get('s');
-      // Share-Token in der URL = Import auf einem weiteren Gerät (kein Origin).
+      const previousRoomId = this.quizStore.syncRoomId();
+      const ownLocalLibrary =
+        !shareToken &&
+        previousRoomId === this.docId &&
+        this.quizStore.librarySharingMode() === 'local';
+      const secureAsOrigin =
+        !shareToken && (ownLocalLibrary || this.quizStore.hasRotationCapability(this.docId));
+
       this.quizStore.activateSyncRoom(this.docId, {
         markShared: true,
-        registerOrigin: !shareToken,
+        secureAsOrigin,
         shareToken,
       });
+
+      if (shareToken) {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { s: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Sync-Raum konnte nicht aktiviert werden.';
@@ -65,6 +90,7 @@ export class QuizSyncComponent {
   }
 
   async copySyncLink(): Promise<void> {
+    if (this.copyDisabled()) return;
     await this.copyText(
       this.syncLink(),
       $localize`:@@quizSync.copyLinkDone:Sync-Link wurde kopiert.`,
@@ -72,7 +98,7 @@ export class QuizSyncComponent {
   }
 
   async invalidateSyncLink(): Promise<void> {
-    if (this.invalidatePending()) return;
+    if (this.invalidatePending() || this.copyDisabled()) return;
     const confirmed =
       typeof globalThis.confirm !== 'function'
         ? true

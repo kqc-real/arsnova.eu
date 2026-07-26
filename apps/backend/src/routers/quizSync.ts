@@ -5,8 +5,9 @@ import {
   RotateYjsShareInputSchema,
   RotateYjsShareOutputSchema,
 } from '@arsnova/shared-types';
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, router, resolveClientIp } from '../trpc';
 import { registerYjsShare, rotateYjsShare } from '../lib/yjsShareToken';
+import { checkYjsShareRegisterRate, checkYjsShareRotateRate } from '../lib/rateLimit';
 import { logger } from '../lib/logger';
 
 function mapShareError(code: string): TRPCError {
@@ -18,6 +19,17 @@ function mapShareError(code: string): TRPCError {
       return new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'Sync-Link darf auf diesem Gerät nicht verwaltet werden.',
+      });
+    case 'MUST_REKEY':
+      return new TRPCError({
+        code: 'CONFLICT',
+        message:
+          'Dieser Sync-Raum wurde bereits ohne Token genutzt. Bitte einen neuen Sync-Link erstellen.',
+      });
+    case 'GLOBAL_CAP':
+      return new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Sync-Freigaben sind vorübergehend ausgelastet. Bitte später erneut versuchen.',
       });
     case 'NOT_REGISTERED':
       return new TRPCError({
@@ -32,11 +44,34 @@ function mapShareError(code: string): TRPCError {
   }
 }
 
+async function assertYjsShareRegisterAllowed(ip: string): Promise<void> {
+  const limit = await checkYjsShareRegisterRate(ip);
+  if (!limit.allowed) {
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Zu viele Sync-Freigaben. Bitte später erneut versuchen.',
+      cause: { retryAfterSeconds: limit.retryAfterSeconds },
+    });
+  }
+}
+
+async function assertYjsShareRotateAllowed(ip: string): Promise<void> {
+  const limit = await checkYjsShareRotateRate(ip);
+  if (!limit.allowed) {
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Zu viele Sync-Link-Rotationen. Bitte später erneut versuchen.',
+      cause: { retryAfterSeconds: limit.retryAfterSeconds },
+    });
+  }
+}
+
 export const quizSyncRouter = router({
   registerShare: publicProcedure
     .input(RegisterYjsShareInputSchema)
     .output(RegisterYjsShareOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      await assertYjsShareRegisterAllowed(resolveClientIp(ctx.req).ip);
       try {
         const result = await registerYjsShare(input);
         logger.info('[security] yjs_share_registered', {
@@ -53,7 +88,8 @@ export const quizSyncRouter = router({
   rotateShare: publicProcedure
     .input(RotateYjsShareInputSchema)
     .output(RotateYjsShareOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      await assertYjsShareRotateAllowed(resolveClientIp(ctx.req).ip);
       try {
         const result = await rotateYjsShare(input);
         logger.info('[security] yjs_share_rotated', {

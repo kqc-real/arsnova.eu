@@ -86,6 +86,21 @@ export const RATE_LIMIT_ENV = {
     'RATE_LIMIT_QUICK_FEEDBACK_SESSION_PER_MINUTE',
     120,
   ),
+  /** Yjs Share-Registrierung: Shared-NAT-freundlich, globales Budget gegen Redis-Flood. */
+  yjsShareRegisterPerIpPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_YJS_SHARE_REGISTER_PER_IP_PER_HOUR',
+    30,
+  ),
+  yjsShareRegisterGlobalPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_YJS_SHARE_REGISTER_GLOBAL_PER_HOUR',
+    200,
+  ),
+  /** Rotation: getrennt und großzügiger (bestehende Shares). */
+  yjsShareRotatePerIpPerHour: positiveIntegerEnv('RATE_LIMIT_YJS_SHARE_ROTATE_PER_IP_PER_HOUR', 60),
+  yjsShareRotateGlobalPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_YJS_SHARE_ROTATE_GLOBAL_PER_HOUR',
+    500,
+  ),
 } as const;
 
 const FIXED_WINDOW_BUDGET_SCRIPT = `
@@ -384,5 +399,37 @@ export async function checkMotdRecordInteractionRate(ip: string) {
     `motd:recordInteraction:${ip}`,
     RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
     60,
+  );
+}
+
+export async function checkYjsShareRegisterRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'yjsShare:register:global',
+        limit: RATE_LIMIT_ENV.yjsShareRegisterGlobalPerHour,
+      },
+      {
+        key: `yjsShare:register:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.yjsShareRegisterPerIpPerHour,
+      },
+    ],
+    3600,
+  );
+}
+
+export async function checkYjsShareRotateRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'yjsShare:rotate:global',
+        limit: RATE_LIMIT_ENV.yjsShareRotateGlobalPerHour,
+      },
+      {
+        key: `yjsShare:rotate:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.yjsShareRotatePerIpPerHour,
+      },
+    ],
+    3600,
   );
 }

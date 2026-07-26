@@ -321,6 +321,13 @@ server {
     }
 }
 
+# Access-Log ohne Query-String und ohne Referer (ADR-0033 / W3.4):
+# Share-Tokens liegen in ?s= und dürfen nicht in Access-Logs landen.
+# `$uri` enthält den Pfad ohne Query; `$request` / `$request_uri` / `$http_referer` nicht verwenden.
+log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
+    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+    '"-" "$http_user_agent"';
+
 # HTTPS – verschlüsselter Zugang + WebSocket-Proxy
 # Kompatibel mit Debian-12-Nginx; neuere Versionen können dafür eine Deprecation-Warnung zeigen.
 server {
@@ -339,7 +346,9 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 
-    access_log /var/log/nginx/arsnova_click_access.log;
+    # Nach Änderung: `sudo nginx -t && sudo systemctl reload nginx`
+    # und Stichprobe: Access-Log darf kein `?s=` / Query-String enthalten.
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
     error_log  /var/log/nginx/arsnova_click_error.log;
 
     # Infrastruktur-Hard-Cap oberhalb des 2-MiB-tRPC-Limits:

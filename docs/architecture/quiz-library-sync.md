@@ -154,15 +154,15 @@ sequenceDiagram
     participant Store as QuizStoreService
 
     alt Freigeben auf Ursprungsgerät
-        U->>SyncPage: /quiz/sync/:docId öffnen
-        SyncPage->>Store: activateSyncRoom(docId, { markShared: true, registerOrigin: true })
+        U->>SyncPage: /quiz/sync/:docId öffnen (eigene lokale Bibliothek)
+        SyncPage->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: true })
         Store->>Store: librarySharingMode = shared
-        Store->>Store: origin nur einmalig setzen
+        Store->>Store: Share registrieren oder bei Konflikt rekeyen
     else Import auf weiterem Gerät
         U->>Home: Sync-Link oder Sync-ID eingeben
-        Home->>Store: activateSyncRoom(docId, { markShared: true })
+        Home->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: false })
         Store->>Store: librarySharingMode = shared
-        Store->>Store: Origin bleibt unverändert
+        Store->>Store: kein Origin-Claim; Token nur aus ?s=
     end
 ```
 

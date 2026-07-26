@@ -3,6 +3,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WebSocket, { type RawData } from 'ws';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+
+const redisHashes = new Map<string, Record<string, string>>();
+const redisStrings = new Map<string, string>();
+
+vi.mock('../redis', () => ({
+  getRedis: () => ({
+    hgetall: vi.fn(async (key: string) => ({ ...(redisHashes.get(key) ?? {}) })),
+    expire: vi.fn(async () => 1),
+    set: vi.fn(async (key: string, value: string, ...rest: unknown[]) => {
+      const nx = rest.includes('NX');
+      if (nx && redisStrings.has(key)) return null;
+      redisStrings.set(key, value);
+      return 'OK';
+    }),
+    eval: vi.fn(async () => [0, 'NOT_REGISTERED']),
+  }),
+}));
+
 import {
   DEFAULT_YJS_RELAY_LIMITS,
   resolveYjsRelayConfig,
@@ -20,11 +38,16 @@ const servers: YjsRelayServer[] = [];
 const sockets: WebSocket[] = [];
 
 beforeEach(() => {
+  redisHashes.clear();
+  redisStrings.clear();
   resetWebSocketTelemetryForTests();
+  vi.stubEnv('YJS_SHARE_TOKEN_SECRET', 'test-yjs-share-secret-at-least-32-bytes!!');
+  vi.stubEnv('YJS_SHARE_LEGACY_UUID_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
 });
 
 afterEach(async () => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   for (const socket of sockets.splice(0)) socket.terminate();
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });

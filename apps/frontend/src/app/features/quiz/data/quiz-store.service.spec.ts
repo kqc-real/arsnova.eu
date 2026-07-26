@@ -1158,12 +1158,12 @@ describe('QuizStoreService', () => {
   it('merkt sich die ursprüngliche Freigabequelle nur einmalig', () => {
     const service = TestBed.inject(QuizStoreService);
 
-    service.activateSyncRoom('syncroom_123', { markShared: true, registerOrigin: true });
+    service.activateSyncRoom('syncroom_123', { markShared: true, secureAsOrigin: true });
     const firstOriginDevice = service.originDeviceLabel();
     const firstOriginBrowser = service.originBrowserLabel();
     const firstOriginAt = service.originSharedAt();
 
-    service.activateSyncRoom('syncroom_123', { markShared: true, registerOrigin: true });
+    service.activateSyncRoom('syncroom_123', { markShared: true, secureAsOrigin: true });
 
     expect(service.originDeviceLabel()).toBe(firstOriginDevice);
     expect(service.originBrowserLabel()).toBe(firstOriginBrowser);
