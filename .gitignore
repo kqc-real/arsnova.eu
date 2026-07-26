@@ -24,6 +24,7 @@ deploy/backup/backup.env
 deploy/backup/ssh_config
 deploy/backup/known_hosts
 deploy/backup/storagebox_ed25519*
+deploy/monitoring/monitor.env
 
 # ---------- IDE ----------
 .idea/

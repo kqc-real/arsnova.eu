@@ -743,13 +743,13 @@ if [ -n "$failed_units" ]; then
   problems+=("Failed systemd units: $(echo "$failed_units" | paste -sd ',' -)")
 fi
 
-for timer in certbot.timer arsnova-backup.timer arsnova-restore-check.timer docker-build-cache-prune.timer; do
+for timer in certbot.timer arsnova-backup.timer arsnova-restore-check.timer arsnova-monitor.timer docker-build-cache-prune.timer; do
   if ! systemctl is-active --quiet "$timer"; then
     problems+=("Timer inactive: $timer")
   fi
 done
 
-for container in arsnova-v3-app arsnova-v3-postgres arsnova-v3-redis; do
+for container in arsnova-v3-app arsnova-v3-pdf-worker arsnova-v3-postgres arsnova-v3-redis; do
   state="$(docker inspect -f '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$container" 2>/dev/null || true)"
   if [ -z "$state" ]; then
     problems+=("Container missing: $container")

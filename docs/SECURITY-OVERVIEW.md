@@ -148,10 +148,15 @@ einschließlich `serviceStatus` und `loadStatus` bleiben in `health.stats`.
 Create-/429- und PDF-Zähler werden pro Prozess bounded aggregiert und höchstens
 alle fünf Sekunden nach Redis geflusht. Strukturierte `rate_limit_429`-Ereignisse
 enthalten keine Client-IP, sondern nur Pfad, Kategorie und `ipSource`; spezielle
-MOTD-/PDF-Reject-Logs wurden entfernt. Verbindliche initiale manuelle Schwellen
-und On-Call-Maßnahmen sind im
+MOTD-/PDF-Reject-Logs wurden entfernt. Verbindliche Schwellen und
+On-Call-Maßnahmen sind im
 [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md)
-dokumentiert; automatische Auswertung und Alarmierung bleiben W3.7.
+dokumentiert. W3.7 wertet diese Aggregate jede Minute über einen gehärteten
+systemd-Host-Poller aus und sendet deduplizierte Warn-, kritische und
+Recovery-Ereignisse an einen root-only konfigurierten HTTPS-Webhook. Der Poller
+prüft `health.check.redis` separat, damit Redis-Ausfälle nicht als unauffällige
+Nullserie erscheinen. Alerts enthalten keine IPs, Codes, Raum-IDs oder Secrets
+und lösen selbst keine Sperre oder Drosselung aus.
 
 W2.4a ergänzt als enge Browser-Reporting-Ausnahme `POST /csp-report`.
 Der Endpunkt akzeptiert zwei CSP-Medientypen, begrenzt den Raw Body vor

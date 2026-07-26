@@ -1,0 +1,11 @@
+[Unit]
+Description=Minutely arsnova.eu security and load alert evaluation
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=5s
+RandomizedDelaySec=5s
+Unit=arsnova-monitor.service
+
+[Install]
+WantedBy=timers.target

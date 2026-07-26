@@ -1,0 +1,38 @@
+[Unit]
+Description=arsnova.eu security and load alert evaluation
+Documentation=https://github.com/kqc-real/arsnova.eu/blob/main/docs/operations/MONITORING-RUNBOOK.md
+After=network-online.target
+Wants=network-online.target
+AssertPathExists=/etc/arsnova-monitoring/monitor.env
+AssertPathExists=/usr/local/sbin/arsnova-monitor
+
+[Service]
+Type=oneshot
+DynamicUser=true
+EnvironmentFile=/etc/arsnova-monitoring/monitor.env
+ExecStartPre=+/usr/bin/bash -eu -c 'owner="$(stat -c "%%u" "$1")"; mode="$(stat -c "%%a" "$1")"; test "$owner" = 0; (( (8#$mode & 8#077) == 0 ))' monitor-config-permissions /etc/arsnova-monitoring/monitor.env
+ExecStart=/usr/local/sbin/arsnova-monitor
+StateDirectory=arsnova-monitoring
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+ProcSubset=pid
+CapabilityBoundingSet=
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/etc/arsnova-monitoring /usr/local/sbin/arsnova-monitor
+TimeoutStartSec=60s
