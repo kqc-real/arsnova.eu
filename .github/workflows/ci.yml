@@ -151,7 +151,7 @@ jobs:
             /var/lib/arsnova-backup \
             /var/lib/arsnova-restore-check \
             /var/cache/arsnova-restic
-          systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
+          sudo systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
           systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 04:30:00'
 
   format:
