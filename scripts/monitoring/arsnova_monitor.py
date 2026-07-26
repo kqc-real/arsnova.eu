@@ -25,6 +25,7 @@ API_BASE_URL = "http://127.0.0.1:3000/trpc"
 DEFAULT_STATE_FILE = Path("/var/lib/arsnova-monitoring/state.json")
 DEFAULT_WARNING_REPEAT_SECONDS = 6 * 60 * 60
 DEFAULT_CRITICAL_REPEAT_SECONDS = 60 * 60
+MAX_CONSECUTIVE_SAMPLE_GAP_SECONDS = 150
 REQUEST_TIMEOUT_SECONDS = 10
 LEVEL_ORDER = {"ok": 0, "warning": 1, "critical": 2}
 
@@ -209,6 +210,16 @@ def evaluate(
                 "threshold": "ok",
             }
         )
+    if security_stats.get("databaseStatus") != "ok":
+        alerts.append(
+            {
+                "id": "database_health",
+                "label": "PostgreSQL-Erreichbarkeit",
+                "level": "critical",
+                "observed": str(security_stats.get("databaseStatus", "missing")),
+                "threshold": "ok",
+            }
+        )
 
     service_status = public_stats.get("serviceStatus")
     if service_status == "critical":
@@ -286,6 +297,7 @@ def empty_state() -> dict[str, Any]:
         "activeSignature": result_signature({"level": "ok", "alerts": []}),
         "activeAlerts": [],
         "observationCounts": {},
+        "lastObservedAt": 0,
         "lastNotifiedAt": 0,
     }
 
@@ -304,6 +316,13 @@ def notification_decision(
     telemetry_available = result.get("telemetryAvailable", True) is True
     previous_counts = state.get("observationCounts", {})
     if not isinstance(previous_counts, dict):
+        previous_counts = {}
+    previous_observed_at = int(state.get("lastObservedAt", 0))
+    if (
+        previous_observed_at <= 0
+        or now <= previous_observed_at
+        or now - previous_observed_at > MAX_CONSECUTIVE_SAMPLE_GAP_SECONDS
+    ):
         previous_counts = {}
     observation_counts: dict[str, int] = {}
     next_alerts = dict(previous_alerts)
@@ -355,6 +374,7 @@ def notification_decision(
         "activeSignature": signature,
         "activeAlerts": next_alert_list,
         "observationCounts": observation_counts,
+        "lastObservedAt": now,
     }
 
     if signature != active_signature:
@@ -570,6 +590,8 @@ def run(argv: Iterable[str]) -> int:
         validate_https_url(webhook_url, "MONITORING_WEBHOOK_URL")
     if heartbeat_url:
         validate_https_url(heartbeat_url, "MONITORING_HEARTBEAT_URL")
+    if len(diagnostic_secret) < 32:
+        raise MonitorError("ADMIN_DIAGNOSTIC_SECRET fehlt oder ist kürzer als 32 Zeichen.")
 
     if args.test_alert:
         payload = build_notification(test_result(), "test", instance, observed_at, test_alert=True)
@@ -579,9 +601,6 @@ def run(argv: Iterable[str]) -> int:
             post_json(webhook_url, payload, bearer_token)
             print("W3.7-Testalarm wurde zugestellt.")
         return 0
-
-    if len(diagnostic_secret.encode()) < 32:
-        raise MonitorError("ADMIN_DIAGNOSTIC_SECRET fehlt oder ist kürzer als 32 Bytes.")
 
     state_file.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     lock_path = state_file.with_suffix(".lock")

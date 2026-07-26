@@ -14,7 +14,7 @@ import arsnova_monitor as monitor  # noqa: E402
 
 
 def healthy_security_stats():
-    payload = {}
+    payload = {"databaseStatus": "ok"}
     for rule in monitor.RULES:
         cursor = payload
         for segment in rule.path[:-1]:
@@ -115,6 +115,13 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(evaluated["level"], "critical")
         self.assertEqual(evaluated["alerts"][0]["id"], "redis_health")
 
+    def test_database_failure_is_critical(self):
+        stats = healthy_security_stats()
+        stats["databaseStatus"] = "unavailable"
+        evaluated = self.evaluate(stats=stats)
+        self.assertEqual(evaluated["level"], "critical")
+        self.assertEqual(evaluated["alerts"][0]["id"], "database_health")
+
     def test_limited_and_critical_service_status_are_alerted(self):
         warning = self.evaluate(public={"serviceStatus": "limited"})
         critical = self.evaluate(public={"serviceStatus": "critical"})
@@ -188,6 +195,31 @@ class NotificationStateTests(unittest.TestCase):
         event, state, _ = monitor.notification_decision(state, result("warning", "two"), 160)
         self.assertIsNone(event)
         self.assertEqual(state["observationCounts"], {"two:warning": 1})
+
+    def test_warning_confirmation_expires_across_monitoring_gap(self):
+        state = monitor.empty_state()
+        first_event, state, _ = monitor.notification_decision(
+            state, result("warning", "warn"), 100
+        )
+        delayed_event, state, _ = monitor.notification_decision(
+            state, result("warning", "warn"), 300
+        )
+        self.assertIsNone(first_event)
+        self.assertIsNone(delayed_event)
+        self.assertEqual(state["observationCounts"], {"warn:warning": 1})
+
+    def test_recovery_confirmation_expires_across_monitoring_gap(self):
+        _, state, _ = monitor.notification_decision(
+            monitor.empty_state(), result("critical", "crit"), 100
+        )
+        first_event, state, _ = monitor.notification_decision(state, result("ok"), 160)
+        delayed_event, state, notification = monitor.notification_decision(
+            state, result("ok"), 400
+        )
+        self.assertIsNone(first_event)
+        self.assertIsNone(delayed_event)
+        self.assertEqual(notification["notificationResult"]["level"], "critical")
+        self.assertEqual(state["observationCounts"], {"crit:ok": 1})
 
     def test_new_warning_is_debounced_while_critical_alert_remains_active(self):
         _, state, _ = monitor.notification_decision(
@@ -326,6 +358,15 @@ class PayloadAndUrlTests(unittest.TestCase):
             clear=True,
         ):
             with self.assertRaises(monitor.MonitorError):
+                monitor.run(["--test-alert", "--dry-run"])
+
+    def test_diagnostic_secret_uses_backend_character_length_rule(self):
+        with mock.patch.dict(
+            monitor.os.environ,
+            {"ADMIN_DIAGNOSTIC_SECRET": "é" * 20},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(monitor.MonitorError, "32 Zeichen"):
                 monitor.run(["--test-alert", "--dry-run"])
 
     def test_dry_run_does_not_persist_untransmitted_alert_state(self):

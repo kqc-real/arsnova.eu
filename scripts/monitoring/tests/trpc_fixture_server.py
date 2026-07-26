@@ -11,7 +11,7 @@ import arsnova_monitor as monitor  # noqa: E402
 
 
 def healthy_security_stats():
-    payload = {}
+    payload = {"databaseStatus": "ok"}
     for rule in monitor.RULES:
         cursor = payload
         for segment in rule.path[:-1]:

@@ -75,7 +75,8 @@ Diagnose-Authentifizierung selbst benötigt kein Redis; deshalb bleibt der
 Endpunkt während eines Redis-Incidents erreichbar.
 Rollierende Werte können wegen des Flush-Intervalls bis zu fünf Sekunden
 verzögert sein. Bei Redis-Ausfall degradieren sie auf null; deshalb immer
-zugleich `health.check.redis` und die Container-Logs prüfen.
+zugleich `health.check.redis`, `health.securityStats.databaseStatus` und die
+Container-Logs prüfen.
 
 Nach einem W2.5-Deploy zusätzlich einmal mit fremdem `Origin` gegen
 `/trpc/health.check` prüfen: Die normale Antwort darf eintreffen, aber
@@ -275,9 +276,9 @@ Webhook-Alarme noch den externen Heartbeat und speichert keine Zeitreihe.
 `arsnova-monitor.timer` startet einmal pro Minute einen vom App-Container
 unabhängigen Host-Poller. Er liest ausschließlich aggregierte Daten:
 
-- `health.securityStats` über das getrennte `ADMIN_DIAGNOSTIC_SECRET`;
-- `health.check`, damit ein Redis-Ausfall nicht als unauffällige Nullserie
-  fehlinterpretiert wird;
+- `health.securityStats` über das getrennte `ADMIN_DIAGNOSTIC_SECRET`, inklusive
+  eines echten PostgreSQL-Readiness-Checks;
+- `health.check`, damit ein Redis-Ausfall explizit erkannt wird;
 - `health.stats` für `serviceStatus`.
 
 Die Regeln entsprechen der Tabelle „Initiale Betriebsschwellen“. Eine Ausnahme
@@ -288,6 +289,9 @@ werden PDF-Ablehnungen und -Fehler.
 
 Warnungen müssen in zwei aufeinanderfolgenden Läufen auftreten. Kritische Werte
 alarmieren sofort. Eine Recovery benötigt ebenfalls zwei gesunde Läufe.
+Liegen zwischen zwei Proben mehr als 150 Sekunden, verfallen noch unbestätigte
+Warnungs- und Recovery-Zähler; weit auseinanderliegende Stichproben gelten
+nicht als aufeinanderfolgend.
 Unveränderte Warnungen werden standardmäßig nach sechs Stunden, kritische
 Alarme nach einer Stunde wiederholt. Die Zustandsdatei liegt unter
 `/var/lib/arsnova-monitoring/state.json`; sie enthält Alert-IDs, Labels,

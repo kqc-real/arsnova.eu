@@ -439,16 +439,26 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
 }
 
 export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
-  const [pdfSignals, abuseSignals, cspReportSignals, sessionCodeGlobalSoftCapUtilizationPercent] =
-    await Promise.all([
-      readPdfSignals(),
-      readAbuseSignals(),
-      readCspReportSignals(),
-      readSessionCodeGlobalSoftCapUtilization(),
-    ]);
+  const [
+    databaseStatus,
+    pdfSignals,
+    abuseSignals,
+    cspReportSignals,
+    sessionCodeGlobalSoftCapUtilizationPercent,
+  ] = await Promise.all([
+    prisma
+      .$queryRawUnsafe('SELECT 1')
+      .then(() => 'ok' as const)
+      .catch(() => 'unavailable' as const),
+    readPdfSignals(),
+    readAbuseSignals(),
+    readCspReportSignals(),
+    readSessionCodeGlobalSoftCapUtilization(),
+  ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   return {
+    databaseStatus,
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
     sessionCreateGlobalPerHour: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
     sessionCodeClientFailuresPerWindow: SESSION_CODE_PROTECTION_LIMITS.clientFailuresPerWindow,

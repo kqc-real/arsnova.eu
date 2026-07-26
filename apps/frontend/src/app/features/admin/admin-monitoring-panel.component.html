@@ -34,6 +34,10 @@
         <mat-card-content>
           <dl>
             <div>
+              <dt i18n="@@admin.monitoringDatabaseStatus">PostgreSQL</dt>
+              <dd>{{ infrastructureStatusLabel(snapshot.databaseStatus) }}</dd>
+            </div>
+            <div>
               <dt i18n="@@admin.monitoringSessionCreates">Erstellte Sessions</dt>
               <dd>{{ formatCount(snapshot.sessionCreatesLastMinute) }}</dd>
             </div>

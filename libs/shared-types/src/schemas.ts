@@ -3073,6 +3073,8 @@ export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
 
 /** Admin-only Betriebs- und Security-Metriken; nicht Teil der öffentlichen Produktstatistik. */
 export const HealthSecurityStatsDTOSchema = z.object({
+  /** PostgreSQL-Readiness aus einer echten read-only Abfrage. */
+  databaseStatus: z.enum(['ok', 'unavailable']),
   /** Effektives Shared-NAT-IP-Budget für öffentliche Session-Erstellungen pro Stunde. */
   sessionCreatePerHour: z.number().int().min(1),
   /** Effektives globales Budget für öffentliche Session-Erstellungen pro Stunde. */

@@ -135,6 +135,7 @@ describe('admin router (Epic 9)', () => {
 
   it('liefert Monitoring-Metriken ausschließlich über eine gültige Admin-Session', async () => {
     const stats = {
+      databaseStatus: 'ok',
       sessionCreatePerHour: 120,
       sessionCreateGlobalPerHour: 1_000,
       sessionCodeClientFailuresPerWindow: 20,

@@ -16,6 +16,7 @@ vi.mock('../../core/trpc.client', () => ({
 }));
 
 const statsFixture: HealthSecurityStatsDTO = {
+  databaseStatus: 'ok',
   sessionCreatePerHour: 120,
   sessionCreateGlobalPerHour: 1_000,
   sessionCodeClientFailuresPerWindow: 20,

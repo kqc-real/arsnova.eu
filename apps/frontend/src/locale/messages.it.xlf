@@ -2930,12 +2930,20 @@
           <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.monitoringDatabaseStatus" datatype="html">
+        <source>PostgreSQL</source>
+        <target>PostgreSQL</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.monitoringSessionCreates" datatype="html">
         <source>Erstellte Sessions</source>
         <target>Sessioni create</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">41</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringInvalidCodes" datatype="html">
@@ -2943,7 +2951,7 @@
         <target>Codici di sessione non validi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">41</context>
+          <context context-type="linenumber">45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSoftCapDelays" datatype="html">
@@ -2951,7 +2959,7 @@
         <target>Ritardi soft cap</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
@@ -2959,7 +2967,7 @@
         <target>Utilizzo globale del soft cap</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
@@ -2967,7 +2975,7 @@
         <target>Rifiuti 429</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfTitle" datatype="html">
@@ -2975,7 +2983,7 @@
         <target>Creazione PDF</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">62</context>
+          <context context-type="linenumber">66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringCapacityAndMinute" datatype="html">
@@ -2983,7 +2991,7 @@
         <target>Capacità attuale e ultimo minuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">63,65</context>
+          <context context-type="linenumber">67,69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfActive" datatype="html">
@@ -2991,7 +2999,7 @@
         <target>Processi attivi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">70</context>
+          <context context-type="linenumber">74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfCompleted" datatype="html">
@@ -2999,7 +3007,7 @@
         <target>Completate</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">77</context>
+          <context context-type="linenumber">81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfFailed" datatype="html">
@@ -3007,7 +3015,7 @@
         <target>Fallito</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">81</context>
+          <context context-type="linenumber">85</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfRejected" datatype="html">
@@ -3015,7 +3023,7 @@
         <target>Respinto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">85</context>
+          <context context-type="linenumber">89</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringTrpcTitle" datatype="html">
@@ -3023,7 +3031,7 @@
         <target>WebSocket tRPC</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">94</context>
+          <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringConnectionsAndMinute" datatype="html">
@@ -3031,11 +3039,11 @@
         <target>Connessioni attuali e ultimo minuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">95,97</context>
+          <context context-type="linenumber">99,101</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">127,129</context>
+          <context context-type="linenumber">131,133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringConnections" datatype="html">
@@ -3043,11 +3051,11 @@
         <target>Connessioni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">102</context>
+          <context context-type="linenumber">106</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">134</context>
+          <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRejectedUpgrades" datatype="html">
@@ -3055,11 +3063,11 @@
         <target>Upgrade rifiutati</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">109</context>
+          <context context-type="linenumber">113</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">149</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRejectedPayloads" datatype="html">
@@ -3067,7 +3075,7 @@
         <target>Payload rifiutati</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">113</context>
+          <context context-type="linenumber">117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitedMessages" datatype="html">
@@ -3075,7 +3083,7 @@
         <target>Messaggi limitati per frequenza</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">117</context>
+          <context context-type="linenumber">121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringYjsTitle" datatype="html">
@@ -3083,7 +3091,7 @@
         <target>Yjs WebSocket</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">126</context>
+          <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringActiveRooms" datatype="html">
@@ -3091,7 +3099,7 @@
         <target>Stanze attive</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">145</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringProtocolErrors" datatype="html">
@@ -3099,7 +3107,7 @@
         <target>Errori di protocollo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">149</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringJsonSummary" datatype="html">
@@ -3107,7 +3115,7 @@
         <target>Mostra i dati JSON completi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringJsonHelp" datatype="html">
@@ -3115,7 +3123,7 @@
         <target>Lo snapshot contiene solo valori aggregati, non indirizzi IP, codici di sessione o ID di sala.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">159,161</context>
+          <context context-type="linenumber">163,165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringLoading" datatype="html">
@@ -3123,7 +3131,7 @@
         <target>Caricamento dei dati di monitoraggio…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringLoadError" datatype="html">
@@ -3132,6 +3140,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringStatusOk" datatype="html">
+        <source>Erreichbar</source>
+        <target>Raggiungibile</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringStatusUnavailable" datatype="html">
+        <source>Nicht erreichbar</source>
+        <target>Non raggiungibile</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.title" datatype="html">

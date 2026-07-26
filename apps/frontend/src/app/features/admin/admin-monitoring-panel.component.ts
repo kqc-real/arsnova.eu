@@ -95,6 +95,12 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
     }).format(value / 100);
   }
 
+  infrastructureStatusLabel(status: 'ok' | 'unavailable'): string {
+    return status === 'ok'
+      ? $localize`:@@admin.monitoringStatusOk:Erreichbar`
+      : $localize`:@@admin.monitoringStatusUnavailable:Nicht erreichbar`;
+  }
+
   formatRefreshedAt(): string {
     const refreshedAt = this.refreshedAt();
     if (!refreshedAt) return '—';
