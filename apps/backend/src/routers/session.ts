@@ -147,6 +147,10 @@ import {
 } from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import { logger } from '../lib/logger';
+import {
+  allowLegacyQuizHistoryProofAfterBind,
+  getQuizHistoryLegacyProofCutoffAt,
+} from '../lib/quizHistoryLegacyProofPolicy';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import {
@@ -2300,21 +2304,49 @@ function quizHistoryProofsMatch(expectedProof: Buffer, providedProof: Buffer): b
 async function assertQuizHistoryAccessAuthorized(
   quiz: QuizHistoryAccessQuiz,
   accessProof: string,
+  purpose: 'history' | 'bind' = 'history',
 ): Promise<void> {
   const providedProof = normalizeQuizHistoryAccessProof(accessProof);
-  const expectedProofs = [await createQuizHistoryProofBuffer(quiz)];
+  const expectedCurrentProof = await createQuizHistoryProofBuffer(quiz);
 
-  // Legacy clients or older local quiz cards may still hold the historical content hash
-  // even after the server quiz was rebound to a stable history scope.
-  if (quiz.historyScopeId) {
-    expectedProofs.push(await createLegacyQuizHistoryProofBuffer(quiz));
-  }
-
-  if (
-    expectedProofs.some((expectedProof) => quizHistoryProofsMatch(expectedProof, providedProof))
-  ) {
+  if (quizHistoryProofsMatch(expectedCurrentProof, providedProof)) {
     return;
   }
+
+  // Unbound quizzes still use the content hash as their only capability.
+  if (!quiz.historyScopeId) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
+    });
+  }
+
+  // After bind the capability is the scope UUID. Content-hash legacy proofs must not
+  // reopen history endpoints; bind may accept them once more until the cutoff so clients
+  // can upgrade their locally stored proof to the UUID.
+  const expectedLegacyProof = await createLegacyQuizHistoryProofBuffer(quiz);
+  if (!quizHistoryProofsMatch(expectedLegacyProof, providedProof)) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
+    });
+  }
+
+  if (allowLegacyQuizHistoryProofAfterBind({ purpose })) {
+    // historyScopeId is the bearer capability — never log it.
+    logger.info('[security] quiz_history_legacy_proof_accepted_for_bind', {
+      quizId: quiz.id,
+      purpose,
+      cutoffAt: getQuizHistoryLegacyProofCutoffAt().toISOString(),
+    });
+    return;
+  }
+
+  logger.warn('[security] quiz_history_legacy_proof_rejected_after_bind', {
+    quizId: quiz.id,
+    purpose,
+    cutoffAt: getQuizHistoryLegacyProofCutoffAt().toISOString(),
+  });
 
   throw new TRPCError({
     code: 'UNAUTHORIZED',
@@ -6635,7 +6667,7 @@ export const sessionRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
       }
 
-      await assertQuizHistoryAccessAuthorized(quiz, input.accessProof);
+      await assertQuizHistoryAccessAuthorized(quiz, input.accessProof, 'bind');
 
       if (quiz.historyScopeId) {
         return { accessProof: quiz.historyScopeId };

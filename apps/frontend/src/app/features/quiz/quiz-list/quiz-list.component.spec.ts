@@ -530,8 +530,7 @@ describe('QuizListComponent', () => {
         teamMode: false,
         hasBonus: false,
         lastServerQuizId: '11111111-1111-4111-8111-111111111111',
-        lastServerQuizAccessProof:
-          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       },
     ]);
     getActiveQuizIdsQueryMock.mockResolvedValue([
@@ -547,7 +546,7 @@ describe('QuizListComponent', () => {
     expect(getActiveQuizIdsQueryMock).toHaveBeenCalledWith([
       {
         quizId: '11111111-1111-4111-8111-111111111111',
-        accessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       },
     ]);
 
@@ -651,6 +650,39 @@ describe('QuizListComponent', () => {
 
     expect(bonusButton?.disabled).toBe(false);
     expect(pdfButton?.disabled).toBe(false);
+  });
+
+  it('migriert Legacy-Scopes und gibt bei fehlgeschlagenem Bind keinen Legacy-Proof weiter', async () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: true,
+        lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+    bindQuizHistoryScopeMutationMock.mockRejectedValue(new Error('UNAUTHORIZED'));
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+    await vi.waitFor(() => {
+      expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalled();
+    });
+
+    expect(getQuizCollectionHistoryAvailabilityQueryMock).not.toHaveBeenCalled();
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toBeUndefined();
   });
 
   it('fragt Historie auch ohne gespeicherten Zugriffsnachweis ab und migriert Legacy-Scopes', async () => {

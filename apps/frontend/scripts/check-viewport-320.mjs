@@ -94,6 +94,9 @@ async function inspectTargetSizes(page) {
 async function inspectKeyboardFocus(page) {
   const issues = [];
   const maxTabs = 40;
+  await page.addStyleTag({
+    content: '*, *::before, *::after { scroll-behavior: auto !important; }',
+  });
   await page
     .locator('body')
     .click({ position: { x: 1, y: 1 } })
@@ -101,6 +104,9 @@ async function inspectKeyboardFocus(page) {
   let firstFocusKey = null;
   for (let index = 0; index < maxTabs; index += 1) {
     await page.keyboard.press('Tab');
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
     const result = await page.evaluate(() => {
       const active = document.activeElement;
       if (!(active instanceof HTMLElement) || active === document.body) {
