@@ -11,12 +11,13 @@ import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { MatTab, MatTabContent, MatTabGroup } from '@angular/material/tabs';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
+import { AdminMonitoringPanelComponent } from './admin-monitoring-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
 import type {
   AdminSessionDetailDTO,
@@ -60,7 +61,9 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
     MatInput,
     MatTabGroup,
     MatTab,
+    MatTabContent,
     AdminMotdPanelComponent,
+    AdminMonitoringPanelComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
@@ -193,8 +196,19 @@ export class AdminComponent implements OnInit {
     } catch {
       // best effort
     }
+    this.clearAdminSession();
+  }
+
+  handleAdminSessionExpired(): void {
+    this.clearAdminSession(
+      $localize`:@@admin.sessionExpired:Deine Admin-Sitzung ist abgelaufen. Bitte melde dich erneut an.`,
+    );
+  }
+
+  private clearAdminSession(loginError: string | null = null): void {
     setAdminToken(null);
     this.authenticated.set(false);
+    this.loginError.set(loginError);
     this.sessions.set([]);
     this.sessionTotal.set(0);
     this.selectedSessionId.set(null);

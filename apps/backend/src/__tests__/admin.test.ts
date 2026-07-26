@@ -13,6 +13,7 @@ const {
   logAdminLoginFailureMock,
   extractAdminTokenMock,
   isAdminSessionTokenValidMock,
+  fetchSecurityStatsMock,
 } = vi.hoisted(() => ({
   prismaMock: {
     $queryRaw: vi.fn(),
@@ -48,6 +49,7 @@ const {
   logAdminLoginFailureMock: vi.fn(),
   extractAdminTokenMock: vi.fn(),
   isAdminSessionTokenValidMock: vi.fn(),
+  fetchSecurityStatsMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -72,6 +74,10 @@ vi.mock('../lib/abuseTelemetry', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../lib/abuseTelemetry')>()),
   recordAdminLoginFailure: recordAdminLoginFailureMock,
   logAdminLoginFailure: logAdminLoginFailureMock,
+}));
+
+vi.mock('../routers/health', () => ({
+  fetchSecurityStats: fetchSecurityStatsMock,
 }));
 
 import { adminRouter } from '../routers/admin';
@@ -125,6 +131,71 @@ describe('admin router (Epic 9)', () => {
     expect(checkAdminLoginAttemptMock).toHaveBeenCalledOnce();
     expect(rejectInvalidAdminLoginMock).not.toHaveBeenCalled();
     expect(recordAdminLoginFailureMock).not.toHaveBeenCalled();
+  });
+
+  it('liefert Monitoring-Metriken ausschließlich über eine gültige Admin-Session', async () => {
+    const stats = {
+      databaseStatus: 'ok',
+      sessionCreatePerHour: 120,
+      sessionCreateGlobalPerHour: 1_000,
+      sessionCodeClientFailuresPerWindow: 20,
+      pdfActiveJobs: 0,
+      pdfMaxConcurrentJobs: 1,
+      pdfCompletedLastMinute: 2,
+      pdfFailedLastMinute: 0,
+      pdfRejectedLastMinute: 0,
+      sessionCreatesLastMinute: 3,
+      adminLoginFailuresLastMinute: 0,
+      cspReportsReceivedLastMinute: 0,
+      cspReportsDroppedLastMinute: 0,
+      cspReportsRateLimitedLastMinute: 0,
+      cspReportsEvalLastMinute: 0,
+      cspReportsScriptHttpsLastMinute: 0,
+      rateLimit429LastMinute: 1,
+      rateLimit429ByCategoryLastMinute: {
+        adminLogin: 0,
+        sessionCreate: 1,
+        quizUpload: 0,
+        quickFeedback: 0,
+        sessionCode: 0,
+        vote: 0,
+        pdf: 0,
+        motd: 0,
+        other: 0,
+      },
+      sessionCodeFailuresLastMinute: 4,
+      sessionCodeSoftCapDelaysLastMinute: 0,
+      sessionCodeGlobalSoftCapUtilizationPercent: 2,
+      trpcWebSocketConnectionsActive: 12,
+      trpcWebSocketConnectionLimit: 1_000,
+      trpcWebSocketBoundConnectionsActive: 10,
+      trpcWebSocketSessionConnectionLimit: 800,
+      trpcWebSocketParticipantConnectionLimit: 2,
+      trpcWebSocketSessionCapRejectedLastMinute: 0,
+      trpcWebSocketParticipantCapRejectedLastMinute: 0,
+      trpcWebSocketRejectedUpgradesLastMinute: 0,
+      trpcWebSocketPayloadRejectedLastMinute: 0,
+      trpcWebSocketRateLimitedMessagesLastMinute: 0,
+      yjsWebSocketConnectionsActive: 6,
+      yjsWebSocketRoomsActive: 2,
+      yjsWebSocketConnectionLimit: 1_000,
+      yjsWebSocketPerRoomConnectionLimit: 200,
+      yjsWebSocketRejectedUpgradesLastMinute: 0,
+      yjsWebSocketPayloadRejectedLastMinute: 0,
+      yjsWebSocketRateLimitedMessagesLastMinute: 0,
+      yjsWebSocketProtocolErrorsLastMinute: 0,
+      yjsWebSocketDocumentRejectedLastMinute: 0,
+      yjsWebSocketAwarenessRejectedLastMinute: 0,
+      yjsWebSocketOutboundRejectedLastMinute: 0,
+    };
+    fetchSecurityStatsMock.mockResolvedValue(stats);
+    const caller = adminRouter.createCaller({ req: {} as never });
+
+    await expect(caller.monitoringStats()).resolves.toEqual(stats);
+
+    isAdminSessionTokenValidMock.mockResolvedValue(false);
+    await expect(caller.monitoringStats()).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    expect(fetchSecurityStatsMock).toHaveBeenCalledOnce();
   });
 
   it('härtet ungültige Admin-Logins progressiv und erfasst sie', async () => {

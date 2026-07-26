@@ -16,4 +16,13 @@ describe('HealthSecurityStatsDTOSchema CSP-Telemetrie', () => {
       expect(field.safeParse(1.5).success).toBe(false);
     }
   });
+
+  it('verlangt einen expliziten PostgreSQL-Status', () => {
+    expect(HealthSecurityStatsDTOSchema.shape.databaseStatus.parse('unavailable')).toBe(
+      'unavailable',
+    );
+    expect(HealthSecurityStatsDTOSchema.shape.databaseStatus.safeParse('unknown').success).toBe(
+      false,
+    );
+  });
 });

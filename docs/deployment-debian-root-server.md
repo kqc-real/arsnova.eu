@@ -837,10 +837,15 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 - [ ] Admin-Login, Legal-Hold, Löschung, Behördenexport, MOTD-Admin und Rekord-Reset getestet
 - [ ] Test-Session mit Host-, Present- und Teilnehmergerät inkl. tRPC-WebSocket und Yjs-Sync durchgeführt
 - [ ] `health.footerBundle` / Footer-Dot und `health.stats` / Detaildialog prüfen
-- [ ] [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md) mit On-Call durchgesprochen; Schwellen und Diagnosebefehle zugänglich
+- [ ] W3.7 eingerichtet: `arsnova-monitor.timer` aktiv, synthetischer
+      HTTPS-Webhook-Alarm bestätigt und
+      [Security- und Lastmonitoring-Runbook](operations/MONITORING-RUNBOOK.md)
+      mit On-Call durchgesprochen
 - [ ] Fail2ban aktiv (optional)
 - [ ] Unattended-Upgrades für Sicherheits-Updates
-- [ ] W3.6 eingerichtet: verschlüsseltes Restic-Offsite-Backup, beide systemd-Timer aktiv und isolierter Restore gemäß [Backup-/Restore-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md) erfolgreich
+- [ ] W3.6 eingerichtet: verschlüsseltes Restic-Offsite-Backup, beide
+      systemd-Timer aktiv und isolierter Restore gemäß
+      [Backup-/Restore-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md) erfolgreich
 
 ---
 

@@ -20,6 +20,7 @@ import {
   AdminSessionSummaryDTO,
   AdminSetLegalHoldInputSchema,
   AdminWhoAmIOutputSchema,
+  HealthSecurityStatsDTOSchema,
   QUIZ_EXPORT_VERSION,
   QuizExportSchema,
   resolveShortTextMaxLength,
@@ -42,6 +43,7 @@ import {
 import { logAdminLoginFailure, recordAdminLoginFailure } from '../lib/abuseTelemetry';
 import { prisma } from '../db';
 import { adminMotdRouter } from './adminMotd';
+import { fetchSecurityStats } from './health';
 
 const DEFAULT_LEGAL_HOLD_DAYS = 30;
 const MIN_LEGAL_HOLD_DAYS = 1;
@@ -487,6 +489,11 @@ export const adminRouter = router({
   whoami: adminProcedure
     .output(AdminWhoAmIOutputSchema)
     .query(() => ({ authenticated: true as const })),
+
+  /** Aggregierte Live-Metriken für den geschützten Monitoring-Tab. */
+  monitoringStats: adminProcedure
+    .output(HealthSecurityStatsDTOSchema)
+    .query(() => fetchSecurityStats()),
 
   /** Admin-Logout (Token invalidieren). */
   logout: adminProcedure.output(AdminWhoAmIOutputSchema).mutation(async ({ ctx }) => {

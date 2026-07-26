@@ -115,7 +115,10 @@ Vor öffentlichem Betrieb sollten mindestens diese Punkte geklärt und getestet 
 - Admin-Zugang, Legal-Hold, Löschpfad, Exportpfad und Audit-Log wurden mit Rollenverantwortlichen geprüft.
 - Impressum, Datenschutz, Kontaktwege und institutionelle Nutzungshinweise sind angepasst.
 - Eine Test-Session mit Host-, Present- und Teilnehmergerät wurde inklusive WebSockets, Yjs-Sync und Mobile-Ansicht durchgeführt.
-- Monitoring, Logzugriff, Update-Prozess und Incident-Verantwortlichkeiten sind dokumentiert.
+- Automatische Security-/Lastalarme, externer Heartbeat, Logzugriff,
+  Update-Prozess und Incident-Verantwortlichkeiten sind gemäß
+  [Monitoring-Runbook](./docs/operations/MONITORING-RUNBOOK.md) eingerichtet;
+  der Alarmweg wurde synthetisch getestet.
 
 ## Lokale Evaluation
 

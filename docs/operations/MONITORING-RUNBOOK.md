@@ -1,7 +1,7 @@
 # Security- und Lastmonitoring
 
-**Stand:** 2026-07-25
-**Gültig für:** W0.4, W2.4a, W2.4b und W2.5; automatische Alarmierung folgt separat in W3.7.
+**Stand:** 2026-07-26
+**Gültig für:** W0.4, W2.4a, W2.4b, W2.5 und W3.7
 
 ## Primärer Blick
 
@@ -75,7 +75,8 @@ Diagnose-Authentifizierung selbst benötigt kein Redis; deshalb bleibt der
 Endpunkt während eines Redis-Incidents erreichbar.
 Rollierende Werte können wegen des Flush-Intervalls bis zu fünf Sekunden
 verzögert sein. Bei Redis-Ausfall degradieren sie auf null; deshalb immer
-zugleich `health.check.redis` und die Container-Logs prüfen.
+zugleich `health.check.redis`, `health.securityStats.databaseStatus` und die
+Container-Logs prüfen.
 
 Nach einem W2.5-Deploy zusätzlich einmal mit fremdem `Origin` gegen
 `/trpc/health.check` prüfen: Die normale Antwort darf eintreffen, aber
@@ -257,10 +258,155 @@ Bei einem kritischen Wert:
 4. Keine Schwelle oder Schutzgrenze ohne Issue, Review und reproduzierbaren
    Lasttest ändern.
 
-W0.4 stellt ausschließlich diese manuellen Beobachtungsschwellen und
-Diagnosewege bereit; es versendet keine Alarme. W3.7 automatisiert später die
-Signalauswertung, Benachrichtigung und Prüfung des Alarmwegs. Bis dahin ist
-dieses Runbook die verbindliche manuelle On-Call-Referenz.
+W0.4 stellt die manuellen Beobachtungsschwellen und Diagnosewege bereit. W3.7
+wertet dieselben Signale zusätzlich jede Minute automatisiert aus. Dieses
+Runbook bleibt die verbindliche On-Call-Referenz; die Alarmierung verändert
+keine Rate-Limits und sperrt keine Nutzer.
+
+Angemeldete Admins können den aktuellen aggregierten Snapshot außerdem im
+dritten Tab **Monitoring** unter `/admin` einsehen. Die Ansicht aktualisiert sich
+alle 60 Sekunden und bietet die vollständige Antwort zusätzlich als
+aufklappbares JSON an. Dafür wird ausschließlich die bestehende Admin-Session
+verwendet; `ADMIN_DIAGNOSTIC_SECRET` wird weder an den Browser übertragen noch
+im Frontend gespeichert. Der Tab zeigt Live-Werte, ersetzt aber weder
+Webhook-Alarme noch den externen Heartbeat und speichert keine Zeitreihe.
+
+## Automatische Alarmierung (W3.7)
+
+`arsnova-monitor.timer` startet einmal pro Minute einen vom App-Container
+unabhängigen Host-Poller. Er liest ausschließlich aggregierte Daten:
+
+- `health.securityStats` über das getrennte `ADMIN_DIAGNOSTIC_SECRET`, inklusive
+  eines echten PostgreSQL-Readiness-Checks;
+- `health.check`, damit ein Redis-Ausfall explizit erkannt wird;
+- `health.stats` für `serviceStatus`.
+
+Die Regeln entsprechen der Tabelle „Initiale Betriebsschwellen“. Eine Ausnahme
+ist Container-CPU: Sie bleibt beim externen Infrastrukturmonitoring, weil der
+App-Endpunkt keine Hostwerte exponiert. Eine PDF-Warteschlange existiert bewusst
+nicht; `pdfActiveJobs == pdfMaxConcurrentJobs` ist allein normal. Alarmiert
+werden PDF-Ablehnungen und -Fehler.
+
+Warnungen müssen in zwei aufeinanderfolgenden Läufen auftreten. Kritische Werte
+alarmieren sofort. Eine Recovery benötigt ebenfalls zwei gesunde Läufe.
+Liegen zwischen zwei Proben mehr als 150 Sekunden, verfallen noch unbestätigte
+Warnungs- und Recovery-Zähler; weit auseinanderliegende Stichproben gelten
+nicht als aufeinanderfolgend.
+Unveränderte Warnungen werden standardmäßig nach sechs Stunden, kritische
+Alarme nach einer Stunde wiederholt. Die Zustandsdatei liegt unter
+`/var/lib/arsnova-monitoring/state.json`; sie enthält Alert-IDs, Labels,
+aggregierte Messwerte, Schwellen, Schweregrade, Signaturen,
+Beobachtungszähler und Zeitstempel. Sie enthält keine IPs, Session-Codes,
+Raum-IDs, Rohreports oder Secrets.
+
+### Installation
+
+```bash
+cd /home/deploy/arsnova.eu
+sudo apt update
+sudo apt install -y python3
+sudo install -o root -g root -m 0700 -d /etc/arsnova-monitoring
+if ! sudo test -e /etc/arsnova-monitoring/monitor.env; then
+  sudo install -o root -g root -m 0600 \
+    deploy/monitoring/monitor.env.example \
+    /etc/arsnova-monitoring/monitor.env
+fi
+sudo install -o root -g root -m 0755 \
+  scripts/monitoring/arsnova_monitor.py \
+  /usr/local/sbin/arsnova-monitor
+sudo install -o root -g root -m 0644 \
+  deploy/systemd/arsnova-monitor.service \
+  deploy/systemd/arsnova-monitor.timer \
+  /etc/systemd/system/
+sudoedit /etc/arsnova-monitoring/monitor.env
+sudo systemctl daemon-reload
+```
+
+`ADMIN_DIAGNOSTIC_SECRET` muss exakt dem getrennten Diagnose-Secret aus
+`.env.production` entsprechen. `MONITORING_WEBHOOK_URL` muss ein HTTPS-Endpunkt
+sein, der JSON nach Schema `arsnova-monitoring-alert/v1` akzeptiert. Ein
+optionaler Token wird ausschließlich als `Authorization: Bearer …` gesendet.
+Webhook- und Heartbeat-URLs dürfen keine eingebetteten Zugangsdaten enthalten.
+
+Die Unit läuft als `DynamicUser`, erhält ein eigenes `StateDirectory`, ein
+read-only Dateisystem und keine Linux-Capabilities. systemd liest die root-only
+Umgebungsdatei, bevor der kurzlebige Prozess gestartet wird. Eine nicht root
+gehörende Datei oder Gruppen-/Fremdrechte lassen den Start bereits in
+`ExecStartPre` hart fehlschlagen.
+
+### Alarmweg abnehmen
+
+Zuerst einen synthetischen Alarm senden. Er liest keine Live-Metriken und
+verändert den Deduplizierungszustand nicht:
+
+```bash
+sudo systemctl stop arsnova-monitor.timer
+sudo bash -eu <<'EOF'
+dropin_dir=/run/systemd/system/arsnova-monitor.service.d
+dropin="$dropin_dir/test-alert.conf"
+cleanup() {
+  rm -f "$dropin"
+  systemctl daemon-reload
+}
+trap cleanup EXIT
+install -d -m 0700 "$dropin_dir"
+printf '%s\n' \
+  '[Service]' \
+  'ExecStart=' \
+  'ExecStart=/usr/local/sbin/arsnova-monitor --test-alert' \
+  >"$dropin"
+systemctl daemon-reload
+systemctl start arsnova-monitor.service
+EOF
+```
+
+Dieser Lauf verwendet dieselbe `DynamicUser`-/Sandbox-/`EnvironmentFile`-
+Konfiguration wie der produktive Timer und räumt den flüchtigen Drop-in auch
+bei einem Fehler auf. Nach bestätigtem Eingang den echten Poller einmal starten
+und den Timer aktivieren:
+
+```bash
+sudo systemctl start arsnova-monitor.service
+sudo systemctl enable --now arsnova-monitor.timer
+sudo systemctl status arsnova-monitor.service arsnova-monitor.timer --no-pager
+systemctl list-timers arsnova-monitor.timer
+sudo journalctl -u arsnova-monitor.service -n 50 --no-pager
+```
+
+Der erste gesunde Lauf sendet keine Nachricht. `MONITORING_HEARTBEAT_URL` ist
+optional und wird nach jedem erfolgreich abgeschlossenen Lauf mit einem leeren
+HTTPS-POST aufgerufen. Damit kann ein externer Dead-Man's-Switch einen
+ausgefallenen Timer oder Host erkennen. Wenn ein Heartbeat konfiguriert ist,
+bei der Abnahme mindestens drei reguläre Minutenläufe und anschließend den
+extern sichtbaren „healthy“-Zustand bestätigen. Danach den Dead-Man's-Switch
+tatsächlich prüfen:
+
+```bash
+sudo systemctl stop arsnova-monitor.timer
+# Das konfigurierte externe Ausfallfenster abwarten und Alarmempfang bestätigen.
+sudo systemctl start arsnova-monitor.timer
+sudo systemctl start arsnova-monitor.service
+# Recovery des externen Heartbeat-Alarms bestätigen.
+```
+
+Der Timer muss nach dem Drill wieder `active (waiting)` sein. Ohne bestätigten
+Ausfallalarm und Recovery ist ein konfigurierter Heartbeat nicht abgenommen.
+
+### Payload und Datenschutz
+
+Alarm-Payloads enthalten Instanzbezeichner, Zeitpunkt, Ereignistyp, Schweregrad
+sowie Regel-ID, Bezeichnung, beobachteten Aggregatwert und Schwelle. Nicht
+enthalten sind Diagnose-Secret, Webhook-Token, IP-Adressen, Session-Codes,
+Raum-IDs oder Rohreports. Redirects werden weder bei Diagnose- noch bei
+Webhook-Anfragen verfolgt. Recovery- und Update-Payloads führen aufgelöste
+Regel-IDs mit ihrem vorherigen Schweregrad unter `resolvedAlerts`.
+
+Bei `monitor_probe_failed` zuerst App, lokalen Port 3000, Diagnose-Secret und
+`health.check` kontrollieren. Solange die Telemetrie unbekannt ist, bleiben
+bereits aktive Metrikalarme und deren Recovery-Zähler eingefroren; ein
+Probe-Ausfall darf sie nicht als behoben melden. Ein fehlgeschlagener
+Webhook-Lauf schreibt den neuen Alarmzustand nicht fest und versucht die
+Zustellung beim nächsten Minutenlauf erneut.
 
 ## Log-Minimierung und Aufbewahrung
 

@@ -14,6 +14,7 @@ vi.mock('../redis', () => ({
 
 vi.mock('../db', () => ({
   prisma: {
+    $queryRawUnsafe: vi.fn(),
     session: { count: vi.fn(), findMany: vi.fn() },
     dailyStatistic: { findMany: vi.fn() },
     platformStatistic: { findUnique: vi.fn() },
@@ -104,6 +105,7 @@ const invalidAdminCaller = healthRouter.createCaller({
 });
 
 beforeEach(() => {
+  vi.mocked(prisma.$queryRawUnsafe).mockResolvedValue([{ '?column?': 1 }]);
   vi.mocked(readPdfSignals).mockResolvedValue({
     completedLastMinute: 0,
     failedLastMinute: 0,
@@ -319,12 +321,21 @@ describe('health.stats', () => {
     const result = await authenticatedCaller.securityStats(undefined);
 
     expect(result).toMatchObject({
+      databaseStatus: 'ok',
       pdfActiveJobs: 0,
       pdfMaxConcurrentJobs: 1,
       pdfCompletedLastMinute: 7,
       pdfFailedLastMinute: 1,
       pdfRejectedLastMinute: 3,
     });
+  });
+
+  it('meldet PostgreSQL-Ausfall im geschützten Diagnose-Snapshot', async () => {
+    vi.mocked(prisma.$queryRawUnsafe).mockRejectedValue(new Error('database unavailable'));
+
+    const result = await authenticatedCaller.securityStats(undefined);
+
+    expect(result.databaseStatus).toBe('unavailable');
   });
 
   it('liefert Create-, 429- und aktuelle WebSocket-Metriken nur authentifiziert', async () => {

@@ -211,8 +211,25 @@ Die initialen Warn-/Kritisch-Schwellen, CPU-Diagnose und manuellen
 On-Call-Maßnahmen (W0.4) stehen im
 [Monitoring-Runbook](operations/MONITORING-RUNBOOK.md). Diese Beobachtung
 ergänzt die Limits, verschärft aber keine Teilnehmerpfade anhand einer
-gemeinsam genutzten NAT-IP. Automatische Alarmierung ist erst Bestandteil von
-W3.7.
+gemeinsam genutzten NAT-IP. W3.7 automatisiert die Auswertung über
+`arsnova-monitor.timer`.
+
+Die folgenden Variablen gehören **nicht** in `.env.production`, sondern in die
+root-only Hostdatei `/etc/arsnova-monitoring/monitor.env`:
+
+| Variable                             | Pflicht | Bedeutung                                                                                     |
+| ------------------------------------ | ------- | --------------------------------------------------------------------------------------------- |
+| `ADMIN_DIAGNOSTIC_SECRET`            | ja      | Kopie des getrennten App-Diagnose-Secrets; wird nur an den lokalen Diagnose-Endpunkt gesendet |
+| `MONITORING_WEBHOOK_URL`             | ja      | HTTPS-Endpunkt für minimierte JSON-Alarmereignisse                                            |
+| `MONITORING_WEBHOOK_BEARER_TOKEN`    | nein    | Optionaler Bearer-Token; nicht als URL-Query hinterlegen                                      |
+| `MONITORING_INSTANCE`                | nein    | Datenschutzneutraler Instanzname, Standard `arsnova-production`                               |
+| `MONITORING_WARNING_REPEAT_SECONDS`  | nein    | Wiederholung unveränderter Warnungen, Standard `21600`                                        |
+| `MONITORING_CRITICAL_REPEAT_SECONDS` | nein    | Wiederholung unveränderter kritischer Alarme, Standard `3600`                                 |
+| `MONITORING_HEARTBEAT_URL`           | nein    | HTTPS-Dead-Man's-Switch; erhält nach jedem erfolgreichen Monitoring-Lauf einen leeren POST    |
+
+API-Basis, Zustandsverzeichnis und Schwellen sind absichtlich nicht über diese
+Datei verschiebbar. Änderungen daran müssen gemeinsam mit systemd-Sandbox,
+Runbook und Tests reviewt werden.
 
 Der reproduzierbare PDF-vs.-Voting-Lasttest liest `health.securityStats` und
 erwartet deshalb `ADMIN_DIAGNOSTIC_SECRET` nur in der Umgebung des

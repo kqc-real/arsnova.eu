@@ -2,8 +2,8 @@
 
 # Sicherheits-Härtungsplan — arsnova.eu
 
-**Status:** Planungsdokument / vor Implementierung (nach Plan-Review geschärft)  
-**Stand:** 2026-07-22  
+**Status:** Implementierung der W-Pakete abgeschlossen; operative Finalabnahme ausstehend
+**Stand:** 2026-07-26
 **Bezug:** externes Security-Review (Produktion + `main` `13f8c27b`, passiv, ohne Ausnutzung) inkl. UX-Follow-up und NAT-/Hörsaal-Nachtrag; Plan-Audit derselben Session (Plan **7/10** freigabefähig nach Schärfung; Ist-Sicherheit **~5/10** bis Umsetzung)  
 **Kurzreferenz Ist-Kontrollen:** [SECURITY-OVERVIEW.md](SECURITY-OVERVIEW.md)
 
@@ -248,15 +248,15 @@ Worker-Port. Details:
 
 ### Woche 3–4 — Tradeoffs bewusst + Hygiene
 
-| #    | Arbeitspaket                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Akzeptanzkriterien                                                                                              |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| W3.1 | **Umgesetzt (erster Slice):** sicherer Fetch-und-Normalize-Pfad ohne persistenten Cache. PNG/JPEG/WebP, 2-MiB-Eingangscap, Redirect-/IP-Bind aus W1.2; Decode, Resize, Metadaten-/Polyglot-Stripping und WebP-Transcode im isolierten Worker; SVG/animierte/fehlerhafte Bilder → Platzhalter. Cache bleibt bewusst aus, damit keine TTL-/PII-Löschrisiken entstehen.                                                                                                                                           | Bildfragen im PDF nutzbar; SSRF-/Decode-Tests grün; kein Chromium-Re-Fetch; Cache-Entscheidung dokumentiert     |
-| W3.2 | **Übersprungen (optional):** PDF-Queue / Fortschritt / Cache — bewusst nicht umgesetzt; Cap bleibt 1 aktiver PDF-Job (`PDF_MAX_CONCURRENT_JOBS`), 429 ohne Queue. Revisit nur bei Lastbedarf und Messung 6.5.                                                                                                                                                                                                                                                                                                  | n/a — optional; Live-Vote-Schutz bleibt über bestehenden Cap                                                    |
-| W3.3 | **Umgesetzt:** Historien-Endpunkte lehnen content-abgeleitete Legacy-Proofs nach `historyScopeId`-Bind ab. `bindQuizHistoryScope` akzeptiert Legacy auf gebundenen Kopien nur bis `QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT` (Default `2026-09-01T00:00:00.000Z`) zum einmaligen UUID-Upgrade. Frontend speichert UUID und fällt nicht mehr still auf Legacy zurück. Events: `quiz_history_legacy_proof_accepted_for_bind` / `_rejected_after_bind`. Residuen in SECURITY-OVERVIEW. Bind-Pipeline nicht neu gebaut. | Nach Cutover: Legacy allein öffnet gebundene Historie nicht; migrierte Nutzer behalten UUID-Capability          |
-| W3.4 | **Umgesetzt (Slice B):** signierte Share-Tokens (`?s=`), serverseitig erzeugte neue Räume beim Absichern, Redis-Generation + Rotations-Capability-Hash, UI für Legacy-Rekey und „Sync-Link ungültig machen“, Legacy-UUID-Grace bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` (Default 2026-10-01). Metadaten-TTL mit ZSET-Ablaufindex statt permanentem Zähler. Details: [W3.4-YJS-SHARE-TOKENS-ABNAHME.md](implementation/W3.4-YJS-SHARE-TOKENS-ABNAHME.md)                                                           | Alte UUID kann nicht übernommen werden; alte Links nach Rotation tot; Residuen/Grace dokumentiert               |
-| W3.5 | **Umgesetzt:** Landing von Astro 6.4 auf 7.1 aktualisiert; Rust-Compiler/Vite 8 ohne Quellcode-Inkompatibilitäten, explizites Inline-JSON-LD, `astro check` als CI-Gate und advisory-freier Landing-Dependency-Graph. Details: [W3.5-ASTRO-7-ABNAHME.md](implementation/W3.5-ASTRO-7-ABNAHME.md)                                                                                                                                                                                                               | Landing-Build, `astro check`, Routen-/Asset-Smoke und axe grün; Astro-XSS-Advisories geschlossen                |
-| W3.6 | **Implementiert, Betriebsabnahme ausstehend:** täglicher PostgreSQL-Custom-Dump plus `.env.production`, clientseitig verschlüsselt mit Restic in einen getrennten Storage-Box-Subaccount; RPO ≤ 24 h + 15 min, RTO ≤ 4 h, 14 tägliche Snapshots, monatlicher netzloser Container-Restore und vierteljährlicher Test auf frischem Host. Redis und browserseitige Quizbibliotheken sind bewusst nicht im Scope. Details: [BACKUP-RESTORE-RUNBOOK.md](operations/BACKUP-RESTORE-RUNBOOK.md)                       | Nach Einsetzen der Storage-Box-Daten: erster Offsite-Snapshot und Restore-Übung auf isoliertem Ziel erfolgreich |
-| W3.7 | Monitoring-Alarme (Create-Rate, PDF-Queue-Tiefe, WS-Conn, 429-Muster, Soft-Cap-Auslastung)                                                                                                                                                                                                                                                                                                                                                                                                                     | Alarmierung getestet                                                                                            |
+| #    | Arbeitspaket                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Akzeptanzkriterien                                                                                          |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| W3.1 | **Umgesetzt (erster Slice):** sicherer Fetch-und-Normalize-Pfad ohne persistenten Cache. PNG/JPEG/WebP, 2-MiB-Eingangscap, Redirect-/IP-Bind aus W1.2; Decode, Resize, Metadaten-/Polyglot-Stripping und WebP-Transcode im isolierten Worker; SVG/animierte/fehlerhafte Bilder → Platzhalter. Cache bleibt bewusst aus, damit keine TTL-/PII-Löschrisiken entstehen.                                                                                                                                                                                                                                                                        | Bildfragen im PDF nutzbar; SSRF-/Decode-Tests grün; kein Chromium-Re-Fetch; Cache-Entscheidung dokumentiert |
+| W3.2 | **Übersprungen (optional):** PDF-Queue / Fortschritt / Cache — bewusst nicht umgesetzt; Cap bleibt 1 aktiver PDF-Job (`PDF_MAX_CONCURRENT_JOBS`), 429 ohne Queue. Revisit nur bei Lastbedarf und Messung 6.5.                                                                                                                                                                                                                                                                                                                                                                                                                               | n/a — optional; Live-Vote-Schutz bleibt über bestehenden Cap                                                |
+| W3.3 | **Umgesetzt:** Historien-Endpunkte lehnen content-abgeleitete Legacy-Proofs nach `historyScopeId`-Bind ab. `bindQuizHistoryScope` akzeptiert Legacy auf gebundenen Kopien nur bis `QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT` (Default `2026-09-01T00:00:00.000Z`) zum einmaligen UUID-Upgrade. Frontend speichert UUID und fällt nicht mehr still auf Legacy zurück. Events: `quiz_history_legacy_proof_accepted_for_bind` / `_rejected_after_bind`. Residuen in SECURITY-OVERVIEW. Bind-Pipeline nicht neu gebaut.                                                                                                                              | Nach Cutover: Legacy allein öffnet gebundene Historie nicht; migrierte Nutzer behalten UUID-Capability      |
+| W3.4 | **Umgesetzt (Slice B):** signierte Share-Tokens (`?s=`), serverseitig erzeugte neue Räume beim Absichern, Redis-Generation + Rotations-Capability-Hash, UI für Legacy-Rekey und „Sync-Link ungültig machen“, Legacy-UUID-Grace bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` (Default 2026-10-01). Metadaten-TTL mit ZSET-Ablaufindex statt permanentem Zähler. Details: [W3.4-YJS-SHARE-TOKENS-ABNAHME.md](implementation/W3.4-YJS-SHARE-TOKENS-ABNAHME.md)                                                                                                                                                                                        | Alte UUID kann nicht übernommen werden; alte Links nach Rotation tot; Residuen/Grace dokumentiert           |
+| W3.5 | **Umgesetzt:** Landing von Astro 6.4 auf 7.1 aktualisiert; Rust-Compiler/Vite 8 ohne Quellcode-Inkompatibilitäten, explizites Inline-JSON-LD, `astro check` als CI-Gate und advisory-freier Landing-Dependency-Graph. Details: [W3.5-ASTRO-7-ABNAHME.md](implementation/W3.5-ASTRO-7-ABNAHME.md)                                                                                                                                                                                                                                                                                                                                            | Landing-Build, `astro check`, Routen-/Asset-Smoke und axe grün; Astro-XSS-Advisories geschlossen            |
+| W3.6 | **Umgesetzt und operativ abgenommen:** täglicher PostgreSQL-Custom-Dump plus `.env.production`, clientseitig verschlüsselt mit Restic in einen getrennten Storage-Box-Subaccount; RPO ≤ 24 h + 15 min, RTO ≤ 4 h, 14 tägliche Snapshots, monatlicher netzloser Container-Restore und vierteljährlicher Test auf frischem Host. Erster Offsite-Snapshot und isolierter Restore mit 21 Tabellen am 2026-07-26 erfolgreich. Redis und browserseitige Quizbibliotheken sind bewusst nicht im Scope. Details: [BACKUP-RESTORE-RUNBOOK.md](operations/BACKUP-RESTORE-RUNBOOK.md)                                                                  | Offsite-Snapshot, Repository-Prüfung und isolierter Restore erfolgreich                                     |
+| W3.7 | **Implementiert, operative Kanalabnahme ausstehend:** gehärteter systemd-Host-Poller gegen `health.securityStats`, `health.check` und `health.stats`; Warn-/Kritisch-Schwellen, Zwei-Sample-Entprellung, Wiederholungs- und Recovery-Alarme, generischer HTTPS-Webhook und optionaler Dead-Man's-Switch. Ein dritter, admin-authentifizierter Monitoring-Tab zeigt den aggregierten Live-Snapshot ohne Diagnose-Secret im Browser. PDF-Tiefe wird entsprechend W3.2 als Cap-/Reject-/Fehlermetrik bewertet, nicht als nicht existente Queue. Details: [W3.7-MONITORING-ALARMS-ABNAHME.md](implementation/W3.7-MONITORING-ALARMS-ABNAHME.md) | Synthetischen Testalarm zustellen, echten gesunden Lauf und Timer bestätigen                                |
 
 ### 6.5 Lasttest-Abnahme (messbar)
 
@@ -303,6 +303,44 @@ Pro Arbeitspaket (W0–W3) vor Umsetzung ausfüllen:
 - [ ] SECURITY-OVERVIEW + ENVIRONMENT um neue Limits/IP-Annahmen/accessProof-Residuen aktualisiert
 - [ ] Kein `npm audit fix --force`; Prod-`npm audit --omit=dev` bleibt Steuerungsgröße
 - [ ] Jede umgesetzte Maßnahme hat Owner/Ticket/Deps/Rollback dokumentiert
+
+### Operator-Protokoll für die Finalabnahme
+
+Dieses Protokoll erst nach Merge und Produktionsdeploy von W3.7 ausfüllen.
+Secrets niemals in das Protokoll kopieren; nur Ergebnis, Zeitpunkt und
+Workflow-/Incident-URL dokumentieren.
+
+| Nachweis                                                          | Ergebnis                                             |
+| ----------------------------------------------------------------- | ---------------------------------------------------- |
+| Deployter Commit                                                  | `________________`                                   |
+| Operator / UTC-Zeitfenster                                        | `________________`                                   |
+| W3.7-Testalarm empfangen                                          | `[ ]` Webhook-Ziel / Ereignis-ID: `________________` |
+| Drei reguläre Timerläufe gesund                                   | `[ ]` Journal-Zeitfenster: `________________`        |
+| Dead-Man-Ausfallalarm und Recovery bestätigt (falls konfiguriert) | `[ ]` Ereignis-IDs: `________________`               |
+| CSP Report-Only 24–72 h ohne Produktbruch beobachtet              | `[ ]` Zeitraum / Entscheidung: `________________`    |
+| Artillery-500 und Reconnect-500 bestanden                         | `[ ]` Workflow-URL: `________________`               |
+| Optionaler Produktions-k6-Lauf freigegeben und bestanden          | `[ ]` Workflow-URL: `________________`               |
+| Offene HIGH-Befunde                                               | `[ ]` keine; Review-/Scan-URLs: `________________`   |
+| Finale Freigabe                                                   | `[ ]` Name / Datum: `________________`               |
+
+Die exakten W3.7-Kommandos stehen im
+[Monitoring-Runbook](operations/MONITORING-RUNBOOK.md). Die nicht
+produktionswirksamen 500er-CI-Läufe werden nach dem Merge mit folgendem
+manuellen Workflow-Dispatch gestartet:
+
+```bash
+gh workflow run ci.yml \
+  --ref main \
+  -f artillery_participants=500 \
+  -f artillery_ramp_seconds=60 \
+  -f run_production_load=false
+```
+
+`run_production_load=true` ist bewusst **kein** automatischer Abschlussschritt:
+Der k6-Lauf trifft Produktion und benötigt eine explizite Operatorfreigabe.
+CSP Report-Only wird über `CSP_REPORT_ONLY_ENABLED=true` aktiviert; nach 24–72
+Stunden entscheidet der Operator anhand aggregierter Reports über Enforcement
+oder Rollback.
 
 ---
 

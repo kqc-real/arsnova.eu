@@ -141,11 +141,13 @@ jobs:
       - name: Run actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7
 
-      - name: Validate backup shell scripts
+      - name: Validate operations scripts and systemd units
         run: |
           bash -n scripts/backup/*.sh
           bash -n scripts/backup/tests/*.sh
           shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh
+          python3 -m py_compile scripts/monitoring/arsnova_monitor.py
+          python3 -m unittest discover -s scripts/monitoring/tests -p 'test_*.py'
           docker run --rm \
             -e ARSNOVA_BACKUP_TEST_CONTAINER=1 \
             -v "$PWD:/repo:ro" \
@@ -153,16 +155,24 @@ jobs:
             bash -c 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq restic openssh-client openssh-server >/dev/null && /repo/scripts/backup/tests/restic-sftp-integration.sh'
           scripts/backup/tests/postgres-readiness-integration.sh
           sudo install -o root -g root -m 0750 scripts/backup/*.sh /usr/local/sbin/
+          sudo install -o root -g root -m 0755 \
+            scripts/monitoring/arsnova_monitor.py \
+            /usr/local/sbin/arsnova-monitor
           sudo install -o root -g root -m 0700 -d \
             /etc/arsnova-backup \
+            /etc/arsnova-monitoring \
             /var/lib/arsnova-backup \
             /var/lib/arsnova-restore-check \
             /var/cache/arsnova-restic
           sudo systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
-          systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 05:15:00'
+          systemd-analyze calendar \
+            '*-*-* 02:30:00' \
+            'Sun *-*-01..07 05:15:00' \
+            '*-*-* *:*:00'
           sudo install -o root -g root -m 0644 deploy/systemd/*.service /etc/systemd/system/
           sudo install -o root -g root -m 0700 -d \
             /etc/systemd/system/arsnova-backup.service.d \
+            /etc/systemd/system/arsnova-monitor.service.d \
             /etc/systemd/system/arsnova-restore-check.service.d \
             /home/deploy/arsnova.eu
           printf '%s\n' \
@@ -176,12 +186,40 @@ jobs:
             | sudo tee /etc/systemd/system/arsnova-backup.service.d/smoke.conf >/dev/null
           printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-systemd-lock-smoke.sh\n' \
             | sudo tee /etc/systemd/system/arsnova-restore-check.service.d/smoke.conf >/dev/null
+          printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-monitor --dry-run\n' \
+            | sudo tee /etc/systemd/system/arsnova-monitor.service.d/smoke.conf >/dev/null
           sudo touch /etc/arsnova-backup/backup.env
           sudo chown root:root /etc/arsnova-backup/backup.env
           sudo chmod 0600 /etc/arsnova-backup/backup.env
+          printf 'ADMIN_DIAGNOSTIC_SECRET=%064d\n' 0 \
+            | sudo tee /etc/arsnova-monitoring/monitor.env >/dev/null
+          sudo chown root:root /etc/arsnova-monitoring/monitor.env
+          sudo chmod 0600 /etc/arsnova-monitoring/monitor.env
           sudo systemctl daemon-reload
+          sudo chmod 0644 /etc/arsnova-monitoring/monitor.env
+          if sudo systemctl start arsnova-monitor.service; then
+            echo "Monitoring-Unit akzeptiert eine zu offene Secret-Datei." >&2
+            exit 1
+          fi
+          sudo systemctl reset-failed arsnova-monitor.service
+          sudo chmod 0600 /etc/arsnova-monitoring/monitor.env
           sudo systemctl start arsnova-backup.service
           sudo systemctl start arsnova-restore-check.service
+          python3 scripts/monitoring/tests/trpc_fixture_server.py &
+          monitor_fixture_pid=$!
+          trap 'kill "$monitor_fixture_pid" >/dev/null 2>&1 || true' EXIT
+          for _ in {1..30}; do
+            curl -fsS http://127.0.0.1:3000/trpc/health.check >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/trpc/health.check >/dev/null
+          sudo systemctl start arsnova-monitor.service
+          sudo test -d /var/lib/arsnova-monitoring
+          sudo journalctl -u arsnova-monitor.service --since '-1 minute' --no-pager \
+            | python3 -c 'import sys; assert "\"activeLevel\": \"ok\"" in sys.stdin.read()'
+          kill "$monitor_fixture_pid"
+          wait "$monitor_fixture_pid" 2>/dev/null || true
+          trap - EXIT
           restore_fixture="$(mktemp -d)"
           installed_env="$(mktemp)"
           trap 'sudo rm -rf "$restore_fixture"; rm -f "$installed_env"' EXIT
