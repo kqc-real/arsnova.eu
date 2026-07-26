@@ -606,8 +606,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openSyncLink(): Promise<void> {
-    const docId = this.extractSyncDocId(this.syncLinkValue());
-    if (!docId) {
+    const parsed = this.extractSyncLink(this.syncLinkValue());
+    if (!parsed) {
       this.syncLinkError.set(
         $localize`:@@homeHostCard.syncLinkError:Bitte einen gültigen Sync-Link einfügen.`,
       );
@@ -616,7 +616,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.syncLinkError.set(null);
-    this.quizStore.activateSyncRoom(docId, { markShared: true });
+    this.quizStore.activateSyncRoom(parsed.docId, {
+      markShared: true,
+      shareToken: parsed.shareToken,
+    });
     await this.router.navigate(this.localizedCommands(['quiz']), {
       queryParams: { syncImported: 1 },
     });
@@ -993,18 +996,57 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private extractSyncDocId(value: string): string | null {
+  private extractSyncLink(value: string): { docId: string; shareToken: string | null } | null {
     const trimmed = value.trim();
     if (!trimmed) return null;
 
     const rawIdMatch = trimmed.match(/^[a-zA-Z0-9_-]{8,128}$/);
     if (rawIdMatch) {
-      return rawIdMatch[0];
+      return { docId: rawIdMatch[0], shareToken: null };
+    }
+
+    try {
+      const asUrl = new URL(trimmed, globalThis.location?.origin ?? 'http://localhost');
+      const pathMatch = asUrl.pathname.match(
+        /(?:^|\/)(?:(?:de|en|fr|it|es)\/)?quiz\/sync\/([a-zA-Z0-9_-]{8,128})$/i,
+      );
+      if (pathMatch?.[1]) {
+        const fragmentParams = new URLSearchParams(asUrl.hash.replace(/^#/, ''));
+        const shareToken = fragmentParams.get('s') ?? asUrl.searchParams.get('s');
+        return {
+          docId: pathMatch[1],
+          shareToken: shareToken && shareToken.trim().length > 0 ? shareToken.trim() : null,
+        };
+      }
+    } catch {
+      // Fall through to path-only regex for partial paste values.
     }
 
     const syncPathMatch = trimmed.match(
       /(?:https?:\/\/[^/]+)?\/(?:(?:de|en|fr|it|es)\/)?quiz\/sync\/([a-zA-Z0-9_-]{8,128})(?:[/?#].*)?$/i,
     );
-    return syncPathMatch?.[1] ?? null;
+    if (!syncPathMatch?.[1]) return null;
+
+    let shareToken: string | null = null;
+    const queryIndex = trimmed.indexOf('?');
+    if (queryIndex >= 0) {
+      try {
+        shareToken = new URLSearchParams(trimmed.slice(queryIndex)).get('s');
+      } catch {
+        shareToken = null;
+      }
+    }
+    const fragmentIndex = trimmed.indexOf('#');
+    if (!shareToken && fragmentIndex >= 0) {
+      try {
+        shareToken = new URLSearchParams(trimmed.slice(fragmentIndex + 1)).get('s');
+      } catch {
+        shareToken = null;
+      }
+    }
+    return {
+      docId: syncPathMatch[1],
+      shareToken: shareToken && shareToken.trim().length > 0 ? shareToken.trim() : null,
+    };
   }
 }

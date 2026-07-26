@@ -16,12 +16,54 @@
         matButton="filled"
         type="button"
         class="quiz-sync__link-copy"
+        [disabled]="copyDisabled()"
         (click)="copySyncLink()"
       >
         <mat-icon>link</mat-icon>
         <span i18n="@@quizSync.copyLink">Sync-Link kopieren</span>
       </button>
+      @if (canInvalidateSyncLink()) {
+        <button
+          matButton="tonal"
+          type="button"
+          class="quiz-sync__invalidate"
+          [disabled]="invalidatePending() || copyDisabled()"
+          (click)="invalidateSyncLink()"
+        >
+          <mat-icon>link_off</mat-icon>
+          <span i18n="@@quizSync.invalidateLink">Sync-Link ungültig machen</span>
+        </button>
+      }
+      @if (!syncShareReady() && syncShareStatus() !== 'pending') {
+        <button
+          matButton="tonal"
+          type="button"
+          class="quiz-sync__secure"
+          (click)="createSecuredSyncLink()"
+        >
+          <mat-icon>enhanced_encryption</mat-icon>
+          <span i18n="@@quizSync.secureLink">Neuen abgesicherten Sync-Link erstellen</span>
+        </button>
+      }
     </div>
+    @if (syncShareStatus() === 'pending') {
+      <p class="quiz-sync__hint" role="status" i18n="@@quizSync.sharePending">
+        Sync-Link wird abgesichert …
+      </p>
+    }
+    @if (syncShareStatus() === 'legacy') {
+      <p class="quiz-sync__hint" role="status" i18n="@@quizSync.shareLegacy">
+        Verbindung ohne Share-Token (Übergangsmodus). Erstelle für deine lokale Sammlung einen neuen
+        abgesicherten Link; die alte Raum-ID wird dabei nicht übernommen.
+      </p>
+    }
+    @if (syncShareError()) {
+      <p class="quiz-sync__error" role="alert">{{ syncShareError() }}</p>
+    }
+    <p class="quiz-sync__security-hint" i18n="@@quizSync.securityHint">
+      Wer den Sync-Link hat, kann die Sammlung lesen und ändern. Mit „ungültig machen“ stirbt der
+      alte Link; bereits geöffnete Geräte arbeiten lokal weiter, bis sie den neuen Link importieren.
+    </p>
     <p class="quiz-sync__status">
       <span i18n="@@quizSync.statusPrefix">Status:</span>
       <strong class="quiz-sync__state" [class.quiz-sync__state--ok]="hasConnectedPeer()">

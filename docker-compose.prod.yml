@@ -28,12 +28,14 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: arsnova-v3-redis
     restart: always
     volumes:
       - redis_data:/data
-    command: redis-server --save 60 1 --loglevel warning
+    # AOF everysec hält allgemeine Redis-Last günstig; sicherheitskritische
+    # Yjs-Create/Rotate-Pfade erzwingen vor ihrer Antwort gezielt WAITAOF.
+    command: redis-server --appendonly yes --appendfsync everysec --save 60 1 --loglevel warning
     networks:
       - app
     healthcheck:

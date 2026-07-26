@@ -68,6 +68,7 @@
     "load:smoke:channel-ws-fanout-classroom-30": "node scripts/load/channel-ws-fanout-classroom-30.mjs",
     "load:freetext:wordcloud": "node scripts/load/freetext-wordcloud-classroom.mjs",
     "load:yjs:sync": "node scripts/load/yjs-sync-load.mjs",
+    "load:yjs:token-reconnect": "node scripts/load/yjs-token-reconnect-load.mjs",
     "load:soak:live-session": "node scripts/load/soak-live-session.mjs",
     "load:report:compare": "node scripts/load/compare-load-report.mjs",
     "load:k6:health": "node scripts/load/run-k6.mjs scripts/load/k6-trpc-health-50vu.js",

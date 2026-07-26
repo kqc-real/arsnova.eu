@@ -223,10 +223,15 @@ Ersetze `arsnova.eu` durch deine Domain (falls abweichend).
 ```nginx
 # Schritt 1: Nur HTTP – damit Certbot das Zertifikat erstellen kann.
 # Den HTTPS-Block fügen wir NACH dem Certbot-Lauf hinzu (siehe Abschnitt 5.3).
+log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
+    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+    '"-" "$http_user_agent"';
+
 server {
     listen 80;
     listen [::]:80;
     server_name arsnova.eu www.arsnova.eu;
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
 
     # Certbot braucht diesen Pfad, um die Domain zu verifizieren
     location /.well-known/acme-challenge/ {
@@ -305,11 +310,19 @@ upstream app_ws_yjs {
     server 127.0.0.1:3002;   # WebSocket (Yjs Quiz-Sync)
 }
 
+# Access-Log ohne Query-String und ohne Referer (ADR-0033 / W3.4):
+# Share-Tokens liegen in ?s= und dürfen nicht in Access-Logs landen.
+# `$uri` enthält den Pfad ohne Query; `$request` / `$request_uri` / `$http_referer` nicht verwenden.
+log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
+    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+    '"-" "$http_user_agent"';
+
 # HTTP → HTTPS Redirect
 server {
     listen 80;
     listen [::]:80;
     server_name arsnova.eu www.arsnova.eu;
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -339,7 +352,9 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 
-    access_log /var/log/nginx/arsnova_click_access.log;
+    # Nach Änderung: `sudo nginx -t && sudo systemctl reload nginx`
+    # und Stichprobe: Access-Log darf kein `?s=` / Query-String enthalten.
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
     error_log  /var/log/nginx/arsnova_click_error.log;
 
     # Infrastruktur-Hard-Cap oberhalb des 2-MiB-tRPC-Limits:
@@ -373,6 +388,12 @@ server {
 
     # Yjs WebSocket (Quiz-Sync zwischen Geräten) → Port 3002
     location /yjs-ws {
+        # Der WebSocket-Handshake trägt den Share-Token technisch als ?s=.
+        # Nginx-error_log ist nicht formatier-/redigierbar und kann bei
+        # Upstream-Fehlern die komplette Request-Zeile ausgeben. Deshalb für
+        # genau diesen sensitiven Pfad deaktivieren; Relay-Metriken und
+        # aggregierte Security-Logs bleiben die Diagnosequelle.
+        error_log /dev/null crit;
         proxy_pass http://app_ws_yjs/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -385,6 +406,13 @@ server {
     }
 }
 ```
+
+Neu erzeugte Browser-Share-Links transportieren den Token zusätzlich im
+URL-Fragment (`#s=…`), das bei HTTP-Anfragen nie an Nginx übertragen wird.
+Bestehende Query-Links bleiben importierbar und werden anschließend aus der
+Browser-URL entfernt. Für den technisch erforderlichen `?s=`-Parameter des
+WebSocket-Handshakes verhindert das lokale `error_log /dev/null crit`, dass
+Nginx den Token in Fehlerzeilen schreibt.
 
 `/csp-report` läuft durch denselben HTTP-Proxy. Nginx
 überschreibt dabei externe `X-Forwarded-For`-Werte; mit
@@ -713,6 +741,41 @@ Das Skript führt aus:
 4. Prisma-Migrationen mit deaktiviertem App-Entrypoint ausführen (`npx prisma migrate deploy`).
 5. App-Container starten.
 6. Container-Healthcheck, `health.check` und Frontend-Shell unter `/de/` prüfen.
+
+### Einmalig vor der ersten AOF-Aktivierung
+
+Der bisherige Produktions-Redis verwendet nur RDB. Vor dem **ersten** Deployment
+der neuen AOF-Konfiguration deshalb vorsorglich den bestehenden Zustand sichern:
+
+```bash
+mkdir -p "$HOME/backups/redis-aof-migration"
+docker exec arsnova-v3-redis redis-cli DBSIZE
+docker exec arsnova-v3-redis redis-cli BGSAVE
+docker exec arsnova-v3-redis redis-cli INFO persistence
+```
+
+Erst fortfahren, wenn `rdb_bgsave_in_progress:0` und
+`rdb_last_bgsave_status:ok` gemeldet werden. Anschließend `dump.rdb` aus dem
+persistenten Volume sichern:
+
+```bash
+docker cp arsnova-v3-redis:/data/dump.rdb \
+  "$HOME/backups/redis-aof-migration/dump-$(date +%Y%m%d-%H%M%S).rdb"
+```
+
+Alternativ beziehungsweise zusätzlich einen Snapshot des Redis-Volumes oder der
+VM anlegen. Die von `DBSIZE` gemeldete Schlüsselzahl notieren. Danach erst den
+neuen Redis-7.4-Container per Deployment neu erstellen. Nach dem Neustart
+`redis-cli PING`, `DBSIZE` und `INFO persistence` prüfen; TTL-bedingte Abweichungen
+bei der Schlüsselzahl sind möglich.
+
+Der Compose-Redis ist bewusst auf Redis 7.4 mit AOF `everysec` festgelegt.
+Yjs-Share-Erstellung und -Rotation rufen zusätzlich `WAITAOF` auf und geben
+Token erst zurück, nachdem der lokale AOF-Fsync bestätigt wurde. Dadurch kann
+ein bestätigter Widerruf nach Redis-/Host-Crash nicht auf eine ältere Generation
+zurückfallen, ohne alle übrigen Redis-Schreibpfade mit `appendfsync always` zu
+belasten. Bei externem/Managed Redis müssen AOF und `WAITAOF` unterstützt sein;
+andernfalls schlagen Create/Rotate in Produktion fail-closed fehl.
 
 Optionaler HTTP-Smoke aus Nutzerperspektive:
 

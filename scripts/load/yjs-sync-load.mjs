@@ -3,8 +3,7 @@
  * Mehrclient-Lasttest fuer den Quiz-Bibliotheks-Sync via Yjs/y-websocket.
  *
  * Der produktive Client verwendet die Basis-URL plus den Raum
- * `quiz-library-room-<UUID>`. Der Raumname ist zugleich das Bearer-Secret; der
- * bestehende Relay erwartet keine zusaetzlichen Auth-Header oder Query-Parameter.
+ * `quiz-library-room-<UUID>` und bei tokenisierten Räumen `?s=<Share-Token>`.
  *
  * Beispiele:
  *   node scripts/load/yjs-sync-load.mjs
@@ -33,6 +32,7 @@ Aufruf:
 
 Konfiguration:
   YJS_WS_URL             Relay-Basis-URL (Default: ${DEFAULT_YJS_WS_URL})
+  YJS_SHARE_TOKEN        Optionales v1-Share-Token (wird nie in Reports geschrieben)
   CLIENTS                Anzahl paralleler Clients (Default: 30; z. B. 100)
   UPDATE_CONCURRENCY     Gleichzeitige Update-Worker (Default: 15)
   CONNECT_P95_LIMIT_MS   Obergrenze fuer Connect-p95 (Default: 3000)
@@ -86,9 +86,21 @@ function readConfig() {
     throw new ConfigurationError('YJS_WS_URL muss das Protokoll ws: oder wss: verwenden.');
   }
 
-  const roomId = String(process.env.ROOM_ID || randomUUID()).trim();
+  const shareToken = String(process.env.YJS_SHARE_TOKEN || '').trim() || null;
+  const tokenMatch = shareToken
+    ? /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.[1-9][0-9]{0,9}\.[A-Za-z0-9_-]{43}$/i.exec(
+        shareToken,
+      )
+    : null;
+  if (shareToken && !tokenMatch) {
+    throw new ConfigurationError('YJS_SHARE_TOKEN hat kein gültiges v1-Format.');
+  }
+  const roomId = String(process.env.ROOM_ID || tokenMatch?.[1] || randomUUID()).trim();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(roomId)) {
     throw new ConfigurationError('ROOM_ID muss eine UUID sein.');
+  }
+  if (tokenMatch && tokenMatch[1]?.toLowerCase() !== roomId.toLowerCase()) {
+    throw new ConfigurationError('ROOM_ID stimmt nicht mit YJS_SHARE_TOKEN überein.');
   }
 
   const clients = readPositiveInteger('CLIENTS', 30);
@@ -104,6 +116,7 @@ function readConfig() {
     reportFile: String(process.env.REPORT_FILE || '').trim() || null,
     roomId,
     room: `${ROOM_PREFIX}${roomId}`,
+    shareToken,
   };
 }
 
@@ -217,6 +230,7 @@ function createClient(index, config) {
   const provider = new WebsocketProvider(config.yjsWsUrl, config.room, doc, {
     WebSocketPolyfill: WebSocket,
     connect: false,
+    ...(config.shareToken ? { params: { s: config.shareToken } } : {}),
   });
   const client = {
     index,
@@ -608,6 +622,7 @@ async function execute(config) {
     config: {
       yjsWsUrl: config.yjsWsUrl,
       room: config.room,
+      tokenAuth: config.shareToken !== null,
       clients: config.clients,
       updateConcurrency: config.updateConcurrency,
       connectP95LimitMs: config.connectP95LimitMs,

@@ -26,12 +26,21 @@
   gap: 0.5rem;
 }
 
-.quiz-sync__link-copy {
+.quiz-sync__link-copy,
+.quiz-sync__invalidate {
   width: 100%;
 }
 
+.quiz-sync__security-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
 @media (min-width: 480px) {
-  .quiz-sync__link-copy {
+  .quiz-sync__link-copy,
+  .quiz-sync__invalidate {
     width: auto;
     min-width: 12rem;
   }

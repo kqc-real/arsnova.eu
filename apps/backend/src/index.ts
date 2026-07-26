@@ -22,8 +22,16 @@ import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 import { createCspReportRouter } from './lib/cspReportIngest';
 import { createCspReportOnlyMiddleware } from './lib/cspReportOnly';
 import { createHttpCorsMiddleware } from './lib/httpCors';
+import {
+  assertYjsShareTokenSecretConfigured,
+  getYjsShareLegacyUuidCutoffAt,
+} from './lib/yjsShareToken';
 
 const PORT = Number(process.env['PORT']) || 3000;
+
+// Produktion: Yjs-Share-HMAC ohne starkes Secret hart abbrechen (W3.4).
+assertYjsShareTokenSecretConfigured();
+getYjsShareLegacyUuidCutoffAt();
 
 // Redis beim Start initialisieren (Story 0.1)
 getRedis();

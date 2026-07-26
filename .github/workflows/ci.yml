@@ -475,6 +475,17 @@ jobs:
     needs: [changes, build]
     if: github.event_name != 'schedule'
 
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Docs-only fast pass
         if: needs.changes.outputs.docs_only == 'true'
@@ -502,6 +513,53 @@ jobs:
       - name: Run tests with coverage gate
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run test:coverage
+
+      - name: Yjs share Redis 7 durability and crash regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          REDIS_URL: redis://localhost:6381
+          RUN_REDIS_YJS_SHARE_TESTS: '1'
+          RUN_REDIS_YJS_DURABILITY_TESTS: '1'
+          YJS_SHARE_REQUIRE_DURABILITY: '1'
+          YJS_SHARE_TOKEN_SECRET: ci-yjs-share-secret-at-least-32-bytes
+        run: |
+          set -euo pipefail
+          container=arsnova-yjs-durability-redis
+          volume=arsnova-yjs-durability-data
+          cleanup() {
+            docker rm -f "$container" >/dev/null 2>&1 || true
+            docker volume rm "$volume" >/dev/null 2>&1 || true
+          }
+          start_redis() {
+            docker run --detach --name "$container" \
+              --publish 6381:6379 \
+              --volume "$volume:/data" \
+              redis:7.4-alpine \
+              redis-server --appendonly yes --appendfsync everysec --save 60 1
+            for _ in {1..30}; do
+              if [[ "$(docker exec "$container" redis-cli ping 2>/dev/null || true)" == "PONG" ]]; then
+                return
+              fi
+              sleep 1
+            done
+            docker logs "$container"
+            exit 1
+          }
+          trap cleanup EXIT
+          docker volume create "$volume" >/dev/null
+          start_redis
+
+          npx vitest run src/lib/yjsShareToken.redis.test.ts
+          YJS_DURABILITY_TEST_PHASE=prepare \
+            npx vitest run src/lib/yjsShareToken.durability.redis.test.ts
+
+          docker kill --signal KILL "$container"
+          docker rm "$container"
+          start_redis
+
+          YJS_DURABILITY_TEST_PHASE=verify \
+            npx vitest run src/lib/yjsShareToken.durability.redis.test.ts
 
       - name: Upload coverage reports
         if: always() && needs.changes.outputs.docs_only != 'true'

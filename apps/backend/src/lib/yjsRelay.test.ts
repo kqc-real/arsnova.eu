@@ -3,6 +3,44 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WebSocket, { type RawData } from 'ws';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+
+const redisHashes = new Map<string, Record<string, string>>();
+const redisStrings = new Map<string, string>();
+const redisMocks = vi.hoisted(() => ({
+  hgetall: vi.fn(),
+  call: vi.fn(),
+}));
+
+vi.mock('../redis', () => ({
+  getRedis: () => ({
+    hgetall: redisMocks.hgetall,
+    call: redisMocks.call,
+    expire: vi.fn(async () => 1),
+    set: vi.fn(async (key: string, value: string, ...rest: unknown[]) => {
+      const nx = rest.includes('NX');
+      if (nx && redisStrings.has(key)) return null;
+      redisStrings.set(key, value);
+      return 'OK';
+    }),
+    eval: vi.fn(async (script: string, ...args: unknown[]) => {
+      if (!script.includes('nextGeneration')) return [0, 'NOT_REGISTERED'];
+      const key = String(args[1]);
+      const capabilityHash = String(args[3]);
+      const current = redisHashes.get(key);
+      if (!current?.generation || !current.rotationCapabilityHash) {
+        return [0, 'NOT_REGISTERED'];
+      }
+      if (current.rotationCapabilityHash !== capabilityHash) {
+        return [0, 'CAPABILITY_MISMATCH'];
+      }
+      const generation = Number(current.generation) + 1;
+      current.generation = String(generation);
+      redisHashes.set(key, current);
+      return [1, 'OK', generation];
+    }),
+  }),
+}));
+
 import {
   DEFAULT_YJS_RELAY_LIMITS,
   resolveYjsRelayConfig,
@@ -13,6 +51,13 @@ import {
   getWebSocketTelemetrySnapshot,
   resetWebSocketTelemetryForTests,
 } from './websocketTelemetry';
+import {
+  createYjsRotationCapability,
+  hashYjsRotationCapability,
+  rotateYjsShare,
+  signYjsShareToken,
+} from './yjsShareToken';
+import { logger } from './logger';
 
 const ROOM_A = 'quiz-library-room-6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const ROOM_B = 'quiz-library-room-7b9fedde-6a90-4dfb-a287-565bda0681be';
@@ -20,11 +65,21 @@ const servers: YjsRelayServer[] = [];
 const sockets: WebSocket[] = [];
 
 beforeEach(() => {
+  redisHashes.clear();
+  redisStrings.clear();
+  redisMocks.hgetall.mockReset();
+  redisMocks.hgetall.mockImplementation(async (key: string) => ({
+    ...(redisHashes.get(key) ?? {}),
+  }));
+  redisMocks.call.mockResolvedValue([1, 0]);
   resetWebSocketTelemetryForTests();
+  vi.stubEnv('YJS_SHARE_TOKEN_SECRET', 'test-yjs-share-secret-at-least-32-bytes!!');
+  vi.stubEnv('YJS_SHARE_LEGACY_UUID_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
 });
 
 afterEach(async () => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   for (const socket of sockets.splice(0)) socket.terminate();
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });
@@ -245,9 +300,30 @@ describe('YjsRelayServer', () => {
 
     await expectUpgradeRejected(`${baseUrl}/arbitrary-room`, 400);
     await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?token=ignored`, 400);
+    await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=not-a-valid-token&x=1`, 400);
     const accepted = await connect(`${baseUrl}/${ROOM_A}`);
 
     expect(accepted.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('aggregiert wiederholte Warnungen für abgewiesene Token-Upgrades', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const baseUrl = await startRelay();
+    redisHashes.set('yjs:share:v1:6a8edced-5f8f-4cfa-9176-454fac9570ad', {
+      generation: '1',
+      rotationCapabilityHash: 'a'.repeat(64),
+    });
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=not-a-valid-token`, 400);
+    }
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith('[security] yjs_share_upgrade_rejected', {
+      reason: 'invalid_token',
+      suppressedSinceLastLog: 0,
+    });
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(5);
   });
 
   it('begrenzt Verbindungen global und pro Raum ohne IP-Buckets', async () => {
@@ -305,6 +381,102 @@ describe('YjsRelayServer', () => {
       firstDoc.destroy();
       secondDoc.destroy();
     }
+  });
+
+  it('trennt alte Generationen bei Rotation und isoliert nachfolgende Updates', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: hashYjsRotationCapability(capability),
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    const baseUrl = await startRelay();
+    const WebSocketPolyfill = WebSocket as unknown as typeof globalThis.WebSocket;
+    const oldDoc = new Y.Doc();
+    const newDoc = new Y.Doc();
+    const oldProvider = new WebsocketProvider(baseUrl, ROOM_A, oldDoc, {
+      WebSocketPolyfill,
+      params: { s: oldToken },
+      disableBc: true,
+    });
+    let newProvider: WebsocketProvider | null = null;
+
+    try {
+      await waitForCondition(() => oldProvider.wsconnected);
+      const rotated = await rotateYjsShare({ roomId: roomUuid, rotationCapability: capability });
+      await waitForCondition(() => !oldProvider.wsconnected);
+
+      newProvider = new WebsocketProvider(baseUrl, ROOM_A, newDoc, {
+        WebSocketPolyfill,
+        params: { s: rotated.shareToken },
+        disableBc: true,
+      });
+      await waitForCondition(() => newProvider?.wsconnected === true);
+
+      oldDoc.getMap('rotation-test').set('old-only', 'alt');
+      newDoc.getMap('rotation-test').set('new-only', 'neu');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(newDoc.getMap('rotation-test').get('old-only')).toBeUndefined();
+      expect(oldDoc.getMap('rotation-test').get('new-only')).toBeUndefined();
+    } finally {
+      oldProvider.destroy();
+      newProvider?.destroy();
+      oldDoc.destroy();
+      newDoc.destroy();
+    }
+  });
+
+  it('trennt alte Verbindungen auch wenn der AOF-Fsync nach Redis-Rotation scheitert', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: hashYjsRotationCapability(capability),
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    const baseUrl = await startRelay();
+    const oldConnection = await connect(`${baseUrl}/${ROOM_A}?s=${oldToken}`);
+    vi.stubEnv('YJS_SHARE_REQUIRE_DURABILITY', '1');
+    redisMocks.call.mockResolvedValueOnce([0, 0]);
+
+    await expect(
+      rotateYjsShare({ roomId: roomUuid, rotationCapability: capability }),
+    ).rejects.toThrow('YJS_SHARE_DURABILITY_UNAVAILABLE');
+    await waitForCondition(() => oldConnection.readyState === WebSocket.CLOSED);
+
+    expect(redisHashes.get(`yjs:share:v1:${roomUuid}`)?.generation).toBe('2');
+  });
+
+  it('weist ein während der Autorisierung rotiertes Token vor dem Attach ab', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    const capabilityHash = hashYjsRotationCapability(capability);
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: capabilityHash,
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    let resolveStaleRead: ((value: Record<string, string>) => void) | undefined;
+    redisMocks.hgetall.mockImplementationOnce(
+      () =>
+        new Promise<Record<string, string>>((resolve) => {
+          resolveStaleRead = resolve;
+        }),
+    );
+    const baseUrl = await startRelay();
+
+    const rejected = expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=${oldToken}`, 400);
+    await vi.waitFor(() => expect(resolveStaleRead).toBeTypeOf('function'));
+    await rotateYjsShare({ roomId: roomUuid, rotationCapability: capability });
+    resolveStaleRead?.({
+      generation: '1',
+      rotationCapabilityHash: capabilityHash,
+    });
+
+    await rejected;
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(1);
   });
 
   it('erlaubt JSON-null Awareness-Removals nur für zuvor bekannte IDs', async () => {

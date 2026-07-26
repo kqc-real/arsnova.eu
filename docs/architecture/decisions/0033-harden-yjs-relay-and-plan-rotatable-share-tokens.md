@@ -69,7 +69,9 @@ ein. Das Zielbild ist:
 4. Die Rotations-Capability wird clientseitig erzeugt und nur auf dem
    Ursprungsgerät gehalten. Eine manuelle Rotation erhöht die Generation und
    gibt einen neuen Share-Token aus; ältere Generationen werden beim nächsten
-   Relay-Upgrade abgewiesen.
+   Relay-Upgrade abgewiesen. Bereits verbundene Clients halten ihre beim
+   Upgrade geprüfte Generation; der Relay terminiert sie bei einer Rotation,
+   bevor der neue Token ausgegeben wird.
 5. Bereits lokal gespeicherte Quizze bleiben bei ungültigem oder rotiertem Token
    offline verfügbar. Nur der erneute Netz-Sync endet, bis ein neuer Link
    importiert wird.
@@ -79,6 +81,11 @@ ein. Das Zielbild ist:
 7. Tokens dürfen nicht in normalen App-/Proxy-Logs erscheinen. Transportformat,
    Nginx-Logging und Fehlertelemetrie müssen vor Implementierung gemeinsam
    festgelegt und getestet werden.
+8. Die Migration auf Tokens darf keine First-Writer-Besitzübernahme alter
+   UUID-Räume ermöglichen. Das Backend erzeugt beim Absichern deshalb stets
+   eine neue Raum-UUID; bestehende Legacy-Origins rekeyen ihre lokale Sammlung
+   über eine explizite Aktion. UUID-only-Upgrades persistieren keinen
+   „gesehen“-Zustand.
 
 Slice B benötigt eigene Threat-Model-, Migrations-, Recovery- und
 Browser-Smoke-Abnahme. Dieses ADR autorisiert keine implizite Tokenprüfung und
