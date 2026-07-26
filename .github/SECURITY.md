@@ -4,11 +4,11 @@ Vielen Dank, dass du dazu beiträgst, arsnova.eu sicher zu halten. Sicherheitsme
 
 ## Unterstützte Versionen
 
-| Bereich | Sicherheitsunterstützung |
-| --- | --- |
-| Aktuell auf [arsnova.eu](https://arsnova.eu/) betriebene Version | Ja |
-| Aktueller Stand des Branches `main` | Ja |
-| Ältere Versionen, eigene Forks und fremde Installationen | Nein |
+| Bereich                                                          | Sicherheitsunterstützung |
+| ---------------------------------------------------------------- | ------------------------ |
+| Aktuell auf [arsnova.eu](https://arsnova.eu/) betriebene Version | Ja                       |
+| Aktueller Stand des Branches `main`                              | Ja                       |
+| Ältere Versionen, eigene Forks und fremde Installationen         | Nein                     |
 
 ## Sicherheitslücke vertraulich melden
 
