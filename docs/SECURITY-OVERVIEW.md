@@ -263,7 +263,13 @@ Rollback: [W2.5-CORS-SAME-ORIGIN-ABNAHME.md](implementation/W2.5-CORS-SAME-ORIGI
 Vor öffentlichem Betrieb müssen Betreiber zusätzlich klären und testen:
 
 - eigene Impressums-/Datenschutztexte und Kontaktwege,
-- PostgreSQL-Backups inklusive Restore-Test,
+- W3.6-Offsite-Backups: PostgreSQL und `.env.production` werden täglich mit
+  Restic clientseitig verschlüsselt in einen getrennten Storage-Box-Subaccount
+  gesichert (RPO ≤ 24 h + 15 min, 14 tägliche Snapshots). Monatlich prüft ein
+  netzloser temporärer PostgreSQL-Container den Restore; vierteljährlich folgt
+  die Übung auf einem frischen Host. Restic-Passwort und Hauptaccount bleiben
+  getrennt vom Produktionshost. Details:
+  [Backup-/Restore-Runbook](operations/BACKUP-RESTORE-RUNBOOK.md),
 - Admin-Verantwortlichkeiten für Legal Hold, Löschung, Export und MOTD,
 - Monitoring/Logzugriff und Incident-Prozess,
 - Rate-Limit-Profil im tatsächlichen Proxy-/Shared-NAT-Umfeld,

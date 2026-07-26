@@ -108,7 +108,10 @@ Vor öffentlichem Betrieb sollten mindestens diese Punkte geklärt und getestet 
 - Eigene Domain, TLS-Zertifikate, HTTPS-Weiterleitung und WebSocket-Proxy sind eingerichtet.
 - `.env.production` enthält starke Secrets, korrekte Datenbank-/Redis-URLs und passende Rate-Limits.
 - `TRUST_PROXY_HOPS` ist für den Reverse-Proxy korrekt gesetzt, damit Rate-Limits echte Client-IPs sehen.
-- PostgreSQL-Backups sind automatisiert und ein Restore wurde praktisch getestet.
+- PostgreSQL und Produktionskonfiguration werden gemäß
+  [Backup-/Restore-Runbook](./docs/operations/BACKUP-RESTORE-RUNBOOK.md)
+  verschlüsselt offsite gesichert; ein Restore auf isoliertem Ziel wurde
+  praktisch getestet.
 - Admin-Zugang, Legal-Hold, Löschpfad, Exportpfad und Audit-Log wurden mit Rollenverantwortlichen geprüft.
 - Impressum, Datenschutz, Kontaktwege und institutionelle Nutzungshinweise sind angepasst.
 - Eine Test-Session mit Host-, Present- und Teilnehmergerät wurde inklusive WebSockets, Yjs-Sync und Mobile-Ansicht durchgeführt.

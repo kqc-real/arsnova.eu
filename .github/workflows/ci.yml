@@ -141,6 +141,19 @@ jobs:
       - name: Run actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7
 
+      - name: Validate backup shell scripts
+        run: |
+          bash -n scripts/backup/*.sh
+          shellcheck scripts/backup/*.sh
+          sudo install -o root -g root -m 0750 scripts/backup/*.sh /usr/local/sbin/
+          sudo install -o root -g root -m 0700 -d \
+            /etc/arsnova-backup \
+            /var/lib/arsnova-backup \
+            /var/lib/arsnova-restore-check \
+            /var/cache/arsnova-restic
+          systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
+          systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 04:30:00'
+
   format:
     name: Changed Files Format
     runs-on: ubuntu-latest
