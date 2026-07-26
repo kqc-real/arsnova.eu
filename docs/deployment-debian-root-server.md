@@ -742,6 +742,33 @@ Das Skript führt aus:
 5. App-Container starten.
 6. Container-Healthcheck, `health.check` und Frontend-Shell unter `/de/` prüfen.
 
+### Einmalig vor der ersten AOF-Aktivierung
+
+Der bisherige Produktions-Redis verwendet nur RDB. Vor dem **ersten** Deployment
+der neuen AOF-Konfiguration deshalb vorsorglich den bestehenden Zustand sichern:
+
+```bash
+mkdir -p "$HOME/backups/redis-aof-migration"
+docker exec arsnova-v3-redis redis-cli DBSIZE
+docker exec arsnova-v3-redis redis-cli BGSAVE
+docker exec arsnova-v3-redis redis-cli INFO persistence
+```
+
+Erst fortfahren, wenn `rdb_bgsave_in_progress:0` und
+`rdb_last_bgsave_status:ok` gemeldet werden. Anschließend `dump.rdb` aus dem
+persistenten Volume sichern:
+
+```bash
+docker cp arsnova-v3-redis:/data/dump.rdb \
+  "$HOME/backups/redis-aof-migration/dump-$(date +%Y%m%d-%H%M%S).rdb"
+```
+
+Alternativ beziehungsweise zusätzlich einen Snapshot des Redis-Volumes oder der
+VM anlegen. Die von `DBSIZE` gemeldete Schlüsselzahl notieren. Danach erst den
+neuen Redis-7.4-Container per Deployment neu erstellen. Nach dem Neustart
+`redis-cli PING`, `DBSIZE` und `INFO persistence` prüfen; TTL-bedingte Abweichungen
+bei der Schlüsselzahl sind möglich.
+
 Der Compose-Redis ist bewusst auf Redis 7.4 mit AOF `everysec` festgelegt.
 Yjs-Share-Erstellung und -Rotation rufen zusätzlich `WAITAOF` auf und geben
 Token erst zurück, nachdem der lokale AOF-Fsync bestätigt wurde. Dadurch kann

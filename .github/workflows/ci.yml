@@ -537,7 +537,7 @@ jobs:
               --volume "$volume:/data" \
               redis:7.4-alpine \
               redis-server --appendonly yes --appendfsync everysec --save 60 1
-            for attempt in {1..30}; do
+            for _ in {1..30}; do
               if [[ "$(docker exec "$container" redis-cli ping 2>/dev/null || true)" == "PONG" ]]; then
                 return
               fi
