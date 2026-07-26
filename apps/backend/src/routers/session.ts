@@ -2333,9 +2333,10 @@ async function assertQuizHistoryAccessAuthorized(
   }
 
   if (allowLegacyQuizHistoryProofAfterBind({ purpose })) {
+    // historyScopeId is the bearer capability — never log it.
     logger.info('[security] quiz_history_legacy_proof_accepted_for_bind', {
       quizId: quiz.id,
-      historyScopeId: quiz.historyScopeId,
+      purpose,
       cutoffAt: getQuizHistoryLegacyProofCutoffAt().toISOString(),
     });
     return;
@@ -2343,7 +2344,6 @@ async function assertQuizHistoryAccessAuthorized(
 
   logger.warn('[security] quiz_history_legacy_proof_rejected_after_bind', {
     quizId: quiz.id,
-    historyScopeId: quiz.historyScopeId,
     purpose,
     cutoffAt: getQuizHistoryLegacyProofCutoffAt().toISOString(),
   });

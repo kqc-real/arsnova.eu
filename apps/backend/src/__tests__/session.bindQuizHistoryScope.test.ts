@@ -4,17 +4,26 @@ import {
   createQuizHistoryAccessProof,
 } from '@arsnova/shared-types';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, loggerMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
     },
   },
+  loggerMock: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/logger', () => ({
+  logger: loggerMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -127,6 +136,19 @@ describe('session.bindQuizHistoryScope', () => {
 
     expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
     expect(result).toEqual({ accessProof: HISTORY_SCOPE_ID });
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      '[security] quiz_history_legacy_proof_accepted_for_bind',
+      expect.objectContaining({
+        quizId: QUIZ_ID,
+        purpose: 'bind',
+      }),
+    );
+    const acceptedPayload = loggerMock.info.mock.calls.find(
+      (call) => call[0] === '[security] quiz_history_legacy_proof_accepted_for_bind',
+    )?.[1] as Record<string, unknown> | undefined;
+    expect(acceptedPayload).toBeDefined();
+    expect(JSON.stringify(acceptedPayload)).not.toContain(HISTORY_SCOPE_ID);
+    expect(acceptedPayload).not.toHaveProperty('historyScopeId');
   });
 
   it('lehnt legacy-proof auf gebundenen kopien nach cutoff ab', async () => {
@@ -154,5 +176,18 @@ describe('session.bindQuizHistoryScope', () => {
       }),
     ).rejects.toBeInstanceOf(TRPCError);
     expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      '[security] quiz_history_legacy_proof_rejected_after_bind',
+      expect.objectContaining({
+        quizId: QUIZ_ID,
+        purpose: 'bind',
+      }),
+    );
+    const rejectedPayload = loggerMock.warn.mock.calls.find(
+      (call) => call[0] === '[security] quiz_history_legacy_proof_rejected_after_bind',
+    )?.[1] as Record<string, unknown> | undefined;
+    expect(rejectedPayload).toBeDefined();
+    expect(JSON.stringify(rejectedPayload)).not.toContain(HISTORY_SCOPE_ID);
+    expect(rejectedPayload).not.toHaveProperty('historyScopeId');
   });
 });
