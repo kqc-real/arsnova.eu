@@ -40,6 +40,8 @@ Thumbs.db
 
 # ---------- Test & Coverage ----------
 coverage/
+__pycache__/
+*.pyc
 .lighthouseci/
 .lighthouseci-a11y/
 e2e/test-output/
