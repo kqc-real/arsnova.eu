@@ -201,9 +201,39 @@ describe('session.getBonusTokensForQuiz', () => {
     );
   });
 
-  it('akzeptiert legacy-proof auch dann, wenn die serverkopie bereits an einen stabilen scope gebunden ist', async () => {
+  it('lehnt legacy-proof ab, wenn die serverkopie bereits an einen stabilen scope gebunden ist', async () => {
+    const { TRPCError } = await import('@trpc/server');
     const stableHistoryScopeId = '33333333-3333-4333-8333-333333333333';
     const accessProof = await createLegacyQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: stableHistoryScopeId,
+      ...QUIZ_INPUT,
+      description: null,
+      teamCount: null,
+      backgroundMusic: null,
+      questions: QUIZ_INPUT.questions.map((question) => ({
+        ...question,
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      })),
+    });
+
+    await expect(
+      caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof }),
+    ).rejects.toBeInstanceOf(TRPCError);
+    await expect(
+      caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof }),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    expect(prismaMock.session.findMany).not.toHaveBeenCalled();
+  });
+
+  it('akzeptiert die scope-uuid nach bind als accessProof', async () => {
+    const stableHistoryScopeId = '33333333-3333-4333-8333-333333333333';
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
       historyScopeId: stableHistoryScopeId,
@@ -222,7 +252,10 @@ describe('session.getBonusTokensForQuiz', () => {
     prismaMock.quiz.findMany.mockResolvedValue([{ id: QUIZ_ID }, { id: OTHER_QUIZ_ID }]);
     prismaMock.session.findMany.mockResolvedValue([]);
 
-    await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
+    await caller.getBonusTokensForQuiz({
+      quizId: QUIZ_ID,
+      accessProof: stableHistoryScopeId,
+    });
 
     expect(prismaMock.session.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

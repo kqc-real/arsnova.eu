@@ -1,20 +1,29 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createLegacyQuizHistoryAccessProof,
   createQuizHistoryAccessProof,
 } from '@arsnova/shared-types';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, loggerMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
     },
   },
+  loggerMock: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/logger', () => ({
+  logger: loggerMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -88,6 +97,10 @@ describe('session.bindQuizHistoryScope', () => {
     prismaMock.quiz.updateMany.mockResolvedValue({ count: 1 });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('bindet legacy-quizkopien mit gleichem namen an die stabile quiz-id', async () => {
     prismaMock.quiz.findUnique.mockResolvedValue(buildStoredQuiz());
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
@@ -109,6 +122,7 @@ describe('session.bindQuizHistoryScope', () => {
   });
 
   it('gibt bestehenden stabilen scope zurueck, auch wenn noch ein legacy-proof uebergeben wird', async () => {
+    vi.stubEnv('QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
     prismaMock.quiz.findUnique.mockResolvedValue(
       buildStoredQuiz({ historyScopeId: HISTORY_SCOPE_ID }),
     );
@@ -122,5 +136,58 @@ describe('session.bindQuizHistoryScope', () => {
 
     expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
     expect(result).toEqual({ accessProof: HISTORY_SCOPE_ID });
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      '[security] quiz_history_legacy_proof_accepted_for_bind',
+      expect.objectContaining({
+        quizId: QUIZ_ID,
+        purpose: 'bind',
+      }),
+    );
+    const acceptedPayload = loggerMock.info.mock.calls.find(
+      (call) => call[0] === '[security] quiz_history_legacy_proof_accepted_for_bind',
+    )?.[1] as Record<string, unknown> | undefined;
+    expect(acceptedPayload).toBeDefined();
+    expect(JSON.stringify(acceptedPayload)).not.toContain(HISTORY_SCOPE_ID);
+    expect(acceptedPayload).not.toHaveProperty('historyScopeId');
+  });
+
+  it('lehnt legacy-proof auf gebundenen kopien nach cutoff ab', async () => {
+    const { TRPCError } = await import('@trpc/server');
+    vi.stubEnv('QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT', '2020-01-01T00:00:00.000Z');
+    prismaMock.quiz.findUnique.mockResolvedValue(
+      buildStoredQuiz({ historyScopeId: HISTORY_SCOPE_ID }),
+    );
+    const accessProof = await createLegacyQuizHistoryAccessProof(QUIZ_INPUT);
+
+    await expect(
+      caller.bindQuizHistoryScope({
+        quizId: QUIZ_ID,
+        accessProof,
+        historyScopeId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      }),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    await expect(
+      caller.bindQuizHistoryScope({
+        quizId: QUIZ_ID,
+        accessProof,
+        historyScopeId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      }),
+    ).rejects.toBeInstanceOf(TRPCError);
+    expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      '[security] quiz_history_legacy_proof_rejected_after_bind',
+      expect.objectContaining({
+        quizId: QUIZ_ID,
+        purpose: 'bind',
+      }),
+    );
+    const rejectedPayload = loggerMock.warn.mock.calls.find(
+      (call) => call[0] === '[security] quiz_history_legacy_proof_rejected_after_bind',
+    )?.[1] as Record<string, unknown> | undefined;
+    expect(rejectedPayload).toBeDefined();
+    expect(JSON.stringify(rejectedPayload)).not.toContain(HISTORY_SCOPE_ID);
+    expect(rejectedPayload).not.toHaveProperty('historyScopeId');
   });
 });
