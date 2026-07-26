@@ -150,6 +150,7 @@ jobs:
             -v "$PWD:/repo:ro" \
             debian:12-slim \
             bash -c 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq restic openssh-client openssh-server >/dev/null && /repo/scripts/backup/tests/restic-sftp-integration.sh'
+          scripts/backup/tests/postgres-readiness-integration.sh
           sudo install -o root -g root -m 0750 scripts/backup/*.sh /usr/local/sbin/
           sudo install -o root -g root -m 0700 -d \
             /etc/arsnova-backup \
