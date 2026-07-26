@@ -49,6 +49,8 @@ import {
   type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
+import { trpc } from '../../../core/trpc.client';
+import { resolveLocalizedAppUrl } from '../../../core/locale-router';
 import {
   getEffectiveLocale,
   getHomeLanguagePreference,
@@ -520,8 +522,13 @@ const QUIZ_YDOC_PRESET_KEY = 'home-presets';
 const QUIZ_SYNC_ROOM_STORAGE_KEY = 'quiz-sync-room-id';
 const QUIZ_SYNC_METADATA_PREFIX = 'quiz-sync-meta';
 const QUIZ_SYNC_DEVICE_ID_KEY = 'quiz-sync-device-id';
+const QUIZ_SYNC_SHARE_TOKEN_PREFIX = 'quiz-sync-share-token';
+const QUIZ_SYNC_ROTATION_CAPABILITY_PREFIX = 'quiz-sync-rotation-capability';
 const QUIZ_LIBRARY_SHARING_MODE_KEY = 'quiz-library-sharing-mode';
 const QUIZ_SYNC_ROOM_PREFIX = 'quiz-library-room-';
+const YJS_SHARE_QUERY_PARAM = 's';
+const SYNC_ROOM_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const HOME_THEME_STORAGE_KEY = 'home-theme';
 const HOME_PRESET_STORAGE_KEY = 'home-preset';
 const HOME_PRESET_OPTIONS_SERIOUS_KEY = 'home-preset-options-serious';
@@ -864,6 +871,10 @@ export class QuizStoreService implements OnDestroy {
   readonly syncRoomId = signal('');
   readonly syncConnectionState = signal<SyncConnectionState>('disconnected');
   readonly librarySharingMode = signal<LibrarySharingMode>('local');
+  /** Signiertes Share-Token für den Yjs-Relay (nie loggen). */
+  readonly syncShareToken = signal<string | null>(null);
+  /** True, wenn dieses Gerät die Rotations-Capability hält (Ursprung). */
+  readonly canInvalidateSyncLink = signal(false);
   readonly lastConnectedAt = signal<string | null>(null);
   readonly lastLocalChangeAt = signal<string | null>(null);
   readonly lastRemoteSyncAt = signal<string | null>(null);
@@ -1903,7 +1914,7 @@ export class QuizStoreService implements OnDestroy {
 
   activateSyncRoom(
     roomId: string,
-    options?: { markShared?: boolean; registerOrigin?: boolean },
+    options?: { markShared?: boolean; registerOrigin?: boolean; shareToken?: string | null },
   ): void {
     const normalizedRoomId = normalizeSyncRoomId(roomId);
     if (!normalizedRoomId) {
@@ -1913,12 +1924,17 @@ export class QuizStoreService implements OnDestroy {
     if (options?.markShared) {
       this.setLibrarySharingMode('shared');
     }
+    if (options?.shareToken) {
+      this.persistShareToken(normalizedRoomId, options.shareToken);
+    } else {
+      this.loadShareSecrets(normalizedRoomId);
+    }
     if (this.syncRoomId() === normalizedRoomId) {
-      if (options?.markShared) {
-        void this.attachYjsWebSocketProviderIfNeeded();
-      }
       if (shouldRegisterOrigin) {
         this.recordSyncOriginIfMissing();
+      }
+      if (options?.markShared) {
+        void this.ensureShareRegisteredAndConnect();
       }
       return;
     }
@@ -1927,12 +1943,53 @@ export class QuizStoreService implements OnDestroy {
     this.syncRoomId.set(normalizedRoomId);
     this.storeSyncRoomId(normalizedRoomId);
     this.loadSyncMetadata(normalizedRoomId);
+    this.loadShareSecrets(normalizedRoomId);
+    if (options?.shareToken) {
+      this.persistShareToken(normalizedRoomId, options.shareToken);
+    }
     if (shouldRegisterOrigin) {
       this.recordSyncOriginIfMissing();
     }
 
     this.loadFromStorage(normalizedRoomId, false);
     void this.initYjsPersistence(normalizedRoomId);
+  }
+
+  /** Öffentlicher Sync-Link inkl. Share-Token-Query, sobald vorhanden. */
+  buildSyncShareLink(roomId: string = this.syncRoomId()): string {
+    const base = resolveLocalizedAppUrl(`/quiz/sync/${roomId}`);
+    const token = this.syncShareToken();
+    if (!token || !isSyncRoomUuid(roomId)) {
+      return base;
+    }
+    const url = new URL(base, globalThis.location?.origin ?? 'http://localhost');
+    url.searchParams.set(YJS_SHARE_QUERY_PARAM, token);
+    return `${url.origin}${url.pathname}${url.search}`;
+  }
+
+  /**
+   * Ungültig machen: erhöht die Share-Generation serverseitig und aktualisiert
+   * den lokalen Token. Andere Geräte brauchen den neuen Link.
+   */
+  async invalidateSyncShareLink(): Promise<string> {
+    const roomId = this.syncRoomId();
+    if (!isSyncRoomUuid(roomId)) {
+      throw new Error($localize`Sync-Link kann für diese Sammlung nicht ungültig gemacht werden.`);
+    }
+    const capability = this.readRotationCapability(roomId);
+    if (!capability) {
+      throw new Error(
+        $localize`Nur das Gerät, das den Sync-Link erstellt hat, kann ihn ungültig machen.`,
+      );
+    }
+    const result = await trpc.quizSync.rotateShare.mutate({
+      roomId,
+      rotationCapability: capability,
+    });
+    this.persistShareToken(roomId, result.shareToken);
+    this.teardownYjs();
+    void this.initYjsPersistence(roomId);
+    return this.buildSyncShareLink(roomId);
   }
 
   /**
@@ -2040,7 +2097,7 @@ export class QuizStoreService implements OnDestroy {
         });
       }
 
-      await this.attachYjsWebSocketProviderIfNeeded(generation, roomId);
+      await this.ensureShareRegisteredAndConnect(generation, roomId);
     } catch {
       if (this.canUseYjsSetupResult(generation, roomId)) {
         this.teardownYjs();
@@ -2077,10 +2134,16 @@ export class QuizStoreService implements OnDestroy {
     }
 
     const yDoc = this.yDoc;
+    const shareToken = this.syncShareToken();
     this.yProvider = new WebsocketProvider(
       getYjsWsUrl(),
       `${QUIZ_SYNC_ROOM_PREFIX}${expectedRoomId}`,
       yDoc,
+      shareToken
+        ? {
+            params: { [YJS_SHARE_QUERY_PARAM]: shareToken },
+          }
+        : undefined,
     );
     this.yProvider.awareness.setLocalStateField(
       'syncClient',
@@ -2468,6 +2531,96 @@ export class QuizStoreService implements OnDestroy {
   private syncMetadataStorageKey(roomId: string): string {
     return `${QUIZ_SYNC_METADATA_PREFIX}:${roomId}`;
   }
+
+  private shareTokenStorageKey(roomId: string): string {
+    return `${QUIZ_SYNC_SHARE_TOKEN_PREFIX}:${roomId}`;
+  }
+
+  private rotationCapabilityStorageKey(roomId: string): string {
+    return `${QUIZ_SYNC_ROTATION_CAPABILITY_PREFIX}:${roomId}`;
+  }
+
+  private loadShareSecrets(roomId: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.syncShareToken.set(null);
+      this.canInvalidateSyncLink.set(false);
+      return;
+    }
+    try {
+      const token = localStorage.getItem(this.shareTokenStorageKey(roomId));
+      this.syncShareToken.set(token && token.length > 0 ? token : null);
+      this.canInvalidateSyncLink.set(!!this.readRotationCapability(roomId));
+    } catch {
+      this.syncShareToken.set(null);
+      this.canInvalidateSyncLink.set(false);
+    }
+  }
+
+  private persistShareToken(roomId: string, shareToken: string): void {
+    this.syncShareToken.set(shareToken);
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      localStorage.setItem(this.shareTokenStorageKey(roomId), shareToken);
+    } catch {
+      // Ignore quota errors; in-memory token still used for this session.
+    }
+  }
+
+  private readRotationCapability(roomId: string): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    try {
+      const value = localStorage.getItem(this.rotationCapabilityStorageKey(roomId));
+      return value && /^[a-f0-9]{64}$/i.test(value) ? value.toLowerCase() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistRotationCapability(roomId: string, capability: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      localStorage.setItem(this.rotationCapabilityStorageKey(roomId), capability.toLowerCase());
+      this.canInvalidateSyncLink.set(true);
+    } catch {
+      this.canInvalidateSyncLink.set(false);
+    }
+  }
+
+  private createRotationCapability(): string {
+    const bytes = new Uint8Array(32);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  private async ensureShareRegisteredAndConnect(
+    expectedGeneration = this.yjsInitGeneration,
+    expectedRoomId = this.syncRoomId(),
+  ): Promise<void> {
+    if (this.librarySharingMode() === 'shared' && isSyncRoomUuid(expectedRoomId)) {
+      try {
+        let capability = this.readRotationCapability(expectedRoomId);
+        const isOrigin = !!this.originSharedAt() || !!capability;
+        if (isOrigin && !capability) {
+          capability = this.createRotationCapability();
+          this.persistRotationCapability(expectedRoomId, capability);
+        }
+        if (capability) {
+          const result = await trpc.quizSync.registerShare.mutate({
+            roomId: expectedRoomId,
+            rotationCapability: capability,
+          });
+          this.persistShareToken(expectedRoomId, result.shareToken);
+        }
+      } catch {
+        // Grace: UUID-only Connect bleibt bis Cutoff möglich.
+      }
+    }
+    await this.attachYjsWebSocketProviderIfNeeded(expectedGeneration, expectedRoomId);
+  }
+}
+
+function isSyncRoomUuid(value: string): boolean {
+  return SYNC_ROOM_UUID_RE.test(value.trim());
 }
 
 /** Rohwert aus Formular/Input für Zod-Metadaten (leer → null). */

@@ -17,17 +17,24 @@ describe('QuizSyncComponent', () => {
 
   const mockStore = {
     activateSyncRoom: vi.fn(),
+    buildSyncShareLink: vi.fn((roomId: string) => `${window.location.origin}/quiz/sync/${roomId}`),
+    invalidateSyncShareLink: vi.fn(),
     syncConnectionState: signal<'connected' | 'connecting' | 'disconnected'>('connected'),
     syncPeerInfos: signal<Array<{ deviceId: string; deviceLabel: string; browserLabel: string }>>(
       [],
     ),
     syncRoomId: signal('sync-room-12345678'),
+    canInvalidateSyncLink: signal(false),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore.syncConnectionState.set('connected');
     mockStore.syncPeerInfos.set([]);
+    mockStore.canInvalidateSyncLink.set(false);
+    mockStore.buildSyncShareLink.mockImplementation(
+      (roomId: string) => `${window.location.origin}/quiz/sync/${roomId}`,
+    );
     window.history.replaceState({}, '', '/');
     ensureBaseHref('/');
     TestBed.configureTestingModule({
@@ -39,6 +46,7 @@ describe('QuizSyncComponent', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ docId: 'sync-room-12345678' }),
+              queryParamMap: convertToParamMap({}),
             },
           },
         },
@@ -59,12 +67,45 @@ describe('QuizSyncComponent', () => {
     expect(mockStore.activateSyncRoom).toHaveBeenCalledWith('sync-room-12345678', {
       markShared: true,
       registerOrigin: true,
+      shareToken: null,
     });
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Quiz-Sammlung teilen');
     expect(text).toContain('Sync-Link kopieren');
     expect(text).toContain('Status:');
     expect(text).toContain('Bereit');
+  });
+
+  it('importiert Share-Token ohne Origin-Registrierung', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizSyncComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ docId: '6a8edced-5f8f-4cfa-9176-454fac9570ad' }),
+              queryParamMap: convertToParamMap({ s: 'v1.token' }),
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+
+    expect(mockStore.activateSyncRoom).toHaveBeenCalledWith(
+      '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      {
+        markShared: true,
+        registerOrigin: false,
+        shareToken: 'v1.token',
+      },
+    );
   });
 
   it('zeigt erst "Verbunden", wenn ein weiteres Gerät aktiv ist', () => {
@@ -82,10 +123,20 @@ describe('QuizSyncComponent', () => {
 
   it('erzeugt einen locale-sensitiven Sync-Link fuer externe Geraete', () => {
     window.history.replaceState({}, '', '/en/quiz/sync/sync-room-12345678');
+    mockStore.buildSyncShareLink.mockReturnValue(
+      `${window.location.origin}/en/quiz/sync/sync-room-12345678`,
+    );
 
     const fixture = TestBed.createComponent(QuizSyncComponent);
     const component = fixture.componentInstance;
 
     expect(component.syncLink()).toBe(`${window.location.origin}/en/quiz/sync/sync-room-12345678`);
+  });
+
+  it('zeigt Ungueltig-machen nur mit Rotations-Capability', () => {
+    mockStore.canInvalidateSyncLink.set(true);
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Sync-Link ungültig machen');
   });
 });

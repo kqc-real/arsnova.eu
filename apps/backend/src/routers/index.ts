@@ -8,6 +8,7 @@ import { qaRouter } from './qa';
 import { adminRouter } from './admin';
 import { motdRouter } from './motd';
 import { wordCloudRouter } from './wordCloud';
+import { quizSyncRouter } from './quizSync';
 
 /**
  * Der zentrale App-Router.
@@ -17,6 +18,7 @@ import { wordCloudRouter } from './wordCloud';
 export const appRouter = router({
   health: healthRouter,
   quiz: quizRouter,
+  quizSync: quizSyncRouter,
   session: sessionRouter,
   vote: voteRouter,
   qa: qaRouter,

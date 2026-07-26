@@ -245,6 +245,7 @@ describe('YjsRelayServer', () => {
 
     await expectUpgradeRejected(`${baseUrl}/arbitrary-room`, 400);
     await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?token=ignored`, 400);
+    await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=not-a-valid-token&x=1`, 400);
     const accepted = await connect(`${baseUrl}/${ROOM_A}`);
 
     expect(accepted.readyState).toBe(WebSocket.OPEN);

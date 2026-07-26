@@ -15,6 +15,8 @@ import {
   recordYjsWebSocketRateLimitedMessage,
   recordYjsWebSocketRejectedUpgrade,
 } from './websocketTelemetry';
+import { authorizeYjsRoomUpgrade, YJS_SHARE_QUERY_PARAM } from './yjsShareToken';
+import { logger } from './logger';
 
 const ROOM_PATH_PATTERN =
   /^\/quiz-library-room-([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
@@ -441,16 +443,32 @@ interface DocumentReservation {
   reservedBytes: number;
 }
 
-function parseRoomName(request: IncomingMessage): string | null {
+function parseRoomUpgrade(request: IncomingMessage): {
+  room: string;
+  shareToken: string | null;
+} | null {
   let url: URL;
   try {
     url = new URL(request.url ?? '', 'http://yjs-relay.invalid');
   } catch {
     return null;
   }
-  if (url.search || url.hash) return null;
+  if (url.hash) return null;
   const match = ROOM_PATH_PATTERN.exec(url.pathname);
-  return match ? `quiz-library-room-${match[1].toLowerCase()}` : null;
+  if (!match) return null;
+
+  // Only the dedicated share-token query key is allowed (ADR-0033).
+  for (const key of url.searchParams.keys()) {
+    if (key !== YJS_SHARE_QUERY_PARAM) return null;
+  }
+  const shareTokenRaw = url.searchParams.get(YJS_SHARE_QUERY_PARAM);
+  const shareToken = shareTokenRaw && shareTokenRaw.trim().length > 0 ? shareTokenRaw.trim() : null;
+  if (url.search && !shareToken) return null;
+
+  return {
+    room: `quiz-library-room-${match[1].toLowerCase()}`,
+    shareToken,
+  };
 }
 
 function rejectUpgrade(socket: Duplex, status: 400 | 429 | 503): void {
@@ -495,7 +513,7 @@ export class YjsRelayServer {
       response.end('okay');
     });
     this.httpServer.on('upgrade', (request, socket, head) => {
-      this.handleUpgrade(request, socket, head);
+      void this.handleUpgrade(request, socket, head);
     });
   }
 
@@ -516,15 +534,34 @@ export class YjsRelayServer {
     });
   }
 
-  private handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
+  private async handleUpgrade(
+    request: IncomingMessage,
+    socket: Duplex,
+    head: Buffer,
+  ): Promise<void> {
     const now = Date.now();
     if (!this.globalUpgradeWindow.consume(this.config.maxUpgradesPerMinute, now)) {
       rejectUpgrade(socket, 429);
       return;
     }
 
-    const room = parseRoomName(request);
-    if (!room) {
+    const parsed = parseRoomUpgrade(request);
+    if (!parsed) {
+      rejectUpgrade(socket, 400);
+      return;
+    }
+    const { room, shareToken } = parsed;
+
+    let authorized: Awaited<ReturnType<typeof authorizeYjsRoomUpgrade>>;
+    try {
+      authorized = await authorizeYjsRoomUpgrade({ roomId: room, shareToken });
+    } catch {
+      logger.warn('[security] yjs_share_authorize_failed', { reason: 'redis_or_internal' });
+      rejectUpgrade(socket, 503);
+      return;
+    }
+    if (!authorized.ok) {
+      logger.warn('[security] yjs_share_upgrade_rejected', { reason: authorized.reason });
       rejectUpgrade(socket, 400);
       return;
     }

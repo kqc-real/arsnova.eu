@@ -224,8 +224,8 @@ Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktu
 anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
 im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
 
-Stand W2.2 autorisiert der Yjs-Relay Räume noch nicht über ein separates Token:
-Der Sync-Link bzw. die Room-ID ist weiterhin das Bearer-Secret. Der Relay nimmt
+Stand W3.4 autorisiert der Yjs-Relay Räume über signierte Share-Tokens (`?s=`).
+Bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` bleibt UUID-only als Grace erlaubt. Der Relay nimmt
 aber nur noch kanonische `quiz-library-room-<UUID>`-Pfade an und begrenzt
 Payload, Verbindungen, Upgrades und Nachrichtenrate.
 

@@ -1753,6 +1753,37 @@ export const QuizHistoryAccessProofSchema = z
   );
 export type QuizHistoryAccessProof = z.infer<typeof QuizHistoryAccessProofSchema>;
 
+/** Rotations-Capability für Yjs-Share (nur Ursprungsgerät, 32 Byte hex). */
+export const YjsRotationCapabilitySchema = z
+  .string()
+  .regex(/^[a-f0-9]{64}$/i, 'Ungültige Sync-Rotations-Capability.');
+export type YjsRotationCapability = z.infer<typeof YjsRotationCapabilitySchema>;
+
+export const RegisterYjsShareInputSchema = z.object({
+  roomId: z.string().uuid(),
+  rotationCapability: YjsRotationCapabilitySchema,
+});
+export type RegisterYjsShareInput = z.infer<typeof RegisterYjsShareInputSchema>;
+
+export const RegisterYjsShareOutputSchema = z.object({
+  shareToken: z.string().min(32).max(200),
+  generation: z.number().int().min(1),
+  created: z.boolean(),
+});
+export type RegisterYjsShareOutput = z.infer<typeof RegisterYjsShareOutputSchema>;
+
+export const RotateYjsShareInputSchema = z.object({
+  roomId: z.string().uuid(),
+  rotationCapability: YjsRotationCapabilitySchema,
+});
+export type RotateYjsShareInput = z.infer<typeof RotateYjsShareInputSchema>;
+
+export const RotateYjsShareOutputSchema = z.object({
+  shareToken: z.string().min(32).max(200),
+  generation: z.number().int().min(1),
+});
+export type RotateYjsShareOutput = z.infer<typeof RotateYjsShareOutputSchema>;
+
 type QuizHistoryAccessMaterial = {
   name: string;
   description: string | null;

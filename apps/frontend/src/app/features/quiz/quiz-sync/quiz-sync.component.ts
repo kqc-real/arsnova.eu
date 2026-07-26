@@ -5,12 +5,11 @@ import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { localizePath } from '../../../core/locale-router';
-import { resolveLocalizedAppUrl } from '../../../core/locale-router';
 import { QuizStoreService } from '../data/quiz-store.service';
 
 /**
  * Quiz per Sync-Link auf anderem Gerät öffnen (Epic 1).
- * Story 1.6, 1.6a, 1.6b.
+ * Story 1.6, 1.6a, 1.6b, 1.6c Slice B (Share-Token / Rotation).
  */
 @Component({
   selector: 'app-quiz-sync',
@@ -28,8 +27,10 @@ export class QuizSyncComponent {
   readonly docId = this.route.snapshot.paramMap.get('docId') ?? '';
   readonly syncConnectionState = this.quizStore.syncConnectionState;
   readonly syncPeerInfos = this.quizStore.syncPeerInfos;
+  readonly canInvalidateSyncLink = this.quizStore.canInvalidateSyncLink;
   readonly syncError = signal<string | null>(null);
   readonly copyStatus = signal<string | null>(null);
+  readonly invalidatePending = signal(false);
   readonly hasConnectedPeer = computed(
     () => this.syncConnectionState() === 'connected' && this.syncPeerInfos().length > 0,
   );
@@ -45,13 +46,17 @@ export class QuizSyncComponent {
     }
     return $localize`:@@quizSync.stateOffline:Offline (nur lokal)`;
   });
-  readonly syncLink = computed(() => {
-    return resolveLocalizedAppUrl(`/quiz/sync/${this.docId}`);
-  });
+  readonly syncLink = computed(() => this.quizStore.buildSyncShareLink(this.docId));
 
   constructor() {
     try {
-      this.quizStore.activateSyncRoom(this.docId, { markShared: true, registerOrigin: true });
+      const shareToken = this.route.snapshot.queryParamMap.get('s');
+      // Share-Token in der URL = Import auf einem weiteren Gerät (kein Origin).
+      this.quizStore.activateSyncRoom(this.docId, {
+        markShared: true,
+        registerOrigin: !shareToken,
+        shareToken,
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Sync-Raum konnte nicht aktiviert werden.';
@@ -64,6 +69,36 @@ export class QuizSyncComponent {
       this.syncLink(),
       $localize`:@@quizSync.copyLinkDone:Sync-Link wurde kopiert.`,
     );
+  }
+
+  async invalidateSyncLink(): Promise<void> {
+    if (this.invalidatePending()) return;
+    const confirmed =
+      typeof globalThis.confirm !== 'function'
+        ? true
+        : globalThis.confirm(
+            $localize`:@@quizSync.invalidateConfirm:Alten Sync-Link ungültig machen? Andere Geräte brauchen danach den neuen Link. Lokal gespeicherte Quizze bleiben erhalten.`,
+          );
+    if (!confirmed) return;
+
+    this.invalidatePending.set(true);
+    this.syncError.set(null);
+    this.copyStatus.set(null);
+    try {
+      const nextLink = await this.quizStore.invalidateSyncShareLink();
+      await this.copyText(
+        nextLink,
+        $localize`:@@quizSync.invalidateDone:Alter Sync-Link ist ungültig. Der neue Link wurde kopiert.`,
+      );
+    } catch (error) {
+      this.syncError.set(
+        error instanceof Error
+          ? error.message
+          : $localize`:@@quizSync.invalidateFailed:Sync-Link konnte nicht ungültig gemacht werden.`,
+      );
+    } finally {
+      this.invalidatePending.set(false);
+    }
   }
 
   private async copyText(value: string, successMessage: string): Promise<void> {
