@@ -2,8 +2,8 @@
 
 # Sicherheits-Härtungsplan — arsnova.eu
 
-**Status:** Planungsdokument / vor Implementierung (nach Plan-Review geschärft)  
-**Stand:** 2026-07-22  
+**Status:** Implementierung der W-Pakete abgeschlossen; operative Finalabnahme ausstehend
+**Stand:** 2026-07-26
 **Bezug:** externes Security-Review (Produktion + `main` `13f8c27b`, passiv, ohne Ausnutzung) inkl. UX-Follow-up und NAT-/Hörsaal-Nachtrag; Plan-Audit derselben Session (Plan **7/10** freigabefähig nach Schärfung; Ist-Sicherheit **~5/10** bis Umsetzung)  
 **Kurzreferenz Ist-Kontrollen:** [SECURITY-OVERVIEW.md](SECURITY-OVERVIEW.md)
 
@@ -303,6 +303,44 @@ Pro Arbeitspaket (W0–W3) vor Umsetzung ausfüllen:
 - [ ] SECURITY-OVERVIEW + ENVIRONMENT um neue Limits/IP-Annahmen/accessProof-Residuen aktualisiert
 - [ ] Kein `npm audit fix --force`; Prod-`npm audit --omit=dev` bleibt Steuerungsgröße
 - [ ] Jede umgesetzte Maßnahme hat Owner/Ticket/Deps/Rollback dokumentiert
+
+### Operator-Protokoll für die Finalabnahme
+
+Dieses Protokoll erst nach Merge und Produktionsdeploy von W3.7 ausfüllen.
+Secrets niemals in das Protokoll kopieren; nur Ergebnis, Zeitpunkt und
+Workflow-/Incident-URL dokumentieren.
+
+| Nachweis                                                          | Ergebnis                                             |
+| ----------------------------------------------------------------- | ---------------------------------------------------- |
+| Deployter Commit                                                  | `________________`                                   |
+| Operator / UTC-Zeitfenster                                        | `________________`                                   |
+| W3.7-Testalarm empfangen                                          | `[ ]` Webhook-Ziel / Ereignis-ID: `________________` |
+| Drei reguläre Timerläufe gesund                                   | `[ ]` Journal-Zeitfenster: `________________`        |
+| Dead-Man-Ausfallalarm und Recovery bestätigt (falls konfiguriert) | `[ ]` Ereignis-IDs: `________________`               |
+| CSP Report-Only 24–72 h ohne Produktbruch beobachtet              | `[ ]` Zeitraum / Entscheidung: `________________`    |
+| Artillery-500 und Reconnect-500 bestanden                         | `[ ]` Workflow-URL: `________________`               |
+| Optionaler Produktions-k6-Lauf freigegeben und bestanden          | `[ ]` Workflow-URL: `________________`               |
+| Offene HIGH-Befunde                                               | `[ ]` keine; Review-/Scan-URLs: `________________`   |
+| Finale Freigabe                                                   | `[ ]` Name / Datum: `________________`               |
+
+Die exakten W3.7-Kommandos stehen im
+[Monitoring-Runbook](operations/MONITORING-RUNBOOK.md). Die nicht
+produktionswirksamen 500er-CI-Läufe werden nach dem Merge mit folgendem
+manuellen Workflow-Dispatch gestartet:
+
+```bash
+gh workflow run ci.yml \
+  --ref main \
+  -f artillery_participants=500 \
+  -f artillery_ramp_seconds=60 \
+  -f run_production_load=false
+```
+
+`run_production_load=true` ist bewusst **kein** automatischer Abschlussschritt:
+Der k6-Lauf trifft Produktion und benötigt eine explizite Operatorfreigabe.
+CSP Report-Only wird über `CSP_REPORT_ONLY_ENABLED=true` aktiviert; nach 24–72
+Stunden entscheidet der Operator anhand aggregierter Reports über Enforcement
+oder Rollback.
 
 ---
 

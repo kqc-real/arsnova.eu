@@ -3213,6 +3213,26 @@
         <source>Externe CSP-Script-Meldungen</source>
         <target>External CSP script reports</target>
       </trans-unit>
+      <trans-unit id="admin.monitoringRedisStatus" datatype="html">
+        <source>Redis</source>
+        <target>Redis</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringServiceStatus" datatype="html">
+        <source>Anwendungsstatus</source>
+        <target>Application status</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringServiceStable" datatype="html">
+        <source>Stabil</source>
+        <target>Stable</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringServiceLimited" datatype="html">
+        <source>Eingeschränkt</source>
+        <target>Limited</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringServiceCritical" datatype="html">
+        <source>Kritisch</source>
+        <target>Critical</target>
+      </trans-unit>
       <trans-unit id="admin.motd.title" datatype="html">
         <source>Startseiten-Meldungen</source>
         <target>Homepage announcements</target>

@@ -17,7 +17,11 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import type { HealthSecurityStatsDTO } from '@arsnova/shared-types';
+import type {
+  HealthCheckResponse,
+  HealthSecurityStatsDTO,
+  ServerStatsDTO,
+} from '@arsnova/shared-types';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import { trpc } from '../../core/trpc.client';
 
@@ -77,6 +81,8 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
 
   readonly sessionExpired = output<void>();
   readonly stats = signal<HealthSecurityStatsDTO | null>(null);
+  readonly healthCheck = signal<HealthCheckResponse | null>(null);
+  readonly serviceStatus = signal<ServerStatsDTO['serviceStatus'] | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly refreshedAt = signal<Date | null>(null);
@@ -238,14 +244,18 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   });
   readonly overallLevel = computed<MonitoringLevel>(() => {
     const stats = this.stats();
-    if (!stats || stats.databaseStatus !== 'ok') return 'critical';
-    return this.highestLevel([
+    if (!stats) return 'critical';
+    const infrastructureLevel = this.infrastructureLevel(stats.databaseStatus);
+    const metricLevel = this.highestLevel([
       ...this.sessionMetrics(),
       ...this.pdfMetrics(),
       ...this.securityMetrics(),
       ...this.trpcMetrics(),
       ...this.yjsMetrics(),
     ]);
+    if (infrastructureLevel === 'critical' || metricLevel === 'critical') return 'critical';
+    if (infrastructureLevel === 'warning' || metricLevel === 'warning') return 'warning';
+    return 'ok';
   });
 
   ngOnInit(): void {
@@ -262,11 +272,20 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     try {
-      this.stats.set(await trpc.admin.monitoringStats.query());
+      const [stats, healthCheck, publicStats] = await Promise.all([
+        trpc.admin.monitoringStats.query(),
+        trpc.health.check.query(),
+        trpc.health.stats.query(),
+      ]);
+      this.stats.set(stats);
+      this.healthCheck.set(healthCheck);
+      this.serviceStatus.set(publicStats.serviceStatus);
       this.refreshedAt.set(new Date());
     } catch (error) {
       if (this.isUnauthorized(error)) {
         this.stats.set(null);
+        this.healthCheck.set(null);
+        this.serviceStatus.set(null);
         this.refreshedAt.set(null);
         this.stopPolling();
         this.sessionExpired.emit();
@@ -297,6 +316,13 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
       : $localize`:@@admin.monitoringStatusUnavailable:Nicht erreichbar`;
   }
 
+  serviceStatusLabel(status: ServerStatsDTO['serviceStatus'] | null): string {
+    if (status === 'stable') return $localize`:@@admin.monitoringServiceStable:Stabil`;
+    if (status === 'limited') return $localize`:@@admin.monitoringServiceLimited:Eingeschränkt`;
+    if (status === 'critical') return $localize`:@@admin.monitoringServiceCritical:Kritisch`;
+    return $localize`:@@admin.monitoringStatusUnavailable:Nicht erreichbar`;
+  }
+
   statusLabel(level: MonitoringLevel): string {
     if (level === 'critical') return $localize`:@@admin.monitoringLevelCritical:Kritisch`;
     if (level === 'warning') return $localize`:@@admin.monitoringLevelWarning:Warnung`;
@@ -322,7 +348,12 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   }
 
   infrastructureLevel(status: 'ok' | 'unavailable'): MonitoringLevel {
-    return status === 'ok' ? 'ok' : 'critical';
+    const redisStatus = this.healthCheck()?.redis;
+    const serviceStatus = this.serviceStatus();
+    if (status !== 'ok' || redisStatus !== 'ok' || serviceStatus === 'critical' || !serviceStatus) {
+      return 'critical';
+    }
+    return serviceStatus === 'limited' ? 'warning' : 'ok';
   }
 
   formatRefreshedAt(): string {

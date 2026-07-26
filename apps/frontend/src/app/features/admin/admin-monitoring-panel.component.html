@@ -73,6 +73,18 @@
                 {{ infrastructureStatusLabel(snapshot.databaseStatus) }}
               </dd>
             </div>
+            <div>
+              <dt i18n="@@admin.monitoringRedisStatus">Redis</dt>
+              <dd class="monitoring-metric__value">
+                {{ infrastructureStatusLabel(healthCheck()?.redis ?? 'unavailable') }}
+              </dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.monitoringServiceStatus">Anwendungsstatus</dt>
+              <dd class="monitoring-metric__value">
+                {{ serviceStatusLabel(serviceStatus()) }}
+              </dd>
+            </div>
           </dl>
         </mat-card-content>
       </mat-card>
