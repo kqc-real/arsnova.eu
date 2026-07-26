@@ -91,8 +91,9 @@ export class QuizSyncComponent {
     effect(() => {
       const roomId = this.quizStore.syncRoomId();
       if (!this.syncShareReady() || roomId === this.docId) return;
-      const safePath = new URL(this.quizStore.buildSyncShareLink(roomId)).pathname;
-      void this.router.navigateByUrl(safePath, { replaceUrl: true });
+      void this.router.navigateByUrl(localizePath(`/quiz/sync/${roomId}`), {
+        replaceUrl: true,
+      });
     });
   }
 

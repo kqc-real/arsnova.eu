@@ -9,27 +9,27 @@ services:
       POSTGRES_PASSWORD: secretpassword
       POSTGRES_DB: arsnova_v3_dev
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arsnova_user -d arsnova_v3_dev"]
+      test: ['CMD-SHELL', 'pg_isready -U arsnova_user -d arsnova_v3_dev']
       interval: 5s
       timeout: 5s
       retries: 5
 
   # Redis (Für tRPC Pub/Sub & WebSockets)
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: arsnova-v3-redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server --appendonly yes --appendfsync everysec --save 60 1 --loglevel warning
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -42,26 +42,26 @@ services:
     container_name: arsnova-v3-app
     restart: always
     ports:
-      - "3000:3000"
-      - "3001:3001"
-      - "3002:3002"
+      - '3000:3000'
+      - '3001:3001'
+      - '3002:3002'
     environment:
-      DATABASE_URL: "postgresql://arsnova_user:secretpassword@postgres:5432/arsnova_v3_dev?schema=public"
-      REDIS_URL: "redis://redis:6379"
-      PORT: "3000"
-      HOST: "0.0.0.0"
-      WS_PORT: "3001"
-      YJS_WS_PORT: "3002"
-      NODE_ENV: "production"
-      PUBLIC_FRONTEND_URL: "http://127.0.0.1:3000"
-      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: "/usr/bin/chromium"
+      DATABASE_URL: 'postgresql://arsnova_user:secretpassword@postgres:5432/arsnova_v3_dev?schema=public'
+      REDIS_URL: 'redis://redis:6379'
+      PORT: '3000'
+      HOST: '0.0.0.0'
+      WS_PORT: '3001'
+      YJS_WS_PORT: '3002'
+      NODE_ENV: 'production'
+      PUBLIC_FRONTEND_URL: 'http://127.0.0.1:3000'
+      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: '/usr/bin/chromium'
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/trpc/health.check"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/trpc/health.check']
       interval: 30s
       timeout: 5s
       start_period: 15s

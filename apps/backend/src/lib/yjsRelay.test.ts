@@ -8,11 +8,13 @@ const redisHashes = new Map<string, Record<string, string>>();
 const redisStrings = new Map<string, string>();
 const redisMocks = vi.hoisted(() => ({
   hgetall: vi.fn(),
+  call: vi.fn(),
 }));
 
 vi.mock('../redis', () => ({
   getRedis: () => ({
     hgetall: redisMocks.hgetall,
+    call: redisMocks.call,
     expire: vi.fn(async () => 1),
     set: vi.fn(async (key: string, value: string, ...rest: unknown[]) => {
       const nx = rest.includes('NX');
@@ -69,6 +71,7 @@ beforeEach(() => {
   redisMocks.hgetall.mockImplementation(async (key: string) => ({
     ...(redisHashes.get(key) ?? {}),
   }));
+  redisMocks.call.mockResolvedValue([1, 0]);
   resetWebSocketTelemetryForTests();
   vi.stubEnv('YJS_SHARE_TOKEN_SECRET', 'test-yjs-share-secret-at-least-32-bytes!!');
   vi.stubEnv('YJS_SHARE_LEGACY_UUID_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
@@ -423,6 +426,27 @@ describe('YjsRelayServer', () => {
       oldDoc.destroy();
       newDoc.destroy();
     }
+  });
+
+  it('trennt alte Verbindungen auch wenn der AOF-Fsync nach Redis-Rotation scheitert', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: hashYjsRotationCapability(capability),
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    const baseUrl = await startRelay();
+    const oldConnection = await connect(`${baseUrl}/${ROOM_A}?s=${oldToken}`);
+    vi.stubEnv('YJS_SHARE_REQUIRE_DURABILITY', '1');
+    redisMocks.call.mockResolvedValueOnce([0, 0]);
+
+    await expect(
+      rotateYjsShare({ roomId: roomUuid, rotationCapability: capability }),
+    ).rejects.toThrow('YJS_SHARE_DURABILITY_UNAVAILABLE');
+    await waitForCondition(() => oldConnection.readyState === WebSocket.CLOSED);
+
+    expect(redisHashes.get(`yjs:share:v1:${roomUuid}`)?.generation).toBe('2');
   });
 
   it('weist ein während der Autorisierung rotiertes Token vor dem Attach ab', async () => {

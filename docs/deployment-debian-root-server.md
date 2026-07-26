@@ -742,6 +742,14 @@ Das Skript führt aus:
 5. App-Container starten.
 6. Container-Healthcheck, `health.check` und Frontend-Shell unter `/de/` prüfen.
 
+Der Compose-Redis ist bewusst auf Redis 7.4 mit AOF `everysec` festgelegt.
+Yjs-Share-Erstellung und -Rotation rufen zusätzlich `WAITAOF` auf und geben
+Token erst zurück, nachdem der lokale AOF-Fsync bestätigt wurde. Dadurch kann
+ein bestätigter Widerruf nach Redis-/Host-Crash nicht auf eine ältere Generation
+zurückfallen, ohne alle übrigen Redis-Schreibpfade mit `appendfsync always` zu
+belasten. Bei externem/Managed Redis müssen AOF und `WAITAOF` unterstützt sein;
+andernfalls schlagen Create/Rotate in Produktion fail-closed fehl.
+
 Optionaler HTTP-Smoke aus Nutzerperspektive:
 
 ```bash

@@ -16,7 +16,7 @@ export const YJS_SHARE_GLOBAL_KEY_HARD_CAP = 100_000;
 
 const ROOM_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ROTATION_CAPABILITY_RE = /^[a-f0-9]{64}$/i;
-const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+const CANONICAL_UTC_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const TOKEN_RE =
   /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([1-9][0-9]{0,9})\.([A-Za-z0-9_-]{43})$/i;
 
@@ -159,8 +159,14 @@ export function getYjsShareLegacyUuidCutoffAt(env: NodeJS.ProcessEnv = process.e
   }
   const raw = configured.trim();
   const parsed = Date.parse(raw);
-  if (!ISO_INSTANT_RE.test(raw) || !Number.isFinite(parsed)) {
-    throw new Error('YJS_SHARE_LEGACY_UUID_CUTOFF_AT muss ein gültiger ISO-8601-Zeitpunkt sein.');
+  if (
+    !CANONICAL_UTC_INSTANT_RE.test(raw) ||
+    !Number.isFinite(parsed) ||
+    new Date(parsed).toISOString() !== raw
+  ) {
+    throw new Error(
+      'YJS_SHARE_LEGACY_UUID_CUTOFF_AT muss ein kalendergültiger kanonischer UTC-Zeitpunkt sein.',
+    );
   }
   return new Date(parsed);
 }
@@ -219,6 +225,16 @@ function redisKey(roomId: string): string {
   return `${REDIS_KEY_PREFIX}${roomId}`;
 }
 
+async function awaitYjsShareDurability(): Promise<void> {
+  const required =
+    process.env.NODE_ENV === 'production' || process.env.YJS_SHARE_REQUIRE_DURABILITY === '1';
+  if (!required) return;
+  const result = (await getRedis().call('WAITAOF', 1, 0, 5_000)) as unknown;
+  if (!Array.isArray(result) || Number(result[0]) < 1) {
+    throw new Error('YJS_SHARE_DURABILITY_UNAVAILABLE');
+  }
+}
+
 export async function readYjsShareMetadata(roomId: string): Promise<YjsShareMetadata | null> {
   const normalized = normalizeYjsRoomUuid(roomId);
   if (!normalized) return null;
@@ -264,6 +280,7 @@ export async function createYjsShare(input: {
 
     if (result?.[0] === 1) {
       const generation = Number(result[2]);
+      await awaitYjsShareDurability();
       return {
         roomId,
         shareToken: signYjsShareToken(roomId, generation),
@@ -306,6 +323,7 @@ export async function rotateYjsShare(input: {
   }
   const generation = Number(result[2]);
   notifyYjsShareRotated({ roomId, generation });
+  await awaitYjsShareDurability();
   return {
     shareToken: signYjsShareToken(roomId, generation),
     generation,

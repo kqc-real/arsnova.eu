@@ -27,8 +27,9 @@ describe.skipIf(!RUN_REDIS)('Yjs-Share-Metadaten mit echtem Redis 7', () => {
 
   it('erstellt, rotiert und bereinigt den TTL-Ablaufindex atomar', async () => {
     const redis = getRedis();
-    const redisVersion = (await redis.info('server')).match(/redis_version:(\d+)\./)?.[1];
-    expect(Number(redisVersion)).toBeGreaterThanOrEqual(7);
+    const redisVersion = (await redis.info('server')).match(/redis_version:(\d+)\.(\d+)\./);
+    expect(Number(redisVersion?.[1]) * 100 + Number(redisVersion?.[2])).toBeGreaterThanOrEqual(702);
+    expect(await redis.config('GET', 'appendonly')).toEqual(['appendonly', 'yes']);
 
     const capability = createYjsRotationCapability();
     const created = await createYjsShare({ rotationCapability: capability });

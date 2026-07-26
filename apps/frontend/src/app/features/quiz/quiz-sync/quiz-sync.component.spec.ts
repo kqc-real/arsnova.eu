@@ -189,6 +189,28 @@ describe('QuizSyncComponent', () => {
     expect(component.syncLink()).toBe(`${window.location.origin}/en/quiz/sync/sync-room-12345678`);
   });
 
+  it('navigiert nach Rekey unter lokalisiertem Base-Href mit internem Router-Pfad', () => {
+    ensureBaseHref('/de/');
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+    const newRoomId = '00000000-0000-4000-8000-000000000999';
+
+    mockStore.syncRoomId.set(newRoomId);
+    mockStore.syncShareToken.set(`v1.${newRoomId}.1.${'a'.repeat(43)}`);
+    mockStore.syncShareStatus.set('ready');
+    fixture.detectChanges();
+
+    expect(navigateSpy).toHaveBeenCalledWith(`/quiz/sync/${newRoomId}`, {
+      replaceUrl: true,
+    });
+    expect(navigateSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('/de/de/'),
+      expect.anything(),
+    );
+  });
+
   it('zeigt Ungueltig-machen nur mit Rotations-Capability', () => {
     mockStore.canInvalidateSyncLink.set(true);
     mockStore.syncShareToken.set('v1.token');

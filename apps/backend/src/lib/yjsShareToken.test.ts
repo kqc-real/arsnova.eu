@@ -15,6 +15,7 @@ function parseEvalArgs(args: unknown[]): { keys: string[]; argv: string[] } {
 const { redisMock } = vi.hoisted(() => ({
   redisMock: {
     hgetall: vi.fn(async (key: string) => ({ ...(redisHashes.get(key) ?? {}) })),
+    call: vi.fn(async () => [1, 0]),
     eval: vi.fn(async (script: string, ...args: unknown[]) => {
       const { keys, argv } = parseEvalArgs(args);
       if (script.includes('ZREMRANGEBYSCORE')) {
@@ -235,7 +236,33 @@ describe('yjsShareToken', () => {
         YJS_SHARE_LEGACY_UUID_CUTOFF_AT: '2026-99-kein-datum',
       }),
     ).toThrow(/YJS_SHARE_LEGACY_UUID_CUTOFF_AT/);
+    expect(() =>
+      getYjsShareLegacyUuidCutoffAt({
+        YJS_SHARE_LEGACY_UUID_CUTOFF_AT: '2026-02-30T00:00:00.000Z',
+      }),
+    ).toThrow(/kalendergültiger/);
+    expect(() =>
+      getYjsShareLegacyUuidCutoffAt({
+        YJS_SHARE_LEGACY_UUID_CUTOFF_AT: '2026-10-01T02:00:00.000+02:00',
+      }),
+    ).toThrow(/kanonischer UTC-Zeitpunkt/);
     expect(getYjsShareLegacyUuidCutoffAt({}).toISOString()).toBe('2026-10-01T00:00:00.000Z');
+  });
+
+  it('gibt Create und Rotation bei fehlendem AOF-Fsync nicht als bestätigt zurück', async () => {
+    vi.stubEnv('YJS_SHARE_REQUIRE_DURABILITY', '1');
+    redisMock.call.mockResolvedValueOnce([0, 0]);
+    await expect(
+      createYjsShare({ rotationCapability: createYjsRotationCapability() }),
+    ).rejects.toThrow('YJS_SHARE_DURABILITY_UNAVAILABLE');
+
+    const capability = createYjsRotationCapability();
+    redisMock.call.mockResolvedValueOnce([1, 0]);
+    const created = await createYjsShare({ rotationCapability: capability });
+    redisMock.call.mockResolvedValueOnce([0, 0]);
+    await expect(
+      rotateYjsShare({ roomId: created.roomId, rotationCapability: capability }),
+    ).rejects.toThrow('YJS_SHARE_DURABILITY_UNAVAILABLE');
   });
 
   it('loggt keine Capability im Token-String selbst bei Signaturfehlern', () => {
