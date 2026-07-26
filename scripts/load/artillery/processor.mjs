@@ -10,9 +10,37 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_STATE_FILE = resolve(__dirname, '.runtime-state.json');
 const DEFAULT_RESULTS_READY_FILE = resolve(__dirname, '.results-ready.flag');
+const EMPTY_RUNTIME_STATE = Object.freeze({
+  joins: 0,
+  joinErrors: 0,
+  votes: 0,
+  voteErrors: 0,
+  qaSubmits: 0,
+  blitzVotes: 0,
+  wsConnections: 0,
+  wsStatusEvents: 0,
+  wsErrors: 0,
+  reconnects: 0,
+  reconnectErrors: 0,
+  reconnectResultsSeen: 0,
+  reconnectResultsMissing: 0,
+  reconnectMsSum: 0,
+  reconnectMsMax: 0,
+  reconnectsWithinWindow: 0,
+  joinDurationMs: [],
+  wsConnectDurationMs: [],
+  statusFanoutDurationMs: [],
+  questionReads: 0,
+  questionReadErrors: 0,
+  infoPolls: 0,
+});
 
 let sessionContext = null;
 let participantCounter = 0;
+/** In-memory counters avoid lost updates under concurrent VU state flushes. */
+let runtimeState = { ...EMPTY_RUNTIME_STATE };
+let runtimeStateLoaded = false;
+let runtimeFlushTimer = null;
 
 function stateFilePath() {
   return process.env.ARTILLERY_STATE_FILE || DEFAULT_STATE_FILE;
@@ -28,55 +56,84 @@ function loadSessionContext() {
   return sessionContext;
 }
 
-function readRuntimeState() {
+function ensureRuntimeState() {
+  if (runtimeStateLoaded) return runtimeState;
+  runtimeStateLoaded = true;
   try {
-    return JSON.parse(readFileSync(stateFilePath(), 'utf8'));
+    const fromDisk = JSON.parse(readFileSync(stateFilePath(), 'utf8'));
+    runtimeState = {
+      ...EMPTY_RUNTIME_STATE,
+      ...fromDisk,
+      joinDurationMs: Array.isArray(fromDisk.joinDurationMs) ? [...fromDisk.joinDurationMs] : [],
+      wsConnectDurationMs: Array.isArray(fromDisk.wsConnectDurationMs)
+        ? [...fromDisk.wsConnectDurationMs]
+        : [],
+      statusFanoutDurationMs: Array.isArray(fromDisk.statusFanoutDurationMs)
+        ? [...fromDisk.statusFanoutDurationMs]
+        : [],
+    };
   } catch {
-    return {
-      joins: 0,
-      joinErrors: 0,
-      votes: 0,
-      voteErrors: 0,
-      qaSubmits: 0,
-      blitzVotes: 0,
-      wsConnections: 0,
-      wsStatusEvents: 0,
-      wsErrors: 0,
-      reconnects: 0,
-      reconnectErrors: 0,
-      reconnectResultsSeen: 0,
-      reconnectResultsMissing: 0,
-      reconnectMsSum: 0,
-      reconnectMsMax: 0,
-      reconnectsWithinWindow: 0,
+    runtimeState = {
+      ...EMPTY_RUNTIME_STATE,
       joinDurationMs: [],
       wsConnectDurationMs: [],
       statusFanoutDurationMs: [],
-      questionReads: 0,
-      questionReadErrors: 0,
-      infoPolls: 0,
     };
   }
+  return runtimeState;
 }
 
-function writeRuntimeState(patch) {
-  const current = readRuntimeState();
-  const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
+function flushRuntimeState() {
+  const current = ensureRuntimeState();
+  const next = { ...current, updatedAt: new Date().toISOString() };
   mkdirSync(dirname(stateFilePath()), { recursive: true });
   writeFileSync(stateFilePath(), JSON.stringify(next, null, 2));
   return next;
 }
 
+function scheduleRuntimeFlush() {
+  if (runtimeFlushTimer) return;
+  runtimeFlushTimer = setTimeout(() => {
+    runtimeFlushTimer = null;
+    flushRuntimeState();
+  }, 50);
+  runtimeFlushTimer.unref?.();
+}
+
+function writeRuntimeState(patch) {
+  const current = ensureRuntimeState();
+  runtimeState = { ...current, ...patch };
+  scheduleRuntimeFlush();
+  return runtimeState;
+}
+
 function bumpRuntimeState(field, delta = 1) {
-  const current = readRuntimeState();
-  writeRuntimeState({ [field]: (current[field] ?? 0) + delta });
+  const current = ensureRuntimeState();
+  current[field] = (current[field] ?? 0) + delta;
+  scheduleRuntimeFlush();
 }
 
 function recordRuntimeDuration(field, durationMs) {
-  const current = readRuntimeState();
+  const current = ensureRuntimeState();
   const values = Array.isArray(current[field]) ? current[field] : [];
-  writeRuntimeState({ [field]: [...values, Math.max(0, Math.round(durationMs))].slice(-2_000) });
+  values.push(Math.max(0, Math.round(durationMs)));
+  current[field] = values.slice(-2_000);
+  scheduleRuntimeFlush();
 }
+
+function readRuntimeState() {
+  return { ...ensureRuntimeState() };
+}
+
+process.once('beforeExit', () => {
+  if (runtimeFlushTimer) {
+    clearTimeout(runtimeFlushTimer);
+    runtimeFlushTimer = null;
+  }
+  if (runtimeStateLoaded) {
+    flushRuntimeState();
+  }
+});
 
 function recordResultsFanout(userContext, events) {
   if (userContext.vars._resultsFanoutRecorded) return;
@@ -305,12 +362,31 @@ export async function submitBlitzlicht(userContext, events) {
   }
 }
 
-export async function waitForResultsPhase() {
+function resultsPhaseTimeoutMs() {
+  const resultsWaitMs = Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 25_000);
+  const rampSeconds = Number(process.env.ARTILLERY_RAMP_SECONDS || 90);
+  const explicit = Number(process.env.ARTILLERY_RESULTS_PHASE_TIMEOUT_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  // Early VUs finish voting long before the join ramp ends; host reveal waits for
+  // stable joins after the ramp, so the wait must cover ramp + reveal window.
+  return Math.max(resultsWaitMs, rampSeconds * 1_000 + resultsWaitMs);
+}
+
+export async function waitForResultsPhase(userContext) {
   const readyFile = process.env.ARTILLERY_RESULTS_READY_FILE || DEFAULT_RESULTS_READY_FILE;
-  const deadline = Date.now() + Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 20_000);
+  const deadline = Date.now() + resultsPhaseTimeoutMs();
   while (Date.now() < deadline) {
+    if (userContext?.vars?._resultsFanoutRecorded) {
+      return;
+    }
     try {
       if (readFileSync(readyFile, 'utf8').trim() === '1') {
+        // Ready-Flag kann den WS-Fan-out um wenige ms schlagen — kurz nachwarten.
+        const fanoutDeadline = Date.now() + 5_000;
+        while (Date.now() < fanoutDeadline) {
+          if (userContext?.vars?._resultsFanoutRecorded) return;
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
         return;
       }
     } catch {
@@ -363,6 +439,11 @@ export async function disconnectParticipantStatusWs(userContext, events) {
   userContext.vars._statusWsClient?.close?.();
   userContext.vars._statusSub = null;
   userContext.vars._statusWsClient = null;
+  if (runtimeFlushTimer) {
+    clearTimeout(runtimeFlushTimer);
+    runtimeFlushTimer = null;
+  }
+  flushRuntimeState();
   events.emit('counter', 'custom.ws_disconnected', 1);
 }
 
