@@ -150,6 +150,8 @@ Für W2.1b zusätzlich:
 ```bash
 npm test -w @arsnova/backend -- --run \
   src/lib/pdfWorkerTransport.test.ts \
+  src/lib/safeExternalImageFetch.test.ts \
+  src/lib/pdfImageNormalizer.test.ts \
   src/__tests__/session-results-report-pdf.test.ts \
   src/__tests__/session-results-report-pdf.ssrf.test.ts
 npm run typecheck -w @arsnova/backend

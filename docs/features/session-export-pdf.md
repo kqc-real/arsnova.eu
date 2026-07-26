@@ -83,6 +83,13 @@ betreibt genau einen Backend-Prozess; vor einer horizontalen Skalierung muss der
 durch einen verteilten, ausfallsicheren Semaphore ersetzt werden, damit der Cap
 instanzübergreifend bleibt.
 
+Externe Fragebilder werden vor dem PDF-Lauf SSRF-geschützt mit maximal 2 MiB
+pro Bild geladen und ausschließlich als Data-URL an den netzlosen PDF-Worker
+übergeben. Dort werden PNG, JPEG und WebP mit Pixelgrenze dekodiert,
+verkleinert, von Metadaten/Polyglot-Anhängen bereinigt und nach WebP
+transkodiert. SVG, Animationen und fehlerhafte Bilder erhalten einen lokalen
+Platzhalter. Es gibt keinen persistenten Bildcache.
+
 | Schicht                                            | Ort                                                                                                                                         |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shared Report-Builder (HTML, Charts, Print-CSS)    | `libs/session-export-report/`                                                                                                               |

@@ -277,6 +277,21 @@ describe('safeExternalImageFetch', () => {
     expect(detectImageMimeType(html)).toBeNull();
   });
 
+  it('lehnt externe SVGs einschließlich externer Referenzen ab', async () => {
+    const svg = new TextEncoder().encode(
+      '<svg xmlns="http://www.w3.org/2000/svg"><image href="http://169.254.169.254/"/></svg>',
+    );
+    await expect(
+      fetchSafeExternalImage(
+        'https://images.example.test/picture.svg',
+        {},
+        dependencies(
+          vi.fn().mockResolvedValue(response(200, { 'content-type': 'image/svg+xml' }, [svg])),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: 'INVALID_IMAGE_TYPE' });
+  });
+
   it('lehnt kleine Dateien mit übergroßen dekodierten Abmessungen ab', async () => {
     const bombHeader = pngHeader(5_000, 5_000);
 

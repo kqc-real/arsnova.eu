@@ -96,4 +96,57 @@ describe('inlineExportImagesInHtml', () => {
     expect(inlined).not.toContain('https://images.example.test/');
     expect(inlined.match(/data:image\/gif;base64,/g)).toHaveLength(1);
   });
+
+  it('zählt wiederholte Data-URL-Expansion gegen ein Gesamtbudget', async () => {
+    const fetchExternalImage = vi.fn().mockResolvedValue({
+      bytes: new Uint8Array([1, 2, 3, 4]),
+      mimeType: 'image/png',
+    });
+    const src = 'https://images.example.test/repeated.png';
+    const html = `<img src="${src}"><img src="${src}"><img src="${src}"><img src="${src}">`;
+
+    const inlined = await inlineExportImagesInHtml(html, {
+      fetchExternalImage,
+      replaceUnresolvedImages: true,
+      maxImageBytes: 4,
+      maxInlinedImageBytes: 90,
+    });
+
+    expect(fetchExternalImage).toHaveBeenCalledOnce();
+    expect(inlined.match(/data:image\/png;base64,/g)).toHaveLength(3);
+    expect(inlined.match(/data:image\/gif;base64,/g)).toHaveLength(1);
+  });
+
+  it.each(['remote', 'local'] as const)(
+    'begrenzt Reads und Cache für 100 unterschiedliche %s Assets inkrementell',
+    async (kind) => {
+      const bytes = new Uint8Array(100);
+      const fetchExternalImage = vi.fn().mockResolvedValue({
+        bytes,
+        mimeType: 'image/png',
+      });
+      const readLocalAsset = vi.fn().mockResolvedValue(bytes);
+      const html = Array.from({ length: 100 }, (_, index) => {
+        const src =
+          kind === 'remote'
+            ? `https://images.example.test/${index}.png`
+            : `/assets/test/${index}.png`;
+        return `<img src="${src}">`;
+      }).join('');
+
+      const inlined = await inlineExportImagesInHtml(html, {
+        fetchExternal: true,
+        fetchExternalImage,
+        readLocalAsset,
+        replaceUnresolvedImages: true,
+        maxImageBytes: 100,
+        maxInlinedImageBytes: 400,
+        maxImages: 100,
+      });
+
+      expect(kind === 'remote' ? fetchExternalImage : readLocalAsset).toHaveBeenCalledTimes(2);
+      expect(inlined.match(/data:image\/png;base64,/g)).toHaveLength(2);
+      expect(inlined.match(/data:image\/gif;base64,/g)).toHaveLength(98);
+    },
+  );
 });

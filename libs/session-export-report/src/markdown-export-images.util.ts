@@ -15,6 +15,8 @@ export interface InlineExportImagesOptions {
   replaceUnresolvedImages?: boolean;
   /** Maximale Anzahl unterschiedlicher nicht-data:-Bildquellen pro Report. */
   maxImages?: number;
+  /** Maximale Summe expandierter Data-URL-Bytes über alle Bildvorkommen. */
+  maxInlinedImageBytes?: number;
 }
 
 const IMG_TAG_RE = /<img\b([^>]*?)\bsrc="([^"]+)"([^>]*)>/gi;
@@ -139,6 +141,8 @@ export async function inlineExportImagesInHtml(
   const cache = new Map<string, string | null>();
   const matches = [...html.matchAll(IMG_TAG_RE)];
   let attemptedImages = 0;
+  let cachedImageBytes = 0;
+  let inlinedImageBytes = 0;
 
   for (const match of matches) {
     const src = match[2];
@@ -149,14 +153,43 @@ export async function inlineExportImagesInHtml(
         continue;
       }
       attemptedImages += 1;
+      if (options.maxInlinedImageBytes !== undefined) {
+        const maxImageBytes = options.maxImageBytes;
+        if (!maxImageBytes || maxImageBytes < 1) {
+          cache.set(src, null);
+          continue;
+        }
+        const maxEncodedBytes = Math.ceil(maxImageBytes / 3) * 4 + 64;
+        if (cachedImageBytes + maxEncodedBytes > options.maxInlinedImageBytes) {
+          cache.set(src, null);
+          continue;
+        }
+      }
     }
     const dataUrl = await resolveImageDataUrl(src, options);
+    if (dataUrl && !src.startsWith('data:') && options.maxInlinedImageBytes !== undefined) {
+      const encodedBytes = new TextEncoder().encode(dataUrl).byteLength;
+      if (cachedImageBytes + encodedBytes > options.maxInlinedImageBytes) {
+        cache.set(src, null);
+        continue;
+      }
+      cachedImageBytes += encodedBytes;
+    }
     cache.set(src, dataUrl);
   }
 
   return html.replace(IMG_TAG_RE, (full, before, src, after) => {
     const dataUrl = cache.get(src);
     if (!dataUrl && !options.replaceUnresolvedImages) return full;
-    return `<img${before}src="${dataUrl ?? TRANSPARENT_IMAGE_PLACEHOLDER}"${after}>`;
+    let replacement = dataUrl ?? TRANSPARENT_IMAGE_PLACEHOLDER;
+    if (dataUrl && options.maxInlinedImageBytes !== undefined) {
+      const expandedBytes = new TextEncoder().encode(dataUrl).byteLength;
+      if (inlinedImageBytes + expandedBytes > options.maxInlinedImageBytes) {
+        replacement = TRANSPARENT_IMAGE_PLACEHOLDER;
+      } else {
+        inlinedImageBytes += expandedBytes;
+      }
+    }
+    return `<img${before}src="${replacement}"${after}>`;
   });
 }

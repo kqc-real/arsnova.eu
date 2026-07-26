@@ -192,6 +192,15 @@ Docker-Daemon-/Host-Neustarts sauber wieder her.
 Entscheidung, verworfene In-Container-Sandbox und Rollback:
 [W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 
+W3.1 hält externe PDF-Bilder nutzbar, ohne Chromium direkten Netzwerkzugriff zu
+geben: Die App ruft ausschließlich öffentliche, DNS-/IP-gebundene
+PNG-/JPEG-/WebP-Ziele mit Redirect-, Stream- und 2-MiB-Cap ab. Der netzlose
+Worker dekodiert die eingebetteten Data-URLs mit Pixelgrenze, entfernt
+Metadaten und Polyglot-Anhänge, verkleinert und transkodiert nach WebP.
+Fehlerhafte, animierte oder SVG-Bilder werden lokal ersetzt. Ein persistenter
+Cache existiert nicht:
+[W3.1-PDF-IMAGE-PROXY-ABNAHME.md](implementation/W3.1-PDF-IMAGE-PROXY-ABNAHME.md).
+
 ---
 
 ## 5. Aufbewahrung & Löschung
