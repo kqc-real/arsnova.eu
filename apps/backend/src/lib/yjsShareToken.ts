@@ -4,13 +4,13 @@
  * Token-Format: v1.<roomUuid>.<generation>.<hmacBase64url>
  * Query-Transport: ?s=<token> (nie in App-/Access-Logs ausgeben).
  */
-import { createHmac, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { getRedis } from '../redis';
 
 export const YJS_SHARE_TOKEN_VERSION = 1 as const;
 export const YJS_SHARE_QUERY_PARAM = 's';
 export const DEFAULT_YJS_SHARE_LEGACY_UUID_CUTOFF_AT = '2026-10-01T00:00:00.000Z';
-/** Langlebige Share-Metadaten; bei Register/Rotate/Authorize erneuert. */
+/** Langlebige Share-Metadaten; bei Erstellung/Rotation erneuert. */
 export const YJS_SHARE_METADATA_TTL_SECONDS = 63_072_000; // 730 Tage
 export const YJS_SHARE_GLOBAL_KEY_HARD_CAP = 100_000;
 
@@ -20,45 +20,35 @@ const TOKEN_RE =
   /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([1-9][0-9]{0,9})\.([A-Za-z0-9_-]{43})$/i;
 
 const REDIS_KEY_PREFIX = 'yjs:share:v1:';
-const REDIS_LEGACY_SEEN_PREFIX = 'yjs:share:legacy-seen:v1:';
-const REDIS_GLOBAL_COUNT_KEY = 'yjs:share:v1:_count';
+const REDIS_EXPIRY_INDEX_KEY = 'yjs:share:v1:_expires';
 
-const REGISTER_SHARE_SCRIPT = `
+const CREATE_SHARE_SCRIPT = `
 local key = KEYS[1]
-local countKey = KEYS[2]
+local expiryIndexKey = KEYS[2]
 local capabilityHash = ARGV[1]
 local ttl = tonumber(ARGV[2])
 local hardCap = tonumber(ARGV[3])
+local nowMs = tonumber(ARGV[4])
+local expiresAtMs = tonumber(ARGV[5])
 if redis.call('EXISTS', key) == 1 then
-  local existingHash = redis.call('HGET', key, 'rotationCapabilityHash')
-  local generation = tonumber(redis.call('HGET', key, 'generation') or '0')
-  if existingHash == false or existingHash == nil or generation < 1 then
-    return {0, 'CORRUPT'}
-  end
-  if existingHash ~= capabilityHash then
-    return {0, 'CAPABILITY_MISMATCH'}
-  end
-  redis.call('EXPIRE', key, ttl)
-  return {1, 'EXISTS', generation}
+  return {0, 'ROOM_COLLISION'}
 end
-local seenKey = KEYS[3]
-if redis.call('EXISTS', seenKey) == 1 then
-  return {0, 'MUST_REKEY'}
-end
-local count = tonumber(redis.call('GET', countKey) or '0')
-if count >= hardCap then
+redis.call('ZREMRANGEBYSCORE', expiryIndexKey, '-inf', nowMs)
+if redis.call('ZCARD', expiryIndexKey) >= hardCap then
   return {0, 'GLOBAL_CAP'}
 end
 redis.call('HSET', key, 'generation', '1', 'rotationCapabilityHash', capabilityHash)
 redis.call('EXPIRE', key, ttl)
-redis.call('INCR', countKey)
+redis.call('ZADD', expiryIndexKey, expiresAtMs, key)
 return {1, 'CREATED', 1}
 `;
 
 const ROTATE_SHARE_SCRIPT = `
 local key = KEYS[1]
+local expiryIndexKey = KEYS[2]
 local capabilityHash = ARGV[1]
 local ttl = tonumber(ARGV[2])
+local expiresAtMs = tonumber(ARGV[3])
 if redis.call('EXISTS', key) == 0 then
   return {0, 'NOT_REGISTERED'}
 end
@@ -73,6 +63,7 @@ end
 local nextGeneration = generation + 1
 redis.call('HSET', key, 'generation', tostring(nextGeneration))
 redis.call('EXPIRE', key, ttl)
+redis.call('ZADD', expiryIndexKey, expiresAtMs, key)
 return {1, 'OK', nextGeneration}
 `;
 
@@ -206,17 +197,6 @@ function redisKey(roomId: string): string {
   return `${REDIS_KEY_PREFIX}${roomId}`;
 }
 
-function legacySeenKey(roomId: string): string {
-  return `${REDIS_LEGACY_SEEN_PREFIX}${roomId}`;
-}
-
-export async function markYjsRoomLegacySeen(roomId: string): Promise<void> {
-  const normalized = normalizeYjsRoomUuid(roomId);
-  if (!normalized) return;
-  const redis = getRedis();
-  await redis.set(legacySeenKey(normalized), '1', 'EX', YJS_SHARE_METADATA_TTL_SECONDS, 'NX');
-}
-
 export async function readYjsShareMetadata(roomId: string): Promise<YjsShareMetadata | null> {
   const normalized = normalizeYjsRoomUuid(roomId);
   if (!normalized) return null;
@@ -226,43 +206,53 @@ export async function readYjsShareMetadata(roomId: string): Promise<YjsShareMeta
   const generation = Number(raw.generation);
   if (!Number.isInteger(generation) || generation < 1) return null;
   if (!/^[a-f0-9]{64}$/.test(raw.rotationCapabilityHash)) return null;
-  await redis.expire(redisKey(normalized), YJS_SHARE_METADATA_TTL_SECONDS);
   return { generation, rotationCapabilityHash: raw.rotationCapabilityHash };
 }
 
-export async function registerYjsShare(input: {
-  roomId: string;
+/**
+ * Erstellt ausschließlich einen serverseitig gewählten neuen Raum. Eine alte
+ * UUID kann deshalb nie per First-Writer als tokenisierter Raum übernommen werden.
+ */
+export async function createYjsShare(input: {
   rotationCapability: string;
-}): Promise<{ shareToken: string; generation: number; created: boolean }> {
-  const roomId = normalizeYjsRoomUuid(input.roomId);
-  if (!roomId) {
-    throw new Error('INVALID_ROOM');
-  }
+}): Promise<{ roomId: string; shareToken: string; generation: number }> {
   if (!isYjsRotationCapability(input.rotationCapability)) {
     throw new Error('INVALID_CAPABILITY');
   }
   const capabilityHash = hashYjsRotationCapability(input.rotationCapability);
   const redis = getRedis();
-  const result = (await redis.eval(
-    REGISTER_SHARE_SCRIPT,
-    3,
-    redisKey(roomId),
-    REDIS_GLOBAL_COUNT_KEY,
-    legacySeenKey(roomId),
-    capabilityHash,
-    String(YJS_SHARE_METADATA_TTL_SECONDS),
-    String(YJS_SHARE_GLOBAL_KEY_HARD_CAP),
-  )) as [number, string, number?];
+  const nowMs = Date.now();
+  const expiresAtMs = nowMs + YJS_SHARE_METADATA_TTL_SECONDS * 1000;
 
-  if (!result || result[0] !== 1) {
-    throw new Error(result?.[1] ?? 'UNKNOWN');
+  // UUID-Kollisionen sind praktisch ausgeschlossen; begrenztes Retry hält den
+  // Vertrag trotzdem korrekt, ohne einen existierenden Raum zu überschreiben.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const roomId = randomUUID();
+    const result = (await redis.eval(
+      CREATE_SHARE_SCRIPT,
+      2,
+      redisKey(roomId),
+      REDIS_EXPIRY_INDEX_KEY,
+      capabilityHash,
+      String(YJS_SHARE_METADATA_TTL_SECONDS),
+      String(YJS_SHARE_GLOBAL_KEY_HARD_CAP),
+      String(nowMs),
+      String(expiresAtMs),
+    )) as [number, string, number?];
+
+    if (result?.[0] === 1) {
+      const generation = Number(result[2]);
+      return {
+        roomId,
+        shareToken: signYjsShareToken(roomId, generation),
+        generation,
+      };
+    }
+    if (result?.[1] !== 'ROOM_COLLISION') {
+      throw new Error(result?.[1] ?? 'UNKNOWN');
+    }
   }
-  const generation = Number(result[2]);
-  return {
-    shareToken: signYjsShareToken(roomId, generation),
-    generation,
-    created: result[1] === 'CREATED',
-  };
+  throw new Error('ROOM_COLLISION');
 }
 
 export async function rotateYjsShare(input: {
@@ -278,12 +268,15 @@ export async function rotateYjsShare(input: {
   }
   const capabilityHash = hashYjsRotationCapability(input.rotationCapability);
   const redis = getRedis();
+  const expiresAtMs = Date.now() + YJS_SHARE_METADATA_TTL_SECONDS * 1000;
   const result = (await redis.eval(
     ROTATE_SHARE_SCRIPT,
-    1,
+    2,
     redisKey(roomId),
+    REDIS_EXPIRY_INDEX_KEY,
     capabilityHash,
     String(YJS_SHARE_METADATA_TTL_SECONDS),
+    String(expiresAtMs),
   )) as [number, string, number?];
 
   if (!result || result[0] !== 1) {
@@ -298,7 +291,8 @@ export async function rotateYjsShare(input: {
 
 /**
  * Prüft Upgrade-Auth: gültiges Share-Token mit aktueller Generation, oder
- * während des Grace-Fensters UUID-only ohne Query (markiert Raum als legacy-seen).
+ * während des Grace-Fensters UUID-only ohne Query. Legacy-Upgrades schreiben
+ * bewusst keinerlei Redis-Zustand.
  */
 export async function authorizeYjsRoomUpgrade(input: {
   roomId: string;
@@ -327,7 +321,6 @@ export async function authorizeYjsRoomUpgrade(input: {
     if (metadata) {
       return { ok: false, reason: 'token_required' };
     }
-    await markYjsRoomLegacySeen(roomId);
     return { ok: true };
   }
 

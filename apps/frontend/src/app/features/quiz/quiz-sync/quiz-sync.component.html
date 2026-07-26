@@ -34,6 +34,17 @@
           <span i18n="@@quizSync.invalidateLink">Sync-Link ungültig machen</span>
         </button>
       }
+      @if (!syncShareReady() && syncShareStatus() !== 'pending') {
+        <button
+          matButton="tonal"
+          type="button"
+          class="quiz-sync__secure"
+          (click)="createSecuredSyncLink()"
+        >
+          <mat-icon>enhanced_encryption</mat-icon>
+          <span i18n="@@quizSync.secureLink">Neuen abgesicherten Sync-Link erstellen</span>
+        </button>
+      }
     </div>
     @if (syncShareStatus() === 'pending') {
       <p class="quiz-sync__hint" role="status" i18n="@@quizSync.sharePending">
@@ -42,8 +53,8 @@
     }
     @if (syncShareStatus() === 'legacy') {
       <p class="quiz-sync__hint" role="status" i18n="@@quizSync.shareLegacy">
-        Verbindung ohne Share-Token (Übergangsmodus). Zum Teilen brauchst du einen abgesicherten
-        Link vom Ursprungsgerät.
+        Verbindung ohne Share-Token (Übergangsmodus). Erstelle für deine lokale Sammlung einen neuen
+        abgesicherten Link; die alte Raum-ID wird dabei nicht übernommen.
       </p>
     }
     @if (syncShareError()) {

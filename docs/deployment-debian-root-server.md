@@ -223,10 +223,15 @@ Ersetze `arsnova.eu` durch deine Domain (falls abweichend).
 ```nginx
 # Schritt 1: Nur HTTP – damit Certbot das Zertifikat erstellen kann.
 # Den HTTPS-Block fügen wir NACH dem Certbot-Lauf hinzu (siehe Abschnitt 5.3).
+log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
+    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+    '"-" "$http_user_agent"';
+
 server {
     listen 80;
     listen [::]:80;
     server_name arsnova.eu www.arsnova.eu;
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
 
     # Certbot braucht diesen Pfad, um die Domain zu verifizieren
     location /.well-known/acme-challenge/ {
@@ -305,11 +310,19 @@ upstream app_ws_yjs {
     server 127.0.0.1:3002;   # WebSocket (Yjs Quiz-Sync)
 }
 
+# Access-Log ohne Query-String und ohne Referer (ADR-0033 / W3.4):
+# Share-Tokens liegen in ?s= und dürfen nicht in Access-Logs landen.
+# `$uri` enthält den Pfad ohne Query; `$request` / `$request_uri` / `$http_referer` nicht verwenden.
+log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
+    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+    '"-" "$http_user_agent"';
+
 # HTTP → HTTPS Redirect
 server {
     listen 80;
     listen [::]:80;
     server_name arsnova.eu www.arsnova.eu;
+    access_log /var/log/nginx/arsnova_click_access.log arsnova_privacy;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -320,13 +333,6 @@ server {
         return 301 https://$host$request_uri;
     }
 }
-
-# Access-Log ohne Query-String und ohne Referer (ADR-0033 / W3.4):
-# Share-Tokens liegen in ?s= und dürfen nicht in Access-Logs landen.
-# `$uri` enthält den Pfad ohne Query; `$request` / `$request_uri` / `$http_referer` nicht verwenden.
-log_format arsnova_privacy '$remote_addr - $remote_user [$time_local] '
-    '"$request_method $uri $server_protocol" $status $body_bytes_sent '
-    '"-" "$http_user_agent"';
 
 # HTTPS – verschlüsselter Zugang + WebSocket-Proxy
 # Kompatibel mit Debian-12-Nginx; neuere Versionen können dafür eine Deprecation-Warnung zeigen.

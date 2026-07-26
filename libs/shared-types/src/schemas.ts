@@ -1759,18 +1759,17 @@ export const YjsRotationCapabilitySchema = z
   .regex(/^[a-f0-9]{64}$/i, 'Ungültige Sync-Rotations-Capability.');
 export type YjsRotationCapability = z.infer<typeof YjsRotationCapabilitySchema>;
 
-export const RegisterYjsShareInputSchema = z.object({
-  roomId: z.string().uuid(),
+export const CreateYjsShareInputSchema = z.object({
   rotationCapability: YjsRotationCapabilitySchema,
 });
-export type RegisterYjsShareInput = z.infer<typeof RegisterYjsShareInputSchema>;
+export type CreateYjsShareInput = z.infer<typeof CreateYjsShareInputSchema>;
 
-export const RegisterYjsShareOutputSchema = z.object({
+export const CreateYjsShareOutputSchema = z.object({
+  roomId: z.string().uuid(),
   shareToken: z.string().min(32).max(200),
   generation: z.number().int().min(1),
-  created: z.boolean(),
 });
-export type RegisterYjsShareOutput = z.infer<typeof RegisterYjsShareOutputSchema>;
+export type CreateYjsShareOutput = z.infer<typeof CreateYjsShareOutputSchema>;
 
 export const RotateYjsShareInputSchema = z.object({
   roomId: z.string().uuid(),

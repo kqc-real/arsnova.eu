@@ -1,12 +1,12 @@
 import { TRPCError } from '@trpc/server';
 import {
-  RegisterYjsShareInputSchema,
-  RegisterYjsShareOutputSchema,
+  CreateYjsShareInputSchema,
+  CreateYjsShareOutputSchema,
   RotateYjsShareInputSchema,
   RotateYjsShareOutputSchema,
 } from '@arsnova/shared-types';
 import { publicProcedure, router, resolveClientIp } from '../trpc';
-import { registerYjsShare, rotateYjsShare } from '../lib/yjsShareToken';
+import { createYjsShare, rotateYjsShare } from '../lib/yjsShareToken';
 import { checkYjsShareRegisterRate, checkYjsShareRotateRate } from '../lib/rateLimit';
 import { logger } from '../lib/logger';
 
@@ -19,12 +19,6 @@ function mapShareError(code: string): TRPCError {
       return new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'Sync-Link darf auf diesem Gerät nicht verwaltet werden.',
-      });
-    case 'MUST_REKEY':
-      return new TRPCError({
-        code: 'CONFLICT',
-        message:
-          'Dieser Sync-Raum wurde bereits ohne Token genutzt. Bitte einen neuen Sync-Link erstellen.',
       });
     case 'GLOBAL_CAP':
       return new TRPCError({
@@ -67,15 +61,14 @@ async function assertYjsShareRotateAllowed(ip: string): Promise<void> {
 }
 
 export const quizSyncRouter = router({
-  registerShare: publicProcedure
-    .input(RegisterYjsShareInputSchema)
-    .output(RegisterYjsShareOutputSchema)
+  createShare: publicProcedure
+    .input(CreateYjsShareInputSchema)
+    .output(CreateYjsShareOutputSchema)
     .mutation(async ({ ctx, input }) => {
       await assertYjsShareRegisterAllowed(resolveClientIp(ctx.req).ip);
       try {
-        const result = await registerYjsShare(input);
-        logger.info('[security] yjs_share_registered', {
-          created: result.created,
+        const result = await createYjsShare(input);
+        logger.info('[security] yjs_share_created', {
           generation: result.generation,
         });
         return result;

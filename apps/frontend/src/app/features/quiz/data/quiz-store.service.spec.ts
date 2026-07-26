@@ -1,7 +1,7 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getDemoQuizExpectedTitle, getDemoQuizSeedFingerprint } from './demo-quiz-payload';
 import {
   DEMO_QUIZ_ID,
@@ -9,6 +9,28 @@ import {
   QuizStoreService,
   type QuizDocument,
 } from './quiz-store.service';
+
+const { createShareMutateMock } = vi.hoisted(() => ({
+  createShareMutateMock: vi.fn(),
+}));
+
+vi.mock('../../../core/trpc.client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../core/trpc.client')>();
+  return {
+    ...actual,
+    trpc: new Proxy(actual.trpc, {
+      get(target, property, receiver) {
+        if (property === 'quizSync') {
+          return {
+            createShare: { mutate: createShareMutateMock },
+            rotateShare: Reflect.get(target, property, receiver).rotateShare,
+          };
+        }
+        return Reflect.get(target, property, receiver);
+      },
+    }),
+  };
+});
 
 describe('QuizStoreService', () => {
   const defaultSettings = {
@@ -1168,6 +1190,29 @@ describe('QuizStoreService', () => {
     expect(service.originDeviceLabel()).toBe(firstOriginDevice);
     expect(service.originBrowserLabel()).toBe(firstOriginBrowser);
     expect(service.originSharedAt()).toBe(firstOriginAt);
+  });
+
+  it('rekeyt einen Legacy-Origin explizit auf einen serverseitig erzeugten Raum', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    service.createQuiz({ name: 'Legacy-Sammlung' });
+    const oldRoomId = service.syncRoomId();
+    const newRoomId = '00000000-0000-4000-8000-000000000777';
+    createShareMutateMock.mockResolvedValue({
+      roomId: newRoomId,
+      shareToken: `v1.${newRoomId}.1.${'a'.repeat(43)}`,
+      generation: 1,
+    });
+
+    service.activateSyncRoom(oldRoomId, { markShared: true });
+    const link = await service.createSecuredSyncShareLink();
+
+    expect(createShareMutateMock).toHaveBeenCalledWith({
+      rotationCapability: expect.stringMatching(/^[a-f0-9]{64}$/),
+    });
+    expect(service.syncRoomId()).toBe(newRoomId);
+    expect(service.syncShareStatus()).toBe('ready');
+    expect(service.quizzes().some((quiz) => quiz.name === 'Legacy-Sammlung')).toBe(true);
+    expect(link).toContain(`/quiz/sync/${newRoomId}?s=`);
   });
 
   it('kann eine geteilte Bibliothek wieder entlinken und lokal weiterführen', () => {

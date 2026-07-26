@@ -144,7 +144,9 @@ Es gibt aktuell zwei fachlich unterschiedliche Einstiegswege:
 2. **Sammlung importieren / auf diesem Gerät weiterführen**
    über das Eingabefeld auf der Startseite
 
-Der Unterschied ist wichtig, weil nur beim ersten Weg das **Ursprungsgerät** registriert wird.
+Der Unterschied ist wichtig, weil nur das bewusste Absichern einen **neuen,
+serverseitig erzeugten Raum** mit Rotations-Capability anlegt. Eine bestehende
+oder per Link erhaltene UUID wird nie nachträglich registriert.
 
 ```mermaid
 sequenceDiagram
@@ -157,7 +159,14 @@ sequenceDiagram
         U->>SyncPage: /quiz/sync/:docId öffnen (eigene lokale Bibliothek)
         SyncPage->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: true })
         Store->>Store: librarySharingMode = shared
-        Store->>Store: Share registrieren oder bei Konflikt rekeyen
+        Store->>Backend: createShare(rotationCapability)
+        Backend-->>Store: neue roomId + Share-Token
+        Store->>Store: lokale Sammlung auf neue roomId rekeyen
+    else Bestehender Legacy-Origin
+        U->>SyncPage: „Neuen abgesicherten Sync-Link erstellen“
+        Store->>Backend: createShare(rotationCapability)
+        Backend-->>Store: neue roomId + Share-Token
+        Store->>Store: lokale Sammlung auf neue roomId rekeyen
     else Import auf weiterem Gerät
         U->>Home: Sync-Link oder Sync-ID eingeben
         Home->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: false })
@@ -175,7 +184,7 @@ Bei `activateSyncRoom()` passiert in komprimierter Form:
 3. vorhandene Yjs-Instanz sauber abbauen
 4. neuen Raum aktiv setzen und lokal merken
 5. Sync-Metadaten für diesen Raum laden
-6. falls nötig Origin einmalig registrieren
+6. vorhandenen Token/Capability-Zustand laden; Legacy-Raum nicht registrieren
 7. Sammlung aus lokalem Room-Mirror laden
 8. Yjs + IndexedDB + Awareness starten
 
@@ -220,6 +229,12 @@ bestand der
 30 Clients einschließlich sechs Offline-Reconnects konvergierten erneut in 6 ms,
 bei Reconnect-p95 329 ms und 0 Fehlern.
 
+Für den tokenbasierten Upgrade-/Redis-Pfad prüft
+`CLIENTS=500 YJS_SHARE_TOKEN='<redacted>' npm run load:yjs:token-reconnect`
+500 gleichzeitige Verbindungen und einen vollständigen Reconnect ohne
+Quiz-Payload. Der W3.4-Abnahmelauf vom 2026-07-26 bestand mit Initial-p95 95 ms
+und Reconnect-p95 94 ms.
+
 Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktuelle UI
 anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
 im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
@@ -227,7 +242,9 @@ im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSock
 Stand W3.4 autorisiert der Yjs-Relay Räume über signierte Share-Tokens (`?s=`).
 Bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` bleibt UUID-only als Grace erlaubt. Der Relay nimmt
 aber nur noch kanonische `quiz-library-room-<UUID>`-Pfade an und begrenzt
-Payload, Verbindungen, Upgrades und Nachrichtenrate.
+Payload, Verbindungen, Upgrades und Nachrichtenrate. UUID-only-Upgrades erzeugen
+keine Redis-Keys. Das Absichern einer Sammlung verwendet immer eine neue,
+serverseitig erzeugte Raum-UUID.
 
 ## 7. Datenfluss bei lokalen Änderungen
 

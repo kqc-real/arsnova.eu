@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -65,12 +65,10 @@ export class QuizSyncComponent {
         !shareToken &&
         previousRoomId === this.docId &&
         this.quizStore.librarySharingMode() === 'local';
-      const secureAsOrigin =
-        !shareToken && (ownLocalLibrary || this.quizStore.hasRotationCapability(this.docId));
 
       this.quizStore.activateSyncRoom(this.docId, {
         markShared: true,
-        secureAsOrigin,
+        secureAsOrigin: ownLocalLibrary,
         shareToken,
       });
 
@@ -87,6 +85,13 @@ export class QuizSyncComponent {
         error instanceof Error ? error.message : 'Sync-Raum konnte nicht aktiviert werden.';
       this.syncError.set(message);
     }
+
+    effect(() => {
+      const roomId = this.quizStore.syncRoomId();
+      if (!this.syncShareReady() || roomId === this.docId) return;
+      const safePath = new URL(this.quizStore.buildSyncShareLink(roomId)).pathname;
+      void this.router.navigateByUrl(safePath, { replaceUrl: true });
+    });
   }
 
   async copySyncLink(): Promise<void> {
@@ -124,6 +129,24 @@ export class QuizSyncComponent {
       );
     } finally {
       this.invalidatePending.set(false);
+    }
+  }
+
+  async createSecuredSyncLink(): Promise<void> {
+    if (this.syncShareStatus() === 'pending') return;
+    this.syncError.set(null);
+    this.copyStatus.set(null);
+    try {
+      await this.quizStore.createSecuredSyncShareLink();
+      this.copyStatus.set(
+        $localize`:@@quizSync.secureLinkDone:Neuer abgesicherter Sync-Link ist bereit.`,
+      );
+    } catch (error) {
+      this.syncError.set(
+        error instanceof Error
+          ? error.message
+          : $localize`:@@quizSync.secureLinkFailed:Abgesicherter Sync-Link konnte nicht erstellt werden.`,
+      );
     }
   }
 

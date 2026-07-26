@@ -19,7 +19,7 @@ describe('QuizSyncComponent', () => {
     activateSyncRoom: vi.fn(),
     buildSyncShareLink: vi.fn((roomId: string) => `${window.location.origin}/quiz/sync/${roomId}`),
     invalidateSyncShareLink: vi.fn(),
-    hasRotationCapability: vi.fn(() => false),
+    createSecuredSyncShareLink: vi.fn(),
     syncConnectionState: signal<'connected' | 'connecting' | 'disconnected'>('connected'),
     syncPeerInfos: signal<Array<{ deviceId: string; deviceLabel: string; browserLabel: string }>>(
       [],
@@ -42,7 +42,6 @@ describe('QuizSyncComponent', () => {
     mockStore.syncShareError.set(null);
     mockStore.librarySharingMode.set('local');
     mockStore.syncRoomId.set('sync-room-12345678');
-    mockStore.hasRotationCapability.mockReturnValue(false);
     mockStore.buildSyncShareLink.mockImplementation(
       (roomId: string) => `${window.location.origin}/quiz/sync/${roomId}`,
     );
@@ -204,5 +203,24 @@ describe('QuizSyncComponent', () => {
       'button.quiz-sync__link-copy',
     ) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
+  });
+
+  it('bietet bestehenden Legacy-Origins einen expliziten abgesicherten neuen Link an', async () => {
+    mockStore.librarySharingMode.set('shared');
+    mockStore.syncShareStatus.set('legacy');
+    mockStore.createSecuredSyncShareLink.mockResolvedValue(
+      `${window.location.origin}/quiz/sync/00000000-0000-4000-8000-000000000999?s=v1.token`,
+    );
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      'button.quiz-sync__secure',
+    ) as HTMLButtonElement;
+    expect(button.textContent).toContain('Neuen abgesicherten Sync-Link erstellen');
+    button.click();
+    await fixture.whenStable();
+
+    expect(mockStore.createSecuredSyncShareLink).toHaveBeenCalledOnce();
   });
 });

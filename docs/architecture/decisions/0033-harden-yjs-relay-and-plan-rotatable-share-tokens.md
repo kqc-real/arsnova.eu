@@ -79,6 +79,11 @@ ein. Das Zielbild ist:
 7. Tokens dürfen nicht in normalen App-/Proxy-Logs erscheinen. Transportformat,
    Nginx-Logging und Fehlertelemetrie müssen vor Implementierung gemeinsam
    festgelegt und getestet werden.
+8. Die Migration auf Tokens darf keine First-Writer-Besitzübernahme alter
+   UUID-Räume ermöglichen. Das Backend erzeugt beim Absichern deshalb stets
+   eine neue Raum-UUID; bestehende Legacy-Origins rekeyen ihre lokale Sammlung
+   über eine explizite Aktion. UUID-only-Upgrades persistieren keinen
+   „gesehen“-Zustand.
 
 Slice B benötigt eigene Threat-Model-, Migrations-, Recovery- und
 Browser-Smoke-Abnahme. Dieses ADR autorisiert keine implizite Tokenprüfung und
