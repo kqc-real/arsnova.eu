@@ -89,6 +89,8 @@ function runArtillery() {
       ARTILLERY_ARRIVAL_RATE: String(ARRIVAL_RATE),
       ARTILLERY_MAX_VUS: String(PARTICIPANTS),
       ARTILLERY_RESULTS_WAIT_MS: String(RESULTS_WAIT_MS),
+      // Early VUs must outlive the join ramp; host reveal starts only after joins stabilize.
+      ARTILLERY_RESULTS_PHASE_TIMEOUT_MS: String(RAMP_SECONDS * 1_000 + RESULTS_WAIT_MS),
       ARTILLERY_RESULTS_READY_FILE: RESULTS_READY_FILE,
       ARTILLERY_REVEAL_TIMESTAMP_FILE: REVEAL_TIMESTAMP_FILE,
     };
