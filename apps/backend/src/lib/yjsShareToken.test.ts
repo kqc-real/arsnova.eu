@@ -107,7 +107,7 @@ describe('yjsShareToken', () => {
         roomId: `quiz-library-room-${registered.roomId}`,
         shareToken: registered.shareToken,
       }),
-    ).resolves.toEqual({ ok: true });
+    ).resolves.toEqual({ ok: true, generation: 1 });
 
     const rotated = await rotateYjsShare({
       roomId: registered.roomId,
@@ -127,7 +127,7 @@ describe('yjsShareToken', () => {
         roomId: `quiz-library-room-${registered.roomId}`,
         shareToken: rotated.shareToken,
       }),
-    ).resolves.toEqual({ ok: true });
+    ).resolves.toEqual({ ok: true, generation: 2 });
   });
 
   it('rotiert parallel atomar auf steigende Generationen', async () => {
@@ -185,7 +185,7 @@ describe('yjsShareToken', () => {
         shareToken: null,
         now: new Date('2098-12-31T00:00:00.000Z'),
       }),
-    ).resolves.toEqual({ ok: true });
+    ).resolves.toEqual({ ok: true, generation: null });
     expect(redisMock.eval).not.toHaveBeenCalled();
     expect(redisHashes.size).toBe(0);
     expect(redisExpiryIndex.size).toBe(0);

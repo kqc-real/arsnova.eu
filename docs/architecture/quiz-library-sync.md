@@ -244,7 +244,11 @@ Bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` bleibt UUID-only als Grace erlaubt. Der Re
 aber nur noch kanonische `quiz-library-room-<UUID>`-Pfade an und begrenzt
 Payload, Verbindungen, Upgrades und Nachrichtenrate. UUID-only-Upgrades erzeugen
 keine Redis-Keys. Das Absichern einer Sammlung verwendet immer eine neue,
-serverseitig erzeugte Raum-UUID.
+serverseitig erzeugte Raum-UUID. Jede Relay-Verbindung hält die beim Upgrade
+geprüfte Generation; eine Rotation terminiert ältere Verbindungen sofort. Beim
+App-Reload wird ein persistierter Token vor dem Provider-Aufbau geladen. Wird
+für denselben Raum ein Ersatz-Token importiert, bleibt Y.Doc/IndexedDB erhalten,
+aber der WebSocket-Provider wird mit den neuen Query-Parametern neu aufgebaut.
 
 ## 7. Datenfluss bei lokalen Änderungen
 

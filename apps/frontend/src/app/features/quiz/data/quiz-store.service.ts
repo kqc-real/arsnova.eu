@@ -942,6 +942,10 @@ export class QuizStoreService implements OnDestroy {
     this.librarySharingMode.set(this.resolveInitialLibrarySharingMode());
     this.syncRoomId.set(roomId);
     this.loadSyncMetadata(roomId);
+    this.loadShareSecrets(roomId);
+    if (this.librarySharingMode() === 'shared') {
+      this.syncShareStatus.set(this.syncShareToken() ? 'ready' : 'legacy');
+    }
     this.loadFromStorage(roomId, !this.hasStoredSyncRoomId);
     this.ensureDemoQuiz();
     void this.initYjsPersistence(roomId);
@@ -1932,6 +1936,8 @@ export class QuizStoreService implements OnDestroy {
       throw new Error($localize`Ungültige Sync-ID.`);
     }
     const shouldSecureAsOrigin = options?.secureAsOrigin === true;
+    const sameRoom = this.syncRoomId() === normalizedRoomId;
+    const previousShareToken = sameRoom ? this.syncShareToken() : null;
     this.pendingSecureAsOrigin = shouldSecureAsOrigin;
     this.syncShareError.set(null);
     if (options?.markShared) {
@@ -1940,6 +1946,9 @@ export class QuizStoreService implements OnDestroy {
     if (options?.shareToken) {
       this.persistShareToken(normalizedRoomId, options.shareToken);
       this.syncShareStatus.set('ready');
+      if (sameRoom && previousShareToken !== options.shareToken) {
+        this.teardownYjsProvider();
+      }
     } else {
       this.loadShareSecrets(normalizedRoomId);
       if (this.syncShareToken()) {
@@ -1950,7 +1959,7 @@ export class QuizStoreService implements OnDestroy {
         this.syncShareStatus.set('legacy');
       }
     }
-    if (this.syncRoomId() === normalizedRoomId) {
+    if (sameRoom) {
       if (shouldSecureAsOrigin) {
         this.recordSyncOriginIfMissing();
       }
@@ -2055,8 +2064,8 @@ export class QuizStoreService implements OnDestroy {
       this.persistShareToken(roomId, result.shareToken);
       this.syncShareStatus.set('ready');
       this.syncShareError.set(null);
-      this.teardownYjs();
-      void this.initYjsPersistence(roomId);
+      this.teardownYjsProvider();
+      await this.attachYjsWebSocketProviderIfNeeded(this.yjsInitGeneration, roomId);
       return this.buildSyncShareLink(roomId);
     } catch (error) {
       this.syncShareStatus.set('error');
@@ -2253,19 +2262,26 @@ export class QuizStoreService implements OnDestroy {
     } catch {
       // Best effort cleanup.
     }
+    this.teardownYjsProvider();
+    this.yPersistence?.destroy();
+    this.yDoc?.destroy();
+    this.yPersistence = null;
+    this.yRoot = null;
+    this.yDoc = null;
+    this.syncPeerInfos.set([]);
+  }
+
+  /** Trennt nur den Relay-Provider; Y.Doc und IndexedDB bleiben erhalten. */
+  private teardownYjsProvider(): void {
     try {
       this.yProvider?.awareness.off('change', this.onAwarenessChanged);
     } catch {
       // Best effort cleanup.
     }
     this.yProvider?.destroy();
-    this.yPersistence?.destroy();
-    this.yDoc?.destroy();
     this.yProvider = null;
-    this.yPersistence = null;
-    this.yRoot = null;
-    this.yDoc = null;
     this.syncPeerInfos.set([]);
+    this.syncConnectionState.set('disconnected');
   }
 
   private canUseYjsSetupResult(generation: number, roomId: string): boolean {

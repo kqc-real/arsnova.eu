@@ -1177,6 +1177,44 @@ describe('QuizStoreService', () => {
     expect(service.librarySharingMode()).toBe('shared');
   });
 
+  it('lädt persistierten Share-Token vor der Yjs-Initialisierung beim Reload', () => {
+    const roomId = '00000000-0000-4000-8000-000000000321';
+    const shareToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+    localStorage.setItem('quiz-sync-room-id', roomId);
+    localStorage.setItem('quiz-library-sharing-mode', 'shared');
+    localStorage.setItem(`quiz-sync-share-token:${roomId}`, shareToken);
+
+    const service = TestBed.inject(QuizStoreService);
+
+    expect(service.syncRoomId()).toBe(roomId);
+    expect(service.syncShareToken()).toBe(shareToken);
+    expect(service.syncShareStatus()).toBe('ready');
+  });
+
+  it('zerstört den vorhandenen Provider beim Import eines Ersatz-Tokens im selben Raum', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const oldToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+    const nextToken = `v1.${roomId}.2.${'b'.repeat(43)}`;
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: oldToken });
+    const destroy = vi.fn();
+    const awarenessOff = vi.fn();
+    (
+      service as unknown as {
+        yProvider: { awareness: { off: typeof awarenessOff }; destroy: typeof destroy } | null;
+      }
+    ).yProvider = {
+      awareness: { off: awarenessOff },
+      destroy,
+    };
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: nextToken });
+
+    expect(awarenessOff).toHaveBeenCalled();
+    expect(destroy).toHaveBeenCalledOnce();
+    expect(service.syncShareToken()).toBe(nextToken);
+  });
+
   it('merkt sich die ursprüngliche Freigabequelle nur einmalig', () => {
     const service = TestBed.inject(QuizStoreService);
 

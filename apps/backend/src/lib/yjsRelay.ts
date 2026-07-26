@@ -15,7 +15,7 @@ import {
   recordYjsWebSocketRateLimitedMessage,
   recordYjsWebSocketRejectedUpgrade,
 } from './websocketTelemetry';
-import { authorizeYjsRoomUpgrade, YJS_SHARE_QUERY_PARAM } from './yjsShareToken';
+import { authorizeYjsRoomUpgrade, onYjsShareRotated, YJS_SHARE_QUERY_PARAM } from './yjsShareToken';
 import { logger } from './logger';
 
 const ROOM_PATH_PATTERN =
@@ -492,14 +492,19 @@ export class YjsRelayServer {
   private readonly roomOutboundWindows = new Map<string, FixedWindowByteBudget>();
   private readonly documentReservations = new Map<string, DocumentReservation>();
   private readonly roomConnections = new Map<string, number>();
+  private readonly roomConnectionGenerations = new Map<string, Map<WebSocket, number | null>>();
   private readonly roomAwarenessOwners = new Map<string, Map<number, WebSocket>>();
   /** Bekannte bzw. kürzlich getrennte Awareness-IDs je Raum (für Null-Removals). */
   private readonly roomKnownAwarenessIds = new Map<string, Set<number>>();
   private readonly roomExactCompactionWindows = new Map<string, FixedWindowCounter>();
   private connectionsActive = 0;
   private documentBytesReserved = 0;
+  private readonly unsubscribeShareRotation: () => void;
 
   constructor(private readonly config: YjsRelayConfig) {
+    this.unsubscribeShareRotation = onYjsShareRotated(({ roomId, generation }) => {
+      this.revokeOlderRoomConnections(`quiz-library-room-${roomId}`, generation);
+    });
     this.webSocketServer = new WebSocketServer({
       noServer: true,
       maxPayload: config.maxPayloadBytes,
@@ -526,6 +531,7 @@ export class YjsRelayServer {
   }
 
   async close(): Promise<void> {
+    this.unsubscribeShareRotation();
     for (const client of this.webSocketServer.clients) client.terminate();
     await new Promise<void>((resolve, reject) => {
       this.webSocketServer.close(() => {
@@ -584,13 +590,21 @@ export class YjsRelayServer {
     }
 
     this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
-      this.attachConnection(webSocket, request, room);
+      this.attachConnection(webSocket, request, room, authorized.generation);
     });
   }
 
-  private attachConnection(webSocket: WebSocket, request: IncomingMessage, room: string): void {
+  private attachConnection(
+    webSocket: WebSocket,
+    request: IncomingMessage,
+    room: string,
+    generation: number | null,
+  ): void {
     this.connectionsActive += 1;
     this.roomConnections.set(room, (this.roomConnections.get(room) ?? 0) + 1);
+    const generations = this.roomConnectionGenerations.get(room) ?? new Map();
+    generations.set(webSocket, generation);
+    this.roomConnectionGenerations.set(room, generations);
     recordYjsWebSocketConnected(room);
 
     const connectionMessageWindow = new FixedWindowMessageBudget();
@@ -816,6 +830,9 @@ export class YjsRelayServer {
       const remaining = Math.max(0, (this.roomConnections.get(room) ?? 0) - 1);
       if (remaining === 0) this.roomConnections.delete(room);
       else this.roomConnections.set(room, remaining);
+      const generations = this.roomConnectionGenerations.get(room);
+      generations?.delete(webSocket);
+      if (generations?.size === 0) this.roomConnectionGenerations.delete(room);
       recordYjsWebSocketDisconnected(room);
 
       const roomAwarenessOwners = this.roomAwarenessOwners.get(room);
@@ -860,6 +877,17 @@ export class YjsRelayServer {
         docs.delete(room);
       }
     });
+  }
+
+  /** Rotation widerruft bestehende ältere/Legacy-Verbindungen sofort. */
+  private revokeOlderRoomConnections(room: string, generation: number): void {
+    const connections = this.roomConnectionGenerations.get(room);
+    if (!connections) return;
+    for (const [webSocket, connectedGeneration] of connections) {
+      if (connectedGeneration === null || connectedGeneration < generation) {
+        webSocket.terminate();
+      }
+    }
   }
 
   private maxKnownAwarenessIdsPerRoom(): number {

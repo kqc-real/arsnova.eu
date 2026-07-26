@@ -17,7 +17,22 @@ vi.mock('../redis', () => ({
       redisStrings.set(key, value);
       return 'OK';
     }),
-    eval: vi.fn(async () => [0, 'NOT_REGISTERED']),
+    eval: vi.fn(async (script: string, ...args: unknown[]) => {
+      if (!script.includes('nextGeneration')) return [0, 'NOT_REGISTERED'];
+      const key = String(args[1]);
+      const capabilityHash = String(args[3]);
+      const current = redisHashes.get(key);
+      if (!current?.generation || !current.rotationCapabilityHash) {
+        return [0, 'NOT_REGISTERED'];
+      }
+      if (current.rotationCapabilityHash !== capabilityHash) {
+        return [0, 'CAPABILITY_MISMATCH'];
+      }
+      const generation = Number(current.generation) + 1;
+      current.generation = String(generation);
+      redisHashes.set(key, current);
+      return [1, 'OK', generation];
+    }),
   }),
 }));
 
@@ -31,6 +46,12 @@ import {
   getWebSocketTelemetrySnapshot,
   resetWebSocketTelemetryForTests,
 } from './websocketTelemetry';
+import {
+  createYjsRotationCapability,
+  hashYjsRotationCapability,
+  rotateYjsShare,
+  signYjsShareToken,
+} from './yjsShareToken';
 
 const ROOM_A = 'quiz-library-room-6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const ROOM_B = 'quiz-library-room-7b9fedde-6a90-4dfb-a287-565bda0681be';
@@ -328,6 +349,51 @@ describe('YjsRelayServer', () => {
       second.destroy();
       firstDoc.destroy();
       secondDoc.destroy();
+    }
+  });
+
+  it('trennt alte Generationen bei Rotation und isoliert nachfolgende Updates', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: hashYjsRotationCapability(capability),
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    const baseUrl = await startRelay();
+    const WebSocketPolyfill = WebSocket as unknown as typeof globalThis.WebSocket;
+    const oldDoc = new Y.Doc();
+    const newDoc = new Y.Doc();
+    const oldProvider = new WebsocketProvider(baseUrl, ROOM_A, oldDoc, {
+      WebSocketPolyfill,
+      params: { s: oldToken },
+      disableBc: true,
+    });
+    let newProvider: WebsocketProvider | null = null;
+
+    try {
+      await waitForCondition(() => oldProvider.wsconnected);
+      const rotated = await rotateYjsShare({ roomId: roomUuid, rotationCapability: capability });
+      await waitForCondition(() => !oldProvider.wsconnected);
+
+      newProvider = new WebsocketProvider(baseUrl, ROOM_A, newDoc, {
+        WebSocketPolyfill,
+        params: { s: rotated.shareToken },
+        disableBc: true,
+      });
+      await waitForCondition(() => newProvider?.wsconnected === true);
+
+      oldDoc.getMap('rotation-test').set('old-only', 'alt');
+      newDoc.getMap('rotation-test').set('new-only', 'neu');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(newDoc.getMap('rotation-test').get('old-only')).toBeUndefined();
+      expect(oldDoc.getMap('rotation-test').get('new-only')).toBeUndefined();
+    } finally {
+      oldProvider.destroy();
+      newProvider?.destroy();
+      oldDoc.destroy();
+      newDoc.destroy();
     }
   });
 

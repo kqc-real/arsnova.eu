@@ -72,6 +72,23 @@ export type YjsShareMetadata = {
   rotationCapabilityHash: string;
 };
 
+export type YjsShareRotationEvent = {
+  roomId: string;
+  generation: number;
+};
+
+const rotationListeners = new Set<(event: YjsShareRotationEvent) => void>();
+
+/** Prozesslokaler Bus: Router und Yjs-Relay laufen im selben Backend-Prozess. */
+export function onYjsShareRotated(listener: (event: YjsShareRotationEvent) => void): () => void {
+  rotationListeners.add(listener);
+  return () => rotationListeners.delete(listener);
+}
+
+function notifyYjsShareRotated(event: YjsShareRotationEvent): void {
+  for (const listener of rotationListeners) listener(event);
+}
+
 function base64Url(buffer: Buffer): string {
   return buffer.toString('base64url');
 }
@@ -283,6 +300,7 @@ export async function rotateYjsShare(input: {
     throw new Error(result?.[1] ?? 'UNKNOWN');
   }
   const generation = Number(result[2]);
+  notifyYjsShareRotated({ roomId, generation });
   return {
     shareToken: signYjsShareToken(roomId, generation),
     generation,
@@ -300,7 +318,7 @@ export async function authorizeYjsRoomUpgrade(input: {
   now?: Date;
   env?: NodeJS.ProcessEnv;
 }): Promise<
-  | { ok: true }
+  | { ok: true; generation: number | null }
   | {
       ok: false;
       reason: 'legacy_cutoff' | 'token_required' | 'invalid_token' | 'stale_generation';
@@ -321,7 +339,7 @@ export async function authorizeYjsRoomUpgrade(input: {
     if (metadata) {
       return { ok: false, reason: 'token_required' };
     }
-    return { ok: true };
+    return { ok: true, generation: null };
   }
 
   const verified = verifyYjsShareTokenSignature(input.shareToken, env);
@@ -336,5 +354,5 @@ export async function authorizeYjsRoomUpgrade(input: {
   if (verified.generation !== metadata.generation) {
     return { ok: false, reason: 'stale_generation' };
   }
-  return { ok: true };
+  return { ok: true, generation: verified.generation };
 }

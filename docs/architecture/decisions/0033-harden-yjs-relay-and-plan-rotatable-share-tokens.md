@@ -69,7 +69,9 @@ ein. Das Zielbild ist:
 4. Die Rotations-Capability wird clientseitig erzeugt und nur auf dem
    Ursprungsgerät gehalten. Eine manuelle Rotation erhöht die Generation und
    gibt einen neuen Share-Token aus; ältere Generationen werden beim nächsten
-   Relay-Upgrade abgewiesen.
+   Relay-Upgrade abgewiesen. Bereits verbundene Clients halten ihre beim
+   Upgrade geprüfte Generation; der Relay terminiert sie bei einer Rotation,
+   bevor der neue Token ausgegeben wird.
 5. Bereits lokal gespeicherte Quizze bleiben bei ungültigem oder rotiertem Token
    offline verfügbar. Nur der erneute Netz-Sync endet, bis ein neuer Link
    importiert wird.
