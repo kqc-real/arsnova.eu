@@ -30,5 +30,5 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadOnlyPaths=/etc/arsnova-backup /home/deploy/arsnova.eu /usr/local/sbin/arsnova-backup.sh /usr/local/sbin/arsnova-restic.sh
-ReadWritePaths=/var/lib/arsnova-backup /var/cache/arsnova-restic
+ReadWritePaths=/run/lock /var/lib/arsnova-backup /var/cache/arsnova-restic
 TimeoutStartSec=2h

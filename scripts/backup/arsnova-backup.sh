@@ -35,19 +35,18 @@ set +a
 
 APP_DIR="${ARSNOVA_APP_DIR:-/home/deploy/arsnova.eu}"
 POSTGRES_CONTAINER="${ARSNOVA_POSTGRES_CONTAINER:-arsnova-v3-postgres}"
-STAGING_ROOT="${ARSNOVA_BACKUP_STAGING_DIR:-/var/lib/arsnova-backup}"
+STAGING_ROOT="/var/lib/arsnova-backup"
 KEEP_DAILY="${ARSNOVA_BACKUP_KEEP_DAILY:-14}"
 BACKUP_HOST="${RESTIC_HOST:-arsnova-production}"
-SUCCESS_MARKER="${ARSNOVA_BACKUP_SUCCESS_MARKER:-$STAGING_ROOT/last-success}"
+SUCCESS_MARKER="$STAGING_ROOT/last-success"
 RUN_DIR="$STAGING_ROOT/current"
 LOCK_FILE="$STAGING_ROOT/backup.lock"
-REPOSITORY_LOCK_FILE="${ARSNOVA_RESTIC_LOCAL_LOCK_FILE:-/run/lock/arsnova-restic.lock}"
+REPOSITORY_LOCK_FILE="/run/lock/arsnova-restic.lock"
 REPOSITORY_LOCK_WAIT_SECONDS="${ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS:-1800}"
 
 [[ "$KEEP_DAILY" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_BACKUP_KEEP_DAILY muss eine positive Ganzzahl sein."
 [[ "$REPOSITORY_LOCK_WAIT_SECONDS" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS muss eine positive Ganzzahl sein."
 [[ "$STAGING_ROOT" == /* && "$STAGING_ROOT" != "/" ]] || fail "Ungültiges Staging-Verzeichnis: $STAGING_ROOT"
-[[ "$REPOSITORY_LOCK_FILE" == /* ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_FILE muss ein absoluter Pfad sein."
 [[ -f "$APP_DIR/.env.production" ]] || fail ".env.production fehlt unter $APP_DIR."
 
 for command_name in docker flock install sha256sum; do

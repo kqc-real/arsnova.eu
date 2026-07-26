@@ -33,20 +33,19 @@ set -a
 source "$CONFIG_FILE"
 set +a
 
-RESTORE_ROOT="${ARSNOVA_RESTORE_STAGING_DIR:-/var/lib/arsnova-restore-check}"
+RESTORE_ROOT="/var/lib/arsnova-restore-check"
 BACKUP_HOST="${RESTIC_HOST:-arsnova-production}"
 POSTGRES_IMAGE="${ARSNOVA_RESTORE_POSTGRES_IMAGE:-postgres:16-alpine}"
 POSTGRES_TMPFS_SIZE="${ARSNOVA_RESTORE_POSTGRES_TMPFS_SIZE:-1g}"
-SUCCESS_MARKER="${ARSNOVA_RESTORE_SUCCESS_MARKER:-$RESTORE_ROOT/last-success}"
+SUCCESS_MARKER="$RESTORE_ROOT/last-success"
 RESTORE_TARGET="$RESTORE_ROOT/current"
 LOCK_FILE="$RESTORE_ROOT/restore.lock"
 CONTAINER_NAME="arsnova-restore-check-$$"
-REPOSITORY_LOCK_FILE="${ARSNOVA_RESTIC_LOCAL_LOCK_FILE:-/run/lock/arsnova-restic.lock}"
+REPOSITORY_LOCK_FILE="/run/lock/arsnova-restic.lock"
 REPOSITORY_LOCK_WAIT_SECONDS="${ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS:-1800}"
 
 [[ "$RESTORE_ROOT" == /* && "$RESTORE_ROOT" != "/" ]] || fail "Ungültiges Restore-Verzeichnis: $RESTORE_ROOT"
 [[ "$REPOSITORY_LOCK_WAIT_SECONDS" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS muss eine positive Ganzzahl sein."
-[[ "$REPOSITORY_LOCK_FILE" == /* ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_FILE muss ein absoluter Pfad sein."
 
 for command_name in docker find flock install sha256sum; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Benötigtes Kommando fehlt: $command_name"

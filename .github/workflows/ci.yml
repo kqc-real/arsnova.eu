@@ -153,6 +153,28 @@ jobs:
             /var/cache/arsnova-restic
           sudo systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
           systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 05:15:00'
+          sudo install -o root -g root -m 0644 deploy/systemd/*.service /etc/systemd/system/
+          sudo install -o root -g root -m 0700 -d \
+            /etc/systemd/system/arsnova-backup.service.d \
+            /etc/systemd/system/arsnova-restore-check.service.d \
+            /home/deploy/arsnova.eu
+          printf '%s\n' \
+            '#!/usr/bin/env bash' \
+            'set -euo pipefail' \
+            'exec 8>/run/lock/arsnova-restic.lock' \
+            'flock -n 8' \
+            | sudo tee /usr/local/sbin/arsnova-systemd-lock-smoke.sh >/dev/null
+          sudo chmod 0750 /usr/local/sbin/arsnova-systemd-lock-smoke.sh
+          printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-systemd-lock-smoke.sh\n' \
+            | sudo tee /etc/systemd/system/arsnova-backup.service.d/smoke.conf >/dev/null
+          printf '[Service]\nExecStart=\nExecStart=/usr/local/sbin/arsnova-systemd-lock-smoke.sh\n' \
+            | sudo tee /etc/systemd/system/arsnova-restore-check.service.d/smoke.conf >/dev/null
+          sudo touch /etc/arsnova-backup/backup.env
+          sudo chown root:root /etc/arsnova-backup/backup.env
+          sudo chmod 0600 /etc/arsnova-backup/backup.env
+          sudo systemctl daemon-reload
+          sudo systemctl start arsnova-backup.service
+          sudo systemctl start arsnova-restore-check.service
           restore_fixture="$(mktemp -d)"
           installed_env="$(mktemp)"
           trap 'sudo rm -rf "$restore_fixture"; rm -f "$installed_env"' EXIT
@@ -161,7 +183,7 @@ jobs:
           sudo install -o root -g root -m 0700 -d "$restore_fixture/snapshot/config"
           printf 'NODE_ENV=production\n' | sudo tee "$restore_fixture/snapshot/config/env.production" >/dev/null
           printf 'custom-dump\n' | sudo tee "$restore_fixture/snapshot/postgres.dump" >/dev/null
-          if cat "$restore_fixture/snapshot/postgres.dump" >/dev/null 2>&1; then
+          if sudo -u nobody cat "$restore_fixture/snapshot/postgres.dump" >/dev/null 2>&1; then
             echo "Root-only Restore-Fixture ist ungeschützt." >&2
             exit 1
           fi

@@ -47,6 +47,13 @@ bereitgestellte Restic-Version diese Option noch nicht unterstützt. Das
 Repository hat genau einen schreibenden Host; dessen Prozesse werden durch den
 gemeinsamen lokalen Lock vollständig serialisiert.
 
+Die schreibenden Pfade `/var/lib/arsnova-backup`,
+`/var/lib/arsnova-restore-check`, `/var/cache/arsnova-restic` und
+`/run/lock/arsnova-restic.lock` sind absichtlich fest vorgegeben und mit den
+`ReadWritePaths` der systemd-Sandbox gekoppelt. Sie dürfen nicht allein über
+`backup.env` verschoben werden. Eine Pfadänderung erfordert immer gleichzeitig
+angepasste Units und einen erneuten gehärteten Unit-Laufzeittest.
+
 ## Storage Box vorbereiten
 
 1. Einen separaten Subaccount ausschließlich für
