@@ -83,11 +83,27 @@ async function openSyncPage(page) {
   await page.waitForFunction(() => /\/quiz\/sync\//.test(location.pathname), null, {
     timeout: 30_000,
   });
-  await page.waitForTimeout(1_200);
-  const url = page.url();
+  const copyButton = page.locator('button.quiz-sync__link-copy');
+  await copyButton.waitFor({ state: 'visible', timeout: 30_000 });
+  await page.waitForFunction(
+    () => {
+      const button = document.querySelector('button.quiz-sync__link-copy');
+      return button instanceof HTMLButtonElement && !button.disabled;
+    },
+    null,
+    { timeout: 30_000 },
+  );
+  await page
+    .context()
+    .grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(APP_URL).origin });
+  await copyButton.click();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
   const roomId = url.match(/\/quiz\/sync\/([^/?#]+)/)?.[1] ?? null;
   if (!roomId) {
     throw new Error(`Sync-ID konnte aus der URL nicht gelesen werden: ${url}`);
+  }
+  if (!new URLSearchParams(new URL(url).hash.slice(1)).get('s')) {
+    throw new Error(`Abgesicherter Sync-Link enthält keinen Share-Token: ${url}`);
   }
   return { url, roomId };
 }
