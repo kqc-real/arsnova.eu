@@ -7,64 +7,69 @@ set -euo pipefail
   exit 1
 }
 
+[[ -f /.dockerenv && "${ARSNOVA_BACKUP_TEST_CONTAINER:-}" == "1" ]] || {
+  echo "Abbruch: Dieser destruktive Test darf nur im vorgesehenen Wegwerf-Container laufen." >&2
+  exit 1
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WRAPPER="$SCRIPT_DIR/arsnova-restic.sh"
-TEST_USER="arsnova_restic_test"
-TEST_HOME="/home/$TEST_USER"
-SSHD_PID_FILE="/run/arsnova-restic-test-sshd.pid"
+TEST_ROOT="$(mktemp -d)"
+SSHD_PID_FILE="$TEST_ROOT/sshd.pid"
 
 cleanup() {
   if [[ -f "$SSHD_PID_FILE" ]]; then
     kill "$(cat "$SSHD_PID_FILE")" >/dev/null 2>&1 || true
   fi
+  rm -rf -- "$TEST_ROOT"
 }
 trap cleanup EXIT
 
-for command_name in restic ssh sshd ssh-keygen useradd; do
+for command_name in restic ssh sshd ssh-keygen; do
   command -v "$command_name" >/dev/null 2>&1 || {
     echo "Benötigtes Testkommando fehlt: $command_name" >&2
     exit 1
   }
 done
 
-useradd -m -s /bin/bash "$TEST_USER"
-echo "$TEST_USER:test-password" | chpasswd
-install -d -o "$TEST_USER" -g "$TEST_USER" -m 0700 "$TEST_HOME/.ssh"
+ssh-keygen -q -t ed25519 -N "" -f "$TEST_ROOT/client-key"
+install -m 0600 "$TEST_ROOT/client-key.pub" "$TEST_ROOT/authorized_keys"
+ssh-keygen -q -t ed25519 -N "" -f "$TEST_ROOT/sshd-host-key"
 
-ssh-keygen -q -t ed25519 -N "" -f /tmp/arsnova-restic-client-key
-install -o "$TEST_USER" -g "$TEST_USER" -m 0600 \
-  /tmp/arsnova-restic-client-key.pub \
-  "$TEST_HOME/.ssh/authorized_keys"
-
-ssh-keygen -A >/dev/null
 install -d -m 0755 /run/sshd
-/usr/sbin/sshd -p 2222 -o "PidFile=$SSHD_PID_FILE"
+/usr/sbin/sshd \
+  -p 2222 \
+  -h "$TEST_ROOT/sshd-host-key" \
+  -o "PidFile=$SSHD_PID_FILE" \
+  -o PermitRootLogin=yes \
+  -o PasswordAuthentication=no \
+  -o "AuthorizedKeysFile=$TEST_ROOT/authorized_keys" \
+  -o StrictModes=no
 
-install -d -m 0700 /etc/arsnova-backup
-cat >/etc/arsnova-backup/ssh_config <<'EOF'
+cat >"$TEST_ROOT/ssh_config" <<EOF
 Host arsnova-storagebox
   HostName 127.0.0.1
-  User arsnova_restic_test
+  User root
   Port 2222
-  IdentityFile /tmp/arsnova-restic-client-key
+  IdentityFile $TEST_ROOT/client-key
   IdentitiesOnly yes
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 EOF
 
-cat >/etc/arsnova-backup/backup.env <<'EOF'
-RESTIC_REPOSITORY=sftp:arsnova-storagebox:restic-repository
-RESTIC_PASSWORD_FILE=/etc/arsnova-backup/restic-password
-ARSNOVA_BACKUP_SSH_CONFIG=/etc/arsnova-backup/ssh_config
+cat >"$TEST_ROOT/backup.env" <<EOF
+RESTIC_REPOSITORY=sftp:arsnova-storagebox:$TEST_ROOT/restic-repository
+RESTIC_PASSWORD_FILE=$TEST_ROOT/restic-password
+ARSNOVA_BACKUP_SSH_CONFIG=$TEST_ROOT/ssh_config
 EOF
 
-printf 'integration-password\n' >/etc/arsnova-backup/restic-password
-chmod 0600 /etc/arsnova-backup/backup.env
-chmod 0600 /etc/arsnova-backup/restic-password
-chmod 0600 /etc/arsnova-backup/ssh_config
+printf 'integration-password\n' >"$TEST_ROOT/restic-password"
+chmod 0600 "$TEST_ROOT/backup.env"
+chmod 0600 "$TEST_ROOT/restic-password"
+chmod 0600 "$TEST_ROOT/ssh_config"
 
-ARSNOVA_BACKUP_CONFIG=/etc/arsnova-backup/backup.env "$WRAPPER" init >/dev/null
-ARSNOVA_BACKUP_CONFIG=/etc/arsnova-backup/backup.env "$WRAPPER" snapshots --json |
+ARSNOVA_BACKUP_CONFIG="$TEST_ROOT/backup.env" "$WRAPPER" init >/dev/null
+ARSNOVA_BACKUP_CONFIG="$TEST_ROOT/backup.env" "$WRAPPER" snapshots --json |
   grep -Eq '^\[\]$'
 
-test -f "$TEST_HOME/restic-repository/config"
+test -f "$TEST_ROOT/restic-repository/config"

@@ -147,6 +147,7 @@ jobs:
           bash -n scripts/backup/tests/*.sh
           shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh
           docker run --rm \
+            -e ARSNOVA_BACKUP_TEST_CONTAINER=1 \
             -v "$PWD:/repo:ro" \
             debian:12-slim \
             bash -c 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq restic openssh-client openssh-server >/dev/null && /repo/scripts/backup/tests/restic-sftp-integration.sh'
