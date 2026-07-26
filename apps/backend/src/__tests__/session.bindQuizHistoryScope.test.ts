@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createLegacyQuizHistoryAccessProof,
   createQuizHistoryAccessProof,
@@ -88,6 +88,10 @@ describe('session.bindQuizHistoryScope', () => {
     prismaMock.quiz.updateMany.mockResolvedValue({ count: 1 });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('bindet legacy-quizkopien mit gleichem namen an die stabile quiz-id', async () => {
     prismaMock.quiz.findUnique.mockResolvedValue(buildStoredQuiz());
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
@@ -109,6 +113,7 @@ describe('session.bindQuizHistoryScope', () => {
   });
 
   it('gibt bestehenden stabilen scope zurueck, auch wenn noch ein legacy-proof uebergeben wird', async () => {
+    vi.stubEnv('QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
     prismaMock.quiz.findUnique.mockResolvedValue(
       buildStoredQuiz({ historyScopeId: HISTORY_SCOPE_ID }),
     );
@@ -122,5 +127,32 @@ describe('session.bindQuizHistoryScope', () => {
 
     expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
     expect(result).toEqual({ accessProof: HISTORY_SCOPE_ID });
+  });
+
+  it('lehnt legacy-proof auf gebundenen kopien nach cutoff ab', async () => {
+    const { TRPCError } = await import('@trpc/server');
+    vi.stubEnv('QUIZ_HISTORY_LEGACY_PROOF_CUTOFF_AT', '2020-01-01T00:00:00.000Z');
+    prismaMock.quiz.findUnique.mockResolvedValue(
+      buildStoredQuiz({ historyScopeId: HISTORY_SCOPE_ID }),
+    );
+    const accessProof = await createLegacyQuizHistoryAccessProof(QUIZ_INPUT);
+
+    await expect(
+      caller.bindQuizHistoryScope({
+        quizId: QUIZ_ID,
+        accessProof,
+        historyScopeId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      }),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    await expect(
+      caller.bindQuizHistoryScope({
+        quizId: QUIZ_ID,
+        accessProof,
+        historyScopeId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      }),
+    ).rejects.toBeInstanceOf(TRPCError);
+    expect(prismaMock.quiz.updateMany).not.toHaveBeenCalled();
   });
 });

@@ -1197,10 +1197,12 @@ export class QuizListComponent implements OnInit {
     const legacyAccessProof = await this.resolveLegacyQuizHistoryAccessProof(quiz);
     if (quiz.lastServerQuizId && legacyAccessProof) {
       const reboundAccessProof = await this.bindLegacyQuizHistoryScope(quiz, legacyAccessProof);
+      // Nach Bind akzeptieren Historien-Endpunkte keinen Content-Hash mehr.
+      // Ohne erfolgreiche UUID-Migration keinen stillen Legacy-Fallback.
       if (reboundAccessProof) {
         return reboundAccessProof;
       }
-      return legacyAccessProof;
+      return null;
     }
 
     if (quiz.lastServerQuizAccessProof) {
