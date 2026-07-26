@@ -156,6 +156,8 @@ jobs:
           restore_fixture="$(mktemp -d)"
           installed_env="$(mktemp)"
           trap 'sudo rm -rf "$restore_fixture"; rm -f "$installed_env"' EXIT
+          sudo chown root:root "$restore_fixture"
+          sudo chmod 0700 "$restore_fixture"
           sudo install -o root -g root -m 0700 -d "$restore_fixture/snapshot/config"
           printf 'NODE_ENV=production\n' | sudo tee "$restore_fixture/snapshot/config/env.production" >/dev/null
           printf 'custom-dump\n' | sudo tee "$restore_fixture/snapshot/postgres.dump" >/dev/null
