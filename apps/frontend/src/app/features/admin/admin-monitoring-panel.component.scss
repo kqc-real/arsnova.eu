@@ -161,6 +161,12 @@
   padding-top: 0.75rem;
 }
 
+.monitoring-grid mat-card-header {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .monitoring-card__title-row {
   display: flex;
   align-items: flex-start;
