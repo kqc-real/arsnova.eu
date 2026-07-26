@@ -216,7 +216,7 @@ jobs:
           sudo systemctl start arsnova-monitor.service
           sudo test -d /var/lib/arsnova-monitoring
           sudo journalctl -u arsnova-monitor.service --since '-1 minute' --no-pager \
-            | rg '"activeLevel": "ok"'
+            | python3 -c 'import sys; assert "\"activeLevel\": \"ok\"" in sys.stdin.read()'
           kill "$monitor_fixture_pid"
           wait "$monitor_fixture_pid" 2>/dev/null || true
           trap - EXIT
