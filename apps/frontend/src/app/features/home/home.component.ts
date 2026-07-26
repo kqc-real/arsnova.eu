@@ -1011,7 +1011,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         /(?:^|\/)(?:(?:de|en|fr|it|es)\/)?quiz\/sync\/([a-zA-Z0-9_-]{8,128})$/i,
       );
       if (pathMatch?.[1]) {
-        const shareToken = asUrl.searchParams.get('s');
+        const fragmentParams = new URLSearchParams(asUrl.hash.replace(/^#/, ''));
+        const shareToken = fragmentParams.get('s') ?? asUrl.searchParams.get('s');
         return {
           docId: pathMatch[1],
           shareToken: shareToken && shareToken.trim().length > 0 ? shareToken.trim() : null,
@@ -1031,6 +1032,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (queryIndex >= 0) {
       try {
         shareToken = new URLSearchParams(trimmed.slice(queryIndex)).get('s');
+      } catch {
+        shareToken = null;
+      }
+    }
+    const fragmentIndex = trimmed.indexOf('#');
+    if (!shareToken && fragmentIndex >= 0) {
+      try {
+        shareToken = new URLSearchParams(trimmed.slice(fragmentIndex + 1)).get('s');
       } catch {
         shareToken = null;
       }

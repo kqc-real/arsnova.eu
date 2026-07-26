@@ -7746,7 +7746,7 @@
         <target>Datos del cuestionario no válidos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">991</context>
+          <context context-type="linenumber">1013</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2901330476904339699" datatype="html">
@@ -7754,7 +7754,7 @@
         <target>Metadatos del cuestionario no válidos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1026</context>
+          <context context-type="linenumber">1048</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizStore.uploadNeedsActiveQuestion" datatype="html">
@@ -7762,7 +7762,7 @@
         <target>Es necesaria al menos una pregunta activa para el inicio en vivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1339</context>
+          <context context-type="linenumber">1361</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3802010542028113857" datatype="html">
@@ -7770,7 +7770,7 @@
         <target>Datos de prueba no válidos para el inicio en vivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1437</context>
+          <context context-type="linenumber">1459</context>
         </context-group>
       </trans-unit>
       <trans-unit id="98653809044312890" datatype="html">
@@ -7778,15 +7778,15 @@
         <target>Archivo de importación no válido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1454</context>
+          <context context-type="linenumber">1476</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1467</context>
+          <context context-type="linenumber">1489</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1479</context>
+          <context context-type="linenumber">1501</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7659357251880978274" datatype="html">
@@ -7794,7 +7794,7 @@
         <target>ID de sincronización no válido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1932</context>
+          <context context-type="linenumber">1954</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2494091707087550472" datatype="html">
@@ -7802,7 +7802,7 @@
         <target>El enlace de sincronización solo se puede crear en el navegador.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1991</context>
+          <context context-type="linenumber">2034</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2131879080472045913" datatype="html">
@@ -7810,7 +7810,7 @@
         <target>No se pudo crear el enlace de sincronización segura.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2013</context>
+          <context context-type="linenumber">2056</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4558032115971134336" datatype="html">
@@ -7818,7 +7818,7 @@
         <target>El enlace de sincronización no se puede invalidar para esta colección.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2038</context>
+          <context context-type="linenumber">2081</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9182794756914972903" datatype="html">
@@ -7826,7 +7826,7 @@
         <target>El enlace de sincronización aún no está listo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2041</context>
+          <context context-type="linenumber">2084</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4363224716062944377" datatype="html">
@@ -7834,7 +7834,7 @@
         <target>Sólo el dispositivo que creó el enlace de sincronización puede invalidarlo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2046</context>
+          <context context-type="linenumber">2089</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5192293521473365783" datatype="html">
@@ -7842,7 +7842,23 @@
         <target>El enlace de sincronización no se pudo invalidar.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2066</context>
+          <context context-type="linenumber">2109</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2756001557720038090" datatype="html">
+        <source>Ungültiger Sync-Share-Token wurde ignoriert.</source>
+        <target>Se ignoró el token compartido de sincronización no válido.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">2709</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8868891700529845294" datatype="html">
+        <source>Ein älterer Sync-Link wurde ignoriert.</source>
+        <target>Se ignoró un enlace de sincronización anterior.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">2721</context>
         </context-group>
       </trans-unit>
       <trans-unit id="345322272033479836" datatype="html">
@@ -7850,7 +7866,7 @@
         <target>Configuración de prueba no válida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2845</context>
+          <context context-type="linenumber">2944</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5143514353984065697" datatype="html">
@@ -7858,7 +7874,7 @@
         <target>Pregunta no válida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">2957</context>
+          <context context-type="linenumber">3056</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5893501665486949127" datatype="html">
@@ -12554,7 +12570,7 @@
         <target>Enlace de sync copiado.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">101</context>
+          <context context-type="linenumber">102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateConfirm" datatype="html">
@@ -12562,7 +12578,7 @@
         <target>¿Invalidar el enlace de sincronización anterior? Luego, otros dispositivos necesitarán el nuevo enlace. Los cuestionarios guardados localmente se conservan.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">111</context>
+          <context context-type="linenumber">112</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateDone" datatype="html">
@@ -12570,7 +12586,7 @@
         <target>El enlace de sincronización anterior no es válido. El nuevo enlace ha sido copiado.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">122</context>
+          <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.invalidateFailed" datatype="html">
@@ -12578,7 +12594,7 @@
         <target>El enlace de sincronización no se pudo invalidar.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.secureLinkDone" datatype="html">
@@ -12586,7 +12602,7 @@
         <target>El nuevo enlace de sincronización segura está listo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.secureLinkFailed" datatype="html">
@@ -12594,7 +12610,7 @@
         <target>No se pudo crear el enlace de sincronización segura.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">148</context>
+          <context context-type="linenumber">149</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2298576743619897022" datatype="html">
@@ -12602,7 +12618,7 @@
         <target>API del portapapeles no disponible.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.copyFailed" datatype="html">
@@ -12610,7 +12626,7 @@
         <target>No se pudo copiar. Selecciona y copia manualmente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPage.newTitle" datatype="html">

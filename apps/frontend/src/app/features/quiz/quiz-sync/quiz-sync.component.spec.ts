@@ -57,6 +57,7 @@ describe('QuizSyncComponent', () => {
             snapshot: {
               paramMap: convertToParamMap({ docId: 'sync-room-12345678' }),
               queryParamMap: convertToParamMap({}),
+              fragment: null,
             },
           },
         },
@@ -99,6 +100,7 @@ describe('QuizSyncComponent', () => {
             snapshot: {
               paramMap: convertToParamMap({ docId: '6a8edced-5f8f-4cfa-9176-454fac9570ad' }),
               queryParamMap: convertToParamMap({}),
+              fragment: null,
             },
           },
         },
@@ -119,7 +121,7 @@ describe('QuizSyncComponent', () => {
     );
   });
 
-  it('importiert Share-Token ohne Origin-Registrierung und entfernt s aus der URL', async () => {
+  it('importiert Share-Token aus dem Fragment und entfernt s aus der URL', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [QuizSyncComponent],
@@ -130,7 +132,8 @@ describe('QuizSyncComponent', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ docId: '6a8edced-5f8f-4cfa-9176-454fac9570ad' }),
-              queryParamMap: convertToParamMap({ s: 'v1.token' }),
+              queryParamMap: convertToParamMap({}),
+              fragment: 's=v1.token',
             },
           },
         },
@@ -155,6 +158,7 @@ describe('QuizSyncComponent', () => {
       [],
       expect.objectContaining({
         queryParams: { s: null },
+        fragment: '',
         replaceUrl: true,
       }),
     );
@@ -209,7 +213,7 @@ describe('QuizSyncComponent', () => {
     mockStore.librarySharingMode.set('shared');
     mockStore.syncShareStatus.set('legacy');
     mockStore.createSecuredSyncShareLink.mockResolvedValue(
-      `${window.location.origin}/quiz/sync/00000000-0000-4000-8000-000000000999?s=v1.token`,
+      `${window.location.origin}/quiz/sync/00000000-0000-4000-8000-000000000999#s=v1.token`,
     );
     const fixture = TestBed.createComponent(QuizSyncComponent);
     fixture.detectChanges();

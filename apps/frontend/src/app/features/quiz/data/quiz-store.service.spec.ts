@@ -44,6 +44,7 @@ describe('QuizStoreService', () => {
   };
 
   beforeEach(() => {
+    createShareMutateMock.mockReset();
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
@@ -1215,6 +1216,95 @@ describe('QuizStoreService', () => {
     expect(service.syncShareToken()).toBe(nextToken);
   });
 
+  it('ignoriert importierte Tokens mit älterer Generation', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const currentToken = `v1.${roomId}.2.${'b'.repeat(43)}`;
+    const staleToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: currentToken });
+    (
+      service as unknown as {
+        confirmPendingImportedShareToken: (roomId: string, token: string) => void;
+      }
+    ).confirmPendingImportedShareToken(roomId, currentToken);
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: staleToken });
+
+    expect(service.syncShareToken()).toBe(currentToken);
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(currentToken);
+    expect(service.syncShareError()).toContain('älterer Sync-Link');
+  });
+
+  it('persistiert einen importierten Token erst nach erfolgreichem WebSocket-Sync', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const importedToken = `v1.${roomId}.3.${'c'.repeat(43)}`;
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+
+    expect(service.syncShareToken()).toBe(importedToken);
+    expect(service.syncShareStatus()).toBe('pending');
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBeNull();
+
+    (
+      service as unknown as {
+        confirmPendingImportedShareToken: (roomId: string, token: string) => void;
+      }
+    ).confirmPendingImportedShareToken(roomId, importedToken);
+
+    expect(service.syncShareStatus()).toBe('ready');
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
+  });
+
+  it('setzt einen manipulierten Import bei Verbindungsfehler auf den letzten Token zurück', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const trustedToken = `v1.${roomId}.2.${'b'.repeat(43)}`;
+    const forgedToken = `v1.${roomId}.999.${'c'.repeat(43)}`;
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: trustedToken });
+    (
+      service as unknown as {
+        confirmPendingImportedShareToken: (roomId: string, token: string) => void;
+        rejectPendingImportedShareToken: (roomId: string, token: string) => void;
+      }
+    ).confirmPendingImportedShareToken(roomId, trustedToken);
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: forgedToken });
+    (
+      service as unknown as {
+        rejectPendingImportedShareToken: (roomId: string, token: string) => void;
+      }
+    ).rejectPendingImportedShareToken(roomId, forgedToken);
+
+    expect(service.syncShareToken()).toBe(trustedToken);
+    expect(service.syncShareStatus()).toBe('ready');
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(trustedToken);
+  });
+
+  it('übernimmt eine Rotation aus einem anderen Tab generationsmonoton', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const oldToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+    const nextToken = `v1.${roomId}.2.${'b'.repeat(43)}`;
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: oldToken });
+    const destroy = vi.fn();
+    (
+      service as unknown as {
+        yProvider: { awareness: { off: ReturnType<typeof vi.fn> }; destroy: typeof destroy } | null;
+      }
+    ).yProvider = { awareness: { off: vi.fn() }, destroy };
+
+    globalThis.dispatchEvent(
+      new StorageEvent('storage', {
+        key: `quiz-sync-share-token:${roomId}`,
+        newValue: nextToken,
+      }),
+    );
+
+    expect(service.syncShareToken()).toBe(nextToken);
+    expect(destroy).toHaveBeenCalledOnce();
+  });
+
   it('merkt sich die ursprüngliche Freigabequelle nur einmalig', () => {
     const service = TestBed.inject(QuizStoreService);
 
@@ -1250,7 +1340,31 @@ describe('QuizStoreService', () => {
     expect(service.syncRoomId()).toBe(newRoomId);
     expect(service.syncShareStatus()).toBe('ready');
     expect(service.quizzes().some((quiz) => quiz.name === 'Legacy-Sammlung')).toBe(true);
-    expect(link).toContain(`/quiz/sync/${newRoomId}?s=`);
+    expect(link).toContain(`/quiz/sync/${newRoomId}#s=`);
+  });
+
+  it('verwendet bei paralleler Absicherung dasselbe In-flight-Promise', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    const newRoomId = '00000000-0000-4000-8000-000000000778';
+    let resolveCreate:
+      ((value: { roomId: string; shareToken: string; generation: number }) => void) | undefined;
+    createShareMutateMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCreate = resolve;
+      }),
+    );
+
+    const first = service.createSecuredSyncShareLink();
+    const second = service.createSecuredSyncShareLink();
+
+    expect(first).toBe(second);
+    expect(createShareMutateMock).toHaveBeenCalledOnce();
+    resolveCreate?.({
+      roomId: newRoomId,
+      shareToken: `v1.${newRoomId}.1.${'c'.repeat(43)}`,
+      generation: 1,
+    });
+    await expect(first).resolves.toContain(`/quiz/sync/${newRoomId}#s=`);
   });
 
   it('kann eine geteilte Bibliothek wieder entlinken und lokal weiterführen', () => {

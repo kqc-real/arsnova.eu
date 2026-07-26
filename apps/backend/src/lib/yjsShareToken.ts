@@ -16,6 +16,7 @@ export const YJS_SHARE_GLOBAL_KEY_HARD_CAP = 100_000;
 
 const ROOM_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ROTATION_CAPABILITY_RE = /^[a-f0-9]{64}$/i;
+const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
 const TOKEN_RE =
   /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([1-9][0-9]{0,9})\.([A-Za-z0-9_-]{43})$/i;
 
@@ -152,12 +153,16 @@ export function createYjsRotationCapability(): string {
 }
 
 export function getYjsShareLegacyUuidCutoffAt(env: NodeJS.ProcessEnv = process.env): Date {
-  const raw = env.YJS_SHARE_LEGACY_UUID_CUTOFF_AT?.trim();
-  if (raw) {
-    const parsed = Date.parse(raw);
-    if (Number.isFinite(parsed)) return new Date(parsed);
+  const configured = env.YJS_SHARE_LEGACY_UUID_CUTOFF_AT;
+  if (configured === undefined) {
+    return new Date(DEFAULT_YJS_SHARE_LEGACY_UUID_CUTOFF_AT);
   }
-  return new Date(DEFAULT_YJS_SHARE_LEGACY_UUID_CUTOFF_AT);
+  const raw = configured.trim();
+  const parsed = Date.parse(raw);
+  if (!ISO_INSTANT_RE.test(raw) || !Number.isFinite(parsed)) {
+    throw new Error('YJS_SHARE_LEGACY_UUID_CUTOFF_AT muss ein gültiger ISO-8601-Zeitpunkt sein.');
+  }
+  return new Date(parsed);
 }
 
 export function isYjsShareLegacyUuidCutoffReached(

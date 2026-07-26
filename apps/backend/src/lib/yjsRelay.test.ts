@@ -6,10 +6,13 @@ import * as Y from 'yjs';
 
 const redisHashes = new Map<string, Record<string, string>>();
 const redisStrings = new Map<string, string>();
+const redisMocks = vi.hoisted(() => ({
+  hgetall: vi.fn(),
+}));
 
 vi.mock('../redis', () => ({
   getRedis: () => ({
-    hgetall: vi.fn(async (key: string) => ({ ...(redisHashes.get(key) ?? {}) })),
+    hgetall: redisMocks.hgetall,
     expire: vi.fn(async () => 1),
     set: vi.fn(async (key: string, value: string, ...rest: unknown[]) => {
       const nx = rest.includes('NX');
@@ -52,6 +55,7 @@ import {
   rotateYjsShare,
   signYjsShareToken,
 } from './yjsShareToken';
+import { logger } from './logger';
 
 const ROOM_A = 'quiz-library-room-6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const ROOM_B = 'quiz-library-room-7b9fedde-6a90-4dfb-a287-565bda0681be';
@@ -61,6 +65,10 @@ const sockets: WebSocket[] = [];
 beforeEach(() => {
   redisHashes.clear();
   redisStrings.clear();
+  redisMocks.hgetall.mockReset();
+  redisMocks.hgetall.mockImplementation(async (key: string) => ({
+    ...(redisHashes.get(key) ?? {}),
+  }));
   resetWebSocketTelemetryForTests();
   vi.stubEnv('YJS_SHARE_TOKEN_SECRET', 'test-yjs-share-secret-at-least-32-bytes!!');
   vi.stubEnv('YJS_SHARE_LEGACY_UUID_CUTOFF_AT', '2099-01-01T00:00:00.000Z');
@@ -295,6 +303,26 @@ describe('YjsRelayServer', () => {
     expect(accepted.readyState).toBe(WebSocket.OPEN);
   });
 
+  it('aggregiert wiederholte Warnungen für abgewiesene Token-Upgrades', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const baseUrl = await startRelay();
+    redisHashes.set('yjs:share:v1:6a8edced-5f8f-4cfa-9176-454fac9570ad', {
+      generation: '1',
+      rotationCapabilityHash: 'a'.repeat(64),
+    });
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=not-a-valid-token`, 400);
+    }
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith('[security] yjs_share_upgrade_rejected', {
+      reason: 'invalid_token',
+      suppressedSinceLastLog: 0,
+    });
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(5);
+  });
+
   it('begrenzt Verbindungen global und pro Raum ohne IP-Buckets', async () => {
     const baseUrl = await startRelay({ maxConnections: 2, maxConnectionsPerRoom: 1 });
     await connect(`${baseUrl}/${ROOM_A}`);
@@ -395,6 +423,36 @@ describe('YjsRelayServer', () => {
       oldDoc.destroy();
       newDoc.destroy();
     }
+  });
+
+  it('weist ein während der Autorisierung rotiertes Token vor dem Attach ab', async () => {
+    const roomUuid = ROOM_A.replace('quiz-library-room-', '');
+    const capability = createYjsRotationCapability();
+    const capabilityHash = hashYjsRotationCapability(capability);
+    redisHashes.set(`yjs:share:v1:${roomUuid}`, {
+      generation: '1',
+      rotationCapabilityHash: capabilityHash,
+    });
+    const oldToken = signYjsShareToken(roomUuid, 1);
+    let resolveStaleRead: ((value: Record<string, string>) => void) | undefined;
+    redisMocks.hgetall.mockImplementationOnce(
+      () =>
+        new Promise<Record<string, string>>((resolve) => {
+          resolveStaleRead = resolve;
+        }),
+    );
+    const baseUrl = await startRelay();
+
+    const rejected = expectUpgradeRejected(`${baseUrl}/${ROOM_A}?s=${oldToken}`, 400);
+    await vi.waitFor(() => expect(resolveStaleRead).toBeTypeOf('function'));
+    await rotateYjsShare({ roomId: roomUuid, rotationCapability: capability });
+    resolveStaleRead?.({
+      generation: '1',
+      rotationCapabilityHash: capabilityHash,
+    });
+
+    await rejected;
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(1);
   });
 
   it('erlaubt JSON-null Awareness-Removals nur für zuvor bekannte IDs', async () => {

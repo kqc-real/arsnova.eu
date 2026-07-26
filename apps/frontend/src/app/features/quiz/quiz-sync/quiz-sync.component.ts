@@ -59,7 +59,8 @@ export class QuizSyncComponent {
 
   constructor() {
     try {
-      const shareToken = this.route.snapshot.queryParamMap.get('s');
+      const fragmentToken = new URLSearchParams(this.route.snapshot.fragment ?? '').get('s');
+      const shareToken = fragmentToken ?? this.route.snapshot.queryParamMap.get('s');
       const previousRoomId = this.quizStore.syncRoomId();
       const ownLocalLibrary =
         !shareToken &&
@@ -77,6 +78,7 @@ export class QuizSyncComponent {
           relativeTo: this.route,
           queryParams: { s: null },
           queryParamsHandling: 'merge',
+          fragment: '',
           replaceUrl: true,
         });
       }

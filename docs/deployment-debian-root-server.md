@@ -388,6 +388,12 @@ server {
 
     # Yjs WebSocket (Quiz-Sync zwischen Geräten) → Port 3002
     location /yjs-ws {
+        # Der WebSocket-Handshake trägt den Share-Token technisch als ?s=.
+        # Nginx-error_log ist nicht formatier-/redigierbar und kann bei
+        # Upstream-Fehlern die komplette Request-Zeile ausgeben. Deshalb für
+        # genau diesen sensitiven Pfad deaktivieren; Relay-Metriken und
+        # aggregierte Security-Logs bleiben die Diagnosequelle.
+        error_log /dev/null crit;
         proxy_pass http://app_ws_yjs/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -400,6 +406,13 @@ server {
     }
 }
 ```
+
+Neu erzeugte Browser-Share-Links transportieren den Token zusätzlich im
+URL-Fragment (`#s=…`), das bei HTTP-Anfragen nie an Nginx übertragen wird.
+Bestehende Query-Links bleiben importierbar und werden anschließend aus der
+Browser-URL entfernt. Für den technisch erforderlichen `?s=`-Parameter des
+WebSocket-Handshakes verhindert das lokale `error_log /dev/null crit`, dass
+Nginx den Token in Fehlerzeilen schreibt.
 
 `/csp-report` läuft durch denselben HTTP-Proxy. Nginx
 überschreibt dabei externe `X-Forwarded-For`-Werte; mit

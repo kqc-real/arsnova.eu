@@ -22,6 +22,7 @@ const ROOM_PATH_PATTERN =
   /^\/quiz-library-room-([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 const UPGRADE_WINDOW_MS = 60_000;
 const MESSAGE_WINDOW_MS = 10_000;
+const AUTH_REJECTION_LOG_INTERVAL_MS = 10_000;
 const MIB = 1024 * 1024;
 /** Obere Schranke für teure Exact-Compactions je Raum und 10-Sekunden-Fenster. */
 const MAX_EXACT_COMPACTIONS_PER_ROOM_PER_WINDOW = 30;
@@ -493,17 +494,27 @@ export class YjsRelayServer {
   private readonly documentReservations = new Map<string, DocumentReservation>();
   private readonly roomConnections = new Map<string, number>();
   private readonly roomConnectionGenerations = new Map<string, Map<WebSocket, number | null>>();
+  private readonly roomMinimumGenerations = new Map<string, number>();
   private readonly roomAwarenessOwners = new Map<string, Map<number, WebSocket>>();
   /** Bekannte bzw. kürzlich getrennte Awareness-IDs je Raum (für Null-Removals). */
   private readonly roomKnownAwarenessIds = new Map<string, Set<number>>();
   private readonly roomExactCompactionWindows = new Map<string, FixedWindowCounter>();
+  private readonly authRejectionLogStates = new Map<
+    string,
+    { lastLoggedAtMs: number; suppressedSinceLastLog: number }
+  >();
   private connectionsActive = 0;
   private documentBytesReserved = 0;
   private readonly unsubscribeShareRotation: () => void;
 
   constructor(private readonly config: YjsRelayConfig) {
     this.unsubscribeShareRotation = onYjsShareRotated(({ roomId, generation }) => {
-      this.revokeOlderRoomConnections(`quiz-library-room-${roomId}`, generation);
+      const room = `quiz-library-room-${roomId}`;
+      this.roomMinimumGenerations.set(
+        room,
+        Math.max(generation, this.roomMinimumGenerations.get(room) ?? 0),
+      );
+      this.revokeOlderRoomConnections(room, generation);
     });
     this.webSocketServer = new WebSocketServer({
       noServer: true,
@@ -562,12 +573,12 @@ export class YjsRelayServer {
     try {
       authorized = await authorizeYjsRoomUpgrade({ roomId: room, shareToken });
     } catch {
-      logger.warn('[security] yjs_share_authorize_failed', { reason: 'redis_or_internal' });
+      this.logAuthorizationRejection('yjs_share_authorize_failed', 'redis_or_internal', now);
       rejectUpgrade(socket, 503);
       return;
     }
     if (!authorized.ok) {
-      logger.warn('[security] yjs_share_upgrade_rejected', { reason: authorized.reason });
+      this.logAuthorizationRejection('yjs_share_upgrade_rejected', authorized.reason, now);
       rejectUpgrade(socket, 400);
       return;
     }
@@ -589,8 +600,56 @@ export class YjsRelayServer {
       return;
     }
 
+    // Zweite Prüfung direkt vor dem synchronen Upgrade-Attach: Während der
+    // Limits/Cap-Prüfungen kann eine Rotation die erste Autorisierung veralten.
+    try {
+      authorized = await authorizeYjsRoomUpgrade({ roomId: room, shareToken });
+    } catch {
+      this.logAuthorizationRejection('yjs_share_authorize_failed', 'redis_or_internal', Date.now());
+      rejectUpgrade(socket, 503);
+      return;
+    }
+    if (!authorized.ok || !this.isObservedGenerationCurrent(room, authorized.generation)) {
+      this.logAuthorizationRejection(
+        'yjs_share_upgrade_rejected',
+        authorized.ok ? 'stale_generation' : authorized.reason,
+        Date.now(),
+      );
+      rejectUpgrade(socket, 400);
+      return;
+    }
+
     this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
+      // Schließt auch das enge Fenster, falls das lokale Rotationsereignis
+      // unmittelbar vor diesem Callback verarbeitet wurde.
+      if (!this.isObservedGenerationCurrent(room, authorized.generation)) {
+        recordYjsWebSocketRejectedUpgrade();
+        webSocket.terminate();
+        return;
+      }
       this.attachConnection(webSocket, request, room, authorized.generation);
+    });
+  }
+
+  private isObservedGenerationCurrent(room: string, generation: number | null): boolean {
+    const minimum = this.roomMinimumGenerations.get(room);
+    return minimum === undefined || (generation !== null && generation >= minimum);
+  }
+
+  private logAuthorizationRejection(event: string, reason: string, nowMs: number): void {
+    const key = `${event}:${reason}`;
+    const previous = this.authRejectionLogStates.get(key);
+    if (previous && nowMs - previous.lastLoggedAtMs < AUTH_REJECTION_LOG_INTERVAL_MS) {
+      previous.suppressedSinceLastLog += 1;
+      return;
+    }
+    logger.warn(`[security] ${event}`, {
+      reason,
+      suppressedSinceLastLog: previous?.suppressedSinceLastLog ?? 0,
+    });
+    this.authRejectionLogStates.set(key, {
+      lastLoggedAtMs: nowMs,
+      suppressedSinceLastLog: 0,
     });
   }
 

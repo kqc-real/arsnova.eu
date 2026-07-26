@@ -909,6 +909,24 @@ describe('HomeComponent', () => {
       expect(comp.syncLinkError()).toBeNull();
     });
 
+    it('liest Share-Tokens aus einem serverunsichtbaren URL-Fragment', async () => {
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const quizStore = TestBed.inject(QuizStoreService);
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const roomId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+      const token = `v1.${roomId}.2.${'a'.repeat(43)}`;
+
+      comp.syncLinkValue.set(`https://arsnova.eu/quiz/sync/${roomId}#s=${token}`);
+      await comp.openSyncLink();
+
+      expect(activateSpy).toHaveBeenCalledWith(roomId, {
+        markShared: true,
+        shareToken: token,
+      });
+    });
+
     it('zeigt einen Fehler bei ungueltigem Sync-Link', async () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);

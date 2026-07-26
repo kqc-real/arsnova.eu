@@ -475,6 +475,17 @@ jobs:
     needs: [changes, build]
     if: github.event_name != 'schedule'
 
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Docs-only fast pass
         if: needs.changes.outputs.docs_only == 'true'
@@ -502,6 +513,15 @@ jobs:
       - name: Run tests with coverage gate
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run test:coverage
+
+      - name: Yjs share Redis 7 integration regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          REDIS_URL: redis://localhost:6379
+          RUN_REDIS_YJS_SHARE_TESTS: '1'
+          YJS_SHARE_TOKEN_SECRET: ci-yjs-share-secret-at-least-32-bytes
+        run: npx vitest run src/lib/yjsShareToken.redis.test.ts
 
       - name: Upload coverage reports
         if: always() && needs.changes.outputs.docs_only != 'true'

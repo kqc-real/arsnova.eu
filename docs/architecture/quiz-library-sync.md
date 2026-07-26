@@ -171,7 +171,7 @@ sequenceDiagram
         U->>Home: Sync-Link oder Sync-ID eingeben
         Home->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: false })
         Store->>Store: librarySharingMode = shared
-        Store->>Store: kein Origin-Claim; Token nur aus ?s=
+        Store->>Store: kein Origin-Claim; Token aus #s= (Legacy-Link: ?s=)
     end
 ```
 
@@ -239,7 +239,9 @@ Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktu
 anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
 im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
 
-Stand W3.4 autorisiert der Yjs-Relay Räume über signierte Share-Tokens (`?s=`).
+Stand W3.4 autorisiert der Yjs-Relay Räume über signierte Share-Tokens (`?s=` im
+WebSocket-Handshake). Geteilte Browser-Links tragen denselben Token in `#s=`,
+damit er nie Teil einer HTTP-Request-Zeile oder eines Nginx-Logs wird.
 Bis `YJS_SHARE_LEGACY_UUID_CUTOFF_AT` bleibt UUID-only als Grace erlaubt. Der Relay nimmt
 aber nur noch kanonische `quiz-library-room-<UUID>`-Pfade an und begrenzt
 Payload, Verbindungen, Upgrades und Nachrichtenrate. UUID-only-Upgrades erzeugen

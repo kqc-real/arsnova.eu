@@ -68,6 +68,7 @@ import {
   authorizeYjsRoomUpgrade,
   createYjsShare,
   createYjsRotationCapability,
+  getYjsShareLegacyUuidCutoffAt,
   resolveYjsShareSigningKey,
   rotateYjsShare,
   signYjsShareToken,
@@ -226,6 +227,15 @@ describe('yjsShareToken', () => {
     expect(() => assertYjsShareTokenSecretConfigured()).not.toThrow();
     const token = signYjsShareToken(ROOM, 1);
     expect(token.startsWith('v1.')).toBe(true);
+  });
+
+  it('bricht bei gesetztem, aber ungültigem Legacy-Cutoff ab', () => {
+    expect(() =>
+      getYjsShareLegacyUuidCutoffAt({
+        YJS_SHARE_LEGACY_UUID_CUTOFF_AT: '2026-99-kein-datum',
+      }),
+    ).toThrow(/YJS_SHARE_LEGACY_UUID_CUTOFF_AT/);
+    expect(getYjsShareLegacyUuidCutoffAt({}).toISOString()).toBe('2026-10-01T00:00:00.000Z');
   });
 
   it('loggt keine Capability im Token-String selbst bei Signaturfehlern', () => {
