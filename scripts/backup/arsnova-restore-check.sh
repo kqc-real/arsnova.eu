@@ -41,8 +41,12 @@ SUCCESS_MARKER="${ARSNOVA_RESTORE_SUCCESS_MARKER:-$RESTORE_ROOT/last-success}"
 RESTORE_TARGET="$RESTORE_ROOT/current"
 LOCK_FILE="$RESTORE_ROOT/restore.lock"
 CONTAINER_NAME="arsnova-restore-check-$$"
+REPOSITORY_LOCK_FILE="${ARSNOVA_RESTIC_LOCAL_LOCK_FILE:-/run/lock/arsnova-restic.lock}"
+REPOSITORY_LOCK_WAIT_SECONDS="${ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS:-1800}"
 
 [[ "$RESTORE_ROOT" == /* && "$RESTORE_ROOT" != "/" ]] || fail "Ungültiges Restore-Verzeichnis: $RESTORE_ROOT"
+[[ "$REPOSITORY_LOCK_WAIT_SECONDS" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS muss eine positive Ganzzahl sein."
+[[ "$REPOSITORY_LOCK_FILE" == /* ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_FILE muss ein absoluter Pfad sein."
 
 for command_name in docker find flock install sha256sum; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Benötigtes Kommando fehlt: $command_name"
@@ -51,6 +55,8 @@ done
 install -d -m 0700 "$RESTORE_ROOT"
 exec 9>"$LOCK_FILE"
 flock -n 9 || fail "Ein anderer Restore-Test läuft bereits."
+exec 8>"$REPOSITORY_LOCK_FILE"
+flock -w "$REPOSITORY_LOCK_WAIT_SECONDS" 8 || fail "Das Restic-Repository ist lokal noch durch einen anderen Job belegt."
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -69,6 +75,7 @@ ARSNOVA_BACKUP_CONFIG="$CONFIG_FILE" "$RESTIC_WRAPPER" restore latest \
   --host "$BACKUP_HOST" \
   --tag arsnova-production \
   --target "$RESTORE_TARGET"
+flock -u 8
 
 mapfile -d '' -t dump_files < <(find "$RESTORE_TARGET" -type f -name postgres.dump -print0)
 mapfile -d '' -t manifest_files < <(find "$RESTORE_TARGET" -type f -name manifest.txt -print0)

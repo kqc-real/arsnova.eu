@@ -152,7 +152,22 @@ jobs:
             /var/lib/arsnova-restore-check \
             /var/cache/arsnova-restic
           sudo systemd-analyze verify deploy/systemd/*.service deploy/systemd/*.timer
-          systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 04:30:00'
+          systemd-analyze calendar '*-*-* 02:30:00' 'Sun *-*-01..07 05:15:00'
+          restore_fixture="$(mktemp -d)"
+          installed_env="$(mktemp)"
+          trap 'sudo rm -rf "$restore_fixture"; rm -f "$installed_env"' EXIT
+          sudo install -o root -g root -m 0700 -d "$restore_fixture/snapshot/config"
+          printf 'NODE_ENV=production\n' | sudo tee "$restore_fixture/snapshot/config/env.production" >/dev/null
+          printf 'custom-dump\n' | sudo tee "$restore_fixture/snapshot/postgres.dump" >/dev/null
+          if cat "$restore_fixture/snapshot/postgres.dump" >/dev/null 2>&1; then
+            echo "Root-only Restore-Fixture ist ungeschützt." >&2
+            exit 1
+          fi
+          restored_env="$(sudo find "$restore_fixture" -type f -path '*/config/env.production' -print -quit)"
+          sudo install -o "$(id -u)" -g "$(id -g)" -m 0600 "$restored_env" "$installed_env"
+          test "$(stat -c '%u:%g:%a' "$installed_env")" = "$(id -u):$(id -g):600"
+          dump="$(sudo find "$restore_fixture" -type f -name postgres.dump -print -quit)"
+          sudo cat "$dump" | cmp - <(printf 'custom-dump\n')
 
   format:
     name: Changed Files Format

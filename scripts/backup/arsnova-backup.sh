@@ -41,9 +41,13 @@ BACKUP_HOST="${RESTIC_HOST:-arsnova-production}"
 SUCCESS_MARKER="${ARSNOVA_BACKUP_SUCCESS_MARKER:-$STAGING_ROOT/last-success}"
 RUN_DIR="$STAGING_ROOT/current"
 LOCK_FILE="$STAGING_ROOT/backup.lock"
+REPOSITORY_LOCK_FILE="${ARSNOVA_RESTIC_LOCAL_LOCK_FILE:-/run/lock/arsnova-restic.lock}"
+REPOSITORY_LOCK_WAIT_SECONDS="${ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS:-1800}"
 
 [[ "$KEEP_DAILY" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_BACKUP_KEEP_DAILY muss eine positive Ganzzahl sein."
+[[ "$REPOSITORY_LOCK_WAIT_SECONDS" =~ ^[1-9][0-9]*$ ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_WAIT_SECONDS muss eine positive Ganzzahl sein."
 [[ "$STAGING_ROOT" == /* && "$STAGING_ROOT" != "/" ]] || fail "Ungültiges Staging-Verzeichnis: $STAGING_ROOT"
+[[ "$REPOSITORY_LOCK_FILE" == /* ]] || fail "ARSNOVA_RESTIC_LOCAL_LOCK_FILE muss ein absoluter Pfad sein."
 [[ -f "$APP_DIR/.env.production" ]] || fail ".env.production fehlt unter $APP_DIR."
 
 for command_name in docker flock install sha256sum; do
@@ -85,6 +89,9 @@ postgres_version=$postgres_version
 postgres_dump_sha256=$dump_sha256
 scope=postgres-and-production-config
 EOF
+
+exec 8>"$REPOSITORY_LOCK_FILE"
+flock -w "$REPOSITORY_LOCK_WAIT_SECONDS" 8 || fail "Das Restic-Repository ist lokal noch durch einen anderen Job belegt."
 
 echo ">>> Übertrage Snapshot verschlüsselt in das Offsite-Repository …"
 ARSNOVA_BACKUP_CONFIG="$CONFIG_FILE" "$RESTIC_WRAPPER" backup "$RUN_DIR" \

@@ -2,7 +2,7 @@
 Description=Monthly arsnova.eu isolated offsite restore check
 
 [Timer]
-OnCalendar=Sun *-*-01..07 04:30:00
+OnCalendar=Sun *-*-01..07 05:15:00
 Persistent=true
 RandomizedDelaySec=30m
 Unit=arsnova-restore-check.service

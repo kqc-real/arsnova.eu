@@ -23,19 +23,29 @@ Nicht Bestandteil des Offsite-Backups:
 
 ## Verbindliche Betriebsziele
 
-| Ziel                   | Wert                                                              |
-| ---------------------- | ----------------------------------------------------------------- |
-| RPO                    | höchstens 24 Stunden plus maximal 15 Minuten Zufallsverzögerung   |
-| RTO                    | höchstens 4 Stunden ab bereitstehendem Ersatzhost                 |
-| Offsite-Retention      | 14 tägliche Restic-Snapshots                                      |
-| Backup-Lauf            | täglich 02:30 Uhr Serverzeit, `Persistent=true`                   |
-| Automatischer Restore  | monatlich in einem netzlosen temporären PostgreSQL-Container      |
-| Disaster-Recovery-Test | mindestens vierteljährlich zusätzlich auf einem frischen Testhost |
+| Ziel                   | Wert                                                               |
+| ---------------------- | ------------------------------------------------------------------ |
+| RPO                    | höchstens 24 Stunden plus maximal 15 Minuten Zufallsverzögerung    |
+| RTO                    | höchstens 4 Stunden ab bereitstehendem Ersatzhost                  |
+| Offsite-Retention      | 14 tägliche Restic-Snapshots                                       |
+| Backup-Lauf            | täglich 02:30 Uhr Serverzeit, `Persistent=true`                    |
+| Automatischer Restore  | erster Sonntag im Monat ab 05:15 Uhr, maximal 30 Minuten verzögert |
+| Disaster-Recovery-Test | mindestens vierteljährlich zusätzlich auf einem frischen Testhost  |
 
 Der monatliche Container-Test prüft Dump-Integrität, SHA-256, Wiederherstellung
 und Kerntabellen ohne Verbindung zum Produktions-PostgreSQL und ohne dessen
 Volume. Der vierteljährliche Test auf einem frischen Host belegt zusätzlich,
 dass weder Produktionshost noch dessen lokaler Cache benötigt werden.
+
+Backup und Restore verwenden zusätzlich zu ihren eigenen Reentrancy-Locks
+denselben lokalen Repository-Lock `/run/lock/arsnova-restic.lock`. Der Restore
+beginnt planmäßig frühestens 30 Minuten nach dem maximal zweistündigen
+Backup-Fenster. Damit greift kein zweiter lokaler Restic-Prozess während
+`backup`, `forget --prune`, `check` oder `restore` auf das Repository zu.
+`--retry-lock` wird bewusst nicht vorausgesetzt, da die von Debian 12
+bereitgestellte Restic-Version diese Option noch nicht unterstützt. Das
+Repository hat genau einen schreibenden Host; dessen Prozesse werden durch den
+gemeinsamen lokalen Lock vollständig serialisiert.
 
 ## Storage Box vorbereiten
 
@@ -190,19 +200,32 @@ als root aus.
      \( -name postgres.dump -o -path '*/config/env.production' \)
    ```
 
-5. Die wiederhergestellte `env.production` als
-   `/home/deploy/arsnova.eu/.env.production` mit Modus `0600` installieren.
-6. Nur PostgreSQL mit einem frischen Volume starten und den Custom-Dump
-   einspielen:
+5. Die wiederhergestellte `env.production` explizit als `deploy:deploy` mit
+   Modus `0600` installieren. `sudo install` liest dabei aus dem root-only
+   Restore-Ziel, ohne dieses für `deploy` zu öffnen:
 
    ```bash
+   RESTORED_ENV="$(sudo find /var/lib/arsnova-disaster-restore \
+     -type f -path '*/config/env.production' -print -quit)"
+   test -n "$RESTORED_ENV"
+   sudo install -o deploy -g deploy -m 0600 \
+     "$RESTORED_ENV" \
+     /home/deploy/arsnova.eu/.env.production
+   ```
+
+6. Nur PostgreSQL mit einem frischen Volume starten und den Custom-Dump
+   einspielen. `sudo cat` öffnet den Dump im root-only Restore-Ziel; mit
+   `pipefail` wird ein Lese- oder Restore-Fehler zuverlässig weitergegeben:
+
+   ```bash
+   set -euo pipefail
    cd /home/deploy/arsnova.eu
    COMPOSE=(docker compose -f docker-compose.prod.yml --env-file .env.production)
    DUMP="$(sudo find /var/lib/arsnova-disaster-restore -type f -name postgres.dump -print -quit)"
+   test -n "$DUMP"
    "${COMPOSE[@]}" up -d postgres
-   "${COMPOSE[@]}" exec -T postgres sh -eu -c \
-     'exec pg_restore --clean --if-exists --exit-on-error --no-owner --no-acl --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' \
-     <"$DUMP"
+   sudo cat "$DUMP" | "${COMPOSE[@]}" exec -T postgres sh -eu -c \
+     'exec pg_restore --clean --if-exists --exit-on-error --no-owner --no-acl --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"'
    ```
 
 7. Migrationen und reguläres Deployment ausführen, Healthchecks prüfen und
