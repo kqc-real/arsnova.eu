@@ -3094,22 +3094,6 @@
           <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringActiveRooms" datatype="html">
-        <source>Aktive Räume</source>
-        <target>Stanze attive</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">145</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringProtocolErrors" datatype="html">
-        <source>Protokollfehler</source>
-        <target>Errori di protocollo</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">153</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="admin.monitoringJsonSummary" datatype="html">
         <source>Vollständige JSON-Daten anzeigen</source>
         <target>Mostra i dati JSON completi</target>
@@ -3157,6 +3141,74 @@
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">101</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringOverallStatus" datatype="html">
+        <source> Gesamtzustand </source>
+        <target> Stato generale </target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringInfrastructureTitle" datatype="html">
+        <source>Infrastruktur</source>
+        <target>Infrastruttura</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringReadiness" datatype="html">
+        <source> Aktuelle Readiness </source>
+        <target> Disponibilità attuale </target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringAwarenessRejected" datatype="html">
+        <source>Abgelehnte Awareness-Updates</source>
+        <target>Aggiornamenti Awareness rifiutati</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelCritical" datatype="html">
+        <source>Kritisch</source>
+        <target>Critico</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelWarning" datatype="html">
+        <source>Warnung</source>
+        <target>Avviso</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelOk" datatype="html">
+        <source>Alles in Ordnung</source>
+        <target>Tutto in ordine</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCriticalHelp" datatype="html">
+        <source>Mindestens ein Wert erfordert sofortige Prüfung.</source>
+        <target>Almeno un valore richiede una verifica immediata.</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringWarningHelp" datatype="html">
+        <source>Mindestens ein Wert liegt über der Warnschwelle.</source>
+        <target>Almeno un valore supera la soglia di avviso.</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringOkHelp" datatype="html">
+        <source>Alle überwachten Werte liegen unter ihren Warnschwellen.</source>
+        <target>Tutti i valori monitorati sono inferiori alle rispettive soglie di avviso.</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringThresholds" datatype="html">
+        <source>Warnung ab <x id="warning" equiv-text="warning"/>, kritisch ab <x id="critical" equiv-text="critical"/></source>
+        <target>Avviso da <x id="warning" equiv-text="warning"/>, critico da <x id="critical" equiv-text="critical"/></target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSecurityTitle" datatype="html">
+        <source>CSP und Abwehrsignale</source>
+        <target>CSP e segnali di difesa</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCode429" datatype="html">
+        <source>Session-Code-429</source>
+        <target>Errori 429 dei codici sessione</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspDropped" datatype="html">
+        <source>Verworfene CSP-Reports</source>
+        <target>Rapporti CSP scartati</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspRateLimited" datatype="html">
+        <source>Rate-limitierte CSP-Reports</source>
+        <target>Rapporti CSP limitati</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspEval" datatype="html">
+        <source>CSP-eval-Meldungen</source>
+        <target>Rapporti CSP eval</target>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspScriptHttps" datatype="html">
+        <source>Externe CSP-Script-Meldungen</source>
+        <target>Rapporti CSP di script esterni</target>
       </trans-unit>
       <trans-unit id="admin.motd.title" datatype="html">
         <source>Startseiten-Meldungen</source>

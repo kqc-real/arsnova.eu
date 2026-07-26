@@ -90,8 +90,41 @@ describe('AdminMonitoringPanelComponent', () => {
 
     expect(trpc.admin.monitoringStats.query).toHaveBeenCalledOnce();
     expect(fixture.nativeElement.textContent).toContain('Live-Monitoring');
+    expect(fixture.nativeElement.textContent).toContain('Gesamtzustand');
+    expect(fixture.nativeElement.textContent).toContain('Alles in Ordnung');
+    expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
+    expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
+    expect(fixture.nativeElement.textContent).toContain('PostgreSQL');
     expect(fixture.nativeElement.textContent).toContain('Vollständige JSON-Daten anzeigen');
     expect(fixture.componentInstance.formattedJson()).toContain('"sessionCreatesLastMinute": 3');
+
+    fixture.destroy();
+  });
+
+  it('priorisiert kritische Werte und zeigt Warnungen unterhalb der kritischen Schwelle', () => {
+    const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
+    const warningStats = { ...statsFixture, pdfFailedLastMinute: 1 };
+    fixture.componentInstance.stats.set(warningStats);
+
+    expect(fixture.componentInstance.overallLevel()).toBe('warning');
+    expect(fixture.componentInstance.cardLevel(fixture.componentInstance.pdfMetrics())).toBe(
+      'warning',
+    );
+
+    fixture.componentInstance.stats.set({
+      ...statsFixture,
+      cspReportsEvalLastMinute: 1,
+    });
+    expect(fixture.componentInstance.overallLevel()).toBe('warning');
+    expect(fixture.componentInstance.cardLevel(fixture.componentInstance.securityMetrics())).toBe(
+      'warning',
+    );
+
+    fixture.componentInstance.stats.set({
+      ...warningStats,
+      databaseStatus: 'unavailable',
+    });
+    expect(fixture.componentInstance.overallLevel()).toBe('critical');
 
     fixture.destroy();
   });

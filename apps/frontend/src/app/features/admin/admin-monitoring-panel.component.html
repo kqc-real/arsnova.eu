@@ -25,37 +25,53 @@
       {{ formatRefreshedAt() }}
     </p>
 
+    <section
+      class="monitoring-overview"
+      [class]="'monitoring-overview monitoring-overview--' + overallLevel()"
+      aria-labelledby="monitoring-overview-title"
+      aria-live="polite"
+    >
+      <div>
+        <p class="monitoring-overview__eyebrow" i18n="@@admin.monitoringOverallStatus">
+          Gesamtzustand
+        </p>
+        <h3 id="monitoring-overview-title">{{ statusLabel(overallLevel()) }}</h3>
+        <p>{{ statusDescription(overallLevel()) }}</p>
+      </div>
+      <span
+        class="monitoring-status"
+        [class]="'monitoring-status monitoring-status--' + overallLevel()"
+      >
+        {{ statusLabel(overallLevel()) }}
+      </span>
+    </section>
+
     <div class="monitoring-grid">
       <mat-card appearance="outlined">
         <mat-card-header>
-          <h3 mat-card-title i18n="@@admin.monitoringSessionsTitle">Sessions und Schutzlimits</h3>
-          <mat-card-subtitle i18n="@@admin.monitoringLastMinute">Letzte Minute</mat-card-subtitle>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringInfrastructureTitle">Infrastruktur</h3>
+            <span
+              class="monitoring-status"
+              [class]="
+                'monitoring-status monitoring-status--' +
+                infrastructureLevel(snapshot.databaseStatus)
+              "
+            >
+              {{ statusLabel(infrastructureLevel(snapshot.databaseStatus)) }}
+            </span>
+          </div>
+          <mat-card-subtitle i18n="@@admin.monitoringReadiness">
+            Aktuelle Readiness
+          </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <dl>
             <div>
               <dt i18n="@@admin.monitoringDatabaseStatus">PostgreSQL</dt>
-              <dd>{{ infrastructureStatusLabel(snapshot.databaseStatus) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringSessionCreates">Erstellte Sessions</dt>
-              <dd>{{ formatCount(snapshot.sessionCreatesLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringInvalidCodes">Ungültige Session-Codes</dt>
-              <dd>{{ formatCount(snapshot.sessionCodeFailuresLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringSoftCapDelays">Soft-Cap-Verzögerungen</dt>
-              <dd>{{ formatCount(snapshot.sessionCodeSoftCapDelaysLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringSoftCapUtilization">Globale Soft-Cap-Auslastung</dt>
-              <dd>{{ formatPercent(snapshot.sessionCodeGlobalSoftCapUtilizationPercent) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringRateLimitTotal">429-Ablehnungen</dt>
-              <dd>{{ formatCount(snapshot.rateLimit429LastMinute) }}</dd>
+              <dd class="monitoring-metric__value">
+                {{ infrastructureStatusLabel(snapshot.databaseStatus) }}
+              </dd>
             </div>
           </dl>
         </mat-card-content>
@@ -63,96 +79,216 @@
 
       <mat-card appearance="outlined">
         <mat-card-header>
-          <h3 mat-card-title i18n="@@admin.monitoringPdfTitle">PDF-Erstellung</h3>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringSecurityTitle">CSP und Abwehrsignale</h3>
+            <span
+              class="monitoring-status"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(securityMetrics())"
+            >
+              {{ statusLabel(cardLevel(securityMetrics())) }}
+            </span>
+          </div>
+          <mat-card-subtitle i18n="@@admin.monitoringLastMinute">Letzte Minute</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <dl>
+            @for (metric of securityMetrics(); track metric.label) {
+              <div>
+                <dt>
+                  <span>{{ metric.label }}</span>
+                  @if (metric.threshold) {
+                    <small>{{ metric.threshold }}</small>
+                  }
+                </dt>
+                <dd>
+                  <span class="monitoring-metric__value">{{ metric.value }}</span>
+                  @if (alertLevel(metric); as level) {
+                    <span
+                      class="monitoring-status monitoring-status--compact"
+                      [class]="
+                        'monitoring-status monitoring-status--compact monitoring-status--' + level
+                      "
+                    >
+                      {{ statusLabel(level) }}
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringSessionsTitle">Sessions und Schutzlimits</h3>
+            <span
+              class="monitoring-status"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(sessionMetrics())"
+            >
+              {{ statusLabel(cardLevel(sessionMetrics())) }}
+            </span>
+          </div>
+          <mat-card-subtitle i18n="@@admin.monitoringLastMinute">Letzte Minute</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <dl>
+            @for (metric of sessionMetrics(); track metric.label) {
+              <div>
+                <dt>
+                  <span>{{ metric.label }}</span>
+                  @if (metric.threshold) {
+                    <small>{{ metric.threshold }}</small>
+                  }
+                </dt>
+                <dd>
+                  <span class="monitoring-metric__value">{{ metric.value }}</span>
+                  @if (alertLevel(metric); as level) {
+                    <span
+                      class="monitoring-status monitoring-status--compact"
+                      [class]="
+                        'monitoring-status monitoring-status--compact monitoring-status--' + level
+                      "
+                    >
+                      {{ statusLabel(level) }}
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringPdfTitle">PDF-Erstellung</h3>
+            <span
+              class="monitoring-status"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(pdfMetrics())"
+            >
+              {{ statusLabel(cardLevel(pdfMetrics())) }}
+            </span>
+          </div>
           <mat-card-subtitle i18n="@@admin.monitoringCapacityAndMinute">
             Aktuelle Kapazität und letzte Minute
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <dl>
-            <div>
-              <dt i18n="@@admin.monitoringPdfActive">Aktive Jobs</dt>
-              <dd>
-                {{ formatCount(snapshot.pdfActiveJobs) }} /
-                {{ formatCount(snapshot.pdfMaxConcurrentJobs) }}
-              </dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringPdfCompleted">Abgeschlossen</dt>
-              <dd>{{ formatCount(snapshot.pdfCompletedLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringPdfFailed">Fehlgeschlagen</dt>
-              <dd>{{ formatCount(snapshot.pdfFailedLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringPdfRejected">Abgelehnt</dt>
-              <dd>{{ formatCount(snapshot.pdfRejectedLastMinute) }}</dd>
-            </div>
+            @for (metric of pdfMetrics(); track metric.label) {
+              <div>
+                <dt>
+                  <span>{{ metric.label }}</span>
+                  @if (metric.threshold) {
+                    <small>{{ metric.threshold }}</small>
+                  }
+                </dt>
+                <dd>
+                  <span class="monitoring-metric__value">{{ metric.value }}</span>
+                  @if (alertLevel(metric); as level) {
+                    <span
+                      class="monitoring-status monitoring-status--compact"
+                      [class]="
+                        'monitoring-status monitoring-status--compact monitoring-status--' + level
+                      "
+                    >
+                      {{ statusLabel(level) }}
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
           </dl>
         </mat-card-content>
       </mat-card>
 
       <mat-card appearance="outlined">
         <mat-card-header>
-          <h3 mat-card-title i18n="@@admin.monitoringTrpcTitle">tRPC-WebSockets</h3>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringTrpcTitle">tRPC-WebSockets</h3>
+            <span
+              class="monitoring-status"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(trpcMetrics())"
+            >
+              {{ statusLabel(cardLevel(trpcMetrics())) }}
+            </span>
+          </div>
           <mat-card-subtitle i18n="@@admin.monitoringConnectionsAndMinute">
             Aktuelle Verbindungen und letzte Minute
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <dl>
-            <div>
-              <dt i18n="@@admin.monitoringConnections">Verbindungen</dt>
-              <dd>
-                {{ formatCount(snapshot.trpcWebSocketConnectionsActive) }} /
-                {{ formatCount(snapshot.trpcWebSocketConnectionLimit) }}
-              </dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringRejectedUpgrades">Abgelehnte Upgrades</dt>
-              <dd>{{ formatCount(snapshot.trpcWebSocketRejectedUpgradesLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringRejectedPayloads">Abgelehnte Payloads</dt>
-              <dd>{{ formatCount(snapshot.trpcWebSocketPayloadRejectedLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringRateLimitedMessages">Rate-limitierte Nachrichten</dt>
-              <dd>{{ formatCount(snapshot.trpcWebSocketRateLimitedMessagesLastMinute) }}</dd>
-            </div>
+            @for (metric of trpcMetrics(); track metric.label) {
+              <div>
+                <dt>
+                  <span>{{ metric.label }}</span>
+                  @if (metric.threshold) {
+                    <small>{{ metric.threshold }}</small>
+                  }
+                </dt>
+                <dd>
+                  <span class="monitoring-metric__value">{{ metric.value }}</span>
+                  @if (alertLevel(metric); as level) {
+                    <span
+                      class="monitoring-status monitoring-status--compact"
+                      [class]="
+                        'monitoring-status monitoring-status--compact monitoring-status--' + level
+                      "
+                    >
+                      {{ statusLabel(level) }}
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
           </dl>
         </mat-card-content>
       </mat-card>
 
       <mat-card appearance="outlined">
         <mat-card-header>
-          <h3 mat-card-title i18n="@@admin.monitoringYjsTitle">Yjs-WebSockets</h3>
+          <div class="monitoring-card__title-row">
+            <h3 mat-card-title i18n="@@admin.monitoringYjsTitle">Yjs-WebSockets</h3>
+            <span
+              class="monitoring-status"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(yjsMetrics())"
+            >
+              {{ statusLabel(cardLevel(yjsMetrics())) }}
+            </span>
+          </div>
           <mat-card-subtitle i18n="@@admin.monitoringConnectionsAndMinute">
             Aktuelle Verbindungen und letzte Minute
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <dl>
-            <div>
-              <dt i18n="@@admin.monitoringConnections">Verbindungen</dt>
-              <dd>
-                {{ formatCount(snapshot.yjsWebSocketConnectionsActive) }} /
-                {{ formatCount(snapshot.yjsWebSocketConnectionLimit) }}
-              </dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringActiveRooms">Aktive Räume</dt>
-              <dd>{{ formatCount(snapshot.yjsWebSocketRoomsActive) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringRejectedUpgrades">Abgelehnte Upgrades</dt>
-              <dd>{{ formatCount(snapshot.yjsWebSocketRejectedUpgradesLastMinute) }}</dd>
-            </div>
-            <div>
-              <dt i18n="@@admin.monitoringProtocolErrors">Protokollfehler</dt>
-              <dd>{{ formatCount(snapshot.yjsWebSocketProtocolErrorsLastMinute) }}</dd>
-            </div>
+            @for (metric of yjsMetrics(); track metric.label) {
+              <div>
+                <dt>
+                  <span>{{ metric.label }}</span>
+                  @if (metric.threshold) {
+                    <small>{{ metric.threshold }}</small>
+                  }
+                </dt>
+                <dd>
+                  <span class="monitoring-metric__value">{{ metric.value }}</span>
+                  @if (alertLevel(metric); as level) {
+                    <span
+                      class="monitoring-status monitoring-status--compact"
+                      [class]="
+                        'monitoring-status monitoring-status--compact monitoring-status--' + level
+                      "
+                    >
+                      {{ statusLabel(level) }}
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
           </dl>
         </mat-card-content>
       </mat-card>

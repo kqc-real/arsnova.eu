@@ -22,6 +22,39 @@ import { formatLocaleCount } from '../../core/locale-number.util';
 import { trpc } from '../../core/trpc.client';
 
 const REFRESH_INTERVAL_MS = 60_000;
+type MonitoringLevel = 'ok' | 'warning' | 'critical';
+type Threshold = Readonly<{ warning: number; critical: number; percent?: boolean }>;
+type MetricView = Readonly<{
+  label: string;
+  value: string;
+  level: MonitoringLevel | null;
+  threshold: string | null;
+}>;
+
+// Muss mit RULES in scripts/monitoring/arsnova_monitor.py synchron bleiben.
+const THRESHOLDS = {
+  sessionCreates: { warning: 30, critical: 60 },
+  rateLimit429: { warning: 50, critical: 200 },
+  invalidSessionCodes: { warning: 100, critical: 500 },
+  softCapDelays: { warning: 10, critical: 100 },
+  softCapUtilization: { warning: 80, critical: 95, percent: true },
+  sessionCode429: { warning: 30, critical: 100 },
+  cspDropped: { warning: 10, critical: 100 },
+  cspRateLimited: { warning: 50, critical: 500 },
+  cspEval: { warning: 1, critical: 10 },
+  cspScriptHttps: { warning: 10, critical: 100 },
+  pdfFailed: { warning: 1, critical: 3 },
+  pdfRejected: { warning: 5, critical: 20 },
+  trpcConnections: { warning: 600, critical: 800 },
+  trpcRejectedUpgrades: { warning: 50, critical: 200 },
+  trpcRejectedPayloads: { warning: 1, critical: 10 },
+  trpcRateLimitedMessages: { warning: 10, critical: 50 },
+  yjsConnections: { warning: 700, critical: 900 },
+  yjsRejectedUpgrades: { warning: 50, critical: 200 },
+  yjsRejectedPayloads: { warning: 1, critical: 10 },
+  yjsRateLimitedMessages: { warning: 10, critical: 50 },
+  yjsAwarenessRejected: { warning: 1, critical: 10 },
+} as const satisfies Record<string, Threshold>;
 
 @Component({
   selector: 'app-admin-monitoring-panel',
@@ -50,6 +83,169 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   readonly formattedJson = computed(() => {
     const stats = this.stats();
     return stats ? JSON.stringify(stats, null, 2) : '';
+  });
+  readonly sessionMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringSessionCreates:Erstellte Sessions`,
+        stats.sessionCreatesLastMinute,
+        THRESHOLDS.sessionCreates,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringInvalidCodes:Ungültige Session-Codes`,
+        stats.sessionCodeFailuresLastMinute,
+        THRESHOLDS.invalidSessionCodes,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringSoftCapDelays:Soft-Cap-Verzögerungen`,
+        stats.sessionCodeSoftCapDelaysLastMinute,
+        THRESHOLDS.softCapDelays,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringSoftCapUtilization:Globale Soft-Cap-Auslastung`,
+        stats.sessionCodeGlobalSoftCapUtilizationPercent,
+        THRESHOLDS.softCapUtilization,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRateLimitTotal:429-Ablehnungen`,
+        stats.rateLimit429LastMinute,
+        THRESHOLDS.rateLimit429,
+      ),
+    ];
+  });
+  readonly pdfMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringPdfActive:Aktive Jobs`,
+        stats.pdfActiveJobs,
+        null,
+        `${this.formatCount(stats.pdfActiveJobs)} / ${this.formatCount(stats.pdfMaxConcurrentJobs)}`,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPdfCompleted:Abgeschlossen`,
+        stats.pdfCompletedLastMinute,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPdfFailed:Fehlgeschlagen`,
+        stats.pdfFailedLastMinute,
+        THRESHOLDS.pdfFailed,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPdfRejected:Abgelehnt`,
+        stats.pdfRejectedLastMinute,
+        THRESHOLDS.pdfRejected,
+      ),
+    ];
+  });
+  readonly securityMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringSessionCode429:Session-Code-429`,
+        stats.rateLimit429ByCategoryLastMinute.sessionCode,
+        THRESHOLDS.sessionCode429,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringCspDropped:Verworfene CSP-Reports`,
+        stats.cspReportsDroppedLastMinute,
+        THRESHOLDS.cspDropped,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringCspRateLimited:Rate-limitierte CSP-Reports`,
+        stats.cspReportsRateLimitedLastMinute,
+        THRESHOLDS.cspRateLimited,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringCspEval:CSP-eval-Meldungen`,
+        stats.cspReportsEvalLastMinute,
+        THRESHOLDS.cspEval,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringCspScriptHttps:Externe CSP-Script-Meldungen`,
+        stats.cspReportsScriptHttpsLastMinute,
+        THRESHOLDS.cspScriptHttps,
+      ),
+    ];
+  });
+  readonly trpcMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringConnections:Verbindungen`,
+        stats.trpcWebSocketConnectionsActive,
+        THRESHOLDS.trpcConnections,
+        `${this.formatCount(stats.trpcWebSocketConnectionsActive)} / ${this.formatCount(
+          stats.trpcWebSocketConnectionLimit,
+        )}`,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRejectedUpgrades:Abgelehnte Upgrades`,
+        stats.trpcWebSocketRejectedUpgradesLastMinute,
+        THRESHOLDS.trpcRejectedUpgrades,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRejectedPayloads:Abgelehnte Payloads`,
+        stats.trpcWebSocketPayloadRejectedLastMinute,
+        THRESHOLDS.trpcRejectedPayloads,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRateLimitedMessages:Rate-limitierte Nachrichten`,
+        stats.trpcWebSocketRateLimitedMessagesLastMinute,
+        THRESHOLDS.trpcRateLimitedMessages,
+      ),
+    ];
+  });
+  readonly yjsMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringConnections:Verbindungen`,
+        stats.yjsWebSocketConnectionsActive,
+        THRESHOLDS.yjsConnections,
+        `${this.formatCount(stats.yjsWebSocketConnectionsActive)} / ${this.formatCount(
+          stats.yjsWebSocketConnectionLimit,
+        )}`,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRejectedUpgrades:Abgelehnte Upgrades`,
+        stats.yjsWebSocketRejectedUpgradesLastMinute,
+        THRESHOLDS.yjsRejectedUpgrades,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRejectedPayloads:Abgelehnte Payloads`,
+        stats.yjsWebSocketPayloadRejectedLastMinute,
+        THRESHOLDS.yjsRejectedPayloads,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringRateLimitedMessages:Rate-limitierte Nachrichten`,
+        stats.yjsWebSocketRateLimitedMessagesLastMinute,
+        THRESHOLDS.yjsRateLimitedMessages,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringAwarenessRejected:Abgelehnte Awareness-Updates`,
+        stats.yjsWebSocketAwarenessRejectedLastMinute,
+        THRESHOLDS.yjsAwarenessRejected,
+      ),
+    ];
+  });
+  readonly overallLevel = computed<MonitoringLevel>(() => {
+    const stats = this.stats();
+    if (!stats || stats.databaseStatus !== 'ok') return 'critical';
+    return this.highestLevel([
+      ...this.sessionMetrics(),
+      ...this.pdfMetrics(),
+      ...this.securityMetrics(),
+      ...this.trpcMetrics(),
+      ...this.yjsMetrics(),
+    ]);
   });
 
   ngOnInit(): void {
@@ -101,6 +297,34 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
       : $localize`:@@admin.monitoringStatusUnavailable:Nicht erreichbar`;
   }
 
+  statusLabel(level: MonitoringLevel): string {
+    if (level === 'critical') return $localize`:@@admin.monitoringLevelCritical:Kritisch`;
+    if (level === 'warning') return $localize`:@@admin.monitoringLevelWarning:Warnung`;
+    return $localize`:@@admin.monitoringLevelOk:Alles in Ordnung`;
+  }
+
+  statusDescription(level: MonitoringLevel): string {
+    if (level === 'critical') {
+      return $localize`:@@admin.monitoringCriticalHelp:Mindestens ein Wert erfordert sofortige Prüfung.`;
+    }
+    if (level === 'warning') {
+      return $localize`:@@admin.monitoringWarningHelp:Mindestens ein Wert liegt über der Warnschwelle.`;
+    }
+    return $localize`:@@admin.monitoringOkHelp:Alle überwachten Werte liegen unter ihren Warnschwellen.`;
+  }
+
+  cardLevel(metrics: MetricView[]): MonitoringLevel {
+    return this.highestLevel(metrics);
+  }
+
+  alertLevel(metric: MetricView): Exclude<MonitoringLevel, 'ok'> | null {
+    return metric.level === 'warning' || metric.level === 'critical' ? metric.level : null;
+  }
+
+  infrastructureLevel(status: 'ok' | 'unavailable'): MonitoringLevel {
+    return status === 'ok' ? 'ok' : 'critical';
+  }
+
   formatRefreshedAt(): string {
     const refreshedAt = this.refreshedAt();
     if (!refreshedAt) return '—';
@@ -115,6 +339,44 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
       clearInterval(this.refreshTimer);
       this.refreshTimer = null;
     }
+  }
+
+  private metric(
+    label: string,
+    rawValue: number,
+    threshold: Threshold | null,
+    displayValue?: string,
+  ): MetricView {
+    return {
+      label,
+      value:
+        displayValue ??
+        (threshold?.percent ? this.formatPercent(rawValue) : this.formatCount(rawValue)),
+      level: threshold ? this.levelFor(rawValue, threshold) : null,
+      threshold: threshold ? this.thresholdLabel(threshold) : null,
+    };
+  }
+
+  private levelFor(value: number, threshold: Threshold): MonitoringLevel {
+    if (value >= threshold.critical) return 'critical';
+    if (value >= threshold.warning) return 'warning';
+    return 'ok';
+  }
+
+  private thresholdLabel(threshold: Threshold): string {
+    const warning = threshold.percent
+      ? this.formatPercent(threshold.warning)
+      : this.formatCount(threshold.warning);
+    const critical = threshold.percent
+      ? this.formatPercent(threshold.critical)
+      : this.formatCount(threshold.critical);
+    return $localize`:@@admin.monitoringThresholds:Warnung ab ${warning}:warning:, kritisch ab ${critical}:critical:`;
+  }
+
+  private highestLevel(metrics: MetricView[]): MonitoringLevel {
+    if (metrics.some((metric) => metric.level === 'critical')) return 'critical';
+    if (metrics.some((metric) => metric.level === 'warning')) return 'warning';
+    return 'ok';
   }
 
   private isUnauthorized(error: unknown): boolean {
