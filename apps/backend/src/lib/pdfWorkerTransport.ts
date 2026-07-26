@@ -45,7 +45,9 @@ const PdfWorkerRequestSchema = z
   })
   .strict();
 
-class PdfWorkerRenderDeadlineError extends Error {
+export class PdfWorkerFatalRenderError extends Error {}
+
+class PdfWorkerRenderDeadlineError extends PdfWorkerFatalRenderError {
   constructor() {
     super('PDF worker render deadline exceeded');
     this.name = 'PdfWorkerRenderDeadlineError';
@@ -192,6 +194,7 @@ export async function createPdfWorkerServer(options: {
   render(payload: PdfWorkerRenderRequest): Promise<Buffer>;
   onError?: (error: unknown) => void;
   onRenderDeadline?: () => void;
+  onFatalRender?: (error: PdfWorkerFatalRenderError) => void;
 }): Promise<PdfWorkerServer> {
   const socketPath = options.socketPath ?? socketPathFromEnvironment();
   const renderTimeoutMs = options.renderTimeoutMs ?? resolvePdfWorkerRenderTimeoutMs();
@@ -300,9 +303,12 @@ export async function createPdfWorkerServer(options: {
         });
         response.end(pdf);
       } catch (error) {
-        if (error instanceof PdfWorkerRenderDeadlineError) {
+        if (error instanceof PdfWorkerFatalRenderError) {
           lifecycle = 'fatal';
-          fatalResponse(response, 504, options.onRenderDeadline);
+          fatalResponse(response, 504, () => {
+            if (error instanceof PdfWorkerRenderDeadlineError) options.onRenderDeadline?.();
+            else options.onFatalRender?.(error);
+          });
           return;
         }
         options.onError?.(error);

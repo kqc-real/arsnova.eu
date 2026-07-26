@@ -6,6 +6,7 @@ import {
   PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES,
   PDF_IMAGE_NORMALIZER_MAX_TOTAL_OUTPUT_BYTES,
   configurePdfImageNormalizer,
+  createPdfImageNormalizingRenderer,
   normalizePdfImageBytes,
   normalizePdfImageDataUrlsInHtml,
   normalizePdfWorkerRequest,
@@ -99,7 +100,7 @@ describe('pdfImageNormalizer', () => {
     expect(normalized.split(PDF_IMAGE_NORMALIZATION_PLACEHOLDER)).toHaveLength(5);
   });
 
-  it('normalisiert doppelte Quellen nur einmal und hält die Gesamtdauer hart ein', async () => {
+  it('normalisiert doppelte Quellen nur einmal', async () => {
     const source = dataUrl('image/png', Buffer.from('fake'));
     const normalizeImage = vi.fn(async () => ({
       bytes: Buffer.from('webp'),
@@ -114,13 +115,24 @@ describe('pdfImageNormalizer', () => {
 
     expect(normalizeImage).toHaveBeenCalledOnce();
     expect(normalized.match(/data:image\/webp;base64,/g)).toHaveLength(2);
+  });
 
-    await expect(
-      normalizePdfImageDataUrlsInHtml(html, {
-        deadlineMs: 1,
-        normalizeImage: () => new Promise(() => undefined),
-      }),
-    ).resolves.toContain(PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
+  it('wird bei hängender Normalisierung fatal und startet kein Chromium', async () => {
+    const source = dataUrl('image/png', Buffer.from('fake'));
+    const chromiumRender = vi.fn(async () => Buffer.from('%PDF'));
+    const onDeadline = vi.fn();
+    const render = createPdfImageNormalizingRenderer(chromiumRender, {
+      deadlineMs: 5,
+      normalizeImage: () => new Promise(() => undefined),
+      onDeadline,
+    });
+    const request = { html: `<img src="${source}">`, pdfOptions: { format: 'A4' } };
+
+    await expect(render(request)).rejects.toThrow(/Deadline/);
+    expect(onDeadline).toHaveBeenCalledOnce();
+    expect(chromiumRender).not.toHaveBeenCalled();
+    await expect(render(request)).rejects.toThrow(/fatal/);
+    expect(chromiumRender).not.toHaveBeenCalled();
   });
 
   it('bindet die Normalisierung vor Chromium in den Worker-Request ein', async () => {

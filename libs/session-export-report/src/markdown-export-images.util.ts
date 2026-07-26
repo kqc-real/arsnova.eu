@@ -141,6 +141,7 @@ export async function inlineExportImagesInHtml(
   const cache = new Map<string, string | null>();
   const matches = [...html.matchAll(IMG_TAG_RE)];
   let attemptedImages = 0;
+  let cachedImageBytes = 0;
   let inlinedImageBytes = 0;
 
   for (const match of matches) {
@@ -152,8 +153,28 @@ export async function inlineExportImagesInHtml(
         continue;
       }
       attemptedImages += 1;
+      if (options.maxInlinedImageBytes !== undefined) {
+        const maxImageBytes = options.maxImageBytes;
+        if (!maxImageBytes || maxImageBytes < 1) {
+          cache.set(src, null);
+          continue;
+        }
+        const maxEncodedBytes = Math.ceil(maxImageBytes / 3) * 4 + 64;
+        if (cachedImageBytes + maxEncodedBytes > options.maxInlinedImageBytes) {
+          cache.set(src, null);
+          continue;
+        }
+      }
     }
     const dataUrl = await resolveImageDataUrl(src, options);
+    if (dataUrl && !src.startsWith('data:') && options.maxInlinedImageBytes !== undefined) {
+      const encodedBytes = new TextEncoder().encode(dataUrl).byteLength;
+      if (cachedImageBytes + encodedBytes > options.maxInlinedImageBytes) {
+        cache.set(src, null);
+        continue;
+      }
+      cachedImageBytes += encodedBytes;
+    }
     cache.set(src, dataUrl);
   }
 

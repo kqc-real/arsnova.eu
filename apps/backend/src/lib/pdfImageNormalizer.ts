@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { PdfWorkerFatalRenderError } from './pdfWorkerTransport';
 
 export const PDF_IMAGE_NORMALIZER_MAX_INPUT_BYTES = 2 * 1024 * 1024;
 export const PDF_IMAGE_NORMALIZER_MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
@@ -17,6 +18,13 @@ export type NormalizedPdfImage = {
   bytes: Buffer;
   mimeType: 'image/webp';
 };
+
+export class PdfImageNormalizationDeadlineError extends PdfWorkerFatalRenderError {
+  constructor() {
+    super('PDF-Bildnormalisierung überschritt harte Deadline.');
+    this.name = 'PdfImageNormalizationDeadlineError';
+  }
+}
 
 export function configurePdfImageNormalizer(): void {
   sharp.cache(false);
@@ -84,15 +92,19 @@ export async function normalizePdfImageBytes(
   return { bytes: data, mimeType: 'image/webp' };
 }
 
-function withDeadline<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+function withDeadline<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  onDeadline?: () => void,
+): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
   return Promise.race([
     operation,
     new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(
-        () => reject(new Error('PDF-Bildnormalisierung überschritt Deadline.')),
-        timeoutMs,
-      );
+      timer = setTimeout(() => {
+        onDeadline?.();
+        reject(new PdfImageNormalizationDeadlineError());
+      }, timeoutMs);
       timer.unref?.();
     }),
   ]).finally(() => {
@@ -105,6 +117,7 @@ export async function normalizePdfImageDataUrlsInHtml(
   options: {
     deadlineMs?: number;
     normalizeImage?: typeof normalizePdfImageBytes;
+    onDeadline?: () => void;
   } = {},
 ): Promise<string> {
   const deadlineAt = Date.now() + (options.deadlineMs ?? PDF_IMAGE_NORMALIZER_DEADLINE_MS);
@@ -128,6 +141,7 @@ export async function normalizePdfImageDataUrlsInHtml(
       const normalized = await withDeadline(
         normalizeImage(bytes, match[1].toLowerCase(), { timeoutMs: remainingMs }),
         remainingMs,
+        options.onDeadline,
       );
       if (
         totalOutputBytes + normalized.bytes.byteLength >
@@ -140,7 +154,8 @@ export async function normalizePdfImageDataUrlsInHtml(
         source,
         `data:${normalized.mimeType};base64,${normalized.bytes.toString('base64')}`,
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof PdfImageNormalizationDeadlineError) throw error;
       replacements.set(source, PDF_IMAGE_NORMALIZATION_PLACEHOLDER);
     }
   }
@@ -156,9 +171,34 @@ export async function normalizePdfImageDataUrlsInHtml(
 
 export async function normalizePdfWorkerRequest<T extends { html: string }>(
   request: T,
+  options: Parameters<typeof normalizePdfImageDataUrlsInHtml>[1] = {},
 ): Promise<T> {
   return {
     ...request,
-    html: await normalizePdfImageDataUrlsInHtml(request.html),
+    html: await normalizePdfImageDataUrlsInHtml(request.html, options),
+  };
+}
+
+export function createPdfImageNormalizingRenderer<TRequest extends { html: string }, TResult>(
+  render: (request: TRequest) => Promise<TResult>,
+  options: Parameters<typeof normalizePdfImageDataUrlsInHtml>[1] = {},
+): (request: TRequest) => Promise<TResult> {
+  let fatal = false;
+  return async (request) => {
+    if (fatal) throw new Error('PDF image normalizer is fatal');
+    try {
+      const normalized = await normalizePdfWorkerRequest(request, {
+        ...options,
+        onDeadline: () => {
+          fatal = true;
+          options.onDeadline?.();
+        },
+      });
+      if (fatal) throw new Error('PDF image normalizer is fatal');
+      return await render(normalized);
+    } catch (error) {
+      if (error instanceof PdfImageNormalizationDeadlineError) fatal = true;
+      throw error;
+    }
   };
 }

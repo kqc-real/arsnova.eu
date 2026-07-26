@@ -11,6 +11,7 @@ import {
   PDF_WORKER_RENDER_TIMEOUT_MAX_MS,
   PDF_WORKER_RENDER_TIMEOUT_MIN_MS,
   PDF_WORKER_REQUEST_TIMEOUT_MS,
+  PdfWorkerFatalRenderError,
   createPdfWorkerServer,
   renderPdfViaWorker,
   resolvePdfRenderMode,
@@ -280,5 +281,29 @@ describe('PDF-Worker-Transport', () => {
     await expect(
       renderPdfViaWorker({ html: 'after-timeout', pdfOptions }, { socketPath }),
     ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
+  });
+
+  it('bleibt nach fataler Bildnormalisierung unhealthy und nimmt keinen Folgejob an', async () => {
+    const socketPath = await createSocketPath();
+    const onFatalRender = vi.fn();
+    const render = vi.fn(async () => {
+      throw new PdfWorkerFatalRenderError('image normalization fatal');
+    });
+    const worker = await createPdfWorkerServer({
+      socketPath,
+      render,
+      onFatalRender,
+    });
+    workers.push(worker);
+
+    await expect(renderPdfViaWorker({ html: 'image', pdfOptions }, { socketPath })).rejects.toThrow(
+      'PDF-Worker antwortete mit Status 504',
+    );
+    expect(onFatalRender).toHaveBeenCalledOnce();
+    await expect(getHealthStatus(socketPath)).resolves.toBe(503);
+    await expect(
+      renderPdfViaWorker({ html: 'after-image-timeout', pdfOptions }, { socketPath }),
+    ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
+    expect(render).toHaveBeenCalledOnce();
   });
 });
