@@ -427,7 +427,7 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: |
           set -euo pipefail
-          npx playwright install --with-deps chromium
+          node node_modules/playwright/cli.js install --with-deps chromium
           landing_base="/${{ github.event.repository.name }}"
           mkdir -p "$RUNNER_TEMP/landing-a11y${landing_base}"
           cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y${landing_base}/"
@@ -611,6 +611,10 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npx prisma generate --schema prisma/schema.prisma
 
+      - name: Install matching Playwright Chromium
+        if: needs.changes.outputs.docs_only != 'true'
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
       - name: Run tests with coverage gate
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run test:coverage
@@ -748,7 +752,7 @@ jobs:
           npx prisma generate --schema prisma/schema.prisma
           npx prisma migrate deploy --schema prisma/schema.prisma
           npm run build:libs
-          npx playwright install --with-deps chromium
+          node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Generate five current PDF/UA locale demos
         if: needs.changes.outputs.docs_only != 'true'
@@ -952,7 +956,7 @@ jobs:
 
       - name: Install Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        run: npx playwright install --with-deps chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Run Playwright smoke flow
         if: needs.changes.outputs.docs_only != 'true'
