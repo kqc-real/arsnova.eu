@@ -39,14 +39,14 @@
 
 ## 3. Epic 6
 
-| Story                       | Status | Einordnung                                                                  |
-| --------------------------- | ------ | --------------------------------------------------------------------------- |
-| **6.1** Theme               | ✅     | umgesetzt.                                                                  |
-| **6.2** i18n                | ✅     | umgesetzt mit `de`, `en`, `fr`, `es`, `it`.                                 |
-| **6.3** Legal               | ✅     | umgesetzt über lokalisierte Markdown-Assets.                                |
-| **6.4** Mobile/PWA          | ✅     | umgesetzt; 320-px- und PWA-Checks bleiben Reviewpflicht.                    |
-| **6.5** Barrierefreiheit    | 🔨     | technische Umsetzung validiert; manuelle AT-/Zoom-/OS-Abnahme bleibt offen. |
-| **6.6** Thinking-Aloud / UX | ⬜     | offene methodische Testreihe mit Umsetzung der Befunde.                     |
+| Story                       | Status | Einordnung                                                                |
+| --------------------------- | ------ | ------------------------------------------------------------------------- |
+| **6.1** Theme               | ✅     | umgesetzt.                                                                |
+| **6.2** i18n                | ✅     | umgesetzt mit `de`, `en`, `fr`, `es`, `it`.                               |
+| **6.3** Legal               | ✅     | umgesetzt über lokalisierte Markdown-Assets.                              |
+| **6.4** Mobile/PWA          | ✅     | umgesetzt; 320-px- und PWA-Checks bleiben Reviewpflicht.                  |
+| **6.5** Barrierefreiheit    | ✅     | WCAG-2.2-AA-Gates und formale AT-/Zoom-/OS-/Reader-Abnahme abgeschlossen. |
+| **6.6** Thinking-Aloud / UX | ⬜     | offene methodische Testreihe mit Umsetzung der Befunde.                   |
 
 ---
 

@@ -178,9 +178,9 @@ E2E-Flow keine vollständige Systemfreigabe ersetzen.
 - Projektbezug: Budget-Warnungen beim Build, Mobile-First — [`docs/ui/LIGHTHOUSE-PERFORMANCE.md`](../ui/LIGHTHOUSE-PERFORMANCE.md) (falls vorhanden) oder eigene Messnotizen.
 - **Accessibility-Lehrfall:**
   [`ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md`](./ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md)
-  dokumentiert zwölf inzwischen technisch behobene A-/AA-Befunde, die
-  Grenzen automatischer Scores, den umgesetzten achtteiligen Plan und die noch
-  offene manuelle AT-/Zoom-/OS-Abnahme.
+  dokumentiert die technisch behobenen A-/AA-Befunde, die Grenzen
+  automatischer Scores, den umgesetzten Plan und die am 2026-07-27
+  abgeschlossene manuelle AT-/Zoom-/OS-/Reader-Abnahme.
 
 ### 6.4 Last & Skalierung
 

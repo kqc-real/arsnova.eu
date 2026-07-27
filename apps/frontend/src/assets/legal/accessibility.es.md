@@ -1,14 +1,16 @@
 # Accesibilidad
 
-**Actualización: 20 de julio de 2026**
+**Actualización: 27 de julio de 2026**
 
 arsnova.eu está diseñado para utilizarse con teclado, lectores de pantalla, niveles altos de ampliación y los modos de contraste del sistema operativo. Esta página explica las funciones de accesibilidad disponibles y cómo garantizamos su calidad.
 
 ## Nuestro estándar de referencia
 
-Seguimos las [Pautas de accesibilidad para el contenido web (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), nivel de conformidad AA.
+Dentro del ámbito que se describe a continuación, arsnova.eu es **accesible conforme a las [Pautas de accesibilidad para el contenido web (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), nivel de conformidad AA**.
 
 La aplicación se ha sometido a revisiones técnicas y pruebas manuales, entre ellas pruebas con teclado, lectores de pantalla, niveles altos de ampliación y modos de contraste del sistema. Las comprobaciones automatizadas también forman parte de nuestro proceso de desarrollo. Repetimos y ampliamos estas pruebas cada vez que cambia la aplicación.
+
+La aceptación formal completada el 27 de julio de 2026 incluyó comprobaciones técnicas automatizadas, recorridos principales probados manualmente con VoiceOver/Safari y NVDA/Firefox, muestras adicionales de navegadores y sistemas operativos, zoom del navegador al 200 % y al 400 %, redistribución del contenido, Windows High Contrast/Forced Colors y pruebas con lectores de PDF y PDF/UA. Se superaron todos los criterios pertinentes de WCAG 2.2 de los niveles A y AA, sin hallazgos A o AA abiertos.
 
 ## Uso y orientación
 
@@ -38,7 +40,7 @@ Para los informes de resultados está disponible un perfil PDF/UA estructurado q
 
 ## Ámbito
 
-Esta información se refiere a las funciones de arsnova.eu y a los documentos generados por la aplicación. La información sobre la accesibilidad de los servicios externos enlazados corresponde a sus respectivos responsables.
+Esta información se refiere a las funciones de arsnova.eu y a los documentos generados por la aplicación. La información sobre la accesibilidad de los servicios externos enlazados corresponde a sus respectivos responsables. La declaración se limita a WCAG 2.2 AA; no afirma el nivel AAA ni una universalidad completa en todas las combinaciones posibles de dispositivos y tecnologías de asistencia.
 
 ## Tus comentarios
 

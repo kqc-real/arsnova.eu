@@ -8,7 +8,7 @@ Zentrale **Landkarte** für alles unter `docs/`. Für Setup und erste Schritte z
 
 ## Nach Rolle
 
-Aktueller A11y-Arbeitsstand:
+Formale A11y-Abnahmedokumentation (2026-07-27):
 [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md)
 ·
 [`Manuelle Prüfmatrix`](praktikum/ACCESSIBILITY-MANUELLE-PRUEFMATRIX.md)
