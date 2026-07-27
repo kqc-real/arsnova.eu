@@ -53,7 +53,16 @@ const statsFixture: HealthSecurityStatsDTO = {
     other: 0,
   },
   sessionCodeFailuresLastMinute: 4,
+  sessionCodeFailuresBySourceLastMinute: { join: 1, lookup: 1, pollReconnect: 2, other: 0 },
+  sessionCodeEntryFailuresLastMinute: 2,
   sessionCodeSoftCapDelaysLastMinute: 0,
+  sessionCodeSoftCapDelaysBySourceLastMinute: {
+    join: 0,
+    lookup: 0,
+    pollReconnect: 0,
+    other: 0,
+  },
+  sessionCodeEntrySoftCapDelaysLastMinute: 0,
   sessionCodeGlobalSoftCapUtilizationPercent: 2,
   trpcWebSocketConnectionsActive: 12,
   trpcWebSocketConnectionLimit: 1_000,
@@ -139,10 +148,47 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Gesamtzustand');
     expect(fixture.nativeElement.textContent).toContain('Alles in Ordnung');
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
+    expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
+    expect(fixture.nativeElement.textContent).toContain('Automatische Poll-/Reconnect-Abfragen');
     expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
     expect(fixture.nativeElement.textContent).toContain('PostgreSQL');
     expect(fixture.nativeElement.textContent).toContain('Vollständige JSON-Daten anzeigen');
     expect(fixture.componentInstance.formattedJson()).toContain('"sessionCreatesLastMinute": 3');
+
+    fixture.destroy();
+  });
+
+  it('zeigt automatische Fehlzugriffe separat und alarmiert nur Join- und Codeprüfungen', () => {
+    const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
+    setHealthyInfrastructure(fixture.componentInstance);
+    fixture.componentInstance.stats.set({
+      ...statsFixture,
+      sessionCodeFailuresLastMinute: 5_000,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 0,
+        lookup: 0,
+        pollReconnect: 5_000,
+        other: 0,
+      },
+      sessionCodeEntryFailuresLastMinute: 0,
+    });
+
+    expect(fixture.componentInstance.overallLevel()).toBe('ok');
+    expect(fixture.componentInstance.sessionMetrics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Automatische Poll-/Reconnect-Abfragen',
+          value: '5,000',
+          level: null,
+        }),
+      ]),
+    );
+
+    fixture.componentInstance.stats.update((stats) => ({
+      ...stats!,
+      sessionCodeEntryFailuresLastMinute: 500,
+    }));
+    expect(fixture.componentInstance.overallLevel()).toBe('critical');
 
     fixture.destroy();
   });

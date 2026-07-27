@@ -4707,7 +4707,7 @@ export const sessionRouter = router({
         },
       ).catch(async (error: unknown) => {
         if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-          await rejectInvalidSessionCode(input.anonymousClientId, code);
+          await rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
         }
         throw error;
       });
@@ -4752,7 +4752,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code);
+        return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
       }
       const payload = {
         nicknames: session.participants.map((participant) => participant.nickname),
@@ -4773,7 +4773,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, code);
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
 
       const participant = await prisma.participant.findFirst({
@@ -4966,7 +4966,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'lookup',
+        );
       }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       if (!onboardingProfile.teamMode) {
@@ -5101,7 +5105,7 @@ export const sessionRouter = router({
       while (true) {
         const payloadBase = await fetchStatusSnapshot(code).catch(async (error: unknown) => {
           if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-            await rejectInvalidSessionCode(input.anonymousClientId, code);
+            await rejectInvalidSessionCode(input.anonymousClientId, code, 'pollReconnect');
           }
           throw error;
         });
@@ -5729,7 +5733,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, code);
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
       if (!session.quiz) return null;
       if (session.status === 'LOBBY') return null;
@@ -6202,7 +6206,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code);
+        return rejectInvalidSessionCode(input.anonymousClientId, code, 'join');
       }
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
@@ -6364,7 +6368,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
       if (!session.quiz?.showLeaderboard) {
         return [];
@@ -6482,7 +6490,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
       if (!session.quiz?.teamMode) {
         return [];
@@ -7225,7 +7237,11 @@ export const sessionRouter = router({
     .query(async ({ input }) =>
       loadSessionConfidenceSummaryByCode(input.code).catch(async (error: unknown) => {
         if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-          await rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+          await rejectInvalidSessionCode(
+            input.anonymousClientId,
+            input.code.toUpperCase(),
+            'pollReconnect',
+          );
         }
         throw error;
       }),
@@ -7241,7 +7257,11 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
 
       const feedbacks = await prisma.sessionFeedback.findMany({

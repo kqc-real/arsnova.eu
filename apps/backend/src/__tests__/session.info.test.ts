@@ -51,6 +51,7 @@ describe('session.getInfo (ADR-0009)', () => {
     expect(invalidSessionCodeMock).toHaveBeenCalledWith(
       '11111111-1111-4111-8111-111111111111',
       'BAD999',
+      'lookup',
     );
   });
 

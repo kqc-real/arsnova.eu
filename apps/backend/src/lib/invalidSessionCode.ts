@@ -3,6 +3,7 @@ import {
   logSessionCodeSoftCapDelay,
   recordSessionCodeFailure,
   recordSessionCodeSoftCapDelay,
+  type SessionCodeFailureSource,
 } from './abuseTelemetry';
 import {
   checkInvalidSessionCodeFailure,
@@ -16,8 +17,9 @@ import {
 export async function rejectInvalidSessionCode(
   anonymousClientId: string | undefined,
   normalizedCode: string,
+  source: SessionCodeFailureSource = 'other',
 ): Promise<never> {
-  recordSessionCodeFailure();
+  recordSessionCodeFailure(source);
   const decision = await checkInvalidSessionCodeFailure(anonymousClientId, normalizedCode);
 
   if (!decision.allowed) {
@@ -38,10 +40,11 @@ export async function rejectInvalidSessionCode(
         cause: { retryAfterSeconds: 1 },
       });
     }
-    recordSessionCodeSoftCapDelay();
+    recordSessionCodeSoftCapDelay(source);
     logSessionCodeSoftCapDelay({
       delayMs: decision.delayMs,
       globalUtilizationPercent: decision.globalUtilizationPercent,
+      source,
     });
   }
 
