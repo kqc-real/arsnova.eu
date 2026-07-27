@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **6.5** (Barrierefreiheit – manuelle Abnahme), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass); Plattform-Hygiene **0.9** (Landing Astro 6→7, geplant nach Security-Deps [#121](https://github.com/kqc-real/arsnova.eu/pull/121)) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.6** (UX Thinking Aloud) ist abgeschlossen ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **6.5** (Barrierefreiheit – manuelle Abnahme), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit: Legacy-Cutoff noch offen), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅; **6.6** (UX Thinking Aloud) ist abgeschlossen ✅; **6.5** bleibt bis zur manuellen AT-/Zoom-/OS-/Reader-Abnahme in Arbeit. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -23,7 +23,7 @@
 | 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                                                    | 🔴   | ✅ Fertig    |
 | 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                                        | 🟡   | ✅ Fertig    |
 | 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                     | 🟡   | ✅ Fertig    |
-| 0    | 0.9   | Landing: Astro 6→7 (XSS-Hygiene, Cookie-Override)                                  | 🟡   | ⬜ Offen     |
+| 0    | 0.9   | Landing: Astro 6→7 (XSS-Hygiene, Cookie-Override)                                  | 🟡   | ✅ Fertig    |
 | 1    | 1.1   | Quiz erstellen                                                                     | 🔴   | ✅ Fertig    |
 | 1    | 1.2a  | Fragentypen: MC & SC                                                               | 🔴   | ✅ Fertig    |
 | 1    | 1.2b  | Fragentypen: Freitext & Umfrage                                                    | 🟡   | ✅ Fertig    |
@@ -130,21 +130,23 @@
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen     |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen     |
 
-> **Repo-Abgleich (Codebase 2026-07-22):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt** (menschliche Metrik, keine Relevanz für Code-Agenten). **Story 0.9** (Landing Astro 6→7) ist als **geplantes** Should-Ticket eingetragen (⬜ Offen; Start **nach** [#121](https://github.com/kqc-real/arsnova.eu/pull/121); Ziel ≥ 7.1.x inkl. Cookie-Override — nicht per Dependabot-Blind-Bump). **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt (Semantik/Fokus/Overlays, automatisierte A11y-Gates, PDF/UA, Timer-Nachteilsausgleich inkl. Host-Override und Punktvorschau, Session-Headings, Erklärung zur Barrierefreiheit (`/legal/accessibility`), News-Archiv-Tastaturnavigation, Feature-MOTD — PRs #89–#106, #101, #104, #105, #116); die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme (PR 7) bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). **Story 6.6** (UX-Testreihen Thinking Aloud) ist abgeschlossen ✅. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
+> **Repo-Abgleich (Codebase 2026-07-27):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** sind **0.7** (Baseline-Freigabe 2026-07-12) und **0.9** (Astro 7.1.3 über W3.5 / PR [#150](https://github.com/kqc-real/arsnova.eu/pull/150)). W3.6 / PR [#151](https://github.com/kqc-real/arsnova.eu/pull/151) liefert die externen Backups; W3.7 / PR [#154](https://github.com/kqc-real/arsnova.eu/pull/154) implementiert Monitoring-Poller und Admin-Tab, die operative Kanalabnahme bleibt offen. Die Dependabot-Policy aus PR [#160](https://github.com/kqc-real/arsnova.eu/pull/160), die Telemetrie-Ursprungstrennung aus PR [#161](https://github.com/kqc-real/arsnova.eu/pull/161) und der Blitzlicht-Ablauf-Fix aus PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164) sind gemergt. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt**. **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt; die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
-> **Korrektur zum Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
-> implementiert und Story 1.2d als fertig bewertet. Offen ist seit dem lokalen
-> Lauf vom 2026-07-10 der reproduzierbar fehlgeschlagene browserseitige
-> Ergebnisnachweis (eigene Runde 2, Toleranzband und Rundenvergleich), nicht die
-> Existenz des Fragentyps.
+> **Korrektur zum früheren Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
+> implementiert und Story 1.2d als fertig bewertet. Der am 2026-07-10 noch
+> fehlgeschlagene browserseitige Ergebnisnachweis wurde im QA-Nachlauf
+> geschlossen; PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164)
+> korrigiert zusätzlich den Blitzlicht-Ablauf.
 >
 > **Laufzeitabgleich Story 0.7 (2026-07-12):** Der [lokale Baseline-Lauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) bestätigt Artillery 500/500 Live und Reconnect, Vote-Timer-/Host-Progress-Hotpaths, Yjs-Sync und einen 30-Minuten-Soak. Story **0.7** ist damit betrieblich abgeschlossen; die Baseline liegt in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`.
+>
+> **Dauerlast-Slice Story 0.7 (PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), lokal validiert):** Der neue, manuelle lokale 10-Minuten-Demo-Classroom-Lauf absolvierte 48 vollständige Runden mit 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufen ohne Fehler. HTTP-p95 lag bei 59,62 ms, p99 bei 83,78 ms; Redis und PostgreSQL lieferten jeweils 121/121 erfolgreiche Probes, alle 21/21 Gates bestanden. Der Slice ist kein PR-Gate.
 >
 > **Ergänzung Angebotsoption Westermann (2026-05-28):** **Epic 11** beschreibt einen **noch nicht beauftragten** Erweiterungspfad für **personalisierte Verlagszugänge und ein Redaktionsbackend**; hierzu existiert im Monorepo aktuell bewusst **kein** Produktcode.
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 34 · 🟡 Should: 69 · 🟢 Could: 12 = **115 Stories gesamt** (**96** ✅ Fertig · **1** 🔨 In Arbeit · **18** ⬜ Offen)
+> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 69 · 🟢 Could: 12 = **115 Stories gesamt** (**97** ✅ Fertig · **1** 🔨 In Arbeit · **17** ⬜ Offen)
 
 ---
 
@@ -320,6 +322,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - PR-leichter Smoke + Trennung schwerer Last: **ja**.
       - ADR-0013-Rollentrennung: **ja**.
     - **Verifizierte Läufe:** [2026-07-10](docs/implementation/LOCAL-TESTRUN-2026-07-10.md) (Gesamtmatrix), [2026-07-11](docs/implementation/LOCAL-QA-RECHECK-2026-07-11.md) (Regressionen), [2026-07-12](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) (Baseline-Freigabe).
+    - **Dauerlast-Slice (PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), implementiert und lokal validiert):** 10 Minuten, 48 vollständige Demo-Classroom-Runden, 1.440 Joins, 14.400/14.400 Votes, 19.104 HTTP-Aufrufe ohne Fehler, HTTP-p95 59,62 ms, p99 83,78 ms, Redis/PostgreSQL je 121/121 Probes und 21/21 Gates. Manueller Nachweis, kein PR-Gate.
     - **Bewusst nicht im Scope:** dedizierte Browserfarm unter Mehrnutzerlast; separater Staging-Server (entfällt).
   - **Performance-Hinweis:** Die Story ist selbst Teil der Performance-Absicherung und damit unmittelbar von [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md) betroffen; neue kritische Live-Features muessen hier mit passenden Lastprofilen und Messpunkten abgebildet werden.
   - **Abhängigkeiten:** Story 0.2 (tRPC WebSocket-Adapter), Story 0.5 (Rate-Limiting), Story 0.6 (CI/CD), Story 2.1a (Session-Start), Story 2.2 (Lobby), Story 3.1 (Join), Story 3.3b (Abstimmung), Story 4.5 (Freitext-Auswertung), Story 8.1–8.4 (Q&A), optional Story 1.6/1.6a/1.6b/1.6d (Sync), ADR-0013.
@@ -340,23 +343,21 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - `apps/backend/src/routers/session.ts`
     - `apps/frontend/src/app/features/quiz/data/quiz-store.service.ts`
 
-- **Story 0.9 (Landing: Astro 6→7):** 🟡 ⬜ Offen · **geplant** (Medium-Ticket, ~½–1 Tag; **nach** Merge der Security-Deps [#121](https://github.com/kqc-real/arsnova.eu/pull/121)) — Als Entwickler möchte ich die Astro-Landing-App (`apps/landing`) bewusst auf **Astro ≥ 7.1.x** migrieren, damit Dependabot-XSS-Advisories ohne 6.x-Backport geschlossen werden und die Toolchain (Vite 8/Rolldown) aktuell bleibt — **nicht** als Blind-Bump über Dependabot.
-  - **Kontext / Warum nicht sofort:** Die Landing ist statisch (kein View Transitions/Islands-XSS-Pfad im Praxisbetrieb); Design ändert sich durch Astro-Defaults praktisch nicht. Der echte Blocker im Monorepo ist **Cookie-Hoisting**: Astro 7 erwartet `cookie@2` (`parseCookie`), während Express/Backend typischerweise `cookie@0.7` (CJS, ohne Named Export) hoisten — Dependabot-Majors scheitern deshalb an `npm ci`/`build:landing`. Dependabot-Major-Ignore für `astro`/`@astrojs/*` bleibt bis zum erfolgreichen Upgrade aktiv (siehe `.github/dependabot.yml`).
-  - **Abgrenzung:** Kein Design-Rewrite der Landing; kein Angular-/App-Frontend-Scope. Offene XSS-Alerts (#125/#126/#128/#129/#131/#132) werden über den Versionssprung geschlossen, nicht über Overrides in #121.
+- **Story 0.9 (Landing: Astro 6→7):** 🟡 ✅ **Fertig** (W3.5, PR [#150](https://github.com/kqc-real/arsnova.eu/pull/150)) — Die Astro-Landing-App (`apps/landing`) nutzt **Astro 7.1.3**; der koordinierte Versionssprung schließt die Astro-6-XSS-Advisories und aktualisiert die Toolchain auf Vite 8/Rolldown.
+  - **Umsetzung:** Die Migration löst das frühere Cookie-Hoisting-Problem koordiniert, verwendet explizites Inline-JSON-LD und ergänzt `astro check` als CI-Gate. Kein Design-Rewrite und kein Angular-/App-Frontend-Scope.
   - **Akzeptanzkriterien:**
-    - [ ] `apps/landing` und Root-Workspace nutzen **Astro ≥ 7.1.x** (XSS-Advisories ohne 6.x-Backport).
-    - [ ] Root-`overrides` (oder gleichwertige Auflösung) stellen `cookie@2` für Astro bereit, **ohne** Express/Backend-Cookie-Pfade zu brechen; `npm ci` im Monorepo ist grün.
-    - [ ] `npm run build:landing` auf **Node ≥22.12** (Landing-`engines` in `apps/landing/package.json`; CI-Job `landing-build` und `.nvmrc` nutzen Node 24) ist grün; Landing-A11y-/CI-Gates bleiben grün.
-    - [ ] Kurzer visueller Smoke der Landing (Start + Legal-Seiten) — keine Design-Regression erwartet, aber einmal prüfen.
-    - [ ] Nach Erfolg: Dependabot-Major-Ignore für `astro`/`@astrojs/*` in `.github/dependabot.yml` entfernen oder lockern; zugehörige Dependabot-Alerts schließen sich bzw. werden verifiziert.
-  - **Aufwand (Richtwert):** ~½–1 Tag, Schwerpunkt Cookie-Override und Landing-CI — nicht „Dependabot mergen und fertig“.
-  - **Abhängigkeiten:** Security-Deps-PR [#121](https://github.com/kqc-real/arsnova.eu/pull/121) zuerst mergen; Story 0.6 (CI inkl. Landing-Build); ADR-0005 (Landing/Tailwind-Scope).
+    - [x] `apps/landing` nutzt **Astro 7.1.3**; die Astro-6-XSS-Advisories sind geschlossen.
+    - [x] Die Dependency-Auflösung unterstützt Astro 7, ohne Express-/Backend-Cookie-Pfade zu brechen; `npm ci` im Monorepo ist grün.
+    - [x] `npm run build:landing` und `astro check` laufen auf Node ≥22.12; Landing-A11y-/CI-Gates bleiben grün.
+    - [x] Routen-/Asset-, visueller und axe-Smoke für Start- und Legal-Seiten sind grün.
+    - [x] Dependabot ignoriert weiterhin bewusst Astro-/`@astrojs/*`-Majors, jetzt zum Schutz vor einem unkoordinierten **8.x**-Sprung; Minor-/Patch-Updates innerhalb 7.x bleiben möglich.
+  - **Abnahme:** [`docs/implementation/W3.5-ASTRO-7-ABNAHME.md`](docs/implementation/W3.5-ASTRO-7-ABNAHME.md).
 
 ---
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17, 2026-05-16, 2026-06-17, 2026-07-13):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2ec–1.2ed**, **1.2f–1.2h**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.2d**, **Story 1.2e**, **Story 1.2ea**, **Story 1.2eb**, **Story 1.2i**, **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
+> **Verifizierung Epic 1 (2026-03-09, ergänzt bis 2026-07-27):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2ec–1.2ed**, **1.2f–1.2h**, **1.6c** (nur noch Legacy-Cutoff), **1.6d** und **1.14a** (dort ⬜). **Story 1.2d**, **Story 1.2e**, **Story 1.2ea**, **Story 1.2eb**, **Story 1.2i**, **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -634,12 +635,13 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Ohne aktiven Sync bleibt das bisherige Verhalten (nur localStorage); mit Sync werden Änderungen an Preset/Optionen ins Yjs-Dokument geschrieben und so auf andere Clients übertragen.
     - Abhängig von Story 1.6 bzw. 1.6a (Sync-Link/Key muss vorhanden sein).
 - **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Lehrperson möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
-  - **Teilstand 2026-04-03:** Die UI-Kommunikation wurde geschärft: Der **Sync-Link** wird als eigentlicher Zugriffsschlüssel benannt, und Geräte-/Herkunftsangaben werden in UI und Architektur-Doku ausdrücklich als **Vertrauenssignale** beschrieben. Die Story bleibt dennoch offen, weil der serverseitige Missbrauchsschutz für Sync-Raum-Zugriffe sowie der Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** noch fehlen.
+  - **Teilstand 2026-07-27:** Die UI-Kommunikation ist geschärft. W2.2 / Slice A (Relay-Caps, Rate-/Payload-/Verbindungsgrenzen und ADR-0033) sowie W3.4 / Slice B (signierte langlebige Share-Tokens, serverseitig erzeugte sichere Räume, Generationen und manuelle Link-Rotation) sind gemergt. Die Story bleibt nur bis zum geplanten Abschalten der UUID-only-Legacy-Grace offen (`YJS_SHARE_LEGACY_UUID_CUTOFF_AT`, Default 2026-10-01 UTC).
   - **Akzeptanzkriterien:**
-    - Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
-    - Für Sync-Raum-Zugriffe existiert ein Schutzkonzept gegen Missbrauch (mindestens Rate-Limit oder gleichwertige Begrenzung auf Relay-/Proxy-Ebene).
-    - Ein Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** ist konzipiert und dokumentiert.
-    - Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
+    - [x] Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
+    - [x] Sync-Raum-Zugriffe sind durch Relay-Caps und gestufte Verbindungs-, Nachrichten-, Byte- und Payloadbudgets begrenzt.
+    - [x] Signierte Share-Tokens und manuelle Link-Rotation sind umgesetzt und dokumentiert.
+    - [x] Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
+    - [ ] UUID-only-Legacy-Zugriffe sind nach dem dokumentierten Cutoff deaktiviert und der Produktions-Cutover ist verifiziert.
 - **Story 1.6d (Sync-Performance & Skalierung optimieren):** 🟡 Als Lehrperson möchte ich, dass die Synchronisierung meiner Quiz-Sammlung auch bei größeren Sammlungen und mehreren Geräten flüssig bleibt, damit Bearbeitung und Gerätewechsel nicht durch spürbare Verzögerungen ausgebremst werden.
   - **Akzeptanzkriterien:**
     - Kurzfristige Optimierungen reduzieren unnötige Vollserialisierung und bündeln lokale Persistenzvorgänge.

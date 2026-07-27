@@ -63,7 +63,7 @@ BASE_URL=http://127.0.0.1:3000 VUS=50 DURATION=30s npm run load:k6:health
 Vor jedem Lauf Ziel-URL und Branch prüfen. `run_production_load=true` bleibt
 einer separat freigegebenen Produktionsmessung vorbehalten.
 
-## Letzter lokaler Gesamtlauf
+## Lokale Gesamtläufe
 
 Der vollständige lokale Lauf vom **2026-07-10** ist unter
 [implementation/LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md)
@@ -88,13 +88,31 @@ die beiden akzeptierenden 600er Vote-Pfade hielten mit p95 766 ms und 968 ms das
 offener Nachweis verbleiben Langzeit-Soak und Baseline-Freigabe — **erledigt**
 am 2026-07-12 ([LOCAL-BASELINE-FREIGABE-2026-07-12.md](implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)).
 
-Dieser Lauf ist ein lokaler Entwicklungsnachweis, keine freigegebene Baseline.
-Insbesondere darf die bloße Existenz eines Szenarios nicht mit einem bestandenen
-Nachweis gleichgesetzt werden.
+Der Lauf vom 2026-07-10 ist ein lokaler Entwicklungsnachweis. Die anschließende
+Baseline wurde separat am 2026-07-12 freigegeben; die bloße Existenz eines
+Szenarios darf nicht mit einem bestandenen Nachweis gleichgesetzt werden.
 
 Die erzeugten JSON-/JUnit-Dateien liegen lokal unter
 `artifacts/local-runtime-20260710/` und werden nicht versioniert. Das
 versionierte Messprotokoll enthält die für den Abgleich notwendigen Kennzahlen.
+
+### Demo-Classroom-Dauerlauf 2026-07-27
+
+Der Dauerlast-Slice aus PR
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **implementiert und
+lokal validiert**. Der manuell gestartete 10-Minuten-Lauf gegen das lokale Backend
+erzielte:
+
+- 48 vollständige Demo-Classroom-Runden und 1.440 Joins;
+- 14.400/14.400 erfolgreiche Votes;
+- 19.104 HTTP-Aufrufe ohne Fehler;
+- HTTP-p95 59,62 ms und p99 83,78 ms;
+- Redis- und PostgreSQL-Probes jeweils 121/121 erfolgreich;
+- 21/21 maschinenlesbare Gates bestanden.
+
+Das ist ein zusätzlicher lokaler Dauerlastnachweis, kein PR-/Deploy-Gate und
+keine S6.5-Formalabnahme. Skript und Reportlogik werden mit PR #165
+bereitgestellt.
 
 ## Szenarien und Kommandos
 
@@ -124,6 +142,58 @@ npm run load:soak:live-session
 SOAK_DURATION_MINUTES=30 npm run load:soak:live-session
 SOAK_DURATION_MINUTES=60 npm run load:soak:live-session
 ```
+
+## Demo-Classroom-Dauerlast mit Monitoring
+
+> **Verfügbarkeit:** Der Runner läuft ausschließlich manuell lokal und ist kein
+> CI-/PR-Gate.
+
+Der lokale Dauerlauf führt bis zum Zeitbudget ausschließlich vollständige
+Demo-Quiz-Classrooms durch. Standard sind zehn Minuten und 30 Teilnehmende pro
+Classroom. Wenn für eine weitere vollständige Runde erkennbar nicht genug Zeit
+bleibt, beginnt eine kontrollierte Cooldown-Phase bis zum Messende. Der Lauf ist
+hart auf `localhost`/Loopback begrenzt.
+
+Voraussetzungen:
+
+1. Node gemäß `.nvmrc`, PostgreSQL und Redis:
+   `npm run docker:up:dev && npm run prisma:push`.
+2. Backend mit demselben mindestens 32 Zeichen langen
+   `ADMIN_DIAGNOSTIC_SECRET` starten, das dem Lasttest nur als
+   Umgebungsvariable übergeben wird. Das Secret weder als CLI-Argument noch in
+   Reports oder Logs schreiben.
+3. Optional `DEMO_BACKEND_PID`, `DEMO_REDIS_URL` und `DEMO_DATABASE_URL` für
+   RSS-, Redis- und PostgreSQL-Probes setzen. Konfigurierte Probes sind harte
+   Gates und müssen ohne Fehler messbar sein.
+
+```bash
+# Terminal 1
+npm run dev:backend
+
+# Terminal 2; Secret zuvor sicher in die Umgebung laden
+REPORT_FILE=artifacts/demo-duration-10m.json \
+JUNIT_FILE=artifacts/demo-duration-10m.junit.xml \
+DEMO_BACKEND_PID=<backend-pid> \
+DEMO_REDIS_URL=redis://127.0.0.1:6379 \
+DEMO_DATABASE_URL='postgresql://…' \
+npm run load:duration:demo-classroom
+```
+
+Konfiguration: `DEMO_DURATION_MINUTES` (Default `10`), `PARTICIPANTS`
+(Default `30`), `DEMO_MONITOR_INTERVAL_MS` (Default `5000`) sowie
+`DEMO_HTTP_P95_LIMIT_MS` (Default `2000`). Mit
+`npm run load:duration:demo-classroom:test` läuft die fokussierte,
+netzwerkfreie Prüfung der Auswertungslogik.
+
+Der JSON-Report enthält die vollständige PRE-/DURING-/POST-Zeitreihe von
+`health.check`, `health.stats` und dem diagnosegeschützten
+`health.securityStats`, alle Classroom-Ergebnisse, HTTP-Latenzen,
+Infrastruktur-Probes und maschinenlesbare Assertions. JUnit enthält dieselben
+Gates. Rollierende 60-Sekunden-Werte werden nicht als exakte kumulative Zähler
+behandelt: Lastsignale müssen sichtbar und durch die erzeugte Last begrenzt
+sein; unerwünschte Security-Signale dürfen gegenüber PRE nicht steigen. Die
+10-Sekunden-Randbucket- und 5-Sekunden-Flush-Toleranz aus dem
+[Monitoring-Runbook](operations/MONITORING-RUNBOOK.md) wird damit berücksichtigt.
 
 Das Reconnect-Profil bindet jede physische Teilnehmer-Verbindung mit
 Session-Code und der beim Join ausgegebenen UUID. Vor der Neuverbindung wartet

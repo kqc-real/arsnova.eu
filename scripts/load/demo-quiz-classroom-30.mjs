@@ -18,8 +18,8 @@
  *   PARTICIPANTS=30 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/demo-quiz-classroom-30.mjs
  */
 import { readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 import { kindergartenNickname } from './lib/kindergarten-nicknames.mjs';
@@ -101,12 +101,16 @@ function randomConfidenceValue(min = 1, max = 5) {
   return min + Math.floor(random() * (max - min + 1));
 }
 
-function createHttpClient(hostToken) {
+function createHttpClient(hostToken, trpcUrl = TRPC_URL, runtimeMetrics = null) {
   return createTRPCProxyClient({
     links: [
       httpLink({
-        url: TRPC_URL,
+        url: trpcUrl,
         headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        fetch:
+          runtimeMetrics === null
+            ? undefined
+            : (url, init) => runtimeMetrics.measure('trpc.http', () => globalThis.fetch(url, init)),
       }),
     ],
   });
@@ -234,7 +238,14 @@ function findAnswerIdByText(question, needles) {
  * - Fehlkonzept-Hinweise bei Prioritätsfragen (hohe Sicherheit × falsch)
  * - Peer Instruction mit messbarem Lernzuwachs (Runde 1 → 2)
  */
-function buildVoteInput(participant, question, metadata, round, participantIndex) {
+function buildVoteInput(
+  participant,
+  question,
+  metadata,
+  round,
+  participantIndex,
+  participantCount = PARTICIPANTS,
+) {
   const base = {
     sessionId: participant.id,
     participantId: participant.participantId,
@@ -243,7 +254,7 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
     responseTimeMs: 1_200 + participantIndex * 37 + round * 180 + (participantIndex % 7) * 90,
   };
   const requiresDebrief = PRIORITY_QUESTION_ORDERS.has(metadata.order);
-  const n = PARTICIPANTS;
+  const n = participantCount;
   let vote;
 
   switch (question.type) {
@@ -416,7 +427,7 @@ async function submitVotes(publicTrpc, participants, question, metadata, round) 
       const requestStartedAt = performance.now();
       try {
         return await publicTrpc.vote.submit.mutate(
-          buildVoteInput(participant, question, metadata, round, index),
+          buildVoteInput(participant, question, metadata, round, index, participants.length),
         );
       } finally {
         durations.push(performance.now() - requestStartedAt);
@@ -441,7 +452,15 @@ async function openQuestionForVoting(hostTrpc, code, statusBefore) {
   return { openedAs: status.status, statusAfterOpen: status.status };
 }
 
-async function runQuestion({ questionNumber, hostTrpc, publicTrpc, code, participants, meta }) {
+async function runQuestion({
+  questionNumber,
+  hostTrpc,
+  publicTrpc,
+  code,
+  participants,
+  meta,
+  voteCooldownMs = VOTE_COOLDOWN_MS,
+}) {
   const open = await openQuestionForVoting(hostTrpc, code);
   const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
   if (!question?.id) {
@@ -454,7 +473,7 @@ async function runQuestion({ questionNumber, hostTrpc, publicTrpc, code, partici
   if (meta.numericTwoRounds === true) {
     await hostTrpc.session.startDiscussion.mutate({ code });
     await hostTrpc.session.startSecondRound.mutate({ code });
-    await sleep(VOTE_COOLDOWN_MS);
+    await sleep(voteCooldownMs);
     const questionRound2 = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
     if (!questionRound2?.id) {
       throw new Error(`Frage ${questionNumber} Runde 2 konnte nicht geladen werden.`);
@@ -463,7 +482,7 @@ async function runQuestion({ questionNumber, hostTrpc, publicTrpc, code, partici
   }
 
   const resultsStatus = await hostTrpc.session.revealResults.mutate({ code });
-  await sleep(VOTE_COOLDOWN_MS);
+  await sleep(voteCooldownMs);
 
   return {
     questionNumber,
@@ -473,7 +492,7 @@ async function runQuestion({ questionNumber, hostTrpc, publicTrpc, code, partici
     openedAs: open.openedAs,
     resultsStatus: resultsStatus.status,
     voteRounds,
-    expectedVotesPerRound: PARTICIPANTS,
+    expectedVotesPerRound: participants.length,
   };
 }
 
@@ -557,18 +576,29 @@ async function mintHostToken(sessionCode) {
   return token;
 }
 
-async function run() {
-  await waitForBackend(TRPC_URL);
+export async function runDemoQuizClassroom(options = {}) {
+  const trpcUrl = String(options.trpcUrl ?? TRPC_URL).trim();
+  const participantCount = Math.max(1, Number(options.participants ?? PARTICIPANTS));
+  const expectedQuestions = Math.max(1, Number(options.expectedQuestions ?? EXPECTED_QUESTIONS));
+  const voteP95LimitMs = Math.max(100, Number(options.voteP95LimitMs ?? VOTE_P95_LIMIT_MS));
+  const voteCooldownMs = Math.max(1_000, Number(options.voteCooldownMs ?? VOTE_COOLDOWN_MS));
+  const joinConcurrency = Math.max(1, Number(options.joinConcurrency ?? JOIN_CONCURRENCY));
+  const runtimeMetrics = options.runtimeMetrics ?? null;
+  const log = options.log === false ? () => {} : console.log;
+  const startedAt = new Date();
+  if (options.waitForBackend !== false) {
+    await waitForBackend(trpcUrl);
+  }
   const uploadPayload = await loadDemoQuizUploadPayload();
   const questionMetas = questionMetaFromUpload(uploadPayload.questions);
 
-  if (questionMetas.length !== EXPECTED_QUESTIONS) {
+  if (questionMetas.length !== expectedQuestions) {
     throw new Error(
-      `Demo-Quiz hat ${questionMetas.length} Fragen, erwartet wurden ${EXPECTED_QUESTIONS}.`,
+      `Demo-Quiz hat ${questionMetas.length} Fragen, erwartet wurden ${expectedQuestions}.`,
     );
   }
 
-  const publicTrpc = createHttpClient();
+  const publicTrpc = createHttpClient(undefined, trpcUrl, runtimeMetrics);
   let code;
   let hostToken;
   let quizId;
@@ -581,7 +611,7 @@ async function run() {
     code = SESSION_CODE;
     quizId = info.id;
     hostToken = await mintHostToken(code);
-    console.log(`Nutze bestehende Session ${code} (${info.quizName ?? 'Quiz'}).`);
+    log(`Nutze bestehende Session ${code} (${info.quizName ?? 'Quiz'}).`);
   } else {
     const uploadResult = await publicTrpc.quiz.upload.mutate(uploadPayload);
     quizId = uploadResult.quizId;
@@ -595,10 +625,10 @@ async function run() {
     hostToken = created.hostToken;
   }
 
-  const hostTrpc = createHttpClient(hostToken);
+  const hostTrpc = createHttpClient(hostToken, trpcUrl, runtimeMetrics);
 
-  const indexes = Array.from({ length: PARTICIPANTS }, (_, index) => index);
-  const participants = await mapLimit(indexes, JOIN_CONCURRENCY, async (index) =>
+  const indexes = Array.from({ length: participantCount }, (_, index) => index);
+  const participants = await mapLimit(indexes, joinConcurrency, async (index) =>
     publicTrpc.session.join.mutate({
       code,
       nickname: kindergartenNickname(index, QUIZ_CONTENT_LOCALE),
@@ -616,6 +646,7 @@ async function run() {
         code,
         participants,
         meta,
+        voteCooldownMs,
       }),
     );
   }
@@ -624,14 +655,14 @@ async function run() {
   const feedback =
     finished.status === 'FINISHED'
       ? await submitSessionFeedback(publicTrpc, participants, code)
-      : { accepted: 0, rejected: PARTICIPANTS };
+      : { accepted: 0, rejected: participantCount };
   const totalVotesAccepted = questions.reduce(
     (sum, question) =>
       sum + question.voteRounds.reduce((roundSum, round) => roundSum + round.accepted, 0),
     0,
   );
   const expectedVotes = questionMetas.reduce(
-    (sum, meta) => sum + PARTICIPANTS * (meta.numericTwoRounds ? 2 : 1),
+    (sum, meta) => sum + participantCount * (meta.numericTwoRounds ? 2 : 1),
     0,
   );
 
@@ -639,20 +670,23 @@ async function run() {
     scenario: 'demo-quiz-classroom',
     code,
     quizId,
-    participants: PARTICIPANTS,
+    participants: participantCount,
     questions: questionMetas.length,
     expectedVotes,
     totalVotesAccepted,
     feedbackAccepted: feedback.accepted,
     finishedStatus: finished.status,
     questionResults: questions,
+    startedAt: startedAt.toISOString(),
+    endedAt: new Date().toISOString(),
+    durationMs: Date.now() - startedAt.getTime(),
   };
 
-  console.log(JSON.stringify(summary, null, 2));
+  log(JSON.stringify(summary, null, 2));
 
   const failures = [];
-  if (participants.length !== PARTICIPANTS) {
-    failures.push(`Join: ${participants.length}/${PARTICIPANTS} Teilnehmende.`);
+  if (participants.length !== participantCount) {
+    failures.push(`Join: ${participants.length}/${participantCount} Teilnehmende.`);
   }
   if (totalVotesAccepted !== expectedVotes) {
     failures.push(`Votes: ${totalVotesAccepted}/${expectedVotes} akzeptiert.`);
@@ -660,48 +694,59 @@ async function run() {
   if (finished.status !== 'FINISHED') {
     failures.push(`Session endete mit Status ${finished.status}, erwartet FINISHED.`);
   }
-  if (feedback.accepted !== PARTICIPANTS) {
-    failures.push(`Session-Feedback: ${feedback.accepted}/${PARTICIPANTS} akzeptiert.`);
+  if (feedback.accepted !== participantCount) {
+    failures.push(`Session-Feedback: ${feedback.accepted}/${participantCount} akzeptiert.`);
   }
   for (const question of questions) {
     for (const round of question.voteRounds) {
-      if (round.accepted !== PARTICIPANTS) {
+      if (round.accepted !== participantCount) {
         failures.push(
-          `Frage ${question.questionNumber} Runde ${round.round}: ${round.accepted}/${PARTICIPANTS} Votes.`,
+          `Frage ${question.questionNumber} Runde ${round.round}: ${round.accepted}/${participantCount} Votes.`,
         );
       }
-      if (round.p95Ms > VOTE_P95_LIMIT_MS) {
+      if (round.p95Ms > voteP95LimitMs) {
         failures.push(
-          `Frage ${question.questionNumber} Runde ${round.round}: Vote-p95 ${round.p95Ms} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+          `Frage ${question.questionNumber} Runde ${round.round}: Vote-p95 ${round.p95Ms} ms > ${voteP95LimitMs} ms.`,
         );
       }
     }
   }
 
-  await writeScenarioReport({
-    scenario: 'demo-quiz-classroom-30',
-    environment: {
-      participants: PARTICIPANTS,
-      expectedQuestions: EXPECTED_QUESTIONS,
-      voteP95LimitMs: VOTE_P95_LIMIT_MS,
-    },
-    metrics: summary,
-    failures,
-  });
+  if (options.writeReport !== false) {
+    await writeScenarioReport({
+      scenario: 'demo-quiz-classroom-30',
+      environment: {
+        participants: participantCount,
+        expectedQuestions,
+        voteP95LimitMs,
+      },
+      metrics: summary,
+      failures,
+    });
+  }
 
   if (failures.length > 0) {
-    console.error('\nFEHLER');
-    for (const failure of failures) {
-      console.error(`- ${failure}`);
-    }
-    process.exitCode = 1;
-    return;
+    return { summary, failures };
   }
 
-  console.log('\nOK Demo-Quiz-Unterrichtsszenario (30 TN, 9 Fragen) bestanden.');
+  log(
+    `\nOK Demo-Quiz-Unterrichtsszenario (${participantCount} TN, ${expectedQuestions} Fragen) bestanden.`,
+  );
+  return { summary, failures };
 }
 
-run().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+const isDirectRun =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+if (isDirectRun) {
+  runDemoQuizClassroom()
+    .then(({ failures }) => {
+      if (failures.length === 0) return;
+      console.error('\nFEHLER');
+      for (const failure of failures) console.error(`- ${failure}`);
+      process.exitCode = 1;
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
+}
