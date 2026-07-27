@@ -50,6 +50,9 @@ const testRouter = router({
     create: publicProcedure.mutation(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
+    isActiveForReconnect: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
   }),
   example: router({
     limited: publicProcedure.query(() => {
@@ -92,6 +95,11 @@ describe('zentrale Security-Telemetrie', () => {
       'quickFeedback.create',
       'quickFeedback',
       () => testRouter.createCaller({ req: undefined }).quickFeedback.create(),
+    ],
+    [
+      'quickFeedback.isActiveForReconnect',
+      'sessionCode',
+      () => testRouter.createCaller({ req: undefined }).quickFeedback.isActiveForReconnect(),
     ],
     [
       'session.getSessionExportPdf',

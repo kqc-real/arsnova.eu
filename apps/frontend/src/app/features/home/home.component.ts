@@ -367,7 +367,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async isSessionVisitable(code: string): Promise<boolean> {
     try {
-      return (await this.resolveJoinTarget(code)) !== 'finished';
+      const anonymousClientId = getAnonymousClientId();
+      const resolution = await trpc.quickFeedback.isActiveForReconnect.query({
+        sessionCode: code,
+        anonymousClientId,
+      });
+      if (resolution.active) return true;
+      if (resolution.sessionStatus) return resolution.sessionStatus !== 'FINISHED';
+      // Rolling-Deployment-Fallback für Backends vor dem kombinierten Resolver.
+      const session = await trpc.session.getInfoForReconnect.query({ code, anonymousClientId });
+      return session.status !== 'FINISHED';
     } catch {
       return false;
     }

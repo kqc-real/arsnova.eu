@@ -31,6 +31,7 @@ vi.mock('../../core/trpc.client', () => ({
     },
     quickFeedback: {
       isActive: { query: vi.fn().mockResolvedValue({ active: false }) },
+      isActiveForReconnect: { query: vi.fn().mockResolvedValue({ active: false }) },
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       create: { mutate: vi.fn().mockRejectedValue(new Error('not available')) },
     },
@@ -453,6 +454,29 @@ describe('HomeComponent', () => {
       await comp.joinSession();
 
       expect(comp.recentSessionCodes().some((r) => r.code === 'NEW001')).toBe(true);
+    });
+
+    it('prüft abgelaufene Recent-Codes ausschließlich über den Reconnect-Resolver', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.isActive.query).mockClear();
+      vi.mocked(trpc.quickFeedback.isActiveForReconnect.query).mockRejectedValueOnce(
+        new Error('Session nicht gefunden.'),
+      );
+      const comp = createHomeComponent();
+      comp.recentSessionCodes.set([{ code: 'OLD999', usedAt: Date.now() }]);
+
+      await (
+        comp as unknown as {
+          validateRecentSessions: () => Promise<void>;
+        }
+      ).validateRecentSessions();
+
+      expect(trpc.quickFeedback.isActiveForReconnect.query).toHaveBeenCalledWith({
+        sessionCode: 'OLD999',
+        anonymousClientId: expect.any(String),
+      });
+      expect(trpc.quickFeedback.isActive.query).not.toHaveBeenCalled();
+      expect(comp.recentSessionCodes()).toEqual([]);
     });
 
     it('verhindert doppelten Join während isJoining', async () => {

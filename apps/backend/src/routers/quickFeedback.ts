@@ -149,6 +149,25 @@ async function protectMissingQuickFeedbackCode(
   }
 }
 
+async function resolveQuickFeedbackAvailability(
+  input: { sessionCode: string; anonymousClientId?: string },
+  source: SessionCodeFailureSource,
+) {
+  const code = input.sessionCode.toUpperCase();
+  const redis = getRedis();
+  const n = await redis.exists(feedbackKey(code));
+  if (n === 1) return { active: true as const };
+
+  const session = await prisma.session.findUnique({
+    where: { code },
+    select: { status: true },
+  });
+  if (!session) {
+    return rejectInvalidSessionCode(input.anonymousClientId, code, source);
+  }
+  return { active: false as const, sessionStatus: session.status };
+}
+
 function votersKey(code: string): string {
   return `qf:voters:${code}`;
 }
@@ -596,21 +615,13 @@ export const quickFeedbackRouter = router({
   isActive: publicProcedure
     .input(QuickFeedbackIsActiveInputSchema)
     .output(QuickFeedbackIsActiveOutputSchema)
-    .query(async ({ input }) => {
-      const code = input.sessionCode.toUpperCase();
-      const redis = getRedis();
-      const n = await redis.exists(feedbackKey(code));
-      if (n === 1) return { active: true };
+    .query(({ input }) => resolveQuickFeedbackAvailability(input, 'lookup')),
 
-      const session = await prisma.session.findUnique({
-        where: { code },
-        select: { status: true },
-      });
-      if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
-      }
-      return { active: false, sessionStatus: session.status };
-    }),
+  /** Kombinierter Resolver für automatische Recent-/Reconnect-Prüfungen. */
+  isActiveForReconnect: publicProcedure
+    .input(QuickFeedbackIsActiveInputSchema)
+    .output(QuickFeedbackIsActiveOutputSchema)
+    .query(({ input }) => resolveQuickFeedbackAvailability(input, 'pollReconnect')),
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {
     const code = input.sessionCode.toUpperCase();

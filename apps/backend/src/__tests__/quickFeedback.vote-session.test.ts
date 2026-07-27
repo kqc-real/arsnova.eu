@@ -247,6 +247,24 @@ describe('quickFeedback.vote und Session-Status', () => {
     );
   });
 
+  it('klassifiziert einen abgelaufenen Recent-Code als Poll/Reconnect', async () => {
+    redisMock.exists.mockResolvedValue(0);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.isActiveForReconnect({
+        sessionCode: 'OLD999',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+      'OLD999',
+      'pollReconnect',
+    );
+  });
+
   it('lehnt ab, wenn die Live-Session beendet ist', async () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
