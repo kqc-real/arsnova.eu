@@ -31,8 +31,19 @@ Output: `apps/landing/dist/`
 ## GitHub Pages
 
 1. **Repo-Einstellung:** Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-2. Beim Push auf `main` (bei Änderungen in `apps/landing/`) baut das Workflow `.github/workflows/deploy-landing.yml` die Landing und deployt sie.
-3. Nach Merge, GitHub-Domain-Verifikation und DNS-Konfiguration die Custom Domain `info.arsnova.eu` unter Settings → Pages aktivieren.
+2. **Vor einem Root-Build oder Merge:** GitHub-Domain-Verifikation,
+   DNS-CNAME, Custom Domain, Zertifikat und **Enforce HTTPS** vollständig
+   aktivieren und die Weiterleitung der bisherigen Projekt-URL prüfen.
+3. Erst danach die Konfiguration mit `PUBLIC_SITE_URL=https://info.arsnova.eu/`
+   und `BASE_PATH=/` nach `main` mergen. Beim Push baut und deployt
+   `.github/workflows/deploy-landing.yml` die Landing; ein Preflight bricht
+   ab, falls die Cutover-Voraussetzungen nicht mehr erfüllt sind.
+
+Der Cutover ist seit dem 27. Juli 2026 vollständig aktiv:
+`info.arsnova.eu` ist als Pages-Custom-Domain verifiziert, CNAME und
+HTTPS-Zertifikat sind aktiv, HTTPS wird erzwungen und
+`https://kqc-real.github.io/arsnova.eu/` leitet mit `301` auf die Custom Domain
+weiter.
 
 **Hinweis:** Du brauchst Schreibrechte auf das Repo und die Berechtigung, Pages auf „GitHub Actions“ umzustellen. Der Workflow selbst liegt im Repo; nach dem Push und nach Aktivierung von Pages läuft alles automatisch.
 
@@ -55,7 +66,7 @@ Für Builds auf GitHub Pages setzt der Workflow `PUBLIC_SITE_URL=https://info.ar
 
 ## Impressum & Datenschutz (DSGVO)
 
-Die Seiten `/impressum` und `/datenschutz` sind mit DSGVO-tauglichen Inhalten vorstrukturiert. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
+Die Seiten `/impressum/` und `/datenschutz/` sind mit DSGVO-tauglichen Inhalten vorstrukturiert. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
 
 ## OG-Bild
 

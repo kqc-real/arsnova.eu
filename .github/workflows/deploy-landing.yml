@@ -42,6 +42,36 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Verify custom-domain cutover
+        env:
+          CUSTOM_DOMAIN: info.arsnova.eu
+          PAGES_CNAME: kqc-real.github.io
+          PROJECT_URL: https://kqc-real.github.io/arsnova.eu/
+        run: |
+          set -euo pipefail
+
+          cname="$(node --input-type=module -e \
+            "import { resolveCname } from 'node:dns/promises'; console.log((await resolveCname(process.env.CUSTOM_DOMAIN))[0])")"
+          test "${cname%.}" = "$PAGES_CNAME"
+
+          http_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --max-time 20 --retry 3 --retry-all-errors "http://$CUSTOM_DOMAIN/")"
+          test "$http_status" = "301"
+
+          custom_url="$(curl --fail --silent --show-error --location --output /dev/null \
+            --write-out '%{url_effective}' --max-time 20 --retry 3 --retry-all-errors \
+            "http://$CUSTOM_DOMAIN/")"
+          test "$custom_url" = "https://$CUSTOM_DOMAIN/"
+
+          project_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --max-time 20 --retry 3 --retry-all-errors "$PROJECT_URL")"
+          test "$project_status" = "301"
+
+          project_url="$(curl --fail --silent --show-error --location --output /dev/null \
+            --write-out '%{url_effective}' --max-time 20 --retry 3 --retry-all-errors \
+            "$PROJECT_URL")"
+          test "$project_url" = "https://$CUSTOM_DOMAIN/"
+
       - name: Install dependencies
         run: npm ci
 
