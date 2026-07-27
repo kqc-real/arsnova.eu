@@ -165,7 +165,9 @@ export function createRuntimeMetrics(options = {}) {
   const eventLoop = monitorEventLoopDelay({ resolution: 20 });
   const startedAt = new Date();
   const operationSamples = [];
+  const healthCheckSamples = [];
   const healthSamples = [];
+  const securityStatsSamples = [];
   const redisSamples = [];
   const postgresSamples = [];
   const processSamples = [];
@@ -178,10 +180,38 @@ export function createRuntimeMetrics(options = {}) {
       ? unavailable('SOAK_BACKEND_PID nicht gesetzt')
       : { available: true, source: 'ps', pid: backendPid };
 
-  async function sample() {
-    if (sampleInFlight) return sampleInFlight;
+  async function sample(phase = 'DURING') {
+    if (sampleInFlight) {
+      await sampleInFlight;
+      if (phase === 'DURING') return;
+    }
     sampleInFlight = (async () => {
       const tasks = [];
+      if (typeof options.healthCheck === 'function') {
+        tasks.push(
+          (async () => {
+            const started = performance.now();
+            try {
+              const check = await options.healthCheck();
+              healthCheckSamples.push({
+                at: new Date().toISOString(),
+                phase,
+                ok: true,
+                durationMs: rounded(performance.now() - started),
+                check,
+              });
+            } catch (error) {
+              healthCheckSamples.push({
+                at: new Date().toISOString(),
+                phase,
+                ok: false,
+                durationMs: null,
+                error: errorMessage(error),
+              });
+            }
+          })(),
+        );
+      }
       if (typeof options.healthStats === 'function') {
         tasks.push(
           (async () => {
@@ -190,6 +220,7 @@ export function createRuntimeMetrics(options = {}) {
               const stats = await options.healthStats();
               healthSamples.push({
                 at: new Date().toISOString(),
+                phase,
                 ok: true,
                 durationMs: rounded(performance.now() - started),
                 stats: {
@@ -207,6 +238,32 @@ export function createRuntimeMetrics(options = {}) {
             } catch (error) {
               healthSamples.push({
                 at: new Date().toISOString(),
+                phase,
+                ok: false,
+                durationMs: null,
+                error: errorMessage(error),
+              });
+            }
+          })(),
+        );
+      }
+      if (typeof options.securityStats === 'function') {
+        tasks.push(
+          (async () => {
+            const started = performance.now();
+            try {
+              const stats = await options.securityStats();
+              securityStatsSamples.push({
+                at: new Date().toISOString(),
+                phase,
+                ok: true,
+                durationMs: rounded(performance.now() - started),
+                stats,
+              });
+            } catch (error) {
+              securityStatsSamples.push({
+                at: new Date().toISOString(),
+                phase,
                 ok: false,
                 durationMs: null,
                 error: errorMessage(error),
@@ -249,8 +306,8 @@ export function createRuntimeMetrics(options = {}) {
         createPostgresProbe(options.databaseUrl),
       ]);
       eventLoop.enable();
-      await sample();
-      interval = setInterval(() => void sample(), intervalMs);
+      await sample('PRE');
+      interval = setInterval(() => void sample('DURING'), intervalMs);
       interval.unref();
     },
 
@@ -275,6 +332,10 @@ export function createRuntimeMetrics(options = {}) {
         });
         throw error;
       }
+    },
+
+    async sample(phase = 'DURING') {
+      await sample(phase);
     },
 
     async stop() {
@@ -311,6 +372,11 @@ export function createRuntimeMetrics(options = {}) {
           p99Ms: rounded(eventLoop.percentile(99) / 1e6),
           maxMs: rounded(eventLoop.max / 1e6),
         },
+        healthCheck: {
+          ...summarizeSamples(healthCheckSamples),
+          source: 'health.check',
+          snapshots: healthCheckSamples,
+        },
         healthStats: {
           ...healthSummary,
           source: 'health.stats',
@@ -318,6 +384,11 @@ export function createRuntimeMetrics(options = {}) {
             'health.stats exponiert nur serviceStatus/loadStatus, keine rohen SLO-Perzentile',
           ),
           snapshots: healthSamples,
+        },
+        securityStats: {
+          ...summarizeSamples(securityStatsSamples),
+          source: 'health.securityStats',
+          snapshots: securityStatsSamples,
         },
         backendProcess: {
           ...processStatus,

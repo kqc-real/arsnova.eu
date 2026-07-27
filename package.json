@@ -60,6 +60,8 @@
     "load:smoke:host-vote-progress": "node scripts/load/host-vote-progress-200.mjs",
     "load:smoke:vote-timer-fairness": "node scripts/load/vote-timer-fairness-600.mjs",
     "load:smoke:demo-classroom-30": "node scripts/load/demo-quiz-classroom-30.mjs",
+    "load:duration:demo-classroom": "node scripts/load/demo-quiz-duration-monitoring.mjs",
+    "load:duration:demo-classroom:test": "node --test scripts/load/demo-duration-evaluation.test.mjs",
     "e2e:confidence-summary-demo": "npm run e2e:confidence-summary-demo -w @arsnova/frontend",
     "load:smoke:qa-classroom-30": "node scripts/load/qa-classroom-30.mjs",
     "load:smoke:blitzlicht-classroom-30": "node scripts/load/blitzlicht-classroom-30.mjs",
