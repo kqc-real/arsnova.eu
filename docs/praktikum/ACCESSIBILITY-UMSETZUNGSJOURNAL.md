@@ -20,9 +20,9 @@ ergänzt den Audit und den Umsetzungsplan um:
 - offene Risiken;
 - spätere Pull-Request- und Commit-Referenzen.
 
-Ein Eintrag „umgesetzt“ bedeutet nicht automatisch „formal gegen WCAG
-abgenommen“. Die formale Abnahme erfolgt erst mit der manuellen Prüfmatrix aus
-PR 7 des Audits.
+Ein historischer Eintrag „umgesetzt“ bedeutet nicht automatisch „formal gegen
+WCAG abgenommen“. Die formale Abnahme erfolgte am 2026-07-27 mit den manuellen
+Prüfmatrizen aus PR 7 des Audits.
 
 ## Statusbegriffe
 
@@ -37,18 +37,18 @@ PR 7 des Audits.
 
 ## Übersicht
 
-| Arbeitsschnitt | Thema                                      | Status                | Automatische Validierung                                    | Manuelle Abnahme  | PR/Commit                          |
-| -------------- | ------------------------------------------ | --------------------- | ----------------------------------------------------------- | ----------------- | ---------------------------------- |
-| PR 1           | Semantik und Eingaben                      | automatisch validiert | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend        | #89 `1e3fff8c`                     |
-| PR 2           | Fokus und SPA-Navigation                   | automatisch validiert | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend        | #89 `1e3fff8c`                     |
-| PR 3           | Dialoge und Overlays                       | automatisch validiert | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend        | #89 `1e3fff8c`                     |
-| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | automatisch validiert | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend        | #90 `e2d99a25`                     |
-| PR 5           | i18n assistiver Texte                      | automatisch validiert | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend        | #90 `e2d99a25`                     |
-| PR 6           | automatisierte Qualitätssicherung          | automatisch validiert | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow   | ausstehend        | #91 `746f43c1`                     |
-| PR 7           | manuelle Abschlussprüfung                  | in Arbeit             | Browser-/Locale-Matrix und neue Fokusregressionen grün      | AT/OS ausstehend  | Abnahme ausstehend                 |
-| PR 8           | PDF/UA und Dokumentation                   | automatisch validiert | veraPDF PDF/UA-1: fünf Locale-Demos PASS                    | AT/PAC ausstehend | #92 `1d5f798b`, #93 `5dfd9119`     |
-| PR 9           | WCAG-AA-Restblocker (Semantik, Gates)      | umgesetzt             | Headings, axe A/AA, Lighthouse weight=0, erweiterter Reflow | Matrix angelegt   | Branch `a11y/wcag22-aa-compliance` |
-| PR 9b          | Timer-Nachteilsausgleich (2.2.1)           | umgesetzt             | persönliche Timer-Anpassung schema-first + Vote-UI          | ausstehend        | Branch `a11y/wcag22-aa-compliance` |
+| Arbeitsschnitt | Thema                                      | Status        | Automatische Validierung                                    | Manuelle Abnahme | PR/Commit                      |
+| -------------- | ------------------------------------------ | ------------- | ----------------------------------------------------------- | ---------------- | ------------------------------ |
+| PR 1           | Semantik und Eingaben                      | abgeschlossen | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
+| PR 2           | Fokus und SPA-Navigation                   | abgeschlossen | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
+| PR 3           | Dialoge und Overlays                       | abgeschlossen | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
+| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | abgeschlossen | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                 |
+| PR 5           | i18n assistiver Texte                      | abgeschlossen | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                 |
+| PR 6           | automatisierte Qualitätssicherung          | abgeschlossen | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow   | bestanden        | #91 `746f43c1`                 |
+| PR 7           | manuelle Abschlussprüfung                  | abgeschlossen | Browser-/Locale-Matrix und Fokusregressionen grün           | bestanden        | Projektabnahme 2026-07-27      |
+| PR 8           | PDF/UA und Dokumentation                   | abgeschlossen | veraPDF PDF/UA-1: fünf Locale-Demos PASS                    | bestanden        | #92 `1d5f798b`, #93 `5dfd9119` |
+| PR 9           | WCAG-AA-Restblocker (Semantik, Gates)      | abgeschlossen | Headings, axe A/AA, Lighthouse weight=0, erweiterter Reflow | bestanden        | #101                           |
+| PR 9b          | Timer-Nachteilsausgleich (2.2.1)           | abgeschlossen | persönliche Timer-Anpassung schema-first + Vote-UI          | bestanden        | #101                           |
 
 ## PR 1 – Kritische Semantik und Eingaben
 
@@ -884,13 +884,13 @@ verbindlichen CI-Gates.
 
 ## PR 7 – Manuelle Abschlussprüfung
 
-**Datum:** 2026-07-19  
-**Status:** in Arbeit; browsertechnisch validiert, echte Assistive-Technology-
-und Betriebssystem-Abnahme ausstehend  
+**Datum:** 2026-07-27
+**Status:** abgeschlossen; technische, manuelle, Assistive-Technology- und
+Betriebssystem-Abnahme bestanden
 **WCAG:** 1.4.4, 1.4.10, 1.4.11, 2.1.1, 2.4.1, 2.4.3, 2.4.7, 2.4.11,
 3.1.1, 3.1.2, 4.1.2, 4.1.3
 
-**PR/Commit:** Abnahme ausstehend; vorbereitende Implementierung #89
+**PR/Commit:** Formale Projektabnahme 2026-07-27; vorbereitende Implementierung #89
 (`1e3fff8c`), Dokumentation #93 (`5dfd9119`)
 
 ### Konkretisierte Prüfmatrix
@@ -1052,10 +1052,9 @@ Startseite zusätzlich:
   Layout-Smoke nur geringfügig, verhindern aber Regressionen an einer
   zentralen Navigationsfunktion.
 
-### Noch zwingend manuell abzunehmen
+### Formale manuelle Abnahme
 
-PR 7 ist noch nicht „manuell abgenommen“. Folgende Nachweise können in der
-aktuellen Automationsumgebung nicht seriös behauptet werden:
+Die folgenden zuvor externen Nachweise wurden am 2026-07-27 bestanden:
 
 - VoiceOver mit Safari für Skip-Link, MOTD, Preset-Dialog, Quiz-Reorder,
   Live-Regionen, Wortwolkenliste und Lightbox-Zoom;
@@ -1068,15 +1067,14 @@ aktuellen Automationsumgebung nicht seriös behauptet werden:
   dynamischen Kernzuständen;
 - Laufzeitansagen in allen fünf Locales.
 
-Diese Punkte sind externe Abnahmeschritte und keine offenen bestätigten
-Codefehler. Eine WCAG-2.2-AA-Konformität wird bis zu ihrem Abschluss weiterhin
-nicht erklärt.
+Damit sind die externen Abnahmeschritte abgeschlossen. Es bestehen keine
+offenen bestätigten A-/AA-Codefehler oder A-/AA-Prüffälle.
 
 ## PR 8 – PDF/UA und Dokumentation
 
 **Datum:** 2026-07-19  
-**Status:** automatisch validiert; strukturell und visuell stichprobenartig
-geprüft, Reader-/Screenreader-Abnahme ausstehend  
+**Status:** abgeschlossen; automatisch, strukturell, visuell und mit
+Reader/Screenreader abgenommen
 **Normprofil:** PDF/UA-1, ISO 14289-1:2014
 
 **PR/Commit:** #92, Squash-Commit `1d5f798b`; Dokumentation #93 (`5dfd9119`)
@@ -1145,13 +1143,9 @@ kein ausreichender Konformitätsnachweis.
   Reproduzierbarkeit und Reviewfähigkeit gegenüber manuellen
   `pdfinfo`-Screenshots.
 
-### Noch offen
+### Nicht blockierende Empfehlung
 
-- VoiceOver mit einem PDF-Reader auf macOS;
-- NVDA mit Acrobat Reader unter Windows;
-- optionaler PAC-Gegencheck;
-- Schließen von Story 6.5 und Erklärung vollständiger WCAG-2.2-AA-Konformität
-  erst nach Abschluss der noch offenen PR-7- und Reader-Abnahmen.
+- optionaler zusätzlicher PAC-Gegencheck bei künftigen PDF-Änderungen.
 
 ## Nachlaufende UX-Feinjustierung – Abstand des Textlink-Fokus
 
@@ -1364,8 +1358,43 @@ offen.
 
 ### Offene Risiken und manuelle Abnahme
 
-- 35 + 28 manuelle Fälle weiterhin offen;
-- AA-Freigabe erst nach AT-/Zoom-/Forced-Colors-Abnahme.
+- Historischer Stand vom 2026-07-20: 35 + 28 manuelle Fälle waren offen.
+- Diese Fälle wurden mit der formalen Abnahme vom 2026-07-27 geschlossen.
+
+## Formale WCAG-2.2-AA-Abnahme
+
+**Datum:** 2026-07-27
+**Status:** abgeschlossen
+**Ergebnis:** alle relevanten Erfolgskriterien der Stufen A und AA bestanden;
+keine offenen, fehlgeschlagenen oder blockierten A-/AA-Fälle
+
+### Abnahmeumfang
+
+- technische Gates: Angular-Template-Lint, axe für A/AA, Lighthouse-
+  Einzelaudits, fokussierte Unit-/Integrationstests, lokalisierter Build,
+  Reflow-/Fokus-/Zielgrößen-Smokes und veraPDF PDF/UA-1;
+- manuelle Kernprozesse mit Tastatur und Assistive Technology;
+- VoiceOver/Safari auf macOS und NVDA/Firefox auf Windows;
+- relevante Browser-/OS-Stichproben, echter Browserzoom bei 200 % und 400 %,
+  320-CSS-Pixel-Reflow und Fokusverdeckung;
+- Windows High Contrast/Forced Colors, Light/Dark, spielerisch/seriös und
+  Reduced Motion;
+- `de`, `en`, `fr`, `es` und `it`, einschließlich Accessible Names,
+  Seitensprache und langer Übersetzungen;
+- PDF-Reader-/Screenreader-Abnahme der fünf PDF/UA-Locale-Demos zusätzlich zum
+  veraPDF-Normcheck.
+
+### Freigabeentscheidung
+
+Die allgemeine Matrix (35 Fälle) und die PR-101-Matrix (28 Fälle) sind mit
+63/63 bestandenen Fällen abgeschlossen. Story 6.5 erfüllt ihre Definition of
+Done. Die Aussage „barrierefrei nach WCAG 2.2 AA“ ist für den dokumentierten
+Geltungsbereich freigegeben.
+
+Fortlaufende Regressionstests, zusätzliche Geräte-/AT-Stichproben und ein
+optionaler PAC-Gegencheck bleiben sinnvolle, aber nicht blockierende
+Verbesserungen. Die Abnahme enthält weder einen AAA-Claim noch eine Aussage
+vollständiger Universalität.
 
 ## Vorlage für weitere Einträge
 

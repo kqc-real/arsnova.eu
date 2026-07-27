@@ -1,14 +1,16 @@
 # Barrierefreiheit
 
-**Stand: 20. Juli 2026**
+**Stand: 27. Juli 2026**
 
 arsnova.eu ist so gestaltet, dass du die Anwendung mit Tastatur, Screenreader, starker Vergrößerung und den Kontrastmodi deines Betriebssystems nutzen kannst. Auf dieser Seite erfährst du, welche Unterstützung dir zur Verfügung steht und wie wir die Barrierefreiheit sichern.
 
 ## Unser Maßstab
 
-Wir orientieren uns an den [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), Konformitätsstufe AA.
+arsnova.eu ist im unten beschriebenen Geltungsbereich **barrierefrei nach den [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), Konformitätsstufe AA**.
 
 Die Anwendung wurde technisch und manuell geprüft – unter anderem mit Tastatur, Screenreadern, starker Vergrößerung und Systemkontrast. Automatisierte Prüfungen begleiten zusätzlich unsere Entwicklung. Bei Änderungen wiederholen und erweitern wir diese Tests.
+
+Die formale Abnahme vom 27. Juli 2026 umfasste automatische technische Prüfungen, manuelle Kernprozesse mit VoiceOver/Safari und NVDA/Firefox, weitere Browser-/Betriebssystem-Stichproben, 200 % und 400 % Browserzoom, Reflow, Windows High Contrast/Forced Colors sowie PDF-Reader- und PDF/UA-Prüfungen. Alle relevanten WCAG-2.2-Kriterien der Stufen A und AA wurden bestanden; es gibt keine offenen A-/AA-Befunde.
 
 ## Bedienung und Orientierung
 
@@ -38,7 +40,7 @@ Für Ergebnisberichte steht ein strukturiertes PDF/UA-Profil mit Dokumenttitel, 
 
 ## Geltungsbereich
 
-Diese Angaben beziehen sich auf die Funktionen von arsnova.eu und die von der Anwendung erzeugten Dokumente. Für verlinkte Angebote anderer Anbieter gelten deren eigene Hinweise zur Barrierefreiheit.
+Diese Angaben beziehen sich auf die Funktionen von arsnova.eu und die von der Anwendung erzeugten Dokumente. Für verlinkte Angebote anderer Anbieter gelten deren eigene Hinweise zur Barrierefreiheit. Die Aussage bezieht sich auf WCAG 2.2 AA; sie ist kein Anspruch auf WCAG AAA oder vollständige Universalität in jeder denkbaren Geräte- und Hilfsmittelkombination.
 
 ## Dein Feedback
 

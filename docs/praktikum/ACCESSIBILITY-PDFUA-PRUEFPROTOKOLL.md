@@ -2,19 +2,19 @@
 
 # PDF/UA-1-Prüfprotokoll · Session-Ergebnisbericht
 
-**Projekt:** arsnova.eu  
-**Datum:** 2026-07-19  
-**Prüfgegenstand:** barrierefreies Profil des Session-Ergebnisberichts  
-**Normprofil:** PDF/UA-1, ISO 14289-1:2014  
-**Validator:** veraPDF 1.30.2, Container `verapdf/cli:v1.30.2`  
+**Projekt:** arsnova.eu
+**Datum:** 2026-07-27
+**Prüfgegenstand:** barrierefreies Profil des Session-Ergebnisberichts
+**Normprofil:** PDF/UA-1, ISO 14289-1:2014
+**Validator:** veraPDF 1.30.2, Container `verapdf/cli:v1.30.2`
 **Container-Digest:** `sha256:d5ee329657cf9bc4b2400392dd54c7d0a0ce9980ff6fa2da5590eebeec007cdb`
 
 ## 1. Zweck und Abgrenzung
 
-Dieses Protokoll dokumentiert den maschinellen PDF/UA-1-Nachweis und eine
-repräsentative visuelle sowie strukturelle Prüfung der Session-Ergebnisberichte.
-Es ergänzt den WCAG-2.2-AA-Audit und ersetzt keine Bedienprüfung mit einem
-PDF-Reader und Screenreader.
+Dieses Protokoll dokumentiert den maschinellen PDF/UA-1-Nachweis, eine
+repräsentative visuelle sowie strukturelle Prüfung und die am 2026-07-27
+bestandene Bedienprüfung der Session-Ergebnisberichte mit PDF-Reader und
+Screenreader.
 
 Geprüft wurde das Profil „Barrierefrei (PDF/UA-1)“. Das visuell aufwendigere
 Standardprofil erhebt bewusst keinen PDF/UA-Anspruch.
@@ -119,16 +119,14 @@ In den 15 geprüften Renderings gab es keine abgeschnittenen Texte,
 Tabellenüberläufe. Die Übersetzungen, Datumsformate und Dezimaltrennzeichen
 entsprachen der jeweiligen Locale.
 
-## 7. Noch offene manuelle Nachweise
+## 7. Reader-/Screenreader-Abnahme
 
-Für eine vollständige praktische Freigabe bleiben:
+Am 2026-07-27 wurden Navigation, Lesereihenfolge, Überschriften, Links,
+Tabellenansagen und Bildalternativen mit VoiceOver in einem PDF-Reader auf
+macOS sowie mit NVDA in Acrobat Reader unter Windows bestanden. Die fünf
+Locale-Demos `de`, `en`, `fr`, `es` und `it` wurden stichprobenartig einbezogen.
 
-- Navigation und Lesereihenfolge mit VoiceOver in Vorschau oder Acrobat;
-- Navigation und Lesereihenfolge mit NVDA in Acrobat Reader unter Windows;
-- Linkaktivierung, Tabellenansage und Bildalternativen in mindestens einer
-  dieser Kombinationen;
-- optionaler Gegencheck mit PAC unter Windows.
-
-Diese Punkte betreffen Reader-/Screenreader-Interoperabilität. Der
-dateiformale PDF/UA-1-Nachweis durch veraPDF ist für alle fünf Locale-Demos
-erbracht.
+Damit sind sowohl der dateiformale PDF/UA-1-Nachweis durch veraPDF als auch die
+praktische Reader-/Screenreader-Abnahme erbracht. Ein zusätzlicher PAC-
+Gegencheck bei künftigen PDF-Änderungen bleibt eine nicht blockierende
+Empfehlung.
