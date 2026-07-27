@@ -101,6 +101,15 @@ export const RATE_LIMIT_ENV = {
     'RATE_LIMIT_YJS_SHARE_ROTATE_GLOBAL_PER_HOUR',
     500,
   ),
+  /** Token-Vorabprüfung: 500er Shared-NAT-Klassenraum plus Reconnect-Reserve. */
+  yjsShareValidatePerIpPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_YJS_SHARE_VALIDATE_PER_IP_PER_MINUTE',
+    2_000,
+  ),
+  yjsShareValidateGlobalPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_YJS_SHARE_VALIDATE_GLOBAL_PER_MINUTE',
+    10_000,
+  ),
 } as const;
 
 const FIXED_WINDOW_BUDGET_SCRIPT = `
@@ -431,5 +440,21 @@ export async function checkYjsShareRotateRate(ip: string) {
       },
     ],
     3600,
+  );
+}
+
+export async function checkYjsShareValidateRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'yjsShare:validate:global',
+        limit: RATE_LIMIT_ENV.yjsShareValidateGlobalPerMinute,
+      },
+      {
+        key: `yjsShare:validate:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.yjsShareValidatePerIpPerMinute,
+      },
+    ],
+    60,
   );
 }

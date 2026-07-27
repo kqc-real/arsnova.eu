@@ -10,8 +10,9 @@ import {
   type QuizDocument,
 } from './quiz-store.service';
 
-const { createShareMutateMock } = vi.hoisted(() => ({
+const { createShareMutateMock, validateShareQueryMock } = vi.hoisted(() => ({
   createShareMutateMock: vi.fn(),
+  validateShareQueryMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', async (importOriginal) => {
@@ -24,6 +25,7 @@ vi.mock('../../../core/trpc.client', async (importOriginal) => {
           return {
             createShare: { mutate: createShareMutateMock },
             rotateShare: Reflect.get(target, property, receiver).rotateShare,
+            validateShare: { query: validateShareQueryMock },
           };
         }
         return Reflect.get(target, property, receiver);
@@ -45,6 +47,8 @@ describe('QuizStoreService', () => {
 
   beforeEach(() => {
     createShareMutateMock.mockReset();
+    validateShareQueryMock.mockReset();
+    validateShareQueryMock.mockResolvedValue({ valid: true });
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
@@ -1254,6 +1258,58 @@ describe('QuizStoreService', () => {
 
     expect(service.syncShareStatus()).toBe('ready');
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
+  });
+
+  it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const shareToken = `v1.${roomId}.1.${'c'.repeat(43)}`;
+    const destroy = vi.fn();
+    const awarenessOff = vi.fn();
+    service.syncShareToken.set(shareToken);
+    (
+      service as unknown as {
+        yProvider: {
+          awareness: { off: (event: string, listener: unknown) => void };
+          destroy: () => void;
+        } | null;
+      }
+    ).yProvider = {
+      awareness: { off: awarenessOff },
+      destroy,
+    };
+
+    (
+      service as unknown as {
+        handleTerminalYjsShareRejection: (room: string, token: string) => void;
+      }
+    ).handleTerminalYjsShareRejection(roomId, shareToken);
+    (
+      service as unknown as {
+        handleTerminalYjsShareRejection: (room: string, token: string) => void;
+      }
+    ).handleTerminalYjsShareRejection(roomId, shareToken);
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(service.syncConnectionState()).toBe('disconnected');
+    expect(service.syncShareStatus()).toBe('error');
+    expect(service.syncShareError()).toContain('ungültig oder wurde ersetzt');
+  });
+
+  it('behandelt einen nicht erreichbaren Token-Prüfdienst als transient', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const shareToken = `v1.${roomId}.1.${'c'.repeat(43)}`;
+    validateShareQueryMock.mockRejectedValueOnce(new Error('network unavailable'));
+
+    const result = await (
+      service as unknown as {
+        validateYjsShareToken: (room: string, token: string) => Promise<boolean | null>;
+      }
+    ).validateYjsShareToken(roomId, shareToken);
+
+    expect(result).toBeNull();
+    expect(service.syncShareStatus()).not.toBe('error');
   });
 
   it('setzt einen manipulierten Import bei Verbindungsfehler auf den letzten Token zurück', () => {

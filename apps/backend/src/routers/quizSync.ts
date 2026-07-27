@@ -4,10 +4,16 @@ import {
   CreateYjsShareOutputSchema,
   RotateYjsShareInputSchema,
   RotateYjsShareOutputSchema,
+  ValidateYjsShareInputSchema,
+  ValidateYjsShareOutputSchema,
 } from '@arsnova/shared-types';
 import { publicProcedure, router, resolveClientIp } from '../trpc';
-import { createYjsShare, rotateYjsShare } from '../lib/yjsShareToken';
-import { checkYjsShareRegisterRate, checkYjsShareRotateRate } from '../lib/rateLimit';
+import { authorizeYjsRoomUpgrade, createYjsShare, rotateYjsShare } from '../lib/yjsShareToken';
+import {
+  checkYjsShareRegisterRate,
+  checkYjsShareRotateRate,
+  checkYjsShareValidateRate,
+} from '../lib/rateLimit';
 import { logger } from '../lib/logger';
 
 function mapShareError(code: string): TRPCError {
@@ -61,6 +67,32 @@ async function assertYjsShareRotateAllowed(ip: string): Promise<void> {
 }
 
 export const quizSyncRouter = router({
+  validateShare: publicProcedure
+    .input(ValidateYjsShareInputSchema)
+    .output(ValidateYjsShareOutputSchema)
+    .query(async ({ ctx, input }) => {
+      const limit = await checkYjsShareValidateRate(resolveClientIp(ctx.req).ip);
+      if (!limit.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Zu viele Sync-Token-Prüfungen. Bitte später erneut versuchen.',
+          cause: { retryAfterSeconds: limit.retryAfterSeconds },
+        });
+      }
+      try {
+        const authorization = await authorizeYjsRoomUpgrade({
+          roomId: input.roomId,
+          shareToken: input.shareToken,
+        });
+        return { valid: authorization.ok };
+      } catch {
+        throw new TRPCError({
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'Sync-Freigabe kann vorübergehend nicht geprüft werden.',
+        });
+      }
+    }),
+
   createShare: publicProcedure
     .input(CreateYjsShareInputSchema)
     .output(CreateYjsShareOutputSchema)

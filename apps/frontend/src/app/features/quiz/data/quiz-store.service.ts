@@ -2253,13 +2253,24 @@ export class QuizStoreService implements OnDestroy {
     }
 
     this.syncConnectionState.set('connecting');
+    const shareToken = this.syncShareToken();
+    if (shareToken) {
+      const valid = await this.validateYjsShareToken(expectedRoomId, shareToken);
+      if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
+        return;
+      }
+      if (valid === false) {
+        this.handleTerminalYjsShareRejection(expectedRoomId, shareToken);
+        return;
+      }
+    }
+
     const WebsocketProvider = await this.loadWebsocketProviderCtor();
     if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
       return;
     }
 
     const yDoc = this.yDoc;
-    const shareToken = this.syncShareToken();
     const provider = new WebsocketProvider(
       getYjsWsUrl(),
       `${QUIZ_SYNC_ROOM_PREFIX}${expectedRoomId}`,
@@ -2282,10 +2293,19 @@ export class QuizStoreService implements OnDestroy {
         this.syncFromYjsOrSeed();
       }
     });
+    let rejectionCheckInFlight = false;
     provider.on('connection-error', () => {
-      if (this.yProvider === provider) {
-        this.rejectPendingImportedShareToken(expectedRoomId, shareToken);
-      }
+      if (this.yProvider !== provider || !shareToken || rejectionCheckInFlight) return;
+      rejectionCheckInFlight = true;
+      void this.validateYjsShareToken(expectedRoomId, shareToken)
+        .then((valid) => {
+          if (valid === false && this.yProvider === provider) {
+            this.handleTerminalYjsShareRejection(expectedRoomId, shareToken);
+          }
+        })
+        .finally(() => {
+          rejectionCheckInFlight = false;
+        });
     });
     provider.on('status', ({ status }: { status: SyncConnectionState }) => {
       const nextState =
@@ -2299,6 +2319,32 @@ export class QuizStoreService implements OnDestroy {
         this.recordConnectedAt();
       }
     });
+  }
+
+  /**
+   * Prüft nur die endgültige Token-Autorisierung. Ein nicht erreichbarer
+   * Prüfdienst bleibt transient und darf das normale Reconnect nicht stoppen.
+   */
+  private async validateYjsShareToken(roomId: string, shareToken: string): Promise<boolean | null> {
+    try {
+      return (await trpc.quizSync.validateShare.query({ roomId, shareToken })).valid;
+    } catch {
+      return null;
+    }
+  }
+
+  private handleTerminalYjsShareRejection(roomId: string, shareToken: string): void {
+    const pending = this.pendingImportedShareToken;
+    if (pending?.roomId === roomId && pending.token === shareToken) {
+      this.rejectPendingImportedShareToken(roomId, shareToken);
+      return;
+    }
+    if (this.syncRoomId() !== roomId || this.syncShareToken() !== shareToken) return;
+    this.teardownYjsProvider();
+    this.syncShareStatus.set('error');
+    this.syncShareError.set(
+      $localize`Dieser Sync-Link ist ungültig oder wurde ersetzt. Bitte verwende einen aktuellen Link.`,
+    );
   }
 
   private teardownYjs(): void {
