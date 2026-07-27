@@ -47,6 +47,22 @@ const trpcRateLimitedMessages = new RollingCounter();
 const trpcSessionCapRejected = new RollingCounter();
 const trpcParticipantCapRejected = new RollingCounter();
 const yjsRejectedUpgrades = new RollingCounter();
+export const YJS_UPGRADE_REJECTION_REASONS = [
+  'globalRate',
+  'invalidPath',
+  'authorizationUnavailable',
+  'legacyCutoff',
+  'tokenRequired',
+  'invalidToken',
+  'staleGeneration',
+  'roomRate',
+  'globalConnectionCap',
+  'roomConnectionCap',
+] as const;
+export type YjsUpgradeRejectionReason = (typeof YJS_UPGRADE_REJECTION_REASONS)[number];
+const yjsRejectedUpgradesByReason = Object.fromEntries(
+  YJS_UPGRADE_REJECTION_REASONS.map((reason) => [reason, new RollingCounter()]),
+) as Record<YjsUpgradeRejectionReason, RollingCounter>;
 const yjsPayloadRejected = new RollingCounter();
 const yjsRateLimitedMessages = new RollingCounter();
 const yjsProtocolErrors = new RollingCounter();
@@ -120,8 +136,9 @@ export function recordYjsWebSocketDisconnected(room: string): void {
   else yjsRoomConnections.set(room, remaining);
 }
 
-export function recordYjsWebSocketRejectedUpgrade(): void {
+export function recordYjsWebSocketRejectedUpgrade(reason: YjsUpgradeRejectionReason): void {
   yjsRejectedUpgrades.increment();
+  yjsRejectedUpgradesByReason[reason].increment();
 }
 
 export function recordYjsWebSocketPayloadRejected(): void {
@@ -164,6 +181,7 @@ export function getWebSocketTelemetrySnapshot(): {
   yjsConnectionLimit: number;
   yjsPerRoomConnectionLimit: number;
   yjsRejectedUpgradesLastMinute: number;
+  yjsRejectedUpgradesByReasonLastMinute: Record<YjsUpgradeRejectionReason, number>;
   yjsPayloadRejectedLastMinute: number;
   yjsRateLimitedMessagesLastMinute: number;
   yjsProtocolErrorsLastMinute: number;
@@ -187,6 +205,12 @@ export function getWebSocketTelemetrySnapshot(): {
     yjsConnectionLimit,
     yjsPerRoomConnectionLimit,
     yjsRejectedUpgradesLastMinute: yjsRejectedUpgrades.sum(),
+    yjsRejectedUpgradesByReasonLastMinute: Object.fromEntries(
+      YJS_UPGRADE_REJECTION_REASONS.map((reason) => [
+        reason,
+        yjsRejectedUpgradesByReason[reason].sum(),
+      ]),
+    ) as Record<YjsUpgradeRejectionReason, number>,
     yjsPayloadRejectedLastMinute: yjsPayloadRejected.sum(),
     yjsRateLimitedMessagesLastMinute: yjsRateLimitedMessages.sum(),
     yjsProtocolErrorsLastMinute: yjsProtocolErrors.sum(),
@@ -212,6 +236,7 @@ export function resetWebSocketTelemetryForTests(): void {
   yjsPerRoomConnectionLimit = 1;
   yjsRoomConnections.clear();
   yjsRejectedUpgrades.reset();
+  for (const counter of Object.values(yjsRejectedUpgradesByReason)) counter.reset();
   yjsPayloadRejected.reset();
   yjsRateLimitedMessages.reset();
   yjsProtocolErrors.reset();

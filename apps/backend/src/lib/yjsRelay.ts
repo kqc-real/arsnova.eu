@@ -14,6 +14,7 @@ import {
   recordYjsWebSocketProtocolError,
   recordYjsWebSocketRateLimitedMessage,
   recordYjsWebSocketRejectedUpgrade,
+  type YjsUpgradeRejectionReason,
 } from './websocketTelemetry';
 import { authorizeYjsRoomUpgrade, onYjsShareRotated, YJS_SHARE_QUERY_PARAM } from './yjsShareToken';
 import { logger } from './logger';
@@ -472,14 +473,29 @@ function parseRoomUpgrade(request: IncomingMessage): {
   };
 }
 
-function rejectUpgrade(socket: Duplex, status: 400 | 429 | 503): void {
+function rejectUpgrade(
+  socket: Duplex,
+  status: 400 | 429 | 503,
+  reason: YjsUpgradeRejectionReason,
+): void {
   const statusText =
     status === 400 ? 'Bad Request' : status === 429 ? 'Too Many Requests' : 'Service Unavailable';
   socket.write(
     `HTTP/1.1 ${status} ${statusText}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
   );
   socket.destroy();
-  recordYjsWebSocketRejectedUpgrade();
+  recordYjsWebSocketRejectedUpgrade(reason);
+}
+
+function telemetryReasonForAuthorization(
+  reason: 'legacy_cutoff' | 'token_required' | 'invalid_token' | 'stale_generation',
+): YjsUpgradeRejectionReason {
+  return {
+    legacy_cutoff: 'legacyCutoff',
+    token_required: 'tokenRequired',
+    invalid_token: 'invalidToken',
+    stale_generation: 'staleGeneration',
+  }[reason] as YjsUpgradeRejectionReason;
 }
 
 export class YjsRelayServer {
@@ -558,13 +574,13 @@ export class YjsRelayServer {
   ): Promise<void> {
     const now = Date.now();
     if (!this.globalUpgradeWindow.consume(this.config.maxUpgradesPerMinute, now)) {
-      rejectUpgrade(socket, 429);
+      rejectUpgrade(socket, 429, 'globalRate');
       return;
     }
 
     const parsed = parseRoomUpgrade(request);
     if (!parsed) {
-      rejectUpgrade(socket, 400);
+      rejectUpgrade(socket, 400, 'invalidPath');
       return;
     }
     const { room, shareToken } = parsed;
@@ -574,12 +590,12 @@ export class YjsRelayServer {
       authorized = await authorizeYjsRoomUpgrade({ roomId: room, shareToken });
     } catch {
       this.logAuthorizationRejection('yjs_share_authorize_failed', 'redis_or_internal', now);
-      rejectUpgrade(socket, 503);
+      rejectUpgrade(socket, 503, 'authorizationUnavailable');
       return;
     }
     if (!authorized.ok) {
       this.logAuthorizationRejection('yjs_share_upgrade_rejected', authorized.reason, now);
-      rejectUpgrade(socket, 400);
+      rejectUpgrade(socket, 400, telemetryReasonForAuthorization(authorized.reason));
       return;
     }
 
@@ -587,7 +603,7 @@ export class YjsRelayServer {
     const roomUpgradeWindow = this.roomUpgradeWindows.get(room) ?? new FixedWindowCounter();
     this.roomUpgradeWindows.set(room, roomUpgradeWindow);
     if (!roomUpgradeWindow.consume(this.config.maxUpgradesPerRoomPerMinute, now)) {
-      rejectUpgrade(socket, 429);
+      rejectUpgrade(socket, 429, 'roomRate');
       return;
     }
 
@@ -596,7 +612,13 @@ export class YjsRelayServer {
       this.connectionsActive >= this.config.maxConnections ||
       roomConnections >= this.config.maxConnectionsPerRoom
     ) {
-      rejectUpgrade(socket, 503);
+      rejectUpgrade(
+        socket,
+        503,
+        this.connectionsActive >= this.config.maxConnections
+          ? 'globalConnectionCap'
+          : 'roomConnectionCap',
+      );
       return;
     }
 
@@ -606,7 +628,7 @@ export class YjsRelayServer {
       authorized = await authorizeYjsRoomUpgrade({ roomId: room, shareToken });
     } catch {
       this.logAuthorizationRejection('yjs_share_authorize_failed', 'redis_or_internal', Date.now());
-      rejectUpgrade(socket, 503);
+      rejectUpgrade(socket, 503, 'authorizationUnavailable');
       return;
     }
     if (!authorized.ok || !this.isObservedGenerationCurrent(room, authorized.generation)) {
@@ -615,7 +637,11 @@ export class YjsRelayServer {
         authorized.ok ? 'stale_generation' : authorized.reason,
         Date.now(),
       );
-      rejectUpgrade(socket, 400);
+      rejectUpgrade(
+        socket,
+        400,
+        authorized.ok ? 'staleGeneration' : telemetryReasonForAuthorization(authorized.reason),
+      );
       return;
     }
 
@@ -623,7 +649,7 @@ export class YjsRelayServer {
       // Schließt auch das enge Fenster, falls das lokale Rotationsereignis
       // unmittelbar vor diesem Callback verarbeitet wurde.
       if (!this.isObservedGenerationCurrent(room, authorized.generation)) {
-        recordYjsWebSocketRejectedUpgrade();
+        recordYjsWebSocketRejectedUpgrade('staleGeneration');
         webSocket.terminate();
         return;
       }

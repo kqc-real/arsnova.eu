@@ -1783,6 +1783,17 @@ export const RotateYjsShareOutputSchema = z.object({
 });
 export type RotateYjsShareOutput = z.infer<typeof RotateYjsShareOutputSchema>;
 
+export const ValidateYjsShareInputSchema = z.object({
+  roomId: z.string().uuid(),
+  shareToken: z.string().min(32).max(200),
+});
+export type ValidateYjsShareInput = z.infer<typeof ValidateYjsShareInputSchema>;
+
+export const ValidateYjsShareOutputSchema = z.object({
+  valid: z.boolean(),
+});
+export type ValidateYjsShareOutput = z.infer<typeof ValidateYjsShareOutputSchema>;
+
 type QuizHistoryAccessMaterial = {
   name: string;
   description: string | null;
@@ -3173,6 +3184,19 @@ export const HealthSecurityStatsDTOSchema = z.object({
   yjsWebSocketPerRoomConnectionLimit: z.number().int().min(1),
   /** Abgelehnte Yjs-Upgrades der letzten Minute (Pfad, Rate oder Verbindungscap). */
   yjsWebSocketRejectedUpgradesLastMinute: z.number().int().min(0),
+  /** Yjs-Upgrade-Ablehnungen nach aggregiertem, PII-freiem Grund. */
+  yjsWebSocketRejectedUpgradesByReasonLastMinute: z.object({
+    globalRate: z.number().int().min(0),
+    invalidPath: z.number().int().min(0),
+    authorizationUnavailable: z.number().int().min(0),
+    legacyCutoff: z.number().int().min(0),
+    tokenRequired: z.number().int().min(0),
+    invalidToken: z.number().int().min(0),
+    staleGeneration: z.number().int().min(0),
+    roomRate: z.number().int().min(0),
+    globalConnectionCap: z.number().int().min(0),
+    roomConnectionCap: z.number().int().min(0),
+  }),
   /** Wegen Überschreitung des konfigurierten Einzelpayload-Limits verworfene Yjs-Nachrichten. */
   yjsWebSocketPayloadRejectedLastMinute: z.number().int().min(0),
   /** Wegen Nachrichten- oder Bytebudgets geschlossene Yjs-Verbindungen der letzten Minute. */

@@ -45,6 +45,7 @@
      yjsWebSocketConnectionsActive,
      yjsWebSocketRoomsActive,
      yjsWebSocketRejectedUpgradesLastMinute,
+     yjsWebSocketRejectedUpgradesByReasonLastMinute,
      yjsWebSocketPayloadRejectedLastMinute,
      yjsWebSocketRateLimitedMessagesLastMinute
    }'
@@ -244,8 +245,19 @@ ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
   500er-Reconnect-Gate korrelieren. Bei legitimer Last zuerst Client-Doppel-
   verbindungen und Rollout-Overlap prüfen; keine IDs loggen und keinen
   IP-Bucket ergänzen.
-- Yjs-Upgrade-Ablehnungen können ungültige Pfade, Upgrade-Raten oder
-  Verbindungs-Caps bedeuten. Payload-Ablehnungen weisen auf Nachrichten über
+- Yjs-Upgrade-Ablehnungen werden in
+  `yjsWebSocketRejectedUpgradesByReasonLastMinute` ohne Raum-ID, Token oder IP
+  aufgeschlüsselt. `invalidToken` und `staleGeneration` weisen auf ungültige
+  bzw. rotierte Links hin; `tokenRequired`/`legacyCutoff` auf UUID-only-Links;
+  `globalRate`/`roomRate` und die beiden `*ConnectionCap`-Felder auf
+  Schutzgrenzen; `authorizationUnavailable` auf Redis-/Backend-Probleme. Ein
+  dauerhaft nahezu konstanter Wert nur bei `invalidToken` oder
+  `staleGeneration` ist typischerweise ein alter offener Browser-Tab. Aktuelle
+  Clients prüfen den Token zusätzlich über `quizSync.validateShare` und
+  zerstören den Yjs-Provider bei einer endgültigen Ablehnung, sodass daraus
+  keine permanente Reconnect-Schleife mehr entsteht. Transiente Prüf- oder
+  Netzwerkausfälle stoppen den Reconnect ausdrücklich nicht.
+- Payload-Ablehnungen weisen auf Nachrichten über
   das konfigurierte Einzelpayload-Limit (Standard 16 MiB) hin;
   Message-Rate-Schließungen auf ein ausgeschöpftes Nachrichten- oder Bytebudget
   einer Verbindung, eines Raums oder des Backend-Prozesses. Protokollfehler

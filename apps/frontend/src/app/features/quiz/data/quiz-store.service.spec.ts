@@ -10,8 +10,9 @@ import {
   type QuizDocument,
 } from './quiz-store.service';
 
-const { createShareMutateMock } = vi.hoisted(() => ({
+const { createShareMutateMock, validateShareMutateMock } = vi.hoisted(() => ({
   createShareMutateMock: vi.fn(),
+  validateShareMutateMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', async (importOriginal) => {
@@ -24,6 +25,7 @@ vi.mock('../../../core/trpc.client', async (importOriginal) => {
           return {
             createShare: { mutate: createShareMutateMock },
             rotateShare: Reflect.get(target, property, receiver).rotateShare,
+            validateShare: { mutate: validateShareMutateMock },
           };
         }
         return Reflect.get(target, property, receiver);
@@ -45,6 +47,8 @@ describe('QuizStoreService', () => {
 
   beforeEach(() => {
     createShareMutateMock.mockReset();
+    validateShareMutateMock.mockReset();
+    validateShareMutateMock.mockResolvedValue({ valid: true });
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
@@ -52,6 +56,7 @@ describe('QuizStoreService', () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 
@@ -1256,6 +1261,59 @@ describe('QuizStoreService', () => {
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
+  it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const shareToken = `v1.${roomId}.1.${'c'.repeat(43)}`;
+    const destroy = vi.fn();
+    const awarenessOff = vi.fn();
+    service.syncShareToken.set(shareToken);
+    (
+      service as unknown as {
+        yProvider: {
+          awareness: { off: (event: string, listener: unknown) => void };
+          destroy: () => void;
+        } | null;
+      }
+    ).yProvider = {
+      awareness: { off: awarenessOff },
+      destroy,
+    };
+
+    (
+      service as unknown as {
+        handleTerminalYjsShareRejection: (room: string, token: string) => void;
+      }
+    ).handleTerminalYjsShareRejection(roomId, shareToken);
+    (
+      service as unknown as {
+        handleTerminalYjsShareRejection: (room: string, token: string) => void;
+      }
+    ).handleTerminalYjsShareRejection(roomId, shareToken);
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(service.syncConnectionState()).toBe('disconnected');
+    expect(service.syncShareStatus()).toBe('error');
+    expect(service.syncShareError()).toContain('ungültig oder wurde ersetzt');
+  });
+
+  it('behandelt einen nicht erreichbaren Token-Prüfdienst als transient', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const shareToken = `v1.${roomId}.1.${'c'.repeat(43)}`;
+    validateShareMutateMock.mockRejectedValueOnce(new Error('network unavailable'));
+
+    const result = await (
+      service as unknown as {
+        validateYjsShareToken: (room: string, token: string) => Promise<boolean | null>;
+      }
+    ).validateYjsShareToken(roomId, shareToken);
+
+    expect(result).toBeNull();
+    expect(validateShareMutateMock).toHaveBeenCalledWith({ roomId, shareToken });
+    expect(service.syncShareStatus()).not.toBe('error');
+  });
+
   it('setzt einen manipulierten Import bei Verbindungsfehler auf den letzten Token zurück', () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = service.syncRoomId();
@@ -1303,6 +1361,71 @@ describe('QuizStoreService', () => {
 
     expect(service.syncShareToken()).toBe(nextToken);
     expect(destroy).toHaveBeenCalledOnce();
+  });
+
+  it('verwirft eine laufende Provider-Anlage, wenn während der Token-Prüfung rotiert wird', async () => {
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0' });
+    vi.stubGlobal('WebSocket', class {});
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const oldToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+    const nextToken = `v1.${roomId}.2.${'b'.repeat(43)}`;
+    let resolveOldValidation!: (valid: boolean) => void;
+    const oldValidation = new Promise<boolean>((resolve) => {
+      resolveOldValidation = resolve;
+    });
+    const providerTokens: Array<string | undefined> = [];
+
+    class FakeProvider {
+      readonly awareness = {
+        setLocalStateField: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
+      };
+      readonly on = vi.fn();
+      readonly destroy = vi.fn();
+
+      constructor(
+        _url: string,
+        _room: string,
+        _doc: object,
+        options?: { params?: Record<string, string> },
+      ) {
+        providerTokens.push(options?.params?.['s']);
+      }
+    }
+
+    const internals = service as unknown as {
+      yDoc: object | null;
+      yProvider: FakeProvider | null;
+      validateYjsShareToken: (room: string, token: string) => Promise<boolean>;
+      loadWebsocketProviderCtor: () => Promise<typeof FakeProvider>;
+      attachYjsWebSocketProviderIfNeeded: () => Promise<void>;
+      teardownYjsProvider: () => void;
+    };
+    internals.yDoc = { destroy: vi.fn() };
+    service.librarySharingMode.set('shared');
+    service.syncShareToken.set(oldToken);
+    internals.validateYjsShareToken = vi.fn((_room, token) =>
+      token === oldToken ? oldValidation : Promise.resolve(true),
+    );
+    internals.loadWebsocketProviderCtor = vi.fn().mockResolvedValue(FakeProvider);
+
+    const oldAttach = internals.attachYjsWebSocketProviderIfNeeded();
+    await vi.waitFor(() =>
+      expect(internals.validateYjsShareToken).toHaveBeenCalledWith(roomId, oldToken),
+    );
+
+    service.syncShareToken.set(nextToken);
+    internals.teardownYjsProvider();
+    const nextAttach = internals.attachYjsWebSocketProviderIfNeeded();
+    await nextAttach;
+    resolveOldValidation(true);
+    await oldAttach;
+
+    expect(providerTokens).toEqual([nextToken]);
+    expect(internals.yProvider).toBeInstanceOf(FakeProvider);
+    expect(internals.yProvider?.destroy).not.toHaveBeenCalled();
   });
 
   it('merkt sich die ursprüngliche Freigabequelle nur einmalig', () => {

@@ -80,7 +80,7 @@ describe('websocketTelemetry', () => {
     recordYjsWebSocketConnected('quiz-library-room-a');
     recordYjsWebSocketConnected('quiz-library-room-b');
     recordYjsWebSocketDisconnected('quiz-library-room-a');
-    recordYjsWebSocketRejectedUpgrade();
+    recordYjsWebSocketRejectedUpgrade('staleGeneration');
     recordYjsWebSocketPayloadRejected();
     recordYjsWebSocketRateLimitedMessage();
     recordYjsWebSocketProtocolError();
@@ -94,6 +94,9 @@ describe('websocketTelemetry', () => {
       yjsConnectionLimit: 1_000,
       yjsPerRoomConnectionLimit: 100,
       yjsRejectedUpgradesLastMinute: 1,
+      yjsRejectedUpgradesByReasonLastMinute: {
+        staleGeneration: 1,
+      },
       yjsPayloadRejectedLastMinute: 1,
       yjsRateLimitedMessagesLastMinute: 1,
       yjsProtocolErrorsLastMinute: 1,

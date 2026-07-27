@@ -504,6 +504,8 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     yjsWebSocketConnectionLimit: webSocketSnapshot.yjsConnectionLimit,
     yjsWebSocketPerRoomConnectionLimit: webSocketSnapshot.yjsPerRoomConnectionLimit,
     yjsWebSocketRejectedUpgradesLastMinute: webSocketSnapshot.yjsRejectedUpgradesLastMinute,
+    yjsWebSocketRejectedUpgradesByReasonLastMinute:
+      webSocketSnapshot.yjsRejectedUpgradesByReasonLastMinute,
     yjsWebSocketPayloadRejectedLastMinute: webSocketSnapshot.yjsPayloadRejectedLastMinute,
     yjsWebSocketRateLimitedMessagesLastMinute: webSocketSnapshot.yjsRateLimitedMessagesLastMinute,
     yjsWebSocketProtocolErrorsLastMinute: webSocketSnapshot.yjsProtocolErrorsLastMinute,

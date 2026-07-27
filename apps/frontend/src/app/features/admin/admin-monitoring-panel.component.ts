@@ -256,6 +256,40 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         THRESHOLDS.yjsRejectedUpgrades,
       ),
       this.metric(
+        $localize`:@@admin.monitoringYjsInvalidTokens:Ungültige Sync-Tokens`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.invalidToken,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringYjsStaleTokens:Ersetzte Sync-Tokens`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.staleGeneration,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringYjsMissingTokens:Fehlende oder abgelaufene Legacy-Tokens`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.tokenRequired +
+          stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.legacyCutoff,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringYjsInvalidPaths:Ungültige Relay-Pfade`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.invalidPath,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringYjsUpgradeLimits:Upgrade-Rate-/Kapazitätslimits`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.globalRate +
+          stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.roomRate +
+          stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.globalConnectionCap +
+          stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.roomConnectionCap,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringYjsAuthorizationUnavailable:Autorisierung vorübergehend nicht verfügbar`,
+        stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.authorizationUnavailable,
+        null,
+      ),
+      this.metric(
         $localize`:@@admin.monitoringRejectedPayloads:Abgelehnte Payloads`,
         stats.yjsWebSocketPayloadRejectedLastMinute,
         THRESHOLDS.yjsRejectedPayloads,
