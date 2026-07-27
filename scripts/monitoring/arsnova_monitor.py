@@ -46,8 +46,20 @@ class Rule:
 RULES = (
     Rule("session_create_rate", "Erfolgreiche Session-Erstellungen/min", ("sessionCreatesLastMinute",), 30, 60),
     Rule("rate_limit_429_total", "Alle 429-Ablehnungen/min", ("rateLimit429LastMinute",), 50, 200),
-    Rule("invalid_session_codes", "Ungültige Session-Codes/min", ("sessionCodeFailuresLastMinute",), 100, 500),
-    Rule("soft_cap_delays", "Session-Code-Soft-Cap-Delays/min", ("sessionCodeSoftCapDelaysLastMinute",), 10, 100),
+    Rule(
+        "session_code_entry_failures",
+        "Fehlgeschlagene Join- und Codeprüfungen/min",
+        ("sessionCodeEntryFailuresLastMinute",),
+        100,
+        500,
+    ),
+    Rule(
+        "session_code_entry_soft_cap_delays",
+        "Soft-Cap-Delays für Join- und Codeprüfungen/min",
+        ("sessionCodeEntrySoftCapDelaysLastMinute",),
+        10,
+        100,
+    ),
     Rule(
         "soft_cap_utilization",
         "Globale Code-Soft-Cap-Auslastung (%)",

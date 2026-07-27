@@ -58,8 +58,8 @@ class EvaluationTests(unittest.TestCase):
         expected = {
             "session_create_rate": (30, 60),
             "rate_limit_429_total": (50, 200),
-            "invalid_session_codes": (100, 500),
-            "soft_cap_delays": (10, 100),
+            "session_code_entry_failures": (100, 500),
+            "session_code_entry_soft_cap_delays": (10, 100),
             "soft_cap_utilization": (80, 95),
             "session_code_429": (30, 100),
             "pdf_rejected": (5, 20),
@@ -108,6 +108,17 @@ class EvaluationTests(unittest.TestCase):
     def test_pdf_capacity_without_rejection_is_not_an_alert(self):
         stats = healthy_security_stats()
         stats["pdfActiveJobs"] = stats["pdfMaxConcurrentJobs"]
+        self.assertEqual(self.evaluate(stats=stats)["level"], "ok")
+
+    def test_automatic_poll_failures_do_not_trigger_entry_alert(self):
+        stats = healthy_security_stats()
+        stats["sessionCodeFailuresLastMinute"] = 5_000
+        stats["sessionCodeFailuresBySourceLastMinute"] = {
+            "join": 0,
+            "lookup": 0,
+            "pollReconnect": 5_000,
+            "other": 0,
+        }
         self.assertEqual(self.evaluate(stats=stats)["level"], "ok")
 
     def test_redis_failure_is_critical_even_when_rolling_counters_are_zero(self):

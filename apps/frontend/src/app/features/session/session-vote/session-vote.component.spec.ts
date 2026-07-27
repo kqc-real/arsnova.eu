@@ -31,6 +31,7 @@ registerLocaleData(localeDe);
 
 const {
   getInfoQueryMock,
+  getInfoForReconnectQueryMock,
   statusChangedSubscribeMock,
   currentQuestionQueryMock,
   voteSubmitMutateMock,
@@ -56,6 +57,7 @@ const {
   snackBarOpenMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
+  getInfoForReconnectQueryMock: vi.fn(),
   statusChangedSubscribeMock: vi.fn(),
   currentQuestionQueryMock: vi.fn(),
   voteSubmitMutateMock: vi.fn(),
@@ -89,6 +91,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     session: {
       getInfo: { query: getInfoQueryMock },
+      getInfoForReconnect: { query: getInfoForReconnectQueryMock },
       onStatusChanged: { subscribe: statusChangedSubscribeMock },
       getCurrentQuestionForStudent: { query: currentQuestionQueryMock },
       confirmReadingReady: { mutate: confirmReadingReadyMutateMock },
@@ -211,6 +214,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    getInfoForReconnectQueryMock.mockImplementation(() => getInfoQueryMock());
     localStorage.setItem('arsnova-participant-ABC123', '11111111-1111-4111-8111-111111111111');
     localStorage.removeItem('arsnova-nickname-ABC123');
     sessionStorage.clear();
@@ -3677,12 +3681,23 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('.vote-player-badge--arrival')).toBeNull();
     expect(hasParticipantJoinArrival('ABC123')).toBe(true);
+    getInfoForReconnectQueryMock.mockClear();
+    const fallbackState = fixture.componentInstance as unknown as {
+      sessionFallbackActive: boolean;
+      lastSessionInfoRetryAt: number;
+    };
+    fallbackState.sessionFallbackActive = true;
+    fallbackState.lastSessionInfoRetryAt = 0;
 
     await (
       fixture.componentInstance as unknown as { refreshSessionInfoFallback: () => Promise<void> }
     ).refreshSessionInfoFallback();
     fixture.detectChanges();
 
+    expect(getInfoForReconnectQueryMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      anonymousClientId: expect.any(String),
+    });
     expect(host.querySelector('.vote-player-badge--arrival')).not.toBeNull();
     expect(sessionStorage.getItem('arsnova-join-arrival:ABC123')).toBeNull();
     fixture.destroy();

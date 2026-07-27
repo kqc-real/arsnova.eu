@@ -23,18 +23,24 @@ export type RateLimitCategory =
   | 'motd'
   | 'other';
 
+export type SessionCodeFailureSource = 'join' | 'lookup' | 'pollReconnect' | 'other';
+
 type AbuseCounterName =
   | 'sessionCreateCompleted'
   | 'adminLoginFailure'
   | 'sessionCodeFailure'
   | 'sessionCodeSoftCapDelay'
+  | `sessionCodeFailure:${SessionCodeFailureSource}`
+  | `sessionCodeSoftCapDelay:${SessionCodeFailureSource}`
   | `rateLimit429:${RateLimitCategory}`;
 
 export type AbuseSignals = {
   sessionCreatesLastMinute: number;
   adminLoginFailuresLastMinute: number;
   sessionCodeFailuresLastMinute: number;
+  sessionCodeFailuresBySourceLastMinute: Record<SessionCodeFailureSource, number>;
   sessionCodeSoftCapDelaysLastMinute: number;
+  sessionCodeSoftCapDelaysBySourceLastMinute: Record<SessionCodeFailureSource, number>;
   rateLimit429LastMinute: number;
   rateLimit429ByCategoryLastMinute: Record<RateLimitCategory, number>;
 };
@@ -48,6 +54,12 @@ const RATE_LIMIT_CATEGORIES: RateLimitCategory[] = [
   'vote',
   'pdf',
   'motd',
+  'other',
+];
+const SESSION_CODE_FAILURE_SOURCES: SessionCodeFailureSource[] = [
+  'join',
+  'lookup',
+  'pollReconnect',
   'other',
 ];
 
@@ -126,12 +138,20 @@ export function recordAdminLoginFailure(nowMs: number = Date.now()): void {
   recordCounter('adminLoginFailure', nowMs);
 }
 
-export function recordSessionCodeFailure(nowMs: number = Date.now()): void {
+export function recordSessionCodeFailure(
+  source: SessionCodeFailureSource = 'other',
+  nowMs: number = Date.now(),
+): void {
   recordCounter('sessionCodeFailure', nowMs);
+  recordCounter(`sessionCodeFailure:${source}`, nowMs);
 }
 
-export function recordSessionCodeSoftCapDelay(nowMs: number = Date.now()): void {
+export function recordSessionCodeSoftCapDelay(
+  source: SessionCodeFailureSource = 'other',
+  nowMs: number = Date.now(),
+): void {
   recordCounter('sessionCodeSoftCapDelay', nowMs);
+  recordCounter(`sessionCodeSoftCapDelay:${source}`, nowMs);
 }
 
 export function recordRateLimitRejection(
@@ -214,7 +234,11 @@ export function logRateLimitRejection(
 }
 
 export function logSessionCodeSoftCapDelay(
-  details: { delayMs: number; globalUtilizationPercent: number },
+  details: {
+    delayMs: number;
+    globalUtilizationPercent: number;
+    source: SessionCodeFailureSource;
+  },
   nowMs: number = Date.now(),
 ): void {
   if (
@@ -227,6 +251,7 @@ export function logSessionCodeSoftCapDelay(
   logger.warn('session_code_soft_cap_delay', {
     delayMs: details.delayMs,
     globalUtilizationPercent: details.globalUtilizationPercent,
+    source: details.source,
     suppressedSinceLastLog: sessionCodeSoftCapLogState?.suppressedSinceLastLog ?? 0,
   });
   sessionCodeSoftCapLogState = { lastLoggedAtMs: nowMs, suppressedSinceLastLog: 0 };
@@ -293,11 +318,16 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
   const emptyByCategory = Object.fromEntries(
     RATE_LIMIT_CATEGORIES.map((category) => [category, 0]),
   ) as Record<RateLimitCategory, number>;
+  const emptyBySessionCodeSource = Object.fromEntries(
+    SESSION_CODE_FAILURE_SOURCES.map((source) => [source, 0]),
+  ) as Record<SessionCodeFailureSource, number>;
   const empty: AbuseSignals = {
     sessionCreatesLastMinute: 0,
     adminLoginFailuresLastMinute: 0,
     sessionCodeFailuresLastMinute: 0,
+    sessionCodeFailuresBySourceLastMinute: { ...emptyBySessionCodeSource },
     sessionCodeSoftCapDelaysLastMinute: 0,
+    sessionCodeSoftCapDelaysBySourceLastMinute: { ...emptyBySessionCodeSource },
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: emptyByCategory,
   };
@@ -310,6 +340,12 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
       'adminLoginFailure',
       'sessionCodeFailure',
       'sessionCodeSoftCapDelay',
+      ...SESSION_CODE_FAILURE_SOURCES.map(
+        (source): AbuseCounterName => `sessionCodeFailure:${source}`,
+      ),
+      ...SESSION_CODE_FAILURE_SOURCES.map(
+        (source): AbuseCounterName => `sessionCodeSoftCapDelay:${source}`,
+      ),
       ...RATE_LIMIT_CATEGORIES.map((category): AbuseCounterName => `rateLimit429:${category}`),
     ];
     const multi = getRedis().multi();
@@ -326,7 +362,9 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
       sessionCreatesLastMinute: 0,
       adminLoginFailuresLastMinute: 0,
       sessionCodeFailuresLastMinute: 0,
+      sessionCodeFailuresBySourceLastMinute: { ...emptyBySessionCodeSource },
       sessionCodeSoftCapDelaysLastMinute: 0,
+      sessionCodeSoftCapDelaysBySourceLastMinute: { ...emptyBySessionCodeSource },
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: { ...emptyByCategory },
     };
@@ -336,8 +374,17 @@ export async function readAbuseSignals(nowMs: number = Date.now()): Promise<Abus
       signals.adminLoginFailuresLastMinute += parseRedisInteger(result[cursor + 1]?.[1]);
       signals.sessionCodeFailuresLastMinute += parseRedisInteger(result[cursor + 2]?.[1]);
       signals.sessionCodeSoftCapDelaysLastMinute += parseRedisInteger(result[cursor + 3]?.[1]);
+      SESSION_CODE_FAILURE_SOURCES.forEach((source, sourceIndex) => {
+        signals.sessionCodeFailuresBySourceLastMinute[source] += parseRedisInteger(
+          result[cursor + sourceIndex + 4]?.[1],
+        );
+        signals.sessionCodeSoftCapDelaysBySourceLastMinute[source] += parseRedisInteger(
+          result[cursor + sourceIndex + 4 + SESSION_CODE_FAILURE_SOURCES.length]?.[1],
+        );
+      });
+      const rateLimitOffset = 4 + SESSION_CODE_FAILURE_SOURCES.length * 2;
       RATE_LIMIT_CATEGORIES.forEach((category, categoryIndex) => {
-        const count = parseRedisInteger(result[cursor + categoryIndex + 4]?.[1]);
+        const count = parseRedisInteger(result[cursor + categoryIndex + rateLimitOffset]?.[1]);
         signals.rateLimit429ByCategoryLastMinute[category] += count;
         signals.rateLimit429LastMinute += count;
       });

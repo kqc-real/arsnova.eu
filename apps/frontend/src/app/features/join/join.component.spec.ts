@@ -51,6 +51,19 @@ vi.mock('../../core/trpc.client', () => ({
           allowCustomNicknames: true,
         }),
       },
+      getInfoForReconnect: {
+        query: vi.fn().mockResolvedValue({
+          id: 'sess-1',
+          code: 'ABC123',
+          type: 'QUIZ',
+          status: 'LOBBY',
+          quizName: 'Test-Quiz',
+          title: null,
+          participantCount: 5,
+          nicknameTheme: 'NOBEL_LAUREATES',
+          allowCustomNicknames: true,
+        }),
+      },
       getTeams: { query: vi.fn().mockResolvedValue({ teams: [], teamCount: 0 }) },
       getParticipantNicknames: {
         query: vi.fn().mockResolvedValue({ nicknames: [], participantCount: 0 }),
