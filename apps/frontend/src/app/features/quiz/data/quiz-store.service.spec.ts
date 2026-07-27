@@ -1197,6 +1197,30 @@ describe('QuizStoreService', () => {
     expect(service.syncShareStatus()).toBe('ready');
   });
 
+  it('startet für einen persistierten Legacy-Raum keinen Relay-Provider', async () => {
+    localStorage.setItem('quiz-sync-room-id', 'syncroom_123');
+    localStorage.setItem('quiz-library-sharing-mode', 'shared');
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0' });
+    vi.stubGlobal('WebSocket', class {});
+    const service = TestBed.inject(QuizStoreService);
+    const loadWebsocketProviderCtor = vi.fn();
+    const internals = service as unknown as {
+      yDoc: object | null;
+      yProvider: object | null;
+      loadWebsocketProviderCtor: typeof loadWebsocketProviderCtor;
+      attachYjsWebSocketProviderIfNeeded: () => Promise<void>;
+    };
+    internals.yDoc = { destroy: vi.fn() };
+    internals.loadWebsocketProviderCtor = loadWebsocketProviderCtor;
+
+    await internals.attachYjsWebSocketProviderIfNeeded();
+
+    expect(loadWebsocketProviderCtor).not.toHaveBeenCalled();
+    expect(internals.yProvider).toBeNull();
+    expect(service.syncShareStatus()).toBe('legacy');
+    expect(service.syncConnectionState()).toBe('disconnected');
+  });
+
   it('zerstört den vorhandenen Provider beim Import eines Ersatz-Tokens im selben Raum', () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = service.syncRoomId();
@@ -1445,18 +1469,45 @@ describe('QuizStoreService', () => {
 
   it('rekeyt einen Legacy-Origin explizit auf einen serverseitig erzeugten Raum', async () => {
     const service = TestBed.inject(QuizStoreService);
+    service.activateSyncRoom('syncroom_123', { markShared: true });
     service.createQuiz({ name: 'Legacy-Sammlung' });
     const oldRoomId = service.syncRoomId();
     const newRoomId = '00000000-0000-4000-8000-000000000777';
+    const providerRooms: string[] = [];
+    class FakeProvider {
+      readonly awareness = {
+        setLocalStateField: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
+      };
+      readonly on = vi.fn();
+      readonly destroy = vi.fn();
+
+      constructor(_url: string, room: string) {
+        providerRooms.push(room);
+      }
+    }
+    const internals = service as unknown as {
+      yDoc: object | null;
+      initYjsPersistence: (roomId: string) => Promise<void>;
+      loadWebsocketProviderCtor: () => Promise<typeof FakeProvider>;
+      attachYjsWebSocketProviderIfNeeded: () => Promise<void>;
+    };
+    internals.initYjsPersistence = vi.fn().mockResolvedValue(undefined);
     createShareMutateMock.mockResolvedValue({
       roomId: newRoomId,
       shareToken: `v1.${newRoomId}.1.${'a'.repeat(43)}`,
       generation: 1,
     });
 
-    service.activateSyncRoom(oldRoomId, { markShared: true });
     const link = await service.createSecuredSyncShareLink();
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0' });
+    vi.stubGlobal('WebSocket', class {});
+    internals.yDoc = { destroy: vi.fn() };
+    internals.loadWebsocketProviderCtor = vi.fn().mockResolvedValue(FakeProvider);
+    await internals.attachYjsWebSocketProviderIfNeeded();
 
+    expect(oldRoomId).toBe('syncroom_123');
     expect(createShareMutateMock).toHaveBeenCalledWith({
       rotationCapability: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
@@ -1464,6 +1515,7 @@ describe('QuizStoreService', () => {
     expect(service.syncShareStatus()).toBe('ready');
     expect(service.quizzes().some((quiz) => quiz.name === 'Legacy-Sammlung')).toBe(true);
     expect(link).toContain(`/quiz/sync/${newRoomId}#s=`);
+    expect(providerRooms).toEqual([`quiz-library-room-${newRoomId}`]);
   });
 
   it('verwendet bei paralleler Absicherung dasselbe In-flight-Promise', async () => {

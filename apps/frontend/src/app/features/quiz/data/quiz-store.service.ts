@@ -2253,6 +2253,11 @@ export class QuizStoreService implements OnDestroy {
       this.syncConnectionState.set('disconnected');
       return;
     }
+    if (!isSyncRoomUuid(roomId)) {
+      this.syncConnectionState.set('disconnected');
+      this.syncShareStatus.set('legacy');
+      return;
+    }
 
     this.syncConnectionState.set('connecting');
     const shareToken = this.syncShareToken();
