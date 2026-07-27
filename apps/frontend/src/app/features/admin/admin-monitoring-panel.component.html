@@ -137,39 +137,73 @@
             <h3 mat-card-title i18n="@@admin.monitoringSessionsTitle">Sessions und Schutzlimits</h3>
             <span
               class="monitoring-status"
-              [class]="'monitoring-status monitoring-status--' + cardLevel(sessionMetrics())"
+              [class]="'monitoring-status monitoring-status--' + cardLevel(sessionAlertMetrics())"
             >
-              {{ statusLabel(cardLevel(sessionMetrics())) }}
+              {{ statusLabel(cardLevel(sessionAlertMetrics())) }}
             </span>
           </div>
           <mat-card-subtitle i18n="@@admin.monitoringLastMinute">Letzte Minute</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <dl>
-            @for (metric of sessionMetrics(); track metric.label) {
-              <div>
-                <dt>
-                  <span>{{ metric.label }}</span>
-                  @if (metric.threshold) {
-                    <small>{{ metric.threshold }}</small>
-                  }
-                </dt>
-                <dd>
-                  <span class="monitoring-metric__value">{{ metric.value }}</span>
-                  @if (alertLevel(metric); as level) {
+          <section
+            class="monitoring-metric-group"
+            aria-labelledby="monitoring-session-alerts-title"
+          >
+            <h4 id="monitoring-session-alerts-title" i18n="@@admin.monitoringSessionAlertsTitle">
+              Alarmrelevante Signale
+            </h4>
+            <dl>
+              @for (metric of sessionAlertMetrics(); track metric.label) {
+                <div>
+                  <dt>
+                    <span>{{ metric.label }}</span>
+                    @if (metric.threshold) {
+                      <small>{{ metric.threshold }}</small>
+                    }
+                  </dt>
+                  <dd>
+                    <span class="monitoring-metric__value">{{ metric.value }}</span>
+                    @if (alertLevel(metric); as level) {
+                      <span
+                        class="monitoring-status monitoring-status--compact"
+                        [class]="
+                          'monitoring-status monitoring-status--compact monitoring-status--' + level
+                        "
+                      >
+                        {{ statusLabel(level) }}
+                      </span>
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+          </section>
+
+          <section class="monitoring-metric-group" aria-labelledby="monitoring-session-info-title">
+            <h4 id="monitoring-session-info-title" i18n="@@admin.monitoringSessionInfoTitle">
+              Hintergrundaktivität
+            </h4>
+            <p class="monitoring-metric-group__help" i18n="@@admin.monitoringSessionInfoHelp">
+              Offene Tabs und automatische Nachfragen. Nur zur Diagnose, kein Alarm.
+            </p>
+            <dl>
+              @for (metric of sessionInfoMetrics(); track metric.label) {
+                <div class="monitoring-metric--info">
+                  <dt>
+                    <span>{{ metric.label }}</span>
+                  </dt>
+                  <dd>
+                    <span class="monitoring-metric__value">{{ metric.value }}</span>
                     <span
-                      class="monitoring-status monitoring-status--compact"
-                      [class]="
-                        'monitoring-status monitoring-status--compact monitoring-status--' + level
-                      "
+                      class="monitoring-status monitoring-status--compact monitoring-status--info"
                     >
-                      {{ statusLabel(level) }}
+                      {{ infoBadgeLabel() }}
                     </span>
-                  }
-                </dd>
-              </div>
-            }
-          </dl>
+                  </dd>
+                </div>
+              }
+            </dl>
+          </section>
         </mat-card-content>
       </mat-card>
 
@@ -279,7 +313,7 @@
         <mat-card-content>
           <dl>
             @for (metric of yjsMetrics(); track metric.label) {
-              <div>
+              <div [class.monitoring-metric--info]="metric.kind === 'info'">
                 <dt>
                   <span>{{ metric.label }}</span>
                   @if (metric.threshold) {
@@ -288,7 +322,13 @@
                 </dt>
                 <dd>
                   <span class="monitoring-metric__value">{{ metric.value }}</span>
-                  @if (alertLevel(metric); as level) {
+                  @if (metric.kind === 'info') {
+                    <span
+                      class="monitoring-status monitoring-status--compact monitoring-status--info"
+                    >
+                      {{ infoBadgeLabel() }}
+                    </span>
+                  } @else if (alertLevel(metric); as level) {
                     <span
                       class="monitoring-status monitoring-status--compact"
                       [class]="

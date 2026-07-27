@@ -27,12 +27,14 @@ import { trpc } from '../../core/trpc.client';
 
 const REFRESH_INTERVAL_MS = 60_000;
 type MonitoringLevel = 'ok' | 'warning' | 'critical';
+type MetricKind = 'alert' | 'info';
 type Threshold = Readonly<{ warning: number; critical: number; percent?: boolean }>;
 type MetricView = Readonly<{
   label: string;
   value: string;
   level: MonitoringLevel | null;
   threshold: string | null;
+  kind: MetricKind;
 }>;
 
 // Muss mit RULES in scripts/monitoring/arsnova_monitor.py synchron bleiben.
@@ -90,7 +92,7 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
     const stats = this.stats();
     return stats ? JSON.stringify(stats, null, 2) : '';
   });
-  readonly sessionMetrics = computed<MetricView[]>(() => {
+  readonly sessionAlertMetrics = computed<MetricView[]>(() => {
     const stats = this.stats();
     if (!stats) return [];
     return [
@@ -98,11 +100,6 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         $localize`:@@admin.monitoringSessionCreates:Erstellte Sessions`,
         stats.sessionCreatesLastMinute,
         THRESHOLDS.sessionCreates,
-      ),
-      this.metric(
-        $localize`:@@admin.monitoringAllCodeFailures:Globale fehlgeschlagene Code-Abfragen`,
-        stats.sessionCodeFailuresLastMinute,
-        null,
       ),
       this.metric(
         $localize`:@@admin.monitoringEntryFailures:Fehlgeschlagene Join- und Codeprüfungen`,
@@ -120,24 +117,9 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         null,
       ),
       this.metric(
-        $localize`:@@admin.monitoringPollReconnectFailures:Automatische Poll-/Reconnect-Abfragen`,
-        stats.sessionCodeFailuresBySourceLastMinute.pollReconnect,
-        null,
-      ),
-      this.metric(
-        $localize`:@@admin.monitoringOtherCodeFailures:Sonstige fehlgeschlagene Code-Abfragen`,
-        stats.sessionCodeFailuresBySourceLastMinute.other,
-        null,
-      ),
-      this.metric(
         $localize`:@@admin.monitoringEntrySoftCapDelays:Soft-Cap-Verzögerungen für Join/Codeprüfung`,
         stats.sessionCodeEntrySoftCapDelaysLastMinute,
         THRESHOLDS.sessionCodeEntrySoftCapDelays,
-      ),
-      this.metric(
-        $localize`:@@admin.monitoringPollReconnectSoftCapDelays:Automatische Poll-/Reconnect-Verzögerungen`,
-        stats.sessionCodeSoftCapDelaysBySourceLastMinute.pollReconnect,
-        null,
       ),
       this.metric(
         $localize`:@@admin.monitoringSoftCapUtilization:Globale Soft-Cap-Auslastung`,
@@ -151,6 +133,44 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
       ),
     ];
   });
+  readonly sessionInfoMetrics = computed<MetricView[]>(() => {
+    const stats = this.stats();
+    if (!stats) return [];
+    return [
+      this.metric(
+        $localize`:@@admin.monitoringPollReconnectFailures:Offene Tabs (Poll/Reconnect)`,
+        stats.sessionCodeFailuresBySourceLastMinute.pollReconnect,
+        null,
+        undefined,
+        'info',
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPollReconnectSoftCapDelays:Soft-Cap bei offenen Tabs`,
+        stats.sessionCodeSoftCapDelaysBySourceLastMinute.pollReconnect,
+        null,
+        undefined,
+        'info',
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringOtherCodeFailures:Sonstige Hintergrund-Codeprüfungen`,
+        stats.sessionCodeFailuresBySourceLastMinute.other,
+        null,
+        undefined,
+        'info',
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringAllCodeFailures:Hintergrund-Codeprüfungen gesamt`,
+        stats.sessionCodeFailuresLastMinute,
+        null,
+        undefined,
+        'info',
+      ),
+    ];
+  });
+  readonly sessionMetrics = computed<MetricView[]>(() => [
+    ...this.sessionAlertMetrics(),
+    ...this.sessionInfoMetrics(),
+  ]);
   readonly pdfMetrics = computed<MetricView[]>(() => {
     const stats = this.stats();
     if (!stats) return [];
@@ -259,22 +279,30 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         $localize`:@@admin.monitoringYjsInvalidTokens:Ungültige Sync-Tokens`,
         stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.invalidToken,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringYjsStaleTokens:Ersetzte Sync-Tokens`,
         stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.staleGeneration,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringYjsMissingTokens:Fehlende oder abgelaufene Legacy-Tokens`,
         stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.tokenRequired +
           stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.legacyCutoff,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringYjsInvalidPaths:Ungültige Relay-Pfade`,
         stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.invalidPath,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringYjsUpgradeLimits:Upgrade-Rate-/Kapazitätslimits`,
@@ -283,11 +311,15 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
           stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.globalConnectionCap +
           stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.roomConnectionCap,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringYjsAuthorizationUnavailable:Autorisierung vorübergehend nicht verfügbar`,
         stats.yjsWebSocketRejectedUpgradesByReasonLastMinute.authorizationUnavailable,
         null,
+        undefined,
+        'info',
       ),
       this.metric(
         $localize`:@@admin.monitoringRejectedPayloads:Abgelehnte Payloads`,
@@ -311,7 +343,7 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
     if (!stats) return 'critical';
     const infrastructureLevel = this.infrastructureLevel(stats.databaseStatus);
     const metricLevel = this.highestLevel([
-      ...this.sessionMetrics(),
+      ...this.sessionAlertMetrics(),
       ...this.pdfMetrics(),
       ...this.securityMetrics(),
       ...this.trpcMetrics(),
@@ -408,7 +440,12 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   }
 
   alertLevel(metric: MetricView): Exclude<MonitoringLevel, 'ok'> | null {
+    if (metric.kind === 'info') return null;
     return metric.level === 'warning' || metric.level === 'critical' ? metric.level : null;
+  }
+
+  infoBadgeLabel(): string {
+    return $localize`:@@admin.monitoringLevelInfo:Info`;
   }
 
   infrastructureLevel(status: 'ok' | 'unavailable'): MonitoringLevel {
@@ -441,6 +478,7 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
     rawValue: number,
     threshold: Threshold | null,
     displayValue?: string,
+    kind: MetricKind = 'alert',
   ): MetricView {
     return {
       label,
@@ -449,6 +487,7 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         (threshold?.percent ? this.formatPercent(rawValue) : this.formatCount(rawValue)),
       level: threshold ? this.levelFor(rawValue, threshold) : null,
       threshold: threshold ? this.thresholdLabel(threshold) : null,
+      kind,
     };
   }
 
@@ -469,8 +508,9 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   }
 
   private highestLevel(metrics: MetricView[]): MonitoringLevel {
-    if (metrics.some((metric) => metric.level === 'critical')) return 'critical';
-    if (metrics.some((metric) => metric.level === 'warning')) return 'warning';
+    const alertMetrics = metrics.filter((metric) => metric.kind !== 'info');
+    if (alertMetrics.some((metric) => metric.level === 'critical')) return 'critical';
+    if (alertMetrics.some((metric) => metric.level === 'warning')) return 'warning';
     return 'ok';
   }
 

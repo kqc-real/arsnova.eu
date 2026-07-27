@@ -2691,7 +2691,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringAllCodeFailures" datatype="html">
-        <source>Globale fehlgeschlagene Code-Abfragen</source>
+        <source>Hintergrund-Codeprüfungen gesamt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">103</context>
@@ -2719,14 +2719,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
-        <source>Automatische Poll-/Reconnect-Abfragen</source>
+        <source>Offene Tabs (Poll/Reconnect)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
-        <source>Sonstige fehlgeschlagene Code-Abfragen</source>
+        <source>Sonstige Hintergrund-Codeprüfungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -2740,10 +2740,38 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
-        <source>Automatische Poll-/Reconnect-Verzögerungen</source>
+        <source>Soft-Cap bei offenen Tabs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionAlertsTitle" datatype="html">
+        <source>Alarmrelevante Signale</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoTitle" datatype="html">
+        <source>Hintergrundaktivität</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
+        <source>Offene Tabs und automatische Nachfragen. Nur zur Diagnose, kein Alarm.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelInfo" datatype="html">
+        <source>Info</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">

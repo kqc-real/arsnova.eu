@@ -3070,8 +3070,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringAllCodeFailures" datatype="html">
-        <source>Globale fehlgeschlagene Code-Abfragen</source>
-        <target>Global failed code queries</target>
+        <source>Hintergrund-Codeprüfungen gesamt</source>
+        <target>Background code checks total</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">103</context>
@@ -3102,16 +3102,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
-        <source>Automatische Poll-/Reconnect-Abfragen</source>
-        <target>Automatic poll/reconnect queries</target>
+        <source>Offene Tabs (Poll/Reconnect)</source>
+        <target>Open tabs (poll/reconnect)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
-        <source>Sonstige fehlgeschlagene Code-Abfragen</source>
-        <target>Other failed code queries</target>
+        <source>Sonstige Hintergrund-Codeprüfungen</source>
+        <target>Other background code checks</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -3126,11 +3126,43 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
-        <source>Automatische Poll-/Reconnect-Verzögerungen</source>
-        <target>Automatic poll/reconnect delays</target>
+        <source>Soft-Cap bei offenen Tabs</source>
+        <target>Soft cap for open tabs</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionAlertsTitle" datatype="html">
+        <source>Alarmrelevante Signale</source>
+        <target>Alert-relevant signals</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoTitle" datatype="html">
+        <source>Hintergrundaktivität</source>
+        <target>Background activity</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
+        <source>Offene Tabs und automatische Nachfragen. Nur zur Diagnose, kein Alarm.</source>
+        <target>Open tabs and automatic follow-up requests. For diagnosis only, not an alert.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelInfo" datatype="html">
+        <source>Info</source>
+        <target>Info</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">

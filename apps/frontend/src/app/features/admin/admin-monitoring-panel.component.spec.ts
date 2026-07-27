@@ -161,7 +161,9 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Alles in Ordnung');
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
-    expect(fixture.nativeElement.textContent).toContain('Automatische Poll-/Reconnect-Abfragen');
+    expect(fixture.nativeElement.textContent).toContain('Offene Tabs (Poll/Reconnect)');
+    expect(fixture.nativeElement.textContent).toContain('Hintergrundaktivität');
+    expect(fixture.nativeElement.textContent).toContain('Alarmrelevante Signale');
     expect(fixture.nativeElement.textContent).toContain('Ungültige Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Ersetzte Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
@@ -211,15 +213,19 @@ describe('AdminMonitoringPanelComponent', () => {
     });
 
     expect(fixture.componentInstance.overallLevel()).toBe('ok');
-    expect(fixture.componentInstance.sessionMetrics()).toEqual(
+    expect(fixture.componentInstance.sessionInfoMetrics()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: 'Automatische Poll-/Reconnect-Abfragen',
+          label: 'Offene Tabs (Poll/Reconnect)',
           value: '5,000',
           level: null,
+          kind: 'info',
         }),
       ]),
     );
+    expect(
+      fixture.componentInstance.cardLevel(fixture.componentInstance.sessionAlertMetrics()),
+    ).toBe('ok');
 
     fixture.componentInstance.stats.update((stats) => ({
       ...stats!,
