@@ -2003,7 +2003,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async reloadSessionInfo(): Promise<SessionInfoDTO> {
     const requestedAt = Date.now();
-    const session = await trpc.session.getInfo.query({
+    const session = await trpc.session.getInfoForReconnect.query({
       code: this.code.toUpperCase(),
       anonymousClientId: getAnonymousClientId(),
     });

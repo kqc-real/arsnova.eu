@@ -3054,7 +3054,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.lastSessionInfoRetryAt = now;
     try {
       const requestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({
+      const session = await trpc.session.getInfoForReconnect.query({
         code: this.code,
         anonymousClientId: getAnonymousClientId(),
       });
@@ -3622,7 +3622,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     let sessionId = this.sessionId();
     if (!sessionId && this.code) {
       try {
-        const session = await trpc.session.getInfo.query({
+        const session = await trpc.session.getInfoForReconnect.query({
           code: this.code,
           anonymousClientId: getAnonymousClientId(),
         });

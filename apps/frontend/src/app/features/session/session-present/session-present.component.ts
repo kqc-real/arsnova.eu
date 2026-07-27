@@ -338,7 +338,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private async refreshSessionMeta(): Promise<void> {
     try {
       const requestedAt = Date.now();
-      const session = await trpc.session.getInfo.query({
+      const session = await trpc.session.getInfoForReconnect.query({
         code: this.code.toUpperCase(),
         anonymousClientId: getAnonymousClientId(),
       });

@@ -39,8 +39,8 @@ type MetricView = Readonly<{
 const THRESHOLDS = {
   sessionCreates: { warning: 30, critical: 60 },
   rateLimit429: { warning: 50, critical: 200 },
-  invalidSessionCodes: { warning: 100, critical: 500 },
-  softCapDelays: { warning: 10, critical: 100 },
+  sessionCodeEntryFailures: { warning: 100, critical: 500 },
+  sessionCodeEntrySoftCapDelays: { warning: 10, critical: 100 },
   softCapUtilization: { warning: 80, critical: 95, percent: true },
   sessionCode429: { warning: 30, critical: 100 },
   cspDropped: { warning: 10, critical: 100 },
@@ -100,14 +100,44 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         THRESHOLDS.sessionCreates,
       ),
       this.metric(
-        $localize`:@@admin.monitoringInvalidCodes:Ungültige Session-Codes`,
+        $localize`:@@admin.monitoringAllCodeFailures:Globale fehlgeschlagene Code-Abfragen`,
         stats.sessionCodeFailuresLastMinute,
-        THRESHOLDS.invalidSessionCodes,
+        null,
       ),
       this.metric(
-        $localize`:@@admin.monitoringSoftCapDelays:Soft-Cap-Verzögerungen`,
-        stats.sessionCodeSoftCapDelaysLastMinute,
-        THRESHOLDS.softCapDelays,
+        $localize`:@@admin.monitoringEntryFailures:Fehlgeschlagene Join- und Codeprüfungen`,
+        stats.sessionCodeEntryFailuresLastMinute,
+        THRESHOLDS.sessionCodeEntryFailures,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringJoinFailures:davon Join-Versuche`,
+        stats.sessionCodeFailuresBySourceLastMinute.join,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringLookupFailures:davon Code-Abfragen`,
+        stats.sessionCodeFailuresBySourceLastMinute.lookup,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPollReconnectFailures:Automatische Poll-/Reconnect-Abfragen`,
+        stats.sessionCodeFailuresBySourceLastMinute.pollReconnect,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringOtherCodeFailures:Sonstige fehlgeschlagene Code-Abfragen`,
+        stats.sessionCodeFailuresBySourceLastMinute.other,
+        null,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringEntrySoftCapDelays:Soft-Cap-Verzögerungen für Join/Codeprüfung`,
+        stats.sessionCodeEntrySoftCapDelaysLastMinute,
+        THRESHOLDS.sessionCodeEntrySoftCapDelays,
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringPollReconnectSoftCapDelays:Automatische Poll-/Reconnect-Verzögerungen`,
+        stats.sessionCodeSoftCapDelaysBySourceLastMinute.pollReconnect,
+        null,
       ),
       this.metric(
         $localize`:@@admin.monitoringSoftCapUtilization:Globale Soft-Cap-Auslastung`,
