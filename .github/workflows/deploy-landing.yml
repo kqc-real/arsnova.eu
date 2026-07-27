@@ -60,7 +60,7 @@ jobs:
       - name: Accessibility gate
         run: |
           set -euo pipefail
-          npx playwright install --with-deps chromium
+          node node_modules/playwright/cli.js install --with-deps chromium
           landing_base="/${{ github.event.repository.name }}"
           mkdir -p "$RUNNER_TEMP/landing-a11y${landing_base}"
           cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y${landing_base}/"
