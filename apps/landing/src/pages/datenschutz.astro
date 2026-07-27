@@ -6,7 +6,7 @@ import { legal, site } from '../config/legal';
 <BaseLayout
   title="Datenschutz"
   description="Datenschutzerklärung für arsnova.eu – Informationen zur Verarbeitung personenbezogener Daten."
-  canonical="/datenschutz"
+  canonical="/datenschutz/"
 >
   <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
     <h1 class="font-display text-3xl font-bold text-white">Datenschutzerklärung</h1>
@@ -15,9 +15,9 @@ import { legal, site } from '../config/legal';
     <section class="mt-6 rounded-2xl border border-slate-700 bg-slate-800/60 p-5 text-slate-300">
       <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Kurzinfo</p>
       <ul class="mt-3 list-inside list-disc space-y-1 leading-7">
-        <li>Diese Hinweise betreffen primär die {site.landingLabel.toLowerCase()} unter {site.url}.</li>
+        <li>Diese Hinweise betreffen primär die {site.landingLabel.toLowerCase()} unter {site.landingUrl}.</li>
         <li>Die Landing setzt selbst keine Cookies und keine Analyse-Tools ein.</li>
-        <li>Für die {site.appLabel.toLowerCase()} und für Self-Hosting können ergänzende oder abweichende Hinweise gelten.</li>
+        <li>Die {site.appLabel.toLowerCase()} liegt getrennt unter {site.appUrl}; für sie und für Self-Hosting können ergänzende oder abweichende Hinweise gelten.</li>
       </ul>
     </section>
 
@@ -38,10 +38,10 @@ import { legal, site } from '../config/legal';
       <div>
         <h2 class="font-display text-lg font-semibold text-white">2. Geltungsbereich</h2>
         <p class="mt-2">
-          Diese Datenschutzerklärung gilt in erster Linie für die statische {site.landingLabel.toLowerCase()} unter <strong>{site.url}</strong>. Sie erläutert insbesondere die Verarbeitung beim Aufruf dieser Seiten, beim Nutzen externer Links und beim Hosting der Landing.
+          Diese Datenschutzerklärung gilt in erster Linie für die statische {site.landingLabel.toLowerCase()} unter <strong>{site.landingUrl}</strong>. Sie erläutert insbesondere die Verarbeitung beim Aufruf dieser Seiten, beim Nutzen externer Links und beim Hosting der Landing.
         </p>
         <p class="mt-2">
-          Für die eigentliche {site.appLabel.toLowerCase()} sowie für selbst gehostete Installationen können ergänzende oder abweichende Datenschutzhinweise gelten. Dort ist der jeweilige Betreiber bzw. die jeweilige Institution selbst verantwortlich.
+          Für die eigentliche {site.appLabel.toLowerCase()} unter <strong>{site.appUrl}</strong> sowie für selbst gehostete Installationen können ergänzende oder abweichende Datenschutzhinweise gelten. Dort ist der jeweilige Betreiber bzw. die jeweilige Institution selbst verantwortlich.
         </p>
       </div>
 
@@ -99,7 +99,7 @@ import { legal, site } from '../config/legal';
       <div>
         <h2 class="font-display text-lg font-semibold text-white">8. Hinweis zur Anwendung arsnova.eu</h2>
         <p class="mt-2">
-          Die Anwendung arsnova.eu ist datenschutzfreundlich konzipiert und verfolgt einen Local-First-Ansatz. Welche Daten beim Betrieb der Anwendung, bei Sessions oder bei Self-Hosting konkret verarbeitet werden, richtet sich jedoch nach dem jeweiligen Betreiber der Instanz. Bitte beachten Sie deshalb für die Live-Anwendung die dort jeweils bereitgestellten Datenschutzhinweise.
+          Die Anwendung unter <strong>{site.appUrl}</strong> ist datenschutzfreundlich konzipiert und verfolgt einen Local-First-Ansatz. Welche Daten beim Betrieb der Anwendung, bei Sessions oder bei Self-Hosting konkret verarbeitet werden, richtet sich jedoch nach dem jeweiligen Betreiber der Instanz. Bitte beachten Sie deshalb für die Live-Anwendung die dort jeweils bereitgestellten Datenschutzhinweise.
         </p>
       </div>
 

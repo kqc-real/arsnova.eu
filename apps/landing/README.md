@@ -1,8 +1,8 @@
 # arsnova.eu – Landing
 
-> **Produktion:** Die App liegt unter **https://arsnova.eu**. Die Marketing‑Landing
-> kann z. B. über GitHub Pages mit Custom Domain (z. B. `arsnova.eu` oder
-> Subdomain) ausgeliefert werden.
+> **Produktion:** Die App liegt unter **https://arsnova.eu**. Die getrennte
+> Marketing- und Informationsseite wird über GitHub Pages unter
+> **https://info.arsnova.eu/** ausgeliefert.
 
 Marketing- und Informationsseite für arsnova.eu. Astro 6 + Tailwind 3 (PostCSS), SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
 
@@ -20,6 +20,9 @@ npm run dev:landing
 ## Build
 
 ```bash
+PUBLIC_SITE_URL=https://info.arsnova.eu/ \
+PUBLIC_APP_URL_V3=https://arsnova.eu \
+BASE_PATH=/ \
 npm run build:landing
 ```
 
@@ -27,21 +30,30 @@ Output: `apps/landing/dist/`
 
 ## GitHub Pages
 
-> Hinweis: Die Custom‑Domain in den GitHub‑Pages‑Einstellungen muss zu eurer
-> gewünschten öffentlichen Landing‑URL passen (z. B. `arsnova.eu`).
-
 1. **Repo-Einstellung:** Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-2. Beim Push auf `main` (bei Änderungen in `apps/landing/`) baut das Workflow `.github/workflows/deploy-landing.yml` die Landing und deployt sie.
-3. Optional: Eigene Domain unter Pages → Custom domain eintragen (z. B. `arsnova.eu`).
+2. **Vor einem Root-Build oder Merge:** GitHub-Domain-Verifikation,
+   DNS-CNAME, Custom Domain, Zertifikat und **Enforce HTTPS** vollständig
+   aktivieren und die Weiterleitung der bisherigen Projekt-URL prüfen.
+3. Erst danach die Konfiguration mit `PUBLIC_SITE_URL=https://info.arsnova.eu/`
+   und `BASE_PATH=/` nach `main` mergen. Beim Push baut und deployt
+   `.github/workflows/deploy-landing.yml` die Landing; ein Preflight bricht
+   ab, falls die Cutover-Voraussetzungen nicht mehr erfüllt sind.
+
+Der Cutover ist seit dem 27. Juli 2026 vollständig aktiv:
+`info.arsnova.eu` ist als Pages-Custom-Domain verifiziert, CNAME und
+HTTPS-Zertifikat sind aktiv, HTTPS wird erzwungen und
+`https://kqc-real.github.io/arsnova.eu/` leitet mit `301` auf die Custom Domain
+weiter.
 
 **Hinweis:** Du brauchst Schreibrechte auf das Repo und die Berechtigung, Pages auf „GitHub Actions“ umzustellen. Der Workflow selbst liegt im Repo; nach dem Push und nach Aktivierung von Pages läuft alles automatisch.
 
-### 404 auf \`username.github.io/arsnova.eu/\`?
+Die vollständige Aktivierungs-, DNS-, HTTPS- und Rollback-Reihenfolge steht im
+[GitHub-Pages-Runbook](../../docs/operations/LANDING-GITHUB-PAGES-RUNBOOK.md).
 
-- **Pages-Quelle:** Settings → Pages → Source muss **„GitHub Actions“** sein (nicht „Deploy from a branch“).
-- **Workflow ausführen:** Actions → „Deploy Landing (GitHub Pages)“ → „Run workflow“ (Branch: main). Prüfen, ob beide Jobs (Build, Deploy) grün sind.
-- **URL exakt:** Repo-Name muss genau `arsnova.eu` heißen; die URL ist `https://<owner>.github.io/arsnova.eu/`.
-- **Default-Branch:** Der Workflow läuft nur bei Push auf `main`; bei Fork prüfen, ob der Default-Branch `main` ist.
+Da über einen eigenen GitHub-Actions-Workflow veröffentlicht wird, ist keine
+`CNAME`-Datei im Artifact oder Repository erforderlich; GitHub ignoriert eine
+solche Datei bei diesem Veröffentlichungsweg. Die Domain-Zuordnung erfolgt in
+den Pages-Einstellungen.
 
 ## SEO
 
@@ -50,11 +62,11 @@ Output: `apps/landing/dist/`
 - generierte Sitemap unter `/sitemap.xml`
 - generierte `robots.txt` unter `/robots.txt`
 
-Für Builds auf GitHub Pages wird die öffentliche Site-URL im Workflow gesetzt. Falls die Landing über eine Custom Domain ausgeliefert wird, muss `PUBLIC_SITE_URL` auf diese Ziel-URL zeigen, damit Canonical, OG, Sitemap und `robots.txt` auf die tatsächlich gecrawlte Domain verweisen.
+Für Builds auf GitHub Pages setzt der Workflow `PUBLIC_SITE_URL=https://info.arsnova.eu/` und `BASE_PATH=/`. Dadurch verweisen Canonical, Open Graph, Sitemap und `robots.txt` auf die Landing-Domain. App-CTAs und das JSON-LD-Objekt `WebApplication` verwenden dagegen weiterhin `https://arsnova.eu`.
 
 ## Impressum & Datenschutz (DSGVO)
 
-Die Seiten `/impressum` und `/datenschutz` sind mit DSGVO-tauglichen Inhalten vorstrukturiert. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
+Die Seiten `/impressum/` und `/datenschutz/` sind mit DSGVO-tauglichen Inhalten vorstrukturiert. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
 
 ## OG-Bild
 
