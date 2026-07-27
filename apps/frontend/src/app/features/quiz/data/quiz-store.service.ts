@@ -905,6 +905,7 @@ export class QuizStoreService implements OnDestroy {
     previousToken: string | null;
   } | null = null;
   private yjsInitGeneration = 0;
+  private yjsProviderAttachGeneration = 0;
   /** Absichern als Origin nur nach explizitem secureAsOrigin (nie aus fehlendem Share-Token). */
   private pendingSecureAsOrigin = false;
   private isApplyingYjsSnapshot = false;
@@ -2235,6 +2236,7 @@ export class QuizStoreService implements OnDestroy {
   private async attachYjsWebSocketProviderIfNeeded(
     expectedGeneration = this.yjsInitGeneration,
     expectedRoomId = this.syncRoomId(),
+    expectedProviderGeneration = this.yjsProviderAttachGeneration,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.yDoc || this.yProvider) return;
     if (this.librarySharingMode() !== 'shared') {
@@ -2256,7 +2258,14 @@ export class QuizStoreService implements OnDestroy {
     const shareToken = this.syncShareToken();
     if (shareToken) {
       const valid = await this.validateYjsShareToken(expectedRoomId, shareToken);
-      if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
+      if (
+        !this.canAttachYjsProvider(
+          expectedGeneration,
+          expectedProviderGeneration,
+          expectedRoomId,
+          shareToken,
+        )
+      ) {
         return;
       }
       if (valid === false) {
@@ -2266,7 +2275,14 @@ export class QuizStoreService implements OnDestroy {
     }
 
     const WebsocketProvider = await this.loadWebsocketProviderCtor();
-    if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
+    if (
+      !this.canAttachYjsProvider(
+        expectedGeneration,
+        expectedProviderGeneration,
+        expectedRoomId,
+        shareToken,
+      )
+    ) {
       return;
     }
 
@@ -2281,6 +2297,18 @@ export class QuizStoreService implements OnDestroy {
           }
         : undefined,
     );
+    if (
+      !this.canAttachYjsProvider(
+        expectedGeneration,
+        expectedProviderGeneration,
+        expectedRoomId,
+        shareToken,
+      ) ||
+      this.yDoc !== yDoc
+    ) {
+      provider.destroy();
+      return;
+    }
     this.yProvider = provider;
     provider.awareness.setLocalStateField(
       'syncClient',
@@ -2327,7 +2355,7 @@ export class QuizStoreService implements OnDestroy {
    */
   private async validateYjsShareToken(roomId: string, shareToken: string): Promise<boolean | null> {
     try {
-      return (await trpc.quizSync.validateShare.query({ roomId, shareToken })).valid;
+      return (await trpc.quizSync.validateShare.mutate({ roomId, shareToken })).valid;
     } catch {
       return null;
     }
@@ -2365,6 +2393,7 @@ export class QuizStoreService implements OnDestroy {
 
   /** Trennt nur den Relay-Provider; Y.Doc und IndexedDB bleiben erhalten. */
   private teardownYjsProvider(): void {
+    this.yjsProviderAttachGeneration++;
     try {
       this.yProvider?.awareness.off('change', this.onAwarenessChanged);
     } catch {
@@ -2381,6 +2410,21 @@ export class QuizStoreService implements OnDestroy {
       isPlatformBrowser(this.platformId) &&
       generation === this.yjsInitGeneration &&
       this.syncRoomId() === roomId
+    );
+  }
+
+  private canAttachYjsProvider(
+    yjsGeneration: number,
+    providerGeneration: number,
+    roomId: string,
+    shareToken: string | null,
+  ): boolean {
+    return (
+      this.canUseYjsSetupResult(yjsGeneration, roomId) &&
+      providerGeneration === this.yjsProviderAttachGeneration &&
+      this.syncShareToken() === shareToken &&
+      this.yDoc !== null &&
+      this.yProvider === null
     );
   }
 

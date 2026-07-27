@@ -35,6 +35,13 @@ describe('quizSync.validateShare', () => {
     });
   });
 
+  it('überträgt Share-Tokens ausschließlich als Mutation im Request-Body', () => {
+    const procedure = quizSyncRouter._def.procedures['validateShare'] as unknown as {
+      _def: { type: string };
+    };
+    expect(procedure._def.type).toBe('mutation');
+  });
+
   it('meldet gültige und endgültig abgelehnte Tokens ohne Ablehnungsgrund', async () => {
     const caller = quizSyncRouter.createCaller({ req: undefined });
     authorizeYjsRoomUpgradeMock.mockResolvedValueOnce({ ok: true, generation: 2 });

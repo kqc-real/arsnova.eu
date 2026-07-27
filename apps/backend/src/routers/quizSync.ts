@@ -70,7 +70,7 @@ export const quizSyncRouter = router({
   validateShare: publicProcedure
     .input(ValidateYjsShareInputSchema)
     .output(ValidateYjsShareOutputSchema)
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const limit = await checkYjsShareValidateRate(resolveClientIp(ctx.req).ip);
       if (!limit.allowed) {
         throw new TRPCError({
