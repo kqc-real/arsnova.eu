@@ -24,7 +24,11 @@
      sessionCreatesLastMinute,
      adminLoginFailuresLastMinute,
      sessionCodeFailuresLastMinute,
+     sessionCodeFailuresBySourceLastMinute,
+     sessionCodeEntryFailuresLastMinute,
      sessionCodeSoftCapDelaysLastMinute,
+     sessionCodeSoftCapDelaysBySourceLastMinute,
+     sessionCodeEntrySoftCapDelaysLastMinute,
      sessionCodeGlobalSoftCapUtilizationPercent,
      rateLimit429LastMinute,
      rateLimit429ByCategoryLastMinute,
@@ -101,8 +105,8 @@ genutzten Hörsaal-IP gedrosselt.
 | ---------------------------------- | ----------------: | ----------------: |
 | Erfolgreiche Session-Erstellungen  |          ≥ 30/min |          ≥ 60/min |
 | Alle 429-Ablehnungen               |          ≥ 50/min |         ≥ 200/min |
-| Ungültige Session-Codes            |         ≥ 100/min |         ≥ 500/min |
-| Session-Code-Soft-Cap-Delays       |          ≥ 10/min |         ≥ 100/min |
+| Join- und Codeprüfungsfehler       |         ≥ 100/min |         ≥ 500/min |
+| Soft-Cap-Delays für Join/Code      |          ≥ 10/min |         ≥ 100/min |
 | Globale Code-Soft-Cap-Auslastung   |            ≥ 80 % |            ≥ 95 % |
 | Client-Cap-429 (`sessionCode`)     |          ≥ 30/min |         ≥ 100/min |
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
@@ -152,11 +156,18 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   `admin.login` korrelieren.
 - Bei `vote`: zuerst eine reale Großveranstaltung ausschließen. Keine enge
   IP-Sperre aktivieren; Votes werden participant-bezogen begrenzt.
-- Bei `sessionCode`: Client-Cap-429 zusammen mit
-  `sessionCodeFailuresLastMinute`, `sessionCodeSoftCapDelaysLastMinute` und der
-  globalen Auslastung prüfen. Keinen IP-Lock ergänzen. Ein hoher Delay-Wert bei
-  weiterhin erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung;
-  die 500er-NAT-Abnahme aus W1.5 heranziehen.
+- Bei `sessionCode`: Client-Cap-429 zusammen mit den nach Quelle aufgeteilten
+  `sessionCodeFailuresBySourceLastMinute`,
+  `sessionCodeSoftCapDelaysBySourceLastMinute` und der globalen Auslastung
+  prüfen. Automatische Poll-/Reconnect- und sonstige Folgezugriffe bleiben zur
+  Diagnose sichtbar, lösen aber keinen Join-Alarm aus. Alarmiert werden nur die
+  Summen `sessionCodeEntryFailuresLastMinute` und
+  `sessionCodeEntrySoftCapDelaysLastMinute` aus expliziten Join- und
+  Codeprüfungen. Die Quelle ist serverseitig an getrennte tRPC-Prozeduren
+  gebunden und kein vom Client wählbarer Parameter. Keinen IP-Lock ergänzen. Ein
+  hoher Delay-Wert bei weiterhin
+  erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung; die
+  500er-NAT-Abnahme aus W1.5 heranziehen.
 
 ### CSP-Report-Welle
 

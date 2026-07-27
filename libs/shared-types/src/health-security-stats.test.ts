@@ -25,4 +25,17 @@ describe('HealthSecurityStatsDTOSchema CSP-Telemetrie', () => {
       false,
     );
   });
+
+  it('verlangt vollständige Session-Code-Fehlerquellen', () => {
+    const sources = { join: 1, lookup: 2, pollReconnect: 3, other: 4 };
+    expect(
+      HealthSecurityStatsDTOSchema.shape.sessionCodeFailuresBySourceLastMinute.parse(sources),
+    ).toEqual(sources);
+    expect(
+      HealthSecurityStatsDTOSchema.shape.sessionCodeFailuresBySourceLastMinute.safeParse({
+        join: 1,
+        lookup: 2,
+      }).success,
+    ).toBe(false);
+  });
 });

@@ -152,6 +152,7 @@ import {
   getQuizHistoryLegacyProofCutoffAt,
 } from '../lib/quizHistoryLegacyProofPolicy';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
+import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import {
   clearReadingReady,
@@ -3976,6 +3977,105 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
   };
 }
 
+async function resolvePublicSessionInfo(
+  input: { code: string; anonymousClientId?: string },
+  source: SessionCodeFailureSource,
+) {
+  const code = input.code.toUpperCase();
+  const payload = await getOrComputeCached(
+    sessionInfoCache,
+    sessionInfoInFlight,
+    code,
+    SESSION_INFO_CACHE_TTL_MS,
+    async () => {
+      const session = await prisma.session.findUnique({
+        where: { code },
+        include: {
+          _count: { select: { participants: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const q =
+        session.quizId !== null
+          ? await prisma.quiz.findUnique({
+              where: { id: session.quizId },
+              select: {
+                name: true,
+                nicknameTheme: true,
+                allowCustomNicknames: true,
+                anonymousMode: true,
+                showLeaderboard: true,
+                enableSoundEffects: true,
+                enableRewardEffects: true,
+                enableMotivationMessages: true,
+                enableEmojiReactions: true,
+                showQuestionTypeIndicators: true,
+                readingPhaseEnabled: true,
+                defaultTimer: true,
+                timerScaleByDifficulty: true,
+                backgroundMusic: true,
+                teamMode: true,
+                teamCount: true,
+                teamAssignment: true,
+                bonusTokenCount: true,
+                motifImageUrl: true,
+                teamNames: true,
+              },
+            })
+          : null;
+      const onboardingProfile = resolveSessionOnboardingProfile(session, q);
+      const channels = buildSessionChannels(session);
+      const visibleCurrentQuestion = session.status === 'LOBBY' ? null : session.currentQuestion;
+      return {
+        id: session.id,
+        code: session.code,
+        type: session.type,
+        status: session.status,
+        currentQuestion: visibleCurrentQuestion,
+        currentRound: session.currentRound,
+        quizName: q?.name ?? null,
+        quizMotifImageUrl: q?.motifImageUrl ?? null,
+        title: session.title ?? null,
+        channels,
+        preferredChannel: resolvePreferredLiveChannel(session.code, channels),
+        participantCount: session._count.participants,
+        nicknameTheme: onboardingProfile.nicknameTheme,
+        allowCustomNicknames: onboardingProfile.allowCustomNicknames,
+        anonymousMode: onboardingProfile.anonymousMode,
+        teamMode: onboardingProfile.teamMode,
+        teamCount: onboardingProfile.teamCount,
+        teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
+        teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
+        ...(q && {
+          showLeaderboard: q.showLeaderboard,
+          enableSoundEffects: q.enableSoundEffects,
+          enableRewardEffects: q.enableRewardEffects,
+          enableMotivationMessages: q.enableMotivationMessages,
+          enableEmojiReactions: q.enableEmojiReactions,
+          showQuestionTypeIndicators: q.showQuestionTypeIndicators,
+          readingPhaseEnabled: q.readingPhaseEnabled,
+          quizStarted: session.quizStarted,
+          defaultTimer: q.defaultTimer,
+          timerScaleByDifficulty: q.timerScaleByDifficulty,
+          backgroundMusic: q.backgroundMusic,
+          bonusTokenCount: q.bonusTokenCount,
+        }),
+      };
+    },
+  ).catch(async (error: unknown) => {
+    if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
+      await rejectInvalidSessionCode(input.anonymousClientId, code, source);
+    }
+    throw error;
+  });
+  return {
+    ...payload,
+    serverTime: new Date().toISOString(),
+  };
+}
+
 export const sessionRouter = router({
   /** Session erstellen (Story 2.1a). Grobes globales und Shared-NAT-IP-Budget. */
   create: publicProcedure
@@ -4620,102 +4720,13 @@ export const sessionRouter = router({
   getInfo: publicProcedure
     .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
-    .query(async ({ input }) => {
-      const code = input.code.toUpperCase();
-      const payload = await getOrComputeCached(
-        sessionInfoCache,
-        sessionInfoInFlight,
-        code,
-        SESSION_INFO_CACHE_TTL_MS,
-        async () => {
-          const session = await prisma.session.findUnique({
-            where: { code },
-            include: {
-              _count: { select: { participants: true } },
-            },
-          });
-          if (!session) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
-          }
-          const q =
-            session.quizId !== null
-              ? await prisma.quiz.findUnique({
-                  where: { id: session.quizId },
-                  select: {
-                    name: true,
-                    nicknameTheme: true,
-                    allowCustomNicknames: true,
-                    anonymousMode: true,
-                    showLeaderboard: true,
-                    enableSoundEffects: true,
-                    enableRewardEffects: true,
-                    enableMotivationMessages: true,
-                    enableEmojiReactions: true,
-                    showQuestionTypeIndicators: true,
-                    readingPhaseEnabled: true,
-                    defaultTimer: true,
-                    timerScaleByDifficulty: true,
-                    backgroundMusic: true,
-                    teamMode: true,
-                    teamCount: true,
-                    teamAssignment: true,
-                    bonusTokenCount: true,
-                    motifImageUrl: true,
-                    teamNames: true,
-                  },
-                })
-              : null;
-          const onboardingProfile = resolveSessionOnboardingProfile(session, q);
-          const channels = buildSessionChannels(session);
-          const visibleCurrentQuestion =
-            session.status === 'LOBBY' ? null : session.currentQuestion;
-          return {
-            id: session.id,
-            code: session.code,
-            type: session.type,
-            status: session.status,
-            currentQuestion: visibleCurrentQuestion,
-            currentRound: session.currentRound,
-            quizName: q?.name ?? null,
-            quizMotifImageUrl: q?.motifImageUrl ?? null,
-            title: session.title ?? null,
-            channels,
-            preferredChannel: resolvePreferredLiveChannel(session.code, channels),
-            participantCount: session._count.participants,
-            nicknameTheme: onboardingProfile.nicknameTheme,
-            allowCustomNicknames: onboardingProfile.allowCustomNicknames,
-            anonymousMode: onboardingProfile.anonymousMode,
-            teamMode: onboardingProfile.teamMode,
-            teamCount: onboardingProfile.teamCount,
-            teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
-            teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
-            ...(q && {
-              showLeaderboard: q.showLeaderboard,
-              enableSoundEffects: q.enableSoundEffects,
-              enableRewardEffects: q.enableRewardEffects,
-              enableMotivationMessages: q.enableMotivationMessages,
-              enableEmojiReactions: q.enableEmojiReactions,
-              showQuestionTypeIndicators: q.showQuestionTypeIndicators,
-              readingPhaseEnabled: q.readingPhaseEnabled,
-              quizStarted: session.quizStarted,
-              defaultTimer: q.defaultTimer,
-              timerScaleByDifficulty: q.timerScaleByDifficulty,
-              backgroundMusic: q.backgroundMusic,
-              bonusTokenCount: q.bonusTokenCount,
-            }),
-          };
-        },
-      ).catch(async (error: unknown) => {
-        if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-          await rejectInvalidSessionCode(input.anonymousClientId, code);
-        }
-        throw error;
-      });
-      return {
-        ...payload,
-        serverTime: new Date().toISOString(),
-      };
-    }),
+    .query(({ input }) => resolvePublicSessionInfo(input, 'lookup')),
+
+  /** Session-Info für automatische Poll-/Reconnect-Pfade. */
+  getInfoForReconnect: publicProcedure
+    .input(PublicSessionCodeLookupInputSchema)
+    .output(SessionInfoDTOSchema)
+    .query(({ input }) => resolvePublicSessionInfo(input, 'pollReconnect')),
 
   /** Teilnehmerliste einer Session (Story 2.2 Lobby). */
   getParticipants: hostProcedure
@@ -4752,7 +4763,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code);
+        return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
       }
       const payload = {
         nicknames: session.participants.map((participant) => participant.nickname),
@@ -4773,7 +4784,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, code);
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
 
       const participant = await prisma.participant.findFirst({
@@ -4894,7 +4905,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, code);
+        return rejectInvalidSessionCode(undefined, code, 'other');
       }
       if (session.status !== 'QUESTION_OPEN') {
         throw new TRPCError({
@@ -4966,7 +4977,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'lookup',
+        );
       }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       if (!onboardingProfile.teamMode) {
@@ -5101,7 +5116,7 @@ export const sessionRouter = router({
       while (true) {
         const payloadBase = await fetchStatusSnapshot(code).catch(async (error: unknown) => {
           if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-            await rejectInvalidSessionCode(input.anonymousClientId, code);
+            await rejectInvalidSessionCode(input.anonymousClientId, code, 'pollReconnect');
           }
           throw error;
         });
@@ -5729,7 +5744,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, code);
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
       if (!session.quiz) return null;
       if (session.status === 'LOBBY') return null;
@@ -6202,7 +6217,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code);
+        return rejectInvalidSessionCode(input.anonymousClientId, code, 'join');
       }
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
@@ -6364,7 +6379,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
       if (!session.quiz?.showLeaderboard) {
         return [];
@@ -6482,7 +6501,11 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
       if (!session.quiz?.teamMode) {
         return [];
@@ -6852,7 +6875,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
       if (!session.quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
@@ -7058,7 +7081,7 @@ export const sessionRouter = router({
         },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
@@ -7154,7 +7177,7 @@ export const sessionRouter = router({
         select: { id: true, status: true, quizStarted: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'other');
       }
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
@@ -7205,7 +7228,7 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase());
+        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
       const existing = await prisma.sessionFeedback.findUnique({
         where: {
@@ -7225,7 +7248,11 @@ export const sessionRouter = router({
     .query(async ({ input }) =>
       loadSessionConfidenceSummaryByCode(input.code).catch(async (error: unknown) => {
         if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-          await rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+          await rejectInvalidSessionCode(
+            input.anonymousClientId,
+            input.code.toUpperCase(),
+            'pollReconnect',
+          );
         }
         throw error;
       }),
@@ -7241,7 +7268,11 @@ export const sessionRouter = router({
         select: { id: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, input.code.toUpperCase());
+        return rejectInvalidSessionCode(
+          input.anonymousClientId,
+          input.code.toUpperCase(),
+          'pollReconnect',
+        );
       }
 
       const feedbacks = await prisma.sessionFeedback.findMany({
