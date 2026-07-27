@@ -477,7 +477,16 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
     rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
     sessionCodeFailuresLastMinute: abuseSignals.sessionCodeFailuresLastMinute,
+    sessionCodeFailuresBySourceLastMinute: abuseSignals.sessionCodeFailuresBySourceLastMinute,
+    sessionCodeEntryFailuresLastMinute:
+      abuseSignals.sessionCodeFailuresBySourceLastMinute.join +
+      abuseSignals.sessionCodeFailuresBySourceLastMinute.lookup,
     sessionCodeSoftCapDelaysLastMinute: abuseSignals.sessionCodeSoftCapDelaysLastMinute,
+    sessionCodeSoftCapDelaysBySourceLastMinute:
+      abuseSignals.sessionCodeSoftCapDelaysBySourceLastMinute,
+    sessionCodeEntrySoftCapDelaysLastMinute:
+      abuseSignals.sessionCodeSoftCapDelaysBySourceLastMinute.join +
+      abuseSignals.sessionCodeSoftCapDelaysBySourceLastMinute.lookup,
     sessionCodeGlobalSoftCapUtilizationPercent,
     trpcWebSocketConnectionsActive: webSocketSnapshot.trpcConnectionsActive,
     trpcWebSocketConnectionLimit: webSocketSnapshot.trpcConnectionLimit,

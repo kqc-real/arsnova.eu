@@ -3119,10 +3119,28 @@ export const HealthSecurityStatsDTOSchema = z.object({
     motd: z.number().int().min(0),
     other: z.number().int().min(0),
   }),
-  /** Nicht existente Session-Codes, die in der letzten Minute geprüft wurden. */
+  /** Alle fehlgeschlagenen Session-Code-Abfragen in der letzten Minute. */
   sessionCodeFailuresLastMinute: z.number().int().min(0),
+  /** Fehlgeschlagene Session-Code-Abfragen nach ihrem fachlichen Ursprung. */
+  sessionCodeFailuresBySourceLastMinute: z.object({
+    join: z.number().int().min(0),
+    lookup: z.number().int().min(0),
+    pollReconnect: z.number().int().min(0),
+    other: z.number().int().min(0),
+  }),
+  /** Fehlgeschlagene explizite Join- und Codeprüfungen; einzige alarmierte Teilmenge. */
+  sessionCodeEntryFailuresLastMinute: z.number().int().min(0),
   /** Ungültige Code-Prüfungen mit globaler oder codebezogener Soft-Cap-Verzögerung. */
   sessionCodeSoftCapDelaysLastMinute: z.number().int().min(0),
+  /** Soft-Cap-Verzögerungen nach demselben fachlichen Ursprung. */
+  sessionCodeSoftCapDelaysBySourceLastMinute: z.object({
+    join: z.number().int().min(0),
+    lookup: z.number().int().min(0),
+    pollReconnect: z.number().int().min(0),
+    other: z.number().int().min(0),
+  }),
+  /** Soft-Cap-Verzögerungen für explizite Join- und Codeprüfungen. */
+  sessionCodeEntrySoftCapDelaysLastMinute: z.number().int().min(0),
   /** Aktuelle Auslastung des globalen Fehlbudgets im laufenden Fenster. */
   sessionCodeGlobalSoftCapUtilizationPercent: z.number().min(0).max(100),
   /** Momentan aktive Verbindungen am tRPC-WebSocket-Server. */

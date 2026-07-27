@@ -56,8 +56,8 @@ describe('abuseTelemetry', () => {
 
     recordSessionCreateCompleted(25_000);
     recordAdminLoginFailure(25_000);
-    recordSessionCodeFailure(25_000);
-    recordSessionCodeSoftCapDelay(25_000);
+    recordSessionCodeFailure('join', 25_000);
+    recordSessionCodeSoftCapDelay('join', 25_000);
     recordRateLimitRejection('vote', 25_000);
     recordRateLimitRejection('vote', 25_000);
     expect(mocks.getRedis).not.toHaveBeenCalled();
@@ -66,8 +66,14 @@ describe('abuseTelemetry', () => {
     expect(multi.incrby).toHaveBeenNthCalledWith(1, 'security:metric:sessionCreateCompleted:2', 1);
     expect(multi.incrby).toHaveBeenNthCalledWith(2, 'security:metric:adminLoginFailure:2', 1);
     expect(multi.incrby).toHaveBeenNthCalledWith(3, 'security:metric:sessionCodeFailure:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(4, 'security:metric:sessionCodeSoftCapDelay:2', 1);
-    expect(multi.incrby).toHaveBeenNthCalledWith(5, 'security:metric:rateLimit429:vote:2', 2);
+    expect(multi.incrby).toHaveBeenNthCalledWith(4, 'security:metric:sessionCodeFailure:join:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(5, 'security:metric:sessionCodeSoftCapDelay:2', 1);
+    expect(multi.incrby).toHaveBeenNthCalledWith(
+      6,
+      'security:metric:sessionCodeSoftCapDelay:join:2',
+      1,
+    );
+    expect(multi.incrby).toHaveBeenNthCalledWith(7, 'security:metric:rateLimit429:vote:2', 2);
     expect(multi.expire).toHaveBeenCalledWith('security:metric:sessionCreateCompleted:2', 120);
     expect(multi.exec).toHaveBeenCalledOnce();
   });
@@ -138,20 +144,22 @@ describe('abuseTelemetry', () => {
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
-    const values = Array.from({ length: 91 }, () => [null, '0']);
+    const values = Array.from({ length: 147 }, () => [null, '0']);
     // Reihenfolge je Bucket: create, adminFailure, codeFailure, softCapDelay,
-    // adminLogin429, sessionCreate429, quizUpload, quickFeedback, sessionCode,
-    // vote, pdf, motd, other.
+    // vier Failure-Quellen, vier Delay-Quellen, dann die neun 429-Kategorien.
     values[0] = [null, '3'];
     values[1] = [null, '6'];
     values[2] = [null, '7'];
     values[3] = [null, '2'];
+    values[4] = [null, '5'];
     values[5] = [null, '2'];
-    values[9] = [null, '4'];
-    values[65] = [null, '1'];
-    values[75] = [null, '5'];
+    values[8] = [null, '2'];
+    values[13] = [null, '2'];
+    values[17] = [null, '4'];
+    values[18] = [null, '5'];
+    values[105] = [null, '1'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[78] = [null, '2'];
+    values[126] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
@@ -159,7 +167,19 @@ describe('abuseTelemetry', () => {
       sessionCreatesLastMinute: 6,
       adminLoginFailuresLastMinute: 6,
       sessionCodeFailuresLastMinute: 7,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 5,
+        lookup: 2,
+        pollReconnect: 0,
+        other: 0,
+      },
       sessionCodeSoftCapDelaysLastMinute: 2,
+      sessionCodeSoftCapDelaysBySourceLastMinute: {
+        join: 2,
+        lookup: 0,
+        pollReconnect: 0,
+        other: 0,
+      },
       rateLimit429LastMinute: 11,
       rateLimit429ByCategoryLastMinute: {
         adminLogin: 0,
@@ -173,7 +193,7 @@ describe('abuseTelemetry', () => {
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(91);
+    expect(multi.get).toHaveBeenCalledTimes(147);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -201,14 +221,24 @@ describe('abuseTelemetry', () => {
   });
 
   it('loggt Soft-Cap-Delays gesampelt und ohne IDs, Codes oder IPs', () => {
-    logSessionCodeSoftCapDelay({ delayMs: 500, globalUtilizationPercent: 90 }, 1_000);
-    logSessionCodeSoftCapDelay({ delayMs: 600, globalUtilizationPercent: 91 }, 2_000);
-    logSessionCodeSoftCapDelay({ delayMs: 700, globalUtilizationPercent: 92 }, 11_000);
+    logSessionCodeSoftCapDelay(
+      { delayMs: 500, globalUtilizationPercent: 90, source: 'join' },
+      1_000,
+    );
+    logSessionCodeSoftCapDelay(
+      { delayMs: 600, globalUtilizationPercent: 91, source: 'lookup' },
+      2_000,
+    );
+    logSessionCodeSoftCapDelay(
+      { delayMs: 700, globalUtilizationPercent: 92, source: 'pollReconnect' },
+      11_000,
+    );
 
     expect(mocks.warn).toHaveBeenCalledTimes(2);
     expect(mocks.warn).toHaveBeenLastCalledWith('session_code_soft_cap_delay', {
       delayMs: 700,
       globalUtilizationPercent: 92,
+      source: 'pollReconnect',
       suppressedSinceLastLog: 1,
     });
     expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain('ABC123');
@@ -283,7 +313,19 @@ describe('abuseTelemetry', () => {
       sessionCreatesLastMinute: 0,
       adminLoginFailuresLastMinute: 0,
       sessionCodeFailuresLastMinute: 0,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 0,
+        lookup: 0,
+        pollReconnect: 0,
+        other: 0,
+      },
       sessionCodeSoftCapDelaysLastMinute: 0,
+      sessionCodeSoftCapDelaysBySourceLastMinute: {
+        join: 0,
+        lookup: 0,
+        pollReconnect: 0,
+        other: 0,
+      },
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         adminLogin: 0,

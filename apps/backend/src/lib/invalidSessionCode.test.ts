@@ -33,11 +33,11 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
   });
 
   it('bucht jeden ungültigen Code und endet ohne Druck mit NOT_FOUND', async () => {
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'join')).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
 
-    expect(mocks.recordFailure).toHaveBeenCalledOnce();
+    expect(mocks.recordFailure).toHaveBeenCalledWith('join');
     expect(mocks.check).toHaveBeenCalledWith('client-id', 'ABC123');
     expect(mocks.wait).not.toHaveBeenCalled();
   });
@@ -50,7 +50,7 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
       retryAfterSeconds: 42,
     });
 
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'other')).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
       cause: { retryAfterSeconds: 42 },
     });
@@ -63,15 +63,16 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
       globalUtilizationPercent: 90,
     });
 
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'lookup')).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
 
     expect(mocks.wait).toHaveBeenCalledWith(500);
-    expect(mocks.recordDelay).toHaveBeenCalledOnce();
+    expect(mocks.recordDelay).toHaveBeenCalledWith('lookup');
     expect(mocks.logDelay).toHaveBeenCalledWith({
       delayMs: 500,
       globalUtilizationPercent: 90,
+      source: 'lookup',
     });
   });
 
@@ -83,7 +84,7 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
     });
     mocks.wait.mockResolvedValue(false);
 
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'other')).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
       cause: { retryAfterSeconds: 1 },
     });
