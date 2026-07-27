@@ -57,7 +57,7 @@
     "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^4.0.18",
     "tsx": "^4.23.1",
-    "typescript": "~5.9.0",
+    "typescript": "~7.0.2",
     "vitest": "^4.0.18"
   }
 }

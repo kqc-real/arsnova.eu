@@ -89,7 +89,7 @@
     "playwright": "^1.49.0",
     "postcss": "^8.5.23",
     "sharp-ico": "^0.1.5",
-    "typescript": "~5.9.0",
+    "typescript": "~7.0.2",
     "vitest": "^4.0.18",
     "ws": "^8.21.1"
   }
