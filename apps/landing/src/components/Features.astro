@@ -41,6 +41,11 @@ const features = [
     icon: 'bolt',
   },
   {
+    title: 'Barrierefreiheit nach WCAG 2.2 AA',
+    description: 'Tastaturbedienung, Screenreader-Statusmeldungen, individuell anpassbare Bearbeitungszeit und PDF/UA-1-validierte Ergebnisberichte — damit mehr Lernende selbstständig an Live-Sessions teilnehmen können.',
+    icon: 'a11y',
+  },
+  {
     title: 'Datenschutz und Kontrolle',
     description: 'Local-first, Data-Stripping und self-hostbarer Betrieb geben dir mehr Kontrolle über Inhalte und Live-Daten.',
     icon: 'tools',
@@ -72,6 +77,12 @@ const features = [
             {f.icon === 'single' && '🔗'}
             {f.icon === 'book' && '📚'}
             {f.icon === 'tools' && '🧭'}
+            {f.icon === 'a11y' && (
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="12" cy="4.5" r="2" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 8.5c2.2 1 4.5 1.5 7 1.5s4.8-.5 7-1.5M12 10v10M8.5 20 12 15l3.5 5" />
+              </svg>
+            )}
             {f.icon === 'estimate' && '≈'}
             {f.icon === 'confidence' && '🎯'}
             {f.icon === 'export' && '📄'}

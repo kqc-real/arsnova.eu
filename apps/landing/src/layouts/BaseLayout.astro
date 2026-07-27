@@ -1,6 +1,6 @@
 ---
 import '@/styles/global.css';
-import { GITHUB_URL } from '@/config/github';
+import { APP_ACCESSIBILITY_URL, GITHUB_URL } from '@/config/github';
 import { homeMetaDescription, homeMetaTitle } from '@/config/seo';
 import { SITE_URL, toAbsoluteUrl } from '@/config/site';
 
@@ -75,6 +75,7 @@ const ogImage = toAbsoluteUrl('og.png');
         'Import/Export und Yjs-Sync',
         'KI-Import extern, Zod-validiert',
         'UI in fünf Sprachen',
+        'Barrierefreiheit nach WCAG 2.2 AA',
         'Docker Self-Host und Admin-Audit',
         'Local-First und DSGVO-orientierter Betrieb',
       ],
@@ -97,6 +98,7 @@ const ogImage = toAbsoluteUrl('og.png');
             <a href={`${base}#schaetzfrage`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Schätzfrage</a>
             <a href={`${base}#fragenwand`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Q&amp;A</a>
             <a href={`${base}#features`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Vorteile</a>
+            <a href={`${base}#barrierefreiheit`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Barrierefreiheit</a>
             <a href={`${base}#vertrauen`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Vertrauen</a>
             <a href={`${base}#faq`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">FAQ</a>
             <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -126,6 +128,7 @@ const ogImage = toAbsoluteUrl('og.png');
           <li><a href={`${base}#schaetzfrage`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Schätzfrage</a></li>
           <li><a href={`${base}#fragenwand`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Q&amp;A-Fragenwand</a></li>
           <li><a href={`${base}#features`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Vorteile</a></li>
+          <li><a href={`${base}#barrierefreiheit`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Barrierefreiheit</a></li>
           <li><a href={`${base}#vertrauen`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Vertrauen</a></li>
           <li><a href={`${base}#faq`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">FAQ</a></li>
           <li><a href={GITHUB_URL} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a></li>
@@ -171,9 +174,10 @@ const ogImage = toAbsoluteUrl('og.png');
       <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p class="text-sm text-slate-400">© {new Date().getFullYear()} arsnova.eu · Open Source · MIT</p>
-          <div class="flex gap-6">
+          <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <a href={`${base}impressum/`} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Impressum</a>
             <a href={`${base}datenschutz/`} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Datenschutz</a>
+            <a href={APP_ACCESSIBILITY_URL} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Barrierefreiheit</a>
             <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
