@@ -2914,20 +2914,28 @@
           <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringSessionsTitle" datatype="html">
-        <source>Sessions und Schutzlimits</source>
-        <target>Sesiones y límites de protección</target>
+      <trans-unit id="admin.monitoringOverallStatus" datatype="html">
+        <source> Gesamtzustand</source>
+        <target> Estado general </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">31</context>
+          <context context-type="linenumber">35,37</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringLastMinute" datatype="html">
-        <source>Letzte Minute</source>
-        <target>Último minuto</target>
+      <trans-unit id="admin.monitoringInfrastructureTitle" datatype="html">
+        <source>Infrastruktur</source>
+        <target>Infraestructura</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">32</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringReadiness" datatype="html">
+        <source> Aktuelle Readiness</source>
+        <target> Disponibilidad actual </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">64,66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringDatabaseStatus" datatype="html">
@@ -2935,47 +2943,51 @@
         <target>PostgreSQL</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringSessionCreates" datatype="html">
-        <source>Erstellte Sessions</source>
-        <target>Sesiones creadas</target>
+      <trans-unit id="admin.monitoringRedisStatus" datatype="html">
+        <source>Redis</source>
+        <target>Redis</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">41</context>
+          <context context-type="linenumber">77</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringInvalidCodes" datatype="html">
-        <source>Ungültige Session-Codes</source>
-        <target>Códigos de sesión no válidos</target>
+      <trans-unit id="admin.monitoringServiceStatus" datatype="html">
+        <source>Anwendungsstatus</source>
+        <target>Estado de la aplicación</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringSoftCapDelays" datatype="html">
-        <source>Soft-Cap-Verzögerungen</source>
-        <target>Retrasos en el límite blando</target>
+      <trans-unit id="admin.monitoringSecurityTitle" datatype="html">
+        <source>CSP und Abwehrsignale</source>
+        <target>CSP y señales de defensa</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">95</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
-        <source>Globale Soft-Cap-Auslastung</source>
-        <target>Utilización global de límite blando</target>
+      <trans-unit id="admin.monitoringLastMinute" datatype="html">
+        <source>Letzte Minute</source>
+        <target>Último minuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">103</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">145</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
-        <source>429-Ablehnungen</source>
-        <target>Rechazos 429</target>
+      <trans-unit id="admin.monitoringSessionsTitle" datatype="html">
+        <source>Sessions und Schutzlimits</source>
+        <target>Sesiones y límites de protección</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">57</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPdfTitle" datatype="html">
@@ -2983,7 +2995,7 @@
         <target>Creación de PDF</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">66</context>
+          <context context-type="linenumber">179</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringCapacityAndMinute" datatype="html">
@@ -2991,39 +3003,7 @@
         <target>Capacidad actual y último minuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">67,69</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringPdfActive" datatype="html">
-        <source>Aktive Jobs</source>
-        <target>Tareas activas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">74</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringPdfCompleted" datatype="html">
-        <source>Abgeschlossen</source>
-        <target>Completadas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">81</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringPdfFailed" datatype="html">
-        <source>Fehlgeschlagen</source>
-        <target>Fallido</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">85</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringPdfRejected" datatype="html">
-        <source>Abgelehnt</source>
-        <target>Rechazado</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">89</context>
+          <context context-type="linenumber">187,189</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringTrpcTitle" datatype="html">
@@ -3031,7 +3011,7 @@
         <target>tRPC WebSockets</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringConnectionsAndMinute" datatype="html">
@@ -3039,51 +3019,11 @@
         <target>Conexiones actuales y último minuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">99,101</context>
+          <context context-type="linenumber">231,233</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">131,133</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringConnections" datatype="html">
-        <source>Verbindungen</source>
-        <target>Conexiones</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">106</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">138</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringRejectedUpgrades" datatype="html">
-        <source>Abgelehnte Upgrades</source>
-        <target>Upgrades rechazados</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">113</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">149</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringRejectedPayloads" datatype="html">
-        <source>Abgelehnte Payloads</source>
-        <target>Cargas útiles rechazadas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">117</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringRateLimitedMessages" datatype="html">
-        <source>Rate-limitierte Nachrichten</source>
-        <target>Mensajes limitados por tasa</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">121</context>
+          <context context-type="linenumber">275,277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringYjsTitle" datatype="html">
@@ -3091,7 +3031,7 @@
         <target>Yjs WebSockets</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">267</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringJsonSummary" datatype="html">
@@ -3099,7 +3039,7 @@
         <target>Mostrar datos JSON completos</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">162</context>
+          <context context-type="linenumber">310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringJsonHelp" datatype="html">
@@ -3107,7 +3047,7 @@
         <target>La instantánea contiene solo valores agregados, no direcciones IP, códigos de sesión ni ID de sala.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">163,165</context>
+          <context context-type="linenumber">311,313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringLoading" datatype="html">
@@ -3115,7 +3055,223 @@
         <target>Cargando datos de monitorización…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
-          <context context-type="linenumber">171</context>
+          <context context-type="linenumber">319</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCreates" datatype="html">
+        <source>Erstellte Sessions</source>
+        <target>Sesiones creadas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringAllCodeFailures" datatype="html">
+        <source>Globale fehlgeschlagene Code-Abfragen</source>
+        <target>Consultas globales de código fallido</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringEntryFailures" datatype="html">
+        <source>Fehlgeschlagene Join- und Codeprüfungen</source>
+        <target>Verificaciones de código y unión fallidas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringJoinFailures" datatype="html">
+        <source>davon Join-Versuche</source>
+        <target>de los cuales se suman intentos</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLookupFailures" datatype="html">
+        <source>davon Code-Abfragen</source>
+        <target>de las cuales consultas de código</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
+        <source>Automatische Poll-/Reconnect-Abfragen</source>
+        <target>Consultas automáticas de sondeo/reconexión</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">123</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
+        <source>Sonstige fehlgeschlagene Code-Abfragen</source>
+        <target>Otras consultas de código fallidas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">128</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringEntrySoftCapDelays" datatype="html">
+        <source>Soft-Cap-Verzögerungen für Join/Codeprüfung</source>
+        <target>Retrasos de límite flexible para unirse/revisión de código</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">133</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
+        <source>Automatische Poll-/Reconnect-Verzögerungen</source>
+        <target>Retrasos en la encuesta/reconexión automática</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
+        <source>Globale Soft-Cap-Auslastung</source>
+        <target>Utilización global de límite blando</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">143</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
+        <source>429-Ablehnungen</source>
+        <target>Rechazos 429</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">148</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfActive" datatype="html">
+        <source>Aktive Jobs</source>
+        <target>Tareas activas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">159</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfCompleted" datatype="html">
+        <source>Abgeschlossen</source>
+        <target>Completadas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">165</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfFailed" datatype="html">
+        <source>Fehlgeschlagen</source>
+        <target>Fallido</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">170</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringPdfRejected" datatype="html">
+        <source>Abgelehnt</source>
+        <target>Rechazado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">175</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCode429" datatype="html">
+        <source>Session-Code-429</source>
+        <target>Errores 429 de códigos de sesión</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">186</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspDropped" datatype="html">
+        <source>Verworfene CSP-Reports</source>
+        <target>Informes CSP descartados</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">191</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspRateLimited" datatype="html">
+        <source>Rate-limitierte CSP-Reports</source>
+        <target>Informes CSP limitados</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">196</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspEval" datatype="html">
+        <source>CSP-eval-Meldungen</source>
+        <target>Informes CSP eval</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">201</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCspScriptHttps" datatype="html">
+        <source>Externe CSP-Script-Meldungen</source>
+        <target>Informes CSP de scripts externos</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">206</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringConnections" datatype="html">
+        <source>Verbindungen</source>
+        <target>Conexiones</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">217</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">246</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRejectedUpgrades" datatype="html">
+        <source>Abgelehnte Upgrades</source>
+        <target>Upgrades rechazados</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">225</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">254</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRejectedPayloads" datatype="html">
+        <source>Abgelehnte Payloads</source>
+        <target>Cargas útiles rechazadas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">230</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">259</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringRateLimitedMessages" datatype="html">
+        <source>Rate-limitierte Nachrichten</source>
+        <target>Mensajes limitados por tasa</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">235</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">264</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringAwarenessRejected" datatype="html">
+        <source>Abgelehnte Awareness-Updates</source>
+        <target>Actualizaciones de Awareness rechazadas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringLoadError" datatype="html">
@@ -3123,7 +3279,7 @@
         <target>No se pudieron cargar los datos de monitoreo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
-          <context context-type="linenumber">80</context>
+          <context context-type="linenumber">325</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringStatusOk" datatype="html">
@@ -3131,7 +3287,7 @@
         <target>Accesible</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
-          <context context-type="linenumber">100</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringStatusUnavailable" datatype="html">
@@ -3139,96 +3295,92 @@
         <target>No accesible</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
-          <context context-type="linenumber">101</context>
+          <context context-type="linenumber">346</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="admin.monitoringOverallStatus" datatype="html">
-        <source> Gesamtzustand </source>
-        <target> Estado general </target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringInfrastructureTitle" datatype="html">
-        <source>Infrastruktur</source>
-        <target>Infraestructura</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringReadiness" datatype="html">
-        <source> Aktuelle Readiness </source>
-        <target> Disponibilidad actual </target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringAwarenessRejected" datatype="html">
-        <source>Abgelehnte Awareness-Updates</source>
-        <target>Actualizaciones de Awareness rechazadas</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringLevelCritical" datatype="html">
-        <source>Kritisch</source>
-        <target>Crítico</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringLevelWarning" datatype="html">
-        <source>Warnung</source>
-        <target>Advertencia</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringLevelOk" datatype="html">
-        <source>Alles in Ordnung</source>
-        <target>Todo en orden</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringCriticalHelp" datatype="html">
-        <source>Mindestens ein Wert erfordert sofortige Prüfung.</source>
-        <target>Al menos un valor requiere una revisión inmediata.</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringWarningHelp" datatype="html">
-        <source>Mindestens ein Wert liegt über der Warnschwelle.</source>
-        <target>Al menos un valor supera el umbral de advertencia.</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringOkHelp" datatype="html">
-        <source>Alle überwachten Werte liegen unter ihren Warnschwellen.</source>
-        <target>Todos los valores monitorizados están por debajo de sus umbrales de advertencia.</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringThresholds" datatype="html">
-        <source>Warnung ab <x id="warning" equiv-text="warning"/>, kritisch ab <x id="critical" equiv-text="critical"/></source>
-        <target>Advertencia a partir de <x id="warning" equiv-text="warning"/>, crítico a partir de <x id="critical" equiv-text="critical"/></target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringSecurityTitle" datatype="html">
-        <source>CSP und Abwehrsignale</source>
-        <target>CSP y señales de defensa</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringSessionCode429" datatype="html">
-        <source>Session-Code-429</source>
-        <target>Errores 429 de códigos de sesión</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringCspDropped" datatype="html">
-        <source>Verworfene CSP-Reports</source>
-        <target>Informes CSP descartados</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringCspRateLimited" datatype="html">
-        <source>Rate-limitierte CSP-Reports</source>
-        <target>Informes CSP limitados</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringCspEval" datatype="html">
-        <source>CSP-eval-Meldungen</source>
-        <target>Informes CSP eval</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringCspScriptHttps" datatype="html">
-        <source>Externe CSP-Script-Meldungen</source>
-        <target>Informes CSP de scripts externos</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringRedisStatus" datatype="html">
-        <source>Redis</source>
-        <target>Redis</target>
-      </trans-unit>
-      <trans-unit id="admin.monitoringServiceStatus" datatype="html">
-        <source>Anwendungsstatus</source>
-        <target>Estado de la aplicación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">353</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringServiceStable" datatype="html">
         <source>Stabil</source>
         <target>Estable</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">350</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringServiceLimited" datatype="html">
         <source>Eingeschränkt</source>
         <target>Limitado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">351</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringServiceCritical" datatype="html">
         <source>Kritisch</source>
         <target>Crítico</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">352</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelCritical" datatype="html">
+        <source>Kritisch</source>
+        <target>Crítico</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">357</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelWarning" datatype="html">
+        <source>Warnung</source>
+        <target>Advertencia</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">358</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelOk" datatype="html">
+        <source>Alles in Ordnung</source>
+        <target>Todo en orden</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">359</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringCriticalHelp" datatype="html">
+        <source>Mindestens ein Wert erfordert sofortige Prüfung.</source>
+        <target>Al menos un valor requiere una revisión inmediata.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">364</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringWarningHelp" datatype="html">
+        <source>Mindestens ein Wert liegt über der Warnschwelle.</source>
+        <target>Al menos un valor supera el umbral de advertencia.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">367</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringOkHelp" datatype="html">
+        <source>Alle überwachten Werte liegen unter ihren Warnschwellen.</source>
+        <target>Todos los valores monitorizados están por debajo de sus umbrales de advertencia.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">369</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringThresholds" datatype="html">
+        <source>Warnung ab <x id="warning" equiv-text="warning"/>, kritisch ab <x id="critical" equiv-text="critical"/></source>
+        <target>Advertencia a partir de <x id="warning" equiv-text="warning"/>, crítico a partir de <x id="critical" equiv-text="critical"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">434</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.title" datatype="html">
         <source>Startseiten-Meldungen</source>

@@ -71,6 +71,7 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
   if (
     path === 'session.join' ||
     path === 'session.getInfo' ||
+    path === 'session.getInfoForReconnect' ||
     path === 'session.getParticipantNicknames' ||
     path === 'session.getParticipantSelf' ||
     path === 'session.confirmReadingReady' ||
@@ -85,6 +86,7 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
     path === 'session.getHasSubmittedFeedback' ||
     path === 'session.getSessionFeedbackSummary' ||
     path === 'quickFeedback.isActive' ||
+    path === 'quickFeedback.isActiveForReconnect' ||
     path === 'quickFeedback.vote' ||
     path === 'quickFeedback.results' ||
     path === 'quickFeedback.onResults'

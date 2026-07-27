@@ -141,8 +141,11 @@ dokumentiert.
 W0.4 bündelt operative Security- und Kapazitätsdaten in der
 admin-authentifizierten Query `health.securityStats`: erfolgreiche
 Session-Erstellungen, sämtliche tRPC-429 nach Kategorie,
+nach Join, Codeprüfung, Poll/Reconnect und sonstigen Folgezugriffen getrennte
 Session-Code-Fehler/Soft-Cap-Delays und aktuelle globale
 Soft-Cap-Auslastung, PDF-Auslastung sowie aktive tRPC-WebSocket-Verbindungen.
+Nur explizite Join- und Codeprüfungen fließen in die Session-Code-Alarme ein;
+automatische Folgezugriffe bleiben separat diagnostizierbar.
 Öffentliche UX- und Produktstatistiken
 einschließlich `serviceStatus` und `loadStatus` bleiben in `health.stats`.
 Create-/429- und PDF-Zähler werden pro Prozess bounded aggregiert und höchstens

@@ -115,7 +115,9 @@ beforeEach(() => {
     sessionCreatesLastMinute: 0,
     adminLoginFailuresLastMinute: 0,
     sessionCodeFailuresLastMinute: 0,
+    sessionCodeFailuresBySourceLastMinute: { join: 0, lookup: 0, pollReconnect: 0, other: 0 },
     sessionCodeSoftCapDelaysLastMinute: 0,
+    sessionCodeSoftCapDelaysBySourceLastMinute: { join: 0, lookup: 0, pollReconnect: 0, other: 0 },
     rateLimit429LastMinute: 0,
     rateLimit429ByCategoryLastMinute: {
       adminLogin: 0,
@@ -345,7 +347,14 @@ describe('health.stats', () => {
       sessionCreatesLastMinute: 12,
       adminLoginFailuresLastMinute: 15,
       sessionCodeFailuresLastMinute: 27,
+      sessionCodeFailuresBySourceLastMinute: { join: 2, lookup: 3, pollReconnect: 22, other: 0 },
       sessionCodeSoftCapDelaysLastMinute: 4,
+      sessionCodeSoftCapDelaysBySourceLastMinute: {
+        join: 1,
+        lookup: 0,
+        pollReconnect: 3,
+        other: 0,
+      },
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
         adminLogin: 0,
@@ -403,7 +412,21 @@ describe('health.stats', () => {
       cspReportsEvalLastMinute: 2,
       cspReportsScriptHttpsLastMinute: 5,
       sessionCodeFailuresLastMinute: 27,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 2,
+        lookup: 3,
+        pollReconnect: 22,
+        other: 0,
+      },
+      sessionCodeEntryFailuresLastMinute: 5,
       sessionCodeSoftCapDelaysLastMinute: 4,
+      sessionCodeSoftCapDelaysBySourceLastMinute: {
+        join: 1,
+        lookup: 0,
+        pollReconnect: 3,
+        other: 0,
+      },
+      sessionCodeEntrySoftCapDelaysLastMinute: 1,
       sessionCodeGlobalSoftCapUtilizationPercent: 82,
       rateLimit429LastMinute: 9,
       rateLimit429ByCategoryLastMinute: {
@@ -466,7 +489,14 @@ describe('health.stats', () => {
       sessionCreatesLastMinute: 0,
       adminLoginFailuresLastMinute: 0,
       sessionCodeFailuresLastMinute: 0,
+      sessionCodeFailuresBySourceLastMinute: { join: 0, lookup: 0, pollReconnect: 0, other: 0 },
       sessionCodeSoftCapDelaysLastMinute: 0,
+      sessionCodeSoftCapDelaysBySourceLastMinute: {
+        join: 0,
+        lookup: 0,
+        pollReconnect: 0,
+        other: 0,
+      },
       rateLimit429LastMinute: 0,
       rateLimit429ByCategoryLastMinute: {
         adminLogin: 0,

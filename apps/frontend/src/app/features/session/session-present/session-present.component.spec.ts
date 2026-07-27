@@ -24,6 +24,9 @@ vi.mock('../../../core/trpc.client', () => ({
       getInfo: {
         query: getInfoQueryMock,
       },
+      getInfoForReconnect: {
+        query: getInfoQueryMock,
+      },
       getTeamLeaderboard: {
         query: getTeamLeaderboardQueryMock,
       },

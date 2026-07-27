@@ -394,7 +394,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     if (this.joining() || this.loading()) return;
     if (typeof document !== 'undefined' && document.hidden) return;
     try {
-      const session = await trpc.session.getInfo.query({
+      const session = await trpc.session.getInfoForReconnect.query({
         code: this.code,
         anonymousClientId: getAnonymousClientId(),
       });
