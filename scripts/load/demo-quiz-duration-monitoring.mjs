@@ -5,9 +5,13 @@
  * Standardlauf:
  *   ADMIN_DIAGNOSTIC_SECRET=... npm run load:duration:demo-classroom
  */
-import { setTimeout as sleep } from 'node:timers/promises';
 import { runDemoQuizClassroom } from './demo-quiz-classroom-30.mjs';
 import { evaluateDemoDurationRun } from './lib/demo-duration-evaluation.mjs';
+import {
+  classroomRunOptions,
+  resolveReportPaths,
+  waitForCooldown,
+} from './lib/demo-duration-runner.mjs';
 import { writeLoadReport } from './lib/reporting.mjs';
 import { createRuntimeMetrics } from './lib/runtime-metrics.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
@@ -33,6 +37,7 @@ function booleanFromEnv(name, defaultValue = false) {
 const reportFile = String(
   process.env.REPORT_FILE || 'artifacts/demo-quiz-duration-monitoring.json',
 ).trim();
+const reportPaths = resolveReportPaths(reportFile, process.env.JUNIT_FILE);
 const config = Object.freeze({
   trpcUrl: String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim(),
   durationMinutes: numberFromEnv('DEMO_DURATION_MINUTES', 10, { min: 0.1 }),
@@ -68,16 +73,12 @@ const config = Object.freeze({
         '',
     ).trim() || null,
   requireRss: booleanFromEnv('DEMO_REQUIRE_RSS'),
-  reportFile,
-  junitFile: String(process.env.JUNIT_FILE || reportFile.replace(/\.json$/i, '.junit.xml')).trim(),
+  ...reportPaths,
 });
 
 const diagnosticSecret = String(process.env.ADMIN_DIAGNOSTIC_SECRET || '');
 if (diagnosticSecret.length < 32) {
   throw new Error('ADMIN_DIAGNOSTIC_SECRET fehlt oder ist kürzer als 32 Zeichen.');
-}
-if (!config.reportFile || !config.junitFile) {
-  throw new Error('REPORT_FILE und JUNIT_FILE dürfen nicht leer sein.');
 }
 const target = new URL(config.trpcUrl);
 if (!['127.0.0.1', 'localhost', '::1'].includes(target.hostname)) {
@@ -120,11 +121,14 @@ async function run() {
   const roundErrors = [];
   let estimatedRoundMs = config.initialRoundBudgetMs;
   let stopSignal = null;
+  const cooldownAbortController = new AbortController();
   const onSigint = () => {
     stopSignal ??= 'SIGINT';
+    cooldownAbortController.abort();
   };
   const onSigterm = () => {
     stopSignal ??= 'SIGTERM';
+    cooldownAbortController.abort();
   };
   process.once('SIGINT', onSigint);
   process.once('SIGTERM', onSigterm);
@@ -140,14 +144,7 @@ async function run() {
         `Demo-Runde ${roundNumber} startet (${Math.ceil(remainingMs / 1_000)} s Restbudget).`,
       );
       try {
-        const result = await runDemoQuizClassroom({
-          trpcUrl: config.trpcUrl,
-          participants: config.participants,
-          runtimeMetrics,
-          waitForBackend: false,
-          writeReport: false,
-          log: false,
-        });
+        const result = await runDemoQuizClassroom(classroomRunOptions(config, runtimeMetrics));
         const durationMs = Date.now() - roundStarted;
         rounds.push({
           round: roundNumber,
@@ -175,14 +172,15 @@ async function run() {
       }
     }
 
-    if (stopSignal) {
-      roundErrors.push(`Lauf durch ${stopSignal} abgebrochen.`);
-    } else {
+    if (!stopSignal) {
       const cooldownMs = Math.max(0, deadline - Date.now());
       if (cooldownMs > 0) {
         console.log(`Cooldown bis Messende (${Math.ceil(cooldownMs / 1_000)} s).`);
-        await sleep(cooldownMs);
+        await waitForCooldown(cooldownMs, cooldownAbortController.signal);
       }
+    }
+    if (stopSignal) {
+      roundErrors.push(`Lauf durch ${stopSignal} abgebrochen.`);
     }
     await runtimeMetrics.sample('POST');
   } finally {
@@ -201,6 +199,7 @@ async function run() {
     httpP95LimitMs: config.httpP95LimitMs,
     memoryGrowthLimitMb: config.memoryGrowthLimitMb,
     requireRss: config.requireRss,
+    backendPidConfigured: config.backendPid !== null,
     redisConfigured: config.redisUrl !== null,
     postgresConfigured: config.databaseUrl !== null,
   });

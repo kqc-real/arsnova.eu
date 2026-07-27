@@ -75,6 +75,7 @@ export function evaluateDemoDurationRun({
   httpP95LimitMs,
   memoryGrowthLimitMb,
   requireRss = false,
+  backendPidConfigured = false,
   redisConfigured = false,
   postgresConfigured = false,
 }) {
@@ -195,9 +196,21 @@ export function evaluateDemoDurationRun({
     ),
   );
 
+  const participantBaseline = firstPreValue(
+    healthStats,
+    (snapshot) => snapshot.stats.totalParticipants,
+  );
   const participantMax = maxOrNull(
     finiteValues(healthStats, (snapshot) => snapshot.stats.totalParticipants),
   );
+  const participantMaxAfterPre = maxOrNull(
+    finiteValues(
+      healthStats.filter((snapshot) => snapshot.phase !== 'PRE'),
+      (snapshot) => snapshot.stats.totalParticipants,
+    ),
+  );
+  const participantIncrease =
+    participantMaxAfterPre === null ? null : participantMaxAfterPre - participantBaseline;
   const votesMax = maxOrNull(
     finiteValues(healthStats, (snapshot) => snapshot.stats.votesLastMinute),
   );
@@ -230,9 +243,15 @@ export function evaluateDemoDurationRun({
   assertions.push(
     assertion(
       'teilnehmer-signal-sichtbar-und-bounded',
-      participantMax !== null && participantMax >= participants && participantMax <= participants,
-      participantMax,
-      { min: participants, max: participants },
+      participantIncrease !== null &&
+        participantIncrease >= participants &&
+        participantIncrease <= participants,
+      {
+        baseline: participantBaseline,
+        maxAfterPre: participantMaxAfterPre,
+        increase: participantIncrease,
+      },
+      { increaseMin: participants, increaseMax: participants },
     ),
     assertion(
       'vote-signal-sichtbar-und-bounded',
@@ -300,15 +319,31 @@ export function evaluateDemoDurationRun({
   }
 
   const rssGrowthBytes = runtime.backendProcess.rssGrowthBytes;
-  const rssMeasurable =
-    runtime.backendProcess.available === true && typeof rssGrowthBytes === 'number';
+  const rssRequired = requireRss || backendPidConfigured;
+  const rssProbeHealthy =
+    runtime.backendProcess.available === true &&
+    runtime.backendProcess.successfulSamples > 0 &&
+    runtime.backendProcess.errors === 0;
+  const rssMeasurable = rssProbeHealthy && typeof rssGrowthBytes === 'number';
   assertions.push(
     assertion(
       'backend-rss-wachstum',
-      (!requireRss && !rssMeasurable) ||
+      (!rssRequired && !rssMeasurable) ||
         (rssMeasurable && rssGrowthBytes <= memoryGrowthLimitMb * 1024 * 1024),
-      rssMeasurable ? Math.round((rssGrowthBytes / 1024 / 1024) * 100) / 100 : null,
-      `<= ${memoryGrowthLimitMb} MiB${requireRss ? '' : ' (optional)'}`,
+      {
+        available: runtime.backendProcess.available,
+        successfulSamples: runtime.backendProcess.successfulSamples,
+        errors: runtime.backendProcess.errors,
+        growthMb: rssMeasurable ? Math.round((rssGrowthBytes / 1024 / 1024) * 100) / 100 : null,
+      },
+      rssRequired
+        ? {
+            available: true,
+            successfulSamples: '> 0',
+            errors: 0,
+            growthMb: `<= ${memoryGrowthLimitMb}`,
+          }
+        : `<= ${memoryGrowthLimitMb} MiB (optional)`,
     ),
   );
 
@@ -322,6 +357,7 @@ export function evaluateDemoDurationRun({
       acceptedVotes,
       monitoringSamples: healthStats.length,
       maxParticipants: participantMax,
+      participantIncrease,
       maxVotesLastMinute: votesMax,
       maxTransitionsLastMinute: transitionsMax,
       maxSessionCreatesLastMinute: createsMax,

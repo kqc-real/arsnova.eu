@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDemoDurationRun } from './lib/demo-duration-evaluation.mjs';
+import {
+  classroomRunOptions,
+  resolveReportPaths,
+  waitForCooldown,
+} from './lib/demo-duration-runner.mjs';
 
 function security(phase, overrides = {}) {
   return {
@@ -154,4 +159,90 @@ test('verwirft Monitoring-Warnschwellen und HTTP-Latenzverletzungen', () => {
     result.assertions.find((entry) => entry.name === 'http-p95-im-budget').passed,
     false,
   );
+});
+
+test('baselined vorhandene plattformweite Teilnehmende', () => {
+  const runtime = runtimeFixture();
+  runtime.healthStats.snapshots[0].stats.totalParticipants = 12;
+  runtime.healthStats.snapshots[1].stats.totalParticipants = 42;
+  runtime.healthStats.snapshots[2].stats.totalParticipants = 12;
+
+  const result = evaluate(runtime);
+  const participantGate = result.assertions.find(
+    (entry) => entry.name === 'teilnehmer-signal-sichtbar-und-bounded',
+  );
+  assert.equal(participantGate.passed, true);
+  assert.deepEqual(participantGate.actual, { baseline: 12, maxAfterPre: 42, increase: 30 });
+});
+
+test('verwirft eine konfigurierte, nicht messbare Backend-RSS-Probe', () => {
+  const runtime = runtimeFixture();
+  runtime.backendProcess = {
+    available: false,
+    successfulSamples: 0,
+    errors: 3,
+    rssGrowthBytes: null,
+  };
+
+  const result = evaluateDemoDurationRun({
+    runtime,
+    rounds: [roundFixture()],
+    roundErrors: [],
+    participants: 30,
+    httpP95LimitMs: 1_000,
+    memoryGrowthLimitMb: 256,
+    backendPidConfigured: true,
+  });
+  const rssGate = result.assertions.find((entry) => entry.name === 'backend-rss-wachstum');
+  assert.equal(rssGate.passed, false);
+  assert.deepEqual(rssGate.actual, {
+    available: false,
+    successfulSamples: 0,
+    errors: 3,
+    growthMb: null,
+  });
+});
+
+test('leitet für endungslose JSON-Reports einen getrennten JUnit-Pfad ab', () => {
+  assert.deepEqual(resolveReportPaths('artifacts/demo-run'), {
+    reportFile: 'artifacts/demo-run',
+    junitFile: 'artifacts/demo-run.junit.xml',
+  });
+  assert.throws(
+    () => resolveReportPaths('artifacts/demo-run', 'artifacts/../artifacts/demo-run'),
+    /unterschiedliche Zielpfade/,
+  );
+});
+
+test('übergibt das konfigurierte Dauerlauf-Latenzlimit an jede Classroom-Runde', () => {
+  const runtimeMetrics = {};
+  const options = classroomRunOptions(
+    {
+      trpcUrl: 'http://127.0.0.1:3000/trpc',
+      participants: 30,
+      httpP95LimitMs: 2_000,
+    },
+    runtimeMetrics,
+  );
+  assert.equal(options.voteP95LimitMs, 2_000);
+  assert.equal(options.runtimeMetrics, runtimeMetrics);
+});
+
+test('beendet den Cooldown bei einem Abbruchsignal', async () => {
+  const controller = new AbortController();
+  let receivedSignal;
+  const sleep = (_delay, _value, options) =>
+    new Promise((_resolve, reject) => {
+      receivedSignal = options.signal;
+      options.signal.addEventListener(
+        'abort',
+        () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })),
+        { once: true },
+      );
+    });
+
+  const cooldown = waitForCooldown(60_000, controller.signal, sleep);
+  controller.abort();
+  await cooldown;
+  assert.equal(receivedSignal.aborted, true);
 });

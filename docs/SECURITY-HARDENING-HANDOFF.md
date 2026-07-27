@@ -61,8 +61,8 @@ Kritische Slices: starke Modelle für Design + Review; Hygiene kann leichter lau
 ## 5. Empfohlene erste Aufgabe
 
 W3.7 auf dem Produktionshost operativ abnehmen und anschließend den
-operatorgesteuerten S6.5-Zielhostlauf durchführen. PR #165 ist dafür ein
-zusätzlicher lokaler Dauerlastnachweis, aber weder gemergt noch die formale
+operatorgesteuerten S6.5-Zielhostlauf durchführen. Der Demo-Classroom-Dauerlauf
+ist dafür ein zusätzlicher lokaler Nachweis, aber nicht die formale
 S6.5-Abnahme.
 
 Verbindliche Abläufe:
@@ -100,7 +100,7 @@ Akzeptanzkriterien und Lasttest-AKs: **nur** Plan (§6, §6.5,
 - [ ] Synthetischen W3.7-Testalarm im vorgesehenen On-Call-Kanal empfangen
 - [ ] Gesunden One-shot, drei Timerläufe und ggf. Dead-Man-Recovery belegen
 - [ ] S6.5-Zielhostlauf mit echten Reports und Operatorfreigabe durchführen
-- [ ] PR #165 bis zum Merge nur als „offen, lokal validiert“ behandeln
+- [ ] Demo-Classroom-Dauerlauf nur als lokalen Zusatznachweis behandeln
 - [ ] Classroom-NAT nicht durch enge IP-Limits brechen
 
 ---

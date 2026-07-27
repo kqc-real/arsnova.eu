@@ -140,7 +140,7 @@
 >
 > **Laufzeitabgleich Story 0.7 (2026-07-12):** Der [lokale Baseline-Lauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) bestätigt Artillery 500/500 Live und Reconnect, Vote-Timer-/Host-Progress-Hotpaths, Yjs-Sync und einen 30-Minuten-Soak. Story **0.7** ist damit betrieblich abgeschlossen; die Baseline liegt in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`.
 >
-> **Dauerlast-Slice Story 0.7 (PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), offen und lokal validiert):** Der neue, manuelle lokale 10-Minuten-Demo-Classroom-Lauf absolvierte 48 vollständige Runden mit 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufen ohne Fehler. HTTP-p95 lag bei 59,62 ms, p99 bei 83,78 ms; Redis und PostgreSQL lieferten jeweils 121/121 erfolgreiche Probes, alle 21/21 Gates bestanden. Der Slice ist erst nach Merge von PR #165 auf `main` verfügbar und kein PR-Gate.
+> **Dauerlast-Slice Story 0.7 (PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), lokal validiert):** Der neue, manuelle lokale 10-Minuten-Demo-Classroom-Lauf absolvierte 48 vollständige Runden mit 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufen ohne Fehler. HTTP-p95 lag bei 59,62 ms, p99 bei 83,78 ms; Redis und PostgreSQL lieferten jeweils 121/121 erfolgreiche Probes, alle 21/21 Gates bestanden. Der Slice ist kein PR-Gate.
 >
 > **Ergänzung Angebotsoption Westermann (2026-05-28):** **Epic 11** beschreibt einen **noch nicht beauftragten** Erweiterungspfad für **personalisierte Verlagszugänge und ein Redaktionsbackend**; hierzu existiert im Monorepo aktuell bewusst **kein** Produktcode.
 >

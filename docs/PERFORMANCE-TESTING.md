@@ -145,10 +145,8 @@ SOAK_DURATION_MINUTES=60 npm run load:soak:live-session
 
 ## Demo-Classroom-Dauerlast mit Monitoring
 
-> **Verfügbarkeit:** Der folgende Runner gehört zu PR
-> [#165](https://github.com/kqc-real/arsnova.eu/pull/165), ist dort offen und
-> lokal validiert und steht auf `main` erst nach dem Merge zur Verfügung. Er
-> läuft ausschließlich manuell lokal und ist kein CI-/PR-Gate.
+> **Verfügbarkeit:** Der Runner läuft ausschließlich manuell lokal und ist kein
+> CI-/PR-Gate.
 
 Der lokale Dauerlauf führt bis zum Zeitbudget ausschließlich vollständige
 Demo-Quiz-Classrooms durch. Standard sind zehn Minuten und 30 Teilnehmende pro

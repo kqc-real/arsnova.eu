@@ -354,8 +354,8 @@ Kurzfolie für das Erstgespräch — du kannst die Studierende durch diese Punkt
 2. **Jetzt nutzbar:** k6 + `scripts/load/` + Playwright-Smokes + Lighthouse.
 3. **Lokal belegt:** Yjs-Reconnect, 600er Vote-Timer-Latenz, sechs Browser-Flows
    und Lighthouse-LCP sind im QA-Nachlauf grün.
-4. **Aktuell zu belegen:** die formale S6.5-Zielhostabnahme; der offene lokale
-   Dauerlast-Slice aus PR #165 ist ein Zusatznachweis, kein Ersatz.
+4. **Aktuell zu belegen:** die formale S6.5-Zielhostabnahme; der lokale
+   Demo-Classroom-Dauerlauf ist ein Zusatznachweis, kein Ersatz.
 5. **Erster Hands-on:** `npm run dev:backend` → `load:simulate:50` → `npm run load:k6:health`.
 6. **Artefakt für SQM:** Messprotokoll eines Pilot-Laufs **oder** Konzept für ein fehlendes Szenario (Absprache).
 7. **Grenze:** Prod-Last nur mit Freigabe; Fokus lokal oder produktionsnahe Testumgebung laut LASTTEST-500-Doku.
