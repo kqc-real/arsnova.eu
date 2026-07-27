@@ -661,7 +661,9 @@ describe('FeedbackVoteComponent', () => {
   });
 
   it('zeigt bei abgelaufener Runde einen direkten Link zur Startseite', async () => {
-    quickFeedbackResultsQueryMock.mockRejectedValueOnce(new Error('not found'));
+    quickFeedbackResultsQueryMock.mockRejectedValueOnce(
+      new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+    );
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
@@ -673,6 +675,11 @@ describe('FeedbackVoteComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');
+    expect(quickFeedbackOnResultsSubscribeMock).not.toHaveBeenCalled();
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -706,7 +713,9 @@ describe('FeedbackVoteComponent', () => {
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
         currentRound: 1,
       })
-      .mockRejectedValueOnce(new Error('not found'));
+      .mockRejectedValueOnce(
+        new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+      );
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
@@ -723,6 +732,10 @@ describe('FeedbackVoteComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
     fixture.destroy();
   });
 });

@@ -48,6 +48,7 @@ import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
+const ENDED_FEEDBACK_GRACE_SECONDS = 5 * 60;
 const QUICK_FEEDBACK_POLL_ACTIVE_MS = 500;
 const QUICK_FEEDBACK_POLL_IDLE_MS = 1200;
 const TEMPO_DEFAULT_VALUE = 'FOLLOWING';
@@ -136,10 +137,17 @@ function feedbackKey(code: string): string {
   return `qf:${code}`;
 }
 
+function endedFeedbackKey(code: string): string {
+  return `qf:ended:${code}`;
+}
+
 async function protectMissingQuickFeedbackCode(
   code: string,
   source: SessionCodeFailureSource,
 ): Promise<void> {
+  if ((await getRedis().exists(endedFeedbackKey(code))) === 1) {
+    return;
+  }
   const session = await prisma.session.findUnique({
     where: { code },
     select: { id: true },
@@ -451,6 +459,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.del(endedFeedbackKey(code));
       await multi.exec();
 
       const hostToken = sessionBound ? null : await createFeedbackHostToken(code);
@@ -528,6 +537,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.set(endedFeedbackKey(code), '1', 'EX', ENDED_FEEDBACK_GRACE_SECONDS);
       await multi.exec();
       await invalidateFeedbackHostToken(code);
 

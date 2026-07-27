@@ -265,6 +265,51 @@ describe('quickFeedback.vote und Session-Status', () => {
     );
   });
 
+  it('zählt Ergebnisabrufe beendeter Standalone-Blitzlichter nicht als Code-Fehler', async () => {
+    redisMock.get.mockResolvedValue(null);
+    redisMock.exists.mockResolvedValue(1);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(caller.results({ sessionCode: 'OLD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+
+    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('beendet Ergebnis-Subscriptions beendeter Standalone-Blitzlichter ohne Code-Fehler', async () => {
+    redisMock.get.mockResolvedValue(null);
+    redisMock.exists.mockResolvedValue(1);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    const stream = await caller.onResults({ sessionCode: 'OLD999' });
+    await expect(stream[Symbol.asyncIterator]().next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+
+    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('markiert beendete Blitzlichter für das auslaufende Client-Polling', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      }),
+    );
+
+    await expect(hostCaller.end({ sessionCode: 'OLD999' })).resolves.toEqual({ ok: true });
+
+    const multi = redisMock.multi.mock.results.at(-1)?.value as {
+      set: ReturnType<typeof vi.fn>;
+    };
+    expect(multi.set).toHaveBeenCalledWith('qf:ended:OLD999', '1', 'EX', 300);
+    expect(invalidateFeedbackHostTokenMock).toHaveBeenCalledWith('OLD999');
+  });
+
   it('lehnt ab, wenn die Live-Session beendet ist', async () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
