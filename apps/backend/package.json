@@ -51,7 +51,7 @@
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^26.1.1",
     "@types/pg": "^8.16.0",
     "@types/proxy-addr": "^2.0.3",
     "@types/ws": "^8.18.1",
