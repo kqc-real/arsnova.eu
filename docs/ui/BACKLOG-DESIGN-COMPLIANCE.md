@@ -24,14 +24,14 @@
 
 ## 2. Epic 6
 
-| Story                             | Status | Hinweis                                                                                        |
-| --------------------------------- | ------ | ---------------------------------------------------------------------------------------------- |
-| **6.1** Dark/Light/System Theme   | ✅     | Theme, Persistenz und Systemmodus sind umgesetzt.                                              |
-| **6.2** Internationalisierung     | ✅     | Angular-localize/XLF mit fünf Locales; keine alte `i18n/*.json`-Annahme mehr verwenden.        |
-| **6.3** Impressum & Datenschutz   | ✅     | Lokalisierte Legal-Markdown-Dateien unter `apps/frontend/src/assets/legal/`.                   |
-| **6.4** Mobile-First & Responsive | ✅     | PWA, Viewport-Meta, responsive Layouts und 320-px-Smoke sind Teil der UI-Checks.               |
-| **6.5** Barrierefreiheit          | 🔨     | Technische Gates und Befunde umgesetzt; manuelle AT-/Zoom-/OS-Abnahme laut A11y-Journal offen. |
-| **6.6** Thinking-Aloud / UX       | ⬜     | Methodische Testreihe plus dokumentierte Umsetzung der Befunde bleibt offen.                   |
+| Story                             | Status | Hinweis                                                                                     |
+| --------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| **6.1** Dark/Light/System Theme   | ✅     | Theme, Persistenz und Systemmodus sind umgesetzt.                                           |
+| **6.2** Internationalisierung     | ✅     | Angular-localize/XLF mit fünf Locales; keine alte `i18n/*.json`-Annahme mehr verwenden.     |
+| **6.3** Impressum & Datenschutz   | ✅     | Lokalisierte Legal-Markdown-Dateien unter `apps/frontend/src/assets/legal/`.                |
+| **6.4** Mobile-First & Responsive | ✅     | PWA, Viewport-Meta, responsive Layouts und 320-px-Smoke sind Teil der UI-Checks.            |
+| **6.5** Barrierefreiheit          | ✅     | Technische Gates sowie formale AT-/Zoom-/OS-/Reader-Abnahme nach WCAG 2.2 AA abgeschlossen. |
+| **6.6** Thinking-Aloud / UX       | ⬜     | Methodische Testreihe plus dokumentierte Umsetzung der Befunde bleibt offen.                |
 
 ---
 

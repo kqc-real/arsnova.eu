@@ -1,14 +1,16 @@
 # Accessibilité
 
-**Mise à jour : 20 juillet 2026**
+**Mise à jour : 27 juillet 2026**
 
 arsnova.eu est conçu pour être utilisé au clavier, avec un lecteur d’écran, avec un fort grossissement ou avec les modes de contraste de votre système d’exploitation. Cette page présente les fonctions d’accessibilité disponibles et la manière dont nous veillons à leur qualité.
 
 ## Notre référentiel
 
-Nous suivons les [Règles pour l’accessibilité des contenus Web (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), niveau de conformité AA.
+Dans le périmètre décrit ci-dessous, arsnova.eu est **accessible conformément aux [Règles pour l’accessibilité des contenus Web (WCAG) 2.2](https://www.w3.org/TR/WCAG22/), niveau de conformité AA**.
 
 L’application a fait l’objet de contrôles techniques et de tests manuels, notamment au clavier, avec des lecteurs d’écran, avec un fort grossissement et avec les modes de contraste du système. Des contrôles automatisés font également partie de notre processus de développement. Nous répétons et complétons ces tests à chaque évolution de l’application.
+
+La réception formelle achevée le 27 juillet 2026 comprenait des contrôles techniques automatisés, les parcours principaux testés manuellement avec VoiceOver/Safari et NVDA/Firefox, des échantillons supplémentaires de navigateurs et de systèmes d’exploitation, un zoom du navigateur à 200 % et 400 %, le réajustement du contenu, Windows High Contrast/Forced Colors ainsi que des tests avec des lecteurs PDF et selon PDF/UA. Tous les critères WCAG 2.2 pertinents des niveaux A et AA ont été validés ; aucun constat A ou AA ne reste ouvert.
 
 ## Utilisation et repérage
 
@@ -38,7 +40,7 @@ Un profil PDF/UA structuré est disponible pour les rapports de résultats. Il c
 
 ## Périmètre
 
-Ces informations concernent les fonctions d’arsnova.eu et les documents générés par l’application. Les informations relatives à l’accessibilité des services externes liés sont fournies par leurs exploitants respectifs.
+Ces informations concernent les fonctions d’arsnova.eu et les documents générés par l’application. Les informations relatives à l’accessibilité des services externes liés sont fournies par leurs exploitants respectifs. La déclaration porte sur WCAG 2.2 AA ; elle ne revendique ni le niveau AAA ni une universalité complète dans toutes les combinaisons possibles d’appareils et de technologies d’assistance.
 
 ## Vos retours
 

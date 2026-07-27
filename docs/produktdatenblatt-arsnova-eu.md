@@ -22,8 +22,8 @@ Die Lösung ist auf zwei Zielgruppen gleichzeitig ausgelegt:
 Diese Produktbeschreibung wurde aus zwei Primärquellen konsolidiert:
 
 - **Backlog-Quelle:** `Backlog.md`
-  - Gesamtumfang: **112 Stories**
-  - Status laut Story-Übersicht: **90 fertig**, **1 in Arbeit**, **21 offen**
+  - Gesamtumfang: **115 Stories**
+  - Status laut Story-Übersicht: **98 fertig**, **0 in Arbeit**, **17 offen**
   - Epics: **0 bis 10** plus **Epic 11** als noch nicht beauftragter Erweiterungspfad
 - **Test-Quelle:** alle automatisierten Unit-/Komponententests in Backend und Frontend
   - **Frontend:** 43 Spec-Dateien (`*.spec.ts`)
@@ -76,11 +76,11 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 6 – UX-Qualität und Compliance
 
 - Theme, Internationalisierung, Impressum/Datenschutz, Mobile-First/Responsive umgesetzt.
-- A11y-Nachtrag 2026-07-19: Die zwölf technischen WCAG-A-/AA-Befunde sind
-  behoben; Template-Lint, axe, Lighthouse-Einzelaudits, Reflow/Fokus und
-  PDF/UA sind automatisiert. Offen bleiben die manuelle
-  Assistive-Technology-/Zoom-/Hochkontrast-/PDF-Reader-Abnahme sowie die
-  UX-Testreihen.
+- A11y-Abnahme 2026-07-27: Die technischen WCAG-A-/AA-Befunde sind behoben;
+  Template-Lint, axe, Lighthouse-Einzelaudits, Reflow/Fokus und PDF/UA sind
+  automatisiert. Die manuelle Assistive-Technology-/Zoom-/Hochkontrast-/
+  PDF-Reader-Abnahme ist bestanden; es bestehen keine offenen
+  WCAG-2.2-A-/AA-Befunde.
 
 ## Epic 7 – Team-Modus
 
