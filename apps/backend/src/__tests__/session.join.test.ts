@@ -241,6 +241,7 @@ describe('session.join', () => {
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       CLIENT_ID,
       'ZZZ999',
+      'join',
     );
   });
 
@@ -257,6 +258,7 @@ describe('session.join', () => {
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       undefined,
       'ZZZ999',
+      'join',
     );
   });
 
@@ -274,6 +276,7 @@ describe('session.join', () => {
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
       CLIENT_ID,
       'ZZZ999',
+      'join',
     );
   });
 

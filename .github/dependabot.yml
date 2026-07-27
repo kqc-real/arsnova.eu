@@ -23,6 +23,14 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@astrojs/*'
         update-types: ['version-update:semver-major']
+      # TypeScript-Majors ändern Compiler-/tsconfig-Semantik und müssen mit
+      # Angular, Astro und allen Workspace-Builds gemeinsam migriert werden.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      # Node-Typen bleiben beim kleinsten gemeinsamen Runtime-Stand (Node 22),
+      # solange die unterstützte Runtime-Matrix Node 22/24 umfasst.
+      - dependency-name: '@types/node'
+        versions: ['>=23']
       # @y/websocket-server 0.1.5 kollidiert mit @y/y (yjs 14) und Root-Override (yjs 13.6.31).
       # exclude-patterns in groups reicht nicht — Dependabot öffnet sonst weiterhin Einzel-PRs.
       - dependency-name: '@y/websocket-server'

@@ -107,6 +107,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     session: {
       getInfo: { query: getInfoQueryMock },
+      getInfoForReconnect: { query: getInfoQueryMock },
       getParticipants: { query: getParticipantsQueryMock },
       getTeams: { query: getTeamsQueryMock },
       getLiveFreetext: { query: getLiveFreetextQueryMock },
