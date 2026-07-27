@@ -393,6 +393,8 @@ export function createRuntimeMetrics(options = {}) {
         backendProcess: {
           ...processStatus,
           samples: processSamples,
+          successfulSamples: validProcessSamples.length,
+          errors: processSamples.length - validProcessSamples.length,
           rssStartBytes: firstProcess?.rssBytes ?? null,
           rssEndBytes: lastProcess?.rssBytes ?? null,
           rssGrowthBytes:

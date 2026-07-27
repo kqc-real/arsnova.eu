@@ -284,12 +284,12 @@ festgelegt. Der Node-24-Zielhostlauf ist noch nicht ausgeführt; die formale
 Abnahme bleibt bis zu echten Reports und Operatorfreigabe offen.
 
 Der zusätzliche Demo-Classroom-Dauerlast-Slice aus PR
-[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **offen und lokal
-validiert**: 10 Minuten, 48 vollständige Runden, 1.440 Joins, 14.400/14.400
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **implementiert und
+lokal validiert**: 10 Minuten, 48 vollständige Runden, 1.440 Joins, 14.400/14.400
 Votes, 19.104 HTTP-Aufrufe ohne Fehler, HTTP-p95 59,62 ms, p99 83,78 ms,
-Redis/PostgreSQL je 121/121 Probes und 21/21 Gates. Er ist kein PR-Gate, erst
-nach Merge auf `main` verfügbar und ersetzt den ausstehenden S6.5-Zielhostlauf
-nicht.
+Redis/PostgreSQL je 121/121 Probes und 21/21 Gates. Der mit PR #165
+bereitgestellte manuelle Runner ist kein PR-Gate und ersetzt den ausstehenden
+S6.5-Zielhostlauf nicht.
 
 ### 6.6 Maßnahme: Owner / Ticket / Deps / Rollback
 

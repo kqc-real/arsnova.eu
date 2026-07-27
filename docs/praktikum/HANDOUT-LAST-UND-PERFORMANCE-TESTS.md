@@ -266,12 +266,12 @@ belegt die Korrekturen: Yjs-Reconnect, beide akzeptierenden 600er Vote-Pfade,
 folgten am 2026-07-12 ein grüner 30-Minuten-Langlauf und die Baseline-Freigabe.
 
 Der zusätzliche Dauerlast-Slice aus PR
-[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **offen und lokal
-validiert**. Sein manueller 10-Minuten-Demo-Classroom-Lauf bestand 21/21 Gates
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **implementiert und
+lokal validiert**. Sein manueller 10-Minuten-Demo-Classroom-Lauf bestand 21/21 Gates
 mit 48 vollständigen Runden, 1.440 Joins, 14.400/14.400 Votes, 19.104
 fehlerfreien HTTP-Aufrufen, p95 59,62 ms, p99 83,78 ms sowie Redis/PostgreSQL je
-121/121 Probes. Der Runner ist kein PR-Gate und auf `main` erst nach Merge
-verfügbar.
+121/121 Probes. Der mit PR #165 bereitgestellte Runner ist ausschließlich ein
+manueller Nachweis und kein PR-Gate.
 
 Das aktuelle Inventar und alle Kommandos stehen in
 [`PERFORMANCE-TESTING.md`](../PERFORMANCE-TESTING.md).

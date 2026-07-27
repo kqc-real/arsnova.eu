@@ -6,6 +6,7 @@ import {
   resolveReportPaths,
   waitForCooldown,
 } from './lib/demo-duration-runner.mjs';
+import { createRuntimeMetrics } from './lib/runtime-metrics.mjs';
 
 function security(phase, overrides = {}) {
   return {
@@ -201,6 +202,18 @@ test('verwirft eine konfigurierte, nicht messbare Backend-RSS-Probe', () => {
     errors: 3,
     growthMb: null,
   });
+});
+
+test('liefert Prozesszähler im tatsächlichen Runtime-Report-Vertrag', async () => {
+  const metrics = createRuntimeMetrics({ backendPid: process.pid });
+  await metrics.start();
+  await metrics.stop();
+
+  const backendProcess = metrics.report().backendProcess;
+  assert.equal(backendProcess.available, true);
+  assert.ok(backendProcess.successfulSamples > 0);
+  assert.equal(backendProcess.errors, 0);
+  assert.equal(backendProcess.samples.length, backendProcess.successfulSamples);
 });
 
 test('leitet für endungslose JSON-Reports einen getrennten JUnit-Pfad ab', () => {

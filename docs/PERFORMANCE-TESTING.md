@@ -98,9 +98,9 @@ versionierte Messprotokoll enthält die für den Abgleich notwendigen Kennzahlen
 
 ### Demo-Classroom-Dauerlauf 2026-07-27
 
-Der neue Dauerlast-Slice in PR
-[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **offen und lokal
-validiert**. Der manuell gestartete 10-Minuten-Lauf gegen das lokale Backend
+Der Dauerlast-Slice aus PR
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **implementiert und
+lokal validiert**. Der manuell gestartete 10-Minuten-Lauf gegen das lokale Backend
 erzielte:
 
 - 48 vollständige Demo-Classroom-Runden und 1.440 Joins;
@@ -111,8 +111,8 @@ erzielte:
 - 21/21 maschinenlesbare Gates bestanden.
 
 Das ist ein zusätzlicher lokaler Dauerlastnachweis, kein PR-/Deploy-Gate und
-keine S6.5-Formalabnahme. Skript und Reportlogik sind auf `main` erst nach Merge
-von PR #165 verfügbar.
+keine S6.5-Formalabnahme. Skript und Reportlogik werden mit PR #165
+bereitgestellt.
 
 ## Szenarien und Kommandos
 

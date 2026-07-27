@@ -31,7 +31,7 @@ Der Plan konsolidiert Audit, UX-Follow-up und Hörsaal-/NAT-Nachtrag. **Dieses H
 | Policy **[#160](https://github.com/kqc-real/arsnova.eu/pull/160)**     | **gemergt** — koordinierte Dependabot-Major-Policy                                           |
 | Telemetrie **[#161](https://github.com/kqc-real/arsnova.eu/pull/161)** | **gemergt** — Trennung expliziter Codeeingaben von Poll-/Reconnect-Ursprüngen                |
 | Blitzlicht **[#164](https://github.com/kqc-real/arsnova.eu/pull/164)** | **gemergt** — Standalone-Auflösung, Tombstone-TTL und Abbruch bei `NOT_FOUND`                |
-| Dauerlast **[#165](https://github.com/kqc-real/arsnova.eu/pull/165)**  | **offen, lokal validiert** — manueller 10-Minuten-Demo-Classroom-Lauf; nach Merge verfügbar  |
+| Dauerlast **[#165](https://github.com/kqc-real/arsnova.eu/pull/165)**  | **implementiert, lokal validiert** — manueller 10-Minuten-Demo-Classroom-Lauf, kein PR-Gate  |
 
 Die technische Implementierung ist kein Ersatz für die noch ausstehenden Operatornachweise.
 

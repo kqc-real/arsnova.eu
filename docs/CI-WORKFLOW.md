@@ -263,9 +263,8 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 Der 10-Minuten-Demo-Classroom-Dauerlauf mit Redis-/PostgreSQL- und
 Monitoring-Probes ist **kein GitHub-Actions-Job und kein PR-/Deploy-Gate**. Er
 wird ausschließlich manuell gegen ein lokales Backend gestartet. Der Runner
-liegt in PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), ist dort
-offen und lokal validiert und steht auf `main` erst nach dem Merge zur
-Verfügung.
+wird mit PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165)
+bereitgestellt und ist lokal validiert.
 
 Der lokale Nachweis vom 2026-07-27 bestand 21/21 Gates bei 48 vollständigen
 Runden, 1.440 Joins, 14.400/14.400 Votes und 19.104 fehlerfreien HTTP-Aufrufen
