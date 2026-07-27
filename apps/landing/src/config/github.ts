@@ -13,3 +13,11 @@ export const GITHUB_DOCS_URL = `${GITHUB_URL}/blob/main/docs/ARS-comparison/Kaho
 // default points to the current production host; override via PUBLIC_APP_URL_V3
 // (e.g. set to https://arsnova.eu in CI or Vercel env vars)
 export const APP_URL_V3 = import.meta.env.PUBLIC_APP_URL_V3 || 'https://arsnova.eu';
+
+/** Locale-prefixed legal pages in the SPA (landing is DE-only). */
+export function appLegalUrl(slug: 'imprint' | 'privacy' | 'accessibility', locale = 'de'): string {
+  const base = APP_URL_V3.replace(/\/$/, '');
+  return `${base}/${locale}/legal/${slug}`;
+}
+
+export const APP_ACCESSIBILITY_URL = appLegalUrl('accessibility');
