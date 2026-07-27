@@ -15,10 +15,9 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@angular-devkit/*'
         update-types: ['version-update:semver-major']
-      # Astro 7 ist Major (Vite 8/Rolldown, Rust-Compiler, neues Markdown-Default).
-      # Dependabot-Bump 6→7 bricht denselben Monorepo-`npm ci`/`build:landing`-Lauf:
-      # Astro erwartet cookie v2 (`parseCookie`), gehoistetes `cookie@0.7` ist CJS ohne Named Export.
-      # Upgrade bewusst koordiniert (nicht per Dependabot), inkl. Cookie-Hoisting und Landing-CI.
+      # Astro ist koordiniert auf 7.1.3 migriert. Major-Updates bleiben ignoriert,
+      # damit ein 8.x-Sprung mit Toolchain-, Cookie-Hoisting- und Landing-CI-
+      # Auswirkungen nicht unkoordiniert per Dependabot erfolgt.
       - dependency-name: 'astro'
         update-types: ['version-update:semver-major']
       - dependency-name: '@astrojs/*'
@@ -27,8 +26,8 @@ updates:
       # Angular, Astro und allen Workspace-Builds gemeinsam migriert werden.
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
-      # Node-Typen bleiben beim kleinsten gemeinsamen Runtime-Stand (Node 22),
-      # solange die unterstützte Runtime-Matrix Node 22/24 umfasst.
+      # @types/node >=23 sowie TypeScript-Majors werden koordiniert mit der
+      # unterstützten Node-22/24-Runtime- und Workspace-Matrix migriert.
       - dependency-name: '@types/node'
         versions: ['>=23']
       # @y/websocket-server 0.1.5 kollidiert mit @y/y (yjs 14) und Root-Override (yjs 13.6.31).

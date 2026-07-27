@@ -1,7 +1,7 @@
 # Blitzlicht · tRPC `quickFeedback` (API-Referenz)
 
 > **Zielgruppe:** Entwickler  
-> **Stand:** 2026-06-06 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts`
+> **Stand:** 2026-07-27 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts` und PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164)
 
 In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [BLITZLICHT-GUIDELINES](../ui/BLITZLICHT-GUIDELINES.md)). Technisch liegt die Domäne im tRPC-Router **`quickFeedback`** (kein Prisma; Zustand in **Redis**, TTL ca. 30 Min.).
 
@@ -12,6 +12,7 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 - Feld **`Session.quickFeedbackEnabled`**: Blitzlicht-Kanal für dieselbe Session ([ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md)).
 - **`quickFeedback.create`** mit `sessionCode`: Backend prüft, ob die Session existiert und Blitzlicht aktiviert ist (`assertSessionQuickFeedbackEnabled`).
 - **Standalone** (Startseite): `create` ohne Session-Code erzeugt einen neuen 6-stelligen Code und schreibt nur Redis-Keys.
+- **Kombinierte Codeauflösung:** `isActive` und `isActiveForReconnect` lösen einen aktiven Standalone-Code direkt über den Redis-Hauptdatensatz auf. Für einen gültigen Standalone-Code findet kein Session-Lookup in PostgreSQL statt; nur wenn kein aktiver Redis-Datensatz existiert, wird der Session-Kontext genau einmal geprüft.
 - **Create-Limits:** Standalone-Create nutzt großzügige kombinierte Global-/Shared-NAT-Budgets. Der IP-Key stammt nur aus Express' gemäß `TRUST_PROXY_HOPS` berechnetem `req.ip`, nicht aus rohen Proxy-Headern. Session-Create wird nach erfolgreicher Host-Prüfung pro Session begrenzt (120/Minute im Standardprofil), niemals eng pro Hörsaal-IP.
 - **Session-Ende:** `session.end` ist nicht `quickFeedback.end`. Die Session setzt `FINISHED` und der Session-Vote verlaesst jeden aktiven Kanal; `quickFeedback.end` beendet nur die Redis-Runde zum Code.
 
@@ -46,6 +47,21 @@ Eingaben/Ausgaben: Zod-Schemas in `@arsnova/shared-types` (z. B. `QuickFeedbac
 Aktuelle Formate: `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`, `TEMPO`.
 
 **Abgrenzung zu UI-Presets:** Blitzlicht-Ergebnisse enthalten kein globales UI-Theme und kein UI-Preset. Host-, Vote- und Present-Clients behalten ihre lokalen Browserwerte aus `ThemePresetService`; das gilt sowohl für `/session/:code/vote` als auch für `/feedback/:code/vote`.
+
+### Ablauf- und Tombstone-Semantik
+
+- Der Hauptdatensatz `qf:<CODE>` hat 30 Minuten TTL.
+- `qf:known:<CODE>` ist ein Tombstone mit 35 Minuten TTL und lebt damit fünf
+  Minuten länger als der Hauptdatensatz.
+- Jede schreibende Mutation, die den Hauptdatensatz erneut mit 30 Minuten TTL
+  speichert, erneuert auch den Tombstone auf 35 Minuten. `end` löscht die
+  Rundendaten und hält den Tombstone noch fünf Minuten.
+- So wird ein gerade abgelaufener oder bewusst beendeter Standalone-Code nicht
+  nachträglich als unbekannte Codeeingabe in das Fehlbudget gebucht.
+- Standalone-HTTP-Polling und die zugehörige Subscription stoppen bei
+  `NOT_FOUND`; sie erzeugen danach keine fortlaufenden automatischen
+  Fehlanfragen. Eingebettete Session-Clients folgen zusätzlich dem
+  Session-/Kanalstatus.
 
 `TEMPO` nutzt eigene Werte (`SPEED_UP`, `FOLLOWING`, `SLOW_DOWN`, `LOST`) und erweitert `QuickFeedbackResult` um `tempoTrend`. Diese Tendenz enthaelt u. a. `activeParticipants`, `tempoVotes`, `requiredVotes`, `windowSeconds` und `bucketSeconds`; die UI benennt die Host-Kennzahlen als `Online` und `Rueckmeldungen`.
 
@@ -111,7 +127,11 @@ flowchart LR
   S1 -.->|session.onStatusChanged FINISHED| C4
 ```
 
-Standalone-Vote erkennt eine beendete Runde ueber `onResults`/`results` und zeigt den Fehlerzustand mit `Zur Startseite`. Eingebettete Session-Votes folgen dagegen dem Session-Status: Bei `FINISHED` wird Blitzlicht wie Q&A und Quiz verlassen; Q&A-/Blitzlicht-Subscriptions werden clientseitig gestoppt.
+Standalone-Vote erkennt eine beendete Runde über `onResults`/`results`, stoppt
+Polling und Subscription bei `NOT_FOUND` und zeigt den Fehlerzustand mit „Zur
+Startseite“. Eingebettete Session-Votes folgen dagegen dem Session-Status: Bei
+`FINISHED` wird Blitzlicht wie Q&A und Quiz verlassen;
+Q&A-/Blitzlicht-Subscriptions werden clientseitig gestoppt.
 
 ---
 

@@ -1,7 +1,7 @@
 # Server-Status-Widget (Story 0.4)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-05-30 (Abgleich mit `health.ts` `stats`/`footerBundle` inkl. `PlatformStatistic`, `DailyStatistic`, SLO-/Lastsignalen, `server-status-widget.component.ts`, `server-status-help-dialog.component.ts`, `app.component.html` / `app.component.ts`)
+> **Stand:** 2026-07-27 (Abgleich mit `health.ts` `stats`/`footerBundle` inkl. `PlatformStatistic`, `DailyStatistic`, SLO-/Lastsignalen, `server-status-widget.component.ts`, `server-status-help-dialog.component.ts`, `app.component.html` / `app.component.ts` und Blitzlicht-Tombstones aus PR #164)
 
 ## Was zeigt das Widget?
 
@@ -138,15 +138,15 @@ sequenceDiagram
 
 ### Redis
 
-| Kennzahl                 | Methode                 | Details                                                                                                   |
-| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------- |
-| Kennzahl / Signal        | Methode                 | Details                                                                                                   |
-| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------  |
-| Aktive Teilnehmende      | Presence-Keys           | nur offene Sessions; Presence-Fenster siehe Backend `presence`                                            |
-| Aktive Sessions          | Presence pro Session    | nur offene Sessions mit mindestens `ACTIVE_SESSION_MIN_PARTICIPANTS = 5`                                  |
-| Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` |
-| Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                  |
-| SLO-Signale              | SLO-Telemetrie          | Request-Sample, Fehlerrate, p95/p99-Latenz                                                                |
+| Kennzahl                 | Methode                 | Details                                                                                                                     |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Kennzahl / Signal        | Methode                 | Details                                                                                                                     |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------                    |
+| Aktive Teilnehmende      | Presence-Keys           | nur offene Sessions; Presence-Fenster siehe Backend `presence`                                                              |
+| Aktive Sessions          | Presence pro Session    | nur offene Sessions mit mindestens `ACTIVE_SESSION_MIN_PARTICIPANTS = 5`                                                    |
+| Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
+| Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
+| SLO-Signale              | SLO-Telemetrie          | Request-Sample, Fehlerrate, p95/p99-Latenz                                                                                  |
 
 ---
 
@@ -180,10 +180,11 @@ monoton in `PlatformStatistic` geführt wird.
 
 ### Blitz-Runden (Redis)
 
-| Auslöser    | Beschreibung                                                       | Timing                  |
-| ----------- | ------------------------------------------------------------------ | ----------------------- |
-| **TTL**     | Alle `qf:*`-Keys haben ein `EXPIRE` von **30 Minuten**             | Automatisch durch Redis |
-| **Manuell** | Host beendet die Runde (`quickFeedback.end` löscht die Redis-Keys) | Sofort                  |
+| Auslöser      | Beschreibung                                                                                                                                          | Timing                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| **TTL**       | Haupt- und Rundendaten laufen nach **30 Minuten** ab; `qf:known:<CODE>` lebt als Tombstone fünf Minuten länger und zählt nicht als aktive Blitz-Runde | Automatisch durch Redis |
+| **Schreiben** | Mutationen mit erneuter Haupt-TTL erneuern den Tombstone auf **35 Minuten**                                                                           | Mit der Mutation        |
+| **Manuell**   | `quickFeedback.end` löscht die Rundendaten sofort und hält den Tombstone noch fünf Minuten, damit Polling/Subscription sauber bei `NOT_FOUND` stoppen | Sofort                  |
 
 ### Lebenszyklus einer Session (Zustandsdiagramm)
 
@@ -231,14 +232,20 @@ stateDiagram-v2
   direction LR
 
   [*] --> Active : create()
-  Active --> Expired : after(30min) [Redis TTL]
+  Active --> Expired : after(30min) [Haupt-TTL]
   Active --> Deleted : end()
-  Expired --> [*]
-  Deleted --> [*]
+  Expired --> Tombstone : qf:known bleibt 5min
+  Deleted --> Tombstone : qf:known bleibt 5min
+  Tombstone --> [*] : after(5min)
 
   note right of Active
     Zähler: Redis-Keys qf:*
     Haupt-Key: qf:CODE
+  end note
+
+  note right of Tombstone
+    zählt nicht als aktive Runde
+    verhindert Fehlbudget-Nachlauf
   end note
 ```
 

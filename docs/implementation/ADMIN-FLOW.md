@@ -2,7 +2,7 @@
 
 Diese Dokumentation beschreibt den technischen und operativen Ablauf des Admin-Bereichs (`/admin`) inklusive Authentifizierung, Session-Recherche, Legal Hold, Löschung, Behördenexport, Plattformstatistik und Fehlerbehebung.
 
-**Stand:** 2026-05-31 — abgeglichen mit `apps/backend/src/routers/admin.ts`, `apps/backend/src/lib/adminAuth.ts`, `apps/frontend/src/app/features/admin/`, [ENVIRONMENT.md](../ENVIRONMENT.md) und [deployment-debian-root-server.md](../deployment-debian-root-server.md).
+**Stand:** 2026-07-27 — abgeglichen mit `apps/backend/src/routers/admin.ts`, `apps/backend/src/lib/adminAuth.ts`, `apps/frontend/src/app/features/admin/`, [ENVIRONMENT.md](../ENVIRONMENT.md), [deployment-debian-root-server.md](../deployment-debian-root-server.md) und W3.7 / PR [#154](https://github.com/kqc-real/arsnova.eu/pull/154).
 
 ## 1. Zweck und Geltungsbereich
 
@@ -75,6 +75,9 @@ aggregierte Datensammlung, wird aber ausschließlich durch das bestehende
 Admin-Session-Token autorisiert. Das Diagnose-Secret gelangt dadurch weder in
 den Browser noch in den Admin-Token-Speicher. Bei abgelaufener oder widerrufener
 Admin-Session verwirft der Tab den Snapshot und kehrt zur Anmeldung zurück.
+W3.7 ist auf `main` implementiert und gemergt; die operative Zustellung eines
+Testalarms sowie die Timer-/Recovery-Abnahme auf dem Produktionshost stehen
+weiter aus.
 
 ### 3.2 Technischer Ablauf
 
@@ -111,6 +114,8 @@ Admin-Session verwirft der Tab den Snapshot und kehrt zur Anmeldung zurück.
 5. Sessions laden (Liste oder Code-Lookup).
 6. Session-Detail öffnen.
 7. Optional:
+   - im dritten Tab **Monitoring** aggregierte Security-, Kapazitäts- und
+     Infrastrukturmetriken mit sichtbaren Warn-/Kritisch-Schwellen prüfen
    - Legal Hold setzen/lösen
    - Behördenexport starten (PDF/JSON)
    - Session als Quiz-Importformat exportieren
@@ -202,6 +207,17 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Procedure: `admin.resetMaxParticipantsRecord`
 - Input: `confirmationText`
 - Output: vorheriger und aktueller Wert von `maxParticipantsSingleSession`
+
+## 5.8 Monitoring
+
+- Procedure: `admin.monitoringStats`
+- Erfordert ein gültiges Admin-Session-Token über `adminProcedure`
+- Liefert denselben aggregierten Snapshot wie die Betriebsdiagnose, ohne
+  `ADMIN_DIAGNOSTIC_SECRET` an den Browser zu geben
+- Der Tab aktualisiert den Snapshot automatisch und beendet den Poll bei
+  abgelaufener oder widerrufener Admin-Session
+- Die UI ist eine Betriebsansicht; Alarmzustellung und Dead-Man's-Switch bleiben
+  Aufgabe des systemd-Pollers und des externen Webhook-Kanals
 
 ## 6. Troubleshooting
 
