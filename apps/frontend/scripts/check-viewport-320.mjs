@@ -31,13 +31,26 @@ async function waitForServer(url, maxAttempts = 30) {
   return false;
 }
 
-async function dismissOptionalOverlay(page) {
+async function dismissOptionalOverlay(page, waitForMotd = false) {
+  if (waitForMotd) {
+    await page
+      .waitForFunction(
+        () =>
+          document.querySelector('.home-motd-sheet') !== null ||
+          performance
+            .getEntriesByType('resource')
+            .some((entry) => entry.name.includes('motd.getCurrent')),
+        undefined,
+        { timeout: 3_000 },
+      )
+      .catch(() => undefined);
+  }
   const closeButton = page
     .locator('.home-motd-sheet button[aria-label], [role="dialog"] button[aria-label]')
     .first();
   if (await closeButton.isVisible().catch(() => false)) {
     await closeButton.click();
-    await page.waitForTimeout(200);
+    await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 1_000 });
   }
 }
 
@@ -344,7 +357,7 @@ async function main() {
     const url = `${BASE_URL}${path}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle').catch(() => {});
-    await dismissOptionalOverlay(page);
+    await dismissOptionalOverlay(page, /^\/(?:de|en|fr|es|it)\/$/.test(path));
 
     const initialJoinFocus = path === '/de/join' ? await inspectMobileJoinEntry(page) : [];
     const keyboardNavigation =
@@ -355,7 +368,7 @@ async function main() {
 
   const offlinePage = await context.newPage();
   await offlinePage.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  await dismissOptionalOverlay(offlinePage);
+  await dismissOptionalOverlay(offlinePage, true);
   await context.setOffline(true);
   await offlinePage.evaluate(() => window.dispatchEvent(new Event('offline')));
   await offlinePage.locator('.app-offline-banner[role="alert"]').waitFor({ state: 'visible' });
