@@ -18,7 +18,7 @@ Für detaillierte lokale Testkommandos und zusätzliche Last-/Smoke-Varianten si
 Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
 1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review`, `actionlint`, `format` und `migration` frühe PR-, Workflow-, Format- und Datenbankschemarisiken.
-2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz). `lint` umfasst Angular-Template-A11y; `landing-build` führt nach dem Build axe aus.
+2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz). `lint` umfasst Angular-Template-A11y; `landing-build` prüft Astro 7 mit `astro check`, baut die Landing und führt danach axe aus.
 3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `classroom-smokes`, `lighthouse`, `pdfua`).
 4. **Sicherheit:** `audit`, Dependency Review und Trivy blockieren ab High; CodeQL prüft SAST, die CI erzeugt ein CycloneDX-SBOM.
 5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
@@ -257,6 +257,20 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Letzter lokaler Nachweis:** Artillery 500/500 und der 5-Minuten-Soak
   bestanden im Gesamtlauf; Yjs und das 600er Timer-Fairness-Latenzgate bestanden
   im [QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md).
+
+### Manueller Demo-Classroom-Dauerlauf
+
+Der 10-Minuten-Demo-Classroom-Dauerlauf mit Redis-/PostgreSQL- und
+Monitoring-Probes ist **kein GitHub-Actions-Job und kein PR-/Deploy-Gate**. Er
+wird ausschließlich manuell gegen ein lokales Backend gestartet. Der Runner
+liegt in PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), ist dort
+offen und lokal validiert und steht auf `main` erst nach dem Merge zur
+Verfügung.
+
+Der lokale Nachweis vom 2026-07-27 bestand 21/21 Gates bei 48 vollständigen
+Runden, 1.440 Joins, 14.400/14.400 Votes und 19.104 fehlerfreien HTTP-Aufrufen
+(p95 59,62 ms, p99 83,78 ms; Redis/PostgreSQL je 121/121 Probes). Er ersetzt
+nicht die offene S6.5-Zielhostabnahme.
 
 ### 4.11a artillery-reconnect-500
 

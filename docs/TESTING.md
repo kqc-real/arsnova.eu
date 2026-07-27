@@ -4,7 +4,7 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-07-25 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-07-27 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
@@ -84,8 +84,9 @@ Laufzeit-Gates nicht.
 
 Der [gezielte QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
 belegt die Korrekturen: Yjs-Reconnect, beide 600er Vote-p95-Pfade, alle sechs
-Browser-Flows und alle sechs Lighthouse-Läufe sind grün. Offen bleibt der
-betriebliche 30-/60-Minuten-Staging-Langlauf mit freizugebender Baseline.
+Browser-Flows und alle sechs Lighthouse-Läufe sind grün. Der anschließende
+[30-Minuten-Langlauf mit Baseline-Freigabe vom 2026-07-12](implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)
+ist ebenfalls abgeschlossen.
 
 ---
 
@@ -349,7 +350,13 @@ Session-Summary, Quiz-Historienzugriff, Host-Abschlussansicht und CSV-Export. De
 über `CONFIDENCE_SEED` anpassbar; der Host-Screenshot wird standardmäßig im temporären
 Verzeichnis `arsnova-confidence-summary-demo-e2e` abgelegt.
 
-Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die sechs **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle und Q&A-/Blitzlicht-Fan-out) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die sechs **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle und Q&A-/Blitzlicht-Fan-out) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Der Demo-Classroom-Dauerlauf aus PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist davon getrennt: **offen, lokal validiert**, ausschließlich manuell lokal, kein PR-Gate und auf `main` erst nach Merge verfügbar. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+
+Der lokale 10-Minuten-Nachweis vom 2026-07-27 absolvierte 48 vollständige
+Runden, 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufe ohne Fehler.
+HTTP-p95/p99 lagen bei 59,62/83,78 ms; Redis und PostgreSQL lieferten je 121/121
+Probes, alle 21/21 Gates bestanden. Dieser Lauf ersetzt nicht die offene
+S6.5-Formalabnahme auf dem Zielhost.
 
 ### k6-Lasttests (protokollnah)
 

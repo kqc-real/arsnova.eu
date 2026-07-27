@@ -2,7 +2,7 @@
 
 # Last- und Performance-Tests — Werkzeuge im Projekt arsnova.eu
 
-**Stand:** 2026-07-10 · **Zielgruppe:** SQM-Praktikum, Story **0.7**, Referate zu nicht-funktionaler Qualität
+**Stand:** 2026-07-27 · **Zielgruppe:** SQM-Praktikum, Story **0.7**, Referate zu nicht-funktionaler Qualität
 
 **Zweck:** Dieses Dokument informiert dich darüber, **mit welchen Werkzeugen** wir Last- und Performance-Tests im Projekt planen, durchführen und dokumentieren — und **was davon bereits im Repo liegt**.
 
@@ -173,16 +173,17 @@ Details: [`docs/TESTING.md`](../TESTING.md).
 
 Ergänzende Bausteine für schnelle lokale Checks und echte tRPC-/WebSocket-Pfade — **ohne** separates Mikrobenchmark-Tool:
 
-| Skript                             | NPM-Befehl (Root)                        | Zweck                                           |
-| ---------------------------------- | ---------------------------------------- | ----------------------------------------------- |
-| `concurrent-50-http.mjs`           | `npm run load:simulate:50`               | 50 parallele Reads auf `health.stats`           |
-| `session-participants-50.mjs`      | `npm run load:simulate:session:50`       | 50 Joins + Lobby-Polling                        |
-| `ws-status-subscribers.mjs`        | — (direkt per `node`)                    | viele parallele `onStatusChanged`-Subscriptions |
-| `host-vote-progress-200.mjs`       | `npm run load:smoke:host-vote-progress`  | Votes + Host-WebSocket-Fan-out                  |
-| `vote-timer-fairness-600.mjs`      | `npm run load:smoke:vote-timer-fairness` | Timer/Karenz unter 600 parallelen Votes         |
-| `yjs-sync-load.mjs`                | `npm run load:yjs:sync`                  | Mehrclient-Sync, Offline-Updates und Reconnect  |
-| `freetext-wordcloud-classroom.mjs` | `npm run load:freetext:wordcloud`        | Freitext-Votes und Host-Word-Cloud              |
-| `soak-live-session.mjs`            | `npm run load:soak:live-session`         | Langlauf mit HTTP-/Prozess-/DB-/Redis-Probes    |
+| Skript                              | NPM-Befehl (Root)                        | Zweck                                           |
+| ----------------------------------- | ---------------------------------------- | ----------------------------------------------- |
+| `concurrent-50-http.mjs`            | `npm run load:simulate:50`               | 50 parallele Reads auf `health.stats`           |
+| `session-participants-50.mjs`       | `npm run load:simulate:session:50`       | 50 Joins + Lobby-Polling                        |
+| `ws-status-subscribers.mjs`         | — (direkt per `node`)                    | viele parallele `onStatusChanged`-Subscriptions |
+| `host-vote-progress-200.mjs`        | `npm run load:smoke:host-vote-progress`  | Votes + Host-WebSocket-Fan-out                  |
+| `vote-timer-fairness-600.mjs`       | `npm run load:smoke:vote-timer-fairness` | Timer/Karenz unter 600 parallelen Votes         |
+| `yjs-sync-load.mjs`                 | `npm run load:yjs:sync`                  | Mehrclient-Sync, Offline-Updates und Reconnect  |
+| `freetext-wordcloud-classroom.mjs`  | `npm run load:freetext:wordcloud`        | Freitext-Votes und Host-Word-Cloud              |
+| `soak-live-session.mjs`             | `npm run load:soak:live-session`         | Langlauf mit HTTP-/Prozess-/DB-/Redis-Probes    |
+| `demo-quiz-duration-monitoring.mjs` | `npm run load:duration:demo-classroom`   | Manueller Demo-Dauerlauf mit Monitoring-Probes  |
 
 **Beispiel WebSocket-Status-Fan-out** (Session-Code vorher anlegen):
 
@@ -244,8 +245,9 @@ decken Artillery-Kapazität, Reconnect, schwere Vote-Hotpaths, Yjs,
 Freitext/Wordcloud und einen 5-Minuten-Soak ab. Vollständige 500-TN-Läufe gegen
 Staging benötigen eine explizite Freigabe.
 
-Story **0.7** im [`Backlog.md`](../../Backlog.md) bleibt **🟡 in Arbeit** (Stand
-2026-07-11): Testprofile, harte Latenz-/Fehler-Gates, standardisierte
+Story **0.7** im [`Backlog.md`](../../Backlog.md) ist seit der
+[Baseline-Freigabe vom 2026-07-12](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)
+**✅ fertig**: Testprofile, harte Latenz-/Fehler-Gates, standardisierte
 JSON-/JUnit-Reports, Regressionsvergleich und Laufzeitprobes sind vorhanden.
 
 Der
@@ -261,11 +263,15 @@ Der
 [gezielte QA-Nachlauf vom 2026-07-11](../implementation/LOCAL-QA-RECHECK-2026-07-11.md)
 belegt die Korrekturen: Yjs-Reconnect, beide akzeptierenden 600er Vote-Pfade,
 6/6 Browser-Referenzflows und 6/6 Lighthouse-Läufe bestanden. Für Story 0.7
-bleiben Staging-Langlauf und Baseline-Freigabe.
+folgten am 2026-07-12 ein grüner 30-Minuten-Langlauf und die Baseline-Freigabe.
 
-Neben der Ursachenklärung dieser Befunde stehen geprüfte
-30/60-Minuten-Pilotläufe in einer stabilen Staging-Umgebung und daraus
-freigegebene Produktionsbaselines aus.
+Der zusätzliche Dauerlast-Slice aus PR
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **offen und lokal
+validiert**. Sein manueller 10-Minuten-Demo-Classroom-Lauf bestand 21/21 Gates
+mit 48 vollständigen Runden, 1.440 Joins, 14.400/14.400 Votes, 19.104
+fehlerfreien HTTP-Aufrufen, p95 59,62 ms, p99 83,78 ms sowie Redis/PostgreSQL je
+121/121 Probes. Der Runner ist kein PR-Gate und auf `main` erst nach Merge
+verfügbar.
 
 Das aktuelle Inventar und alle Kommandos stehen in
 [`PERFORMANCE-TESTING.md`](../PERFORMANCE-TESTING.md).
@@ -348,8 +354,8 @@ Kurzfolie für das Erstgespräch — du kannst die Studierende durch diese Punkt
 2. **Jetzt nutzbar:** k6 + `scripts/load/` + Playwright-Smokes + Lighthouse.
 3. **Lokal belegt:** Yjs-Reconnect, 600er Vote-Timer-Latenz, sechs Browser-Flows
    und Lighthouse-LCP sind im QA-Nachlauf grün.
-4. **Aktuell zu belegen:** stabile 30/60-Minuten-Staging-Läufe und daraus geprüfte
-   Produktionsbaselines.
+4. **Aktuell zu belegen:** die formale S6.5-Zielhostabnahme; der offene lokale
+   Dauerlast-Slice aus PR #165 ist ein Zusatznachweis, kein Ersatz.
 5. **Erster Hands-on:** `npm run dev:backend` → `load:simulate:50` → `npm run load:k6:health`.
 6. **Artefakt für SQM:** Messprotokoll eines Pilot-Laufs **oder** Konzept für ein fehlendes Szenario (Absprache).
 7. **Grenze:** Prod-Last nur mit Freigabe; Fokus lokal oder produktionsnahe Testumgebung laut LASTTEST-500-Doku.

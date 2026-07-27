@@ -63,7 +63,7 @@ BASE_URL=http://127.0.0.1:3000 VUS=50 DURATION=30s npm run load:k6:health
 Vor jedem Lauf Ziel-URL und Branch prüfen. `run_production_load=true` bleibt
 einer separat freigegebenen Produktionsmessung vorbehalten.
 
-## Letzter lokaler Gesamtlauf
+## Lokale Gesamtläufe
 
 Der vollständige lokale Lauf vom **2026-07-10** ist unter
 [implementation/LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md)
@@ -88,13 +88,31 @@ die beiden akzeptierenden 600er Vote-Pfade hielten mit p95 766 ms und 968 ms das
 offener Nachweis verbleiben Langzeit-Soak und Baseline-Freigabe — **erledigt**
 am 2026-07-12 ([LOCAL-BASELINE-FREIGABE-2026-07-12.md](implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)).
 
-Dieser Lauf ist ein lokaler Entwicklungsnachweis, keine freigegebene Baseline.
-Insbesondere darf die bloße Existenz eines Szenarios nicht mit einem bestandenen
-Nachweis gleichgesetzt werden.
+Der Lauf vom 2026-07-10 ist ein lokaler Entwicklungsnachweis. Die anschließende
+Baseline wurde separat am 2026-07-12 freigegeben; die bloße Existenz eines
+Szenarios darf nicht mit einem bestandenen Nachweis gleichgesetzt werden.
 
 Die erzeugten JSON-/JUnit-Dateien liegen lokal unter
 `artifacts/local-runtime-20260710/` und werden nicht versioniert. Das
 versionierte Messprotokoll enthält die für den Abgleich notwendigen Kennzahlen.
+
+### Demo-Classroom-Dauerlauf 2026-07-27
+
+Der neue Dauerlast-Slice in PR
+[#165](https://github.com/kqc-real/arsnova.eu/pull/165) ist **offen und lokal
+validiert**. Der manuell gestartete 10-Minuten-Lauf gegen das lokale Backend
+erzielte:
+
+- 48 vollständige Demo-Classroom-Runden und 1.440 Joins;
+- 14.400/14.400 erfolgreiche Votes;
+- 19.104 HTTP-Aufrufe ohne Fehler;
+- HTTP-p95 59,62 ms und p99 83,78 ms;
+- Redis- und PostgreSQL-Probes jeweils 121/121 erfolgreich;
+- 21/21 maschinenlesbare Gates bestanden.
+
+Das ist ein zusätzlicher lokaler Dauerlastnachweis, kein PR-/Deploy-Gate und
+keine S6.5-Formalabnahme. Skript und Reportlogik sind auf `main` erst nach Merge
+von PR #165 verfügbar.
 
 ## Szenarien und Kommandos
 
@@ -126,6 +144,11 @@ SOAK_DURATION_MINUTES=60 npm run load:soak:live-session
 ```
 
 ## Demo-Classroom-Dauerlast mit Monitoring
+
+> **Verfügbarkeit:** Der folgende Runner gehört zu PR
+> [#165](https://github.com/kqc-real/arsnova.eu/pull/165), ist dort offen und
+> lokal validiert und steht auf `main` erst nach dem Merge zur Verfügung. Er
+> läuft ausschließlich manuell lokal und ist kein CI-/PR-Gate.
 
 Der lokale Dauerlauf führt bis zum Zeitbudget ausschließlich vollständige
 Demo-Quiz-Classrooms durch. Standard sind zehn Minuten und 30 Teilnehmende pro
