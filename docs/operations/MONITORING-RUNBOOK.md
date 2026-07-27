@@ -163,7 +163,9 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
   Diagnose sichtbar, lösen aber keinen Join-Alarm aus. Alarmiert werden nur die
   Summen `sessionCodeEntryFailuresLastMinute` und
   `sessionCodeEntrySoftCapDelaysLastMinute` aus expliziten Join- und
-  Codeprüfungen. Keinen IP-Lock ergänzen. Ein hoher Delay-Wert bei weiterhin
+  Codeprüfungen. Die Quelle ist serverseitig an getrennte tRPC-Prozeduren
+  gebunden und kein vom Client wählbarer Parameter. Keinen IP-Lock ergänzen. Ein
+  hoher Delay-Wert bei weiterhin
   erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung; die
   500er-NAT-Abnahme aus W1.5 heranziehen.
 

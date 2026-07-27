@@ -229,7 +229,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
   });
 
-  it('schützt Codes, für die weder Blitzlicht noch Session existieren', async () => {
+  it('klassifiziert den Startseiten-Resolver ohne Blitzlicht oder Session als Lookup', async () => {
     redisMock.exists.mockResolvedValue(0);
     prismaMock.session.findUnique.mockResolvedValue(null);
 
@@ -243,6 +243,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
       '11111111-1111-4111-8111-111111111111',
       'BAD999',
+      'lookup',
     );
   });
 

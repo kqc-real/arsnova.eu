@@ -512,7 +512,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     try {
-      const session = await trpc.session.getInfo.query({
+      const session = await trpc.session.getInfoForReconnect.query({
         code,
         anonymousClientId: getAnonymousClientId(),
       });

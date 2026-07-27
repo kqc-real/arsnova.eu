@@ -50,7 +50,7 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
       retryAfterSeconds: 42,
     });
 
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'other')).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
       cause: { retryAfterSeconds: 42 },
     });
@@ -84,7 +84,7 @@ describe('zentraler Fehlerpfad für Session-Code-Orakel', () => {
     });
     mocks.wait.mockResolvedValue(false);
 
-    await expect(rejectInvalidSessionCode('client-id', 'ABC123')).rejects.toMatchObject({
+    await expect(rejectInvalidSessionCode('client-id', 'ABC123', 'other')).rejects.toMatchObject({
       code: 'TOO_MANY_REQUESTS',
       cause: { retryAfterSeconds: 1 },
     });

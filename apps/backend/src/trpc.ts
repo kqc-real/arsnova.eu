@@ -71,6 +71,7 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
   if (
     path === 'session.join' ||
     path === 'session.getInfo' ||
+    path === 'session.getInfoForReconnect' ||
     path === 'session.getParticipantNicknames' ||
     path === 'session.getParticipantSelf' ||
     path === 'session.confirmReadingReady' ||

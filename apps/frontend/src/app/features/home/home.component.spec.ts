@@ -51,6 +51,18 @@ vi.mock('../../core/trpc.client', () => ({
           participantCount: 0,
         }),
       },
+      getInfoForReconnect: {
+        query: vi.fn().mockResolvedValue({
+          id: 'sess-1',
+          code: 'TEST01',
+          type: 'QUIZ',
+          status: 'LOBBY',
+          serverTime: new Date().toISOString(),
+          quizName: 'Test',
+          title: null,
+          participantCount: 0,
+        }),
+      },
       create: {
         mutate: vi.fn().mockResolvedValue({
           id: 'sess-hero',
@@ -548,6 +560,23 @@ describe('HomeComponent', () => {
   });
 
   describe('openHeroHostTab', () => {
+    it('prüft vorhandene oder kürzlich verwendete Codes über den Reconnect-Pfad', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.getInfo.query).mockClear();
+      vi.mocked(trpc.session.getInfoForReconnect.query).mockClear();
+      const comp = createHomeComponent();
+      comp.sessionCode.set('TEST01');
+      vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.getInfoForReconnect.query).toHaveBeenCalledWith({
+        code: 'TEST01',
+        anonymousClientId: expect.any(String),
+      });
+      expect(trpc.session.getInfo.query).not.toHaveBeenCalled();
+    });
+
     it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({

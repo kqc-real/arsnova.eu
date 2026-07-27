@@ -17,7 +17,7 @@ import {
 export async function rejectInvalidSessionCode(
   anonymousClientId: string | undefined,
   normalizedCode: string,
-  source: SessionCodeFailureSource = 'other',
+  source: SessionCodeFailureSource,
 ): Promise<never> {
   recordSessionCodeFailure(source);
   const decision = await checkInvalidSessionCodeFailure(anonymousClientId, normalizedCode);

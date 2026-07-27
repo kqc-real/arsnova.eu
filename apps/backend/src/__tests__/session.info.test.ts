@@ -55,6 +55,23 @@ describe('session.getInfo (ADR-0009)', () => {
     );
   });
 
+  it('klassifiziert den getrennten Fallback-Pfad als Poll/Reconnect', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.getInfoForReconnect({
+        code: 'BAD999',
+        anonymousClientId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+      'BAD999',
+      'pollReconnect',
+    );
+  });
+
   it('liefert Kanalinformationen für eine Quiz-Session mit Q&A und Blitz-Feedback', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

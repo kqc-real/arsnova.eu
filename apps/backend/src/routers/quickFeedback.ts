@@ -44,6 +44,7 @@ import {
   checkQuickFeedbackSessionCreateRate,
   checkQuickFeedbackStandaloneCreateRate,
 } from '../lib/rateLimit';
+import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
@@ -135,13 +136,16 @@ function feedbackKey(code: string): string {
   return `qf:${code}`;
 }
 
-async function protectMissingQuickFeedbackCode(code: string): Promise<void> {
+async function protectMissingQuickFeedbackCode(
+  code: string,
+  source: SessionCodeFailureSource,
+): Promise<void> {
   const session = await prisma.session.findUnique({
     where: { code },
     select: { id: true },
   });
   if (!session) {
-    await rejectInvalidSessionCode(undefined, code);
+    await rejectInvalidSessionCode(undefined, code, source);
   }
 }
 
@@ -603,7 +607,7 @@ export const quickFeedbackRouter = router({
         select: { status: true },
       });
       if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code);
+        return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
       }
       return { active: false, sessionStatus: session.status };
     }),
@@ -614,7 +618,7 @@ export const quickFeedbackRouter = router({
     const key = feedbackKey(code);
     const result = await loadQuickFeedbackForVote(code).catch(async (error: unknown) => {
       if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
-        await protectMissingQuickFeedbackCode(code);
+        await protectMissingQuickFeedbackCode(code, 'other');
       }
       throw error;
     });
@@ -698,7 +702,7 @@ export const quickFeedbackRouter = router({
       const raw = await redis.get(key);
 
       if (!raw) {
-        await protectMissingQuickFeedbackCode(code);
+        await protectMissingQuickFeedbackCode(code, 'pollReconnect');
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
@@ -739,7 +743,7 @@ export const quickFeedbackRouter = router({
         }
         const raw = await redis.get(key);
         if (!raw) {
-          await protectMissingQuickFeedbackCode(code);
+          await protectMissingQuickFeedbackCode(code, 'pollReconnect');
           return;
         }
 
