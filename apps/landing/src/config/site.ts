@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://arsnova.eu/';
+const DEFAULT_SITE_URL = 'https://info.arsnova.eu/';
 
 function ensureTrailingSlash(url: string): string {
   return url.endsWith('/') ? url : `${url}/`;

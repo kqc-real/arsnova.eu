@@ -1,6 +1,6 @@
 ---
 import '@/styles/global.css';
-import { APP_ACCESSIBILITY_URL, GITHUB_URL } from '@/config/github';
+import { APP_ACCESSIBILITY_URL, APP_URL_V3, GITHUB_URL } from '@/config/github';
 import { homeMetaDescription, homeMetaTitle } from '@/config/seo';
 import { SITE_URL, toAbsoluteUrl } from '@/config/site';
 
@@ -12,7 +12,7 @@ export interface Props {
 }
 
 const { title, description, canonical, noindex = false } = Astro.props;
-/** Base path für Links (z. B. /arsnova.eu/ bei GitHub Pages) */
+/** Base path für interne Links; auf der Custom Domain ist dies `/`. */
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
 const fullTitle = title === 'Start' ? homeMetaTitle : `${title} · arsnova.eu`;
 const url = canonical ? toAbsoluteUrl(canonical) : SITE_URL;
@@ -48,36 +48,46 @@ const ogImage = toAbsoluteUrl('og.png');
 
     <!-- Keine Google Fonts – System-Schriften, kein Tracking. -->
 
-    <!-- JSON-LD: WebApplication -->
+    <!-- JSON-LD: Landing-Website und Live-Anwendung haben getrennte URLs. -->
     <script is:inline type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'arsnova.eu',
-      description: title === 'Start' ? homeMetaDescription : description,
-      url: SITE_URL,
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'Web',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-      featureList: [
-        'Live-Quiz und Abstimmungen',
-        'Selbsteinschätzung bei bewertbaren Fragen',
-        'Ergebnisbericht (PDF) und Nachbesprechung nach Session-Ende',
-        'Numerische Schätzfragen mit zwei Runden und Statistik',
-        'Q&A-Fragenwand mit Moderation, Up- und Downvoting',
-        'Lobby, Presenter, QR/Code',
-        'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
-        'Markdown und KaTeX',
-        'Lesephase und Peer Instruction',
-        'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
-        'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
-        'Team-Modus und Presets',
-        'Leaderboard, Streak, Bonus-Code',
-        'Import/Export und Yjs-Sync',
-        'KI-Import extern, Zod-validiert',
-        'UI in fünf Sprachen',
-        'Barrierefreiheit nach WCAG 2.2 AA',
-        'Docker Self-Host und Admin-Audit',
-        'Local-First und DSGVO-orientierter Betrieb',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          name: 'arsnova.eu – Informationen',
+          url: SITE_URL,
+          description: title === 'Start' ? homeMetaDescription : description,
+        },
+        {
+          '@type': 'WebApplication',
+          name: 'arsnova.eu',
+          description: homeMetaDescription,
+          url: APP_URL_V3,
+          applicationCategory: 'EducationalApplication',
+          operatingSystem: 'Web',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+          featureList: [
+            'Live-Quiz und Abstimmungen',
+            'Selbsteinschätzung bei bewertbaren Fragen',
+            'Ergebnisbericht (PDF) und Nachbesprechung nach Session-Ende',
+            'Numerische Schätzfragen mit zwei Runden und Statistik',
+            'Q&A-Fragenwand mit Moderation, Up- und Downvoting',
+            'Lobby, Presenter, QR/Code',
+            'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
+            'Markdown und KaTeX',
+            'Lesephase und Peer Instruction',
+            'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
+            'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
+            'Team-Modus und Presets',
+            'Leaderboard, Streak, Bonus-Code',
+            'Import/Export und Yjs-Sync',
+            'KI-Import extern, Zod-validiert',
+            'UI in fünf Sprachen',
+            'Barrierefreiheit nach WCAG 2.2 AA',
+            'Docker Self-Host und Admin-Audit',
+            'Local-First und DSGVO-orientierter Betrieb',
+          ],
+        },
       ],
     })} />
   </head>

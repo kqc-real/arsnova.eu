@@ -47,7 +47,8 @@ export const legal = {
 
 export const site = {
   name: 'arsnova.eu',
-  url: 'https://arsnova.eu',
+  landingUrl: 'https://info.arsnova.eu',
+  appUrl: 'https://arsnova.eu',
   landingLabel: 'Landing- und Informationsseite',
   appLabel: 'Live-Anwendung für Quiz, Abstimmungen und Q&A',
 } as const;

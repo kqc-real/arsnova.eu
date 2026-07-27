@@ -13,7 +13,7 @@
 
 **arsnova.eu** ist eine moderne Web-App für Live-Interaktion in Lehre, Weiterbildung, Workshops und Veranstaltungen. Lehrende erstellen Quiz-Inhalte lokal im Browser, starten Sessions per Code oder QR-Link und kombinieren dabei Quiz, Q&A und Blitzlicht-Feedback in einer einheitlichen Live-Session. Die Anwendung ist accountarm, mehrsprachig, PWA-fähig und auf einen DSGVO-orientierten Eigenbetrieb ausgelegt.
 
-Die öffentliche Referenzinstanz läuft unter **https://arsnova.eu**; der externe Betriebsstatus ist unter **https://arsnova.betteruptime.com/** einsehbar. Dieses Repository richtet sich an Organisationen, die arsnova.eu evaluieren, forken, anpassen oder auf eigener Infrastruktur produktiv betreiben möchten.
+Die öffentliche Referenzinstanz läuft unter **https://arsnova.eu**; die getrennte Marketing- und Informationsseite unter **https://info.arsnova.eu/**. Der externe Betriebsstatus ist unter **https://arsnova.betteruptime.com/** einsehbar. Dieses Repository richtet sich an Organisationen, die arsnova.eu evaluieren, forken, anpassen oder auf eigener Infrastruktur produktiv betreiben möchten.
 
 ## Für wen ist dieses Repository relevant?
 

@@ -48,27 +48,27 @@ jobs:
       - name: Expected Pages URL
         run: |
           echo "Repository: ${{ github.repository }}"
-          echo "Nach Deploy erreichbar unter: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "Nach Aktivierung der Pages-Custom-Domain erreichbar unter: https://info.arsnova.eu/"
 
       - name: Build landing
         env:
           PUBLIC_GITHUB_REPO: ${{ github.repository }}
-          PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
-          BASE_PATH: /${{ github.event.repository.name }}/
+          PUBLIC_SITE_URL: https://info.arsnova.eu/
+          PUBLIC_APP_URL_V3: https://arsnova.eu
+          BASE_PATH: /
         run: npm run build:landing
 
       - name: Accessibility gate
         run: |
           set -euo pipefail
           node node_modules/playwright/cli.js install --with-deps chromium
-          landing_base="/${{ github.event.repository.name }}"
-          mkdir -p "$RUNNER_TEMP/landing-a11y${landing_base}"
-          cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y${landing_base}/"
+          mkdir -p "$RUNNER_TEMP/landing-a11y"
+          cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y/"
           node scripts/serve-static-compressed.mjs "$RUNNER_TEMP/landing-a11y" 4321 > "$RUNNER_TEMP/landing-static.log" 2>&1 &
           server_pid="$!"
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
-            if curl -fsS "http://localhost:4321${landing_base}/" >/dev/null; then
+            if curl -fsS "http://localhost:4321/" >/dev/null; then
               break
             fi
             if [ "$attempt" -eq 30 ]; then
@@ -77,7 +77,7 @@ jobs:
             fi
             sleep 1
           done
-          BASE_URL="http://localhost:4321${landing_base}" npm run test:a11y -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:a11y -w @arsnova/landing
 
       - name: List artifact root (Debug)
         run: ls -la apps/landing/dist/
