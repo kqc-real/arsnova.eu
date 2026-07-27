@@ -324,6 +324,9 @@ describe('YjsRelayServer', () => {
       suppressedSinceLastLog: 0,
     });
     expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(5);
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesByReasonLastMinute.invalidToken).toBe(
+      5,
+    );
   });
 
   it('begrenzt Verbindungen global und pro Raum ohne IP-Buckets', async () => {
@@ -477,6 +480,9 @@ describe('YjsRelayServer', () => {
 
     await rejected;
     expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesLastMinute).toBe(1);
+    expect(
+      getWebSocketTelemetrySnapshot().yjsRejectedUpgradesByReasonLastMinute.staleGeneration,
+    ).toBe(1);
   });
 
   it('erlaubt JSON-null Awareness-Removals nur für zuvor bekannte IDs', async () => {
@@ -593,6 +599,10 @@ describe('YjsRelayServer', () => {
 
     await expectUpgradeRejected(`${baseUrl}/invalid`, 400);
     await expectUpgradeRejected(`${baseUrl}/${ROOM_A}`, 429);
+    expect(getWebSocketTelemetrySnapshot().yjsRejectedUpgradesByReasonLastMinute).toMatchObject({
+      invalidPath: 1,
+      globalRate: 1,
+    });
   });
 
   it('terminiert Verbindungen vor Verarbeitung der Nachricht über dem Rate-Limit', async () => {

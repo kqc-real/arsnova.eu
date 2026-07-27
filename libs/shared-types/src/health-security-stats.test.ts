@@ -38,4 +38,29 @@ describe('HealthSecurityStatsDTOSchema CSP-Telemetrie', () => {
       }).success,
     ).toBe(false);
   });
+
+  it('verlangt vollständige PII-freie Yjs-Ablehnungsgründe', () => {
+    const reasons = {
+      globalRate: 1,
+      invalidPath: 2,
+      authorizationUnavailable: 3,
+      legacyCutoff: 4,
+      tokenRequired: 5,
+      invalidToken: 6,
+      staleGeneration: 7,
+      roomRate: 8,
+      globalConnectionCap: 9,
+      roomConnectionCap: 10,
+    };
+    expect(
+      HealthSecurityStatsDTOSchema.shape.yjsWebSocketRejectedUpgradesByReasonLastMinute.parse(
+        reasons,
+      ),
+    ).toEqual(reasons);
+    expect(
+      HealthSecurityStatsDTOSchema.shape.yjsWebSocketRejectedUpgradesByReasonLastMinute.safeParse({
+        invalidToken: 1,
+      }).success,
+    ).toBe(false);
+  });
 });

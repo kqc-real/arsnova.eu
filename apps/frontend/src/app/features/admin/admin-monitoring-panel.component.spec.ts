@@ -79,6 +79,18 @@ const statsFixture: HealthSecurityStatsDTO = {
   yjsWebSocketConnectionLimit: 1_000,
   yjsWebSocketPerRoomConnectionLimit: 200,
   yjsWebSocketRejectedUpgradesLastMinute: 0,
+  yjsWebSocketRejectedUpgradesByReasonLastMinute: {
+    globalRate: 0,
+    invalidPath: 0,
+    authorizationUnavailable: 0,
+    legacyCutoff: 0,
+    tokenRequired: 0,
+    invalidToken: 0,
+    staleGeneration: 0,
+    roomRate: 0,
+    globalConnectionCap: 0,
+    roomConnectionCap: 0,
+  },
   yjsWebSocketPayloadRejectedLastMinute: 0,
   yjsWebSocketRateLimitedMessagesLastMinute: 0,
   yjsWebSocketProtocolErrorsLastMinute: 0,
@@ -150,10 +162,35 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
     expect(fixture.nativeElement.textContent).toContain('Automatische Poll-/Reconnect-Abfragen');
+    expect(fixture.nativeElement.textContent).toContain('Ungültige Sync-Tokens');
+    expect(fixture.nativeElement.textContent).toContain('Ersetzte Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
     expect(fixture.nativeElement.textContent).toContain('PostgreSQL');
     expect(fixture.nativeElement.textContent).toContain('Vollständige JSON-Daten anzeigen');
     expect(fixture.componentInstance.formattedJson()).toContain('"sessionCreatesLastMinute": 3');
+
+    fixture.destroy();
+  });
+
+  it('schlüsselt permanente Yjs-Ablehnungen nach Token-Ursache auf', () => {
+    const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
+    fixture.componentInstance.stats.set({
+      ...statsFixture,
+      yjsWebSocketRejectedUpgradesLastMinute: 25,
+      yjsWebSocketRejectedUpgradesByReasonLastMinute: {
+        ...statsFixture.yjsWebSocketRejectedUpgradesByReasonLastMinute,
+        staleGeneration: 25,
+      },
+    });
+
+    expect(fixture.componentInstance.yjsMetrics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Ersetzte Sync-Tokens',
+          value: '25',
+        }),
+      ]),
+    );
 
     fixture.destroy();
   });
