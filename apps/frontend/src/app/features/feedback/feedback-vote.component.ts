@@ -253,11 +253,11 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private async redirectStandaloneQuizSession(code: string): Promise<boolean> {
     try {
-      const session = await trpc.session.getInfo.query({
-        code,
+      const resolution = await trpc.quickFeedback.isActive.query({
+        sessionCode: code,
         anonymousClientId: getAnonymousClientId(),
       });
-      if (session.type === 'QUIZ' && session.status !== 'FINISHED') {
+      if (resolution.sessionType === 'QUIZ' && resolution.sessionStatus !== 'FINISHED') {
         await this.router.navigateByUrl(
           this.localizedPath(`/session/${code}/vote?tab=quickFeedback`),
           {
@@ -267,7 +267,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
         return true;
       }
     } catch {
-      // Standalone-Blitzlicht oder abgelaufener Code: normale Feedback-Route weiter behandeln.
+      // Abgelaufener oder unbekannter Code: normale Feedback-Fehleransicht weiter behandeln.
     }
     return false;
   }
