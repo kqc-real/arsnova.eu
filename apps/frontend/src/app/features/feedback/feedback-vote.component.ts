@@ -92,6 +92,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
+  private resultUpdatesStopped = false;
   private standaloneVoterId: string | null = null;
   private readonly tempoDefaultRegisteredKeys = new Set<string>();
   private readonly tempoDefaultRegistrations = new Map<string, Promise<void>>();
@@ -241,6 +242,10 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     }
 
     await this.pollStyle();
+    if (this.resultUpdatesStopped) {
+      this.loading.set(false);
+      return;
+    }
     this.subscribeToResults();
     this.loading.set(false);
     this.pollTimer = setInterval(() => void this.pollStyle(), 3000);
@@ -248,11 +253,11 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private async redirectStandaloneQuizSession(code: string): Promise<boolean> {
     try {
-      const session = await trpc.session.getInfo.query({
-        code,
+      const resolution = await trpc.quickFeedback.isActive.query({
+        sessionCode: code,
         anonymousClientId: getAnonymousClientId(),
       });
-      if (session.type === 'QUIZ' && session.status !== 'FINISHED') {
+      if (resolution.sessionType === 'QUIZ' && resolution.sessionStatus !== 'FINISHED') {
         await this.router.navigateByUrl(
           this.localizedPath(`/session/${code}/vote?tab=quickFeedback`),
           {
@@ -262,7 +267,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
         return true;
       }
     } catch {
-      // Standalone-Blitzlicht oder abgelaufener Code: normale Feedback-Route weiter behandeln.
+      // Abgelaufener oder unbekannter Code: normale Feedback-Fehleransicht weiter behandeln.
     }
     return false;
   }
@@ -291,6 +296,9 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
         this.clearEmbeddedState();
         this.error.set(null);
       } else {
+        if (this.isFeedbackRoundMissing(error)) {
+          this.stopResultUpdates();
+        }
         this.error.set(this.localizeFeedbackLoadError(error));
       }
       return false;
@@ -329,6 +337,24 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionTabs.quickFeedbackClosedNotice:Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.`;
     }
     return $localize`:@@feedback.voteMissing:Feedback-Runde nicht gefunden oder abgelaufen.`;
+  }
+
+  private isFeedbackRoundMissing(error: unknown): boolean {
+    const message = (error as { message?: string } | null)?.message ?? '';
+    return (
+      message.includes('Feedback-Runde nicht gefunden oder abgelaufen.') ||
+      message.startsWith('NOT_FOUND:')
+    );
+  }
+
+  private stopResultUpdates(): void {
+    this.resultUpdatesStopped = true;
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+    this.subscription?.unsubscribe();
+    this.subscription = null;
   }
 
   private applyResult(result: QuickFeedbackResult): void {

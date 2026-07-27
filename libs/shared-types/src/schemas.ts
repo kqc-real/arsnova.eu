@@ -4119,8 +4119,9 @@ export const QuickFeedbackIsActiveInputSchema = z.object({
 });
 export const QuickFeedbackIsActiveOutputSchema = z.object({
   active: z.boolean(),
-  /** Bei inaktivem Blitzlicht liefert der eine DB-Lookup direkt den Session-Status. */
+  /** Der kombinierte Resolver liefert Session-Metadaten ohne zweiten Client-Lookup. */
   sessionStatus: SessionStatusEnum.optional(),
+  sessionType: SessionTypeEnum.optional(),
 });
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 

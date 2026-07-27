@@ -48,6 +48,8 @@ import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
+const KNOWN_FEEDBACK_GRACE_SECONDS = 5 * 60;
+const KNOWN_FEEDBACK_TTL_SECONDS = FEEDBACK_TTL_SECONDS + KNOWN_FEEDBACK_GRACE_SECONDS;
 const QUICK_FEEDBACK_POLL_ACTIVE_MS = 500;
 const QUICK_FEEDBACK_POLL_IDLE_MS = 1200;
 const TEMPO_DEFAULT_VALUE = 'FOLLOWING';
@@ -70,7 +72,7 @@ end
 local valid = {}
 local existingDistribution = result['distribution'] or {}
 local distribution = {}
-for i = 5, #ARGV do
+for i = 6, #ARGV do
   local value = ARGV[i]
   valid[value] = true
   distribution[value] = tonumber(existingDistribution[value]) or 0
@@ -97,7 +99,7 @@ distribution[nextValue] = (tonumber(distribution[nextValue]) or 0) + 1
 redis.call('HSET', KEYS[2], ARGV[1], nextValue)
 
 local totalVotes = 0
-for i = 5, #ARGV do
+for i = 6, #ARGV do
   totalVotes = totalVotes + (tonumber(distribution[ARGV[i]]) or 0)
 end
 
@@ -113,6 +115,7 @@ result['tempoTrend'] = nil
 local ttl = tonumber(ARGV[3])
 redis.call('SET', KEYS[1], cjson.encode(result), 'EX', ttl)
 redis.call('EXPIRE', KEYS[2], ttl)
+redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[5]))
 redis.call(
   'HSET',
   KEYS[3],
@@ -136,10 +139,17 @@ function feedbackKey(code: string): string {
   return `qf:${code}`;
 }
 
+function knownFeedbackKey(code: string): string {
+  return `qf:known:${code}`;
+}
+
 async function protectMissingQuickFeedbackCode(
   code: string,
   source: SessionCodeFailureSource,
 ): Promise<void> {
+  if ((await getRedis().exists(knownFeedbackKey(code))) === 1) {
+    return;
+  }
   const session = await prisma.session.findUnique({
     where: { code },
     select: { id: true },
@@ -155,17 +165,34 @@ async function resolveQuickFeedbackAvailability(
 ) {
   const code = input.sessionCode.toUpperCase();
   const redis = getRedis();
-  const n = await redis.exists(feedbackKey(code));
-  if (n === 1) return { active: true as const };
+  const raw = await redis.get(feedbackKey(code));
+  if (raw) {
+    const feedback = JSON.parse(raw) as StoredQuickFeedbackResult;
+    if (feedback.sessionBound !== true) {
+      return { active: true as const };
+    }
+  }
 
   const session = await prisma.session.findUnique({
     where: { code },
-    select: { status: true },
+    select: { status: true, type: true },
   });
+  if (raw && session) {
+    return {
+      active: true as const,
+      sessionStatus: session.status,
+      sessionType: session.type,
+    };
+  }
+  if (raw) return { active: true as const };
   if (!session) {
     return rejectInvalidSessionCode(input.anonymousClientId, code, source);
   }
-  return { active: false as const, sessionStatus: session.status };
+  return {
+    active: false as const,
+    sessionStatus: session.status,
+    sessionType: session.type,
+  };
 }
 
 function votersKey(code: string): string {
@@ -451,6 +478,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
       await multi.exec();
 
       const hostToken = sessionBound ? null : await createFeedbackHostToken(code);
@@ -481,6 +509,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
       await multi.exec();
 
       return { ok: true };
@@ -509,6 +538,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
       await multi.exec();
 
       return { ok: true };
@@ -528,6 +558,7 @@ export const quickFeedbackRouter = router({
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));
       multi.del(tempoBucketsKey(code));
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_GRACE_SECONDS);
       await multi.exec();
       await invalidateFeedbackHostToken(code);
 
@@ -543,7 +574,10 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.locked = !result.locked;
 
-      await redis.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      const multi = redis.multi();
+      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+      await multi.exec();
       return { locked: result.locked };
     }),
 
@@ -571,6 +605,7 @@ export const quickFeedbackRouter = router({
 
       const multi = redis.multi();
       multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
       if (Object.keys(currentChoices).length > 0) {
         multi.del(r1Key);
         multi.hset(r1Key, currentChoices);
@@ -601,6 +636,7 @@ export const quickFeedbackRouter = router({
 
       const multi = redis.multi();
       multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
       multi.del(votersKey(code));
       multi.del(choicesKey(code));
       await multi.exec();
@@ -668,6 +704,7 @@ export const quickFeedbackRouter = router({
     const cKey = choicesKey(code);
     const multi = redis.multi();
     multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+    multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
     multi.sadd(vKey, input.voterId);
     multi.expire(vKey, FEEDBACK_TTL_SECONDS);
     multi.hset(cKey, input.voterId, input.value);
@@ -811,14 +848,16 @@ async function submitTempoVote(input: QuickFeedbackVoteInput, key: string): Prom
   const bucketKey = tempoBucketsKey(code);
   const raw = await redis.eval(
     TEMPO_VOTE_SCRIPT,
-    3,
+    4,
     key,
     cKey,
     bucketKey,
+    knownFeedbackKey(code),
     input.voterId,
     input.value,
     String(FEEDBACK_TTL_SECONDS),
     String(tempoBucketStartMs()),
+    String(KNOWN_FEEDBACK_TTL_SECONDS),
     ...TempoValueEnum.options,
   );
   const payload =
@@ -892,6 +931,7 @@ async function clearTempoVote(
   const bucketKey = tempoBucketsKey(code);
   const multi = redis.multi();
   multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+  multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
   multi.hdel(cKey, input.voterId);
   multi.expire(cKey, FEEDBACK_TTL_SECONDS);
   multi.hset(bucketKey, String(tempoBucketStartMs()), bucketPayload);

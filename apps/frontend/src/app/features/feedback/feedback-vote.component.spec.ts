@@ -6,12 +6,14 @@ import { ThemePresetService } from '../../core/theme-preset.service';
 
 const {
   getInfoQueryMock,
+  quickFeedbackIsActiveQueryMock,
   quickFeedbackResultsQueryMock,
   quickFeedbackVoteMutateMock,
   quickFeedbackLeaveTempoMutateMock,
   quickFeedbackOnResultsSubscribeMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
+  quickFeedbackIsActiveQueryMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackVoteMutateMock: vi.fn(),
   quickFeedbackLeaveTempoMutateMock: vi.fn(),
@@ -24,6 +26,7 @@ vi.mock('../../core/trpc.client', () => ({
       getInfo: { query: getInfoQueryMock },
     },
     quickFeedback: {
+      isActive: { query: quickFeedbackIsActiveQueryMock },
       results: { query: quickFeedbackResultsQueryMock },
       vote: { mutate: quickFeedbackVoteMutateMock },
       leaveTempo: { mutate: quickFeedbackLeaveTempoMutateMock },
@@ -38,6 +41,7 @@ describe('FeedbackVoteComponent', () => {
     localStorage.clear();
     document.documentElement.classList.remove('dark', 'light', 'preset-playful');
     getInfoQueryMock.mockRejectedValue(new Error('not found'));
+    quickFeedbackIsActiveQueryMock.mockResolvedValue({ active: true });
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
       locked: false,
@@ -66,20 +70,10 @@ describe('FeedbackVoteComponent', () => {
   });
 
   it('leitet standalone Feedback-Routen für laufende Quiz-Sessions in den Session-Vote-Flow um', async () => {
-    getInfoQueryMock.mockResolvedValueOnce({
-      id: 'session-1',
-      code: 'ABC123',
-      type: 'QUIZ',
-      status: 'ACTIVE',
-      serverTime: '2026-04-24T18:00:00.000Z',
-      quizName: 'Demo',
-      title: null,
-      channels: {
-        quiz: { enabled: true },
-        qa: { enabled: true, open: true, title: null, moderationMode: false },
-        quickFeedback: { enabled: true, open: true },
-      },
-      participantCount: 0,
+    quickFeedbackIsActiveQueryMock.mockResolvedValueOnce({
+      active: true,
+      sessionType: 'QUIZ',
+      sessionStatus: 'ACTIVE',
     });
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
@@ -91,9 +85,10 @@ describe('FeedbackVoteComponent', () => {
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(getInfoQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    expect(quickFeedbackIsActiveQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionCode: 'ABC123', anonymousClientId: expect.any(String) }),
     );
+    expect(getInfoQueryMock).not.toHaveBeenCalled();
     expect(quickFeedbackResultsQueryMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/vote?tab=quickFeedback', {
       replaceUrl: true,
@@ -112,9 +107,10 @@ describe('FeedbackVoteComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
-    expect(getInfoQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    expect(quickFeedbackIsActiveQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionCode: 'ABC123', anonymousClientId: expect.any(String) }),
     );
+    expect(getInfoQueryMock).not.toHaveBeenCalled();
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent ?? '').toContain('Ja · Nein · Vielleicht');
@@ -123,20 +119,10 @@ describe('FeedbackVoteComponent', () => {
 
   it('zeigt bei beendeter Redis-Runde trotz gleichnamiger FINISHED-Quiz-Session keine Session-Bewertung', async () => {
     quickFeedbackResultsQueryMock.mockRejectedValueOnce(new Error('not found'));
-    getInfoQueryMock.mockResolvedValueOnce({
-      id: 'session-1',
-      code: 'ABC123',
-      type: 'QUIZ',
-      status: 'FINISHED',
-      serverTime: '2026-04-24T18:00:00.000Z',
-      quizName: 'Demo',
-      title: null,
-      channels: {
-        quiz: { enabled: true },
-        qa: { enabled: true, open: true, title: null, moderationMode: false },
-        quickFeedback: { enabled: true, open: false },
-      },
-      participantCount: 0,
+    quickFeedbackIsActiveQueryMock.mockResolvedValueOnce({
+      active: false,
+      sessionType: 'QUIZ',
+      sessionStatus: 'FINISHED',
     });
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
@@ -150,9 +136,10 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
-    expect(getInfoQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'ABC123', anonymousClientId: expect.any(String) }),
+    expect(quickFeedbackIsActiveQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionCode: 'ABC123', anonymousClientId: expect.any(String) }),
     );
+    expect(getInfoQueryMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');
@@ -661,7 +648,9 @@ describe('FeedbackVoteComponent', () => {
   });
 
   it('zeigt bei abgelaufener Runde einen direkten Link zur Startseite', async () => {
-    quickFeedbackResultsQueryMock.mockRejectedValueOnce(new Error('not found'));
+    quickFeedbackResultsQueryMock.mockRejectedValueOnce(
+      new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+    );
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
@@ -673,6 +662,11 @@ describe('FeedbackVoteComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');
+    expect(quickFeedbackOnResultsSubscribeMock).not.toHaveBeenCalled();
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -706,7 +700,9 @@ describe('FeedbackVoteComponent', () => {
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
         currentRound: 1,
       })
-      .mockRejectedValueOnce(new Error('not found'));
+      .mockRejectedValueOnce(
+        new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+      );
 
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
@@ -723,6 +719,10 @@ describe('FeedbackVoteComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
     expect(text).toContain('Zur Startseite');
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
     fixture.destroy();
   });
 });
