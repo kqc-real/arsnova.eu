@@ -60,7 +60,6 @@ class EvaluationTests(unittest.TestCase):
             "rate_limit_429_total": (50, 200),
             "session_code_entry_failures": (100, 500),
             "session_code_entry_soft_cap_delays": (10, 100),
-            "soft_cap_utilization": (80, 95),
             "session_code_429": (30, 100),
             "pdf_rejected": (5, 20),
             "pdf_failed": (1, 3),
@@ -118,6 +117,13 @@ class EvaluationTests(unittest.TestCase):
             "lookup": 0,
             "pollReconnect": 5_000,
             "other": 0,
+        }
+        stats["sessionCodeGlobalSoftCapUtilizationPercent"] = 95
+        stats["rateLimit429LastMinute"] = 200
+        stats["rateLimit429AlertLastMinute"] = 0
+        stats["rateLimit429ByCategoryLastMinute"] = {
+            "sessionCode": 0,
+            "sessionCodeReconnect": 200,
         }
         self.assertEqual(self.evaluate(stats=stats)["level"], "ok")
 

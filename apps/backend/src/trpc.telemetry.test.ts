@@ -86,7 +86,7 @@ describe('zentrale Security-Telemetrie', () => {
     ],
     [
       'session.getInfoForReconnect',
-      'sessionCode',
+      'sessionCodeReconnect',
       () => testRouter.createCaller({ req: undefined }).session.getInfoForReconnect(),
     ],
     ['vote.submit', 'vote', () => testRouter.createCaller({ req: undefined }).vote.submit()],
@@ -98,7 +98,7 @@ describe('zentrale Security-Telemetrie', () => {
     ],
     [
       'quickFeedback.isActiveForReconnect',
-      'sessionCode',
+      'sessionCodeReconnect',
       () => testRouter.createCaller({ req: undefined }).quickFeedback.isActiveForReconnect(),
     ],
     [

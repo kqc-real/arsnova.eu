@@ -41,12 +41,14 @@ const statsFixture: HealthSecurityStatsDTO = {
   cspReportsEvalLastMinute: 0,
   cspReportsScriptHttpsLastMinute: 0,
   rateLimit429LastMinute: 1,
+  rateLimit429AlertLastMinute: 0,
   rateLimit429ByCategoryLastMinute: {
     adminLogin: 0,
     sessionCreate: 1,
     quizUpload: 0,
     quickFeedback: 0,
     sessionCode: 0,
+    sessionCodeReconnect: 0,
     vote: 0,
     pdf: 0,
     motd: 0,
@@ -161,7 +163,7 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Alles in Ordnung');
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
-    expect(fixture.nativeElement.textContent).toContain('Offene Tabs (Poll/Reconnect)');
+    expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Poll-/Reconnect-Abfragen');
     expect(fixture.nativeElement.textContent).toContain('Hintergrundaktivität');
     expect(fixture.nativeElement.textContent).toContain('Alarmrelevante Signale');
     expect(fixture.nativeElement.textContent).toContain('Ungültige Sync-Tokens');
@@ -210,15 +212,37 @@ describe('AdminMonitoringPanelComponent', () => {
         other: 0,
       },
       sessionCodeEntryFailuresLastMinute: 0,
+      sessionCodeGlobalSoftCapUtilizationPercent: 95,
+      rateLimit429LastMinute: 200,
+      rateLimit429AlertLastMinute: 0,
+      rateLimit429ByCategoryLastMinute: {
+        ...statsFixture.rateLimit429ByCategoryLastMinute,
+        sessionCode: 0,
+        sessionCodeReconnect: 200,
+      },
     });
 
     expect(fixture.componentInstance.overallLevel()).toBe('ok');
     expect(fixture.componentInstance.sessionInfoMetrics()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: 'Offene Tabs (Poll/Reconnect)',
+          label: 'Fehlgeschlagene Poll-/Reconnect-Abfragen',
           value: '5,000',
           level: null,
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Hintergrund-Codeprüfungen gesamt',
+          value: '5,000',
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Globale Soft-Cap-Auslastung',
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Poll-/Reconnect-429',
+          value: '200',
           kind: 'info',
         }),
       ]),
@@ -232,6 +256,38 @@ describe('AdminMonitoringPanelComponent', () => {
       sessionCodeEntryFailuresLastMinute: 500,
     }));
     expect(fixture.componentInstance.overallLevel()).toBe('critical');
+
+    fixture.destroy();
+  });
+
+  it('bildet den Hintergrund-Gesamtwert nur aus Poll-/Reconnect und Sonstigem', () => {
+    const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
+    fixture.componentInstance.stats.set({
+      ...statsFixture,
+      sessionCodeFailuresLastMinute: 40,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 10,
+        lookup: 5,
+        pollReconnect: 20,
+        other: 5,
+      },
+      sessionCodeEntryFailuresLastMinute: 15,
+    });
+
+    expect(fixture.componentInstance.sessionInfoMetrics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Hintergrund-Codeprüfungen gesamt',
+          value: '25',
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Fehlgeschlagene Poll-/Reconnect-Abfragen',
+          value: '20',
+          kind: 'info',
+        }),
+      ]),
+    );
 
     fixture.destroy();
   });

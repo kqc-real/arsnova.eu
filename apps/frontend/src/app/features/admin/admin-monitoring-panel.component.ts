@@ -43,7 +43,6 @@ const THRESHOLDS = {
   rateLimit429: { warning: 50, critical: 200 },
   sessionCodeEntryFailures: { warning: 100, critical: 500 },
   sessionCodeEntrySoftCapDelays: { warning: 10, critical: 100 },
-  softCapUtilization: { warning: 80, critical: 95, percent: true },
   sessionCode429: { warning: 30, critical: 100 },
   cspDropped: { warning: 10, critical: 100 },
   cspRateLimited: { warning: 50, critical: 500 },
@@ -122,13 +121,8 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         THRESHOLDS.sessionCodeEntrySoftCapDelays,
       ),
       this.metric(
-        $localize`:@@admin.monitoringSoftCapUtilization:Globale Soft-Cap-Auslastung`,
-        stats.sessionCodeGlobalSoftCapUtilizationPercent,
-        THRESHOLDS.softCapUtilization,
-      ),
-      this.metric(
         $localize`:@@admin.monitoringRateLimitTotal:429-Ablehnungen`,
-        stats.rateLimit429LastMinute,
+        stats.rateLimit429AlertLastMinute,
         THRESHOLDS.rateLimit429,
       ),
     ];
@@ -136,16 +130,19 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   readonly sessionInfoMetrics = computed<MetricView[]>(() => {
     const stats = this.stats();
     if (!stats) return [];
+    const backgroundCodeFailures =
+      stats.sessionCodeFailuresBySourceLastMinute.pollReconnect +
+      stats.sessionCodeFailuresBySourceLastMinute.other;
     return [
       this.metric(
-        $localize`:@@admin.monitoringPollReconnectFailures:Offene Tabs (Poll/Reconnect)`,
+        $localize`:@@admin.monitoringPollReconnectFailures:Fehlgeschlagene Poll-/Reconnect-Abfragen`,
         stats.sessionCodeFailuresBySourceLastMinute.pollReconnect,
         null,
         undefined,
         'info',
       ),
       this.metric(
-        $localize`:@@admin.monitoringPollReconnectSoftCapDelays:Soft-Cap bei offenen Tabs`,
+        $localize`:@@admin.monitoringPollReconnectSoftCapDelays:Soft-Cap-Verzögerungen bei Poll/Reconnect`,
         stats.sessionCodeSoftCapDelaysBySourceLastMinute.pollReconnect,
         null,
         undefined,
@@ -160,7 +157,21 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
       ),
       this.metric(
         $localize`:@@admin.monitoringAllCodeFailures:Hintergrund-Codeprüfungen gesamt`,
-        stats.sessionCodeFailuresLastMinute,
+        backgroundCodeFailures,
+        null,
+        undefined,
+        'info',
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringSoftCapUtilization:Globale Soft-Cap-Auslastung`,
+        stats.sessionCodeGlobalSoftCapUtilizationPercent,
+        null,
+        this.formatPercent(stats.sessionCodeGlobalSoftCapUtilizationPercent),
+        'info',
+      ),
+      this.metric(
+        $localize`:@@admin.monitoringSessionCodeReconnect429:Poll-/Reconnect-429`,
+        stats.rateLimit429ByCategoryLastMinute.sessionCodeReconnect,
         null,
         undefined,
         'info',

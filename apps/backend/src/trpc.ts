@@ -69,14 +69,21 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
   if (path === 'quiz.upload') return 'quizUpload';
   if (path === 'quickFeedback.create') return 'quickFeedback';
   if (
+    path === 'session.getInfoForReconnect' ||
+    path === 'session.onStatusChanged' ||
+    path === 'quickFeedback.isActiveForReconnect' ||
+    path === 'quickFeedback.results' ||
+    path === 'quickFeedback.onResults'
+  ) {
+    return 'sessionCodeReconnect';
+  }
+  if (
     path === 'session.join' ||
     path === 'session.getInfo' ||
-    path === 'session.getInfoForReconnect' ||
     path === 'session.getParticipantNicknames' ||
     path === 'session.getParticipantSelf' ||
     path === 'session.confirmReadingReady' ||
     path === 'session.getTeams' ||
-    path === 'session.onStatusChanged' ||
     path === 'session.getCurrentQuestionForStudent' ||
     path === 'session.getLeaderboard' ||
     path === 'session.getTeamLeaderboard' ||
@@ -86,10 +93,7 @@ function classifyRateLimitPath(path: string): RateLimitCategory {
     path === 'session.getHasSubmittedFeedback' ||
     path === 'session.getSessionFeedbackSummary' ||
     path === 'quickFeedback.isActive' ||
-    path === 'quickFeedback.isActiveForReconnect' ||
-    path === 'quickFeedback.vote' ||
-    path === 'quickFeedback.results' ||
-    path === 'quickFeedback.onResults'
+    path === 'quickFeedback.vote'
   ) {
     return 'sessionCode';
   }

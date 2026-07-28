@@ -3099,8 +3099,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
-        <source>Offene Tabs (Poll/Reconnect)</source>
-        <target>Onglets ouverts (poll/reconnect)</target>
+        <source>Fehlgeschlagene Poll-/Reconnect-Abfragen</source>
+        <target>Requêtes poll/reconnect échouées</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">123</context>
@@ -3123,8 +3123,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
-        <source>Soft-Cap bei offenen Tabs</source>
-        <target>Soft-cap pour les onglets ouverts</target>
+        <source>Soft-Cap-Verzögerungen bei Poll/Reconnect</source>
+        <target>Délais de plafond souple pour poll/reconnect</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">138</context>
@@ -3147,8 +3147,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
-        <source>Offene Tabs und automatische Nachfragen. Nur zur Diagnose, kein Alarm.</source>
-        <target>Onglets ouverts et requêtes automatiques. Uniquement pour le diagnostic, pas une alerte.</target>
+        <source>Fehlgeschlagene automatische Nachfragen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
+        <target>Requêtes automatiques échouées et utilisation partagée du plafond souple. Uniquement pour le diagnostic, pas une alerte.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
@@ -3168,6 +3168,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">143</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCodeReconnect429" datatype="html">
+        <source>Poll-/Reconnect-429</source>
+        <target>429 poll/reconnect</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">173</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">

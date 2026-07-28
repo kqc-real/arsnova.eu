@@ -2719,7 +2719,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
-        <source>Offene Tabs (Poll/Reconnect)</source>
+        <source>Fehlgeschlagene Poll-/Reconnect-Abfragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">123</context>
@@ -2740,7 +2740,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
-        <source>Soft-Cap bei offenen Tabs</source>
+        <source>Soft-Cap-Verzögerungen bei Poll/Reconnect</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">138</context>
@@ -2761,7 +2761,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
-        <source>Offene Tabs und automatische Nachfragen. Nur zur Diagnose, kein Alarm.</source>
+        <source>Fehlgeschlagene automatische Nachfragen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
@@ -2779,6 +2779,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">143</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionCodeReconnect429" datatype="html">
+        <source>Poll-/Reconnect-429</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">173</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
