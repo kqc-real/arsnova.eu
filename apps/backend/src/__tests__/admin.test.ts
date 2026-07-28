@@ -152,7 +152,7 @@ describe('admin router (Epic 9)', () => {
       cspReportsEvalLastMinute: 0,
       cspReportsScriptHttpsLastMinute: 0,
       rateLimit429LastMinute: 1,
-      rateLimit429AlertLastMinute: 0,
+      rateLimit429AlertLastMinute: 1,
       rateLimit429ByCategoryLastMinute: {
         adminLogin: 0,
         sessionCreate: 1,
