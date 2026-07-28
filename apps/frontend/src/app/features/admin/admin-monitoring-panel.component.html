@@ -181,11 +181,11 @@
 
           <section class="monitoring-metric-group" aria-labelledby="monitoring-session-info-title">
             <h4 id="monitoring-session-info-title" i18n="@@admin.monitoringSessionInfoTitle">
-              Hintergrundaktivität
+              Nicht alarmierte Diagnosewerte
             </h4>
             <p class="monitoring-metric-group__help" i18n="@@admin.monitoringSessionInfoHelp">
-              Fehlgeschlagene automatische Nachfragen und geteilte Soft-Cap-Auslastung. Nur zur
-              Diagnose, kein Alarm.
+              Poll-/Reconnect-Nachfragen, sonstige Codeprüfungen und geteilte Soft-Cap-Auslastung.
+              Nur zur Diagnose, kein Alarm.
             </p>
             <dl>
               @for (metric of sessionInfoMetrics(); track metric.label) {

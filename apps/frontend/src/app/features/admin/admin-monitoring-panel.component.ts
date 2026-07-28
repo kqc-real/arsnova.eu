@@ -121,7 +121,7 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         THRESHOLDS.sessionCodeEntrySoftCapDelays,
       ),
       this.metric(
-        $localize`:@@admin.monitoringRateLimitTotal:429-Ablehnungen`,
+        $localize`:@@admin.monitoringRateLimitTotal:Alarmrelevante 429-Ablehnungen`,
         stats.rateLimit429AlertLastMinute,
         THRESHOLDS.rateLimit429,
       ),
@@ -130,9 +130,6 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
   readonly sessionInfoMetrics = computed<MetricView[]>(() => {
     const stats = this.stats();
     if (!stats) return [];
-    const backgroundCodeFailures =
-      stats.sessionCodeFailuresBySourceLastMinute.pollReconnect +
-      stats.sessionCodeFailuresBySourceLastMinute.other;
     return [
       this.metric(
         $localize`:@@admin.monitoringPollReconnectFailures:Fehlgeschlagene Poll-/Reconnect-Abfragen`,
@@ -149,15 +146,8 @@ export class AdminMonitoringPanelComponent implements OnInit, OnDestroy {
         'info',
       ),
       this.metric(
-        $localize`:@@admin.monitoringOtherCodeFailures:Sonstige Hintergrund-Codeprüfungen`,
+        $localize`:@@admin.monitoringOtherCodeFailures:Sonstige Codeprüfungen`,
         stats.sessionCodeFailuresBySourceLastMinute.other,
-        null,
-        undefined,
-        'info',
-      ),
-      this.metric(
-        $localize`:@@admin.monitoringAllCodeFailures:Hintergrund-Codeprüfungen gesamt`,
-        backgroundCodeFailures,
         null,
         undefined,
         'info',

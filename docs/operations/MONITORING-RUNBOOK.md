@@ -159,9 +159,10 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
 - Bei `sessionCode`: Client-Cap-429 zusammen mit den nach Quelle aufgeteilten
   `sessionCodeFailuresBySourceLastMinute`,
   `sessionCodeSoftCapDelaysBySourceLastMinute` und der globalen Auslastung
-  prüfen. Automatische Poll-/Reconnect- und sonstige Folgezugriffe bleiben zur
-  Diagnose sichtbar, lösen aber keinen Join-Alarm aus. Alarmiert werden nur die
-  Summen `sessionCodeEntryFailuresLastMinute` und
+  prüfen. Automatische Poll-/Reconnect-Zugriffe und sonstige Codeprüfungen
+  (`other`, inkl. einzelner Nutzeraktionen) bleiben zur Diagnose sichtbar,
+  lösen aber keinen Join-Alarm aus. Alarmiert werden nur die Summen
+  `sessionCodeEntryFailuresLastMinute` und
   `sessionCodeEntrySoftCapDelaysLastMinute` aus expliziten Join- und
   Codeprüfungen sowie `rateLimit429AlertLastMinute` (Gesamt-429 ohne
   `sessionCodeReconnect`). Globale Soft-Cap-Auslastung und

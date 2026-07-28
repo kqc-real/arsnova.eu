@@ -164,8 +164,9 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Poll-/Reconnect-Abfragen');
-    expect(fixture.nativeElement.textContent).toContain('Hintergrundaktivität');
+    expect(fixture.nativeElement.textContent).toContain('Nicht alarmierte Diagnosewerte');
     expect(fixture.nativeElement.textContent).toContain('Alarmrelevante Signale');
+    expect(fixture.nativeElement.textContent).toContain('Alarmrelevante 429-Ablehnungen');
     expect(fixture.nativeElement.textContent).toContain('Ungültige Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Ersetzte Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
@@ -232,11 +233,6 @@ describe('AdminMonitoringPanelComponent', () => {
           kind: 'info',
         }),
         expect.objectContaining({
-          label: 'Hintergrund-Codeprüfungen gesamt',
-          value: '5,000',
-          kind: 'info',
-        }),
-        expect.objectContaining({
           label: 'Globale Soft-Cap-Auslastung',
           kind: 'info',
         }),
@@ -244,6 +240,14 @@ describe('AdminMonitoringPanelComponent', () => {
           label: 'Poll-/Reconnect-429',
           value: '200',
           kind: 'info',
+        }),
+      ]),
+    );
+    expect(fixture.componentInstance.sessionAlertMetrics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Alarmrelevante 429-Ablehnungen',
+          value: '0',
         }),
       ]),
     );
@@ -260,7 +264,7 @@ describe('AdminMonitoringPanelComponent', () => {
     fixture.destroy();
   });
 
-  it('bildet den Hintergrund-Gesamtwert nur aus Poll-/Reconnect und Sonstigem', () => {
+  it('zeigt sonstige Codeprüfungen getrennt und summiert sie nicht als Hintergrund', () => {
     const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
     fixture.componentInstance.stats.set({
       ...statsFixture,
@@ -274,19 +278,23 @@ describe('AdminMonitoringPanelComponent', () => {
       sessionCodeEntryFailuresLastMinute: 15,
     });
 
-    expect(fixture.componentInstance.sessionInfoMetrics()).toEqual(
+    const infoMetrics = fixture.componentInstance.sessionInfoMetrics();
+    expect(infoMetrics).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          label: 'Hintergrund-Codeprüfungen gesamt',
-          value: '25',
-          kind: 'info',
-        }),
         expect.objectContaining({
           label: 'Fehlgeschlagene Poll-/Reconnect-Abfragen',
           value: '20',
           kind: 'info',
         }),
+        expect.objectContaining({
+          label: 'Sonstige Codeprüfungen',
+          value: '5',
+          kind: 'info',
+        }),
       ]),
+    );
+    expect(infoMetrics.map((metric) => metric.label)).not.toContain(
+      'Hintergrund-Codeprüfungen gesamt',
     );
 
     fixture.destroy();

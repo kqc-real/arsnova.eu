@@ -3110,8 +3110,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
-        <source>Sonstige Hintergrund-Codeprüfungen</source>
-        <target>Other background code checks</target>
+        <source>Sonstige Codeprüfungen</source>
+        <target>Other code checks</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -3142,16 +3142,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoTitle" datatype="html">
-        <source>Hintergrundaktivität</source>
-        <target>Background activity</target>
+        <source>Nicht alarmierte Diagnosewerte</source>
+        <target>Non-alerting diagnostic values</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
-        <source>Fehlgeschlagene automatische Nachfragen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
-        <target>Failed automatic follow-up requests and shared soft-cap utilization. For diagnosis only, not an alert.</target>
+        <source>Poll-/Reconnect-Nachfragen, sonstige Codeprüfungen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
+        <target>Poll/reconnect lookups, other code checks, and shared soft-cap utilization. For diagnosis only, not an alert.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
@@ -3182,8 +3182,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
-        <source>429-Ablehnungen</source>
-        <target>429 rejections</target>
+        <source>Alarmrelevante 429-Ablehnungen</source>
+        <target>Alert-relevant 429 rejections</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">148</context>

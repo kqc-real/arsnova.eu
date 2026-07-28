@@ -2726,7 +2726,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
-        <source>Sonstige Hintergrund-Codeprüfungen</source>
+        <source>Sonstige Codeprüfungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -2754,14 +2754,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoTitle" datatype="html">
-        <source>Hintergrundaktivität</source>
+        <source>Nicht alarmierte Diagnosewerte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
-        <source>Fehlgeschlagene automatische Nachfragen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
+        <source>Poll-/Reconnect-Nachfragen, sonstige Codeprüfungen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
           <context context-type="linenumber">1</context>
@@ -2789,7 +2789,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
-        <source>429-Ablehnungen</source>
+        <source>Alarmrelevante 429-Ablehnungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">148</context>
