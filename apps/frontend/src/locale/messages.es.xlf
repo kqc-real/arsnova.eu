@@ -3067,8 +3067,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringAllCodeFailures" datatype="html">
-        <source>Globale fehlgeschlagene Code-Abfragen</source>
-        <target>Consultas globales de código fallido</target>
+        <source>Hintergrund-Codeprüfungen gesamt</source>
+        <target>Comprobaciones de código en segundo plano (total)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">103</context>
@@ -3099,16 +3099,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectFailures" datatype="html">
-        <source>Automatische Poll-/Reconnect-Abfragen</source>
-        <target>Consultas automáticas de sondeo/reconexión</target>
+        <source>Fehlgeschlagene Poll-/Reconnect-Abfragen</source>
+        <target>Consultas poll/reconnect fallidas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringOtherCodeFailures" datatype="html">
-        <source>Sonstige fehlgeschlagene Code-Abfragen</source>
-        <target>Otras consultas de código fallidas</target>
+        <source>Sonstige Codeprüfungen</source>
+        <target>Otras comprobaciones de código</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -3123,14 +3123,46 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.monitoringPollReconnectSoftCapDelays" datatype="html">
-        <source>Automatische Poll-/Reconnect-Verzögerungen</source>
-        <target>Retrasos en la encuesta/reconexión automática</target>
+        <source>Soft-Cap-Verzögerungen bei Poll/Reconnect</source>
+        <target>Retrasos de límite blando en poll/reconnect</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
+            <trans-unit id="admin.monitoringSessionAlertsTitle" datatype="html">
+        <source>Alarmrelevante Signale</source>
+        <target>Señales relevantes para alertas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoTitle" datatype="html">
+        <source>Nicht alarmierte Diagnosewerte</source>
+        <target>Valores de diagnóstico sin alerta</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringSessionInfoHelp" datatype="html">
+        <source>Poll-/Reconnect-Nachfragen, sonstige Codeprüfungen und geteilte Soft-Cap-Auslastung. Nur zur Diagnose, kein Alarm.</source>
+        <target>Consultas poll/reconnect, otras comprobaciones de código y utilización compartida del límite blando. Solo para diagnóstico, no es una alerta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.monitoringLevelInfo" datatype="html">
+        <source>Info</source>
+        <target>Info</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+<trans-unit id="admin.monitoringSoftCapUtilization" datatype="html">
         <source>Globale Soft-Cap-Auslastung</source>
         <target>Utilización global de límite blando</target>
         <context-group purpose="location">
@@ -3138,9 +3170,17 @@
           <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.monitoringSessionCodeReconnect429" datatype="html">
+        <source>Poll-/Reconnect-429</source>
+        <target>429 de poll/reconnect</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
+          <context context-type="linenumber">173</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.monitoringRateLimitTotal" datatype="html">
-        <source>429-Ablehnungen</source>
-        <target>Rechazos 429</target>
+        <source>Alarmrelevante 429-Ablehnungen</source>
+        <target>Rechazos 429 relevantes para alertas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-monitoring-panel.component.ts</context>
           <context context-type="linenumber">148</context>

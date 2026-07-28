@@ -132,6 +132,11 @@
   color: var(--mat-sys-on-error-container);
 }
 
+.monitoring-status--info {
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 72%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .monitoring-status--compact {
   padding: 0.2rem 0.48rem;
   font: var(--mat-sys-label-small);
@@ -198,6 +203,35 @@
 .monitoring-grid dl > div:last-child {
   padding-bottom: 0;
   border-bottom: 0;
+}
+
+.monitoring-metric-group {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.monitoring-metric-group + .monitoring-metric-group {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.monitoring-metric-group h4 {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 650;
+}
+
+.monitoring-metric-group__help {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
+.monitoring-metric--info .monitoring-metric__value,
+.monitoring-metric--info dt {
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .monitoring-grid dt {

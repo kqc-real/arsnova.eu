@@ -105,10 +105,9 @@ genutzten Hörsaal-IP gedrosselt.
 | Signal                             |           Warnung |          Kritisch |
 | ---------------------------------- | ----------------: | ----------------: |
 | Erfolgreiche Session-Erstellungen  |          ≥ 30/min |          ≥ 60/min |
-| Alle 429-Ablehnungen               |          ≥ 50/min |         ≥ 200/min |
+| Alarmrelevante 429-Ablehnungen     |          ≥ 50/min |         ≥ 200/min |
 | Join- und Codeprüfungsfehler       |         ≥ 100/min |         ≥ 500/min |
 | Soft-Cap-Delays für Join/Code      |          ≥ 10/min |         ≥ 100/min |
-| Globale Code-Soft-Cap-Auslastung   |            ≥ 80 % |            ≥ 95 % |
 | Client-Cap-429 (`sessionCode`)     |          ≥ 30/min |         ≥ 100/min |
 | PDF-Ablehnungen                    |           ≥ 5/min |          ≥ 20/min |
 | PDF-Fehler                         |           ≥ 1/min |           ≥ 3/min |
@@ -160,13 +159,16 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
 - Bei `sessionCode`: Client-Cap-429 zusammen mit den nach Quelle aufgeteilten
   `sessionCodeFailuresBySourceLastMinute`,
   `sessionCodeSoftCapDelaysBySourceLastMinute` und der globalen Auslastung
-  prüfen. Automatische Poll-/Reconnect- und sonstige Folgezugriffe bleiben zur
-  Diagnose sichtbar, lösen aber keinen Join-Alarm aus. Alarmiert werden nur die
-  Summen `sessionCodeEntryFailuresLastMinute` und
+  prüfen. Automatische Poll-/Reconnect-Zugriffe und sonstige Codeprüfungen
+  (`other`, inkl. einzelner Nutzeraktionen) bleiben zur Diagnose sichtbar,
+  lösen aber keinen Join-Alarm aus. Alarmiert werden nur die Summen
+  `sessionCodeEntryFailuresLastMinute` und
   `sessionCodeEntrySoftCapDelaysLastMinute` aus expliziten Join- und
-  Codeprüfungen. Die Quelle ist serverseitig an getrennte tRPC-Prozeduren
-  gebunden und kein vom Client wählbarer Parameter. Keinen IP-Lock ergänzen. Ein
-  hoher Delay-Wert bei weiterhin
+  Codeprüfungen sowie `rateLimit429AlertLastMinute` (Gesamt-429 ohne
+  `sessionCodeReconnect`). Globale Soft-Cap-Auslastung und
+  Poll-/Reconnect-429 sind reine Diagnosewerte. Die Quelle ist serverseitig an
+  getrennte tRPC-Prozeduren gebunden und kein vom Client wählbarer Parameter.
+  Keinen IP-Lock ergänzen. Ein hoher Delay-Wert bei weiterhin
   erfolgreichen gültigen Joins ist die erwartete Soft-Cap-Wirkung; die
   500er-NAT-Abnahme aus W1.5 heranziehen.
 

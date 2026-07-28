@@ -476,6 +476,9 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     cspReportsScriptHttpsLastMinute: cspReportSignals.scriptHttpsLastMinute,
     rateLimit429LastMinute: abuseSignals.rateLimit429LastMinute,
     rateLimit429ByCategoryLastMinute: abuseSignals.rateLimit429ByCategoryLastMinute,
+    rateLimit429AlertLastMinute:
+      abuseSignals.rateLimit429LastMinute -
+      abuseSignals.rateLimit429ByCategoryLastMinute.sessionCodeReconnect,
     sessionCodeFailuresLastMinute: abuseSignals.sessionCodeFailuresLastMinute,
     sessionCodeFailuresBySourceLastMinute: abuseSignals.sessionCodeFailuresBySourceLastMinute,
     sessionCodeEntryFailuresLastMinute:

@@ -41,12 +41,14 @@ const statsFixture: HealthSecurityStatsDTO = {
   cspReportsEvalLastMinute: 0,
   cspReportsScriptHttpsLastMinute: 0,
   rateLimit429LastMinute: 1,
+  rateLimit429AlertLastMinute: 0,
   rateLimit429ByCategoryLastMinute: {
     adminLogin: 0,
     sessionCreate: 1,
     quizUpload: 0,
     quickFeedback: 0,
     sessionCode: 0,
+    sessionCodeReconnect: 0,
     vote: 0,
     pdf: 0,
     motd: 0,
@@ -161,7 +163,10 @@ describe('AdminMonitoringPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Alles in Ordnung');
     expect(fixture.nativeElement.textContent).toContain('Warnung ab 30, kritisch ab 60');
     expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Join- und Codeprüfungen');
-    expect(fixture.nativeElement.textContent).toContain('Automatische Poll-/Reconnect-Abfragen');
+    expect(fixture.nativeElement.textContent).toContain('Fehlgeschlagene Poll-/Reconnect-Abfragen');
+    expect(fixture.nativeElement.textContent).toContain('Nicht alarmierte Diagnosewerte');
+    expect(fixture.nativeElement.textContent).toContain('Alarmrelevante Signale');
+    expect(fixture.nativeElement.textContent).toContain('Alarmrelevante 429-Ablehnungen');
     expect(fixture.nativeElement.textContent).toContain('Ungültige Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Ersetzte Sync-Tokens');
     expect(fixture.nativeElement.textContent).toContain('Infrastruktur');
@@ -208,24 +213,89 @@ describe('AdminMonitoringPanelComponent', () => {
         other: 0,
       },
       sessionCodeEntryFailuresLastMinute: 0,
+      sessionCodeGlobalSoftCapUtilizationPercent: 95,
+      rateLimit429LastMinute: 200,
+      rateLimit429AlertLastMinute: 0,
+      rateLimit429ByCategoryLastMinute: {
+        ...statsFixture.rateLimit429ByCategoryLastMinute,
+        sessionCode: 0,
+        sessionCodeReconnect: 200,
+      },
     });
 
     expect(fixture.componentInstance.overallLevel()).toBe('ok');
-    expect(fixture.componentInstance.sessionMetrics()).toEqual(
+    expect(fixture.componentInstance.sessionInfoMetrics()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: 'Automatische Poll-/Reconnect-Abfragen',
+          label: 'Fehlgeschlagene Poll-/Reconnect-Abfragen',
           value: '5,000',
           level: null,
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Globale Soft-Cap-Auslastung',
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Poll-/Reconnect-429',
+          value: '200',
+          kind: 'info',
         }),
       ]),
     );
+    expect(fixture.componentInstance.sessionAlertMetrics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Alarmrelevante 429-Ablehnungen',
+          value: '0',
+        }),
+      ]),
+    );
+    expect(
+      fixture.componentInstance.cardLevel(fixture.componentInstance.sessionAlertMetrics()),
+    ).toBe('ok');
 
     fixture.componentInstance.stats.update((stats) => ({
       ...stats!,
       sessionCodeEntryFailuresLastMinute: 500,
     }));
     expect(fixture.componentInstance.overallLevel()).toBe('critical');
+
+    fixture.destroy();
+  });
+
+  it('zeigt sonstige Codeprüfungen getrennt und summiert sie nicht als Hintergrund', () => {
+    const fixture = TestBed.createComponent(AdminMonitoringPanelComponent);
+    fixture.componentInstance.stats.set({
+      ...statsFixture,
+      sessionCodeFailuresLastMinute: 40,
+      sessionCodeFailuresBySourceLastMinute: {
+        join: 10,
+        lookup: 5,
+        pollReconnect: 20,
+        other: 5,
+      },
+      sessionCodeEntryFailuresLastMinute: 15,
+    });
+
+    const infoMetrics = fixture.componentInstance.sessionInfoMetrics();
+    expect(infoMetrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Fehlgeschlagene Poll-/Reconnect-Abfragen',
+          value: '20',
+          kind: 'info',
+        }),
+        expect.objectContaining({
+          label: 'Sonstige Codeprüfungen',
+          value: '5',
+          kind: 'info',
+        }),
+      ]),
+    );
+    expect(infoMetrics.map((metric) => metric.label)).not.toContain(
+      'Hintergrund-Codeprüfungen gesamt',
+    );
 
     fixture.destroy();
   });

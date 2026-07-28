@@ -144,9 +144,9 @@ describe('abuseTelemetry', () => {
   });
 
   it('aggregiert inklusive des vollständigen Rand-Buckets der letzten Minute', async () => {
-    const values = Array.from({ length: 147 }, () => [null, '0']);
+    const values = Array.from({ length: 154 }, () => [null, '0']);
     // Reihenfolge je Bucket: create, adminFailure, codeFailure, softCapDelay,
-    // vier Failure-Quellen, vier Delay-Quellen, dann die neun 429-Kategorien.
+    // vier Failure-Quellen, vier Delay-Quellen, dann die zehn 429-Kategorien.
     values[0] = [null, '3'];
     values[1] = [null, '6'];
     values[2] = [null, '7'];
@@ -155,11 +155,11 @@ describe('abuseTelemetry', () => {
     values[5] = [null, '2'];
     values[8] = [null, '2'];
     values[13] = [null, '2'];
-    values[17] = [null, '4'];
-    values[18] = [null, '5'];
-    values[105] = [null, '1'];
+    values[18] = [null, '4'];
+    values[19] = [null, '5'];
+    values[110] = [null, '1'];
     // Bei now=60s liegt ein erst 55s altes Ereignis im zusätzlichen Bucket 0.
-    values[126] = [null, '2'];
+    values[132] = [null, '2'];
     const multi = createMulti(values);
     mocks.getRedis.mockReturnValue({ multi: () => multi });
 
@@ -187,13 +187,14 @@ describe('abuseTelemetry', () => {
         quizUpload: 0,
         quickFeedback: 0,
         sessionCode: 0,
+        sessionCodeReconnect: 0,
         vote: 4,
         pdf: 5,
         motd: 0,
         other: 0,
       },
     });
-    expect(multi.get).toHaveBeenCalledTimes(147);
+    expect(multi.get).toHaveBeenCalledTimes(154);
   });
 
   it('begrenzt 429-Logs je Kategorie und meldet unterdrückte Ereignisse gesammelt', () => {
@@ -333,6 +334,7 @@ describe('abuseTelemetry', () => {
         quizUpload: 0,
         quickFeedback: 0,
         sessionCode: 0,
+        sessionCodeReconnect: 0,
         vote: 0,
         pdf: 0,
         motd: 0,

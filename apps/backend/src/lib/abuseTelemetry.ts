@@ -18,6 +18,7 @@ export type RateLimitCategory =
   | 'quizUpload'
   | 'quickFeedback'
   | 'sessionCode'
+  | 'sessionCodeReconnect'
   | 'vote'
   | 'pdf'
   | 'motd'
@@ -51,6 +52,7 @@ const RATE_LIMIT_CATEGORIES: RateLimitCategory[] = [
   'quizUpload',
   'quickFeedback',
   'sessionCode',
+  'sessionCodeReconnect',
   'vote',
   'pdf',
   'motd',

@@ -3125,11 +3125,18 @@ export const HealthSecurityStatsDTOSchema = z.object({
     quizUpload: z.number().int().min(0),
     quickFeedback: z.number().int().min(0),
     sessionCode: z.number().int().min(0),
+    /** Automatische Poll-/Reconnect-Pfade; nicht alarmiert. */
+    sessionCodeReconnect: z.number().int().min(0),
     vote: z.number().int().min(0),
     pdf: z.number().int().min(0),
     motd: z.number().int().min(0),
     other: z.number().int().min(0),
   }),
+  /**
+   * 429-Ablehnungen ohne Poll-/Reconnect-Rauschen.
+   * Entspricht `rateLimit429LastMinute - rateLimit429ByCategoryLastMinute.sessionCodeReconnect`.
+   */
+  rateLimit429AlertLastMinute: z.number().int().min(0),
   /** Alle fehlgeschlagenen Session-Code-Abfragen in der letzten Minute. */
   sessionCodeFailuresLastMinute: z.number().int().min(0),
   /** Fehlgeschlagene Session-Code-Abfragen nach ihrem fachlichen Ursprung. */

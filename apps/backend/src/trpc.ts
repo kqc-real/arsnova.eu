@@ -63,36 +63,43 @@ const t = initTRPC.context<Context>().create({
     };
   },
 });
+/** Pfade, die serverseitig als `pollReconnect` markiert werden (kein Alarm-429). */
+const SESSION_CODE_RECONNECT_PATHS = new Set<string>([
+  'session.getInfoForReconnect',
+  'session.onStatusChanged',
+  'session.getParticipantSelf',
+  'session.getCurrentQuestionForStudent',
+  'session.getLeaderboard',
+  'session.getTeamLeaderboard',
+  'session.getPersonalScorecard',
+  'session.getPersonalResult',
+  'session.getHasSubmittedFeedback',
+  'session.getSessionConfidenceSummary',
+  'session.getSessionFeedbackSummary',
+  'quickFeedback.isActiveForReconnect',
+  'quickFeedback.results',
+  'quickFeedback.onResults',
+]);
+
+/** Explizite Join-/Lookup- und Nutzeraktions-Pfade mit Session-Code-Cap. */
+const SESSION_CODE_PATHS = new Set<string>([
+  'session.join',
+  'session.getInfo',
+  'session.getParticipantNicknames',
+  'session.confirmReadingReady',
+  'session.getTeams',
+  'session.submitSessionFeedback',
+  'quickFeedback.isActive',
+  'quickFeedback.vote',
+]);
+
 function classifyRateLimitPath(path: string): RateLimitCategory {
   if (path === 'admin.login') return 'adminLogin';
   if (path === 'session.create') return 'sessionCreate';
   if (path === 'quiz.upload') return 'quizUpload';
   if (path === 'quickFeedback.create') return 'quickFeedback';
-  if (
-    path === 'session.join' ||
-    path === 'session.getInfo' ||
-    path === 'session.getInfoForReconnect' ||
-    path === 'session.getParticipantNicknames' ||
-    path === 'session.getParticipantSelf' ||
-    path === 'session.confirmReadingReady' ||
-    path === 'session.getTeams' ||
-    path === 'session.onStatusChanged' ||
-    path === 'session.getCurrentQuestionForStudent' ||
-    path === 'session.getLeaderboard' ||
-    path === 'session.getTeamLeaderboard' ||
-    path === 'session.getPersonalScorecard' ||
-    path === 'session.getPersonalResult' ||
-    path === 'session.submitSessionFeedback' ||
-    path === 'session.getHasSubmittedFeedback' ||
-    path === 'session.getSessionFeedbackSummary' ||
-    path === 'quickFeedback.isActive' ||
-    path === 'quickFeedback.isActiveForReconnect' ||
-    path === 'quickFeedback.vote' ||
-    path === 'quickFeedback.results' ||
-    path === 'quickFeedback.onResults'
-  ) {
-    return 'sessionCode';
-  }
+  if (SESSION_CODE_RECONNECT_PATHS.has(path)) return 'sessionCodeReconnect';
+  if (SESSION_CODE_PATHS.has(path)) return 'sessionCode';
   if (path === 'vote.submit') return 'vote';
   if (path === 'session.getSessionExportPdf' || path === 'session.getLastSessionExportPdfForQuiz') {
     return 'pdf';

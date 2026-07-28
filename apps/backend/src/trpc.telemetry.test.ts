@@ -32,6 +32,18 @@ const testRouter = router({
     getInfoForReconnect: publicProcedure.query(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
+    getParticipantSelf: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+    getLeaderboard: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+    getSessionConfidenceSummary: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+    confirmReadingReady: publicProcedure.mutation(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
     getSessionExportPdf: publicProcedure.query(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
@@ -51,6 +63,9 @@ const testRouter = router({
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
     isActiveForReconnect: publicProcedure.query(() => {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+    }),
+    vote: publicProcedure.mutation(() => {
       throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }),
   }),
@@ -86,8 +101,28 @@ describe('zentrale Security-Telemetrie', () => {
     ],
     [
       'session.getInfoForReconnect',
-      'sessionCode',
+      'sessionCodeReconnect',
       () => testRouter.createCaller({ req: undefined }).session.getInfoForReconnect(),
+    ],
+    [
+      'session.getParticipantSelf',
+      'sessionCodeReconnect',
+      () => testRouter.createCaller({ req: undefined }).session.getParticipantSelf(),
+    ],
+    [
+      'session.getLeaderboard',
+      'sessionCodeReconnect',
+      () => testRouter.createCaller({ req: undefined }).session.getLeaderboard(),
+    ],
+    [
+      'session.getSessionConfidenceSummary',
+      'sessionCodeReconnect',
+      () => testRouter.createCaller({ req: undefined }).session.getSessionConfidenceSummary(),
+    ],
+    [
+      'session.confirmReadingReady',
+      'sessionCode',
+      () => testRouter.createCaller({ req: undefined }).session.confirmReadingReady(),
     ],
     ['vote.submit', 'vote', () => testRouter.createCaller({ req: undefined }).vote.submit()],
     ['quiz.upload', 'quizUpload', () => testRouter.createCaller({ req: undefined }).quiz.upload()],
@@ -98,8 +133,13 @@ describe('zentrale Security-Telemetrie', () => {
     ],
     [
       'quickFeedback.isActiveForReconnect',
-      'sessionCode',
+      'sessionCodeReconnect',
       () => testRouter.createCaller({ req: undefined }).quickFeedback.isActiveForReconnect(),
+    ],
+    [
+      'quickFeedback.vote',
+      'sessionCode',
+      () => testRouter.createCaller({ req: undefined }).quickFeedback.vote(),
     ],
     [
       'session.getSessionExportPdf',
