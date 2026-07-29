@@ -1,63 +1,71 @@
-# Cloud-Computing-Einordnung (betriebliche Fassung)
+# Cloud-Computing-Einordnung: betriebliche Fassung
 
-## Zweck
+**Zweck:** Aktuellen Betriebsstand, belastbare Evidenz und Cloud-Transformationsbedarf von `arsnova.eu` trennen · **Stand:** 2026-07-28 · **Kurskontext:** [Cloud-Computing-Kurslandkarte](../didaktik/CLOUD-COMPUTING-KURSREADME.md)
 
-Dieses Dokument ordnet die Fragestellung zur Einsatzfaehigkeit von **arsnova.eu** fuer Konferenzszenarien mit hoher gleichzeitiger Nutzerzahl in das Themenfeld **Cloud Computing** ein.
+## 1. Ist-System
 
-Die Einordnung ist bewusst sachlich-betrieblich formuliert und eignet sich fuer interne Dokumentation, Architekturentscheidungen, Betriebsunterlagen und technische Abstimmungen.
+Der vorgesehene Produktionspfad ist derzeit ein **Single-Host-Deployment**:
 
-## Einordnung
+- Nginx terminiert TLS und leitet HTTP, tRPC-WebSockets und Yjs weiter.
+- Ein App-Container liefert Frontend und Backend einschließlich der WebSocket-Dienste aus.
+- PostgreSQL 16 und Redis 7.4 laufen als eigene Container auf demselben Host.
+- Die PDF-Erzeugung läuft in einem separaten, gehärteten Worker-Container.
 
-Die Frage, ob **arsnova.eu** mit der aktuell betriebenen Infrastruktur fuer eine Veranstaltung mit **500 gleichzeitigen Teilnehmenden** geeignet ist, gehoert fachlich in den Bereich **Cloud Computing**.
+Das ist ein containerisierter IaaS-/Self-managed-Betrieb, aber noch keine elastische Multi-Instanz-Architektur. Die maßgeblichen Quellen sind [Produktions-Compose](../../docker-compose.prod.yml), [Deployment-Anleitung](../deployment-debian-root-server.md) und [Architektur-Handbuch](../architecture/handbook.md).
 
-Im Kern geht es nicht nur um eine einzelne Performance-Frage, sondern um die Bereitstellung, Skalierung, Beobachtung und betriebliche Absicherung einer internetbasierten Anwendung unter wechselnder Last.
+## 2. Evidenzlage
 
-## Bezug zu Cloud Computing
+| Evidenzstufe            | Stand                                                                                     | Betriebliche Aussage                                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Produktion, 2026-05-09  | 500 gleichzeitige Joins, 0 HTTP-Fehler, `p95 = 3,57 s`                                    | Join funktional erfolgreich, damaliges Ziel `p95 < 3 s` verfehlt; aktive Frage und Vote-Spike nicht auf Produktion geprüft |
+| Lokal, 2026-07-12       | versionierte 500er-Regressionen für Live-Session, Reconnect, Vote, Yjs und Soak-Bausteine | Entwicklungs- und Regressionsbaseline, kein Produktions-SLO                                                                |
+| Formale Zielhostabnahme | §6.5-Lauf noch nicht ausgeführt                                                           | Keine vollständige Freigabe für 500 Teilnehmende im produktionsnahen Live-Betrieb                                          |
 
-Die Fragestellung beruehrt mehrere zentrale Themen des Cloud Computing:
+Quellen: [Produktionslauf](./LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](./LOCAL-BASELINE-FREIGABE-2026-07-12.md), [§6.5-Abnahme](./S6.5-SECURITY-LOAD-ACCEPTANCE.md).
 
-- **Elasticity**
-  Die Infrastruktur muss Lastspitzen aufnehmen koennen oder gezielt darauf vorbereitet werden.
+Die Kurzform „500 abgenommen“ ist deshalb zu ungenau. Korrekt ist: **500 Produktions-Joins wurden historisch funktional beobachtet; umfassendere 500er-Pfade sind lokal verifiziert; die formale produktionsnahe Gesamtfreigabe ist offen.**
 
-- **Resource Provisioning**
-  Es ist zu bewerten, ob CPU, RAM, Speicher, Netzwerk und Verbindungen in ausreichendem Umfang bereitgestellt sind.
+## 3. Lehr- und Architekturzielbilder
 
-- **Vertical Scaling**
-  Eine moegliche Reaktion besteht in der Vergroesserung eines einzelnen Hosts.
+Für den Cloud-Computing-Kurs werden zwei ungetestete Szenarien verglichen:
 
-- **Horizontal Scaling**
-  Alternativ kann die Anwendung ueber mehrere Instanzen verteilt werden.
+| Profil                                                         | Charakteristische Belastung                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **100 Sessions × 50 Teilnehmende** in Quiz, Q&A und Blitzlicht | Multi-Tenancy, viele Sessionzustände, Kanalparallelität und Isolation |
+| **1 Session × 5.000 Teilnehmende**                             | Hotspot, WebSocket-Fan-out, Burst-Last und gemeinsamer Live-Zustand   |
 
-- **Service Separation**
-  Die Trennung von App, Datenbank und Redis auf getrennte Ressourcen ist ein typisches Cloud-Architekturprinzip.
+Beide Profile ergeben in Summe 5.000 Clients, sind architektonisch aber nicht austauschbar. Sie sind keine Produktzusage und kein bereits beschlossenes Infrastrukturziel.
 
-- **Observability**
-  Monitoring, Alerting, Metriken und Lasttests sind zentrale Bestandteile eines professionellen Cloud-Betriebs.
+## 4. Cloud-relevante Betriebsfragen
 
-- **Resilience**
-  Die Frage nach Ausfallsicherheit, Lastverteilung und Betriebsstabilitaet ist unmittelbar mit Cloud-Computing-Prinzipien verbunden.
+- **Provisioning und Elastizität:** Welche Ressourcen werden für welches Lastprofil wann bereitgestellt und wieder abgebaut?
+- **Horizontale Skalierung:** Wie werden HTTP, tRPC-WebSockets und Yjs über App-Replikate verteilt?
+- **Geteilter Zustand:** Wie verlassen Session-Signale und globale Schutzlimits den heute teilweise prozesslokalen Geltungsbereich?
+- **Daten und Resilienz:** Welche RPO/RTO gelten für PostgreSQL, Redis-Hilfsdaten, Konfiguration und Exporte?
+- **Observability:** Welche SLIs belegen Join, Vote, Fan-out, Reconnect, Sättigung und Recovery?
+- **Security und Isolation:** Wie werden Secrets, Mandanten-/Sessiongrenzen, Rate-Limits und PDF-Ressourcen instanzübergreifend geschützt?
+- **Wirtschaftlichkeit:** Welche Kombination aus Self-managed- und Managed-Diensten senkt Gesamtkosten und Betriebsrisiko?
 
-## Relevanz fuer arsnova.eu
+## 5. Bekannte Multi-Instanz-Lücken
 
-Fuer **arsnova.eu** bedeutet dies konkret:
+Vor einem glaubwürdigen Scale-out sind mindestens diese Punkte zu entscheiden:
 
-- Die Anwendung laeuft als webbasiertes System mit Live-Kommunikation und ist damit stark lastabhaengig.
-- Die Anzahl gleichzeitiger Teilnehmender wirkt sich direkt auf Backend, Datenbank, Redis und Netzwerk aus.
-- Die Eignung fuer Grossveranstaltungen haengt nicht nur vom Anwendungscode, sondern ebenso von der Infrastrukturarchitektur ab.
-- Ein Lasttest mit 500 Teilnehmenden ist damit auch ein Test der Cloud-Faehigkeit des Gesamtsystems.
+1. Sessionstatus-, Teilnehmer-, Frage- und Vote-Signale verwenden im Backend prozesslokale `EventEmitter`; mehrere App-Prozesse benötigen einen geteilten Ereignispfad oder eine nachgewiesene Routingstrategie.
+2. WebSocket- und Yjs-Verbindungen benötigen definierte Affinität, Reconnect- und Failover-Semantik.
+3. PDF-Limitierung und mehrere Yjs-/Abuse-Budgets sind pro Prozess ausgelegt und müssen bei mehreren Instanzen global bewertet werden.
+4. Datenbank- und Redis-Kapazität dürfen nicht aus Clientzahlen allein geschätzt werden; Query-, Schreib-, Fan-out- und Recovery-Messungen sind erforderlich.
+5. Das aktuelle Compose-Deployment beschreibt genau einen App-Container und ist kein Nachweis für horizontale Skalierbarkeit.
 
-## Betriebliche Schlussfolgerung
+## 6. Betrieblicher Transformationspfad
 
-Die Anfrage nach einem Einsatz von **arsnova.eu** fuer 500 gleichzeitige Teilnehmende ist daher nicht nur als Produkt- oder Performance-Frage zu behandeln, sondern als klassische **Cloud-Computing- und Betriebsfrage**.
+| Schritt                    | Ziel                                                                         | Nachweis vor dem nächsten Schritt                                 |
+| -------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 0. Ist stabilisieren       | Single Host, Monitoring, Backup/Restore und formale 500er-Zielhostabnahme    | SLO-Review und dokumentierter Freigabevermerk                     |
+| 1. Replatform              | App, PostgreSQL und Redis betrieblich trennen; reproduzierbares Provisioning | Restore-, Failure- und Lasttests auf der neuen Topologie          |
+| 2. Scale-out vorbereiten   | geteilte Events/Limits, Routing und instanzübergreifende Telemetrie          | Zwei-Instanz-Test einschließlich Failover und Reconnect           |
+| 3. Zielprofile testen      | zunächst Stufen, dann `100 × 50` und `1 × 5.000` separat                     | je Profil vollständige SLI/SLO-, Ressourcen- und Recovery-Evidenz |
+| 4. Elastizität entscheiden | manuelles oder automatisches Scale-out nach realer Lastkurve                 | Kosten-, Stabilitäts- und Betriebsvergleich                       |
 
-Zu bewerten sind insbesondere:
+## 7. Schlussfolgerung
 
-- die Skalierbarkeit der Infrastruktur
-- die Lastverteilung im Gesamtsystem
-- die Entkopplung zentraler Dienste
-- die Messbarkeit des Systemverhaltens unter Last
-- die betriebliche Absicherung eines Live-Einsatzes
-
-## Kurzform fuer interne Verwendung
-
-Die Fragestellung ist dem Bereich **Cloud Computing** zuzuordnen, weil sie die bedarfsgerechte Bereitstellung, Skalierung, Ueberwachung und Absicherung von Ressourcen fuer eine webbasierte Live-Anwendung unter Last untersucht.
+`arsnova.eu` ist ein geeigneter Cloud-Computing-Fall, weil der Übergang von einem funktionierenden Single-Host-System zu einem verteilten, messbaren und resilienten Betrieb untersucht wird. Die nächste belastbare Entscheidung ist nicht „welcher Provider trägt 5.000 Clients?“, sondern: **Welche Architekturhypothese wird mit welchem isolierten Zielhost, welchen SLIs und welchen Abbruchkriterien geprüft?**

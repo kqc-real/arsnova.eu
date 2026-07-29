@@ -4,6 +4,14 @@
 
 > Vorschlag fuer eine semesterbegleitende Vorlesungsreihe auf Basis des Repos `arsnova.eu`.
 > Fokus: Onboarding, Softwarearchitektur, Datenschutz, Realtime, Local-First, Qualitaetssicherung und Entwicklung mit KI-Agenten.
+>
+> **Nicht** die Bachelor-Vorlesung Cloud Computing: dafuer
+> [`CLOUD-COMPUTING-KURSREADME.md`](./CLOUD-COMPUTING-KURSREADME.md),
+> [`CLOUD-COMPUTING-IU-FORMALIA.md`](./CLOUD-COMPUTING-IU-FORMALIA.md),
+> [`CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md`](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md),
+> [`CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md`](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md),
+> [`BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md`](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md)
+> und [`vorlesungen-cloud-computing-termine.md`](./vorlesungen-cloud-computing-termine.md).
 
 ---
 
