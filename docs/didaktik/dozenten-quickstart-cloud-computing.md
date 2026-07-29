@@ -11,11 +11,11 @@
 3. Richte Agenten, Zielserver, Rechte, Budgets und Evidenz nach dem [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) ein.
 4. Übernimm Dauer, Bestandteile, Fristen und Bewertung aus der [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md).
 5. Prüfe das [Lehrkonzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md).
-6. Nutze die [12 Terminpläne](./vorlesungen-cloud-computing-termine.md) für die Durchführung.
+6. Nutze die [12 Terminpläne](./vorlesungen-cloud-computing-termine.md) einschließlich der Themen und Keywords für jeweils 30 MC-Test-Fragen.
 7. Übertrage die Aktivitäten mit dem [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) auf den jeweiligen Kurslauf.
 8. Bestätige vor Veröffentlichung der Prüfung in myCampus, ob Referat oder abweichend Workbook und welcher Agenteneinsatz zulässig ist.
 
-## Elf Entscheidungen vor Semesterstart
+## Zwölf Entscheidungen vor Semesterstart
 
 | Frage             | Empfohlener Startpunkt                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------- |
@@ -30,6 +30,7 @@
 | Referatsformat    | Einzel/Gruppe und Präsentation mit Handout/Poster aus Prüfungsauftrag oder myCampus übernehmen    |
 | Labortiefe        | isolierte Zielserver agentisch installieren, härten, prüfen und zurückbauen; Produktion gesperrt  |
 | Kohortenrollen    | Informatik/Wirtschaftsinformatik mischen; Technik, Privacy, Performance und FinOps koppeln        |
+| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus den festgelegten Themen und Keywords   |
 
 ## Formaler Kern auf einen Blick
 
@@ -45,6 +46,7 @@
 - agent-first: Agenten führen Labor-, Analyse- und Bewertungsaufträge aus; Menschen setzen Grenzen, genehmigen Risiko/Kosten, verifizieren und verantworten
 - Serverlabor: reproduzierbare Bereitstellung und Härtung, Security, Datenschutz, Performance, Recovery und Cleanup auf isolierten Zielservern
 - Wirtschaftsinformatik: TCO, Unit Economics, Sensitivität, Build/Buy, Risiko und Exit aus derselben technischen Evidenz
+- MC-Test: nach jedem Termin 30 agentisch erzeugte, lehrendengeprüfte Fragen zur freiwilligen Selbstüberprüfung; in Präsenz und Zoom identisch
 
 ## Was Lehrende fachlich nicht verkürzen dürfen
 
@@ -76,6 +78,7 @@ Providerpreise, SKU-Stücklisten und OpenStack-/Kubernetes-Optionen sind Vertief
 - isolierten Zielserver, Snapshot/Neuaufbau, kurzlebige Credentials und automatischen Cleanup bereithalten.
 - Für den Kursmodus Gruppenbildung, Ergebnissicherung und Technikfallback aus dem Präsenz-/Zoom-Konzept auswählen.
 - Volatile Preise oder Providerfunktionen am Tag der Verwendung gegen Primärquellen prüfen.
+- Aus den im Terminplan genannten Themen und Keywords 30 MC-Test-Fragen erzeugen und Lösungsschlüssel, Eindeutigkeit, Quellenbezug sowie Importformat prüfen.
 
 ## Semesterstart-Checkliste
 
@@ -97,6 +100,7 @@ Providerpreise, SKU-Stücklisten und OpenStack-/Kubernetes-Optionen sind Vertief
 - [ ] Repository-Commit oder Stichtag für die Fallstudie festgelegt
 - [ ] agentische Serverbereitstellung und Härtung auf rücksetzbarer Nichtproduktionsumgebung getestet
 - [ ] Security-, Privacy-, Performance-, Recovery- und FinOps-Agentenaufträge getestet
+- [ ] Generator und Freigabeprüfung für 30 MC-Test-Fragen je Termin getestet
 - [ ] Modell-/Cloud-Konten, Quotas, Budgets, Datenschutz und Secret-Behandlung geklärt
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen festgelegt
 - [ ] Produktionslasttests und Echtdaten ausdrücklich ausgeschlossen

@@ -17,11 +17,15 @@ Pausen und institutionelle Zeitfenster sind vor Semesterstart einzurechnen. Die 
 
 Alle substanziellen Aktivitäten werden auf Lehrenden- und Studierendenseite mit KI-Agenten ausgeführt. Jeder Termin folgt `Auftrag → Plan → Freigabe → Ausführung → Verifikation → Evidenz → Entscheidung`; reine Chatantworten oder manuell nachgeklickte Cloud-Schritte erfüllen den Arbeitsauftrag nicht. Menschen setzen Grenzen, genehmigen Risiko/Kosten und verantworten das Ergebnis.
 
+Nach **jedem** der zwölf Termine erstellt ein Lehrendenagent aus den jeweils ausgewiesenen Themen und Keywords genau **30 [MC-Test](https://github.com/kqc-real/streamlit)-Fragen** zur freiwilligen Selbstüberprüfung. Entsprechend dem EDULEARN26-Konzept erhält jedes Item ein Lernziel, ein Thema, eine Gewichtung beziehungsweise Schwierigkeit, eines der Niveaus Reproduktion/Anwendung/Analyse sowie eine Begründung zu den Antwortoptionen. Der Agent liefert schema-konforme, technisch importierbare Fragen; die Lehrperson prüft Lösungsschlüssel, Eindeutigkeit, Quellenbezug und unbeabsichtigte Lösungshinweise vor der Freigabe. Präsenz- und Zoom-Lauf erhalten denselben freigegebenen Fragensatz. MC-Test ist formativ und weder Prüfungsleistung noch Prüfungszulassung.
+
 Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für das 15-minütige Referat je Prüfling. Falls myCampus stattdessen Workbook vorgibt, werden ausschließlich die zentralen Workbookaufgaben und [Workbook-Regeln](./CLOUD-COMPUTING-IU-FORMALIA.md#7-alternativpfad-workbook-nur-nach-bestätigung) verwendet.
 
 ## Termin 1: Grundlagen und Agentenvertrag
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 1 · **Leitfrage:** Wann ist ein Dienst Cloud Computing und wie wird ein Agent dafür sicher beauftragt?
+
+**MC-Test (30 Fragen):** Themen: Cloud-Merkmale, Service- und Deployment-Modelle, Shared Responsibility, sicherer Agentenauftrag · Keywords: On-demand Self-service, Broad Network Access, Resource Pooling, Rapid Elasticity, Measured Service, IaaS, PaaS, SaaS, Public Cloud, Private Cloud, Hybrid Cloud, Multi-Cloud, Hosting, Outsourcing, Virtualisierung, Shared Responsibility, Agentenvertrag, Least Privilege, Budget, Akzeptanzkriterium, Abbruchkriterium
 
 ### UE 1 (0–45)
 
@@ -47,6 +51,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 2 · **Leitfrage:** Welche Abstraktionen und Agentengrenzen machen einen reproduzierbaren Cloud-Zielserver möglich?
 
+**MC-Test (30 Fragen):** Themen: Virtualisierung, Containerisierung, Infrastructure as Code, Speicher, Netzwerk und API-Kommunikation · Keywords: Hypervisor, virtuelle Maschine, Image, Container, Isolation, Docker Compose, Orchestrierung, Infrastructure as Code, Compute, Block Storage, File Storage, Object Storage, DNS, TLS, Load Balancer, Firewall, HTTP, REST, WebSocket, Egress, Quota, Cleanup
+
 ### UE 1 (0–45)
 
 - Architekturagent modelliert Virtualisierung, Hypervisor, VM, Container, Images, Isolation und Ressourcensteuerung
@@ -70,6 +76,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ## Termin 3: Agentische Serverinstallation, Härtung und Zustandsgrenzen
 
 **Typ:** Tutorium · **Modulhandbuch:** Vertiefung Inhaltsblock 2 · **Leitfrage:** Kann der Agent einen isolierten Server reproduzierbar installieren und nachweisbar härten?
+
+**MC-Test (30 Fragen):** Themen: agentische Serverbereitstellung, Installation, Härtung, Zustands- und Vertrauensgrenzen, Wiederherstellung · Keywords: Provisioning, Idempotenz, Patchmanagement, unprivilegiertes Dienstkonto, SSH-Schlüssel, Firewall, minimale Ports, Dateirechte, Secrets, Nginx, PostgreSQL, Redis, Yjs, WebSocket, PDF-Worker, Trust Boundary, State, Hardening-Scan, Rollback, Destroy, Rebuild
 
 ### UE 1 (0–45)
 
@@ -96,6 +104,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 3 · **Leitfrage:** Welche Aufgaben empfiehlt ein Agent für Serverless und hält die Empfehlung einem isolierten Gegenversuch stand?
 
+**MC-Test (30 Fragen):** Themen: Serverless Computing, Funktions- und Dienstmodelle, Eignung, Grenzen und Kosten · Keywords: FaaS, BaaS, Trigger, Statelessness, Cold Start, Laufzeitgrenze, Autoscaling, Pay-per-use, Function, Container, Job, Queue, Worker, Managed Service, Observability, Datenlokalität, Vendor Lock-in, Break-even, PDF-Erzeugung, Webhook, Yjs
+
 ### UE 1 (0–45)
 
 - Serverless-Agent erschließt Function as a Service, Backend as a Service, Trigger, kurze Ausführung und zustandslose Instanz
@@ -121,6 +131,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 4 · **Leitfrage:** Wie vergleicht ein Provider-Agent Google Cloud, AWS und Azure ohne Produktkatalog- oder Preisillusion?
 
+**MC-Test (30 Fragen):** Themen: Google Cloud, AWS und Azure, Providerfähigkeiten, Verantwortungsgrenzen, Regionen und Kosten · Keywords: Projekt, Account, Subscription, Region, Availability Zone, IAM, VPC, VNet, Compute, Container Service, Functions, Object Storage, Managed Database, Monitoring, Shared Responsibility, Pricing, Egress, Data Residency, Lock-in, Exit, Primärquelle
+
 ### UE 1 (0–45)
 
 - Provider-Agent erhebt Konto-/Projektmodell, Regionen, Availability Zones, Identität, Netzwerk und Abrechnung
@@ -144,6 +156,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ## Termin 6: Datenwissenschaft und maschinelles Lernen in der Cloud
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 5 · **Leitfrage:** Welche Cloud-Fähigkeit empfiehlt ein Daten-/ML-Agent und besteht sie die Privacy- und Wirtschaftlichkeitsgates?
+
+**MC-Test (30 Fragen):** Themen: Datenwissenschaft und maschinelles Lernen in der Cloud, Datenpipeline, Managed ML, Datenschutz und Wirtschaftlichkeit · Keywords: Batch, Streaming, ETL, ELT, Data Lake, Data Warehouse, Notebook, Pipeline, Training, Inferenz, MLOps, Managed ML, Datenqualität, Reproduzierbarkeit, Datenminimierung, Zweckbindung, Datenresidenz, Aufbewahrung, Löschung, Modell-/Datenexport, synthetische Daten, Egress
 
 ### UE 1 (0–45)
 
@@ -169,6 +183,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Tutorium · **Modulhandbuch:** Vertiefung Inhaltsblock 2 · **Leitfrage:** Kann ein Recovery-Agent die geforderte Wiederherstellung tatsächlich und reproduzierbar ausführen?
 
+**MC-Test (30 Fragen):** Themen: Persistenz, Speicherklassen, Backup, Restore und Disaster Recovery · Keywords: Persistenz, Cache, flüchtiger Zustand, PostgreSQL, Redis, Yjs, Object Storage, Backup, Snapshot, Offsite Backup, RPO, RTO, Konsistenz, Idempotenz, Restore, Integrität, Datenverlust, Recovery-Test, Disaster Recovery, Owner, Kosten
+
 ### UE 1 (0–45)
 
 - Recovery-Agent inventarisiert Persistenz, Cache, flüchtigen Zustand und Object Storage auf dem Zielserver
@@ -192,6 +208,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ## Termin 8: Skalierung und Performance Engineering
 
 **Typ:** Tutorium · **Modulhandbuch:** Fallvertiefung zu Nutzen/Risiken und technischer Grundlage · **Leitfrage:** Welche agentisch ausgeführte Messung kann eine Skalierungs- oder Wirtschaftlichkeitsannahme widerlegen?
+
+**MC-Test (30 Fragen):** Themen: Skalierung, Elastizität, Last- und Performance Engineering, Resilienz und Unit Costs · Keywords: vertikale Skalierung, horizontale Skalierung, Elastizität, Load Balancing, Queueing, Backpressure, p50, p95, p99, Durchsatz, Fehlerrate, Sättigung, SLI, SLO, Lasttest, Baseline, WebSocket, Yjs, Scale-out, Hotspot, Abbruchkriterium, Unit Cost
 
 ### UE 1 (0–45)
 
@@ -218,6 +236,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Nutzen/Risiken und Plattformanalyse · **Leitfrage:** Können Security- und Privacy-Agenten Befunde sicher beheben und mit unabhängiger Evidenz schließen?
 
+**MC-Test (30 Fragen):** Themen: Cloud-Sicherheit, Datenschutz, Observability und Resilienz · Keywords: IAM, Least Privilege, Secrets, Netzwerksegmentierung, Supply Chain, Tenant-Isolation, Session-Isolation, Verschlüsselung, Datenminimierung, Logs, Metriken, Traces, Alerting, Runbook, Redundanz, Graceful Degradation, Vulnerability Scan, Remediation, Negativtest, False Positive, Restrisiko
+
 ### UE 1 (0–45)
 
 - Security-Agent modelliert IAM, Least Privilege, Secrets, Netzwerkgrenzen, Supply Chain und Tenant-/Session-Isolation
@@ -243,6 +263,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Tutorium · **Modulhandbuch:** Analyse etablierter Plattformen · **Leitfrage:** Welche technisch belegte Cloud-Option ist unter Kosten, Risiko und Exit wirtschaftlich vertretbar?
 
+**MC-Test (30 Fragen):** Themen: Providerentscheidung, FinOps, TCO, Unit Economics und 6R-Migration · Keywords: Rehost, Replatform, Repurchase, Refactor, Retire, Retain, TCO, Unit Economics, CapEx, OpEx, Personalaufwand, Support, Observability-Kosten, Compliance-Kosten, Egress, Build-or-Buy, Best Case, Base Case, Worst Case, Sensitivitätsanalyse, Lock-in, Exit, ADR
+
 ### UE 1 (0–45)
 
 - Economics-/FinOps-Agent prüft den GCP-/AWS-/Azure-Vergleich aus Termin 5 auf gleiche Systemgrenze und Leistungsbasis
@@ -266,6 +288,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ## Termin 11: Referatswerkstatt
 
 **Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Wie bilden Einreichung, Vortrag und Diskussion gemeinsam eine akademisch belastbare Prüfungsleistung?
+
+**MC-Test (30 Fragen):** Themen: wissenschaftliche Argumentation, Referatsstruktur, Evidenz, Quellen, Visualisierung und Agentenoffenlegung · Keywords: Forschungsfrage, These, Argumentationslinie, Primärquelle, Quellenkritik, Fakt, Evidenz, Annahme, Entscheidung, Zitation, Literaturverzeichnis, Handout, Poster, Abbildung, individuelle Kennzeichnung, Agentenbeitrag, akademische Integrität, Zeitbudget, Einreichung, Vortrag, Diskussion, 30/30/40-Gewichtung
 
 ### UE 1 (0–45)
 
@@ -297,6 +321,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ## Termin 12: Probeprüfung und Synthese
 
 **Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Deckt die individuelle Leistung das Modulziel ab und hält sie einer dialogischen Befragung stand?
+
+**MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Zeitmanagement, Diskussion, akademische Integrität
 
 ### UE 1 (0–45)
 
