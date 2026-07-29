@@ -15,6 +15,7 @@ Es gibt **keinen fachlich unterschiedlichen Präsenz- und Onlinekurs**. Beide Ku
 - dieselben Qualitäts-, Quellen- und Bewertungskriterien;
 - dieselben freigegebenen Agenten, Modelle, Systemaufträge, Werkzeugprofile und Versionen;
 - dieselben isolierten Zielserver, Rechte, Budgets, Freigabegates und Abnahmetests;
+- dieselben 30 agentisch erzeugten MC-Test-Fragen zur Selbstüberprüfung nach jedem Termin;
 - denselben dokumentierten Stand der Fallstudie `arsnova.eu`.
 
 Unterschiedlich sind **Sozialform, Moderation, Medien, technische Vorbereitung und Ausfallplan**. Der Ausdruck `Präsenz/synchron` in den Kursdokumenten bezeichnet die gemeinsame Workload-Kategorie des Modulhandbuchs: Im Präsenzlauf findet sie im Raum statt, im Onlinelauf synchron in Zoom.

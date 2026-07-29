@@ -22,6 +22,7 @@
 | Praxisanteil laut Modulhandbuch | 0 Stunden; Anwendungsaufgaben bleiben Lehrmethode                                 |
 | Prüfungsbasis                   | Referat, 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion              |
 | Didaktisches Arbeitsmodell      | ausschließlich agent-first auf Lehrenden- und Studierendenseite                   |
+| Formative Selbstüberprüfung     | nach jedem Termin 30 durch einen KI-Agenten erzeugte MC-Test-Fragen               |
 
 Die 36 UE sind nicht frei zusätzlich zum Tutorium verfügbar. Sie bilden zusammen exakt die 27 betreuten Stunden aus Präsenz/synchroner Lehre und Tutorieller Betreuung ab.
 
@@ -220,7 +221,7 @@ Falls myCampus Workbook ausweist, gelten Einzelarbeit, zentrale Aufgabenstruktur
 
 ## 11. Kurzfassung für die Modulplanung
 
-Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen, Serverless Computing, etablierte Cloud-Plattformen und Datenwissenschaft/ML in der Cloud. Lehrende und Studierende steuern dafür ausschließlich KI-Agenten: Sie stellen isolierte Server bereit, installieren und härten `arsnova.eu`, prüfen Security, Datenschutz, Performance und Resilienz und verbinden die Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit. Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Sechs Präsenz-/synchrone Termine und sechs Tutorien bilden die 36 UE; 123 Stunden Selbststudium dienen Agentic-Dossier, Lektüre und Referatsvorbereitung. Präsenz- und Zoom-Lauf nutzen denselben Agenten- und Laborplan. Formale Prüfungsbasis ist ein 15-minütiges Referat je Prüfling aus Einreichung, Vortrag und Diskussion.
+Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen, Serverless Computing, etablierte Cloud-Plattformen und Datenwissenschaft/ML in der Cloud. Lehrende und Studierende steuern dafür ausschließlich KI-Agenten: Sie stellen isolierte Server bereit, installieren und härten `arsnova.eu`, prüfen Security, Datenschutz, Performance und Resilienz und verbinden die Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit. Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Sechs Präsenz-/synchrone Termine und sechs Tutorien bilden die 36 UE; 123 Stunden Selbststudium dienen Agentic-Dossier, Lektüre und Referatsvorbereitung. Nach jedem Termin stehen 30 agentisch erzeugte MC-Test-Fragen zur freiwilligen Selbstüberprüfung bereit. Präsenz- und Zoom-Lauf nutzen denselben Agenten- und Laborplan. Formale Prüfungsbasis ist ein 15-minütiges Referat je Prüfling aus Einreichung, Vortrag und Diskussion.
 
 ## 12. Freigabecheck
 
@@ -232,6 +233,8 @@ Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen,
 - [ ] identische Lernziele, Materialien, Lernprodukte und Prüfungsinformationen für Präsenz und Zoom bereitgestellt
 - [ ] identische Agenten, Modelle, Zielserver, Rechte, Budgets und Abnahmetests für Präsenz und Zoom bereitgestellt
 - [ ] Agentenvertrag, Freigabegates, Evidenzschema und Cleanup für Lehrende und Studierende getestet
+- [ ] für jeden Termin Themen/Keywords zur Abdeckungssteuerung und eine versionierte autoritative Materialbasis für 30 agentisch erzeugte MC-Test-Fragen gepflegt
+- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate getestet
 - [ ] Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und FinOps-Agentenlabor lauffähig
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung festgelegt
 - [ ] zulässige Agentennutzung und Offenlegung für die Referatsprüfung formal geklärt

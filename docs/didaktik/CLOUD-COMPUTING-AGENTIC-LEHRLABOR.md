@@ -148,7 +148,8 @@ Lehrende nutzen Agenten für:
 - Vorprüfung von IaC, Härtung, Datenschutz, Lasttests und Kostenmodellen;
 - Erzeugung absichtlich fehlerhafter, aber sicher isolierter Ausgangszustände;
 - Vergleich von Studierendenevidenz mit Akzeptanzkriterien;
-- formative Feedbackvorschläge und Erkennung fehlender Nachweise.
+- formative Feedbackvorschläge und Erkennung fehlender Nachweise;
+- Erzeugung und Vorprüfung von jeweils 30 MC-Test-Fragen nach dem festgeschriebenen vierstufigen [Generatorvertrag](./vorlesungen-cloud-computing-termine.md#verbindlicher-mc-test-generatorvertrag); Themen und Keywords steuern die Abdeckung, die freigegebene Materialbasis liefert das Fachwissen.
 
 Lehrendenagenten erhalten keine autonome Notenhoheit und verändern keine studentischen Abgaben. Aufgabe, Agentenkonfiguration, verwendete Prüfroutinen und wesentliche Modellgrenzen werden transparent gemacht.
 
@@ -215,6 +216,8 @@ Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlic
 
 Beide Kursläufe nutzen dieselbe remote erreichbare oder identisch reproduzierbare Laborplattform, dieselben Agentenkonfigurationen, Aufgaben, Berechtigungen, Budgets und Abnahmetests. Im Präsenzlauf arbeiten Teams am Tisch mit dem Agenten; im Zoom-Lauf steuern sie denselben Prozess in Breakouts mit geteilter Evidenzansicht. Lokale Rechner dienen nur als Zugang, nicht als unterschiedlich leistungsfähige Zielumgebungen.
 
+Für die freiwillige Selbstüberprüfung wird nach jedem Termin in beiden Kursläufen derselbe Satz von 30 agentisch erzeugten MC-Test-Fragen bereitgestellt.
+
 Bildschirmfreigabe oder Projektion zeigt bevorzugt Auftrag, Plan, Diff, Test und Entscheidung – nicht lange unkommentierte Agentenläufe. Asynchrone Agentenausführung muss einen definierten Rückkehrpunkt, Statuskanal und Abbruchweg besitzen.
 
 ## 11. Prüfungs- und Integritätsregel
@@ -239,5 +242,6 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
+- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
 - [ ] keine autonome Notengebung oder ungeprüfte Übernahme von Agentenaussagen vorgesehen
 - [ ] erlaubter KI-Einsatz in der Referatsprüfung formal geklärt und veröffentlicht

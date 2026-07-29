@@ -26,19 +26,20 @@ Offizielle Orientierung: [IU Bachelor Informatik – Kursübersicht](https://www
 
 ## 2. Beschlossener Konzeptkern
 
-| Entscheidung     | Konzeptstand                                                                                             |
-| ---------------- | -------------------------------------------------------------------------------------------------------- |
-| Format           | zwei Kursläufe, einmal Präsenz und einmal Zoom; jeweils 12 Termine × 3 UE                                |
-| Modalitätsregel  | gleiche Ziele, Inhalte, Zeiten, Agenten, Laborumgebungen, Lernprodukte und Prüfung                       |
-| Arbeitsmodell    | ausschließlich KI-Agenten im Sinne des Agentic Software Engineering auf Lehrenden- und Studierendenseite |
-| Lehrvehikel      | `arsnova.eu` als durchgehende reale Fallstudie, nicht als bloße Demo                                     |
-| Pflichtabdeckung | Grundlagen, technologische Voraussetzungen, Serverless, GCP/AWS/Azure sowie Datenwissenschaft/ML         |
-| Lernlogik        | Cloud-Grundlagen → agentischer Serveraufbau → Härtung/Messung → wirtschaftliche Entscheidung             |
-| Praxis           | isolierte Zielserver werden durch kontrollierte Agenten installiert, gehärtet, geprüft und zurückgebaut  |
-| Lernprodukt      | Formatives Agentic Cloud Engineering Dossier als Arbeitsgrundlage für das Referat                        |
-| Prüfungsbasis    | 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion; Workbook nur nach bestätigter Zuordnung     |
-| Providerbezug    | GCP, AWS und Azure verbindlich; Hetzner und OpenStack/Kubernetes als Fall- und Vergleichsoptionen        |
-| WI-Integration   | TCO, FinOps, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit beruhen auf technischer Evidenz    |
+| Entscheidung      | Konzeptstand                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| Format            | zwei Kursläufe, einmal Präsenz und einmal Zoom; jeweils 12 Termine × 3 UE                                   |
+| Modalitätsregel   | gleiche Ziele, Inhalte, Zeiten, Agenten, Laborumgebungen, Lernprodukte und Prüfung                          |
+| Arbeitsmodell     | ausschließlich KI-Agenten im Sinne des Agentic Software Engineering auf Lehrenden- und Studierendenseite    |
+| Lehrvehikel       | `arsnova.eu` als durchgehende reale Fallstudie, nicht als bloße Demo                                        |
+| Pflichtabdeckung  | Grundlagen, technologische Voraussetzungen, Serverless, GCP/AWS/Azure sowie Datenwissenschaft/ML            |
+| Lernlogik         | Cloud-Grundlagen → agentischer Serveraufbau → Härtung/Messung → wirtschaftliche Entscheidung                |
+| Praxis            | isolierte Zielserver werden durch kontrollierte Agenten installiert, gehärtet, geprüft und zurückgebaut     |
+| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus einer versionierten, autoritativen Materialbasis |
+| Lernprodukt       | Formatives Agentic Cloud Engineering Dossier als Arbeitsgrundlage für das Referat                           |
+| Prüfungsbasis     | 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion; Workbook nur nach bestätigter Zuordnung        |
+| Providerbezug     | GCP, AWS und Azure verbindlich; Hetzner und OpenStack/Kubernetes als Fall- und Vergleichsoptionen           |
+| WI-Integration    | TCO, FinOps, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit beruhen auf technischer Evidenz       |
 
 Zwei **Lehr- und Architekturzielbilder** strukturieren die Fallarbeit:
 
@@ -89,7 +90,7 @@ Verbindliche Evidenzquellen:
 5. **Modul und Constructive Alignment:** [Bachelor-Konzept 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md)
 6. **Präsenz und Zoom gleichwertig umsetzen:** [Durchführungskonzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md)
 7. **Semesterstart in 30 Minuten:** [Dozenten-Quickstart](./dozenten-quickstart-cloud-computing.md)
-8. **Durchführung:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md)
+8. **Durchführung und MC-Test-Vorgaben:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md)
 
 ### Für die Fallstudie
 
