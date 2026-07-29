@@ -1,596 +1,243 @@
-<!-- markdownlint-disable MD013 MD022 MD032 -->
+<!-- markdownlint-disable MD013 MD060 -->
 
-# Konzept: Bachelor-Vorlesung "Cloud Computing" mit Praktikum (36 Unterrichtseinheiten)
+# Lehrkonzept: Cloud Computing im Bachelor Informatik (36 UE)
 
-## 1. Kurzprofil
+**Modul:** `DSCC0127` · **Kurs:** `DSCC012701` · **Studienformat:** Duales Studium · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Durchführung:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md), [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Stand:** 2026-07-29
 
-**Modultitel:** Cloud Computing  
-**Studienniveau:** Bachelor  
-**Format:** Vorlesung mit integriertem Praktikum  
-**Umfang:** **36 Unterrichtseinheiten (UE)**  
-**Annahme:** 1 UE = 45 Minuten  
-**Empfohlenes Raster:** **12 Termine à 3 UE** oder **18 Termine à 2 UE**  
-**Zielgruppe:** Studierende der Informatik, Medieninformatik, Wirtschaftsinformatik oder verwandter Studiengänge ab mittlerem Bachelor-Niveau
+## 1. Verbindlicher Rahmen
 
-## 2. Leitidee
+| Merkmal                         | Vorgabe beziehungsweise Umsetzung                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| Niveau                          | Bachelor                                                                          |
+| Umfang                          | 5 CP, 150 Stunden, 2,16 SWS                                                       |
+| Sprache                         | Deutsch                                                                           |
+| Voraussetzungen                 | keine formalen Zugangsvoraussetzungen                                             |
+| Curriculare Bezüge              | IT-Architekturmanagement; Betriebssysteme, Rechnernetze und verteilte Systeme     |
+| Kursart                         | Integrierte Vorlesung                                                             |
+| Teilnehmende                    | Informatik und Wirtschaftsinformatik; gemischte technische/wirtschaftliche Rollen |
+| Kursläufe                       | einmal Präsenz, einmal synchron online in Zoom; fachlich und formal äquivalent    |
+| Präsenz/synchron                | 13,5 Stunden = 18 UE = sechs Termine à 3 UE                                       |
+| Tutorium                        | 13,5 Stunden = 18 UE = sechs Termine à 3 UE                                       |
+| Selbststudium                   | 123 Stunden                                                                       |
+| Praxisanteil laut Modulhandbuch | 0 Stunden; Anwendungsaufgaben bleiben Lehrmethode                                 |
+| Prüfungsbasis                   | Referat, 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion              |
+| Didaktisches Arbeitsmodell      | ausschließlich agent-first auf Lehrenden- und Studierendenseite                   |
 
-Die Veranstaltung verbindet **Cloud-Computing-Grundlagen**, **Architekturentscheidungen**, **Betrieb** und **praktische Umsetzung** anhand einer realistischen Webanwendung. Die Studierenden sollen Cloud Computing nicht nur begrifflich verstehen, sondern als Zusammenspiel aus:
+Die 36 UE sind nicht frei zusätzlich zum Tutorium verfügbar. Sie bilden zusammen exakt die 27 betreuten Stunden aus Präsenz/synchroner Lehre und Tutorieller Betreuung ab.
 
-- Infrastruktur
-- Plattformdiensten
-- Softwarearchitektur
-- Skalierung
-- Beobachtbarkeit
-- Sicherheit
-- Wirtschaftlichkeit
-- Betriebsverantwortung
+## 2. Qualifikationsziele und Pflichtinhalte
 
-**arsnova.eu** dient dabei in **Vorlesung und Praktikum als durchgehendes Lehrvehikel**. Die Veranstaltung arbeitet also nicht primär mit losen Toy-Beispielen, sondern mit einer realen, dokumentierten und bereits betriebenen Webanwendung aus dem Repository.
+Das Lehrkonzept deckt die fünf Qualifikationsziele des Modulhandbuchs vollständig ab. Nach erfolgreichem Abschluss können die Studierenden:
 
-Didaktische Konsequenz:
+1. Grundlagen des Cloud Computing und Cloud-Service-Modelle erklären;
+2. technologische Voraussetzungen aktueller Cloud-Angebote erkennen und einordnen;
+3. Prinzipien, Vorteile und Einschränkungen des Serverless Computing darlegen;
+4. Merkmale etablierter Cloud-Angebote analysieren;
+5. Cloud-Optionen für Datenwissenschaft und maschinelles Lernen beschreiben.
 
-- Vorlesungsbegriffe werden direkt an **arsnova.eu** erklärt
-- Praktikumsaufgaben werden direkt aus Architektur, Betrieb und Skalierungsfragen von **arsnova.eu** abgeleitet
-- Dokumente aus dem Repo werden als verbindliche Lehr- und Arbeitsgrundlage verwendet
+Verbindliche Inhaltsblöcke:
 
-Zentrale Einstiegsdokumente fuer das Lehrvehikel:
+1. Einführung: Grundlagen, Service-Modelle, Nutzen und Risiken;
+2. technologische Voraussetzungen: Virtualisierung/Containerisierung, Speicher, Netzwerke und RESTful-Dienste;
+3. Serverless Computing: Einführung, Vorteile und Einschränkungen;
+4. etablierte Plattformen: Google Cloud, Amazon Web Services und Microsoft Azure;
+5. Datenwissenschaft in der Cloud: Datenwissenschafts- und ML-Angebote dieser drei Plattformen.
 
-- [README.md](../../README.md)
-- [Backlog.md](../../Backlog.md)
-- [docs/architecture/handbook.md](../architecture/handbook.md)
-- [docs/deployment-debian-root-server.md](../deployment-debian-root-server.md)
-- [docs/praktikum/PRAKTIKUM.md](../praktikum/PRAKTIKUM.md)
-- [docs/praktikum/PRAKTIKUM-SQM.md](../praktikum/PRAKTIKUM-SQM.md)
-- [docs/didaktik/greenfield-demo-1-7a-vorlesung.md](./greenfield-demo-1-7a-vorlesung.md)
+`arsnova.eu`, Skalierung, Observability, Security, 6R und FinOps konkretisieren diese Inhalte als Fallstudie. Sie ersetzen keinen der fünf Pflichtblöcke.
 
-## 3. Lernziele
+Als querschnittliche Methodenkompetenz werden sämtliche Pflichtinhalte durch KI-Agenten im Sinne des Agentic Software Engineering erschlossen, umgesetzt und überprüft. Das Agentenarbeitsmodell ergänzt die offiziellen Cloud-Ziele, ohne sie durch allgemeine KI-Schulung zu verdrängen.
 
-Nach erfolgreichem Abschluss der Veranstaltung können die Studierenden:
+## 3. Leitidee und Fallauftrag
 
-- zentrale Begriffe des Cloud Computing fachlich korrekt erläutern
-- Service-Modelle wie `IaaS`, `PaaS` und `SaaS` unterscheiden und einordnen
-- Deployment-Modelle wie `Public`, `Private`, `Hybrid` und `Multi-Cloud` vergleichen
-- die Eigenschaften cloudbasierter Systeme anhand von Skalierbarkeit, Elastizität, Verfügbarkeit und Kosten bewerten
-- typische Cloud-Architekturen für Webanwendungen analysieren
-- Last, Ressourcenverbrauch und Engpässe in verteilten Systemen nachvollziehen
-- den Einsatz von Containern, Reverse Proxies, Datenbanken, Caches und Message- oder State-Diensten begründen
-- Observability-Konzepte wie Monitoring, Logging, Metriken, Tracing und Alerting anwenden
-- Sicherheits- und Datenschutzfragen im Cloud-Betrieb diskutieren
-- die **6R-Aspekte** von Cloud-Migrationen auf konkrete Systeme anwenden
-- eine Cloud-Architektur oder Betriebsstrategie für einen gegebenen Anwendungsfall entwerfen und begründen
+Die Studierenden lernen Cloud Computing als Zusammenspiel von Dienstmodell, technologischer Grundlage, Plattformangebot, Betrieb, Skalierung, Sicherheit und Wirtschaftlichkeit. `arsnova.eu` liefert einen realen Gegenstand mit:
 
-## 4. Didaktische Leitprinzipien
+- Angular-Frontend, Node.js/tRPC-Backend, REST-/WebSocket-Kommunikation und Yjs;
+- PostgreSQL für persistente Daten und Redis für flüchtigen Zustand und Schutzmechanismen;
+- Docker-Compose-Produktionspfad hinter Nginx/TLS;
+- einem gehärteten PDF-Worker als Kandidaten für die Serverless-/Hintergrundjob-Diskussion;
+- Last-, Monitoring-, Backup-, Security- und Abnahmedokumenten mit unterschiedlichen Evidenzstufen.
 
-Die Veranstaltung folgt fünf Leitprinzipien:
+Fallauftrag:
 
-### 4.1 Theorie mit direktem Systembezug
+> Steuert KI-Agenten so, dass sie einen isolierten Cloud-Server für `arsnova.eu` reproduzierbar bereitstellen, härten und hinsichtlich Sicherheit, Datenschutz, Performance, Resilienz und Wirtschaftlichkeit prüfen. Verbindet technische Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit zu einer verantworteten Entscheidung und bereitet sie für Einreichung, Vortrag und Diskussion des 15-minütigen Referats auf.
 
-Begriffe und Modelle werden nicht isoliert vermittelt, sondern immer mit Bezug auf **arsnova.eu** als konkretes Anwendungssystem.
+Zwei ungetestete Lehrprofile strukturieren die Architekturarbeit:
 
-### 4.2 Architektur vor Tool-Mode
+1. 100 parallele Classrooms mit je 50 Teilnehmenden;
+2. eine Konferenz-Session mit 5.000 Teilnehmenden.
 
-Nicht das einzelne Cloud-Produkt steht im Zentrum, sondern das zugrunde liegende Architektur- und Betriebsverständnis.
+Sie sind keine zugesagten Produktkapazitäten. Die Evidenzlage steht in der [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md#32-evidenz-statt-kapazitätsversprechen).
 
-### 4.3 Praktikum als Erkenntnisraum
+## 4. Operationalisierte Lernergebnisse
 
-Das Praktikum dient nicht nur dem "Nachbauen", sondern dem Beobachten, Messen, Begruenden und Reflektieren am Lehrvehikel **arsnova.eu**.
+Zusätzlich zur Formulierung des Modulhandbuchs werden die Ziele beobachtbar gemacht:
 
-### 4.4 Betriebsrealismus
+| Code | Studierende können …                                                                            | Modulbezug              |
+| ---- | ----------------------------------------------------------------------------------------------- | ----------------------- |
+| K1   | einen Dienst anhand der Cloud-Merkmale sowie Service- und Deployment-Modellen einordnen         | Ziel 1                  |
+| K2   | Compute-, Container-, Speicher-, Netzwerk- und REST-Voraussetzungen eines Systems analysieren   | Ziel 2                  |
+| K3   | eine Funktion hinsichtlich Serverless-Eignung, Nutzen und Grenzen bewerten                      | Ziel 3                  |
+| K4   | GCP, AWS und Azure anhand gleicher Fähigkeiten, Verantwortungen und Risiken vergleichen         | Ziel 4                  |
+| K5   | geeignete Datenwissenschafts-/ML-Dienste der drei Plattformen beschreiben und abgrenzen         | Ziel 5                  |
+| K6   | eine Cloud-Entscheidung für `arsnova.eu` evidenzbasiert begründen und verständlich präsentieren | Ziele 1–5, Falltransfer |
+| K7   | einen KI-Agenten mit Auftrag, Rechten, Budget, Freigabegates und Akzeptanztests steuern         | Querschnittsmethode     |
+| K8   | einen isolierten Server agentisch installieren, härten, messen, prüfen und zurückbauen          | Ziele 1–4, Falltransfer |
+| K9   | technische Messwerte mit TCO, Unit Economics, Risiko, Build/Buy und Exit verbinden              | Ziele 1–5, WI-Transfer  |
 
-Skalierung, Ausfälle, Kosten, Fehlkonfigurationen und Trade-offs werden ausdrücklich thematisiert.
+## 5. Constructive Alignment
 
-### 4.5 Wissenschaftliche Anschlussfähigkeit
+| Lernergebnis | Agentische Lehr-/Lernaktivität                                | Formatives Artefakt                          | Möglicher Referatsbezug                     |
+| ------------ | ------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| K1           | Klassifikationsagent plus menschliche Gegenprüfung            | belegte Cloud-Einordnung                     | begründete Abgrenzung von Hosting und Cloud |
+| K2/K8        | Provisioning-/Operations-Agent auf isoliertem Zielserver      | IaC, Systeminventar und Härtungsnachweis     | technologische Voraussetzungen des Falls    |
+| K3           | Serverless-Analyseagent mit Gegenbeispiel                     | Eignungsmatrix und isolierter Prototyp       | Funktion, Nutzen und Grenze von Serverless  |
+| K4           | Provider-Agent mit identischem Capability-/Quellenraster      | GCP-/AWS-/Azure-Matrix                       | Analyse etablierter Cloud-Angebote          |
+| K5           | Daten-/ML- und Privacy-Agent                                  | Datenfluss, Zweck-/Rollen- und Optionenblatt | passende Cloud-Option für einen Datenfall   |
+| K6/K7        | Security-, Performance- und Review-Agenten mit Evidenzgates   | Befund-, Mess- und Verifikationsberichte     | verteidigbare technische Fallentscheidung   |
+| K9           | Economics-/FinOps-Agent auf Basis derselben technischen Daten | TCO, Unit Economics, Sensitivität und ADR    | verantwortbare Gesamtentscheidung           |
 
-Die Inhalte sollen sowohl für die Praxis als auch für Hausarbeiten, Projektberichte und Abschlussarbeiten anschlussfähig sein.
+Das gemeinsame **Agentic Cloud Engineering Dossier** unterstützt die Lernprogression und Referatsvorbereitung. Es ist keine zusätzliche benotete Prüfungsleistung, solange IU beziehungsweise myCampus dies nicht ausdrücklich vorgeben.
 
-## 5. Vorkenntnisse
+## 6. Didaktische Prinzipien
 
-Empfohlen werden:
+### Modulhandbuch vor Vertiefung
 
-- grundlegende Webentwicklung
-- HTTP- und Client-Server-Verständnis
-- Basiswissen zu Datenbanken
-- Grundkenntnisse in Linux oder Shell
-- erste Erfahrungen mit Git
+Die Pflichtinhalte werden zuerst sichtbar abgedeckt. Fallstudienvertiefungen werden jeweils an ein offizielles Ziel zurückgebunden.
 
-Nicht zwingend vorausgesetzt, aber hilfreich:
+### Fähigkeiten vor Produktkatalog
 
-- Docker
-- CI/CD
-- verteilte Systeme
+GCP, AWS und Azure werden nach gleichen Fähigkeiten verglichen: Compute, Storage, Netzwerk/API, Serverless, Daten/ML, Security, Observability und Verantwortungsgrenze. Produktnamen sind Beispiele, keine Lernziele.
 
-## 6. Modulstruktur
+### Agent-first statt Chatbot-Unterstützung
 
-Die 36 UE werden in **6 Themenblöcke** gegliedert, die Vorlesung und Praktikum jeweils verbinden.
+Lehrende und Studierende verwenden ausschließlich werkzeugnutzende KI-Agenten für die substanziellen Labor-, Analyse- und Bewertungsaufgaben. Jeder Agent arbeitet mit versioniertem Auftrag, begrenzten Rechten und Kosten, Freigabegates, maschineller Verifikation und menschlicher Entscheidung. Reine Chatantworten ohne überprüfbare Aktion oder Evidenz erfüllen den Arbeitsauftrag nicht.
 
-| Block | Thema                                          | Umfang |
-| ----- | ---------------------------------------------- | ------ |
-| 1     | Grundlagen und Service-Modelle                 | 6 UE   |
-| 2     | Cloud-Architekturen und Betriebsmodelle        | 6 UE   |
-| 3     | Container, Plattformen und Deployment          | 6 UE   |
-| 4     | Skalierung, Performance und Resilience         | 6 UE   |
-| 5     | Sicherheit, Datenschutz und Wirtschaftlichkeit | 6 UE   |
-| 6     | Migration, 6R, Projektarbeit und Abschluss     | 6 UE   |
+### Kontrollierte Serverarbeit statt Produktionszugriff
 
-Jeder Block nutzt **arsnova.eu** unter einer anderen Perspektive:
+Agenten stellen isolierte, rücksetzbare Zielserver als Code bereit, installieren einen festgelegten `arsnova.eu`-Slice, härten ihn und prüfen Security, Datenschutz, Performance und Recovery. Produktion, Echtdaten, Produktionscredentials und unbudgetierte Providerressourcen bleiben ausgeschlossen.
 
-- als Produkt
-- als Monorepo
-- als Container-Deployment
-- als Cloud-Betriebsfall
-- als Last- und Observability-Fall
-- als Transformationsobjekt unter 6R-Aspekten
+### Technik und Wirtschaft gemeinsam
 
-## 7. Verzahnung von Vorlesung und Praktikum
+Gemischte Informatik-/Wirtschaftsinformatikteams verbinden Architektur, Messung und Restrisiko mit TCO, Unit Economics, Personal-/Complianceaufwand, Sensitivität, Build/Buy und Exit. Keine Seite darf Annahmen der anderen ungeprüft übernehmen.
 
-Jeder Themenblock besteht aus zwei Perspektiven:
+### Evidenz vor Kapazitätszahl
 
-- **Vorlesung:** Begriffe, Modelle, Methoden, Architekturprinzipien am Beispiel von **arsnova.eu**
-- **Praktikum:** Anwendung auf **arsnova.eu** als Fallstudie, Messung, Design-Entscheidung oder Betriebsaufgabe
+Ein erfolgreicher Join-Test belegt weder Vote-SLOs noch vollständigen Live-Betrieb. Ein lokaler Lauf ist keine Produktionsfreigabe.
 
-Typisches 3-UE-Format pro Termin:
+### Formatives Agentic-Dossier vor Prüfungsersatz
 
-- **UE 1:** Einführung, Theorie, Modellbildung
-- **UE 2:** Vertiefung, Fallanalyse, Diskussion
-- **UE 3:** Praktische Aufgabe, Laborphase, Auswertung
+Die Agentenaufträge, Diffs, Tests, Scans, Messungen und Wirtschaftsmodelle liefern Material für ein präzises Referat. Umfangreiche Gruppenportfolios oder zusätzliche Verteidigungen werden nicht als Prüfungsbestandteil erfunden.
 
-Empfohlene begleitende Repo-Dokumente fuer die gesamte Veranstaltung:
+### Sicheres Agentenlabor
 
-- [docs/didaktik/vorlesungsplan-10-wochen-arsnova-eu.md](./vorlesungsplan-10-wochen-arsnova-eu.md)
-- [docs/didaktik/vorlesungen-90-minuten-arsnova-eu.md](./vorlesungen-90-minuten-arsnova-eu.md)
-- [docs/didaktik/dozenten-quickstart.md](./dozenten-quickstart.md)
-- [docs/praktikum/EINSTIEG-TOOLS-UND-STACK.md](../praktikum/EINSTIEG-TOOLS-UND-STACK.md)
-- [docs/architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md](../architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md)
-- [docs/architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md](../architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
-- [docs/implementation/LASTTEST-500-TEILNEHMENDE.md](../implementation/LASTTEST-500-TEILNEHMENDE.md)
-- [docs/implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
-- [docs/implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md)
-- [docs/implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)
-- [docs/implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md)
+Pflichtaufgaben funktionieren mit Repository und isolierten Zielservern. Privilegierte, destruktive, externe oder kostenwirksame Agentenschritte benötigen menschliche Freigabe. Produktivlasttests, Echtdaten und kostenpflichtige Cloud-Ressourcen sind ohne ausdrückliche Freigabe ausgeschlossen.
 
-## 8. Empfohlene Prüfungsform
+### Modalitätsäquivalenz statt identischer Methode
 
-Für eine Bachelor-Veranstaltung mit Praktikumsanteil eignet sich eine Kombination aus:
+Präsenz- und Zoom-Lauf haben identische Lernziele, Inhalte, Nettozeiten, Agenten-/Modellkonfigurationen, Zielserver, Berechtigungen, Budgets, Lernprodukte und Prüfungsinformationen. Gruppenarbeit, Coaching und Review werden mediengerecht umgesetzt. Maßgeblich sind das [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) und das [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md).
 
-- **schriftlicher Ausarbeitung oder Kurzdokumentation**
-- **praktischem Artefakt**
-- **Präsentation oder Abschlussvortrag**
+## 7. Semesterstruktur und Workload-Typ
 
-Beispiel:
+Die Detailzeiten stehen in den [Terminplänen](./vorlesungen-cloud-computing-termine.md). `Präsenz/synchron` ist eine Workload-Kategorie: Im Präsenzlauf findet der Termin im Raum, im Onlinelauf synchron in Zoom statt. Die Tutorien werden ebenfalls im jeweiligen Kursmodus durchgeführt.
 
-- 40 % Projekt- oder Praktikumsleistung
-- 30 % schriftliche Ausarbeitung
-- 30 % Präsentation oder mündliche Leistung
+| Termin | Typ              | Agentischer Schwerpunkt                              | Zentrales Lernprodukt                       |
+| -----: | ---------------- | ---------------------------------------------------- | ------------------------------------------- |
+|      1 | Präsenz/synchron | Cloud-Grundlagen und Agentenvertrag                  | Cloud-Einordnung mit Auftrag/Grenzen        |
+|      2 | Präsenz/synchron | Zielserver und technologische Basis als Code         | IaC-/Provisioning-Plan                      |
+|      3 | Tutorium         | Serverinstallation, `arsnova.eu`-Slice und Härtung   | reproduzierbarer Build und Härtungsnachweis |
+|      4 | Präsenz/synchron | Serverless-Agent und isolierter Prototyp             | Serverless-Eignungsmatrix                   |
+|      5 | Präsenz/synchron | Provider-Agent für Google Cloud, AWS und Azure       | Capability-/Verantwortungs-/Kostenvergleich |
+|      6 | Präsenz/synchron | Daten-/ML- und Privacy-Agent                         | Datenfluss und DS-/ML-Service-Mapping       |
+|      7 | Tutorium         | Recovery-Agent für Backup, Restore und Fehlerfälle   | ausgeführter Recovery-Nachweis              |
+|      8 | Tutorium         | Performance-Agent für Last, SLI/SLO und Resilienz    | reproduzierbarer Last-/Messbericht          |
+|      9 | Präsenz/synchron | Security-/Privacy-Agent und Observability            | Befund-Maßnahme-Verifikation-Restrisiko     |
+|     10 | Tutorium         | Economics-/FinOps-Agent, Providerentscheidung und 6R | TCO, Unit Economics, Sensitivität und ADR   |
+|     11 | Tutorium         | Agentenevidenz in Referatsbestandteile überführen    | Einreichungs- und Vortragsskizze            |
+|     12 | Tutorium         | Probeprüfung und Verteidigung der Agentenergebnisse  | Vortrag plus Diskussion                     |
 
-Alternativ:
+Bilanz: sechs Präsenz-/synchrone Termine = 18 UE = 13,5 Stunden; sechs Tutorien = 18 UE = 13,5 Stunden.
 
-- Klausur plus benotetes Praktikum
+## 8. Strukturierung der 123 Stunden Selbststudium
 
-## 9. Semesterplan (12 Termine à 3 UE)
+Die konkrete Aufgabenmenge ist semesterbezogen zu kalibrieren. Ein belastbares Planungsbudget ist:
 
-## Termin 1: Einführung in Cloud Computing
+| Aktivität                                     | Richtwert |
+| --------------------------------------------- | --------: |
+| Vor- und Nachbereitung der zwölf Termine      |      24 h |
+| Pflichtlektüre und technische Vertiefung      |      30 h |
+| Agentic Cloud Engineering Dossier             |      30 h |
+| Plattform-, Privacy- und Wirtschaftsvergleich |      15 h |
+| Referatsrecherche, Visualisierung und Probe   |      18 h |
+| individuelle Agentenkritik und Revision       |       6 h |
+| **Gesamt**                                    | **123 h** |
 
-**Vorlesungsinhalte**
+Die Positionen sind Planungswerte, keine zusätzlichen Prüfungsbestandteile. Überschneidungen müssen bei der konkreten Aufgabenstellung vermieden werden.
 
-- Was ist Cloud Computing?
-- Historische Entwicklung
-- Virtualisierung, On-Demand-Nutzung, Self-Service
-- Abgrenzung zu klassischem Hosting
+## 9. Prüfungsanbindung
 
-**Praktikum**
+### Planungsbasis: Referat
 
-- Einstieg in **arsnova.eu** als Lehrvehikel
-- Systemüberblick: Anwendung, Dienste, Infrastruktur
-- erste Architektur-Landkarte erstellen
+Das Modulhandbuch und der Bewertungsbogen bestimmen **15 Minuten mündliche Prüfung je Prüfling**. Die Prüfungsleistung umfasst eine schriftliche Einreichung (30 %), einen visuell unterstützten Vortrag (30 %) und die anschließende Befragung/Diskussion (40 %). Bewertet werden Themenverständnis, Sachkompetenz, Argumentation, Methodik, Eigenständigkeit, Kommunikation und formale Anforderungen mit den Gewichten des offiziellen Bogens.
 
-**Lernprodukt**
+Ob Einzel- oder Gruppenreferat und ob Präsentation mit Handout oder Posterpräsentation gilt, legt die prüfende Person fest. Auch bei Gruppenarbeit bleiben Beiträge, Prüfungszeit und Note individuell. Die vollständigen Format-, Frist-, Abgabe-, Bewertungs- und Modalitätsregeln stehen in der [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md).
 
-- Kurzprotokoll: "Warum ist dieses System ein Cloud-Computing-Fall?"
+Da KI-Agenten das verbindliche Arbeitsmittel des Kurses sind, muss ihr zulässiger Einsatz für die formalen Referatsunterlagen ausdrücklich im Prüfungsauftrag beziehungsweise in myCampus bestätigt werden. Bei Freigabe werden Agent, Modell, wesentliche Aufträge und übernommene Beiträge offengelegt; jede Person bleibt für Quellen, Aussagen und Verständnis verantwortlich.
 
-**Repo-Grundlage**
+Für formative Rückmeldung werden deshalb dieselben offiziellen Aspekte verwendet:
 
-- [README.md](../../README.md)
-- [docs/architecture/handbook.md](../architecture/handbook.md)
-- [docs/praktikum/EINSTIEG-TOOLS-UND-STACK.md](../praktikum/EINSTIEG-TOOLS-UND-STACK.md)
+- fachlich korrekte Nutzung der Cloud-Begriffe;
+- erkennbare Abdeckung eines offiziellen Qualifikationsziels;
+- nachvollziehbare Quellen- und Evidenzbasis;
+- ausgewogene Analyse von Nutzen, Risiken und Verantwortungen;
+- verständliche Visualisierung und Argumentationslinie;
+- klare Kennzeichnung offener Annahmen.
 
-## Termin 2: Service- und Deployment-Modelle
+Diese Kurzliste ersetzt weder den offiziellen IU-Bewertungsbogen noch dessen 30/30/40-Gewichtung.
 
-**Vorlesungsinhalte**
+### Nur bei bestätigter Abweichung: Workbook
 
-- `IaaS`, `PaaS`, `SaaS`
-- Public, Private, Hybrid und Multi-Cloud
-- Verantwortungsverschiebung zwischen Anbieter und Betreiber
+Falls myCampus Workbook ausweist, gelten Einzelarbeit, zentrale Aufgabenstruktur, ein aus Word erzeugtes PDF, myCampus/Turnitin-Abgabe und die weiteren bindenden Regeln aus den [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md#7-alternativpfad-workbook-nur-nach-bestätigung). Der vorliegende Referatsentwurf wird dann erst nach formaler Klärung auf die zentralen Workbookaufgaben abgebildet.
 
-**Praktikum**
+## 10. Verbindliche Repo-Grundlagen
 
-- Einordnung von **arsnova.eu** in Service- und Deployment-Modelle
-- Betriebsgrenzen und Betreiberverantwortung diskutieren
+### System und Betrieb
 
-**Lernprodukt**
+- [Root-README](../../README.md)
+- [Architektur-Handbuch](../architecture/handbook.md)
+- [Produktions-Compose](../../docker-compose.prod.yml)
+- [Deployment auf Debian](../deployment-debian-root-server.md)
+- [Monitoring-Runbook](../operations/MONITORING-RUNBOOK.md)
+- [Backup-/Restore-Runbook](../operations/BACKUP-RESTORE-RUNBOOK.md)
 
-- tabellarische Zuordnung des Systems zu den Cloud-Modellen
+### Evidenz und Transformation
 
-**Repo-Grundlage**
+- [historischer Produktions-Join 500](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md)
+- [lokale Baseline-Freigabe](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)
+- [formale §6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
+- [betriebliche Cloud-Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
+- [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md)
+- [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)
 
-- [README.md](../../README.md)
-- [docs/deployment-debian-root-server.md](../deployment-debian-root-server.md)
+## 11. Kurzfassung für die Modulplanung
 
-## Termin 3: Cloud-Architektur für Webanwendungen
+Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen, Serverless Computing, etablierte Cloud-Plattformen und Datenwissenschaft/ML in der Cloud. Lehrende und Studierende steuern dafür ausschließlich KI-Agenten: Sie stellen isolierte Server bereit, installieren und härten `arsnova.eu`, prüfen Security, Datenschutz, Performance und Resilienz und verbinden die Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit. Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Sechs Präsenz-/synchrone Termine und sechs Tutorien bilden die 36 UE; 123 Stunden Selbststudium dienen Agentic-Dossier, Lektüre und Referatsvorbereitung. Präsenz- und Zoom-Lauf nutzen denselben Agenten- und Laborplan. Formale Prüfungsbasis ist ein 15-minütiges Referat je Prüfling aus Einreichung, Vortrag und Diskussion.
 
-**Vorlesungsinhalte**
+## 12. Freigabecheck
 
-- typische Architekturbausteine
-- Web-Frontend, API, Datenbank, Cache, Queue, Object Storage
-- Zustandslosigkeit und Stateful Components
-
-**Praktikum**
-
-- Architekturdiagramm fuer **arsnova.eu** erstellen
-- Single Host versus entkoppelte Architektur diskutieren
-
-**Lernprodukt**
-
-- Architekturdiagramm mit Begründung
-
-**Repo-Grundlage**
-
-- [docs/architecture/handbook.md](../architecture/handbook.md)
-- [docs/diagrams/architecture-overview.md](../diagrams/architecture-overview.md)
-- [docs/diagrams/diagrams.md](../diagrams/diagrams.md)
-
-## Termin 4: Container und Laufzeitumgebungen
-
-**Vorlesungsinhalte**
-
-- Container versus virtuelle Maschinen
-- Docker-Grundlagen
-- Images, Container, Netzwerke, Volumes
-
-**Praktikum**
-
-- lokale oder produktionsnahe Container-Struktur analysieren
-- Dienste und deren Abhängigkeiten kartieren
-
-**Lernprodukt**
-
-- Kurzbericht: "Welche Vorteile und Grenzen hat die Containerisierung in diesem Fall?"
-
-**Repo-Grundlage**
-
-- [Dockerfile](../../Dockerfile)
-- [docker-compose.yml](../../docker-compose.yml)
-- [docker-compose.prod.yml](../../docker-compose.prod.yml)
-
-## Termin 5: Reverse Proxy, Routing und Deployment
-
-**Vorlesungsinhalte**
-
-- Reverse Proxy
-- TLS-Terminierung
-- Routing und Port-Konzept
-- Zero-Downtime-Ideen
-
-**Praktikum**
-
-- Analyse des Produktions- oder Zieldeployments von **arsnova.eu**
-- Identifikation von Engpässen im aktuellen Betriebsmodell
-
-**Lernprodukt**
-
-- Deployment-Skizze mit Datenfluss
-
-**Repo-Grundlage**
-
-- [docs/deployment-debian-root-server.md](../deployment-debian-root-server.md)
-- [scripts/deploy.sh](../../scripts/deploy.sh)
-- [docs/implementation/POST-DEPLOY-CHECKLIST.md](../implementation/POST-DEPLOY-CHECKLIST.md)
-
-## Termin 6: Datenhaltung in Cloud-Systemen
-
-**Vorlesungsinhalte**
-
-- relationale Datenbanken im Cloud-Betrieb
-- In-Memory-Dienste wie Redis
-- Persistenz versus Live-State
-- Backup, Recovery, Datenkonsistenz
-
-**Praktikum**
-
-- Datenflüsse und Zuständigkeiten zwischen PostgreSQL und Redis einordnen
-- Stateful und Stateless Komponenten markieren
-
-**Lernprodukt**
-
-- Datenhaltungs-Matrix
-
-**Repo-Grundlage**
-
-- [prisma/schema.prisma](../../prisma/schema.prisma)
-- [apps/backend/src/db.ts](../../apps/backend/src/db.ts)
-- [apps/backend/src/redis.ts](../../apps/backend/src/redis.ts)
-
-## Termin 7: Skalierung und Elastizität
-
-**Vorlesungsinhalte**
-
-- vertikale und horizontale Skalierung
-- Auto-Scaling als Konzept
-- Lastprofile, Peak-Last, Burst-Szenarien
-
-**Praktikum**
-
-- **arsnova.eu** fuer ein 500-Nutzer-Szenario analysieren
-- Skalierungsoptionen entwerfen
-
-**Lernprodukt**
-
-- Maßnahmenkatalog für Lastspitzen
-
-**Repo-Grundlage**
-
-- [docs/implementation/LASTTEST-500-TEILNEHMENDE.md](../implementation/LASTTEST-500-TEILNEHMENDE.md)
-- [docs/implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
-- [docs/implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md)
-
-## Termin 8: Performance und Lasttests
-
-**Vorlesungsinhalte**
-
-- Performance-Metriken
-- p50, p95, p99
-- Throughput, Error Rate, Saturation
-- Lasttests als Architekturwerkzeug
-
-**Praktikum**
-
-- Lasttest-Konzept für eine Live-Anwendung erstellen
-- Join-, Vote- und Statuswechsel-Szenarien modellieren
-
-**Lernprodukt**
-
-- Lasttest-Plan mit Messgrößen und Abnahmekriterien
-
-**Repo-Grundlage**
-
-- [docs/architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md](../architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md)
-- [scripts/load/k6-trpc-health-50vu.js](../../scripts/load/k6-trpc-health-50vu.js)
-- [scripts/load/k6-trpc-session-50vu.js](../../scripts/load/k6-trpc-session-50vu.js)
-- [scripts/load/session-participants-50.mjs](../../scripts/load/session-participants-50.mjs)
-
-## Termin 9: Observability und Betrieb
-
-**Vorlesungsinhalte**
-
-- Monitoring
-- Logging
-- Metriken
-- Alerting
-- SLO, SLA, SLI
-
-**Praktikum**
-
-- Monitoring- und Alarmierungsbedarf für die Fallstudie definieren
-- Mindestmetriken für Live-Betrieb festlegen
-
-**Lernprodukt**
-
-- Observability-Konzept
-
-**Repo-Grundlage**
-
-- [docs/architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md](../architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
-- [docs/features/server-status-widget.md](../features/server-status-widget.md)
-- [apps/backend/src/lib/sloTelemetry.ts](../../apps/backend/src/lib/sloTelemetry.ts)
-- [apps/backend/src/lib/loadSignal.ts](../../apps/backend/src/lib/loadSignal.ts)
-
-## Termin 10: Sicherheit, Datenschutz und Compliance
-
-**Vorlesungsinhalte**
-
-- Identity und Access Management
-- Secrets Management
-- Netzwerkgrenzen
-- Datenschutz im Cloud-Betrieb
-- Multi-Tenancy und Datenminimierung
-
-**Praktikum**
-
-- Sicherheits- und Datenschutzrisiken von **arsnova.eu** analysieren
-- Betreiber- und Nutzerperspektive unterscheiden
-
-**Lernprodukt**
-
-- Risikoübersicht mit Gegenmaßnahmen
-
-**Repo-Grundlage**
-
-- [docs/SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md)
-- [docs/ENVIRONMENT.md](../ENVIRONMENT.md)
-- [docs/features/motd.md](../features/motd.md)
-
-## Termin 11: Cloud-Migration und 6R-Aspekte
-
-**Vorlesungsinhalte**
-
-- Rehost
-- Replatform
-- Repurchase
-- Refactor
-- Retire
-- Retain
-
-**Praktikum**
-
-- Einordnung von **arsnova.eu** unter den 6R-Aspekten
-- Transformationsstrategie formulieren
-
-**Lernprodukt**
-
-- 6R-Einordnung mit begründeter Zielstrategie
-
-**Repo-Grundlage**
-
-- [docs/implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)
-- [docs/implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md)
-
-## Termin 12: Abschluss und Projektpräsentationen
-
-**Vorlesungsinhalte**
-
-- Synthese der Veranstaltung
-- Trade-offs zwischen Technik, Betrieb und Kosten
-- Cloud Readiness als Gesamtbewertung
-
-**Praktikum**
-
-- Kurzpräsentationen oder Abschlussvorträge
-- Diskussion der Architektur- und Betriebsentwürfe
-
-**Lernprodukt**
-
-- Abschlusspräsentation und Schlussreflexion
-
-**Repo-Grundlage**
-
-- [docs/praktikum/Fallstudie-Software-Engineering-Beschreibung-6-Abschlussvortraege.md](../praktikum/Fallstudie-Software-Engineering-Beschreibung-6-Abschlussvortraege.md)
-- [docs/didaktik/folienskizzen-arsnova-eu.md](./folienskizzen-arsnova-eu.md)
-
-## 10. Praktikumskonzept im Detail
-
-Das Praktikum soll nicht als lose Sammlung kleiner Aufgaben organisiert werden, sondern als zusammenhaengende Fallarbeit an **arsnova.eu**.
-
-### 10.1 Empfohlenes Praxisformat
-
-Jede Person oder Kleingruppe bearbeitet über das Semester hinweg ein konsistentes Thema, zum Beispiel:
-
-- Cloud-Architektur einer Live-Webanwendung
-- Lasttest- und Skalierungskonzept
-- Observability- und Betriebsmodell
-- Sicherheits- und Datenschutzkonzept
-- 6R-Transformationsstrategie
-
-Alle Themen sind ausdruecklich auf das Lehrvehikel **arsnova.eu** bezogen. Die Studierenden arbeiten also nicht an frei erfundenen Cloud-Szenarien, sondern an realen Repo-Artefakten, bestehenden Dokumenten und beobachtbaren Betriebsfragen.
-
-### 10.2 Geeignete Praktikumsartefakte
-
-- Architekturdiagramm
-- Deployment-Diagramm
-- Lasttest-Konzept
-- Betriebsdokument
-- Monitoring-Konzept
-- Sicherheitsanalyse
-- Migrationsstrategie
-- Abschlusspräsentation
-
-### 10.3 Praxisnähe
-
-Die Aufgaben sollen so formuliert sein, dass die Studierenden immer an einem realistischen Betreiberproblem arbeiten:
-
-- Kann **arsnova.eu** 500 gleichzeitige Nutzer tragen?
-- Wie müsste die Architektur für höhere Last angepasst werden?
-- Welche Dienste sollten entkoppelt werden?
-- Welche Metriken braucht ein Betreiber?
-- Wie laesst sich **arsnova.eu** unter 6R-Aspekten einordnen?
-
-Empfohlene repo-nahe Arbeitsgrundlagen fuer das Praktikum:
-
-- [docs/implementation/LASTTEST-500-TEILNEHMENDE.md](../implementation/LASTTEST-500-TEILNEHMENDE.md)
-- [docs/implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
-- [docs/implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)
-- [docs/implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md)
-- [docs/praktikum/PRAKTIKUM.md](../praktikum/PRAKTIKUM.md)
-- [docs/praktikum/PRAKTIKUM-SQM.md](../praktikum/PRAKTIKUM-SQM.md)
-
-## 11. Vorschlag für Leistungsnachweise
-
-### Variante A: Projektorientiert
-
-- Konzeptpapier: 30 %
-- Praktikumsartefakte: 40 %
-- Abschlusspräsentation: 30 %
-
-### Variante B: Klausur plus Praktikum
-
-- Klausur: 50 %
-- Praktikum: 30 %
-- Präsentation oder mündliche Verteidigung: 20 %
-
-### Variante C: Studienleistung mit Portfolio
-
-- laufendes Portfolio aus 4 bis 6 Artefakten
-- Abschlussreflexion
-- kurze Ergebnispräsentation
-
-## 12. Bezug zu arsnova.eu als Fallstudie
-
-**arsnova.eu** ist in diesem Konzept nicht nur eine optionale Fallstudie, sondern das **zentrale Lehrvehikel** fuer Vorlesung und Praktikum. Das System eignet sich besonders gut fuer eine Bachelor-Vorlesung zu Cloud Computing, weil dort viele typische Cloud-Fragen zusammenkommen:
-
-- Live-Webanwendung mit gleichzeitigen Nutzerzugriffen
-- Node.js-Backend, PostgreSQL, Redis, WebSockets
-- Containerbetrieb
-- Skalierungs- und Lastfragen
-- Monitoring- und SLO-Perspektive
-- Datenschutz und Betreiberverantwortung
-- Einordnung in die 6R-Strategien
-
-Didaktischer Vorteil:
-
-- Studierende arbeiten an einem System, das nicht künstlich vereinfacht ist
-- theoretische Begriffe lassen sich sofort an realen Strukturen festmachen
-- Last, Betrieb und Architektur sind nicht abstrakt, sondern konkret beobachtbar
-
-Repo-Dokumente, die diesen Einsatz als Lehrvehikel besonders stuetzen:
-
-- [README.md](../../README.md)
-- [Backlog.md](../../Backlog.md)
-- [docs/architecture/handbook.md](../architecture/handbook.md)
-- [docs/deployment-debian-root-server.md](../deployment-debian-root-server.md)
-- [docs/SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md)
-- [docs/TESTING.md](../TESTING.md)
-- [docs/didaktik/dozenten-quickstart.md](./dozenten-quickstart.md)
-- [docs/didaktik/greenfield-demo-1-7a-vorlesung.md](./greenfield-demo-1-7a-vorlesung.md)
-- [docs/praktikum/EINSTIEG-TOOLS-UND-STACK.md](../praktikum/EINSTIEG-TOOLS-UND-STACK.md)
-
-## 13. Empfohlene Lehrmethoden
-
-- kurze Input-Phasen statt langer Frontalblöcke
-- Architektur- und Betriebsdiskussionen im Plenum
-- Whiteboard- oder Diagrammarbeit
-- kleine Analysegruppen
-- Laborphasen mit klaren Arbeitsaufträgen
-- Abschluss jeder Sitzung mit kurzem Ergebnisartefakt
-
-## 14. Erwartete Kompetenzentwicklung
-
-Die Studierenden sollen am Ende nicht nur "Cloud-Dienste kennen", sondern in der Lage sein:
-
-- ein reales System cloudbezogen zu analysieren
-- Skalierungs- und Betriebsfragen sauber zu formulieren
-- technische Optionen mit Trade-offs zu vergleichen
-- Architekturen nicht nur nach Technologie, sondern nach Betriebsfolgen zu bewerten
-
-## 15. Ergebnis der Veranstaltung
-
-Am Ende der Veranstaltung liegt idealerweise pro Gruppe oder Person ein konsistentes Set aus:
-
-- Cloud-Architektur-Einordnung
-- Skalierungs- oder Lasttest-Konzept
-- Betriebs- und Observability-Modell
-- Sicherheits- und Datenschutzbewertung
-- 6R-Transformationsperspektive
-- Abschlusspräsentation
-
-Damit eignet sich die Veranstaltung zugleich als:
-
-- fachliche Einführung in Cloud Computing
-- methodische Vorbereitung auf Projektarbeit
-- Brücke zu DevOps, Software Engineering, verteilten Systemen und IT-Betrieb
-
-## 16. Kurzfassung für Modulhandbuch oder Studiengangsplanung
-
-Die Lehrveranstaltung "Cloud Computing" vermittelt Grundlagen, Architekturmuster, Betriebsmodelle und Skalierungsprinzipien cloudbasierter Systeme. Als durchgehendes Lehrvehikel dient die Webanwendung **arsnova.eu**. Im integrierten Praktikum analysieren die Studierenden **arsnova.eu** unter den Perspektiven Infrastruktur, Deployment, Performance, Observability, Sicherheit und Cloud-Transformation. Der Fokus liegt auf dem Verständnis von Cloud Computing als Zusammenspiel aus Technik, Betrieb und Architekturentscheidung.
-
----
-
-**Stand:** 2026-05-08  
-**Einsatz:** Lehrkonzept, Modulplanung, Vorlesungsentwurf, didaktische Abstimmung
+- [ ] Prüfungsform des konkreten Kurslaufs in myCampus geprüft
+- [ ] Abweichung zwischen Referat und Workbook gegebenenfalls schriftlich geklärt
+- [ ] Einzel-/Gruppenformat, Handout/Poster, mindestens vier Wochen Bearbeitungszeit und PDF-Abgabeweg veröffentlicht
+- [ ] offizieller Bewertungsbogen mit 30/30/40-Gewichtung, Hilfsmittel und Terminierung veröffentlicht
+- [ ] 18 UE Präsenz/synchron und 18 UE Tutorium im Stundenplan ausgewiesen
+- [ ] identische Lernziele, Materialien, Lernprodukte und Prüfungsinformationen für Präsenz und Zoom bereitgestellt
+- [ ] identische Agenten, Modelle, Zielserver, Rechte, Budgets und Abnahmetests für Präsenz und Zoom bereitgestellt
+- [ ] Agentenvertrag, Freigabegates, Evidenzschema und Cleanup für Lehrende und Studierende getestet
+- [ ] Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und FinOps-Agentenlabor lauffähig
+- [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung festgelegt
+- [ ] zulässige Agentennutzung und Offenlegung für die Referatsprüfung formal geklärt
+- [ ] Raum-/Netz-Fallback für Präsenz sowie Host-/Breakout-/Verbindungs-Fallback für Zoom getestet
+- [ ] alle fünf offiziellen Inhalte und Ziele im Kursraum sichtbar zugeordnet
+- [ ] 123 Stunden Selbststudium auf realistische Aufgaben verteilt
+- [ ] GCP-, AWS-, Azure- und Datenwissenschaftsquellen aktualisiert
+- [ ] Laborzugänge, Datenschutz, Kostenrahmen und Produktionssperre dokumentiert
+- [ ] Projektstatus und Links über die Kurslandkarte aktualisiert

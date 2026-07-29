@@ -6,6 +6,16 @@
 **Annahmen:** **Kurs 1** = Fallstudie Software Engineering (Entwicklung), **Kurs 2** = Software-Qualitätsmanagement, **Kurs 3** = Data Analytics / NLP — können **parallel** (1+2) laufen; **Kurs 3** oft **versetzt** oder **eigenes Semester** (siehe [`dritter-kurs-data-analytics-nlp.md`](./dritter-kurs-data-analytics-nlp.md)).  
 **Anpassung:** Wochen sind **Richtwerte**; die **Greenfield-Demo 1.7a** passt in **3×45 Min.** (eine Woche oder drei aufeinanderfolgende Termine) — [`greenfield-demo-1-7a-vorlesung.md`](./greenfield-demo-1-7a-vorlesung.md). Inhalte aus Woche 1–3 FSE bei Zeitdruck **zusammenlegen**.
 
+**Separater Kurs:** Bachelor-**Cloud Computing** hat einen eigenen Strang und gehört **nicht** in diesen Fahrplan —
+[`CLOUD-COMPUTING-KURSREADME.md`](./CLOUD-COMPUTING-KURSREADME.md),
+[`CLOUD-COMPUTING-IU-FORMALIA.md`](./CLOUD-COMPUTING-IU-FORMALIA.md),
+[`CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md`](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md),
+[`CLOUD-COMPUTING-REFERAT-PRUEFUNG.md`](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md),
+[`CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md`](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md),
+[`dozenten-quickstart-cloud-computing.md`](./dozenten-quickstart-cloud-computing.md),
+[`BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md`](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md),
+[`vorlesungen-cloud-computing-termine.md`](./vorlesungen-cloud-computing-termine.md).
+
 **Wenn du nur 10 Minuten hast:** Starte mit [`dozenten-quickstart.md`](./dozenten-quickstart.md), dann erst in dieses Dokument.
 
 ---
@@ -109,4 +119,4 @@ Ziel: **Kognitive Last** steuern — zuerst **Handlung** (App laufen, etwas sehe
 
 ---
 
-**Stand:** 2026-05-31
+**Stand:** 2026-05-31 · Hinweis Cloud Computing: 2026-07-29

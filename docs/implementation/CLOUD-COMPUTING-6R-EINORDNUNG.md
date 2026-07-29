@@ -1,200 +1,157 @@
-# Cloud-Computing-Einordnung mit 6R-Aspekten
+# 6R-Einordnung der Cloud-Transformation von arsnova.eu
 
-## Zweck
+**Zweck:** Migrationsoptionen für Lehre und Architekturarbeit strukturiert vergleichen · **Stand:** 2026-07-28 · **Empirische Grundlage:** [betriebliche Cloud-Einordnung](./CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
 
-Dieses Dokument ordnet die Fragestellung zur Skalierung und Betriebsfaehigkeit von **arsnova.eu** auch unter dem Blickwinkel der **6R-Aspekte** des Cloud Computing ein.
+## 1. Taxonomie und Geltungsbereich
 
-Gemeint sind die typischen **6R-Strategien der Cloud-Migration und Cloud-Transformation**:
+Dieses Dokument verwendet die sechs Strategien **Rehost, Replatform, Repurchase, Refactor, Retire und Retain**. Literatur und Provider verwenden teils abweichende 6R-/7R-Bezeichnungen, insbesondere `Rearchitect` statt oder neben `Refactor` sowie zusätzlich `Relocate`. In Arbeiten ist deshalb die verwendete Taxonomie zu definieren, nicht nur „6R“ zu schreiben.
 
-- Rehost
-- Replatform
-- Repurchase
-- Refactor
-- Retire
-- Retain
+Analysiert werden zwei ungetestete **Lehrzielbilder**:
 
-## Einordnung
+- 100 parallele Classrooms mit je 50 Teilnehmenden und mehreren Live-Kanälen;
+- eine einzelne Konferenz-Session mit 5.000 Teilnehmenden.
 
-Die bisherigen Dokumente ordnen den 500er-Lasttest vor allem ueber Skalierbarkeit, Observability, Resilience und Infrastrukturfragen in das Cloud Computing ein.
+Der aktuelle Produktionspfad bleibt ein Single-Host-Compose-Deployment. Historisch belegt sind 500 Produktions-Joins, nicht der vollständige Live-Betrieb mit 500; umfangreichere 500er-Pfade sind lokal verifiziert. Die formale Zielhostabnahme ist offen.
 
-Die **6R-Perspektive** ergaenzt diese Sicht um eine strategische Frage:
+## 2. Bewertungskriterien
 
-> **Welche Art von Veraenderung ist fuer das System sinnvoll, um es cloud-geeignet, skalierbar und wirtschaftlich betreibbar zu machen?**
+Jede R-Option wird nach denselben Fragen bewertet:
 
-Damit geht es nicht nur um Lasttest und Performance, sondern auch um die grundsaetzliche Transformationsstrategie des Systems.
+1. Welches Problem des Ist-Systems löst sie?
+2. Welche Code-, Daten- und Betriebsänderungen sind nötig?
+3. Welche neuen Abhängigkeiten oder Risiken entstehen?
+4. Welcher Nachweis entscheidet über Erfolg oder Abbruch?
+5. Für welches der beiden Lastprofile ist die Maßnahme relevant?
 
-## Die 6R und ihre Bedeutung fuer arsnova.eu
+## 3. Rehost
 
-### 1. Rehost
+**Bedeutung:** Anwendung weitgehend unverändert auf andere oder stärkere Infrastruktur verschieben.
 
-`Rehost` bedeutet, eine bestehende Anwendung weitgehend unveraendert in eine andere Infrastruktur zu verschieben.
+Mögliche Anwendung:
 
-Typische Form:
+- bestehenden Compose-Stack auf eine andere VM oder einen stärkeren Host übertragen;
+- Infrastruktur reproduzierbar provisionieren, ohne die Anwendungsarchitektur zu ändern.
 
-- "Lift and Shift"
-- gleicher Anwendungsstack
-- neue virtuelle Maschine oder neuer Cloud-Host
+Nutzen:
 
-Bezug zu arsnova.eu:
+- schnellster Weg zu mehr vertikaler Reserve oder erneuerter Infrastruktur;
+- guter Ausgangspunkt für einen isolierten Zielhosttest.
 
-- Ein Wechsel von einem einzelnen Hetzner-Host auf einen staerkeren oder anders betriebenen Cloud-Host waere ein klassischer Rehost-Schritt.
-- Auch das Verpacken und Betreiben auf einer anderen IaaS-Umgebung ohne groessere Codeaenderungen faellt darunter.
+Grenze:
 
-Bewertung:
+- beseitigt Single Point of Failure und prozesslokale Live-Signale nicht;
+- beweist weder Elastizität noch horizontale Skalierbarkeit.
 
-- **kurzfristig realistisch**
-- verbessert Betriebsbedingungen
-- loest aber strukturelle Lastprobleme nur begrenzt
+**Gate:** vollständige §6.5-Last-/Security-Abnahme, Restore-Test und Ressourcenmessung auf dem neuen Zielhost.
 
-### 2. Replatform
+## 4. Replatform
 
-`Replatform` bedeutet, die Anwendung technisch leicht anzupassen, ohne sie grundsaetzlich neu zu bauen.
+**Bedeutung:** Betriebsplattform ändern, ohne das Produkt grundlegend neu zu entwickeln.
 
-Typische Form:
+Mögliche Anwendung:
 
-- gleiche Anwendung
-- aber andere Betriebsdienste
-- moderate Anpassungen an Infrastruktur oder Laufzeit
+- App, PostgreSQL und Redis auf getrennte Ressourcen verschieben;
+- Managed PostgreSQL oder Managed Redis/Valkey einsetzen;
+- Load Balancer, private Netze, IaC und standardisierte Observability ergänzen;
+- App-Image unverändert oder nur gering angepasst betreiben.
 
-Bezug zu arsnova.eu:
+Nutzen:
 
-- PostgreSQL als Managed Service betreiben
-- Redis als separaten Dienst auslagern
-- Reverse Proxy oder Load Balancer verbessern
-- App-Container professioneller orchestrieren
+- klare Fehler-, Security- und Skalierungsgrenzen;
+- weniger Eigenbetrieb möglich, abhängig vom Provider.
 
-Bewertung:
+Grenze:
 
-- **fuer arsnova.eu sehr relevant**
-- guter Mittelweg zwischen Aufwand und Wirkung
-- wahrscheinlich die sinnvollste mittelfristige Cloud-Strategie
+- ein Load Balancer macht prozesslokale `EventEmitter`, WebSocket/Yjs-Zuordnung und globale Limits nicht automatisch multi-instanzfähig.
 
-### 3. Repurchase
+**Gate:** Zwei-Instanz-Test mit Status-/Vote-Fan-out, Reconnect, Failover, globalen Limits und Recovery.
 
-`Repurchase` bedeutet, eine bestehende Eigenentwicklung ganz oder teilweise durch ein externes Produkt oder einen SaaS-Dienst zu ersetzen.
+## 5. Repurchase
 
-Bezug zu arsnova.eu:
+**Bedeutung:** Eigenbetrieb durch ein Produkt oder einen SaaS-Dienst ersetzen.
 
-- fuer den Kern der Plattform eher unpassend, da arsnova.eu selbst das Produkt ist
-- teilweise denkbar fuer Randbereiche wie:
-  - Monitoring
-  - Logging
-  - Managed Datenbank
-  - Managed Redis
-  - CDN oder Edge-Services
+Für den Kern von `arsnova.eu` ist das strategisch kaum passend, weil die Anwendung selbst das Produkt und Lehrvehikel ist. Für Randfähigkeiten kann Repurchase sinnvoll sein:
 
-Bewertung:
+- externes Uptime-/Heartbeat-Monitoring;
+- Log-/Metrikplattform;
+- Object Storage, CDN/WAF oder E-Mail-/Webhook-Dienst;
+- Managed Datenbank und Cache, sofern die Taxonomie dies als Repurchase statt Replatform klassifiziert.
 
-- **fuer das Kernsystem nicht zentral**
-- **fuer Betriebsbausteine aber sinnvoll**
+**Gate:** Datenschutz-/AVV-Prüfung, Export-/Exit-Test, Kosten- und Ausfallfolgenvergleich.
 
-### 4. Refactor
+## 6. Refactor / Rearchitect
 
-`Refactor` bedeutet, die Anwendung oder Architektur gezielt so umzubauen, dass sie cloud-native und besser skalierbar wird.
+**Bedeutung:** Code und Architektur gezielt für neue Qualitätsziele verändern.
 
-Typische Form:
+Für horizontale Skalierung besonders relevant:
 
-- Architekturveraenderungen
-- staerkere Entkopplung
-- eventgetriebene Kommunikation
-- skalierbare Zustandsverwaltung
+- prozesslokale Session-Signale durch einen geteilten Ereignispfad oder eine nachgewiesene Routingstrategie ersetzen;
+- instanzübergreifende Limits und Semaphore für PDF, Yjs und Abuse-Schutz entwerfen;
+- DB-intensive Live-Pfade messen und gegebenenfalls entkoppeln oder cachen;
+- WebSocket-/Yjs-Failover, Idempotenz und Reconnect-Semantik definieren;
+- je Lastprofil Backpressure, Admission Control und Degradation vorsehen.
 
-Bezug zu arsnova.eu:
+Nutzen:
 
-- Polling in Live-Pfaden reduzieren
-- Redis staerker fuer Live-Zustand und Aggregationen nutzen
-- DB-lastige Live-Berechnungen auslagern
-- App horizontal skalierbar machen
-- Host- und Teilnehmerpfade sauber trennen
+- adressiert die eigentlichen Multi-Instanz- und Fan-out-Grenzen.
 
-Bewertung:
+Grenze:
 
-- **technisch sehr relevant**
-- **langfristig wahrscheinlich notwendig**, wenn Grossveranstaltungen robust unterstuetzt werden sollen
-- hoeherer Aufwand, aber groesster nachhaltiger Nutzen
+- höchster Entwicklungs- und Validierungsaufwand; ohne Messung droht ein teurer Umbau am falschen Engpass.
 
-### 5. Retire
+**Gate:** schrittweise Architekturtests erst mit zwei Instanzen, dann mit gestuften Workloads; keine direkte Behauptung von 5.000 Clients.
 
-`Retire` bedeutet, nicht mehr benoetigte Komponenten oder Funktionen abzuschalten.
+## 7. Retire
 
-Bezug zu arsnova.eu:
+**Bedeutung:** nicht mehr benötigte Komponenten oder Betriebsvarianten entfernen.
 
-- fuer Event-Szenarien kann geprueft werden, ob bestimmte Zusatzfunktionen im Grosslastbetrieb deaktiviert werden sollten
-- Beispiele:
-  - optionale Zusatzkanaele
-  - besonders teure Live-Funktionen
-  - selten genutzte, aber lastkritische Features
+Mögliche Anwendung:
 
-Bewertung:
+- veraltete Polling-Fallbacks nach nachgewiesener Push-/Reconnect-Stabilität abbauen;
+- ungenutzte Betriebswege, Images oder doppelte Telemetrie entfernen;
+- besonders teure optionale Funktionen in einem klar definierten Degradationsmodus deaktivieren.
 
-- **nicht als Gesamtstrategie**, aber als Teil eines Event-Betriebsmodus sinnvoll
-- hilft, Last und Komplexitaet zu reduzieren
+Retire darf keine versteckte Funktionskürzung sein. Produktwirkung, Barrierefreiheit und Betriebskommunikation müssen geprüft werden.
 
-### 6. Retain
+**Gate:** Nutzungs-/Abhängigkeitsnachweis, Regressionstests und dokumentierter Rollback.
 
-`Retain` bedeutet, Teile eines Systems zunaechst bewusst unveraendert zu belassen.
+## 8. Retain
 
-Bezug zu arsnova.eu:
+**Bedeutung:** Teile bewusst unverändert lassen.
 
-- nicht jede Komponente muss sofort cloud-native umgebaut werden
-- stabile und unkritische Teile koennen vorerst bestehen bleiben
-- die Transformation kann schrittweise erfolgen
+Sinnvolle Kandidaten:
 
-Beispiele:
+- Angular-Frontend und lokale Quiz-Sammlung, solange sie kein gemessener Engpass sind;
+- Prisma/PostgreSQL-Domänenmodell, wenn die Skalierungsmaßnahme auf Betriebs- und Live-Pfade begrenzt bleibt;
+- Single-Host-Betrieb für kleine institutionelle Installationen als unterstützte, kostengünstige Variante.
 
-- Frontend-Build-Pipeline vorerst beibehalten
-- bestimmte Admin- oder Hilfsfunktionen zunaechst unveraendert lassen
-- nur die echten Last-Hotspots zuerst angehen
+Retain ist eine begründete Scope-Entscheidung, kein Aufschieben ohne Kriterium.
 
-Bewertung:
+**Gate:** dokumentierte Annahme, Monitoring und Termin oder Schwelle für Neubewertung.
 
-- **fuer arsnova.eu sehr realistisch**
-- sinnvoll, um Aufwand zu begrenzen
-- erlaubt fokussierte Optimierung statt Komplettumbau
+## 9. Empfohlene Kombination
 
-## Zusammenfassende Bewertung fuer arsnova.eu
+| Zeithorizont | Kombination              | Begründung                                                                                                 |
+| ------------ | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| zuerst       | **Retain + Rehost**      | Ist-Pfad stabilisieren und formalen Zielhostnachweis schaffen, ohne Architekturbehauptungen vorwegzunehmen |
+| danach       | **Replatform**           | Dienste und Verantwortungen trennen; reproduzierbare Zieltopologie aufbauen                                |
+| gezielt      | **Refactor/Rearchitect** | nur gemessene Multi-Instanz-, Fan-out- und State-Grenzen umbauen                                           |
+| selektiv     | **Repurchase + Retire**  | Randdienste einkaufen beziehungsweise überholte Pfade entfernen, wenn Exit und Nutzen belegt sind          |
 
-Fuer **arsnova.eu** sind im Kontext der 500er-Frage vor allem diese 6R-Strategien relevant:
+Die Reihenfolge ist eine Hypothese, kein Beschluss. Ein sehr guter Zwei-Instanz-Nachweis kann Refactor begrenzen; ein früher Engpass kann ihn vorziehen.
 
-### Kurzfristig sinnvoll
+## 10. Roadmap-Artefakt für den Kurs
 
-- `Rehost`
-  - wenn kurzfristig mehr Leistung durch staerkere Infrastruktur benoetigt wird
-- `Replatform`
-  - wenn Datenbank, Redis oder Betriebsdienste professioneller ausgelagert werden
+Eine belastbare 6R-Abgabe enthält:
 
-### Mittelfristig besonders sinnvoll
+- Ist-Komponente und belegte Grenze;
+- gewähltes R mit Taxonomiedefinition;
+- erwartete Wirkung auf beide Lastprofile;
+- notwendige Code-/Betriebsänderung;
+- Risiko, Kostenart und Exit-Strategie;
+- Messung, Gate und Abbruchkriterium;
+- bewusst beibehaltene Komponenten.
 
-- `Replatform`
-  - als pragmatische Cloud-Optimierung ohne Komplettumbau
-- `Retain`
-  - um stabile Teile bewusst unveraendert zu lassen
+## 11. Kurzfassung
 
-### Langfristig strategisch wichtig
-
-- `Refactor`
-  - wenn arsnova.eu fuer groessere und haeufigere Live-Last cloud-native weiterentwickelt werden soll
-
-### Nur teilweise relevant
-
-- `Repurchase`
-  - fuer Betriebsbausteine moeglich, fuer das Kernprodukt eher nicht
-- `Retire`
-  - eher fuer einzelne Funktionen oder Event-Modi als fuer das Gesamtsystem
-
-## Fachliche Schlussfolgerung
-
-Die 500er-Fragestellung laesst sich daher nicht nur allgemein in das **Cloud Computing** einordnen, sondern auch konkret als **6R-Transformationsfrage**:
-
-Die zentrale Frage lautet nicht nur, ob die aktuelle Infrastruktur ausreicht, sondern **welche Transformationsstrategie fuer arsnova.eu am sinnvollsten ist**.
-
-Fuer den aktuellen Stand ergibt sich folgende Tendenz:
-
-- **Rehost** als kurzfristige Betriebsoption
-- **Replatform** als realistischer naechster Schritt
-- **Refactor** als langfristige Skalierungsstrategie
-- **Retain** fuer nicht-kritische oder bereits stabile Teile
-
-## Kurzform fuer Vortrag oder Hausarbeit
-
-Unter den **6R-Aspekten des Cloud Computing** ist die Fragestellung von arsnova.eu vor allem den Strategien **Rehost**, **Replatform**, **Refactor** und **Retain** zuzuordnen. Kurzfristig kann die Plattform durch staerkere oder besser getrennte Infrastruktur verbessert werden. Langfristig wird jedoch vor allem eine architektonische Weiterentwicklung in Richtung cloud-nativer, skalierbarer Live-Kommunikation relevant.
+Für `arsnova.eu` ist keine einzelne R-Strategie ausreichend. Plausibel ist ein evidenzgetriebener Pfad aus **Retain/Rehost** für die stabilen Teile und den Zielhostnachweis, **Replatform** für klare Dienstgrenzen sowie gezieltem **Refactor/Rearchitect** für prozesslokale Live-Signale, globale Limits und Multi-Instanz-Failover. Repurchase und Retire sind vor allem bei Randdiensten beziehungsweise nachweislich überholten Pfaden sinnvoll.

@@ -1,56 +1,74 @@
-# Cloud-Computing-Einordnung (akademische Fassung)
+# Cloud-Computing-Einordnung: akademische Fassung
 
-## Zweck
+**Zweck:** Wissenschaftlich anschlussfähiger Bezugsrahmen für Seminar-, Projekt- und Portfolioarbeiten · **Stand:** 2026-07-28 · **Empirischer Status:** [betriebliche Einordnung](./CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)
 
-Dieses Dokument formuliert die Einordnung der Skalierungs- und Lasttest-Fragestellung von **arsnova.eu** in das Themenfeld **Cloud Computing** in einer wissenschaftlich anschlussfaehigen Form.
+## 1. Untersuchungsgegenstand
 
-Die Fassung eignet sich fuer Seminararbeiten, Hausarbeiten, Vortraege, Projektberichte und akademische Diskussionen.
+Untersucht wird die Transformation der Live-Webanwendung `arsnova.eu` von einem containerisierten Single-Host-Betrieb zu einer potenziell verteilten Cloud-Architektur. Zwei kontrastierende Lehrszenarien bilden den Analysefall:
 
-## Wissenschaftliche Einordnung
+1. 100 parallele Sessions mit je 50 Teilnehmenden und mehreren Live-Kanälen;
+2. eine einzelne Session mit 5.000 Teilnehmenden.
 
-Die Untersuchung der Frage, ob **arsnova.eu** mit der aktuell betriebenen Infrastruktur fuer eine Veranstaltung mit **500 gleichzeitigen Teilnehmenden** geeignet ist, laesst sich dem Bereich **Cloud Computing** zuordnen.
+Die Szenarien sind **analytische Zielprofile**, keine empirisch bestätigten Kapazitäten. Der historische Produktionsnachweis umfasst 500 gleichzeitige Joins, jedoch keine vollständige Live-Session unter dieser Last; umfassendere 500er-Regressionen liegen lokal vor. Die formale Zielhost-Gesamtabnahme ist offen.
 
-Begruendet ist dies dadurch, dass nicht nur die funktionale Korrektheit der Anwendung betrachtet wird, sondern vor allem deren skalierbare Bereitstellung und stabiler Betrieb unter dynamischer Last.
+## 2. Cloud-theoretischer Bezug
 
-## Theoretischer Bezug
+Terminologische Grundlage ist [NIST SP 800-145](https://csrc.nist.gov/pubs/sp/800/145/final) mit fünf wesentlichen Cloud-Merkmalen, drei Service- und vier Deployment-Modellen. Für die Operationalisierung von Zuverlässigkeit dient das frei verfügbare Kapitel [Implementing SLOs](https://sre.google/workbook/implementing-slos/) aus dem Google-SRE-Workbook als Praxisreferenz. Beide Quellen ergänzen die im bereitgestellten Modulhandbuch ausgewiesene Pflichtliteratur; Quellenstatus und Aktualisierungsregel stehen in den [IU-Formalia](../didaktik/CLOUD-COMPUTING-IU-FORMALIA.md#8-pflichtliteratur-und-aktualisierung).
 
-Die Fragestellung beruehrt mehrere klassische Konzepte des Cloud Computing:
+Die Fragestellung berührt zentrale Konstrukte des Cloud Computing:
 
-- **Elasticity**
-  IT-Ressourcen muessen an veraenderliche Lastprofile angepasst werden koennen.
+- **On-demand Provisioning und Measured Service:** Ressourcen werden bedarfsgerecht bereitgestellt und ihre Nutzung messbar gemacht.
+- **Resource Pooling und Multi-Tenancy:** Viele unabhängige Sessions teilen Infrastruktur, ohne Isolation und Fairness zu verlieren.
+- **Scalability und Elasticity:** Das System muss wachsende Last tragen; Elastizität ergänzt die zeitnahe Anpassung an wechselnde Last.
+- **Service Decomposition:** Compute, Persistenz, flüchtiger Zustand, Ereignisverteilung und Hintergrundarbeit erhalten explizite Betriebsgrenzen.
+- **Resilience:** Fehler einzelner Instanzen oder Dienste dürfen nicht unkontrolliert zum Ausfall des Live-Betriebs führen.
+- **Observability:** SLIs, SLOs, Logs, Metriken und kontrollierte Experimente machen Systemverhalten bewertbar.
+- **Shared Responsibility:** Sicherheits-, Datenschutz- und Betriebsaufgaben verschieben sich mit dem gewählten Service-Modell.
 
-- **Resource Provisioning**
-  Rechenleistung, Hauptspeicher, Speicherplatz und Netzwerkressourcen muessen in angemessenem Umfang bereitgestellt werden.
+Damit ist der Fall nicht deshalb „Cloud“, weil er auf gemieteter Infrastruktur läuft, sondern weil bedarfsgerechte Bereitstellung, geteilte Ressourcen, Skalierung, Messbarkeit und Verantwortungsverschiebung systematisch entworfen und bewertet werden.
 
-- **Scalability**
-  Es ist zu untersuchen, ob die Anwendung durch vertikale oder horizontale Skalierung an steigende Nutzerzahlen angepasst werden kann.
+## 3. Geeignete Forschungsfragen
 
-- **Service Decomposition**
-  Die Aufteilung von Anwendungslogik, Datenhaltung und In-Memory-Komponenten auf getrennte Dienste entspricht einem typischen Cloud-Architekturmuster.
+- Welche Architekturgrenzen verhindern derzeit horizontale Skalierung des Live-Pfads?
+- Wie unterscheiden sich Engpässe vieler kleiner Sessions von einem einzelnen Fan-out-Hotspot?
+- Welche SLIs und Testdesigns erlauben eine belastbare Aussage zur Kapazität und Recovery?
+- Welche 6R-Kombination reduziert technische und betriebliche Risiken schrittweise?
+- Unter welchen Annahmen ist Self-managed IaaS gegenüber Managed Services wirtschaftlicher?
+- Wie verändern Provider- und Service-Modell Datenschutz, Lock-in und Betriebsverantwortung?
 
-- **Observability**
-  Metriken, Monitoring, Alerting und Lasttests sind notwendig, um das Verhalten verteilter Systeme unter Last systematisch zu analysieren.
+## 4. Operationalisierung
 
-- **Resilience**
-  Stabilitaet, Fehlertoleranz und kontrollierter Umgang mit Lastspitzen sind zentrale Eigenschaften cloudfaehiger Systeme.
+| Konstrukt          | Mögliche Indikatoren                                                            |
+| ------------------ | ------------------------------------------------------------------------------- |
+| Skalierbarkeit     | Durchsatz und Latenz bei steigender Client-, Session- und Kanalzahl             |
+| Elastizität        | Bereitstellungszeit, Scale-out-/Scale-in-Zeit, Stabilität während der Anpassung |
+| Resilienz          | Fehlerauswirkung, Reconnect-Quote, Recovery-Zeit, Datenverlust                  |
+| Multi-Tenancy      | Isolation, Fairness, Noisy-Neighbour-Effekt, Session-Kardinalität               |
+| Observability      | Abdeckung kritischer SLIs, Alarmgüte, Diagnosezeit                              |
+| Wirtschaftlichkeit | Infrastruktur-, Betriebs-, Migrations-, Egress- und Lock-in-Kosten              |
 
-## Bezug auf den konkreten Fall
+Eine seriöse Arbeit definiert für jedes Zielprofil Workload, Messgröße, Akzeptanzkriterium, Testumgebung und Gültigkeitsgrenze.
 
-Im Fall von **arsnova.eu** steht eine internetbasierte Anwendung mit Live-Interaktion im Mittelpunkt. Die Zahl gleichzeitiger Teilnehmender beeinflusst direkt:
+## 5. Evidenz- und Validitätsregeln
 
-- die Last auf dem Backend
-- die Zugriffsmuster auf die Datenbank
-- die Nutzung von Redis als schnellen Zustands- und Telemetriedienst
-- die Zahl gleichzeitiger Verbindungen und Statusaenderungen
+- Ein lokaler Lasttest belegt Reproduzierbarkeit im Testaufbau, nicht automatisch Produktionskapazität.
+- Ein erfolgreicher Join-Lauf belegt weder Vote-Verarbeitung noch WebSocket-Fan-out oder Recovery.
+- Konfigurierte Connection-Caps sind Schutzgrenzen, keine gemessene Leistungsfähigkeit.
+- Eine Stückliste oder Kostenrechnung ist eine Planungshypothese, kein Lastnachweis.
+- Providerprodukte dürfen nur bei vergleichbarer Region, Verfügbarkeit, Service-Tiefe und Kostenbasis gegenübergestellt werden.
+- Aussagen müssen den untersuchten Commit, die Topologie, Laufparameter und Unsicherheiten nennen.
 
-Damit verschiebt sich die Analyse von einer rein funktionalen Betrachtung hin zu einer infrastrukturellen und betriebsorientierten Perspektive. Der Lasttest ist somit nicht nur eine Performance-Pruefung, sondern zugleich eine Untersuchung der Skalierbarkeit und Cloud-Eignung des Gesamtsystems.
+## 6. Mögliche Methodik
 
-## Akademische Schlussfolgerung
+Eine geeignete Fallstudie kombiniert:
 
-Die Fragestellung ist als **Cloud-Computing-relevantes Problem** einzuordnen, da sie sich mit der skalierbaren Bereitstellung, der performanten Verarbeitung gleichzeitiger Zugriffe sowie der resilienten Betriebsfaehigkeit einer verteilten Webanwendung befasst.
+1. dokumenten- und codebasierte Architekturanalyse;
+2. explizite Modellierung beider Workloads;
+3. kontrollierte Last-, Fehler- und Recovery-Experimente;
+4. quantitative SLI/SLO-Auswertung;
+5. qualitative Architektur- und 6R-Bewertung;
+6. transparente Kosten- und Risikoanalyse.
 
-Ein Lasttest mit 500 Teilnehmenden dient in diesem Zusammenhang als empirisches Mittel, um die praktische Tragfaehigkeit der zugrunde liegenden Infrastruktur- und Architekturentscheidungen zu bewerten.
+## 7. Akademische Schlussfolgerung
 
-## Kurzform fuer wissenschaftliche Arbeiten
-
-Die Untersuchung laesst sich dem Bereich **Cloud Computing** zuordnen, da sie die skalierbare Bereitstellung, Ueberwachung und betriebliche Absicherung einer internetbasierten Anwendung unter dynamischer Last analysiert. Im Mittelpunkt stehen dabei Konzepte wie **Elasticity**, **Resource Provisioning**, **vertikale und horizontale Skalierung**, **Dienstentkopplung**, **Observability** und **Resilience**.
+Die Untersuchung ist dem Cloud Computing zuzuordnen, weil sie die messbare, skalierbare und resiliente Bereitstellung einer internetbasierten Multi-Tenant-Live-Anwendung analysiert. Wissenschaftlich besonders ergiebig ist die Diskrepanz zwischen einem funktionierenden Single-Host-Ist-System, begrenzter Lasttestevidenz und wesentlich größeren, noch unbestätigten Lehrzielbildern. Sie zwingt dazu, Architekturentscheidungen als überprüfbare Hypothesen statt als Produktversprechen zu formulieren.

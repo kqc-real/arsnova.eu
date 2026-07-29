@@ -1,0 +1,334 @@
+<!-- markdownlint-disable MD013 MD024 MD060 -->
+
+# Ablaufpläne: Cloud Computing (12 Termine × 3 UE)
+
+**Modul:** `DSCC0127` / `DSCC012701` · **Lehrkonzept:** [36-UE-Konzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Modalitäten:** [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Stand:** 2026-07-29
+
+Ein Termin umfasst 3 UE beziehungsweise 135 Netto-Minuten. Der Plan bildet die Workload-Vorgabe exakt ab:
+
+| Typ                                      | Termine             |          Summe |
+| ---------------------------------------- | ------------------- | -------------: |
+| Präsenzstudium/synchrone virtuelle Lehre | 1, 2, 4, 5, 6, 9    | 18 UE = 13,5 h |
+| Tutorium/tutorielle Betreuung            | 3, 7, 8, 10, 11, 12 | 18 UE = 13,5 h |
+
+Pausen und institutionelle Zeitfenster sind vor Semesterstart einzurechnen. Die Typzuordnung darf nur geändert werden, wenn die Bilanz 18 UE zu 18 UE erhalten bleibt.
+
+`Präsenz/synchron` bezeichnet die Workload-Kategorie, nicht ausschließlich einen physischen Raum. Dieser Termin findet im Präsenzlauf vor Ort und im Zoom-Lauf synchron online statt. Auch die Tutorien werden im jeweiligen Kursmodus angeboten. Fachlicher Minutenplan, Lernprodukt und Selbststudium bleiben gleich; Sozialform, Medium und Störungsfallback folgen dem [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md).
+
+Alle substanziellen Aktivitäten werden auf Lehrenden- und Studierendenseite mit KI-Agenten ausgeführt. Jeder Termin folgt `Auftrag → Plan → Freigabe → Ausführung → Verifikation → Evidenz → Entscheidung`; reine Chatantworten oder manuell nachgeklickte Cloud-Schritte erfüllen den Arbeitsauftrag nicht. Menschen setzen Grenzen, genehmigen Risiko/Kosten und verantworten das Ergebnis.
+
+Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für das 15-minütige Referat je Prüfling. Falls myCampus stattdessen Workbook vorgibt, werden ausschließlich die zentralen Workbookaufgaben und [Workbook-Regeln](./CLOUD-COMPUTING-IU-FORMALIA.md#7-alternativpfad-workbook-nur-nach-bestätigung) verwendet.
+
+## Termin 1: Grundlagen und Agentenvertrag
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 1 · **Leitfrage:** Wann ist ein Dienst Cloud Computing und wie wird ein Agent dafür sicher beauftragt?
+
+### UE 1 (0–45)
+
+- 0–10: Dozentenagent macht Modulziele, Workload, Referat, Agent-first-Regel und Produktionssperre prüfbar sichtbar
+- 10–30: Klassifikationsagent erschließt On-demand Self-service, Broad Network Access, Resource Pooling, Rapid Elasticity und Measured Service aus freigegebenen Quellen
+- 30–45: Studierende verifizieren die Agentenabgrenzung zu Hosting, Outsourcing und Virtualisierung
+
+### UE 2 (45–90)
+
+- Agentenvertrag mit Ziel, Werkzeugen, verbotenen Bereichen, Rechten, Budget, Akzeptanz- und Abbruchkriterien erstellen
+- IaaS, PaaS und SaaS sowie Public, Private, Hybrid und Multi-Cloud agentisch zuordnen
+- Shared Responsibility, Nutzen und Risiken durch einen Review-Agenten gegenprüfen
+
+### UE 3 (90–135)
+
+- Klassifikationsagent ordnet `arsnova.eu` als Self-managed-IaaS-Fall ein; Studierende widerlegen oder bestätigen jede Aussage
+- Lernprodukt: Cloud-Einordnung mit Agentenvertrag, drei belegten Fakten, drei offenen Annahmen und Kostenlimit
+- Anker: [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md), [akademische Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md)
+
+**Selbststudium:** Agenten die NIST-Definition extrahieren lassen, Zitate am Original prüfen und die Einordnung samt Agentenkritik auf maximal einer Seite überarbeiten.
+
+## Termin 2: Technologische Voraussetzungen und Zielserver als Code
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 2 · **Leitfrage:** Welche Abstraktionen und Agentengrenzen machen einen reproduzierbaren Cloud-Zielserver möglich?
+
+### UE 1 (0–45)
+
+- Architekturagent modelliert Virtualisierung, Hypervisor, VM, Container, Images, Isolation und Ressourcensteuerung
+- Agent trennt Compose, Orchestrierung und Infrastructure as Code und kennzeichnet Verantwortungsgrenzen
+- Studierende prüfen Modell, Quellen und unzulässige Vereinfachungen
+
+### UE 2 (45–90)
+
+- Provisioning-Agent entwirft den isolierten Zielserver mit Compute, Block-/Datei-/Object-Storage und Netzwerk
+- DNS, TLS, Load Balancing, Firewall, HTTP/REST und WebSocket-Anforderungen als maschinenprüfbare Kriterien formulieren
+- unprivilegierten Agentenzugang, kurzlebige Privilegien, Egress-Grenzen, Quotas und Cleanup planen
+
+### UE 3 (90–135)
+
+- Agent erzeugt IaC-/Configuration-as-Code-Entwurf und einen Dry-Run ohne Produktivzugriff
+- Lernprodukt: Technologiematrix plus versionierter Provisioning-Plan mit Fähigkeit, Verantwortung, Risiko und Kostenbudget
+- Anker: [Dockerfile](../../Dockerfile), [Produktions-Compose](../../docker-compose.prod.yml), [Deployment](../deployment-debian-root-server.md)
+
+**Selbststudium:** Analyseagent zeichnet eine Anfrage vom Browser bis PostgreSQL/Redis nach; Studierende belegen jeden Übergang im Repo und ergänzen ihn im Provisioning-Plan.
+
+## Termin 3: Agentische Serverinstallation, Härtung und Zustandsgrenzen
+
+**Typ:** Tutorium · **Modulhandbuch:** Vertiefung Inhaltsblock 2 · **Leitfrage:** Kann der Agent einen isolierten Server reproduzierbar installieren und nachweisbar härten?
+
+### UE 1 (0–45)
+
+- Provisioning-Agent prüft Plan, Ziel, Rechte, Budget, Abbruch und Snapshot; Studierende erteilen das Ausführungsgate
+- Agent stellt den isolierten Zielserver aus Code bereit, inventarisiert den Ausgangszustand und aktualisiert freigegebene Pakete
+- Fakten, Evidenz, Annahmen, Entscheidungen und Agentenbeiträge getrennt markieren
+
+### UE 2 (45–90)
+
+- Operations-Agent installiert den festgelegten `arsnova.eu`-Slice mit unprivilegierten Konten und minimalen Diensten
+- Hardening-Agent begrenzt SSH/Ports, Firewall, Dateirechte, Secrets, Container, Netzwerk/Egress und Protokollierung
+- Architekturagent verortet Nginx, App, PostgreSQL, Redis, Yjs, WebSockets und PDF-Worker sowie Trust-, State- und Skalierungsgrenzen
+
+### UE 3 (90–135)
+
+- unabhängiger Review-Agent führt Funktions-, Konfigurations- und Härtungsprüfungen aus; Studierende prüfen False Positives und Restrisiko
+- Rollback/Destroy beziehungsweise reproduzierbaren Neuaufbau durchführen
+- Lernprodukt: IaC, Systeminventar, belegtes Ist-Diagramm, Härtungsbericht, Restabweichungen und Wiederherstellungsnachweis
+- Anker: [Architektur-Handbuch](../architecture/handbook.md), [`session.ts`](../../apps/backend/src/routers/session.ts), [`redis.ts`](../../apps/backend/src/redis.ts)
+
+**Selbststudium:** Einen zweiten Agenten den Aufbau adversarial prüfen lassen, Befunde verifizieren und jeden verbleibenden Fakt mit Repo-, System- oder Testevidenz versehen.
+
+## Termin 4: Serverless Computing
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 3 · **Leitfrage:** Welche Aufgaben empfiehlt ein Agent für Serverless und hält die Empfehlung einem isolierten Gegenversuch stand?
+
+### UE 1 (0–45)
+
+- Serverless-Agent erschließt Function as a Service, Backend as a Service, Trigger, kurze Ausführung und zustandslose Instanz
+- Agent grenzt Function, Container, Job, Queue-Worker und Managed Service anhand gleicher Kriterien ab
+- Studierende prüfen Definitionen und Verantwortungsmodell gegen Primärquellen
+
+### UE 2 (45–90)
+
+- Agent bewertet Skalierung, Abrechnung und Infrastrukturpflege sowie Laufzeitgrenzen, Cold Starts, Observability und Datenlokalität
+- Economics-Agent ergänzt Kostenkurve, Break-even und Lock-in
+- Review-Agent verwendet langlebige Verbindungen und lokalen Zustand als Gegenbeispiele
+
+### UE 3 (90–135)
+
+- Agent vergleicht PDF-Erzeugung, Webhooks, periodische Pflegejobs, HTTP-API und Yjs
+- einen geeigneten Kandidaten in einer isolierten, budgetierten Sandbox prototypisieren oder als reproduzierbaren Dry-Run ausführen
+- Lernprodukt: Serverless-Eignungsmatrix mit Testevidenz, Kostenband, Entscheidung und Gegenargument
+- Anker: [`pdfWorkerTransport.ts`](../../apps/backend/src/lib/pdfWorkerTransport.ts), [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)
+
+**Selbststudium:** Agenten eine geeignete und eine ungeeignete Funktion gegeneinander verteidigen lassen; Quellen, Architekturfolge und Kostenannahmen selbst verifizieren.
+
+## Termin 5: Etablierte Cloud-Plattformen
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 4 · **Leitfrage:** Wie vergleicht ein Provider-Agent Google Cloud, AWS und Azure ohne Produktkatalog- oder Preisillusion?
+
+### UE 1 (0–45)
+
+- Provider-Agent erhebt Konto-/Projektmodell, Regionen, Availability Zones, Identität, Netzwerk und Abrechnung
+- Agent ordnet Service-Tiefe und Shared Responsibility nach einem identischen Raster
+- Quellenagent liefert ausschließlich aktuelle Primärquellen mit Abrufdatum
+
+### UE 2 (45–90)
+
+- Agent bildet GCP, AWS und Azure nach Compute, Container, Functions, Storage, Netzwerk, Datenbank und Observability ab
+- Review-Agent normalisiert Produktnamen auf Fähigkeiten und sucht asymmetrische Vergleiche
+- Privacy-/FinOps-Agent prüft Region, Datenschutz, Kostenkontrolle, Lock-in und Exit als Ausschlusskriterien
+
+### UE 3 (90–135)
+
+- Agent skizziert dieselbe `arsnova.eu`-Fähigkeit auf allen drei Plattformen und macht Annahmen maschinenlesbar
+- Lernprodukt: Capability-/Verantwortungs-/Kostenvergleich mit Primärquellen, Abrufdatum und menschlicher Gegenprüfung
+- Anker: [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md)
+
+**Selbststudium:** Quellenagent aktualisiert pro Plattform zwei volatile Angaben; Studierende prüfen Quelle, Region, Datum, Einheit und Vergleichbarkeit.
+
+## Termin 6: Datenwissenschaft und maschinelles Lernen in der Cloud
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 5 · **Leitfrage:** Welche Cloud-Fähigkeit empfiehlt ein Daten-/ML-Agent und besteht sie die Privacy- und Wirtschaftlichkeitsgates?
+
+### UE 1 (0–45)
+
+- Daten-/ML-Agent modelliert Aufnahme, Speicherung, Transformation, Analyse, Training, Inferenz und Monitoring
+- Agent vergleicht Batch/Streaming sowie Notebook, Warehouse, Pipeline und Managed ML
+- Studierende prüfen Datenqualität, Reproduzierbarkeit, Kosten und Verantwortungsgrenze
+
+### UE 2 (45–90)
+
+- Agent vergleicht GCP-, AWS- und Azure-Angebote nach denselben Pipeline-Fähigkeiten
+- Privacy-Agent erstellt Dateninventar, Zweck-/Rollenmatrix und Datenfluss und prüft Minimierung, Residenz, Löschung und Modell-/Datenexport
+- Economics-Agent ergänzt Betrieb, Modellkosten, Egress und Lock-in
+
+### UE 3 (90–135)
+
+- Agent analysiert als Fall eine aggregierte, datensparsame Veranstaltungsanalyse ausschließlich mit synthetischen Daten
+- Review-Agent verwirft personenbezogene, zweckfremde oder nicht freigegebene Datenpfade
+- Lernprodukt: DS-/ML-Service-Mapping mit Datenfluss, Zweck, Region, Verantwortungsgrenze, Datenschutzrisiko und Kostenband
+
+**Selbststudium:** Daten-, Privacy- und FinOps-Agenten dieselbe Plattformoption prüfen lassen; Widersprüche und offene Rechtsfragen menschlich dokumentieren.
+
+## Termin 7: Daten, Speicher, Backup und Recovery
+
+**Typ:** Tutorium · **Modulhandbuch:** Vertiefung Inhaltsblock 2 · **Leitfrage:** Kann ein Recovery-Agent die geforderte Wiederherstellung tatsächlich und reproduzierbar ausführen?
+
+### UE 1 (0–45)
+
+- Recovery-Agent inventarisiert Persistenz, Cache, flüchtigen Zustand und Object Storage auf dem Zielserver
+- Agent schlägt RPO, RTO, Konsistenz- und Idempotenzkriterien vor; Studierende prüfen Geschäfts- und Nutzerfolge
+- Agentenplan, Datenzugriff, Snapshot und Abbruchweg vor Ausführung freigeben
+
+### UE 2 (45–90)
+
+- Agent ordnet PostgreSQL-, Redis-, Yjs- und Exportdaten ein und prüft Backup-/Offsite-Grenzen
+- Recovery-Agent führt in der isolierten Umgebung ausgewählte DB-, Redis-, Host- oder Deployment-Fehlerfälle aus
+- Restore in frische Zielumgebung durchführen und Zeit, Verlust, Integrität und Kosten messen
+
+### UE 3 (90–135)
+
+- unabhängiger Review-Agent verifiziert den Restore; Backupbehauptung nur mit ausgeführtem Restore-Nachweis akzeptieren
+- Lernprodukt: Daten-/Recovery-Matrix mit Owner, RPO, RTO, Messwert, Kosten und Evidenz
+- Anker: [Prisma-Schema](../../prisma/schema.prisma), [Backup-/Restore-Runbook](../operations/BACKUP-RESTORE-RUNBOOK.md)
+
+**Selbststudium:** Recovery-Agent den Neuaufbau wiederholen lassen, Abweichungen erklären und Schrittfolge/Automation korrigieren.
+
+## Termin 8: Skalierung und Performance Engineering
+
+**Typ:** Tutorium · **Modulhandbuch:** Fallvertiefung zu Nutzen/Risiken und technischer Grundlage · **Leitfrage:** Welche agentisch ausgeführte Messung kann eine Skalierungs- oder Wirtschaftlichkeitsannahme widerlegen?
+
+### UE 1 (0–45)
+
+- Performance-Agent formuliert Hypothesen zu vertikaler/horizontaler Skalierung, Elastizität, Queueing und Backpressure
+- Agent definiert p50/p95/p99, Durchsatz, Fehlerrate und Sättigung als maschinenprüfbare Messgrößen
+- Workload-Agent trennt viele kleine Sessions von einem einzelnen Fan-out-Hotspot
+
+### UE 2 (45–90)
+
+- Agent vergleicht historische Produktions-Joins, lokale 500er-Baselines und offene §6.5-Abnahme ohne Evidenzstufen zu vermischen
+- `100 × 50` und `1 × 5.000` getrennt modellieren und nur auf der isolierten, budgetierten Zielumgebung skaliert ausführen
+- prozesslokale Signale, WebSocket/Yjs-Routing und globale Limits als Scale-out-Hürden prüfen
+
+### UE 3 (90–135)
+
+- menschliches Last-, Kosten- und Sicherheitsgate; Agent führt Test aus, sammelt Report und wiederholt mindestens eine Messung
+- Economics-Agent berechnet Kosten pro definierter Last-/SLO-Einheit
+- Lernprodukt: reproduzierbarer Lastreport mit Workload, Umgebung, Gate, Abbruch, Rohdaten, Gültigkeitsgrenze und Unit Costs
+- Anker: [Produktions-Join](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md), [§6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
+
+**Selbststudium:** Performance-Agent eine Gegenhypothese testen lassen; Messrauschen, Kosten und Gültigkeitsgrenze dokumentieren.
+
+## Termin 9: Security, Observability und Resilienz
+
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Nutzen/Risiken und Plattformanalyse · **Leitfrage:** Können Security- und Privacy-Agenten Befunde sicher beheben und mit unabhängiger Evidenz schließen?
+
+### UE 1 (0–45)
+
+- Security-Agent modelliert IAM, Least Privilege, Secrets, Netzwerkgrenzen, Supply Chain und Tenant-/Session-Isolation
+- Privacy-Agent prüft Verschlüsselung, Datenminimierung, Speicherorte, Aufbewahrung, Löschung und Modell-/Tool-Datenabfluss
+- Studierende genehmigen Scan- und Änderungsumfang; fremde und produktive Systeme bleiben ausgeschlossen
+
+### UE 2 (45–90)
+
+- Blue-Agent scannt Konfiguration, Abhängigkeiten, Container/IaC und exponierte Dienste
+- Remediation-Agent priorisiert und implementiert freigegebene Maßnahmen
+- Observability-Agent prüft Logs, Metriken, Traces, SLI/SLO, Alarm, Runbook, Redundanz und Graceful Degradation
+
+### UE 3 (90–135)
+
+- unabhängiger Review-/Red-Agent führt Negativtests aus und prüft False Positives, Regressionen und Restrisiko
+- Economics-Agent bewertet Kosten von Kontrolle, Managed Alternative und verbleibendem Risiko
+- Lernprodukt: `Befund → Risiko → Maßnahme → Verifikation → Restrisiko` plus Owner und Kostenfolge
+- Anker: [Security Overview](../SECURITY-OVERVIEW.md), [Monitoring-Runbook](../operations/MONITORING-RUNBOOK.md), [W3.7-Abnahme](../implementation/W3.7-MONITORING-ALARMS-ABNAHME.md)
+
+**Selbststudium:** Security-, Privacy- und Economics-Agenten dasselbe Residualrisiko bewerten lassen; Konflikte aus Nutzer-, Betreiber- und Providersicht entscheiden.
+
+## Termin 10: Providerentscheidung, FinOps und 6R
+
+**Typ:** Tutorium · **Modulhandbuch:** Analyse etablierter Plattformen · **Leitfrage:** Welche technisch belegte Cloud-Option ist unter Kosten, Risiko und Exit wirtschaftlich vertretbar?
+
+### UE 1 (0–45)
+
+- Economics-/FinOps-Agent prüft den GCP-/AWS-/Azure-Vergleich aus Termin 5 auf gleiche Systemgrenze und Leistungsbasis
+- Agent bewertet Rehost, Replatform, Repurchase, Refactor, Retire und Retain
+- Infrastrukturpreis, Total Cost of Ownership, Unit Economics, Opportunitätskosten und Lock-in trennen
+
+### UE 2 (45–90)
+
+- Self-managed IaaS, IaaS mit Managed Data und Managed Application Platform mit denselben Performance-/Security-/Privacydaten vergleichen
+- Agent modelliert Infrastruktur, Personal, Support, Observability, Backup, Security/Compliance, Egress, Migration und Exit
+- Best-/Base-/Worst-Case und Sensitivitätsanalyse mit Region, Währung, Steuerbasis, Abrufdatum und Primärquelle erzeugen
+
+### UE 3 (90–135)
+
+- gemischte Informatik-/Wirtschaftsinformatikrollen führen technischen und wirtschaftlichen Review-Agenten gegeneinander
+- Lernprodukt: ADR mit Betriebsmodell, 6R-Zuordnung, TCO, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit-Kriterium
+- Anker: [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md), [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)
+
+**Selbststudium:** Decision-Agent die stärkste verworfene Alternative vertreten lassen; Annahmen, Sensitivität und menschliche Schlussentscheidung überarbeiten.
+
+## Termin 11: Referatswerkstatt
+
+**Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Wie bilden Einreichung, Vortrag und Diskussion gemeinsam eine akademisch belastbare Prüfungsleistung?
+
+### UE 1 (0–45)
+
+- Prüfungsauftrag, Einzel-/Gruppenformat, Handout-/Posterformat, Hilfsmittel und gemeinsame E-Mail-Frist klären
+- zulässige Agentennutzung, Offenlegung und individuelle Verantwortlichkeit aus Prüfungsauftrag/myCampus klären
+- mindestens vier Wochen zwischen Themenfeststellung und Abgabe prüfen
+- Thema auf ein offizielles Qualifikationsziel und eine Leitfrage zuschneiden
+- bei Gruppenarbeit individuelle Beiträge in Einreichung und Vortrag eindeutig zuordnen
+
+### UE 2 (45–90)
+
+- Review-Agent prüft das Agentic Cloud Engineering Dossier auf Auftrag, Diffs, Tests, Scans, Messungen, Kosten, Cleanup und Restunsicherheit
+- alle Literatur-, Preis-, Mess- und Systembehauptungen am Original beziehungsweise in der Zielumgebung verifizieren
+- Agenten, Modelle, wesentliche Aufträge, übernommene Beiträge und individuelle Entscheidung transparent kennzeichnen
+- Handout mit höchstens 5 DIN-A4-Seiten beziehungsweise einseitiges Poster ab DIN A3 planen
+- Abbildungen nummerieren und Quellen zuordnen
+- Folien-/Visualisierungsskizze und gemeinsames 15-Minuten-Budget für Vortrag und Diskussion erstellen
+- Produktnamen nur mit erklärter Fähigkeit und Verantwortung verwenden
+
+### UE 3 (90–135)
+
+- Feedback-Agent erzeugt kritische Fach-, Security-, Privacy-, Performance- und Wirtschaftsfragen; Menschen prüfen und priorisieren sie
+- Kurz-Pitches und Peer-Feedback in gemischten Informatik-/Wirtschaftsinformatikrollen
+- Feedback anhand der offiziellen Kriterien und der Gewichte 30 % Einreichung, 30 % Vortrag, 40 % Diskussion
+- Lernprodukt: Einreichungs- und Vortragsskizze mit Quellen, Zeitplan und offener Unsicherheit
+
+**Selbststudium:** Bei formaler Freigabe Agenten für Entwurf und Gegenprüfung der PDF-Einreichung nutzen, Beiträge offenlegen und Rückfragen zum gesamten Thema ohne Agentenstellvertretung beantworten können.
+
+## Termin 12: Probeprüfung und Synthese
+
+**Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Deckt die individuelle Leistung das Modulziel ab und hält sie einer dialogischen Befragung stand?
+
+### UE 1 (0–45)
+
+- Einreichung gegen Umfang, Namen/Matrikelnummern, Literatur, Abbildungen und individuelle Kennzeichnung prüfen
+- fachliche Checkliste: Grundlagen, technologische Voraussetzung, Serverless, Plattform oder DS/ML
+- Agentenoffenlegung, Quellen, Abrufdaten, Fakten-/Annahmen-Trennung und Visualisierungen prüfen
+
+### UE 2 (45–90)
+
+- 15-minütige Probeprüfungen je Person mit Vortrag und anschließender Befragung/Diskussion
+- individuelle Zeit und individuelle Beiträge auch bei Gruppenformat sichern
+- Befragungsagent erzeugt Fragen zu Agentenfehlern, Rechten, Härtung, Datenschutz, Performance, TCO, Sensitivität und Restrisiko
+- Lehrperson verantwortet Auswahl, Durchführung und Peer-Feedback anhand des offiziellen Bewertungsbogens
+
+### UE 3 (90–135)
+
+- individuelle Revision mit Review-Agent, aber ohne autonome Notenentscheidung
+- Synthese der fünf offiziellen Inhaltsblöcke
+- bei virtueller Prüfung Identifikation, Raumscan, Bildschirmfreigabe sowie durchgehendes Bild und Ton technisch proben
+- Lernprodukt: überarbeitete Einreichung, Vortrag und persönliche Restfragenliste
+
+**Selbststudium:** finale Prüfungsvorbereitung und fristgerechte PDF-Zustellung per E-Mail entsprechend den veröffentlichten Vorgaben.
+
+## Anpassungsregeln
+
+- **18 × 2 UE:** Paarweise dieselbe Bilanz von 18 UE Präsenz/synchron und 18 UE Tutorium erhalten.
+- **Agent-first:** Alle substanziellen Aufgaben laufen über die freigegebene Agentenschnittstelle; manueller Notfallzugriff wird begründet und protokolliert.
+- **Zielserver fällt aus:** Auf eine identisch konfigurierte, isolierte Lehrenden-Sandbox wechseln; Installation, Härtung und Cleanup werden agentisch nachgeholt.
+- **Cloud-Sandbox vorhanden:** Nur kurzlebige, budgetierte Agentenexperimente ohne Echtdaten; automatischen Stopp und Cleanup dokumentieren.
+- **Präsenz und Zoom:** Keine fachlichen Parallelpläne pflegen; je Aktivität das Medien-Mapping und den Ausfallplan aus dem Durchführungskonzept verwenden.
+- **Wirtschaftsinformatik:** TCO, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit nie von technischer Mess- und Architekturevidenz trennen.
+- **Prüfungsform Referat:** Die vollständigen Vorgaben der [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) anwenden; keine zusätzliche Dossierbewertung einführen.
+- **Prüfungsform Workbook bestätigt:** Termine 11 und 12 auf die zentralen fünf Aufgaben und Einzelarbeitsregeln ausrichten; keine selbst erfundene Gruppenabgabe.
+- **Repo ändert sich:** Kurslandkarte aktualisieren und pro Termin den verwendeten Commit dokumentieren.
+- **Zu wenig Zeit:** Fallvertiefungen kürzen, niemals die fünf offiziellen Inhaltsblöcke oder die Präsenz-/Tutoriumsbilanz streichen.

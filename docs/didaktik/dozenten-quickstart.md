@@ -3,6 +3,15 @@
 **Zielgruppe:** Lehrende, die mit `arsnova.eu` einen oder mehrere Kurse planen  
 **Zeitbudget:** 10 Minuten für die Grundentscheidung, 30 Minuten für die Detailplanung
 
+**Anderer Kurs:** Für die Bachelor-Vorlesung **Cloud Computing** (Modul `DSCC0127`) starte bei
+[`CLOUD-COMPUTING-KURSREADME.md`](./CLOUD-COMPUTING-KURSREADME.md), prüfe die
+[`CLOUD-COMPUTING-IU-FORMALIA.md`](./CLOUD-COMPUTING-IU-FORMALIA.md), arbeite nach den
+[`Agentic-Lehrlaborregeln`](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md), lies die
+[`Referatsprüfung`](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md), beachte die
+[`Präsenz-/Zoom-Durchführung`](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) und nutze dann
+[`dozenten-quickstart-cloud-computing.md`](./dozenten-quickstart-cloud-computing.md) —
+nicht mit diesem FSE/SQM/DA-Quickstart.
+
 Wenn du **nur kurz** Orientierung brauchst, triff zuerst diese vier Entscheidungen:
 
 1. **Welche Kurse laufen dieses Semester wirklich?**
