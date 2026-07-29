@@ -19,7 +19,7 @@ Die Lehrprofile `100 × 50` und `1 × 5.000` sind ungetestete Szenarien. Keine T
 
 ## 2. Preis- und Produktbasis
 
-Die SKU-Beispiele dienen nur der Kostenrechnung für Region Deutschland/Finnland. Die Nettozahlen im Rechenblatt sind aus den von Hetzner veröffentlichten Bruttopreisen nach der Preisanpassung vom 15.06.2026 abgeleitet. Vor Verwendung sind SKU, Architektur, Verfügbarkeit und Preis erneut zu prüfen.
+Die SKU-Beispiele dienen nur der Kostenrechnung für Region Deutschland/Finnland. Die Nettozahlen im Rechenblatt stammen aus der englischen Hetzner-Preisliste nach der Preisanpassung vom 15.06.2026; die deutsche Fassung weist parallel die Bruttopreise inklusive 19 % MwSt. aus. Vor Verwendung sind SKU, Architektur, Verfügbarkeit und Preis erneut zu prüfen.
 
 | Rolle                    | Beispielklasse                           | Warum nur ein Beispiel?                                  |
 | ------------------------ | ---------------------------------------- | -------------------------------------------------------- |
@@ -29,7 +29,7 @@ Die SKU-Beispiele dienen nur der Kostenrechnung für Region Deutschland/Finnland
 | Persistenz               | Volume + Object Storage                  | Performance, Restore und Retention separat nachweisen    |
 | Eingang                  | Hetzner Load Balancer oder eigener Proxy | tRPC-/Yjs-Routing und Affinität explizit testen          |
 
-Primärquelle: [Hetzner-Preisanpassung 15.06.2026](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/).
+Primärquellen: Hetzner-Preisanpassung 15.06.2026 in der [deutschen Bruttofassung](https://docs.hetzner.com/de/general/infrastructure-and-availability/price-adjustment/) und der [englischen Nettofassung](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/).
 
 ## 3. Stufe 0: implementierter Ist-Pfad
 

@@ -6,16 +6,16 @@
 
 ## 1. Preisbasis
 
-Region Deutschland/Finnland, Monatsmaximum für Neubestellungen nach der Hetzner-Preisanpassung vom 15.06.2026. Hetzner veröffentlicht die referenzierten Cloud-Server-Preise **inklusive 19 % MwSt.**; die folgende Tabelle rechnet sie für die Szenarien auf netto zurück.
+Region Deutschland/Finnland, Monatsmaximum für Neubestellungen nach der Hetzner-Preisanpassung vom 15.06.2026. Die deutschsprachige Preisliste weist die Cloud-Server-Preise **inklusive 19 % MwSt.** aus; die englischsprachige Fassung nennt dieselben Preise **ohne MwSt.**. Die folgende Tabelle hält beide offiziellen Darstellungen getrennt fest; für die Szenarien gelten die veröffentlichten Nettowerte.
 
-| Baustein | veröffentlicht brutto | Rechenwert netto/Monat |
-| -------- | --------------------: | ---------------------: |
-| CAX31    |               24,98 € |                20,99 € |
-| CPX22    |               23,19 € |                19,49 € |
-| CPX32    |               42,23 € |                35,49 € |
-| CCX23    |              102,33 € |                85,99 € |
-| CCX33    |              164,80 € |               138,49 € |
-| CCX43    |              328,43 € |               275,99 € |
+| Baustein | deutsche Preisliste brutto | englische Preisliste netto/Monat |
+| -------- | -------------------------: | -------------------------------: |
+| CAX31    |                    24,98 € |                          20,99 € |
+| CPX22    |                    23,19 € |                          19,49 € |
+| CPX32    |                    42,23 € |                          35,49 € |
+| CCX23    |                   102,33 € |                          85,99 € |
+| CCX33    |                   164,80 € |                         138,49 € |
+| CCX43    |                   328,43 € |                         275,99 € |
 
 Weitere **Rechenannahmen**, vor Verwendung in der Console zu prüfen:
 
@@ -27,7 +27,7 @@ Weitere **Rechenannahmen**, vor Verwendung in der Console zu prüfen:
 | Object Storage/Backup-Grundbetrag |             5,00 € |
 | Private Network/Cloud Firewall    | 0,00 € Grundbetrag |
 
-Primärquelle: [Hetzner-Preisanpassung 15.06.2026](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/). Preise, Inklusivtraffic, Verfügbarkeit und Steuerbasis können sich ändern.
+Primärquellen: Hetzner-Preisanpassung 15.06.2026 in der [deutschen Bruttofassung](https://docs.hetzner.com/de/general/infrastructure-and-availability/price-adjustment/) und der [englischen Nettofassung](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/). Preise, Inklusivtraffic, Verfügbarkeit und Steuerbasis können sich ändern.
 
 ## 2. Szenariodefinitionen
 
