@@ -149,7 +149,7 @@ Lehrende nutzen Agenten für:
 - Erzeugung absichtlich fehlerhafter, aber sicher isolierter Ausgangszustände;
 - Vergleich von Studierendenevidenz mit Akzeptanzkriterien;
 - formative Feedbackvorschläge und Erkennung fehlender Nachweise;
-- Erzeugung und Vorprüfung von jeweils 30 MC-Test-Fragen aus den Themen und Keywords jedes Termins.
+- Erzeugung und Vorprüfung von jeweils 30 MC-Test-Fragen nach dem festgeschriebenen vierstufigen [Generatorvertrag](./vorlesungen-cloud-computing-termine.md#verbindlicher-mc-test-generatorvertrag); Themen und Keywords steuern die Abdeckung, die freigegebene Materialbasis liefert das Fachwissen.
 
 Lehrendenagenten erhalten keine autonome Notenhoheit und verändern keine studentischen Abgaben. Aufgabe, Agentenkonfiguration, verwendete Prüfroutinen und wesentliche Modellgrenzen werden transparent gemacht.
 
@@ -242,6 +242,6 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
-- [ ] MC-Test-Generator für 30 Fragen je Termin mit den gepflegten Themen und Keywords getestet
+- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
 - [ ] keine autonome Notengebung oder ungeprüfte Übernahme von Agentenaussagen vorgesehen
 - [ ] erlaubter KI-Einsatz in der Referatsprüfung formal geklärt und veröffentlicht

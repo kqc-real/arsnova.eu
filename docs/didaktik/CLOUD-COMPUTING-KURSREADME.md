@@ -26,20 +26,20 @@ Offizielle Orientierung: [IU Bachelor Informatik – Kursübersicht](https://www
 
 ## 2. Beschlossener Konzeptkern
 
-| Entscheidung      | Konzeptstand                                                                                             |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| Format            | zwei Kursläufe, einmal Präsenz und einmal Zoom; jeweils 12 Termine × 3 UE                                |
-| Modalitätsregel   | gleiche Ziele, Inhalte, Zeiten, Agenten, Laborumgebungen, Lernprodukte und Prüfung                       |
-| Arbeitsmodell     | ausschließlich KI-Agenten im Sinne des Agentic Software Engineering auf Lehrenden- und Studierendenseite |
-| Lehrvehikel       | `arsnova.eu` als durchgehende reale Fallstudie, nicht als bloße Demo                                     |
-| Pflichtabdeckung  | Grundlagen, technologische Voraussetzungen, Serverless, GCP/AWS/Azure sowie Datenwissenschaft/ML         |
-| Lernlogik         | Cloud-Grundlagen → agentischer Serveraufbau → Härtung/Messung → wirtschaftliche Entscheidung             |
-| Praxis            | isolierte Zielserver werden durch kontrollierte Agenten installiert, gehärtet, geprüft und zurückgebaut  |
-| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus den ausgewiesenen Themen und Keywords         |
-| Lernprodukt       | Formatives Agentic Cloud Engineering Dossier als Arbeitsgrundlage für das Referat                        |
-| Prüfungsbasis     | 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion; Workbook nur nach bestätigter Zuordnung     |
-| Providerbezug     | GCP, AWS und Azure verbindlich; Hetzner und OpenStack/Kubernetes als Fall- und Vergleichsoptionen        |
-| WI-Integration    | TCO, FinOps, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit beruhen auf technischer Evidenz    |
+| Entscheidung      | Konzeptstand                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| Format            | zwei Kursläufe, einmal Präsenz und einmal Zoom; jeweils 12 Termine × 3 UE                                   |
+| Modalitätsregel   | gleiche Ziele, Inhalte, Zeiten, Agenten, Laborumgebungen, Lernprodukte und Prüfung                          |
+| Arbeitsmodell     | ausschließlich KI-Agenten im Sinne des Agentic Software Engineering auf Lehrenden- und Studierendenseite    |
+| Lehrvehikel       | `arsnova.eu` als durchgehende reale Fallstudie, nicht als bloße Demo                                        |
+| Pflichtabdeckung  | Grundlagen, technologische Voraussetzungen, Serverless, GCP/AWS/Azure sowie Datenwissenschaft/ML            |
+| Lernlogik         | Cloud-Grundlagen → agentischer Serveraufbau → Härtung/Messung → wirtschaftliche Entscheidung                |
+| Praxis            | isolierte Zielserver werden durch kontrollierte Agenten installiert, gehärtet, geprüft und zurückgebaut     |
+| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus einer versionierten, autoritativen Materialbasis |
+| Lernprodukt       | Formatives Agentic Cloud Engineering Dossier als Arbeitsgrundlage für das Referat                           |
+| Prüfungsbasis     | 15 Minuten je Prüfling; Einreichung, Vortrag und Diskussion; Workbook nur nach bestätigter Zuordnung        |
+| Providerbezug     | GCP, AWS und Azure verbindlich; Hetzner und OpenStack/Kubernetes als Fall- und Vergleichsoptionen           |
+| WI-Integration    | TCO, FinOps, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit beruhen auf technischer Evidenz       |
 
 Zwei **Lehr- und Architekturzielbilder** strukturieren die Fallarbeit:
 

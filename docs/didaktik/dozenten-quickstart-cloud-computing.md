@@ -11,26 +11,26 @@
 3. Richte Agenten, Zielserver, Rechte, Budgets und Evidenz nach dem [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) ein.
 4. Übernimm Dauer, Bestandteile, Fristen und Bewertung aus der [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md).
 5. Prüfe das [Lehrkonzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md).
-6. Nutze die [12 Terminpläne](./vorlesungen-cloud-computing-termine.md) einschließlich der Themen und Keywords für jeweils 30 MC-Test-Fragen.
+6. Nutze die [12 Terminpläne](./vorlesungen-cloud-computing-termine.md) einschließlich [MC-Test-Generatorvertrag](./vorlesungen-cloud-computing-termine.md#verbindlicher-mc-test-generatorvertrag), Themen/Keywords und autoritativer Materialbasis für jeweils 30 Fragen.
 7. Übertrage die Aktivitäten mit dem [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) auf den jeweiligen Kurslauf.
 8. Bestätige vor Veröffentlichung der Prüfung in myCampus, ob Referat oder abweichend Workbook und welcher Agenteneinsatz zulässig ist.
 
 ## Zwölf Entscheidungen vor Semesterstart
 
-| Frage             | Empfohlener Startpunkt                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| Zeitraster        | 12 Termine × 3 UE: sechs Präsenz/synchron, sechs Tutorium                                         |
-| Kursmodus         | gleicher fachlicher Plan; Tisch-/Raumform in Präsenz, Breakout-/Dokumentform in Zoom              |
-| Selbststudium     | 123 h für Lektüre, Agentic-Dossier, Plattform-/Wirtschaftsvergleich und Referatsvorbereitung      |
-| Fallauftrag       | Formatives Agentic Cloud Engineering Dossier für `arsnova.eu`, keine zusätzliche Prüfungsleistung |
-| Arbeitsmodell     | ausschließlich werkzeugnutzende KI-Agenten auf Lehrenden- und Studierendenseite                   |
-| Agentenplattform  | institutionell freigegebenes Modell, Werkzeugprofil, Datenschutz, Version und Ersatzkonfiguration |
-| Pflichtabdeckung  | Grundlagen, Technologie, Serverless, GCP/AWS/Azure und Datenwissenschaft/ML sichtbar zuordnen     |
-| Leistungsnachweis | Referat, 15 Minuten je Prüfling; Einreichung 30 %, Vortrag 30 %, Diskussion 40 %                  |
-| Referatsformat    | Einzel/Gruppe und Präsentation mit Handout/Poster aus Prüfungsauftrag oder myCampus übernehmen    |
-| Labortiefe        | isolierte Zielserver agentisch installieren, härten, prüfen und zurückbauen; Produktion gesperrt  |
-| Kohortenrollen    | Informatik/Wirtschaftsinformatik mischen; Technik, Privacy, Performance und FinOps koppeln        |
-| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus den festgelegten Themen und Keywords   |
+| Frage             | Empfohlener Startpunkt                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| Zeitraster        | 12 Termine × 3 UE: sechs Präsenz/synchron, sechs Tutorium                                             |
+| Kursmodus         | gleicher fachlicher Plan; Tisch-/Raumform in Präsenz, Breakout-/Dokumentform in Zoom                  |
+| Selbststudium     | 123 h für Lektüre, Agentic-Dossier, Plattform-/Wirtschaftsvergleich und Referatsvorbereitung          |
+| Fallauftrag       | Formatives Agentic Cloud Engineering Dossier für `arsnova.eu`, keine zusätzliche Prüfungsleistung     |
+| Arbeitsmodell     | ausschließlich werkzeugnutzende KI-Agenten auf Lehrenden- und Studierendenseite                       |
+| Agentenplattform  | institutionell freigegebenes Modell, Werkzeugprofil, Datenschutz, Version und Ersatzkonfiguration     |
+| Pflichtabdeckung  | Grundlagen, Technologie, Serverless, GCP/AWS/Azure und Datenwissenschaft/ML sichtbar zuordnen         |
+| Leistungsnachweis | Referat, 15 Minuten je Prüfling; Einreichung 30 %, Vortrag 30 %, Diskussion 40 %                      |
+| Referatsformat    | Einzel/Gruppe und Präsentation mit Handout/Poster aus Prüfungsauftrag oder myCampus übernehmen        |
+| Labortiefe        | isolierte Zielserver agentisch installieren, härten, prüfen und zurückbauen; Produktion gesperrt      |
+| Kohortenrollen    | Informatik/Wirtschaftsinformatik mischen; Technik, Privacy, Performance und FinOps koppeln            |
+| Selbstüberprüfung | nach jedem Termin 30 agentisch erzeugte MC-Test-Fragen aus freigegebener, versionierter Materialbasis |
 
 ## Formaler Kern auf einen Blick
 
@@ -78,7 +78,8 @@ Providerpreise, SKU-Stücklisten und OpenStack-/Kubernetes-Optionen sind Vertief
 - isolierten Zielserver, Snapshot/Neuaufbau, kurzlebige Credentials und automatischen Cleanup bereithalten.
 - Für den Kursmodus Gruppenbildung, Ergebnissicherung und Technikfallback aus dem Präsenz-/Zoom-Konzept auswählen.
 - Volatile Preise oder Providerfunktionen am Tag der Verwendung gegen Primärquellen prüfen.
-- Aus den im Terminplan genannten Themen und Keywords 30 MC-Test-Fragen erzeugen und Lösungsschlüssel, Eindeutigkeit, Quellenbezug sowie Importformat prüfen.
+- Für MC-Test die freigegebene Folien-/Skriptversion, Repo-Anker und datierten Primärquellen im Generierungsmanifest festhalten; Themen und Keywords nur zur Abdeckungssteuerung verwenden.
+- Mit dem festgeschriebenen MC-Test-Commit die vier Stufen Fragensatz, Micro Learning Objectives, Fragen-QA und Lernziel-QA ausführen; das bereinigte JSON validieren und erst nach menschlicher Inhaltsprüfung importieren beziehungsweise veröffentlichen.
 
 ## Semesterstart-Checkliste
 
@@ -100,7 +101,7 @@ Providerpreise, SKU-Stücklisten und OpenStack-/Kubernetes-Optionen sind Vertief
 - [ ] Repository-Commit oder Stichtag für die Fallstudie festgelegt
 - [ ] agentische Serverbereitstellung und Härtung auf rücksetzbarer Nichtproduktionsumgebung getestet
 - [ ] Security-, Privacy-, Performance-, Recovery- und FinOps-Agentenaufträge getestet
-- [ ] Generator und Freigabeprüfung für 30 MC-Test-Fragen je Termin getestet
+- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliche Freigabe für 30 Fragen je Termin getestet
 - [ ] Modell-/Cloud-Konten, Quotas, Budgets, Datenschutz und Secret-Behandlung geklärt
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen festgelegt
 - [ ] Produktionslasttests und Echtdaten ausdrücklich ausgeschlossen

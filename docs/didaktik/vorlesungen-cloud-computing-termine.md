@@ -17,7 +17,32 @@ Pausen und institutionelle Zeitfenster sind vor Semesterstart einzurechnen. Die 
 
 Alle substanziellen Aktivitäten werden auf Lehrenden- und Studierendenseite mit KI-Agenten ausgeführt. Jeder Termin folgt `Auftrag → Plan → Freigabe → Ausführung → Verifikation → Evidenz → Entscheidung`; reine Chatantworten oder manuell nachgeklickte Cloud-Schritte erfüllen den Arbeitsauftrag nicht. Menschen setzen Grenzen, genehmigen Risiko/Kosten und verantworten das Ergebnis.
 
-Nach **jedem** der zwölf Termine erstellt ein Lehrendenagent aus den jeweils ausgewiesenen Themen und Keywords genau **30 [MC-Test](https://github.com/kqc-real/streamlit)-Fragen** zur freiwilligen Selbstüberprüfung. Entsprechend dem EDULEARN26-Konzept erhält jedes Item ein Lernziel, ein Thema, eine Gewichtung beziehungsweise Schwierigkeit, eines der Niveaus Reproduktion/Anwendung/Analyse sowie eine Begründung zu den Antwortoptionen. Der Agent liefert schema-konforme, technisch importierbare Fragen; die Lehrperson prüft Lösungsschlüssel, Eindeutigkeit, Quellenbezug und unbeabsichtigte Lösungshinweise vor der Freigabe. Präsenz- und Zoom-Lauf erhalten denselben freigegebenen Fragensatz. MC-Test ist formativ und weder Prüfungsleistung noch Prüfungszulassung.
+Nach **jedem** der zwölf Termine erstellt ein Lehrendenagent genau **30 MC-Test-Fragen** zur freiwilligen Selbstüberprüfung. Die ausgewiesenen Themen und Keywords steuern ausschließlich die inhaltliche Abdeckung; fachliche Wissensbasis sind die je Termin freigegebenen Materialien und Primärquellen. Präsenz- und Zoom-Lauf erhalten denselben freigegebenen Fragensatz. MC-Test ist formativ und weder Prüfungsleistung noch Prüfungszulassung.
+
+## Verbindlicher MC-Test-Generatorvertrag
+
+Für den Kurslauf ist [MC-Test](https://github.com/kqc-real/streamlit/tree/b6b159555e8a228dad73dd75fd66c154a1088e28) auf Commit `b6b159555e8a228dad73dd75fd66c154a1088e28` festgeschrieben. Maßgeblich sind genau diese Versionen von:
+
+- [Stage 1: Fragensatz erzeugen](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/prompts/KI_PROMPT.md)
+- [Stage 2: Micro Learning Objectives erzeugen](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/prompts/KI_PROMPT_MICRO_LEARNING_OBJECTIVES.md)
+- [Stage 3: Fragensatz-Postproduktion](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/prompts/KI_PROMPT_POSTPRODUCTION_QA.md)
+- [Stage 4: Lernziel-Postproduktion](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/prompts/KI_PROMPT_POSTPRODUCTION_QA_LEARNING_OBJECTIVES.md)
+- [Validator `validate_sets.py`](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/validate_sets.py)
+
+Der Lehrendenagent führt die vier Artefaktstufen in derselben Sitzung strikt nacheinander aus und speichert nach jeder Stufe genau ein prüfbares Artefakt:
+
+1. Aus Konfiguration und freigegebener Materialbasis entsteht ein kanonisches Fragen-JSON.
+2. Aus dem Stage-1-JSON entsteht ein separates Markdown-Dokument mit genau einem Micro Learning Objective je Frage. Lernziele sind **kein** Feld des Fragen-JSON.
+3. Ausschließlich das Stage-1-JSON wird postproduziert; Ergebnis ist ein bereinigtes kanonisches Fragen-JSON.
+4. Das Stage-2-Markdown wird gegen das bereinigte Stage-3-JSON neu ausgerichtet; Ergebnis ist das finale Lernziel-Markdown.
+
+Das verbindliche Standardprofil je Termin umfasst 30 deutschsprachige Fragen mit genau vier Antwortoptionen: 10 Fragen mit `weight = 1` / `Reproduktion`, 12 mit `weight = 2` / `Anwendung` und 8 mit `weight = 3` / `Strukturelle Analyse`. Eine didaktisch begründete Abweichung wird vor der Generierung im Manifest festgehalten; sie darf nicht stillschweigend durch den Agenten entstehen.
+
+Das kanonische JSON besteht ausschließlich aus `meta` und `questions`. `meta` enthält mindestens `title`, `created`, `language`, `target_audience`, `question_count`, `difficulty_profile`, `time_per_weight_minutes`, `additional_buffer_minutes` und `test_duration_minutes`. Jedes Element von `questions` enthält `question`, vier Einträge in `options`, den nullbasierten Lösungsindex `answer`, `explanation`, `weight`, `topic`, `concept`, `cognitive_level`, ein `mini_glossary` mit zwei bis sechs Begriffen sowie `extended_explanation`; bei Gewicht 1 ist `extended_explanation` `null`, bei Gewicht 2 oder 3 enthält es `title`, zwei bis sechs `steps` und `content`.
+
+Zu jedem Fragensatz wird außerhalb des kanonischen JSON ein Generierungsmanifest geführt. Es nennt Termin, Sprache, `arsnova.eu`-Commit, MC-Test-Commit, freigegebene Folien-/Skriptversion, alle weiteren Quellen mit Version oder Abrufdatum, Profil und Optionszahl sowie die vier erzeugten Artefakte. Volatile Providerfunktionen, Preise, Security-, Datenschutz- und Prüfungsangaben werden am Generierungstag gegen datierte Primärquellen geprüft. Dateinamen oder Quellenmarker werden nicht in die Fragenfelder geschrieben.
+
+Ein Satz wird erst veröffentlicht, wenn Stage 1 bis 4 vollständig vorliegen, das Stage-3-JSON mit dem festgeschriebenen `validate_sets.py` ohne Fehler validiert wurde und die Lehrperson alle Lösungsschlüssel, Eindeutigkeit, fachliche Deckung durch die Materialbasis, plausible Distraktoren und unbeabsichtigte Lösungshinweise geprüft hat. Erst danach erfolgt ein gegebenenfalls erforderlicher Importexport aus dem kanonischen JSON. Das Manifest und die freigegebenen Artefakte werden für Präsenz und Zoom identisch versioniert.
 
 Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für das 15-minütige Referat je Prüfling. Falls myCampus stattdessen Workbook vorgibt, werden ausschließlich die zentralen Workbookaufgaben und [Workbook-Regeln](./CLOUD-COMPUTING-IU-FORMALIA.md#7-alternativpfad-workbook-nur-nach-bestätigung) verwendet.
 
@@ -26,6 +51,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 1 · **Leitfrage:** Wann ist ein Dienst Cloud Computing und wie wird ein Agent dafür sicher beauftragt?
 
 **MC-Test (30 Fragen):** Themen: Cloud-Merkmale, Service- und Deployment-Modelle, Shared Responsibility, sicherer Agentenauftrag · Keywords: On-demand Self-service, Broad Network Access, Resource Pooling, Rapid Elasticity, Measured Service, IaaS, PaaS, SaaS, Public Cloud, Private Cloud, Hybrid Cloud, Multi-Cloud, Hosting, Outsourcing, Virtualisierung, Shared Responsibility, Agentenvertrag, Least Privilege, Budget, Akzeptanzkriterium, Abbruchkriterium
+
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; NIST SP 800-145; [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) und [akademische Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md) am im Manifest genannten `arsnova.eu`-Commit
 
 ### UE 1 (0–45)
 
@@ -53,6 +80,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Virtualisierung, Containerisierung, Infrastructure as Code, Speicher, Netzwerk und API-Kommunikation · Keywords: Hypervisor, virtuelle Maschine, Image, Container, Isolation, Docker Compose, Orchestrierung, Infrastructure as Code, Compute, Block Storage, File Storage, Object Storage, DNS, TLS, Load Balancer, Firewall, HTTP, REST, WebSocket, Egress, Quota, Cleanup
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Dockerfile](../../Dockerfile), [Produktions-Compose](../../docker-compose.prod.yml) und [Deployment](../deployment-debian-root-server.md) am im Manifest genannten `arsnova.eu`-Commit; verwendete Docker-/Providerdokumentation mit Abrufdatum
+
 ### UE 1 (0–45)
 
 - Architekturagent modelliert Virtualisierung, Hypervisor, VM, Container, Images, Isolation und Ressourcensteuerung
@@ -78,6 +107,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 **Typ:** Tutorium · **Modulhandbuch:** Vertiefung Inhaltsblock 2 · **Leitfrage:** Kann der Agent einen isolierten Server reproduzierbar installieren und nachweisbar härten?
 
 **MC-Test (30 Fragen):** Themen: agentische Serverbereitstellung, Installation, Härtung, Zustands- und Vertrauensgrenzen, Wiederherstellung · Keywords: Provisioning, Idempotenz, Patchmanagement, unprivilegiertes Dienstkonto, SSH-Schlüssel, Firewall, minimale Ports, Dateirechte, Secrets, Nginx, PostgreSQL, Redis, Yjs, WebSocket, PDF-Worker, Trust Boundary, State, Hardening-Scan, Rollback, Destroy, Rebuild
+
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Architektur-Handbuch](../architecture/handbook.md), [`session.ts`](../../apps/backend/src/routers/session.ts) und [`redis.ts`](../../apps/backend/src/redis.ts) am im Manifest genannten `arsnova.eu`-Commit; freigegebenes Zielserverinventar und Härtungs-/Restore-Nachweise des Kurslaufs
 
 ### UE 1 (0–45)
 
@@ -106,6 +137,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Serverless Computing, Funktions- und Dienstmodelle, Eignung, Grenzen und Kosten · Keywords: FaaS, BaaS, Trigger, Statelessness, Cold Start, Laufzeitgrenze, Autoscaling, Pay-per-use, Function, Container, Job, Queue, Worker, Managed Service, Observability, Datenlokalität, Vendor Lock-in, Break-even, PDF-Erzeugung, Webhook, Yjs
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [`pdfWorkerTransport.ts`](../../apps/backend/src/lib/pdfWorkerTransport.ts) und [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md) am im Manifest genannten `arsnova.eu`-Commit; offizielle Funktions-, Limit- und Preisunterlagen von GCP, AWS und Azure mit Abrufdatum
+
 ### UE 1 (0–45)
 
 - Serverless-Agent erschließt Function as a Service, Backend as a Service, Trigger, kurze Ausführung und zustandslose Instanz
@@ -133,6 +166,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Google Cloud, AWS und Azure, Providerfähigkeiten, Verantwortungsgrenzen, Regionen und Kosten · Keywords: Projekt, Account, Subscription, Region, Availability Zone, IAM, VPC, VNet, Compute, Container Service, Functions, Object Storage, Managed Database, Monitoring, Shared Responsibility, Pricing, Egress, Data Residency, Lock-in, Exit, Primärquelle
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md) am im Manifest genannten `arsnova.eu`-Commit; offizielle Service-, Regionen-, Shared-Responsibility- und Preisunterlagen von GCP, AWS und Azure mit Abrufdatum, Region, Währung und Steuerbasis
+
 ### UE 1 (0–45)
 
 - Provider-Agent erhebt Konto-/Projektmodell, Regionen, Availability Zones, Identität, Netzwerk und Abrechnung
@@ -158,6 +193,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 **Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 5 · **Leitfrage:** Welche Cloud-Fähigkeit empfiehlt ein Daten-/ML-Agent und besteht sie die Privacy- und Wirtschaftlichkeitsgates?
 
 **MC-Test (30 Fragen):** Themen: Datenwissenschaft und maschinelles Lernen in der Cloud, Datenpipeline, Managed ML, Datenschutz und Wirtschaftlichkeit · Keywords: Batch, Streaming, ETL, ELT, Data Lake, Data Warehouse, Notebook, Pipeline, Training, Inferenz, MLOps, Managed ML, Datenqualität, Reproduzierbarkeit, Datenminimierung, Zweckbindung, Datenresidenz, Aufbewahrung, Löschung, Modell-/Datenexport, synthetische Daten, Egress
+
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; freigegebener Datenfluss und Privacy-/FinOps-Artefakte des Kurslaufs; offizielle Produkt-, Datenverarbeitungs-, Regionen-, Export- und Preisunterlagen zu Vertex AI, Amazon SageMaker und Azure Machine Learning mit Abrufdatum
 
 ### UE 1 (0–45)
 
@@ -185,6 +222,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Persistenz, Speicherklassen, Backup, Restore und Disaster Recovery · Keywords: Persistenz, Cache, flüchtiger Zustand, PostgreSQL, Redis, Yjs, Object Storage, Backup, Snapshot, Offsite Backup, RPO, RTO, Konsistenz, Idempotenz, Restore, Integrität, Datenverlust, Recovery-Test, Disaster Recovery, Owner, Kosten
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Prisma-Schema](../../prisma/schema.prisma) und [Backup-/Restore-Runbook](../operations/BACKUP-RESTORE-RUNBOOK.md) am im Manifest genannten `arsnova.eu`-Commit; freigegebene Backup-, Fehlerfall- und Restore-Nachweise des Kurslaufs
+
 ### UE 1 (0–45)
 
 - Recovery-Agent inventarisiert Persistenz, Cache, flüchtigen Zustand und Object Storage auf dem Zielserver
@@ -210,6 +249,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 **Typ:** Tutorium · **Modulhandbuch:** Fallvertiefung zu Nutzen/Risiken und technischer Grundlage · **Leitfrage:** Welche agentisch ausgeführte Messung kann eine Skalierungs- oder Wirtschaftlichkeitsannahme widerlegen?
 
 **MC-Test (30 Fragen):** Themen: Skalierung, Elastizität, Last- und Performance Engineering, Resilienz und Unit Costs · Keywords: vertikale Skalierung, horizontale Skalierung, Elastizität, Load Balancing, Queueing, Backpressure, p50, p95, p99, Durchsatz, Fehlerrate, Sättigung, SLI, SLO, Lasttest, Baseline, WebSocket, Yjs, Scale-out, Hotspot, Abbruchkriterium, Unit Cost
+
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Produktions-Join](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) und [§6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md) am im Manifest genannten `arsnova.eu`-Commit; freigegebene Lastreports des Kurslaufs mit Umgebung und Messdatum
 
 ### UE 1 (0–45)
 
@@ -238,6 +279,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Cloud-Sicherheit, Datenschutz, Observability und Resilienz · Keywords: IAM, Least Privilege, Secrets, Netzwerksegmentierung, Supply Chain, Tenant-Isolation, Session-Isolation, Verschlüsselung, Datenminimierung, Logs, Metriken, Traces, Alerting, Runbook, Redundanz, Graceful Degradation, Vulnerability Scan, Remediation, Negativtest, False Positive, Restrisiko
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Security Overview](../SECURITY-OVERVIEW.md), [Monitoring-Runbook](../operations/MONITORING-RUNBOOK.md) und [W3.7-Abnahme](../implementation/W3.7-MONITORING-ALARMS-ABNAHME.md) am im Manifest genannten `arsnova.eu`-Commit; freigegebene Scan-, Negativtest- und Datenschutzartefakte des Kurslaufs sowie datierte Primärquellen für volatile Sicherheitsvorgaben
+
 ### UE 1 (0–45)
 
 - Security-Agent modelliert IAM, Least Privilege, Secrets, Netzwerkgrenzen, Supply Chain und Tenant-/Session-Isolation
@@ -265,6 +308,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: Providerentscheidung, FinOps, TCO, Unit Economics und 6R-Migration · Keywords: Rehost, Replatform, Repurchase, Refactor, Retire, Retain, TCO, Unit Economics, CapEx, OpEx, Personalaufwand, Support, Observability-Kosten, Compliance-Kosten, Egress, Build-or-Buy, Best Case, Base Case, Worst Case, Sensitivitätsanalyse, Lock-in, Exit, ADR
 
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md), [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md) und [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md) am im Manifest genannten `arsnova.eu`-Commit; offizielle Preisrechner/-listen mit Abrufdatum, Region, Währung und Steuerbasis
+
 ### UE 1 (0–45)
 
 - Economics-/FinOps-Agent prüft den GCP-/AWS-/Azure-Vergleich aus Termin 5 auf gleiche Systemgrenze und Leistungsbasis
@@ -290,6 +335,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 **Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Wie bilden Einreichung, Vortrag und Diskussion gemeinsam eine akademisch belastbare Prüfungsleistung?
 
 **MC-Test (30 Fragen):** Themen: wissenschaftliche Argumentation, Referatsstruktur, Evidenz, Quellen, Visualisierung und Agentenoffenlegung · Keywords: Forschungsfrage, These, Argumentationslinie, Primärquelle, Quellenkritik, Fakt, Evidenz, Annahme, Entscheidung, Zitation, Literaturverzeichnis, Handout, Poster, Abbildung, individuelle Kennzeichnung, Agentenbeitrag, akademische Integrität, Zeitbudget, Einreichung, Vortrag, Diskussion, 30/30/40-Gewichtung
+
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) und [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) am im Manifest genannten `arsnova.eu`-Commit; veröffentlichter Prüfungsauftrag, Hilfsmittelregel und Bewertungsbogen des Kurslaufs mit Gültigkeitsdatum
 
 ### UE 1 (0–45)
 
@@ -324,6 +371,8 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Zeitmanagement, Diskussion, akademische Integrität
 
+**MC-Test-Materialbasis:** vollständige freigegebene Folien-/Skriptversion des Kurslaufs; die im Manifest festgeschriebenen Materialbasen der Termine 1 bis 10; [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) und [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) am genannten `arsnova.eu`-Commit; gültiger Prüfungsauftrag und Bewertungsbogen
+
 ### UE 1 (0–45)
 
 - Einreichung gegen Umfang, Namen/Matrikelnummern, Literatur, Abbildungen und individuelle Kennzeichnung prüfen
@@ -356,5 +405,5 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - **Wirtschaftsinformatik:** TCO, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit nie von technischer Mess- und Architekturevidenz trennen.
 - **Prüfungsform Referat:** Die vollständigen Vorgaben der [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) anwenden; keine zusätzliche Dossierbewertung einführen.
 - **Prüfungsform Workbook bestätigt:** Termine 11 und 12 auf die zentralen fünf Aufgaben und Einzelarbeitsregeln ausrichten; keine selbst erfundene Gruppenabgabe.
-- **Repo ändert sich:** Kurslandkarte aktualisieren und pro Termin den verwendeten Commit dokumentieren.
+- **Repo oder MC-Test ändert sich:** Kurslandkarte aktualisieren; pro Fragensatz `arsnova.eu`- und MC-Test-Commit im Generierungsmanifest dokumentieren. Ein Versionswechsel der Prompts oder des Validators erfordert einen erneuten Pipeline-Test und eine bewusste Kursfreigabe.
 - **Zu wenig Zeit:** Fallvertiefungen kürzen, niemals die fünf offiziellen Inhaltsblöcke oder die Präsenz-/Tutoriumsbilanz streichen.

@@ -233,7 +233,8 @@ Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen,
 - [ ] identische Lernziele, Materialien, Lernprodukte und Prüfungsinformationen für Präsenz und Zoom bereitgestellt
 - [ ] identische Agenten, Modelle, Zielserver, Rechte, Budgets und Abnahmetests für Präsenz und Zoom bereitgestellt
 - [ ] Agentenvertrag, Freigabegates, Evidenzschema und Cleanup für Lehrende und Studierende getestet
-- [ ] für jeden Termin Themen und Keywords für 30 agentisch erzeugte MC-Test-Fragen gepflegt
+- [ ] für jeden Termin Themen/Keywords zur Abdeckungssteuerung und eine versionierte autoritative Materialbasis für 30 agentisch erzeugte MC-Test-Fragen gepflegt
+- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate getestet
 - [ ] Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und FinOps-Agentenlabor lauffähig
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung festgelegt
 - [ ] zulässige Agentennutzung und Offenlegung für die Referatsprüfung formal geklärt
