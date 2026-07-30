@@ -2,7 +2,15 @@
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>
   <div class="content-page-column">
     <div class="content-page-backdrop-sheet" aria-hidden="true" (click)="back()"></div>
-    <div class="news-archive-page l-page l-section content-page-panel" appMarkdownImageLightbox>
+    <div
+      class="news-archive-page l-page l-section content-page-panel"
+      appMarkdownImageLightbox
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="news-archive-page-title"
+    >
       <nav
         class="news-archive-page__back"
         i18n-aria-label="@@contentPage.navigationAria"
@@ -11,6 +19,7 @@
         <button
           mat-button
           type="button"
+          cdkFocusInitial
           (click)="back()"
           i18n-aria-label="@@contentPage.backAria"
           aria-label="Zurück zur vorherigen Seite"
@@ -20,19 +29,25 @@
         </button>
       </nav>
 
-      @if (error(); as err) {
-        <p class="news-archive-page__error" role="alert">{{ err }}</p>
-      } @else {
-        <article class="news-archive-page__article-root">
-          <header class="dialog-title-header dialog-title-header--page news-archive-page__hero">
-            <span class="dialog-title-header__icon" aria-hidden="true">
-              <mat-icon>newspaper</mat-icon>
-            </span>
-            <span class="dialog-title-header__copy">
-              <h1 class="dialog-title-header__heading" i18n="@@motd.archiveTitle">News-Archiv</h1>
-            </span>
-          </header>
+      <article class="news-archive-page__article-root">
+        <header class="dialog-title-header dialog-title-header--page news-archive-page__hero">
+          <span class="dialog-title-header__icon" aria-hidden="true">
+            <mat-icon>newspaper</mat-icon>
+          </span>
+          <span class="dialog-title-header__copy">
+            <h1
+              id="news-archive-page-title"
+              class="dialog-title-header__heading"
+              i18n="@@motd.archiveTitle"
+            >
+              News-Archiv
+            </h1>
+          </span>
+        </header>
 
+        @if (error(); as err) {
+          <p class="news-archive-page__error" role="alert">{{ err }}</p>
+        } @else {
           @if (archiveMaxEndsAtIso()) {
             <div class="news-archive-page__actions">
               <span
@@ -111,8 +126,8 @@
               }
             </div>
           }
-        </article>
-      }
+        }
+      </article>
     </div>
   </div>
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>

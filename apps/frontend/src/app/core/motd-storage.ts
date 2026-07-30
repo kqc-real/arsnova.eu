@@ -3,6 +3,12 @@
  */
 export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
 
+/**
+ * Einmalig Overlay nach Locale-Reload von der **Startseite** unterdrücken
+ * (Sprachwähler → Vollreload), damit nicht sofort die nächstpriore MOTD den Fokus stiehlt.
+ */
+export const MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY = 'arsnova-motd-suppress-overlay-once';
+
 export type MotdClientStorageV1 = {
   /** motdId → zuletzt bestätigte contentVersion (Overlay nicht mehr zeigen) */
   dismissed: Record<string, number>;
@@ -66,6 +72,30 @@ export function markMotdDismissed(motdId: string, contentVersion: number): void 
   const prev = cur.dismissed[motdId] ?? 0;
   cur.dismissed[motdId] = Math.max(prev, contentVersion);
   writeMotdClientStorage(cur);
+}
+
+/** Vor Locale-Vollreload setzen; `consumeMotdOverlayReloadSuppress` liest und löscht. */
+export function markMotdOverlayReloadSuppress(): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY, '1');
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/** @returns true wenn Overlay nach Reload einmalig unterdrückt werden soll. */
+export function consumeMotdOverlayReloadSuppress(): boolean {
+  if (typeof sessionStorage === 'undefined') return false;
+  try {
+    if (sessionStorage.getItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY) !== '1') {
+      return false;
+    }
+    sessionStorage.removeItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Für `motd.getCurrent` / `getHeaderState`: lokal dismissierte Overlay-MOTDs (nächste Priorität). */

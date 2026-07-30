@@ -1,8 +1,19 @@
 import { Location } from '@angular/common';
-import { Component, inject, LOCALE_ID, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  Component,
+  HostListener,
+  inject,
+  LOCALE_ID,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -12,6 +23,7 @@ import {
   resolveAssetUrlFromBase,
   type SupportedLocale,
 } from '../../core/locale-from-path';
+import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
 /** Entfernt die erste Markdown-Überschrift (h1–h6), die den Dialog-Titel doppelt. */
@@ -21,7 +33,7 @@ export function stripLeadingMarkdownTitle(html: string): string {
 
 @Component({
   selector: 'app-legal-page',
-  imports: [MatButton, MatIcon],
+  imports: [MatButton, MatIcon, CdkTrapFocus],
   templateUrl: './legal-page.component.html',
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
@@ -31,6 +43,8 @@ export function stripLeadingMarkdownTitle(html: string): string {
 })
 export class LegalPageComponent implements OnInit, OnDestroy {
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly localeId = inject(LOCALE_ID);
   private readonly http = inject(HttpClient);
@@ -41,17 +55,31 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   content = signal<SafeHtml | null>(null);
-  /** Aktuelle Legal-Route (für Kopfzeile); leer während des ersten Ladens. */
-  slug = signal<'imprint' | 'privacy' | 'accessibility' | ''>('');
+  /** Aktuelle Legal-Route (für Kopfzeile); aus Snapshot, damit aria-labelledby sofort greift. */
+  slug = signal<'imprint' | 'privacy' | 'accessibility' | ''>(this.readKnownSlug());
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: Event): void {
+    if (shouldDeferContentPageEscape(this.dialog)) {
+      return;
+    }
+    event.preventDefault();
+    this.back();
+  }
 
   back(): void {
-    this.location.back();
+    dismissContentPage(this.location, this.router);
   }
 
   private getSlug(): string {
     return (this.route.snapshot.data['slug'] ??
       this.route.snapshot.paramMap.get('slug') ??
       '') as string;
+  }
+
+  private readKnownSlug(): 'imprint' | 'privacy' | 'accessibility' | '' {
+    const slug = this.getSlug();
+    return this.isKnownSlug(slug) ? slug : '';
   }
 
   private isKnownSlug(slug: string): slug is 'imprint' | 'privacy' | 'accessibility' {

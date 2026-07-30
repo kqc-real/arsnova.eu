@@ -18,7 +18,6 @@ import { map } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { MatBadge } from '@angular/material/badge';
 import { MatIconButton } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -38,6 +37,7 @@ import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { LocaleSwitchGuardService } from '../../core/locale-switch-guard.service';
 import { isAppHomeRouterUrl, localizePath } from '../../core/locale-router';
+import { markHomeLocaleReloadSideEffects } from '../../core/locale-reload-focus';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
@@ -49,8 +49,6 @@ import {
     RouterLink,
     MatBadge,
     MatIconButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
@@ -63,6 +61,7 @@ import {
 export class TopToolbarComponent {
   @ViewChild('mobileControls') private mobileControls?: ElementRef<HTMLElement>;
   private controlsMenuTrigger: HTMLButtonElement | null = null;
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly localizedPath = localizePath;
   readonly themePreset = inject(ThemePresetService);
@@ -156,6 +155,8 @@ export class TopToolbarComponent {
     this.closeControlsMenu();
 
     const doRedirect = (): void => {
+      // Nur von der Startseite: MOTD-Overlay einmal unterdrücken + Fokus „Code eingeben“.
+      markHomeLocaleReloadSideEffects(window.location.pathname);
       const pathname = window.location.pathname;
       const hasLocale = /^\/(de|en|fr|it|es)(?:\/|$)/.test(pathname);
       if (hasLocale) {
@@ -194,14 +195,25 @@ export class TopToolbarComponent {
     const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setTheme(value);
     this.closeControlsMenu(mobileMenuWasOpen);
-    if (!mobileMenuWasOpen) {
-      setTimeout(() => this.focusService.refocusInput(), 0);
+    if (mobileMenuWasOpen || !isPlatformBrowser(this.platformId)) {
+      return;
     }
+    // Fokus in der Toolbar belassen (z. B. nach Tab/Enter auf Theme), sonst wird die
+    // Sprachauswahl übersprungen und der Fokus springt zur Session-Code-Eingabe.
+    const active = this.document.activeElement;
+    if (active instanceof Node && this.host.nativeElement.contains(active)) {
+      return;
+    }
+    setTimeout(() => this.focusService.refocusInput(), 0);
   }
 
-  setPreset(value: 'serious' | 'spielerisch', closeMenu = false): void {
+  /** Native aria-pressed-Buttons: Tab, Enter/Leertaste und Maus setzen denselben Zustand. */
+  onPresetChange(value: 'serious' | 'spielerisch'): void {
+    const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setPreset(value);
-    if (closeMenu) this.closeControlsMenu(true);
+    if (mobileMenuWasOpen) {
+      this.closeControlsMenu(true);
+    }
   }
 
   toggleControlsMenu(event?: Event): void {

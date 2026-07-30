@@ -3,11 +3,13 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Injector,
   OnDestroy,
   OnInit,
   ViewChild,
   PLATFORM_ID,
   LOCALE_ID,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -18,7 +20,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import {
   MatCard,
   MatCardActions,
@@ -41,6 +42,7 @@ import {
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
+import { consumeLocaleReloadFocus } from '../../core/locale-reload-focus';
 import { navigateToHostSession } from '../../core/session-host-navigation';
 import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -57,6 +59,7 @@ import type {
 } from '@arsnova/shared-types';
 import {
   clearMotdThumbInteractionKeys,
+  consumeMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   isMotdDismissedForVersion,
   markMotdDismissed,
@@ -78,8 +81,6 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
     RouterLink,
     MatBadge,
     MatButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatCard,
     MatCardActions,
     MatCardContent,
@@ -103,6 +104,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('codeEnterBtn', { read: ElementRef })
+  private readonly codeEnterBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
 
   sessionCode = signal('');
@@ -176,6 +179,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
   private readonly localeId = inject(LOCALE_ID) as string;
+  private readonly injector = inject(Injector);
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
 
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
@@ -186,6 +190,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
   private motdFocusReturn: HTMLElement | null = null;
+  /** MOTD wartet, bis der Fokus die Toolbar verlassen hat (kein Vollbild-Layer über Toolbar-Fokus). */
+  private pendingToolbarDeferredMotd: MotdPublicDTO | null = null;
+  private toolbarMotdFocusListener: ((event: FocusEvent) => void) | null = null;
   readonly thumbUpRecorded = computed(() => {
     this.motdInteractionRev();
     const m = this.motd();
@@ -254,7 +261,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
-    if (this.shouldAutoFocusJoinEntry()) {
+    if (!this.restoreFocusAfterLocaleReload() && this.shouldAutoFocusJoinEntry()) {
       // Die App-Shell verankert Folge-Navigationen im Hauptinhalt. Der explizite
       // Join-Einstieg übernimmt den Fokus im Folge-Frame danach gezielt für
       // die Code-Eingabe.
@@ -268,6 +275,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /** Nach Sprachwechsel-Vollreload: Fokus auf Hero-CTA „Code eingeben“. */
+  private restoreFocusAfterLocaleReload(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    if (consumeLocaleReloadFocus('home-code-enter') !== 'home-code-enter') {
+      return false;
+    }
+    this.scheduleAnimationFrame(() =>
+      this.scheduleAnimationFrame(() => {
+        this.codeEnterBtn?.nativeElement?.focus({ preventScroll: true });
+      }),
+    );
+    return true;
+  }
+
   private shouldAutoFocusJoinEntry(): boolean {
     if (!isPlatformBrowser(this.platformId) || !this.route.snapshot.data?.['focusSessionCode']) {
       return false;
@@ -279,6 +302,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
+    this.clearToolbarMotdDefer();
     this.clearScheduledCallbacks();
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
@@ -776,6 +800,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (consumeMotdOverlayReloadSuppress()) {
+      return;
+    }
     if (
       this.suppressMotdForJoinIntent() ||
       this.sessionCode().trim().length > 0 ||
@@ -788,10 +815,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const activeElement = document.activeElement;
+    if (
+      this.isToolbarOrToolbarOverlayFocus(activeElement instanceof Element ? activeElement : null)
+    ) {
+      // Kein Vollbild-Layer über Toolbar-/Overlay-Fokus (Menü, News-Dialog): Öffnen aufschieben.
+      this.deferMotdUntilToolbarBlur(motd);
+      return;
+    }
+    this.openMotdOverlay(motd, activeElement);
+  }
+
+  private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
+    this.clearToolbarMotdDefer();
     this.motdFocusReturn =
-      activeElement instanceof HTMLElement && activeElement !== document.body
+      activeElement instanceof HTMLElement &&
+      activeElement !== document.body &&
+      activeElement !== document.documentElement
         ? activeElement
-        : (this.sessionCodeInput?.nativeElement ?? null);
+        : null;
     this.motd.set(motd);
     const html = appendMotdContentVersionToAssetImgSrc(
       absolutizeMarkdownHtmlRootAssetImgSrc(
@@ -801,7 +842,59 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-    this.scheduleTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+    afterNextRender(
+      () => {
+        this.motdCloseBtn?.nativeElement?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private deferMotdUntilToolbarBlur(motd: MotdPublicDTO): void {
+    this.pendingToolbarDeferredMotd = motd;
+    if (this.toolbarMotdFocusListener || typeof document === 'undefined') {
+      return;
+    }
+    this.toolbarMotdFocusListener = () => {
+      const active = document.activeElement;
+      // Toolbar-Host und zugehörige Material-Overlays (Sprachmenü, News-Dialog) —
+      // Overlays liegen in `.cdk-overlay-container`, nicht unter `app-top-toolbar`.
+      if (this.isToolbarOrToolbarOverlayFocus(active)) {
+        return;
+      }
+      const pending = this.pendingToolbarDeferredMotd;
+      this.clearToolbarMotdDefer();
+      if (
+        !pending ||
+        this.suppressMotdForJoinIntent() ||
+        this.sessionCode().trim().length > 0 ||
+        this.isJoining() ||
+        this.motd()
+      ) {
+        return;
+      }
+      this.openMotdOverlay(pending, active);
+    };
+    document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
+  }
+
+  /** Fokus in Toolbar oder in einem CDK-Overlay (MatMenu/MatDialog aus der Toolbar). */
+  private isToolbarOrToolbarOverlayFocus(active: Element | null): boolean {
+    if (!(active instanceof Element)) {
+      return false;
+    }
+    if (active.closest('app-top-toolbar')) {
+      return true;
+    }
+    return !!active.closest('.cdk-overlay-pane');
+  }
+
+  private clearToolbarMotdDefer(): void {
+    this.pendingToolbarDeferredMotd = null;
+    if (this.toolbarMotdFocusListener && typeof document !== 'undefined') {
+      document.removeEventListener('focusin', this.toolbarMotdFocusListener, true);
+    }
+    this.toolbarMotdFocusListener = null;
   }
 
   private markJoinIntentForMotd(): void {
@@ -809,6 +902,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.suppressMotdForJoinIntent.set(true);
+    this.clearToolbarMotdDefer();
     if (this.motd()) {
       this.clearMotdOverlay();
     }
@@ -876,9 +970,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.motd.set(null);
     this.motdBodyHtml.set(null);
     queueMicrotask(() => {
-      const target =
-        focusReturn?.isConnected === true ? focusReturn : this.sessionCodeInput?.nativeElement;
-      target?.focus({ preventScroll: true });
+      if (focusReturn?.isConnected === true) {
+        focusReturn.focus({ preventScroll: true });
+        return;
+      }
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        active !== document.documentElement
+      ) {
+        // Nutzer:in hat bereits woanders Fokus — nicht in die Code-Eingabe ziehen.
+        return;
+      }
+      this.sessionCodeInput?.nativeElement?.focus({ preventScroll: true });
     });
   }
 

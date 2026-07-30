@@ -80,67 +80,91 @@
     </button>
 
     <div class="top-toolbar__controls desktop-only">
-      <mat-button-toggle-group
-        [value]="themePreset.preset()"
-        appearance="standard"
+      <div
+        role="group"
         i18n-aria-label="@@topToolbar.choosePresetAria"
         aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--preset"
       >
         <!-- Default zuerst: Hydration/Mobile sonst kurz Seriös sichtbar -->
-        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch')">
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.preset() === 'spielerisch'"
+          [attr.aria-pressed]="themePreset.preset() === 'spielerisch'"
+          (click)="onPresetChange('spielerisch')"
+        >
           <span class="top-toolbar__preset-option">
-            <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon>
+            <mat-icon class="top-toolbar__preset-icon-playful" aria-hidden="true"
+              >celebration</mat-icon
+            >
             <span i18n>Spielerisch</span>
           </span>
-        </mat-button-toggle>
-        <mat-button-toggle value="serious" (click)="setPreset('serious')">
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.preset() === 'serious'"
+          [attr.aria-pressed]="themePreset.preset() === 'serious'"
+          (click)="onPresetChange('serious')"
+        >
           <span class="top-toolbar__preset-option">
-            <mat-icon>work</mat-icon>
+            <mat-icon aria-hidden="true">work</mat-icon>
             <span i18n>Seriös</span>
           </span>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+        </button>
+      </div>
 
-      <mat-button-toggle-group
-        [value]="themePreset.theme()"
-        (change)="onThemeChange($event.value)"
-        appearance="standard"
+      <div
+        role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
         aria-label="Theme"
         class="top-toolbar__toggles"
       >
-        <mat-button-toggle
-          value="system"
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'system'"
+          [attr.aria-pressed]="themePreset.theme() === 'system'"
           i18n-aria-label="@@topToolbar.themeSystemAria"
           aria-label="System"
+          (click)="onThemeChange('system')"
         >
-          <mat-icon>contrast</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle
-          value="dark"
+          <mat-icon aria-hidden="true">contrast</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'dark'"
+          [attr.aria-pressed]="themePreset.theme() === 'dark'"
           i18n-aria-label="@@topToolbar.themeDarkAria"
           aria-label="Dark"
+          (click)="onThemeChange('dark')"
         >
-          <mat-icon>dark_mode</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle
-          value="light"
+          <mat-icon aria-hidden="true">dark_mode</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'light'"
+          [attr.aria-pressed]="themePreset.theme() === 'light'"
           i18n-aria-label="@@topToolbar.themeLightAria"
           aria-label="Light"
+          (click)="onThemeChange('light')"
         >
-          <mat-icon>light_mode</mat-icon>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+          <mat-icon aria-hidden="true">light_mode</mat-icon>
+        </button>
+      </div>
 
       <button
+        type="button"
         matIconButton
         [matMenuTriggerFor]="langMenu"
         i18n-aria-label="@@topToolbar.languageAria"
         aria-label="Sprache"
-        class="top-toolbar__icon-btn"
+        class="top-toolbar__icon-btn top-toolbar__lang-btn"
       >
-        <mat-icon>language</mat-icon>
+        <mat-icon aria-hidden="true">language</mat-icon>
       </button>
       <mat-menu #langMenu="matMenu">
         @for (lang of supportedLanguages; track lang.code) {
@@ -155,67 +179,91 @@
 
   @if (controlsMenuOpen()) {
     <div #mobileControls id="top-toolbar-mobile" class="top-toolbar__mobile l-stack l-stack--sm">
-      <mat-button-toggle-group
-        [value]="themePreset.preset()"
-        appearance="standard"
+      <div
+        role="group"
         i18n-aria-label="@@topToolbar.choosePresetAria"
         aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--full top-toolbar__toggles--preset"
       >
-        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch', true)">
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.preset() === 'spielerisch'"
+          [attr.aria-pressed]="themePreset.preset() === 'spielerisch'"
+          (click)="onPresetChange('spielerisch')"
+        >
           <span class="top-toolbar__preset-option">
-            <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon>
+            <mat-icon class="top-toolbar__preset-icon-playful" aria-hidden="true"
+              >celebration</mat-icon
+            >
             <span i18n>Spielerisch</span>
           </span>
-        </mat-button-toggle>
-        <mat-button-toggle value="serious" (click)="setPreset('serious', true)">
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.preset() === 'serious'"
+          [attr.aria-pressed]="themePreset.preset() === 'serious'"
+          (click)="onPresetChange('serious')"
+        >
           <span class="top-toolbar__preset-option">
-            <mat-icon>work</mat-icon>
+            <mat-icon aria-hidden="true">work</mat-icon>
             <span i18n>Seriös</span>
           </span>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+        </button>
+      </div>
 
-      <mat-button-toggle-group
-        [value]="themePreset.theme()"
-        (change)="onThemeChange($event.value)"
-        appearance="standard"
+      <div
+        role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
         aria-label="Theme"
         class="top-toolbar__toggles top-toolbar__toggles--full"
       >
-        <mat-button-toggle
-          value="system"
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'system'"
+          [attr.aria-pressed]="themePreset.theme() === 'system'"
           i18n-aria-label="@@topToolbar.themeSystemAria"
           aria-label="System"
+          (click)="onThemeChange('system')"
         >
-          <mat-icon>contrast</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle
-          value="dark"
+          <mat-icon aria-hidden="true">contrast</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'dark'"
+          [attr.aria-pressed]="themePreset.theme() === 'dark'"
           i18n-aria-label="@@topToolbar.themeDarkAria"
           aria-label="Dark"
+          (click)="onThemeChange('dark')"
         >
-          <mat-icon>dark_mode</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle
-          value="light"
+          <mat-icon aria-hidden="true">dark_mode</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="top-toolbar__toggle"
+          [class.top-toolbar__toggle--active]="themePreset.theme() === 'light'"
+          [attr.aria-pressed]="themePreset.theme() === 'light'"
           i18n-aria-label="@@topToolbar.themeLightAria"
           aria-label="Light"
+          (click)="onThemeChange('light')"
         >
-          <mat-icon>light_mode</mat-icon>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+          <mat-icon aria-hidden="true">light_mode</mat-icon>
+        </button>
+      </div>
 
       <div class="top-toolbar__mobile-lang">
         <button
+          type="button"
           matIconButton
           [matMenuTriggerFor]="langMenuMobile"
           i18n-aria-label="@@topToolbar.languageAria"
           aria-label="Sprache"
-          class="top-toolbar__icon-btn"
+          class="top-toolbar__icon-btn top-toolbar__lang-btn"
         >
-          <mat-icon>language</mat-icon>
+          <mat-icon aria-hidden="true">language</mat-icon>
         </button>
       </div>
       <mat-menu #langMenuMobile="matMenu">

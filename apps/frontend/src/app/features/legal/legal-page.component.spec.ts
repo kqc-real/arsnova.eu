@@ -4,9 +4,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ReplaySubject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { LegalPageComponent, stripLeadingMarkdownTitle } from './legal-page.component';
 
 describe('LegalPageComponent', () => {
@@ -21,6 +22,8 @@ describe('LegalPageComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideNoopAnimations(),
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -52,6 +55,7 @@ describe('LegalPageComponent', () => {
   });
 
   it('ruft bei Klick auf den Backdrop location.back auf', async () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
     const fixture = TestBed.createComponent(LegalPageComponent);
     const location = TestBed.inject(Location);
     const spy = vi.spyOn(location, 'back');
@@ -66,6 +70,44 @@ describe('LegalPageComponent', () => {
     expect(backdrop).toBeTruthy();
     backdrop!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('schließt per Escape und hält den Fokus im Panel', async () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    fixture.detectChanges();
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/imprint.de.md'));
+    req.flush('# Titel\n\nText.');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.content-page-panel') as HTMLElement;
+    expect(panel.getAttribute('role')).toBe('dialog');
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('behält den Dialogtitel im Lade- und Fehlerzustand', async () => {
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#legal-page-title')?.textContent).toContain(
+      'Impressum',
+    );
+
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/imprint.de.md'));
+    req.flush('fail', { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#legal-page-title')?.textContent).toContain(
+      'Impressum',
+    );
+    expect(fixture.nativeElement.querySelector('.legal-error')).toBeTruthy();
   });
 
   it('lädt Markdown per HttpClient und rendert Inhalt (kein leerer SSR-Abbruch)', async () => {

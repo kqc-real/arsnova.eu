@@ -1,12 +1,22 @@
 import { Location } from '@angular/common';
-import { afterNextRender, Component, inject, Injector, LOCALE_ID, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  HostListener,
+  inject,
+  Injector,
+  LOCALE_ID,
+  signal,
+} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { MatDialog } from '@angular/material/dialog';
 import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
@@ -17,6 +27,7 @@ import { localizeKnownServerError } from '../../core/localize-known-server-messa
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
+import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
 import { loadNewsArchivePageModel, type NewsArchiveInitialModel } from './news-archive-initial';
 
 const ARCHIVE_DATE_LOCALE: Record<AppLocale, string> = {
@@ -52,7 +63,14 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
 @Component({
   selector: 'app-news-archive-page',
   standalone: true,
-  imports: [MatButton, MatIcon, MatProgressSpinner, MatTooltip, MarkdownImageLightboxDirective],
+  imports: [
+    MatButton,
+    MatIcon,
+    MatProgressSpinner,
+    MatTooltip,
+    MarkdownImageLightboxDirective,
+    CdkTrapFocus,
+  ],
   templateUrl: './news-archive-page.component.html',
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
@@ -65,6 +83,8 @@ export class NewsArchivePageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly motdHeaderRefresh = inject(MotdHeaderRefreshService);
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   private readonly locale = appLocaleFromInjectedId(inject(LOCALE_ID));
 
@@ -164,8 +184,17 @@ export class NewsArchivePageComponent {
     window.history.replaceState(window.history.state, '', nextUrl);
   }
 
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: Event): void {
+    if (shouldDeferContentPageEscape(this.dialog)) {
+      return;
+    }
+    event.preventDefault();
+    this.back();
+  }
+
   back(): void {
-    this.location.back();
+    dismissContentPage(this.location, this.router);
   }
 
   markArchiveAllRead(): void {

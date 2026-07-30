@@ -188,6 +188,34 @@ describe('HomeComponent', () => {
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: false });
     });
 
+    it('fokussiert „Code eingeben“ nach Locale-Reload', () => {
+      const animationFrames: FrameRequestCallback[] = [];
+      vi.stubGlobal(
+        'requestAnimationFrame',
+        vi.fn((callback: FrameRequestCallback) => {
+          animationFrames.push(callback);
+          return animationFrames.length;
+        }),
+      );
+      sessionStorage.setItem('arsnova-locale-reload-focus', 'home-code-enter');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
+      const focusSpy = vi.spyOn(button, 'focus');
+
+      const runFrames = (): void => {
+        const callbacks = animationFrames.splice(0);
+        for (const cb of callbacks) cb(0);
+      };
+      runFrames();
+      runFrames();
+
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+      expect(sessionStorage.getItem('arsnova-locale-reload-focus')).toBeNull();
+    });
+
     it('fokussiert am dedizierten Join-Einstieg auf Geräten ohne groben Primärzeiger', () => {
       const sentinel = document.createElement('button');
       document.body.append(sentinel);
@@ -300,6 +328,47 @@ describe('HomeComponent', () => {
       expect(
         fixture.nativeElement.querySelector('#participant-entry .home-card__brand-repeat'),
       ).toBeNull();
+    });
+
+    it('wendet Hero-Preset-Wechsel per Tastatur-aktivierbarem Button an', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const themePreset = fixture.componentInstance.themePreset;
+      themePreset.setPreset('spielerisch', { silent: true });
+      fixture.detectChanges();
+
+      const groupEl = fixture.nativeElement.querySelector(
+        '.home-hero-preset-toggle',
+      ) as HTMLElement;
+      expect(groupEl).toBeTruthy();
+      const buttons = Array.from(
+        groupEl.querySelectorAll('button.home-hero-preset-toggle__btn'),
+      ) as HTMLButtonElement[];
+      expect(buttons).toHaveLength(2);
+      for (const button of buttons) {
+        expect(button.tabIndex).toBeGreaterThanOrEqual(0);
+        expect(button.getAttribute('tabindex')).not.toBe('-1');
+      }
+
+      buttons[1].focus();
+      buttons[1].click();
+      fixture.detectChanges();
+
+      expect(themePreset.preset()).toBe('serious');
+      expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
+      expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('stilisiert Hero-Preset-Fokus direkt am Button', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      expect(scss).toContain('.home-hero-preset-toggle__btn');
+      expect(scss).toMatch(/home-hero-preset-toggle__btn[\s\S]*?&:focus-visible\s*\{/);
+      expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+      expect(scss).not.toContain('mat-button-toggle:focus-within');
     });
   });
 
@@ -864,6 +933,192 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
     });
 
+    it('rendert MOTD nicht solange der Fokus in der Toolbar liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.textContent = 'Seriös';
+      toolbar.append(toggle);
+      document.body.append(toolbar);
+      toggle.focus();
+      expect(document.activeElement).toBe(toggle);
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(toggle);
+
+      const outside = document.createElement('button');
+      outside.type = 'button';
+      outside.textContent = 'Außerhalb';
+      document.body.append(outside);
+      outside.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
+
+      toolbar.remove();
+      outside.remove();
+    });
+
+    it('öffnet aufgeschobenes MOTD nicht bei Fokus im Sprachmenü-Overlay', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.textContent = 'Seriös';
+      toolbar.append(toggle);
+      document.body.append(toolbar);
+      toggle.focus();
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cdk-overlay-pane';
+      const menuItem = document.createElement('button');
+      menuItem.type = 'button';
+      menuItem.textContent = 'Deutsch';
+      overlay.append(menuItem);
+      document.body.append(overlay);
+      menuItem.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(menuItem);
+
+      toolbar.remove();
+      overlay.remove();
+    });
+
+    it('öffnet aufgeschobenes MOTD nicht bei Fokus im News-Archiv-Dialog', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const newsBtn = document.createElement('button');
+      newsBtn.type = 'button';
+      newsBtn.textContent = 'News';
+      toolbar.append(newsBtn);
+      document.body.append(toolbar);
+      newsBtn.focus();
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cdk-overlay-pane mat-mdc-dialog-panel';
+      const dialogClose = document.createElement('button');
+      dialogClose.type = 'button';
+      dialogClose.textContent = 'Schließen';
+      overlay.append(dialogClose);
+      document.body.append(overlay);
+      dialogClose.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(dialogClose);
+
+      toolbar.remove();
+      overlay.remove();
+    });
+
+    it('öffnet MOTD mit Fokus-Capture wenn der Fokus nicht in der Toolbar liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
+    });
+
+    it('zieht nach MOTD-Dismiss nicht in die Code-Eingabe wenn bereits ein anderer Fokus existiert', async () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      const inputFocus = vi.spyOn(input, 'focus');
+
+      const other = document.createElement('button');
+      other.type = 'button';
+      other.textContent = 'Anders';
+      document.body.append(other);
+
+      fixture.componentInstance['motdFocusReturn'] = null;
+      fixture.componentInstance.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      other.focus();
+      fixture.componentInstance['clearMotdOverlay']();
+      await Promise.resolve();
+
+      expect(document.activeElement).toBe(other);
+      expect(inputFocus).not.toHaveBeenCalled();
+      other.remove();
+    });
+
     it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
@@ -884,6 +1139,26 @@ describe('HomeComponent', () => {
       expect(vi.mocked(trpc.motd.getCurrent.query).mock.calls.length).toBe(
         getCurrentCallsBeforeDismiss,
       );
+      expect(comp.motd()).toBeNull();
+    });
+
+    it('unterdrückt MOTD-Overlay nach Locale-Reload (Sprachwechsel)', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      const { markMotdOverlayReloadSuppress } = await import('../../core/motd-storage');
+      markMotdOverlayReloadSuppress();
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          contentVersion: 1,
+          markdown: 'Nächste Meldung nach Dismiss',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      await comp['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
       expect(comp.motd()).toBeNull();
     });
 

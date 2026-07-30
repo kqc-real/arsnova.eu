@@ -17,25 +17,44 @@ export class PresetSnackbarFocusService {
     this.inputRef = ref ?? null;
   }
 
-  /** Blur des registrierten Inputs, damit auf Mobile die virtuelle Tastatur schließt. */
+  /** Blur nur des registrierten Inputs (z. B. Session-Code), damit die virtuelle Tastatur schließt. */
   blurInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.inputRef?.nativeElement) {
-      this.inputRef.nativeElement.blur();
-    } else {
-      (document.activeElement as HTMLElement | null)?.blur();
-    }
+    // Kein Fallback auf document.activeElement: sonst verliert z. B. der Desktop-Preset-Toggle
+    // nach Pfeiltasten-Wechsel den Fokus, wenn kein Home-Input registriert ist (#180).
+    this.inputRef?.nativeElement?.blur();
   }
 
   /**
    * Fokus auf das registrierte Input setzen (z. B. nach Snackbar-Dismiss oder Theme-Wechsel).
    * Kurze Verzögerung, damit nach Theme-/Preset-Umschaltung DOM/CSS fertig sind und der Fokus hält.
+   * Kein Diebstahl, wenn der Fokus in der Toolbar, einem Material-Overlay oder dem MOTD-Dialog
+   * liegt — bzw. wenn bereits ein anderes sinnvolles Element fokussiert ist.
    */
   refocusInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.inputRef?.nativeElement) {
-      const el = this.inputRef.nativeElement;
-      setTimeout(() => el.focus(), 100);
-    }
+    if (!this.inputRef?.nativeElement) return;
+    const el = this.inputRef.nativeElement;
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active instanceof Element) {
+        if (
+          active.closest('app-top-toolbar') ||
+          active.closest('.cdk-overlay-pane') ||
+          active.closest('.home-motd-layer')
+        ) {
+          return;
+        }
+        if (
+          active instanceof HTMLElement &&
+          active !== document.body &&
+          active !== document.documentElement &&
+          active !== el
+        ) {
+          return;
+        }
+      }
+      el.focus();
+    }, 100);
   }
 }

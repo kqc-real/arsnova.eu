@@ -1,19 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   MOTD_LOCAL_STORAGE_KEY,
+  MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY,
   clearMotdThumbInteractionKeys,
+  consumeMotdOverlayReloadSuppress,
   getMotdArchiveSeenUpToEndsAtIso,
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  markMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   motdDismissedPairsForApi,
   setMotdArchiveSeenUpToEndsAtIso,
 } from './motd-storage';
 
 describe('motd-storage', () => {
-  beforeEach(() => localStorage.clear());
-  afterEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  afterEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
 
   it('markMotdDismissed speichert mindestens die angegebene Version', () => {
     markMotdDismissed('00000000-0000-4000-8000-000000000001', 2);
@@ -52,5 +61,14 @@ describe('motd-storage', () => {
     clearMotdThumbInteractionKeys(id, 2);
     expect(hasMotdInteractionRecorded(id, 2, 'THUMB_UP')).toBe(false);
     expect(hasMotdInteractionRecorded(id, 2, 'THUMB_DOWN')).toBe(false);
+  });
+
+  it('unterdrückt MOTD-Overlay einmalig nach Locale-Reload', () => {
+    expect(consumeMotdOverlayReloadSuppress()).toBe(false);
+    markMotdOverlayReloadSuppress();
+    expect(sessionStorage.getItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY)).toBe('1');
+    expect(consumeMotdOverlayReloadSuppress()).toBe(true);
+    expect(consumeMotdOverlayReloadSuppress()).toBe(false);
+    expect(sessionStorage.getItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY)).toBeNull();
   });
 });
