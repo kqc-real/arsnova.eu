@@ -28,7 +28,7 @@
   - Testing conventions and checks: `mem:testing/core`.
   - Naming conventions: `mem:conventions/naming`.
   - Definition of Done and workflow: `mem:quality/dod`, `mem:quality/workflow`.
-- Canonical files still matter: `AGENT.md` for critical rules, `.cursorrules` for minimal Cursor stack/path facts, `docs/README.md` as docs map, `Backlog.md` as story/DoD source, focused docs for security/deploy/testing/i18n/UI, and root/app JSON manifests when changing workspace behavior.
+- Canonical files still matter: `AGENTS.md` for critical rules, `.cursorrules` for minimal Cursor stack/path facts, `docs/README.md` as docs map, `Backlog.md` as story/DoD source, focused docs for security/deploy/testing/i18n/UI, and root/app JSON manifests when changing workspace behavior.
 - Do not store task-local notes, secrets, volatile line-level facts, or full Backlog copies in memories.
 
 ## Related Memories

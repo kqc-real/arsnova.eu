@@ -59,8 +59,8 @@ Genau diese Spannungen machen das Repo zu einer guten Grundlage fuer Software En
 | 6     | Local-First mit Yjs und IndexedDB                      | Was bedeutet es, wenn die Quiz-Sammlung primaer im Browser lebt?           | ADR `0004`, `docs/architecture/quiz-library-sync.md`, `quiz-store.service.ts`                                   |
 | 7     | Realtime-Architektur fuer Live-Lehre                   | Wie kombiniert man Sessions, WebSockets, Redis und Live-Status robust?     | `apps/backend/src/index.ts`, `apps/backend/src/routers/session.ts`, `apps/backend/src/routers/quickFeedback.ts` |
 | 8     | Produktarchitektur: Eine Session, mehrere Live-Kanaele | Wie werden Quiz, Q&A und Blitzlicht zu einem gemeinsamen Domänenmodell?    | ADR `0009`, `app.routes.ts`, Session-Views im Frontend                                                          |
-| 9     | Qualitaet, Tests und Definition of Done                | Wie wird Qualitaet im Repo verankert statt nur behauptet?                  | `Backlog.md`, `AGENT.md`, `.github/workflows/ci.yml`, Testdateien                                               |
-| 10    | Entwicklung mit KI-Agenten unter Governance            | Wie arbeitet man produktiv mit KI, ohne Architekturkontrolle zu verlieren? | `AGENT.md`, `.cursorrules`, `docs/vibe-coding/vibe-coding-szenario.md`, ADR `0007`                              |
+| 9     | Qualitaet, Tests und Definition of Done                | Wie wird Qualitaet im Repo verankert statt nur behauptet?                  | `Backlog.md`, `AGENTS.md`, `.github/workflows/ci.yml`, Testdateien                                              |
+| 10    | Entwicklung mit KI-Agenten unter Governance            | Wie arbeitet man produktiv mit KI, ohne Architekturkontrolle zu verlieren? | `AGENTS.md`, `.cursorrules`, `docs/vibe-coding/vibe-coding-szenario.md`, ADR `0007`                             |
 
 ---
 
@@ -267,7 +267,7 @@ Die Studierenden koennen erklaeren, wie sich DoD, Tests, CI und Review-Regeln ge
 ### Schwerpunkt
 
 - DoD in `Backlog.md`
-- Testregeln in `AGENT.md`
+- Testregeln in `AGENTS.md`
 - CI ueber `.github/workflows/ci.yml`
 - Sicherheits-, UI- und Integrationspruefungen
 
@@ -290,7 +290,7 @@ Die Studierenden verstehen den Unterschied zwischen “KI generiert Code” und 
 
 ### Schwerpunkt
 
-- `AGENT.md` und `.cursorrules`
+- `AGENTS.md` und `.cursorrules`
 - `docs/serena.md` und `mem:core` als stabiler Kontext
 - Vibe-Coding-Szenario
 - ADR `0007` als Beispiel fuer Promptarchitektur
@@ -332,5 +332,5 @@ Wie viel Architekturdisziplin, Dokumentation und Governance braucht ein Team, da
 6. `docs/architecture/decisions/0003-use-trpc-for-api.md`
 7. `docs/architecture/decisions/0004-use-yjs-for-local-first-storage.md`
 8. `docs/architecture/decisions/0009-unified-live-session-channels.md`
-9. `AGENT.md`
+9. `AGENTS.md`
 10. `docs/vibe-coding/vibe-coding-szenario.md`

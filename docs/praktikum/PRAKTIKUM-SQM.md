@@ -56,7 +56,7 @@ Eine **Web-App** für **Live-Quiz**, **Abstimmungen**, **Freitext**, **Q&A** u. 
 | Produkt-Backlog          | [`Backlog.md`](../../Backlog.md)                                                                 |
 | Tests & CI               | [`docs/TESTING.md`](../TESTING.md), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
 
-**Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENT.md`](../../AGENT.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+**Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENTS.md`](../../AGENTS.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
 ---
 
@@ -229,7 +229,7 @@ Die KI „ersetzt“ **kein** Review — sie **unterstützt** Lesen und Struktur
 | Checkliste            | „Erstelle Review-Checkliste für Angular-Signals + tRPC-Frontend.“                   | Ja                    |
 | Think-Aloud-Leitfaden | „Entwirf eine Aufgabenstellung für Erstnutzer:innen in 5 Schritten.“                | Ja                    |
 
-**Nützlicher Kontext:** [`AGENT.md`](../../AGENT.md), [`docs/architecture/handbook.md`](../architecture/handbook.md).
+**Nützlicher Kontext:** [`AGENTS.md`](../../AGENTS.md), [`docs/architecture/handbook.md`](../architecture/handbook.md).
 
 ---
 

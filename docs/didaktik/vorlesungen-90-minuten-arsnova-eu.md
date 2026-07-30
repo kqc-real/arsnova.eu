@@ -365,7 +365,7 @@ Wie wird Qualitaet im Projekt institutionalisiert?
 #### 25-45 Min: Repo-Walkthrough
 
 - `Backlog.md`
-- `AGENT.md`
+- `AGENTS.md`
 - `.github/workflows/ci.yml`
 - ausgewaehlte Testdateien
 
@@ -399,12 +399,12 @@ Wie nutzt man KI produktiv, ohne die Verantwortung an sie abzugeben?
 
 #### 10-25 Min: Kontext
 
-- `AGENT.md`, `.cursorrules` und Serena-Memories als Governance-Artefakte
+- `AGENTS.md`, `.cursorrules` und Serena-Memories als Governance-Artefakte
 - Rolle von Promptarchitektur ueber ADR `0007`
 
 #### 25-45 Min: Repo-Walkthrough
 
-- `AGENT.md`
+- `AGENTS.md`
 - `docs/vibe-coding/vibe-coding-szenario.md`
 - ADR `0007`
 

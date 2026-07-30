@@ -102,7 +102,7 @@ Zur Orientierung für die Betreuung — nicht als Alternativpfade, sondern als *
 Kurz und wiederholbar — unabhängig von der Story-Nummer:
 
 - [ ] Akzeptanzkriterien aus `Backlog.md` erfüllt (oder Abweichung dokumentiert und mit Betreuung abgestimmt).
-- [ ] `shared-types` / Zod bei tRPC-Eingaben und -Ausgaben konsistent (`AGENT.md`, Monorepo-Regeln).
+- [ ] `shared-types` / Zod bei tRPC-Eingaben und -Ausgaben konsistent (`AGENTS.md`, Monorepo-Regeln).
 - [ ] Tests grün; bei neuem Verhalten sinnvolle Specs ergänzt.
 - [ ] UI-Texte: bei deutschen Änderungen **alle** Zielsprachen nachgezogen (ADR-0008), sofern Story UI berührt.
 - [ ] Kein blindes Merge: **Diff gelesen**, keine offensichtlichen Sicherheits- oder Datenlecks.
@@ -128,7 +128,7 @@ Abweichungen sind möglich, aber nur **begründet und dokumentiert**, z. B.:
 | [`docs/praktikum/PRAKTIKUM.md`](./PRAKTIKUM.md)                                                    | Rahmen Praktikum, Bewertung, Ablauf                             |
 | [`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)                                     | **Pflicht-Orientierung** bei fehlender Tool-/Stack-Vorerfahrung |
 | [`docs/features/motd.md`](../features/motd.md)                                                     | MOTD, Epic 10 (optional Referenzcode)                           |
-| [`AGENT.md`](../../AGENT.md)                                                                       | Arbeitsweise mit KI im Editor                                   |
+| [`AGENTS.md`](../../AGENTS.md)                                                                     | Arbeitsweise mit KI im Editor                                   |
 
 ---
 

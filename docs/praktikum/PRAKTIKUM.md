@@ -37,7 +37,7 @@ Technisch (für deine Orientierung):
 | Architektur-Kurzreferenz | [`docs/architecture/handbook.md`](../architecture/handbook.md)                   |
 | Produkt-Backlog          | [`Backlog.md`](../../Backlog.md) im Repo-Root                                    |
 
-**Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENT.md`](../../AGENT.md) (Arbeitsweise mit KI im Editor), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+**Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENTS.md`](../../AGENTS.md) (Arbeitsweise mit KI im Editor), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
 **Offene User Stories — didaktische Reihenfolge** als **verbindliche Ticketstrecke pro Person**: [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
 

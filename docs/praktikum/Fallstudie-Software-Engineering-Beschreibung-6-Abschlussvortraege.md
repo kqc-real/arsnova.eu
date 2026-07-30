@@ -79,7 +79,7 @@ Die sechs Themen sollen zusammen mindestens diese Schichten verständlich machen
 | Sicherheit, Rollen und Datenminimierung              | Thema 3         | [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md), Router-Logik, DTO-Tests, [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md)                                                                                          |
 | Angular-Frontend, UI-Regeln und i18n                 | Thema 4         | `apps/frontend/src/`, [ADR-0002](../architecture/decisions/0002-use-angular-signals-for-ui-state.md), [ADR-0005](../architecture/decisions/0005-use-angular-material-design.md), [ADR-0008](../architecture/decisions/0008-i18n-internationalization.md) |
 | Persistenz, Migrationen und Laufzeitverhalten        | Thema 5         | `prisma/schema.prisma`, `prisma/migrations/`, [`ENVIRONMENT.md`](../ENVIRONMENT.md), Backend-Libs                                                                                                                                                        |
-| Qualitätssicherung, CI und KI-gestützte Arbeitsweise | Thema 6         | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), [`TESTING.md`](../TESTING.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`AGENT.md`](../../AGENT.md)                                                                                    |
+| Qualitätssicherung, CI und KI-gestützte Arbeitsweise | Thema 6         | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), [`TESTING.md`](../TESTING.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`AGENTS.md`](../../AGENTS.md)                                                                                  |
 
 Falls du später ein **zusätzliches freiwilliges Vertiefungsthema** brauchst, bietet sich ein Block zu **Architekturentscheidungen und technischer Steuerung mit ADRs** an. Das ist bewusst **kein offizieller siebter Pflichtvortrag**, sondern eine mögliche Ergänzung zu den sechs bestehenden Themen.
 
@@ -280,7 +280,7 @@ Ein guter Reflexionspunkt ist eine Stelle, an der die KI zwar schnell Code für 
 - [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 - [`TESTING.md`](../TESTING.md)
 - [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
-- [`AGENT.md`](../../AGENT.md)
+- [`AGENTS.md`](../../AGENTS.md)
 - Testdateien in `apps/backend/src/__tests__/` und `apps/frontend/src/`
 
 ### Anknüpfung an deine Tickets

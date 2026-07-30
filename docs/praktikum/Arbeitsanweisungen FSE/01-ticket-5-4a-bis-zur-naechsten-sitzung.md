@@ -11,7 +11,7 @@ Bearbeite bis zur nächsten Sitzung die Story **5.4a - Foyer-Einflug im Preset S
 - Das ist das **erste Ticket** der verbindlichen studentischen Reihenfolge: [STUDENT-STORY-REIHENFOLGE.md](../STUDENT-STORY-REIHENFOLGE.md).
 - Maßgeblich sind **alle Akzeptanzkriterien** der Story in [Backlog.md](../../../Backlog.md).
 - Zusätzlich gilt die allgemeine **Definition of Done** aus [Backlog.md](../../../Backlog.md).
-- Arbeite nach den Regeln in [AGENT.md](../../../AGENT.md) und [CONTRIBUTING.md](../../../CONTRIBUTING.md).
+- Arbeite nach den Regeln in [AGENTS.md](../../../AGENTS.md) und [CONTRIBUTING.md](../../../CONTRIBUTING.md).
 
 ## Was bis zur nächsten Sitzung vorliegen muss
 
@@ -32,5 +32,5 @@ Bearbeite bis zur nächsten Sitzung die Story **5.4a - Foyer-Einflug im Preset S
 - [STUDENT-STORY-REIHENFOLGE.md](../STUDENT-STORY-REIHENFOLGE.md)
 - [Backlog.md](../../../Backlog.md)
 - [onboarding.md](../../onboarding.md)
-- [AGENT.md](../../../AGENT.md)
+- [AGENTS.md](../../../AGENTS.md)
 - [CONTRIBUTING.md](../../../CONTRIBUTING.md)

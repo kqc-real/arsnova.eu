@@ -172,7 +172,7 @@ Vor größeren Änderungen sollten diese Dokumente gelesen werden:
 - [Backlog.md](./Backlog.md)
 - [Architektur-Handbuch](./docs/architecture/handbook.md)
 - [Projektglossar](./docs/GLOSSAR.md)
-- [AGENT.md](./AGENT.md), falls KI-gestützt entwickelt wird
+- [AGENTS.md](./AGENTS.md), falls KI-gestützt entwickelt wird
 
 ## Qualität und Status
 

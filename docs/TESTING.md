@@ -499,7 +499,7 @@ fehlgeschlagen, nicht nur als funktional korrekt, zu dokumentieren.
 ## Wo Tests liegen
 
 - **Backend:** `apps/backend/src/__tests__/*.test.ts`, Vitest (u. a. Session, Vote, Rate-Limit, **MOTD/Admin-MOTD** — Epic 10).
-- **Frontend:** `*.spec.ts` neben Komponenten/Services (Angular/Vitest), siehe [AGENT.md](../AGENT.md).
+- **Frontend:** `*.spec.ts` neben Komponenten/Services (Angular/Vitest), siehe [AGENTS.md](../AGENTS.md).
   Async-Komponententests: Hilfsfunktionen in `apps/frontend/src/testing/component-test-utils.ts`.
 
 Gezielte Regressionen für die aktuelle Host-Härtung:

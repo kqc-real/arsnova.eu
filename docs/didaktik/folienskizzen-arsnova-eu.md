@@ -286,7 +286,7 @@
 
 1. Titel: Qualitaet ist organisiert, nicht zufaellig
 2. DoD in `Backlog.md`
-3. Testpflicht in `AGENT.md`
+3. Testpflicht in `AGENTS.md`
 4. CI-Pipeline als Regelvollzug
 5. Sicherheits-, UI- und Typpruefungen
 6. Beispiele aus Tests und Workflows
@@ -296,7 +296,7 @@
 ### Demo-Dateien
 
 - `Backlog.md`
-- `AGENT.md`
+- `AGENTS.md`
 - `.github/workflows/ci.yml`
 - `apps/backend/src/__tests__/dto-security.test.ts`
 
@@ -320,7 +320,7 @@
 
 1. Titel: KI als Architekturasistent, nicht als Ersatzarchitekt
 2. Vibe Coding im Projektkontext
-3. `AGENT.md`, `.cursorrules` und Serena-Memories
+3. `AGENTS.md`, `.cursorrules` und Serena-Memories
 4. Baby-Steps, Shared Types zuerst, Testpflicht
 5. Code Defense gegen fehlerhafte KI-Ausgaben
 6. ADR `0007`: Promptarchitektur als Softwarearchitektur
@@ -329,7 +329,7 @@
 
 ### Demo-Dateien
 
-- `AGENT.md`
+- `AGENTS.md`
 - `.cursorrules`
 - `docs/serena.md`
 - `.serena/memories/core.md`

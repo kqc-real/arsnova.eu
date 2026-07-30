@@ -22,4 +22,4 @@ Erstelle bis zur nächsten Sitzung selbstständig ein **einseitiges Rollenpapier
 - [PRAKTIKUM-SQM.md](../PRAKTIKUM-SQM.md)
 - [zweiter-kurs-und-agentische-ki.md](../../didaktik/zweiter-kurs-und-agentische-ki.md)
 - [Backlog.md](../../../Backlog.md)
-- [AGENT.md](../../../AGENT.md)
+- [AGENTS.md](../../../AGENTS.md)
