@@ -82,19 +82,20 @@
     <div class="top-toolbar__controls desktop-only">
       <mat-button-toggle-group
         [value]="themePreset.preset()"
+        (change)="onPresetChange($event.value)"
         appearance="standard"
         i18n-aria-label="@@topToolbar.choosePresetAria"
         aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--preset"
       >
         <!-- Default zuerst: Hydration/Mobile sonst kurz Seriös sichtbar -->
-        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch')">
+        <mat-button-toggle value="spielerisch">
           <span class="top-toolbar__preset-option">
             <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon>
             <span i18n>Spielerisch</span>
           </span>
         </mat-button-toggle>
-        <mat-button-toggle value="serious" (click)="setPreset('serious')">
+        <mat-button-toggle value="serious">
           <span class="top-toolbar__preset-option">
             <mat-icon>work</mat-icon>
             <span i18n>Seriös</span>
@@ -157,18 +158,19 @@
     <div #mobileControls id="top-toolbar-mobile" class="top-toolbar__mobile l-stack l-stack--sm">
       <mat-button-toggle-group
         [value]="themePreset.preset()"
+        (change)="onPresetChange($event.value)"
         appearance="standard"
         i18n-aria-label="@@topToolbar.choosePresetAria"
         aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--full top-toolbar__toggles--preset"
       >
-        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch', true)">
+        <mat-button-toggle value="spielerisch">
           <span class="top-toolbar__preset-option">
             <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon>
             <span i18n>Spielerisch</span>
           </span>
         </mat-button-toggle>
-        <mat-button-toggle value="serious" (click)="setPreset('serious', true)">
+        <mat-button-toggle value="serious">
           <span class="top-toolbar__preset-option">
             <mat-icon>work</mat-icon>
             <span i18n>Seriös</span>

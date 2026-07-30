@@ -199,9 +199,13 @@ export class TopToolbarComponent {
     }
   }
 
-  setPreset(value: 'serious' | 'spielerisch', closeMenu = false): void {
+  /** Gruppen-(change) statt Toggle-(click): Pfeiltasten/Enter/Leertaste wie Maus. */
+  onPresetChange(value: 'serious' | 'spielerisch'): void {
+    const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setPreset(value);
-    if (closeMenu) this.closeControlsMenu(true);
+    if (mobileMenuWasOpen) {
+      this.closeControlsMenu(true);
+    }
   }
 
   toggleControlsMenu(event?: Event): void {

@@ -265,6 +265,11 @@
   color: var(--mat-sys-primary);
 }
 
+.home-hero-preset-toggle .mat-button-toggle-button:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+}
+
 .home-hero-preset-toggle .mat-button-toggle-group {
   border: none;
   display: flex;

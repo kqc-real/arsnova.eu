@@ -23,19 +23,20 @@
       >
         <mat-button-toggle-group
           [value]="themePreset.preset()"
+          (change)="themePreset.setPreset($event.value)"
           appearance="standard"
           i18n-aria-label="@@home.presetToggleAria"
           aria-label="Stil auswählen"
           class="home-hero-preset-toggle"
         >
           <!-- Spielerisch zuerst: Default; vermeidet kurzen „Seriös“-Flash bei Hydration/Mobile. -->
-          <mat-button-toggle value="spielerisch" (change)="themePreset.setPreset('spielerisch')">
+          <mat-button-toggle value="spielerisch">
             <span class="home-preset-option">
               <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
               <span i18n>Spielerisch</span>
             </span>
           </mat-button-toggle>
-          <mat-button-toggle value="serious" (change)="themePreset.setPreset('serious')">
+          <mat-button-toggle value="serious">
             <span class="home-preset-option">
               <mat-icon>work</mat-icon>
               <span i18n>Seriös</span>

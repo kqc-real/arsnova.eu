@@ -301,6 +301,35 @@ describe('HomeComponent', () => {
         fixture.nativeElement.querySelector('#participant-entry .home-card__brand-repeat'),
       ).toBeNull();
     });
+
+    it('wendet Hero-Preset-Wechsel über Gruppen-change an (Maus und Tastatur)', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const themePreset = fixture.componentInstance.themePreset;
+      themePreset.setPreset('spielerisch', { silent: true });
+      fixture.detectChanges();
+
+      const groupEl = fixture.nativeElement.querySelector(
+        '.home-hero-preset-toggle',
+      ) as HTMLElement;
+      expect(groupEl).toBeTruthy();
+      const firstButton = groupEl.querySelector(
+        'mat-button-toggle[value="spielerisch"] button',
+      ) as HTMLButtonElement;
+      firstButton.focus();
+      const arrowRight = new KeyboardEvent('keydown', {
+        key: 'ArrowRight',
+        code: 'ArrowRight',
+        bubbles: true,
+        cancelable: true,
+      });
+      Object.defineProperty(arrowRight, 'keyCode', { get: () => 39 });
+      firstButton.dispatchEvent(arrowRight);
+      fixture.detectChanges();
+
+      expect(themePreset.preset()).toBe('serious');
+      expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
+    });
   });
 
   describe('isValidSessionCode', () => {
