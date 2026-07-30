@@ -7,6 +7,18 @@ import { pathToFileURL } from 'node:url';
 
 export const EXPECTED_SELF_REVIEW_ITEMS = 8;
 
+/** Normalisierte Pflichttexte der Selbstreview-Checkboxen (Reihenfolge wie im Template). */
+export const EXPECTED_SELF_REVIEW_TEXTS = [
+  'Der vollständige Diff wurde unabhängig noch einmal geprüft',
+  'Aufgabenstellung und Akzeptanzkriterien wurden erneut mit dem Ergebnis verglichen',
+  'Code, Tests, Schemas, Dokumentation, Konfiguration, Übersetzungen und PR-Beschreibung widersprechen sich nicht',
+  'Vergleichbare Pfade enthalten den behobenen Fehler nicht weiterhin',
+  'Temporärer Code, Debug-Ausgaben und überholte Kommentare wurden entfernt',
+  'Sicherheits-, Barrierefreiheits-, Kompatibilitäts- und Performanceaussagen sind durch Nachweise gedeckt',
+  'Der PR ist vollständig und bereit für ein Review',
+  'Keine asynchrone UI-Änderung oder Erfolg, Pending, Fehler und Fokus wurden anhand des tatsächlichen DOM-Ablaufs geprüft',
+];
+
 const REQUIRED_HEADINGS = [
   'Zusammenfassung',
   'Risiko und Verträge',
@@ -20,7 +32,9 @@ const REQUIRED_HEADINGS = [
   'Selbstreview',
 ];
 
-function section(body, title) {
+const RISK_LEVELS = ['Niedrig', 'Mittel', 'Hoch'];
+
+export function section(body, title) {
   const marker = `## ${title}`;
   const start = body.indexOf(marker);
   if (start < 0) {
@@ -29,6 +43,67 @@ function section(body, title) {
   const remainder = body.slice(start + marker.length);
   const nextHeading = remainder.search(/^##\s+/m);
   return nextHeading < 0 ? remainder : remainder.slice(0, nextHeading);
+}
+
+export function normalizeCheckboxText(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Liest Checkbox-Einträge inkl. fortgesetzter Einrückungszeilen.
+ * @returns {{ checked: boolean, text: string }[]}
+ */
+export function parseCheckboxItems(sectionText) {
+  const items = [];
+  let current = null;
+
+  for (const line of sectionText.split(/\r?\n/)) {
+    const match = /^- \[([ xX])\]\s+(.*)$/.exec(line);
+    if (match) {
+      if (current) {
+        items.push(current);
+      }
+      current = {
+        checked: match[1].toLowerCase() === 'x',
+        text: match[2].trim(),
+      };
+      continue;
+    }
+    if (current && /^\s+\S/.test(line)) {
+      current.text = `${current.text} ${line.trim()}`;
+    }
+  }
+
+  if (current) {
+    items.push(current);
+  }
+  return items;
+}
+
+export function hasValidationDataRow(validationSection) {
+  for (const rawLine of validationSection.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line.startsWith('|') || !line.endsWith('|')) {
+      continue;
+    }
+    const cells = line
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length < 2) {
+      continue;
+    }
+    if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) {
+      continue;
+    }
+    if (/Prüfung\/Befehl/i.test(cells[0])) {
+      continue;
+    }
+    if (cells[0].length > 0 && cells[1].length > 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -53,51 +128,73 @@ export function validatePrTemplateBody(body) {
   }
 
   for (const field of ['Problem', 'Lösung', 'Bewusste Nicht-Ziele']) {
-    const pattern = new RegExp(`^- \\*\\*${field}:\\*\\*\\s+\\S`, 'm');
+    // Wert muss in derselben Zeile stehen; \\s würde Newlines schlucken.
+    const pattern = new RegExp(`^- \\*\\*${field}:\\*\\*[ \\t]+\\S`, 'm');
     if (!pattern.test(text)) {
       errors.push(`Zusammenfassungsfeld fehlt oder ist leer: "${field}"`);
     }
   }
 
-  const riskLevels = ['Niedrig', 'Mittel', 'Hoch'];
-  const selectedRisks = riskLevels.filter((risk) =>
-    new RegExp(`^- \\[[xX]\\]\\s+${risk}\\b`, 'm').test(text),
+  const riskSection = section(text, 'Risiko und Verträge');
+  const selectedRiskRows = [
+    ...riskSection.matchAll(/^- \[([xX])\][ \t]+(Niedrig|Mittel|Hoch)\b/gm),
+  ];
+  if (selectedRiskRows.length !== 1) {
+    errors.push(
+      `Genau eine Risikostufe muss ausgewählt sein; gefunden: ${selectedRiskRows.length}`,
+    );
+  }
+  const unknownSelectedRisks = [
+    ...riskSection.matchAll(/^- \[([xX])\][ \t]+(\S[^\n]*)$/gm),
+  ].filter((match) => !RISK_LEVELS.some((level) => match[2].startsWith(level)));
+  if (unknownSelectedRisks.length > 0) {
+    errors.push(
+      `Unbekannte markierte Risikostufe: ${unknownSelectedRisks
+        .map((match) => match[2].trim())
+        .join(', ')}`,
+    );
+  }
+
+  const selfReviewItems = parseCheckboxItems(section(text, 'Selbstreview')).map((item) => ({
+    checked: item.checked,
+    text: normalizeCheckboxText(item.text),
+  }));
+
+  if (selfReviewItems.length !== EXPECTED_SELF_REVIEW_ITEMS) {
+    errors.push(
+      `Selbstreview: erwartet genau ${EXPECTED_SELF_REVIEW_ITEMS} Punkte, gefunden ${selfReviewItems.length}`,
+    );
+  }
+
+  const expectedNormalized = EXPECTED_SELF_REVIEW_TEXTS.map(normalizeCheckboxText);
+  for (const expected of expectedNormalized) {
+    const match = selfReviewItems.find((item) => item.text === expected);
+    if (!match) {
+      errors.push(`Selbstreview-Pflichtpunkt fehlt oder weicht ab: "${expected}"`);
+      continue;
+    }
+    if (!match.checked) {
+      errors.push(`Selbstreview-Punkt ist nicht bestätigt: "${expected}"`);
+    }
+  }
+
+  const unexpected = selfReviewItems.filter(
+    (item) => !expectedNormalized.includes(item.text),
   );
-  if (selectedRisks.length !== 1) {
+  if (unexpected.length > 0) {
     errors.push(
-      `Genau eine Risikostufe muss ausgewählt sein; gefunden: ${selectedRisks.length}`,
-    );
-  }
-
-  const selfReview = section(text, 'Selbstreview');
-  const checkedSelfReview = selfReview.match(/^- \[[xX]\]\s+/gm) ?? [];
-  const uncheckedSelfReview = selfReview.match(/^- \[ \]\s+/gm) ?? [];
-  const totalSelfReview = checkedSelfReview.length + uncheckedSelfReview.length;
-
-  if (totalSelfReview !== EXPECTED_SELF_REVIEW_ITEMS) {
-    errors.push(
-      `Selbstreview: erwartet genau ${EXPECTED_SELF_REVIEW_ITEMS} Punkte, gefunden ${totalSelfReview}`,
-    );
-  }
-
-  if (
-    checkedSelfReview.length !== EXPECTED_SELF_REVIEW_ITEMS ||
-    uncheckedSelfReview.length > 0
-  ) {
-    errors.push(
-      `Selbstreview unvollständig: ${checkedSelfReview.length} von ${EXPECTED_SELF_REVIEW_ITEMS} Punkten bestätigt` +
-        (uncheckedSelfReview.length > 0
-          ? ` (${uncheckedSelfReview.length} offen)`
-          : ''),
+      `Unerwartete Selbstreview-Punkte: ${unexpected.map((item) => `"${item.text}"`).join(', ')}`,
     );
   }
 
   const validation = section(text, 'Validierung');
-  if (/^\|\s*\|\s*\|$/m.test(validation)) {
-    errors.push('Die Tabelle „Ausgeführte Prüfungen und Ergebnisse“ ist noch leer');
+  if (!hasValidationDataRow(validation)) {
+    errors.push(
+      'Die Tabelle „Ausgeführte Prüfungen und Ergebnisse“ braucht mindestens eine Datenzeile mit Befehl und Ergebnis',
+    );
   }
 
-  if (!/^- \*\*Verbleibende Risiken:\*\*\s+\S/m.test(text)) {
+  if (!/^- \*\*Verbleibende Risiken:\*\*[ \t]+\S/m.test(text)) {
     errors.push(
       'Das Feld „Verbleibende Risiken“ fehlt oder ist leer; gegebenenfalls „Keine bekannt“ eintragen',
     );

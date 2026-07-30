@@ -18,14 +18,14 @@ jobs:
     if: >-
       ${{
         github.event.pull_request.draft == false &&
-        github.actor != 'dependabot[bot]'
+        github.event.pull_request.user.login != 'dependabot[bot]'
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v4.1.5
 
       - name: Validierungslogik testen
         run: node --test .github/scripts/validate-pr-template.test.mjs
