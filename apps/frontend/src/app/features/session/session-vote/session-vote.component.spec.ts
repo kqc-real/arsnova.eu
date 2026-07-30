@@ -2268,6 +2268,18 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     voteSubmitMutateMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
+    const scrollRoot = document.createElement('div');
+    scrollRoot.className = 'app-main';
+    Object.defineProperty(scrollRoot, 'scrollTop', {
+      configurable: true,
+      writable: true,
+      value: 640,
+    });
+    const scrollToSpy = vi.fn();
+    scrollRoot.scrollTo = scrollToSpy as unknown as typeof scrollRoot.scrollTo;
+    document.body.append(scrollRoot);
+    scrollRoot.append(fixture.nativeElement);
+
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
 
@@ -2277,6 +2289,39 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const submitButton = fixture.nativeElement.querySelector('#vote-submit') as HTMLButtonElement;
     submitButton.focus();
+
+    const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+    const getBoundingClientRectSpy = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: Element) {
+        if (this.id === 'vote-error') {
+          return {
+            x: 0,
+            y: -220,
+            top: -220,
+            bottom: -140,
+            left: 0,
+            right: 360,
+            width: 360,
+            height: 80,
+            toJSON: () => ({}),
+          } as DOMRect;
+        }
+        if (this === scrollRoot) {
+          return {
+            x: 0,
+            y: 0,
+            top: 0,
+            bottom: 700,
+            left: 0,
+            right: 390,
+            width: 390,
+            height: 700,
+            toJSON: () => ({}),
+          } as DOMRect;
+        }
+        return originalGetBoundingClientRect.call(this);
+      });
 
     await component.submitVote();
     fixture.detectChanges();
@@ -2289,7 +2334,17 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(error.textContent).toContain('Netzwerkfehler');
     expect(document.activeElement).toBe(error);
     expect(fixture.nativeElement.querySelector('#vote-submit')).not.toBeNull();
+    expect(scrollToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        top: expect.any(Number),
+        behavior: expect.stringMatching(/^(auto|smooth)$/),
+      }),
+    );
+    const scrollArg = scrollToSpy.mock.calls[0]?.[0] as ScrollToOptions;
+    expect(scrollArg.top).toBeGreaterThanOrEqual(0);
 
+    getBoundingClientRectSpy.mockRestore();
+    scrollRoot.remove();
     fixture.destroy();
   });
 

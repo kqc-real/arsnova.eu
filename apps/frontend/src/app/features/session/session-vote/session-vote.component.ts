@@ -4294,32 +4294,35 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
    * aria-atomic liest Titel und Hinweis zusammen. Nur nach bestätigtem mutate aufrufen.
    */
   private focusVoteSentConfirmation(): void {
+    this.scrollAndFocusVoteStatusTarget('#vote-sent');
+  }
+
+  /**
+   * Nach fehlgeschlagenem Absenden Fokus auf die Alert-Fehlermeldung legen und
+   * sie in `.app-main` sichtbar scrollen (Floating-Submit liegt oft weit darunter).
+   */
+  private focusVoteError(): void {
+    this.scrollAndFocusVoteStatusTarget('#vote-error');
+  }
+
+  private scrollAndFocusVoteStatusTarget(selector: string): void {
     const host = this.el.nativeElement as HTMLElement;
-    const sent = host.querySelector('#vote-sent') as HTMLElement | null;
-    if (!sent) return;
-    this.ensureFocusable(sent);
+    const target = host.querySelector(selector) as HTMLElement | null;
+    if (!target) return;
+    this.ensureFocusable(target);
     const scrollRoot = host.closest('.app-main') as HTMLElement | null;
     if (scrollRoot) {
       const behavior = this.voteScrollBehavior();
       const rootRect = scrollRoot.getBoundingClientRect();
-      const sentRect = sent.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
       const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
       const gapPx = 8;
-      const y = sentRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
+      const y = targetRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
       scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
-    } else if (typeof sent.scrollIntoView === 'function') {
-      sent.scrollIntoView({ behavior: this.voteScrollBehavior(), block: 'nearest' });
+    } else if (typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: this.voteScrollBehavior(), block: 'nearest' });
     }
-    sent.focus({ preventScroll: true });
-  }
-
-  /** Nach fehlgeschlagenem Absenden Fokus auf die Alert-Fehlermeldung legen. */
-  private focusVoteError(): void {
-    const host = this.el.nativeElement as HTMLElement;
-    const error = host.querySelector('#vote-error') as HTMLElement | null;
-    if (!error) return;
-    this.ensureFocusable(error);
-    error.focus({ preventScroll: true });
+    target.focus({ preventScroll: true });
   }
 
   async sendEmoji(emoji: string): Promise<void> {
