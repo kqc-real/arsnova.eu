@@ -35,6 +35,11 @@ import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
 import { formatLocaleBadgeCount, formatLocaleCount } from './core/locale-number.util';
+import {
+  consumeContentPageFocusReturn,
+  contentPageFocusReturnSelector,
+  isContentOverlayPath,
+} from './shared/content-page-nav';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -167,6 +172,10 @@ export class AppComponent implements OnInit, OnDestroy {
     typeof window !== 'undefined' &&
       this.matchesFooterStatusPollingSuppressedRoute(window.location.pathname),
   );
+  /** Hilfe/Legal/News-Archiv: Overlay-Optik — App-Chrome per inert aus der Tab-Reihenfolge. */
+  isContentOverlayRoute = signal(
+    typeof window !== 'undefined' && isContentOverlayPath(window.location.pathname),
+  );
   private lastScrollY = 0;
   private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
   /** Erstes NavigationEnd = Bootstrap; kein Scroll-Reset — sonst kurzer Sprung „richtig → nach oben“ nach dem ersten Layout. */
@@ -237,6 +246,14 @@ export class AppComponent implements OnInit, OnDestroy {
         } else if (!event.urlAfterRedirects.includes('#')) {
           requestAnimationFrame(() => {
             this.scrollPrimaryScrollContainerToTop();
+            // Content-Overlay-Seiten setzen Fokus selbst (cdkFocusInitial auf „Zurück“).
+            if (this.isContentOverlayRoute()) {
+              return;
+            }
+            // Rückkehr aus Hilfe/Legal/News-Archiv: Footer-Link statt Hero-H1.
+            if (this.restoreContentPageFocusReturn()) {
+              return;
+            }
             this.focusPrimaryContent();
           });
         }
@@ -322,6 +339,31 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch {
       target.focus();
     }
+  }
+
+  /**
+   * Nach Schließen von Hilfe/Legal/News-Archiv: Fokus zurück auf den Footer-Link,
+   * von dem die Overlay-Seite aus erreicht wurde.
+   */
+  private restoreContentPageFocusReturn(): boolean {
+    const target = consumeContentPageFocusReturn();
+    if (!target) {
+      return false;
+    }
+    const footer = this._appFooterRef?.nativeElement;
+    const selector = contentPageFocusReturnSelector(target);
+    const link =
+      footer?.querySelector<HTMLElement>(selector) ??
+      document.querySelector<HTMLElement>(`footer ${selector}`);
+    if (!link) {
+      return false;
+    }
+    try {
+      link.focus({ preventScroll: true });
+    } catch {
+      link.focus();
+    }
+    return true;
   }
 
   showToolbarForFocus(): void {
@@ -863,6 +905,9 @@ export class AppComponent implements OnInit, OnDestroy {
     );
     this.isPreviewRoute.set(
       this.matchesPreviewRoute(routerPath) || this.matchesPreviewRoute(windowPath),
+    );
+    this.isContentOverlayRoute.set(
+      isContentOverlayPath(fromRouter) || isContentOverlayPath(fromWindow),
     );
     if (!this.footerVisible()) {
       this.disconnectFooterOffsetObserver();

@@ -933,6 +933,88 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
     });
 
+    it('stiehlt den Fokus nicht aus der Toolbar beim verzögerten MOTD-Open', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.textContent = 'Seriös';
+      toolbar.append(toggle);
+      document.body.append(toolbar);
+      toggle.focus();
+      expect(document.activeElement).toBe(toggle);
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.componentInstance.motdCaptureFocus()).toBe(false);
+      expect(document.activeElement).toBe(toggle);
+
+      toolbar.remove();
+    });
+
+    it('aktiviert MOTD-Fokus-Capture wenn der Fokus nicht in der Toolbar liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.componentInstance.motdCaptureFocus()).toBe(true);
+    });
+
+    it('zieht nach MOTD-Dismiss nicht in die Code-Eingabe wenn bereits ein anderer Fokus existiert', async () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      const inputFocus = vi.spyOn(input, 'focus');
+
+      const other = document.createElement('button');
+      other.type = 'button';
+      other.textContent = 'Anders';
+      document.body.append(other);
+
+      fixture.componentInstance['motdDidCaptureFocus'] = true;
+      fixture.componentInstance['motdFocusReturn'] = null;
+      fixture.componentInstance.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      other.focus();
+      fixture.componentInstance['clearMotdOverlay']();
+      await Promise.resolve();
+
+      expect(document.activeElement).toBe(other);
+      expect(inputFocus).not.toHaveBeenCalled();
+      other.remove();
+    });
+
     it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

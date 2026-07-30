@@ -2,7 +2,14 @@
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>
   <div class="content-page-column">
     <div class="content-page-backdrop-sheet" aria-hidden="true" (click)="back()"></div>
-    <div class="help-page l-page l-section content-page-panel">
+    <div
+      class="help-page l-page l-section content-page-panel"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="help-page-title"
+    >
       <nav
         class="content-back"
         i18n-aria-label="@@contentPage.navigationAria"
@@ -11,6 +18,7 @@
         <button
           mat-button
           type="button"
+          cdkFocusInitial
           (click)="back()"
           i18n-aria-label="@@contentPage.backAria"
           aria-label="Zurück zur vorherigen Seite"
@@ -25,7 +33,9 @@
             <mat-icon>menu_book</mat-icon>
           </span>
           <span class="dialog-title-header__copy">
-            <h1 class="dialog-title-header__heading" i18n="@@help.pageTitle">So funktioniert’s</h1>
+            <h1 id="help-page-title" class="dialog-title-header__heading" i18n="@@help.pageTitle">
+              So funktioniert’s
+            </h1>
           </span>
         </header>
         <p i18n="@@help.intro">

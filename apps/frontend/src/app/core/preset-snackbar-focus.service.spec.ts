@@ -43,4 +43,25 @@ describe('PresetSnackbarFocusService', () => {
 
     expect(document.activeElement).toBe(button);
   });
+
+  it('refokusiert nicht die Code-Eingabe solange der Fokus in der Toolbar liegt', () => {
+    vi.useFakeTimers();
+    const toolbar = document.createElement('app-top-toolbar');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.textContent = 'Seriös';
+    toolbar.append(toggle);
+    const input = document.createElement('input');
+    document.body.append(toolbar, input);
+    const focusSpy = vi.spyOn(input, 'focus');
+    service.registerInput({ nativeElement: input });
+    toggle.focus();
+
+    service.refocusInput();
+    vi.runAllTimers();
+
+    expect(document.activeElement).toBe(toggle);
+    expect(focusSpy).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });

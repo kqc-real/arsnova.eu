@@ -41,7 +41,12 @@
     </output>
   }
   <ng-container connectionBannerHost></ng-container>
-  <a href="#main-content" class="app-skip-link" (click)="skipToMainContent($event)" i18n
+  <a
+    href="#main-content"
+    class="app-skip-link"
+    [attr.inert]="isContentOverlayRoute() ? '' : null"
+    (click)="skipToMainContent($event)"
+    i18n
     >Zum Inhalt springen</a
   >
 
@@ -100,6 +105,7 @@
 
   @if (!isImmersiveHostView()) {
     <app-top-toolbar
+      [attr.inert]="isContentOverlayRoute() ? '' : null"
       [scrolled]="hasScrolled()"
       [hideOnScroll]="true"
       [toolbarHidden]="toolbarHidden()"
@@ -125,7 +131,12 @@
     </div>
   </main>
   @if (!isFeedbackRoute() && !isImmersiveHostView()) {
-    <footer #appFooter class="app-footer" role="contentinfo">
+    <footer
+      #appFooter
+      class="app-footer"
+      role="contentinfo"
+      [attr.inert]="isContentOverlayRoute() ? '' : null"
+    >
       <div class="app-footer__inner">
         <div class="app-footer__row">
           <div

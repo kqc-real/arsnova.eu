@@ -86,7 +86,7 @@ Regeln:
 - **Root-Container:** Jede Seite (Quiz, Session, Legal, Help, Join, Admin usw.) nutzt als aeusseren Container eine der globalen Layout-Klassen aus `styles.scss`.
 - **`.l-page`:** Max-width 56 rem, zentriert, Padding 1,5 rem / 1 rem (responsive 1,5 rem / 2 rem). Fluchtlinie und Innenabstand wie auf der Startseite.
 - **`.l-section`:** Max-width 42 rem, zentriert; optional in Kombination mit `.l-page` für schmalere Lesebreite (z. B. Quiz-Shell, Session, Admin).
-- **`.content-page-layer`:** Für Help, Legal und News-Archiv die shared Content-Page-Struktur aus `content-page-backdrop.scss` nutzen, wenn seitliche Rails/Klickflächen und ein zentriertes Lesepanel gebraucht werden.
+- **`.content-page-layer`:** Für Help, Legal und News-Archiv die shared Content-Page-Struktur aus `content-page-backdrop.scss` nutzen, wenn seitliche Rails/Klickflächen und ein zentriertes Lesepanel gebraucht werden. Overlay-Semantik: Focus Trap im Panel, Escape/Zurück/Backdrop schließen die Seite; App-Toolbar und Footer sind auf diesen Routen `inert`. Nach dem Schließen: Fokus zurück auf den Footer-Link; MOTD-Overlay auf dem nächsten Home-Besuch einmal unterdrückt.
 - **Empfehlung:** Einheitlich `<div class="l-page l-section">` als Root der Feature-Komponente (oder `class="<feature>-page l-page"` wie Admin, wenn zusätzliche Feature-Styles nötig sind). So bleibt Abstand zur Toolbar (via `.app-main__content > * > .l-page:first-child`) und Innenabstand konsistent.
 - **Startseite:** Bleibt Sonderfall mit eigenem Grid/Hero; nutzt `.l-page` ohne `.l-section`.
 

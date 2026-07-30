@@ -2,7 +2,15 @@
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>
   <div class="content-page-column">
     <div class="content-page-backdrop-sheet" aria-hidden="true" (click)="back()"></div>
-    <div class="news-archive-page l-page l-section content-page-panel" appMarkdownImageLightbox>
+    <div
+      class="news-archive-page l-page l-section content-page-panel"
+      appMarkdownImageLightbox
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="news-archive-page-title"
+    >
       <nav
         class="news-archive-page__back"
         i18n-aria-label="@@contentPage.navigationAria"
@@ -11,6 +19,7 @@
         <button
           mat-button
           type="button"
+          cdkFocusInitial
           (click)="back()"
           i18n-aria-label="@@contentPage.backAria"
           aria-label="Zurück zur vorherigen Seite"
@@ -29,7 +38,13 @@
               <mat-icon>newspaper</mat-icon>
             </span>
             <span class="dialog-title-header__copy">
-              <h1 class="dialog-title-header__heading" i18n="@@motd.archiveTitle">News-Archiv</h1>
+              <h1
+                id="news-archive-page-title"
+                class="dialog-title-header__heading"
+                i18n="@@motd.archiveTitle"
+              >
+                News-Archiv
+              </h1>
             </span>
           </header>
 

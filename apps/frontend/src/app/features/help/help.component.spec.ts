@@ -17,6 +17,7 @@ describe('HelpComponent', () => {
   });
 
   it('ruft bei Klick auf den Backdrop location.back auf', async () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
     const fixture = TestBed.createComponent(HelpComponent);
     const location = TestBed.inject(Location);
     const spy = vi.spyOn(location, 'back');
@@ -28,6 +29,22 @@ describe('HelpComponent', () => {
     );
     expect(backdrop).toBeTruthy();
     backdrop!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('schließt per Escape und hält den Fokus im Panel', () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(HelpComponent);
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.content-page-panel') as HTMLElement;
+    expect(panel.getAttribute('role')).toBe('dialog');
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(spy).toHaveBeenCalledOnce();
   });
 

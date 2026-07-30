@@ -28,12 +28,18 @@ export class PresetSnackbarFocusService {
   /**
    * Fokus auf das registrierte Input setzen (z. B. nach Snackbar-Dismiss oder Theme-Wechsel).
    * Kurze Verzögerung, damit nach Theme-/Preset-Umschaltung DOM/CSS fertig sind und der Fokus hält.
+   * Kein Diebstahl, wenn der Fokus in der Toolbar liegt (Tastatur-Navigation / Preset-Snackbar).
    */
   refocusInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.inputRef?.nativeElement) {
-      const el = this.inputRef.nativeElement;
-      setTimeout(() => el.focus(), 100);
-    }
+    if (!this.inputRef?.nativeElement) return;
+    const el = this.inputRef.nativeElement;
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active instanceof Element && active.closest('app-top-toolbar')) {
+        return;
+      }
+      el.focus();
+    }, 100);
   }
 }

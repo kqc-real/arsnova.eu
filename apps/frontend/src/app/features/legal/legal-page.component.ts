@@ -1,8 +1,18 @@
 import { Location } from '@angular/common';
-import { Component, inject, LOCALE_ID, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  Component,
+  HostListener,
+  inject,
+  LOCALE_ID,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Subject, takeUntil } from 'rxjs';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -12,6 +22,7 @@ import {
   resolveAssetUrlFromBase,
   type SupportedLocale,
 } from '../../core/locale-from-path';
+import { dismissContentPage } from '../../shared/content-page-nav';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
 /** Entfernt die erste Markdown-Überschrift (h1–h6), die den Dialog-Titel doppelt. */
@@ -21,7 +32,7 @@ export function stripLeadingMarkdownTitle(html: string): string {
 
 @Component({
   selector: 'app-legal-page',
-  imports: [MatButton, MatIcon],
+  imports: [MatButton, MatIcon, CdkTrapFocus],
   templateUrl: './legal-page.component.html',
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
@@ -31,6 +42,7 @@ export function stripLeadingMarkdownTitle(html: string): string {
 })
 export class LegalPageComponent implements OnInit, OnDestroy {
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly localeId = inject(LOCALE_ID);
   private readonly http = inject(HttpClient);
@@ -44,8 +56,14 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   /** Aktuelle Legal-Route (für Kopfzeile); leer während des ersten Ladens. */
   slug = signal<'imprint' | 'privacy' | 'accessibility' | ''>('');
 
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: Event): void {
+    event.preventDefault();
+    this.back();
+  }
+
   back(): void {
-    this.location.back();
+    dismissContentPage(this.location, this.router);
   }
 
   private getSlug(): string {

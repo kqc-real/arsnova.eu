@@ -546,7 +546,7 @@
         class="home-motd-sheet"
         open
         cdkTrapFocus
-        [cdkTrapFocusAutoCapture]="true"
+        [cdkTrapFocusAutoCapture]="motdCaptureFocus()"
         aria-labelledby="home-motd-title"
         aria-describedby="home-motd-body"
         (touchstart)="onMotdTouchStart($event)"

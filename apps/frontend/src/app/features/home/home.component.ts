@@ -3,11 +3,13 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Injector,
   OnDestroy,
   OnInit,
   ViewChild,
   PLATFORM_ID,
   LOCALE_ID,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -177,6 +179,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
   private readonly localeId = inject(LOCALE_ID) as string;
+  private readonly injector = inject(Injector);
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
 
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
@@ -187,6 +190,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
   private motdFocusReturn: HTMLElement | null = null;
+  /**
+   * Wenn true, holt das Overlay den Tastaturfokus (Close-Button / CDK AutoCapture).
+   * Bei Fokus in der App-Toolbar bewusst false, sonst springt der Fokus nach dem
+   * verzögerten MOTD-Load (~1–2 s) aus der Toolbar weg.
+   */
+  readonly motdCaptureFocus = signal(true);
+  private motdDidCaptureFocus = false;
   readonly thumbUpRecorded = computed(() => {
     this.motdInteractionRev();
     const m = this.motd();
@@ -808,10 +818,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const activeElement = document.activeElement;
+    const toolbarFocused =
+      activeElement instanceof Element && !!activeElement.closest('app-top-toolbar');
     this.motdFocusReturn =
-      activeElement instanceof HTMLElement && activeElement !== document.body
+      activeElement instanceof HTMLElement &&
+      activeElement !== document.body &&
+      activeElement !== document.documentElement
         ? activeElement
-        : (this.sessionCodeInput?.nativeElement ?? null);
+        : null;
+    this.motdDidCaptureFocus = !toolbarFocused;
+    this.motdCaptureFocus.set(this.motdDidCaptureFocus);
     this.motd.set(motd);
     const html = appendMotdContentVersionToAssetImgSrc(
       absolutizeMarkdownHtmlRootAssetImgSrc(
@@ -821,7 +837,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-    this.scheduleTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+    if (this.motdDidCaptureFocus) {
+      afterNextRender(
+        () => {
+          this.motdCloseBtn?.nativeElement?.focus();
+        },
+        { injector: this.injector },
+      );
+    }
   }
 
   private markJoinIntentForMotd(): void {
@@ -892,13 +915,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private clearMotdOverlay(): void {
     const focusReturn = this.motdFocusReturn;
+    const didCapture = this.motdDidCaptureFocus;
     this.motdFocusReturn = null;
+    this.motdDidCaptureFocus = false;
+    this.motdCaptureFocus.set(true);
     this.motd.set(null);
     this.motdBodyHtml.set(null);
+    if (!didCapture) {
+      // Overlay hatte den Fokus nicht übernommen (z. B. Toolbar-Navigation) — nicht zurückholen.
+      return;
+    }
     queueMicrotask(() => {
-      const target =
-        focusReturn?.isConnected === true ? focusReturn : this.sessionCodeInput?.nativeElement;
-      target?.focus({ preventScroll: true });
+      if (focusReturn?.isConnected === true) {
+        focusReturn.focus({ preventScroll: true });
+        return;
+      }
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        active !== document.documentElement
+      ) {
+        // Nutzer:in hat bereits woanders Fokus — nicht in die Code-Eingabe ziehen.
+        return;
+      }
+      this.sessionCodeInput?.nativeElement?.focus({ preventScroll: true });
     });
   }
 
