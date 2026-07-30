@@ -1022,19 +1022,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ): Promise<void> {
     const m = this.motd();
     if (!m) return;
-    await this.tryRecordMotdInteraction(kind);
+    // Overlay sofort schließen — recordInteraction darf die UI nicht blockieren
+    // (sonst flake in a11y:layout bei langsamem CI / >1s API).
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
     this.motdCurrent.invalidate();
+    await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, kind);
   }
 
   async ackMotd(): Promise<void> {
     const m = this.motd();
     if (!m) return;
-    await this.tryRecordMotdInteraction('ACK');
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
     this.motdCurrent.invalidate();
+    await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, 'ACK');
   }
 
   async thumbMotd(up: boolean): Promise<void> {
@@ -1096,14 +1098,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private async tryRecordMotdInteraction(kind: MotdInteractionKind): Promise<void> {
     const m = this.motd();
     if (!m) return;
-    if (hasMotdInteractionRecorded(m.id, m.contentVersion, kind)) return;
+    await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, kind);
+  }
+
+  private async tryRecordMotdInteractionFor(
+    motdId: string,
+    contentVersion: number,
+    kind: MotdInteractionKind,
+  ): Promise<void> {
+    if (hasMotdInteractionRecorded(motdId, contentVersion, kind)) return;
     try {
       await trpc.motd.recordInteraction.mutate({
-        motdId: m.id,
-        contentVersion: m.contentVersion,
+        motdId,
+        contentVersion,
         kind,
       });
-      markMotdInteractionRecorded(m.id, m.contentVersion, kind);
+      markMotdInteractionRecorded(motdId, contentVersion, kind);
       this.motdInteractionRev.update((n) => n + 1);
     } catch {
       /* optional: still allow dismiss */

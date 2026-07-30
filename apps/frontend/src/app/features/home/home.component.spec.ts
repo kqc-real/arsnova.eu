@@ -1142,6 +1142,38 @@ describe('HomeComponent', () => {
       expect(comp.motd()).toBeNull();
     });
 
+    it('schließt das MOTD-Overlay sofort, auch wenn recordInteraction noch hängt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      let resolveRecord!: (value: { ok: boolean }) => void;
+      vi.mocked(trpc.motd.recordInteraction.mutate).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveRecord = resolve;
+          }),
+      );
+
+      const fixture = createHomeFixture();
+      const comp = fixture.componentInstance;
+      comp.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.home-motd-sheet')).not.toBeNull();
+
+      const dismissPromise = comp.dismissMotdOverlay('DISMISS_CLOSE');
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(comp.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-sheet')).toBeNull();
+
+      resolveRecord({ ok: true });
+      await dismissPromise;
+    });
+
     it('unterdrückt MOTD-Overlay nach Locale-Reload (Sprachwechsel)', async () => {
       const { trpc } = await import('../../core/trpc.client');
       const { markMotdOverlayReloadSuppress } = await import('../../core/motd-storage');
