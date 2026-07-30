@@ -21,28 +21,38 @@
         i18n-aria-label="@@home.presetBandAria"
         aria-label="Stil wählen"
       >
-        <mat-button-toggle-group
-          [value]="themePreset.preset()"
-          (change)="themePreset.setPreset($event.value)"
-          appearance="standard"
+        <div
+          role="group"
           i18n-aria-label="@@home.presetToggleAria"
           aria-label="Stil auswählen"
           class="home-hero-preset-toggle"
         >
           <!-- Spielerisch zuerst: Default; vermeidet kurzen „Seriös“-Flash bei Hydration/Mobile. -->
-          <mat-button-toggle value="spielerisch">
+          <button
+            type="button"
+            class="home-hero-preset-toggle__btn"
+            [class.home-hero-preset-toggle__btn--active]="themePreset.preset() === 'spielerisch'"
+            [attr.aria-pressed]="themePreset.preset() === 'spielerisch'"
+            (click)="themePreset.setPreset('spielerisch')"
+          >
             <span class="home-preset-option">
-              <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
+              <mat-icon class="home-preset-icon--playful" aria-hidden="true">celebration</mat-icon>
               <span i18n>Spielerisch</span>
             </span>
-          </mat-button-toggle>
-          <mat-button-toggle value="serious">
+          </button>
+          <button
+            type="button"
+            class="home-hero-preset-toggle__btn"
+            [class.home-hero-preset-toggle__btn--active]="themePreset.preset() === 'serious'"
+            [attr.aria-pressed]="themePreset.preset() === 'serious'"
+            (click)="themePreset.setPreset('serious')"
+          >
             <span class="home-preset-option">
-              <mat-icon>work</mat-icon>
+              <mat-icon aria-hidden="true">work</mat-icon>
               <span i18n>Seriös</span>
             </span>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
+          </button>
+        </div>
       </div>
 
       <div class="home-hero-host-row">

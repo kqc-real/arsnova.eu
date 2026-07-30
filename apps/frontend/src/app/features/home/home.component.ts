@@ -18,7 +18,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import {
   MatCard,
   MatCardActions,
@@ -78,8 +77,6 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
     RouterLink,
     MatBadge,
     MatButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatCard,
     MatCardActions,
     MatCardContent,

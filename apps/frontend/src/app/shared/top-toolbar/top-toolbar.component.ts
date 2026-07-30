@@ -18,7 +18,6 @@ import { map } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { MatBadge } from '@angular/material/badge';
 import { MatIconButton } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -49,8 +48,6 @@ import {
     RouterLink,
     MatBadge,
     MatIconButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
@@ -199,7 +196,7 @@ export class TopToolbarComponent {
     }
   }
 
-  /** Gruppen-(change) statt Toggle-(click): Pfeiltasten/Enter/Leertaste wie Maus. */
+  /** Native aria-pressed-Buttons: Tab, Enter/Leertaste und Maus setzen denselben Zustand. */
   onPresetChange(value: 'serious' | 'spielerisch'): void {
     const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setPreset(value);

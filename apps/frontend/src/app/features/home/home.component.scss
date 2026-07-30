@@ -213,6 +213,7 @@
 }
 
 .home-hero-preset-toggle {
+  display: flex;
   width: 100%;
   max-width: 20rem;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -220,19 +221,43 @@
   overflow: hidden;
 }
 
-.home-hero-preset-toggle .mat-button-toggle {
+.home-hero-preset-toggle__btn {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
   border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+
+  & + & {
+    border-left: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &--active {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+
+    .mat-icon {
+      color: var(--mat-sys-primary);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -2px;
+  }
 }
 
 .home-preset-option {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.home-hero-preset-toggle .mat-button-toggle + .mat-button-toggle {
-  border-left: 1px solid var(--mat-sys-outline-variant);
 }
 
 /* Hero + USP + Preset (mobil): eine Grid-Zeile, damit Layout und Preset-Bühne steuerbar bleiben */
@@ -254,26 +279,6 @@
 .home-step-trail {
   cursor: default;
   user-select: none;
-}
-
-.home-hero-preset-toggle .mat-button-toggle-checked {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-}
-
-.home-hero-preset-toggle .mat-button-toggle-checked .mat-icon {
-  color: var(--mat-sys-primary);
-}
-
-/* Host im eigenen Template: :focus-within erreicht das gekapselte Material-Button. */
-.home-hero-preset-toggle .mat-button-toggle:focus-within {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: -2px;
-}
-
-.home-hero-preset-toggle .mat-button-toggle-group {
-  border: none;
-  display: flex;
 }
 
 .home-hero-host-row {

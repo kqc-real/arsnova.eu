@@ -302,7 +302,7 @@ describe('HomeComponent', () => {
       ).toBeNull();
     });
 
-    it('wendet Hero-Preset-Wechsel über Gruppen-change an (Maus und Tastatur)', () => {
+    it('wendet Hero-Preset-Wechsel per Tastatur-aktivierbarem Button an', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
       const themePreset = fixture.componentInstance.themePreset;
@@ -313,32 +313,34 @@ describe('HomeComponent', () => {
         '.home-hero-preset-toggle',
       ) as HTMLElement;
       expect(groupEl).toBeTruthy();
-      const firstButton = groupEl.querySelector(
-        'mat-button-toggle[value="spielerisch"] button',
-      ) as HTMLButtonElement;
-      firstButton.focus();
-      const arrowRight = new KeyboardEvent('keydown', {
-        key: 'ArrowRight',
-        code: 'ArrowRight',
-        bubbles: true,
-        cancelable: true,
-      });
-      Object.defineProperty(arrowRight, 'keyCode', { get: () => 39 });
-      firstButton.dispatchEvent(arrowRight);
+      const buttons = Array.from(
+        groupEl.querySelectorAll('button.home-hero-preset-toggle__btn'),
+      ) as HTMLButtonElement[];
+      expect(buttons).toHaveLength(2);
+      for (const button of buttons) {
+        expect(button.tabIndex).toBeGreaterThanOrEqual(0);
+        expect(button.getAttribute('tabindex')).not.toBe('-1');
+      }
+
+      buttons[1].focus();
+      buttons[1].click();
       fixture.detectChanges();
 
       expect(themePreset.preset()).toBe('serious');
       expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
+      expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
     });
 
-    it('stilisiert Hero-Preset-Fokus über mat-button-toggle:focus-within', async () => {
+    it('stilisiert Hero-Preset-Fokus direkt am Button', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
       const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
       const scss = readFileSync(scssPath, 'utf8');
-      expect(scss).toMatch(/\.home-hero-preset-toggle\s+\.mat-button-toggle:focus-within\s*\{/);
+      expect(scss).toContain('.home-hero-preset-toggle__btn');
+      expect(scss).toMatch(/home-hero-preset-toggle__btn[\s\S]*?&:focus-visible\s*\{/);
       expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+      expect(scss).not.toContain('mat-button-toggle:focus-within');
     });
   });
 

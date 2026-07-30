@@ -1,11 +1,9 @@
 /**
- * Unit-Tests für TopToolbarComponent (Preset-/Theme-Wechsel inkl. Tastaturpfad).
+ * Unit-Tests für TopToolbarComponent (Preset-/Theme-Wechsel inkl. Tastatur/Tab).
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { TopToolbarComponent } from './top-toolbar.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -31,31 +29,47 @@ describe('TopToolbarComponent', () => {
     return fixture;
   }
 
-  function desktopPresetGroup(fixture: ReturnType<typeof createToolbar>): MatButtonToggleGroup {
-    const groups = fixture.debugElement.queryAll(By.directive(MatButtonToggleGroup));
-    const preset = groups.find((g) =>
-      (g.nativeElement as HTMLElement).classList.contains('top-toolbar__toggles--preset'),
-    );
-    expect(preset).toBeTruthy();
-    return preset!.injector.get(MatButtonToggleGroup);
+  function desktopPresetButtons(fixture: ReturnType<typeof createToolbar>) {
+    const group = fixture.nativeElement.querySelector(
+      '.top-toolbar__controls .top-toolbar__toggles--preset',
+    ) as HTMLElement;
+    const buttons = Array.from(
+      group.querySelectorAll('button.top-toolbar__toggle'),
+    ) as HTMLButtonElement[];
+    expect(buttons.length).toBe(2);
+    return { group, buttons };
   }
 
-  it('wendet Preset-Wechsel über Gruppen-change an (Maus und Tastatur)', () => {
+  function desktopThemeButtons(fixture: ReturnType<typeof createToolbar>) {
+    const groups = fixture.nativeElement.querySelectorAll(
+      '.top-toolbar__controls .top-toolbar__toggles',
+    ) as NodeListOf<HTMLElement>;
+    const themeGroup = Array.from(groups).find(
+      (g) => !g.classList.contains('top-toolbar__toggles--preset'),
+    )!;
+    const buttons = Array.from(
+      themeGroup.querySelectorAll('button.top-toolbar__toggle'),
+    ) as HTMLButtonElement[];
+    expect(buttons.length).toBe(3);
+    return { group: themeGroup, buttons };
+  }
+
+  it('wendet Preset-Wechsel per Klick an (wie Tastatur Enter/Leertaste)', () => {
     const fixture = createToolbar();
     const themePreset = TestBed.inject(ThemePresetService);
     themePreset.setPreset('spielerisch', { silent: true });
     fixture.detectChanges();
 
-    const group = desktopPresetGroup(fixture);
-    group.value = 'serious';
-    group.change.emit({ source: null!, value: 'serious' });
+    const { buttons } = desktopPresetButtons(fixture);
+    buttons[1].click();
     fixture.detectChanges();
 
     expect(themePreset.preset()).toBe('serious');
     expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
+    expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
+    expect(buttons[0].getAttribute('aria-pressed')).toBe('false');
 
-    group.value = 'spielerisch';
-    group.change.emit({ source: null!, value: 'spielerisch' });
+    buttons[0].click();
     fixture.detectChanges();
 
     expect(themePreset.preset()).toBe('spielerisch');
@@ -63,32 +77,31 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
-  it('wechselt Preset per Tastatur-Pfeil innerhalb der Toggle-Gruppe', () => {
+  it('macht beide Preset-Optionen per Tab erreichbar', () => {
+    const fixture = createToolbar();
+    const { buttons } = desktopPresetButtons(fixture);
+
+    for (const button of buttons) {
+      expect(button.tabIndex).toBeGreaterThanOrEqual(0);
+      expect(button.getAttribute('tabindex')).not.toBe('-1');
+      expect(button.disabled).toBe(false);
+    }
+    fixture.destroy();
+  });
+
+  it('wechselt Theme per Tastatur-Aktivierung (click nach Fokus)', () => {
     const fixture = createToolbar();
     const themePreset = TestBed.inject(ThemePresetService);
-    themePreset.setPreset('spielerisch', { silent: true });
+    const { buttons } = desktopThemeButtons(fixture);
+    const darkButton = buttons.find((b) => b.getAttribute('aria-label') === 'Dark')!;
+
+    darkButton.focus();
+    expect(document.activeElement).toBe(darkButton);
+    darkButton.click();
     fixture.detectChanges();
 
-    const groupEl = fixture.nativeElement.querySelector(
-      '.top-toolbar__controls .top-toolbar__toggles--preset',
-    ) as HTMLElement;
-    const firstButton = groupEl.querySelector(
-      'mat-button-toggle[value="spielerisch"] button',
-    ) as HTMLButtonElement;
-    firstButton.focus();
-    // Angular Material Button-Toggle liest weiterhin keyCode (CDK keycodes).
-    const arrowRight = new KeyboardEvent('keydown', {
-      key: 'ArrowRight',
-      code: 'ArrowRight',
-      bubbles: true,
-      cancelable: true,
-    });
-    Object.defineProperty(arrowRight, 'keyCode', { get: () => 39 });
-    firstButton.dispatchEvent(arrowRight);
-    fixture.detectChanges();
-
-    expect(themePreset.preset()).toBe('serious');
-    expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
+    expect(themePreset.theme()).toBe('dark');
+    expect(darkButton.getAttribute('aria-pressed')).toBe('true');
     fixture.destroy();
   });
 
@@ -117,34 +130,15 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
-  it('ändert Theme über Gruppen-change wie Preset', () => {
-    const fixture = createToolbar();
-    const themePreset = TestBed.inject(ThemePresetService);
-
-    const groups = fixture.debugElement.queryAll(By.directive(MatButtonToggleGroup));
-    const themeGroup = groups.find(
-      (g) =>
-        !(g.nativeElement as HTMLElement).classList.contains('top-toolbar__toggles--preset') &&
-        (g.nativeElement as HTMLElement).closest('.top-toolbar__controls'),
-    );
-    expect(themeGroup).toBeTruthy();
-    const group = themeGroup!.injector.get(MatButtonToggleGroup);
-    group.change.emit({ source: null!, value: 'dark' });
-    fixture.detectChanges();
-
-    expect(themePreset.theme()).toBe('dark');
-    fixture.destroy();
-  });
-
-  it('stilisiert Fokus über mat-button-toggle:focus-within (Emulated Encapsulation)', async () => {
-    // Regressionschutz gegen Review #183: .mat-button-toggle-button liegt im
-    // gekapselten Material-Template und würde mit Emulated Encapsulation nicht matchen.
+  it('stilisiert Fokus direkt am Toggle-Button', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const { dirname, join } = await import('node:path');
     const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'top-toolbar.component.scss');
     const scss = readFileSync(scssPath, 'utf8');
-    expect(scss).toMatch(/\.mat-button-toggle:focus-within\s*\{/);
+    expect(scss).toContain('.top-toolbar__toggle');
+    expect(scss).toMatch(/&:focus-visible\s*\{/);
     expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+    expect(scss).not.toContain('mat-button-toggle:focus-within');
   });
 });
