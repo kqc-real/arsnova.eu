@@ -2228,6 +2228,71 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('fokussiert bei Submit-Fehler die Fehlermeldung und nicht die Erfolgsbestaetigung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'single-choice-submit-error-a11y',
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true },
+        { id: 'a2', text: 'B', isCorrect: false },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 30,
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+    voteSubmitMutateMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.toggleAnswer('a1');
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector('#vote-submit') as HTMLButtonElement;
+    submitButton.focus();
+
+    await component.submitVote();
+    fixture.detectChanges();
+
+    expect(component.voteSent()).toBe(false);
+    expect(fixture.nativeElement.querySelector('#vote-sent')).toBeNull();
+    const error = fixture.nativeElement.querySelector('#vote-error') as HTMLElement;
+    expect(error).not.toBeNull();
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(error.textContent).toContain('Netzwerkfehler');
+    expect(document.activeElement).toBe(error);
+    expect(fixture.nativeElement.querySelector('#vote-submit')).not.toBeNull();
+
+    fixture.destroy();
+  });
+
   it('sendet erst beim Click und nicht bereits beim Pointer-Down', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

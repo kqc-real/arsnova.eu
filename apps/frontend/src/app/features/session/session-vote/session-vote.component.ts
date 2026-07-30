@@ -1165,7 +1165,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return s !== null && s <= 0;
   });
   readonly voteInteractionLocked = computed(
-    () => this.voteSent() || this.timerExpired() || this.voteClosed(),
+    () => this.voteSent() || this.voteSending() || this.timerExpired() || this.voteClosed(),
   );
   readonly voteSubmissionLocked = computed(() => this.voteSent() || this.voteClosed());
 
@@ -4241,10 +4241,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.voteError.set(null);
     this.timeoutMessage.set(null);
     this.clearLateSubmitCloseTimeout();
-    this.voteSent.set(true);
     this.stopScorePreviewTicker();
     this.cdr.detectChanges();
-    this.focusVoteSentConfirmation();
 
     try {
       await trpc.vote.submit.mutate({
@@ -4258,12 +4256,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         confidenceValue: confidence,
         round: this.currentRound(),
       });
+      this.voteSent.set(true);
       this.storeVoteResponse(q, answerIds, freeText, rating, numericValue, confidence);
       try {
         navigator.vibrate?.(10);
       } catch {
         /* unsupported */
       }
+      this.cdr.detectChanges();
+      this.focusVoteSentConfirmation();
     } catch (err: unknown) {
       const localizedError = localizeKnownServerError(err, 'Abstimmung fehlgeschlagen.');
       const voteClosedByServer = isClosedVoteServerMessage(localizedError);
@@ -4278,6 +4279,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       } else if (!overrideIds) {
         this.selectedAnswerIds.set(new Set());
       }
+      this.cdr.detectChanges();
+      this.focusVoteError();
     } finally {
       this.voteSending.set(false);
       setTimeout(() => this.debounced.set(false), 300);
@@ -4285,9 +4288,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Nach Absenden verschwindet der Floating-Submit (#vote-submit) — Fokus ginge sonst verloren
-   * und die Live-Region „Antwort gesendet“ würde von Screenreadern oft nicht angekündigt.
-   * Fokus + Scroll auf die sichtbare Bestätigung; aria-atomic liest Titel und Hinweis zusammen.
+   * Nach erfolgreichem Absenden verschwindet der Floating-Submit (#vote-submit) —
+   * Fokus ginge sonst verloren und die Live-Region „Antwort gesendet“ würde von
+   * Screenreadern oft nicht angekündigt. Fokus + Scroll auf die sichtbare Bestätigung;
+   * aria-atomic liest Titel und Hinweis zusammen. Nur nach bestätigtem mutate aufrufen.
    */
   private focusVoteSentConfirmation(): void {
     const host = this.el.nativeElement as HTMLElement;
@@ -4307,6 +4311,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       sent.scrollIntoView({ behavior: this.voteScrollBehavior(), block: 'nearest' });
     }
     sent.focus({ preventScroll: true });
+  }
+
+  /** Nach fehlgeschlagenem Absenden Fokus auf die Alert-Fehlermeldung legen. */
+  private focusVoteError(): void {
+    const host = this.el.nativeElement as HTMLElement;
+    const error = host.querySelector('#vote-error') as HTMLElement | null;
+    if (!error) return;
+    this.ensureFocusable(error);
+    error.focus({ preventScroll: true });
   }
 
   async sendEmoji(emoji: string): Promise<void> {

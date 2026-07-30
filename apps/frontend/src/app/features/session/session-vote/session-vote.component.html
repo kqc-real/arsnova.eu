@@ -1119,7 +1119,7 @@
           }
 
           @if (voteError()) {
-            <p class="vote-error" id="vote-error" role="alert">
+            <p class="vote-error" id="vote-error" role="alert" tabindex="-1">
               <mat-icon class="vote-error__icon" aria-hidden="true">warning</mat-icon>
               <span class="vote-error__text">{{ voteError() }}</span>
             </p>
