@@ -1,0 +1,149 @@
+name: PR Template
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pr-body:
+    name: PR-Template vollständig
+    if: >-
+      ${{
+        github.event.pull_request.draft == false &&
+        github.actor != 'dependabot[bot]'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: PR-Beschreibung prüfen
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body ?? "";
+            const errors = [];
+
+            const requiredHeadings = [
+              "Zusammenfassung",
+              "Risiko und Verträge",
+              "Implementierung",
+              "Verhaltens- und Abdeckungsprüfung",
+              "Validierung",
+              "Risikobezogene Prüfungen",
+              "Betrieb und Rollback",
+              "Nachweise",
+              "Nicht zutreffend und verbleibende Risiken",
+              "Selbstreview",
+            ];
+
+            const normalizedLines = new Set(
+              body
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+            );
+
+            for (const heading of requiredHeadings) {
+              if (!normalizedLines.has(`## ${heading}`)) {
+                errors.push(`Pflichtabschnitt fehlt: "## ${heading}"`);
+              }
+            }
+
+            // Die drei zentralen Zusammenfassungsfelder dürfen nicht leer sein.
+            for (const field of ["Problem", "Lösung", "Bewusste Nicht-Ziele"]) {
+              const pattern = new RegExp(
+                `^- \\*\\*${field}:\\*\\*\\s+\\S`,
+                "m"
+              );
+
+              if (!pattern.test(body)) {
+                errors.push(`Zusammenfassungsfeld fehlt oder ist leer: "${field}"`);
+              }
+            }
+
+            // Genau eine Risikostufe muss ausgewählt sein.
+            const riskLevels = ["Niedrig", "Mittel", "Hoch"];
+            const selectedRisks = riskLevels.filter((risk) =>
+              new RegExp(`^- \\[[xX]\\]\\s+${risk}\\b`, "m").test(body)
+            );
+
+            if (selectedRisks.length !== 1) {
+              errors.push(
+                `Genau eine Risikostufe muss ausgewählt sein; gefunden: ${selectedRisks.length}`
+              );
+            }
+
+            function section(title) {
+              const marker = `## ${title}`;
+              const start = body.indexOf(marker);
+
+              if (start < 0) {
+                return "";
+              }
+
+              const remainder = body.slice(start + marker.length);
+              const nextHeading = remainder.search(/^##\s+/m);
+
+              return nextHeading < 0
+                ? remainder
+                : remainder.slice(0, nextHeading);
+            }
+
+            // Das Selbstreview muss vollständig bestätigt sein.
+            const selfReview = section("Selbstreview");
+            const checkedSelfReview =
+              selfReview.match(/^- \[[xX]\]\s+/gm) ?? [];
+            const uncheckedSelfReview =
+              selfReview.match(/^- \[ \]\s+/gm) ?? [];
+
+            if (checkedSelfReview.length < 7) {
+              errors.push(
+                `Selbstreview unvollständig: ${checkedSelfReview.length} von 7 Punkten bestätigt`
+              );
+            }
+
+            if (uncheckedSelfReview.length > 0) {
+              errors.push(
+                `Im Selbstreview sind noch ${uncheckedSelfReview.length} Punkte offen`
+              );
+            }
+
+            // Die Ergebnistabelle darf nicht unverändert leer bleiben.
+            const validation = section("Validierung");
+
+            if (/^\|\s*\|\s*\|$/m.test(validation)) {
+              errors.push(
+                "Die Tabelle „Ausgeführte Prüfungen und Ergebnisse“ ist noch leer"
+              );
+            }
+
+            // Verbleibende Risiken müssen ausdrücklich benannt werden.
+            const residualRiskPattern =
+              /^- \*\*Verbleibende Risiken:\*\*\s+\S/m;
+
+            if (!residualRiskPattern.test(body)) {
+              errors.push(
+                'Das Feld „Verbleibende Risiken“ fehlt oder ist leer; gegebenenfalls „Keine bekannt“ eintragen'
+              );
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(
+                [
+                  "Die PR-Beschreibung entspricht nicht dem verbindlichen Template:",
+                  "",
+                  ...errors.map((error) => `- ${error}`),
+                  "",
+                  "Bitte .github/pull_request_template.md vollständig verwenden.",
+                ].join("\n")
+              );
+            } else {
+              core.notice("PR-Template vollständig ausgefüllt.");
+            }
