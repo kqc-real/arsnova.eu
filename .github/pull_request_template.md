@@ -53,6 +53,9 @@
 - [ ] Migration oder Legacy-Daten
 - [ ] Parallelität oder Race Conditions
 - [ ] Abhängigkeit vorübergehend nicht verfügbar
+- [ ] Asynchroner Ablauf: Pending → Erfolg → Ablehnung/Timeout → Retry oder Abbruch
+- [ ] DOM-Ersetzung: nach Erfolg und Fehler existiert ein sichtbares,
+      nicht verdecktes und fachlich sinnvolles Fokusziel
 
 ## Validierung
 
@@ -129,3 +132,5 @@
 - [ ] Sicherheits-, Barrierefreiheits-, Kompatibilitäts- und
       Performanceaussagen sind durch Nachweise gedeckt
 - [ ] Der PR ist vollständig und bereit für ein Review
+- [ ] Keine asynchrone UI-Änderung oder Erfolg, Pending, Fehler und Fokus wurden
+      anhand des tatsächlichen DOM-Ablaufs geprüft
