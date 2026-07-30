@@ -188,6 +188,34 @@ describe('HomeComponent', () => {
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: false });
     });
 
+    it('fokussiert „Code eingeben“ nach Locale-Reload', () => {
+      const animationFrames: FrameRequestCallback[] = [];
+      vi.stubGlobal(
+        'requestAnimationFrame',
+        vi.fn((callback: FrameRequestCallback) => {
+          animationFrames.push(callback);
+          return animationFrames.length;
+        }),
+      );
+      sessionStorage.setItem('arsnova-locale-reload-focus', 'home-code-enter');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
+      const focusSpy = vi.spyOn(button, 'focus');
+
+      const runFrames = (): void => {
+        const callbacks = animationFrames.splice(0);
+        for (const cb of callbacks) cb(0);
+      };
+      runFrames();
+      runFrames();
+
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+      expect(sessionStorage.getItem('arsnova-locale-reload-focus')).toBeNull();
+    });
+
     it('fokussiert am dedizierten Join-Einstieg auf Geräten ohne groben Primärzeiger', () => {
       const sentinel = document.createElement('button');
       document.body.append(sentinel);

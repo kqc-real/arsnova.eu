@@ -38,6 +38,7 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
 import { LocaleSwitchGuardService } from '../../core/locale-switch-guard.service';
 import { isAppHomeRouterUrl, localizePath } from '../../core/locale-router';
 import { markMotdOverlayReloadSuppress } from '../../core/motd-storage';
+import { markLocaleReloadFocus } from '../../core/locale-reload-focus';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
@@ -157,6 +158,10 @@ export class TopToolbarComponent {
     const doRedirect = (): void => {
       // Locale-Wechsel ist Vollreload: kein sofortiges nächstes MOTD-Overlay.
       markMotdOverlayReloadSuppress();
+      // Auf der Startseite: Fokus nach Reload auf „Code eingeben“.
+      if (isAppHomeRouterUrl(window.location.pathname)) {
+        markLocaleReloadFocus('home-code-enter');
+      }
       const pathname = window.location.pathname;
       const hasLocale = /^\/(de|en|fr|it|es)(?:\/|$)/.test(pathname);
       if (hasLocale) {

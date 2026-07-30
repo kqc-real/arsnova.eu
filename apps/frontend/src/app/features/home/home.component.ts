@@ -40,6 +40,7 @@ import {
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
+import { consumeLocaleReloadFocus } from '../../core/locale-reload-focus';
 import { navigateToHostSession } from '../../core/session-host-navigation';
 import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -101,6 +102,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('codeEnterBtn', { read: ElementRef })
+  private readonly codeEnterBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
 
   sessionCode = signal('');
@@ -252,7 +255,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
-    if (this.shouldAutoFocusJoinEntry()) {
+    if (!this.restoreFocusAfterLocaleReload() && this.shouldAutoFocusJoinEntry()) {
       // Die App-Shell verankert Folge-Navigationen im Hauptinhalt. Der explizite
       // Join-Einstieg übernimmt den Fokus im Folge-Frame danach gezielt für
       // die Code-Eingabe.
@@ -264,6 +267,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);
     }
+  }
+
+  /** Nach Sprachwechsel-Vollreload: Fokus auf Hero-CTA „Code eingeben“. */
+  private restoreFocusAfterLocaleReload(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    if (consumeLocaleReloadFocus('home-code-enter') !== 'home-code-enter') {
+      return false;
+    }
+    this.scheduleAnimationFrame(() =>
+      this.scheduleAnimationFrame(() => {
+        this.codeEnterBtn?.nativeElement?.focus({ preventScroll: true });
+      }),
+    );
+    return true;
   }
 
   private shouldAutoFocusJoinEntry(): boolean {
