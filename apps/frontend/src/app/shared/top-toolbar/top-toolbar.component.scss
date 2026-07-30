@@ -220,6 +220,11 @@
   gap: 0.5rem;
 }
 
+.top-toolbar__lang-btn:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
 .top-toolbar__toggles {
   display: inline-flex;
   flex-wrap: nowrap;

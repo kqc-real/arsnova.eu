@@ -157,13 +157,14 @@
       </div>
 
       <button
+        type="button"
         matIconButton
         [matMenuTriggerFor]="langMenu"
         i18n-aria-label="@@topToolbar.languageAria"
         aria-label="Sprache"
-        class="top-toolbar__icon-btn"
+        class="top-toolbar__icon-btn top-toolbar__lang-btn"
       >
-        <mat-icon>language</mat-icon>
+        <mat-icon aria-hidden="true">language</mat-icon>
       </button>
       <mat-menu #langMenu="matMenu">
         @for (lang of supportedLanguages; track lang.code) {
@@ -255,13 +256,14 @@
 
       <div class="top-toolbar__mobile-lang">
         <button
+          type="button"
           matIconButton
           [matMenuTriggerFor]="langMenuMobile"
           i18n-aria-label="@@topToolbar.languageAria"
           aria-label="Sprache"
-          class="top-toolbar__icon-btn"
+          class="top-toolbar__icon-btn top-toolbar__lang-btn"
         >
-          <mat-icon>language</mat-icon>
+          <mat-icon aria-hidden="true">language</mat-icon>
         </button>
       </div>
       <mat-menu #langMenuMobile="matMenu">

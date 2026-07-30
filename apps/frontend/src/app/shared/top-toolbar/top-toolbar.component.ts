@@ -60,6 +60,7 @@ import {
 export class TopToolbarComponent {
   @ViewChild('mobileControls') private mobileControls?: ElementRef<HTMLElement>;
   private controlsMenuTrigger: HTMLButtonElement | null = null;
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly localizedPath = localizePath;
   readonly themePreset = inject(ThemePresetService);
@@ -191,9 +192,16 @@ export class TopToolbarComponent {
     const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setTheme(value);
     this.closeControlsMenu(mobileMenuWasOpen);
-    if (!mobileMenuWasOpen) {
-      setTimeout(() => this.focusService.refocusInput(), 0);
+    if (mobileMenuWasOpen || !isPlatformBrowser(this.platformId)) {
+      return;
     }
+    // Fokus in der Toolbar belassen (z. B. nach Tab/Enter auf Theme), sonst wird die
+    // Sprachauswahl übersprungen und der Fokus springt zur Session-Code-Eingabe.
+    const active = this.document.activeElement;
+    if (active instanceof Node && this.host.nativeElement.contains(active)) {
+      return;
+    }
+    setTimeout(() => this.focusService.refocusInput(), 0);
   }
 
   /** Native aria-pressed-Buttons: Tab, Enter/Leertaste und Maus setzen denselben Zustand. */

@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TopToolbarComponent } from './top-toolbar.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 
 describe('TopToolbarComponent', () => {
   beforeEach(() => {
@@ -102,6 +103,29 @@ describe('TopToolbarComponent', () => {
 
     expect(themePreset.theme()).toBe('dark');
     expect(darkButton.getAttribute('aria-pressed')).toBe('true');
+    fixture.destroy();
+  });
+
+  it('lässt nach Theme-Wechsel den Fokus in der Toolbar (Sprache erreichbar)', async () => {
+    const fixture = createToolbar();
+    const focusService = TestBed.inject(PresetSnackbarFocusService);
+    const refocusSpy = vi.spyOn(focusService, 'refocusInput');
+    const { buttons } = desktopThemeButtons(fixture);
+    const lightButton = buttons.find((b) => b.getAttribute('aria-label') === 'Light')!;
+    const langButton = fixture.nativeElement.querySelector(
+      '.top-toolbar__controls .top-toolbar__lang-btn',
+    ) as HTMLButtonElement;
+
+    lightButton.focus();
+    lightButton.click();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(refocusSpy).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(lightButton);
+    expect(langButton).toBeTruthy();
+    expect(langButton.getAttribute('tabindex')).not.toBe('-1');
+    expect(langButton.getAttribute('aria-label')).toBe('Sprache');
     fixture.destroy();
   });
 
