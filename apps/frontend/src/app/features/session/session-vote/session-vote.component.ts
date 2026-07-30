@@ -4244,6 +4244,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.voteSent.set(true);
     this.stopScorePreviewTicker();
     this.cdr.detectChanges();
+    this.focusVoteSentConfirmation();
 
     try {
       await trpc.vote.submit.mutate({
@@ -4281,6 +4282,31 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.voteSending.set(false);
       setTimeout(() => this.debounced.set(false), 300);
     }
+  }
+
+  /**
+   * Nach Absenden verschwindet der Floating-Submit (#vote-submit) — Fokus ginge sonst verloren
+   * und die Live-Region „Antwort gesendet“ würde von Screenreadern oft nicht angekündigt.
+   * Fokus + Scroll auf die sichtbare Bestätigung; aria-atomic liest Titel und Hinweis zusammen.
+   */
+  private focusVoteSentConfirmation(): void {
+    const host = this.el.nativeElement as HTMLElement;
+    const sent = host.querySelector('#vote-sent') as HTMLElement | null;
+    if (!sent) return;
+    this.ensureFocusable(sent);
+    const scrollRoot = host.closest('.app-main') as HTMLElement | null;
+    if (scrollRoot) {
+      const behavior = this.voteScrollBehavior();
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const sentRect = sent.getBoundingClientRect();
+      const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
+      const gapPx = 8;
+      const y = sentRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
+      scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
+    } else if (typeof sent.scrollIntoView === 'function') {
+      sent.scrollIntoView({ behavior: this.voteScrollBehavior(), block: 'nearest' });
+    }
+    sent.focus({ preventScroll: true });
   }
 
   async sendEmoji(emoji: string): Promise<void> {
