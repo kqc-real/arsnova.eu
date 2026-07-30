@@ -132,5 +132,5 @@
 - [ ] Sicherheits-, Barrierefreiheits-, Kompatibilitäts- und
       Performanceaussagen sind durch Nachweise gedeckt
 - [ ] Der PR ist vollständig und bereit für ein Review
-- [ ] Bei asynchronen UI-Änderungen wurden Erfolg, Pending, Fehler und Fokus
-      jeweils anhand des tatsächlichen DOM-Ablaufs geprüft
+- [ ] Keine asynchrone UI-Änderung oder Erfolg, Pending, Fehler und Fokus wurden
+      anhand des tatsächlichen DOM-Ablaufs geprüft

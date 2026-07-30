@@ -95,10 +95,10 @@ run, state the reason and resulting risk in the pull request.
 
 Before opening or updating a pull request:
 
-- Read and use `.github/pull_request_template.md` in full. The required
-  `PR-Template vollständig` status check must pass before the pull request is
-  considered review-ready. Never replace the template with a shorter custom
-  description.
+- Read and use `.github/pull_request_template.md` in full. Complete every
+  applicable section, justify omitted checks, and do not replace it with a
+  shorter custom description. The `PR-Template vollständig` check must pass
+  before review.
 - Review the complete diff, not only the latest edit or fix commit.
 - Re-check the task, acceptance criteria, invariants, and analogous paths.
 - Add positive, negative, and regression tests appropriate to the actual risk.
@@ -111,9 +111,6 @@ Before opening or updating a pull request:
   production properties that were not verified.
 - Describe relevant production impact, rollback requirements, residual risks,
   and justified not-applicable checks.
-- Before creating or updating a pull request, read and use
-  `.github/pull_request_template.md` in full. Do not replace it with a shorter
-  custom summary. Complete every applicable section and justify omitted checks.
 - For asynchronous UI behavior, trace the complete lifecycle before coding:
   trigger → pending → success → rejection/timeout → retry or dismissal.
   Verify DOM state, interaction lock, announcement, and focus in every
