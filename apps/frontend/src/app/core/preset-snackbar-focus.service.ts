@@ -28,7 +28,8 @@ export class PresetSnackbarFocusService {
   /**
    * Fokus auf das registrierte Input setzen (z. B. nach Snackbar-Dismiss oder Theme-Wechsel).
    * Kurze Verzögerung, damit nach Theme-/Preset-Umschaltung DOM/CSS fertig sind und der Fokus hält.
-   * Kein Diebstahl, wenn der Fokus in der Toolbar liegt (Tastatur-Navigation / Preset-Snackbar).
+   * Kein Diebstahl, wenn der Fokus in der Toolbar, einem Material-Overlay oder dem MOTD-Dialog
+   * liegt — bzw. wenn bereits ein anderes sinnvolles Element fokussiert ist.
    */
   refocusInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -36,8 +37,22 @@ export class PresetSnackbarFocusService {
     const el = this.inputRef.nativeElement;
     setTimeout(() => {
       const active = document.activeElement;
-      if (active instanceof Element && active.closest('app-top-toolbar')) {
-        return;
+      if (active instanceof Element) {
+        if (
+          active.closest('app-top-toolbar') ||
+          active.closest('.cdk-overlay-pane') ||
+          active.closest('.home-motd-layer')
+        ) {
+          return;
+        }
+        if (
+          active instanceof HTMLElement &&
+          active !== document.body &&
+          active !== document.documentElement &&
+          active !== el
+        ) {
+          return;
+        }
       }
       el.focus();
     }, 100);

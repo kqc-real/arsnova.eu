@@ -981,6 +981,93 @@ describe('HomeComponent', () => {
       outside.remove();
     });
 
+    it('öffnet aufgeschobenes MOTD nicht bei Fokus im Sprachmenü-Overlay', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.textContent = 'Seriös';
+      toolbar.append(toggle);
+      document.body.append(toolbar);
+      toggle.focus();
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cdk-overlay-pane';
+      const menuItem = document.createElement('button');
+      menuItem.type = 'button';
+      menuItem.textContent = 'Deutsch';
+      overlay.append(menuItem);
+      document.body.append(overlay);
+      menuItem.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(menuItem);
+
+      toolbar.remove();
+      overlay.remove();
+    });
+
+    it('öffnet aufgeschobenes MOTD nicht bei Fokus im News-Archiv-Dialog', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const toolbar = document.createElement('app-top-toolbar');
+      const newsBtn = document.createElement('button');
+      newsBtn.type = 'button';
+      newsBtn.textContent = 'News';
+      toolbar.append(newsBtn);
+      document.body.append(toolbar);
+      newsBtn.focus();
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cdk-overlay-pane mat-mdc-dialog-panel';
+      const dialogClose = document.createElement('button');
+      dialogClose.type = 'button';
+      dialogClose.textContent = 'Schließen';
+      overlay.append(dialogClose);
+      document.body.append(overlay);
+      dialogClose.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(dialogClose);
+
+      toolbar.remove();
+      overlay.remove();
+    });
+
     it('öffnet MOTD mit Fokus-Capture wenn der Fokus nicht in der Toolbar liegt', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

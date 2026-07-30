@@ -64,4 +64,48 @@ describe('PresetSnackbarFocusService', () => {
     expect(focusSpy).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
+
+  it('refokusiert nicht die Code-Eingabe solange der Fokus im MOTD-Dialog liegt', () => {
+    vi.useFakeTimers();
+    const layer = document.createElement('div');
+    layer.className = 'home-motd-layer';
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Schließen';
+    layer.append(closeBtn);
+    const input = document.createElement('input');
+    document.body.append(layer, input);
+    const focusSpy = vi.spyOn(input, 'focus');
+    service.registerInput({ nativeElement: input });
+    closeBtn.focus();
+
+    service.refocusInput();
+    vi.runAllTimers();
+
+    expect(document.activeElement).toBe(closeBtn);
+    expect(focusSpy).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('refokusiert nicht die Code-Eingabe solange der Fokus in einem CDK-Overlay liegt', () => {
+    vi.useFakeTimers();
+    const overlay = document.createElement('div');
+    overlay.className = 'cdk-overlay-pane';
+    const menuItem = document.createElement('button');
+    menuItem.type = 'button';
+    menuItem.textContent = 'Deutsch';
+    overlay.append(menuItem);
+    const input = document.createElement('input');
+    document.body.append(overlay, input);
+    const focusSpy = vi.spyOn(input, 'focus');
+    service.registerInput({ nativeElement: input });
+    menuItem.focus();
+
+    service.refocusInput();
+    vi.runAllTimers();
+
+    expect(document.activeElement).toBe(menuItem);
+    expect(focusSpy).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });

@@ -815,10 +815,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const activeElement = document.activeElement;
-    const toolbarFocused =
-      activeElement instanceof Element && !!activeElement.closest('app-top-toolbar');
-    if (toolbarFocused) {
-      // Kein Vollbild-Layer über Toolbar-Fokus: Öffnen aufschieben bis Fokus die Toolbar verlässt.
+    if (
+      this.isToolbarOrToolbarOverlayFocus(activeElement instanceof Element ? activeElement : null)
+    ) {
+      // Kein Vollbild-Layer über Toolbar-/Overlay-Fokus (Menü, News-Dialog): Öffnen aufschieben.
       this.deferMotdUntilToolbarBlur(motd);
       return;
     }
@@ -857,7 +857,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.toolbarMotdFocusListener = () => {
       const active = document.activeElement;
-      if (active instanceof Element && active.closest('app-top-toolbar')) {
+      // Toolbar-Host und zugehörige Material-Overlays (Sprachmenü, News-Dialog) —
+      // Overlays liegen in `.cdk-overlay-container`, nicht unter `app-top-toolbar`.
+      if (this.isToolbarOrToolbarOverlayFocus(active)) {
         return;
       }
       const pending = this.pendingToolbarDeferredMotd;
@@ -874,6 +876,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openMotdOverlay(pending, active);
     };
     document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
+  }
+
+  /** Fokus in Toolbar oder in einem CDK-Overlay (MatMenu/MatDialog aus der Toolbar). */
+  private isToolbarOrToolbarOverlayFocus(active: Element | null): boolean {
+    if (!(active instanceof Element)) {
+      return false;
+    }
+    if (active.closest('app-top-toolbar')) {
+      return true;
+    }
+    return !!active.closest('.cdk-overlay-pane');
   }
 
   private clearToolbarMotdDefer(): void {

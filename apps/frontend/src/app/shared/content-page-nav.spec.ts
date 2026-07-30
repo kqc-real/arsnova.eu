@@ -76,16 +76,19 @@ describe('content-page-nav', () => {
     }
   });
 
-  it('navigiert bei Direktaufruf zur lokalisierten Startseite', () => {
+  it('navigiert bei Direktaufruf zur lokalisierten Startseite ohne Footer-Fokus-Marker', () => {
     const location = { back: vi.fn() };
     const router = { navigateByUrl: vi.fn() };
     const lengthDesc = Object.getOwnPropertyDescriptor(window.history, 'length');
     Object.defineProperty(window.history, 'length', { configurable: true, value: 1 });
+    markContentPageFocusReturn('footer-help');
+    consumeContentPageFocusReturn();
 
     dismissContentPage(location as never, router as never);
 
     expect(location.back).not.toHaveBeenCalled();
     expect(router.navigateByUrl).toHaveBeenCalledWith(localizePath('/'));
+    expect(consumeContentPageFocusReturn()).toBeNull();
 
     if (lengthDesc) {
       Object.defineProperty(window.history, 'length', lengthDesc);

@@ -119,14 +119,18 @@ export function contentPageFocusReturnSelector(target: ContentPageFocusReturn): 
  * Side-Effects vor dem Schließen.
  * MOTD-Suppress nur, wenn die Content-Page von der Startseite aus geöffnet wurde
  * (oder wir explizit zur Startseite navigieren) — nicht bei Rückkehr zu Quiz etc.
+ * Footer-Fokus-Rückgabe nur, wenn es einen auslösenden Footer-Link gab
+ * (`storeFocusReturn`, Standard true) — nicht beim Direktaufruf-Fallback.
  */
 export function prepareContentPageDismiss(
   pathname: string,
-  options?: { navigatingToHome?: boolean },
+  options?: { navigatingToHome?: boolean; storeFocusReturn?: boolean },
 ): void {
-  const focusReturn = contentPageFocusReturnForPath(pathname);
-  if (focusReturn) {
-    markContentPageFocusReturn(focusReturn);
+  if (options?.storeFocusReturn !== false) {
+    const focusReturn = contentPageFocusReturnForPath(pathname);
+    if (focusReturn) {
+      markContentPageFocusReturn(focusReturn);
+    }
   }
   const lastNonOverlay = readLastNonOverlayPath();
   const returningToHome =
@@ -144,6 +148,7 @@ export function shouldDeferContentPageEscape(dialog: MatDialog): boolean {
 
 /**
  * Schließt eine Content-Page: History zurück, sonst lokalisierte Startseite.
+ * Beim Direktaufruf (keine History) kein Footer-Fokus-Marker — normale Home-Fokuslogik.
  */
 export function dismissContentPage(location: Location, router: Router): void {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -152,6 +157,9 @@ export function dismissContentPage(location: Location, router: Router): void {
     location.back();
     return;
   }
-  prepareContentPageDismiss(pathname, { navigatingToHome: true });
+  prepareContentPageDismiss(pathname, {
+    navigatingToHome: true,
+    storeFocusReturn: false,
+  });
   void router.navigateByUrl(localizePath('/'));
 }

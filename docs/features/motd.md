@@ -53,11 +53,12 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 - Im aktuellen Frontend zusätzlich: Schließen per **Klick auf den Backdrop**.
 - **`prefers-reduced-motion`:** keine oder reduzierte Bewegung ([STYLEGUIDE](../ui/STYLEGUIDE.md)).
 - **A11y:** Fokus, `aria-modal`, Escape, Beschriftungen in allen Sprachen.
-  Wenn beim Öffnen der Tastaturfokus bereits in der **App-Toolbar** liegt (Preset/Theme/Sprache),
-  wird der Fokus **nicht** ins Overlay gezogen (`cdkTrapFocusAutoCapture` aus); das Overlay bleibt
-  erreichbar, unterbricht die Toolbar-Navigation aber nicht. Sonst Fokus auf den Schließen-Button
-  und Rückgabe beim Dismiss — Fallback auf die Session-Code-Eingabe nur, wenn sonst kein sinnvolles
-  Fokusziel aktiv ist.
+  Wenn beim Öffnen der Tastaturfokus bereits in der **App-Toolbar** oder einem zugehörigen
+  Material-Overlay (Sprachmenü, News-Archiv-Dialog) liegt, wird das MOTD-Overlay **noch nicht
+  gerendert** (Aufschub bis der Fokus in den normalen Startseiten-Inhalt wechselt). Sonst Fokus
+  auf den Schließen-Button und Rückgabe beim Dismiss — Fallback auf die Session-Code-Eingabe nur,
+  wenn sonst kein sinnvolles Fokusziel aktiv ist. Der Preset-Snackbar-Timer refokussiert die
+  Session-Code-Eingabe nicht, solange MOTD oder ein Overlay den Fokus hält.
 
 ### 3.6 Clientzustand (localStorage)
 
@@ -132,7 +133,7 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 
 ## 9. Betrieb: zweite MOTD sichtbar, Migrationen
 
-- **Reihenfolge im Overlay:** Es gilt nur **eine** aktive Karte. Eine zweite (z. B. „Making of“ mit niedrigerer Priorität) erscheint **erst**, nachdem die erste (z. B. Willkommen) mit **„Alles klar!“**, **Schließen** oder **Swipe** bestätigt wurde. Technisch: Client sendet `overlayDismissedUpTo` an `motd.getCurrent` / `getHeaderState`. Nach einem **Sprachwechsel auf der Startseite** (Vollreload) wird das Overlay **einmalig unterdrückt**, damit nicht sofort die nächstpriore MOTD erscheint; Sprachwechsel auf Unterseiten setzen diesen Marker nicht. Ebenso wird das Overlay **einmalig unterdrückt**, wenn Hilfe, Legal oder News-Archiv **von der Startseite aus** geschlossen werden (Escape/Zurück/Backdrop) und die Navigation wieder zur Startseite führt; Fokus geht zurück auf den auslösenden Footer-Link. Rückkehr zu anderen Routen (z. B. Quiz) setzt den Marker nicht. Solange der Fokus in der App-Toolbar liegt, wird das MOTD-Overlay noch nicht gerendert (Aufschub bis Fokus die Toolbar verlässt). Ein späterer normaler Seitenaufruf kann die Kette weiterhin fortsetzen.
+- **Reihenfolge im Overlay:** Es gilt nur **eine** aktive Karte. Eine zweite (z. B. „Making of“ mit niedrigerer Priorität) erscheint **erst**, nachdem die erste (z. B. Willkommen) mit **„Alles klar!“**, **Schließen** oder **Swipe** bestätigt wurde. Technisch: Client sendet `overlayDismissedUpTo` an `motd.getCurrent` / `getHeaderState`. Nach einem **Sprachwechsel auf der Startseite** (Vollreload) wird das Overlay **einmalig unterdrückt**, damit nicht sofort die nächstpriore MOTD erscheint; Sprachwechsel auf Unterseiten setzen diesen Marker nicht. Ebenso wird das Overlay **einmalig unterdrückt**, wenn Hilfe, Legal oder News-Archiv **von der Startseite aus** geschlossen werden (Escape/Zurück/Backdrop) und die Navigation wieder zur Startseite führt; Fokus geht zurück auf den auslösenden Footer-Link (nicht beim Direktaufruf ohne History, dort greift die normale Home-Fokuslogik). Rückkehr zu anderen Routen (z. B. Quiz) setzt den Marker nicht. Solange der Fokus in der App-Toolbar oder einem zugehörigen CDK-Overlay (Menü/Dialog) liegt, wird das MOTD-Overlay noch nicht gerendert (Aufschub bis Fokus in den normalen Startseiten-Inhalt wechselt). Ein späterer normaler Seitenaufruf kann die Kette weiterhin fortsetzen.
 - **Datenbank:** Produktiv per **`prisma migrate deploy`**. Lokal: **`npm run dev`** wendet nach `ensure-schema` zusätzlich die SQL-Dateien der kuratierten MOTDs an (`prisma db execute`), damit Meldungsketten auch ohne manuelles Migrate existieren. Manuell: **`npm run seed:motd-making-of`**, **`npm run seed:motd-tempo-feedback`**, **`npm run seed:motd-numeric-estimate`**, **`npm run seed:motd-ai-quiz-generation`**, **`npm run seed:motd-confidence-slider`**, **`npm run seed:motd-session-results-pdf`** und **`npm run seed:motd-accessibility-wcag`**.
 - **News-Archiv / Prerender:** `deploy.sh` baut das Image **vor** `prisma migrate deploy`. Der Angular-Prerender von `/news-archive` liest dabei die öffentliche Prod-API und kann neue Data-Migrationen in der SSG-HTML noch fehlen. Browser laden die erste Archiv-Seite nach Hydration live nach; für frische Crawler-HTML reicht ein Redeploy, sobald die Migration in Prod ist.
 - **Zeitfenster:** `startsAt` / `endsAt` sind **UTC**. Liegt `startsAt` in der Zukunft, liefert die API die MOTD nicht (Filter in `motd.ts`). Mehrere aktive MOTDs müssen sich zeitlich mit der Willkommens-MOTD **überlappen**, wenn sie nacheinander nach Dismiss kommen sollen (gleiches frühes `startsAt` wie die erste Meldung).
