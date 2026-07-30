@@ -45,9 +45,9 @@ async function dismissOptionalOverlay(page, waitForMotd = false) {
       )
       .catch(() => undefined);
   }
-  const closeButton = page
-    .locator('.home-motd-sheet button[aria-label], [role="dialog"] button[aria-label]')
-    .first();
+  // Nur MOTD schließen — Content-Pages (Hilfe/Legal/News) sind ebenfalls role=dialog;
+  // deren Zurück-Button darf hier nicht history.back() auf about:blank auslösen.
+  const closeButton = page.locator('.home-motd-sheet button[aria-label]').first();
   if (await closeButton.isVisible().catch(() => false)) {
     await closeButton.click();
     await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 1_000 });
