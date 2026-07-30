@@ -4,8 +4,8 @@
 export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
 
 /**
- * Einmalig Overlay nach Locale-Reload unterdrücken (Sprachwähler → Vollreload),
- * damit nicht sofort die nächstpriore MOTD den Fokus stiehlt.
+ * Einmalig Overlay nach Locale-Reload von der **Startseite** unterdrücken
+ * (Sprachwähler → Vollreload), damit nicht sofort die nächstpriore MOTD den Fokus stiehlt.
  */
 export const MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY = 'arsnova-motd-suppress-overlay-once';
 

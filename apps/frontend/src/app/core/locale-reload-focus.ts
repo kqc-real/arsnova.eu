@@ -1,6 +1,9 @@
 /**
  * Fokus-Ziel nach Locale-Vollreload (Sprachwähler), sessionStorage-basiert.
  */
+import { isAppHomeRouterUrl } from './locale-router';
+import { markMotdOverlayReloadSuppress } from './motd-storage';
+
 export const LOCALE_RELOAD_FOCUS_KEY = 'arsnova-locale-reload-focus';
 
 export type LocaleReloadFocusTarget = 'home-code-enter';
@@ -33,4 +36,17 @@ export function consumeLocaleReloadFocus(
   } catch {
     return null;
   }
+}
+
+/**
+ * Side-Effects nur bei Sprachwechsel **von der Startseite**:
+ * MOTD-Overlay einmal unterdrücken + Fokus auf „Code eingeben“.
+ * Unterseiten dürfen keinen später auf Home wirksamen MOTD-Marker setzen.
+ */
+export function markHomeLocaleReloadSideEffects(pathname: string): void {
+  if (!isAppHomeRouterUrl(pathname)) {
+    return;
+  }
+  markMotdOverlayReloadSuppress();
+  markLocaleReloadFocus('home-code-enter');
 }
