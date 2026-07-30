@@ -135,4 +135,16 @@ describe('TopToolbarComponent', () => {
     expect(themePreset.theme()).toBe('dark');
     fixture.destroy();
   });
+
+  it('stilisiert Fokus über mat-button-toggle:focus-within (Emulated Encapsulation)', async () => {
+    // Regressionschutz gegen Review #183: .mat-button-toggle-button liegt im
+    // gekapselten Material-Template und würde mit Emulated Encapsulation nicht matchen.
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'top-toolbar.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/\.mat-button-toggle:focus-within\s*\{/);
+    expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+  });
 });

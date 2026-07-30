@@ -330,6 +330,16 @@ describe('HomeComponent', () => {
       expect(themePreset.preset()).toBe('serious');
       expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
     });
+
+    it('stilisiert Hero-Preset-Fokus über mat-button-toggle:focus-within', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      expect(scss).toMatch(/\.home-hero-preset-toggle\s+\.mat-button-toggle:focus-within\s*\{/);
+      expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+    });
   });
 
   describe('isValidSessionCode', () => {

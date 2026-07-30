@@ -237,8 +237,8 @@
   .mat-button-toggle-checked .mat-icon {
     color: var(--mat-sys-primary);
   }
-  /* Fokus klar vom checked-Zustand trennen (Tastaturbedienung). */
-  .mat-button-toggle-button:focus-visible {
+  /* Host im eigenen Template: :focus-within erreicht das gekapselte Material-Button. */
+  .mat-button-toggle:focus-within {
     outline: 2px solid var(--mat-sys-primary);
     outline-offset: 2px;
   }
