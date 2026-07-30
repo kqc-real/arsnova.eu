@@ -1165,7 +1165,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return s !== null && s <= 0;
   });
   readonly voteInteractionLocked = computed(
-    () => this.voteSent() || this.timerExpired() || this.voteClosed(),
+    () => this.voteSent() || this.voteSending() || this.timerExpired() || this.voteClosed(),
   );
   readonly voteSubmissionLocked = computed(() => this.voteSent() || this.voteClosed());
 
@@ -4241,7 +4241,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.voteError.set(null);
     this.timeoutMessage.set(null);
     this.clearLateSubmitCloseTimeout();
-    this.voteSent.set(true);
     this.stopScorePreviewTicker();
     this.cdr.detectChanges();
 
@@ -4257,12 +4256,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         confidenceValue: confidence,
         round: this.currentRound(),
       });
+      this.voteSent.set(true);
       this.storeVoteResponse(q, answerIds, freeText, rating, numericValue, confidence);
       try {
         navigator.vibrate?.(10);
       } catch {
         /* unsupported */
       }
+      this.cdr.detectChanges();
+      this.focusVoteSentConfirmation();
     } catch (err: unknown) {
       const localizedError = localizeKnownServerError(err, 'Abstimmung fehlgeschlagen.');
       const voteClosedByServer = isClosedVoteServerMessage(localizedError);
@@ -4277,10 +4279,50 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       } else if (!overrideIds) {
         this.selectedAnswerIds.set(new Set());
       }
+      this.cdr.detectChanges();
+      this.focusVoteError();
     } finally {
       this.voteSending.set(false);
       setTimeout(() => this.debounced.set(false), 300);
     }
+  }
+
+  /**
+   * Nach erfolgreichem Absenden verschwindet der Floating-Submit (#vote-submit) —
+   * Fokus ginge sonst verloren und die Live-Region „Antwort gesendet“ würde von
+   * Screenreadern oft nicht angekündigt. Fokus + Scroll auf die sichtbare Bestätigung;
+   * aria-atomic liest Titel und Hinweis zusammen. Nur nach bestätigtem mutate aufrufen.
+   */
+  private focusVoteSentConfirmation(): void {
+    this.scrollAndFocusVoteStatusTarget('#vote-sent');
+  }
+
+  /**
+   * Nach fehlgeschlagenem Absenden Fokus auf die Alert-Fehlermeldung legen und
+   * sie in `.app-main` sichtbar scrollen (Floating-Submit liegt oft weit darunter).
+   */
+  private focusVoteError(): void {
+    this.scrollAndFocusVoteStatusTarget('#vote-error');
+  }
+
+  private scrollAndFocusVoteStatusTarget(selector: string): void {
+    const host = this.el.nativeElement as HTMLElement;
+    const target = host.querySelector(selector) as HTMLElement | null;
+    if (!target) return;
+    this.ensureFocusable(target);
+    const scrollRoot = host.closest('.app-main') as HTMLElement | null;
+    if (scrollRoot) {
+      const behavior = this.voteScrollBehavior();
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
+      const gapPx = 8;
+      const y = targetRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
+      scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
+    } else if (typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: this.voteScrollBehavior(), block: 'nearest' });
+    }
+    target.focus({ preventScroll: true });
   }
 
   async sendEmoji(emoji: string): Promise<void> {

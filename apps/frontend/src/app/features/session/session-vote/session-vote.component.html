@@ -1119,7 +1119,7 @@
           }
 
           @if (voteError()) {
-            <p class="vote-error" id="vote-error" role="alert">
+            <p class="vote-error" id="vote-error" role="alert" tabindex="-1">
               <mat-icon class="vote-error__icon" aria-hidden="true">warning</mat-icon>
               <span class="vote-error__text">{{ voteError() }}</span>
             </p>
@@ -1532,7 +1532,14 @@
 
           @if (voteSent()) {
             @if (isActive()) {
-              <div class="vote-sent" role="status" aria-live="polite">
+              <div
+                id="vote-sent"
+                class="vote-sent"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                tabindex="-1"
+              >
                 <mat-icon aria-hidden="true">check_circle</mat-icon>
                 <span class="vote-sent__copy">
                   <span class="vote-sent__title">{{ vpc.voteSentLabel(isPlayfulPreset()) }}</span>

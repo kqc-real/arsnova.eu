@@ -1819,6 +1819,15 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 25%, transparent);
 }
 
+.vote-sent:focus {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.vote-sent:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .vote-sent > mat-icon {
   flex-shrink: 0;
   margin-top: 0.1rem;

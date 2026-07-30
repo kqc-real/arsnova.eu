@@ -2162,6 +2162,192 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('kuendigt nach Absenden die Bestaetigung an und setzt den Fokus darauf', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'single-choice-sent-a11y',
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true },
+        { id: 'a2', text: 'B', isCorrect: false },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 30,
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+    voteSubmitMutateMock.mockResolvedValue({ ok: true });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.toggleAnswer('a1');
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector('#vote-submit') as HTMLButtonElement;
+    submitButton.focus();
+    expect(document.activeElement).toBe(submitButton);
+
+    await component.submitVote();
+    fixture.detectChanges();
+
+    const sent = fixture.nativeElement.querySelector('#vote-sent') as HTMLElement;
+    expect(sent).not.toBeNull();
+    expect(sent.getAttribute('role')).toBe('status');
+    expect(sent.getAttribute('aria-live')).toBe('polite');
+    expect(sent.getAttribute('aria-atomic')).toBe('true');
+    expect(sent.textContent).toContain('Antwort gesendet');
+    expect(document.activeElement).toBe(sent);
+    expect(fixture.nativeElement.querySelector('#vote-submit')).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('fokussiert bei Submit-Fehler die Fehlermeldung und nicht die Erfolgsbestaetigung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'single-choice-submit-error-a11y',
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true },
+        { id: 'a2', text: 'B', isCorrect: false },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 30,
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+    voteSubmitMutateMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const scrollRoot = document.createElement('div');
+    scrollRoot.className = 'app-main';
+    Object.defineProperty(scrollRoot, 'scrollTop', {
+      configurable: true,
+      writable: true,
+      value: 640,
+    });
+    const scrollToSpy = vi.fn();
+    scrollRoot.scrollTo = scrollToSpy as unknown as typeof scrollRoot.scrollTo;
+    document.body.append(scrollRoot);
+    scrollRoot.append(fixture.nativeElement);
+
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.toggleAnswer('a1');
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector('#vote-submit') as HTMLButtonElement;
+    submitButton.focus();
+
+    const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+    const getBoundingClientRectSpy = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: Element) {
+        if (this.id === 'vote-error') {
+          return {
+            x: 0,
+            y: -220,
+            top: -220,
+            bottom: -140,
+            left: 0,
+            right: 360,
+            width: 360,
+            height: 80,
+            toJSON: () => ({}),
+          } as DOMRect;
+        }
+        if (this === scrollRoot) {
+          return {
+            x: 0,
+            y: 0,
+            top: 0,
+            bottom: 700,
+            left: 0,
+            right: 390,
+            width: 390,
+            height: 700,
+            toJSON: () => ({}),
+          } as DOMRect;
+        }
+        return originalGetBoundingClientRect.call(this);
+      });
+
+    await component.submitVote();
+    fixture.detectChanges();
+
+    expect(component.voteSent()).toBe(false);
+    expect(fixture.nativeElement.querySelector('#vote-sent')).toBeNull();
+    const error = fixture.nativeElement.querySelector('#vote-error') as HTMLElement;
+    expect(error).not.toBeNull();
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(error.textContent).toContain('Netzwerkfehler');
+    expect(document.activeElement).toBe(error);
+    expect(fixture.nativeElement.querySelector('#vote-submit')).not.toBeNull();
+    expect(scrollToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        top: expect.any(Number),
+        behavior: expect.stringMatching(/^(auto|smooth)$/),
+      }),
+    );
+    const scrollArg = scrollToSpy.mock.calls[0]?.[0] as ScrollToOptions;
+    expect(scrollArg.top).toBeGreaterThanOrEqual(0);
+
+    getBoundingClientRectSpy.mockRestore();
+    scrollRoot.remove();
+    fixture.destroy();
+  });
+
   it('sendet erst beim Click und nicht bereits beim Pointer-Down', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
