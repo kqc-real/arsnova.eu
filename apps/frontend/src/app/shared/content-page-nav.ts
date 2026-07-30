@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
-import { localizeCommands } from '../core/locale-router';
+import { MatDialog } from '@angular/material/dialog';
+import { isAppHomeRouterUrl, localizePath } from '../core/locale-router';
 import { markMotdOverlayReloadSuppress } from '../core/motd-storage';
 
 /**
@@ -30,6 +31,27 @@ export type ContentPageFocusReturn =
   | 'footer-accessibility';
 
 export const CONTENT_PAGE_FOCUS_RETURN_KEY = 'arsnova-content-page-focus-return';
+export const LAST_NON_OVERLAY_PATH_KEY = 'arsnova-last-non-overlay-path';
+
+/** Merkt die letzte Nicht-Overlay-Route (für MOTD-Suppress nur bei Rückkehr zur Home). */
+export function rememberNonOverlayPath(pathname: string): void {
+  if (typeof sessionStorage === 'undefined') return;
+  if (isContentOverlayPath(pathname)) return;
+  try {
+    sessionStorage.setItem(LAST_NON_OVERLAY_PATH_KEY, pathname);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function readLastNonOverlayPath(): string | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    return sessionStorage.getItem(LAST_NON_OVERLAY_PATH_KEY);
+  } catch {
+    return null;
+  }
+}
 
 /** Footer-Link, der nach Schließen der Content-Page wieder Fokus bekommen soll. */
 export function contentPageFocusReturnForPath(pathname: string): ContentPageFocusReturn | null {
@@ -94,26 +116,42 @@ export function contentPageFocusReturnSelector(target: ContentPageFocusReturn): 
 }
 
 /**
- * Side-Effects vor dem Schließen: MOTD auf dem nächsten Home-Besuch einmal
- * unterdrücken (sonst startet die Prioritätskette sofort neu) und Footer-Fokus merken.
+ * Side-Effects vor dem Schließen.
+ * MOTD-Suppress nur, wenn die Content-Page von der Startseite aus geöffnet wurde
+ * (oder wir explizit zur Startseite navigieren) — nicht bei Rückkehr zu Quiz etc.
  */
-export function prepareContentPageDismiss(pathname: string): void {
+export function prepareContentPageDismiss(
+  pathname: string,
+  options?: { navigatingToHome?: boolean },
+): void {
   const focusReturn = contentPageFocusReturnForPath(pathname);
-  if (!focusReturn) return;
-  markMotdOverlayReloadSuppress();
-  markContentPageFocusReturn(focusReturn);
+  if (focusReturn) {
+    markContentPageFocusReturn(focusReturn);
+  }
+  const lastNonOverlay = readLastNonOverlayPath();
+  const returningToHome =
+    options?.navigatingToHome === true ||
+    (lastNonOverlay !== null && isAppHomeRouterUrl(lastNonOverlay));
+  if (returningToHome) {
+    markMotdOverlayReloadSuppress();
+  }
+}
+
+/** Escape soll Content-Pages nicht schließen, solange ein MatDialog (z. B. Lightbox) offen ist. */
+export function shouldDeferContentPageEscape(dialog: MatDialog): boolean {
+  return dialog.openDialogs.length > 0;
 }
 
 /**
- * Schließt eine Content-Page: History zurück, sonst Startseite (kein Verlassen der App).
+ * Schließt eine Content-Page: History zurück, sonst lokalisierte Startseite.
  */
 export function dismissContentPage(location: Location, router: Router): void {
-  if (typeof window !== 'undefined') {
-    prepareContentPageDismiss(window.location.pathname);
-  }
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   if (typeof window !== 'undefined' && window.history.length > 1) {
+    prepareContentPageDismiss(pathname);
     location.back();
     return;
   }
-  void router.navigate(localizeCommands([]));
+  prepareContentPageDismiss(pathname, { navigatingToHome: true });
+  void router.navigateByUrl(localizePath('/'));
 }

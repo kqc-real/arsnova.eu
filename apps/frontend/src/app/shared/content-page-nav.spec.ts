@@ -6,8 +6,11 @@ import {
   isContentOverlayPath,
   markContentPageFocusReturn,
   prepareContentPageDismiss,
+  rememberNonOverlayPath,
+  shouldDeferContentPageEscape,
 } from './content-page-nav';
 import { consumeMotdOverlayReloadSuppress } from '../core/motd-storage';
+import { localizePath } from '../core/locale-router';
 
 describe('content-page-nav', () => {
   afterEach(() => {
@@ -30,12 +33,25 @@ describe('content-page-nav', () => {
     expect(contentPageFocusReturnForPath('/quiz')).toBeNull();
   });
 
-  it('unterdrückt MOTD und merkt Footer-Fokus beim Schließen', () => {
+  it('unterdrückt MOTD nur bei Rückkehr zur Startseite, nicht zu Quiz', () => {
+    rememberNonOverlayPath('/de/quiz');
+    prepareContentPageDismiss('/de/help');
+
+    expect(consumeMotdOverlayReloadSuppress()).toBe(false);
+    expect(consumeContentPageFocusReturn()).toBe('footer-help');
+
+    rememberNonOverlayPath('/de/');
     prepareContentPageDismiss('/de/legal/imprint');
 
     expect(consumeMotdOverlayReloadSuppress()).toBe(true);
     expect(consumeContentPageFocusReturn()).toBe('footer-imprint');
-    expect(consumeContentPageFocusReturn()).toBeNull();
+  });
+
+  it('unterdrückt MOTD beim expliziten Home-Fallback (Direktaufruf)', () => {
+    rememberNonOverlayPath('/de/quiz');
+    prepareContentPageDismiss('/de/help', { navigatingToHome: true });
+
+    expect(consumeMotdOverlayReloadSuppress()).toBe(true);
   });
 
   it('persistiert Fokus-Ziel über mark/consume', () => {
@@ -46,33 +62,38 @@ describe('content-page-nav', () => {
 
   it('nutzt location.back wenn History Einträge hat', () => {
     const location = { back: vi.fn() };
-    const router = { navigate: vi.fn() };
+    const router = { navigateByUrl: vi.fn() };
     const lengthDesc = Object.getOwnPropertyDescriptor(window.history, 'length');
     Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
 
     dismissContentPage(location as never, router as never);
 
     expect(location.back).toHaveBeenCalledOnce();
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
 
     if (lengthDesc) {
       Object.defineProperty(window.history, 'length', lengthDesc);
     }
   });
 
-  it('navigiert zur Startseite wenn keine sinnvolle History existiert', () => {
+  it('navigiert bei Direktaufruf zur lokalisierten Startseite', () => {
     const location = { back: vi.fn() };
-    const router = { navigate: vi.fn() };
+    const router = { navigateByUrl: vi.fn() };
     const lengthDesc = Object.getOwnPropertyDescriptor(window.history, 'length');
     Object.defineProperty(window.history, 'length', { configurable: true, value: 1 });
 
     dismissContentPage(location as never, router as never);
 
     expect(location.back).not.toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalled();
+    expect(router.navigateByUrl).toHaveBeenCalledWith(localizePath('/'));
 
     if (lengthDesc) {
       Object.defineProperty(window.history, 'length', lengthDesc);
     }
+  });
+
+  it('erkennt offene MatDialogs als Escape-Deferral', () => {
+    expect(shouldDeferContentPageEscape({ openDialogs: [] } as never)).toBe(false);
+    expect(shouldDeferContentPageEscape({ openDialogs: [{}] } as never)).toBe(true);
   });
 });

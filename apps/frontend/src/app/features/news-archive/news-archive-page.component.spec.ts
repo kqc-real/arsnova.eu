@@ -1,7 +1,9 @@
 import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { Location } from '@angular/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NewsArchivePageComponent } from './news-archive-page.component';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
@@ -51,6 +53,8 @@ describe('NewsArchivePageComponent', () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -115,6 +119,8 @@ describe('NewsArchivePageComponent', () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -191,6 +197,8 @@ describe('NewsArchivePageComponent', () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -301,6 +309,8 @@ describe('NewsArchivePageComponent', () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -349,6 +359,8 @@ describe('NewsArchivePageComponent', () => {
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -377,5 +389,45 @@ describe('NewsArchivePageComponent', () => {
     expect(pushStateSpy).not.toHaveBeenCalled();
     replaceStateSpy.mockRestore();
     pushStateSpy.mockRestore();
+  });
+
+  it('behält den Dialogtitel auch im Fehlerzustand und schließt bei offener Lightbox nicht per Escape', () => {
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [{}] } },
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                newsArchive: {
+                  ...emptyResolved,
+                  errorMessage: 'Archiv konnte nicht geladen werden.',
+                },
+              },
+            },
+          },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#news-archive-page-title')?.textContent).toContain(
+      'News-Archiv',
+    );
+    expect(fixture.nativeElement.querySelector('.news-archive-page__error')).toBeTruthy();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(spy).not.toHaveBeenCalled();
   });
 });

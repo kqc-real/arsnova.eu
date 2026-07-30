@@ -190,13 +190,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
   private motdFocusReturn: HTMLElement | null = null;
-  /**
-   * Wenn true, holt das Overlay den Tastaturfokus (Close-Button / CDK AutoCapture).
-   * Bei Fokus in der App-Toolbar bewusst false, sonst springt der Fokus nach dem
-   * verzögerten MOTD-Load (~1–2 s) aus der Toolbar weg.
-   */
-  readonly motdCaptureFocus = signal(true);
-  private motdDidCaptureFocus = false;
+  /** MOTD wartet, bis der Fokus die Toolbar verlassen hat (kein Vollbild-Layer über Toolbar-Fokus). */
+  private pendingToolbarDeferredMotd: MotdPublicDTO | null = null;
+  private toolbarMotdFocusListener: ((event: FocusEvent) => void) | null = null;
   readonly thumbUpRecorded = computed(() => {
     this.motdInteractionRev();
     const m = this.motd();
@@ -306,6 +302,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
+    this.clearToolbarMotdDefer();
     this.clearScheduledCallbacks();
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
@@ -820,14 +817,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const activeElement = document.activeElement;
     const toolbarFocused =
       activeElement instanceof Element && !!activeElement.closest('app-top-toolbar');
+    if (toolbarFocused) {
+      // Kein Vollbild-Layer über Toolbar-Fokus: Öffnen aufschieben bis Fokus die Toolbar verlässt.
+      this.deferMotdUntilToolbarBlur(motd);
+      return;
+    }
+    this.openMotdOverlay(motd, activeElement);
+  }
+
+  private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
+    this.clearToolbarMotdDefer();
     this.motdFocusReturn =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&
       activeElement !== document.documentElement
         ? activeElement
         : null;
-    this.motdDidCaptureFocus = !toolbarFocused;
-    this.motdCaptureFocus.set(this.motdDidCaptureFocus);
     this.motd.set(motd);
     const html = appendMotdContentVersionToAssetImgSrc(
       absolutizeMarkdownHtmlRootAssetImgSrc(
@@ -837,14 +842,46 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-    if (this.motdDidCaptureFocus) {
-      afterNextRender(
-        () => {
-          this.motdCloseBtn?.nativeElement?.focus();
-        },
-        { injector: this.injector },
-      );
+    afterNextRender(
+      () => {
+        this.motdCloseBtn?.nativeElement?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private deferMotdUntilToolbarBlur(motd: MotdPublicDTO): void {
+    this.pendingToolbarDeferredMotd = motd;
+    if (this.toolbarMotdFocusListener || typeof document === 'undefined') {
+      return;
     }
+    this.toolbarMotdFocusListener = () => {
+      const active = document.activeElement;
+      if (active instanceof Element && active.closest('app-top-toolbar')) {
+        return;
+      }
+      const pending = this.pendingToolbarDeferredMotd;
+      this.clearToolbarMotdDefer();
+      if (
+        !pending ||
+        this.suppressMotdForJoinIntent() ||
+        this.sessionCode().trim().length > 0 ||
+        this.isJoining() ||
+        this.motd()
+      ) {
+        return;
+      }
+      this.openMotdOverlay(pending, active);
+    };
+    document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
+  }
+
+  private clearToolbarMotdDefer(): void {
+    this.pendingToolbarDeferredMotd = null;
+    if (this.toolbarMotdFocusListener && typeof document !== 'undefined') {
+      document.removeEventListener('focusin', this.toolbarMotdFocusListener, true);
+    }
+    this.toolbarMotdFocusListener = null;
   }
 
   private markJoinIntentForMotd(): void {
@@ -852,6 +889,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.suppressMotdForJoinIntent.set(true);
+    this.clearToolbarMotdDefer();
     if (this.motd()) {
       this.clearMotdOverlay();
     }
@@ -915,16 +953,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private clearMotdOverlay(): void {
     const focusReturn = this.motdFocusReturn;
-    const didCapture = this.motdDidCaptureFocus;
     this.motdFocusReturn = null;
-    this.motdDidCaptureFocus = false;
-    this.motdCaptureFocus.set(true);
     this.motd.set(null);
     this.motdBodyHtml.set(null);
-    if (!didCapture) {
-      // Overlay hatte den Fokus nicht übernommen (z. B. Toolbar-Navigation) — nicht zurückholen.
-      return;
-    }
     queueMicrotask(() => {
       if (focusReturn?.isConnected === true) {
         focusReturn.focus({ preventScroll: true });

@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HelpComponent } from './help.component';
 
@@ -8,7 +9,7 @@ describe('HelpComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HelpComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: MatDialog, useValue: { openDialogs: [] } }],
     });
   });
 
@@ -46,6 +47,19 @@ describe('HelpComponent', () => {
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('schließt die Seite nicht per Escape solange ein MatDialog offen ist', () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(HelpComponent);
+    const location = TestBed.inject(Location);
+    const dialog = TestBed.inject(MatDialog);
+    const spy = vi.spyOn(location, 'back');
+    Object.defineProperty(dialog, 'openDialogs', { configurable: true, get: () => [{}] });
+    fixture.detectChanges();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('benennt das Navigations-Landmark lokalisierbar', () => {

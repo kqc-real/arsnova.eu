@@ -39,6 +39,7 @@ import {
   consumeContentPageFocusReturn,
   contentPageFocusReturnSelector,
   isContentOverlayPath,
+  rememberNonOverlayPath,
 } from './shared/content-page-nav';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
@@ -909,6 +910,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isContentOverlayRoute.set(
       isContentOverlayPath(fromRouter) || isContentOverlayPath(fromWindow),
     );
+    if (!this.isContentOverlayRoute()) {
+      rememberNonOverlayPath(fromRouter || fromWindow);
+    }
     if (!this.footerVisible()) {
       this.disconnectFooterOffsetObserver();
       this.footerVisibleOffset.set(0);

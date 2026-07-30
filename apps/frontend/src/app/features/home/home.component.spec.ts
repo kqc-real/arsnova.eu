@@ -933,7 +933,7 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
     });
 
-    it('stiehlt den Fokus nicht aus der Toolbar beim verzögerten MOTD-Open', async () => {
+    it('rendert MOTD nicht solange der Fokus in der Toolbar liegt', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
         motd: {
@@ -960,14 +960,28 @@ describe('HomeComponent', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(fixture.componentInstance.motd()).not.toBeNull();
-      expect(fixture.componentInstance.motdCaptureFocus()).toBe(false);
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
       expect(document.activeElement).toBe(toggle);
 
+      const outside = document.createElement('button');
+      outside.type = 'button';
+      outside.textContent = 'Außerhalb';
+      document.body.append(outside);
+      outside.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
+
       toolbar.remove();
+      outside.remove();
     });
 
-    it('aktiviert MOTD-Fokus-Capture wenn der Fokus nicht in der Toolbar liegt', async () => {
+    it('öffnet MOTD mit Fokus-Capture wenn der Fokus nicht in der Toolbar liegt', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
         motd: {
@@ -980,9 +994,13 @@ describe('HomeComponent', () => {
 
       const fixture = createHomeFixture();
       await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
 
       expect(fixture.componentInstance.motd()).not.toBeNull();
-      expect(fixture.componentInstance.motdCaptureFocus()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
     });
 
     it('zieht nach MOTD-Dismiss nicht in die Code-Eingabe wenn bereits ein anderer Fokus existiert', async () => {
@@ -998,7 +1016,6 @@ describe('HomeComponent', () => {
       other.textContent = 'Anders';
       document.body.append(other);
 
-      fixture.componentInstance['motdDidCaptureFocus'] = true;
       fixture.componentInstance['motdFocusReturn'] = null;
       fixture.componentInstance.motd.set({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',

@@ -7,6 +7,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ReplaySubject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { LegalPageComponent, stripLeadingMarkdownTitle } from './legal-page.component';
 
 describe('LegalPageComponent', () => {
@@ -22,6 +23,7 @@ describe('LegalPageComponent', () => {
         provideHttpClientTesting(),
         provideNoopAnimations(),
         provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
         { provide: LOCALE_ID, useValue: 'de' },
         {
           provide: ActivatedRoute,
@@ -88,6 +90,24 @@ describe('LegalPageComponent', () => {
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('behält den Dialogtitel im Lade- und Fehlerzustand', async () => {
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#legal-page-title')?.textContent).toContain(
+      'Impressum',
+    );
+
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/imprint.de.md'));
+    req.flush('fail', { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#legal-page-title')?.textContent).toContain(
+      'Impressum',
+    );
+    expect(fixture.nativeElement.querySelector('.legal-error')).toBeTruthy();
   });
 
   it('lädt Markdown per HttpClient und rendert Inhalt (kein leerer SSR-Abbruch)', async () => {

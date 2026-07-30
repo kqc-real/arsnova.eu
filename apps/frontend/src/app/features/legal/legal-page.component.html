@@ -27,37 +27,37 @@
           <span i18n="@@contentPage.back">Zurück</span>
         </button>
       </nav>
-      @if (loading()) {
-        <p class="legal-loading" i18n>Wird geladen…</p>
-      } @else if (error()) {
-        <p class="legal-error" role="alert">{{ error() }}</p>
-      } @else if (content(); as legalHtml) {
-        <article class="legal-article">
-          <header class="dialog-title-header dialog-title-header--page legal-page__hero">
-            <span class="dialog-title-header__icon" aria-hidden="true">
+      <article class="legal-article">
+        <header class="dialog-title-header dialog-title-header--page legal-page__hero">
+          <span class="dialog-title-header__icon" aria-hidden="true">
+            @if (slug() === 'imprint') {
+              <mat-icon>gavel</mat-icon>
+            } @else if (slug() === 'privacy') {
+              <mat-icon>privacy_tip</mat-icon>
+            } @else {
+              <mat-icon>accessibility</mat-icon>
+            }
+          </span>
+          <span class="dialog-title-header__copy">
+            <h1 id="legal-page-title" class="dialog-title-header__heading">
               @if (slug() === 'imprint') {
-                <mat-icon>gavel</mat-icon>
+                <span i18n="@@legal.pageTitleImprint">Impressum</span>
               } @else if (slug() === 'privacy') {
-                <mat-icon>privacy_tip</mat-icon>
+                <span i18n="@@legal.pageTitlePrivacy">Datenschutzerklärung</span>
               } @else {
-                <mat-icon>accessibility</mat-icon>
+                <span i18n="@@legal.pageTitleAccessibility">Barrierefreiheit</span>
               }
-            </span>
-            <span class="dialog-title-header__copy">
-              <h1 id="legal-page-title" class="dialog-title-header__heading">
-                @if (slug() === 'imprint') {
-                  <span i18n="@@legal.pageTitleImprint">Impressum</span>
-                } @else if (slug() === 'privacy') {
-                  <span i18n="@@legal.pageTitlePrivacy">Datenschutzerklärung</span>
-                } @else {
-                  <span i18n="@@legal.pageTitleAccessibility">Barrierefreiheit</span>
-                }
-              </h1>
-            </span>
-          </header>
+            </h1>
+          </span>
+        </header>
+        @if (loading()) {
+          <p class="legal-loading" i18n>Wird geladen…</p>
+        } @else if (error()) {
+          <p class="legal-error" role="alert">{{ error() }}</p>
+        } @else if (content(); as legalHtml) {
           <div class="legal-page__md" [innerHTML]="legalHtml"></div>
-        </article>
-      }
+        }
+      </article>
     </div>
   </div>
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>
