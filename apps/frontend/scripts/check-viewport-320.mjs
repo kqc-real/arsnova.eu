@@ -44,13 +44,21 @@ async function dismissOptionalOverlay(page, waitForMotd = false) {
         { timeout: 3_000 },
       )
       .catch(() => undefined);
+    // Idle-MOTD kann nach getCurrent noch kurz verzögert gerendert werden.
+    await page
+      .locator('.home-motd-sheet')
+      .waitFor({ state: 'visible', timeout: 2_500 })
+      .catch(() => undefined);
   }
-  // Nur MOTD schließen — Content-Pages (Hilfe/Legal/News) sind ebenfalls role=dialog;
-  // deren Zurück-Button darf hier nicht history.back() auf about:blank auslösen.
-  const closeButton = page.locator('.home-motd-sheet button[aria-label]').first();
+  // Nur MOTD-Schließen — nicht Thumb-Buttons und nicht Content-Page-Dialoge.
+  const closeButton = page
+    .locator(
+      '.home-motd-sheet__head button[aria-label], .home-motd-sheet button[aria-label="Meldung schließen"]',
+    )
+    .first();
   if (await closeButton.isVisible().catch(() => false)) {
     await closeButton.click();
-    await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 1_000 });
+    await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 5_000 });
   }
 }
 

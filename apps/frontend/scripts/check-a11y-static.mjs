@@ -41,11 +41,16 @@ async function dismissOptionalOverlay(page) {
   // Nur echte Startseiten-Overlays schließen — nicht Content-Pages (Hilfe/Legal/News),
   // die ebenfalls role=dialog nutzen; deren „Zurück“ würde history.back() auf about:blank auslösen.
   const closeButton = page
-    .locator('.home-motd-sheet button[aria-label], .preset-toast button[aria-label]')
+    .locator(
+      '.home-motd-sheet__head button[aria-label], .home-motd-sheet button[aria-label="Meldung schließen"], .preset-toast button[aria-label]',
+    )
     .first();
   if (await closeButton.isVisible().catch(() => false)) {
     await closeButton.click();
-    await page.waitForTimeout(200);
+    await page
+      .locator('.home-motd-sheet')
+      .waitFor({ state: 'hidden', timeout: 5_000 })
+      .catch(() => undefined);
   }
 }
 
