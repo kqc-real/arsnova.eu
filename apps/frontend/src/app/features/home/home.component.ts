@@ -56,6 +56,7 @@ import type {
 } from '@arsnova/shared-types';
 import {
   clearMotdThumbInteractionKeys,
+  consumeMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   isMotdDismissedForVersion,
   markMotdDismissed,
@@ -773,6 +774,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (consumeMotdOverlayReloadSuppress()) {
+      return;
+    }
     if (
       this.suppressMotdForJoinIntent() ||
       this.sessionCode().trim().length > 0 ||

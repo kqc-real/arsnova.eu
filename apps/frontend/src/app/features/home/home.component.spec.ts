@@ -928,6 +928,26 @@ describe('HomeComponent', () => {
       expect(comp.motd()).toBeNull();
     });
 
+    it('unterdrückt MOTD-Overlay nach Locale-Reload (Sprachwechsel)', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      const { markMotdOverlayReloadSuppress } = await import('../../core/motd-storage');
+      markMotdOverlayReloadSuppress();
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          contentVersion: 1,
+          markdown: 'Nächste Meldung nach Dismiss',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      await comp['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(comp.motd()).toBeNull();
+    });
+
     it('unterdrückt die MOTD nach Interaktion mit der Session-Eingabe', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

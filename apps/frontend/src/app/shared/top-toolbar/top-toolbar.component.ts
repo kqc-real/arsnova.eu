@@ -37,6 +37,7 @@ import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { LocaleSwitchGuardService } from '../../core/locale-switch-guard.service';
 import { isAppHomeRouterUrl, localizePath } from '../../core/locale-router';
+import { markMotdOverlayReloadSuppress } from '../../core/motd-storage';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
@@ -154,6 +155,8 @@ export class TopToolbarComponent {
     this.closeControlsMenu();
 
     const doRedirect = (): void => {
+      // Locale-Wechsel ist Vollreload: kein sofortiges nächstes MOTD-Overlay.
+      markMotdOverlayReloadSuppress();
       const pathname = window.location.pathname;
       const hasLocale = /^\/(de|en|fr|it|es)(?:\/|$)/.test(pathname);
       if (hasLocale) {
