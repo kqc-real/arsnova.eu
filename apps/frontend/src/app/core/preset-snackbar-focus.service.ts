@@ -17,14 +17,12 @@ export class PresetSnackbarFocusService {
     this.inputRef = ref ?? null;
   }
 
-  /** Blur des registrierten Inputs, damit auf Mobile die virtuelle Tastatur schließt. */
+  /** Blur nur des registrierten Inputs (z. B. Session-Code), damit die virtuelle Tastatur schließt. */
   blurInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.inputRef?.nativeElement) {
-      this.inputRef.nativeElement.blur();
-    } else {
-      (document.activeElement as HTMLElement | null)?.blur();
-    }
+    // Kein Fallback auf document.activeElement: sonst verliert z. B. der Desktop-Preset-Toggle
+    // nach Pfeiltasten-Wechsel den Fokus, wenn kein Home-Input registriert ist (#180).
+    this.inputRef?.nativeElement?.blur();
   }
 
   /**
