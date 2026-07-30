@@ -4,7 +4,7 @@
 
 **Studierende Person (Prompt):**
 
-> "Lies bitte `AGENT.md` und `schema.prisma`. Wir arbeiten an Epic 1. Baue den tRPC-Endpunkt `getQuizById`. Er soll das Quiz aus PostgreSQL laden. Schreibe **nur den Backend-Code**."
+> "Lies bitte `AGENTS.md` und `schema.prisma`. Wir arbeiten an Epic 1. Baue den tRPC-Endpunkt `getQuizById`. Er soll das Quiz aus PostgreSQL laden. Schreibe **nur den Backend-Code**."
 
 **KI (Antwort):**
 
@@ -25,7 +25,7 @@
 
 **Studierende Person (Prompt):**
 
-> "Prüfe bitte noch einmal `AGENT.md`. Du hast `BehaviorSubject` für den UI-Zustand verwendet. In diesem Projekt nutzen wir dafür ausschließlich **Angular Signals**. Korrigiere den Entwurf entsprechend."
+> "Prüfe bitte noch einmal `AGENTS.md`. Du hast `BehaviorSubject` für den UI-Zustand verwendet. In diesem Projekt nutzen wir dafür ausschließlich **Angular Signals**. Korrigiere den Entwurf entsprechend."
 
 **KI (Antwort):**
 

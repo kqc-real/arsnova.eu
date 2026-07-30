@@ -26,7 +26,7 @@ Du sollst dabei nicht nur Code erzeugen, sondern den kompletten Arbeitsfluss sic
   - [ADR-0021](../architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
   - [ADR-0024](../architecture/decisions/0024-daily-session-records-in-server-status-help-dialog.md)
   - [server-status-widget.md](../features/server-status-widget.md)
-- Arbeite nach den Regeln in [AGENT.md](../../AGENT.md) und [CONTRIBUTING.md](../../CONTRIBUTING.md).
+- Arbeite nach den Regeln in [AGENTS.md](../../AGENTS.md) und [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Was am Ende vorliegen muss
 

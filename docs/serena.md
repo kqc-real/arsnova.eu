@@ -51,7 +51,7 @@ serena memories check
 - Referenzen finden, bevor ein gemeinsam genutztes Symbol umbenannt oder verändert wird.
 - tRPC-, Shared-Type-, Backend- und Frontend-Auswirkungen über Modulgrenzen verfolgen.
 - Ganze Funktionen, Klassen oder andere Symbole gezielt lesen oder ersetzen.
-- Projektkontext über Memories laden, bevor breit in README, AGENT.md und Doku gesucht wird.
+- Projektkontext über Memories laden, bevor breit in README, AGENTS.md und Doku gesucht wird.
 
 ## Grenzen
 

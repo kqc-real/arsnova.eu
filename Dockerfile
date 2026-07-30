@@ -47,6 +47,7 @@ ENV NODE_ENV=production
 
 # Security-Patches des unveränderlich referenzierten Alpine-Basisimages einspielen.
 # Chromium für Server-PDF (Playwright nutzt System-Binary, kein Browser-Download).
+# libssh explizit auf >=0.12.1-r0 (CVE-2026-59851), falls Chromium eine ältere Transitivversion zieht.
 RUN apk upgrade --no-cache \
     && apk add --no-cache \
       chromium \
@@ -55,7 +56,8 @@ RUN apk upgrade --no-cache \
       harfbuzz \
       ca-certificates \
       ttf-freefont \
-      font-noto
+      font-noto \
+      'libssh>=0.12.1-r0'
 
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \

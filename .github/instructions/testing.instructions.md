@@ -29,6 +29,6 @@ applyTo:
 ## References
 
 - [docs/TESTING.md](../../docs/TESTING.md)
-- [AGENT.md](../../AGENT.md)
+- [AGENTS.md](../../AGENTS.md)
 - [apps/backend/vitest.config.ts](../../apps/backend/vitest.config.ts)
 - [apps/frontend/vitest.config.ts](../../apps/frontend/vitest.config.ts)

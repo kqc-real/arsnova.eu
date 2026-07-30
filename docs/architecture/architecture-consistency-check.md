@@ -3,7 +3,7 @@
 # Prüfung: Widersprüche in der technischen Architektur
 
 **Datum:** 2026-05-31 · Tempo-Abgleich ergänzt 2026-06-04
-**Geprüft:** `AGENT.md`, `handbook.md`, `README.md`, alle Dateien unter `docs/architecture`, Prisma-Schema, Backend-/Frontend-Code, Zod-Schemas (`shared-types`), `package.json`-Dateien, `docker-compose.yml`, `tsconfig.json`, Angular-Router und relevante Feature-Dokumente.
+**Geprüft:** `AGENTS.md`, `handbook.md`, `README.md`, alle Dateien unter `docs/architecture`, Prisma-Schema, Backend-/Frontend-Code, Zod-Schemas (`shared-types`), `package.json`-Dateien, `docker-compose.yml`, `tsconfig.json`, Angular-Router und relevante Feature-Dokumente.
 
 ---
 
@@ -92,7 +92,7 @@ Bei Prisma-Upgrades Root, Backend, `package-lock.json`, `prisma/schema.prisma`, 
 
 | Dokument                     | Angabe                                  |
 | ---------------------------- | --------------------------------------- |
-| `AGENT.md`                   | Angular Standalone, Signals, Material 3 |
+| `AGENTS.md`                  | Angular Standalone, Signals, Material 3 |
 | Handbook                     | Angular 21.2.x                          |
 | README Badges                | Angular 21.2                            |
 | `architecture-overview.md`   | Angular 21 / Material 3                 |

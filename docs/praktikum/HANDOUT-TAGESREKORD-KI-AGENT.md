@@ -23,7 +23,7 @@ Dieses Handout ist bewusst **kein** reines Coding-Tutorial. Im Praktikum sollt i
 - **i18n-Kontext:** `docs/architecture/decisions/0008-i18n-internationalization.md`
 - **Status-/Dialog-Kontext:** `docs/architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md`
 - **Neue Architekturentscheidung fuer dieses Feature:** `docs/architecture/decisions/0024-daily-session-records-in-server-status-help-dialog.md`
-- **Agenten- und Repo-Kontext:** `AGENT.md` und `.cursorrules`
+- **Agenten- und Repo-Kontext:** `AGENTS.md` und `.cursorrules`
 
 **Didaktischer Kern:** Das Backlog sagt **was** geliefert werden soll. Das ADR sagt **warum** und unter welchen Leitplanken. Der Branch und der Pull Request machen sichtbar, **wie** im Team daraus ein geprueftes Inkrement wird.
 
@@ -136,7 +136,7 @@ Ein KI-Agent ist kein einfacher Chatbot. Er hat Zugriff auf das Dateisystem, kan
 
 Bevor der KI-Agent überhaupt involviert wird, muss er ein klares und detailliertes Gesamtbild des Repositories erkunden.
 
-- **Aktion:** Man fordert den Agenten explizit auf, sich an den echten Repo-Artefakten zu orientieren, z. B. durch den Prompt: _"Lies `AGENT.md`, `.cursorrules`, `Backlog.md` Story 0.4a, `docs/features/server-status-widget.md`, ADR-0003, ADR-0008, ADR-0021 und ADR-0024. Fasse mir erst die Leitplanken zusammen, bevor du Implementierungsschritte vorschlaegst."_
+- **Aktion:** Man fordert den Agenten explizit auf, sich an den echten Repo-Artefakten zu orientieren, z. B. durch den Prompt: _"Lies `AGENTS.md`, `.cursorrules`, `Backlog.md` Story 0.4a, `docs/features/server-status-widget.md`, ADR-0003, ADR-0008, ADR-0021 und ADR-0024. Fasse mir erst die Leitplanken zusammen, bevor du Implementierungsschritte vorschlaegst."_
 - **Nutzen:** Der Agent lernt nicht nur Coding-Regeln, sondern auch den Produktvertrag und die Architekturgrenzen kennen.
 
 ### Phase 1: Problem im Backlog schärfen

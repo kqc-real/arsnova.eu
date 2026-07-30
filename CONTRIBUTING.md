@@ -2,7 +2,7 @@
 
 Dieses Projekt wird KI-gestützt weiterentwickelt. Menschen tragen Produkt-, Architektur- und Review-Verantwortung; KI-Werkzeuge wie Cursor, Copilot oder Codex helfen bei Recherche, Umsetzung und Tests. Diese Datei beschreibt den pragmatischen Einstieg für Beiträge.
 
-**Stand:** 2026-07-10 — abgeglichen mit [README.md](README.md), [AGENT.md](AGENT.md), [docs/onboarding.md](docs/onboarding.md), [docs/TESTING.md](docs/TESTING.md), [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und der Produktionsdoku.
+**Stand:** 2026-07-10 — abgeglichen mit [README.md](README.md), [AGENTS.md](AGENTS.md), [docs/onboarding.md](docs/onboarding.md), [docs/TESTING.md](docs/TESTING.md), [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und der Produktionsdoku.
 
 ---
 
@@ -28,7 +28,7 @@ Für den Einstieg ist Node 24.18.0 LTS aus `.nvmrc` der Standardweg; Node 22.12+
 
 ## 2. KI-gestützt arbeiten
 
-- [AGENT.md](AGENT.md) ist der kurze Einstieg für KI-Coding-Agents und sollte in KI-Sessions zuerst geladen werden.
+- [AGENTS.md](AGENTS.md) ist der kurze Einstieg für KI-Coding-Agents und sollte in KI-Sessions zuerst geladen werden.
 - [Backlog.md](Backlog.md) bleibt die Quelle für Story-Scope, Akzeptanzkriterien und Definition of Done.
 - Für KI-Kontext zusätzlich [docs/serena.md](docs/serena.md), [`.cursorrules`](.cursorrules), [`.cursor/rules/core.mdc`](.cursor/rules/core.mdc) und bei verfügbarer Serena-Integration `mem:core` beachten.
 - KI-Vorschläge immer gegen Diff, Tests, Datenschutz und Architektur prüfen. Keine Secrets, lokalen `.env`-Werte oder produktiven Zugangsdaten in Prompts, Commits oder PRs übernehmen.

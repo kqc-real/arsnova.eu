@@ -14,7 +14,7 @@ arsnova.eu wurde bisher durch mehrere KI-Kontextdateien beschrieben:
 
 - `.cursorrules`
 - `.cursor/rules/core.mdc`
-- `AGENT.md`
+- `AGENTS.md`
 - `docs/cursor-context.md`
 
 Diese Dateien hatten sich funktional ueberlappt. Besonders `docs/cursor-context.md` enthielt einen
@@ -52,9 +52,9 @@ Ziel der Konsolidierung ist:
 Regeln zu Sicherheit, Qualitaet, Workflow, Produktion und i18n-Details werden dort nicht mehr
 dupliziert.
 
-### 2. `AGENT.md` enthaelt nur noch Kategorie-B-Regeln
+### 2. `AGENTS.md` enthaelt nur noch Kategorie-B-Regeln
 
-`AGENT.md` bleibt der tool-unabhaengige Agent-Vertrag fuer kritische Regeln:
+`AGENTS.md` bleibt der tool-unabhaengige Agent-Vertrag fuer kritische Regeln:
 
 - schema-first ueber `libs/shared-types`
 - tRPC statt REST/DTO-Duplikaten
@@ -67,7 +67,7 @@ dupliziert.
 - minimale Validierungsbaseline
 
 Breite Navigationslisten, Cursor-spezifische Hinweise und detailreicher Projektkontext wandern aus
-`AGENT.md` heraus.
+`AGENTS.md` heraus.
 
 ### 3. Serena-Memories werden versioniert und zum primaeren Langzeitkontext
 
@@ -116,7 +116,7 @@ Die moderne Cursor-Regel bleibt als Always-Apply-Minimalhinweis bestehen. Sie ve
 `docs/cursor-context.md`, sondern auf Serena:
 
 - `mem:core` fuer Projektkontext
-- `AGENT.md` fuer kritische Regeln
+- `AGENTS.md` fuer kritische Regeln
 - `.cursorrules` fuer knappe Pfad- und Stack-Fakten
 - fokussierte Docs und Code fuer sicherheits- oder produktionsrelevante Detailpruefung
 
@@ -145,7 +145,7 @@ Nutze Serena MCP für dieses Repo. Lies mem:core und die für diese Aufgabe rele
 Fuer VS Code mit Codex:
 
 ```text
-@workspace Lade den Projektkontext über das Serena MCP, beginnend mit mem:core. Bevor du Code generierst oder änderst, lies zwingend die AGENT.md und halte dich bei der Umsetzung exakt an die dort definierten Architektur- und Validierungsregeln.
+@workspace Lade den Projektkontext über das Serena MCP, beginnend mit mem:core. Bevor du Code generierst oder änderst, lies zwingend die AGENTS.md und halte dich bei der Umsetzung exakt an die dort definierten Architektur- und Validierungsregeln.
 ```
 
 ## Konsequenzen
@@ -153,19 +153,19 @@ Fuer VS Code mit Codex:
 ### Positiv
 
 - Der immer geladene Prompt-Kontext wird deutlich kleiner.
-- Kritische Regeln bleiben in `AGENT.md` sichtbar und tool-unabhaengig.
+- Kritische Regeln bleiben in `AGENTS.md` sichtbar und tool-unabhaengig.
 - Detaillierter Kontext wird selektiv nach Aufgabe geladen statt pauschal in jeden Prompt kopiert.
 - Serena-Memories sind versionierbar, reviewbar und koennen in neuen Chats wiederverwendet werden.
 - Die Projektstruktur fuer KI-Kontext wird klarer:
   - `.cursorrules`: Stack/Pfade
-  - `AGENT.md`: kritische Regeln
+  - `AGENTS.md`: kritische Regeln
   - `.serena/memories`: detaillierter Kontext
   - `docs/serena.md`: menschliche Anleitung fuer Serena-Nutzung
 - Der geloeschte Grosskontext reduziert Drift-Risiko.
 
 ### Negativ / Risiken
 
-- Agents ohne Serena-MCP muessen mehr Kontext aus `AGENT.md`, `.cursorrules` und fokussierten Docs
+- Agents ohne Serena-MCP muessen mehr Kontext aus `AGENTS.md`, `.cursorrules` und fokussierten Docs
   selbst zusammensetzen.
 - Die Memory-Qualitaet muss gepflegt werden; veraltete Memories koennen falsche Annahmen erzeugen.
 - `.serena/` enthaelt auch generierbare technische Artefakte, deshalb muessen Cache, Logs und lokale
@@ -180,7 +180,7 @@ Fuer VS Code mit Codex:
   driftanfaelliger Parallelkontext bestunde.
 - **Alle Regeln in `.cursorrules` lassen:** Verworfen, weil Always-on-Kontext zu gross bleibt und
   Sicherheits-/Workflow-Regeln mit Stack-Fakten vermischt werden.
-- **Alle Regeln in `AGENT.md` konzentrieren:** Verworfen, weil `AGENT.md` dann wieder zu einer
+- **Alle Regeln in `AGENTS.md` konzentrieren:** Verworfen, weil `AGENTS.md` dann wieder zu einer
   grossen Kontextdatei wuerde und selektives Laden verhindert.
 - **Serena-Memories lokal, aber unversioniert lassen:** Verworfen, weil neue Chats, andere
   Arbeitsumgebungen und Reviews den Memory-Graph nicht verlaesslich sehen koennen.
@@ -192,7 +192,7 @@ Fuer VS Code mit Codex:
 Umgesetzt im Repo:
 
 - `.cursorrules` auf minimale Stack-/Pfad-Fakten reduziert.
-- `AGENT.md` auf kritische Regeln und Validierungsbaseline reduziert.
+- `AGENTS.md` auf kritische Regeln und Validierungsbaseline reduziert.
 - `.serena/` versionierbar gemacht; Cache, Logs und `project.local.yml` bleiben ignoriert.
 - `mem:core` als Memory-Einstiegspunkt neu strukturiert.
 - fokussierte Memories fuer Module, Security, Session-Lifecycle, API-Router, Frontend-Routing,

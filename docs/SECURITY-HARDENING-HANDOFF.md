@@ -90,7 +90,7 @@ Akzeptanzkriterien und Lasttest-AKs: **nur** Plan (§6, §6.5,
 | Env / Trust-Proxy   | [ENVIRONMENT.md](ENVIRONMENT.md)                                                               |
 | Deploy / Nginx      | [deployment-debian-root-server.md](deployment-debian-root-server.md)                           |
 | Last / 500 TN       | [implementation/LASTTEST-500-TEILNEHMENDE.md](implementation/LASTTEST-500-TEILNEHMENDE.md)     |
-| Agent-Regeln        | Root `AGENT.md`, `.cursorrules`, `mem:core`                                                    |
+| Agent-Regeln        | Root `AGENTS.md`, `.cursorrules`, `mem:core`                                                   |
 
 ---
 

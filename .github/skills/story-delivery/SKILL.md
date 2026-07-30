@@ -61,7 +61,7 @@ This skill exists to make agents follow the repo's real delivery order instead o
 ## References
 
 - [Backlog.md](../../../Backlog.md)
-- [AGENT.md](../../../AGENT.md)
+- [AGENTS.md](../../../AGENTS.md)
 - [docs/TESTING.md](../../../docs/TESTING.md)
 - [docs/SECURITY-OVERVIEW.md](../../../docs/SECURITY-OVERVIEW.md)
 - [docs/I18N-ANGULAR.md](../../../docs/I18N-ANGULAR.md)

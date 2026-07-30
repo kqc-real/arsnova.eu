@@ -157,7 +157,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 ### Code-Qualität
 
 - Code kompiliert fehlerfrei (`tsc --noEmit` für Backend, Frontend und shared-types).
-- Kein `any`-Typ im gesamten Code (Regel aus AGENT.md §3).
+- Kein `any`-Typ im gesamten Code (Regel aus AGENTS.md §3).
 - Alle tRPC-Endpunkte validieren Ein-/Ausgaben über Zod-Schemas aus `@arsnova/shared-types`.
 - Das DTO-Pattern ist eingehalten: Daten werden serverseitig durch DTOs gefiltert, bevor sie an Clients gesendet werden.
 - `isCorrect` wird **niemals** im Status `ACTIVE` an Teilnehmende übertragen (Data-Stripping-Regel, Story 2.4).

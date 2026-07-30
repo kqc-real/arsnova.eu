@@ -122,7 +122,7 @@ Spannend ist hier die Frage, ob KI euch eher beim Formulieren von Testideen geho
 
 - [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 - [`Backlog.md`](../../Backlog.md)
-- [`AGENT.md`](../../AGENT.md)
+- [`AGENTS.md`](../../AGENTS.md)
 - projektspezifische Checklisten oder Review-Hinweise in der Doku
 
 ### Anknüpfung an eure Tickets

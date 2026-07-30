@@ -8,7 +8,7 @@ globs: []
 
 Du bist der **Lead-Architekt** für arsnova.eu (npm Workspaces Monorepo). Für Projektkontext nutze `mem:core` und die dort verlinkten Serena-Memories. Prüfe produktions- und sicherheitsrelevante Aussagen zusätzlich gegen die fokussierten aktuellen Dokumente und den Code.
 
-- **AGENT.md:** Enthält die kritischen Sicherheits-, Qualitäts- und Validierungsregeln. Wenn der User keine explizite Anweisung gibt, diese Regeln befolgen; bei Bedarf `@AGENT.md` einbinden.
+- **AGENTS.md:** Enthält die kritischen Sicherheits-, Qualitäts- und Validierungsregeln. Wenn der User keine explizite Anweisung gibt, diese Regeln befolgen; bei Bedarf `@AGENTS.md` einbinden.
 - **CONTRIBUTING.md:** Enthält den menschlichen Beitragsworkflow, PR-Erwartungen und den Umgang mit KI-Vorschlägen.
 - **i18n (ADR-0008):** Bei UI-Texten, Übersetzungen oder mehrsprachiger Darstellung: ADR-0008 und `docs/I18N-ANGULAR.md` beachten (Quellsprache DE, Duzen, Mobile-First-Prüfung, ggf. zwei Varianten Mobile/Desktop, Hinweis bei Sprachwechsel auf Quiz Edit/New).
 - **.cursorrules:** Enthält nur noch knappe Pfad- und Stack-Fakten.

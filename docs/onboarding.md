@@ -212,7 +212,7 @@ arsnova.eu/
 │   ├── architecture/         # Architektur-Handbuch + ADRs
 │   └── diagrams/             # Mermaid-Architekturdiagramme
 ├── docker-compose.yml        # PostgreSQL + Redis
-├── AGENT.md                  # ⚠️ KI-Coding-Regeln (Pflichtlektüre!)
+├── AGENTS.md                  # ⚠️ KI-Coding-Regeln (Pflichtlektüre!)
 ├── Backlog.md                # Alle User Stories mit Akzeptanzkriterien
 └── package.json              # Root: npm Workspaces + globale Scripts
 ```
@@ -419,7 +419,7 @@ Für Qualität und Tests sind diese Einstiege besonders relevant:
 
 ## 7. Wichtige Regeln für Entwickler
 
-> Diese Regeln sind ausführlich in [`AGENT.md`](../AGENT.md) beschrieben. Hier die Kurzfassung:
+> Diese Regeln sind ausführlich in [`AGENTS.md`](../AGENTS.md) beschrieben. Hier die Kurzfassung:
 
 | Regel                                  | Beschreibung                                                                                                               |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -438,7 +438,7 @@ Für Qualität und Tests sind diese Einstiege besonders relevant:
 
 | Dokument                                                                                                | Inhalt                                                                        |
 | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [`AGENT.md`](../AGENT.md)                                                                               | KI-Coding-Regeln und Architektur-Leitplanken                                  |
+| [`AGENTS.md`](../AGENTS.md)                                                                             | KI-Coding-Regeln und Architektur-Leitplanken                                  |
 | [`Backlog.md`](../Backlog.md)                                                                           | Alle User Stories mit Priorität und Akzeptanzkriterien                        |
 | [`docs/architecture/handbook.md`](architecture/handbook.md)                                             | Ausführliches Architektur-Handbuch                                            |
 | [`docs/architecture/architecture-consistency-check.md`](architecture/architecture-consistency-check.md) | Aktueller Architektur-/Code-Abgleich und dokumentierte Driftpunkte            |
