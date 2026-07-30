@@ -110,14 +110,13 @@ test('akzeptiert einen vollständigen PR-Body mit den acht Template-Selbstreview
 });
 
 test('lehnt leere Zusammenfassungsfelder ab, auch wenn die nächste Zeile Text hat', () => {
-  const body = buildValidBody({ problem: '' }).replace(
-    '- **Problem:** ',
-    '- **Problem:**\n',
-  );
+  const body = buildValidBody({ problem: '' }).replace('- **Problem:** ', '- **Problem:**\n');
   const result = validatePrTemplateBody(body);
   assert.equal(result.ok, false);
   assert.ok(
-    result.errors.some((error) => error.includes('Zusammenfassungsfeld') && error.includes('Problem')),
+    result.errors.some(
+      (error) => error.includes('Zusammenfassungsfeld') && error.includes('Problem'),
+    ),
   );
 });
 

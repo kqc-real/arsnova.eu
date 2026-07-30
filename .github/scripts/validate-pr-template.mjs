@@ -144,9 +144,9 @@ export function validatePrTemplateBody(body) {
       `Genau eine Risikostufe muss ausgewählt sein; gefunden: ${selectedRiskRows.length}`,
     );
   }
-  const unknownSelectedRisks = [
-    ...riskSection.matchAll(/^- \[([xX])\][ \t]+(\S[^\n]*)$/gm),
-  ].filter((match) => !RISK_LEVELS.some((level) => match[2].startsWith(level)));
+  const unknownSelectedRisks = [...riskSection.matchAll(/^- \[([xX])\][ \t]+(\S[^\n]*)$/gm)].filter(
+    (match) => !RISK_LEVELS.some((level) => match[2].startsWith(level)),
+  );
   if (unknownSelectedRisks.length > 0) {
     errors.push(
       `Unbekannte markierte Risikostufe: ${unknownSelectedRisks
@@ -178,9 +178,7 @@ export function validatePrTemplateBody(body) {
     }
   }
 
-  const unexpected = selfReviewItems.filter(
-    (item) => !expectedNormalized.includes(item.text),
-  );
+  const unexpected = selfReviewItems.filter((item) => !expectedNormalized.includes(item.text));
   if (unexpected.length > 0) {
     errors.push(
       `Unerwartete Selbstreview-Punkte: ${unexpected.map((item) => `"${item.text}"`).join(', ')}`,
