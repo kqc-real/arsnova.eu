@@ -2021,7 +2021,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     const bottomAction = fixture.nativeElement.querySelector('.quiz-edit__bottom-actions');
     const backLink = bottomAction?.querySelector('a[routerLink=".."]') as HTMLAnchorElement | null;
     const previewButton = bottomAction?.querySelector(
-      'button[aria-label="Vorschau öffnen"]',
+      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
     ) as HTMLButtonElement | null;
     const saveButton = bottomAction?.querySelector(
       '.quiz-edit__bottom-actions-save',
@@ -2040,12 +2040,12 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
     const backLinks = fixture.nativeElement.querySelectorAll('a[routerLink=".."]');
     const previewButtons = fixture.nativeElement.querySelectorAll(
-      'button[aria-label="Vorschau öffnen"]',
+      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
     );
 
     expect(bottomAction).not.toBeNull();
     expect(backLink?.textContent).toContain('Zurück');
-    expect(previewButton?.textContent).toContain('Vorschau');
+    expect(previewButton?.textContent).toContain('Speichern & Vorschau');
     expect(cancelButton?.textContent).toContain('Verwerfen');
     expect(addAnotherButton?.textContent).toContain('Weitere Frage');
     expect(saveButton?.textContent).toContain('Änderungen speichern');
