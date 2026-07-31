@@ -7,9 +7,12 @@ import {
   OnDestroy,
   ViewChild,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import {
   confidenceDefaultLabelHigh,
@@ -27,7 +30,8 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs/operators';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -345,6 +349,20 @@ export class QuizEditComponent implements OnDestroy {
   private readonly answerMarkdownCache = new Map<string, SafeHtml>();
   private readonly localeDirtyGetter = (): boolean => this.hasPendingChanges();
   private confirmDiscardInFlight: Promise<boolean> | null = null;
+  /**
+   * Letzter mit dem Store abgeglichener Formularstand. Während Preview nur syncen,
+   * wenn das Formular noch diesem Stand entspricht (keine echten Parent-Entwürfe).
+   */
+  private lastSyncedSettingsJson: string | null = null;
+  private lastSyncedMetadataJson: string | null = null;
+  private readonly previewRouteActive = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.isPreviewActive()),
+      startWith(this.isPreviewActive()),
+    ),
+    { initialValue: this.isPreviewActive() },
+  );
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -658,6 +676,7 @@ export class QuizEditComponent implements OnDestroy {
     if (quiz) {
       this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
       this.patchSettingsForm(quiz.settings);
+      this.rememberSyncedFormBaseline(quiz);
     }
     if (this.route.snapshot.queryParamMap?.get('from') === 'new') {
       queueMicrotask(() => {
@@ -671,6 +690,12 @@ export class QuizEditComponent implements OnDestroy {
     }
     this.scheduleLivePreview();
     this.localeGuard.register(this.localeDirtyGetter);
+    effect(() => {
+      const quizDoc = this.quiz();
+      const previewActive = this.previewRouteActive();
+      if (!quizDoc || !previewActive) return;
+      untracked(() => this.syncFormsFromStoreDuringPreview(quizDoc));
+    });
   }
 
   ngOnDestroy(): void {
@@ -2125,6 +2150,7 @@ export class QuizEditComponent implements OnDestroy {
     try {
       const updated = this.quizStore.updateQuizSettings(this.id, this.readSettingsFromForm());
       this.patchSettingsForm(updated);
+      this.rememberSyncedSettingsBaseline(updated);
       this.settingsSaved.set(true);
       return true;
     } catch (error) {
@@ -2141,6 +2167,11 @@ export class QuizEditComponent implements OnDestroy {
     try {
       const updated = this.quizStore.updateQuizMetadata(this.id, this.readMetadataFromForm());
       this.patchMetadataForm(updated.name, updated.description, updated.motifImageUrl);
+      this.rememberSyncedMetadataBaseline({
+        name: updated.name,
+        description: updated.description,
+        motifImageUrl: updated.motifImageUrl,
+      });
       this.metadataSaved.set(true);
       return true;
     } catch (error) {
@@ -2215,6 +2246,7 @@ export class QuizEditComponent implements OnDestroy {
 
     this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
     this.patchSettingsForm(quiz.settings);
+    this.rememberSyncedFormBaseline(quiz);
     this.questionDrafts.set({});
     this.resetQuestionForm('SINGLE_CHOICE');
     this.editingQuestionId.set(null);
@@ -2533,6 +2565,65 @@ export class QuizEditComponent implements OnDestroy {
     });
     this.metadataForm.markAsPristine();
     this.metadataForm.markAsUntouched();
+  }
+
+  private rememberSyncedFormBaseline(quiz: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+    settings: QuizSettings;
+  }): void {
+    this.rememberSyncedSettingsBaseline(quiz.settings);
+    this.rememberSyncedMetadataBaseline({
+      name: quiz.name,
+      description: quiz.description,
+      motifImageUrl: quiz.motifImageUrl,
+    });
+  }
+
+  private rememberSyncedSettingsBaseline(settings: QuizSettings): void {
+    this.lastSyncedSettingsJson = JSON.stringify(this.toComparableSettings(settings));
+  }
+
+  private rememberSyncedMetadataBaseline(metadata: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+  }): void {
+    this.lastSyncedMetadataJson = JSON.stringify({
+      name: metadata.name.trim(),
+      description: normalizeNullableText(metadata.description),
+      motifImageUrl: normalizeNullableText(metadata.motifImageUrl),
+    } satisfies QuizMetadataComparable);
+  }
+
+  /**
+   * Während die Preview gemountet ist: Parent-Formulare an Store anbinden,
+   * sofern sie noch dem zuletzt synchronisierten Stand entsprechen.
+   */
+  private syncFormsFromStoreDuringPreview(quiz: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+    settings: QuizSettings;
+  }): void {
+    const storeSettingsJson = JSON.stringify(this.toComparableSettings(quiz.settings));
+    const formSettingsJson = JSON.stringify(this.toComparableSettings(this.readSettingsFromForm()));
+    if (this.lastSyncedSettingsJson === null || formSettingsJson === this.lastSyncedSettingsJson) {
+      this.patchSettingsForm(quiz.settings);
+      this.lastSyncedSettingsJson = storeSettingsJson;
+    }
+
+    const storeMetadataJson = JSON.stringify({
+      name: quiz.name.trim(),
+      description: normalizeNullableText(quiz.description),
+      motifImageUrl: normalizeNullableText(quiz.motifImageUrl),
+    } satisfies QuizMetadataComparable);
+    const formMetadataJson = JSON.stringify(this.readMetadataFromForm());
+    if (this.lastSyncedMetadataJson === null || formMetadataJson === this.lastSyncedMetadataJson) {
+      this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+      this.lastSyncedMetadataJson = storeMetadataJson;
+    }
   }
 
   private validateMetadataForm(): boolean {

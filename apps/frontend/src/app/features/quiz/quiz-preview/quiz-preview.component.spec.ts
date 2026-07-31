@@ -1,3 +1,4 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -539,6 +540,55 @@ describe('QuizPreviewComponent', () => {
       expect(matDialogMock.open).toHaveBeenCalled();
       expect(component.inlineEditMode()).toBe(false);
     });
+  });
+
+  it('setzt Fokus auf Bearbeiten nach Escape ohne Aenderungen', async () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    const appRef = TestBed.inject(ApplicationRef);
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    fixture.detectChanges();
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    await vi.waitFor(() => {
+      expect(component.inlineEditMode()).toBe(false);
+    });
+    fixture.detectChanges();
+    appRef.tick();
+    await fixture.whenStable();
+
+    const editButton = fixture.nativeElement.querySelector(
+      'button.quiz-preview__edit-action',
+    ) as HTMLButtonElement | null;
+    expect(editButton).not.toBeNull();
+    expect(document.activeElement).toBe(editButton);
+  });
+
+  it('setzt Fokus auf Bearbeiten nach bestaetigtem Escape mit Aenderungen', async () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    const appRef = TestBed.inject(ApplicationRef);
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    fixture.detectChanges();
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    await vi.waitFor(() => {
+      expect(component.inlineEditMode()).toBe(false);
+    });
+    fixture.detectChanges();
+    appRef.tick();
+    await fixture.whenStable();
+
+    const editButton = fixture.nativeElement.querySelector(
+      'button.quiz-preview__edit-action',
+    ) as HTMLButtonElement | null;
+    expect(editButton).not.toBeNull();
+    expect(document.activeElement).toBe(editButton);
   });
 
   it('meldet Inline-Aenderungen an den Locale-Guard', () => {

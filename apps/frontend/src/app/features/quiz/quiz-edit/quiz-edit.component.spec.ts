@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -89,6 +90,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     };
     quiz.questions = [];
     vi.clearAllMocks();
+    mockStore.getQuizById.mockImplementation((id: string) => (id === QUIZ_ID ? quiz : null));
     matDialogMock.open.mockReset();
     matDialogMock.open.mockImplementation(() => ({
       afterClosed: () => of(true),
@@ -293,6 +295,56 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     component.onBeforeUnload(event);
 
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('uebernimmt Preview-Settings in Parent-Formulare ohne falschen Pending-State', async () => {
+    const quizSignal = signal<QuizDocument>({ ...quiz, settings: { ...quiz.settings } });
+    mockStore.getQuizById.mockImplementation((id: string) =>
+      id === QUIZ_ID ? quizSignal() : null,
+    );
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizEditComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({}),
+              firstChild: { routeConfig: { path: 'preview' } },
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+        { provide: MatSnackBar, useValue: snackBarMock },
+      ],
+    });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
+    TestBed.overrideProvider(MatSnackBar, { useValue: snackBarMock });
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.isPreviewActive()).toBe(true);
+    expect(component.hasPendingChanges()).toBe(false);
+
+    quizSignal.update((current) => ({
+      ...current,
+      settings: {
+        ...current.settings,
+        defaultTimer: 90,
+      },
+    }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.settingsForm.controls.defaultTimer.value).toBe(90);
+    expect(component.hasPendingChanges()).toBe(false);
   });
 
   it('laesst canDeactivate ohne Dialog zu wenn keine Aenderungen offen sind', async () => {

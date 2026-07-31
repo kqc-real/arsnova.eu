@@ -488,10 +488,12 @@ export class QuizPreviewComponent implements OnDestroy {
 
   cancelInlineEditMode(): void {
     this.resetInlineEditState();
+    this.focusEditActionAfterInlineClose();
   }
 
   finishInlineEditMode(): void {
     this.commitInlineEdits();
+    this.focusEditActionAfterInlineClose();
   }
 
   /**
@@ -520,6 +522,27 @@ export class QuizPreviewComponent implements OnDestroy {
       return;
     }
     await this.backToOrigin();
+  }
+
+  /** Nach Schließen des Inline-Editors Fokus auf den sichtbaren „Bearbeiten“-Button legen. */
+  private focusEditActionAfterInlineClose(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    afterNextRender(
+      () => {
+        const editButton = this.document.querySelector<HTMLButtonElement>(
+          'button.quiz-preview__edit-action',
+        );
+        if (
+          !editButton ||
+          editButton.disabled ||
+          editButton.getAttribute('aria-hidden') === 'true'
+        ) {
+          return;
+        }
+        editButton.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   onQuestionDraftChanged(value: string): void {
