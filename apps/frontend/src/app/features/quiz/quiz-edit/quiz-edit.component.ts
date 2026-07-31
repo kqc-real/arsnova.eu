@@ -355,6 +355,8 @@ export class QuizEditComponent implements OnDestroy {
    */
   private lastSyncedSettingsJson: string | null = null;
   private lastSyncedMetadataJson: string | null = null;
+  private lastSyncedQuestionId: string | null = null;
+  private lastSyncedQuestionJson: string | null = null;
   private readonly previewRouteActive = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -2094,6 +2096,9 @@ export class QuizEditComponent implements OnDestroy {
     if (!this.saveAll()) {
       return;
     }
+    // Offenes Fragenformular nicht in die Preview mitnehmen: sonst bleibt nach
+    // Preview-Saves ein veralteter Parent-Stand zurück und wirkt wie ein Entwurf.
+    this.cancelEditing();
     void this.router.navigate(['preview'], {
       relativeTo: this.route,
       queryParams: { returnTo: 'edit' },
@@ -2215,9 +2220,12 @@ export class QuizEditComponent implements OnDestroy {
       this.persistCurrentQuestionDraft();
     }
 
-    this.applyQuestionInputToForm(this.toComparableQuestionInput(question));
+    const comparable = this.toComparableQuestionInput(question);
+    this.applyQuestionInputToForm(comparable);
 
     this.editingQuestionId.set(question.id);
+    this.lastSyncedQuestionId = question.id;
+    this.lastSyncedQuestionJson = JSON.stringify(comparable);
     this.submitError.set(null);
     this.submitted.set(false);
     this.form.markAsPristine();
@@ -2236,6 +2244,8 @@ export class QuizEditComponent implements OnDestroy {
       this.removeQuestionDraft(editingQuestionId);
     }
     this.editingQuestionId.set(null);
+    this.lastSyncedQuestionId = null;
+    this.lastSyncedQuestionJson = null;
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
   }
@@ -2606,6 +2616,7 @@ export class QuizEditComponent implements OnDestroy {
     description: string | null;
     motifImageUrl: string | null;
     settings: QuizSettings;
+    questions: QuizQuestion[];
   }): void {
     const storeSettingsJson = JSON.stringify(this.toComparableSettings(quiz.settings));
     const formSettingsJson = JSON.stringify(this.toComparableSettings(this.readSettingsFromForm()));
@@ -2624,6 +2635,37 @@ export class QuizEditComponent implements OnDestroy {
       this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
       this.lastSyncedMetadataJson = storeMetadataJson;
     }
+
+    this.syncActiveQuestionFormFromStoreDuringPreview(quiz.questions);
+  }
+
+  private syncActiveQuestionFormFromStoreDuringPreview(questions: QuizQuestion[]): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (!editingQuestionId) return;
+
+    const storeQuestion = questions.find((question) => question.id === editingQuestionId);
+    if (!storeQuestion) {
+      this.cancelEditing();
+      return;
+    }
+
+    const storeJson = JSON.stringify(this.toComparableQuestionInput(storeQuestion));
+    const formJson = JSON.stringify(
+      this.toComparableQuestionInput(this.buildQuestionInputFromForm()),
+    );
+    if (
+      this.lastSyncedQuestionId !== editingQuestionId ||
+      (this.lastSyncedQuestionJson !== null && formJson !== this.lastSyncedQuestionJson)
+    ) {
+      return;
+    }
+
+    this.applyQuestionInputToForm(this.toComparableQuestionInput(storeQuestion));
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+    this.removeQuestionDraft(editingQuestionId);
+    this.lastSyncedQuestionJson = storeJson;
+    this.scheduleLivePreview();
   }
 
   private validateMetadataForm(): boolean {

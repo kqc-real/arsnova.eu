@@ -347,6 +347,122 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.hasPendingChanges()).toBe(false);
   });
 
+  it('uebernimmt Preview-Fragenupdates in das aktive Parent-Formular ohne Pending-State', async () => {
+    const baseQuestion = {
+      id: QUESTION_ID,
+      text: 'Originalfrage',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      enabled: true,
+      timer: null,
+      answers: [
+        {
+          id: 'a1',
+          text: 'A',
+          isCorrect: true,
+        },
+        {
+          id: 'a2',
+          text: 'B',
+          isCorrect: false,
+        },
+      ],
+      ratingMin: null,
+      ratingMax: null,
+      ratingLabelMin: null,
+      ratingLabelMax: null,
+    };
+    const quizSignal = signal<QuizDocument>({
+      ...quiz,
+      settings: { ...quiz.settings },
+      questions: [baseQuestion],
+    });
+    mockStore.getQuizById.mockImplementation((id: string) =>
+      id === QUIZ_ID ? quizSignal() : null,
+    );
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizEditComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({}),
+              firstChild: { routeConfig: { path: 'preview' } },
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+        { provide: MatSnackBar, useValue: snackBarMock },
+      ],
+    });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
+    TestBed.overrideProvider(MatSnackBar, { useValue: snackBarMock });
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.isEditing()).toBe(true);
+    expect(component.hasPendingChanges()).toBe(false);
+
+    quizSignal.update((current) => ({
+      ...current,
+      questions: current.questions.map((question) =>
+        question.id === QUESTION_ID ? { ...question, text: 'Aus Preview gespeichert' } : question,
+      ),
+    }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.form.controls.text.value).toBe('Aus Preview gespeichert');
+    expect(component.hasPendingChanges()).toBe(false);
+
+    component.saveAll();
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+  });
+
+  it('schliesst den Frageneditor beim Oeffnen der Vorschau', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        enabled: true,
+        timer: null,
+        answers: [
+          { id: 'a1', text: 'A', isCorrect: true },
+          { id: 'a2', text: 'B', isCorrect: false },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.isEditing()).toBe(true);
+
+    component.openPreview();
+
+    expect(component.isEditing()).toBe(false);
+  });
+
   it('laesst canDeactivate ohne Dialog zu wenn keine Aenderungen offen sind', async () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
