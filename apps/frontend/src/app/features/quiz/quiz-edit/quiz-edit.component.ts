@@ -2,13 +2,17 @@ import { DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   ElementRef,
+  HostListener,
   LOCALE_ID,
   OnDestroy,
   ViewChild,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import {
   confidenceDefaultLabelHigh,
@@ -26,7 +30,8 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs/operators';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -116,6 +121,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 
 type AnswerFormGroup = FormGroup<{
   text: FormControl<string>;
@@ -341,6 +347,24 @@ export class QuizEditComponent implements OnDestroy {
   private readonly localeId = inject(LOCALE_ID);
   private readonly markdownCache = new Map<string, SafeHtml>();
   private readonly answerMarkdownCache = new Map<string, SafeHtml>();
+  private readonly localeDirtyGetter = (): boolean => this.hasPendingChanges();
+  private confirmDiscardInFlight: Promise<boolean> | null = null;
+  /**
+   * Letzter mit dem Store abgeglichener Formularstand. Während Preview nur syncen,
+   * wenn das Formular noch diesem Stand entspricht (keine echten Parent-Entwürfe).
+   */
+  private lastSyncedSettingsJson: string | null = null;
+  private lastSyncedMetadataJson: string | null = null;
+  private lastSyncedQuestionId: string | null = null;
+  private lastSyncedQuestionJson: string | null = null;
+  private readonly previewRouteActive = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.isPreviewActive()),
+      startWith(this.isPreviewActive()),
+    ),
+    { initialValue: this.isPreviewActive() },
+  );
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -654,6 +678,7 @@ export class QuizEditComponent implements OnDestroy {
     if (quiz) {
       this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
       this.patchSettingsForm(quiz.settings);
+      this.rememberSyncedFormBaseline(quiz);
     }
     if (this.route.snapshot.queryParamMap?.get('from') === 'new') {
       queueMicrotask(() => {
@@ -666,11 +691,17 @@ export class QuizEditComponent implements OnDestroy {
       });
     }
     this.scheduleLivePreview();
-    this.localeGuard.register(() => this.hasPendingChanges());
+    this.localeGuard.register(this.localeDirtyGetter);
+    effect(() => {
+      const quizDoc = this.quiz();
+      const previewActive = this.previewRouteActive();
+      if (!quizDoc || !previewActive) return;
+      untracked(() => this.syncFormsFromStoreDuringPreview(quizDoc));
+    });
   }
 
   ngOnDestroy(): void {
-    this.localeGuard.unregister();
+    this.localeGuard.unregister(this.localeDirtyGetter);
     if (this.previewTimer) {
       clearTimeout(this.previewTimer);
       this.previewTimer = null;
@@ -739,6 +770,19 @@ export class QuizEditComponent implements OnDestroy {
 
   isPreviewActive(): boolean {
     return this.route.snapshot.firstChild?.routeConfig?.path === 'preview';
+  }
+
+  /** CanDeactivate: Hinweis bei ungespeicherten Änderungen vor dem Verlassen der Edit-Route. */
+  async canDeactivate(): Promise<boolean> {
+    return this.confirmDiscardPendingChangesIfNeeded();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.localeGuard.isFullPageUnloadConfirmed()) return;
+    if (!this.hasPendingChanges()) return;
+    event.preventDefault();
+    event.returnValue = '';
   }
 
   hasPendingChanges(): boolean {
@@ -2052,6 +2096,9 @@ export class QuizEditComponent implements OnDestroy {
     if (!this.saveAll()) {
       return;
     }
+    // Offenes Fragenformular nicht in die Preview mitnehmen: sonst bleibt nach
+    // Preview-Saves ein veralteter Parent-Stand zurück und wirkt wie ein Entwurf.
+    this.cancelEditing();
     void this.router.navigate(['preview'], {
       relativeTo: this.route,
       queryParams: { returnTo: 'edit' },
@@ -2108,6 +2155,7 @@ export class QuizEditComponent implements OnDestroy {
     try {
       const updated = this.quizStore.updateQuizSettings(this.id, this.readSettingsFromForm());
       this.patchSettingsForm(updated);
+      this.rememberSyncedSettingsBaseline(updated);
       this.settingsSaved.set(true);
       return true;
     } catch (error) {
@@ -2124,6 +2172,11 @@ export class QuizEditComponent implements OnDestroy {
     try {
       const updated = this.quizStore.updateQuizMetadata(this.id, this.readMetadataFromForm());
       this.patchMetadataForm(updated.name, updated.description, updated.motifImageUrl);
+      this.rememberSyncedMetadataBaseline({
+        name: updated.name,
+        description: updated.description,
+        motifImageUrl: updated.motifImageUrl,
+      });
       this.metadataSaved.set(true);
       return true;
     } catch (error) {
@@ -2167,9 +2220,12 @@ export class QuizEditComponent implements OnDestroy {
       this.persistCurrentQuestionDraft();
     }
 
-    this.applyQuestionInputToForm(this.toComparableQuestionInput(question));
+    const comparable = this.toComparableQuestionInput(question);
+    this.applyQuestionInputToForm(comparable);
 
     this.editingQuestionId.set(question.id);
+    this.lastSyncedQuestionId = question.id;
+    this.lastSyncedQuestionJson = JSON.stringify(comparable);
     this.submitError.set(null);
     this.submitted.set(false);
     this.form.markAsPristine();
@@ -2188,6 +2244,8 @@ export class QuizEditComponent implements OnDestroy {
       this.removeQuestionDraft(editingQuestionId);
     }
     this.editingQuestionId.set(null);
+    this.lastSyncedQuestionId = null;
+    this.lastSyncedQuestionJson = null;
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
   }
@@ -2198,6 +2256,7 @@ export class QuizEditComponent implements OnDestroy {
 
     this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
     this.patchSettingsForm(quiz.settings);
+    this.rememberSyncedFormBaseline(quiz);
     this.questionDrafts.set({});
     this.resetQuestionForm('SINGLE_CHOICE');
     this.editingQuestionId.set(null);
@@ -2230,6 +2289,15 @@ export class QuizEditComponent implements OnDestroy {
         verticalPosition: 'top',
       },
     );
+  }
+
+  private async confirmDiscardPendingChangesIfNeeded(): Promise<boolean> {
+    if (!this.hasPendingChanges()) return true;
+    if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+      this.confirmDiscardInFlight = null;
+    });
+    return this.confirmDiscardInFlight;
   }
 
   deleteQuestion(questionId: string): void {
@@ -2507,6 +2575,97 @@ export class QuizEditComponent implements OnDestroy {
     });
     this.metadataForm.markAsPristine();
     this.metadataForm.markAsUntouched();
+  }
+
+  private rememberSyncedFormBaseline(quiz: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+    settings: QuizSettings;
+  }): void {
+    this.rememberSyncedSettingsBaseline(quiz.settings);
+    this.rememberSyncedMetadataBaseline({
+      name: quiz.name,
+      description: quiz.description,
+      motifImageUrl: quiz.motifImageUrl,
+    });
+  }
+
+  private rememberSyncedSettingsBaseline(settings: QuizSettings): void {
+    this.lastSyncedSettingsJson = JSON.stringify(this.toComparableSettings(settings));
+  }
+
+  private rememberSyncedMetadataBaseline(metadata: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+  }): void {
+    this.lastSyncedMetadataJson = JSON.stringify({
+      name: metadata.name.trim(),
+      description: normalizeNullableText(metadata.description),
+      motifImageUrl: normalizeNullableText(metadata.motifImageUrl),
+    } satisfies QuizMetadataComparable);
+  }
+
+  /**
+   * Während die Preview gemountet ist: Parent-Formulare an Store anbinden,
+   * sofern sie noch dem zuletzt synchronisierten Stand entsprechen.
+   */
+  private syncFormsFromStoreDuringPreview(quiz: {
+    name: string;
+    description: string | null;
+    motifImageUrl: string | null;
+    settings: QuizSettings;
+    questions: QuizQuestion[];
+  }): void {
+    const storeSettingsJson = JSON.stringify(this.toComparableSettings(quiz.settings));
+    const formSettingsJson = JSON.stringify(this.toComparableSettings(this.readSettingsFromForm()));
+    if (this.lastSyncedSettingsJson === null || formSettingsJson === this.lastSyncedSettingsJson) {
+      this.patchSettingsForm(quiz.settings);
+      this.lastSyncedSettingsJson = storeSettingsJson;
+    }
+
+    const storeMetadataJson = JSON.stringify({
+      name: quiz.name.trim(),
+      description: normalizeNullableText(quiz.description),
+      motifImageUrl: normalizeNullableText(quiz.motifImageUrl),
+    } satisfies QuizMetadataComparable);
+    const formMetadataJson = JSON.stringify(this.readMetadataFromForm());
+    if (this.lastSyncedMetadataJson === null || formMetadataJson === this.lastSyncedMetadataJson) {
+      this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+      this.lastSyncedMetadataJson = storeMetadataJson;
+    }
+
+    this.syncActiveQuestionFormFromStoreDuringPreview(quiz.questions);
+  }
+
+  private syncActiveQuestionFormFromStoreDuringPreview(questions: QuizQuestion[]): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (!editingQuestionId) return;
+
+    const storeQuestion = questions.find((question) => question.id === editingQuestionId);
+    if (!storeQuestion) {
+      this.cancelEditing();
+      return;
+    }
+
+    const storeJson = JSON.stringify(this.toComparableQuestionInput(storeQuestion));
+    const formJson = JSON.stringify(
+      this.toComparableQuestionInput(this.buildQuestionInputFromForm()),
+    );
+    if (
+      this.lastSyncedQuestionId !== editingQuestionId ||
+      (this.lastSyncedQuestionJson !== null && formJson !== this.lastSyncedQuestionJson)
+    ) {
+      return;
+    }
+
+    this.applyQuestionInputToForm(this.toComparableQuestionInput(storeQuestion));
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+    this.removeQuestionDraft(editingQuestionId);
+    this.lastSyncedQuestionJson = storeJson;
+    this.scheduleLivePreview();
   }
 
   private validateMetadataForm(): boolean {

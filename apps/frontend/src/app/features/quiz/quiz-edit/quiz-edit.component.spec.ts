@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -89,6 +90,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     };
     quiz.questions = [];
     vi.clearAllMocks();
+    mockStore.getQuizById.mockImplementation((id: string) => (id === QUIZ_ID ? quiz : null));
     matDialogMock.open.mockReset();
     matDialogMock.open.mockImplementation(() => ({
       afterClosed: () => of(true),
@@ -265,6 +267,223 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
 
     expect(localeGuard.hasUnsavedChanges()).toBe(false);
+  });
+
+  it('fragt vor canDeactivate bei ungespeicherten Aenderungen', async () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    component.metadataForm.markAsDirty();
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+  });
+
+  it('unterdrueckt beforeunload nach bestaetigtem Locale-Unload', () => {
+    const localeGuard = TestBed.inject(LocaleSwitchGuardService);
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    localeGuard.confirmFullPageUnload();
+
+    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+    Object.defineProperty(event, 'returnValue', { writable: true, value: undefined });
+    component.onBeforeUnload(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('uebernimmt Preview-Settings in Parent-Formulare ohne falschen Pending-State', async () => {
+    const quizSignal = signal<QuizDocument>({ ...quiz, settings: { ...quiz.settings } });
+    mockStore.getQuizById.mockImplementation((id: string) =>
+      id === QUIZ_ID ? quizSignal() : null,
+    );
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizEditComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({}),
+              firstChild: { routeConfig: { path: 'preview' } },
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+        { provide: MatSnackBar, useValue: snackBarMock },
+      ],
+    });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
+    TestBed.overrideProvider(MatSnackBar, { useValue: snackBarMock });
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.isPreviewActive()).toBe(true);
+    expect(component.hasPendingChanges()).toBe(false);
+
+    quizSignal.update((current) => ({
+      ...current,
+      settings: {
+        ...current.settings,
+        defaultTimer: 90,
+      },
+    }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.settingsForm.controls.defaultTimer.value).toBe(90);
+    expect(component.hasPendingChanges()).toBe(false);
+  });
+
+  it('uebernimmt Preview-Fragenupdates in das aktive Parent-Formular ohne Pending-State', async () => {
+    const baseQuestion = {
+      id: QUESTION_ID,
+      text: 'Originalfrage',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      enabled: true,
+      timer: null,
+      answers: [
+        {
+          id: 'a1',
+          text: 'A',
+          isCorrect: true,
+        },
+        {
+          id: 'a2',
+          text: 'B',
+          isCorrect: false,
+        },
+      ],
+      ratingMin: null,
+      ratingMax: null,
+      ratingLabelMin: null,
+      ratingLabelMax: null,
+    };
+    const quizSignal = signal<QuizDocument>({
+      ...quiz,
+      settings: { ...quiz.settings },
+      questions: [baseQuestion],
+    });
+    mockStore.getQuizById.mockImplementation((id: string) =>
+      id === QUIZ_ID ? quizSignal() : null,
+    );
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizEditComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({}),
+              firstChild: { routeConfig: { path: 'preview' } },
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+        { provide: MatSnackBar, useValue: snackBarMock },
+      ],
+    });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
+    TestBed.overrideProvider(MatSnackBar, { useValue: snackBarMock });
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.isEditing()).toBe(true);
+    expect(component.hasPendingChanges()).toBe(false);
+
+    quizSignal.update((current) => ({
+      ...current,
+      questions: current.questions.map((question) =>
+        question.id === QUESTION_ID ? { ...question, text: 'Aus Preview gespeichert' } : question,
+      ),
+    }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.form.controls.text.value).toBe('Aus Preview gespeichert');
+    expect(component.hasPendingChanges()).toBe(false);
+
+    component.saveAll();
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+  });
+
+  it('schliesst den Frageneditor beim Oeffnen der Vorschau', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        enabled: true,
+        timer: null,
+        answers: [
+          { id: 'a1', text: 'A', isCorrect: true },
+          { id: 'a2', text: 'B', isCorrect: false },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.isEditing()).toBe(true);
+
+    component.openPreview();
+
+    expect(component.isEditing()).toBe(false);
+  });
+
+  it('laesst canDeactivate ohne Dialog zu wenn keine Aenderungen offen sind', async () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).not.toHaveBeenCalled();
+  });
+
+  it('blockiert canDeactivate wenn der Dialog abgelehnt wird', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(false),
+    }));
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    component.metadataForm.markAsDirty();
+
+    await expect(component.canDeactivate()).resolves.toBe(false);
   });
 
   it('erkennt Metadatenänderungen auch ohne Angular-dirty-Status', () => {
@@ -1802,7 +2021,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     const bottomAction = fixture.nativeElement.querySelector('.quiz-edit__bottom-actions');
     const backLink = bottomAction?.querySelector('a[routerLink=".."]') as HTMLAnchorElement | null;
     const previewButton = bottomAction?.querySelector(
-      'button[aria-label="Vorschau öffnen"]',
+      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
     ) as HTMLButtonElement | null;
     const saveButton = bottomAction?.querySelector(
       '.quiz-edit__bottom-actions-save',
@@ -1821,12 +2040,12 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
     const backLinks = fixture.nativeElement.querySelectorAll('a[routerLink=".."]');
     const previewButtons = fixture.nativeElement.querySelectorAll(
-      'button[aria-label="Vorschau öffnen"]',
+      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
     );
 
     expect(bottomAction).not.toBeNull();
     expect(backLink?.textContent).toContain('Zurück');
-    expect(previewButton?.textContent).toContain('Vorschau');
+    expect(previewButton?.textContent).toContain('Speichern & Vorschau');
     expect(cancelButton?.textContent).toContain('Verwerfen');
     expect(addAnotherButton?.textContent).toContain('Weitere Frage');
     expect(saveButton?.textContent).toContain('Änderungen speichern');

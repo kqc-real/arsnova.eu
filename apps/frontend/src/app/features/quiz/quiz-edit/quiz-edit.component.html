@@ -141,10 +141,10 @@
           type="button"
           (click)="openPreview()"
           i18n-aria-label="@@quiz.previewOpenAria"
-          aria-label="Vorschau öffnen"
+          aria-label="Änderungen speichern und Vorschau öffnen"
         >
           <mat-icon>visibility</mat-icon>
-          <span i18n>Vorschau</span>
+          <span i18n="@@quiz.previewSaveAndOpen">Speichern &amp; Vorschau</span>
         </button>
       </mat-card-actions>
     </mat-card>
@@ -1879,10 +1879,12 @@
           type="button"
           (click)="openPreview()"
           i18n-aria-label="@@quiz.previewOpenAria"
-          aria-label="Vorschau öffnen"
+          aria-label="Änderungen speichern und Vorschau öffnen"
         >
           <mat-icon>visibility</mat-icon>
-          <span class="quiz-edit__bottom-action-label" i18n>Vorschau</span>
+          <span class="quiz-edit__bottom-action-label" i18n="@@quiz.previewSaveAndOpen"
+            >Speichern &amp; Vorschau</span
+          >
         </button>
       </div>
     </div>

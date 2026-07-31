@@ -336,4 +336,73 @@ describe('QuizNewComponent', () => {
     expect(submitButton?.textContent).toContain('Weiter zu den Fragen');
     expect(inlineSubmitButton).toBeNull();
   });
+
+  it('fragt vor canDeactivate bei dirty Formular', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.controls.name.setValue('Entwurf');
+    component.form.markAsDirty();
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+  });
+
+  it('erkennt programmatische Aenderungen ohne Angular-dirty fuer den Leave-Guard', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.descriptionControl.setValue('Programmatische Beschreibung');
+    expect(component.form.dirty).toBe(false);
+    expect(component.hasUnsavedChanges()).toBe(true);
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+  });
+
+  it('markiert das Formular nach erfolgreichem Erstellen als pristine', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    mockStore.createQuiz.mockReturnValue({
+      id: '928f0bb8-bfd8-442b-9f2e-a7544628a92f',
+      name: 'Test-Quiz',
+      description: null,
+      createdAt: '2026-03-08T12:00:00.000Z',
+      updatedAt: '2026-03-08T12:00:00.000Z',
+      settings: {
+        showLeaderboard: true,
+        allowCustomNicknames: false,
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        showQuestionTypeIndicators: true,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+        backgroundMusic: null,
+        nicknameTheme: 'HIGH_SCHOOL',
+        bonusTokenCount: null,
+        readingPhaseEnabled: false,
+        preset: 'PLAYFUL',
+      },
+    });
+
+    component.form.patchValue({ name: 'Test-Quiz' });
+    component.form.markAsDirty();
+    await component.submit();
+
+    expect(component.form.dirty).toBe(false);
+    expect(matDialogMock.open).not.toHaveBeenCalled();
+  });
 });

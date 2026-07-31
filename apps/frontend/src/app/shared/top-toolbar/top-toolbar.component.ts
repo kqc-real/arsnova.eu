@@ -184,7 +184,11 @@ export class TopToolbarComponent {
         autoFocus: 'dialog',
       });
       firstValueFrom(dialogRef.afterClosed()).then((confirmed) => {
-        if (confirmed === true) doRedirect();
+        if (confirmed === true) {
+          // App-Dialog bereits bestätigt: keinen zweiten nativen beforeunload-Dialog.
+          this.localeGuard.confirmFullPageUnload();
+          doRedirect();
+        }
       });
     } else {
       doRedirect();
