@@ -8671,7 +8671,7 @@
       </trans-unit>
       <trans-unit id="quiz.previewSaveAndOpen" datatype="html">
         <source>Speichern &amp; Vorschau</source>
-        <target>Guardar y vista previa</target>
+        <target>Guardar y previsualizar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">147</context>
