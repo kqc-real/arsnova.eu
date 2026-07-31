@@ -1,6 +1,7 @@
 import {
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -20,6 +21,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatOption } from '@angular/material/core';
 import { MatIcon } from '@angular/material/icon';
@@ -46,6 +48,7 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { localizeCommands } from '../../../core/locale-router';
+import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util';
 
 /**
@@ -83,6 +86,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   private readonly quizStore = inject(QuizStoreService);
   private readonly themePreset = inject(ThemePresetService);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
+  private readonly dialog = inject(MatDialog);
+  private readonly localeDirtyGetter = (): boolean => this.form.dirty;
+  private confirmDiscardInFlight: Promise<boolean> | null = null;
 
   readonly presetOptions: Array<{ value: QuizPreset; label: string; icon: string }> = [
     { value: 'PLAYFUL', label: $localize`Spielerisch`, icon: 'celebration' },
@@ -181,11 +187,22 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     /** Vollständige Preset-Defaults zum Home-Thema (nicht nur Timer/Nickname), damit die Maske initial stimmt. */
     this.applyPreset(this.currentQuizPreset());
     this.syncTeamNamesValidation();
-    this.localeGuard.register(() => this.form.dirty);
+    this.localeGuard.register(this.localeDirtyGetter);
   }
 
   ngOnDestroy(): void {
-    this.localeGuard.unregister();
+    this.localeGuard.unregister(this.localeDirtyGetter);
+  }
+
+  async canDeactivate(): Promise<boolean> {
+    return this.confirmDiscardPendingChangesIfNeeded();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.form.dirty) return;
+    event.preventDefault();
+    event.returnValue = '';
   }
 
   isTeamModeEnabled(): boolean {
@@ -312,6 +329,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
           : null,
         settings: this.readSettingsFromForm(),
       });
+      this.form.markAsPristine();
       await this.router.navigate(localizeCommands(['quiz', created.id]), {
         queryParams: { from: 'new' },
       });
@@ -321,6 +339,15 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  private async confirmDiscardPendingChangesIfNeeded(): Promise<boolean> {
+    if (!this.form.dirty) return true;
+    if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+      this.confirmDiscardInFlight = null;
+    });
+    return this.confirmDiscardInFlight;
   }
 }
 

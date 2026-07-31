@@ -271,13 +271,14 @@ Damit die lokalisierten Builds (de/en/fr/it/es) mit **funktionierender API, tRPC
 Proxy-Variante und nicht gegen reines `ng serve`, weil das Script einen lokalisierten Pfad
 (`/{locale}/...`, Default `en`) und funktionierende Yjs-WebSockets auf Port 4200 erwartet.
 
-### 7b. Hinweis bei Sprachwechsel auf Quiz Edit/New (implementiert)
+### 7b. Hinweis bei Sprachwechsel auf Quiz Edit/New/Preview (implementiert)
 
-Auf den Routen **Quiz bearbeiten** (`/quiz/:id`) und **Quiz neu** (`/quiz/new`) kann ein Sprachwechsel ungespeicherte Änderungen verwerfen. Dafür gibt es den **LocaleSwitchGuardService** (`core/locale-switch-guard.service.ts`):
+Auf den Routen **Quiz bearbeiten** (`/quiz/:id`), **Quiz neu** (`/quiz/new`) und **Quiz-Vorschau** (`/quiz/:id/preview`) kann ein Sprachwechsel ungespeicherte Änderungen verwerfen. Dafür gibt es den **LocaleSwitchGuardService** (`core/locale-switch-guard.service.ts`):
 
-- **Quiz-Edit** und **Quiz-New** registrieren beim Aktivwerden einen Getter für „Formular dirty“ und melden sich in `ngOnDestroy` wieder ab.
+- **Quiz-Edit**, **Quiz-New** und **Quiz-Preview** registrieren beim Aktivwerden einen Getter für ungespeicherte Änderungen und melden sich in `ngOnDestroy` wieder ab (mehrere Getter parallel möglich, weil Edit unter Preview gemountet bleibt).
 - Beim Klick auf eine andere Sprache in der Toolbar prüft `setLanguage()` vor dem Redirect, ob `localeGuard.hasUnsavedChanges()` true ist (nur auf diesen Routen).
 - Wenn ja, öffnet sich ein Bestätigungsdialog („Sprache wechseln? Ungespeicherte Änderungen gehen verloren.“) mit **Abbrechen** / **Trotzdem wechseln**; nur bei „Trotzdem wechseln“ erfolgt der Reload auf die neue Locale-URL.
+- Zusätzlich schützen `CanDeactivate` und `beforeunload` sowie der gemeinsame Dialog `confirmDiscardUnsavedChanges` vor stillen Verlusten beim Verlassen der Edit-/New-/Preview-Ansicht (Fragewechsel, Zurück, Live-Start, Escape in der Preview).
 
 ---
 

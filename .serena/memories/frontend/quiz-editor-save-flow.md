@@ -14,6 +14,7 @@
   - focused specs proving a change activates/saves through `saveAll()`.
 - New question type fields must be added to `buildQuestionInputFromForm()`, `toComparableQuestionInput()`, form patch/reset paths, validation as needed, and specs through `saveAll()`.
 - Editor preview actions call `openPreview()`, which must persist through `saveAll()` before navigating. Do not introduce a preview-only draft source that lets preview/live-start diverge from the saved quiz collection state.
+- Unsaved-leave protection: Edit/New/Preview use `confirmDiscardUnsavedChanges` (`shared/confirm-leave-dialog/confirm-unsaved-changes.ts`) via `canDeactivate`, `beforeunload`, and Preview in-view exits (question change, back, live start, Escape). LocaleSwitchGuard accepts multiple getters and includes Preview routes. Explicit discard buttons stay confirmation-free.
 - Immediate list actions such as activate/deactivate, delete, and reorder are explicit exceptions for now; keep them obviously immediate-commit if touched, or extend ADR-0031 before moving them into global save.
 - Risk pattern to test: a value set through a handler or select changes the persisted value while Angular `dirty` remains false; `hasPendingChanges()` and `saveAll()` must still catch it.
 - Preview risk pattern to test: an active editor type change, e.g. `FREETEXT` -> `NUMERIC_ESTIMATE`, must call the central question persistence path before preview navigation.

@@ -16,6 +16,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatOption } from '@angular/material/core';
@@ -53,7 +54,9 @@ import {
   type QuizQuestion,
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
+import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { localizeCommands } from '../../../core/locale-router';
+import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { answerOptionColor, answerOptionShape } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
@@ -104,10 +107,14 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
+  private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly markdownCache = new Map<string, SafeHtml>();
   private readonly answerMarkdownCache = new Map<string, SafeHtml>();
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
   private touchStartX: number | null = null;
+  private readonly localeDirtyGetter = (): boolean => this.inlineEditHasChanges();
+  private confirmDiscardInFlight: Promise<boolean> | null = null;
 
   readonly id = this.route.parent?.snapshot.paramMap.get('id') ?? '';
   readonly currentIndex = signal(0);
@@ -252,6 +259,7 @@ export class QuizPreviewComponent implements OnDestroy {
     if (this.id === DEMO_QUIZ_ID) {
       this.quizStore.ensureDemoQuiz();
     }
+    this.localeGuard.register(this.localeDirtyGetter);
     effect(() => {
       const total = this.questions().length;
       const index = this.currentIndex();
@@ -266,42 +274,53 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.localeGuard.unregister(this.localeDirtyGetter);
     if (this.animationTimer) {
       clearTimeout(this.animationTimer);
       this.animationTimer = null;
     }
   }
 
-  nextQuestion(): void {
+  async canDeactivate(): Promise<boolean> {
+    if (!this.inlineEditHasChanges()) return true;
+    const confirmed = await this.confirmDiscardUnsavedIfNeeded();
+    if (confirmed) {
+      this.cancelInlineEditMode();
+    }
+    return confirmed;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.inlineEditHasChanges()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  async nextQuestion(): Promise<void> {
     const total = this.questions().length;
     if (total === 0) return;
     const nextIndex = Math.min(this.currentIndex() + 1, total - 1);
     if (nextIndex === this.currentIndex()) return;
-    if (this.inlineEditMode()) {
-      this.cancelInlineEditMode();
-    }
+    if (!(await this.prepareLeaveInlineEdit())) return;
     this.currentIndex.set(nextIndex);
     this.triggerSwipeAnimation('left');
   }
 
-  previousQuestion(): void {
+  async previousQuestion(): Promise<void> {
     const previousIndex = Math.max(this.currentIndex() - 1, 0);
     if (previousIndex === this.currentIndex()) return;
-    if (this.inlineEditMode()) {
-      this.cancelInlineEditMode();
-    }
+    if (!(await this.prepareLeaveInlineEdit())) return;
     this.currentIndex.set(previousIndex);
     this.triggerSwipeAnimation('right');
   }
 
-  goToQuestion(index: number): void {
+  async goToQuestion(index: number): Promise<void> {
     const total = this.questions().length;
     if (index < 0 || index >= total) return;
     const currentIndex = this.currentIndex();
     if (index === currentIndex) return;
-    if (this.inlineEditMode()) {
-      this.cancelInlineEditMode();
-    }
+    if (!(await this.prepareLeaveInlineEdit())) return;
     this.currentIndex.set(index);
     this.triggerSwipeAnimation(index > currentIndex ? 'left' : 'right');
   }
@@ -311,19 +330,17 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   goFirst(): void {
-    this.goToQuestion(0);
+    void this.goToQuestion(0);
   }
 
   goLast(): void {
     const total = this.questions().length;
     if (total === 0) return;
-    this.goToQuestion(total - 1);
+    void this.goToQuestion(total - 1);
   }
 
-  backToOrigin(): void {
-    if (this.inlineEditMode()) {
-      this.cancelInlineEditMode();
-    }
+  async backToOrigin(): Promise<void> {
+    if (!(await this.prepareLeaveInlineEdit())) return;
     const returnTo = this.route.snapshot.queryParamMap.get('returnTo');
 
     if (returnTo === 'list') {
@@ -357,6 +374,7 @@ export class QuizPreviewComponent implements OnDestroy {
     if (mode === 'full' && this.validationWarnings().length > 0) {
       return;
     }
+    if (!(await this.prepareLeaveInlineEdit())) return;
     await this.startLiveSession(mode);
   }
 
@@ -476,6 +494,34 @@ export class QuizPreviewComponent implements OnDestroy {
     this.commitInlineEdits();
   }
 
+  /**
+   * Schließt den Inline-Editor nach Bestätigung bei offenen Änderungen.
+   * Explizites „Änderungen verwerfen“ ruft `cancelInlineEditMode()` direkt auf.
+   */
+  private async prepareLeaveInlineEdit(): Promise<boolean> {
+    if (!this.inlineEditMode()) return true;
+    if (!(await this.confirmDiscardUnsavedIfNeeded())) return false;
+    this.cancelInlineEditMode();
+    return true;
+  }
+
+  private async confirmDiscardUnsavedIfNeeded(): Promise<boolean> {
+    if (!this.inlineEditHasChanges()) return true;
+    if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+      this.confirmDiscardInFlight = null;
+    });
+    return this.confirmDiscardInFlight;
+  }
+
+  private async handleEscapeKey(): Promise<void> {
+    if (this.inlineEditMode()) {
+      if (!(await this.prepareLeaveInlineEdit())) return;
+      return;
+    }
+    await this.backToOrigin();
+  }
+
   onQuestionDraftChanged(value: string): void {
     this.questionDraftText.set(value);
   }
@@ -522,9 +568,9 @@ export class QuizPreviewComponent implements OnDestroy {
 
     if (Math.abs(delta) < 40) return;
     if (delta < 0) {
-      this.nextQuestion();
+      void this.nextQuestion();
     } else {
-      this.previousQuestion();
+      void this.previousQuestion();
     }
   }
 
@@ -532,6 +578,12 @@ export class QuizPreviewComponent implements OnDestroy {
   onKeydown(event: KeyboardEvent): void {
     if (!this.quiz() || this.questions().length === 0) return;
     if (event.defaultPrevented) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      void this.handleEscapeKey();
+      return;
+    }
 
     const target = event.target as HTMLElement | null;
     if (
@@ -547,12 +599,12 @@ export class QuizPreviewComponent implements OnDestroy {
     const key = event.key.toLowerCase();
     if (event.key === 'ArrowRight' || key === 'n') {
       event.preventDefault();
-      this.nextQuestion();
+      void this.nextQuestion();
       return;
     }
     if (event.key === 'ArrowLeft' || key === 'p') {
       event.preventDefault();
-      this.previousQuestion();
+      void this.previousQuestion();
       return;
     }
     if (event.key === 'Home') {
@@ -565,15 +617,6 @@ export class QuizPreviewComponent implements OnDestroy {
       this.goLast();
       return;
     }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      if (this.inlineEditMode()) {
-        this.cancelInlineEditMode();
-      } else {
-        this.backToOrigin();
-      }
-      return;
-    }
     if (key === 'e') {
       event.preventDefault();
       if (!this.inlineEditMode()) {
@@ -583,7 +626,7 @@ export class QuizPreviewComponent implements OnDestroy {
     }
     if (/^[1-9]$/.test(event.key)) {
       event.preventDefault();
-      this.goToQuestion(Number(event.key) - 1);
+      void this.goToQuestion(Number(event.key) - 1);
     }
   }
 

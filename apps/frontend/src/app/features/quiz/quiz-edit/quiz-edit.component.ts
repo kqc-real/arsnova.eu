@@ -2,6 +2,7 @@ import { DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   ElementRef,
+  HostListener,
   LOCALE_ID,
   OnDestroy,
   ViewChild,
@@ -116,6 +117,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 
 type AnswerFormGroup = FormGroup<{
   text: FormControl<string>;
@@ -341,6 +343,8 @@ export class QuizEditComponent implements OnDestroy {
   private readonly localeId = inject(LOCALE_ID);
   private readonly markdownCache = new Map<string, SafeHtml>();
   private readonly answerMarkdownCache = new Map<string, SafeHtml>();
+  private readonly localeDirtyGetter = (): boolean => this.hasPendingChanges();
+  private confirmDiscardInFlight: Promise<boolean> | null = null;
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -666,11 +670,11 @@ export class QuizEditComponent implements OnDestroy {
       });
     }
     this.scheduleLivePreview();
-    this.localeGuard.register(() => this.hasPendingChanges());
+    this.localeGuard.register(this.localeDirtyGetter);
   }
 
   ngOnDestroy(): void {
-    this.localeGuard.unregister();
+    this.localeGuard.unregister(this.localeDirtyGetter);
     if (this.previewTimer) {
       clearTimeout(this.previewTimer);
       this.previewTimer = null;
@@ -739,6 +743,18 @@ export class QuizEditComponent implements OnDestroy {
 
   isPreviewActive(): boolean {
     return this.route.snapshot.firstChild?.routeConfig?.path === 'preview';
+  }
+
+  /** CanDeactivate: Hinweis bei ungespeicherten Änderungen vor dem Verlassen der Edit-Route. */
+  async canDeactivate(): Promise<boolean> {
+    return this.confirmDiscardPendingChangesIfNeeded();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.hasPendingChanges()) return;
+    event.preventDefault();
+    event.returnValue = '';
   }
 
   hasPendingChanges(): boolean {
@@ -2230,6 +2246,15 @@ export class QuizEditComponent implements OnDestroy {
         verticalPosition: 'top',
       },
     );
+  }
+
+  private async confirmDiscardPendingChangesIfNeeded(): Promise<boolean> {
+    if (!this.hasPendingChanges()) return true;
+    if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+      this.confirmDiscardInFlight = null;
+    });
+    return this.confirmDiscardInFlight;
   }
 
   deleteQuestion(questionId: string): void {

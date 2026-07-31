@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { QuizPreviewComponent } from './quiz-preview.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
 
@@ -172,10 +175,19 @@ describe('QuizPreviewComponent', () => {
   const snackBarMock = {
     open: vi.fn(),
   };
+  const matDialogMock = {
+    open: vi.fn(() => ({
+      afterClosed: () => of(true),
+    })),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
     quizUploadMutationMock.mockResolvedValue({ quizId: 'server-quiz-id' });
+    matDialogMock.open.mockReset();
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(true),
+    }));
     TestBed.configureTestingModule({
       imports: [QuizPreviewComponent],
       providers: [
@@ -186,8 +198,10 @@ describe('QuizPreviewComponent', () => {
         },
         { provide: QuizStoreService, useValue: mockStore },
         { provide: MatSnackBar, useValue: snackBarMock },
+        { provide: MatDialog, useValue: matDialogMock },
       ],
     });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
     mockRoute.snapshot.queryParamMap = convertToParamMap({});
   });
 
@@ -288,16 +302,20 @@ describe('QuizPreviewComponent', () => {
     quiz.questions[0] = originalQuestion!;
   });
 
-  it('navigiert zwischen Fragen und zeigt Validierungshinweis', () => {
+  it('navigiert zwischen Fragen und zeigt Validierungshinweis', async () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
     expect(component.currentIndex()).toBe(0);
     component.onKeydown(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
-    expect(component.currentIndex()).toBe(1);
+    await vi.waitFor(() => {
+      expect(component.currentIndex()).toBe(1);
+    });
     component.onKeydown(new KeyboardEvent('keydown', { key: '1' }));
-    expect(component.currentIndex()).toBe(0);
+    await vi.waitFor(() => {
+      expect(component.currentIndex()).toBe(0);
+    });
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Validierungshinweise');
@@ -403,7 +421,7 @@ describe('QuizPreviewComponent', () => {
     expect(previewImage.getAttribute('src')).toContain('data:image/png;base64,');
   });
 
-  it('verwirft beim Zurueck-Navigieren offene Inline-Aenderungen statt sie implizit zu speichern', () => {
+  it('fragt vor Zurueck-Navigation bei offenen Inline-Aenderungen und verwirft erst nach Bestaetigung', async () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     const router = TestBed.inject(Router);
@@ -413,27 +431,155 @@ describe('QuizPreviewComponent', () => {
 
     component.enterInlineEditMode();
     component.onQuestionDraftChanged('Neue Frage');
-    component.backToOrigin();
+    await component.backToOrigin();
 
+    expect(matDialogMock.open).toHaveBeenCalled();
     expect(mockStore.updateQuestion).not.toHaveBeenCalled();
     expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalled();
     expect(component.inlineEditMode()).toBe(false);
   });
 
-  it('verwirft beim Fragewechsel offene Inline-Aenderungen statt sie implizit zu speichern', () => {
+  it('bricht Zurueck-Navigation bei offenen Inline-Aenderungen ab wenn Dialog abgelehnt wird', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(false),
+    }));
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockRoute.snapshot.queryParamMap = convertToParamMap({ returnTo: 'list' });
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    await component.backToOrigin();
+
+    expect(matDialogMock.open).toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(component.inlineEditMode()).toBe(true);
+    expect(component.inlineEditHasChanges()).toBe(true);
+  });
+
+  it('fragt vor Fragewechsel bei offenen Inline-Aenderungen und verwirft erst nach Bestaetigung', async () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
     component.enterInlineEditMode();
     component.onQuestionDraftChanged('Neue Frage');
-    component.nextQuestion();
+    await component.nextQuestion();
 
+    expect(matDialogMock.open).toHaveBeenCalled();
     expect(mockStore.updateQuestion).not.toHaveBeenCalled();
     expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
     expect(component.currentIndex()).toBe(1);
     expect(component.inlineEditMode()).toBe(false);
+  });
+
+  it('behaelt Inline-Aenderungen beim Fragewechsel wenn Dialog abgelehnt wird', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(false),
+    }));
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    await component.nextQuestion();
+
+    expect(component.currentIndex()).toBe(0);
+    expect(component.inlineEditMode()).toBe(true);
+    expect(component.inlineEditHasChanges()).toBe(true);
+  });
+
+  it('fragt vor Escape bei offenen Inline-Aenderungen', async () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    await vi.waitFor(() => {
+      expect(matDialogMock.open).toHaveBeenCalled();
+      expect(component.inlineEditMode()).toBe(false);
+    });
+  });
+
+  it('meldet Inline-Aenderungen an den Locale-Guard', () => {
+    const router = TestBed.inject(Router);
+    Object.defineProperty(router, 'url', {
+      value: `/quiz/${QUIZ_ID}/preview`,
+      configurable: true,
+    });
+    const localeGuard = TestBed.inject(LocaleSwitchGuardService);
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+
+    expect(localeGuard.hasUnsavedChanges()).toBe(true);
+
+    fixture.destroy();
+    expect(localeGuard.hasUnsavedChanges()).toBe(false);
+  });
+
+  it('verhindert Live-Start bei offenen Inline-Aenderungen wenn Dialog abgelehnt wird', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(false),
+    }));
+    quiz.questions[1]!.answers[1]!.isCorrect = true;
+    try {
+      const fixture = TestBed.createComponent(QuizPreviewComponent);
+      const component = fixture.componentInstance;
+      const startSpy = vi.spyOn(
+        component as unknown as { startLiveSession: (mode: 'full' | 'current') => Promise<void> },
+        'startLiveSession',
+      );
+      fixture.detectChanges();
+
+      component.enterInlineEditMode();
+      component.onQuestionDraftChanged('Neue Frage');
+      await component.openLiveStartDialogForMode('full');
+
+      expect(matDialogMock.open).toHaveBeenCalled();
+      expect(startSpy).not.toHaveBeenCalled();
+      expect(component.inlineEditMode()).toBe(true);
+      expect(component.inlineEditHasChanges()).toBe(true);
+    } finally {
+      quiz.questions[1]!.answers[1]!.isCorrect = false;
+    }
+  });
+
+  it('setzt nach Bestaetigung den Inline-Editor zurueck und startet die Session', async () => {
+    quiz.questions[1]!.answers[1]!.isCorrect = true;
+    try {
+      const fixture = TestBed.createComponent(QuizPreviewComponent);
+      const component = fixture.componentInstance;
+      component.currentIndex.set(1);
+      const startSpy = vi
+        .spyOn(
+          component as unknown as { startLiveSession: (mode: 'full' | 'current') => Promise<void> },
+          'startLiveSession',
+        )
+        .mockResolvedValue(undefined);
+      fixture.detectChanges();
+
+      component.enterInlineEditMode();
+      component.onQuestionDraftChanged('Neue Frage');
+      await component.openLiveStartDialogForMode('current');
+
+      expect(matDialogMock.open).toHaveBeenCalled();
+      expect(component.inlineEditMode()).toBe(false);
+      expect(startSpy).toHaveBeenCalledWith('current');
+    } finally {
+      quiz.questions[1]!.answers[1]!.isCorrect = false;
+    }
   });
 
   it('speichert lokale Korrektheits-Toggles erst nach Speichern', () => {

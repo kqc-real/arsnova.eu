@@ -267,6 +267,41 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(localeGuard.hasUnsavedChanges()).toBe(false);
   });
 
+  it('fragt vor canDeactivate bei ungespeicherten Aenderungen', async () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    component.metadataForm.markAsDirty();
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+  });
+
+  it('laesst canDeactivate ohne Dialog zu wenn keine Aenderungen offen sind', async () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).not.toHaveBeenCalled();
+  });
+
+  it('blockiert canDeactivate wenn der Dialog abgelehnt wird', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(false),
+    }));
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    component.metadataForm.markAsDirty();
+
+    await expect(component.canDeactivate()).resolves.toBe(false);
+  });
+
   it('erkennt Metadatenänderungen auch ohne Angular-dirty-Status', () => {
     mockStore.updateQuizMetadata.mockImplementation((_id, metadata) => {
       Object.assign(quiz, metadata);

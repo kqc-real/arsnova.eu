@@ -21,9 +21,21 @@ import {
 import { localizeCommands } from './core/locale-router';
 import { trpc } from './core/trpc.client';
 import type { SessionHostComponent } from './features/session/session-host/session-host.component';
+import type { QuizEditComponent } from './features/quiz/quiz-edit/quiz-edit.component';
+import type { QuizNewComponent } from './features/quiz/quiz-new/quiz-new.component';
+import type { QuizPreviewComponent } from './features/quiz/quiz-preview/quiz-preview.component';
 import { newsArchivePageResolver } from './features/news-archive/news-archive-page.resolver';
 
 const canDeactivateHost: CanDeactivateFn<SessionHostComponent> = (component) =>
+  component.canDeactivate();
+
+const canDeactivateQuizEdit: CanDeactivateFn<QuizEditComponent> = (component) =>
+  component.canDeactivate();
+
+const canDeactivateQuizNew: CanDeactivateFn<QuizNewComponent> = (component) =>
+  component.canDeactivate();
+
+const canDeactivateQuizPreview: CanDeactivateFn<QuizPreviewComponent> = (component) =>
   component.canDeactivate();
 
 function getCodeParamFromRoute(route: Parameters<CanActivateFn>[0]): string | null {
@@ -165,16 +177,19 @@ const mainRoutes: Routes = [
       },
       {
         path: 'new',
+        canDeactivate: [canDeactivateQuizNew],
         loadComponent: () =>
           import('./features/quiz/quiz-new/quiz-new.component').then((m) => m.QuizNewComponent),
       },
       {
         path: ':id',
+        canDeactivate: [canDeactivateQuizEdit],
         loadComponent: () =>
           import('./features/quiz/quiz-edit/quiz-edit.component').then((m) => m.QuizEditComponent),
         children: [
           {
             path: 'preview',
+            canDeactivate: [canDeactivateQuizPreview],
             loadComponent: () =>
               import('./features/quiz/quiz-preview/quiz-preview.component').then(
                 (m) => m.QuizPreviewComponent,
