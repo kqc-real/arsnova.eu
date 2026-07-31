@@ -45,4 +45,13 @@ describe('LocaleSwitchGuardService', () => {
 
     guard.unregister(dirty);
   });
+
+  it('markiert einen bestaetigten Full-Page-Unload fuer beforeunload-Bypass', () => {
+    const guard = TestBed.inject(LocaleSwitchGuardService);
+    expect(guard.isFullPageUnloadConfirmed()).toBe(false);
+
+    guard.confirmFullPageUnload();
+
+    expect(guard.isFullPageUnloadConfirmed()).toBe(true);
+  });
 });

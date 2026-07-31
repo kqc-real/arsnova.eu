@@ -494,6 +494,38 @@ describe('QuizPreviewComponent', () => {
     expect(component.inlineEditHasChanges()).toBe(true);
   });
 
+  it('veraendert den Inline-Entwurf bei bestaetigtem canDeactivate nicht', async () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+    expect(component.inlineEditMode()).toBe(true);
+    expect(component.inlineEditHasChanges()).toBe(true);
+    expect(component.questionDraftText()).toBe('Neue Frage');
+  });
+
+  it('unterdrueckt beforeunload nach bestaetigtem Locale-Unload', () => {
+    const localeGuard = TestBed.inject(LocaleSwitchGuardService);
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    localeGuard.confirmFullPageUnload();
+
+    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+    Object.defineProperty(event, 'returnValue', { writable: true, value: undefined });
+    component.onBeforeUnload(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('fragt vor Escape bei offenen Inline-Aenderungen', async () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;

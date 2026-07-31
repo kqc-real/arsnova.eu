@@ -279,6 +279,22 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(matDialogMock.open).toHaveBeenCalled();
   });
 
+  it('unterdrueckt beforeunload nach bestaetigtem Locale-Unload', () => {
+    const localeGuard = TestBed.inject(LocaleSwitchGuardService);
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Geänderter Titel');
+    localeGuard.confirmFullPageUnload();
+
+    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+    Object.defineProperty(event, 'returnValue', { writable: true, value: undefined });
+    component.onBeforeUnload(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('laesst canDeactivate ohne Dialog zu wenn keine Aenderungen offen sind', async () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

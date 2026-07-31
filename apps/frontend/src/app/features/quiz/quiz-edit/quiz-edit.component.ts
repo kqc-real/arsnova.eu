@@ -752,6 +752,7 @@ export class QuizEditComponent implements OnDestroy {
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.localeGuard.isFullPageUnloadConfirmed()) return;
     if (!this.hasPendingChanges()) return;
     event.preventDefault();
     event.returnValue = '';

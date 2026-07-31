@@ -11,6 +11,11 @@ import { Router } from '@angular/router';
 export class LocaleSwitchGuardService {
   private readonly router = inject(Router);
   private readonly getters = new Set<() => boolean>();
+  /**
+   * Nach bestätigtem Sprachwechsel: `beforeunload`-Handler sollen den nativen
+   * Browserdialog nicht zusätzlich zeigen (Full-Page-Reload ist bereits bewusst).
+   */
+  private confirmedFullPageUnload = false;
 
   register(getDirty: () => boolean): void {
     this.getters.add(getDirty);
@@ -18,6 +23,18 @@ export class LocaleSwitchGuardService {
 
   unregister(getDirty: () => boolean): void {
     this.getters.delete(getDirty);
+  }
+
+  /**
+   * Markiert den folgenden Full-Page-Unload (Locale-Redirect) als bereits bestätigt.
+   * Bleibt bis zum Unload gesetzt, damit mehrere `beforeunload`-Listener greifen.
+   */
+  confirmFullPageUnload(): void {
+    this.confirmedFullPageUnload = true;
+  }
+
+  isFullPageUnloadConfirmed(): boolean {
+    return this.confirmedFullPageUnload;
   }
 
   /**

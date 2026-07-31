@@ -349,6 +349,19 @@ describe('QuizNewComponent', () => {
     expect(matDialogMock.open).toHaveBeenCalled();
   });
 
+  it('erkennt programmatische Aenderungen ohne Angular-dirty fuer den Leave-Guard', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.descriptionControl.setValue('Programmatische Beschreibung');
+    expect(component.form.dirty).toBe(false);
+    expect(component.hasUnsavedChanges()).toBe(true);
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+    expect(matDialogMock.open).toHaveBeenCalled();
+  });
+
   it('markiert das Formular nach erfolgreichem Erstellen als pristine', async () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;

@@ -281,17 +281,17 @@ export class QuizPreviewComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Zustandsfrei: bei Bestätigung den Entwurf nicht verwerfen.
+   * Sonst gehen Änderungen verloren, wenn ein späterer Guard die Navigation ablehnt.
+   */
   async canDeactivate(): Promise<boolean> {
-    if (!this.inlineEditHasChanges()) return true;
-    const confirmed = await this.confirmDiscardUnsavedIfNeeded();
-    if (confirmed) {
-      this.cancelInlineEditMode();
-    }
-    return confirmed;
+    return this.confirmDiscardUnsavedIfNeeded();
   }
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.localeGuard.isFullPageUnloadConfirmed()) return;
     if (!this.inlineEditHasChanges()) return;
     event.preventDefault();
     event.returnValue = '';

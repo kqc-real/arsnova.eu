@@ -87,8 +87,10 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly dialog = inject(MatDialog);
-  private readonly localeDirtyGetter = (): boolean => this.form.dirty;
+  private readonly localeDirtyGetter = (): boolean => this.hasUnsavedChanges();
   private confirmDiscardInFlight: Promise<boolean> | null = null;
+  /** Snapshot nach initialem Preset; erkennt auch programmatische setValue/patchValue-Änderungen. */
+  private initialFormSnapshot = '';
 
   readonly presetOptions: Array<{ value: QuizPreset; label: string; icon: string }> = [
     { value: 'PLAYFUL', label: $localize`Spielerisch`, icon: 'celebration' },
@@ -187,11 +189,17 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     /** Vollständige Preset-Defaults zum Home-Thema (nicht nur Timer/Nickname), damit die Maske initial stimmt. */
     this.applyPreset(this.currentQuizPreset());
     this.syncTeamNamesValidation();
+    this.captureInitialFormSnapshot();
     this.localeGuard.register(this.localeDirtyGetter);
   }
 
   ngOnDestroy(): void {
     this.localeGuard.unregister(this.localeDirtyGetter);
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (!this.initialFormSnapshot) return this.form.dirty;
+    return this.serializeFormState() !== this.initialFormSnapshot;
   }
 
   async canDeactivate(): Promise<boolean> {
@@ -200,7 +208,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (!this.form.dirty) return;
+    if (this.localeGuard.isFullPageUnloadConfirmed()) return;
+    if (!this.hasUnsavedChanges()) return;
     event.preventDefault();
     event.returnValue = '';
   }
@@ -330,6 +339,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
         settings: this.readSettingsFromForm(),
       });
       this.form.markAsPristine();
+      this.captureInitialFormSnapshot();
       await this.router.navigate(localizeCommands(['quiz', created.id]), {
         queryParams: { from: 'new' },
       });
@@ -341,8 +351,16 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     }
   }
 
+  private captureInitialFormSnapshot(): void {
+    this.initialFormSnapshot = this.serializeFormState();
+  }
+
+  private serializeFormState(): string {
+    return JSON.stringify(this.form.getRawValue());
+  }
+
   private async confirmDiscardPendingChangesIfNeeded(): Promise<boolean> {
-    if (!this.form.dirty) return true;
+    if (!this.hasUnsavedChanges()) return true;
     if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
     this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
       this.confirmDiscardInFlight = null;
