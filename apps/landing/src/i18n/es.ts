@@ -3,9 +3,9 @@ import type { Messages } from './types';
 const es: Messages = {
   meta: {
     homeTitle:
-      'arsnova.eu | Cuestionario en vivo, preguntas de estimación numérica y muro de preguntas',
+      'arsnova.eu | Cuestionario en directo, preguntas de estimación numérica y muro de preguntas',
     homeDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, autoalojable y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     siteNameInfo: 'arsnova.eu – Información',
     ogLocale: 'es_ES',
   },
@@ -39,7 +39,7 @@ const es: Messages = {
     appOpen: 'Abrir la aplicación',
     quizCreate: 'Crear un cuestionario',
     backToApp: 'Volver a arsnova.eu',
-    tryLive: 'Probarlo en vivo ahora',
+    tryLive: 'Probarlo en directo ahora',
     howItWorks: 'Cómo funciona',
     viewOpenSource: 'Ver el código fuente',
   },
@@ -47,28 +47,31 @@ const es: Messages = {
     eyebrow: 'Respuesta interactiva para educación y organizaciones',
     titleLine1: 'Cuestionarios, estimaciones,',
     titleLine2: 'moderación de preguntas',
-    titleAccent1: 'en vivo y gratis',
+    titleAccent1: 'en directo y gratis',
     titleAccent2: ' sin cuenta.',
-    lead: 'arsnova.eu reúne cuestionarios en vivo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, autoalojable y pensado para un funcionamiento orientado al RGPD.',
+    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento orientado al RGPD.',
     a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
-      { title: 'En vivo al instante', text: 'Comparte la sesión con código o QR' },
+      { title: 'En directo al instante', text: 'Comparte la sesión con código o QR' },
       { title: 'Q&A con muro de preguntas', text: 'Moderación, votos y nube temática' },
       {
         title: 'Autoevaluación y análisis posterior',
         text: 'Detecta conceptos erróneos, exporta el informe PDF',
       },
-      { title: 'Código abierto y autoalojable', text: 'Docker, Postgres, Redis y auditoría admin' },
+      {
+        title: 'Código abierto y autoalojable',
+        text: 'Docker, Postgres, Redis y registro de administración',
+      },
     ],
   },
   estimate: {
-    eyebrow: 'Nuevo en el cuestionario en vivo',
+    eyebrow: 'Nuevo en el cuestionario en directo',
     title: 'Estimar cifras, debatir y comparar con claridad la segunda ronda',
-    lead: 'La pregunta de estimación numérica está pensada para fechas, órdenes de magnitud, medidas y probabilidades. Quien facilita fija un valor de referencia, un rango de entrada y una tolerancia; los participantes solo introducen un número.',
+    lead: 'La pregunta de estimación numérica está pensada para fechas, órdenes de magnitud, medidas y probabilidades. El anfitrión fija un valor de referencia, un rango de entrada y una tolerancia; los participantes solo introducen un número.',
     summary: [
       'La banda de plausibilidad limita las entradas permitidas.',
-      'La banda de tolerancia valora las estimaciones aceptables en el contenido.',
+      'La banda de tolerancia valora las estimaciones aceptables desde el punto de vista de la materia.',
       'Nadie ve la distribución antes de publicar los resultados.',
       'La ronda 1 y la ronda 2 se comparan después del debate.',
     ],
@@ -90,9 +93,9 @@ const es: Messages = {
     round2Value: '14 respuestas más próximas al valor de referencia',
   },
   confidence: {
-    eyebrow: 'Evaluación didáctica',
+    eyebrow: 'Análisis didáctico',
     title: '¿Correcto o incorrecto — y con qué grado de seguridad?',
-    lead: 'Con la autoevaluación, los participantes indican tras responder cuán seguros están (1–5). Ves no solo la tasa de aciertos, sino también respuestas incorrectas con alta seguridad — una palanca fuerte para la evaluación formativa, el plan para la puesta en común y el informe de resultados (PDF) al terminar la sesión.',
+    lead: 'Con la autoevaluación, los participantes indican tras responder cuán seguros están (1–5). Ves no solo la tasa de aciertos, sino también respuestas incorrectas con alta seguridad — un recurso útil para la evaluación formativa, el plan para la puesta en común y el informe de resultados (PDF) al terminar la sesión.',
     summary: [
       'No es un tipo de pregunta propio — opcional en preguntas puntuables.',
       'Escala 1–5 tras la respuesta, sin efecto en los puntos.',
@@ -128,9 +131,9 @@ const es: Messages = {
       'Informe listo para imprimir con estado de aprendizaje, mapa de calor y textos de las preguntas — en la vista de anfitrión y en la tarjeta del cuestionario. El CSV para Excel sigue disponible en «Más».',
   },
   qaWall: {
-    eyebrow: 'Q&A en vivo como superficie de moderación',
+    eyebrow: 'Q&A en directo como espacio de moderación',
     title: 'Recoger preguntas, priorizarlas y leerlas como mapa temático',
-    lead: 'El muro de preguntas no es un chat secundario. Es un canal en vivo propio para docentes y ponentes: moderar aportaciones, detectar prioridades colectivas, hacer visibles los puntos controvertidos y llevar los temas clave a la sala mediante una nube de palabras Q&A ponderada.',
+    lead: 'El muro de preguntas no es un chat secundario. Es un canal en directo propio para docentes y ponentes: moderar aportaciones, detectar prioridades colectivas, hacer visibles los puntos controvertidos y llevar los temas clave a la sala mediante una nube de palabras Q&A ponderada.',
     signals: [
       {
         label: 'Premoderación',
@@ -145,11 +148,11 @@ const es: Messages = {
         text: 'Palabras y frases se ponderan según apoyo, acuerdo o controversia.',
       },
       {
-        label: 'Perspectiva de la brújula de moderación',
-        text: 'Primero llegan las señales deterministas; NLP Q&A y resumen siguen siendo extensiones opcionales.',
+        label: 'Próximamente: brújula de moderación',
+        text: 'Primero llegan las señales deterministas; el análisis lingüístico opcional y el resumen siguen siendo extensiones.',
       },
     ],
-    docsLink: 'Abrir puntuación Q&A y controversia en GitHub',
+    docsLink: 'Abrir la valoración Q&A y la controversia en GitHub',
     demoAria: 'Ejemplo de muro de preguntas con moderación, votos y nube de palabras',
     hostView: 'Vista de anfitrión Q&A',
     demoTitle: 'Preguntas sobre el evento',
@@ -160,7 +163,8 @@ const es: Messages = {
     questions: [
       {
         score: '+18',
-        title: '¿Cuándo sigue siendo plausible una estimación en el contenido?',
+        title:
+          '¿Cuándo sigue siendo plausible una estimación desde el punto de vista de la materia?',
         meta: '15 a favor · 3 en contra · mejor pregunta',
       },
       {
@@ -176,7 +180,7 @@ const es: Messages = {
     ],
     wordCloud: 'Nube de palabras Q&A',
     wordCloudHint: 'Ponderada por resonancia positiva y controversia.',
-    frozenLive: 'Actualizaciones en vivo en pausa',
+    frozenLive: 'Actualizaciones en directo en pausa',
     terms: [
       { label: 'Banda de tolerancia', className: 'text-3xl text-brand-200' },
       { label: 'Debate', className: 'text-2xl text-emerald-200' },
@@ -188,11 +192,11 @@ const es: Messages = {
       { label: 'Necesidad de aclaración', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Siguiente paso: una brújula de moderación determinista, opcionalmente complementada con señales NLP Q&A asíncronas y resúmenes ligados a las fuentes.',
+      'Siguiente paso: una brújula de moderación determinista, opcionalmente complementada con señales de análisis lingüístico asíncronas y resúmenes ligados a las fuentes.',
   },
   workflow: {
     eyebrow: 'Para docencia, formación y talleres',
-    title: 'De la idea a la sesión en vivo en pocos minutos',
+    title: 'De la idea a la sesión en directo en pocos minutos',
     lead: 'De la pregunta a la sesión en curso, el flujo evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
     stepLabel: 'Paso',
     steps: [
@@ -210,7 +214,7 @@ const es: Messages = {
       },
       {
         number: '03',
-        title: 'Moderar en vivo',
+        title: 'Moderar en directo',
         description:
           'Los participantes votan, formulan preguntas y priorizan juntos. Anfitrión y presentador muestran cuestionario, muro de preguntas, nube de palabras, fase de lectura, cuenta atrás, segunda ronda y resultados en un solo flujo.',
       },
@@ -223,8 +227,8 @@ const es: Messages = {
     ],
   },
   features: {
-    eyebrow: 'Por qué se siente distinto',
-    title: 'Hecho para la interacción en vivo, no solo para encuestas en diapositivas',
+    eyebrow: 'Lo que distingue a arsnova.eu',
+    title: 'Hecho para la interacción en directo, no solo para encuestas en diapositivas',
     lead: 'arsnova.eu combina un arranque rápido, solidez didáctica y una base técnica transparente. La plataforma se mantiene sencilla en el día a día sin reducir las posibilidades.',
     items: [
       {
@@ -234,7 +238,7 @@ const es: Messages = {
         icon: 'single',
       },
       {
-        title: 'Autoevaluación en el cuestionario en vivo',
+        title: 'Autoevaluación en el cuestionario en directo',
         description:
           'Los participantes indican tras responder cuán seguros están. Detectas respuestas incorrectas con alta seguridad, priorizas la puesta en común y exportas el estado de aprendizaje en el informe de resultados (PDF).',
         icon: 'confidence',
@@ -254,13 +258,13 @@ const es: Messages = {
       {
         title: 'Más que un cuestionario estándar',
         description:
-          'MC/SC, respuesta corta, valoración, fase de lectura, Peer Instruction y flujo presentador apoyan el aprendizaje, la formación y la moderación en vivo.',
+          'MC/SC, respuesta corta, valoración, fase de lectura, Peer Instruction y flujo presentador apoyan el aprendizaje, la formación y la moderación en directo.',
         icon: 'toggle',
       },
       {
         title: 'Muro de preguntas en lugar de un chat secundario',
         description:
-          'El Q&A ofrece premoderación, fijar, archivar, votos a favor/en contra y ordenación por apoyo, calidad y controversia.',
+          'El Q&A permite premoderar, fijar, archivar, votar a favor o en contra y ordenar por apoyo, calidad y controversia.',
         icon: 'qa',
       },
       {
@@ -278,19 +282,19 @@ const es: Messages = {
       {
         title: 'Cumple las WCAG 2.2, nivel AA',
         description:
-          'Uso con teclado, anuncios de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF/UA-1 — para que más personas puedan participar de forma autónoma en sesiones en vivo.',
+          'Uso con teclado, anuncios de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF/UA-1 — para que más personas puedan participar de forma autónoma en sesiones en directo.',
         icon: 'a11y',
       },
       {
         title: 'Privacidad y control',
         description:
-          'Enfoque local-first, eliminación opcional de datos y explotación autoalojable te dan más control sobre contenidos y datos en vivo.',
+          'Los contenidos del cuestionario permanecen en tu dispositivo, la eliminación opcional de datos y la explotación en tu propia infraestructura te dan más control sobre contenidos y datos en directo.',
         icon: 'tools',
       },
       {
         title: 'Código abierto con despliegue y operación',
         description:
-          'Docker, Postgres, Redis y auditoría admin hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
+          'Docker, Postgres, Redis y registro de administración hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
         icon: 'server',
       },
     ],
@@ -306,14 +310,14 @@ const es: Messages = {
           'Tú y tus participantes usáis los flujos centrales sin ratón. Indicadores de foco visibles y un enlace de salto al contenido facilitan la navegación.',
       },
       {
-        title: 'Apoyo de lector de pantalla en vivo',
+        title: 'Apoyo de lector de pantalla en directo',
         description:
           'Los cambios de estado al unirse a la sesión, en las votaciones y en los cambios de fase se anuncian a los lectores de pantalla para seguir el flujo.',
       },
       {
         title: 'Tiempo de respuesta ajustable individualmente',
         description:
-          'En preguntas con tiempo eliges el tiempo estándar, el tiempo multiplicado por diez o participar sin límite. Así se puede aplicar un ajuste razonable directamente en la sesión en vivo.',
+          'En preguntas con tiempo eliges el tiempo estándar, el tiempo multiplicado por diez o participar sin límite. Así se puede aplicar un ajuste razonable directamente en la sesión en directo.',
       },
       {
         title: 'Informe de resultados estructurado de forma accesible',
@@ -325,16 +329,16 @@ const es: Messages = {
   },
   trust: {
     eyebrow: 'Confianza',
-    title: 'Creíble porque el producto no parte de cero',
+    title: 'Construido sobre una base consolidada',
     lead: 'arsnova.eu continúa la tradición del ecosistema ARSnova y se apoya en experiencias científicas, didácticas y prácticas de muchos años de tecnología educativa.',
     proofItems: [
-      { value: 'Desde 2012', label: 'Tradición ARSnova en educación y edtech' },
+      { value: 'Desde 2012', label: 'Tradición ARSnova en educación y tecnología educativa' },
       { value: 'WCAG 2.2 AA', label: 'Accesibilidad verificada para docencia e instituciones' },
       {
         value: '5 idiomas de UI',
         label: 'Alemán, inglés, francés, español, italiano',
       },
-      { value: 'Código abierto', label: 'Código transparente en lugar de una caja negra' },
+      { value: 'Código abierto', label: 'Código transparente en lugar de sistemas opacos' },
     ],
     items: [
       {
@@ -345,13 +349,13 @@ const es: Messages = {
       },
       {
         quote:
-          'Evaluación UX en comparación directa con Kahoot! como punto de control empírico del diseño.',
+          'Evaluación UX en comparación directa con Kahoot! como verificación empírica del diseño.',
         source: 'fnm-austria',
         tag: 'Estudio',
       },
       {
         quote:
-          'Privacy by design y apertura técnica son un verdadero factor diferencial para contextos edtech europeos.',
+          'La privacidad desde el diseño y la apertura técnica son un verdadero factor diferencial para contextos europeos de tecnología educativa.',
         source: 'Análisis de publicaciones',
         tag: 'Arquitectura',
       },
@@ -368,7 +372,7 @@ const es: Messages = {
   comparison: {
     eyebrow: 'Diferenciación',
     title: 'No solo un sustituto de Mentimeter o Kahoot',
-    lead: 'El centro no es solo la votación, sino el flujo en vivo completo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
+    lead: 'El centro no es solo la votación, sino el flujo en directo completo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
     points: [
       {
         title: 'Menos barreras de entrada',
@@ -383,7 +387,7 @@ const es: Messages = {
       {
         title: 'Más control sobre datos y acceso',
         description:
-          'Código abierto, autoalojable y local-first — más cumplimiento de las WCAG 2.2, nivel AA. Relevante para escuelas, universidades y organizaciones con requisitos de privacidad e inclusión.',
+          'Código abierto, ejecutable en tu propia infraestructura y con contenidos del cuestionario conservados en el dispositivo — más cumplimiento de las WCAG 2.2, nivel AA. Relevante para escuelas, universidades y organizaciones con requisitos de privacidad e inclusión.',
       },
     ],
     comparePrefix: 'La comparación completa de funciones sigue en la documentación:',
@@ -402,7 +406,7 @@ const es: Messages = {
       {
         question: '¿Dónde están los datos?',
         answer:
-          'Los contenidos del cuestionario están pensados local-first. En sesiones en vivo solo se procesan los datos de sesión técnicamente necesarios; con autoalojamiento, la operación permanece en tu infraestructura.',
+          'Los contenidos del cuestionario permanecen en tu dispositivo. En sesiones en directo solo se procesan los datos de sesión técnicamente necesarios; con autoalojamiento, la operación permanece en tu infraestructura.',
       },
       {
         question: '¿Puedo autoalojar arsnova.eu?',
@@ -422,7 +426,7 @@ const es: Messages = {
       {
         question: '¿Qué tiene de especial la pregunta de estimación numérica?',
         answer:
-          'Separa las entradas permitidas de la banda de tolerancia del contenido, no muestra la distribución durante la votación y puede evaluar una segunda ronda tras el debate con estadística y comparación de rondas.',
+          'Separa las entradas permitidas de la banda de tolerancia de la materia, no muestra la distribución durante la votación y puede evaluar una segunda ronda tras el debate con estadística y comparación de rondas.',
       },
       {
         question: '¿Qué puede hacer el muro de preguntas?',
@@ -437,7 +441,7 @@ const es: Messages = {
       {
         question: '¿Para quién está pensada la plataforma?',
         answer:
-          'Para la interacción en vivo en educación y organizaciones: escuela, universidad, formación continua, formación, taller, evento o reunión.',
+          'Para la interacción en directo en educación y organizaciones: escuela, universidad, formación continua, formación, taller, evento o reunión.',
       },
       {
         question: '¿Es accesible arsnova.eu?',
@@ -448,20 +452,20 @@ const es: Messages = {
     ],
   },
   ctaSection: {
-    title: '¿Listo para la próxima sesión en vivo?',
-    lead: 'Prueba el flujo en vivo directamente en la aplicación, o echa un vistazo al código fuente abierto, a la lógica Q&A, al procesamiento de la nube de palabras y al camino de despliegue y operación detrás de la plataforma.',
+    title: '¿Listo para la próxima sesión en directo?',
+    lead: 'Prueba el flujo en directo directamente en la aplicación, o echa un vistazo al código fuente abierto, a la lógica Q&A, al procesamiento de la nube de palabras y a la infraestructura de despliegue y operación de la plataforma.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
     webAppDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, autoalojable y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     featureList: [
-      'Cuestionario en vivo y votaciones',
+      'Cuestionario en directo y votaciones',
       'Autoevaluación en preguntas puntuables',
       'Informe de resultados (PDF) y puesta en común al terminar la sesión',
       'Preguntas de estimación numérica con dos rondas y estadística',
       'Muro de preguntas con moderación, votos a favor y en contra',
-      'Lobby, presentador, QR/código',
+      'Sala de espera, presentador, QR/código',
       'Tipos de pregunta MC/SC/respuesta corta/texto libre/encuesta/valoración/estimación numérica',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',
@@ -469,12 +473,12 @@ const es: Messages = {
       'Ordenación por apoyo, acuerdo robusto y controversia',
       'Modo equipo y ajustes previos',
       'Clasificación, racha, código bonus',
-      'Importación/exportación y sync Yjs',
+      'Importación/exportación y sincronización Yjs',
       'Importación IA externa, validada con Zod',
       'Interfaz en cinco idiomas',
       'Cumple las WCAG 2.2, nivel AA',
-      'Autoalojamiento Docker y auditoría admin',
-      'Local-first y funcionamiento orientado al RGPD',
+      'Ejecución Docker en tu infraestructura y registro de administración',
+      'Contenidos del cuestionario conservados en el dispositivo y funcionamiento orientado al RGPD',
     ],
   },
 };

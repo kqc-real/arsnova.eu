@@ -35,7 +35,9 @@ async function assertSwitcher(page, buttonId, label) {
 
   const hrefWithHash = await enLink.getAttribute('href');
   if (!hrefWithHash || !hrefWithHash.includes('/en/') || !hrefWithHash.includes('#qa-wall')) {
-    throw new Error(`${label}: expected /en/#qa-wall in href before activation, got ${hrefWithHash}`);
+    throw new Error(
+      `${label}: expected /en/#qa-wall in href before activation, got ${hrefWithHash}`,
+    );
   }
 
   await button.click();
@@ -69,7 +71,9 @@ async function assertSwitcher(page, buttonId, label) {
   });
   const afterAlias = await enLink.getAttribute('href');
   if (!afterAlias?.includes('#qa-wall')) {
-    throw new Error(`${label}: hashchange alias fragenwand not canonicalized to #qa-wall (${afterAlias})`);
+    throw new Error(
+      `${label}: hashchange alias fragenwand not canonicalized to #qa-wall (${afterAlias})`,
+    );
   }
 }
 

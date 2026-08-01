@@ -4,7 +4,7 @@ const en: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
     homeDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, self-hostable and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
@@ -48,7 +48,7 @@ const en: Messages = {
     titleLine2: 'moderate questions',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, self-hostable and designed for GDPR-oriented operation.',
+    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, runnable on your own infrastructure and designed for GDPR-oriented operation.',
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
@@ -58,7 +58,10 @@ const en: Messages = {
         title: 'Confidence rating & follow-up',
         text: 'Spot misconceptions, export a PDF results report',
       },
-      { title: 'Open source & self-hostable', text: 'Docker, Postgres, Redis and admin audit' },
+      {
+        title: 'Open source & self-operated',
+        text: 'Docker, Postgres, Redis and admin activity log',
+      },
     ],
   },
   estimate: {
@@ -73,7 +76,7 @@ const en: Messages = {
     ],
     docsLink: 'Open the numeric estimation question documentation',
     demoAria: 'Sample results for a numeric estimation question about the French Revolution',
-    hostView: 'Host view after release',
+    hostView: 'Facilitator view after release',
     demoQuestion: 'When did the French Revolution begin?',
     reference: 'Reference 1789',
     toleranceBand: 'Tolerance band',
@@ -88,20 +91,20 @@ const en: Messages = {
     round2Value: '14 answers closer to the reference',
   },
   confidence: {
-    eyebrow: 'Didactic evaluation',
+    eyebrow: 'Pedagogical analysis',
     title: 'Right or wrong — and how sure?',
-    lead: 'With confidence rating, participants indicate how sure they are after answering (1–5). You see not only the hit rate, but also confidently wrong answers — a strong lever for formative evaluation, focused debriefing and the results report (PDF) after the session ends.',
+    lead: 'With the confidence rating, participants indicate how sure they are after answering (1–5). You see not only the hit rate, but also confidently wrong answers — a useful tool for formative evaluation, focused debriefing and the results report (PDF) after the session ends.',
     summary: [
       'Not a separate question type — optional on scored quiz questions.',
       'Scale 1–5 after the answer, with no effect on points.',
-      'After release, the host sees correctness × confidence.',
-      'Confidently wrong flags possible misconceptions.',
+      'After release, the facilitator sees correctness × confidence.',
+      'Confidently wrong answers may indicate misconceptions.',
       'After the session: results report (PDF) and debriefing.',
     ],
     docsConfidence: 'Confidence rating docs',
     docsExport: 'Results report (PDF) docs',
     demoAria: 'Sample evaluation with confidence rating after results release',
-    hostView: 'Host view after release',
+    hostView: 'Facilitator view after release',
     demoQuestion: 'Which structure is the most stable?',
     badge: 'Confidence rating',
     matrix: [
@@ -123,10 +126,10 @@ const en: Messages = {
     debriefing: 'Debriefing',
     resultsPdf: 'Results report (PDF)',
     exportNote:
-      'Print-ready report with learning status, heatmap and full question text — in the host view and on the quiz card. CSV for Excel remains available under “More”.',
+      'Print-ready report with learning status, heatmap and full question text — in the facilitator view and on the quiz card. CSV for Excel remains available under “More”.',
   },
   qaWall: {
-    eyebrow: 'Live Q&A as a moderation surface',
+    eyebrow: 'Live Q&A as a moderation space',
     title: 'Collect questions, prioritise them, and read them as a topic map',
     lead: 'The Q&A wall is not a side chat. It is a dedicated live channel for facilitators and speakers: moderate submissions, spot collective priorities, surface controversial points and bring the key themes into the room via a weighted Q&A word cloud.',
     signals: [
@@ -143,13 +146,13 @@ const en: Messages = {
         text: 'Words and phrases are weighted by support, agreement or controversy.',
       },
       {
-        label: 'Moderation compass outlook',
-        text: 'Deterministic signals come first; Q&A NLP and summarisation remain optional extensions.',
+        label: 'Coming next: moderation compass',
+        text: 'Deterministic signals come first; optional language analysis and summarisation remain extensions.',
       },
     ],
     docsLink: 'Open Q&A scoring and controversy docs on GitHub',
     demoAria: 'Sample Q&A wall with moderation, voting and word cloud',
-    hostView: 'Host view Q&A',
+    hostView: 'Facilitator view Q&A',
     demoTitle: 'Questions about the event',
     moderationActive: 'Pre-moderation on',
     sortMostSupported: 'Most supported',
@@ -186,7 +189,7 @@ const en: Messages = {
       { label: 'Clarification need', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Next step: a deterministic moderation compass, optionally complemented by asynchronous Q&A NLP signals and source-bound summaries.',
+      'Next step: a deterministic moderation compass, optionally complemented by asynchronous language-analysis signals and source-bound summaries.',
   },
   workflow: {
     eyebrow: 'For teaching, training and workshops',
@@ -210,7 +213,7 @@ const en: Messages = {
         number: '03',
         title: 'Moderate live',
         description:
-          'Participants vote, ask questions and prioritise together. Host and presenter show quiz, Q&A wall, word cloud, reading phase, countdown, second round and results in one flow.',
+          'Participants vote, ask questions and prioritise together. Facilitator and presenter show quiz, Q&A wall, word cloud, reading phase, countdown, second round and results in one flow.',
       },
       {
         number: '04',
@@ -221,14 +224,14 @@ const en: Messages = {
     ],
   },
   features: {
-    eyebrow: 'What makes it feel different',
+    eyebrow: 'What sets arsnova.eu apart',
     title: 'Built for live interaction, not only for polling slides',
-    lead: 'arsnova.eu combines a fast start, didactic depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
+    lead: 'arsnova.eu combines a fast start, pedagogical depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
     items: [
       {
         title: 'Ready in no time',
         description:
-          'Hosts start without an account. Participants join the session directly with a 6-digit code or QR.',
+          'Facilitators start without an account. Participants join the session directly with a 6-digit code or QR.',
         icon: 'single',
       },
       {
@@ -282,13 +285,13 @@ const en: Messages = {
       {
         title: 'Privacy and control',
         description:
-          'Local-first design, optional data removal and self-hostable operation give you more control over content and live data.',
+          'Quiz content stays on your device, optional data removal and operation on your own infrastructure give you more control over content and live data.',
         icon: 'tools',
       },
       {
         title: 'Open source with deployment and operations',
         description:
-          'Docker, Postgres, Redis and admin audit make the platform robust for hosting, operations and auditability.',
+          'Docker, Postgres, Redis and an admin activity log make the platform robust for hosting, operations and auditability.',
         icon: 'server',
       },
     ],
@@ -323,8 +326,8 @@ const en: Messages = {
   },
   trust: {
     eyebrow: 'Trust',
-    title: 'Credible because the product does not start from zero',
-    lead: 'arsnova.eu continues the ARSnova ecosystem tradition and builds on scientific, didactic and practical experience from many years of education technology.',
+    title: 'Built on an established foundation',
+    lead: 'arsnova.eu continues the ARSnova ecosystem tradition and builds on scientific, pedagogical and practical experience from many years of education technology.',
     proofItems: [
       { value: 'Since 2012', label: 'ARSnova tradition in education and edtech' },
       { value: 'WCAG 2.2 AA', label: 'Verified accessibility for teaching and institutions' },
@@ -332,7 +335,7 @@ const en: Messages = {
         value: '5 UI languages',
         label: 'German, English, French, Spanish, Italian',
       },
-      { value: 'Open source', label: 'Transparent code instead of a black box' },
+      { value: 'Open source', label: 'Transparent code instead of opaque systems' },
     ],
     items: [
       {
@@ -347,7 +350,7 @@ const en: Messages = {
       },
       {
         quote:
-          'Privacy by design and technical openness are a real differentiator for European edtech contexts.',
+          'Privacy from the ground up and technical openness are a real differentiator for European edtech contexts.',
         source: 'Publication analysis',
         tag: 'Architecture',
       },
@@ -369,7 +372,7 @@ const en: Messages = {
       {
         title: 'Lower barriers to entry',
         description:
-          'No separate product logic for “create” and “join”. Hosts start without an account; participants enter the session via code or QR.',
+          'No separate product logic for “create” and “join”. Facilitators start without an account; participants enter the session via code or QR.',
       },
       {
         title: 'More interaction formats',
@@ -379,7 +382,7 @@ const en: Messages = {
       {
         title: 'More control over data and access',
         description:
-          'Open source, self-hostable and local-first by design — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
+          'Open source, runnable on your own infrastructure and with quiz content kept locally — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
       },
     ],
     comparePrefix: 'You can still find the full feature comparison in the docs:',
@@ -391,24 +394,24 @@ const en: Messages = {
     answerLabel: 'Answer',
     items: [
       {
-        question: 'Do hosts or participants need an account?',
+        question: 'Do facilitators or participants need an account?',
         answer:
           'No. A session can be started without an account. Participants join via code or QR.',
       },
       {
         question: 'Where is the data stored?',
         answer:
-          'Quiz content is designed local-first. For live sessions only the technically necessary session data is processed; with self-hosting, operations stay in your own infrastructure.',
+          'Quiz content stays on your device. For live sessions only the technically necessary session data is processed; when you run it yourself, operations stay in your own infrastructure.',
       },
       {
-        question: 'Can I self-host arsnova.eu?',
+        question: 'Can I run arsnova.eu on my own infrastructure?',
         answer:
           'Yes. The platform is open source and designed to run with Docker, PostgreSQL and Redis.',
       },
       {
         question: 'What is confidence rating in the quiz?',
         answer:
-          'An optional follow-up after scored questions: participants rate on a scale of 1–5 how sure they are about their answer. Points stay unchanged; in the host evaluation you see correctness × confidence and flag confidently wrong answers as a misconception signal. After the session ends, learning status flows into debriefing and the results report (PDF).',
+          'An optional follow-up after scored questions: participants rate on a scale of 1–5 how sure they are about their answer. Points stay unchanged; in the facilitator evaluation you see correctness × confidence and flag confidently wrong answers as a misconception signal. After the session ends, learning status flows into debriefing and the results report (PDF).',
       },
       {
         question: 'Can I export session results?',
@@ -423,7 +426,7 @@ const en: Messages = {
       {
         question: 'What can the Q&A wall do?',
         answer:
-          'Participants submit questions and weight them with upvotes and downvotes. Hosts can pre-moderate, pin, archive or remove questions and sort the list by support, robust agreement or controversy.',
+          'Participants submit questions and weight them with upvotes and downvotes. Facilitators can pre-moderate, pin, archive or remove questions and sort the list by support, robust agreement or controversy.',
       },
       {
         question: 'What makes the Q&A word cloud different?',
@@ -445,19 +448,19 @@ const en: Messages = {
   },
   ctaSection: {
     title: 'Ready for the next live session?',
-    lead: 'Try the live flow directly in the app, or take a look at the open source code, the Q&A logic, the word-cloud processing pipeline and the deployment and operations behind the platform.',
+    lead: 'Try the live flow directly in the app, or take a look at the open source code, the Q&A logic, the word-cloud processing pipeline and the technical foundations for deployment and operations.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, self-hostable and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     featureList: [
       'Live quiz and voting',
       'Confidence rating on scored questions',
       'Results report (PDF) and debriefing after the session ends',
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
-      'Lobby, presenter, QR/code',
+      'Waiting room, presenter, QR/code',
       'Question types MC/SC/short answer/free text/survey/rating/numeric estimation',
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',
@@ -469,8 +472,8 @@ const en: Messages = {
       'External AI import, Zod-validated',
       'UI in five languages',
       'Conforms to WCAG 2.2 Level AA',
-      'Docker self-host and admin audit',
-      'Local-first and GDPR-oriented operation',
+      'Docker on your own infrastructure and admin activity log',
+      'Locally kept quiz content and GDPR-oriented operation',
     ],
   },
 };

@@ -4,7 +4,7 @@ const de: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand',
     homeDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, self-hostbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     siteNameInfo: 'arsnova.eu – Informationen',
     ogLocale: 'de_DE',
   },
@@ -48,17 +48,20 @@ const de: Messages = {
     titleLine2: 'Fragen moderieren',
     titleAccent1: 'live und kostenlos',
     titleAccent2: ' ohne Account.',
-    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Word-Cloud-Analyse und Blitzlicht-Feedback in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Business. Open Source, self-hostbar und für DSGVO-orientierten Betrieb ausgelegt.',
+    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Word-Cloud-Analyse und Blitzlicht-Feedback in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Unternehmen. Open Source, auf eigener Infrastruktur betreibbar und für DSGVO-orientierten Betrieb ausgelegt.',
     a11yLink: 'Barrierefrei nach WCAG 2.2 AA',
     a11ySuffix: '— Tastatur, Screenreader und individuell anpassbare Bearbeitungszeit.',
     cards: [
       { title: 'Sofort live', text: 'Session per Code oder QR teilen' },
-      { title: 'Q&A mit Fragenwand', text: 'Moderation, Voting und Themen-Wortwolke' },
+      { title: 'Q&A mit Fragenwand', text: 'Moderation, Abstimmung und Themen-Wortwolke' },
       {
         title: 'Selbsteinschätzung & Nachbereitung',
         text: 'Fehlkonzepte erkennen, Ergebnisbericht als PDF',
       },
-      { title: 'Open Source & self-hostbar', text: 'Docker, Postgres, Redis und Admin-Audit' },
+      {
+        title: 'Open Source & selbst betreibbar',
+        text: 'Docker, Postgres, Redis und Admin-Protokollierung',
+      },
     ],
   },
   estimate: {
@@ -90,12 +93,12 @@ const de: Messages = {
   confidence: {
     eyebrow: 'Didaktische Auswertung',
     title: 'Richtig oder falsch — und wie sicher?',
-    lead: 'Mit der Selbsteinschätzung erfassen Teilnehmende nach ihrer Antwort, wie sicher sie sind (1–5). Du erkennst nicht nur Trefferquote, sondern auch selbstsicher falsche Antworten — ein starker Hebel für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
+    lead: 'Mit der Selbsteinschätzung erfassen Teilnehmende nach ihrer Antwort, wie sicher sie sind (1–5). Du erkennst nicht nur Trefferquote, sondern auch selbstsicher falsche Antworten — ein hilfreiches Instrument für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
     summary: [
       'Kein eigener Fragetyp — optional an bewertbaren Quizfragen.',
       'Skala 1–5 nach der Antwort, ohne Einfluss auf Punkte.',
       'Host sieht nach Freigabe Korrektheit × Antwortsicherheit.',
-      'Selbstsicher falsch markiert mögliche Fehlkonzepte.',
+      'Falsche Antworten mit hoher Antwortsicherheit weisen auf mögliche Fehlkonzepte hin.',
       'Nach Session-Ende: Ergebnisbericht (PDF) und Nachbesprechung.',
     ],
     docsConfidence: 'Doku Selbsteinschätzung',
@@ -123,32 +126,32 @@ const de: Messages = {
     debriefing: 'Nachbesprechung',
     resultsPdf: 'Ergebnisbericht (PDF)',
     exportNote:
-      'Druckfertiger Bericht mit Lernstand, Heatmap und Fragentexten — in der Host-Ansicht und auf der Quizkarte. CSV für Excel bleibt unter „Mehr“ verfügbar.',
+      'Druckfertiger Bericht mit Lernstand, farbcodierter Übersicht und Fragentexten — in der Host-Ansicht und auf der Quizkarte. CSV für Excel bleibt unter „Mehr“ verfügbar.',
   },
   qaWall: {
-    eyebrow: 'Live-Q&A als Moderationsfläche',
+    eyebrow: 'Live-Q&A als Moderationsraum',
     title: 'Fragen sammeln, priorisieren und als Themenbild lesen',
-    lead: 'Die Fragenwand ist kein Nebenchat. Sie ist ein eigener Live-Kanal für Lehrende und Vortragende: Beiträge moderieren, kollektive Prioritäten erkennen, kontroverse Punkte sichtbar machen und die wichtigsten Themen über eine gewichtete Q&A-Wortwolke in den Raum holen.',
+    lead: 'Die Fragenwand ist kein Chat am Rande. Sie ist ein eigener Live-Kanal für Lehrende und Vortragende: Beiträge moderieren, kollektive Prioritäten erkennen, kontroverse Punkte sichtbar machen und die wichtigsten Themen über eine gewichtete Q&A-Wortwolke in den Raum holen.',
     signals: [
       {
         label: 'Vorab-Moderation',
         text: 'Fragen erst freigeben, wenn sie in den didaktischen Moment passen.',
       },
       {
-        label: 'Kollektives Voting',
-        text: 'Up- und Downvotes zeigen Priorität, Reibung und Klärungsbedarf.',
+        label: 'Gemeinsames Abstimmen',
+        text: 'Zustimmungs- und Ablehnungsstimmen zeigen Priorität, Reibung und Klärungsbedarf.',
       },
       {
         label: 'Themen-Wortwolke',
         text: 'Wörter und Phrasen werden nach Unterstützung, Zustimmung oder Kontroverse gewichtet.',
       },
       {
-        label: 'Kompass-Ausblick',
-        text: 'Deterministische Signale kommen zuerst; Q&A-NLP und Zusammenfassung bleiben optionale Ausbaustufen.',
+        label: 'Als Nächstes: Moderationskompass',
+        text: 'Deterministische Signale kommen zuerst; optionale sprachliche Auswertung und Zusammenfassung bleiben Ausbaustufen.',
       },
     ],
-    docsLink: 'Q&A-Scoring und Kontroversität auf GitHub öffnen',
-    demoAria: 'Beispiel einer Q&A-Fragenwand mit Moderation, Voting und Wortwolke',
+    docsLink: 'Q&A-Bewertung und Kontroversität auf GitHub öffnen',
+    demoAria: 'Beispiel einer Q&A-Fragenwand mit Moderation, Abstimmung und Wortwolke',
     hostView: 'Host-Ansicht Q&A',
     demoTitle: 'Fragen zur Veranstaltung',
     moderationActive: 'Vorab-Moderation aktiv',
@@ -174,7 +177,7 @@ const de: Messages = {
     ],
     wordCloud: 'Q&A-Wortwolke',
     wordCloudHint: 'Gewichtet nach positiver Resonanz und Kontroverse.',
-    frozenLive: 'Live eingefroren',
+    frozenLive: 'Live-Aktualisierung pausiert',
     terms: [
       { label: 'Toleranzband', className: 'text-3xl text-brand-200' },
       { label: 'Diskussion', className: 'text-2xl text-emerald-200' },
@@ -186,7 +189,7 @@ const de: Messages = {
       { label: 'Klärungsbedarf', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Nächster Schritt: deterministischer Moderationskompass, optional ergänzt durch asynchrone Q&A-NLP-Signale und quellengebundene Zusammenfassungen.',
+      'Nächster Schritt: ein deterministischer Moderationskompass, optional ergänzt durch asynchrone sprachliche Auswertung und quellengebundene Zusammenfassungen.',
   },
   workflow: {
     eyebrow: 'Für Unterricht, Training und Workshops',
@@ -210,7 +213,7 @@ const de: Messages = {
         number: '03',
         title: 'Live moderieren',
         description:
-          'Teilnehmende stimmen ab, stellen Fragen und priorisieren gemeinsam. Host und Presenter zeigen Quiz, Q&A-Fragenwand, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisansicht in einem Flow.',
+          'Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A-Fragenwand, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisansicht in einem Ablauf.',
       },
       {
         number: '04',
@@ -221,7 +224,7 @@ const de: Messages = {
     ],
   },
   features: {
-    eyebrow: 'Warum es sich anders anfühlt',
+    eyebrow: 'Was arsnova.eu auszeichnet',
     title: 'Gebaut für Live-Interaktion statt nur für Abstimmungsfolien',
     lead: 'arsnova.eu verbindet schnellen Einstieg, didaktische Stärke und einen transparenten technischen Unterbau. So bleibt die Plattform im Alltag einfach, ohne in den Möglichkeiten klein zu werden.',
     items: [
@@ -252,25 +255,25 @@ const de: Messages = {
       {
         title: 'Mehr als ein Standard-Quiz',
         description:
-          'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction und Presenter-Flow unterstützen Lernen, Training und Live-Moderation.',
+          'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction und Presenter-Ablauf unterstützen Lernen, Training und Live-Moderation.',
         icon: 'toggle',
       },
       {
-        title: 'Fragenwand statt Nebenchat',
+        title: 'Fragenwand statt Chat am Rande',
         description:
-          'Q&A bietet Vorab-Moderation, Anheften, Archivieren, Up-/Downvoting sowie Sortierung nach Unterstützung, Qualität und Kontroverse.',
+          'Q&A bietet Vorab-Moderation, Anheften, Archivieren, Zustimmungs- und Ablehnungsstimmen sowie Sortierung nach Unterstützung, Qualität und Kontroverse.',
         icon: 'qa',
       },
       {
         title: 'Elaborierte Word Cloud',
         description:
-          'Freitext und Q&A werden als Wörter und Phrasen verdichtet; die Fragenwand gewichtet nach Zustimmung, belastbarem Score oder Kontroverse.',
+          'Freitext und Q&A werden als Wörter und Phrasen verdichtet; die Fragenwand gewichtet nach Zustimmung, belastbarer Bewertung oder Kontroverse.',
         icon: 'cloud',
       },
       {
-        title: 'Für unterschiedliche Settings',
+        title: 'Für unterschiedliche Einsatzkontexte',
         description:
-          'Presets, Team-Modus, anonymer Modus, Nicknames und Stilwahl helfen von Klasse und Seminar bis Workshop, Event und Meeting.',
+          'Voreinstellungen, Team-Modus, anonymer Modus, Spitznamen und Stilwahl helfen von Klasse und Seminar bis Workshop, Veranstaltung und Besprechung.',
         icon: 'bolt',
       },
       {
@@ -282,13 +285,13 @@ const de: Messages = {
       {
         title: 'Datenschutz und Kontrolle',
         description:
-          'Local-first, optionale Datenbereinigung und self-hostbarer Betrieb geben dir mehr Kontrolle über Inhalte und Live-Daten.',
+          'Quiz-Inhalte bleiben lokal, optionale Datenbereinigung und Betrieb auf eigener Infrastruktur geben dir mehr Kontrolle über Inhalte und Live-Daten.',
         icon: 'tools',
       },
       {
         title: 'Open Source mit Deployment und Betrieb',
         description:
-          'Docker, Postgres, Redis und Admin-Audit machen die Plattform auch für Hosting, Betrieb und Nachvollziehbarkeit belastbar.',
+          'Docker, Postgres, Redis und Admin-Protokollierung machen die Plattform auch für Bereitstellung, Betrieb und Nachvollziehbarkeit belastbar.',
         icon: 'server',
       },
     ],
@@ -323,7 +326,7 @@ const de: Messages = {
   },
   trust: {
     eyebrow: 'Vertrauen',
-    title: 'Glaubwürdig, weil das Produkt nicht bei null anfängt',
+    title: 'Auf langjähriger Erfahrung aufgebaut',
     lead: 'arsnova.eu steht in der Tradition des ARSnova-Ökosystems und knüpft an wissenschaftliche, didaktische und praktische Erfahrungen aus vielen Jahren Bildungstechnologie an.',
     proofItems: [
       { value: 'Seit 2012', label: 'ARSnova-Tradition in Bildung und EdTech' },
@@ -332,7 +335,7 @@ const de: Messages = {
         value: '5 UI-Sprachen',
         label: 'Deutsch, Englisch, Französisch, Spanisch, Italienisch',
       },
-      { value: 'Open Source', label: 'Transparenter Code statt Black Box' },
+      { value: 'Open Source', label: 'Transparenter Code statt undurchsichtiger Systeme' },
     ],
     items: [
       {
@@ -348,7 +351,7 @@ const de: Messages = {
       },
       {
         quote:
-          'Privacy-by-Design und technische Offenheit sind ein echter Differenzierungsfaktor für europäische EdTech-Kontexte.',
+          'Datenschutz von Anfang an und technische Offenheit sind ein echter Differenzierungsfaktor für europäische EdTech-Kontexte.',
         source: 'Publikationsanalyse',
         tag: 'Architektur',
       },
@@ -366,7 +369,7 @@ const de: Messages = {
   comparison: {
     eyebrow: 'Abgrenzung',
     title: 'Nicht nur ein Ersatz für Mentimeter oder Kahoot',
-    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Flow: vorbereiten, moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
+    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Ablauf: vorbereiten, moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
     points: [
       {
         title: 'Weniger Einstiegshürden',
@@ -381,7 +384,7 @@ const de: Messages = {
       {
         title: 'Mehr Kontrolle über Daten und Zugang',
         description:
-          'Open Source, self-hostbar und local-first konzipiert — plus Barrierefreiheit nach WCAG 2.2 AA. Relevant für Schulen, Hochschulen und Organisationen mit Datenschutz- und Inklusionsanforderungen.',
+          'Open Source, auf eigener Infrastruktur betreibbar und mit lokal gehaltenen Quiz-Inhalten — plus Barrierefreiheit nach WCAG 2.2 AA. Relevant für Schulen, Hochschulen und Organisationen mit Datenschutz- und Inklusionsanforderungen.',
       },
     ],
     comparePrefix: 'Den vollständigen Featurevergleich findest du weiterhin in der Doku:',
@@ -400,7 +403,7 @@ const de: Messages = {
       {
         question: 'Wo liegen die Daten?',
         answer:
-          'Quiz-Inhalte sind local-first konzipiert. Für Live-Sessions werden nur die technisch nötigen Sitzungsdaten verarbeitet; bei Self-Hosting liegt der Betrieb in deiner eigenen Infrastruktur.',
+          'Quiz-Inhalte bleiben lokal auf deinem Gerät. Für Live-Sessions werden nur die technisch nötigen Sitzungsdaten verarbeitet; bei Betrieb auf eigener Infrastruktur liegt der Betrieb bei dir.',
       },
       {
         question: 'Kann ich arsnova.eu selbst hosten?',
@@ -425,7 +428,7 @@ const de: Messages = {
       {
         question: 'Was kann die Q&A-Fragenwand?',
         answer:
-          'Teilnehmende reichen Fragen ein und gewichten sie mit Up- und Downvotes. Hosts können vorab moderieren, Fragen anheften, archivieren oder entfernen und die Liste nach Unterstützung, belastbarer Zustimmung oder Kontroverse sortieren.',
+          'Teilnehmende reichen Fragen ein und gewichten sie mit Zustimmungs- und Ablehnungsstimmen. Hosts können vorab moderieren, Fragen anheften, archivieren oder entfernen und die Liste nach Unterstützung, belastbarer Zustimmung oder Kontroverse sortieren.',
       },
       {
         question: 'Was macht die Q&A-Wortwolke anders?',
@@ -435,7 +438,7 @@ const de: Messages = {
       {
         question: 'Für wen ist die Plattform gedacht?',
         answer:
-          'Für Live-Interaktion in Bildung und Organisationen: Schule, Hochschule, Weiterbildung, Training, Workshop, Event oder Meeting.',
+          'Für Live-Interaktion in Bildung und Organisationen: Schule, Hochschule, Weiterbildung, Training, Workshop, Veranstaltung oder Besprechung.',
       },
       {
         question: 'Ist arsnova.eu barrierefrei?',
@@ -447,32 +450,32 @@ const de: Messages = {
   },
   ctaSection: {
     title: 'Bereit für die nächste Live-Session?',
-    lead: 'Teste den Live-Flow direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Word-Cloud-Verarbeitung und den Deployment- und Betriebspfad hinter der Plattform.',
+    lead: 'Teste den Live-Ablauf direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Word-Cloud-Verarbeitung und die technischen Grundlagen für Bereitstellung und Betrieb.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',
     webAppDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, self-hostbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     featureList: [
       'Live-Quiz und Abstimmungen',
       'Selbsteinschätzung bei bewertbaren Fragen',
       'Ergebnisbericht (PDF) und Nachbesprechung nach Session-Ende',
       'Numerische Schätzfragen mit zwei Runden und Statistik',
-      'Q&A-Fragenwand mit Moderation, Up- und Downvoting',
-      'Lobby, Presenter, QR/Code',
+      'Q&A-Fragenwand mit Moderation, Zustimmungs- und Ablehnungsstimmen',
+      'Warteraum, Presenter, QR/Code',
       'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
       'Markdown und KaTeX',
       'Lesephase und Peer Instruction',
       'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
       'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
-      'Team-Modus und Presets',
-      'Leaderboard, Streak, Bonus-Code',
-      'Import/Export und Yjs-Sync',
+      'Team-Modus und Voreinstellungen',
+      'Rangliste, Serie, Bonus-Code',
+      'Import/Export und Yjs-Synchronisation',
       'KI-Import extern, Zod-validiert',
       'UI in fünf Sprachen',
       'Barrierefreiheit nach WCAG 2.2 AA',
-      'Docker Self-Host und Admin-Audit',
-      'Local-First und DSGVO-orientierter Betrieb',
+      'Docker-Betrieb auf eigener Infrastruktur und Admin-Protokollierung',
+      'Lokal gehaltene Quiz-Inhalte und DSGVO-orientierter Betrieb',
     ],
   },
 };

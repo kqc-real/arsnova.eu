@@ -153,7 +153,10 @@ function checkLegalPagesOmitHomeHreflang() {
   }
 }
 
-/** Exact demo / WCAG phrases required by the Issue #192 re-review. */
+/**
+ * Exact demo / WCAG / editorial phrases from the Issue #192 re-reviews.
+ * Only pin strings after the dictionaries have been editorially approved.
+ */
 const localeContentSmoke = {
   de: {
     matrix: [
@@ -165,6 +168,13 @@ const localeContentSmoke = {
       'Falsch · hohe Sicherheit',
     ],
     round2: '14 Antworten näher am Referenzwert',
+    editorial: [
+      'Falsche Antworten mit hoher Antwortsicherheit weisen auf mögliche Fehlkonzepte hin.',
+      'Live-Aktualisierung pausiert',
+      'Was arsnova.eu auszeichnet',
+      'Auf langjähriger Erfahrung aufgebaut',
+      'technischen Grundlagen für Bereitstellung und Betrieb',
+    ],
   },
   en: {
     matrix: [
@@ -178,6 +188,13 @@ const localeContentSmoke = {
     round2: '14 answers closer to the reference',
     wcag: 'Conforms to WCAG 2.2 Level AA',
     term: 'numeric estimation question',
+    editorial: [
+      'With the confidence rating,',
+      'Confidently wrong answers may indicate misconceptions.',
+      'Pedagogical analysis',
+      'Coming next: moderation compass',
+      'Built on an established foundation',
+    ],
   },
   fr: {
     matrix: [
@@ -191,7 +208,14 @@ const localeContentSmoke = {
     round2: '14 réponses plus proches de la référence',
     wcag: 'Conforme aux WCAG 2.2, niveau AA',
     term: 'sondage express',
-    banned: ['Feedback express'],
+    editorial: [
+      'Prêt en quelques secondes',
+      'Vue de l’animateur',
+      'Publier les questions uniquement lorsqu’elles sont pertinentes dans le contexte pédagogique.',
+      'À venir : boussole de modération',
+      'L’animateur et le présentateur affichent le quiz,',
+    ],
+    banned: ['Feedback express', 'Vue hôte', 'En direct immédiatement'],
   },
   it: {
     matrix: [
@@ -205,6 +229,13 @@ const localeContentSmoke = {
     round2: '14 risposte più vicine al valore di riferimento',
     wcag: 'Conforme alle WCAG 2.2, livello AA',
     term: 'domanda di stima numerica',
+    editorial: [
+      'un valore di riferimento, un intervallo di immissione e una tolleranza',
+      'spazio di moderazione',
+      'In arrivo: bussola di moderazione',
+      'si adattano a contesti che vanno dalla classe e dal seminario al workshop',
+    ],
+    banned: ['superficie di moderazione', 'Prospettiva della bussola'],
   },
   es: {
     matrix: [
@@ -218,6 +249,16 @@ const localeContentSmoke = {
     round2: '14 respuestas más próximas al valor de referencia',
     wcag: 'Cumple las WCAG 2.2, nivel AA',
     term: 'pregunta de estimación numérica',
+    editorial: [
+      'estimaciones aceptables desde el punto de vista de la materia',
+      'espacio de moderación',
+      'un recurso útil',
+      'Próximamente: brújula de moderación',
+      'El Q&amp;A permite premoderar',
+      'infraestructura de despliegue y operación de la plataforma',
+      'en directo',
+    ],
+    banned: ['en vivo', 'superficie de moderación', 'palanca fuerte'],
   },
 };
 
@@ -237,8 +278,14 @@ function checkLocaleContentSmoke() {
     if (smoke.term && !html.includes(smoke.term)) {
       fail(`/${locale}/ missing terminology ${JSON.stringify(smoke.term)}`);
     }
+    for (const phrase of smoke.editorial || []) {
+      if (!html.includes(phrase)) {
+        fail(`/${locale}/ missing editorial phrase ${JSON.stringify(phrase)}`);
+      }
+    }
     for (const banned of smoke.banned || []) {
-      if (html.includes(banned)) fail(`/${locale}/ contains banned phrase ${JSON.stringify(banned)}`);
+      if (html.includes(banned))
+        fail(`/${locale}/ contains banned phrase ${JSON.stringify(banned)}`);
     }
   }
 }
