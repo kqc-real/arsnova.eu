@@ -101,7 +101,7 @@ describe('HelpComponent', () => {
     ).toBe('info');
   });
 
-  it('setzt bei Rollenkarten-Klick den Fragment-Anker per replaceState ohne History-Push', async () => {
+  it('setzt bei Rollenkarten-Klick Fragment per replaceState und fokussiert den Abschnitt', async () => {
     const fixture = await createFixture();
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -110,14 +110,19 @@ describe('HelpComponent', () => {
     const hostSection = (fixture.nativeElement as HTMLElement).querySelector(
       '#help-host',
     ) as HTMLElement;
+    const hostTitle = (fixture.nativeElement as HTMLElement).querySelector(
+      '#help-host-title',
+    ) as HTMLElement;
     Object.defineProperty(hostSection, 'scrollIntoView', {
       configurable: true,
       value: vi.fn(),
     });
+    const focusSpy = vi.spyOn(hostTitle, 'focus');
     const hostCard = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
       'a.help-role-card[href$="#help-host"]',
     );
     expect(hostCard).toBeTruthy();
+    expect(hostTitle.getAttribute('tabindex')).toBe('-1');
 
     hostCard!.dispatchEvent(
       new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }),
@@ -125,6 +130,7 @@ describe('HelpComponent', () => {
     fixture.detectChanges();
 
     expect(hostSection.scrollIntoView).toHaveBeenCalled();
+    expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     expect(replaceStateSpy).toHaveBeenCalledTimes(1);
     expect(String(replaceStateSpy.mock.calls[0]?.[2] ?? '')).toContain('#help-host');
     expect(pushStateSpy).not.toHaveBeenCalled();

@@ -49,7 +49,8 @@ export class HelpComponent {
   }
 
   /**
-   * Primärklick: im Scroll-Container springen und Fragment per replaceState setzen.
+   * Primärklick/Enter: im Scroll-Container springen, Fragment per replaceState setzen und
+   * Fokus auf die Abschnittsüberschrift legen, damit Tab danach in diesem Abschnitt weiterläuft.
    * Kein History-Push — sonst würde dismissContentPage/Zurück nur den Anker entfernen.
    * Modifizierte Klicks (neuer Tab etc.) nutzen den echten `href`.
    */
@@ -72,7 +73,12 @@ export class HelpComponent {
     if (!section) {
       return;
     }
+    const heading =
+      section.querySelector<HTMLElement>('h2.help-section__title') ?? (section as HTMLElement);
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Nach In-Page-Sprung Fokus verschieben; sonst bleibt er auf der Rollenkarte und Tab
+    // läuft wieder durch die Karten oberhalb des Ziels.
+    heading.focus({ preventScroll: true });
     const nextUrl = `${window.location.pathname}${window.location.search}#${sectionId}`;
     window.history.replaceState(window.history.state, '', nextUrl);
   }
