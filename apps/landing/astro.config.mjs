@@ -10,4 +10,12 @@ export default defineConfig({
   site,
   base,
   output: 'static',
+  i18n: {
+    locales: ['de', 'en', 'fr', 'it', 'es'],
+    defaultLocale: 'de',
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: true,
+    },
+  },
 });

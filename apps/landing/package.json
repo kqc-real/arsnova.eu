@@ -11,6 +11,7 @@
     "build": "export PUBLIC_GITHUB_REPO=${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova.eu')} && astro build",
     "preview": "astro preview",
     "test:a11y": "A11Y_APP=landing node ../frontend/scripts/check-a11y-static.mjs",
+    "test:i18n": "node scripts/check-i18n.mjs",
     "check": "astro check"
   },
   "dependencies": {

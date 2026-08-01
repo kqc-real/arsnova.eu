@@ -440,6 +440,12 @@
             <mat-icon class="home-cta__icon">devices</mat-icon>
             <span i18n="@@homeHostCard.syncPanelCta">Zwischen Geräten wechseln</span>
           </button>
+          <app-info-landing-link
+            class="home-card__info-landing"
+            [anchor]="infoLandingWorkflowAnchor"
+            [label]="infoLandingWorkflowLabel"
+            [dense]="true"
+          />
         </div>
         @if (syncLinkVisible()) {
           <div class="home-sync-entry">

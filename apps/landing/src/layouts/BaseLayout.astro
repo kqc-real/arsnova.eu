@@ -1,162 +1,245 @@
 ---
 import '@/styles/global.css';
-import { APP_ACCESSIBILITY_URL, APP_URL_V3, GITHUB_URL } from '@/config/github';
-import { homeMetaDescription, homeMetaTitle } from '@/config/seo';
-import { SITE_URL, toAbsoluteUrl } from '@/config/site';
+import LanguageSwitcher from '@/components/LanguageSwitcher.astro';
+import { appAccessibilityUrl, GITHUB_URL } from '@/config/github';
+import { toAbsoluteUrl } from '@/config/site';
+import {
+  getMessages,
+  getOgAlternateLocales,
+  isLocale,
+  LOCALES,
+  type Locale,
+} from '@/i18n';
 
 export interface Props {
-  title: string;
-  description: string;
-  canonical?: string;
+  locale: Locale;
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
   noindex?: boolean;
+  /** When true, title is used as-is (legal pages). Otherwise home meta title is used for "home". */
+  isHome?: boolean;
 }
 
-const { title, description, canonical, noindex = false } = Astro.props;
-/** Base path für interne Links; auf der Custom Domain ist dies `/`. */
+const {
+  locale,
+  title,
+  description,
+  canonicalPath,
+  noindex = false,
+  isHome = false,
+} = Astro.props;
+
+if (!isLocale(locale)) {
+  throw new Error(`Invalid locale for BaseLayout: ${locale}`);
+}
+
+const t = getMessages(locale);
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
-const fullTitle = title === 'Start' ? homeMetaTitle : `${title} · arsnova.eu`;
-const url = canonical ? toAbsoluteUrl(canonical) : SITE_URL;
+const localeHome = `${base}${locale}/`.replace(/\/{2,}/g, '/');
+const fullTitle = isHome || !title ? t.meta.homeTitle : `${title} · arsnova.eu`;
+const metaDescription = description ?? t.meta.homeDescription;
+const path = canonicalPath ?? `/${locale}/`;
+const url = toAbsoluteUrl(path.startsWith('/') ? path.slice(1) : path);
 const ogImage = toAbsoluteUrl('og.png');
+const alternateLocales = getOgAlternateLocales(locale);
+const a11yUrl = appAccessibilityUrl(locale);
+const impressumHref = `${base}impressum/`.replace(/\/{2,}/g, '/');
+const privacyHref = `${base}datenschutz/`.replace(/\/{2,}/g, '/');
+
+const navItems = [
+  { href: `${localeHome}#workflow`, label: t.nav.workflow },
+  { href: `${localeHome}#numeric-estimate`, label: t.nav.estimate },
+  { href: `${localeHome}#qa-wall`, label: t.nav.qa, mobileLabel: t.nav.qaMobile },
+  { href: `${localeHome}#features`, label: t.nav.features },
+  { href: `${localeHome}#accessibility`, label: t.nav.accessibility },
+  { href: `${localeHome}#trust`, label: t.nav.trust },
+  { href: `${localeHome}#faq`, label: t.nav.faq },
+] as const;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: t.jsonLd.websiteName,
+      url: toAbsoluteUrl(`${locale}/`),
+      description: metaDescription,
+      inLanguage: locale,
+    },
+    {
+      '@type': 'WebApplication',
+      name: 'arsnova.eu',
+      description: t.jsonLd.webAppDescription,
+      url: `https://arsnova.eu/${locale}/`,
+      inLanguage: locale,
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      featureList: t.jsonLd.featureList,
+    },
+  ],
+};
 ---
 
 <!doctype html>
-<html lang="de">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={metaDescription} />
     {noindex ? <meta name="robots" content="noindex,nofollow" /> : null}
     <link rel="canonical" href={url} />
+
+    {
+      LOCALES.map((code) => (
+        <link rel="alternate" hreflang={code} href={toAbsoluteUrl(`${code}/`)} />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={toAbsoluteUrl('de/')} />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={metaDescription} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:locale" content="de_DE" />
+    <meta property="og:locale" content={t.meta.ogLocale} />
+    {alternateLocales.map((ogLocale) => (
+      <meta property="og:locale:alternate" content={ogLocale} />
+    ))}
     <meta property="og:site_name" content="arsnova.eu" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={metaDescription} />
     <meta name="twitter:image" content={ogImage} />
 
-    <!-- Keine Google Fonts – System-Schriften, kein Tracking. -->
-
-    <!-- JSON-LD: Landing-Website und Live-Anwendung haben getrennte URLs. -->
-    <script is:inline type="application/ld+json" set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'WebSite',
-          name: 'arsnova.eu – Informationen',
-          url: SITE_URL,
-          description: title === 'Start' ? homeMetaDescription : description,
-        },
-        {
-          '@type': 'WebApplication',
-          name: 'arsnova.eu',
-          description: homeMetaDescription,
-          url: APP_URL_V3,
-          applicationCategory: 'EducationalApplication',
-          operatingSystem: 'Web',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-          featureList: [
-            'Live-Quiz und Abstimmungen',
-            'Selbsteinschätzung bei bewertbaren Fragen',
-            'Ergebnisbericht (PDF) und Nachbesprechung nach Session-Ende',
-            'Numerische Schätzfragen mit zwei Runden und Statistik',
-            'Q&A-Fragenwand mit Moderation, Up- und Downvoting',
-            'Lobby, Presenter, QR/Code',
-            'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
-            'Markdown und KaTeX',
-            'Lesephase und Peer Instruction',
-            'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
-            'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
-            'Team-Modus und Presets',
-            'Leaderboard, Streak, Bonus-Code',
-            'Import/Export und Yjs-Sync',
-            'KI-Import extern, Zod-validiert',
-            'UI in fünf Sprachen',
-            'Barrierefreiheit nach WCAG 2.2 AA',
-            'Docker Self-Host und Admin-Audit',
-            'Local-First und DSGVO-orientierter Betrieb',
-          ],
-        },
-      ],
-    })} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="min-h-screen overflow-x-hidden bg-slate-900 text-slate-100 font-sans antialiased">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-slate-950">
-      Zum Inhalt springen
+      {t.nav.skipToContent}
     </a>
     <header class="sticky top-0 z-50 border-b border-slate-700/80 bg-slate-900/95 backdrop-blur-sm" id="main-header">
-      <nav class="mx-auto max-w-6xl px-4 py-3 sm:px-6" aria-label="Hauptnavigation">
+      <nav class="mx-auto max-w-6xl px-4 py-3 sm:px-6" aria-label={t.nav.ariaLabel}>
         <div class="flex items-center justify-between gap-4">
-          <a href={base} class="inline-flex items-center gap-2 font-display text-xl font-bold tracking-tight text-white">
+          <a href={localeHome} class="inline-flex items-center gap-2 font-display text-xl font-bold tracking-tight text-white">
             <img src={`${base}favicon.svg`} alt="" class="h-7 w-7 shrink-0" width="28" height="28" />
             arsnova.eu
           </a>
-          <!-- Desktop: Links in einer Zeile -->
-          <div class="hidden items-center gap-6 lg:flex">
-            <a href={`${base}#ablauf`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Ablauf</a>
-            <a href={`${base}#schaetzfrage`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Schätzfrage</a>
-            <a href={`${base}#fragenwand`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Q&amp;A</a>
-            <a href={`${base}#features`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Vorteile</a>
-            <a href={`${base}#barrierefreiheit`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Barrierefreiheit</a>
-            <a href={`${base}#vertrauen`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">Vertrauen</a>
-            <a href={`${base}#faq`} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">FAQ</a>
+          <div class="hidden items-center gap-4 xl:gap-5 lg:flex">
+            {navItems.map((item) => (
+              <a href={item.href} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">{item.label}</a>
+            ))}
             <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href={`${base}#start`} class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600">Jetzt ausprobieren</a>
+            <LanguageSwitcher locale={locale} t={t} idPrefix="lang-desktop" />
+            <a href={`${localeHome}#start`} class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600">{t.nav.tryNow}</a>
           </div>
-          <!-- Mobile: Hamburger-Button -->
-          <button
-            type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
-            aria-expanded="false"
-            aria-controls="nav-menu"
-            aria-label="Menü öffnen"
-            id="nav-toggle"
-          >
-            <span class="sr-only">Menü</span>
-            <svg class="h-6 w-6 menu-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-            <svg class="h-6 w-6 hidden menu-icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-2 lg:hidden">
+            <LanguageSwitcher locale={locale} t={t} idPrefix="lang-mobile" />
+            <button
+              type="button"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white"
+              aria-expanded="false"
+              aria-controls="nav-menu"
+              aria-label={t.nav.menuOpen}
+              id="nav-toggle"
+              data-label-open={t.nav.menuOpen}
+              data-label-close={t.nav.menuClose}
+            >
+              <span class="sr-only">{t.nav.menu}</span>
+              <svg class="h-6 w-6 menu-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+              <svg class="h-6 w-6 hidden menu-icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <!-- Mobile: ausklappbares Menü -->
         <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden">
-          <li><a href={`${base}#ablauf`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Ablauf</a></li>
-          <li><a href={`${base}#schaetzfrage`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Schätzfrage</a></li>
-          <li><a href={`${base}#fragenwand`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Q&amp;A-Fragenwand</a></li>
-          <li><a href={`${base}#features`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Vorteile</a></li>
-          <li><a href={`${base}#barrierefreiheit`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Barrierefreiheit</a></li>
-          <li><a href={`${base}#vertrauen`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">Vertrauen</a></li>
-          <li><a href={`${base}#faq`} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">FAQ</a></li>
+          {navItems.map((item) => (
+            <li>
+              <a href={item.href} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">
+                {'mobileLabel' in item && item.mobileLabel ? item.mobileLabel : item.label}
+              </a>
+            </li>
+          ))}
           <li><a href={GITHUB_URL} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href={`${base}#start`} class="mt-2 block min-h-11 rounded-lg bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-600">Jetzt ausprobieren</a></li>
+          <li><a href={`${localeHome}#start`} class="mt-2 block min-h-11 rounded-lg bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-600">{t.nav.tryNow}</a></li>
         </ul>
       </nav>
     </header>
     <script is:inline>
       (function () {
+        var ALIASES = {
+          ablauf: 'workflow',
+          schaetzfrage: 'numeric-estimate',
+          selbsteinschaetzung: 'confidence',
+          fragenwand: 'qa-wall',
+          barrierefreiheit: 'accessibility',
+          vertrauen: 'trust',
+          vergleich: 'comparison'
+        };
+
+        function canonicalizeHash(hash) {
+          if (!hash) return '';
+          var raw = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+          if (!raw) return '';
+          return '#' + (ALIASES[raw] || raw);
+        }
+
+        document.querySelectorAll('[data-language-switcher]').forEach(function (root) {
+          var button = root.querySelector('button');
+          var menu = root.querySelector('[data-lang-menu]');
+          if (!button || !menu) return;
+
+          function setOpen(open) {
+            menu.classList.toggle('hidden', !open);
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+          }
+
+          button.addEventListener('click', function (event) {
+            event.stopPropagation();
+            setOpen(menu.classList.contains('hidden'));
+          });
+
+          menu.querySelectorAll('a[data-locale-link]').forEach(function (link) {
+            link.addEventListener('click', function () {
+              var code = link.getAttribute('data-locale-link');
+              var hash = canonicalizeHash(window.location.hash || '');
+              link.setAttribute('href', '/' + code + '/' + hash);
+            });
+          });
+
+          document.addEventListener('click', function (event) {
+            if (!root.contains(event.target)) setOpen(false);
+          });
+
+          document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+              setOpen(false);
+              button.focus();
+            }
+          });
+        });
+
         var toggle = document.getElementById('nav-toggle');
         var menu = document.getElementById('nav-menu');
         var openIcon = document.querySelector('.menu-icon-open');
         var closeIcon = document.querySelector('.menu-icon-close');
         if (!toggle || !menu) return;
+        var labelOpen = toggle.getAttribute('data-label-open') || 'Open menu';
+        var labelClose = toggle.getAttribute('data-label-close') || 'Close menu';
         toggle.addEventListener('click', function () {
           var open = menu.classList.toggle('hidden');
           toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-          toggle.setAttribute('aria-label', open ? 'Menü öffnen' : 'Menü schließen');
+          toggle.setAttribute('aria-label', open ? labelOpen : labelClose);
           if (openIcon && closeIcon) {
             openIcon.classList.toggle('hidden', !open);
             closeIcon.classList.toggle('hidden', open);
@@ -166,7 +249,7 @@ const ogImage = toAbsoluteUrl('og.png');
           a.addEventListener('click', function () {
             menu.classList.add('hidden');
             toggle.setAttribute('aria-expanded', 'false');
-            toggle.setAttribute('aria-label', 'Menü öffnen');
+            toggle.setAttribute('aria-label', labelOpen);
             if (openIcon && closeIcon) {
               openIcon.classList.remove('hidden');
               closeIcon.classList.add('hidden');
@@ -185,10 +268,10 @@ const ogImage = toAbsoluteUrl('og.png');
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p class="text-sm text-slate-400">© {new Date().getFullYear()} arsnova.eu · Open Source · MIT</p>
           <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <a href={`${base}impressum/`} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Impressum</a>
-            <a href={`${base}datenschutz/`} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Datenschutz</a>
-            <a href={APP_ACCESSIBILITY_URL} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200">Barrierefreiheit</a>
-            <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-1 text-sm text-slate-400 hover:text-slate-200" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={impressumHref} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.impressum}</a>
+            <a href={privacyHref} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.privacy}</a>
+            <a href={a11yUrl} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.accessibility}</a>
+            <a href={GITHUB_URL} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
       </div>

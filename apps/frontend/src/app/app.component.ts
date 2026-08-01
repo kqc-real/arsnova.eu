@@ -31,6 +31,7 @@ import { trpc } from './core/trpc.client';
 import type { FooterStatusDTO, ServerStatsDTO } from '@arsnova/shared-types';
 import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
 import { localizePath } from './core/locale-router';
+import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
@@ -94,6 +95,8 @@ class ConnectionBannerHostDirective {
 })
 export class AppComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
+  /** Footer-Deep-Link zur Informationsseite (Features). */
+  readonly infoLandingFeaturesUrl = infoLandingUrl(INFO_LANDING_ANCHORS.features);
   isOnline = signal(true);
   updateAvailable = signal(false);
   updateReloading = signal(false);

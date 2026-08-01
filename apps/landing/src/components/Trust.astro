@@ -1,47 +1,30 @@
 ---
 import { GITHUB_URL } from '@/config/github';
-const researchPdfUrl = `${GITHUB_URL}/blob/main/docs/deep-research-arsnova.click/ARSnova-Recherche.pdf`;
-const proofItems = [
-  { value: 'Seit 2012', label: 'ARSnova-Tradition in Bildung und EdTech' },
-  { value: 'WCAG 2.2 AA', label: 'Geprüfte Barrierefreiheit für Lehre und Institutionen' },
-  { value: '5 UI-Sprachen', label: 'Deutsch, Englisch, Französisch, Spanisch, Italienisch' },
-  { value: 'Open Source', label: 'Transparenter Code statt Black Box' },
-];
+import type { Locale, Messages } from '@/i18n';
 
-const items = [
-  {
-    quote: 'Datenschutzkonformer Weg: keine personenbezogenen Daten dauerhaft auf dem Server.',
-    source: 'DeLFI 2017',
-    tag: 'Wissenschaft',
-  },
-  {
-    quote: 'UX-Evaluation im direkten Vergleich mit Kahoot! als empirischer Prüfpunkt des Designs.',
-    source: 'fnm-austria',
-    tag: 'Studie',
-  },
-  {
-    quote: 'Privacy-by-Design und technische Offenheit sind ein echter Differenzierungsfaktor für europäische EdTech-Kontexte.',
-    source: 'Publikationsanalyse',
-    tag: 'Architektur',
-  },
-  {
-    quote: 'In realen Bildungssettings praktisch erprobt, nicht nur als Konzept beschrieben.',
-    source: 'Nutzung in Lehr- und Trainingskontexten',
-    tag: 'Praxis',
-  },
-];
+export interface Props {
+  locale: Locale;
+  t: Messages;
+}
+
+const { t } = Astro.props;
+const tr = t.trust;
+const researchPdfUrl = `${GITHUB_URL}/blob/main/docs/deep-research-arsnova.click/ARSnova-Recherche.pdf`;
 ---
 
-<section id="vertrauen" class="border-b border-slate-700 bg-slate-800/50 px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="trust-heading">
+<section
+  id="trust"
+  class="relative border-b border-slate-700 bg-slate-800/50 px-4 py-16 sm:px-6 sm:py-24"
+  aria-labelledby="trust-heading"
+>
+  <span id="vertrauen" class="absolute -top-20" aria-hidden="true"></span>
   <div class="mx-auto max-w-6xl">
-    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-brand-400">Vertrauen</p>
-    <h2 id="trust-heading" class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Glaubwürdig, weil das Produkt nicht bei null anfängt</h2>
-    <p class="mt-4 max-w-3xl text-lg leading-8 text-slate-400">
-      arsnova.eu steht in der Tradition des ARSnova-Ökosystems und knüpft an wissenschaftliche, didaktische und praktische Erfahrungen aus vielen Jahren Bildungstechnologie an.
-    </p>
+    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-brand-400">{tr.eyebrow}</p>
+    <h2 id="trust-heading" class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">{tr.title}</h2>
+    <p class="mt-4 max-w-3xl text-lg leading-8 text-slate-400">{tr.lead}</p>
 
     <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" role="list">
-      {proofItems.map((item) => (
+      {tr.proofItems.map((item) => (
         <li class="rounded-3xl border border-slate-700 bg-slate-900/70 p-5">
           <p class="font-display text-3xl font-bold text-white">{item.value}</p>
           <p class="mt-2 text-sm leading-6 text-slate-400">{item.label}</p>
@@ -50,7 +33,7 @@ const items = [
     </ul>
 
     <ul class="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4" role="list">
-      {items.map((item) => (
+      {tr.items.map((item) => (
         <li class="flex flex-col rounded-3xl border border-slate-700 bg-slate-900/70 p-5 transition hover:border-brand-500/40">
           <span class="mb-2 inline-flex w-fit rounded-full bg-brand-500/20 px-2.5 py-0.5 text-xs font-medium text-brand-400">{item.tag}</span>
           <blockquote class="flex-1 text-sm leading-relaxed text-slate-300">
@@ -64,7 +47,9 @@ const items = [
     </ul>
 
     <p class="mt-6 text-sm text-slate-400">
-      Vollständige Referenzen und die zugrundeliegende Publikationssammlung liegen in <a href={researchPdfUrl} class="text-brand-400 underline underline-offset-2 hover:text-brand-300" target="_blank" rel="noopener noreferrer">ARSnova-Recherche.pdf</a> auf GitHub.
+      {tr.referencesPrefix}{' '}
+      <a href={researchPdfUrl} class="text-brand-400 underline underline-offset-2 hover:text-brand-300" target="_blank" rel="noopener noreferrer">{tr.referencesLink}</a>
+      {' '}{tr.referencesSuffix}
     </p>
   </div>
 </section>

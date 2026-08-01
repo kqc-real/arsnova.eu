@@ -1,0 +1,480 @@
+import type { Messages } from './types';
+
+const es: Messages = {
+  meta: {
+    homeTitle: 'arsnova.eu | Cuestionario en vivo, estimaciones numéricas y muro Q&A',
+    homeDescription:
+      'Audience response de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), estimaciones numéricas, muro Q&A moderable, nube de palabras y feedback — accesible WCAG 2.2 AA, gratuito, autoalojable y listo sin cuenta.',
+    siteNameInfo: 'arsnova.eu – Información',
+    ogLocale: 'es_ES',
+  },
+  nav: {
+    ariaLabel: 'Navegación principal',
+    workflow: 'Flujo',
+    estimate: 'Estimación',
+    qa: 'Q&A',
+    qaMobile: 'Muro de preguntas',
+    features: 'Ventajas',
+    accessibility: 'Accesibilidad',
+    trust: 'Confianza',
+    faq: 'FAQ',
+    tryNow: 'Probar ahora',
+    menuOpen: 'Abrir menú',
+    menuClose: 'Cerrar menú',
+    menu: 'Menú',
+    skipToContent: 'Ir al contenido',
+  },
+  languageSwitcher: {
+    label: 'Idioma',
+    currentLanguage: 'Español',
+    chooseLanguage: 'Elegir idioma',
+  },
+  footer: {
+    impressum: 'Aviso legal',
+    privacy: 'Privacidad',
+    accessibility: 'Accesibilidad',
+  },
+  cta: {
+    appOpen: 'Abrir la aplicación',
+    quizCreate: 'Crear un cuestionario',
+    backToApp: 'Volver a arsnova.eu',
+    tryLive: 'Probarlo en vivo ahora',
+    howItWorks: 'Cómo funciona',
+    viewOpenSource: 'Ver el código abierto',
+  },
+  hero: {
+    eyebrow: 'Audience response para educación y organizaciones',
+    titleLine1: 'Cuestionarios, estimaciones,',
+    titleLine2: 'moderación de preguntas',
+    titleAccent1: 'en vivo y gratis',
+    titleAccent2: ' sin cuenta.',
+    lead: 'arsnova.eu reúne cuestionarios en vivo, estimaciones numéricas, autoevaluación en preguntas puntuables, muro Q&A, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, autoalojable y pensado para un funcionamiento orientado al RGPD.',
+    a11yLink: 'Accesible según WCAG 2.2 AA',
+    a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
+    cards: [
+      { title: 'En vivo al instante', text: 'Comparte la sesión con código o QR' },
+      { title: 'Q&A con muro de preguntas', text: 'Moderación, votos y nube temática' },
+      {
+        title: 'Autoevaluación y seguimiento',
+        text: 'Detecta conceptos erróneos, exporta el informe PDF',
+      },
+      { title: 'Código abierto y autoalojable', text: 'Docker, Postgres, Redis y auditoría admin' },
+    ],
+  },
+  estimate: {
+    eyebrow: 'Nuevo en el cuestionario en vivo',
+    title: 'Estimar cifras, debatir y comparar con claridad la segunda ronda',
+    lead: 'La pregunta de estimación numérica está pensada para fechas, órdenes de magnitud, medidas y probabilidades. Quien facilita fija un valor de referencia, un rango de entrada y una tolerancia; los participantes solo introducen un número.',
+    summary: [
+      'La banda de plausibilidad limita las entradas permitidas.',
+      'La banda de tolerancia valora las estimaciones aceptables en el contenido.',
+      'Nadie ve la distribución antes de publicar los resultados.',
+      'La ronda 1 y la ronda 2 se comparan después del debate.',
+    ],
+    docsLink: 'Abrir la documentación de la estimación',
+    demoAria: 'Ejemplo de resultados de una estimación sobre la Revolución Francesa',
+    hostView: 'Vista de anfitrión tras publicar',
+    demoQuestion: '¿Cuándo comenzó la Revolución Francesa?',
+    reference: 'Referencia 1789',
+    toleranceBand: 'Banda de tolerancia',
+    toleranceValue: '1700 a 1900',
+    plausibilityBand: 'Banda de plausibilidad',
+    plausibilityValue: '1500 a 2000',
+    histogramNote:
+      'El histograma, la línea de referencia y la banda de tolerancia aparecen solo tras publicar los resultados. Hasta entonces solo queda visible el progreso neutro.',
+    median: 'Mediana',
+    inBand: 'en la banda',
+    round2: 'Ronda 2',
+    round2Value: '14 más cerca',
+  },
+  confidence: {
+    eyebrow: 'Evaluación didáctica',
+    title: '¿Correcto o incorrecto — y con qué grado de seguridad?',
+    lead: 'Con la autoevaluación, los participantes indican tras responder cuán seguros están (1–5). Ves no solo la tasa de aciertos, sino también respuestas incorrectas con alta seguridad — una palanca fuerte para la evaluación formativa, el plan para la puesta en común y el informe de resultados (PDF) al terminar la sesión.',
+    summary: [
+      'No es un tipo de pregunta propio — opcional en preguntas puntuables.',
+      'Escala 1–5 tras la respuesta, sin efecto en los puntos.',
+      'Tras publicar, el anfitrión ve corrección × grado de seguridad.',
+      '«Incorrecto y seguro» marca posibles conceptos erróneos.',
+      'Tras la sesión: informe de resultados (PDF) y puesta en común.',
+    ],
+    docsConfidence: 'Doc autoevaluación',
+    docsExport: 'Doc informe de resultados (PDF)',
+    demoAria: 'Ejemplo de evaluación con autoevaluación tras publicar resultados',
+    hostView: 'Vista de anfitrión tras publicar',
+    demoQuestion: '¿Qué estructura es la más estable?',
+    badge: 'Autoevaluación',
+    matrix: [
+      { label: 'Correcto · bajo', count: 3, tone: 'emerald' },
+      { label: 'Correcto · medio', count: 8, tone: 'emerald' },
+      { label: 'Correcto · alto', count: 11, tone: 'emerald' },
+      { label: 'Incorrecto · bajo', count: 2, tone: 'slate' },
+      { label: 'Incorrecto · medio', count: 4, tone: 'amber' },
+      { label: 'Incorrecto · alto', count: 2, tone: 'rose' },
+    ],
+    falseHighTitle: '2 respuestas incorrectas con alta seguridad',
+    falseHighText:
+      'La opción B se eligió 2× con alto grado de seguridad — una señal de posibles conceptos erróneos en la puesta en común.',
+    consolidated: 'Sólido',
+    misconceptionRisk: 'Riesgo de concepto erróneo',
+    fragile: 'Frágil',
+    afterSessionAria: 'Exportación al terminar la sesión',
+    afterSession: 'Al terminar la sesión',
+    debriefing: 'Puesta en común',
+    resultsPdf: 'Informe de resultados (PDF)',
+    exportNote:
+      'Informe listo para imprimir con estado de aprendizaje, mapa de calor y textos de las preguntas — en la vista de anfitrión y en la tarjeta del cuestionario. El CSV para Excel sigue disponible en «Más».',
+  },
+  qaWall: {
+    eyebrow: 'Q&A en vivo como superficie de moderación',
+    title: 'Recoger preguntas, priorizarlas y leerlas como mapa temático',
+    lead: 'El muro de preguntas no es un chat secundario. Es un canal en vivo propio para docentes y ponentes: moderar aportaciones, detectar prioridades colectivas, hacer visibles los puntos controvertidos y llevar los temas clave a la sala mediante una nube de palabras Q&A ponderada.',
+    signals: [
+      {
+        label: 'Premoderación',
+        text: 'Publica las preguntas solo cuando encajan en el momento didáctico.',
+      },
+      {
+        label: 'Voto colectivo',
+        text: 'Los votos a favor y en contra muestran prioridad, fricción y necesidad de aclaración.',
+      },
+      {
+        label: 'Nube temática',
+        text: 'Palabras y frases se ponderan según apoyo, acuerdo o controversia.',
+      },
+      {
+        label: 'Perspectiva brújula',
+        text: 'Primero llegan las señales deterministas; NLP Q&A y resumen siguen siendo extensiones opcionales.',
+      },
+    ],
+    docsLink: 'Abrir puntuación Q&A y controversia en GitHub',
+    demoAria: 'Ejemplo de muro Q&A con moderación, votos y nube de palabras',
+    hostView: 'Vista de anfitrión Q&A',
+    demoTitle: 'Preguntas sobre el evento',
+    moderationActive: 'Premoderación activa',
+    sortMostSupported: 'Más apoyadas',
+    sortBest: 'Mejores preguntas',
+    sortControversial: 'Controvertidas',
+    questions: [
+      {
+        score: '+18',
+        title: '¿Cuándo sigue siendo plausible una estimación en el contenido?',
+        meta: '15 a favor · 3 en contra · mejor pregunta',
+      },
+      {
+        score: '+4',
+        title: '¿Debemos ocultar realmente los resultados antes del debate?',
+        meta: '9 a favor · 5 en contra · controvertida',
+      },
+      {
+        score: '+11',
+        title: '¿En qué se diferencia el Q&A del texto libre en el cuestionario?',
+        meta: '11 a favor · 0 en contra · mayormente apoyada',
+      },
+    ],
+    wordCloud: 'Nube de palabras Q&A',
+    wordCloudHint: 'Ponderada por resonancia positiva y controversia.',
+    frozenLive: 'Congelada en vivo',
+    terms: [
+      { label: 'Banda de tolerancia', className: 'text-3xl text-brand-200' },
+      { label: 'Debate', className: 'text-2xl text-emerald-200' },
+      { label: 'Q&A', className: 'text-4xl text-white' },
+      { label: 'Plausibilidad', className: 'text-xl text-amber-200' },
+      { label: 'Controversia', className: 'text-2xl text-rose-200' },
+      { label: 'Peer Instruction', className: 'text-lg text-slate-300' },
+      { label: 'Moderación', className: 'text-3xl text-cyan-200' },
+      { label: 'Necesidad de aclaración', className: 'text-xl text-violet-200' },
+    ],
+    nextStep:
+      'Siguiente paso: una brújula de moderación determinista, opcionalmente complementada con señales NLP Q&A asíncronas y resúmenes ligados a las fuentes.',
+  },
+  workflow: {
+    eyebrow: 'Para docencia, formación y talleres',
+    title: 'De la idea a la sesión en vivo en pocos minutos',
+    lead: 'De la pregunta a la sesión en curso, el flujo evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
+    stepLabel: 'Paso',
+    steps: [
+      {
+        number: '01',
+        title: 'Preparar un cuestionario',
+        description:
+          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta y estimaciones numéricas están integrados.',
+      },
+      {
+        number: '02',
+        title: 'Iniciar una sesión',
+        description:
+          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR y usa la vista presentador si lo necesitas.',
+      },
+      {
+        number: '03',
+        title: 'Moderar en vivo',
+        description:
+          'Los participantes votan, formular preguntas y priorizan juntos. Anfitrión y presentador muestran cuestionario, muro Q&A, nube de palabras, fase de lectura, cuenta atrás, segunda ronda y resultados en un solo flujo.',
+      },
+      {
+        number: '04',
+        title: 'Seguimiento y exportación',
+        description:
+          'Al terminar la sesión, el informe de resultados (PDF) está listo — con estado de aprendizaje, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última pasada; CSV para Excel en «Más».',
+      },
+    ],
+  },
+  features: {
+    eyebrow: 'Por qué se siente distinto',
+    title: 'Hecho para la interacción en vivo, no solo para encuestas en diapositivas',
+    lead: 'arsnova.eu combina un arranque rápido, solidez didáctica y una base técnica transparente. La plataforma se mantiene sencilla en el día a día sin reducir las posibilidades.',
+    items: [
+      {
+        title: 'Listo en poco tiempo',
+        description:
+          'Los anfitriones empiezan sin cuenta. Los participantes entran en la sesión directamente con un código de 6 dígitos o un QR.',
+        icon: 'single',
+      },
+      {
+        title: 'Autoevaluación en el cuestionario en vivo',
+        description:
+          'Los participantes indican tras responder cuán seguros están. Detectas respuestas incorrectas con alta seguridad, priorizas la puesta en común y exportas el estado de aprendizaje en el informe de resultados (PDF).',
+        icon: 'confidence',
+      },
+      {
+        title: 'Informe de resultados para el seguimiento',
+        description:
+          'Al terminar la sesión exportas un informe PDF listo para imprimir con gráficos, textos de preguntas y autoevaluación. El CSV para Excel sigue siendo opcional en «Más».',
+        icon: 'export',
+      },
+      {
+        title: 'Estimaciones didácticas',
+        description:
+          'Fechas, órdenes de magnitud y medidas se pueden estimar con valor de referencia, banda de tolerancia, estadística y una segunda ronda opcional.',
+        icon: 'estimate',
+      },
+      {
+        title: 'Más que un cuestionario estándar',
+        description:
+          'MC/SC, respuesta corta, valoración, fase de lectura, Peer Instruction y flujo presentador apoyan el aprendizaje, la formación y la moderación en vivo.',
+        icon: 'toggle',
+      },
+      {
+        title: 'Muro de preguntas en lugar de un chat secundario',
+        description:
+          'El Q&A ofrece premoderación, fijar, archivar, votos a favor/en contra y ordenación por apoyo, calidad y controversia.',
+        icon: 'qa',
+      },
+      {
+        title: 'Nube de palabras elaborada',
+        description:
+          'Texto libre y Q&A se condensan en palabras y frases; el muro pondera por acuerdo, puntuación robusta o controversia.',
+        icon: 'cloud',
+      },
+      {
+        title: 'Para distintos contextos',
+        description:
+          'Ajustes previos, modo equipo, modo anónimo, apodos y elección de estilo ayudan desde clase y seminario hasta taller, evento y reunión.',
+        icon: 'bolt',
+      },
+      {
+        title: 'Accesibilidad según WCAG 2.2 AA',
+        description:
+          'Uso con teclado, anuncios de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF/UA-1 — para que más personas puedan participar de forma autónoma en sesiones en vivo.',
+        icon: 'a11y',
+      },
+      {
+        title: 'Privacidad y control',
+        description:
+          'Local-first, data-stripping y explotación autoalojable te dan más control sobre contenidos y datos en vivo.',
+        icon: 'tools',
+      },
+      {
+        title: 'Código abierto con ruta operativa',
+        description:
+          'Docker, Postgres, Redis y auditoría admin hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
+        icon: 'server',
+      },
+    ],
+  },
+  accessibility: {
+    eyebrow: 'Accesibilidad',
+    title: 'WCAG 2.2 AA — para que más personas puedan participar de forma autónoma',
+    lead: 'Para escuelas, universidades y formación continua, la accesibilidad suele ser un criterio decisivo. arsnova.eu cumple las Web Content Accessibility Guidelines (WCAG) 2.2 en el nivel AA — con uso de teclado, apoyo de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF estructurados de forma accesible.',
+    benefits: [
+      {
+        title: 'Uso con teclado',
+        description:
+          'Tú y tus participantes usáis los flujos centrales sin ratón. Indicadores de foco visibles y un enlace de salto al contenido facilitan la navegación.',
+      },
+      {
+        title: 'Apoyo de lector de pantalla en vivo',
+        description:
+          'Los cambios de estado al unirse a la sesión, en las votaciones y en los cambios de fase se anuncian a los lectores de pantalla para seguir el flujo.',
+      },
+      {
+        title: 'Tiempo de respuesta ajustable individualmente',
+        description:
+          'En preguntas con tiempo eliges el tiempo estándar, el tiempo multiplicado por diez o participar sin límite. Así se puede aplicar un ajuste razonable directamente en la sesión en vivo.',
+      },
+      {
+        title: 'Informe de resultados estructurado de forma accesible',
+        description:
+          'El informe listo para imprimir está validado PDF/UA-1 e incluye título, idioma y etiquetas — para el seguimiento y el intercambio accesible.',
+      },
+    ],
+    statementLink: 'Abrir la declaración de accesibilidad',
+  },
+  trust: {
+    eyebrow: 'Confianza',
+    title: 'Creíble porque el producto no parte de cero',
+    lead: 'arsnova.eu continúa la tradición del ecosistema ARSnova y se apoya en experiencias científicas, didácticas y prácticas de muchos años de tecnología educativa.',
+    proofItems: [
+      { value: 'Desde 2012', label: 'Tradición ARSnova en educación y edtech' },
+      { value: 'WCAG 2.2 AA', label: 'Accesibilidad verificada para docencia e instituciones' },
+      {
+        value: '5 idiomas de UI',
+        label: 'Alemán, inglés, francés, español, italiano',
+      },
+      { value: 'Código abierto', label: 'Código transparente en lugar de una caja negra' },
+    ],
+    items: [
+      {
+        quote:
+          'Camino respetuoso con la privacidad: sin datos personales almacenados de forma permanente en el servidor.',
+        source: 'DeLFI 2017',
+        tag: 'Investigación',
+      },
+      {
+        quote:
+          'Evaluación UX en comparación directa con Kahoot! como punto de control empírico del diseño.',
+        source: 'fnm-austria',
+        tag: 'Estudio',
+      },
+      {
+        quote:
+          'Privacy by design y apertura técnica son un verdadero factor diferencial para contextos edtech europeos.',
+        source: 'Análisis de publicaciones',
+        tag: 'Arquitectura',
+      },
+      {
+        quote: 'Probado en entornos educativos reales, no solo descrito como concepto.',
+        source: 'Uso en contextos de docencia y formación',
+        tag: 'Práctica',
+      },
+    ],
+    referencesPrefix: 'Las referencias completas y la colección de publicaciones de base están en',
+    referencesLink: 'ARSnova-Recherche.pdf',
+    referencesSuffix: 'en GitHub.',
+  },
+  comparison: {
+    eyebrow: 'Diferenciación',
+    title: 'No solo un sustituto de Mentimeter o Kahoot',
+    lead: 'El centro no es solo la votación, sino el flujo en vivo completo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
+    points: [
+      {
+        title: 'Menos barreras de entrada',
+        description:
+          'Sin lógica de producto separada para «crear» y «unirse». Los anfitriones empiezan sin cuenta; los participantes entran con código o QR.',
+      },
+      {
+        title: 'Más formatos de interacción',
+        description:
+          'Además del cuestionario: estimaciones numéricas, fase de lectura, Peer Instruction, sondeo rápido, muro Q&A y nube de palabras ponderada en la misma plataforma — no solo encuestas en diapositivas.',
+      },
+      {
+        title: 'Más control sobre datos y acceso',
+        description:
+          'Código abierto, autoalojable y local-first — más accesibilidad WCAG 2.2 AA. Relevante para escuelas, universidades y organizaciones con requisitos de privacidad e inclusión.',
+      },
+    ],
+    comparePrefix: 'La comparación completa de funciones sigue en la documentación:',
+    compareLink: 'Abrir la comparación en GitHub',
+  },
+  faq: {
+    eyebrow: 'FAQ',
+    title: 'Preguntas frecuentes antes del primer uso',
+    answerLabel: 'Respuesta',
+    items: [
+      {
+        question: '¿Necesitan cuenta anfitriones o participantes?',
+        answer:
+          'No. Una sesión puede iniciarse sin cuenta. Los participantes entran con código o QR.',
+      },
+      {
+        question: '¿Dónde están los datos?',
+        answer:
+          'Los contenidos del cuestionario están pensados local-first. En sesiones en vivo solo se procesan los datos de sesión técnicamente necesarios; con autoalojamiento, la operación permanece en tu infraestructura.',
+      },
+      {
+        question: '¿Puedo autoalojar arsnova.eu?',
+        answer:
+          'Sí. La plataforma es de código abierto y está diseñada para funcionar con Docker, PostgreSQL y Redis.',
+      },
+      {
+        question: '¿Qué es la autoevaluación en el cuestionario?',
+        answer:
+          'Una pregunta adicional opcional tras las preguntas puntuables: los participantes indican en una escala de 1 a 5 cuán seguros están de su respuesta. Los puntos no cambian; en la evaluación del anfitrión ves corrección × grado de seguridad y marcas las respuestas incorrectas con alta seguridad como señal de concepto erróneo. Al terminar la sesión, el estado de aprendizaje pasa a la puesta en común y al informe de resultados (PDF).',
+      },
+      {
+        question: '¿Puedo exportar los resultados de la sesión?',
+        answer:
+          'Sí. Al terminar la sesión, el informe de resultados (PDF) es el formato principal — con autoevaluación, prioridades para la puesta en común y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última pasada. Los datos CSV tabulares están disponibles en «Más» para Excel.',
+      },
+      {
+        question: '¿Qué tiene de especial la estimación numérica?',
+        answer:
+          'Separa las entradas permitidas de la banda de tolerancia del contenido, no muestra la distribución durante la votación y puede evaluar una segunda ronda tras el debate con estadística y comparación de rondas.',
+      },
+      {
+        question: '¿Qué puede hacer el muro Q&A?',
+        answer:
+          'Los participantes envían preguntas y las ponderan con votos a favor y en contra. Los anfitriones pueden premoderar, fijar, archivar o eliminar preguntas y ordenar la lista por apoyo, acuerdo robusto o controversia.',
+      },
+      {
+        question: '¿En qué se diferencia la nube de palabras Q&A?',
+        answer:
+          'Condensa las preguntas visibles en palabras y frases y sigue la lógica de ordenación activa. Así muestra no solo términos frecuentes, sino clústeres temáticos de preguntas apoyadas, puntuadas de forma robusta o controvertidas.',
+      },
+      {
+        question: '¿Para quién está pensada la plataforma?',
+        answer:
+          'Para la interacción en vivo en educación y organizaciones: escuela, universidad, formación continua, formación, taller, evento o reunión.',
+      },
+      {
+        question: '¿Es accesible arsnova.eu?',
+        answer:
+          'arsnova.eu cumple WCAG 2.2 AA. Los flujos centrales se pueden usar con teclado, los lectores de pantalla anuncian cambios de estado, el tiempo de respuesta en preguntas con tiempo es ajustable individualmente (tiempo estándar, tiempo ×10 o sin límite), y el informe de resultados estructurado de forma accesible está validado PDF/UA-1.',
+        linkLabel: 'Abrir la declaración de accesibilidad',
+      },
+    ],
+  },
+  ctaSection: {
+    title: '¿Listo para la próxima sesión en vivo?',
+    lead: 'Prueba el flujo en vivo directamente en la aplicación, o echa un vistazo al código abierto, a la lógica Q&A, al pipeline de la nube de palabras y a la ruta operativa detrás de la plataforma.',
+  },
+  jsonLd: {
+    websiteName: 'arsnova.eu – Información',
+    webAppDescription:
+      'Audience response de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), estimaciones numéricas, muro Q&A moderable, nube de palabras y feedback — accesible WCAG 2.2 AA, gratuito, autoalojable y listo sin cuenta.',
+    featureList: [
+      'Cuestionario en vivo y votaciones',
+      'Autoevaluación en preguntas puntuables',
+      'Informe de resultados (PDF) y puesta en común al terminar la sesión',
+      'Estimaciones numéricas con dos rondas y estadística',
+      'Muro Q&A con moderación, votos a favor y en contra',
+      'Lobby, presentador, QR/código',
+      'Tipos de pregunta MC/SC/respuesta corta/texto libre/encuesta/valoración/estimación',
+      'Markdown y KaTeX',
+      'Fase de lectura y Peer Instruction',
+      'Nube de palabras Q&A y texto libre con frases y ponderación',
+      'Ordenación por apoyo, acuerdo robusto y controversia',
+      'Modo equipo y ajustes previos',
+      'Clasificación, racha, código bonus',
+      'Importación/exportación y sync Yjs',
+      'Importación IA externa, validada con Zod',
+      'Interfaz en cinco idiomas',
+      'Accesibilidad según WCAG 2.2 AA',
+      'Autoalojamiento Docker y auditoría admin',
+      'Local-first y funcionamiento orientado al RGPD',
+    ],
+  },
+};
+
+export default es;

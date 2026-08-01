@@ -59,6 +59,23 @@
             ist Open Source und für EU-orientierten Betrieb ausgelegt. Markdown und KaTeX machen
             fachliche Fragen präsentationstauglich, von MINT-Formeln bis zum kurzen Fallbeispiel.
           </p>
+          <aside class="help-info-landing" aria-labelledby="help-info-landing-title">
+            <h3
+              id="help-info-landing-title"
+              class="help-info-landing__title"
+              i18n="@@help.infoLandingTitle"
+            >
+              Mehr zu Nutzen und Hintergründen
+            </h3>
+            <p class="help-info-landing__body" i18n="@@help.infoLandingBody">
+              Auf der Informationsseite findest du Einsatzmöglichkeiten, Hinweise zu Datenschutz und
+              Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.
+            </p>
+            <app-info-landing-link
+              [anchor]="infoLandingFeaturesAnchor"
+              [label]="infoLandingFeaturesLabel"
+            />
+          </aside>
         </section>
 
         <section class="help-section--formats" aria-labelledby="help-formats-title">

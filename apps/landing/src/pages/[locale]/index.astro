@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import EstimateSpotlight from '../../components/EstimateSpotlight.astro';
+import ConfidenceSpotlight from '../../components/ConfidenceSpotlight.astro';
+import QaWallSpotlight from '../../components/QaWallSpotlight.astro';
+import Workflow from '../../components/Workflow.astro';
+import Features from '../../components/Features.astro';
+import Accessibility from '../../components/Accessibility.astro';
+import Trust from '../../components/Trust.astro';
+import Comparison from '../../components/Comparison.astro';
+import Faq from '../../components/Faq.astro';
+import Cta from '../../components/Cta.astro';
+import { getMessages, isLocale, LOCALES, type Locale } from '@/i18n';
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const { locale: localeParam } = Astro.params;
+if (!localeParam || !isLocale(localeParam)) {
+  throw new Error(`Unsupported locale route: ${localeParam}`);
+}
+const locale = localeParam as Locale;
+const t = getMessages(locale);
+---
+
+<BaseLayout locale={locale} isHome canonicalPath={`/${locale}/`}>
+  <Hero locale={locale} t={t} />
+  <EstimateSpotlight locale={locale} t={t} />
+  <ConfidenceSpotlight locale={locale} t={t} />
+  <QaWallSpotlight locale={locale} t={t} />
+  <Workflow locale={locale} t={t} />
+  <Features locale={locale} t={t} />
+  <Accessibility locale={locale} t={t} />
+  <Trust locale={locale} t={t} />
+  <Comparison locale={locale} t={t} />
+  <Faq locale={locale} t={t} />
+  <Cta locale={locale} t={t} />
+</BaseLayout>
