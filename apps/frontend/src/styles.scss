@@ -1774,24 +1774,19 @@ $markdown-katex-flow-hosts:
   max-width: min(100vw - 1rem, 40rem) !important;
 }
 
-/* Motd-Zähler: MD3-Overlap behalten, Ziffer zuverlässig zentrieren. */
-.top-toolbar__motd-btn.mat-badge,
-.app-footer__link--news-archive .app-footer__icon.mat-badge {
-  --mat-badge-container-padding: 0;
-}
-
+/* Motd-Zähler: MD3-Overlap behalten, Ziffern zentrieren; Breite für 99+ wachsen lassen. */
 .top-toolbar__motd-btn.mat-badge .mat-badge-content,
 .app-footer__link--news-archive .app-footer__icon.mat-badge .mat-badge-content {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: var(--mat-badge-container-size, 16px);
+  width: auto;
   min-width: var(--mat-badge-container-size, 16px);
   height: var(--mat-badge-container-size, 16px);
   min-height: var(--mat-badge-container-size, 16px);
   line-height: 1;
-  padding: 0;
+  padding: 0 4px;
   font-size: var(--mat-badge-text-size, 0.6875rem);
   font-weight: 600;
 }

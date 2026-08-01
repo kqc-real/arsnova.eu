@@ -80,9 +80,9 @@
 }
 
 /*
- * Skip-Link: visuell aus dem Viewport, bei Fokus sichtbar.
- * Kein clip/clip-path — beides kann den Link in Chromium/WebKit aus der
- * sequentiellen Tab-Reihenfolge entfernen.
+ * Skip-Link: visuell aus dem Viewport, bei Fokus sofort sichtbar.
+ * Kein clip/clip-path (Tab-Reihenfolge) und keine Transform-Transition
+ * (a11y:layout misst den fokussierten Zustand synchron).
  */
 .app-skip-link {
   position: absolute;
@@ -98,7 +98,6 @@
   white-space: nowrap;
   border: 0;
   transform: translateY(calc(-100% - 1rem));
-  transition: transform 0.2s ease;
 }
 
 .app-skip-link:focus,
@@ -399,8 +398,9 @@
   /*
    * Label aus dem Flex-Flow nehmen (Icon zentrieren), aber nicht auf 0×0 clippen —
    * sonst können Browser Fokus/Tab nach Overlay-Rückkehr aus dem Footer werfen.
+   * Offline-Retry bleibt textbasiert sichtbar (kein Icon).
    */
-  .app-footer__links .mat-mdc-button-base .mdc-button__label {
+  .app-footer__links .mat-mdc-button-base:not(.app-footer__status-action) .mdc-button__label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -411,6 +411,21 @@
     clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
+  }
+
+  .app-footer__status-action .mdc-button__label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0 0.25rem;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+    font: var(--mat-sys-label-small);
+    line-height: 1.2;
+    text-align: center;
   }
 
   .app-footer__links > .mat-mdc-button-base > .mat-icon {

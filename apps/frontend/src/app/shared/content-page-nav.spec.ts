@@ -65,6 +65,14 @@ describe('content-page-nav', () => {
     expect(consumeContentPageFocusReturn()).toBeNull();
   });
 
+  it('hält den Fokus-Marker über langsame Navigation hinaus (kein Wall-Clock-Expiry)', () => {
+    vi.useFakeTimers();
+    markContentPageFocusReturn('footer-news-archive');
+    vi.advanceTimersByTime(10_000);
+    expect(peekContentPageFocusReturn()).toBe('footer-news-archive');
+    vi.useRealTimers();
+  });
+
   it('nutzt location.back wenn History Einträge hat', () => {
     const location = { back: vi.fn() };
     const router = { navigateByUrl: vi.fn() };
@@ -79,6 +87,30 @@ describe('content-page-nav', () => {
     if (lengthDesc) {
       Object.defineProperty(window.history, 'length', lengthDesc);
     }
+  });
+
+  it('entfernt Chrome-inert nicht vor history.back (Overlay→Overlay bleibt geschützt)', () => {
+    const footer = document.createElement('footer');
+    footer.className = 'app-footer';
+    footer.setAttribute('inert', '');
+    (footer as HTMLElement & { inert: boolean }).inert = true;
+    document.body.append(footer);
+
+    const location = { back: vi.fn() };
+    const router = { navigateByUrl: vi.fn() };
+    const lengthDesc = Object.getOwnPropertyDescriptor(window.history, 'length');
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+
+    dismissContentPage(location as never, router as never);
+
+    expect(location.back).toHaveBeenCalledOnce();
+    expect(footer.hasAttribute('inert')).toBe(true);
+    expect((footer as HTMLElement & { inert: boolean }).inert).toBe(true);
+
+    if (lengthDesc) {
+      Object.defineProperty(window.history, 'length', lengthDesc);
+    }
+    footer.remove();
   });
 
   it('navigiert bei Direktaufruf zur lokalisierten Startseite ohne Footer-Fokus-Marker', () => {

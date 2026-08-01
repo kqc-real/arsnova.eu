@@ -38,7 +38,6 @@ export const LAST_NON_OVERLAY_PATH_KEY = 'arsnova-last-non-overlay-path';
  * sessionStorage allein würde nach Reload/Locale-Redirect den Initialfokus stehlen.
  */
 let pendingFocusReturn: ContentPageFocusReturn | null = null;
-let focusReturnGeneration = 0;
 
 /** Merkt die letzte Nicht-Overlay-Route (für MOTD-Suppress nur bei Rückkehr zur Home). */
 export function rememberNonOverlayPath(pathname: string): void {
@@ -79,16 +78,6 @@ export function contentPageFocusReturnForPath(pathname: string): ContentPageFocu
 
 export function markContentPageFocusReturn(target: ContentPageFocusReturn): void {
   pendingFocusReturn = target;
-  focusReturnGeneration += 1;
-  const generation = focusReturnGeneration;
-  // Automatisch verfallen — verhindert HMR-/Timer-Leaks mit ewigem Footer-Fokus.
-  if (typeof setTimeout === 'function') {
-    setTimeout(() => {
-      if (focusReturnGeneration === generation) {
-        pendingFocusReturn = null;
-      }
-    }, 2000);
-  }
 }
 
 export function peekContentPageFocusReturn(): ContentPageFocusReturn | null {
@@ -98,7 +87,6 @@ export function peekContentPageFocusReturn(): ContentPageFocusReturn | null {
 export function consumeContentPageFocusReturn(): ContentPageFocusReturn | null {
   const value = pendingFocusReturn;
   pendingFocusReturn = null;
-  focusReturnGeneration += 1;
   if (typeof sessionStorage !== 'undefined') {
     try {
       sessionStorage.removeItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
@@ -112,7 +100,6 @@ export function consumeContentPageFocusReturn(): ContentPageFocusReturn | null {
 /** App-Start / Initial-Navigation: keine Footer-Fokus-Rückkehr. */
 export function clearStaleContentPageFocusReturn(): void {
   pendingFocusReturn = null;
-  focusReturnGeneration += 1;
   if (typeof sessionStorage === 'undefined') return;
   try {
     sessionStorage.removeItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
@@ -226,15 +213,14 @@ export function shouldDeferContentPageEscape(dialog: MatDialog): boolean {
  * Schließt eine Content-Page: History zurück, sonst lokalisierte Startseite.
  * Beim Direktaufruf (keine History) kein Footer-Fokus-Marker — normale Home-Fokuslogik.
  *
- * inert am Chrome vor `back()` entfernen, damit cdkTrapFocus den zuvor fokussierten
- * Footer-Link wiederherstellen kann. Keine Timer-Retries — die stehlen sonst den
- * Initialfokus (Skip-Link / Inhalt).
+ * Chrome-`inert` hier nicht entfernen: bei Overlay→Overlay (Hilfe→Legal→Zurück)
+ * bliebe die Angular-Binding sonst ohne Re-Apply. `focusFooterContentReturn` entfernt
+ * inert erst bei tatsächlicher Rückkehr auf eine Nicht-Overlay-Route.
  */
 export function dismissContentPage(location: Location, router: Router): void {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   if (typeof window !== 'undefined' && window.history.length > 1) {
     prepareContentPageDismiss(pathname);
-    clearAppChromeInert();
     location.back();
     return;
   }

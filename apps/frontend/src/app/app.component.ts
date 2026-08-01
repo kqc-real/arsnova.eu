@@ -17,7 +17,14 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  Router,
+  RouterLink,
+  RouterOutlet,
+} from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton } from '@angular/material/button';
@@ -241,8 +248,22 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .pipe(
+        filter(
+          (e): e is NavigationEnd | NavigationCancel | NavigationError =>
+            e instanceof NavigationEnd ||
+            e instanceof NavigationCancel ||
+            e instanceof NavigationError,
+        ),
+      )
       .subscribe((event) => {
+        if (!(event instanceof NavigationEnd)) {
+          // Abbruch/Fehler: Footer-Fokus-Marker nicht über die Navigation hinaus behalten.
+          if (isPlatformBrowser(this.platformId)) {
+            clearStaleContentPageFocusReturn();
+          }
+          return;
+        }
         this.seo.applyFromRouter();
         if (!isPlatformBrowser(this.platformId)) {
           return;
@@ -261,7 +282,9 @@ export class AppComponent implements OnInit, OnDestroy {
           requestAnimationFrame(() => {
             this.scrollPrimaryScrollContainerToTop();
             // Content-Overlay-Seiten setzen Fokus selbst (cdkFocusInitial auf „Zurück“).
+            // Overlay→Overlay: Marker verwerfen; Chrome-inert bleibt über Angular-Binding.
             if (this.isContentOverlayRoute()) {
+              clearStaleContentPageFocusReturn();
               return;
             }
             // Rückkehr aus Hilfe/Legal/News-Archiv: Footer-Link statt Hero-H1.
