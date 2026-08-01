@@ -225,6 +225,9 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
   footerNewsArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();
+    // Kein „0“ im DOM: matBadgeHidden blendet den Inhalt für Lighthouse nicht zuverlässig aus
+    // (label-content-name-mismatch gegen Aria ohne Zähler).
+    if (n <= 0) return '';
     return formatLocaleBadgeCount(n, this.localeId);
   });
 

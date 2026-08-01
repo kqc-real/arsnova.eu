@@ -91,6 +91,8 @@ export class TopToolbarComponent {
   /** Badge-Text (max. „99+“). */
   readonly motdArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();
+    // Kein „0“ im DOM: matBadgeHidden blendet den Inhalt für Lighthouse nicht zuverlässig aus.
+    if (n <= 0) return '';
     return formatLocaleBadgeCount(n, this.localeId as string);
   });
 
