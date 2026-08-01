@@ -101,9 +101,11 @@ export class TopToolbarComponent {
       return $localize`:@@motd.toolbarArchiveAria:News und Archiv`;
     }
     if (n === 1) {
-      return $localize`:@@motd.toolbarArchiveAriaOne:News und Archiv, eine ungelesene Meldung`;
+      // Ziffer „1“ wie im Badge — sonst label-content-name-mismatch (Lighthouse).
+      return $localize`:@@motd.toolbarArchiveAriaOne:News und Archiv, 1 ungelesene Meldung`;
     }
-    return $localize`:@@motd.toolbarArchiveAriaCount:News und Archiv, ${formatLocaleCount(n, this.localeId as string)}:INTERPOLATION: ungelesene Meldungen`;
+    // Dieselbe Ziffernform wie im Badge (inkl. „99+“), sonst label-content-name-mismatch.
+    return $localize`:@@motd.toolbarArchiveAriaCount:News und Archiv, ${formatLocaleBadgeCount(n, this.localeId as string)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   /** Kurzinfo beim Hover (unterscheidet ungelesene Meldungen). */

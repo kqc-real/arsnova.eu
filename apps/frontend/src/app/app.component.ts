@@ -43,7 +43,7 @@ import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
-import { formatLocaleBadgeCount, formatLocaleCount } from './core/locale-number.util';
+import { formatLocaleBadgeCount } from './core/locale-number.util';
 import {
   clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
@@ -235,9 +235,11 @@ export class AppComponent implements OnInit, OnDestroy {
       return $localize`:@@app.footer.newsArchiveAria:News-Archiv öffnen`;
     }
     if (n === 1) {
-      return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, eine ungelesene Meldung`;
+      // Ziffer „1“ wie im Badge — sonst label-content-name-mismatch (Lighthouse).
+      return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, 1 ungelesene Meldung`;
     }
-    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
+    // Dieselbe Ziffernform wie im Badge (inkl. „99+“), sonst label-content-name-mismatch.
+    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleBadgeCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   ngOnInit(): void {

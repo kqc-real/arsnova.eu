@@ -231,15 +231,15 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.newsArchiveAriaOne" datatype="html">
-        <source>News-Archiv öffnen, eine ungelesene Meldung</source>
-        <target>Abrir archivo de noticias, un mensaje sin leer</target>
+        <source>News-Archiv öffnen, 1 ungelesene Meldung</source>
+        <target>Abrir archivo de noticias, 1 mensaje sin leer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.newsArchiveAriaCount" datatype="html">
-        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId)"/> ungelesene Meldungen</source>
+        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId)"/> ungelesene Meldungen</source>
         <target>Abrir archivo de noticias, <x id="INTERPOLATION" equiv-text="{{ n }}"/> mensajes sin leer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
@@ -21298,15 +21298,15 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaOne" datatype="html">
-        <source>News und Archiv, eine ungelesene Meldung</source>
-        <target>Noticias y archivo, un mensaje sin leer</target>
+        <source>News und Archiv, 1 ungelesene Meldung</source>
+        <target>Noticias y archivo, 1 mensaje sin leer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaCount" datatype="html">
-        <source>News und Archiv, <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
+        <source>News und Archiv, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
         <target>Noticias y archivo, <x id="INTERPOLATION" equiv-text="{{ n }}"/> mensajes sin leer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -21330,7 +21330,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveTooltipUnreadCount" datatype="html">
-        <source>News und Archiv · <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
+        <source>News und Archiv · <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
         <target>Noticias y archivo · <x id="INTERPOLATION" equiv-text="{{ n }}"/> mensajes sin leer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
