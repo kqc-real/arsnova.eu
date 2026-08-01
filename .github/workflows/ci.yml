@@ -1313,7 +1313,9 @@ jobs:
 
           run_status=0
           # Timer-Fairness zuerst (frisches Backend); Runner-Latenzgates lockerer als lokal (1000/2000 ms).
-          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" VOTE_P95_LIMIT_MS=3000 VOTE_P99_LIMIT_MS=3000 PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
+          # VOTE_HTTP_CONNECTIONS=600: Default-Fetch-Pool serialisiert sonst den Karenz-Burst und
+          # laesst spaete Requests ausserhalb der echten 2s-Backend-Karenz ankommen.
+          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" VOTE_P95_LIMIT_MS=3000 VOTE_P99_LIMIT_MS=3000 VOTE_HTTP_CONNECTIONS=600 WITHIN_GRACE_REVEAL_OFFSET_MS=0 PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
           REPORT_FILE="$REPORT_DIR/host-vote-progress-200.json" JUNIT_FILE="$REPORT_DIR/host-vote-progress-200.junit.xml" VOTE_P95_LIMIT_MS=2000 PARTICIPANTS=200 npm run load:smoke:host-vote-progress || run_status=$?
           REPORT_FILE="$REPORT_DIR/summary.json" JUNIT_FILE="$REPORT_DIR/summary.junit.xml" npm run load:artillery:500 || run_status=$?
           REPORT_FILE="$REPORT_DIR/yjs-sync.json" JUNIT_FILE="$REPORT_DIR/yjs-sync.junit.xml" CLIENTS=30 npm run load:yjs:sync || run_status=$?
