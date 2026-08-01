@@ -43,6 +43,35 @@ export class HelpComponent {
 
   readonly localizedPath = localizePath;
 
+  /** Locale-sicherer Abschnittsanker (kein reines `#…` wegen `<base href>`). */
+  helpSectionHref(sectionId: 'help-host' | 'help-participant'): string {
+    return `${localizePath('/help')}#${sectionId}`;
+  }
+
+  /**
+   * Primärklick: im Scroll-Container `#main-content` springen, Locale-Pfad behalten.
+   * Modifizierte Klicks (neuer Tab etc.) nutzen den echten `href`.
+   */
+  onHelpSectionLinkClick(event: MouseEvent, sectionId: 'help-host' | 'help-participant'): void {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const section = document.getElementById(sectionId);
+    if (!section) {
+      return;
+    }
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    void this.router.navigateByUrl(this.helpSectionHref(sectionId), { replaceUrl: true });
+  }
+
   @HostListener('document:keydown.escape', ['$event'])
   onEscape(event: Event): void {
     if (shouldDeferContentPageEscape(this.dialog)) {

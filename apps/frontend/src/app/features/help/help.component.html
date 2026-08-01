@@ -44,7 +44,11 @@
         </p>
 
         <nav class="help-role-nav" i18n-aria-label="@@help.roleNavAria" aria-label="Rollenwahl">
-          <a class="help-role-card" href="#help-host">
+          <a
+            class="help-role-card"
+            [attr.href]="helpSectionHref('help-host')"
+            (click)="onHelpSectionLinkClick($event, 'help-host')"
+          >
             <mat-icon class="help-role-card__icon" aria-hidden="true">co_present</mat-icon>
             <span class="help-role-card__copy">
               <span class="help-role-card__title" i18n="@@help.roleHostTitle"
@@ -56,7 +60,11 @@
             </span>
             <mat-icon class="help-role-card__chevron" aria-hidden="true">south</mat-icon>
           </a>
-          <a class="help-role-card" href="#help-participant">
+          <a
+            class="help-role-card"
+            [attr.href]="helpSectionHref('help-participant')"
+            (click)="onHelpSectionLinkClick($event, 'help-participant')"
+          >
             <mat-icon class="help-role-card__icon" aria-hidden="true">groups</mat-icon>
             <span class="help-role-card__copy">
               <span class="help-role-card__title" i18n="@@help.roleParticipantTitle"

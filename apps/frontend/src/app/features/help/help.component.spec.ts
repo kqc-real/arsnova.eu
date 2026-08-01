@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HelpComponent } from './help.component';
@@ -72,17 +72,44 @@ describe('HelpComponent', () => {
     expect(root.querySelector('nav.help-role-nav')?.getAttribute('aria-label')).toBe('Rollenwahl');
   });
 
-  it('rendert beide Rollenkarten mit korrekten Ankerzielen', async () => {
+  it('rendert beide Rollenkarten mit locale-sicheren Ankerzielen', async () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
-    const hostCard = root.querySelector<HTMLAnchorElement>('a.help-role-card[href="#help-host"]');
+    const hostCard = root.querySelector<HTMLAnchorElement>('a.help-role-card[href$="#help-host"]');
     const participantCard = root.querySelector<HTMLAnchorElement>(
-      'a.help-role-card[href="#help-participant"]',
+      'a.help-role-card[href$="#help-participant"]',
     );
+    expect(hostCard?.getAttribute('href')).toBe('/help#help-host');
+    expect(participantCard?.getAttribute('href')).toBe('/help#help-participant');
     expect(hostCard?.textContent).toContain('Ich leite eine Veranstaltung');
     expect(participantCard?.textContent).toContain('Ich nehme an einer Veranstaltung teil');
     expect(root.querySelector('#help-host')).toBeTruthy();
     expect(root.querySelector('#help-participant')).toBeTruthy();
+  });
+
+  it('hält bei Rollenkarten-Klick die Hilfeseite und setzt den Fragment-Pfad', async () => {
+    const fixture = await createFixture();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const hostSection = (fixture.nativeElement as HTMLElement).querySelector(
+      '#help-host',
+    ) as HTMLElement;
+    Object.defineProperty(hostSection, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const hostCard = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'a.help-role-card[href$="#help-host"]',
+    );
+    expect(hostCard).toBeTruthy();
+
+    hostCard!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }),
+    );
+    fixture.detectChanges();
+
+    expect(hostSection.scrollIntoView).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith('/help#help-host', { replaceUrl: true });
   });
 
   it('rendert beide Rollen und beide Erfahrungsgruppen', async () => {
