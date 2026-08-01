@@ -6195,7 +6195,7 @@
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
         <source> Wähle, in welcher Rolle du arsnova.eu nutzt. Hier findest du einen schnellen Einstieg und gezielte Hilfe zu einzelnen Funktionen.</source>
-        <target>Choisis le rôle dans lequel tu utilises arsnova.eu. Tu y trouveras une prise en main rapide et une aide ciblée pour chaque fonctionnalité.</target>
+        <target>Choisis ton rôle sur arsnova.eu. Tu y trouveras une prise en main rapide et une aide ciblée pour chaque fonctionnalité.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">41,44</context>
@@ -6238,7 +6238,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleParticipantHint" datatype="html">
@@ -6258,7 +6258,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesTitle" datatype="html">
@@ -6303,7 +6303,7 @@
       </trans-unit>
       <trans-unit id="help.hostFinishBody" datatype="html">
         <source> Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der Nachbesprechungsplan bleibt über die Quizkarte erreichbar.</source>
-        <target>Termine la session dans la vue d’animation. Les résultats consolidés sont alors disponibles. Utilise le plan de débriefing au format PDF pour l’analyse pédagogique ; l’export CSV se trouve sous « Plus ». Le plan reste accessible depuis la carte du quiz.</target>
+        <target>Termine la session dans la vue d’animation. Un récapitulatif des résultats est alors disponible. Utilise le plan de débriefing au format PDF pour l’analyse pédagogique ; l’export CSV se trouve sous « Plus ». Le plan reste accessible depuis la carte du quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">135,140</context>
@@ -6318,7 +6318,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">304,306</context>
+          <context context-type="linenumber">305,307</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsTitle" datatype="html">
@@ -6362,11 +6362,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
-        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
+        <source> Neue Beiträge können zunächst zurückgehalten und erst nach deiner Freigabe veröffentlicht werden. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
         <target>Les nouvelles contributions peuvent attendre une validation avant d’apparaître. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots met en évidence les thèmes récurrents pour la présentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">189,194</context>
+          <context context-type="linenumber">189,195</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseTitle" datatype="html">
@@ -6374,7 +6374,7 @@
         <target>Utiliser le Feedback express et le retour sur le rythme</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
@@ -6382,7 +6382,7 @@
         <target>Lance un Feedback express depuis la session en direct ou avec « Feedback instantané en un clic » sur la page d’accueil. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">205,210</context>
+          <context context-type="linenumber">206,211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
@@ -6390,7 +6390,7 @@
         <target>Gérer les quiz et les paramètres</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
@@ -6398,7 +6398,7 @@
         <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. Le lien de synchronisation permet de partager la collection ou de continuer sur un autre appareil. Les modèles d’IA t’aident à créer et à vérifier des quiz sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">221,228</context>
+          <context context-type="linenumber">222,229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
@@ -6406,7 +6406,7 @@
         <target>Comment rejoindre une session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">249</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinBody" datatype="html">
@@ -6414,7 +6414,7 @@
         <target>Scanne le QR code ou ouvre arsnova.eu et saisis le code à six caractères. Aucun compte n’est nécessaire. Selon les réglages de la personne qui anime, tu participes anonymement, avec un pseudonyme prédéfini ou avec le nom de ton choix.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">256,261</context>
+          <context context-type="linenumber">257,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTitle" datatype="html">
@@ -6422,15 +6422,15 @@
         <target>Comment répondre à une question de quiz ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">268</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerBody" datatype="html">
         <source> Wähle eine Antwort oder gib sie ein und sende sie ab. Ist die Selbsteinschätzung aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.</source>
-        <target>Sélectionne ou saisis ta réponse, puis envoie-la. Si l’autoévaluation du degré de confiance est activée, indique ensuite ton degré de certitude sur une échelle de 1 à 5. En cas de limite de temps, un compte à rebours affiche le temps restant. Le résultat apparaît lorsque la personne qui anime le révèle.</target>
+        <target>Sélectionne ou saisis ta réponse, puis envoie-la. Si l’autoévaluation du degré de confiance est activée, évalue ensuite ta confiance sur une échelle de 1 à 5. En cas de limite de temps, un compte à rebours affiche le temps restant. Le résultat apparaît lorsque la personne qui anime le révèle.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">275,280</context>
+          <context context-type="linenumber">276,281</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
@@ -6438,15 +6438,15 @@
         <target>Comment poser une question ou donner mon avis ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeBody" datatype="html">
-        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen hoch- oder runtervoten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern.</source>
+        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen positiv oder negativ bewerten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern.</source>
         <target>Dans le canal Q&amp;A, envoie ta propre question et vote pour ou contre les autres contributions. Selon les réglages de modération, ta question peut n’apparaître qu’après validation. Dans le Feedback express, donne un retour spontané en un geste. Tu peux modifier ton retour sur le rythme tant que le sondage est ouvert.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">294,299</context>
+          <context context-type="linenumber">295,300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsTitle" datatype="html">
@@ -6454,7 +6454,7 @@
         <target>Comment utiliser le quiz, le Q&amp;A et le Feedback express dans une même session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">312</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsBody" datatype="html">
@@ -6462,7 +6462,7 @@
         <target>Une session en direct peut combiner quiz, Q&amp;A et Feedback express. Suis les indications dans la vue actuellement ouverte. Si un canal n’est pas actif, attends que la personne qui anime lance l’activité suivante.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">318,322</context>
+          <context context-type="linenumber">319,323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundTitle" datatype="html">
@@ -6470,7 +6470,7 @@
         <target>Que se passe-t-il lors d’un second tour de vote ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundBody" datatype="html">
@@ -6478,7 +6478,7 @@
         <target>Dans une séquence de Peer Instruction, réponds d’abord seul·e à la question. Discute ensuite avec d’autres participant·es, puis vote une seconde fois. Envoie également ta réponse au second tour ; elle peut différer de la première.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">336,341</context>
+          <context context-type="linenumber">337,342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsTitle" datatype="html">
@@ -6486,7 +6486,7 @@
         <target>Comment interpréter les résultats, le classement et les scores d’équipe ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">348</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsBody" datatype="html">
@@ -6494,7 +6494,7 @@
         <target>La personne qui anime décide quand les résultats deviennent visibles. Le classement, les scores d’équipe et les codes bonus n’apparaissent que s’ils sont activés pour la session. Ton degré de confiance autoévalué n’a aucun effet sur ton score ni sur ta position.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">355,359</context>
+          <context context-type="linenumber">356,360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTitle" datatype="html">
@@ -6502,7 +6502,7 @@
         <target>Pour tout le monde</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">368</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyTitle" datatype="html">
@@ -6510,7 +6510,7 @@
         <target>Comment les données et les contenus sont-ils traités ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">375</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyBody" datatype="html">
@@ -6518,7 +6518,7 @@
         <target>Aucun compte n’est nécessaire. Les quiz de la personne qui anime sont d’abord stockés localement dans son navigateur ; pendant une session en direct, seules les données nécessaires à l’interaction sont échangées. arsnova.eu est open source et conçu pour un fonctionnement respectueux de la vie privée en Europe. Consulte la <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Politique de confidentialité<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> pour en savoir plus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">378,385</context>
+          <context context-type="linenumber">379,386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityTitle" datatype="html">
@@ -6526,7 +6526,7 @@
         <target>Quelles options d’accessibilité sont disponibles et comment installer arsnova.eu comme application ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">392,393</context>
+          <context context-type="linenumber">393,394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityBody" datatype="html">
@@ -6536,7 +6536,7 @@
         <target>arsnova.eu est utilisable au clavier, avec un lecteur d’écran et avec un affichage agrandi. Utilise si nécessaire les options de contraste et de thème de l’application ou de ton système d’exploitation. Tu peux aussi installer arsnova.eu comme Progressive Web App. Consulte la <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Déclaration d’accessibilité<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> pour en savoir plus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">400,408</context>
+          <context context-type="linenumber">401,409</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingTitle" datatype="html">
@@ -6544,15 +6544,15 @@
         <target>Que faire en cas de problème technique ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingBody" datatype="html">
-        <source> Prüfe zuerst den Code oder QR-Code, deine Internetverbindung und ob die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
-        <target>Vérifie d’abord le code ou le QR code, ta connexion Internet et que la session est toujours active. Si aucune question n’est encore visible, la session peut être dans le hall d’attente, en phase de lecture ou en pause. Après une coupure, rouvre le lien de participation ou saisis de nouveau le code. Adresse-toi à la personne qui anime si la session est déjà terminée.</target>
+        <source> Prüfe zuerst den Code oder QR-Code und deine Internetverbindung. Vergewissere dich außerdem, dass die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
+        <target>Vérifie d’abord le code ou le QR code et ta connexion Internet, puis assure-toi que la session est toujours active. Si aucune question n’est encore visible, la session peut être dans le hall d’attente, en phase de lecture ou en pause. Après une coupure, rouvre le lien de participation ou saisis de nouveau le code. Adresse-toi à la personne qui anime si la session est déjà terminée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">422,429</context>
+          <context context-type="linenumber">423,430</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.channelQuiz" datatype="html">

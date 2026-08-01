@@ -5497,7 +5497,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleParticipantHint" datatype="html">
@@ -5515,7 +5515,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesTitle" datatype="html">
@@ -5568,7 +5568,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">304,306</context>
+          <context context-type="linenumber">305,307</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsTitle" datatype="html">
@@ -5607,150 +5607,150 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
-        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar. </source>
+        <source> Neue Beiträge können zunächst zurückgehalten und erst nach deiner Freigabe veröffentlicht werden. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">189,194</context>
+          <context context-type="linenumber">189,195</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseTitle" datatype="html">
         <source>Blitzlicht und Tempo-Feedback einsetzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
         <source> Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">205,210</context>
+          <context context-type="linenumber">206,211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
         <source>Quiz-Sammlung und Einstellungen verwalten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
         <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">221,228</context>
+          <context context-type="linenumber">222,229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
         <source>Wie trete ich einer Session bei?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">249</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinBody" datatype="html">
         <source> Scanne den QR-Code oder öffne arsnova.eu und gib den sechsstelligen Code ein. Du brauchst kein Konto. Je nach Einstellung der Veranstaltungsleitung nimmst du anonym, mit einem vorgegebenen Nickname oder mit einem selbst gewählten Namen teil. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">256,261</context>
+          <context context-type="linenumber">257,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTitle" datatype="html">
         <source>Wie beantworte ich eine Quizfrage?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">268</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerBody" datatype="html">
         <source> Wähle eine Antwort oder gib sie ein und sende sie ab. Ist die Selbsteinschätzung aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">275,280</context>
+          <context context-type="linenumber">276,281</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeBody" datatype="html">
-        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen hoch- oder runtervoten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern. </source>
+        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen positiv oder negativ bewerten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">294,299</context>
+          <context context-type="linenumber">295,300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsTitle" datatype="html">
         <source>Wie nutze ich Quiz, Q&amp;A und Blitzlicht in einer Session?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">312</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsBody" datatype="html">
         <source> Eine Live-Session kann Quiz, Q&amp;A und Blitzlicht miteinander verbinden. Folge den Hinweisen in der jeweils geöffneten Ansicht. Wenn ein Bereich gerade nicht aktiv ist, warte, bis die Veranstaltungsleitung die nächste Aktivität öffnet. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">318,322</context>
+          <context context-type="linenumber">319,323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundTitle" datatype="html">
         <source>Was passiert bei einer zweiten Abstimmungsrunde?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundBody" datatype="html">
         <source> Bei Peer Instruction beantwortest du die Frage zunächst allein. Anschließend diskutierst du mit anderen Teilnehmenden und stimmst ein zweites Mal ab. Sende deine Antwort auch in der zweiten Runde erneut ab; sie darf sich von deiner ersten Antwort unterscheiden. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">336,341</context>
+          <context context-type="linenumber">337,342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsTitle" datatype="html">
         <source>Wie sind Ergebnisse, Rangliste und Teamwertung zu verstehen?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">348</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsBody" datatype="html">
         <source> Die Veranstaltungsleitung entscheidet, wann Ergebnisse sichtbar werden. Rangliste, Teamwertung und Bonus-Codes erscheinen nur, wenn sie für die Session aktiviert wurden. Deine Selbsteinschätzung hat keinen Einfluss auf Punkte oder Platzierung. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">355,359</context>
+          <context context-type="linenumber">356,360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTitle" datatype="html">
         <source>Für alle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">368</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyTitle" datatype="html">
         <source>Wie werden Daten und Inhalte behandelt?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">375</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyBody" datatype="html">
         <source> Für die Nutzung ist kein Konto erforderlich. Quiz-Inhalte der Veranstaltungsleitung werden zunächst lokal im Browser gespeichert; während einer Live-Session werden die für die Interaktion notwendigen Daten ausgetauscht. arsnova.eu ist Open Source und für einen datenschutzorientierten Betrieb in Europa ausgelegt. Einzelheiten findest du in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/privacy&apos;)&quot;&gt;"/>Datenschutzerklärung<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">378,385</context>
+          <context context-type="linenumber">379,386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityTitle" datatype="html">
         <source>Welche Barrierefreiheitsfunktionen gibt es, und wie installiere ich arsnova.eu als App?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">392,393</context>
+          <context context-type="linenumber">393,394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityBody" datatype="html">
@@ -5759,21 +5759,21 @@
                   &gt;"/>. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">400,408</context>
+          <context context-type="linenumber">401,409</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingTitle" datatype="html">
         <source>Was kann ich bei technischen Problemen tun?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingBody" datatype="html">
-        <source> Prüfe zuerst den Code oder QR-Code, deine Internetverbindung und ob die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde. </source>
+        <source> Prüfe zuerst den Code oder QR-Code und deine Internetverbindung. Vergewissere dich außerdem, dass die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">422,429</context>
+          <context context-type="linenumber">423,430</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.channelQuiz" datatype="html">

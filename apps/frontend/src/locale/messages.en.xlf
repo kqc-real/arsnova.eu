@@ -6200,7 +6200,7 @@
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
         <source> Wähle, in welcher Rolle du arsnova.eu nutzt. Hier findest du einen schnellen Einstieg und gezielte Hilfe zu einzelnen Funktionen.</source>
-        <target>Choose the role in which you use arsnova.eu. Here you will find a quick start and targeted help for individual features.</target>
+        <target>Choose how you use arsnova.eu. Get a quick introduction or find help with a specific feature.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">41,44</context>
@@ -6243,7 +6243,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleParticipantHint" datatype="html">
@@ -6263,7 +6263,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesTitle" datatype="html">
@@ -6308,7 +6308,7 @@
       </trans-unit>
       <trans-unit id="help.hostFinishBody" datatype="html">
         <source> Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der Nachbesprechungsplan bleibt über die Quizkarte erreichbar.</source>
-        <target>End the session from the host view. The consolidated results are then available. Use the debriefing plan PDF to reflect on the session from a teaching perspective; the CSV export is under “More.” The debriefing plan remains available from the quiz card.</target>
+        <target>End the session from the host view. A summary of the results is then available. Use the debriefing plan PDF to reflect on the session from a teaching perspective; the CSV export is under “More.” The debriefing plan remains available from the quiz card.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">135,140</context>
@@ -6323,7 +6323,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">304,306</context>
+          <context context-type="linenumber">305,307</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsTitle" datatype="html">
@@ -6367,11 +6367,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
-        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
+        <source> Neue Beiträge können zunächst zurückgehalten und erst nach deiner Freigabe veröffentlicht werden. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
         <target>New posts can be held for approval before they appear. You can approve, pin, archive, or remove questions. Upvotes, downvotes, and sorting options help you prioritize them; the word cloud highlights recurring themes for presentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">189,194</context>
+          <context context-type="linenumber">189,195</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseTitle" datatype="html">
@@ -6379,7 +6379,7 @@
         <target>Use Pulse Check and pace feedback</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
@@ -6387,7 +6387,7 @@
         <target>Start a Pulse Check from the live session or with “Live in one click” on the home page. You can pause, resume, reset, or start a new round. During pace feedback, participants can change their response at any time; you only see the aggregated trend.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">205,210</context>
+          <context context-type="linenumber">206,211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
@@ -6395,7 +6395,7 @@
         <target>Manage quizzes and settings</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
@@ -6403,7 +6403,7 @@
         <target>In the quiz library, edit and reorder questions, check the preview, and import or export quizzes as JSON. Use the sync link to share the library or continue on another device. AI templates can help you generate and review quizzes without sending your content to arsnova.eu. When starting a session, configure options such as style, leaderboard, sound, teams, nicknames, timer, and bonus codes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">221,228</context>
+          <context context-type="linenumber">222,229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
@@ -6411,7 +6411,7 @@
         <target>How do I join a session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">249</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinBody" datatype="html">
@@ -6419,7 +6419,7 @@
         <target>Scan the QR code or open arsnova.eu and enter the 6-character code. You do not need an account. Depending on the host’s settings, you can join anonymously, with a preset nickname, or with a name you choose.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">256,261</context>
+          <context context-type="linenumber">257,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTitle" datatype="html">
@@ -6427,7 +6427,7 @@
         <target>How do I answer a quiz question?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">268</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerBody" datatype="html">
@@ -6435,7 +6435,7 @@
         <target>Select or enter an answer, then submit it. If answer confidence is enabled, rate how confident you are on a scale from 1 to 5. When there is a time limit, a countdown shows the remaining time. Results appear when the host reveals them.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">275,280</context>
+          <context context-type="linenumber">276,281</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
@@ -6443,15 +6443,15 @@
         <target>How do I ask a question or share feedback?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeBody" datatype="html">
-        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen hoch- oder runtervoten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern.</source>
+        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen positiv oder negativ bewerten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern.</source>
         <target>In Q&amp;A, submit your own question and upvote or downvote other posts. Depending on moderation settings, your question may appear only after approval. In Pulse Check, share spontaneous feedback with one tap. You can update your pace feedback while the poll is running.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">294,299</context>
+          <context context-type="linenumber">295,300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsTitle" datatype="html">
@@ -6459,7 +6459,7 @@
         <target>How do I use quiz, Q&amp;A, and Pulse Check in one session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">312</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsBody" datatype="html">
@@ -6467,7 +6467,7 @@
         <target>A live session can combine quiz, Q&amp;A, and Pulse Check. Follow the active view and the instructions on your device. If a channel is not active, wait for the host to open the next activity.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">318,322</context>
+          <context context-type="linenumber">319,323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundTitle" datatype="html">
@@ -6475,7 +6475,7 @@
         <target>What happens in a second voting round?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundBody" datatype="html">
@@ -6483,7 +6483,7 @@
         <target>In Peer Instruction, answer the question on your own first. Then discuss it with other participants and vote again. Submit your answer in the second round as well; it can differ from your first answer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">336,341</context>
+          <context context-type="linenumber">337,342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsTitle" datatype="html">
@@ -6491,7 +6491,7 @@
         <target>How should I read results, leaderboards, and team scores?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">348</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsBody" datatype="html">
@@ -6499,7 +6499,7 @@
         <target>The host decides when results become visible. Leaderboards, team scores, and bonus codes appear only when enabled for the session. Your answer confidence does not affect your score or position.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">355,359</context>
+          <context context-type="linenumber">356,360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTitle" datatype="html">
@@ -6507,7 +6507,7 @@
         <target>For everyone</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">368</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyTitle" datatype="html">
@@ -6515,15 +6515,15 @@
         <target>How are data and content handled?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">375</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyBody" datatype="html">
         <source> Für die Nutzung ist kein Konto erforderlich. Quiz-Inhalte der Veranstaltungsleitung werden zunächst lokal im Browser gespeichert; während einer Live-Session werden die für die Interaktion notwendigen Daten ausgetauscht. arsnova.eu ist Open Source und für einen datenschutzorientierten Betrieb in Europa ausgelegt. Einzelheiten findest du in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/privacy&apos;)&quot;&gt;"/>Datenschutzerklärung<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.</source>
-        <target>No account is required. A host’s quiz content is stored locally in the browser first; during a live session, the data needed for interaction is exchanged. arsnova.eu is open source and designed for privacy-focused operation in Europe. See the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Privacy policy<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> for details.</target>
+        <target>No account is required. A host’s quiz content is stored locally in the browser first; during a live session, the data needed for interaction is exchanged. arsnova.eu is open source and designed with privacy in mind for use in Europe. See the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Privacy policy<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> for details.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">378,385</context>
+          <context context-type="linenumber">379,386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityTitle" datatype="html">
@@ -6531,7 +6531,7 @@
         <target>What accessibility options are available, and how do I install arsnova.eu as an app?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">392,393</context>
+          <context context-type="linenumber">393,394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityBody" datatype="html">
@@ -6541,7 +6541,7 @@
         <target>You can use arsnova.eu with a keyboard, a screen reader, and browser or operating-system zoom. Use the app’s contrast and color-scheme options or those provided by your operating system as needed. You can also install arsnova.eu as a Progressive Web App. See the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Accessibility statement<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> for more information.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">400,408</context>
+          <context context-type="linenumber">401,409</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingTitle" datatype="html">
@@ -6549,15 +6549,15 @@
         <target>What can I do if something is not working?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingBody" datatype="html">
-        <source> Prüfe zuerst den Code oder QR-Code, deine Internetverbindung und ob die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
-        <target>First check the code or QR code, your internet connection, and whether the session is still active. If no question is visible yet, the session may be in the lobby, reading phase, or paused. After a connection interruption, open the join link again or re-enter the code. Ask the host if the session has already ended.</target>
+        <source> Prüfe zuerst den Code oder QR-Code und deine Internetverbindung. Vergewissere dich außerdem, dass die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
+        <target>First check the code or QR code, your internet connection, and whether the session is still active. If no question is visible yet, the session may be in the lobby, reading phase, or paused. If your connection drops, reopen the join link or enter the code again. Ask the host if the session has already ended.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">422,429</context>
+          <context context-type="linenumber">423,430</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.channelQuiz" datatype="html">
