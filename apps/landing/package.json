@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "test:a11y": "A11Y_APP=landing node ../frontend/scripts/check-a11y-static.mjs",
     "test:i18n": "node scripts/check-i18n.mjs",
+    "test:language-switcher": "node scripts/check-language-switcher.mjs",
     "check": "astro check"
   },
   "dependencies": {

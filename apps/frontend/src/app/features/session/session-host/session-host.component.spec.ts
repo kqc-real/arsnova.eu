@@ -1412,6 +1412,95 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Offene Fragen');
     expect(text).toContain('Fragerunde starten');
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__info-landing--lobby app-info-landing-link, app-info-landing-link.session-host__info-landing--lobby',
+      ),
+    ).toBeTruthy();
+    expect(text).toContain('Warum die Fragenwand mehr als ein Chat ist');
+    fixture.destroy();
+  });
+
+  it('blendet den Q&A-Info-Landing-Link im aktiven Q&A-Kanal aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'qa' }),
+            paramMap: convertToParamMap({}),
+          },
+          queryParamMap: of(convertToParamMap({ tab: 'qa' })),
+        },
+      },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Offene Fragen');
+    expect(text).not.toContain('Warum die Fragenwand mehr als ein Chat ist');
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__channel--qa app-info-landing-link, .session-host__qa-panel app-info-landing-link',
+      ),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        'app-info-landing-link.session-host__info-landing--lobby',
+      ),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt den Confidence-Info-Link im Finished-State nach den Export-Aktionen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'FINISHED', currentQuestion: null });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const exportActions = fixture.nativeElement.querySelector(
+      '.session-host__export-actions',
+    ) as HTMLElement | null;
+    const infoLink = fixture.nativeElement.querySelector(
+      'app-info-landing-link.session-host__info-landing--finished, .session-host__info-landing--finished',
+    ) as HTMLElement | null;
+
+    expect(exportActions).toBeTruthy();
+    expect(infoLink).toBeTruthy();
+    expect(fixture.nativeElement.textContent ?? '').toContain(
+      'Selbsteinschätzung und Nachbesprechung verstehen',
+    );
+
+    const position = exportActions!.compareDocumentPosition(infoLink!);
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fixture.destroy();
   });
 

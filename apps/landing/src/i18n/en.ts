@@ -2,16 +2,16 @@ import type { Messages } from './types';
 
 const en: Messages = {
   meta: {
-    homeTitle: 'arsnova.eu | Live quiz, numeric estimates and Q&A wall',
+    homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
     homeDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numerical estimates, moderated Q&A wall, word cloud and feedback — accessible to WCAG 2.2 AA, free, self-hostable and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, self-hostable and ready without an account.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
   nav: {
     ariaLabel: 'Main navigation',
     workflow: 'Workflow',
-    estimate: 'Estimate',
+    estimate: 'Estimation',
     qa: 'Q&A',
     qaMobile: 'Q&A wall',
     features: 'Benefits',
@@ -40,7 +40,7 @@ const en: Messages = {
     backToApp: 'Back to arsnova.eu',
     tryLive: 'Try it live now',
     howItWorks: 'How it works',
-    viewOpenSource: 'View open source',
+    viewOpenSource: 'View source code',
   },
   hero: {
     eyebrow: 'Audience response for education and organisations',
@@ -48,8 +48,8 @@ const en: Messages = {
     titleLine2: 'moderate questions',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numerical estimates, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, self-hostable and designed for GDPR-oriented operation.',
-    a11yLink: 'Accessible to WCAG 2.2 AA',
+    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, self-hostable and designed for GDPR-oriented operation.',
+    a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
       { title: 'Live in seconds', text: 'Share a session via code or QR' },
@@ -64,15 +64,15 @@ const en: Messages = {
   estimate: {
     eyebrow: 'New in the live quiz',
     title: 'Estimate numbers, discuss, and compare the second round clearly',
-    lead: 'The numerical estimate question is built for years, orders of magnitude, measurements and probabilities. Facilitators set a reference value, allowed input range and tolerance; participants enter only a number.',
+    lead: 'The numeric estimation question is built for years, orders of magnitude, measurements and probabilities. Facilitators set a reference value, allowed input range and tolerance; participants enter only a number.',
     summary: [
       'A plausibility band limits allowed inputs.',
-      'A tolerance band scores estimates that are acceptable in subject terms.',
+      'A tolerance band scores estimates that are acceptable from a subject-matter perspective.',
       'Nobody sees the distribution before results are released.',
       'Round 1 and round 2 are compared after the discussion.',
     ],
-    docsLink: 'Open the estimate question documentation',
-    demoAria: 'Sample results for an estimate question about the French Revolution',
+    docsLink: 'Open the numeric estimation question documentation',
+    demoAria: 'Sample results for a numeric estimation question about the French Revolution',
     hostView: 'Host view after release',
     demoQuestion: 'When did the French Revolution begin?',
     reference: 'Reference 1789',
@@ -85,7 +85,7 @@ const en: Messages = {
     median: 'Median',
     inBand: 'in band',
     round2: 'Round 2',
-    round2Value: '14 closer',
+    round2Value: '14 answers closer to the reference',
   },
   confidence: {
     eyebrow: 'Didactic evaluation',
@@ -105,12 +105,12 @@ const en: Messages = {
     demoQuestion: 'Which structure is the most stable?',
     badge: 'Confidence rating',
     matrix: [
-      { label: 'Correct · low', count: 3, tone: 'emerald' },
-      { label: 'Correct · mid', count: 8, tone: 'emerald' },
-      { label: 'Correct · high', count: 11, tone: 'emerald' },
-      { label: 'Wrong · low', count: 2, tone: 'slate' },
-      { label: 'Wrong · mid', count: 4, tone: 'amber' },
-      { label: 'Wrong · high', count: 2, tone: 'rose' },
+      { label: 'Correct · low confidence', count: 3, tone: 'emerald' },
+      { label: 'Correct · medium confidence', count: 8, tone: 'emerald' },
+      { label: 'Correct · high confidence', count: 11, tone: 'emerald' },
+      { label: 'Incorrect · low confidence', count: 2, tone: 'slate' },
+      { label: 'Incorrect · medium confidence', count: 4, tone: 'amber' },
+      { label: 'Incorrect · high confidence', count: 2, tone: 'rose' },
     ],
     falseHighTitle: '2 confidently wrong answers',
     falseHighText:
@@ -143,7 +143,7 @@ const en: Messages = {
         text: 'Words and phrases are weighted by support, agreement or controversy.',
       },
       {
-        label: 'Compass outlook',
+        label: 'Moderation compass outlook',
         text: 'Deterministic signals come first; Q&A NLP and summarisation remain optional extensions.',
       },
     ],
@@ -158,7 +158,7 @@ const en: Messages = {
     questions: [
       {
         score: '+18',
-        title: 'When is an estimate still plausible in subject terms?',
+        title: 'When is an estimate still plausible from a subject-matter perspective?',
         meta: '15 up · 3 down · best question',
       },
       {
@@ -174,7 +174,7 @@ const en: Messages = {
     ],
     wordCloud: 'Q&A word cloud',
     wordCloudHint: 'Weighted by positive resonance and controversy.',
-    frozenLive: 'Frozen live',
+    frozenLive: 'Live updates paused',
     terms: [
       { label: 'Tolerance band', className: 'text-3xl text-brand-200' },
       { label: 'Discussion', className: 'text-2xl text-emerald-200' },
@@ -198,7 +198,7 @@ const en: Messages = {
         number: '01',
         title: 'Prepare a quiz',
         description:
-          'Create questions directly or import existing content. Markdown, KaTeX, short answer and numerical estimates are built in.',
+          'Create questions directly or import existing content. Markdown, KaTeX, short answer and numeric estimation questions are built in.',
       },
       {
         number: '02',
@@ -221,7 +221,7 @@ const en: Messages = {
     ],
   },
   features: {
-    eyebrow: 'Why it feels different',
+    eyebrow: 'What makes it feel different',
     title: 'Built for live interaction, not only for polling slides',
     lead: 'arsnova.eu combines a fast start, didactic depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
     items: [
@@ -244,7 +244,7 @@ const en: Messages = {
         icon: 'export',
       },
       {
-        title: 'Didactic estimate questions',
+        title: 'Numeric estimation questions for teaching',
         description:
           'Years, orders of magnitude and measurements can be estimated with a reference value, tolerance band, statistics and an optional second round.',
         icon: 'estimate',
@@ -274,7 +274,7 @@ const en: Messages = {
         icon: 'bolt',
       },
       {
-        title: 'Accessibility to WCAG 2.2 AA',
+        title: 'Conforms to WCAG 2.2 Level AA',
         description:
           'Keyboard use, screen-reader status updates, individually adjustable response time and PDF/UA-1-validated results reports — so more learners can join live sessions independently.',
         icon: 'a11y',
@@ -282,11 +282,11 @@ const en: Messages = {
       {
         title: 'Privacy and control',
         description:
-          'Local-first, data stripping and self-hostable operation give you more control over content and live data.',
+          'Local-first design, optional data removal and self-hostable operation give you more control over content and live data.',
         icon: 'tools',
       },
       {
-        title: 'Open source with an ops path',
+        title: 'Open source with deployment and operations',
         description:
           'Docker, Postgres, Redis and admin audit make the platform robust for hosting, operations and auditability.',
         icon: 'server',
@@ -296,7 +296,7 @@ const en: Messages = {
   accessibility: {
     eyebrow: 'Accessibility',
     title: 'WCAG 2.2 AA — so more learners can take part independently',
-    lead: 'For schools, universities and continuing education, accessibility is often a decisive criterion. arsnova.eu meets the Web Content Accessibility Guidelines (WCAG) 2.2 at conformance level AA — with keyboard use, screen-reader support, individually adjustable response time and accessibly structured PDF results reports.',
+    lead: 'For schools, universities and continuing education, accessibility is often a decisive criterion. arsnova.eu meets the Web Content Accessibility Guidelines (WCAG) 2.2 at Level AA — with keyboard use, screen-reader support, individually adjustable response time and accessibly structured PDF results reports.',
     benefits: [
       {
         title: 'Keyboard operation',
@@ -374,12 +374,12 @@ const en: Messages = {
       {
         title: 'More interaction formats',
         description:
-          'Alongside quizzes: numerical estimates, reading phase, Peer Instruction, Pulse Check, Q&A wall and weighted word cloud in the same platform — not only slide polls.',
+          'Alongside quizzes: numeric estimation questions, reading phase, Peer Instruction, Pulse Check, Q&A wall and weighted word cloud in the same platform — not only slide polls.',
       },
       {
         title: 'More control over data and access',
         description:
-          'Open source, self-hostable and local-first by design — plus accessibility to WCAG 2.2 AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
+          'Open source, self-hostable and local-first by design — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
       },
     ],
     comparePrefix: 'You can still find the full feature comparison in the docs:',
@@ -416,7 +416,7 @@ const en: Messages = {
           'Yes. After the session ends, the results report (PDF) is the primary format — including confidence rating, debriefing priorities and full question text. In the quiz collection you will find debriefing and PDF for the last run. Tabular CSV data is available under “More” for Excel.',
       },
       {
-        question: 'What makes the numerical estimate special?',
+        question: 'What makes the numeric estimation question special?',
         answer:
           'It separates allowed inputs from the subject-matter tolerance band, shows no distribution during voting, and can evaluate a second round after discussion with statistics and round comparison.',
       },
@@ -438,27 +438,27 @@ const en: Messages = {
       {
         question: 'Is arsnova.eu accessible?',
         answer:
-          'arsnova.eu meets WCAG 2.2 AA. Core flows are keyboard-operable, screen readers announce status changes, response time on timed questions is individually adjustable (standard time, tenfold response time or no time limit), and the accessibly structured results report is PDF/UA-1-validated.',
+          'arsnova.eu conforms to WCAG 2.2 Level AA. Core flows are keyboard-operable, screen readers announce status changes, response time on timed questions is individually adjustable (standard time, tenfold response time or no time limit), and the accessibly structured results report is PDF/UA-1-validated.',
         linkLabel: 'Open the accessibility statement',
       },
     ],
   },
   ctaSection: {
     title: 'Ready for the next live session?',
-    lead: 'Try the live flow directly in the app, or take a look at the open code, the Q&A logic, the word-cloud pipeline and the operations path behind the platform.',
+    lead: 'Try the live flow directly in the app, or take a look at the open source code, the Q&A logic, the word-cloud processing pipeline and the deployment and operations behind the platform.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numerical estimates, moderated Q&A wall, word cloud and feedback — accessible to WCAG 2.2 AA, free, self-hostable and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, self-hostable and ready without an account.',
     featureList: [
       'Live quiz and voting',
       'Confidence rating on scored questions',
       'Results report (PDF) and debriefing after the session ends',
-      'Numerical estimates with two rounds and statistics',
+      'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Lobby, presenter, QR/code',
-      'Question types MC/SC/short answer/free text/survey/rating/estimate',
+      'Question types MC/SC/short answer/free text/survey/rating/numeric estimation',
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',
       'Q&A and free-text word cloud with phrases and weighting',
@@ -468,7 +468,7 @@ const en: Messages = {
       'Import/export and Yjs sync',
       'External AI import, Zod-validated',
       'UI in five languages',
-      'Accessibility to WCAG 2.2 AA',
+      'Conforms to WCAG 2.2 Level AA',
       'Docker self-host and admin audit',
       'Local-first and GDPR-oriented operation',
     ],

@@ -85,7 +85,7 @@ const de: Messages = {
     median: 'Median',
     inBand: 'im Band',
     round2: 'Runde 2',
-    round2Value: '14 näher',
+    round2Value: '14 Antworten näher am Referenzwert',
   },
   confidence: {
     eyebrow: 'Didaktische Auswertung',
@@ -105,12 +105,12 @@ const de: Messages = {
     demoQuestion: 'Welche Struktur ist am stabilsten?',
     badge: 'Selbsteinschätzung',
     matrix: [
-      { label: 'Richtig · niedrig', count: 3, tone: 'emerald' },
-      { label: 'Richtig · mitte', count: 8, tone: 'emerald' },
-      { label: 'Richtig · hoch', count: 11, tone: 'emerald' },
-      { label: 'Falsch · niedrig', count: 2, tone: 'slate' },
-      { label: 'Falsch · mitte', count: 4, tone: 'amber' },
-      { label: 'Falsch · hoch', count: 2, tone: 'rose' },
+      { label: 'Richtig · geringe Sicherheit', count: 3, tone: 'emerald' },
+      { label: 'Richtig · mittlere Sicherheit', count: 8, tone: 'emerald' },
+      { label: 'Richtig · hohe Sicherheit', count: 11, tone: 'emerald' },
+      { label: 'Falsch · geringe Sicherheit', count: 2, tone: 'slate' },
+      { label: 'Falsch · mittlere Sicherheit', count: 4, tone: 'amber' },
+      { label: 'Falsch · hohe Sicherheit', count: 2, tone: 'rose' },
     ],
     falseHighTitle: '2 selbstsicher falsche Antworten',
     falseHighText:
@@ -282,11 +282,11 @@ const de: Messages = {
       {
         title: 'Datenschutz und Kontrolle',
         description:
-          'Local-first, Data-Stripping und self-hostbarer Betrieb geben dir mehr Kontrolle über Inhalte und Live-Daten.',
+          'Local-first, optionale Datenbereinigung und self-hostbarer Betrieb geben dir mehr Kontrolle über Inhalte und Live-Daten.',
         icon: 'tools',
       },
       {
-        title: 'Open Source mit Betriebspfad',
+        title: 'Open Source mit Deployment und Betrieb',
         description:
           'Docker, Postgres, Redis und Admin-Audit machen die Plattform auch für Hosting, Betrieb und Nachvollziehbarkeit belastbar.',
         icon: 'server',
@@ -447,7 +447,7 @@ const de: Messages = {
   },
   ctaSection: {
     title: 'Bereit für die nächste Live-Session?',
-    lead: 'Teste den Live-Flow direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Word-Cloud-Pipeline und den Betriebspfad hinter der Plattform.',
+    lead: 'Teste den Live-Flow direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Word-Cloud-Verarbeitung und den Deployment- und Betriebspfad hinter der Plattform.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',

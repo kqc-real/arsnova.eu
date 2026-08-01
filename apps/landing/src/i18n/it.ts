@@ -2,9 +2,9 @@ import type { Messages } from './types';
 
 const it: Messages = {
   meta: {
-    homeTitle: 'arsnova.eu | Quiz live, stime numeriche e bacheca Q&A',
+    homeTitle: 'arsnova.eu | Quiz in diretta, domande di stima numerica e bacheca delle domande',
     homeDescription:
-      'Audience response open source per istruzione, formazione e organizzazioni: quiz live, autovalutazione, rapporto dei risultati (PDF), stime numeriche, bacheca Q&A moderabile, word cloud e feedback — accessibile WCAG 2.2 AA, gratuito, self-hostabile e pronto senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, word cloud e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, self-hostabile e pronta senza account.',
     siteNameInfo: 'arsnova.eu – Informazioni',
     ogLocale: 'it_IT',
   },
@@ -38,42 +38,42 @@ const it: Messages = {
     appOpen: 'Apri l’app',
     quizCreate: 'Crea un quiz',
     backToApp: 'Torna ad arsnova.eu',
-    tryLive: 'Provalo live ora',
+    tryLive: 'Provalo in diretta ora',
     howItWorks: 'Come funziona',
-    viewOpenSource: 'Vedi l’open source',
+    viewOpenSource: 'Consulta il codice sorgente',
   },
   hero: {
-    eyebrow: 'Audience response per istruzione e organizzazioni',
+    eyebrow: 'Risposta interattiva per istruzione e organizzazioni',
     titleLine1: 'Quiz, stime,',
     titleLine2: 'moderazione delle domande',
-    titleAccent1: 'live e gratis',
+    titleAccent1: 'in diretta e gratis',
     titleAccent2: ' senza account.',
-    lead: 'arsnova.eu unisce quiz live, stime numeriche, autovalutazione sulle domande valutate, bacheca Q&A, analisi word cloud e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e business. Open source, self-hostabile e pensato per un funzionamento orientato al GDPR.',
-    a11yLink: 'Accessibile secondo WCAG 2.2 AA',
+    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi word cloud e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e business. Open source, self-hostabile e pensato per un funzionamento orientato al GDPR.',
+    a11yLink: 'Conforme alle WCAG 2.2, livello AA',
     a11ySuffix: '— tastiera, screen reader e tempo di risposta regolabile individualmente.',
     cards: [
-      { title: 'Live subito', text: 'Condividi la sessione con codice o QR' },
-      { title: 'Q&A con bacheca', text: 'Moderazione, voti e word cloud tematica' },
+      { title: 'In diretta subito', text: 'Condividi la sessione con codice o QR' },
+      { title: 'Q&A con bacheca delle domande', text: 'Moderazione, voti e word cloud tematica' },
       {
-        title: 'Autovalutazione e follow-up',
+        title: 'Autovalutazione e analisi successiva',
         text: 'Individua i fraintendimenti, esporta il rapporto PDF',
       },
       { title: 'Open source e self-hostabile', text: 'Docker, Postgres, Redis e audit admin' },
     ],
   },
   estimate: {
-    eyebrow: 'Novità nel quiz live',
-    title: 'Stimare numeri, discutere e confrontare chiaramente il secondo round',
+    eyebrow: 'Novità nel quiz in diretta',
+    title: 'Stimare numeri, discutere e confrontare chiaramente il secondo turno',
     lead: 'La domanda di stima numerica è pensata per date, ordini di grandezza, misure e probabilità. Chi conduce imposta valore di riferimento, intervallo di input e tolleranza; i partecipanti inseriscono solo un numero.',
     summary: [
       'La fascia di plausibilità limita gli input ammessi.',
       'La fascia di tolleranza valuta le stime accettabili sul piano disciplinare.',
       'Prima della pubblicazione nessuno vede la distribuzione.',
-      'Round 1 e round 2 vengono confrontati dopo la discussione.',
+      'Turno 1 e turno 2 vengono confrontati dopo la discussione.',
     ],
-    docsLink: 'Apri la documentazione della stima',
-    demoAria: 'Esempio di risultati per una stima sulla Rivoluzione francese',
-    hostView: 'Vista host dopo la pubblicazione',
+    docsLink: 'Apri la documentazione della domanda di stima numerica',
+    demoAria: 'Esempio di risultati per una domanda di stima numerica sulla Rivoluzione francese',
+    hostView: 'Vista conduttore dopo la pubblicazione',
     demoQuestion: 'Quando iniziò la Rivoluzione francese?',
     reference: 'Riferimento 1789',
     toleranceBand: 'Fascia di tolleranza',
@@ -84,8 +84,8 @@ const it: Messages = {
       'Istogramma, linea di riferimento e fascia di tolleranza compaiono solo dopo la pubblicazione dei risultati. Prima resta visibile solo il progresso neutrale.',
     median: 'Mediana',
     inBand: 'nella fascia',
-    round2: 'Round 2',
-    round2Value: '14 più vicini',
+    round2: 'Turno 2',
+    round2Value: '14 risposte più vicine al valore di riferimento',
   },
   confidence: {
     eyebrow: 'Valutazione didattica',
@@ -94,23 +94,23 @@ const it: Messages = {
     summary: [
       'Non è un tipo di domanda a sé — opzionale sulle domande valutate.',
       'Scala 1–5 dopo la risposta, senza effetto sui punti.',
-      'Dopo la pubblicazione l’host vede correttezza × grado di sicurezza.',
+      'Dopo la pubblicazione chi conduce vede correttezza × grado di sicurezza.',
       '«Sbagliato e sicuro» segnala possibili fraintendimenti.',
       'Dopo la sessione: rapporto dei risultati (PDF) e discussione dei risultati.',
     ],
     docsConfidence: 'Doc autovalutazione',
     docsExport: 'Doc rapporto dei risultati (PDF)',
     demoAria: 'Esempio di valutazione con autovalutazione dopo la pubblicazione',
-    hostView: 'Vista host dopo la pubblicazione',
+    hostView: 'Vista conduttore dopo la pubblicazione',
     demoQuestion: 'Quale struttura è la più stabile?',
     badge: 'Autovalutazione',
     matrix: [
-      { label: 'Corretto · basso', count: 3, tone: 'emerald' },
-      { label: 'Corretto · medio', count: 8, tone: 'emerald' },
-      { label: 'Corretto · alto', count: 11, tone: 'emerald' },
-      { label: 'Sbagliato · basso', count: 2, tone: 'slate' },
-      { label: 'Sbagliato · medio', count: 4, tone: 'amber' },
-      { label: 'Sbagliato · alto', count: 2, tone: 'rose' },
+      { label: 'Corretta · sicurezza bassa', count: 3, tone: 'emerald' },
+      { label: 'Corretta · sicurezza media', count: 8, tone: 'emerald' },
+      { label: 'Corretta · sicurezza alta', count: 11, tone: 'emerald' },
+      { label: 'Errata · sicurezza bassa', count: 2, tone: 'slate' },
+      { label: 'Errata · sicurezza media', count: 4, tone: 'amber' },
+      { label: 'Errata · sicurezza alta', count: 2, tone: 'rose' },
     ],
     falseHighTitle: '2 risposte sbagliate con alta sicurezza',
     falseHighText:
@@ -118,17 +118,17 @@ const it: Messages = {
     consolidated: 'Solido',
     misconceptionRisk: 'Rischio di fraintendimento',
     fragile: 'Fragile',
-    afterSessionAria: 'Export a fine sessione',
+    afterSessionAria: 'Esportazione a fine sessione',
     afterSession: 'A fine sessione',
     debriefing: 'Discussione dei risultati',
     resultsPdf: 'Rapporto dei risultati (PDF)',
     exportNote:
-      'Report pronto per la stampa con stato di apprendimento, heatmap e testi delle domande — nella vista host e sulla scheda quiz. Il CSV per Excel resta disponibile sotto «Altro».',
+      'Report pronto per la stampa con stato di apprendimento, mappa di calore e testi delle domande — nella vista conduttore e sulla scheda quiz. Il CSV per Excel resta disponibile sotto «Altro».',
   },
   qaWall: {
-    eyebrow: 'Q&A live come superficie di moderazione',
+    eyebrow: 'Q&A in diretta come superficie di moderazione',
     title: 'Raccogliere domande, prioritizzarle e leggerle come mappa tematica',
-    lead: 'La bacheca delle domande non è una chat secondaria. È un canale live dedicato per docenti e relatori: moderare i contributi, rilevare le priorità collettive, rendere visibili i punti controversi e portare i temi chiave in sala tramite una word cloud Q&A pesata.',
+    lead: 'La bacheca delle domande non è una chat secondaria. È un canale in diretta dedicato per docenti e relatori: moderare i contributi, rilevare le priorità collettive, rendere visibili i punti controversi e portare i temi chiave in sala tramite una word cloud Q&A pesata.',
     signals: [
       {
         label: 'Pre-moderazione',
@@ -136,20 +136,20 @@ const it: Messages = {
       },
       {
         label: 'Voto collettivo',
-        text: 'Upvote e downvote mostrano priorità, attrito e bisogno di chiarimento.',
+        text: 'I voti a favore e contro mostrano priorità, attrito e bisogno di chiarimento.',
       },
       {
         label: 'Word cloud tematica',
         text: 'Parole e frasi sono pesate per supporto, accordo o controversia.',
       },
       {
-        label: 'Prospettiva bussola',
+        label: 'Prospettiva della bussola di moderazione',
         text: 'Prima arrivano i segnali deterministici; NLP Q&A e sintesi restano estensioni opzionali.',
       },
     ],
     docsLink: 'Apri scoring Q&A e controversia su GitHub',
-    demoAria: 'Esempio di bacheca Q&A con moderazione, voti e word cloud',
-    hostView: 'Vista host Q&A',
+    demoAria: 'Esempio di bacheca delle domande con moderazione, voti e word cloud',
+    hostView: 'Vista conduttore Q&A',
     demoTitle: 'Domande sull’evento',
     moderationActive: 'Pre-moderazione attiva',
     sortMostSupported: 'Più supportate',
@@ -174,7 +174,7 @@ const it: Messages = {
     ],
     wordCloud: 'Word cloud Q&A',
     wordCloudHint: 'Pesata per risonanza positiva e controversia.',
-    frozenLive: 'Congelata live',
+    frozenLive: 'Aggiornamenti in diretta in pausa',
     terms: [
       { label: 'Fascia di tolleranza', className: 'text-3xl text-brand-200' },
       { label: 'Discussione', className: 'text-2xl text-emerald-200' },
@@ -190,103 +190,103 @@ const it: Messages = {
   },
   workflow: {
     eyebrow: 'Per didattica, formazione e workshop',
-    title: 'Dall’idea alla sessione live in pochi minuti',
-    lead: 'Dalla domanda alla sessione in corso, il flusso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, trainer e moderatori.',
+    title: 'Dall’idea alla sessione in diretta in pochi minuti',
+    lead: 'Dalla domanda alla sessione in corso, il flusso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, formatori e moderatori.',
     stepLabel: 'Passo',
     steps: [
       {
         number: '01',
         title: 'Prepara un quiz',
         description:
-          'Crea domande direttamente o importa contenuti esistenti. Markdown, KaTeX, risposta breve e stime numeriche sono integrati.',
+          'Crea domande direttamente o importa contenuti esistenti. Markdown, KaTeX, risposta breve e domande di stima numerica sono integrati.',
       },
       {
         number: '02',
         title: 'Avvia una sessione',
         description:
-          'Parti senza account: apri una sessione, scegli uno stile, condividi codice o QR e usa la vista presenter se serve.',
+          'Parti senza account: apri una sessione, scegli uno stile, condividi codice o QR e usa la vista presentatore se serve.',
       },
       {
         number: '03',
-        title: 'Modera live',
+        title: 'Modera in diretta',
         description:
-          'I partecipanti votano, pongono domande e prioritizzano insieme. Host e presenter mostrano quiz, bacheca Q&A, word cloud, fase di lettura, countdown, secondo round e risultati in un unico flusso.',
+          'I partecipanti votano, pongono domande e prioritizzano insieme. Conduttore e presentatore mostrano quiz, bacheca delle domande, word cloud, fase di lettura, conto alla rovescia, secondo turno e risultati in un unico flusso.',
       },
       {
         number: '04',
-        title: 'Follow-up ed export',
+        title: 'Analisi successiva ed esportazione',
         description:
           'A fine sessione il rapporto dei risultati (PDF) è pronto — con stato di apprendimento, autovalutazione e testi completi delle domande. Nella raccolta quiz trovi discussione dei risultati e PDF dell’ultima esecuzione; CSV per Excel sotto «Altro».',
       },
     ],
   },
   features: {
-    eyebrow: 'Perché si sente diverso',
-    title: 'Pensato per l’interazione live, non solo per sondaggi su slide',
+    eyebrow: 'Cosa rende arsnova.eu diverso',
+    title: 'Pensato per l’interazione in diretta, non solo per sondaggi su slide',
     lead: 'arsnova.eu unisce avvio rapido, solidità didattica e una base tecnica trasparente. La piattaforma resta semplice nel quotidiano senza ridurre le possibilità.',
     items: [
       {
         title: 'Pronto in poco tempo',
         description:
-          'Gli host partono senza account. I partecipanti entrano nella sessione direttamente con un codice a 6 cifre o un QR.',
+          'Chi conduce parte senza account. I partecipanti entrano nella sessione direttamente con un codice a 6 cifre o un QR.',
         icon: 'single',
       },
       {
-        title: 'Autovalutazione nel quiz live',
+        title: 'Autovalutazione nel quiz in diretta',
         description:
           'I partecipanti indicano dopo la risposta quanto sono sicuri. Individui risposte sbagliate con alta sicurezza, prioritizzi la discussione dei risultati ed esporti lo stato di apprendimento nel rapporto dei risultati (PDF).',
         icon: 'confidence',
       },
       {
-        title: 'Rapporto dei risultati per il follow-up',
+        title: 'Rapporto dei risultati per l’analisi successiva',
         description:
           'A fine sessione esporti un report PDF pronto per la stampa con diagrammi, testi delle domande e autovalutazione. Il CSV per Excel resta opzionale sotto «Altro».',
         icon: 'export',
       },
       {
-        title: 'Stime didattiche',
+        title: 'Domande di stima numerica didattiche',
         description:
-          'Date, ordini di grandezza e misure si possono stimare con valore di riferimento, fascia di tolleranza, statistica e secondo round opzionale.',
+          'Date, ordini di grandezza e misure si possono stimare con valore di riferimento, fascia di tolleranza, statistica e secondo turno opzionale.',
         icon: 'estimate',
       },
       {
         title: 'Più di un quiz standard',
         description:
-          'MC/SC, risposta breve, rating, fase di lettura, Peer Instruction e flusso presenter supportano apprendimento, formazione e moderazione live.',
+          'MC/SC, risposta breve, rating, fase di lettura, Peer Instruction e flusso presentatore supportano apprendimento, formazione e moderazione in diretta.',
         icon: 'toggle',
       },
       {
-        title: 'Bacheca invece di una chat secondaria',
+        title: 'Bacheca delle domande invece di una chat secondaria',
         description:
-          'Il Q&A offre pre-moderazione, fissaggio, archiviazione, up/downvote e ordinamento per supporto, qualità e controversia.',
+          'Il Q&A offre pre-moderazione, fissaggio, archiviazione, voti a favore/contro e ordinamento per supporto, qualità e controversia.',
         icon: 'qa',
       },
       {
         title: 'Word cloud elaborata',
         description:
-          'Testo libero e Q&A vengono condensati in parole e frasi; la bacheca pesa per accordo, score robusto o controversia.',
+          'Testo libero e Q&A vengono condensati in parole e frasi; la bacheca pesa per accordo, punteggio robusto o controversia.',
         icon: 'cloud',
       },
       {
         title: 'Per contesti diversi',
         description:
-          'Preset, modalità team, modalità anonima, nickname e scelta dello stile aiutano dalla classe e dal seminario al workshop, evento e meeting.',
+          'Preset, modalità team, modalità anonima, nickname e scelta dello stile aiutano dalla classe e dal seminario al workshop, evento e riunione.',
         icon: 'bolt',
       },
       {
-        title: 'Accessibilità secondo WCAG 2.2 AA',
+        title: 'Conforme alle WCAG 2.2, livello AA',
         description:
-          'Uso da tastiera, annunci screen reader, tempo di risposta regolabile individualmente e rapporti PDF/UA-1 — così più persone possono partecipare in autonomia alle sessioni live.',
+          'Uso da tastiera, annunci screen reader, tempo di risposta regolabile individualmente e rapporti PDF/UA-1 — così più persone possono partecipare in autonomia alle sessioni in diretta.',
         icon: 'a11y',
       },
       {
         title: 'Privacy e controllo',
         description:
-          'Local-first, data-stripping e gestione self-hostabile ti danno più controllo su contenuti e dati live.',
+          'Approccio local-first, rimozione opzionale dei dati e gestione self-hostabile ti danno più controllo su contenuti e dati in diretta.',
         icon: 'tools',
       },
       {
-        title: 'Open source con percorso operativo',
+        title: 'Open source con percorso di deployment e gestione',
         description:
           'Docker, Postgres, Redis e audit admin rendono la piattaforma affidabile anche per hosting, esercizio e tracciabilità.',
         icon: 'server',
@@ -296,27 +296,27 @@ const it: Messages = {
   accessibility: {
     eyebrow: 'Accessibilità',
     title: 'WCAG 2.2 AA — così più persone possono partecipare in autonomia',
-    lead: 'Per scuole, università e formazione continua l’accessibilità è spesso un criterio decisivo. arsnova.eu soddisfa le Web Content Accessibility Guidelines (WCAG) 2.2 al livello AA — con uso da tastiera, supporto screen reader, tempo di risposta regolabile individualmente e rapporti PDF strutturati in modo accessibile.',
+    lead: 'Per scuole, università e formazione continua l’accessibilità è spesso un criterio decisivo. arsnova.eu è conforme alle Web Content Accessibility Guidelines (WCAG) 2.2, livello AA — con uso da tastiera, supporto screen reader, tempo di risposta regolabile individualmente e rapporti PDF strutturati in modo accessibile.',
     benefits: [
       {
         title: 'Uso da tastiera',
         description:
-          'Tu e i tuoi partecipanti usate i flussi centrali senza mouse. Indicatori di focus visibili e un link salta-contenuto facilitano la navigazione.',
+          'Tu e i tuoi partecipanti usate i flussi centrali senza mouse. Indicatori di focus visibili e un link per saltare al contenuto facilitano la navigazione.',
       },
       {
-        title: 'Supporto screen reader in live',
+        title: 'Supporto screen reader in diretta',
         description:
           'I cambiamenti di stato all’ingresso in sessione, durante le votazioni e ai cambi di fase vengono annunciati agli screen reader, così si può seguire il flusso.',
       },
       {
         title: 'Tempo di risposta regolabile individualmente',
         description:
-          'Per le domande a tempo scegli tempo standard, tempo decuplicato o partecipazione senza limite. Così un’agevolazione si applica direttamente nella sessione live.',
+          'Per le domande a tempo scegli tempo standard, tempo decuplicato o partecipazione senza limite. Così un’agevolazione si applica direttamente nella sessione in diretta.',
       },
       {
         title: 'Rapporto dei risultati strutturato in modo accessibile',
         description:
-          'Il report pronto per la stampa è validato PDF/UA-1 e include titolo, lingua e tag — per il follow-up e la condivisione accessibile.',
+          'Il report pronto per la stampa è validato PDF/UA-1 e include titolo, lingua e tag — per l’analisi successiva e la condivisione accessibile.',
       },
     ],
     statementLink: 'Apri la dichiarazione di accessibilità',
@@ -366,22 +366,22 @@ const it: Messages = {
   comparison: {
     eyebrow: 'Differenziazione',
     title: 'Non solo un sostituto di Mentimeter o Kahoot',
-    lead: 'Al centro non c’è solo il voto, ma l’intero flusso live: preparare, moderare, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
+    lead: 'Al centro non c’è solo il voto, ma l’intero flusso in diretta: preparare, moderare, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
     points: [
       {
         title: 'Meno barriere d’ingresso',
         description:
-          'Nessuna logica di prodotto separata per «creare» e «entrare». Gli host partono senza account, i partecipanti entrano con codice o QR.',
+          'Nessuna logica di prodotto separata per «creare» e «entrare». Chi conduce parte senza account, i partecipanti entrano con codice o QR.',
       },
       {
         title: 'Più formati di interazione',
         description:
-          'Oltre al quiz: stime numeriche, fase di lettura, Peer Instruction, sondaggio rapido, bacheca Q&A e word cloud pesata nella stessa piattaforma — non solo sondaggi su slide.',
+          'Oltre al quiz: domande di stima numerica, fase di lettura, Peer Instruction, sondaggio rapido, bacheca delle domande e word cloud pesata nella stessa piattaforma — non solo sondaggi su slide.',
       },
       {
         title: 'Più controllo su dati e accesso',
         description:
-          'Open source, self-hostabile e local-first — più accessibilità WCAG 2.2 AA. Rilevante per scuole, università e organizzazioni con requisiti di privacy e inclusione.',
+          'Open source, self-hostabile e local-first — più conformità alle WCAG 2.2, livello AA. Rilevante per scuole, università e organizzazioni con requisiti di privacy e inclusione.',
       },
     ],
     comparePrefix: 'Il confronto completo delle funzioni resta nella documentazione:',
@@ -393,14 +393,14 @@ const it: Messages = {
     answerLabel: 'Risposta',
     items: [
       {
-        question: 'Host o partecipanti hanno bisogno di un account?',
+        question: 'Chi conduce o i partecipanti hanno bisogno di un account?',
         answer:
           'No. Una sessione può partire senza account. I partecipanti entrano con codice o QR.',
       },
       {
         question: 'Dove sono i dati?',
         answer:
-          'I contenuti del quiz sono pensati local-first. Per le sessioni live vengono elaborati solo i dati di sessione tecnicamente necessari; con self-hosting la gestione resta nella tua infrastruttura.',
+          'I contenuti del quiz sono pensati local-first. Per le sessioni in diretta vengono elaborati solo i dati di sessione tecnicamente necessari; con self-hosting la gestione resta nella tua infrastruttura.',
       },
       {
         question: 'Posso fare self-hosting di arsnova.eu?',
@@ -410,7 +410,7 @@ const it: Messages = {
       {
         question: 'Cos’è l’autovalutazione nel quiz?',
         answer:
-          'Una domanda aggiuntiva opzionale dopo le domande valutate: i partecipanti indicano su una scala da 1 a 5 quanto sono sicuri della risposta. I punti restano invariati; nella valutazione host vedi correttezza × grado di sicurezza e segni le risposte sbagliate con alta sicurezza come segnale di fraintendimento. A fine sessione lo stato di apprendimento confluisce nella discussione dei risultati e nel rapporto dei risultati (PDF).',
+          'Una domanda aggiuntiva opzionale dopo le domande valutate: i partecipanti indicano su una scala da 1 a 5 quanto sono sicuri della risposta. I punti restano invariati; nella valutazione di chi conduce vedi correttezza × grado di sicurezza e segni le risposte sbagliate con alta sicurezza come segnale di fraintendimento. A fine sessione lo stato di apprendimento confluisce nella discussione dei risultati e nel rapporto dei risultati (PDF).',
       },
       {
         question: 'Posso esportare i risultati della sessione?',
@@ -418,14 +418,14 @@ const it: Messages = {
           'Sì. A fine sessione il rapporto dei risultati (PDF) è il formato principale — con autovalutazione, priorità per la discussione dei risultati e testi completi delle domande. Nella raccolta quiz trovi discussione dei risultati e PDF dell’ultima esecuzione. I dati CSV tabellari sono disponibili sotto «Altro» per Excel.',
       },
       {
-        question: 'Cosa ha di speciale la stima numerica?',
+        question: 'Cosa ha di speciale la domanda di stima numerica?',
         answer:
-          'Separa gli input ammessi dalla fascia di tolleranza disciplinare, non mostra la distribuzione durante il voto e può valutare un secondo round dopo la discussione con statistica e confronto dei round.',
+          'Separa gli input ammessi dalla fascia di tolleranza disciplinare, non mostra la distribuzione durante il voto e può valutare un secondo turno dopo la discussione con statistica e confronto dei turni.',
       },
       {
-        question: 'Cosa può fare la bacheca Q&A?',
+        question: 'Cosa può fare la bacheca delle domande?',
         answer:
-          'I partecipanti inviano domande e le pesano con upvote e downvote. Gli host possono pre-moderare, fissare, archiviare o rimuovere domande e ordinare l’elenco per supporto, accordo robusto o controversia.',
+          'I partecipanti inviano domande e le pesano con voti a favore e contro. Chi conduce può pre-moderare, fissare, archiviare o rimuovere domande e ordinare l’elenco per supporto, accordo robusto o controversia.',
       },
       {
         question: 'Cosa rende diversa la word cloud Q&A?',
@@ -435,42 +435,42 @@ const it: Messages = {
       {
         question: 'Per chi è pensata la piattaforma?',
         answer:
-          'Per l’interazione live in istruzione e organizzazioni: scuola, università, formazione continua, training, workshop, evento o meeting.',
+          'Per l’interazione in diretta in istruzione e organizzazioni: scuola, università, formazione continua, training, workshop, evento o riunione.',
       },
       {
         question: 'arsnova.eu è accessibile?',
         answer:
-          'arsnova.eu soddisfa WCAG 2.2 AA. I flussi centrali sono usabili da tastiera, gli screen reader annunciano i cambiamenti di stato, il tempo di risposta delle domande a tempo è regolabile individualmente (tempo standard, tempo decuplicato o senza limite), e il rapporto dei risultati strutturato in modo accessibile è validato PDF/UA-1.',
+          'arsnova.eu è conforme alle WCAG 2.2, livello AA. I flussi centrali sono usabili da tastiera, gli screen reader annunciano i cambiamenti di stato, il tempo di risposta delle domande a tempo è regolabile individualmente (tempo standard, tempo decuplicato o senza limite), e il rapporto dei risultati strutturato in modo accessibile è validato PDF/UA-1.',
         linkLabel: 'Apri la dichiarazione di accessibilità',
       },
     ],
   },
   ctaSection: {
-    title: 'Pronto per la prossima sessione live?',
-    lead: 'Prova il flusso live direttamente nell’app, oppure dai un’occhiata al codice aperto, alla logica Q&A, alla pipeline della word cloud e al percorso operativo dietro la piattaforma.',
+    title: 'Pronto per la prossima sessione in diretta?',
+    lead: 'Prova il flusso in diretta direttamente nell’app, oppure dai un’occhiata al codice sorgente aperto, alla logica Q&A, all’elaborazione della word cloud e al percorso di deployment e gestione dietro la piattaforma.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informazioni',
     webAppDescription:
-      'Audience response open source per istruzione, formazione e organizzazioni: quiz live, autovalutazione, rapporto dei risultati (PDF), stime numeriche, bacheca Q&A moderabile, word cloud e feedback — accessibile WCAG 2.2 AA, gratuito, self-hostabile e pronto senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, word cloud e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, self-hostabile e pronta senza account.',
     featureList: [
-      'Quiz live e votazioni',
+      'Quiz in diretta e votazioni',
       'Autovalutazione sulle domande valutate',
       'Rapporto dei risultati (PDF) e discussione dei risultati a fine sessione',
-      'Stime numeriche con due round e statistica',
-      'Bacheca Q&A con moderazione, upvote e downvote',
-      'Lobby, presenter, QR/codice',
-      'Tipi di domanda MC/SC/risposta breve/testo libero/sondaggio/rating/stima',
+      'Domande di stima numerica con due turni e statistica',
+      'Bacheca delle domande con moderazione, voti a favore e contro',
+      'Lobby, presentatore, QR/codice',
+      'Tipi di domanda MC/SC/risposta breve/testo libero/sondaggio/rating/stima numerica',
       'Markdown e KaTeX',
       'Fase di lettura e Peer Instruction',
       'Word cloud Q&A e testo libero con frasi e pesatura',
       'Ordinamento per supporto, accordo robusto e controversia',
       'Modalità team e preset',
-      'Classifica, streak, codice bonus',
+      'Classifica, serie, codice bonus',
       'Import/export e sync Yjs',
       'Import IA esterno, validato Zod',
       'Interfaccia in cinque lingue',
-      'Accessibilità secondo WCAG 2.2 AA',
+      'Conforme alle WCAG 2.2, livello AA',
       'Self-host Docker e audit admin',
       'Local-first e funzionamento orientato al GDPR',
     ],

@@ -153,6 +153,112 @@ function checkLegalPagesOmitHomeHreflang() {
   }
 }
 
+/** Exact demo / WCAG phrases required by the Issue #192 re-review. */
+const localeContentSmoke = {
+  de: {
+    matrix: [
+      'Richtig · geringe Sicherheit',
+      'Richtig · mittlere Sicherheit',
+      'Richtig · hohe Sicherheit',
+      'Falsch · geringe Sicherheit',
+      'Falsch · mittlere Sicherheit',
+      'Falsch · hohe Sicherheit',
+    ],
+    round2: '14 Antworten näher am Referenzwert',
+  },
+  en: {
+    matrix: [
+      'Correct · low confidence',
+      'Correct · medium confidence',
+      'Correct · high confidence',
+      'Incorrect · low confidence',
+      'Incorrect · medium confidence',
+      'Incorrect · high confidence',
+    ],
+    round2: '14 answers closer to the reference',
+    wcag: 'Conforms to WCAG 2.2 Level AA',
+    term: 'numeric estimation question',
+  },
+  fr: {
+    matrix: [
+      'Réponse correcte · confiance faible',
+      'Réponse correcte · confiance moyenne',
+      'Réponse correcte · confiance élevée',
+      'Réponse incorrecte · confiance faible',
+      'Réponse incorrecte · confiance moyenne',
+      'Réponse incorrecte · confiance élevée',
+    ],
+    round2: '14 réponses plus proches de la référence',
+    wcag: 'Conforme aux WCAG 2.2, niveau AA',
+    term: 'sondage express',
+    banned: ['Feedback express'],
+  },
+  it: {
+    matrix: [
+      'Corretta · sicurezza bassa',
+      'Corretta · sicurezza media',
+      'Corretta · sicurezza alta',
+      'Errata · sicurezza bassa',
+      'Errata · sicurezza media',
+      'Errata · sicurezza alta',
+    ],
+    round2: '14 risposte più vicine al valore di riferimento',
+    wcag: 'Conforme alle WCAG 2.2, livello AA',
+    term: 'domanda di stima numerica',
+  },
+  es: {
+    matrix: [
+      'Correcta · confianza baja',
+      'Correcta · confianza media',
+      'Correcta · confianza alta',
+      'Incorrecta · confianza baja',
+      'Incorrecta · confianza media',
+      'Incorrecta · confianza alta',
+    ],
+    round2: '14 respuestas más próximas al valor de referencia',
+    wcag: 'Cumple las WCAG 2.2, nivel AA',
+    term: 'pregunta de estimación numérica',
+  },
+};
+
+function checkLocaleContentSmoke() {
+  for (const locale of locales) {
+    const html = readFileSync(join(dist, locale, 'index.html'), 'utf8');
+    const smoke = localeContentSmoke[locale];
+    for (const label of smoke.matrix) {
+      if (!html.includes(label)) fail(`/${locale}/ missing matrix label ${JSON.stringify(label)}`);
+    }
+    if (!html.includes(smoke.round2)) {
+      fail(`/${locale}/ missing round-2 phrase ${JSON.stringify(smoke.round2)}`);
+    }
+    if (smoke.wcag && !html.includes(smoke.wcag)) {
+      fail(`/${locale}/ missing WCAG phrase ${JSON.stringify(smoke.wcag)}`);
+    }
+    if (smoke.term && !html.includes(smoke.term)) {
+      fail(`/${locale}/ missing terminology ${JSON.stringify(smoke.term)}`);
+    }
+    for (const banned of smoke.banned || []) {
+      if (html.includes(banned)) fail(`/${locale}/ contains banned phrase ${JSON.stringify(banned)}`);
+    }
+  }
+}
+
+function checkLanguageSwitcherMarkup() {
+  const html = readFileSync(join(dist, 'de', 'index.html'), 'utf8');
+  if (html.includes('aria-haspopup')) {
+    fail('/de/ language switcher must not use aria-haspopup for disclosure links');
+  }
+  if (!html.includes('data-language-switcher') || !html.includes('data-lang-menu')) {
+    fail('/de/ missing language switcher disclosure markup');
+  }
+  if (!html.includes('syncLocaleHrefs') || !html.includes("addEventListener('hashchange'")) {
+    fail('/de/ must sync locale href hashes on load and hashchange');
+  }
+  if (!html.includes('id="lang-desktop-button"') || !html.includes('id="lang-mobile-button"')) {
+    fail('/de/ missing desktop and mobile language switcher instances');
+  }
+}
+
 ensureBuild();
 if (!errors.length) assertDictionaries();
 if (!errors.length) {
@@ -161,6 +267,8 @@ if (!errors.length) {
   checkSitemap();
   checkRootRedirectPreservesHash();
   checkLegalPagesOmitHomeHreflang();
+  checkLocaleContentSmoke();
+  checkLanguageSwitcherMarkup();
 }
 
 if (errors.length) {

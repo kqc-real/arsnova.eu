@@ -2,9 +2,9 @@ import type { Messages } from './types';
 
 const fr: Messages = {
   meta: {
-    homeTitle: 'arsnova.eu | Quiz en direct, estimations numériques et mur Q&A',
+    homeTitle: 'arsnova.eu | Quiz en direct, questions d’estimation numérique et mur de questions',
     homeDescription:
-      'Audience response open source pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), estimations numériques, mur Q&A modérable, nuage de mots et feedback — accessible WCAG 2.2 AA, gratuit, auto-hébergeable et prêt sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, auto-hébergeable et prête sans compte.',
     siteNameInfo: 'arsnova.eu – Informations',
     ogLocale: 'fr_FR',
   },
@@ -40,16 +40,16 @@ const fr: Messages = {
     backToApp: 'Retour à arsnova.eu',
     tryLive: 'Essayer en direct',
     howItWorks: 'Comment ça marche',
-    viewOpenSource: 'Voir le code open source',
+    viewOpenSource: 'Voir le code source',
   },
   hero: {
-    eyebrow: 'Audience response pour l’éducation et les organisations',
+    eyebrow: 'Réponse interactive pour l’éducation et les organisations',
     titleLine1: 'Quizzer, estimer,',
     titleLine2: 'modérer les questions',
     titleAccent1: 'en direct et gratuitement',
     titleAccent2: ' sans compte.',
-    lead: 'arsnova.eu réunit quiz en direct, estimations numériques, autoévaluation sur les questions notées, mur Q&A, analyse en nuage de mots et Feedback express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. Open source, auto-hébergeable et conçu pour un fonctionnement orienté RGPD.',
-    a11yLink: 'Accessible selon WCAG 2.2 AA',
+    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. Open source, auto-hébergeable et conçu pour un fonctionnement orienté RGPD.',
+    a11yLink: 'Conforme aux WCAG 2.2, niveau AA',
     a11ySuffix: '— clavier, lecteur d’écran et temps de réponse ajustable individuellement.',
     cards: [
       { title: 'En direct immédiatement', text: 'Partager une session par code ou QR' },
@@ -71,8 +71,9 @@ const fr: Messages = {
       'Personne ne voit la distribution avant la publication des résultats.',
       'Le tour 1 et le tour 2 sont comparés après la discussion.',
     ],
-    docsLink: 'Ouvrir la documentation de l’estimation',
-    demoAria: 'Exemple de résultats pour une estimation sur la Révolution française',
+    docsLink: 'Ouvrir la documentation de la question d’estimation numérique',
+    demoAria:
+      'Exemple de résultats pour une question d’estimation numérique sur la Révolution française',
     hostView: 'Vue hôte après publication',
     demoQuestion: 'Quand a commencé la Révolution française ?',
     reference: 'Référence 1789',
@@ -85,17 +86,17 @@ const fr: Messages = {
     median: 'Médiane',
     inBand: 'dans la bande',
     round2: 'Tour 2',
-    round2Value: '14 plus proches',
+    round2Value: '14 réponses plus proches de la référence',
   },
   confidence: {
     eyebrow: 'Évaluation didactique',
     title: 'Juste ou faux — et avec quel degré de confiance ?',
-    lead: 'Avec l’autoévaluation, les participants indiquent après leur réponse à quel point ils sont sûrs (1–5). Tu vois non seulement le taux de réussite, mais aussi les réponses fausses et sûres d’elles — un levier fort pour l’évaluation formative, le plan de débriefing et le rapport de résultats (PDF) en fin de session.',
+    lead: 'Avec l’autoévaluation, les participants indiquent après leur réponse à quel point ils sont sûrs (1–5). Tu vois non seulement le taux de réussite, mais aussi les réponses erronées associées à un degré de confiance élevé — un levier fort pour l’évaluation formative, le plan de débriefing et le rapport de résultats (PDF) en fin de session.',
     summary: [
       'Pas un type de question à part — optionnel sur les questions notées.',
       'Échelle 1–5 après la réponse, sans effet sur les points.',
       'Après publication, l’hôte voit exactitude × degré de confiance.',
-      '« Faux et sûr » signale d’éventuelles idées fausses.',
+      '« Erroné et sûr » signale d’éventuelles idées fausses.',
       'Après la session : rapport de résultats (PDF) et débriefing.',
     ],
     docsConfidence: 'Doc autoévaluation',
@@ -105,14 +106,14 @@ const fr: Messages = {
     demoQuestion: 'Quelle structure est la plus stable ?',
     badge: 'Autoévaluation',
     matrix: [
-      { label: 'Juste · bas', count: 3, tone: 'emerald' },
-      { label: 'Juste · moyen', count: 8, tone: 'emerald' },
-      { label: 'Juste · élevé', count: 11, tone: 'emerald' },
-      { label: 'Faux · bas', count: 2, tone: 'slate' },
-      { label: 'Faux · moyen', count: 4, tone: 'amber' },
-      { label: 'Faux · élevé', count: 2, tone: 'rose' },
+      { label: 'Réponse correcte · confiance faible', count: 3, tone: 'emerald' },
+      { label: 'Réponse correcte · confiance moyenne', count: 8, tone: 'emerald' },
+      { label: 'Réponse correcte · confiance élevée', count: 11, tone: 'emerald' },
+      { label: 'Réponse incorrecte · confiance faible', count: 2, tone: 'slate' },
+      { label: 'Réponse incorrecte · confiance moyenne', count: 4, tone: 'amber' },
+      { label: 'Réponse incorrecte · confiance élevée', count: 2, tone: 'rose' },
     ],
-    falseHighTitle: '2 réponses fausses et sûres d’elles',
+    falseHighTitle: '2 réponses erronées associées à un degré de confiance élevé',
     falseHighText:
       'L’option B a été choisie 2× avec un degré de confiance élevé — un signal d’éventuelles idées fausses pour le débriefing.',
     consolidated: 'Solide',
@@ -123,12 +124,12 @@ const fr: Messages = {
     debriefing: 'Débriefing',
     resultsPdf: 'Rapport de résultats (PDF)',
     exportNote:
-      'Rapport prêt à imprimer avec état d’apprentissage, heatmap et textes des questions — dans la vue hôte et sur la carte quiz. Le CSV pour Excel reste disponible sous « Plus ».',
+      'Rapport prêt à imprimer avec état d’apprentissage, carte de chaleur et textes des questions — dans la vue hôte et sur la carte quiz. Le CSV pour Excel reste disponible sous « Plus ».',
   },
   qaWall: {
     eyebrow: 'Q&A en direct comme espace de modération',
     title: 'Recueillir les questions, les prioriser et les lire comme carte thématique',
-    lead: 'Le mur de questions n’est pas un chat secondaire. C’est un canal live dédié pour les enseignant·es et intervenant·es : modérer les contributions, repérer les priorités collectives, rendre visibles les points controversés et ramener les thèmes clés dans la salle via un nuage de mots Q&A pondéré.',
+    lead: 'Le mur de questions n’est pas un chat secondaire. C’est un canal en direct dédié pour les enseignant·es et intervenant·es : modérer les contributions, repérer les priorités collectives, rendre visibles les points controversés et ramener les thèmes clés dans la salle via un nuage de mots Q&A pondéré.',
     signals: [
       {
         label: 'Pré-modération',
@@ -143,12 +144,12 @@ const fr: Messages = {
         text: 'Mots et phrases sont pondérés selon le soutien, l’accord ou la controverse.',
       },
       {
-        label: 'Perspective boussole',
+        label: 'Aperçu de la boussole',
         text: 'Les signaux déterministes viennent d’abord ; NLP Q&A et synthèse restent des extensions optionnelles.',
       },
     ],
     docsLink: 'Ouvrir le scoring Q&A et la controverse sur GitHub',
-    demoAria: 'Exemple de mur Q&A avec modération, votes et nuage de mots',
+    demoAria: 'Exemple de mur de questions avec modération, votes et nuage de mots',
     hostView: 'Vue hôte Q&A',
     demoTitle: 'Questions sur l’événement',
     moderationActive: 'Pré-modération active',
@@ -174,7 +175,7 @@ const fr: Messages = {
     ],
     wordCloud: 'Nuage de mots Q&A',
     wordCloudHint: 'Pondéré selon la résonance positive et la controverse.',
-    frozenLive: 'Figé en direct',
+    frozenLive: 'Mise à jour en direct en pause',
     terms: [
       { label: 'Bande de tolérance', className: 'text-3xl text-brand-200' },
       { label: 'Discussion', className: 'text-2xl text-emerald-200' },
@@ -198,7 +199,7 @@ const fr: Messages = {
         number: '01',
         title: 'Préparer un quiz',
         description:
-          'Créer des questions directement ou importer des contenus existants. Markdown, KaTeX, réponse courte et estimations numériques sont intégrés.',
+          'Créer des questions directement ou importer des contenus existants. Markdown, KaTeX, réponse courte et questions d’estimation numérique sont intégrés.',
       },
       {
         number: '02',
@@ -210,7 +211,7 @@ const fr: Messages = {
         number: '03',
         title: 'Animer en direct',
         description:
-          'Les participants votent, posent des questions et priorisent ensemble. Hôte et présentateur affichent quiz, mur Q&A, nuage de mots, phase de lecture, compte à rebours, second tour et résultats dans un seul flux.',
+          'Les participants votent, posent des questions et priorisent ensemble. Hôte et présentateur affichent quiz, mur de questions, nuage de mots, phase de lecture, compte à rebours, second tour et résultats dans un seul flux.',
       },
       {
         number: '04',
@@ -221,7 +222,7 @@ const fr: Messages = {
     ],
   },
   features: {
-    eyebrow: 'Pourquoi ça se sent différent',
+    eyebrow: 'Ce qui fait la différence',
     title: 'Conçu pour l’interaction en direct, pas seulement pour des sondages sur diapos',
     lead: 'arsnova.eu combine démarrage rapide, force didactique et socle technique transparent. La plateforme reste simple au quotidien sans restreindre les possibilités.',
     items: [
@@ -234,7 +235,7 @@ const fr: Messages = {
       {
         title: 'Autoévaluation dans le quiz en direct',
         description:
-          'Les participants indiquent après la réponse à quel point ils sont sûrs. Tu repères les réponses fausses et sûres d’elles, priorises le débriefing et exportes l’état d’apprentissage dans le rapport de résultats (PDF).',
+          'Les participants indiquent après la réponse à quel point ils sont sûrs. Tu repères les réponses erronées associées à un degré de confiance élevé, priorises le débriefing et exportes l’état d’apprentissage dans le rapport de résultats (PDF).',
         icon: 'confidence',
       },
       {
@@ -244,7 +245,7 @@ const fr: Messages = {
         icon: 'export',
       },
       {
-        title: 'Estimations didactiques',
+        title: 'Questions d’estimation numérique didactiques',
         description:
           'Dates, ordres de grandeur et mesures peuvent être estimés avec valeur de référence, bande de tolérance, statistiques et second tour optionnel.',
         icon: 'estimate',
@@ -274,7 +275,7 @@ const fr: Messages = {
         icon: 'bolt',
       },
       {
-        title: 'Accessibilité selon WCAG 2.2 AA',
+        title: 'Conforme aux WCAG 2.2, niveau AA',
         description:
           'Navigation clavier, annonces lecteur d’écran, temps de réponse ajustable individuellement et rapports PDF/UA-1 — pour que davantage d’apprenant·es participent en autonomie aux sessions en direct.',
         icon: 'a11y',
@@ -282,11 +283,11 @@ const fr: Messages = {
       {
         title: 'Confidentialité et contrôle',
         description:
-          'Local-first, data-stripping et exploitation auto-hébergeable te donnent plus de contrôle sur les contenus et les données live.',
+          'Approche local-first, suppression optionnelle des données et exploitation auto-hébergeable te donnent plus de contrôle sur les contenus et les données en direct.',
         icon: 'tools',
       },
       {
-        title: 'Open source avec chemin d’exploitation',
+        title: 'Open source avec déploiement et exploitation',
         description:
           'Docker, Postgres, Redis et audit admin rendent la plateforme fiable aussi pour l’hébergement, l’exploitation et la traçabilité.',
         icon: 'server',
@@ -296,7 +297,7 @@ const fr: Messages = {
   accessibility: {
     eyebrow: 'Accessibilité',
     title: 'WCAG 2.2 AA — pour que davantage d’apprenant·es participent en autonomie',
-    lead: 'Pour les écoles, universités et la formation continue, l’accessibilité est souvent un critère décisif. arsnova.eu respecte les Web Content Accessibility Guidelines (WCAG) 2.2 au niveau AA — avec navigation clavier, support lecteur d’écran, temps de réponse ajustable individuellement et rapports PDF structurés de façon accessible.',
+    lead: 'Pour les écoles, universités et la formation continue, l’accessibilité est souvent un critère décisif. arsnova.eu est conforme aux Web Content Accessibility Guidelines (WCAG) 2.2, niveau AA — avec navigation clavier, support lecteur d’écran, temps de réponse ajustable individuellement et rapports PDF structurés de façon accessible.',
     benefits: [
       {
         title: 'Utilisation au clavier',
@@ -370,7 +371,7 @@ const fr: Messages = {
   comparison: {
     eyebrow: 'Positionnement',
     title: 'Pas seulement un substitut à Mentimeter ou Kahoot',
-    lead: 'Le centre n’est pas seulement le vote, mais le flux live complet : préparer, animer, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
+    lead: 'Le centre n’est pas seulement le vote, mais le flux en direct complet : préparer, animer, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
     points: [
       {
         title: 'Moins de freins à l’entrée',
@@ -380,12 +381,12 @@ const fr: Messages = {
       {
         title: 'Plus de formats d’interaction',
         description:
-          'Outre le quiz : estimations numériques, phase de lecture, Peer Instruction, Feedback express, mur Q&A et nuage de mots pondéré dans la même plateforme — pas seulement des sondages sur diapos.',
+          'Outre le quiz : questions d’estimation numérique, phase de lecture, Peer Instruction, sondage express, mur de questions et nuage de mots pondéré dans la même plateforme — pas seulement des sondages sur diapos.',
       },
       {
         title: 'Plus de contrôle sur les données et l’accès',
         description:
-          'Open source, auto-hébergeable et conçu local-first — plus l’accessibilité WCAG 2.2 AA. Pertinent pour les écoles, universités et organisations avec des exigences de confidentialité et d’inclusion.',
+          'Open source, auto-hébergeable et conçu local-first — plus la conformité aux WCAG 2.2, niveau AA. Pertinent pour les écoles, universités et organisations avec des exigences de confidentialité et d’inclusion.',
       },
     ],
     comparePrefix: 'Tu trouveras toujours la comparaison complète des fonctions dans la doc :',
@@ -414,7 +415,7 @@ const fr: Messages = {
       {
         question: 'Qu’est-ce que l’autoévaluation dans le quiz ?',
         answer:
-          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; dans l’évaluation hôte, tu vois exactitude × degré de confiance et marques les réponses fausses et sûres d’elles comme signal d’idée fausse. Après la session, l’état d’apprentissage alimente le débriefing et le rapport de résultats (PDF).',
+          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; dans l’évaluation hôte, tu vois exactitude × degré de confiance et marques les réponses erronées associées à un degré de confiance élevé comme signal d’idée fausse. Après la session, l’état d’apprentissage alimente le débriefing et le rapport de résultats (PDF).',
       },
       {
         question: 'Puis-je exporter les résultats de session ?',
@@ -422,12 +423,12 @@ const fr: Messages = {
           'Oui. Après la fin de session, le rapport de résultats (PDF) est le format principal — y compris autoévaluation, priorités de débriefing et textes complets des questions. Dans la collection de quiz, tu trouves débriefing et PDF du dernier passage. Les données CSV tabulaires sont disponibles sous « Plus » pour Excel.',
       },
       {
-        question: 'Qu’a de particulier l’estimation numérique ?',
+        question: 'Qu’a de particulier la question d’estimation numérique ?',
         answer:
           'Elle sépare les saisies autorisées de la bande de tolérance sur le fond, n’affiche aucune distribution pendant le vote et peut évaluer un second tour après discussion avec statistiques et comparaison des tours.',
       },
       {
-        question: 'Que peut faire le mur Q&A ?',
+        question: 'Que peut faire le mur de questions ?',
         answer:
           'Les participants soumettent des questions et les pondèrent avec des votes pour et contre. Les hôtes peuvent pré-modérer, épingler, archiver ou retirer des questions et trier la liste par soutien, accord robuste ou controverse.',
       },
@@ -444,27 +445,27 @@ const fr: Messages = {
       {
         question: 'arsnova.eu est-il accessible ?',
         answer:
-          'arsnova.eu respecte WCAG 2.2 AA. Les parcours centraux sont utilisables au clavier, les lecteurs d’écran annoncent les changements d’état, le temps de réponse des questions chronométrées est ajustable individuellement (temps standard, temps décuplé ou sans limite), et le rapport de résultats structuré de façon accessible est validé PDF/UA-1.',
+          'arsnova.eu est conforme aux WCAG 2.2, niveau AA. Les parcours centraux sont utilisables au clavier, les lecteurs d’écran annoncent les changements d’état, le temps de réponse des questions chronométrées est ajustable individuellement (temps standard, temps décuplé ou sans limite), et le rapport de résultats structuré de façon accessible est validé PDF/UA-1.',
         linkLabel: 'Ouvrir la déclaration d’accessibilité',
       },
     ],
   },
   ctaSection: {
     title: 'Prêt·e pour la prochaine session en direct ?',
-    lead: 'Teste le flux live directement dans l’application, ou jette un œil au code ouvert, à la logique Q&A, au pipeline du nuage de mots et au chemin d’exploitation derrière la plateforme.',
+    lead: 'Teste le flux en direct directement dans l’application, ou jette un œil au code source ouvert, à la logique Q&A, au traitement du nuage de mots et au déploiement et à l’exploitation derrière la plateforme.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informations',
     webAppDescription:
-      'Audience response open source pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), estimations numériques, mur Q&A modérable, nuage de mots et feedback — accessible WCAG 2.2 AA, gratuit, auto-hébergeable et prêt sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, auto-hébergeable et prête sans compte.',
     featureList: [
       'Quiz en direct et votes',
       'Autoévaluation sur les questions notées',
       'Rapport de résultats (PDF) et débriefing après la session',
-      'Estimations numériques avec deux tours et statistiques',
-      'Mur Q&A avec modération, votes pour et contre',
+      'Questions d’estimation numérique avec deux tours et statistiques',
+      'Mur de questions avec modération, votes pour et contre',
       'Lobby, présentateur, QR/code',
-      'Types de questions QCM/QCU/réponse courte/texte libre/sondage/notation/estimation',
+      'Types de questions QCM/QCU/réponse courte/texte libre/sondage/notation/estimation numérique',
       'Markdown et KaTeX',
       'Phase de lecture et Peer Instruction',
       'Nuage de mots Q&A et texte libre avec phrases et pondération',
@@ -474,7 +475,7 @@ const fr: Messages = {
       'Import/export et sync Yjs',
       'Import IA externe, validé Zod',
       'Interface en cinq langues',
-      'Accessibilité selon WCAG 2.2 AA',
+      'Conforme aux WCAG 2.2, niveau AA',
       'Auto-hébergement Docker et audit admin',
       'Local-first et fonctionnement orienté RGPD',
     ],

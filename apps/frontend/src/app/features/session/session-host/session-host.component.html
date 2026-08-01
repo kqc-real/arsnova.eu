@@ -498,6 +498,14 @@
                       <span i18n>Erste Frage starten</span>
                     }
                   </button>
+                  @if (isQaSession()) {
+                    <app-info-landing-link
+                      class="session-host__info-landing session-host__info-landing--lobby"
+                      [anchor]="infoLandingQaAnchor"
+                      [label]="infoLandingQaLabel"
+                      [dense]="true"
+                    />
+                  }
                 </div>
               </section>
             }
@@ -1191,12 +1199,6 @@
                     Session beendet
                   </h1>
                   <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
-                  <app-info-landing-link
-                    class="session-host__info-landing"
-                    [anchor]="infoLandingConfidenceAnchor"
-                    [label]="infoLandingConfidenceLabel"
-                    [dense]="true"
-                  />
                   <div class="session-host__export-actions">
                     <div class="session-host__export-pdf">
                       @let exportPdfPriorityCount =
@@ -1311,6 +1313,12 @@
                       <p class="session-host__export-hint" role="status">{{ status }}</p>
                     }
                   </div>
+                  <app-info-landing-link
+                    class="session-host__info-landing session-host__info-landing--finished"
+                    [anchor]="infoLandingConfidenceAnchor"
+                    [label]="infoLandingConfidenceLabel"
+                    [dense]="true"
+                  />
                 </header>
               </div>
             } @else {
@@ -3066,12 +3074,6 @@
                 >
                 <div class="session-host__qa-title-block">
                   <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
-                  <app-info-landing-link
-                    class="session-host__info-landing"
-                    [anchor]="infoLandingQaAnchor"
-                    [label]="infoLandingQaLabel"
-                    [dense]="true"
-                  />
                   @if (!qaTitleEditing()) {
                     <div class="session-host__qa-title-view">
                       <h2 class="session-channel-card__title session-host__qa-title-heading">

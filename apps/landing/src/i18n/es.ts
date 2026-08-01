@@ -2,9 +2,10 @@ import type { Messages } from './types';
 
 const es: Messages = {
   meta: {
-    homeTitle: 'arsnova.eu | Cuestionario en vivo, estimaciones numéricas y muro Q&A',
+    homeTitle:
+      'arsnova.eu | Cuestionario en vivo, preguntas de estimación numérica y muro de preguntas',
     homeDescription:
-      'Audience response de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), estimaciones numéricas, muro Q&A moderable, nube de palabras y feedback — accesible WCAG 2.2 AA, gratuito, autoalojable y listo sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, autoalojable y lista sin cuenta.',
     siteNameInfo: 'arsnova.eu – Información',
     ogLocale: 'es_ES',
   },
@@ -40,22 +41,22 @@ const es: Messages = {
     backToApp: 'Volver a arsnova.eu',
     tryLive: 'Probarlo en vivo ahora',
     howItWorks: 'Cómo funciona',
-    viewOpenSource: 'Ver el código abierto',
+    viewOpenSource: 'Ver el código fuente',
   },
   hero: {
-    eyebrow: 'Audience response para educación y organizaciones',
+    eyebrow: 'Respuesta interactiva para educación y organizaciones',
     titleLine1: 'Cuestionarios, estimaciones,',
     titleLine2: 'moderación de preguntas',
     titleAccent1: 'en vivo y gratis',
     titleAccent2: ' sin cuenta.',
-    lead: 'arsnova.eu reúne cuestionarios en vivo, estimaciones numéricas, autoevaluación en preguntas puntuables, muro Q&A, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, autoalojable y pensado para un funcionamiento orientado al RGPD.',
-    a11yLink: 'Accesible según WCAG 2.2 AA',
+    lead: 'arsnova.eu reúne cuestionarios en vivo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, autoalojable y pensado para un funcionamiento orientado al RGPD.',
+    a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
       { title: 'En vivo al instante', text: 'Comparte la sesión con código o QR' },
       { title: 'Q&A con muro de preguntas', text: 'Moderación, votos y nube temática' },
       {
-        title: 'Autoevaluación y seguimiento',
+        title: 'Autoevaluación y análisis posterior',
         text: 'Detecta conceptos erróneos, exporta el informe PDF',
       },
       { title: 'Código abierto y autoalojable', text: 'Docker, Postgres, Redis y auditoría admin' },
@@ -71,8 +72,9 @@ const es: Messages = {
       'Nadie ve la distribución antes de publicar los resultados.',
       'La ronda 1 y la ronda 2 se comparan después del debate.',
     ],
-    docsLink: 'Abrir la documentación de la estimación',
-    demoAria: 'Ejemplo de resultados de una estimación sobre la Revolución Francesa',
+    docsLink: 'Abrir la documentación de la pregunta de estimación numérica',
+    demoAria:
+      'Ejemplo de resultados de una pregunta de estimación numérica sobre la Revolución Francesa',
     hostView: 'Vista de anfitrión tras publicar',
     demoQuestion: '¿Cuándo comenzó la Revolución Francesa?',
     reference: 'Referencia 1789',
@@ -85,7 +87,7 @@ const es: Messages = {
     median: 'Mediana',
     inBand: 'en la banda',
     round2: 'Ronda 2',
-    round2Value: '14 más cerca',
+    round2Value: '14 respuestas más próximas al valor de referencia',
   },
   confidence: {
     eyebrow: 'Evaluación didáctica',
@@ -105,12 +107,12 @@ const es: Messages = {
     demoQuestion: '¿Qué estructura es la más estable?',
     badge: 'Autoevaluación',
     matrix: [
-      { label: 'Correcto · bajo', count: 3, tone: 'emerald' },
-      { label: 'Correcto · medio', count: 8, tone: 'emerald' },
-      { label: 'Correcto · alto', count: 11, tone: 'emerald' },
-      { label: 'Incorrecto · bajo', count: 2, tone: 'slate' },
-      { label: 'Incorrecto · medio', count: 4, tone: 'amber' },
-      { label: 'Incorrecto · alto', count: 2, tone: 'rose' },
+      { label: 'Correcta · confianza baja', count: 3, tone: 'emerald' },
+      { label: 'Correcta · confianza media', count: 8, tone: 'emerald' },
+      { label: 'Correcta · confianza alta', count: 11, tone: 'emerald' },
+      { label: 'Incorrecta · confianza baja', count: 2, tone: 'slate' },
+      { label: 'Incorrecta · confianza media', count: 4, tone: 'amber' },
+      { label: 'Incorrecta · confianza alta', count: 2, tone: 'rose' },
     ],
     falseHighTitle: '2 respuestas incorrectas con alta seguridad',
     falseHighText:
@@ -143,12 +145,12 @@ const es: Messages = {
         text: 'Palabras y frases se ponderan según apoyo, acuerdo o controversia.',
       },
       {
-        label: 'Perspectiva brújula',
+        label: 'Perspectiva de la brújula de moderación',
         text: 'Primero llegan las señales deterministas; NLP Q&A y resumen siguen siendo extensiones opcionales.',
       },
     ],
     docsLink: 'Abrir puntuación Q&A y controversia en GitHub',
-    demoAria: 'Ejemplo de muro Q&A con moderación, votos y nube de palabras',
+    demoAria: 'Ejemplo de muro de preguntas con moderación, votos y nube de palabras',
     hostView: 'Vista de anfitrión Q&A',
     demoTitle: 'Preguntas sobre el evento',
     moderationActive: 'Premoderación activa',
@@ -174,7 +176,7 @@ const es: Messages = {
     ],
     wordCloud: 'Nube de palabras Q&A',
     wordCloudHint: 'Ponderada por resonancia positiva y controversia.',
-    frozenLive: 'Congelada en vivo',
+    frozenLive: 'Actualizaciones en vivo en pausa',
     terms: [
       { label: 'Banda de tolerancia', className: 'text-3xl text-brand-200' },
       { label: 'Debate', className: 'text-2xl text-emerald-200' },
@@ -198,7 +200,7 @@ const es: Messages = {
         number: '01',
         title: 'Preparar un cuestionario',
         description:
-          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta y estimaciones numéricas están integrados.',
+          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta y preguntas de estimación numérica están integrados.',
       },
       {
         number: '02',
@@ -210,13 +212,13 @@ const es: Messages = {
         number: '03',
         title: 'Moderar en vivo',
         description:
-          'Los participantes votan, formular preguntas y priorizan juntos. Anfitrión y presentador muestran cuestionario, muro Q&A, nube de palabras, fase de lectura, cuenta atrás, segunda ronda y resultados en un solo flujo.',
+          'Los participantes votan, formulan preguntas y priorizan juntos. Anfitrión y presentador muestran cuestionario, muro de preguntas, nube de palabras, fase de lectura, cuenta atrás, segunda ronda y resultados en un solo flujo.',
       },
       {
         number: '04',
-        title: 'Seguimiento y exportación',
+        title: 'Análisis posterior y exportación',
         description:
-          'Al terminar la sesión, el informe de resultados (PDF) está listo — con estado de aprendizaje, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última pasada; CSV para Excel en «Más».',
+          'Al terminar la sesión, el informe de resultados (PDF) está listo — con estado de aprendizaje, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última ejecución; CSV para Excel en «Más».',
       },
     ],
   },
@@ -238,13 +240,13 @@ const es: Messages = {
         icon: 'confidence',
       },
       {
-        title: 'Informe de resultados para el seguimiento',
+        title: 'Informe de resultados para el análisis posterior',
         description:
           'Al terminar la sesión exportas un informe PDF listo para imprimir con gráficos, textos de preguntas y autoevaluación. El CSV para Excel sigue siendo opcional en «Más».',
         icon: 'export',
       },
       {
-        title: 'Estimaciones didácticas',
+        title: 'Preguntas de estimación numérica didácticas',
         description:
           'Fechas, órdenes de magnitud y medidas se pueden estimar con valor de referencia, banda de tolerancia, estadística y una segunda ronda opcional.',
         icon: 'estimate',
@@ -274,7 +276,7 @@ const es: Messages = {
         icon: 'bolt',
       },
       {
-        title: 'Accesibilidad según WCAG 2.2 AA',
+        title: 'Cumple las WCAG 2.2, nivel AA',
         description:
           'Uso con teclado, anuncios de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF/UA-1 — para que más personas puedan participar de forma autónoma en sesiones en vivo.',
         icon: 'a11y',
@@ -282,11 +284,11 @@ const es: Messages = {
       {
         title: 'Privacidad y control',
         description:
-          'Local-first, data-stripping y explotación autoalojable te dan más control sobre contenidos y datos en vivo.',
+          'Enfoque local-first, eliminación opcional de datos y explotación autoalojable te dan más control sobre contenidos y datos en vivo.',
         icon: 'tools',
       },
       {
-        title: 'Código abierto con ruta operativa',
+        title: 'Código abierto con despliegue y operación',
         description:
           'Docker, Postgres, Redis y auditoría admin hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
         icon: 'server',
@@ -316,7 +318,7 @@ const es: Messages = {
       {
         title: 'Informe de resultados estructurado de forma accesible',
         description:
-          'El informe listo para imprimir está validado PDF/UA-1 e incluye título, idioma y etiquetas — para el seguimiento y el intercambio accesible.',
+          'El informe listo para imprimir está validado PDF/UA-1 e incluye título, idioma y etiquetas — para el análisis posterior y el intercambio accesible.',
       },
     ],
     statementLink: 'Abrir la declaración de accesibilidad',
@@ -376,12 +378,12 @@ const es: Messages = {
       {
         title: 'Más formatos de interacción',
         description:
-          'Además del cuestionario: estimaciones numéricas, fase de lectura, Peer Instruction, sondeo rápido, muro Q&A y nube de palabras ponderada en la misma plataforma — no solo encuestas en diapositivas.',
+          'Además del cuestionario: preguntas de estimación numérica, fase de lectura, Peer Instruction, sondeo rápido, muro de preguntas y nube de palabras ponderada en la misma plataforma — no solo encuestas en diapositivas.',
       },
       {
         title: 'Más control sobre datos y acceso',
         description:
-          'Código abierto, autoalojable y local-first — más accesibilidad WCAG 2.2 AA. Relevante para escuelas, universidades y organizaciones con requisitos de privacidad e inclusión.',
+          'Código abierto, autoalojable y local-first — más cumplimiento de las WCAG 2.2, nivel AA. Relevante para escuelas, universidades y organizaciones con requisitos de privacidad e inclusión.',
       },
     ],
     comparePrefix: 'La comparación completa de funciones sigue en la documentación:',
@@ -415,15 +417,15 @@ const es: Messages = {
       {
         question: '¿Puedo exportar los resultados de la sesión?',
         answer:
-          'Sí. Al terminar la sesión, el informe de resultados (PDF) es el formato principal — con autoevaluación, prioridades para la puesta en común y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última pasada. Los datos CSV tabulares están disponibles en «Más» para Excel.',
+          'Sí. Al terminar la sesión, el informe de resultados (PDF) es el formato principal — con autoevaluación, prioridades para la puesta en común y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última ejecución. Los datos CSV tabulares están disponibles en «Más» para Excel.',
       },
       {
-        question: '¿Qué tiene de especial la estimación numérica?',
+        question: '¿Qué tiene de especial la pregunta de estimación numérica?',
         answer:
           'Separa las entradas permitidas de la banda de tolerancia del contenido, no muestra la distribución durante la votación y puede evaluar una segunda ronda tras el debate con estadística y comparación de rondas.',
       },
       {
-        question: '¿Qué puede hacer el muro Q&A?',
+        question: '¿Qué puede hacer el muro de preguntas?',
         answer:
           'Los participantes envían preguntas y las ponderan con votos a favor y en contra. Los anfitriones pueden premoderar, fijar, archivar o eliminar preguntas y ordenar la lista por apoyo, acuerdo robusto o controversia.',
       },
@@ -440,27 +442,27 @@ const es: Messages = {
       {
         question: '¿Es accesible arsnova.eu?',
         answer:
-          'arsnova.eu cumple WCAG 2.2 AA. Los flujos centrales se pueden usar con teclado, los lectores de pantalla anuncian cambios de estado, el tiempo de respuesta en preguntas con tiempo es ajustable individualmente (tiempo estándar, tiempo ×10 o sin límite), y el informe de resultados estructurado de forma accesible está validado PDF/UA-1.',
+          'arsnova.eu cumple las WCAG 2.2, nivel AA. Los flujos centrales se pueden usar con teclado, los lectores de pantalla anuncian cambios de estado, el tiempo de respuesta en preguntas con tiempo es ajustable individualmente (tiempo estándar, tiempo ×10 o sin límite), y el informe de resultados estructurado de forma accesible está validado PDF/UA-1.',
         linkLabel: 'Abrir la declaración de accesibilidad',
       },
     ],
   },
   ctaSection: {
     title: '¿Listo para la próxima sesión en vivo?',
-    lead: 'Prueba el flujo en vivo directamente en la aplicación, o echa un vistazo al código abierto, a la lógica Q&A, al pipeline de la nube de palabras y a la ruta operativa detrás de la plataforma.',
+    lead: 'Prueba el flujo en vivo directamente en la aplicación, o echa un vistazo al código fuente abierto, a la lógica Q&A, al procesamiento de la nube de palabras y al camino de despliegue y operación detrás de la plataforma.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
     webAppDescription:
-      'Audience response de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), estimaciones numéricas, muro Q&A moderable, nube de palabras y feedback — accesible WCAG 2.2 AA, gratuito, autoalojable y listo sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en vivo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, autoalojable y lista sin cuenta.',
     featureList: [
       'Cuestionario en vivo y votaciones',
       'Autoevaluación en preguntas puntuables',
       'Informe de resultados (PDF) y puesta en común al terminar la sesión',
-      'Estimaciones numéricas con dos rondas y estadística',
-      'Muro Q&A con moderación, votos a favor y en contra',
+      'Preguntas de estimación numérica con dos rondas y estadística',
+      'Muro de preguntas con moderación, votos a favor y en contra',
       'Lobby, presentador, QR/código',
-      'Tipos de pregunta MC/SC/respuesta corta/texto libre/encuesta/valoración/estimación',
+      'Tipos de pregunta MC/SC/respuesta corta/texto libre/encuesta/valoración/estimación numérica',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',
       'Nube de palabras Q&A y texto libre con frases y ponderación',
@@ -470,7 +472,7 @@ const es: Messages = {
       'Importación/exportación y sync Yjs',
       'Importación IA externa, validada con Zod',
       'Interfaz en cinco idiomas',
-      'Accesibilidad según WCAG 2.2 AA',
+      'Cumple las WCAG 2.2, nivel AA',
       'Autoalojamiento Docker y auditoría admin',
       'Local-first y funcionamiento orientado al RGPD',
     ],
