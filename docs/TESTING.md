@@ -487,11 +487,12 @@ PARTICIPANTS=600 TIMER_SECONDS=8 TRPC_URL=http://127.0.0.1:3000/trpc npm run loa
 ```
 
 Für den parallelen 600er-Burst setzt der Smoke intern einen Undici-Agent mit
-`VOTE_HTTP_CONNECTIONS` (Default: `PARTICIPANTS`) und startet die Karenz-Freigabe mit
-`WITHIN_GRACE_REVEAL_OFFSET_MS=0`. Ohne ausreichend viele HTTP-Verbindungen serialisiert der
-Node-Default-Fetch-Pool den Burst; Requests kommen dann erst nach Ablauf der echten
-2‑Sekunden-Backend-Karenz an und der Smoke scheitert flaky trotz korrekter Serverlogik.
-In CI bleiben die Latenzgates bei `VOTE_P95_LIMIT_MS=3000` / `VOTE_P99_LIMIT_MS=3000`.
+`VOTE_HTTP_CONNECTIONS` (Default: `PARTICIPANTS`). Der Default-Reveal-Offset beträgt
+`WITHIN_GRACE_REVEAL_OFFSET_MS=100` (Clock-Skew-Puffer für Remote-Ziele); in CI wird er auf
+`0` gesetzt, damit der Burst maximalen Karenz-Rest auf dem lokalen Runner erhält.
+`undici` ist als Root-`devDependency` deklariert, damit `npm ci` den Import nicht nur über
+transitives Hoisting auflöst. In CI bleiben die Latenzgates bei
+`VOTE_P95_LIMIT_MS=3000` / `VOTE_P99_LIMIT_MS=3000`.
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.

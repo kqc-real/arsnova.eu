@@ -40,11 +40,11 @@ const VOTE_HTTP_CONNECTIONS = Math.max(
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 2_000));
 const GRACE_MS = Math.max(0, Number(process.env.GRACE_MS || 2_000));
-// Reveal unmittelbar nach Deadline, damit der 600er-Burst noch im 2s-Karenzfenster
-// serverseitig ankommt (Runner-Default-Fetch-Pool sonst serialisiert zu spaet).
+// Kleiner Offset schuetzt Remote-Laeufe mit Clock-Skew; CI setzt 0 fuer maximalen
+// Karenz-Rest nach der Freigabe auf dem lokalen Runner.
 const WITHIN_GRACE_REVEAL_OFFSET_MS = Math.max(
   0,
-  Number(process.env.WITHIN_GRACE_REVEAL_OFFSET_MS || 0),
+  Number(process.env.WITHIN_GRACE_REVEAL_OFFSET_MS || 100),
 );
 const OUTSIDE_GRACE_REVEAL_OFFSET_MS = Math.max(
   GRACE_MS + 1,
