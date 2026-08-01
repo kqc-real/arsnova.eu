@@ -14,6 +14,9 @@
  *
  * Optional:
  *   VOTE_HTTP_CONNECTIONS=600 WITHIN_GRACE_REVEAL_OFFSET_MS=0
+ *
+ * Nutzt einen eigenen Undici-Dispatcher fuer den Burst. CI setzt Offset 0 fuer
+ * maximalen Karenz-Rest auf dem lokalen Runner; ein Timing-Flake-Risiko bleibt.
  */
 import { Agent, fetch as undiciFetch } from 'undici';
 import { waitForBackend } from './lib/wait-for-backend.mjs';

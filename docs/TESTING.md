@@ -486,13 +486,15 @@ Wichtige Parameter:
 PARTICIPANTS=600 TIMER_SECONDS=8 TRPC_URL=http://127.0.0.1:3000/trpc npm run load:smoke:vote-timer-fairness
 ```
 
-Für den parallelen 600er-Burst setzt der Smoke intern einen Undici-Agent mit
+Für den parallelen 600er-Burst setzt der Smoke einen eigenen Undici-Dispatcher mit
 `VOTE_HTTP_CONNECTIONS` (Default: `PARTICIPANTS`). Der Default-Reveal-Offset beträgt
 `WITHIN_GRACE_REVEAL_OFFSET_MS=100` (Clock-Skew-Puffer für Remote-Ziele); in CI wird er auf
 `0` gesetzt, damit der Burst maximalen Karenz-Rest auf dem lokalen Runner erhält.
 `undici` ist als Root-`devDependency` deklariert, damit `npm ci` den Import nicht nur über
 transitives Hoisting auflöst. In CI bleiben die Latenzgates bei
-`VOTE_P95_LIMIT_MS=3000` / `VOTE_P99_LIMIT_MS=3000`.
+`VOTE_P95_LIMIT_MS=3000` / `VOTE_P99_LIMIT_MS=3000`. Der erfolgreiche CI-Lauf belegt die
+Gesamtkonfiguration; ein verbleibendes Runner-/Backend-Timing-Flake-Risiko im engen
+2‑Sekunden-Karenzfenster bleibt bestehen.
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
