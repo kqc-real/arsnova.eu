@@ -320,6 +320,11 @@
   line-height: 1;
 }
 
+/* Trailing external affordance: Material icon-offset/spacing zurücknehmen (Footer nutzt eigenes Gap). */
+.app-footer__links .mat-mdc-button-base .app-footer__icon--external {
+  margin-inline: 0;
+}
+
 /* Schmale Viewports: nur Icons (Text per Clip aus dem sichtbaren Layout, bleibt für Screenreader). */
 @media (max-width: 599px) {
   .app-footer__links {
@@ -343,6 +348,11 @@
     clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
+  }
+
+  /* Wie die anderen Footer-Links nur ein Lead-Icon; neuer Tab steht im aria-label. */
+  .app-footer__link--external .app-footer__icon--external {
+    display: none;
   }
 }
 

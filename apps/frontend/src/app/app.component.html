@@ -181,6 +181,7 @@
               </a>
               <a
                 matButton
+                class="app-footer__link--external"
                 [href]="infoLandingFeaturesUrl"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -191,7 +192,12 @@
                 <span class="app-footer__link-text" i18n="@@app.footer.infoLanding"
                   >Was arsnova.eu kann</span
                 >
-                <mat-icon class="app-footer__icon" aria-hidden="true">open_in_new</mat-icon>
+                <mat-icon
+                  class="app-footer__icon app-footer__icon--external"
+                  iconPositionEnd
+                  aria-hidden="true"
+                  >open_in_new</mat-icon
+                >
               </a>
               <a matButton [routerLink]="localizedPath('/legal/imprint')">
                 <mat-icon class="app-footer__icon">gavel</mat-icon>

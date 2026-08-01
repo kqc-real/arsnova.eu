@@ -48,7 +48,7 @@ const en: Messages = {
     titleLine2: 'moderate questions',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, runnable on your own infrastructure and designed for GDPR-oriented operation.',
+    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, runnable on your own infrastructure and designed for operation with GDPR in mind.',
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
@@ -84,7 +84,7 @@ const en: Messages = {
     plausibilityBand: 'Plausibility band',
     plausibilityValue: '1500 to 2000',
     histogramNote:
-      'Histogram, reference line and tolerance band appear only after results are released. Until then only neutral progress stays visible.',
+      'Histogram, reference line and tolerance band appear only after results are released. Until then, only a neutral progress indicator is visible.',
     median: 'Median',
     inBand: 'in band',
     round2: 'Round 2',
@@ -126,7 +126,7 @@ const en: Messages = {
     debriefing: 'Debriefing',
     resultsPdf: 'Results report (PDF)',
     exportNote:
-      'Print-ready report with learning status, heatmap and full question text — in the facilitator view and on the quiz card. CSV for Excel remains available under “More”.',
+      'Print-ready report with learning progress, heatmap and full question text — in the facilitator view and on the quiz card. CSV for Excel remains available under “More”.',
   },
   qaWall: {
     eyebrow: 'Live Q&A as a moderation space',
@@ -135,11 +135,11 @@ const en: Messages = {
     signals: [
       {
         label: 'Pre-moderation',
-        text: 'Release questions only when they fit the teaching moment.',
+        text: 'Release questions only when they are relevant in the teaching context.',
       },
       {
         label: 'Collective voting',
-        text: 'Upvotes and downvotes show priority, friction and need for clarification.',
+        text: 'Upvotes and downvotes indicate priorities, points of disagreement and needs for clarification.',
       },
       {
         label: 'Topic word cloud',
@@ -152,7 +152,7 @@ const en: Messages = {
     ],
     docsLink: 'Open Q&A scoring and controversy docs on GitHub',
     demoAria: 'Sample Q&A wall with moderation, voting and word cloud',
-    hostView: 'Facilitator view Q&A',
+    hostView: 'Facilitator’s Q&A view',
     demoTitle: 'Questions about the event',
     moderationActive: 'Pre-moderation on',
     sortMostSupported: 'Most supported',
@@ -176,7 +176,7 @@ const en: Messages = {
       },
     ],
     wordCloud: 'Q&A word cloud',
-    wordCloudHint: 'Weighted by positive resonance and controversy.',
+    wordCloudHint: 'Weighted by positive support and controversy.',
     frozenLive: 'Live updates paused',
     terms: [
       { label: 'Tolerance band', className: 'text-3xl text-brand-200' },
@@ -189,7 +189,7 @@ const en: Messages = {
       { label: 'Clarification need', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Next step: a deterministic moderation compass, optionally complemented by asynchronous language-analysis signals and source-bound summaries.',
+      'Next step: a deterministic moderation compass, optionally complemented by asynchronous language-analysis signals and summaries grounded in the submitted questions.',
   },
   workflow: {
     eyebrow: 'For teaching, training and workshops',
@@ -213,13 +213,13 @@ const en: Messages = {
         number: '03',
         title: 'Moderate live',
         description:
-          'Participants vote, ask questions and prioritise together. Facilitator and presenter show quiz, Q&A wall, word cloud, reading phase, countdown, second round and results in one flow.',
+          'Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, reading phase, countdown, second round and results in one flow.',
       },
       {
         number: '04',
         title: 'Follow up and export',
         description:
-          'After the session ends, the results report (PDF) is ready — with learning status, confidence rating and full question text. In the quiz collection you will find debriefing and PDF for the last run; CSV for Excel under “More”.',
+          'After the session ends, the results report (PDF) is ready — with learning progress, confidence rating and full question text. In the quiz collection you will find debriefing and PDF for the last run; CSV for Excel under “More”.',
       },
     ],
   },
@@ -237,7 +237,7 @@ const en: Messages = {
       {
         title: 'Confidence rating in the live quiz',
         description:
-          'Participants say how sure they are after answering. You spot confidently wrong answers, prioritise the debriefing and export learning status in the results report (PDF).',
+          'Participants say how sure they are after answering. You spot confidently wrong answers, prioritise the debriefing and export the level of understanding in the results report (PDF).',
         icon: 'confidence',
       },
       {
@@ -255,7 +255,7 @@ const en: Messages = {
       {
         title: 'More than a standard quiz',
         description:
-          'MC/SC, short answer, rating, reading phase, Peer Instruction and presenter flow support learning, training and live facilitation.',
+          'MC/SC, short answers, ratings, reading phase, Peer Instruction and presenter mode support learning, training and live facilitation.',
         icon: 'toggle',
       },
       {
@@ -267,7 +267,7 @@ const en: Messages = {
       {
         title: 'Rich word cloud',
         description:
-          'Free text and Q&A are condensed into words and phrases; the wall weights by agreement, robust score or controversy.',
+          'Free text and Q&A are condensed into words and phrases; the wall weights by agreement, clear majority score or controversy.',
         icon: 'cloud',
       },
       {
@@ -291,7 +291,7 @@ const en: Messages = {
       {
         title: 'Open source with deployment and operations',
         description:
-          'Docker, Postgres, Redis and an admin activity log make the platform robust for hosting, operations and auditability.',
+          'Docker, Postgres, Redis and an admin activity log make the platform reliable for deployment, operations and auditability.',
         icon: 'server',
       },
     ],
@@ -411,7 +411,7 @@ const en: Messages = {
       {
         question: 'What is confidence rating in the quiz?',
         answer:
-          'An optional follow-up after scored questions: participants rate on a scale of 1–5 how sure they are about their answer. Points stay unchanged; in the facilitator evaluation you see correctness × confidence and flag confidently wrong answers as a misconception signal. After the session ends, learning status flows into debriefing and the results report (PDF).',
+          'An optional follow-up after scored questions: participants rate on a scale of 1–5 how sure they are about their answer. Points stay unchanged; in the facilitator evaluation you see correctness × confidence and flag confidently wrong answers as a misconception signal. After the session ends, learning outcomes feed into debriefing and the results report (PDF).',
       },
       {
         question: 'Can I export session results?',
@@ -426,12 +426,12 @@ const en: Messages = {
       {
         question: 'What can the Q&A wall do?',
         answer:
-          'Participants submit questions and weight them with upvotes and downvotes. Facilitators can pre-moderate, pin, archive or remove questions and sort the list by support, robust agreement or controversy.',
+          'Participants submit questions and weight them with upvotes and downvotes. Facilitators can pre-moderate, pin, archive or remove questions and sort the list by support, clear majority agreement or controversy.',
       },
       {
         question: 'What makes the Q&A word cloud different?',
         answer:
-          'It condenses visible questions into words and phrases and follows the active sort logic. So it shows not only frequent terms, but topic clusters from supported, robustly scored or controversial questions.',
+          'It condenses visible questions into words and phrases and follows the active sort logic. So it shows not only frequent terms, but topic groups from supported, clearly high-scoring or controversial questions.',
       },
       {
         question: 'Who is the platform for?',
@@ -465,7 +465,7 @@ const en: Messages = {
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',
       'Q&A and free-text word cloud with phrases and weighting',
-      'Sorting by support, robust agreement and controversy',
+      'Sorting by support, clear majority agreement and controversy',
       'Team mode and presets',
       'Leaderboard, streak, bonus code',
       'Import/export and Yjs sync',
@@ -473,7 +473,7 @@ const en: Messages = {
       'UI in five languages',
       'Conforms to WCAG 2.2 Level AA',
       'Docker on your own infrastructure and admin activity log',
-      'Locally kept quiz content and GDPR-oriented operation',
+      'Locally kept quiz content and operation with GDPR in mind',
     ],
   },
 };

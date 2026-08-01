@@ -48,7 +48,7 @@ const fr: Messages = {
     titleLine2: 'modérer les questions',
     titleAccent1: 'en direct et gratuitement',
     titleAccent2: ' sans compte.',
-    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. Open source, exploitable sur votre propre infrastructure et conçu pour un fonctionnement orienté RGPD.',
+    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. Open source, exploitable sur votre propre infrastructure et conçu pour un fonctionnement dans le respect du RGPD.',
     a11yLink: 'Conforme aux WCAG 2.2, niveau AA',
     a11ySuffix: '— clavier, lecteur d’écran et temps de réponse ajustable individuellement.',
     cards: [
@@ -85,7 +85,7 @@ const fr: Messages = {
     plausibilityBand: 'Bande de plausibilité',
     plausibilityValue: '1500 à 2000',
     histogramNote:
-      'L’histogramme, la ligne de référence et la bande de tolérance n’apparaissent qu’après publication des résultats. Avant cela, seule la progression neutre reste visible.',
+      'L’histogramme, la ligne de référence et la bande de tolérance n’apparaissent qu’après publication des résultats. Avant cela, seul un indicateur neutre de progression reste visible.',
     median: 'Médiane',
     inBand: 'dans la bande',
     round2: 'Tour 2',
@@ -98,7 +98,7 @@ const fr: Messages = {
     summary: [
       'Pas un type de question à part — optionnel sur les questions notées.',
       'Échelle 1–5 après la réponse, sans effet sur les points.',
-      'Après publication, l’animateur voit exactitude × degré de confiance.',
+      'Après publication, l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance.',
       '« Erroné et sûr » signale d’éventuelles idées fausses.',
       'Après la session : rapport de résultats (PDF) et bilan.',
     ],
@@ -140,7 +140,7 @@ const fr: Messages = {
       },
       {
         label: 'Vote collectif',
-        text: 'Les votes pour et contre montrent priorité, friction et besoin de clarification.',
+        text: 'Les votes pour et contre indiquent les priorités, les désaccords et les besoins de clarification.',
       },
       {
         label: 'Nuage thématique',
@@ -153,7 +153,7 @@ const fr: Messages = {
     ],
     docsLink: 'Ouvrir la notation Q&A et la controverse sur GitHub',
     demoAria: 'Exemple de mur de questions avec modération, votes et nuage de mots',
-    hostView: 'Vue de l’animateur Q&A',
+    hostView: 'Vue Q&A de l’animateur',
     demoTitle: 'Questions sur l’événement',
     moderationActive: 'Pré-modération active',
     sortMostSupported: 'Les plus soutenues',
@@ -177,7 +177,7 @@ const fr: Messages = {
       },
     ],
     wordCloud: 'Nuage de mots Q&A',
-    wordCloudHint: 'Pondéré selon la résonance positive et la controverse.',
+    wordCloudHint: 'Pondéré selon le soutien positif et la controverse.',
     frozenLive: 'Mise à jour en direct en pause',
     terms: [
       { label: 'Bande de tolérance', className: 'text-3xl text-brand-200' },
@@ -190,7 +190,7 @@ const fr: Messages = {
       { label: 'Besoin de clarification', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Prochaine étape : une boussole de modération déterministe, éventuellement complétée par des signaux d’analyse linguistique asynchrones et des synthèses liées aux sources.',
+      'Prochaine étape : une boussole de modération déterministe, éventuellement complétée par des signaux d’analyse linguistique asynchrones et des synthèses fondées sur les questions soumises.',
   },
   workflow: {
     eyebrow: 'Pour l’enseignement, la formation et les ateliers',
@@ -214,7 +214,7 @@ const fr: Messages = {
         number: '03',
         title: 'Animer en direct',
         description:
-          'Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le mur de questions, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul flux.',
+          'Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le mur de questions, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
       },
       {
         number: '04',
@@ -256,7 +256,7 @@ const fr: Messages = {
       {
         title: 'Plus qu’un quiz standard',
         description:
-          'QCM/QCU, réponse courte, notation, phase de lecture, Peer Instruction et flux présentateur soutiennent l’apprentissage, la formation et l’animation en direct.',
+          'QCM/QCU, réponses courtes, évaluations, phase de lecture, Peer Instruction et mode présentateur soutiennent l’apprentissage, la formation et l’animation en direct.',
         icon: 'toggle',
       },
       {
@@ -266,9 +266,9 @@ const fr: Messages = {
         icon: 'qa',
       },
       {
-        title: 'Nuage de mots élaboré',
+        title: 'Nuage de mots expressif',
         description:
-          'Texte libre et Q&A sont condensés en mots et phrases ; le mur pondère selon l’accord, une évaluation robuste ou la controverse.',
+          'Texte libre et Q&A sont condensés en mots et phrases ; le mur pondère selon l’accord, une majorité claire ou la controverse.',
         icon: 'cloud',
       },
       {
@@ -377,7 +377,7 @@ const fr: Messages = {
   comparison: {
     eyebrow: 'Positionnement',
     title: 'Pas seulement un substitut à Mentimeter ou Kahoot',
-    lead: 'Le centre n’est pas seulement le vote, mais le flux en direct complet : préparer, animer, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
+    lead: 'L’objectif n’est pas seulement de voter, mais de couvrir tout le déroulement en direct : préparer, animer, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
     points: [
       {
         title: 'Moins de freins à l’entrée',
@@ -421,7 +421,7 @@ const fr: Messages = {
       {
         question: 'Qu’est-ce que l’autoévaluation dans le quiz ?',
         answer:
-          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; dans l’évaluation de l’animateur, tu vois exactitude × degré de confiance et marques les réponses erronées associées à un degré de confiance élevé comme signal d’idée fausse. Après la session, l’état d’apprentissage alimente le bilan et le rapport de résultats (PDF).',
+          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance et marque les réponses erronées associées à un degré de confiance élevé comme signal d’idée fausse. Après la session, l’état d’apprentissage alimente le bilan et le rapport de résultats (PDF).',
       },
       {
         question: 'Puis-je exporter les résultats de session ?',
@@ -436,12 +436,12 @@ const fr: Messages = {
       {
         question: 'Que peut faire le mur de questions ?',
         answer:
-          'Les participants soumettent des questions et les pondèrent avec des votes pour et contre. Les animateurs peuvent pré-modérer, épingler, archiver ou retirer des questions et trier la liste par soutien, accord robuste ou controverse.',
+          'Les participants soumettent des questions et les pondèrent avec des votes pour et contre. Les animateurs peuvent pré-modérer, épingler, archiver ou retirer des questions et trier la liste par soutien, majorité claire ou controverse.',
       },
       {
         question: 'En quoi le nuage de mots Q&A est-il différent ?',
         answer:
-          'Il condense les questions visibles en mots et phrases et reprend la logique de tri active. Il montre ainsi non seulement des termes fréquents, mais des regroupements thématiques issus de questions soutenues, robustement notées ou controversées.',
+          'Il condense les questions visibles en mots et phrases et reprend la logique de tri active. Il montre ainsi non seulement des termes fréquents, mais des regroupements thématiques issus de questions soutenues, clairement bien notées ou controversées.',
       },
       {
         question: 'Pour qui est destinée la plateforme ?',
@@ -458,7 +458,7 @@ const fr: Messages = {
   },
   ctaSection: {
     title: 'Prêt·e pour la prochaine session en direct ?',
-    lead: 'Teste le flux en direct directement dans l’application, ou jette un œil au code source ouvert, à la logique Q&A, au traitement du nuage de mots et aux bases techniques pour le déploiement et l’exploitation.',
+    lead: 'Teste le déroulement en direct directement dans l’application, ou jette un œil au code source ouvert, à la logique Q&A, au traitement du nuage de mots et aux bases techniques pour le déploiement et l’exploitation.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informations',
@@ -470,12 +470,12 @@ const fr: Messages = {
       'Rapport de résultats (PDF) et bilan après la session',
       'Questions d’estimation numérique avec deux tours et statistiques',
       'Mur de questions avec modération, votes pour et contre',
-      'Accueil, présentateur, QR/code',
-      'Types de questions QCM/QCU/réponse courte/texte libre/sondage/notation/estimation numérique',
+      'Salle d’attente, présentateur, QR/code',
+      'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique',
       'Markdown et KaTeX',
       'Phase de lecture et Peer Instruction',
       'Nuage de mots Q&A et texte libre avec phrases et pondération',
-      'Tri par soutien, accord robuste et controverse',
+      'Tri par soutien, majorité claire et controverse',
       'Mode équipe et préréglages',
       'Classement, série, code bonus',
       'Import/export et synchronisation Yjs',
@@ -483,7 +483,7 @@ const fr: Messages = {
       'Interface en cinq langues',
       'Conforme aux WCAG 2.2, niveau AA',
       'Exploitation Docker sur votre infrastructure et journal d’administration',
-      'Contenus de quiz conservés localement et fonctionnement orienté RGPD',
+      'Contenus de quiz conservés localement et fonctionnement dans le respect du RGPD',
     ],
   },
 };

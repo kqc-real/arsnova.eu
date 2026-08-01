@@ -48,7 +48,7 @@ const it: Messages = {
     titleLine2: 'moderazione delle domande',
     titleAccent1: 'in diretta e gratis',
     titleAccent2: ' senza account.',
-    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento orientato al GDPR.',
+    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento nel rispetto del GDPR.',
     a11yLink: 'Conforme alle WCAG 2.2, livello AA',
     a11ySuffix: '— tastiera, screen reader e tempo di risposta regolabile individualmente.',
     cards: [
@@ -87,7 +87,7 @@ const it: Messages = {
     plausibilityBand: 'Fascia di plausibilità',
     plausibilityValue: '1500–2000',
     histogramNote:
-      'Istogramma, linea di riferimento e fascia di tolleranza compaiono solo dopo la pubblicazione dei risultati. Prima resta visibile solo il progresso neutrale.',
+      'Istogramma, linea di riferimento e fascia di tolleranza compaiono solo dopo la pubblicazione dei risultati. Prima resta visibile solo un indicatore neutro di avanzamento.',
     median: 'Mediana',
     inBand: 'nella fascia',
     round2: 'Turno 2',
@@ -138,15 +138,15 @@ const it: Messages = {
     signals: [
       {
         label: 'Pre-moderazione',
-        text: 'Pubblica le domande solo quando si adattano al momento didattico.',
+        text: 'Pubblica le domande solo quando sono rilevanti nel contesto didattico.',
       },
       {
         label: 'Voto collettivo',
-        text: 'I voti a favore e contro mostrano priorità, attrito e bisogno di chiarimento.',
+        text: 'I voti a favore e contro mostrano le priorità, i punti di disaccordo e le esigenze di chiarimento.',
       },
       {
         label: 'Nuvola di parole tematica',
-        text: 'Parole e frasi sono pesate per supporto, accordo o controversia.',
+        text: 'Parole e frasi sono pesate in base al sostegno, al consenso o alla controversia.',
       },
       {
         label: 'In arrivo: bussola di moderazione',
@@ -158,7 +158,7 @@ const it: Messages = {
     hostView: 'Vista Q&A di chi conduce',
     demoTitle: 'Domande sull’evento',
     moderationActive: 'Pre-moderazione attiva',
-    sortMostSupported: 'Più supportate',
+    sortMostSupported: 'Più sostenute',
     sortBest: 'Migliori domande',
     sortControversial: 'Controverse',
     questions: [
@@ -175,11 +175,11 @@ const it: Messages = {
       {
         score: '+11',
         title: 'In cosa il Q&A differisce dal testo libero nel quiz?',
-        meta: '11 positivi · 0 negativi · soprattutto supportata',
+        meta: '11 positivi · 0 negativi · soprattutto sostenuta',
       },
     ],
     wordCloud: 'Nuvola di parole Q&A',
-    wordCloudHint: 'Pesata per risonanza positiva e controversia.',
+    wordCloudHint: 'Pesata in base al sostegno positivo e alla controversia.',
     frozenLive: 'Aggiornamenti in diretta in pausa',
     terms: [
       { label: 'Fascia di tolleranza', className: 'text-3xl text-brand-200' },
@@ -192,12 +192,12 @@ const it: Messages = {
       { label: 'Bisogno di chiarimento', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Prossimo passo: una bussola di moderazione deterministica, opzionalmente integrata da segnali di analisi linguistica asincroni e sintesi legate alle fonti.',
+      'Prossimo passo: una bussola di moderazione deterministica, opzionalmente integrata da segnali di analisi linguistica asincroni e sintesi fondate sulle domande inviate.',
   },
   workflow: {
     eyebrow: 'Per didattica, formazione e workshop',
     title: 'Dall’idea alla sessione in diretta in pochi minuti',
-    lead: 'Dalla domanda alla sessione in corso, il flusso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, formatori e moderatori.',
+    lead: 'Dalla domanda alla sessione in corso, il percorso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, formatori e moderatori.',
     stepLabel: 'Passo',
     steps: [
       {
@@ -216,7 +216,7 @@ const it: Messages = {
         number: '03',
         title: 'Modera in diretta',
         description:
-          'I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano quiz, bacheca delle domande, nuvola di parole, fase di lettura, conto alla rovescia, secondo turno e risultati in un unico flusso.',
+          'I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
       },
       {
         number: '04',
@@ -258,19 +258,19 @@ const it: Messages = {
       {
         title: 'Più di un quiz standard',
         description:
-          'MC/SC, risposta breve, valutazione, fase di lettura, Peer Instruction e flusso presentatore supportano apprendimento, formazione e moderazione in diretta.',
+          'MC/SC, risposte brevi, valutazioni, fase di lettura, Peer Instruction e modalità presentatore supportano apprendimento, formazione e moderazione in diretta.',
         icon: 'toggle',
       },
       {
         title: 'Bacheca delle domande invece di una chat secondaria',
         description:
-          'Il Q&A offre pre-moderazione, fissaggio, archiviazione, voti a favore/contro e ordinamento per supporto, qualità e controversia.',
+          'Il Q&A offre pre-moderazione, fissaggio, archiviazione, voti a favore/contro e ordinamento per sostegno, qualità e controversia.',
         icon: 'qa',
       },
       {
-        title: 'Nuvola di parole elaborata',
+        title: 'Nuvola di parole espressiva',
         description:
-          'Testo libero e Q&A vengono condensati in parole e frasi; la bacheca pesa per accordo, punteggio robusto o controversia.',
+          'Testo libero e Q&A vengono condensati in parole e frasi; la bacheca pesa in base al consenso, a una maggioranza chiara o alla controversia.',
         icon: 'cloud',
       },
       {
@@ -294,7 +294,7 @@ const it: Messages = {
       {
         title: 'Open source con distribuzione e gestione',
         description:
-          'Docker, Postgres, Redis e registro di amministrazione rendono la piattaforma affidabile anche per hosting, esercizio e tracciabilità.',
+          'Docker, Postgres, Redis e registro di amministrazione rendono la piattaforma affidabile anche per distribuzione, gestione operativa e tracciabilità.',
         icon: 'server',
       },
     ],
@@ -371,7 +371,7 @@ const it: Messages = {
   comparison: {
     eyebrow: 'Differenziazione',
     title: 'Non solo un sostituto di Mentimeter o Kahoot',
-    lead: 'Al centro non c’è solo il voto, ma l’intero flusso in diretta: preparare, moderare, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
+    lead: 'L’obiettivo non è solo votare, ma coprire l’intero percorso in diretta: preparare, moderare, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
     points: [
       {
         title: 'Meno barriere d’ingresso',
@@ -430,12 +430,12 @@ const it: Messages = {
       {
         question: 'Cosa può fare la bacheca delle domande?',
         answer:
-          'I partecipanti inviano domande e le pesano con voti a favore e contro. Chi conduce può pre-moderare, fissare, archiviare o rimuovere domande e ordinare l’elenco per supporto, accordo robusto o controversia.',
+          'I partecipanti inviano domande e le pesano con voti a favore e contro. Chi conduce può pre-moderare, fissare, archiviare o rimuovere domande e ordinare l’elenco per sostegno, maggioranza chiara o controversia.',
       },
       {
         question: 'Cosa rende diversa la nuvola di parole Q&A?',
         answer:
-          'Condensa le domande visibili in parole e frasi e segue la logica di ordinamento attiva. Così mostra non solo termini frequenti, ma cluster tematici da domande supportate, valutate in modo robusto o controverse.',
+          'Condensa le domande visibili in parole e frasi e segue la logica di ordinamento attiva. Così mostra non solo termini frequenti, ma raggruppamenti tematici da domande sostenute, chiaramente ben valutate o controverse.',
       },
       {
         question: 'Per chi è pensata la piattaforma?',
@@ -452,7 +452,7 @@ const it: Messages = {
   },
   ctaSection: {
     title: 'Pronto per la prossima sessione in diretta?',
-    lead: 'Prova il flusso in diretta direttamente nell’app, oppure dai un’occhiata al codice sorgente aperto, alla logica Q&A, all’elaborazione della nuvola di parole e alle basi tecniche per distribuzione e gestione della piattaforma.',
+    lead: 'Prova il percorso in diretta direttamente nell’app, oppure dai un’occhiata al codice sorgente aperto, alla logica Q&A, all’elaborazione della nuvola di parole e alle basi tecniche per distribuzione e gestione della piattaforma.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informazioni',
@@ -465,11 +465,11 @@ const it: Messages = {
       'Domande di stima numerica con due turni e statistica',
       'Bacheca delle domande con moderazione, voti a favore e contro',
       'Sala d’attesa, presentatore, QR/codice',
-      'Tipi di domanda MC/SC/risposta breve/testo libero/sondaggio/valutazione/stima numerica',
+      'Tipi di domanda MC/SC/risposte brevi/testo libero/sondaggio/valutazione/stima numerica',
       'Markdown e KaTeX',
       'Fase di lettura e Peer Instruction',
       'Nuvola di parole Q&A e testo libero con frasi e pesatura',
-      'Ordinamento per supporto, accordo robusto e controversia',
+      'Ordinamento per sostegno, maggioranza chiara e controversia',
       'Modalità a squadre e impostazioni predefinite',
       'Classifica, serie, codice bonus',
       'Importazione/esportazione e sincronizzazione Yjs',
@@ -477,7 +477,7 @@ const it: Messages = {
       'Interfaccia in cinque lingue',
       'Conforme alle WCAG 2.2, livello AA',
       'Esecuzione Docker sulla propria infrastruttura e registro di amministrazione',
-      'Contenuti del quiz conservati in locale e funzionamento orientato al GDPR',
+      'Contenuti del quiz conservati in locale e funzionamento nel rispetto del GDPR',
     ],
   },
 };

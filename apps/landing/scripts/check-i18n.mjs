@@ -154,7 +154,7 @@ function checkLegalPagesOmitHomeHreflang() {
 }
 
 /**
- * Exact demo / WCAG / editorial phrases from the Issue #192 re-reviews.
+ * Exact demo / WCAG / editorial phrases from Issues #192/#194.
  * Only pin strings after the dictionaries have been editorially approved.
  */
 const localeContentSmoke = {
@@ -169,12 +169,16 @@ const localeContentSmoke = {
     ],
     round2: '14 Antworten näher am Referenzwert',
     editorial: [
-      'Falsche Antworten mit hoher Antwortsicherheit weisen auf mögliche Fehlkonzepte hin.',
+      'Bei der Selbsteinschätzung geben Teilnehmende nach ihrer Antwort an, wie sicher sie sind',
+      'falsche Antworten mit hoher Antwortsicherheit',
+      'im jeweiligen didaktischen Kontext relevant sind',
+      'Aussagekräftige Wortwolke',
       'Live-Aktualisierung pausiert',
       'Was arsnova.eu auszeichnet',
       'Auf langjähriger Erfahrung aufgebaut',
       'technischen Grundlagen für Bereitstellung und Betrieb',
     ],
+    banned: ['selbstsicher falsch', 'Elaborierte Word Cloud', 'didaktischen Moment passen'],
   },
   en: {
     matrix: [
@@ -194,7 +198,11 @@ const localeContentSmoke = {
       'Pedagogical analysis',
       'Coming next: moderation compass',
       'Built on an established foundation',
+      'The facilitator and presenter show the quiz, Q&amp;A wall, word cloud',
+      'Until then, only a neutral progress indicator is visible.',
+      'Facilitator’s Q&amp;A view',
     ],
+    banned: ['Until then only neutral progress', 'Facilitator view Q&amp;A'],
   },
   fr: {
     matrix: [
@@ -210,12 +218,24 @@ const localeContentSmoke = {
     term: 'sondage express',
     editorial: [
       'Prêt en quelques secondes',
-      'Vue de l’animateur',
       'Publier les questions uniquement lorsqu’elles sont pertinentes dans le contexte pédagogique.',
       'À venir : boussole de modération',
       'L’animateur et le présentateur affichent le quiz,',
+      'indiquent les priorités, les désaccords et les besoins de clarification',
+      'Vue Q&amp;A de l’animateur',
+      'indicateur neutre de progression',
+      'mode présentateur',
+      'croisement entre l’exactitude des réponses et le degré de confiance',
     ],
-    banned: ['Feedback express', 'Vue hôte', 'En direct immédiatement'],
+    banned: [
+      'Feedback express',
+      'Vue hôte',
+      'En direct immédiatement',
+      'montrent priorité, friction',
+      'Vue de l’animateur Q&amp;A',
+      'flux présentateur',
+      'progression neutre',
+    ],
   },
   it: {
     matrix: [
@@ -234,8 +254,18 @@ const localeContentSmoke = {
       'spazio di moderazione',
       'In arrivo: bussola di moderazione',
       'si adattano a contesti che vanno dalla classe e dal seminario al workshop',
+      'mostrano il quiz, la bacheca delle domande',
+      'i punti di disaccordo e le esigenze di chiarimento',
+      'modalità presentatore',
+      'indicatore neutro di avanzamento',
     ],
-    banned: ['superficie di moderazione', 'Prospettiva della bussola'],
+    banned: [
+      'superficie di moderazione',
+      'Prospettiva della bussola',
+      'priorità, attrito',
+      'flusso presentatore',
+      'progresso neutrale',
+    ],
   },
   es: {
     matrix: [
@@ -256,9 +286,23 @@ const localeContentSmoke = {
       'Próximamente: brújula de moderación',
       'El Q&amp;A permite premoderar',
       'infraestructura de despliegue y operación de la plataforma',
+      'El anfitrión y el presentador muestran el cuestionario',
+      'indican las prioridades, los puntos de desacuerdo',
+      'modo de presentación',
+      'El objetivo no es únicamente votar',
+      'indicador neutro de progreso',
+      'Compatibilidad con lectores de pantalla',
       'en directo',
     ],
-    banned: ['en vivo', 'superficie de moderación', 'palanca fuerte'],
+    banned: [
+      'en vivo',
+      'superficie de moderación',
+      'palanca fuerte',
+      'flujo presentador',
+      'El centro no es solo',
+      'progreso neutro',
+      'Apoyo de lector',
+    ],
   },
 };
 

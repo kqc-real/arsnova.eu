@@ -4,7 +4,7 @@ const de: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand',
     homeDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     siteNameInfo: 'arsnova.eu – Informationen',
     ogLocale: 'de_DE',
   },
@@ -48,7 +48,7 @@ const de: Messages = {
     titleLine2: 'Fragen moderieren',
     titleAccent1: 'live und kostenlos',
     titleAccent2: ' ohne Account.',
-    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Word-Cloud-Analyse und Blitzlicht-Feedback in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Unternehmen. Open Source, auf eigener Infrastruktur betreibbar und für DSGVO-orientierten Betrieb ausgelegt.',
+    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Wortwolken-Analyse und Blitzlicht-Rückmeldung in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Unternehmen. Open Source, auf eigener Infrastruktur betreibbar und für den Betrieb mit Ausrichtung auf die DSGVO ausgelegt.',
     a11yLink: 'Barrierefrei nach WCAG 2.2 AA',
     a11ySuffix: '— Tastatur, Screenreader und individuell anpassbare Bearbeitungszeit.',
     cards: [
@@ -84,7 +84,7 @@ const de: Messages = {
     plausibilityBand: 'Plausibilitätsband',
     plausibilityValue: '1500 bis 2000',
     histogramNote:
-      'Histogramm, Referenzlinie und Toleranzband erscheinen erst nach Ergebnisfreigabe. Vorher bleibt nur der neutrale Fortschritt sichtbar.',
+      'Histogramm, Referenzlinie und Toleranzband erscheinen erst nach Ergebnisfreigabe. Vorher bleibt nur ein neutraler Fortschrittsindikator sichtbar.',
     median: 'Median',
     inBand: 'im Band',
     round2: 'Runde 2',
@@ -93,7 +93,7 @@ const de: Messages = {
   confidence: {
     eyebrow: 'Didaktische Auswertung',
     title: 'Richtig oder falsch — und wie sicher?',
-    lead: 'Mit der Selbsteinschätzung erfassen Teilnehmende nach ihrer Antwort, wie sicher sie sind (1–5). Du erkennst nicht nur Trefferquote, sondern auch selbstsicher falsche Antworten — ein hilfreiches Instrument für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
+    lead: 'Bei der Selbsteinschätzung geben Teilnehmende nach ihrer Antwort an, wie sicher sie sind (1–5). Du erkennst nicht nur Trefferquote, sondern auch falsche Antworten mit hoher Antwortsicherheit — ein hilfreiches Instrument für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
     summary: [
       'Kein eigener Fragetyp — optional an bewertbaren Quizfragen.',
       'Skala 1–5 nach der Antwort, ohne Einfluss auf Punkte.',
@@ -115,7 +115,7 @@ const de: Messages = {
       { label: 'Falsch · mittlere Sicherheit', count: 4, tone: 'amber' },
       { label: 'Falsch · hohe Sicherheit', count: 2, tone: 'rose' },
     ],
-    falseHighTitle: '2 selbstsicher falsche Antworten',
+    falseHighTitle: '2 falsche Antworten mit hoher Antwortsicherheit',
     falseHighText:
       'Option B wurde 2× mit hoher Antwortsicherheit gewählt — ein Signal für mögliche Fehlkonzepte in der Nachbesprechung.',
     consolidated: 'Gefestigt',
@@ -135,11 +135,11 @@ const de: Messages = {
     signals: [
       {
         label: 'Vorab-Moderation',
-        text: 'Fragen erst freigeben, wenn sie in den didaktischen Moment passen.',
+        text: 'Fragen erst freigeben, wenn sie im jeweiligen didaktischen Kontext relevant sind.',
       },
       {
         label: 'Gemeinsames Abstimmen',
-        text: 'Zustimmungs- und Ablehnungsstimmen zeigen Priorität, Reibung und Klärungsbedarf.',
+        text: 'Zustimmungs- und Ablehnungsstimmen zeigen Prioritäten, Unstimmigkeiten und Klärungsbedarf.',
       },
       {
         label: 'Themen-Wortwolke',
@@ -176,7 +176,7 @@ const de: Messages = {
       },
     ],
     wordCloud: 'Q&A-Wortwolke',
-    wordCloudHint: 'Gewichtet nach positiver Resonanz und Kontroverse.',
+    wordCloudHint: 'Gewichtet nach positiver Zustimmung und Kontroverse.',
     frozenLive: 'Live-Aktualisierung pausiert',
     terms: [
       { label: 'Toleranzband', className: 'text-3xl text-brand-200' },
@@ -189,7 +189,7 @@ const de: Messages = {
       { label: 'Klärungsbedarf', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Nächster Schritt: ein deterministischer Moderationskompass, optional ergänzt durch asynchrone sprachliche Auswertung und quellengebundene Zusammenfassungen.',
+      'Nächster Schritt: ein deterministischer Moderationskompass, optional ergänzt durch asynchrone sprachliche Auswertung und Zusammenfassungen mit Bezug zu den jeweiligen Fragen.',
   },
   workflow: {
     eyebrow: 'Für Unterricht, Training und Workshops',
@@ -237,7 +237,7 @@ const de: Messages = {
       {
         title: 'Selbsteinschätzung im Live-Quiz',
         description:
-          'Teilnehmende geben nach der Antwort an, wie sicher sie sind. Du erkennst selbstsicher falsche Antworten, priorisierst die Nachbesprechung und exportierst den Lernstand im Ergebnisbericht (PDF).',
+          'Teilnehmende geben nach der Antwort an, wie sicher sie sind. Du erkennst falsche Antworten mit hoher Antwortsicherheit, priorisierst die Nachbesprechung und exportierst den Lernstand im Ergebnisbericht (PDF).',
         icon: 'confidence',
       },
       {
@@ -255,7 +255,7 @@ const de: Messages = {
       {
         title: 'Mehr als ein Standard-Quiz',
         description:
-          'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction und Presenter-Ablauf unterstützen Lernen, Training und Live-Moderation.',
+          'MC/SC, Kurzantwort, Bewertungsskala, Lesephase, Peer Instruction und Presenter-Modus unterstützen Lernen, Training und Live-Moderation.',
         icon: 'toggle',
       },
       {
@@ -265,9 +265,9 @@ const de: Messages = {
         icon: 'qa',
       },
       {
-        title: 'Elaborierte Word Cloud',
+        title: 'Aussagekräftige Wortwolke',
         description:
-          'Freitext und Q&A werden als Wörter und Phrasen verdichtet; die Fragenwand gewichtet nach Zustimmung, belastbarer Bewertung oder Kontroverse.',
+          'Freitext und Q&A werden als Wörter und Phrasen verdichtet; die Fragenwand gewichtet nach Zustimmung, klarer Mehrheitsbewertung oder Kontroverse.',
         icon: 'cloud',
       },
       {
@@ -291,7 +291,7 @@ const de: Messages = {
       {
         title: 'Open Source mit Deployment und Betrieb',
         description:
-          'Docker, Postgres, Redis und Admin-Protokollierung machen die Plattform auch für Bereitstellung, Betrieb und Nachvollziehbarkeit belastbar.',
+          'Docker, Postgres, Redis und Admin-Protokollierung machen die Plattform auch für Bereitstellung, Betrieb und Nachvollziehbarkeit verlässlich.',
         icon: 'server',
       },
     ],
@@ -379,7 +379,7 @@ const de: Messages = {
       {
         title: 'Mehr Interaktionsformate',
         description:
-          'Neben Quiz auch numerische Schätzfragen, Lesephase, Peer Instruction, Blitzlicht, Q&A-Fragenwand und gewichtete Word Cloud in derselben Plattform statt nur Folien-Abstimmungen.',
+          'Neben Quiz auch numerische Schätzfragen, Lesephase, Peer Instruction, Blitzlicht, Q&A-Fragenwand und gewichtete Wortwolke in derselben Plattform statt nur Folien-Abstimmungen.',
       },
       {
         title: 'Mehr Kontrolle über Daten und Zugang',
@@ -413,7 +413,7 @@ const de: Messages = {
       {
         question: 'Was ist die Selbsteinschätzung im Quiz?',
         answer:
-          'Eine optionale Zusatzabfrage nach bewertbaren Fragen: Teilnehmende geben auf einer Skala von 1–5 an, wie sicher sie bei ihrer Antwort sind. Punkte bleiben unverändert; in der Host-Auswertung siehst du Korrektheit × Antwortsicherheit und markierst selbstsicher falsche Antworten als Fehlkonzept-Signal. Nach Session-Ende fließt der Lernstand in Nachbesprechung und Ergebnisbericht (PDF) ein.',
+          'Eine optionale Zusatzabfrage nach bewertbaren Fragen: Teilnehmende geben auf einer Skala von 1–5 an, wie sicher sie bei ihrer Antwort sind. Punkte bleiben unverändert; in der Host-Auswertung siehst du Korrektheit × Antwortsicherheit und markierst falsche Antworten mit hoher Antwortsicherheit als Fehlkonzept-Signal. Nach Session-Ende fließt der Lernstand in Nachbesprechung und Ergebnisbericht (PDF) ein.',
       },
       {
         question: 'Kann ich Session-Ergebnisse exportieren?',
@@ -428,12 +428,12 @@ const de: Messages = {
       {
         question: 'Was kann die Q&A-Fragenwand?',
         answer:
-          'Teilnehmende reichen Fragen ein und gewichten sie mit Zustimmungs- und Ablehnungsstimmen. Hosts können vorab moderieren, Fragen anheften, archivieren oder entfernen und die Liste nach Unterstützung, belastbarer Zustimmung oder Kontroverse sortieren.',
+          'Teilnehmende reichen Fragen ein und gewichten sie mit Zustimmungs- und Ablehnungsstimmen. Hosts können vorab moderieren, Fragen anheften, archivieren oder entfernen und die Liste nach Unterstützung, klarer Mehrheitszustimmung oder Kontroverse sortieren.',
       },
       {
         question: 'Was macht die Q&A-Wortwolke anders?',
         answer:
-          'Sie verdichtet sichtbare Fragen zu Wörtern und Phrasen und übernimmt die aktive Sortierlogik. Dadurch zeigt sie nicht nur häufige Begriffe, sondern Themencluster aus unterstützten, robust bewerteten oder kontroversen Fragen.',
+          'Sie verdichtet sichtbare Fragen zu Wörtern und Phrasen und übernimmt die aktive Sortierlogik. Dadurch zeigt sie nicht nur häufige Begriffe, sondern Themengruppen aus unterstützten, klar positiv bewerteten oder kontroversen Fragen.',
       },
       {
         question: 'Für wen ist die Plattform gedacht?',
@@ -450,12 +450,12 @@ const de: Messages = {
   },
   ctaSection: {
     title: 'Bereit für die nächste Live-Session?',
-    lead: 'Teste den Live-Ablauf direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Word-Cloud-Verarbeitung und die technischen Grundlagen für Bereitstellung und Betrieb.',
+    lead: 'Teste den Live-Ablauf direkt in der App oder wirf einen Blick auf den offenen Code, die Q&A-Logik, die Wortwolken-Verarbeitung und die technischen Grundlagen für Bereitstellung und Betrieb.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',
     webAppDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     featureList: [
       'Live-Quiz und Abstimmungen',
       'Selbsteinschätzung bei bewertbaren Fragen',
@@ -463,11 +463,11 @@ const de: Messages = {
       'Numerische Schätzfragen mit zwei Runden und Statistik',
       'Q&A-Fragenwand mit Moderation, Zustimmungs- und Ablehnungsstimmen',
       'Warteraum, Presenter, QR/Code',
-      'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
+      'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Bewertungsskala/Schätzfrage',
       'Markdown und KaTeX',
       'Lesephase und Peer Instruction',
-      'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
-      'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
+      'Q&A- und Freitext-Wortwolke mit Phrasen und Gewichtung',
+      'Sortierung nach Unterstützung, klarer Mehrheitszustimmung und Kontroverse',
       'Team-Modus und Voreinstellungen',
       'Rangliste, Serie, Bonus-Code',
       'Import/Export und Yjs-Synchronisation',
@@ -475,7 +475,7 @@ const de: Messages = {
       'UI in fünf Sprachen',
       'Barrierefreiheit nach WCAG 2.2 AA',
       'Docker-Betrieb auf eigener Infrastruktur und Admin-Protokollierung',
-      'Lokal gehaltene Quiz-Inhalte und DSGVO-orientierter Betrieb',
+      'Lokal gehaltene Quiz-Inhalte und Betrieb mit Ausrichtung auf die DSGVO',
     ],
   },
 };

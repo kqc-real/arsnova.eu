@@ -49,7 +49,7 @@ const es: Messages = {
     titleLine2: 'moderación de preguntas',
     titleAccent1: 'en directo y gratis',
     titleAccent2: ' sin cuenta.',
-    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento orientado al RGPD.',
+    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento respetuoso con el RGPD.',
     a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
@@ -86,7 +86,7 @@ const es: Messages = {
     plausibilityBand: 'Banda de plausibilidad',
     plausibilityValue: '1500 a 2000',
     histogramNote:
-      'El histograma, la línea de referencia y la banda de tolerancia aparecen solo tras publicar los resultados. Hasta entonces solo queda visible el progreso neutro.',
+      'El histograma, la línea de referencia y la banda de tolerancia aparecen solo tras publicar los resultados. Hasta entonces solo queda visible un indicador neutro de progreso.',
     median: 'Mediana',
     inBand: 'en la banda',
     round2: 'Ronda 2',
@@ -137,11 +137,11 @@ const es: Messages = {
     signals: [
       {
         label: 'Premoderación',
-        text: 'Publica las preguntas solo cuando encajan en el momento didáctico.',
+        text: 'Publica las preguntas solo cuando son relevantes en el contexto didáctico.',
       },
       {
         label: 'Voto colectivo',
-        text: 'Los votos a favor y en contra muestran prioridad, fricción y necesidad de aclaración.',
+        text: 'Los votos a favor y en contra indican las prioridades, los puntos de desacuerdo y las necesidades de aclaración.',
       },
       {
         label: 'Nube temática',
@@ -154,7 +154,7 @@ const es: Messages = {
     ],
     docsLink: 'Abrir la valoración Q&A y la controversia en GitHub',
     demoAria: 'Ejemplo de muro de preguntas con moderación, votos y nube de palabras',
-    hostView: 'Vista de anfitrión Q&A',
+    hostView: 'Vista Q&A del anfitrión',
     demoTitle: 'Preguntas sobre el evento',
     moderationActive: 'Premoderación activa',
     sortMostSupported: 'Más apoyadas',
@@ -179,7 +179,7 @@ const es: Messages = {
       },
     ],
     wordCloud: 'Nube de palabras Q&A',
-    wordCloudHint: 'Ponderada por resonancia positiva y controversia.',
+    wordCloudHint: 'Ponderada por el apoyo positivo y la controversia.',
     frozenLive: 'Actualizaciones en directo en pausa',
     terms: [
       { label: 'Banda de tolerancia', className: 'text-3xl text-brand-200' },
@@ -192,12 +192,12 @@ const es: Messages = {
       { label: 'Necesidad de aclaración', className: 'text-xl text-violet-200' },
     ],
     nextStep:
-      'Siguiente paso: una brújula de moderación determinista, opcionalmente complementada con señales de análisis lingüístico asíncronas y resúmenes ligados a las fuentes.',
+      'Siguiente paso: una brújula de moderación determinista, opcionalmente complementada con señales de análisis lingüístico asíncronas y resúmenes basados en las preguntas enviadas.',
   },
   workflow: {
     eyebrow: 'Para docencia, formación y talleres',
     title: 'De la idea a la sesión en directo en pocos minutos',
-    lead: 'De la pregunta a la sesión en curso, el flujo evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
+    lead: 'De la pregunta a la sesión en curso, el recorrido evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
     stepLabel: 'Paso',
     steps: [
       {
@@ -210,13 +210,13 @@ const es: Messages = {
         number: '02',
         title: 'Iniciar una sesión',
         description:
-          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR y usa la vista presentador si lo necesitas.',
+          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR y usa la vista del presentador si lo necesitas.',
       },
       {
         number: '03',
         title: 'Moderar en directo',
         description:
-          'Los participantes votan, formulan preguntas y priorizan juntos. Anfitrión y presentador muestran cuestionario, muro de preguntas, nube de palabras, fase de lectura, cuenta atrás, segunda ronda y resultados en un solo flujo.',
+          'Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el muro de preguntas, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
       },
       {
         number: '04',
@@ -258,7 +258,7 @@ const es: Messages = {
       {
         title: 'Más que un cuestionario estándar',
         description:
-          'MC/SC, respuesta corta, valoración, fase de lectura, Peer Instruction y flujo presentador apoyan el aprendizaje, la formación y la moderación en directo.',
+          'MC/SC, respuestas cortas, valoraciones, fase de lectura, Peer Instruction y modo de presentación apoyan el aprendizaje, la formación y la moderación en directo.',
         icon: 'toggle',
       },
       {
@@ -268,9 +268,9 @@ const es: Messages = {
         icon: 'qa',
       },
       {
-        title: 'Nube de palabras elaborada',
+        title: 'Nube de palabras expresiva',
         description:
-          'Texto libre y Q&A se condensan en palabras y frases; el muro pondera por acuerdo, puntuación robusta o controversia.',
+          'Texto libre y Q&A se condensan en palabras y frases; el muro pondera por acuerdo, mayoría clara o controversia.',
         icon: 'cloud',
       },
       {
@@ -302,17 +302,17 @@ const es: Messages = {
   accessibility: {
     eyebrow: 'Accesibilidad',
     title: 'WCAG 2.2 AA — para que más personas puedan participar de forma autónoma',
-    lead: 'Para escuelas, universidades y formación continua, la accesibilidad suele ser un criterio decisivo. arsnova.eu cumple las Web Content Accessibility Guidelines (WCAG) 2.2 en el nivel AA — con uso de teclado, apoyo de lector de pantalla, tiempo de respuesta ajustable individualmente e informes PDF estructurados de forma accesible.',
+    lead: 'Para escuelas, universidades y formación continua, la accesibilidad suele ser un criterio decisivo. arsnova.eu cumple las Web Content Accessibility Guidelines (WCAG) 2.2 en el nivel AA — con uso de teclado, compatibilidad con lectores de pantalla, tiempo de respuesta ajustable individualmente e informes PDF estructurados de forma accesible.',
     benefits: [
       {
         title: 'Uso con teclado',
         description:
-          'Tú y tus participantes usáis los flujos centrales sin ratón. Indicadores de foco visibles y un enlace de salto al contenido facilitan la navegación.',
+          'Tú y tus participantes usáis los recorridos centrales sin ratón. Indicadores de foco visibles y un enlace de salto al contenido facilitan la navegación.',
       },
       {
-        title: 'Apoyo de lector de pantalla en directo',
+        title: 'Compatibilidad con lectores de pantalla en directo',
         description:
-          'Los cambios de estado al unirse a la sesión, en las votaciones y en los cambios de fase se anuncian a los lectores de pantalla para seguir el flujo.',
+          'Los cambios de estado al unirse a la sesión, en las votaciones y en los cambios de fase se anuncian a los lectores de pantalla para seguir el recorrido.',
       },
       {
         title: 'Tiempo de respuesta ajustable individualmente',
@@ -372,7 +372,7 @@ const es: Messages = {
   comparison: {
     eyebrow: 'Diferenciación',
     title: 'No solo un sustituto de Mentimeter o Kahoot',
-    lead: 'El centro no es solo la votación, sino el flujo en directo completo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
+    lead: 'El objetivo no es únicamente votar, sino cubrir todo el proceso en directo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
     points: [
       {
         title: 'Menos barreras de entrada',
@@ -431,12 +431,12 @@ const es: Messages = {
       {
         question: '¿Qué puede hacer el muro de preguntas?',
         answer:
-          'Los participantes envían preguntas y las ponderan con votos a favor y en contra. Los anfitriones pueden premoderar, fijar, archivar o eliminar preguntas y ordenar la lista por apoyo, acuerdo robusto o controversia.',
+          'Los participantes envían preguntas y las ponderan con votos a favor y en contra. Los anfitriones pueden premoderar, fijar, archivar o eliminar preguntas y ordenar la lista por apoyo, mayoría clara o controversia.',
       },
       {
         question: '¿En qué se diferencia la nube de palabras Q&A?',
         answer:
-          'Condensa las preguntas visibles en palabras y frases y sigue la lógica de ordenación activa. Así muestra no solo términos frecuentes, sino clústeres temáticos de preguntas apoyadas, puntuadas de forma robusta o controvertidas.',
+          'Condensa las preguntas visibles en palabras y frases y sigue la lógica de ordenación activa. Así muestra no solo términos frecuentes, sino agrupaciones temáticas de preguntas apoyadas, claramente bien valoradas o controvertidas.',
       },
       {
         question: '¿Para quién está pensada la plataforma?',
@@ -446,14 +446,14 @@ const es: Messages = {
       {
         question: '¿Es accesible arsnova.eu?',
         answer:
-          'arsnova.eu cumple las WCAG 2.2, nivel AA. Los flujos centrales se pueden usar con teclado, los lectores de pantalla anuncian cambios de estado, el tiempo de respuesta en preguntas con tiempo es ajustable individualmente (tiempo estándar, tiempo ×10 o sin límite), y el informe de resultados estructurado de forma accesible está validado PDF/UA-1.',
+          'arsnova.eu cumple las WCAG 2.2, nivel AA. Los recorridos centrales se pueden usar con teclado, los lectores de pantalla anuncian cambios de estado, el tiempo de respuesta en preguntas con tiempo es ajustable individualmente (tiempo estándar, tiempo ×10 o sin límite), y el informe de resultados estructurado de forma accesible está validado PDF/UA-1.',
         linkLabel: 'Abrir la declaración de accesibilidad',
       },
     ],
   },
   ctaSection: {
     title: '¿Listo para la próxima sesión en directo?',
-    lead: 'Prueba el flujo en directo directamente en la aplicación, o echa un vistazo al código fuente abierto, a la lógica Q&A, al procesamiento de la nube de palabras y a la infraestructura de despliegue y operación de la plataforma.',
+    lead: 'Prueba el recorrido en directo directamente en la aplicación, o echa un vistazo al código fuente abierto, a la lógica Q&A, al procesamiento de la nube de palabras y a la infraestructura de despliegue y operación de la plataforma.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
@@ -466,11 +466,11 @@ const es: Messages = {
       'Preguntas de estimación numérica con dos rondas y estadística',
       'Muro de preguntas con moderación, votos a favor y en contra',
       'Sala de espera, presentador, QR/código',
-      'Tipos de pregunta MC/SC/respuesta corta/texto libre/encuesta/valoración/estimación numérica',
+      'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',
       'Nube de palabras Q&A y texto libre con frases y ponderación',
-      'Ordenación por apoyo, acuerdo robusto y controversia',
+      'Ordenación por apoyo, mayoría clara y controversia',
       'Modo equipo y ajustes previos',
       'Clasificación, racha, código bonus',
       'Importación/exportación y sincronización Yjs',
@@ -478,7 +478,7 @@ const es: Messages = {
       'Interfaz en cinco idiomas',
       'Cumple las WCAG 2.2, nivel AA',
       'Ejecución Docker en tu infraestructura y registro de administración',
-      'Contenidos del cuestionario conservados en el dispositivo y funcionamiento orientado al RGPD',
+      'Contenidos del cuestionario conservados en el dispositivo y funcionamiento respetuoso con el RGPD',
     ],
   },
 };
