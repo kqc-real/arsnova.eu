@@ -101,10 +101,12 @@ describe('HelpComponent', () => {
     ).toBe('info');
   });
 
-  it('hält bei Rollenkarten-Klick die Hilfeseite und setzt den Fragment-Pfad', async () => {
+  it('setzt bei Rollenkarten-Klick den Fragment-Anker per replaceState ohne History-Push', async () => {
     const fixture = await createFixture();
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+    const pushStateSpy = vi.spyOn(window.history, 'pushState');
     const hostSection = (fixture.nativeElement as HTMLElement).querySelector(
       '#help-host',
     ) as HTMLElement;
@@ -123,7 +125,12 @@ describe('HelpComponent', () => {
     fixture.detectChanges();
 
     expect(hostSection.scrollIntoView).toHaveBeenCalled();
-    expect(navigateSpy).toHaveBeenCalledWith('/help#help-host', { replaceUrl: true });
+    expect(replaceStateSpy).toHaveBeenCalledTimes(1);
+    expect(String(replaceStateSpy.mock.calls[0]?.[2] ?? '')).toContain('#help-host');
+    expect(pushStateSpy).not.toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
+    replaceStateSpy.mockRestore();
+    pushStateSpy.mockRestore();
   });
 
   it('rendert beide Rollen und beide Erfahrungsgruppen', async () => {

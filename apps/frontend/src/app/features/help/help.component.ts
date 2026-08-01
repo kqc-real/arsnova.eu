@@ -49,7 +49,8 @@ export class HelpComponent {
   }
 
   /**
-   * Primärklick: im Scroll-Container `#main-content` springen, Locale-Pfad behalten.
+   * Primärklick: im Scroll-Container springen und Fragment per replaceState setzen.
+   * Kein History-Push — sonst würde dismissContentPage/Zurück nur den Anker entfernen.
    * Modifizierte Klicks (neuer Tab etc.) nutzen den echten `href`.
    */
   onHelpSectionLinkClick(event: MouseEvent, sectionId: 'help-host' | 'help-participant'): void {
@@ -64,12 +65,16 @@ export class HelpComponent {
       return;
     }
     event.preventDefault();
+    if (typeof window === 'undefined') {
+      return;
+    }
     const section = document.getElementById(sectionId);
     if (!section) {
       return;
     }
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    void this.router.navigateByUrl(this.helpSectionHref(sectionId), { replaceUrl: true });
+    const nextUrl = `${window.location.pathname}${window.location.search}#${sectionId}`;
+    window.history.replaceState(window.history.state, '', nextUrl);
   }
 
   @HostListener('document:keydown.escape', ['$event'])
