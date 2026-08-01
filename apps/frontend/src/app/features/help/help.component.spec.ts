@@ -3,7 +3,16 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getLocaleFromPath } from '../../core/locale-from-path';
 import { HelpComponent } from './help.component';
+
+vi.mock('../../core/locale-from-path', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../core/locale-from-path')>();
+  return {
+    ...actual,
+    getLocaleFromPath: vi.fn(actual.getLocaleFromPath),
+  };
+});
 
 describe('HelpComponent', () => {
   beforeEach(() => {
@@ -14,6 +23,7 @@ describe('HelpComponent', () => {
   });
 
   afterEach(() => {
+    document.querySelectorAll('base').forEach((el) => el.remove());
     vi.clearAllMocks();
   });
 
@@ -79,12 +89,28 @@ describe('HelpComponent', () => {
     const participantCard = root.querySelector<HTMLAnchorElement>(
       'a.help-role-card[href$="#help-participant"]',
     );
-    expect(hostCard?.getAttribute('href')).toBe('/help#help-host');
-    expect(participantCard?.getAttribute('href')).toBe('/help#help-participant');
+    expect(hostCard?.getAttribute('href')).toMatch(/\/help#help-host$/);
+    expect(participantCard?.getAttribute('href')).toMatch(/\/help#help-participant$/);
     expect(hostCard?.textContent).toContain('Ich leite eine Veranstaltung');
     expect(participantCard?.textContent).toContain('Ich nehme an einer Veranstaltung teil');
     expect(root.querySelector('#help-host')).toBeTruthy();
     expect(root.querySelector('#help-participant')).toBeTruthy();
+  });
+
+  it('baut Rollenkarten-hrefs unter Production-base href mit Locale', async () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/de/');
+    document.head.prepend(base);
+    vi.mocked(getLocaleFromPath).mockReturnValue('de');
+
+    const fixture = await createFixture();
+    const root = fixture.nativeElement as HTMLElement;
+    const hostCard = root.querySelector<HTMLAnchorElement>('a.help-role-card[href$="#help-host"]');
+    const participantCard = root.querySelector<HTMLAnchorElement>(
+      'a.help-role-card[href$="#help-participant"]',
+    );
+    expect(hostCard?.getAttribute('href')).toBe('/de/help#help-host');
+    expect(participantCard?.getAttribute('href')).toBe('/de/help#help-participant');
   });
 
   it('wiederholt die Rollenicons in den Abschnittsüberschriften und zeigt eines für Für alle', async () => {
@@ -101,7 +127,7 @@ describe('HelpComponent', () => {
     ).toBe('info');
   });
 
-  it('setzt bei Rollenkarten-Klick Fragment per replaceState und fokussiert den Abschnitt', async () => {
+  it('setzt bei Rollenkarten-Klick Fragment per replaceState, scrollt und fokussiert den Abschnitt', async () => {
     const fixture = await createFixture();
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -113,9 +139,10 @@ describe('HelpComponent', () => {
     const hostTitle = (fixture.nativeElement as HTMLElement).querySelector(
       '#help-host-title',
     ) as HTMLElement;
+    const scrollIntoView = vi.fn();
     Object.defineProperty(hostSection, 'scrollIntoView', {
       configurable: true,
-      value: vi.fn(),
+      value: scrollIntoView,
     });
     const focusSpy = vi.spyOn(hostTitle, 'focus');
     const hostCard = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
@@ -129,7 +156,7 @@ describe('HelpComponent', () => {
     );
     fixture.detectChanges();
 
-    expect(hostSection.scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     expect(replaceStateSpy).toHaveBeenCalledTimes(1);
     expect(String(replaceStateSpy.mock.calls[0]?.[2] ?? '')).toContain('#help-host');
@@ -137,6 +164,53 @@ describe('HelpComponent', () => {
     expect(navigateSpy).not.toHaveBeenCalled();
     replaceStateSpy.mockRestore();
     pushStateSpy.mockRestore();
+  });
+
+  it('nutzt bei prefers-reduced-motion sofortiges Scrollen ohne Router-Navigation', async () => {
+    const previousMatchMedia = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(
+        (query: string) =>
+          ({
+            matches: query.includes('prefers-reduced-motion: reduce'),
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+          }) as MediaQueryList,
+      ),
+    });
+    const fixture = await createFixture();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const hostSection = (fixture.nativeElement as HTMLElement).querySelector(
+      '#help-host',
+    ) as HTMLElement;
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(hostSection, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const hostCard = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'a.help-role-card[href$="#help-host"]',
+    );
+
+    hostCard!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }),
+    );
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+    expect(navigateSpy).not.toHaveBeenCalled();
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: previousMatchMedia,
+    });
   });
 
   it('rendert beide Rollen und beide Erfahrungsgruppen', async () => {

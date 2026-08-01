@@ -11,7 +11,7 @@ import {
   MatExpansionPanelTitle,
 } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
-import { localizePath } from '../../core/locale-router';
+import { localizePath, resolveLocalizedAppUrl } from '../../core/locale-router';
 import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
 
 /**
@@ -43,15 +43,28 @@ export class HelpComponent {
 
   readonly localizedPath = localizePath;
 
-  /** Locale-sicherer Abschnittsanker (kein reines `#…` wegen `<base href>`). */
+  /**
+   * Browser-`href` für Rollenkarten: locale-sicher auch bei Production-`<base href="/de/">`
+   * (Ctrl/Cmd-Klick, Mittelklick, „In neuem Tab öffnen“).
+   */
   helpSectionHref(sectionId: 'help-host' | 'help-participant'): string {
-    return `${localizePath('/help')}#${sectionId}`;
+    const absolute = resolveLocalizedAppUrl('/help');
+    try {
+      const url = new URL(
+        absolute,
+        typeof window !== 'undefined' ? window.location.origin : undefined,
+      );
+      return `${url.pathname}${url.search}#${sectionId}`;
+    } catch {
+      return `${localizePath('/help')}#${sectionId}`;
+    }
   }
 
   /**
    * Primärklick/Enter: im Scroll-Container springen, Fragment per replaceState setzen und
    * Fokus auf die Abschnittsüberschrift legen, damit Tab danach in diesem Abschnitt weiterläuft.
-   * Kein History-Push — sonst würde dismissContentPage/Zurück nur den Anker entfernen.
+   * Kein Router-Navigate / History-Push — sonst Scroll-Reset (`scrollPositionRestoration: 'top'`)
+   * bzw. Zurück nur auf den Anker.
    * Modifizierte Klicks (neuer Tab etc.) nutzen den echten `href`.
    */
   onHelpSectionLinkClick(event: MouseEvent, sectionId: 'help-host' | 'help-participant'): void {
@@ -75,12 +88,16 @@ export class HelpComponent {
     }
     const heading =
       section.querySelector<HTMLElement>('h2.help-section__title') ?? (section as HTMLElement);
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    section.scrollIntoView({ behavior: this.scrollBehavior(), block: 'start' });
     // Nach In-Page-Sprung Fokus verschieben; sonst bleibt er auf der Rollenkarte und Tab
     // läuft wieder durch die Karten oberhalb des Ziels.
     heading.focus({ preventScroll: true });
     const nextUrl = `${window.location.pathname}${window.location.search}#${sectionId}`;
     window.history.replaceState(window.history.state, '', nextUrl);
+  }
+
+  private scrollBehavior(): ScrollBehavior {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
 
   @HostListener('document:keydown.escape', ['$event'])

@@ -195,6 +195,10 @@
 }
 
 .help-panel.mat-expansion-panel {
+  /* Mehrzeilige fr/es-Titel bei 320px / 200% Zoom: feste Material-Höhen abschalten. */
+  --mat-expansion-header-collapsed-state-height: auto;
+  --mat-expansion-header-expanded-state-height: auto;
+
   border-radius: var(--mat-sys-corner-medium) !important;
   box-shadow: none !important;
   outline: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
@@ -202,14 +206,17 @@
   background: var(--mat-sys-surface-container-low);
 
   ::ng-deep .mat-expansion-panel-header {
+    height: auto;
     min-height: 3.5rem;
+    padding-block: 0.75rem;
     padding-inline: 1rem;
+    align-items: center;
   }
 
   ::ng-deep .mat-expansion-panel-header .mat-content {
     min-width: 0;
     flex: 1 1 auto;
-    overflow: hidden;
+    overflow: visible;
     align-items: center;
     gap: 0.5rem;
   }
