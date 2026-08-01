@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   ComponentRef,
   Directive,
@@ -37,8 +38,9 @@ import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
 import { formatLocaleBadgeCount, formatLocaleCount } from './core/locale-number.util';
 import {
+  clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
-  contentPageFocusReturnSelector,
+  focusFooterContentReturn,
   isContentOverlayPath,
   rememberNonOverlayPath,
 } from './shared/content-page-nav';
@@ -138,6 +140,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly swUpdate = inject(SwUpdate, { optional: true });
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
@@ -232,6 +235,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.seo.applyFromRouter();
+    if (isPlatformBrowser(this.platformId)) {
+      // Vor Router-Events: kein veralteter Footer-Fokus nach Reload/Locale-Redirect.
+      clearStaleContentPageFocusReturn();
+    }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -247,6 +254,9 @@ export class AppComponent implements OnInit, OnDestroy {
         /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
         if (this.pendingInitialNavigationEnd) {
           this.pendingInitialNavigationEnd = false;
+          // Bootstrap: kein Footer-Fokus (HMR/bfcache/Trap). Skip-Link bleibt erster Tab-Stop.
+          clearStaleContentPageFocusReturn();
+          queueMicrotask(() => this.blurFooterIfFocused());
         } else if (!event.urlAfterRedirects.includes('#')) {
           requestAnimationFrame(() => {
             this.scrollPrimaryScrollContainerToTop();
@@ -345,29 +355,29 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Verhindert, dass Bootstrap/HMR den Fokus im Footer lässt (Skip-Link zuerst). */
+  private blurFooterIfFocused(): void {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return;
+    }
+    if (!active.closest('footer.app-footer')) {
+      return;
+    }
+    active.blur();
+  }
+
   /**
-   * Nach Schließen von Hilfe/Legal/News-Archiv: Fokus zurück auf den Footer-Link,
-   * von dem die Overlay-Seite aus erreicht wurde.
+   * Nach Schließen von Hilfe/Legal/News-Archiv: Fokus zurück auf den Footer-Link.
+   * Nur wenn ein Dismiss in dieser Navigation `markContentPageFocusReturn` gesetzt hat.
    */
   private restoreContentPageFocusReturn(): boolean {
     const target = consumeContentPageFocusReturn();
     if (!target) {
       return false;
     }
-    const footer = this._appFooterRef?.nativeElement;
-    const selector = contentPageFocusReturnSelector(target);
-    const link =
-      footer?.querySelector<HTMLElement>(selector) ??
-      document.querySelector<HTMLElement>(`footer ${selector}`);
-    if (!link) {
-      return false;
-    }
-    try {
-      link.focus({ preventScroll: true });
-    } catch {
-      link.focus();
-    }
-    return true;
+    this.cdr.detectChanges();
+    return focusFooterContentReturn(target);
   }
 
   showToolbarForFocus(): void {

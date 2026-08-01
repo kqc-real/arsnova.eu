@@ -150,18 +150,19 @@
               <a
                 matButton
                 class="app-footer__link--news-archive"
+                data-footer-focus="footer-news-archive"
                 [routerLink]="localizedPath('/news-archive')"
                 [attr.aria-label]="footerNewsArchiveAria()"
               >
-                <!-- prettier-ignore -->
                 <mat-icon
                   class="app-footer__icon"
                   aria-hidden="true"
                   [matBadge]="footerNewsArchiveBadgeText()"
                   [matBadgeHidden]="motdHeaderState.archiveUnreadCount() === 0"
-                  [matBadgeOverlap]="false"
-                  matBadgePosition="before"
-                >newspaper</mat-icon>
+                  matBadgePosition="above after"
+                  matBadgeOverlap
+                  >newspaper</mat-icon
+                >
                 <span class="app-footer__link-text" i18n="@@app.footer.newsArchive"
                   >News-Archiv</span
                 >
@@ -170,6 +171,7 @@
             @if (footerShowOnlineOnlyLinks()) {
               <a
                 matButton
+                data-footer-focus="footer-help"
                 [routerLink]="localizedPath('/help')"
                 i18n-aria-label="@@app.footer.helpOpenAria"
                 aria-label="So funktioniert’s"
@@ -199,16 +201,29 @@
                   >open_in_new</mat-icon
                 >
               </a>
-              <a matButton [routerLink]="localizedPath('/legal/imprint')">
+              <a
+                matButton
+                data-footer-focus="footer-imprint"
+                [routerLink]="localizedPath('/legal/imprint')"
+                i18n-aria-label="@@app.footer.imprintOpenAria"
+                aria-label="Impressum"
+              >
                 <mat-icon class="app-footer__icon">gavel</mat-icon>
                 <span class="app-footer__link-text" i18n>Impressum</span>
               </a>
-              <a matButton [routerLink]="localizedPath('/legal/privacy')">
+              <a
+                matButton
+                data-footer-focus="footer-privacy"
+                [routerLink]="localizedPath('/legal/privacy')"
+                i18n-aria-label="@@app.footer.privacyOpenAria"
+                aria-label="Datenschutz"
+              >
                 <mat-icon class="app-footer__icon">privacy_tip</mat-icon>
                 <span class="app-footer__link-text" i18n>Datenschutz</span>
               </a>
               <a
                 matButton
+                data-footer-focus="footer-accessibility"
                 [routerLink]="localizedPath('/legal/accessibility')"
                 i18n-aria-label="@@app.footer.accessibilityOpenAria"
                 aria-label="Barrierefreiheit"

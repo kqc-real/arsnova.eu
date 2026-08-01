@@ -33,6 +33,13 @@ export type ContentPageFocusReturn =
 export const CONTENT_PAGE_FOCUS_RETURN_KEY = 'arsnova-content-page-focus-return';
 export const LAST_NON_OVERLAY_PATH_KEY = 'arsnova-last-non-overlay-path';
 
+/**
+ * Nur In-Memory für die aktuelle Dismiss-Navigation.
+ * sessionStorage allein würde nach Reload/Locale-Redirect den Initialfokus stehlen.
+ */
+let pendingFocusReturn: ContentPageFocusReturn | null = null;
+let focusReturnGeneration = 0;
+
 /** Merkt die letzte Nicht-Overlay-Route (für MOTD-Suppress nur bei Rückkehr zur Home). */
 export function rememberNonOverlayPath(pathname: string): void {
   if (typeof sessionStorage === 'undefined') return;
@@ -71,36 +78,66 @@ export function contentPageFocusReturnForPath(pathname: string): ContentPageFocu
 }
 
 export function markContentPageFocusReturn(target: ContentPageFocusReturn): void {
-  if (typeof sessionStorage === 'undefined') return;
-  try {
-    sessionStorage.setItem(CONTENT_PAGE_FOCUS_RETURN_KEY, target);
-  } catch {
-    /* ignore quota / private mode */
+  pendingFocusReturn = target;
+  focusReturnGeneration += 1;
+  const generation = focusReturnGeneration;
+  // Automatisch verfallen — verhindert HMR-/Timer-Leaks mit ewigem Footer-Fokus.
+  if (typeof setTimeout === 'function') {
+    setTimeout(() => {
+      if (focusReturnGeneration === generation) {
+        pendingFocusReturn = null;
+      }
+    }, 2000);
   }
 }
 
+export function peekContentPageFocusReturn(): ContentPageFocusReturn | null {
+  return pendingFocusReturn;
+}
+
 export function consumeContentPageFocusReturn(): ContentPageFocusReturn | null {
-  if (typeof sessionStorage === 'undefined') return null;
-  try {
-    const raw = sessionStorage.getItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
-    sessionStorage.removeItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
-    if (
-      raw === 'footer-help' ||
-      raw === 'footer-news-archive' ||
-      raw === 'footer-imprint' ||
-      raw === 'footer-privacy' ||
-      raw === 'footer-accessibility'
-    ) {
-      return raw;
+  const value = pendingFocusReturn;
+  pendingFocusReturn = null;
+  focusReturnGeneration += 1;
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      sessionStorage.removeItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
+    } catch {
+      /* ignore */
     }
-    return null;
+  }
+  return value;
+}
+
+/** App-Start / Initial-Navigation: keine Footer-Fokus-Rückkehr. */
+export function clearStaleContentPageFocusReturn(): void {
+  pendingFocusReturn = null;
+  focusReturnGeneration += 1;
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.removeItem(CONTENT_PAGE_FOCUS_RETURN_KEY);
   } catch {
-    return null;
+    /* ignore */
   }
 }
 
 /** CSS-Selektor für den Footer-Link zum gespeicherten Fokus-Ziel. */
 export function contentPageFocusReturnSelector(target: ContentPageFocusReturn): string {
+  switch (target) {
+    case 'footer-help':
+      return 'a[data-footer-focus="footer-help"]';
+    case 'footer-news-archive':
+      return 'a[data-footer-focus="footer-news-archive"]';
+    case 'footer-imprint':
+      return 'a[data-footer-focus="footer-imprint"]';
+    case 'footer-privacy':
+      return 'a[data-footer-focus="footer-privacy"]';
+    case 'footer-accessibility':
+      return 'a[data-footer-focus="footer-accessibility"]';
+  }
+}
+
+function contentPageFocusReturnHrefSelector(target: ContentPageFocusReturn): string {
   switch (target) {
     case 'footer-help':
       return 'a[href*="/help"]';
@@ -113,6 +150,45 @@ export function contentPageFocusReturnSelector(target: ContentPageFocusReturn): 
     case 'footer-accessibility':
       return 'a[href*="/legal/accessibility"]';
   }
+}
+
+/** Entfernt inert am App-Chrome, damit Fokus zurück in den Footer kann. */
+export function clearAppChromeInert(): void {
+  if (typeof document === 'undefined') return;
+  const chrome = Array.from(
+    document.querySelectorAll<HTMLElement>('footer.app-footer, app-top-toolbar, a.app-skip-link'),
+  );
+  for (const el of chrome) {
+    if (!el.hasAttribute('inert') && !(el as HTMLElement & { inert?: boolean }).inert) {
+      continue;
+    }
+    el.removeAttribute('inert');
+    (el as HTMLElement & { inert: boolean }).inert = false;
+  }
+}
+
+/**
+ * Fokus auf den Footer-Link legen (inert am Chrome vorher entfernen).
+ * `activeElement` darf auch ein Nachfahre des Links sein (Material-Button).
+ */
+export function focusFooterContentReturn(target: ContentPageFocusReturn): boolean {
+  if (typeof document === 'undefined') return false;
+  clearAppChromeInert();
+  const footer = document.querySelector<HTMLElement>('footer.app-footer');
+  const link =
+    footer?.querySelector<HTMLElement>(contentPageFocusReturnSelector(target)) ??
+    footer?.querySelector<HTMLElement>(contentPageFocusReturnHrefSelector(target)) ??
+    null;
+  if (!link) {
+    return false;
+  }
+  try {
+    link.focus({ preventScroll: true });
+  } catch {
+    link.focus();
+  }
+  const active = document.activeElement;
+  return active === link || (active instanceof Node && link.contains(active));
 }
 
 /**
@@ -149,11 +225,16 @@ export function shouldDeferContentPageEscape(dialog: MatDialog): boolean {
 /**
  * Schließt eine Content-Page: History zurück, sonst lokalisierte Startseite.
  * Beim Direktaufruf (keine History) kein Footer-Fokus-Marker — normale Home-Fokuslogik.
+ *
+ * inert am Chrome vor `back()` entfernen, damit cdkTrapFocus den zuvor fokussierten
+ * Footer-Link wiederherstellen kann. Keine Timer-Retries — die stehlen sonst den
+ * Initialfokus (Skip-Link / Inhalt).
  */
 export function dismissContentPage(location: Location, router: Router): void {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   if (typeof window !== 'undefined' && window.history.length > 1) {
     prepareContentPageDismiss(pathname);
+    clearAppChromeInert();
     location.back();
     return;
   }

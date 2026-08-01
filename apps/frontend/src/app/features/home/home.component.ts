@@ -972,6 +972,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private clearMotdOverlay(): void {
     const focusReturn = this.motdFocusReturn;
     this.motdFocusReturn = null;
+    const activeBefore = document.activeElement;
+    const activeWasInMotd =
+      activeBefore instanceof HTMLElement &&
+      !!activeBefore.closest('.home-motd-layer, .home-motd-sheet');
     this.motd.set(null);
     this.motdBodyHtml.set(null);
     queueMicrotask(() => {
@@ -981,11 +985,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       const active = document.activeElement;
       if (
+        !activeWasInMotd &&
         active instanceof HTMLElement &&
+        active.isConnected &&
         active !== document.body &&
         active !== document.documentElement
       ) {
-        // Nutzer:in hat bereits woanders Fokus — nicht in die Code-Eingabe ziehen.
+        // Nutzer:in hat bereits woanders Fokus — nicht verschieben.
+        return;
+      }
+      // Nach Entfernen des MOTD-Dialogs bleibt der Sequential-Focus-Start oft hinter
+      // dem Dialog → nächstes Tab landet im Footer. Skip-Link setzt den Start zurück.
+      const skip = document.querySelector<HTMLElement>('a.app-skip-link');
+      if (skip) {
+        skip.focus({ preventScroll: true });
         return;
       }
       this.sessionCodeInput?.nativeElement?.focus({ preventScroll: true });
