@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, RouterOutlet, withInMemoryScrolling } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLocaleFromPath } from '../../core/locale-from-path';
@@ -14,6 +15,13 @@ vi.mock('../../core/locale-from-path', async (importOriginal) => {
   };
 });
 
+@Component({
+  selector: 'app-help-router-host',
+  imports: [RouterOutlet],
+  template: '<router-outlet />',
+})
+class HelpRouterHostComponent {}
+
 describe('HelpComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -24,6 +32,8 @@ describe('HelpComponent', () => {
 
   afterEach(() => {
     document.querySelectorAll('base').forEach((el) => el.remove());
+    document.querySelectorAll('app-help-router-host').forEach((el) => el.remove());
+    window.history.replaceState(window.history.state, '', '/');
     vi.clearAllMocks();
   });
 
@@ -125,6 +135,61 @@ describe('HelpComponent', () => {
     expect(
       root.querySelector('#help-common-title .help-section__title-icon')?.textContent?.trim(),
     ).toBe('info');
+  });
+
+  it('landet bei initialem Fragmentaufruf am Rollenabschnitt ohne History-Push', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [HelpRouterHostComponent, HelpComponent],
+      providers: [
+        provideRouter(
+          [
+            { path: 'de/help', component: HelpComponent },
+            { path: 'help', component: HelpComponent },
+          ],
+          withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
+        ),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
+      ],
+    });
+
+    const hostFixture = TestBed.createComponent(HelpRouterHostComponent);
+    document.body.appendChild(hostFixture.nativeElement);
+    hostFixture.detectChanges();
+
+    const scrollIntoViewSpy = vi.fn();
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: scrollIntoViewSpy,
+    });
+    const pushStateSpy = vi.spyOn(window.history, 'pushState');
+    const router = TestBed.inject(Router);
+    // Browser-URL inkl. Hash vor Aktivierung setzen (neuer Tab / Fragmentaufruf).
+    window.history.replaceState(window.history.state, '', '/de/help#help-participant');
+    const navigated = await router.navigateByUrl('/de/help#help-participant');
+    expect(navigated).toBe(true);
+    hostFixture.detectChanges();
+    await hostFixture.whenStable();
+    hostFixture.detectChanges();
+
+    // afterNextRender / ngAfterViewInit + setTimeout(0)
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    hostFixture.detectChanges();
+    await hostFixture.whenStable();
+
+    const title = document.querySelector('#help-participant-title') as HTMLElement | null;
+    const section = document.querySelector('#help-participant');
+    expect(router.url).toContain('/de/help');
+    expect(window.location.hash).toBe('#help-participant');
+    expect(title).toBeTruthy();
+    expect(section).toBeTruthy();
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(scrollIntoViewSpy.mock.instances.some((instance) => instance === section)).toBe(true);
+    expect(document.activeElement).toBe(title);
+    expect(pushStateSpy).not.toHaveBeenCalled();
+    pushStateSpy.mockRestore();
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
   });
 
   it('setzt bei Rollenkarten-Klick Fragment per replaceState, scrollt und fokussiert den Abschnitt', async () => {

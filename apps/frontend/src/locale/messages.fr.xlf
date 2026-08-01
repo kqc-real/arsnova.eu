@@ -6363,7 +6363,7 @@
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
         <source> Neue Beiträge können zunächst zurückgehalten und erst nach deiner Freigabe veröffentlicht werden. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
-        <target>Les nouvelles contributions peuvent attendre une validation avant d’apparaître. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots met en évidence les thèmes récurrents pour la présentation.</target>
+        <target>Les nouvelles contributions peuvent être mises en attente et n’apparaître qu’après validation. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots met en évidence les thèmes récurrents pour la présentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">189,195</context>
@@ -6549,7 +6549,7 @@
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingBody" datatype="html">
         <source> Prüfe zuerst den Code oder QR-Code und deine Internetverbindung. Vergewissere dich außerdem, dass die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
-        <target>Vérifie d’abord le code ou le QR code et ta connexion Internet, puis assure-toi que la session est toujours active. Si aucune question n’est encore visible, la session peut être dans le hall d’attente, en phase de lecture ou en pause. Après une coupure, rouvre le lien de participation ou saisis de nouveau le code. Adresse-toi à la personne qui anime si la session est déjà terminée.</target>
+        <target>Vérifie d’abord le code ou le QR code et ta connexion Internet, puis assure-toi que la session est toujours active. Si aucune question n’est encore visible, la session peut être dans la salle d’attente, en phase de lecture ou en pause. Après une coupure, rouvre le lien de participation ou saisis de nouveau le code. Adresse-toi à la personne qui anime si la session est déjà terminée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">423,430</context>

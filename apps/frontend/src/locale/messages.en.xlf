@@ -6384,7 +6384,7 @@
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
         <source> Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
-        <target>Start a Pulse Check from the live session or with “Live in one click” on the home page. You can pause, resume, reset, or start a new round. During pace feedback, participants can change their response at any time; you only see the aggregated trend.</target>
+        <target>Start a Pulse Check from the live session or with “Instant feedback with one click” on the home page. You can pause, resume, reset, or start a new round. During pace feedback, participants can change their response at any time; you only see the aggregated trend.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">206,211</context>

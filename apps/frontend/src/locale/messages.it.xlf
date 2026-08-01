@@ -6363,7 +6363,7 @@
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
         <source> Neue Beiträge können zunächst zurückgehalten und erst nach deiner Freigabe veröffentlicht werden. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
-        <target>I nuovi contributi possono attendere l’approvazione prima di apparire. Puoi approvare, fissare in alto, archiviare o rimuovere le domande. Voti positivi e negativi e diverse modalità di ordinamento aiutano a stabilire le priorità; la nuvola di parole mette in evidenza i temi ricorrenti per la presentazione.</target>
+        <target>I nuovi contributi possono essere trattenuti e pubblicati solo dopo la tua approvazione. Puoi approvare, fissare in alto, archiviare o rimuovere le domande. Voti positivi e negativi e diverse modalità di ordinamento aiutano a stabilire le priorità; la nuvola di parole mette in evidenza i temi ricorrenti per la presentazione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">189,195</context>
