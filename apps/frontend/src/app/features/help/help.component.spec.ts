@@ -87,6 +87,20 @@ describe('HelpComponent', () => {
     expect(root.querySelector('#help-participant')).toBeTruthy();
   });
 
+  it('wiederholt die Rollenicons in den Abschnittsüberschriften und zeigt eines für Für alle', async () => {
+    const fixture = await createFixture();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(
+      root.querySelector('#help-host-title .help-section__title-icon')?.textContent?.trim(),
+    ).toBe('school');
+    expect(
+      root.querySelector('#help-participant-title .help-section__title-icon')?.textContent?.trim(),
+    ).toBe('groups');
+    expect(
+      root.querySelector('#help-common-title .help-section__title-icon')?.textContent?.trim(),
+    ).toBe('info');
+  });
+
   it('hält bei Rollenkarten-Klick die Hilfeseite und setzt den Fragment-Pfad', async () => {
     const fixture = await createFixture();
     const router = TestBed.inject(Router);

@@ -6211,7 +6211,7 @@
         <target>Role selection</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleHostTitle" datatype="html">
@@ -6219,11 +6219,11 @@
         <target>I’m hosting a session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">54</context>
+          <context context-type="linenumber">55</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">74</context>
+          <context context-type="linenumber">84</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleHostHint" datatype="html">
@@ -6231,7 +6231,7 @@
         <target>For educators, speakers, trainers, and moderators</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">56</context>
+          <context context-type="linenumber">58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleParticipantTitle" datatype="html">
@@ -6239,11 +6239,11 @@
         <target>I’m joining a session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">64</context>
+          <context context-type="linenumber">71</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">224</context>
+          <context context-type="linenumber">241</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.roleParticipantHint" datatype="html">
@@ -6251,7 +6251,7 @@
         <target>For anyone voting, asking questions, or sharing feedback</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">66</context>
+          <context context-type="linenumber">74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.newUserTitle" datatype="html">
@@ -6259,11 +6259,11 @@
         <target>New to arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">76</context>
+          <context context-type="linenumber">87</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">244</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesTitle" datatype="html">
@@ -6271,7 +6271,7 @@
         <target>What can I do with arsnova.eu?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">81</context>
+          <context context-type="linenumber">92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesBody" datatype="html">
@@ -6279,7 +6279,7 @@
         <target>Use a quiz for prepared knowledge or opinion questions. Use Q&amp;A to collect and prioritize questions from your audience. Pulse Check is designed for spontaneous mood, understanding, and pace checks. You can combine all three in one live session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">88,93</context>
+          <context context-type="linenumber">99,104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFirstSessionTitle" datatype="html">
@@ -6287,7 +6287,7 @@
         <target>How do I start my first session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">100</context>
+          <context context-type="linenumber">111</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFirstSessionBody" datatype="html">
@@ -6295,7 +6295,7 @@
         <target>Open the quiz library and use the demo quiz or create your own. Select “Start,” choose the style and options, then share the 6-character code or QR code. In the host view, show the next question, start the answer phase, and reveal the results. Tip: Try the preview on a second device before your first live session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">107,113</context>
+          <context context-type="linenumber">118,124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">
@@ -6303,7 +6303,7 @@
         <target>How do I end and review a session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishBody" datatype="html">
@@ -6311,7 +6311,7 @@
         <target>End the session from the host view. The consolidated results are then available. Use the debrief plan PDF for your teaching review; the CSV export is under “More.” The debrief plan remains available from the quiz card.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">124,129</context>
+          <context context-type="linenumber">135,140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.experiencedUserTitle" datatype="html">
@@ -6319,11 +6319,11 @@
         <target>Familiar with arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">134,136</context>
+          <context context-type="linenumber">145,147</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">283,285</context>
+          <context context-type="linenumber">304,306</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsTitle" datatype="html">
@@ -6331,7 +6331,7 @@
         <target>Question types and self-assessment</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
@@ -6339,7 +6339,7 @@
         <target>Available question types are Single Choice, Multiple Choice, Short answer, Free text, Survey, Rating scale, and Numerical estimate. Evaluable questions can be followed by a self-assessment on a scale from 1 to 5. It does not affect the score, but it highlights consolidated knowledge, fragile knowledge, and potential misconceptions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">145,151</context>
+          <context context-type="linenumber">156,162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostModerationTitle" datatype="html">
@@ -6347,7 +6347,7 @@
         <target>Moderate live and use Peer Instruction</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostModerationBody" datatype="html">
@@ -6355,7 +6355,7 @@
         <target>Use the reading phase, timer, projector or presenter view, and delayed result reveal as needed. For Peer Instruction, run a first vote, start a discussion phase, and then open a second vote. The before-and-after comparison makes changes visible.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">162,167</context>
+          <context context-type="linenumber">173,178</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
@@ -6363,7 +6363,7 @@
         <target>Moderate the Q&amp;A question wall</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">174</context>
+          <context context-type="linenumber">185</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
@@ -6371,7 +6371,7 @@
         <target>New posts can wait for approval before they appear. You can approve, pin, archive, or remove questions. Upvotes, downvotes, and sort modes help you prioritize them; the word cloud condenses visible themes for presentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">178,183</context>
+          <context context-type="linenumber">189,194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseTitle" datatype="html">
@@ -6379,7 +6379,7 @@
         <target>Use Pulse Check and pace feedback</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">190</context>
+          <context context-type="linenumber">201</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
@@ -6387,7 +6387,7 @@
         <target>Start a Pulse Check from the live session or with “Live in one click” on the home page. You can pause, resume, reset, or start a new round. During pace feedback, participants can change their response at any time; you only see the aggregated trend.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">194,199</context>
+          <context context-type="linenumber">205,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
@@ -6395,7 +6395,7 @@
         <target>Manage quizzes and settings</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">206</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
@@ -6403,7 +6403,7 @@
         <target>In the quiz library, edit and reorder questions, check the preview, and import or export quizzes as JSON. Use the sync link to share the library or continue on another device. AI generation and review templates help without sending your content to arsnova.eu. When starting a session, configure options such as style, leaderboard, sound, teams, nicknames, timer, and bonus codes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">210,217</context>
+          <context context-type="linenumber">221,228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
@@ -6411,7 +6411,7 @@
         <target>How do I join a session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">231</context>
+          <context context-type="linenumber">249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinBody" datatype="html">
@@ -6419,7 +6419,7 @@
         <target>Scan the QR code or open arsnova.eu and enter the 6-character code. You do not need an account. Depending on the host’s settings, you can join anonymously, with a preset nickname, or with a name you choose.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">235,240</context>
+          <context context-type="linenumber">256,261</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTitle" datatype="html">
@@ -6427,7 +6427,7 @@
         <target>How do I answer a quiz question?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">247</context>
+          <context context-type="linenumber">268</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerBody" datatype="html">
@@ -6435,7 +6435,7 @@
         <target>Select or enter an answer, then submit it. If self-assessment is enabled, rate how confident you are on a scale from 1 to 5. When there is a time limit, a countdown shows the remaining time. Results appear when the host reveals them.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">254,259</context>
+          <context context-type="linenumber">275,280</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
@@ -6443,7 +6443,7 @@
         <target>How do I ask a question or share feedback?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">266</context>
+          <context context-type="linenumber">287</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantContributeBody" datatype="html">
@@ -6451,7 +6451,7 @@
         <target>In Q&amp;A, submit your own question and upvote or downvote other posts. Depending on moderation settings, your question may appear only after approval. In Pulse Check, share spontaneous feedback with one tap. You can update your pace feedback while the poll is running.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">273,278</context>
+          <context context-type="linenumber">294,299</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsTitle" datatype="html">
@@ -6459,7 +6459,7 @@
         <target>How do I use quiz, Q&amp;A, and Pulse Check in one session?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">290</context>
+          <context context-type="linenumber">311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsBody" datatype="html">
@@ -6467,7 +6467,7 @@
         <target>A live session can combine quiz, Q&amp;A, and Pulse Check. Follow the active view and the instructions on your device. If a channel is not active, wait for the host to open the next activity.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">297,302</context>
+          <context context-type="linenumber">318,323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundTitle" datatype="html">
@@ -6475,7 +6475,7 @@
         <target>What happens in a second voting round?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">309</context>
+          <context context-type="linenumber">330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundBody" datatype="html">
@@ -6483,7 +6483,7 @@
         <target>In Peer Instruction, answer the question on your own first. Then discuss it with other participants and vote again. Submit your answer in the second round as well; it can differ from your first answer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">316,321</context>
+          <context context-type="linenumber">337,342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsTitle" datatype="html">
@@ -6491,7 +6491,7 @@
         <target>How should I read results, leaderboards, and team scores?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">328</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsBody" datatype="html">
@@ -6499,7 +6499,7 @@
         <target>The host decides when results become visible. Leaderboards, team scores, and bonus codes appear only when enabled for the session. Your self-assessment does not affect your score or position.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">335,339</context>
+          <context context-type="linenumber">356,360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTitle" datatype="html">
@@ -6507,7 +6507,7 @@
         <target>For everyone</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">346</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyTitle" datatype="html">
@@ -6515,7 +6515,7 @@
         <target>How are data and content handled?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">351</context>
+          <context context-type="linenumber">375</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyBody" datatype="html">
@@ -6523,7 +6523,7 @@
         <target>No account is required. A host’s quiz content is stored locally in the browser first; during a live session, the data needed for interaction is exchanged. arsnova.eu is open source and designed for privacy-focused operation in Europe. See the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Privacy policy<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> for details.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">355,362</context>
+          <context context-type="linenumber">379,386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityTitle" datatype="html">
@@ -6531,15 +6531,17 @@
         <target>How can I use arsnova.eu accessibly and as an app?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">369</context>
+          <context context-type="linenumber">393</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityBody" datatype="html">
-        <source> arsnova.eu lässt sich mit Tastatur, Screenreader und vergrößerter Darstellung bedienen. Nutze bei Bedarf die Kontrast- und Farbschemaoptionen der App oder deines Betriebssystems. Du kannst arsnova.eu außerdem als Progressive Web App installieren. Weitere Hinweise stehen in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/accessibility&apos;)&quot;&gt;"/>Erklärung zur Barrierefreiheit<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.</source>
+        <source> arsnova.eu lässt sich mit Tastatur, Screenreader und vergrößerter Darstellung bedienen. Nutze bei Bedarf die Kontrast- und Farbschemaoptionen der App oder deines Betriebssystems. Du kannst arsnova.eu außerdem als Progressive Web App installieren. Weitere Hinweise stehen in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/accessibility&apos;)&quot;
+                    &gt;"/>Erklärung zur Barrierefreiheit<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+                  &gt;"/>.</source>
         <target>arsnova.eu supports keyboard operation, screen readers, and zoom. Use the app’s contrast and color-scheme options or those provided by your operating system as needed. You can also install arsnova.eu as a Progressive Web App. See the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Accessibility statement<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> for more information.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">376,382</context>
+          <context context-type="linenumber">400,408</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingTitle" datatype="html">
@@ -6547,7 +6549,7 @@
         <target>What can I do if something is not working?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">415</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTroubleshootingBody" datatype="html">
@@ -6555,7 +6557,7 @@
         <target>First check the code or QR code, your internet connection, and whether the session is still active. If no question is visible yet, the session may be in the lobby, reading phase, or paused. After a connection interruption, open the join link again or re-enter the code. Ask the host if the session has already ended.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">396,403</context>
+          <context context-type="linenumber">422,429</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.channelQuiz" datatype="html">

@@ -79,7 +79,10 @@
         </nav>
 
         <section id="help-host" class="help-section" aria-labelledby="help-host-title">
-          <h2 id="help-host-title" i18n="@@help.roleHostTitle">Ich leite eine Veranstaltung</h2>
+          <h2 id="help-host-title" class="help-section__title">
+            <mat-icon class="help-section__title-icon" aria-hidden="true">school</mat-icon>
+            <span i18n="@@help.roleHostTitle">Ich leite eine Veranstaltung</span>
+          </h2>
 
           <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
           <mat-accordion class="help-accordion" [multi]="true">
@@ -233,8 +236,9 @@
           class="help-section"
           aria-labelledby="help-participant-title"
         >
-          <h2 id="help-participant-title" i18n="@@help.roleParticipantTitle">
-            Ich nehme an einer Veranstaltung teil
+          <h2 id="help-participant-title" class="help-section__title">
+            <mat-icon class="help-section__title-icon" aria-hidden="true">groups</mat-icon>
+            <span i18n="@@help.roleParticipantTitle">Ich nehme an einer Veranstaltung teil</span>
           </h2>
 
           <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
@@ -360,7 +364,10 @@
         </section>
 
         <section id="help-common" class="help-section" aria-labelledby="help-common-title">
-          <h2 id="help-common-title" i18n="@@help.commonTitle">Für alle</h2>
+          <h2 id="help-common-title" class="help-section__title">
+            <mat-icon class="help-section__title-icon" aria-hidden="true">info</mat-icon>
+            <span i18n="@@help.commonTitle">Für alle</span>
+          </h2>
           <mat-accordion class="help-accordion" [multi]="true">
             <mat-expansion-panel #commonPrivacyPanel class="help-panel">
               <mat-expansion-panel-header>
