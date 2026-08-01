@@ -60,8 +60,9 @@
           [matBadge]="motdArchiveBadgeText()"
           [matBadgeHidden]="motdHeaderState.archiveUnreadCount() === 0"
           matBadgePosition="above after"
+          matBadgeOverlap
         >
-          <mat-icon>campaign</mat-icon>
+          <mat-icon aria-hidden="true">campaign</mat-icon>
         </button>
       }
     </div>

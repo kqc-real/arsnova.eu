@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   ComponentRef,
   Directive,
@@ -16,7 +17,14 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  Router,
+  RouterLink,
+  RouterOutlet,
+} from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton } from '@angular/material/button';
@@ -35,10 +43,11 @@ import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
-import { formatLocaleBadgeCount, formatLocaleCount } from './core/locale-number.util';
+import { formatLocaleBadgeCount } from './core/locale-number.util';
 import {
+  clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
-  contentPageFocusReturnSelector,
+  focusFooterContentReturn,
   isContentOverlayPath,
   rememberNonOverlayPath,
 } from './shared/content-page-nav';
@@ -138,6 +147,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly swUpdate = inject(SwUpdate, { optional: true });
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
@@ -215,6 +225,9 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
   footerNewsArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();
+    // Kein „0“ im DOM: matBadgeHidden blendet den Inhalt für Lighthouse nicht zuverlässig aus
+    // (label-content-name-mismatch gegen Aria ohne Zähler).
+    if (n <= 0) return '';
     return formatLocaleBadgeCount(n, this.localeId);
   });
 
@@ -225,17 +238,37 @@ export class AppComponent implements OnInit, OnDestroy {
       return $localize`:@@app.footer.newsArchiveAria:News-Archiv öffnen`;
     }
     if (n === 1) {
-      return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, eine ungelesene Meldung`;
+      // Ziffer „1“ wie im Badge — sonst label-content-name-mismatch (Lighthouse).
+      return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, 1 ungelesene Meldung`;
     }
-    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
+    // Dieselbe Ziffernform wie im Badge (inkl. „99+“), sonst label-content-name-mismatch.
+    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleBadgeCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   ngOnInit(): void {
     this.seo.applyFromRouter();
+    if (isPlatformBrowser(this.platformId)) {
+      // Vor Router-Events: kein veralteter Footer-Fokus nach Reload/Locale-Redirect.
+      clearStaleContentPageFocusReturn();
+    }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .pipe(
+        filter(
+          (e): e is NavigationEnd | NavigationCancel | NavigationError =>
+            e instanceof NavigationEnd ||
+            e instanceof NavigationCancel ||
+            e instanceof NavigationError,
+        ),
+      )
       .subscribe((event) => {
+        if (!(event instanceof NavigationEnd)) {
+          // Abbruch/Fehler: Footer-Fokus-Marker nicht über die Navigation hinaus behalten.
+          if (isPlatformBrowser(this.platformId)) {
+            clearStaleContentPageFocusReturn();
+          }
+          return;
+        }
         this.seo.applyFromRouter();
         if (!isPlatformBrowser(this.platformId)) {
           return;
@@ -247,11 +280,16 @@ export class AppComponent implements OnInit, OnDestroy {
         /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
         if (this.pendingInitialNavigationEnd) {
           this.pendingInitialNavigationEnd = false;
+          // Bootstrap: kein Footer-Fokus (HMR/bfcache/Trap). Skip-Link bleibt erster Tab-Stop.
+          clearStaleContentPageFocusReturn();
+          queueMicrotask(() => this.blurFooterIfFocused());
         } else if (!event.urlAfterRedirects.includes('#')) {
           requestAnimationFrame(() => {
             this.scrollPrimaryScrollContainerToTop();
             // Content-Overlay-Seiten setzen Fokus selbst (cdkFocusInitial auf „Zurück“).
+            // Overlay→Overlay: Marker verwerfen; Chrome-inert bleibt über Angular-Binding.
             if (this.isContentOverlayRoute()) {
+              clearStaleContentPageFocusReturn();
               return;
             }
             // Rückkehr aus Hilfe/Legal/News-Archiv: Footer-Link statt Hero-H1.
@@ -345,29 +383,29 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Verhindert, dass Bootstrap/HMR den Fokus im Footer lässt (Skip-Link zuerst). */
+  private blurFooterIfFocused(): void {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return;
+    }
+    if (!active.closest('footer.app-footer')) {
+      return;
+    }
+    active.blur();
+  }
+
   /**
-   * Nach Schließen von Hilfe/Legal/News-Archiv: Fokus zurück auf den Footer-Link,
-   * von dem die Overlay-Seite aus erreicht wurde.
+   * Nach Schließen von Hilfe/Legal/News-Archiv: Fokus zurück auf den Footer-Link.
+   * Nur wenn ein Dismiss in dieser Navigation `markContentPageFocusReturn` gesetzt hat.
    */
   private restoreContentPageFocusReturn(): boolean {
     const target = consumeContentPageFocusReturn();
     if (!target) {
       return false;
     }
-    const footer = this._appFooterRef?.nativeElement;
-    const selector = contentPageFocusReturnSelector(target);
-    const link =
-      footer?.querySelector<HTMLElement>(selector) ??
-      document.querySelector<HTMLElement>(`footer ${selector}`);
-    if (!link) {
-      return false;
-    }
-    try {
-      link.focus({ preventScroll: true });
-    } catch {
-      link.focus();
-    }
-    return true;
+    this.cdr.detectChanges();
+    return focusFooterContentReturn(target);
   }
 
   showToolbarForFocus(): void {

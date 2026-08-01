@@ -150,18 +150,19 @@
               <a
                 matButton
                 class="app-footer__link--news-archive"
+                data-footer-focus="footer-news-archive"
                 [routerLink]="localizedPath('/news-archive')"
                 [attr.aria-label]="footerNewsArchiveAria()"
               >
-                <!-- prettier-ignore -->
                 <mat-icon
                   class="app-footer__icon"
                   aria-hidden="true"
                   [matBadge]="footerNewsArchiveBadgeText()"
                   [matBadgeHidden]="motdHeaderState.archiveUnreadCount() === 0"
-                  [matBadgeOverlap]="false"
-                  matBadgePosition="before"
-                >newspaper</mat-icon>
+                  matBadgePosition="above after"
+                  matBadgeOverlap
+                  >newspaper</mat-icon
+                >
                 <span class="app-footer__link-text" i18n="@@app.footer.newsArchive"
                   >News-Archiv</span
                 >
@@ -170,11 +171,12 @@
             @if (footerShowOnlineOnlyLinks()) {
               <a
                 matButton
+                data-footer-focus="footer-help"
                 [routerLink]="localizedPath('/help')"
                 i18n-aria-label="@@app.footer.helpOpenAria"
                 aria-label="So funktioniert’s"
               >
-                <mat-icon class="app-footer__icon">menu_book</mat-icon>
+                <mat-icon class="app-footer__icon" aria-hidden="true">menu_book</mat-icon>
                 <span class="app-footer__link-text" i18n="@@app.footer.help"
                   >So funktioniert’s</span
                 >
@@ -188,7 +190,7 @@
                 i18n-aria-label="@@app.footer.infoLandingAria"
                 aria-label="Was arsnova.eu kann (öffnet in neuem Tab)"
               >
-                <mat-icon class="app-footer__icon">info</mat-icon>
+                <mat-icon class="app-footer__icon" aria-hidden="true">info</mat-icon>
                 <span class="app-footer__link-text" i18n="@@app.footer.infoLanding"
                   >Was arsnova.eu kann</span
                 >
@@ -199,21 +201,34 @@
                   >open_in_new</mat-icon
                 >
               </a>
-              <a matButton [routerLink]="localizedPath('/legal/imprint')">
-                <mat-icon class="app-footer__icon">gavel</mat-icon>
+              <a
+                matButton
+                data-footer-focus="footer-imprint"
+                [routerLink]="localizedPath('/legal/imprint')"
+                i18n-aria-label="@@app.footer.imprintOpenAria"
+                aria-label="Impressum"
+              >
+                <mat-icon class="app-footer__icon" aria-hidden="true">gavel</mat-icon>
                 <span class="app-footer__link-text" i18n>Impressum</span>
               </a>
-              <a matButton [routerLink]="localizedPath('/legal/privacy')">
-                <mat-icon class="app-footer__icon">privacy_tip</mat-icon>
+              <a
+                matButton
+                data-footer-focus="footer-privacy"
+                [routerLink]="localizedPath('/legal/privacy')"
+                i18n-aria-label="@@app.footer.privacyOpenAria"
+                aria-label="Datenschutz"
+              >
+                <mat-icon class="app-footer__icon" aria-hidden="true">privacy_tip</mat-icon>
                 <span class="app-footer__link-text" i18n>Datenschutz</span>
               </a>
               <a
                 matButton
+                data-footer-focus="footer-accessibility"
                 [routerLink]="localizedPath('/legal/accessibility')"
                 i18n-aria-label="@@app.footer.accessibilityOpenAria"
                 aria-label="Barrierefreiheit"
               >
-                <mat-icon class="app-footer__icon">accessibility</mat-icon>
+                <mat-icon class="app-footer__icon" aria-hidden="true">accessibility</mat-icon>
                 <span class="app-footer__link-text" i18n="@@app.footer.accessibility"
                   >Barrierefreiheit</span
                 >

@@ -111,18 +111,32 @@
           <context context-type="linenumber">192</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.imprintOpenAria" datatype="html">
+        <source>Impressum</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">205</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="1547876271716599756" datatype="html">
         <source>Impressum</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">198</context>
+          <context context-type="linenumber">209</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.privacyOpenAria" datatype="html">
+        <source>Datenschutz</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">215</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4082114936887396529" datatype="html">
         <source>Datenschutz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">202</context>
+          <context context-type="linenumber">219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.accessibilityOpenAria" datatype="html">
@@ -190,14 +204,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.newsArchiveAriaOne" datatype="html">
-        <source>News-Archiv öffnen, eine ungelesene Meldung</source>
+        <source>News-Archiv öffnen, 1 ungelesene Meldung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.newsArchiveAriaCount" datatype="html">
-        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId)"/> ungelesene Meldungen</source>
+        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId)"/> ungelesene Meldungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">230</context>
@@ -18737,14 +18751,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaOne" datatype="html">
-        <source>News und Archiv, eine ungelesene Meldung</source>
+        <source>News und Archiv, 1 ungelesene Meldung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaCount" datatype="html">
-        <source>News und Archiv, <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
+        <source>News und Archiv, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">106</context>
@@ -18765,7 +18779,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveTooltipUnreadCount" datatype="html">
-        <source>News und Archiv · <x id="INTERPOLATION" equiv-text="formatLocaleCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
+        <source>News und Archiv · <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId as string)"/> ungelesene Meldungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">118</context>

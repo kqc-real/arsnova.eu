@@ -1119,6 +1119,38 @@ describe('HomeComponent', () => {
       other.remove();
     });
 
+    it('setzt nach MOTD-Dismiss den Fokus auf den Skip-Link wenn kein Rücksprungziel existiert', async () => {
+      const skip = document.createElement('a');
+      skip.href = '#main';
+      skip.className = 'app-skip-link';
+      skip.textContent = 'Zum Inhalt springen';
+      document.body.prepend(skip);
+
+      const fixture = createHomeFixture();
+      fixture.componentInstance['motdFocusReturn'] = null;
+      fixture.componentInstance.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      fixture.detectChanges();
+
+      const closeInMotd = fixture.nativeElement.querySelector(
+        '.home-motd-sheet button',
+      ) as HTMLButtonElement | null;
+      expect(closeInMotd).not.toBeNull();
+      closeInMotd?.focus();
+      expect(document.activeElement).toBe(closeInMotd);
+
+      fixture.componentInstance['clearMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      expect(document.activeElement).toBe(skip);
+      skip.remove();
+    });
+
     it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

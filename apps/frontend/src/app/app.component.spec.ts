@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
+import { markContentPageFocusReturn } from './shared/content-page-nav';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 
 const { footerBundleQueryMock, healthStatsQueryMock, swVersionUpdatesSubscribeMock } = vi.hoisted(
@@ -208,6 +209,52 @@ describe('AppComponent', () => {
 
     heading.blur();
     expect(heading.hasAttribute('tabindex')).toBe(false);
+    fixture.destroy();
+  });
+
+  it('stellt Footer-Fokus nach Content-Page-Dismiss wieder her und entfernt inert', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const footer = fixture.nativeElement.querySelector('footer.app-footer') as HTMLElement;
+    const helpLink = footer.querySelector(
+      'a[data-footer-focus="footer-help"]',
+    ) as HTMLAnchorElement;
+    expect(helpLink).toBeTruthy();
+    footer.setAttribute('inert', '');
+    (footer as HTMLElement & { inert: boolean }).inert = true;
+
+    markContentPageFocusReturn('footer-help');
+    component.isContentOverlayRoute.set(false);
+
+    const restored = (
+      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+    ).restoreContentPageFocusReturn();
+
+    expect(restored).toBe(true);
+    expect(footer.hasAttribute('inert')).toBe(false);
+    expect(document.activeElement).toBe(helpLink);
+
+    fixture.destroy();
+  });
+
+  it('entfernt Bootstrap-Fokus aus dem Footer, damit der Skip-Link erster Tab-Stop bleibt', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const footer = fixture.nativeElement.querySelector('footer.app-footer') as HTMLElement;
+    const firstFooterLink = footer.querySelector('a[href]') as HTMLAnchorElement;
+    firstFooterLink.focus();
+    expect(document.activeElement).toBe(firstFooterLink);
+
+    (component as AppComponent & { blurFooterIfFocused: () => void }).blurFooterIfFocused();
+
+    expect(document.activeElement === firstFooterLink).toBe(false);
+
     fixture.destroy();
   });
 
@@ -419,6 +466,32 @@ describe('AppComponent', () => {
     expect(link?.textContent ?? '').toContain('Was arsnova.eu kann');
     expect(trailing?.textContent?.trim()).toBe('open_in_new');
     expect(link?.querySelectorAll('mat-icon:not([iconPositionEnd])')).toHaveLength(1);
+
+    fixture.destroy();
+  });
+
+  it('markiert Footer-Labels einheitlich für Einzeilen-Layout und Compact-Breakpoint', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const labels = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.app-footer__link-text'),
+    ) as HTMLElement[];
+
+    expect(labels.length).toBeGreaterThanOrEqual(6);
+    expect(labels.map((label) => label.textContent?.trim())).toEqual(
+      expect.arrayContaining([
+        'News-Archiv',
+        'So funktioniert’s',
+        'Was arsnova.eu kann',
+        'Impressum',
+        'Datenschutz',
+        'Barrierefreiheit',
+      ]),
+    );
 
     fixture.destroy();
   });

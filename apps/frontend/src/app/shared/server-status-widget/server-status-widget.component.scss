@@ -1,19 +1,22 @@
 :host {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
 }
 
 .server-status {
-  --mat-button-text-container-height: 2.25rem;
+  --mat-button-text-container-height: 2.5rem;
   --mat-button-text-label-text-font: var(--mat-sys-body-small-font);
   --mat-button-text-label-text-size: var(--mat-sys-body-small-size);
   --mat-button-text-label-text-tracking: var(--mat-sys-body-small-tracking);
   --mat-button-text-label-text-weight: var(--mat-sys-body-small-weight);
   --mat-button-text-icon-offset: 0;
-  min-width: 0;
-  padding-inline: 0.35rem;
+  --mat-button-text-horizontal-padding: 0.625rem;
+  flex: 0 0 auto;
+  min-width: auto;
   justify-content: center;
+  white-space: nowrap;
   color: var(--mat-sys-on-surface-variant);
   line-height: var(--mat-sys-body-small-line-height);
 }
@@ -27,9 +30,9 @@
 
 .server-status__icon {
   flex-shrink: 0;
-  font-size: 1.125rem;
-  width: 1.125rem;
-  height: 1.125rem;
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
   line-height: 1;
   color: var(--mat-sys-outline-variant);
 }
@@ -51,12 +54,32 @@
 }
 
 .server-status__label {
-  min-width: 0;
+  white-space: nowrap;
 }
 
-@media (max-width: 599px) {
+/* Sync mit app.component.scss Compact-Footer (≤959px). */
+@media (max-width: 959px) {
+  :host {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 3rem;
+  }
+
   .server-status {
-    padding-inline: 0.25rem;
+    width: 100%;
+    height: 3rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--mat-sys-corner-medium);
+    --mat-button-text-container-height: 3rem;
+    --mat-button-text-horizontal-padding: 0;
+  }
+
+  .server-status__icon {
+    font-size: 1.375rem;
+    width: 1.375rem;
+    height: 1.375rem;
   }
 
   .server-status__label {
