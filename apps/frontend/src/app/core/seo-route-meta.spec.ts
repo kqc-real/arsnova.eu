@@ -16,4 +16,12 @@ describe('resolveSeoForPath', () => {
       'arsnova.eu | Die europäische Alternative zu Mentimeter & Kahoot',
     );
   });
+
+  it('verwendet die rollenorientierten Help-Metadaten', () => {
+    expect(resolveSeoForPath('/help')).toEqual({
+      title: 'Hilfe & Einstieg – arsnova.eu',
+      description:
+        'Hilfe für Veranstaltungsleitungen und Teilnehmende: Session starten, abstimmen, Q&A und Blitzlicht nutzen, Ergebnisse auswerten und Funktionen nachschlagen.',
+    });
+  });
 });
