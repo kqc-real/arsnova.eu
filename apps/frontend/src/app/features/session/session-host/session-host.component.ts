@@ -66,6 +66,8 @@ import {
   showQuestionTypeIndicator,
 } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
+import { InfoLandingLinkComponent } from '../../../shared/info-landing-link/info-landing-link.component';
+import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
@@ -408,12 +410,17 @@ function musicTracksForPhase(
     FoyerEntranceLayerComponent,
     AnswerOptionBadgeComponent,
     CdkTrapFocus,
+    InfoLandingLinkComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
 })
 export class SessionHostComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
+  readonly infoLandingQaAnchor = INFO_LANDING_ANCHORS.qaWall;
+  readonly infoLandingQaLabel = $localize`:@@sessionHost.infoLandingQa:Warum die Fragenwand mehr als ein Chat ist`;
+  readonly infoLandingConfidenceAnchor = INFO_LANDING_ANCHORS.confidence;
+  readonly infoLandingConfidenceLabel = $localize`:@@sessionHost.infoLandingConfidence:Selbsteinschätzung und Nachbesprechung verstehen`;
   session = signal<SessionInfoDTO | null>(null);
   readonly sessionUnavailable = signal(false);
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */

@@ -396,9 +396,29 @@ describe('AppComponent', () => {
 
     expect(text).not.toContain('News-Archiv');
     expect(text).not.toContain('So funktioniert’s');
+    expect(text).not.toContain('Was arsnova.eu kann');
     expect(text).not.toContain('Impressum');
     expect(text).not.toContain('Datenschutz');
     expect(text).not.toContain('Barrierefreiheit');
+
+    fixture.destroy();
+  });
+
+  it('setzt das externe Footer-Icon von Was arsnova.eu kann als Trailing-Icon', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector(
+      'a.app-footer__link--external',
+    ) as HTMLAnchorElement | null;
+    const trailing = link?.querySelector('mat-icon.app-footer__icon--external[iconPositionEnd]');
+
+    expect(link?.textContent ?? '').toContain('Was arsnova.eu kann');
+    expect(trailing?.textContent?.trim()).toBe('open_in_new');
+    expect(link?.querySelectorAll('mat-icon:not([iconPositionEnd])')).toHaveLength(1);
 
     fixture.destroy();
   });

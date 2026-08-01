@@ -19,7 +19,9 @@ import {
 } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 import { localizePath, resolveLocalizedAppUrl } from '../../core/locale-router';
+import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
+import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
 
 type HelpRoleSectionId = 'help-host' | 'help-participant';
 
@@ -37,6 +39,7 @@ type HelpRoleSectionId = 'help-host' | 'help-participant';
     MatExpansionPanelHeader,
     MatExpansionPanelTitle,
     RouterLink,
+    InfoLandingLinkComponent,
   ],
   templateUrl: './help.component.html',
   styleUrls: [
@@ -62,6 +65,8 @@ export class HelpComponent implements AfterViewInit {
   readonly trapAutoCapture = this.hashSectionOnInit === null;
 
   readonly localizedPath = localizePath;
+  readonly infoLandingFeaturesAnchor = INFO_LANDING_ANCHORS.features;
+  readonly infoLandingFeaturesLabel = $localize`:@@help.infoLandingLink:Hintergründe und Einsatzmöglichkeiten`;
 
   constructor() {
     // Hydration / Browser: nach dem ersten Render denselben Scroll-/Fokuspfad wie beim Klick.

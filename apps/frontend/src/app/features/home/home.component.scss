@@ -932,6 +932,11 @@ mat-card-actions.l-stack {
   --mdc-text-button-container-height: 2rem;
 }
 
+.home-card__info-landing {
+  align-self: center;
+  max-width: 100%;
+}
+
 .home-sync-entry {
   width: 100%;
   display: flex;

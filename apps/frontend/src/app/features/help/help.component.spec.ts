@@ -288,6 +288,25 @@ describe('HelpComponent', () => {
     expect(text.match(/Schon vertraut mit arsnova\.eu/g)?.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('hält die Überschriftenreihenfolge für die Info-Landing-Aside ein', async () => {
+    const fixture = await createFixture();
+    const root = fixture.nativeElement as HTMLElement;
+    const headings = Array.from(root.querySelectorAll('h1, h2, h3')).map((el) => ({
+      level: Number(el.tagName.slice(1)),
+      id: el.id || null,
+    }));
+
+    expect(headings[0]).toEqual({ level: 1, id: 'help-page-title' });
+    expect(headings[1]).toEqual({ level: 2, id: 'help-info-landing-title' });
+    expect(root.querySelector('aside.help-info-landing app-info-landing-link')).toBeTruthy();
+
+    let previous = headings[0]!.level;
+    for (const heading of headings.slice(1)) {
+      expect(heading.level).toBeLessThanOrEqual(previous + 1);
+      previous = heading.level;
+    }
+  });
+
   it('rendert die erwarteten Akkordeonpanels ohne Verschachtelung', async () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;

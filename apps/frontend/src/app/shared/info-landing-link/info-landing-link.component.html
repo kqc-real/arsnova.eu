@@ -1,0 +1,13 @@
+<a
+  class="info-landing-link"
+  [class.info-landing-link--dense]="dense()"
+  [href]="href()"
+  target="_blank"
+  rel="noopener noreferrer"
+  [attr.aria-label]="label() + ' (' + newTabHint + ')'"
+>
+  <mat-icon class="info-landing-link__lead-icon" aria-hidden="true">info</mat-icon>
+  <span class="info-landing-link__label">{{ label() }}</span>
+  <mat-icon class="info-landing-link__external-icon" aria-hidden="true">open_in_new</mat-icon>
+  <span class="sr-only">{{ newTabHint }}</span>
+</a>

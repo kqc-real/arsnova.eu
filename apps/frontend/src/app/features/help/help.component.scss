@@ -254,3 +254,23 @@
   color: var(--mat-sys-on-surface);
   line-height: 1.65;
 }
+
+.help-info-landing {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 80%, transparent);
+}
+
+.help-info-landing__title {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.help-info-landing__body {
+  margin: 0 0 0.75rem;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

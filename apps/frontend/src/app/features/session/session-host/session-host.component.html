@@ -498,6 +498,14 @@
                       <span i18n>Erste Frage starten</span>
                     }
                   </button>
+                  @if (isQaSession()) {
+                    <app-info-landing-link
+                      class="session-host__info-landing session-host__info-landing--lobby"
+                      [anchor]="infoLandingQaAnchor"
+                      [label]="infoLandingQaLabel"
+                      [dense]="true"
+                    />
+                  }
                 </div>
               </section>
             }
@@ -1305,6 +1313,12 @@
                       <p class="session-host__export-hint" role="status">{{ status }}</p>
                     }
                   </div>
+                  <app-info-landing-link
+                    class="session-host__info-landing session-host__info-landing--finished"
+                    [anchor]="infoLandingConfidenceAnchor"
+                    [label]="infoLandingConfidenceLabel"
+                    [dense]="true"
+                  />
                 </header>
               </div>
             } @else {

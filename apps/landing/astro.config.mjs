@@ -10,4 +10,14 @@ export default defineConfig({
   site,
   base,
   output: 'static',
+  i18n: {
+    locales: ['de', 'en', 'fr', 'it', 'es'],
+    defaultLocale: 'de',
+    routing: {
+      prefixDefaultLocale: true,
+      // Root `/` is owned by `src/pages/index.astro` so legacy hashes survive
+      // the redirect to `/de/` (Astro's static redirect drops fragments).
+      redirectToDefaultLocale: false,
+    },
+  },
 });

@@ -563,6 +563,14 @@
             </mat-form-field>
           }
         </div>
+        @if (isNumericEstimateType()) {
+          <app-info-landing-link
+            class="quiz-edit-form__info-landing"
+            [anchor]="infoLandingEstimateAnchor"
+            [label]="infoLandingEstimateLabel"
+            [dense]="true"
+          />
+        }
 
         <fieldset class="quiz-edit-form__fieldset">
           <legend class="quiz-edit-form__legend" i18n="@@quiz.edit.questionTimerSectionLegend">
@@ -613,6 +621,12 @@
               Teilnehmende geben nach ihrer Antwort an, wie sicher sie sind. Beeinflusst nicht die
               Punktevergabe.
             </p>
+            <app-info-landing-link
+              class="quiz-edit-form__info-landing"
+              [anchor]="infoLandingConfidenceAnchor"
+              [label]="infoLandingConfidenceLabel"
+              [dense]="true"
+            />
             <mat-slide-toggle
               formControlName="confidenceEnabled"
               (change)="onConfidenceEnabledChanged()"

@@ -73,6 +73,8 @@ import {
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
+import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
 @Component({
   selector: 'app-home',
@@ -92,6 +94,7 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
     MatTooltip,
     CdkTrapFocus,
     MarkdownImageLightboxDirective,
+    InfoLandingLinkComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './home.component.scss'],
@@ -99,6 +102,8 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
+  readonly infoLandingWorkflowAnchor = INFO_LANDING_ANCHORS.workflow;
+  readonly infoLandingWorkflowLabel = $localize`:@@homeHostCard.infoLanding:Einsatzmöglichkeiten entdecken`;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);

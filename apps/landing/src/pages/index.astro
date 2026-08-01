@@ -1,32 +1,31 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { homeMetaDescription } from '@/config/seo';
-import Hero from '../components/Hero.astro';
-import EstimateSpotlight from '../components/EstimateSpotlight.astro';
-import ConfidenceSpotlight from '../components/ConfidenceSpotlight.astro';
-import QaWallSpotlight from '../components/QaWallSpotlight.astro';
-import Workflow from '../components/Workflow.astro';
-import Features from '../components/Features.astro';
-import Accessibility from '../components/Accessibility.astro';
-import Trust from '../components/Trust.astro';
-import Comparison from '../components/Comparison.astro';
-import Faq from '../components/Faq.astro';
-import Cta from '../components/Cta.astro';
+/**
+ * Root compatibility entry: redirect to the default locale while preserving
+ * legacy client-side fragments (e.g. `/#schaetzfrage` → `/de/#schaetzfrage`).
+ * Astro's static i18n redirect cannot carry `window.location.hash`, so this
+ * page owns the root route instead of `redirectToDefaultLocale`.
+ */
+const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
+const defaultLocaleHome = `${base}de/`.replace(/\/{2,}/g, '/');
 ---
 
-<BaseLayout
-  title="Start"
-  description={homeMetaDescription}
->
-  <Hero />
-  <EstimateSpotlight />
-  <ConfidenceSpotlight />
-  <QaWallSpotlight />
-  <Workflow />
-  <Features />
-  <Accessibility />
-  <Trust />
-  <Comparison />
-  <Faq />
-  <Cta />
-</BaseLayout>
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arsnova.eu</title>
+    <meta http-equiv="refresh" content={`0;url=${defaultLocaleHome}`} />
+    <script is:inline define:vars={{ defaultLocaleHome }}>
+      (function () {
+        var target = defaultLocaleHome + (window.location.hash || '');
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>
+      <a href={defaultLocaleHome}>Weiter zur deutschen Startseite / Continue to German homepage</a>
+    </p>
+  </body>
+</html>

@@ -9,15 +9,22 @@ export const GITHUB_REPO = repo;
 export const GITHUB_URL = `https://github.com/${repo}`;
 export const GITHUB_DOCS_URL = `${GITHUB_URL}/blob/main/docs/ARS-comparison/Kahoot-Mentimeter-Slido-arsnova.click-v3.md`;
 
-/** CTA: App (Beta) – z. B. Demo oder gleiche URL bis Server steht */
-// default points to the current production host; override via PUBLIC_APP_URL_V3
-// (e.g. set to https://arsnova.eu in CI or Vercel env vars)
-export const APP_URL_V3 = import.meta.env.PUBLIC_APP_URL_V3 || 'https://arsnova.eu';
+/** App origin without trailing slash (override via PUBLIC_APP_URL_V3). */
+export const APP_URL_V3 = (import.meta.env.PUBLIC_APP_URL_V3 || 'https://arsnova.eu').replace(
+  /\/$/,
+  '',
+);
 
-/** Locale-prefixed legal pages in the SPA (landing is DE-only). */
-export function appLegalUrl(slug: 'imprint' | 'privacy' | 'accessibility', locale = 'de'): string {
-  const base = APP_URL_V3.replace(/\/$/, '');
-  return `${base}/${locale}/legal/${slug}`;
+/** Locale-prefixed app home, e.g. https://arsnova.eu/de/ */
+export function appHomeUrl(locale: string): string {
+  return `${APP_URL_V3}/${locale}/`;
 }
 
-export const APP_ACCESSIBILITY_URL = appLegalUrl('accessibility');
+/** Locale-prefixed legal pages in the SPA. */
+export function appLegalUrl(slug: 'imprint' | 'privacy' | 'accessibility', locale = 'de'): string {
+  return `${APP_URL_V3}/${locale}/legal/${slug}`;
+}
+
+export function appAccessibilityUrl(locale: string): string {
+  return appLegalUrl('accessibility', locale);
+}

@@ -4,9 +4,34 @@
 > Marketing- und Informationsseite wird über GitHub Pages unter
 > **https://info.arsnova.eu/** ausgeliefert.
 
-Marketing- und Informationsseite für arsnova.eu. Astro 6 + Tailwind 3 (PostCSS), SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
+Marketing- und Informationsseite für arsnova.eu. Astro 7 + Tailwind 3 (PostCSS), SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
 
-**Node.js:** Landing-Build und `dev:landing` benötigen **Node ≥ 22.12** (Astro 6). CI und `.nvmrc` nutzen Node 24 LTS.
+**Node.js:** Landing-Build und `dev:landing` benötigen **Node ≥ 22.12** (Astro 7). CI und `.nvmrc` nutzen Node 24 LTS.
+
+## Sprachen (i18n)
+
+Die Landingpage ist fünfsprachig (`de`, `en`, `fr`, `it`, `es`), analog zur App:
+
+| Locale            | URL                         |
+| ----------------- | --------------------------- |
+| Deutsch (Default) | https://info.arsnova.eu/de/ |
+| English           | https://info.arsnova.eu/en/ |
+| Français          | https://info.arsnova.eu/fr/ |
+| Italiano          | https://info.arsnova.eu/it/ |
+| Español           | https://info.arsnova.eu/es/ |
+
+- `/` leitet auf `/de/` weiter und behält dabei Legacy-Hashes (`/#schaetzfrage` → `/de/#schaetzfrage`).
+- Texte liegen in typisierten Dictionaries unter `src/i18n/` (`de.ts` … `es.ts`); fehlende Keys werfen beim Import einen Build-Fehler.
+- Abschnitte nutzen **kanonische Anker** (`#workflow`, `#numeric-estimate`, `#confidence`, `#qa-wall`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, …) bleiben als Alias-IDs gültig.
+- App-CTAs verlinken immer locale-sicher auf `https://arsnova.eu/{locale}/` (`appHomeUrl`).
+- **Impressum** und **Datenschutz** bleiben bewusst deutschsprachig unter `/impressum/` und `/datenschutz/` (rechtliche Pflichttexte); die lokalisierten Homepages verlinken dorthin.
+
+Prüfungen:
+
+```bash
+npm run build -w @arsnova/landing
+npm run test:i18n -w @arsnova/landing
+```
 
 ## Entwicklung
 
@@ -15,7 +40,7 @@ Marketing- und Informationsseite für arsnova.eu. Astro 6 + Tailwind 3 (PostCSS)
 npm run dev:landing
 ```
 
-Öffnen: [http://localhost:4321](http://localhost:4321)
+Öffnen: [http://localhost:4321](http://localhost:4321) (Root leitet nach `/de/`)
 
 ## Build
 
@@ -26,7 +51,7 @@ BASE_PATH=/ \
 npm run build:landing
 ```
 
-Output: `apps/landing/dist/`
+Output: `apps/landing/dist/` mit `/de/`, `/en/`, `/fr/`, `/it/`, `/es/`.
 
 ## GitHub Pages
 
@@ -57,16 +82,18 @@ den Pages-Einstellungen.
 
 ## SEO
 
-- Meta Title/Description, Open Graph, Twitter Cards
-- JSON-LD `WebApplication` für Suchmaschinen
-- generierte Sitemap unter `/sitemap.xml`
-- generierte `robots.txt` unter `/robots.txt`
+- Lokalisiertes `<html lang>`, Title/Description, Open Graph, Twitter Cards
+- `hreflang` auf lokalisierten Homepages für alle fünf Locales plus `x-default` → `/de/` (nicht auf deutschsprachigen Legal-Seiten)
+- Canonical pro Sprachfassung (nicht alle auf DE)
+- JSON-LD `WebSite` / `WebApplication` mit `inLanguage`
+- Sitemap unter `/sitemap.xml` enthält alle Locale-Homes
+- `robots.txt` unter `/robots.txt`
 
-Für Builds auf GitHub Pages setzt der Workflow `PUBLIC_SITE_URL=https://info.arsnova.eu/` und `BASE_PATH=/`. Dadurch verweisen Canonical, Open Graph, Sitemap und `robots.txt` auf die Landing-Domain. App-CTAs und das JSON-LD-Objekt `WebApplication` verwenden dagegen weiterhin `https://arsnova.eu`.
+Für Builds auf GitHub Pages setzt der Workflow `PUBLIC_SITE_URL=https://info.arsnova.eu/` und `BASE_PATH=/`. Dadurch verweisen Canonical, Open Graph, Sitemap und `robots.txt` auf die Landing-Domain. App-CTAs und das JSON-LD-Objekt `WebApplication` verwenden dagegen weiterhin `https://arsnova.eu/{locale}/`.
 
 ## Impressum & Datenschutz (DSGVO)
 
-Die Seiten `/impressum/` und `/datenschutz/` sind mit DSGVO-tauglichen Inhalten vorstrukturiert. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
+Die Seiten `/impressum/` und `/datenschutz/` sind mit DSGVO-tauglichen Inhalten vorstrukturiert und bleiben auf Deutsch. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
 
 ## OG-Bild
 

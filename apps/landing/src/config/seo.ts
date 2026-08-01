@@ -1,5 +1,5 @@
-/** Gleiche Kernbotschaft wie App-Startseite (`@@seo.titleHome` / `@@seo.descHome`). */
-export const homeMetaTitle = 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand';
+/** German home meta (mirrors `@/i18n/de`). Prefer `getMessages(locale).meta` for localized pages. */
+import de from '@/i18n/de';
 
-export const homeMetaDescription =
-  'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Word Cloud und Feedback — barrierefrei nach WCAG 2.2 AA, kostenlos, self-hostbar und ohne Account startklar.';
+export const homeMetaTitle = de.meta.homeTitle;
+export const homeMetaDescription = de.meta.homeDescription;

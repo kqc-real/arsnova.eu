@@ -111,6 +111,8 @@ import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-edi
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { answerOptionColor, answerOptionShape } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
+import { InfoLandingLinkComponent } from '../../../shared/info-landing-link/info-landing-link.component';
+import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
 import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
   focusAndScrollElement,
@@ -330,11 +332,17 @@ type QuizMetadataComparable = {
     MarkdownImageLightboxDirective,
     MarkdownKatexEditorComponent,
     AnswerOptionBadgeComponent,
+    InfoLandingLinkComponent,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],
 })
 export class QuizEditComponent implements OnDestroy {
+  readonly infoLandingEstimateAnchor = INFO_LANDING_ANCHORS.numericEstimate;
+  readonly infoLandingEstimateLabel = $localize`:@@quizEdit.infoLandingEstimate:Schätzfragen didaktisch einsetzen`;
+  readonly infoLandingConfidenceAnchor = INFO_LANDING_ANCHORS.confidence;
+  readonly infoLandingConfidenceLabel = $localize`:@@quizEdit.infoLandingConfidence:Selbsteinschätzung und Nachbesprechung verstehen`;
+
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
