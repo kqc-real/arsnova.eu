@@ -247,6 +247,7 @@ function runnerEnvironment(id, slos, target) {
         PARTICIPANTS: '500',
         TIMER_SECONDS: '8',
         JOIN_CONCURRENCY: '60',
+        VOTE_HTTP_CONNECTIONS: '500',
         GRACE_MS: '2000',
         WITHIN_GRACE_REVEAL_OFFSET_MS: '100',
         OUTSIDE_GRACE_REVEAL_OFFSET_MS: '2300',

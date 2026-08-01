@@ -11,7 +11,14 @@
  * Run:
  *   node scripts/load/vote-timer-fairness-600.mjs
  *   PARTICIPANTS=600 TIMER_SECONDS=8 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/vote-timer-fairness-600.mjs
+ *
+ * Optional:
+ *   VOTE_HTTP_CONNECTIONS=600 WITHIN_GRACE_REVEAL_OFFSET_MS=0
+ *
+ * Nutzt einen eigenen Undici-Dispatcher fuer den Burst. CI setzt Offset 0 fuer
+ * maximalen Karenz-Rest auf dem lokalen Runner; ein Timing-Flake-Risiko bleibt.
  */
+import { Agent, fetch as undiciFetch } from 'undici';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
@@ -29,9 +36,15 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 600));
 const TIMER_SECONDS = Math.max(2, Number(process.env.TIMER_SECONDS || 8));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 60));
+const VOTE_HTTP_CONNECTIONS = Math.max(
+  1,
+  Number(process.env.VOTE_HTTP_CONNECTIONS || PARTICIPANTS),
+);
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 const VOTE_P99_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P99_LIMIT_MS || 2_000));
 const GRACE_MS = Math.max(0, Number(process.env.GRACE_MS || 2_000));
+// Kleiner Offset schuetzt Remote-Laeufe mit Clock-Skew; CI setzt 0 fuer maximalen
+// Karenz-Rest nach der Freigabe auf dem lokalen Runner.
 const WITHIN_GRACE_REVEAL_OFFSET_MS = Math.max(
   0,
   Number(process.env.WITHIN_GRACE_REVEAL_OFFSET_MS || 100),
@@ -42,12 +55,22 @@ const OUTSIDE_GRACE_REVEAL_OFFSET_MS = Math.max(
 );
 const SETTLE_AFTER_VOTES_MS = Math.max(0, Number(process.env.SETTLE_AFTER_VOTES_MS || 500));
 
+const httpAgent = new Agent({
+  connections: VOTE_HTTP_CONNECTIONS,
+  pipelining: 1,
+  keepAliveTimeout: 10_000,
+  keepAliveMaxTimeout: 10_000,
+});
+
 function createHttpClient(hostToken) {
   return createTRPCProxyClient({
     links: [
       httpLink({
         url: TRPC_URL,
         headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        fetch(url, init) {
+          return undiciFetch(url, { ...init, dispatcher: httpAgent });
+        },
       }),
     ],
   });
@@ -298,6 +321,7 @@ async function run() {
     participants: PARTICIPANTS,
     timerSeconds: TIMER_SECONDS,
     graceMs: GRACE_MS,
+    voteHttpConnections: VOTE_HTTP_CONNECTIONS,
     withinGraceRevealOffsetMs: WITHIN_GRACE_REVEAL_OFFSET_MS,
     outsideGraceRevealOffsetMs: OUTSIDE_GRACE_REVEAL_OFFSET_MS,
     scenarios,
@@ -361,6 +385,8 @@ async function run() {
       participants: PARTICIPANTS,
       timerSeconds: TIMER_SECONDS,
       graceMs: GRACE_MS,
+      voteHttpConnections: VOTE_HTTP_CONNECTIONS,
+      withinGraceRevealOffsetMs: WITHIN_GRACE_REVEAL_OFFSET_MS,
       voteP95LimitMs: VOTE_P95_LIMIT_MS,
       voteP99LimitMs: VOTE_P99_LIMIT_MS,
     },
@@ -380,7 +406,9 @@ async function run() {
   console.log('\nOK Vote-Timer-Fairness-Last-Smoke bestanden.');
 }
 
-run().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+run()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => httpAgent.close().catch(() => undefined));
