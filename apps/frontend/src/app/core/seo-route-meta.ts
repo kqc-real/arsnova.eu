@@ -113,11 +113,11 @@ function seoDescQuizSync(): string {
 }
 
 function seoTitleHelp(): string {
-  return $localize`:@@seo.titleHelp:So funktioniert’s – arsnova.eu`;
+  return $localize`:@@seo.titleHelp:Hilfe & Einstieg – arsnova.eu`;
 }
 
 function seoDescHelp(): string {
-  return $localize`:@@seo.descHelp:Kurz erklärt: Live-Sessions, Quiz-Frageformate, Selbsteinschätzung, Blitzlicht, Q&A und Moderationsabläufe auf arsnova.eu.`;
+  return $localize`:@@seo.descHelp:Hilfe für Veranstaltungsleitungen und Teilnehmende: Session starten, abstimmen, Q&A und Blitzlicht nutzen, Ergebnisse auswerten und Funktionen nachschlagen.`;
 }
 
 function seoTitleNewsArchive(): string {

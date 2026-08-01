@@ -359,16 +359,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.titleHelp" datatype="html">
-        <source>So funktioniert’s – arsnova.eu</source>
-        <target>Comment ça marche – arsnova.eu</target>
+        <source>Hilfe &amp; Einstieg – arsnova.eu</source>
+        <target>Aide et prise en main – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">116</context>
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descHelp" datatype="html">
-        <source>Kurz erklärt: Live-Sessions, Quiz-Frageformate, Selbsteinschätzung, Blitzlicht, Q&amp;A und Moderationsabläufe auf arsnova.eu.</source>
-        <target>Guide rapide : sessions live, formats de questions, auto-évaluation, feedback express, Q&amp;A et déroulés de modération sur arsnova.eu.</target>
+        <source>Hilfe für Veranstaltungsleitungen und Teilnehmende: Session starten, abstimmen, Q&amp;A und Blitzlicht nutzen, Ergebnisse auswerten und Funktionen nachschlagen.</source>
+        <target>Aide pour l’animation et la participation : lancer une session, voter, utiliser le Q&amp;A et le Feedback express, analyser les résultats et découvrir les fonctions avancées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">120</context>
@@ -6186,835 +6186,371 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.pageTitle" datatype="html">
-        <source> So funktioniert’s</source>
-        <target>Comment ça marche</target>
+        <source> Hilfe &amp; Einstieg</source>
+        <target>Aide et prise en main</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">36,38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
-        <source> Diese Seite richtet sich an <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lehrende, Trainer:innen und Vortragende<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, die aus einer Präsentation eine echte Live-Situation machen wollen: kurze Checks, Diskussionen, Q&amp;A, Blitzlicht und Auswertung laufen in einer Session zusammen. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ohne Pflichtkonto<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> für deine Gruppe: Code oder QR zeigen, Smartphones raus, loslegen.</source>
-        <target>Cette page s’adresse aux <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>enseignant·es, formateur·rices et intervenant·es<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> qui veulent transformer une présentation en vraie situation live : vérifications rapides, discussion, Q&amp;A, feedback express et restitution tiennent dans une même session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sans compte obligatoire<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> pour votre groupe : affichez le code ou le QR, sortez les smartphones, c’est parti.</target>
+        <source> Wähle, wie du arsnova.eu nutzt. Du erhältst einen kurzen Einstieg oder kannst gezielt Funktionen nachschlagen.</source>
+        <target>Choisis la façon dont tu utilises arsnova.eu. Découvre l’essentiel ou consulte directement une fonctionnalité.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">41,47</context>
+          <context context-type="linenumber">41,44</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.uspTitle" datatype="html">
-        <source>Was arsnova.eu anders macht</source>
-        <target>Ce qui différencie arsnova.eu</target>
+      <trans-unit id="help.roleNavAria" datatype="html">
+        <source>Rollenwahl</source>
+        <target>Choix du rôle</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">49</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.usp1" datatype="html">
-        <source> arsnova.eu ist als <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live-Regie für Unterricht, Training und Talks<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> gedacht: Du wechselst nicht zwischen Präsentation, Chat, Umfragetool und Quiz-App, sondern steuerst Interaktion, Beamer-Ansicht und Ergebnisfreigabe an einem Ort.</source>
-        <target>arsnova.eu fonctionne comme une <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>régie live pour vos cours, formations et interventions<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : au lieu de passer des diapositives au chat, puis à un outil de sondage ou à une appli de quiz, vous pilotez interaction, vue projecteur et affichage des résultats au même endroit.</target>
+      <trans-unit id="help.roleHostTitle" datatype="html">
+        <source>Ich leite eine Veranstaltung</source>
+        <target>J’anime une session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">51,55</context>
+          <context context-type="linenumber">54</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="help.usp2" datatype="html">
-        <source> Der Fokus liegt auf <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>didaktischer Kontrolle und Datenschutz<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: Inhalte bleiben zunächst local-first im Browser, Teilnehmende brauchen kein Konto, das Projekt ist Open Source und für EU-orientierten Betrieb ausgelegt. Markdown und KaTeX machen fachliche Fragen präsentationstauglich, von MINT-Formeln bis zum kurzen Fallbeispiel.</source>
-        <target>L’accent est mis sur la <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>maîtrise pédagogique et la protection des données<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : les contenus restent d’abord local-first dans le navigateur, les participant·es n’ont pas besoin de compte, le projet est open source et pensé pour un déploiement orienté UE. Markdown et KaTeX rendent les questions métier prêtes à être projetées, des formules scientifiques au court cas pratique.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">56,61</context>
+          <context context-type="linenumber">74</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.formatsTitle" datatype="html">
-        <source> Frageformate: passend zum didaktischen Ziel</source>
-        <target>Formats de questions : à chaque objectif pédagogique son format</target>
+      <trans-unit id="help.roleHostHint" datatype="html">
+        <source>Für Lehrende, Vortragende, Trainer:innen und Moderator:innen</source>
+        <target>Pour les enseignant·es, intervenant·es, formateur·rices et animateur·rices</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">65,67</context>
+          <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.formatsLead" datatype="html">
-        <source> Wähle das Format nach der Situation im Raum: Willst du Wissen prüfen, Haltungen sichtbar machen, Begriffe einsammeln oder Schätzungen diskutieren? Die Formate sind bewusst getrennt, damit Ergebnisanzeige, Bewertung und Moderation zum Einsatzzweck passen.</source>
-        <target>Choisissez le format selon ce qui se passe dans la salle : voulez-vous vérifier des connaissances, rendre visibles des positions, collecter des notions ou discuter des estimations ? Les formats sont volontairement distincts pour que l’affichage, l’évaluation et la modération correspondent à l’usage.</target>
+      <trans-unit id="help.roleParticipantTitle" datatype="html">
+        <source>Ich nehme an einer Veranstaltung teil</source>
+        <target>Je participe à une session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">68,72</context>
+          <context context-type="linenumber">64</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">224</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.formatsGridAria" datatype="html">
-        <source>Verfügbare Quiz-Frageformate</source>
-        <target>Formats de questions de quiz disponibles</target>
+      <trans-unit id="help.roleParticipantHint" datatype="html">
+        <source>Für alle, die abstimmen, Fragen stellen oder Feedback geben</source>
+        <target>Pour voter, poser des questions ou donner son avis</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.newUserTitle" datatype="html">
+        <source>Neu bei arsnova.eu</source>
+        <target>Première utilisation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">76</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSingleChoiceTitle" datatype="html">
-        <source>Single Choice</source>
-        <target>Single Choice</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">83</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSingleChoiceTag" datatype="html">
-        <source> eine richtige Option</source>
-        <target>une seule bonne réponse</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">84,86</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSingleChoiceBody" datatype="html">
-        <source> Für punktgenaue Verständnischecks: Eine Antwort ist korrekt, Ergebnis und Punkte sind sofort klar.</source>
-        <target>Pour des checks de compréhension ciblés : une réponse est correcte, le résultat et les points sont immédiatement lisibles.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">87,90</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatMultipleChoiceTitle" datatype="html">
-        <source>Multiple Choice</source>
-        <target>Multiple Choice</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">96</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatMultipleChoiceTag" datatype="html">
-        <source> mehrere richtige Optionen</source>
-        <target>plusieurs bonnes réponses</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">97,99</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatMultipleChoiceBody" datatype="html">
-        <source> Für komplexere Konzepte, typische Fehlannahmen oder Fragen wie „Welche Aussagen stimmen?“ – mehrere Lösungen können zählen.</source>
-        <target>Pour les notions plus complexes, les idées reçues ou les questions du type « Quelles affirmations sont vraies ? » — plusieurs réponses peuvent compter.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">100,103</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatShortTextTitle" datatype="html">
-        <source>Kurzantwort</source>
-        <target>Réponse courte</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">109</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatShortTextTag" datatype="html">
-        <source> Musterlösung statt Auswahl</source>
-        <target>réponse modèle plutôt que choix</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">110,112</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatShortTextBody" datatype="html">
-        <source> Teilnehmende formulieren kurz selbst. Du hinterlegst Musterlösungen; arsnova.eu kann Schreibvarianten, Toleranz und bei Bedarf Zahlen oder Einheiten auswerten.</source>
-        <target>Les participant·es répondent en quelques mots. Vous indiquez des réponses modèles ; arsnova.eu peut évaluer les variantes d’écriture, les tolérances et, si nécessaire, les nombres ou les unités.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">113,116</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatFreeTextTitle" datatype="html">
-        <source>Freitext</source>
-        <target>Texte libre</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">122</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatFreeTextTag" datatype="html">
-        <source> offene Antworten</source>
-        <target>réponses ouvertes</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">123,125</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatFreeTextBody" datatype="html">
-        <source> Für Ideen, Reflexionen und Erwartungsabfragen. Keine automatische Bewertung; Antworten lassen sich sammeln und als Wortwolke sichtbar machen.</source>
-        <target>Pour les idées, les réflexions et les attentes. Pas de correction automatique ; les réponses peuvent être collectées et affichées sous forme de nuage de mots.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">126,129</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSurveyTitle" datatype="html">
-        <source>Umfrage</source>
-        <target>Sondage</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">135</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSurveyTag" datatype="html">
-        <source> Meinungsbild ohne richtig/falsch</source>
-        <target>opinion sans vrai/faux</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">136,138</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatSurveyBody" datatype="html">
-        <source> Für Prioritäten, Vorwissen oder Entscheidungen im Raum. Optionen werden gezählt, ohne Scorelogik.</source>
-        <target>Pour les priorités, les connaissances de départ ou les décisions dans la salle. Les options sont comptées sans logique de score.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">139,142</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatRatingTitle" datatype="html">
-        <source>Bewertungsskala</source>
-        <target>Échelle d’évaluation</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">148</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatRatingTag" datatype="html">
-        <source> Skala mit eigenen Polen</source>
-        <target>échelle avec pôles personnalisés</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">149,151</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatRatingBody" datatype="html">
-        <source> Für Zustimmung, Sicherheit, Tempo oder Feedback von niedrig bis hoch; optional mit benannten Endpunkten.</source>
-        <target>Pour mesurer l’accord, la confiance, le rythme ou un feedback de faible à élevé, avec des extrémités nommées si besoin.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">152,155</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatNumericEstimateTitle" datatype="html">
-        <source>Numerische Schätzfrage</source>
-        <target>Question d’estimation numérique</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">161</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatNumericEstimateTag" datatype="html">
-        <source> Zahlen schätzen, Streuung sehen</source>
-        <target>estimer des nombres, voir la dispersion</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">162,164</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatNumericEstimateBody" datatype="html">
-        <source> Für Jahreszahlen, Größenordnungen, Messwerte und Wahrscheinlichkeiten. Mit Referenzwert, Toleranzband, Histogramm, Statistik und optionaler zweiter Runde.</source>
-        <target>Pour les années, les ordres de grandeur, les mesures et les probabilités. Avec valeur de référence, bande de tolérance, histogramme, statistiques et deuxième tour en option.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">165,168</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.formatsBlitzNote" datatype="html">
-        <source> Blitzlicht ist davon getrennt: Es ist für spontane Live-Rückmeldungen gedacht, wenn du keine vollständige Quizfrage bauen willst.</source>
-        <target>Le feedback express est séparé de ces formats : il sert aux retours live spontanés quand vous ne voulez pas créer une question de quiz complète.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">172,175</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceTitle" datatype="html">
-        <source> Selbsteinschätzung bei bewertbaren Fragen</source>
-        <target>Auto-évaluation pour les questions évaluables</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">179,181</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceLead" datatype="html">
-        <source> Die Selbsteinschätzung ist kein eigener Fragetyp, sondern eine optionale Zusatzabfrage nach Single Choice, Multiple Choice, Kurzantwort und numerischer Schätzfrage: Teilnehmende geben an, wie sicher sie bei ihrer Antwort sind (Skala 1–5). Das beeinflusst keine Punkte – hilft dir aber, Lernstand und Fehlkonzepte zu erkennen.</source>
-        <target>L&apos;auto-évaluation n&apos;est pas un type de question distinct, mais une question supplémentaire facultative selon une question à choix unique, à choix multiple, à réponse courte et d&apos;estimation numérique : les participants indiquent dans quelle mesure ils sont confiants dans leur réponse (échelle 1 à 5). Cela n&apos;affecte aucun point, mais cela vous aide à reconnaître votre niveau d&apos;apprentissage et vos idées fausses.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">182,187</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceListAria" datatype="html">
-        <source>Didaktische Funktionen der Selbsteinschätzung</source>
-        <target>Fonctions didactiques d&apos;auto-évaluation</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">191</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceAfterAnswerTitle" datatype="html">
-        <source>Nach der Antwort abfragen</source>
-        <target>Après la réponse</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">196</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceAfterAnswerBody" datatype="html">
-        <source> Progressive Disclosure: Erst Antwort wählen oder eingeben, dann die Selbsteinschätzung. Während der Abstimmung sieht niemand aggregierte Werte anderer Personen.</source>
-        <target>Divulgation progressive : sélectionnez ou saisissez d&apos;abord la réponse, puis l&apos;auto-évaluation. Lors du vote, personne ne voit les valeurs globales des autres.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">197,201</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceEditorTitle" datatype="html">
-        <source>Im Editor konfigurieren</source>
-        <target>Configurer dans l&apos;éditeur</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">207</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceEditorBody" datatype="html">
-        <source> Toggle pro Frage, optionale Labels für niedrige und hohe Antwortsicherheit und eine Live-Vorschau der Skala. Für neue bewertbare Fragen ist die Selbsteinschätzung standardmäßig aktiv.</source>
-        <target>Basculez par question, étiquettes facultatives pour une confiance de réponse faible et élevée et un aperçu en direct de l&apos;échelle. L&apos;auto-évaluation est active par défaut pour les nouvelles questions évaluables.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">208,212</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.confidenceHostTitle" datatype="html">
-        <source>Host-Auswertung nach Freigabe</source>
-        <target>Évaluation hôte après publication des résultats</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">218</context>
+          <context context-type="linenumber">226</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.confidenceHostBody" datatype="html">
-        <source> Matrix aus Korrektheit und Antwortsicherheit mit Hervorhebung <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>selbstsicher falsch<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>. Bei Auswahlfragen siehst du, welche falschen Optionen mit hoher Antwortsicherheit gewählt wurden.</source>
-        <target>Matrice croisant exactitude et confiance en la réponse, avec mise en évidence des réponses <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>fausses et très sûres<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>. Pour les questions à choix, tu vois quelles mauvaises options ont été choisies avec une haute confiance en la réponse.</target>
+      <trans-unit id="help.hostCapabilitiesTitle" datatype="html">
+        <source>Was kann ich mit arsnova.eu machen?</source>
+        <target>Que puis-je faire avec arsnova.eu ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">219,223</context>
+          <context context-type="linenumber">81</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.confidenceExportTitle" datatype="html">
-        <source>Abschluss und Export</source>
-        <target>Finalisation et export</target>
+      <trans-unit id="help.hostCapabilitiesBody" datatype="html">
+        <source> Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei Bereiche in einer Live-Session verbinden.</source>
+        <target>Un quiz te permet de poser des questions de connaissance ou d’opinion préparées à l’avance. Le canal Q&amp;A sert à recueillir et à hiérarchiser les questions du public. Le Feedback express convient aux retours spontanés sur l’ambiance, la compréhension ou le rythme. Tu peux réunir les trois dans une même session en direct.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">229</context>
+          <context context-type="linenumber">88,93</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.confidenceExportBody" datatype="html">
-        <source> Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Hinweis und fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung. In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte.</source>
-        <target> À la fin de la session, l’évaluation résume les connaissances consolidées, le risque d’idées fausses et les connaissances fragiles. Les questions avec moins de 5 réponses avec autoévaluation ne sont pas agrégées. Le plan de débriefing (PDF) est le format recommandé ; le CSV est disponible sous « Plus » pour Excel. Dans la collection de quiz, tu trouveras le plan de débriefing sur la carte du quiz.</target>
+      <trans-unit id="help.hostFirstSessionTitle" datatype="html">
+        <source>Wie starte ich meine erste Session?</source>
+        <target>Comment lancer ma première session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">230,236</context>
+          <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.demoTitle" datatype="html">
-        <source>Demo-Quiz</source>
-        <target>Quiz de démonstration</target>
+      <trans-unit id="help.hostFirstSessionBody" datatype="html">
+        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät.</source>
+        <target>Ouvre ta collection de quiz et utilise le quiz de démonstration ou crée le tien. Sélectionne « Démarrer », choisis le style et les options, puis partage le code à six caractères ou le QR code. Dans la vue d’animation, affiche la question suivante, lance la phase de réponse et révèle les résultats. Conseil : teste l’aperçu sur un deuxième appareil avant ta première session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">243</context>
+          <context context-type="linenumber">107,113</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.demoCardHint" datatype="html">
-        <source> Ein vorinstalliertes Beispiel-Quiz zeigt die Frageformate in konkreten Unterrichtsmomenten: Wissenscheck, Wortwolke, Kurzantwort, Schätzfrage, Bewertungsskala, Selbsteinschätzung, Formeln und Markdown. Du findest es in deiner Quiz-Sammlung und kannst es dort in der Vorschau öffnen.</source>
-        <target>Un quiz d’exemple préinstallé montre les formats de questions dans des moments pédagogiques concrets : check de connaissances, nuage de mots, réponse courte, estimation, échelle d’évaluation, auto-évaluation, formules et Markdown. Vous le trouverez dans votre bibliothèque de quiz et pourrez l’ouvrir en aperçu.</target>
+      <trans-unit id="help.hostFinishTitle" datatype="html">
+        <source>Wie beende und werte ich eine Session aus?</source>
+        <target>Comment terminer et analyser une session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">244,249</context>
+          <context context-type="linenumber">120</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.demoTip" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Tipp:&lt;/stro"/>Tipp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Öffne die Vorschau vor der ersten Live-Session einmal auf einem zweiten Gerät. So siehst du sofort, wie Host-Ansicht und Teilnehmenden-Screen zusammenspielen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Conseil :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> ouvrez l’aperçu une fois sur un deuxième appareil avant votre première session live. Vous verrez tout de suite comment la vue hôte et l’écran des participant·es fonctionnent ensemble.</target>
+      <trans-unit id="help.hostFinishBody" datatype="html">
+        <source> Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der Nachbesprechungsplan bleibt über die Quizkarte erreichbar.</source>
+        <target>Termine la session dans la vue d’animation. Les résultats consolidés sont alors disponibles. Utilise le plan de débriefing au format PDF pour l’analyse pédagogique ; l’export CSV se trouve sous « Plus ». Le plan reste accessible depuis la carte du quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">251,254</context>
+          <context context-type="linenumber">124,129</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.quickstartTitle" datatype="html">
-        <source>Schnellstart</source>
-        <target>Démarrage rapide</target>
+      <trans-unit id="help.experiencedUserTitle" datatype="html">
+        <source> Schon vertraut mit arsnova.eu</source>
+        <target>Je connais déjà arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">258</context>
+          <context context-type="linenumber">134,136</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickstart1" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Quiz anlegen:&lt;/"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Quiz-Sammlung öffnen&quot; wählen, neues Quiz erstellen und pro Frage das passende Format wählen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Créer un quiz :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> choisissez « Ouvrir la collection de quiz », créez un nouveau quiz et choisissez le bon format pour chaque question.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">261,263</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickstart2" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Veranstaltung s"/>Veranstaltung starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Stil, Timer, Teams und Rangliste festlegen. Danach entsteht ein 6-stelliger Code, den du als Text oder QR-Code teilst.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lancer l’événement :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> définissez le style, les minuteurs, les équipes et le classement. Un code à 6 caractères est ensuite créé ; vous le partagez sous forme de texte ou de QR code.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">265,267</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickstart3" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Live moderieren"/>Live moderieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage zeigen, Antwortphase starten, Ergebnisse freigeben oder zurückhalten und bei Bedarf eine zweite Runde anschließen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Modérer en live :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> affichez la question, lancez la phase de réponse, publiez ou gardez les résultats en réserve et ajoutez un deuxième tour si cela aide.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">269,271</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostTitle" datatype="html">
-        <source>Veranstaltung leiten</source>
-        <target>Diriger l&apos;événement</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">276</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostLead" datatype="html">
-        <source> In der Host-Ansicht führst du durch die Session wie durch eine kleine Senderegie: Teilnehmende reinholen, Inhalte freigeben, Diskussion öffnen und Ergebnisse sichtbar machen.</source>
-        <target>Dans la vue hôte, vous pilotez la session comme une petite régie : faire entrer les participant·es, afficher les contenus, ouvrir la discussion et rendre les résultats visibles.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">277,281</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostStartStep" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Session starten:&lt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Sammlung eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Q&amp;A beginnt. Dann entsteht der Beitrittscode.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lancer la session :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> depuis votre bibliothèque de quiz, démarrez un événement et choisissez s’il commence par un quiz ou par le Q&amp;A. Le code d’accès est alors créé.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">284,286</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostLobby" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Lobby:&lt;/stron"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Vous voyez qui a rejoint ; un code QR pour rejoindre s&apos;affichera.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">288,290</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostBeamer" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Beamer- und Pr"/>Beamer- und Presenter-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage, Antworten, Countdown und Ergebnisse erscheinen groß genug für Projektion, Stream oder zweiten Bildschirm.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vue projecteur et vue présentateur :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> question, réponses, compte à rebours et résultats sont assez grands pour une projection, une diffusion ou un deuxième écran.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">292,294</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostSteuerung" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Steuerung:&lt;/stron"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Nutze „Nächste Frage“, um den Inhalt einzublenden. Optional läuft zuerst eine Lesephase, danach startest du die Antwortphase und entscheidest, wann das Ergebnis auf den Screen kommt.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Pilotage :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> utilisez « Question suivante » pour afficher le contenu. Vous pouvez commencer par une phase de lecture, ouvrir ensuite la phase de réponse et décider du moment où le résultat arrive à l’écran.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">296,299</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostPeer" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Peer Instruc"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei geeigneten Quizfragen, Schätzfragen und Blitzlicht-Runden: erst abstimmen lassen, Diskussion starten, dann erneut abstimmen. Der Vorher/Nachher-Vergleich macht Lernfortschritt sichtbar.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (doubles tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> pour les questions de quiz adaptées, les estimations et les retours express : vote, discussion, puis nouveau vote. La comparaison avant/après rend les progrès visibles.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">301,304</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.hostSettings" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Einstellungen:&lt;/"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du Stil und Optionen fest: seriös oder spielerisch, mit oder ohne Rangliste, Sound, Lesephase, Team-Modus, Nicknamen und Timer.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Paramètres :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> au lancement, vous choisissez le style et les options : sobre ou ludique, avec ou sans classement, son, phase de lecture, mode équipe, pseudonymes et minuteur.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">306,309</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallTitle" datatype="html">
-        <source> Fragenwand im Live-Kanal Q&amp;A</source>
-        <target> Mur de questions dans le canal live Q&amp;A </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">314,316</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallLead" datatype="html">
-        <source> Q&amp;A soll nicht als Nebenchat verschwinden. Die Fragenwand macht Rückfragen sichtbar, priorisierbar und moderierbar: Du hältst den roten Faden, während die Gruppe gemeinsam zeigt, welche Punkte wirklich Klärung brauchen.</source>
-        <target> Le Q&amp;A ne doit pas disparaître dans un chat parallèle. Le mur de questions rend les questions visibles, priorisables et modérables : vous gardez le fil, tandis que le groupe indique collectivement les points qui demandent vraiment clarification. </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">317,321</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallListAria" datatype="html">
-        <source>Didaktische Funktionen der Q&amp;A-Fragenwand</source>
-        <target>Fonctions pédagogiques du mur de questions Q&amp;A</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">325</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallModerationTitle" datatype="html">
-        <source>Moderation mit pädagogischem Takt</source>
-        <target> Modération au bon tempo pédagogique </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">330</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallModerationBody" datatype="html">
-        <source> Auf Wunsch warten neue Fragen erst auf deine Freigabe. Du kannst Beiträge freigeben, anheften, archivieren oder entfernen und damit Schutzraum, Relevanz und Timing steuern: sofort beantworten, für später sammeln oder als Diskussionsspur markieren.</source>
-        <target> Si besoin, les nouvelles questions attendent d’abord votre validation. Vous pouvez valider, épingler, archiver ou retirer des contributions et piloter cadre de confiance, pertinence et timing : répondre tout de suite, garder pour plus tard ou ouvrir une piste de discussion. </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">331,336</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallVotingTitle" datatype="html">
-        <source>Kollektives Hoch- und Runtervoting</source>
-        <target> Vote collectif pour ou contre </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">342</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallVotingBody" datatype="html">
-        <source> Teilnehmende gewichten Fragen gemeinsam. Positive und negative Stimmen zeigen nicht nur Popularität, sondern auch Unsicherheit, Widerspruch und Klärungsbedarf; Sortierungen wie „meist unterstützt“, „beste Fragen“ und „umstritten“ helfen dir, knappe Live-Zeit didaktisch zu setzen.</source>
-        <target> Les participant·es pondèrent ensemble les questions. Les votes positifs et négatifs montrent plus que la popularité : ils font apparaître incertitudes, désaccords et besoins de clarification. Les tris « les plus soutenues », « meilleures questions » et « controversées » aident à placer le temps live là où il a le plus de valeur pédagogique. </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">343,348</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallWordCloudTitle" datatype="html">
-        <source>Q&amp;A-Wortwolke auf Themenebene</source>
-        <target> Nuage de mots Q&amp;A au niveau des thèmes </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">354</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallWordCloudBody" datatype="html">
-        <source> Die Word-Cloud verdichtet sichtbare Fragen zu Wörtern und Phrasen, gewichtet nach Unterstützung, belastbarer Zustimmung oder Kontroverse. Sie lässt sich einfrieren, nach Sortierlogik betrachten und in der Presenter-Ansicht zeigen – als schneller Blick auf Themencluster, nicht als dekorative Wortliste.</source>
-        <target> Le nuage de mots condense les questions visibles en mots et expressions, pondérés par le soutien, l’accord robuste ou la controverse. Il peut être figé, lu selon la logique de tri et affiché dans la vue présentateur : une lecture rapide des clusters thématiques, pas une liste décorative. </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">355,360</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallLlmTitle" datatype="html">
-        <source>Nächster Schritt: Moderationskompass</source>
-        <target>Prochaine étape : boussole de modération</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">366</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qaWallLlmBody" datatype="html">
-        <source> Geplant ist zuerst ein deterministischer Moderationskompass. Optional können später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung.</source>
-        <target> La première étape prévue est une boussole de modération déterministe. Plus tard, des signaux Q&amp;A NLP asynchrones et des résumés liés aux sources pourront être ajoutés en option, comme aide à la modération respectueuse des données plutôt qu’une notation boîte noire. </target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">367,371</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.blitzTitle" datatype="html">
-        <source>Blitzlicht</source>
-        <target>Feedback express</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">378</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickFeedbackIntro" datatype="html">
-        <source> Schnelle Stimmungs- und Wissensabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Checks. Nutzbar im Host-Bereich deiner Live-Session oder direkt von der Startseite.</source>
-        <target>Sondages rapides sur l’humeur ou la compréhension, avant une pause, en ouverture ou pour prendre la température à chaud. Disponibles dans la vue hôte de votre session live ou directement depuis la page d’accueil.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">379,383</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qfMood" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Stimmungsb"/>Stimmungsbild<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): Wie geht es den Teilnehmenden?</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Baromètre d’ambiance<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟) : comment va le groupe ?</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">386,387</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.qfYesNoMaybe" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Ja / Nein / Viel"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungsabfrage.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Oui / Non / Peut-être<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷) : prise de position rapide.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">389,390</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickFeedbackYesNo" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Ja / Nein&lt;/strong&gt; (👍"/>Ja / Nein<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Oui / Non<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎) : question binaire claire, sans réponse intermédiaire.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">392,393</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Wahr / Falsch / Weiß nicht&lt;/stron"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✓ / × / ?): Für schnelle Einschätzungen oder Wissenschecks.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vrai / Faux / Je ne sais pas<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✓ / × / ?) : pour des estimations rapides ou de petits tests de connaissances.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">395,397</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickFeedbackLetterOptions" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Mehrstufige Schnellabfragen&lt;/s"/>Mehrstufige Schnellabfragen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A–D): Drei oder vier feste Optionen für spontane Abstimmungen – ohne eine vollständige Quizfrage zu bauen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Options rapides en plusieurs niveaux<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A–D) : trois ou quatre options fixes pour voter spontanément, sans créer une vraie question de quiz.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">399,401</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="help.quickFeedbackTempo" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Tempo-Feedback&lt;/strong"/>Tempo-Feedback<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🙂🐇🐢🙈): Mit vier Icons meldet deine Gruppe laufend zurück, ob sie folgen kann. Teilnehmende können ihre Rückmeldung ändern; du siehst nur die aggregierte Tendenz.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Feedback sur le rythme<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🙂🐇🐢🙈) : avec quatre icônes, votre groupe indique en continu s’il suit. Les participant·es peuvent modifier leur retour ; vous ne voyez que la tendance agrégée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">403,406</context>
+          <context context-type="linenumber">283,285</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
-        <source> Du startest die Runde im Host-Bereich deiner Live-Session oder über die Blitzlicht-Karte „Live mit einem Klick&quot; auf der Startseite. Teilnehmende tippen eine Antwort; du siehst die Ergebnisse live als Balkendiagramm.</source>
-        <target>Vous lancez le tour depuis la vue hôte de votre session live ou via la carte « Feedback express » (« Feedback instantané en un clic ») sur la page d’accueil. Les participant·es votent d’un geste ; les résultats s’affichent en live sous forme de graphique en barres.</target>
+      <trans-unit id="help.hostFormatsTitle" datatype="html">
+        <source>Fragetypen und Selbsteinschätzung</source>
+        <target>Types de questions et auto-évaluation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">408,412</context>
+          <context context-type="linenumber">141</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.qfPeer" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Peer Instr"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt, wie sich das Stimmungsbild durch den Austausch verändert hat.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Instruction par les pairs (deux tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Premier vote, résultat masqué, phase de discussion, puis deuxième vote. La comparaison avant/après montre comment l’avis du groupe évolue après l’échange.</target>
+      <trans-unit id="help.hostFormatsBody" datatype="html">
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
+        <target>Les formats disponibles sont : choix unique, choix multiple, réponse courte, texte libre, sondage, échelle d’évaluation et estimation numérique. Une question évaluable peut être suivie d’une auto-évaluation de 1 à 5. Elle ne modifie pas le score, mais met en évidence les acquis solides, les acquis fragiles et les éventuelles idées fausses.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">415,419</context>
+          <context context-type="linenumber">145,151</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.qfStop" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Stopp:&lt;/st"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Arrêter :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fige le vote : les participant·es voient « Le vote est en pause » et ne peuvent plus voter jusqu’à ce que vous choisissiez « Reprendre ».</target>
+      <trans-unit id="help.hostModerationTitle" datatype="html">
+        <source>Live moderieren und Peer Instruction nutzen</source>
+        <target>Animer en direct et utiliser l’instruction par les pairs</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">421,423</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.qfReset" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Zurücksetze"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Réinitialiser :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Supprimez tous les votes et laissez-les voter à nouveau.</target>
+      <trans-unit id="help.hostModerationBody" datatype="html">
+        <source> Nutze je nach Situation Lesephase, Timer, Beamer- oder Presenter-Ansicht und eine verzögerte Ergebnisfreigabe. Für Peer Instruction lässt du zuerst abstimmen, startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der Vorher-nachher-Vergleich macht Veränderungen sichtbar.</source>
+        <target>Utilise selon les besoins la phase de lecture, le minuteur, la vue de projection ou de présentation et l’affichage différé des résultats. Pour l’instruction par les pairs, lance un premier vote, ouvre une phase de discussion, puis un second vote. La comparaison avant-après rend les évolutions visibles.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">425,426</context>
+          <context context-type="linenumber">162,167</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.qfNewRound" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Neue Runde:&lt;/s"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nouveau tour :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Générez un nouveau code et démarrez un nouveau tour.</target>
+      <trans-unit id="help.hostQaTitle" datatype="html">
+        <source>Die Q&amp;A-Fragenwand moderieren</source>
+        <target>Modérer le mur de questions Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">428,429</context>
+          <context context-type="linenumber">174</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.qfCopyLink" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Link kopieren:"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Copier le lien :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Copiez le lien de participation dans le presse-papiers, par exemple pour le partager dans un chat.</target>
+      <trans-unit id="help.hostQaBody" datatype="html">
+        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Hoch- und Runtervotes sowie verschiedene Sortierungen helfen bei der Priorisierung; die Wortwolke verdichtet sichtbare Themen für die Präsentation.</source>
+        <target>Les nouvelles contributions peuvent attendre une validation avant d’apparaître. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots synthétise les thèmes visibles pour la présentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">431,433</context>
+          <context context-type="linenumber">178,183</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.participantsTitle" datatype="html">
-        <source>Für deine Teilnehmenden</source>
-        <target>Pour vos participants</target>
+      <trans-unit id="help.hostPulseTitle" datatype="html">
+        <source>Blitzlicht und Tempo-Feedback einsetzen</source>
+        <target>Utiliser le Feedback express et le retour sur le rythme</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">438</context>
+          <context context-type="linenumber">190</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.participantsLead" datatype="html">
-        <source> Kurz erklärt, was du in deiner Veranstaltung weitergeben kannst:</source>
-        <target>En bref : ce que vous pouvez transmettre pendant votre événement :</target>
+      <trans-unit id="help.hostPulseBody" datatype="html">
+        <source> Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
+        <target>Lance un Feedback express depuis la session en direct ou avec « Feedback instantané en un clic » sur la page d’accueil. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">439,441</context>
+          <context context-type="linenumber">194,199</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.participantsJoin" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Beitreten:&lt;/strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf arsnova.eu eingeben und „Los geht&apos;s&quot; – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Rejoindre :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Saisissez le code à 6 chiffres sur arsnova.eu et « C’est parti » — valable pour quiz, Q&amp;A et feedback express. Aucune inscription.</target>
+      <trans-unit id="help.hostLibraryTitle" datatype="html">
+        <source>Quiz-Sammlung und Einstellungen verwalten</source>
+        <target>Gérer les quiz et les paramètres</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">444,446</context>
+          <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.participantsNick" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Nicknamen:&lt;/strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach deiner Einstellung vorgegebene Namen, eigener Name oder anonym.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Pseudos :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Selon vos paramètres, noms prédéfinis, votre nom propre ou anonyme.</target>
+      <trans-unit id="help.hostLibraryBody" datatype="html">
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen Erzeugung und Prüfung, ohne Inhalte an arsnova.eu zu senden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
+        <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. Le lien de synchronisation permet de partager la collection ou de continuer sur un autre appareil. Les modèles d’IA facilitent la génération et la vérification sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">448,450</context>
+          <context context-type="linenumber">210,217</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.participantsVote" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Abstimmung:&lt;/strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage erscheint auf dem Gerät, Antwort wählen und absenden. Bei aktivierter Selbsteinschätzung folgt danach die Skala 1–5. Bei Zeitlimit läuft ein Countdown.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Votez :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> La question apparaît sur l'appareil ; choisis la réponse et envoie-la. Si l'auto-évaluation est activée, l'échelle 1–5 suit. Avec limite de temps, un compte à rebours démarre.</target>
+      <trans-unit id="help.participantJoinTitle" datatype="html">
+        <source>Wie trete ich einer Session bei?</source>
+        <target>Comment rejoindre une session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">452,455</context>
+          <context context-type="linenumber">231</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionTitle" datatype="html">
-        <source>Deine Quiz-Sammlung</source>
-        <target>Votre bibliothèque de quiz</target>
+      <trans-unit id="help.participantJoinBody" datatype="html">
+        <source> Scanne den QR-Code oder öffne arsnova.eu und gib den sechsstelligen Code ein. Du brauchst kein Konto. Je nach Einstellung der Veranstaltungsleitung nimmst du anonym, mit einem vorgegebenen Nickname oder mit einem selbst gewählten Namen teil.</source>
+        <target>Scanne le QR code ou ouvre arsnova.eu et saisis le code à six caractères. Aucun compte n’est nécessaire. Selon les réglages de la personne qui anime, tu participes anonymement, avec un pseudonyme prédéfini ou avec le nom de ton choix.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">460</context>
+          <context context-type="linenumber">235,240</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionLead" datatype="html">
-        <source>Hier legst du deine Quizze an und bereitest sie vor.</source>
-        <target>Ici, vous créez et préparez vos quiz.</target>
+      <trans-unit id="help.participantAnswerTitle" datatype="html">
+        <source>Wie beantworte ich eine Quizfrage?</source>
+        <target>Comment répondre à une question de quiz ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">461</context>
+          <context context-type="linenumber">247</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionEditor" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Editor:&lt;/strong&gt; Fra"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau prüfen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Éditeur :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Triez les questions par glisser-déposer, développez et réduisez, vérifiez l'aperçu.</target>
+      <trans-unit id="help.participantAnswerBody" datatype="html">
+        <source> Wähle eine Antwort oder gib sie ein und sende sie ab. Ist die Selbsteinschätzung aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.</source>
+        <target>Sélectionne ou saisis ta réponse, puis envoie-la. Si l’auto-évaluation est activée, indique ensuite ton degré de certitude sur une échelle de 1 à 5. En cas de limite de temps, un compte à rebours affiche le temps restant. Le résultat apparaît lorsque la personne qui anime le révèle.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">464,466</context>
+          <context context-type="linenumber">254,259</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionTypes" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Fragetypen:&lt;/strong"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage – pro Frage optional mit Timer, Schwierigkeitsgrad und Selbsteinschätzung.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Types de questions :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Single choice, multiple choice, réponse courte, texte libre, sondage, échelle d’évaluation et question d’estimation numérique — chaque question peut aussi avoir un minuteur, une difficulté et une auto-évaluation.</target>
+      <trans-unit id="help.participantContributeTitle" datatype="html">
+        <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
+        <target>Comment poser une question ou donner mon avis ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">468,471</context>
+          <context context-type="linenumber">266</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionImport" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Import / Export:&lt;/st"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Mit der Start- und Prüfvorlage kannst du anspruchsvolle Quizze mit deinem bevorzugten KI-Tool generieren, prüfen und direkt importieren – deine Inhalte und Präsentationen werden nicht an arsnova.eu gesendet; du nutzt dein eigenes KI-Tool.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / export :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importez ou exportez des quiz en JSON. Utilisez les modèles de génération et de vérification pour créer des quiz exigeants avec votre outil d’IA préféré, les vérifier et les importer directement. Vos contenus et présentations ne sont pas envoyés à arsnova.eu ; vous utilisez votre propre outil d’IA.</target>
+      <trans-unit id="help.participantContributeBody" datatype="html">
+        <source> Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen hoch- oder runtervoten. Je nach Moderation erscheint deine Frage erst nach der Freigabe. Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein Tempo-Feedback kannst du während der laufenden Abfrage ändern.</source>
+        <target>Dans le canal Q&amp;A, envoie ta propre question et vote pour ou contre les autres contributions. Selon les réglages de modération, ta question peut n’apparaître qu’après validation. Dans le Feedback express, donne un retour spontané en un geste. Tu peux modifier ton retour sur le rythme tant que le sondage est ouvert.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">473,477</context>
+          <context context-type="linenumber">273,278</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.collectionSync" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Sync:&lt;/strong&gt; Mit"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit dem Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten. Wer den Link hat, kann die Sammlung öffnen. Die Geräteangaben helfen nur bei der Orientierung.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Utilisez le lien de sync pour partager votre bibliothèque de quiz avec des collègues ou continuer sur d&apos;autres appareils. Toute personne qui a le lien peut ouvrir la bibliothèque. Les infos sur l&apos;appareil servent seulement à vous aider à vous repérer.</target>
+      <trans-unit id="help.participantChannelsTitle" datatype="html">
+        <source>Wie nutze ich Quiz, Q&amp;A und Blitzlicht in einer Session?</source>
+        <target>Comment utiliser le quiz, le Q&amp;A et le Feedback express dans une même session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">479,482</context>
+          <context context-type="linenumber">290</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.demoQuizHint" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Demo-Quiz:&lt;/stro"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Formate mit Beispielen inkl. KaTeX-Formeln und Markdown. In der Quiz-Sammlung in der Vorschau öffnen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de démonstration :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> un quiz préinstallé montre tous les formats avec des exemples, y compris des formules KaTeX et du Markdown. Ouvrez-le depuis la bibliothèque de quiz en aperçu.</target>
+      <trans-unit id="help.participantChannelsBody" datatype="html">
+        <source> Eine Live-Session kann Quiz, Q&amp;A und Blitzlicht miteinander verbinden. Folge der jeweils geöffneten Ansicht und den Hinweisen auf deinem Gerät. Wenn ein Bereich gerade nicht aktiv ist, warte auf die nächste Freigabe durch die Veranstaltungsleitung.</source>
+        <target>Une session en direct peut combiner quiz, Q&amp;A et Feedback express. Suis la vue active et les indications sur ton appareil. Si un canal n’est pas actif, attends que la personne qui anime lance l’activité suivante.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">484,487</context>
+          <context context-type="linenumber">297,302</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.stylesTitle" datatype="html">
-        <source>Seriös und Spielerisch</source>
-        <target>Sérieux et ludique</target>
+      <trans-unit id="help.participantSecondRoundTitle" datatype="html">
+        <source>Was passiert bei einer zweiten Abstimmungsrunde?</source>
+        <target>Que se passe-t-il lors d’un second tour de vote ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">492</context>
+          <context context-type="linenumber">309</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.stylesLead" datatype="html">
-        <source> Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start.</source>
-        <target>Deux styles pour différentes situations – sélectionnables sur la page d&apos;accueil et au début de la session.</target>
+      <trans-unit id="help.participantSecondRoundBody" datatype="html">
+        <source> Bei Peer Instruction beantwortest du die Frage zunächst allein. Anschließend diskutierst du mit anderen Teilnehmenden und stimmst ein zweites Mal ab. Sende deine Antwort auch in der zweiten Runde erneut ab; sie darf sich von deiner ersten Antwort unterscheiden.</source>
+        <target>Dans l’instruction par les pairs, réponds d’abord seul·e à la question. Discute ensuite avec d’autres participant·es, puis vote une seconde fois. Envoie également ta réponse au second tour ; elle peut différer de la première.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">493,496</context>
+          <context context-type="linenumber">316,321</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.styleSerious" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Seriös:&lt;/strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste – ideal für formative Assessments, Prüfungsvorbereitung und sensible Themen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sérieux :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonyme, sans classement — idéal pour les évaluations formatives, la préparation aux examens et les sujets sensibles.</target>
+      <trans-unit id="help.participantResultsTitle" datatype="html">
+        <source>Wie sind Ergebnisse, Rangliste und Teamwertung zu verstehen?</source>
+        <target>Comment interpréter les résultats, le classement et les scores d’équipe ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">499,501</context>
+          <context context-type="linenumber">328</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.stylePlayful" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Spielerisch:&lt;/st"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds und Anfeuerung – ideal für Auflockerung, Wettbewerbe und motivierende Quizze.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ludique :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Avec classement, sons et encouragements - idéal pour se détendre, participer à des compétitions et des quiz motivants.</target>
+      <trans-unit id="help.participantResultsBody" datatype="html">
+        <source> Die Veranstaltungsleitung entscheidet, wann Ergebnisse sichtbar werden. Rangliste, Teamwertung und Bonus-Codes erscheinen nur, wenn sie für die Session aktiviert wurden. Deine Selbsteinschätzung hat keinen Einfluss auf Punkte oder Platzierung.</source>
+        <target>La personne qui anime décide quand les résultats deviennent visibles. Le classement, les scores d’équipe et les codes bonus n’apparaissent que s’ils sont activés pour la session. Ton auto-évaluation n’a aucun effet sur ton score ni sur ta position.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">503,505</context>
+          <context context-type="linenumber">335,339</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.stylesOptions" datatype="html">
-        <source> Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
-        <target>Toutes les options (classements, son, phase de lecture, équipe, bonus) peuvent être activées et désactivées individuellement.</target>
+      <trans-unit id="help.commonTitle" datatype="html">
+        <source>Für alle</source>
+        <target>Pour tout le monde</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">507,510</context>
+          <context context-type="linenumber">346</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.moreTitle" datatype="html">
-        <source>Weitere Funktionen</source>
-        <target>Plus de fonctionnalités</target>
+      <trans-unit id="help.commonPrivacyTitle" datatype="html">
+        <source>Wie werden Daten und Inhalte behandelt?</source>
+        <target>Comment les données et les contenus sont-ils traités ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">514</context>
+          <context context-type="linenumber">351</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.moreBonus" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Bonus-Codes:&lt;"/>Bonus-Codes:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du siehst die Code-Liste; personenbezogene Daten werden nicht gespeichert.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Codes bonus :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Les premiers finalistes reçoivent un code échangeable (par exemple, contre des points bonus). Vous voyez la liste des codes ; Les données personnelles ne sont pas stockées.</target>
+      <trans-unit id="help.commonPrivacyBody" datatype="html">
+        <source> Für die Nutzung ist kein Konto erforderlich. Quiz-Inhalte der Veranstaltungsleitung werden zunächst lokal im Browser gespeichert; während einer Live-Session werden die für die Interaktion notwendigen Daten ausgetauscht. arsnova.eu ist Open Source und für einen datenschutzorientierten Betrieb in Europa ausgelegt. Einzelheiten findest du in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/privacy&apos;)&quot;&gt;"/>Datenschutzerklärung<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.</source>
+        <target>Aucun compte n’est nécessaire. Les quiz de la personne qui anime sont d’abord stockés localement dans son navigateur ; pendant une session en direct, seules les données nécessaires à l’interaction sont échangées. arsnova.eu est open source et conçu pour un fonctionnement respectueux de la vie privée en Europe. Consulte la <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Politique de confidentialité<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> pour en savoir plus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">517,520</context>
+          <context context-type="linenumber">355,362</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.moreTeams" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Team-Modus:&lt;/"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Deine Teilnehmenden spielen in Teams mit eigenem Team-Leaderboard – z. B. für Gruppenwettbewerbe im Seminar.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Mode équipe :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Vos participants jouent en équipes avec leur propre classement d'équipe - p. ex. pour les compétitions de groupe en séminaires.</target>
+      <trans-unit id="help.commonAccessibilityTitle" datatype="html">
+        <source>Wie nutze ich arsnova.eu barrierefrei und als App?</source>
+        <target>Comment utiliser arsnova.eu de façon accessible et comme application ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">522,524</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.moreGamification" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="Gamification:&lt;/stron"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen – im Spielerisch-Modus.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Effets sonores, effets de récompense pour les meilleures places, messages de motivation - en mode ludique.</target>
+      <trans-unit id="help.commonAccessibilityBody" datatype="html">
+        <source> arsnova.eu lässt sich mit Tastatur, Screenreader und vergrößerter Darstellung bedienen. Nutze bei Bedarf die Kontrast- und Farbschemaoptionen der App oder deines Betriebssystems. Du kannst arsnova.eu außerdem als Progressive Web App installieren. Weitere Hinweise stehen in der <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;localizedPath(&apos;/legal/accessibility&apos;)&quot;&gt;"/>Erklärung zur Barrierefreiheit<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.</source>
+        <target>arsnova.eu est utilisable au clavier, avec un lecteur d’écran et avec un affichage agrandi. Utilise si nécessaire les options de contraste et de thème de l’application ou de ton système d’exploitation. Tu peux aussi installer arsnova.eu comme Progressive Web App. Consulte la <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Déclaration d’accessibilité<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> pour en savoir plus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">526,528</context>
+          <context context-type="linenumber">376,382</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.privacyTitle" datatype="html">
-        <source>Datenschutz und Technik</source>
-        <target>Protection des données et technologie</target>
+      <trans-unit id="help.commonTroubleshootingTitle" datatype="html">
+        <source>Was kann ich bei technischen Problemen tun?</source>
+        <target>Que faire en cas de problème technique ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">533</context>
+          <context context-type="linenumber">389</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="help.privacyBody" datatype="html">
-        <source> arsnova.eu ist kostenlos, Open Source und für den Einsatz an Schulen, Hochschulen und in Weiterbildung gedacht – mit Fokus auf Datenschutz (DSGVO). Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Oberfläche auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.</source>
-        <target>arsnova.eu est gratuit, open source et conçu pour les écoles, l’enseignement supérieur et la formation continue — avec un vrai focus sur la protection des données (RGPD). Les contenus de quiz restent stockés localement dans le navigateur. Aucune inscription nécessaire, ni pour vous ni pour vos participant·es. Installable comme application (PWA), par exemple pour démarrer plus vite sur smartphone. Interface disponible en allemand, anglais, français, espagnol et italien.</target>
+      <trans-unit id="help.commonTroubleshootingBody" datatype="html">
+        <source> Prüfe zuerst den Code oder QR-Code, deine Internetverbindung und ob die Session noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet wurde.</source>
+        <target>Vérifie d’abord le code ou le QR code, ta connexion Internet et que la session est toujours active. Si aucune question n’est encore visible, la session peut être dans le hall d’attente, en phase de lecture ou en pause. Après une coupure, rouvre le lien de participation ou saisis de nouveau le code. Adresse-toi à la personne qui anime si la session est déjà terminée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">534,540</context>
+          <context context-type="linenumber">396,403</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.channelQuiz" datatype="html">

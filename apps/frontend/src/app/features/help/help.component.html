@@ -34,510 +34,387 @@
           </span>
           <span class="dialog-title-header__copy">
             <h1 id="help-page-title" class="dialog-title-header__heading" i18n="@@help.pageTitle">
-              So funktioniert’s
+              Hilfe &amp; Einstieg
             </h1>
           </span>
         </header>
         <p i18n="@@help.intro">
-          Diese Seite richtet sich an
-          <strong>Lehrende, Trainer:innen und Vortragende</strong>, die aus einer Präsentation eine
-          echte Live-Situation machen wollen: kurze Checks, Diskussionen, Q&amp;A, Blitzlicht und
-          Auswertung laufen in einer Session zusammen. <strong>Ohne Pflichtkonto</strong> für deine
-          Gruppe: Code oder QR zeigen, Smartphones raus, loslegen.
+          Wähle, wie du arsnova.eu nutzt. Du erhältst einen kurzen Einstieg oder kannst gezielt
+          Funktionen nachschlagen.
         </p>
 
-        <section>
-          <h2 i18n="@@help.uspTitle">Was arsnova.eu anders macht</h2>
-          <p i18n="@@help.usp1">
-            arsnova.eu ist als <strong>Live-Regie für Unterricht, Training und Talks</strong>
-            gedacht: Du wechselst nicht zwischen Präsentation, Chat, Umfragetool und Quiz-App,
-            sondern steuerst Interaktion, Beamer-Ansicht und Ergebnisfreigabe an einem Ort.
-          </p>
-          <p i18n="@@help.usp2">
-            Der Fokus liegt auf <strong>didaktischer Kontrolle und Datenschutz</strong>: Inhalte
-            bleiben zunächst local-first im Browser, Teilnehmende brauchen kein Konto, das Projekt
-            ist Open Source und für EU-orientierten Betrieb ausgelegt. Markdown und KaTeX machen
-            fachliche Fragen präsentationstauglich, von MINT-Formeln bis zum kurzen Fallbeispiel.
-          </p>
+        <nav class="help-role-nav" i18n-aria-label="@@help.roleNavAria" aria-label="Rollenwahl">
+          <a class="help-role-card" href="#help-host">
+            <mat-icon class="help-role-card__icon" aria-hidden="true">co_present</mat-icon>
+            <span class="help-role-card__copy">
+              <span class="help-role-card__title" i18n="@@help.roleHostTitle"
+                >Ich leite eine Veranstaltung</span
+              >
+              <span class="help-role-card__hint" i18n="@@help.roleHostHint"
+                >Für Lehrende, Vortragende, Trainer:innen und Moderator:innen</span
+              >
+            </span>
+            <mat-icon class="help-role-card__chevron" aria-hidden="true">south</mat-icon>
+          </a>
+          <a class="help-role-card" href="#help-participant">
+            <mat-icon class="help-role-card__icon" aria-hidden="true">groups</mat-icon>
+            <span class="help-role-card__copy">
+              <span class="help-role-card__title" i18n="@@help.roleParticipantTitle"
+                >Ich nehme an einer Veranstaltung teil</span
+              >
+              <span class="help-role-card__hint" i18n="@@help.roleParticipantHint"
+                >Für alle, die abstimmen, Fragen stellen oder Feedback geben</span
+              >
+            </span>
+            <mat-icon class="help-role-card__chevron" aria-hidden="true">south</mat-icon>
+          </a>
+        </nav>
+
+        <section id="help-host" class="help-section" aria-labelledby="help-host-title">
+          <h2 id="help-host-title" i18n="@@help.roleHostTitle">Ich leite eine Veranstaltung</h2>
+
+          <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
+          <mat-accordion class="help-accordion" [multi]="true">
+            <mat-expansion-panel #hostCapabilitiesPanel class="help-panel" [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostCapabilitiesTitle"
+                  >Was kann ich mit arsnova.eu machen?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="hostCapabilitiesPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.hostCapabilitiesBody">
+                  Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A
+                  sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich
+                  für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei
+                  Bereiche in einer Live-Session verbinden.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostFirstSessionPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostFirstSessionTitle"
+                  >Wie starte ich meine erste Session?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="hostFirstSessionPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.hostFirstSessionBody">
+                  Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz.
+                  Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den
+                  sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage,
+                  startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau
+                  vor dem ersten Einsatz einmal auf einem zweiten Gerät.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostFinishPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostFinishTitle"
+                  >Wie beende und werte ich eine Session aus?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostFinishPanel.expanded ? null : ''">
+                <p i18n="@@help.hostFinishBody">
+                  Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten
+                  Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die
+                  didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der
+                  Nachbesprechungsplan bleibt über die Quizkarte erreichbar.
+                </p>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+
+          <h3 class="help-experience-title" i18n="@@help.experiencedUserTitle">
+            Schon vertraut mit arsnova.eu
+          </h3>
+          <mat-accordion class="help-accordion" [multi]="true">
+            <mat-expansion-panel #hostFormatsPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostFormatsTitle"
+                  >Fragetypen und Selbsteinschätzung</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostFormatsPanel.expanded ? null : ''">
+                <p i18n="@@help.hostFormatsBody">
+                  Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext,
+                  Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann
+                  anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie
+                  verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und
+                  mögliche Fehlkonzepte sichtbar.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostModerationPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostModerationTitle"
+                  >Live moderieren und Peer Instruction nutzen</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostModerationPanel.expanded ? null : ''">
+                <p i18n="@@help.hostModerationBody">
+                  Nutze je nach Situation Lesephase, Timer, Beamer- oder Presenter-Ansicht und eine
+                  verzögerte Ergebnisfreigabe. Für Peer Instruction lässt du zuerst abstimmen,
+                  startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung.
+                  Der Vorher-nachher-Vergleich macht Veränderungen sichtbar.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostQaPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostQaTitle"
+                  >Die Q&amp;A-Fragenwand moderieren</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostQaPanel.expanded ? null : ''">
+                <p i18n="@@help.hostQaBody">
+                  Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst
+                  Fragen freigeben, anheften, archivieren oder entfernen. Hoch- und Runtervotes
+                  sowie verschiedene Sortierungen helfen bei der Priorisierung; die Wortwolke
+                  verdichtet sichtbare Themen für die Präsentation.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostPulsePanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostPulseTitle"
+                  >Blitzlicht und Tempo-Feedback einsetzen</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostPulsePanel.expanded ? null : ''">
+                <p i18n="@@help.hostPulseBody">
+                  Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf
+                  der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder
+                  als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung
+                  jederzeit; du siehst nur die aggregierte Tendenz.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostLibraryPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostLibraryTitle"
+                  >Quiz-Sammlung und Einstellungen verwalten</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostLibraryPanel.expanded ? null : ''">
+                <p i18n="@@help.hostLibraryBody">
+                  In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und
+                  importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die
+                  Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen
+                  Erzeugung und Prüfung, ohne Inhalte an arsnova.eu zu senden. Beim Session-Start
+                  konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und
+                  Bonus-Codes.
+                </p>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
         </section>
 
-        <section class="help-section--formats" aria-labelledby="help-formats-title">
-          <h2 id="help-formats-title" i18n="@@help.formatsTitle">
-            Frageformate: passend zum didaktischen Ziel
+        <section
+          id="help-participant"
+          class="help-section"
+          aria-labelledby="help-participant-title"
+        >
+          <h2 id="help-participant-title" i18n="@@help.roleParticipantTitle">
+            Ich nehme an einer Veranstaltung teil
           </h2>
-          <p class="help-section-lead" i18n="@@help.formatsLead">
-            Wähle das Format nach der Situation im Raum: Willst du Wissen prüfen, Haltungen sichtbar
-            machen, Begriffe einsammeln oder Schätzungen diskutieren? Die Formate sind bewusst
-            getrennt, damit Ergebnisanzeige, Bewertung und Moderation zum Einsatzzweck passen.
-          </p>
-          <ul
-            class="help-format-grid"
-            i18n-aria-label="@@help.formatsGridAria"
-            aria-label="Verfügbare Quiz-Frageformate"
-          >
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">
-                radio_button_checked
-              </mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatSingleChoiceTitle">Single Choice</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatSingleChoiceTag">
-                  eine richtige Option
-                </p>
-                <p i18n="@@help.formatSingleChoiceBody">
-                  Für punktgenaue Verständnischecks: Eine Antwort ist korrekt, Ergebnis und Punkte
-                  sind sofort klar.
+
+          <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
+          <mat-accordion class="help-accordion" [multi]="true">
+            <mat-expansion-panel #participantJoinPanel class="help-panel" [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantJoinTitle"
+                  >Wie trete ich einer Session bei?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantJoinPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantJoinBody">
+                  Scanne den QR-Code oder öffne arsnova.eu und gib den sechsstelligen Code ein. Du
+                  brauchst kein Konto. Je nach Einstellung der Veranstaltungsleitung nimmst du
+                  anonym, mit einem vorgegebenen Nickname oder mit einem selbst gewählten Namen
+                  teil.
                 </p>
               </div>
-            </li>
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">checklist</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatMultipleChoiceTitle">Multiple Choice</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatMultipleChoiceTag">
-                  mehrere richtige Optionen
-                </p>
-                <p i18n="@@help.formatMultipleChoiceBody">
-                  Für komplexere Konzepte, typische Fehlannahmen oder Fragen wie „Welche Aussagen
-                  stimmen?“ – mehrere Lösungen können zählen.
-                </p>
-              </div>
-            </li>
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">short_text</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatShortTextTitle">Kurzantwort</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatShortTextTag">
-                  Musterlösung statt Auswahl
-                </p>
-                <p i18n="@@help.formatShortTextBody">
-                  Teilnehmende formulieren kurz selbst. Du hinterlegst Musterlösungen; arsnova.eu
-                  kann Schreibvarianten, Toleranz und bei Bedarf Zahlen oder Einheiten auswerten.
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #participantAnswerPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantAnswerTitle"
+                  >Wie beantworte ich eine Quizfrage?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantAnswerPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantAnswerBody">
+                  Wähle eine Antwort oder gib sie ein und sende sie ab. Ist die Selbsteinschätzung
+                  aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du
+                  dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das
+                  Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.
                 </p>
               </div>
-            </li>
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">notes</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatFreeTextTitle">Freitext</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatFreeTextTag">
-                  offene Antworten
-                </p>
-                <p i18n="@@help.formatFreeTextBody">
-                  Für Ideen, Reflexionen und Erwartungsabfragen. Keine automatische Bewertung;
-                  Antworten lassen sich sammeln und als Wortwolke sichtbar machen.
-                </p>
-              </div>
-            </li>
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">poll</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatSurveyTitle">Umfrage</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatSurveyTag">
-                  Meinungsbild ohne richtig/falsch
-                </p>
-                <p i18n="@@help.formatSurveyBody">
-                  Für Prioritäten, Vorwissen oder Entscheidungen im Raum. Optionen werden gezählt,
-                  ohne Scorelogik.
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #participantContributePanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantContributeTitle"
+                  >Wie stelle ich eine Frage oder gebe Feedback?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantContributePanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantContributeBody">
+                  Im Q&amp;A kannst du eine eigene Frage senden und Beiträge anderer Personen hoch-
+                  oder runtervoten. Je nach Moderation erscheint deine Frage erst nach der Freigabe.
+                  Im Blitzlicht gibst du mit einem Tippen eine spontane Rückmeldung. Dein
+                  Tempo-Feedback kannst du während der laufenden Abfrage ändern.
                 </p>
               </div>
-            </li>
-            <li class="help-format-card">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">linear_scale</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatRatingTitle">Bewertungsskala</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatRatingTag">
-                  Skala mit eigenen Polen
-                </p>
-                <p i18n="@@help.formatRatingBody">
-                  Für Zustimmung, Sicherheit, Tempo oder Feedback von niedrig bis hoch; optional mit
-                  benannten Endpunkten.
-                </p>
-              </div>
-            </li>
-            <li class="help-format-card help-format-card--wide">
-              <mat-icon class="help-format-card__icon" aria-hidden="true">analytics</mat-icon>
-              <div class="help-format-card__body">
-                <h3 i18n="@@help.formatNumericEstimateTitle">Numerische Schätzfrage</h3>
-                <p class="help-format-card__tag" i18n="@@help.formatNumericEstimateTag">
-                  Zahlen schätzen, Streuung sehen
-                </p>
-                <p i18n="@@help.formatNumericEstimateBody">
-                  Für Jahreszahlen, Größenordnungen, Messwerte und Wahrscheinlichkeiten. Mit
-                  Referenzwert, Toleranzband, Histogramm, Statistik und optionaler zweiter Runde.
+            </mat-expansion-panel>
+          </mat-accordion>
+
+          <h3 class="help-experience-title" i18n="@@help.experiencedUserTitle">
+            Schon vertraut mit arsnova.eu
+          </h3>
+          <mat-accordion class="help-accordion" [multi]="true">
+            <mat-expansion-panel #participantChannelsPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantChannelsTitle"
+                  >Wie nutze ich Quiz, Q&amp;A und Blitzlicht in einer Session?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantChannelsPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantChannelsBody">
+                  Eine Live-Session kann Quiz, Q&amp;A und Blitzlicht miteinander verbinden. Folge
+                  der jeweils geöffneten Ansicht und den Hinweisen auf deinem Gerät. Wenn ein
+                  Bereich gerade nicht aktiv ist, warte auf die nächste Freigabe durch die
+                  Veranstaltungsleitung.
                 </p>
               </div>
-            </li>
-          </ul>
-          <p class="help-format-note" i18n="@@help.formatsBlitzNote">
-            Blitzlicht ist davon getrennt: Es ist für spontane Live-Rückmeldungen gedacht, wenn du
-            keine vollständige Quizfrage bauen willst.
-          </p>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #participantSecondRoundPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantSecondRoundTitle"
+                  >Was passiert bei einer zweiten Abstimmungsrunde?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantSecondRoundPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantSecondRoundBody">
+                  Bei Peer Instruction beantwortest du die Frage zunächst allein. Anschließend
+                  diskutierst du mit anderen Teilnehmenden und stimmst ein zweites Mal ab. Sende
+                  deine Antwort auch in der zweiten Runde erneut ab; sie darf sich von deiner ersten
+                  Antwort unterscheiden.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #participantResultsPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.participantResultsTitle"
+                  >Wie sind Ergebnisse, Rangliste und Teamwertung zu verstehen?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="participantResultsPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.participantResultsBody">
+                  Die Veranstaltungsleitung entscheidet, wann Ergebnisse sichtbar werden. Rangliste,
+                  Teamwertung und Bonus-Codes erscheinen nur, wenn sie für die Session aktiviert
+                  wurden. Deine Selbsteinschätzung hat keinen Einfluss auf Punkte oder Platzierung.
+                </p>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
         </section>
 
-        <section class="help-section--confidence" aria-labelledby="help-confidence-title">
-          <h2 id="help-confidence-title" i18n="@@help.confidenceTitle">
-            Selbsteinschätzung bei bewertbaren Fragen
-          </h2>
-          <p class="help-section-lead" i18n="@@help.confidenceLead">
-            Die Selbsteinschätzung ist kein eigener Fragetyp, sondern eine optionale Zusatzabfrage
-            nach Single Choice, Multiple Choice, Kurzantwort und numerischer Schätzfrage:
-            Teilnehmende geben an, wie sicher sie bei ihrer Antwort sind (Skala 1–5). Das
-            beeinflusst keine Punkte – hilft dir aber, Lernstand und Fehlkonzepte zu erkennen.
-          </p>
-          <ul
-            class="help-qa-feature-list"
-            i18n-aria-label="@@help.confidenceListAria"
-            aria-label="Didaktische Funktionen der Selbsteinschätzung"
-          >
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">touch_app</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.confidenceAfterAnswerTitle">Nach der Antwort abfragen</h3>
-                <p i18n="@@help.confidenceAfterAnswerBody">
-                  Progressive Disclosure: Erst Antwort wählen oder eingeben, dann die
-                  Selbsteinschätzung. Während der Abstimmung sieht niemand aggregierte Werte anderer
-                  Personen.
+        <section id="help-common" class="help-section" aria-labelledby="help-common-title">
+          <h2 id="help-common-title" i18n="@@help.commonTitle">Für alle</h2>
+          <mat-accordion class="help-accordion" [multi]="true">
+            <mat-expansion-panel #commonPrivacyPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.commonPrivacyTitle"
+                  >Wie werden Daten und Inhalte behandelt?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="commonPrivacyPanel.expanded ? null : ''">
+                <p i18n="@@help.commonPrivacyBody">
+                  Für die Nutzung ist kein Konto erforderlich. Quiz-Inhalte der
+                  Veranstaltungsleitung werden zunächst lokal im Browser gespeichert; während einer
+                  Live-Session werden die für die Interaktion notwendigen Daten ausgetauscht.
+                  arsnova.eu ist Open Source und für einen datenschutzorientierten Betrieb in Europa
+                  ausgelegt. Einzelheiten findest du in der
+                  <a [routerLink]="localizedPath('/legal/privacy')">Datenschutzerklärung</a>.
                 </p>
               </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">tune</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.confidenceEditorTitle">Im Editor konfigurieren</h3>
-                <p i18n="@@help.confidenceEditorBody">
-                  Toggle pro Frage, optionale Labels für niedrige und hohe Antwortsicherheit und
-                  eine Live-Vorschau der Skala. Für neue bewertbare Fragen ist die
-                  Selbsteinschätzung standardmäßig aktiv.
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #commonAccessibilityPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.commonAccessibilityTitle"
+                  >Wie nutze ich arsnova.eu barrierefrei und als App?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="commonAccessibilityPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.commonAccessibilityBody">
+                  arsnova.eu lässt sich mit Tastatur, Screenreader und vergrößerter Darstellung
+                  bedienen. Nutze bei Bedarf die Kontrast- und Farbschemaoptionen der App oder
+                  deines Betriebssystems. Du kannst arsnova.eu außerdem als Progressive Web App
+                  installieren. Weitere Hinweise stehen in der
+                  <a [routerLink]="localizedPath('/legal/accessibility')"
+                    >Erklärung zur Barrierefreiheit</a
+                  >.
                 </p>
               </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">fact_check</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.confidenceHostTitle">Host-Auswertung nach Freigabe</h3>
-                <p i18n="@@help.confidenceHostBody">
-                  Matrix aus Korrektheit und Antwortsicherheit mit Hervorhebung
-                  <strong>selbstsicher falsch</strong>. Bei Auswahlfragen siehst du, welche falschen
-                  Optionen mit hoher Antwortsicherheit gewählt wurden.
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #commonTroubleshootingPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.commonTroubleshootingTitle"
+                  >Was kann ich bei technischen Problemen tun?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div
+                class="help-panel__body"
+                [attr.inert]="commonTroubleshootingPanel.expanded ? null : ''"
+              >
+                <p i18n="@@help.commonTroubleshootingBody">
+                  Prüfe zuerst den Code oder QR-Code, deine Internetverbindung und ob die Session
+                  noch aktiv ist. Wenn noch keine Frage sichtbar ist, kann sich die Session in der
+                  Lobby, einer Lesephase oder einer Pause befinden. Öffne nach einer
+                  Verbindungsunterbrechung den Beitrittslink erneut oder gib den Code noch einmal
+                  ein. Wende dich an die Veranstaltungsleitung, wenn die Session bereits beendet
+                  wurde.
                 </p>
               </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">summarize</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.confidenceExportTitle">Abschluss und Export</h3>
-                <p i18n="@@help.confidenceExportBody">
-                  Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Hinweis und
-                  fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit
-                  Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan
-                  (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung.
-                  In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <section class="help-section--demo">
-          <h2 i18n="@@help.demoTitle">Demo-Quiz</h2>
-          <p i18n="@@help.demoCardHint">
-            Ein vorinstalliertes Beispiel-Quiz zeigt die Frageformate in konkreten
-            Unterrichtsmomenten: Wissenscheck, Wortwolke, Kurzantwort, Schätzfrage, Bewertungsskala,
-            Selbsteinschätzung, Formeln und Markdown. Du findest es in deiner Quiz-Sammlung und
-            kannst es dort in der Vorschau öffnen.
-          </p>
-          <p i18n="@@help.demoTip">
-            <strong>Tipp:</strong> Öffne die Vorschau vor der ersten Live-Session einmal auf einem
-            zweiten Gerät. So siehst du sofort, wie Host-Ansicht und Teilnehmenden-Screen
-            zusammenspielen.
-          </p>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.quickstartTitle">Schnellstart</h2>
-          <ol class="help-steps">
-            <li i18n="@@help.quickstart1">
-              <strong>Quiz anlegen:</strong> „Quiz-Sammlung öffnen" wählen, neues Quiz erstellen und
-              pro Frage das passende Format wählen.
-            </li>
-            <li i18n="@@help.quickstart2">
-              <strong>Veranstaltung starten:</strong> Stil, Timer, Teams und Rangliste festlegen.
-              Danach entsteht ein 6-stelliger Code, den du als Text oder QR-Code teilst.
-            </li>
-            <li i18n="@@help.quickstart3">
-              <strong>Live moderieren:</strong> Frage zeigen, Antwortphase starten, Ergebnisse
-              freigeben oder zurückhalten und bei Bedarf eine zweite Runde anschließen.
-            </li>
-          </ol>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.hostTitle">Veranstaltung leiten</h2>
-          <p i18n="@@help.hostLead">
-            In der Host-Ansicht führst du durch die Session wie durch eine kleine Senderegie:
-            Teilnehmende reinholen, Inhalte freigeben, Diskussion öffnen und Ergebnisse sichtbar
-            machen.
-          </p>
-          <ul>
-            <li i18n="@@help.hostStartStep">
-              <strong>Session starten:</strong> In deiner Quiz-Sammlung eine Veranstaltung starten
-              und festlegen, ob sie mit Quiz oder Q&amp;A beginnt. Dann entsteht der Beitrittscode.
-            </li>
-            <li i18n="@@help.hostLobby">
-              <strong>Lobby:</strong> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird
-              angezeigt.
-            </li>
-            <li i18n="@@help.hostBeamer">
-              <strong>Beamer- und Presenter-Ansicht:</strong> Frage, Antworten, Countdown und
-              Ergebnisse erscheinen groß genug für Projektion, Stream oder zweiten Bildschirm.
-            </li>
-            <li i18n="@@help.hostSteuerung">
-              <strong>Steuerung:</strong> Nutze „Nächste Frage“, um den Inhalt einzublenden.
-              Optional läuft zuerst eine Lesephase, danach startest du die Antwortphase und
-              entscheidest, wann das Ergebnis auf den Screen kommt.
-            </li>
-            <li i18n="@@help.hostPeer">
-              <strong>Peer Instruction (Doppelrunden):</strong> Bei geeigneten Quizfragen,
-              Schätzfragen und Blitzlicht-Runden: erst abstimmen lassen, Diskussion starten, dann
-              erneut abstimmen. Der Vorher/Nachher-Vergleich macht Lernfortschritt sichtbar.
-            </li>
-            <li i18n="@@help.hostSettings">
-              <strong>Einstellungen:</strong> Beim Start legst du Stil und Optionen fest: seriös
-              oder spielerisch, mit oder ohne Rangliste, Sound, Lesephase, Team-Modus, Nicknamen und
-              Timer.
-            </li>
-          </ul>
-        </section>
-
-        <section class="help-section--qa-wall" aria-labelledby="help-qa-wall-title">
-          <h2 id="help-qa-wall-title" i18n="@@help.qaWallTitle">
-            Fragenwand im Live-Kanal Q&amp;A
-          </h2>
-          <p class="help-section-lead" i18n="@@help.qaWallLead">
-            Q&amp;A soll nicht als Nebenchat verschwinden. Die Fragenwand macht Rückfragen sichtbar,
-            priorisierbar und moderierbar: Du hältst den roten Faden, während die Gruppe gemeinsam
-            zeigt, welche Punkte wirklich Klärung brauchen.
-          </p>
-          <ul
-            class="help-qa-feature-list"
-            i18n-aria-label="@@help.qaWallListAria"
-            aria-label="Didaktische Funktionen der Q&A-Fragenwand"
-          >
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">rule</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.qaWallModerationTitle">Moderation mit pädagogischem Takt</h3>
-                <p i18n="@@help.qaWallModerationBody">
-                  Auf Wunsch warten neue Fragen erst auf deine Freigabe. Du kannst Beiträge
-                  freigeben, anheften, archivieren oder entfernen und damit Schutzraum, Relevanz und
-                  Timing steuern: sofort beantworten, für später sammeln oder als Diskussionsspur
-                  markieren.
-                </p>
-              </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">swap_vert</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.qaWallVotingTitle">Kollektives Hoch- und Runtervoting</h3>
-                <p i18n="@@help.qaWallVotingBody">
-                  Teilnehmende gewichten Fragen gemeinsam. Positive und negative Stimmen zeigen
-                  nicht nur Popularität, sondern auch Unsicherheit, Widerspruch und Klärungsbedarf;
-                  Sortierungen wie „meist unterstützt“, „beste Fragen“ und „umstritten“ helfen dir,
-                  knappe Live-Zeit didaktisch zu setzen.
-                </p>
-              </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">bubble_chart</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.qaWallWordCloudTitle">Q&amp;A-Wortwolke auf Themenebene</h3>
-                <p i18n="@@help.qaWallWordCloudBody">
-                  Die Word-Cloud verdichtet sichtbare Fragen zu Wörtern und Phrasen, gewichtet nach
-                  Unterstützung, belastbarer Zustimmung oder Kontroverse. Sie lässt sich einfrieren,
-                  nach Sortierlogik betrachten und in der Presenter-Ansicht zeigen – als schneller
-                  Blick auf Themencluster, nicht als dekorative Wortliste.
-                </p>
-              </div>
-            </li>
-            <li class="help-qa-feature">
-              <mat-icon class="help-qa-feature__icon" aria-hidden="true">psychology</mat-icon>
-              <div class="help-qa-feature__body">
-                <h3 i18n="@@help.qaWallLlmTitle">Nächster Schritt: Moderationskompass</h3>
-                <p i18n="@@help.qaWallLlmBody">
-                  Geplant ist zuerst ein deterministischer Moderationskompass. Optional können
-                  später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen
-                  dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.blitzTitle">Blitzlicht</h2>
-          <p i18n="@@help.quickFeedbackIntro">
-            Schnelle Stimmungs- und Wissensabfragen – z. B. vor der Pause, zum Einstieg oder für
-            spontane Checks. Nutzbar im Host-Bereich deiner Live-Session oder direkt von der
-            Startseite.
-          </p>
-          <ul>
-            <li i18n="@@help.qfMood">
-              <strong>Stimmungsbild</strong> (😊😐😟): Wie geht es den Teilnehmenden?
-            </li>
-            <li i18n="@@help.qfYesNoMaybe">
-              <strong>Ja / Nein / Vielleicht</strong> (👍👎🤷): Schnelle Zustimmungsabfrage.
-            </li>
-            <li i18n="@@help.quickFeedbackYesNo">
-              <strong>Ja / Nein</strong> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg.
-            </li>
-            <li i18n="@@help.quickFeedbackTrueFalseUnknown">
-              <strong>Wahr / Falsch / Weiß nicht</strong> (✓ / × / ?): Für schnelle Einschätzungen
-              oder Wissenschecks.
-            </li>
-            <li i18n="@@help.quickFeedbackLetterOptions">
-              <strong>Mehrstufige Schnellabfragen</strong> (A–D): Drei oder vier feste Optionen für
-              spontane Abstimmungen – ohne eine vollständige Quizfrage zu bauen.
-            </li>
-            <li i18n="@@help.quickFeedbackTempo">
-              <strong>Tempo-Feedback</strong> (🙂🐇🐢🙈): Mit vier Icons meldet deine Gruppe laufend
-              zurück, ob sie folgen kann. Teilnehmende können ihre Rückmeldung ändern; du siehst nur
-              die aggregierte Tendenz.
-            </li>
-          </ul>
-          <p i18n="@@help.quickFeedbackStartFlow">
-            Du startest die Runde im Host-Bereich deiner Live-Session oder über die Blitzlicht-Karte
-            „Live mit einem Klick" auf der Startseite. Teilnehmende tippen eine Antwort; du siehst
-            die Ergebnisse live als Balkendiagramm.
-          </p>
-          <ul>
-            <li i18n="@@help.qfPeer">
-              <strong>Peer Instruction (Doppelrunden):</strong> Erste Runde – Ergebnis nicht
-              auflösen – „Diskussionsphase" starten („Diskutiert mit eurem Nachbarn") – „Zweite
-              Abstimmung". Vorher/Nachher-Vergleich zeigt, wie sich das Stimmungsbild durch den
-              Austausch verändert hat.
-            </li>
-            <li i18n="@@help.qfStop">
-              <strong>Stopp:</strong> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist
-              pausiert" und können nicht mehr abstimmen, bis du „Fortsetzen" wählst.
-            </li>
-            <li i18n="@@help.qfReset">
-              <strong>Zurücksetzen:</strong> Alle Stimmen löschen und erneut abstimmen lassen.
-            </li>
-            <li i18n="@@help.qfNewRound">
-              <strong>Neue Runde:</strong> Neuen Code erzeugen und eine frische Runde starten.
-            </li>
-            <li i18n="@@help.qfCopyLink">
-              <strong>Link kopieren:</strong> Beitrittslink in die Zwischenablage kopieren, z. B.
-              zum Teilen per Chat.
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.participantsTitle">Für deine Teilnehmenden</h2>
-          <p i18n="@@help.participantsLead">
-            Kurz erklärt, was du in deiner Veranstaltung weitergeben kannst:
-          </p>
-          <ul>
-            <li i18n="@@help.participantsJoin">
-              <strong>Beitreten:</strong> 6-stelligen Code auf arsnova.eu eingeben und „Los geht's"
-              – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig.
-            </li>
-            <li i18n="@@help.participantsNick">
-              <strong>Nicknamen:</strong> Je nach deiner Einstellung vorgegebene Namen, eigener Name
-              oder anonym.
-            </li>
-            <li i18n="@@help.participantsVote">
-              <strong>Abstimmung:</strong> Frage erscheint auf dem Gerät, Antwort wählen und
-              absenden. Bei aktivierter Selbsteinschätzung folgt danach die Skala 1–5. Bei Zeitlimit
-              läuft ein Countdown.
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.collectionTitle">Deine Quiz-Sammlung</h2>
-          <p i18n="@@help.collectionLead">Hier legst du deine Quizze an und bereitest sie vor.</p>
-          <ul>
-            <li i18n="@@help.collectionEditor">
-              <strong>Editor:</strong> Fragen per Drag-and-Drop sortieren, auf- und zuklappen,
-              Vorschau prüfen.
-            </li>
-            <li i18n="@@help.collectionTypes">
-              <strong>Fragetypen:</strong> Single Choice, Multiple Choice, Kurzantwort, Freitext,
-              Umfrage, Bewertungsskala und numerische Schätzfrage – pro Frage optional mit Timer,
-              Schwierigkeitsgrad und Selbsteinschätzung.
-            </li>
-            <li i18n="@@help.collectionImport">
-              <strong>Import / Export:</strong> Quiz als JSON importieren oder exportieren. Mit der
-              Start- und Prüfvorlage kannst du anspruchsvolle Quizze mit deinem bevorzugten KI-Tool
-              generieren, prüfen und direkt importieren – deine Inhalte und Präsentationen werden
-              nicht an arsnova.eu gesendet; du nutzt dein eigenes KI-Tool.
-            </li>
-            <li i18n="@@help.collectionSync">
-              <strong>Sync:</strong> Mit dem Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen
-              oder auf anderen Geräten weiterarbeiten. Wer den Link hat, kann die Sammlung öffnen.
-              Die Geräteangaben helfen nur bei der Orientierung.
-            </li>
-            <li i18n="@@help.demoQuizHint">
-              <strong>Demo-Quiz:</strong> Ein vorinstalliertes Quiz zeigt alle Formate mit
-              Beispielen inkl. KaTeX-Formeln und Markdown. In der Quiz-Sammlung in der Vorschau
-              öffnen.
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.stylesTitle">Seriös und Spielerisch</h2>
-          <p i18n="@@help.stylesLead">
-            Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim
-            Session-Start.
-          </p>
-          <ul>
-            <li i18n="@@help.styleSerious">
-              <strong>Seriös:</strong> Anonym, ohne Rangliste – ideal für formative Assessments,
-              Prüfungsvorbereitung und sensible Themen.
-            </li>
-            <li i18n="@@help.stylePlayful">
-              <strong>Spielerisch:</strong> Mit Rangliste, Sounds und Anfeuerung – ideal für
-              Auflockerung, Wettbewerbe und motivierende Quizze.
-            </li>
-          </ul>
-          <p i18n="@@help.stylesOptions">
-            Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und
-            ausschalten.
-          </p>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.moreTitle">Weitere Funktionen</h2>
-          <ul>
-            <li i18n="@@help.moreBonus">
-              <strong>Bonus-Codes:</strong> Top-Platzierte erhalten einen einlösbaren Code (z. B.
-              für Bonuspunkte). Du siehst die Code-Liste; personenbezogene Daten werden nicht
-              gespeichert.
-            </li>
-            <li i18n="@@help.moreTeams">
-              <strong>Team-Modus:</strong> Deine Teilnehmenden spielen in Teams mit eigenem
-              Team-Leaderboard – z. B. für Gruppenwettbewerbe im Seminar.
-            </li>
-            <li i18n="@@help.moreGamification">
-              <strong>Gamification:</strong> Sound-Effekte, Belohnungseffekte für Top-Plätze,
-              Motivationsmeldungen – im Spielerisch-Modus.
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 i18n="@@help.privacyTitle">Datenschutz und Technik</h2>
-          <p i18n="@@help.privacyBody">
-            arsnova.eu ist kostenlos, Open Source und für den Einsatz an Schulen, Hochschulen und in
-            Weiterbildung gedacht – mit Fokus auf Datenschutz (DSGVO). Quiz-Inhalte werden lokal im
-            Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden.
-            Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Oberfläche
-            auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.
-          </p>
+            </mat-expansion-panel>
+          </mat-accordion>
         </section>
       </article>
     </div>
