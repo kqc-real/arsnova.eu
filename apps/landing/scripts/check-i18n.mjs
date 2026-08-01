@@ -120,12 +120,47 @@ function checkSitemap() {
   }
 }
 
+function checkRootRedirectPreservesHash() {
+  const indexPath = join(dist, 'index.html');
+  if (!existsSync(indexPath)) {
+    fail('Missing dist/index.html root redirect page');
+    return;
+  }
+  const html = readFileSync(indexPath, 'utf8');
+  if (!html.includes('window.location.hash')) {
+    fail('Root redirect must preserve window.location.hash for legacy bookmarks');
+  }
+  if (!html.includes('de/')) {
+    fail('Root redirect must target the default locale /de/');
+  }
+}
+
+function checkLegalPagesOmitHomeHreflang() {
+  for (const page of ['impressum', 'datenschutz']) {
+    const pagePath = join(dist, page, 'index.html');
+    if (!existsSync(pagePath)) {
+      fail(`Missing built legal page: /${page}/`);
+      continue;
+    }
+    const html = readFileSync(pagePath, 'utf8');
+    // Language-switcher anchors may carry hreflang; only head alternates are SEO clusters.
+    if (
+      html.includes('rel="alternate" hreflang="x-default"') ||
+      html.includes('rel="alternate" hreflang="en"')
+    ) {
+      fail(`/${page}/ must not declare localized-home hreflang alternates`);
+    }
+  }
+}
+
 ensureBuild();
 if (!errors.length) assertDictionaries();
 if (!errors.length) {
   checkLocalePaths();
   checkNoGermanFallback();
   checkSitemap();
+  checkRootRedirectPreservesHash();
+  checkLegalPagesOmitHomeHreflang();
 }
 
 if (errors.length) {

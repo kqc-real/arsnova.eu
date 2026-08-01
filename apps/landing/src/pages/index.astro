@@ -1,6 +1,31 @@
 ---
 /**
- * Placeholder required by Astro when `redirectToDefaultLocale` + `prefixDefaultLocale`
- * are enabled. Astro generates the `/` → `/de/` redirect from this route.
+ * Root compatibility entry: redirect to the default locale while preserving
+ * legacy client-side fragments (e.g. `/#schaetzfrage` → `/de/#schaetzfrage`).
+ * Astro's static i18n redirect cannot carry `window.location.hash`, so this
+ * page owns the root route instead of `redirectToDefaultLocale`.
  */
+const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
+const defaultLocaleHome = `${base}de/`.replace(/\/{2,}/g, '/');
 ---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arsnova.eu</title>
+    <meta http-equiv="refresh" content={`0;url=${defaultLocaleHome}`} />
+    <script is:inline define:vars={{ defaultLocaleHome }}>
+      (function () {
+        var target = defaultLocaleHome + (window.location.hash || '');
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>
+      <a href={defaultLocaleHome}>Weiter zur deutschen Startseite / Continue to German homepage</a>
+    </p>
+  </body>
+</html>

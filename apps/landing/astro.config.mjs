@@ -15,7 +15,9 @@ export default defineConfig({
     defaultLocale: 'de',
     routing: {
       prefixDefaultLocale: true,
-      redirectToDefaultLocale: true,
+      // Root `/` is owned by `src/pages/index.astro` so legacy hashes survive
+      // the redirect to `/de/` (Astro's static redirect drops fragments).
+      redirectToDefaultLocale: false,
     },
   },
 });

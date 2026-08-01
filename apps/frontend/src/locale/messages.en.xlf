@@ -14398,7 +14398,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.infoLandingQa" datatype="html">
         <source>Warum die Fragenwand mehr als ein Chat ist</source>
-        <target>Why the Q&A wall is more than a chat</target>
+        <target>Why the Q&amp;A wall is more than a chat</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">421</context>

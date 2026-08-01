@@ -20,7 +20,7 @@ Die Landingpage ist fünfsprachig (`de`, `en`, `fr`, `it`, `es`), analog zur App
 | Italiano          | https://info.arsnova.eu/it/ |
 | Español           | https://info.arsnova.eu/es/ |
 
-- `/` leitet auf `/de/` weiter (`prefixDefaultLocale` + `redirectToDefaultLocale`).
+- `/` leitet auf `/de/` weiter und behält dabei Legacy-Hashes (`/#schaetzfrage` → `/de/#schaetzfrage`).
 - Texte liegen in typisierten Dictionaries unter `src/i18n/` (`de.ts` … `es.ts`); fehlende Keys werfen beim Import einen Build-Fehler.
 - Abschnitte nutzen **kanonische Anker** (`#workflow`, `#numeric-estimate`, `#confidence`, `#qa-wall`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, …) bleiben als Alias-IDs gültig.
 - App-CTAs verlinken immer locale-sicher auf `https://arsnova.eu/{locale}/` (`appHomeUrl`).
@@ -83,7 +83,7 @@ den Pages-Einstellungen.
 ## SEO
 
 - Lokalisiertes `<html lang>`, Title/Description, Open Graph, Twitter Cards
-- `hreflang` für alle fünf Locales plus `x-default` → `/de/`
+- `hreflang` auf lokalisierten Homepages für alle fünf Locales plus `x-default` → `/de/` (nicht auf deutschsprachigen Legal-Seiten)
 - Canonical pro Sprachfassung (nicht alle auf DE)
 - JSON-LD `WebSite` / `WebApplication` mit `inLanguage`
 - Sitemap unter `/sitemap.xml` enthält alle Locale-Homes

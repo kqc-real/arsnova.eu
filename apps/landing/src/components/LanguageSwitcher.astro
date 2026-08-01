@@ -15,15 +15,22 @@ export interface Props {
 const { locale, t, idPrefix = 'lang' } = Astro.props;
 const menuId = `${idPrefix}-menu`;
 const buttonId = `${idPrefix}-button`;
+const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
+const localeHref = (code: Locale) => `${base}${code}/`.replace(/\/{2,}/g, '/');
 ---
 
-<div class="relative language-switcher" data-language-switcher data-current-locale={locale}>
+<div
+  class="relative language-switcher"
+  data-language-switcher
+  data-current-locale={locale}
+  data-base-url={base}
+>
   <button
     type="button"
     id={buttonId}
     class="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900"
     aria-expanded="false"
-    aria-haspopup="listbox"
+    aria-haspopup="true"
     aria-controls={menuId}
     aria-label={t.languageSwitcher.chooseLanguage}
   >
@@ -37,7 +44,6 @@ const buttonId = `${idPrefix}-button`;
   </button>
   <ul
     id={menuId}
-    role="listbox"
     aria-label={t.languageSwitcher.label}
     class="absolute right-0 z-50 mt-2 hidden min-w-[11rem] rounded-xl border border-slate-700 bg-slate-900 py-1 shadow-xl"
     data-lang-menu
@@ -46,9 +52,9 @@ const buttonId = `${idPrefix}-button`;
       LOCALES.map((code) => {
         const active = code === locale;
         return (
-          <li role="option" aria-selected={active}>
+          <li>
             <a
-              href={`/${code}/`}
+              href={localeHref(code)}
               lang={code}
               hreflang={code}
               data-locale-link={code}

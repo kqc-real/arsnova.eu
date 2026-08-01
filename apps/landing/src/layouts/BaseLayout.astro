@@ -95,11 +95,15 @@ const jsonLd = {
     <link rel="canonical" href={url} />
 
     {
-      LOCALES.map((code) => (
-        <link rel="alternate" hreflang={code} href={toAbsoluteUrl(`${code}/`)} />
-      ))
+      isHome ? (
+        <>
+          {LOCALES.map((code) => (
+            <link rel="alternate" hreflang={code} href={toAbsoluteUrl(`${code}/`)} />
+          ))}
+          <link rel="alternate" hreflang="x-default" href={toAbsoluteUrl('de/')} />
+        </>
+      ) : null
     }
-    <link rel="alternate" hreflang="x-default" href={toAbsoluteUrl('de/')} />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -108,9 +112,13 @@ const jsonLd = {
     <meta property="og:url" content={url} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content={t.meta.ogLocale} />
-    {alternateLocales.map((ogLocale) => (
-      <meta property="og:locale:alternate" content={ogLocale} />
-    ))}
+    {
+      isHome
+        ? alternateLocales.map((ogLocale) => (
+            <meta property="og:locale:alternate" content={ogLocale} />
+          ))
+        : null
+    }
     <meta property="og:site_name" content="arsnova.eu" />
 
     <!-- Twitter -->
@@ -198,6 +206,8 @@ const jsonLd = {
           var button = root.querySelector('button');
           var menu = root.querySelector('[data-lang-menu]');
           if (!button || !menu) return;
+          var baseUrl = root.getAttribute('data-base-url') || '/';
+          if (baseUrl.charAt(baseUrl.length - 1) !== '/') baseUrl += '/';
 
           function setOpen(open) {
             menu.classList.toggle('hidden', !open);
@@ -213,7 +223,7 @@ const jsonLd = {
             link.addEventListener('click', function () {
               var code = link.getAttribute('data-locale-link');
               var hash = canonicalizeHash(window.location.hash || '');
-              link.setAttribute('href', '/' + code + '/' + hash);
+              link.setAttribute('href', baseUrl + code + '/' + hash);
             });
           });
 
@@ -222,10 +232,10 @@ const jsonLd = {
           });
 
           document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-              setOpen(false);
-              button.focus();
-            }
+            if (event.key !== 'Escape') return;
+            var wasOpen = !menu.classList.contains('hidden');
+            setOpen(false);
+            if (wasOpen) button.focus();
           });
         });
 
