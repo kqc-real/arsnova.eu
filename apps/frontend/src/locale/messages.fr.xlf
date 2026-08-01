@@ -6194,8 +6194,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
-        <source> Wähle, wie du arsnova.eu nutzt. Du erhältst einen kurzen Einstieg oder kannst gezielt Funktionen nachschlagen.</source>
-        <target>Choisis la façon dont tu utilises arsnova.eu. Découvre l’essentiel ou consulte directement une fonctionnalité.</target>
+        <source> Wähle, in welcher Rolle du arsnova.eu nutzt. Hier findest du einen schnellen Einstieg und gezielte Hilfe zu einzelnen Funktionen.</source>
+        <target>Choisis le rôle dans lequel tu utilises arsnova.eu. Tu y trouveras une prise en main rapide et une aide ciblée pour chaque fonctionnalité.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">41,44</context>
@@ -6323,7 +6323,7 @@
       </trans-unit>
       <trans-unit id="help.hostFormatsTitle" datatype="html">
         <source>Fragetypen und Selbsteinschätzung</source>
-        <target>Types de questions et auto-évaluation</target>
+        <target>Types de questions et confiance dans la réponse</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">152</context>
@@ -6331,7 +6331,7 @@
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
         <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
-        <target>Les formats disponibles sont : choix unique, choix multiple, réponse courte, texte libre, sondage, échelle d’évaluation et estimation numérique. Une question évaluable peut être suivie d’une auto-évaluation de 1 à 5. Elle ne modifie pas le score, mais met en évidence les acquis solides, les acquis fragiles et les éventuelles idées fausses.</target>
+        <target>Les formats disponibles sont : question à réponse unique, question à réponses multiples, réponse courte, texte libre, sondage, échelle d’évaluation et estimation numérique. Une question pouvant être notée peut être suivie d’une autoévaluation du degré de confiance sur une échelle de 1 à 5. Cette évaluation ne modifie pas le score, mais peut mettre en évidence des connaissances consolidées, des connaissances encore fragiles et de possibles conceptions erronées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">156,162</context>
@@ -6339,15 +6339,15 @@
       </trans-unit>
       <trans-unit id="help.hostModerationTitle" datatype="html">
         <source>Live moderieren und Peer Instruction nutzen</source>
-        <target>Animer en direct et utiliser l’instruction par les pairs</target>
+        <target>Animer en direct et utiliser la méthode Peer Instruction</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostModerationBody" datatype="html">
-        <source> Nutze je nach Situation Lesephase, Timer, Beamer- oder Presenter-Ansicht und eine verzögerte Ergebnisfreigabe. Für Peer Instruction lässt du zuerst abstimmen, startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der Vorher-nachher-Vergleich macht Veränderungen sichtbar.</source>
-        <target>Utilise selon les besoins la phase de lecture, le minuteur, la vue de projection ou de présentation et l’affichage différé des résultats. Pour l’instruction par les pairs, lance un premier vote, ouvre une phase de discussion, puis un second vote. La comparaison avant-après rend les évolutions visibles.</target>
+        <source> Nutze je nach Situation Lesephase, Timer, Beamer- oder Presenter-Ansicht und eine verzögerte Ergebnisfreigabe. Für Peer Instruction lässt du zuerst abstimmen, startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der Vorher-Nachher-Vergleich macht Veränderungen sichtbar.</source>
+        <target>Utilise selon les besoins la phase de lecture, le minuteur, la vue de projection ou de présentation et l’affichage différé des résultats. Avec la méthode Peer Instruction, lance un premier vote, ouvre une phase de discussion, puis un second vote. La comparaison avant-après rend les évolutions visibles.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">173,178</context>
@@ -6362,8 +6362,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostQaBody" datatype="html">
-        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Hoch- und Runtervotes sowie verschiedene Sortierungen helfen bei der Priorisierung; die Wortwolke verdichtet sichtbare Themen für die Präsentation.</source>
-        <target>Les nouvelles contributions peuvent attendre une validation avant d’apparaître. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots synthétise les thèmes visibles pour la présentation.</target>
+        <source> Neue Beiträge können vor der Veröffentlichung auf Freigabe warten. Du kannst Fragen freigeben, anheften, archivieren oder entfernen. Positive und negative Bewertungen sowie verschiedene Sortierungen helfen dir bei der Priorisierung; die Wortwolke macht wiederkehrende Themen für die Präsentation sichtbar.</source>
+        <target>Les nouvelles contributions peuvent attendre une validation avant d’apparaître. Tu peux valider, épingler, archiver ou supprimer des questions. Les votes positifs et négatifs ainsi que les modes de tri facilitent leur hiérarchisation ; le nuage de mots met en évidence les thèmes récurrents pour la présentation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">189,194</context>
@@ -6394,8 +6394,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
-        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen Erzeugung und Prüfung, ohne Inhalte an arsnova.eu zu senden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
-        <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. Le lien de synchronisation permet de partager la collection ou de continuer sur un autre appareil. Les modèles d’IA facilitent la génération et la vérification sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
+        <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. Le lien de synchronisation permet de partager la collection ou de continuer sur un autre appareil. Les modèles d’IA t’aident à créer et à vérifier des quiz sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">221,228</context>
@@ -6427,7 +6427,7 @@
       </trans-unit>
       <trans-unit id="help.participantAnswerBody" datatype="html">
         <source> Wähle eine Antwort oder gib sie ein und sende sie ab. Ist die Selbsteinschätzung aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.</source>
-        <target>Sélectionne ou saisis ta réponse, puis envoie-la. Si l’auto-évaluation est activée, indique ensuite ton degré de certitude sur une échelle de 1 à 5. En cas de limite de temps, un compte à rebours affiche le temps restant. Le résultat apparaît lorsque la personne qui anime le révèle.</target>
+        <target>Sélectionne ou saisis ta réponse, puis envoie-la. Si l’autoévaluation du degré de confiance est activée, indique ensuite ton degré de certitude sur une échelle de 1 à 5. En cas de limite de temps, un compte à rebours affiche le temps restant. Le résultat apparaît lorsque la personne qui anime le révèle.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">275,280</context>
@@ -6458,11 +6458,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantChannelsBody" datatype="html">
-        <source> Eine Live-Session kann Quiz, Q&amp;A und Blitzlicht miteinander verbinden. Folge der jeweils geöffneten Ansicht und den Hinweisen auf deinem Gerät. Wenn ein Bereich gerade nicht aktiv ist, warte auf die nächste Freigabe durch die Veranstaltungsleitung.</source>
-        <target>Une session en direct peut combiner quiz, Q&amp;A et Feedback express. Suis la vue active et les indications sur ton appareil. Si un canal n’est pas actif, attends que la personne qui anime lance l’activité suivante.</target>
+        <source> Eine Live-Session kann Quiz, Q&amp;A und Blitzlicht miteinander verbinden. Folge den Hinweisen in der jeweils geöffneten Ansicht. Wenn ein Bereich gerade nicht aktiv ist, warte, bis die Veranstaltungsleitung die nächste Aktivität öffnet.</source>
+        <target>Une session en direct peut combiner quiz, Q&amp;A et Feedback express. Suis les indications dans la vue actuellement ouverte. Si un canal n’est pas actif, attends que la personne qui anime lance l’activité suivante.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">318,323</context>
+          <context context-type="linenumber">318,322</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundTitle" datatype="html">
@@ -6470,15 +6470,15 @@
         <target>Que se passe-t-il lors d’un second tour de vote ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">330</context>
+          <context context-type="linenumber">329</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantSecondRoundBody" datatype="html">
         <source> Bei Peer Instruction beantwortest du die Frage zunächst allein. Anschließend diskutierst du mit anderen Teilnehmenden und stimmst ein zweites Mal ab. Sende deine Antwort auch in der zweiten Runde erneut ab; sie darf sich von deiner ersten Antwort unterscheiden.</source>
-        <target>Dans l’instruction par les pairs, réponds d’abord seul·e à la question. Discute ensuite avec d’autres participant·es, puis vote une seconde fois. Envoie également ta réponse au second tour ; elle peut différer de la première.</target>
+        <target>Dans une séquence de Peer Instruction, réponds d’abord seul·e à la question. Discute ensuite avec d’autres participant·es, puis vote une seconde fois. Envoie également ta réponse au second tour ; elle peut différer de la première.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">337,342</context>
+          <context context-type="linenumber">336,341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsTitle" datatype="html">
@@ -6486,15 +6486,15 @@
         <target>Comment interpréter les résultats, le classement et les scores d’équipe ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">349</context>
+          <context context-type="linenumber">348</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantResultsBody" datatype="html">
         <source> Die Veranstaltungsleitung entscheidet, wann Ergebnisse sichtbar werden. Rangliste, Teamwertung und Bonus-Codes erscheinen nur, wenn sie für die Session aktiviert wurden. Deine Selbsteinschätzung hat keinen Einfluss auf Punkte oder Platzierung.</source>
-        <target>La personne qui anime décide quand les résultats deviennent visibles. Le classement, les scores d’équipe et les codes bonus n’apparaissent que s’ils sont activés pour la session. Ton auto-évaluation n’a aucun effet sur ton score ni sur ta position.</target>
+        <target>La personne qui anime décide quand les résultats deviennent visibles. Le classement, les scores d’équipe et les codes bonus n’apparaissent que s’ils sont activés pour la session. Ton degré de confiance autoévalué n’a aucun effet sur ton score ni sur ta position.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">356,360</context>
+          <context context-type="linenumber">355,359</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonTitle" datatype="html">
@@ -6502,7 +6502,7 @@
         <target>Pour tout le monde</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">369</context>
+          <context context-type="linenumber">368</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyTitle" datatype="html">
@@ -6510,7 +6510,7 @@
         <target>Comment les données et les contenus sont-ils traités ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">375</context>
+          <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonPrivacyBody" datatype="html">
@@ -6518,15 +6518,15 @@
         <target>Aucun compte n’est nécessaire. Les quiz de la personne qui anime sont d’abord stockés localement dans son navigateur ; pendant une session en direct, seules les données nécessaires à l’interaction sont échangées. arsnova.eu est open source et conçu pour un fonctionnement respectueux de la vie privée en Europe. Consulte la <x id="START_LINK" ctype="x-a" equiv-text="&lt;a&gt;"/>Politique de confidentialité<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> pour en savoir plus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">379,386</context>
+          <context context-type="linenumber">378,385</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityTitle" datatype="html">
-        <source>Wie nutze ich arsnova.eu barrierefrei und als App?</source>
-        <target>Comment utiliser arsnova.eu de façon accessible et comme application ?</target>
+        <source>Welche Barrierefreiheitsfunktionen gibt es, und wie installiere ich arsnova.eu als App?</source>
+        <target>Quelles options d’accessibilité sont disponibles et comment installer arsnova.eu comme application ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">393</context>
+          <context context-type="linenumber">392,393</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.commonAccessibilityBody" datatype="html">
