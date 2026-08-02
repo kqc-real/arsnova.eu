@@ -127,17 +127,27 @@ const deSmokePhrases = [
 const errors = [];
 const fail = (message) => errors.push(message);
 
+/**
+ * Always rebuild so checks never pass against a stale dist/ from an older commit.
+ * Review #201: a pre-existing locale tree must not short-circuit validation.
+ */
 function ensureBuild() {
-  const hasLocales = locales.every((locale) => existsSync(join(dist, locale, 'index.html')));
-  if (hasLocales) return;
-  console.log('dist/ incomplete — running landing build…');
+  console.log('Running fresh landing build for i18n checks…');
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
     stdio: 'inherit',
     env: process.env,
     shell: process.platform === 'win32',
   });
-  if (result.status !== 0) fail('Landing build failed');
+  if (result.status !== 0) {
+    fail('Landing build failed');
+    return;
+  }
+  for (const locale of locales) {
+    if (!existsSync(join(dist, locale, 'index.html'))) {
+      fail(`Fresh build missing locale page: /${locale}/`);
+    }
+  }
 }
 
 function assertDictionaries() {
@@ -466,23 +476,30 @@ function checkNavAndSectionOrder() {
   for (const locale of locales) {
     const html = readFileSync(join(dist, locale, 'index.html'), 'utf8');
 
-    const desktopNavMatch = html.match(
-      /<div class="hidden items-center gap-4 xl:gap-5 lg:flex">([\s\S]*?)<\/div>\s*<div class="flex items-center gap-2 lg:hidden">/,
-    );
-    const mobileNavMatch = html.match(/<ul id="nav-menu"[^>]*>([\s\S]*?)<\/ul>/);
-    if (!desktopNavMatch) {
-      fail(`/${locale}/ missing desktop navigation container`);
+    const desktopHook = html.indexOf('data-main-nav="desktop"');
+    const mobileHook = html.indexOf('data-main-nav="mobile"');
+    if (desktopHook < 0) {
+      fail(`/${locale}/ missing desktop navigation [data-main-nav="desktop"]`);
       continue;
     }
-    if (!mobileNavMatch) {
-      fail(`/${locale}/ missing mobile navigation #nav-menu`);
+    if (mobileHook < 0) {
+      fail(`/${locale}/ missing mobile navigation [data-main-nav="mobile"]`);
+      continue;
+    }
+    // Slice between stable hooks so nested LanguageSwitcher <div>s cannot truncate the match.
+    const desktopNavHtml = html.slice(desktopHook, mobileHook);
+    const mobileClose = html.indexOf('</ul>', mobileHook);
+    const mobileNavHtml =
+      mobileClose >= 0 ? html.slice(mobileHook, mobileClose + '</ul>'.length) : '';
+    if (!mobileNavHtml) {
+      fail(`/${locale}/ missing mobile navigation markup after [data-main-nav="mobile"]`);
       continue;
     }
 
-    const desktopAnchors = extractHashAnchors(desktopNavMatch[1]).filter((anchor) =>
+    const desktopAnchors = extractHashAnchors(desktopNavHtml).filter((anchor) =>
       expectedAnchors.includes(anchor),
     );
-    const mobileAnchors = extractHashAnchors(mobileNavMatch[1]).filter((anchor) =>
+    const mobileAnchors = extractHashAnchors(mobileNavHtml).filter((anchor) =>
       expectedAnchors.includes(anchor),
     );
 
@@ -537,8 +554,8 @@ function checkNavAndSectionOrder() {
 
     for (const removed of removedNavAnchors) {
       const navHits = [
-        ...desktopNavMatch[1].matchAll(new RegExp(`#${removed}`, 'g')),
-        ...mobileNavMatch[1].matchAll(new RegExp(`#${removed}`, 'g')),
+        ...desktopNavHtml.matchAll(new RegExp(`#${removed}`, 'g')),
+        ...mobileNavHtml.matchAll(new RegExp(`#${removed}`, 'g')),
       ];
       if (navHits.length) {
         fail(`/${locale}/ main nav must not link #${removed}`);

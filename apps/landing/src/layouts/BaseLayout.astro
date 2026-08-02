@@ -139,7 +139,10 @@ const jsonLd = {
             <img src={`${base}favicon.svg`} alt="" class="h-7 w-7 shrink-0" width="28" height="28" />
             arsnova.eu
           </a>
-          <div class="hidden min-w-0 items-center gap-1.5 whitespace-nowrap lg:flex xl:gap-3 2xl:gap-5">
+          <div
+            class="hidden min-w-0 items-center gap-1.5 whitespace-nowrap lg:flex xl:gap-3 2xl:gap-5"
+            data-main-nav="desktop"
+          >
             {navItems.map((item) => (
               <a href={item.href} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-slate-400 hover:text-white xl:px-1 xl:text-sm">{item.label}</a>
             ))}
@@ -169,7 +172,7 @@ const jsonLd = {
             </button>
           </div>
         </div>
-        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden">
+        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden" data-main-nav="mobile">
           {navItems.map((item) => (
             <li>
               <a href={item.href} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">

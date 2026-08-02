@@ -194,11 +194,9 @@ async function assertHeaderNoOverflow(page, locale) {
     const header = document.getElementById('main-header');
     if (!header) return { ok: false, reason: 'missing #main-header' };
 
-    const desktopRow = [...header.querySelectorAll('div')].find((el) => {
-      const className = el.getAttribute('class') || '';
-      return className.includes('lg:flex') && className.includes('items-center');
-    });
-    if (!desktopRow) return { ok: false, reason: 'missing desktop nav row' };
+    const desktopRow = header.querySelector('[data-main-nav="desktop"]');
+    if (!desktopRow)
+      return { ok: false, reason: 'missing desktop nav row [data-main-nav=desktop]' };
 
     const display = getComputedStyle(desktopRow).display;
     if (display === 'none') {
