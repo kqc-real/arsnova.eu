@@ -501,6 +501,74 @@ async function assertFocusVisibility(browser) {
   } finally {
     await context.close();
   }
+
+  // System-dark + forced-colors: authored dark tokens must not win over system colors.
+  await assertForcedColorsSystemDark(browser);
+}
+
+async function assertForcedColorsSystemDark(browser) {
+  const context = await browser.newContext({
+    colorScheme: 'dark',
+    viewport: { width: 1280, height: 900 },
+    forcedColors: 'active',
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // ignore
+      }
+    }, STORAGE_KEY);
+    await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    // Prefer UI path when disclosure is available; otherwise rely on FOUC system default.
+    const button = page.locator('#theme-desktop-button');
+    if (await button.isVisible()) {
+      await button.click();
+      await page.locator('#theme-desktop-menu [data-theme-option="system"]').click();
+    }
+    const tokens = await page.evaluate(() => {
+      const root = document.documentElement;
+      const s = getComputedStyle(root);
+      return {
+        scheme: root.getAttribute('data-landing-color-scheme'),
+        className: root.className,
+        background: s.getPropertyValue('--landing-background').trim().toLowerCase(),
+        primary: s.getPropertyValue('--landing-primary').trim().toLowerCase(),
+        focus: s.getPropertyValue('--landing-focus').trim().toLowerCase(),
+        bodyBg: getComputedStyle(document.body).backgroundColor,
+      };
+    });
+    if (tokens.scheme !== 'system') {
+      throw new Error(
+        `forced-colors/system-dark: expected data-landing-color-scheme=system, got ${tokens.scheme}`,
+      );
+    }
+    if (/\bdark\b/.test(tokens.className) || /\blight\b/.test(tokens.className)) {
+      throw new Error(
+        `forced-colors/system-dark: expected no explicit light/dark class, got ${tokens.className}`,
+      );
+    }
+    // Authored dark magenta tokens must not remain active under forced colors.
+    if (tokens.background === '#161018' || tokens.primary === '#a900a9') {
+      throw new Error(
+        `forced-colors/system-dark: authored dark tokens still active (${JSON.stringify(tokens)})`,
+      );
+    }
+    const systemLike =
+      /^(canvas|canvastext|linktext|buttontext|highlight|mark)$/i.test(tokens.background) ||
+      /^(canvas|canvastext|linktext|buttontext|highlight|mark)$/i.test(tokens.primary) ||
+      /^(canvas|canvastext|linktext|buttontext|highlight|mark)$/i.test(tokens.focus);
+    if (!systemLike) {
+      throw new Error(
+        `forced-colors/system-dark: expected system color keywords on tokens, got ${JSON.stringify(tokens)}`,
+      );
+    }
+  } finally {
+    await context.close();
+  }
 }
 
 async function runViewport(browser, viewport, buttonId, label) {
