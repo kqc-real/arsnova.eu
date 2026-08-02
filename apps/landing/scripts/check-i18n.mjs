@@ -451,7 +451,8 @@ function extractMainSectionOrder(html) {
   const mainMatch = html.match(/<main\b[^>]*id="main-content"[^>]*>([\s\S]*?)<\/main>/i);
   if (!mainMatch) return null;
   const order = [];
-  const re = /id="(workflow|features|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
+  const re =
+    /id="(workflow|features|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
   let match;
   while ((match = re.exec(mainMatch[1])) !== null) {
     order.push(match[1]);
@@ -508,9 +509,7 @@ function checkNavAndSectionOrder() {
       const labelNearHref = new RegExp(
         `href="[^"]*?#${item.anchor}"[^>]*>\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*<`,
       );
-      const labelMatches = html.match(
-        new RegExp(labelNearHref.source, 'g'),
-      );
+      const labelMatches = html.match(new RegExp(labelNearHref.source, 'g'));
       if (!labelMatches || labelMatches.length < 2) {
         fail(
           `/${locale}/ expected #${item.anchor} labeled ${JSON.stringify(label)} in desktop and mobile nav`,
@@ -526,10 +525,14 @@ function checkNavAndSectionOrder() {
       ),
     );
     if (!tryNowMatches || tryNowMatches.length < 2) {
-      fail(`/${locale}/ CTA ${JSON.stringify(tryNow)} must remain a separate #start control (desktop + mobile)`);
+      fail(
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain a separate #start control (desktop + mobile)`,
+      );
     }
     if (!html.includes('bg-brand-700') || !html.includes(tryNow)) {
-      fail(`/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (brand button)`);
+      fail(
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (brand button)`,
+      );
     }
 
     for (const removed of removedNavAnchors) {

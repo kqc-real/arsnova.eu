@@ -10,9 +10,12 @@ export interface Props {
   locale: Locale;
   t: Messages;
   idPrefix?: string;
+  /** Compact trigger label (locale code) for tight desktop headers at `lg`. */
+  compact?: boolean;
 }
 
-const { locale, t, idPrefix = 'lang' } = Astro.props;
+const { locale, t, idPrefix = 'lang', compact = false } = Astro.props;
+const triggerLabel = compact ? locale.toUpperCase() : t.languageSwitcher.currentLanguage;
 const menuId = `${idPrefix}-menu`;
 const buttonId = `${idPrefix}-button`;
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
@@ -28,7 +31,10 @@ const localeHref = (code: Locale) => `${base}${code}/`.replace(/\/{2,}/g, '/');
   <button
     type="button"
     id={buttonId}
-    class="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+    class:list={[
+      'inline-flex min-h-11 items-center rounded-lg font-medium text-slate-300 hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900',
+      compact ? 'gap-1 px-1.5 py-1 text-xs xl:gap-1.5 xl:px-2 xl:text-sm' : 'gap-2 px-2 py-1.5 text-sm',
+    ]}
     aria-expanded="false"
     aria-controls={menuId}
     aria-label={t.languageSwitcher.chooseLanguage}
@@ -36,7 +42,7 @@ const localeHref = (code: Locale) => `${base}${code}/`.replace(/\/{2,}/g, '/');
     <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m-7.5 9h15" />
     </svg>
-    <span>{t.languageSwitcher.currentLanguage}</span>
+    <span>{triggerLabel}</span>
     <svg class="h-4 w-4 shrink-0 opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
     </svg>
