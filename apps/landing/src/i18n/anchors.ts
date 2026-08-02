@@ -1,10 +1,10 @@
 /** Canonical, language-neutral section anchors used in all locales. */
 export const CANONICAL_ANCHORS = [
   'workflow',
+  'features',
   'numeric-estimate',
   'confidence',
   'qa-wall',
-  'features',
   'accessibility',
   'trust',
   'comparison',

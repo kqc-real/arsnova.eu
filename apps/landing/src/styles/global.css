@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Sticky header offset for in-page anchors (Issue #198).
+ * Applies to canonical section ids and legacy alias spans alike.
+ * No forced smooth scrolling — browsers keep their default / reduced-motion behavior.
+ */
+main [id],
+#start {
+  scroll-margin-top: 5.5rem;
+}

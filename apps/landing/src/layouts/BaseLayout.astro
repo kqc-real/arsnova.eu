@@ -49,11 +49,10 @@ const privacyHref = `${base}datenschutz/`.replace(/\/{2,}/g, '/');
 
 const navItems = [
   { href: `${localeHome}#workflow`, label: t.nav.workflow },
-  { href: `${localeHome}#numeric-estimate`, label: t.nav.estimate },
-  { href: `${localeHome}#qa-wall`, label: t.nav.qa, mobileLabel: t.nav.qaMobile },
   { href: `${localeHome}#features`, label: t.nav.features },
   { href: `${localeHome}#accessibility`, label: t.nav.accessibility },
   { href: `${localeHome}#trust`, label: t.nav.trust },
+  { href: `${localeHome}#comparison`, label: t.nav.comparison },
   { href: `${localeHome}#faq`, label: t.nav.faq },
 ] as const;
 
@@ -174,7 +173,7 @@ const jsonLd = {
           {navItems.map((item) => (
             <li>
               <a href={item.href} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">
-                {'mobileLabel' in item && item.mobileLabel ? item.mobileLabel : item.label}
+                {item.label}
               </a>
             </li>
           ))}
