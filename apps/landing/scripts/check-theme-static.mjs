@@ -5,13 +5,39 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const repoRoot = join(root, '../..');
 const errors = [];
 const fail = (message) => errors.push(message);
+
+/**
+ * Theme-/Style-Einstiegspunkte: bei Diff hier muss apps/frontend unberührt bleiben.
+ * Exportiert für Unit-Regressionstests.
+ */
+export const LANDING_THEME_SCOPE = [
+  'apps/landing/src/styles/landing-theme.css',
+  'apps/landing/src/styles/global.css',
+  'apps/landing/src/components/ThemeSwitcher.astro',
+  'apps/landing/src/components/LanguageSwitcher.astro',
+  'apps/landing/src/layouts/BaseLayout.astro',
+  'apps/landing/tailwind.config.mjs',
+];
+
+/**
+ * Pure Prüfung: Theme-Scope + Frontend gleichzeitig geändert?
+ * @param {string[]} changedPaths relative Repo-Pfade aus git diff --name-only
+ */
+export function frontendIsolationViolation(changedPaths) {
+  const paths = Array.isArray(changedPaths) ? changedPaths : [];
+  const themeTouched = paths.some((path) => LANDING_THEME_SCOPE.includes(path));
+  const frontendTouched = paths.some(
+    (path) => path === 'apps/frontend' || path.startsWith('apps/frontend/'),
+  );
+  return themeTouched && frontendTouched;
+}
 
 function walk(dir, files = []) {
   for (const entry of readdirSync(dir)) {
@@ -111,16 +137,6 @@ function resolveBaseSha() {
   return '';
 }
 
-/** Theme-UI-Pfade: nur dann Frontend-Isolation erzwingen (nicht die Check-Skripte selbst). */
-const LANDING_THEME_SCOPE = [
-  'apps/landing/src/styles/landing-theme.css',
-  'apps/landing/src/styles/global.css',
-  'apps/landing/src/components/ThemeSwitcher.astro',
-  'apps/landing/src/components/LanguageSwitcher.astro',
-  'apps/landing/src/layouts/BaseLayout.astro',
-  'apps/landing/tailwind.config.mjs',
-];
-
 function diffNameOnly(base, head, paths) {
   const result = spawnSync('git', ['diff', '--name-only', `${base}...${head}`, '--', ...paths], {
     cwd: repoRoot,
@@ -155,11 +171,16 @@ function checkFrontendUntouched() {
   // Reine Frontend-/App-PRs (z. B. Footer) dürfen theme-static nicht blockieren.
   const landingThemeChanged = diffNameOnly(base, head, LANDING_THEME_SCOPE);
   if (landingThemeChanged === null) return;
-  if (!landingThemeChanged) return;
+  const frontendChanged = diffNameOnly(base, head, ['apps/frontend']);
+  if (frontendChanged === null) return;
 
-  const changed = diffNameOnly(base, head, ['apps/frontend']);
-  if (changed === null) return;
-  if (changed) fail(`apps/frontend must remain untouched, but git reports:\n${changed}`);
+  const changedPaths = [
+    ...landingThemeChanged.split('\n').filter(Boolean),
+    ...frontendChanged.split('\n').filter(Boolean),
+  ];
+  if (frontendIsolationViolation(changedPaths)) {
+    fail(`apps/frontend must remain untouched, but git reports:\n${frontendChanged}`);
+  }
 }
 
 function checkAlphaCapableTailwind() {
@@ -254,18 +275,24 @@ function checkBuiltThemeArtifacts() {
   }
 }
 
-ensureBuild();
-if (!errors.length) {
-  checkNoSkyBrand();
-  checkNoMatSys();
-  checkFrontendUntouched();
-  checkAlphaCapableTailwind();
-  checkBuiltThemeArtifacts();
+function main() {
+  ensureBuild();
+  if (!errors.length) {
+    checkNoSkyBrand();
+    checkNoMatSys();
+    checkFrontendUntouched();
+    checkAlphaCapableTailwind();
+    checkBuiltThemeArtifacts();
+  }
+
+  if (errors.length) {
+    console.error('\nLanding theme static checks failed:\n- ' + errors.join('\n- '));
+    process.exit(1);
+  }
+
+  console.log('Landing theme static checks passed.');
 }
 
-if (errors.length) {
-  console.error('\nLanding theme static checks failed:\n- ' + errors.join('\n- '));
-  process.exit(1);
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
 }
-
-console.log('Landing theme static checks passed.');

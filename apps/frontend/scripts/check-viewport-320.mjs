@@ -341,6 +341,34 @@ async function inspectFooterMoreKeyboardNavigation(page) {
       .catch(() => undefined);
   }
 
+  // Navigation bei offenem Mehr-Menü: Overlay muss weg (nicht nur Footer inert).
+  await moreButton.focus();
+  await page.keyboard.press('Enter');
+  const reopened = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!reopened) {
+    issues.push('Footer-Mehr öffnet nicht erneut vor Navigationsprüfung');
+    return issues;
+  }
+  await page.locator('.mat-mdc-menu-panel a[href*="/legal/imprint"]').click();
+  await page.waitForURL(/\/legal\/imprint/, { timeout: 5_000 }).catch(() => undefined);
+  const closedByNavigation = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedByNavigation) {
+    issues.push('Footer-Mehr-Menü bleibt nach Router-Navigation im DOM');
+  }
+  const focusInOverlay = await page.evaluate(() => {
+    const active = document.activeElement;
+    return !!active?.closest?.('.cdk-overlay-container, .mat-mdc-menu-panel');
+  });
+  if (focusInOverlay) {
+    issues.push('Fokus bleibt nach Navigation im Mehr-Menü-Overlay');
+  }
+
   return issues;
 }
 
