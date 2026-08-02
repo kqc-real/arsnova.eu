@@ -26,7 +26,7 @@ Session-Live-Routen bleibt der Status-Eintrag im Mehr-Menü ausgeblendet (Pollin
 Der Footer ruft alle 5 Minuten **`health.footerBundle`** ab. Dieser Endpoint kombiniert `health.check`
 mit einem schlanken `FooterStatusDTO` (`serviceStatus`, `loadStatus`). Beim Öffnen des Dialogs lädt
 die App **`health.stats`** frisch nach; der Dialog rendert die vollständigen Kennzahlen und den
-30-Tage-Verlauf.
+100-Tage-Verlauf.
 
 ### Status-Dot (Ampel)
 
@@ -288,15 +288,15 @@ Die Ampelfarbe kommt aus der gemeinsamen Helper-Quelle
 (`footer-status-color.ts`), die auch `ServerStatusWidgetComponent` nutzt
 (Widget selbst ist nicht mehr in der App-Shell eingebunden).
 
-| Element          | Verwendung                        | Darstellung                                   |
-| ---------------- | --------------------------------- | --------------------------------------------- |
-| Mehr-Menüeintrag | globaler App-Footer → Menü „Mehr“ | Status-Dot + Label „Betriebsstatus“           |
-| Detaildialog     | Auswahl „Betriebsstatus“          | Kennzahlen, SLO-/Laststatus und 30-Tage-Chart |
+| Element          | Verwendung                        | Darstellung                                    |
+| ---------------- | --------------------------------- | ---------------------------------------------- |
+| Mehr-Menüeintrag | globaler App-Footer → Menü „Mehr“ | Status-Dot + Label „Betriebsstatus“            |
+| Detaildialog     | Auswahl „Betriebsstatus“          | Kennzahlen, SLO-/Laststatus und 100-Tage-Chart |
 
 ```html
 <button mat-menu-item type="button" (click)="openServerStatusFromMore()">
   <mat-icon class="app-footer__status-dot" [style.color]="footerStatusDotCssColor()">lens</mat-icon>
-  <span i18n="@@app.footer.serverHelp">Betriebsstatus</span>
+  <span i18n="@@app.footer.serverHelpLabel">Betriebsstatus</span>
 </button>
 ```
 

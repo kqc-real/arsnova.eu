@@ -258,6 +258,89 @@ async function inspectHomeKeyboardNavigation(page) {
   ) {
     issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
   }
+
+  issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
+  return issues;
+}
+
+/**
+ * Footer-Mehr-Menü: nur echte Tastaturaktion — kein openMenu()/click-Fallback.
+ * Enter und Space öffnen; Escape schließt mit Fokus auf Mehr; Auswahl schließt.
+ */
+async function inspectFooterMoreKeyboardNavigation(page) {
+  const issues = [];
+  const moreButton = page.locator('button[data-footer-focus="footer-more"]');
+  await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
+
+  const footerMenuVisible = () => {
+    const panel = document.querySelector(
+      '.mat-mdc-menu-panel.app-footer__more-menu, .mat-mdc-menu-panel.app-footer__more-menu-panel',
+    );
+    return !!panel && getComputedStyle(panel).visibility !== 'hidden';
+  };
+  const footerMenuGone = () =>
+    !document.querySelector(
+      '.mat-mdc-menu-panel.app-footer__more-menu, .mat-mdc-menu-panel.app-footer__more-menu-panel',
+    );
+
+  await moreButton.focus();
+  await page.keyboard.press('Enter');
+  const openedByEnter = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!openedByEnter) {
+    issues.push('Footer-Mehr öffnet nicht mit Enter');
+    return issues;
+  }
+
+  await page.keyboard.press('Escape');
+  const closedByEscape = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedByEscape) {
+    issues.push('Footer-Mehr schließt nicht mit Escape');
+  }
+  if (!(await moreButton.evaluate((element) => element === document.activeElement))) {
+    issues.push('Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück');
+  }
+
+  await moreButton.focus();
+  await page.keyboard.press('Space');
+  const openedBySpace = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!openedBySpace) {
+    issues.push('Footer-Mehr öffnet nicht mit Space');
+    return issues;
+  }
+
+  // Betriebsstatus: schließt Menü ohne Router-Navigation (öffnet Dialog).
+  await page.locator('.mat-mdc-menu-panel button[mat-menu-item]').first().click();
+  const closedBySelect = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedBySelect) {
+    issues.push('Footer-Mehr schließt nicht nach Menüauswahl');
+  }
+
+  const statusDialog = page.locator('.app-status-help-dialog-panel, mat-dialog-container');
+  if (
+    await statusDialog
+      .first()
+      .isVisible()
+      .catch(() => false)
+  ) {
+    await page.keyboard.press('Escape');
+    await statusDialog
+      .first()
+      .waitFor({ state: 'hidden', timeout: 2_000 })
+      .catch(() => undefined);
+  }
+
   return issues;
 }
 
