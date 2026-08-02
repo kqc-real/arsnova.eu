@@ -86,14 +86,6 @@
           <context context-type="linenumber">91,93</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.newsArchive" datatype="html">
-        <source>News-Archiv</source>
-        <target>Archivio News</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">166</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.helpOpenAria" datatype="html">
         <source>So funktioniert’s</source>
         <target>Come funziona</target>
@@ -112,7 +104,7 @@
       </trans-unit>
       <trans-unit id="app.footer.infoLandingAria" datatype="html">
         <source>Was arsnova.eu kann (öffnet in neuem Tab)</source>
-        <target>Cosa offre arsnova.eu (si apre in una nuova scheda)</target>
+        <target>Cosa può fare arsnova.eu (si apre in una nuova scheda)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">188</context>
@@ -120,10 +112,50 @@
       </trans-unit>
       <trans-unit id="app.footer.infoLanding" datatype="html">
         <source>Was arsnova.eu kann</source>
-        <target>Cosa offre arsnova.eu</target>
+        <target>Cosa può fare arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">192</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.infoLandingOfflineAria" datatype="html">
+        <source>Was arsnova.eu kann – derzeit offline nicht erreichbar</source>
+        <target>Cosa può fare arsnova.eu – attualmente non disponibile offline</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.moreOpenAria" datatype="html">
+        <source>Mehr</source>
+        <target>Altro</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">204</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.more" datatype="html">
+        <source>Mehr</source>
+        <target>Altro</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">208</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.imprint" datatype="html">
+        <source>Impressum</source>
+        <target>Note legali</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">223</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.privacy" datatype="html">
+        <source>Datenschutz</source>
+        <target>Privacy</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">232</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.imprintOpenAria" datatype="html">
@@ -134,28 +166,12 @@
           <context context-type="linenumber">205</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1547876271716599756" datatype="html">
-        <source>Impressum</source>
-        <target>Note legali</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">209</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.privacyOpenAria" datatype="html">
         <source>Datenschutz</source>
         <target>Privacy</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">215</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4082114936887396529" datatype="html">
-        <source>Datenschutz</source>
-        <target>Privacy</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.accessibilityOpenAria" datatype="html">
@@ -220,30 +236,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">200</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAria" datatype="html">
-        <source>News-Archiv öffnen</source>
-        <target>Apri l&apos;archivio delle notizie</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">225</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAriaOne" datatype="html">
-        <source>News-Archiv öffnen, 1 ungelesene Meldung</source>
-        <target>Apri archivio notizie, 1 messaggio non letto</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">228</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAriaCount" datatype="html">
-        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId)"/> ungelesene Meldungen</source>
-        <target>Apri archivio notizie, <x id="INTERPOLATION" equiv-text="{{ n }}"/> messaggi non letti</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">230</context>
         </context-group>
       </trans-unit>
       <trans-unit id="session.notFound" datatype="html">

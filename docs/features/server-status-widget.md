@@ -5,11 +5,12 @@
 
 ## Was zeigt das Widget?
 
-Das Server-Status-Widget steht im **globalen App-Footer** (`app.component.html`) und öffnet den
-Betriebsstatus-Dialog. Im kompakten Footer selbst werden nur Label und farbiger Status-Dot
-angezeigt; die Kennzahlen stehen im **Hilfe-Dialog**. Der Footer (inkl. Widget) wird **nicht**
-angezeigt auf der **Standalone-Blitzlicht-Route** (`/feedback/...`) und in der **immersiven
-Host-Ansicht** (`isImmersiveHostView`).
+Der Betriebsstatus ist im **globalen App-Footer** unter dem Menü **Mehr** erreichbar
+(`app.component.html`) und öffnet denselben Betriebsstatus-Dialog. Im Menüeintrag werden Label
+und farbiger Status-Dot angezeigt; die Kennzahlen stehen im **Hilfe-Dialog**. Der Footer
+(und damit der Status-Einstieg) wird **nicht** angezeigt auf der **Standalone-Blitzlicht-Route**
+(`/feedback/...`) und in der **immersiven Host-Ansicht** (`isImmersiveHostView`). Auf Join- und
+Session-Live-Routen bleibt der Status-Eintrag im Mehr-Menü ausgeblendet (Polling unterdrückt).
 
 | Kennzahl                 | Icon            | Bedeutung                                                                                                 |
 | ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------- |

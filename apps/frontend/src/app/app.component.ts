@@ -5,7 +5,6 @@ import {
   Directive,
   ElementRef,
   HostListener,
-  LOCALE_ID,
   OnInit,
   OnDestroy,
   PLATFORM_ID,
@@ -26,10 +25,10 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { MatBadge } from '@angular/material/badge';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { SwUpdate } from '@angular/service-worker';
 import { ThemePresetService } from './core/theme-preset.service';
 import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service';
@@ -37,13 +36,10 @@ import { Subscription } from 'rxjs';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 import { trpc } from './core/trpc.client';
 import type { FooterStatusDTO, ServerStatsDTO } from '@arsnova/shared-types';
-import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
 import { localizePath } from './core/locale-router';
 import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
-import { MotdHeaderStateService } from './core/motd-header-state.service';
-import { formatLocaleBadgeCount } from './core/locale-number.util';
 import {
   clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
@@ -91,13 +87,14 @@ class ConnectionBannerHostDirective {
   imports: [
     RouterOutlet,
     RouterLink,
-    MatBadge,
     MatButton,
     MatIcon,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     TopToolbarComponent,
     PresetToastHostDirective,
     ConnectionBannerHostDirective,
-    ServerStatusWidgetComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -137,6 +134,7 @@ export class AppComponent implements OnInit, OnDestroy {
       queueMicrotask(() => this.syncFooterOffsetObserver());
     }
   }
+  @ViewChild('footerMoreTrigger') private footerMoreTrigger?: MatMenuTrigger;
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -154,8 +152,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly seo = inject(SeoService);
-  readonly motdHeaderState = inject(MotdHeaderStateService);
-  private readonly localeId = inject(LOCALE_ID) as string;
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
@@ -213,8 +209,6 @@ export class AppComponent implements OnInit, OnDestroy {
   footerConnectionOk = computed(() => !this.footerHealthCheckDone() || !!this.apiStatus());
   /** Offline-Styling + Retry nur nach abgeschlossenem Check und fehlgeschlagenem API-Status. */
   footerShowApiOffline = computed(() => this.footerHealthCheckDone() && !this.apiStatus());
-  /** Links, die zusätzliche Netzwerk-/API-Aufrufe triggern, im Offline-Betrieb ausblenden. */
-  footerShowOnlineOnlyLinks = computed(() => this.isOnline());
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
   footerVisible = computed(() => !this.isFeedbackRoute() && !this.isImmersiveHostView());
   serverStatusWidgetVisible = computed(
@@ -222,27 +216,44 @@ export class AppComponent implements OnInit, OnDestroy {
   );
   footerVisibleOffset = signal(0);
 
-  /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
-  footerNewsArchiveBadgeText = computed(() => {
-    const n = this.motdHeaderState.archiveUnreadCount();
-    // Kein „0“ im DOM: matBadgeHidden blendet den Inhalt für Lighthouse nicht zuverlässig aus
-    // (label-content-name-mismatch gegen Aria ohne Zähler).
-    if (n <= 0) return '';
-    return formatLocaleBadgeCount(n, this.localeId);
+  /**
+   * Ampelfarbe für den Betriebsstatus-Eintrag im Mehr-Menü.
+   * Identisch zu ServerStatusWidgetComponent.statusColor() anhand derselben
+   * Footer-Signale (connectionOk / loading / footerStatus).
+   */
+  footerStatusColor = computed((): 'green' | 'yellow' | 'red' | 'gray' => {
+    const loading = !this.footerHealthCheckDone();
+    if (!this.footerConnectionOk() || loading) return 'gray';
+    const s = this.footerStatus();
+    if (!s) return 'gray';
+    switch (s.serviceStatus) {
+      case 'stable':
+        return 'green';
+      case 'limited':
+        return 'yellow';
+      case 'critical':
+        return 'red';
+      default:
+        return 'gray';
+    }
   });
 
-  /** Barrierefrei: Zähler in der Link-Beschriftung bei ungelesenen Meldungen. */
-  footerNewsArchiveAria = computed(() => {
-    const n = this.motdHeaderState.archiveUnreadCount();
-    if (n <= 0) {
-      return $localize`:@@app.footer.newsArchiveAria:News-Archiv öffnen`;
+  /**
+   * Inline-Farbe für den Status-Dot im Mat-Menu-Overlay.
+   * Klassen allein verlieren gegen `.mat-mdc-menu-item .mat-icon`; das Overlay
+   * liegt außerhalb von `:host`, daher greifen host-scoped ::ng-deep-Regeln nicht.
+   */
+  footerStatusDotCssColor = computed(() => {
+    switch (this.footerStatusColor()) {
+      case 'green':
+        return 'var(--app-status-healthy)';
+      case 'yellow':
+        return 'var(--app-status-busy)';
+      case 'red':
+        return 'var(--mat-sys-error)';
+      default:
+        return 'var(--mat-sys-outline-variant)';
     }
-    if (n === 1) {
-      // Ziffer „1“ wie im Badge — sonst label-content-name-mismatch (Lighthouse).
-      return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, 1 ungelesene Meldung`;
-    }
-    // Dieselbe Ziffernform wie im Badge (inkl. „99+“), sonst label-content-name-mismatch.
-    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleBadgeCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   ngOnInit(): void {
@@ -832,13 +843,25 @@ export class AppComponent implements OnInit, OnDestroy {
     this.apiRetrying.set(false);
   }
 
+  /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */
+  openServerStatusFromMore(): void {
+    this.footerMoreTrigger?.closeMenu();
+    void this.openServerStatusHelp();
+  }
+
   async openServerStatusHelp(): Promise<void> {
     const { ServerStatusHelpDialogComponent } =
       await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
 
-    this.dialog.open(ServerStatusHelpDialogComponent, {
+    const moreTrigger =
+      typeof document !== 'undefined'
+        ? document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]')
+        : null;
+
+    const ref = this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
+      restoreFocus: false,
       data: {
         connectionOk: this.footerConnectionOk,
         loading: computed(() => this.footerStatsLoading()),
@@ -846,6 +869,14 @@ export class AppComponent implements OnInit, OnDestroy {
       },
       width: 'min(54rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
+    });
+    ref.afterClosed().subscribe(() => {
+      if (!moreTrigger) return;
+      try {
+        moreTrigger.focus({ preventScroll: true });
+      } catch {
+        moreTrigger.focus();
+      }
     });
     void this.loadFooterStats({ forceFresh: true });
   }

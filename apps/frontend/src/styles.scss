@@ -1795,3 +1795,25 @@ $markdown-katex-flow-hosts:
 .app-footer__link--news-archive .app-footer__icon.mat-badge.mat-badge-after .mat-badge-content {
   left: calc(100% + 8px);
 }
+
+/*
+ * Footer-Mehr-Menü: Status-Dot-Farben im CDK-Overlay (außerhalb von app-root :host).
+ * Material setzt `.mat-mdc-menu-item .mat-icon` mit höherer Spezifität als Komponentenkassen.
+ */
+.app-footer__more-menu-panel.mat-mdc-menu-panel {
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--healthy {
+    color: var(--app-status-healthy);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--busy {
+    color: var(--app-status-busy);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--overloaded {
+    color: var(--mat-sys-error);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--unknown {
+    color: var(--mat-sys-outline-variant);
+  }
+}

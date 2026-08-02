@@ -408,6 +408,109 @@ async function main() {
   }
   await desktopContext.close();
 
+  // Footer-Architektur: Overflow und sichtbare Labels an verbindlichen Breakpoints.
+  const footerViewports = [
+    { width: 320, height: 568, label: 'footer-320' },
+    { width: 820, height: 1180, label: 'footer-820' },
+    { width: 959, height: 800, label: 'footer-959' },
+    { width: 960, height: 800, label: 'footer-960' },
+    { width: 1280, height: 800, label: 'footer-desktop' },
+  ];
+  for (const viewport of footerViewports) {
+    const footerContext = await browser.newContext({ viewport });
+    const page = await footerContext.newPage();
+    await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await dismissOptionalOverlay(page, true);
+
+    const footerCheck = await page.evaluate((w) => {
+      const doc = document.documentElement;
+      const body = document.body;
+      const scrollWidth = Math.max(
+        body.scrollWidth,
+        body.offsetWidth,
+        doc.scrollWidth,
+        doc.offsetWidth,
+        doc.clientWidth,
+      );
+      const footer = document.querySelector('footer.app-footer');
+      const primaries = footer
+        ? Array.from(footer.querySelectorAll('.app-footer__primary'))
+        : [];
+      const labels = primaries.map((el) => {
+        const text = el.querySelector('.app-footer__link-text');
+        const style = text ? getComputedStyle(text) : null;
+        const rect = text?.getBoundingClientRect();
+        return {
+          text: text?.textContent?.trim() ?? '',
+          clipped:
+            !!style &&
+            (style.clipPath.includes('inset') ||
+              (style.clip !== 'auto' && style.clip !== 'rect(auto, auto, auto, auto)')),
+          visible: !!rect && rect.width > 0 && rect.height > 0,
+        };
+      });
+      const footerOverflow = footer
+        ? footer.scrollWidth > footer.clientWidth + 1
+        : true;
+      return {
+        scrollWidth,
+        okDoc: scrollWidth <= w,
+        primaryCount: primaries.length,
+        labels,
+        footerOverflow,
+      };
+    }, viewport.width);
+
+    checkedStates += 1;
+    const expected = ['Was arsnova.eu kann', 'So funktioniert’s', 'Mehr'];
+    const labelsOk =
+      footerCheck.primaryCount === 3 &&
+      footerCheck.labels.length === 3 &&
+      footerCheck.labels.every(
+        (entry, index) =>
+          entry.text === expected[index] && entry.visible && !entry.clipped,
+      );
+    if (footerCheck.okDoc && !footerCheck.footerOverflow && labelsOk) {
+      console.log(`  ${viewport.label} … OK (Footer-Reflow + sichtbare Labels)`);
+    } else {
+      console.error(
+        `  ${viewport.label} … FEHLER: ${JSON.stringify(footerCheck)}`,
+      );
+      await page.screenshot({
+        path: join(ARTIFACT_DIR, `${viewport.label}.png`),
+        fullPage: true,
+      });
+      failed += 1;
+    }
+    await footerContext.close();
+  }
+
+  // Längste kompakte Beschriftung (FR) bei 320px ohne Dokument-Overflow.
+  const frContext = await browser.newContext({
+    viewport: { width: 320, height: 568 },
+  });
+  const frPage = await frContext.newPage();
+  await frPage.goto(`${BASE_URL}/fr/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+  await frPage.waitForLoadState('networkidle').catch(() => {});
+  await dismissOptionalOverlay(frPage, true);
+  const frCheck = await frPage.evaluate(() => {
+    const doc = document.documentElement;
+    const scrollWidth = Math.max(document.body.scrollWidth, doc.scrollWidth, doc.clientWidth);
+    const labels = Array.from(
+      document.querySelectorAll('.app-footer__primary .app-footer__link-text'),
+    ).map((el) => el.textContent?.trim() ?? '');
+    return { scrollWidth, labels };
+  });
+  checkedStates += 1;
+  if (frCheck.scrollWidth <= 320 && frCheck.labels.length === 3) {
+    console.log('  footer-fr-320 … OK (lokalisierte Labels ohne Overflow)');
+  } else {
+    console.error(`  footer-fr-320 … FEHLER: ${JSON.stringify(frCheck)}`);
+    failed += 1;
+  }
+  await frContext.close();
+
   await browser.close();
 
   if (failed > 0) {
@@ -415,7 +518,7 @@ async function main() {
     process.exit(1);
   }
   console.log(
-    `\n✓ Reflow bei ${VIEWPORT_WIDTH}px, Fokus-Sichtbarkeit und ${MIN_TARGET_SIZE}px-Ziele bestanden (${checkedStates} Zustände + Desktop-Join).`,
+    `\n✓ Reflow bei ${VIEWPORT_WIDTH}px, Fokus-Sichtbarkeit und ${MIN_TARGET_SIZE}px-Ziele bestanden (${checkedStates} Zustände + Desktop-Join + Footer-Breakpoints).`,
   );
 }
 

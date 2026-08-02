@@ -29,12 +29,20 @@ vi.mock('./core/trpc.client', () => ({
   },
 }));
 
+function createDialogMock(): MatDialog {
+  return {
+    open: vi.fn().mockReturnValue({
+      afterClosed: () => ({ subscribe: vi.fn() }),
+    }),
+  } as unknown as MatDialog;
+}
+
 function configureAppTestBed(): void {
   TestBed.configureTestingModule({
     imports: [AppComponent],
     providers: [
       provideRouter([]),
-      { provide: MatDialog, useValue: { open: vi.fn() } },
+      { provide: MatDialog, useValue: createDialogMock() },
       {
         provide: SwUpdate,
         useValue: {
@@ -279,7 +287,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -320,7 +328,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -354,7 +362,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -389,7 +397,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -407,20 +415,24 @@ describe('AppComponent', () => {
     await fixture.whenStable();
 
     expect(footerBundleQueryMock).not.toHaveBeenCalled();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('app-server-status-widget'),
-    ).toBeNull();
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    moreButton.click();
+    fixture.detectChanges();
+    const menuText = document.body.textContent ?? '';
+    expect(menuText).not.toContain('Betriebsstatus');
 
     fixture.destroy();
     window.history.pushState({}, '', '/');
   });
 
-  it('blendet Footer-Links zu Help, News-Archiv und Legal aus, wenn die App offline ist', async () => {
+  it('haelt Hilfe und Mehr offline sichtbar und deaktiviert den externen Info-Link', async () => {
     TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -439,19 +451,26 @@ describe('AppComponent', () => {
     fixture.componentInstance.onOffline();
     fixture.detectChanges();
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const footer = (fixture.nativeElement as HTMLElement).querySelector(
+      'footer.app-footer',
+    ) as HTMLElement;
+    const text = footer.textContent ?? '';
+    const offlineInfo = footer.querySelector(
+      'button.app-footer__link--offline',
+    ) as HTMLButtonElement | null;
 
+    expect(text).toContain('So funktioniert’s');
+    expect(text).toContain('Mehr');
+    expect(text).toContain('Was arsnova.eu kann');
     expect(text).not.toContain('News-Archiv');
-    expect(text).not.toContain('So funktioniert’s');
-    expect(text).not.toContain('Was arsnova.eu kann');
-    expect(text).not.toContain('Impressum');
-    expect(text).not.toContain('Datenschutz');
-    expect(text).not.toContain('Barrierefreiheit');
+    expect(footer.querySelector('a.app-footer__link--external')).toBeNull();
+    expect(offlineInfo?.disabled).toBe(true);
+    expect(offlineInfo?.getAttribute('aria-label')).toContain('offline');
 
     fixture.destroy();
   });
 
-  it('setzt das externe Footer-Icon von Was arsnova.eu kann als Trailing-Icon', async () => {
+  it('verlinkt Was arsnova.eu kann locale-sicher mit neuem Tab und Aria-Hinweis', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -461,16 +480,124 @@ describe('AppComponent', () => {
     const link = (fixture.nativeElement as HTMLElement).querySelector(
       'a.app-footer__link--external',
     ) as HTMLAnchorElement | null;
-    const trailing = link?.querySelector('mat-icon.app-footer__icon--external[iconPositionEnd]');
 
     expect(link?.textContent ?? '').toContain('Was arsnova.eu kann');
-    expect(trailing?.textContent?.trim()).toBe('open_in_new');
-    expect(link?.querySelectorAll('mat-icon:not([iconPositionEnd])')).toHaveLength(1);
+    expect(link?.target).toBe('_blank');
+    expect(link?.rel).toContain('noopener');
+    expect(link?.href).toContain('#features');
+    expect(link?.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');
+    expect(link?.querySelector('.app-footer__primary-stack')).toBeTruthy();
 
     fixture.destroy();
   });
 
-  it('markiert Footer-Labels einheitlich für Einzeilen-Layout und Compact-Breakpoint', async () => {
+  it('zeigt genau drei primaere Footer-Eintraege in verbindlicher Reihenfolge', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const footer = (fixture.nativeElement as HTMLElement).querySelector(
+      'footer.app-footer',
+    ) as HTMLElement;
+    const primaries = Array.from(footer.querySelectorAll('.app-footer__primary')) as HTMLElement[];
+    const labels = primaries.map(
+      (el) => el.querySelector('.app-footer__link-text')?.textContent?.trim() ?? '',
+    );
+
+    expect(primaries).toHaveLength(3);
+    expect(labels).toEqual(['Was arsnova.eu kann', 'So funktioniert’s', 'Mehr']);
+    expect(footer.querySelector('.app-footer__link--news-archive')).toBeNull();
+    expect(footer.querySelector('app-server-status-widget')).toBeNull();
+    expect(footer.querySelector('a[href*="/legal/imprint"]')).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('oeffnet unter Mehr direkt Impressum, Datenschutz, Barrierefreiheit und Betriebsstatus', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    moreButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const menu = document.querySelector('.app-footer__more-menu, .mat-mdc-menu-panel');
+    const items = Array.from(
+      document.querySelectorAll('.mat-mdc-menu-panel .mat-mdc-menu-item'),
+    ) as HTMLElement[];
+    const itemLabels = items.map((item) => item.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+
+    expect(menu).toBeTruthy();
+    expect(itemLabels).toEqual([
+      expect.stringContaining('Impressum'),
+      expect.stringContaining('Datenschutz'),
+      expect.stringContaining('Barrierefreiheit'),
+      expect.stringContaining('Betriebsstatus'),
+    ]);
+    expect(items).toHaveLength(4);
+    expect((items[0] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/imprint');
+    expect((items[1] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/privacy');
+    expect((items[2] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/accessibility');
+
+    fixture.destroy();
+  });
+
+  it('stellt Footer-Fokus nach Legal-Dismiss auf Mehr wieder her', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const footer = fixture.nativeElement.querySelector('footer.app-footer') as HTMLElement;
+    const moreButton = footer.querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    expect(moreButton).toBeTruthy();
+    footer.setAttribute('inert', '');
+    (footer as HTMLElement & { inert: boolean }).inert = true;
+
+    markContentPageFocusReturn('footer-more');
+    component.isContentOverlayRoute.set(false);
+
+    const restored = (
+      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+    ).restoreContentPageFocusReturn();
+
+    expect(restored).toBe(true);
+    expect(footer.hasAttribute('inert')).toBe(false);
+    expect(document.activeElement).toBe(moreButton);
+
+    fixture.destroy();
+  });
+
+  it('zeigt Offline den API-Retry sichtbar im Footer', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.footerHealthCheckDone.set(true);
+    fixture.componentInstance.apiStatus.set(null);
+    fixture.detectChanges();
+
+    const retry = (fixture.nativeElement as HTMLElement).querySelector(
+      '.app-footer__status-action',
+    ) as HTMLButtonElement | null;
+    expect(retry).toBeTruthy();
+    expect(retry?.textContent ?? '').toContain('Nochmal versuchen');
+
+    fixture.destroy();
+  });
+
+  it('markiert die drei primaeren Footer-Labels sichtbar', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -478,20 +605,100 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     const labels = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.app-footer__link-text'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll(
+        '.app-footer__primary .app-footer__link-text',
+      ),
     ) as HTMLElement[];
 
-    expect(labels.length).toBeGreaterThanOrEqual(6);
-    expect(labels.map((label) => label.textContent?.trim())).toEqual(
-      expect.arrayContaining([
-        'News-Archiv',
-        'So funktioniert’s',
-        'Was arsnova.eu kann',
-        'Impressum',
-        'Datenschutz',
-        'Barrierefreiheit',
-      ]),
+    expect(labels).toHaveLength(3);
+    expect(labels.map((label) => label.textContent?.trim())).toEqual([
+      'Was arsnova.eu kann',
+      'So funktioniert’s',
+      'Mehr',
+    ]);
+    for (const label of labels) {
+      const style = getComputedStyle(label);
+      expect(style.clipPath === 'none' || style.clipPath === '').toBe(true);
+    }
+
+    fixture.destroy();
+  });
+
+  it('nutzt more_vert als Footer-Mehr-Icon (etablierter Menu-Trigger)', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const moreIcon = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"] .app-footer__icon',
     );
+    expect(moreIcon?.textContent?.trim()).toBe('more_vert');
+
+    fixture.destroy();
+  });
+
+  it('zeigt im Mehr-Menü den Live-Betriebsstatus-Dot anhand von footerStatus', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.footerHealthCheckDone.set(true);
+    component.apiStatus.set('ok');
+    component.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+    fixture.detectChanges();
+    expect(component.footerStatusColor()).toBe('green');
+
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    moreButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const statusIcon = document.querySelector(
+      '.mat-mdc-menu-panel .app-footer__status-dot',
+    ) as HTMLElement | null;
+    expect(statusIcon).toBeTruthy();
+    expect(statusIcon?.classList.contains('app-footer__status-dot--healthy')).toBe(true);
+    expect(statusIcon?.style.color).toBe('var(--app-status-healthy)');
+    expect(component.footerStatusDotCssColor()).toBe('var(--app-status-healthy)');
+    expect(statusIcon?.textContent?.trim()).toBe('lens');
+
+    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+    fixture.detectChanges();
+    expect(component.footerStatusColor()).toBe('yellow');
+    expect(component.footerStatusDotCssColor()).toBe('var(--app-status-busy)');
+    expect(
+      document
+        .querySelector('.mat-mdc-menu-panel .app-footer__status-dot')
+        ?.classList.contains('app-footer__status-dot--busy'),
+    ).toBe(true);
+    expect(
+      (document.querySelector('.mat-mdc-menu-panel .app-footer__status-dot') as HTMLElement | null)
+        ?.style.color,
+    ).toBe('var(--app-status-busy)');
+
+    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    fixture.detectChanges();
+    expect(component.footerStatusColor()).toBe('red');
+    expect(
+      document
+        .querySelector('.mat-mdc-menu-panel .app-footer__status-dot')
+        ?.classList.contains('app-footer__status-dot--overloaded'),
+    ).toBe(true);
+
+    component.apiStatus.set(null);
+    fixture.detectChanges();
+    expect(component.footerStatusColor()).toBe('gray');
+    expect(
+      document
+        .querySelector('.mat-mdc-menu-panel .app-footer__status-dot')
+        ?.classList.contains('app-footer__status-dot--unknown'),
+    ).toBe(true);
 
     fixture.destroy();
   });
@@ -501,7 +708,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
@@ -562,7 +769,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: createDialogMock() },
         {
           provide: SwUpdate,
           useValue: {
