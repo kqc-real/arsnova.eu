@@ -153,7 +153,9 @@ async function assertThemeSwitcher(page, buttonId, label) {
   }
   let stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
   if (stored !== 'light') {
-    throw new Error(`${label}: expected localStorage ${STORAGE_KEY}=light after Space, got ${stored}`);
+    throw new Error(
+      `${label}: expected localStorage ${STORAGE_KEY}=light after Space, got ${stored}`,
+    );
   }
   if (!(await page.evaluate(() => document.documentElement.className.includes('light')))) {
     throw new Error(`${label}: html.light not applied after Space on light`);
