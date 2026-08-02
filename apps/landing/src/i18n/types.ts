@@ -4,12 +4,10 @@ export type Locale = 'de' | 'en' | 'fr' | 'it' | 'es';
 export interface NavMessages {
   ariaLabel: string;
   workflow: string;
-  estimate: string;
-  qa: string;
-  qaMobile: string;
   features: string;
   accessibility: string;
   trust: string;
+  comparison: string;
   faq: string;
   tryNow: string;
   menuOpen: string;

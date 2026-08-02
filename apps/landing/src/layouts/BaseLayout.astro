@@ -49,11 +49,10 @@ const privacyHref = `${base}datenschutz/`.replace(/\/{2,}/g, '/');
 
 const navItems = [
   { href: `${localeHome}#workflow`, label: t.nav.workflow },
-  { href: `${localeHome}#numeric-estimate`, label: t.nav.estimate },
-  { href: `${localeHome}#qa-wall`, label: t.nav.qa, mobileLabel: t.nav.qaMobile },
   { href: `${localeHome}#features`, label: t.nav.features },
   { href: `${localeHome}#accessibility`, label: t.nav.accessibility },
   { href: `${localeHome}#trust`, label: t.nav.trust },
+  { href: `${localeHome}#comparison`, label: t.nav.comparison },
   { href: `${localeHome}#faq`, label: t.nav.faq },
 ] as const;
 
@@ -134,19 +133,22 @@ const jsonLd = {
       {t.nav.skipToContent}
     </a>
     <header class="sticky top-0 z-50 border-b border-slate-700/80 bg-slate-900/95 backdrop-blur-sm" id="main-header">
-      <nav class="mx-auto max-w-6xl px-4 py-3 sm:px-6" aria-label={t.nav.ariaLabel}>
-        <div class="flex items-center justify-between gap-4">
-          <a href={localeHome} class="inline-flex items-center gap-2 font-display text-xl font-bold tracking-tight text-white">
+      <nav class="mx-auto max-w-6xl px-3 py-3 sm:px-4 xl:px-6" aria-label={t.nav.ariaLabel}>
+        <div class="flex items-center justify-between gap-2 xl:gap-4">
+          <a href={localeHome} class="inline-flex shrink-0 items-center gap-1.5 font-display text-lg font-bold tracking-tight text-white xl:gap-2 xl:text-xl">
             <img src={`${base}favicon.svg`} alt="" class="h-7 w-7 shrink-0" width="28" height="28" />
             arsnova.eu
           </a>
-          <div class="hidden items-center gap-4 xl:gap-5 lg:flex">
+          <div
+            class="hidden min-w-0 items-center gap-1.5 whitespace-nowrap lg:flex xl:gap-3 2xl:gap-5"
+            data-main-nav="desktop"
+          >
             {navItems.map((item) => (
-              <a href={item.href} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white">{item.label}</a>
+              <a href={item.href} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-slate-400 hover:text-white xl:px-1 xl:text-sm">{item.label}</a>
             ))}
-            <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-1 text-sm font-medium text-slate-400 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <LanguageSwitcher locale={locale} t={t} idPrefix="lang-desktop" />
-            <a href={`${localeHome}#start`} class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600">{t.nav.tryNow}</a>
+            <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-slate-400 hover:text-white xl:px-1 xl:text-sm" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <LanguageSwitcher locale={locale} t={t} idPrefix="lang-desktop" compact />
+            <a href={`${localeHome}#start`} class="rounded-lg bg-brand-700 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-brand-600 xl:px-4 xl:py-2 xl:text-sm">{t.nav.tryNow}</a>
           </div>
           <div class="flex items-center gap-2 lg:hidden">
             <LanguageSwitcher locale={locale} t={t} idPrefix="lang-mobile" />
@@ -170,11 +172,11 @@ const jsonLd = {
             </button>
           </div>
         </div>
-        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden">
+        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden" data-main-nav="mobile">
           {navItems.map((item) => (
             <li>
               <a href={item.href} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">
-                {'mobileLabel' in item && item.mobileLabel ? item.mobileLabel : item.label}
+                {item.label}
               </a>
             </li>
           ))}

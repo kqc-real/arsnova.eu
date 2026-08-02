@@ -22,7 +22,9 @@ Die Landingpage ist fünfsprachig (`de`, `en`, `fr`, `it`, `es`), analog zur App
 
 - `/` leitet auf `/de/` weiter und behält dabei Legacy-Hashes (`/#schaetzfrage` → `/de/#schaetzfrage`).
 - Texte liegen in typisierten Dictionaries unter `src/i18n/` (`de.ts` … `es.ts`); fehlende Keys werfen beim Import einen Build-Fehler.
-- Abschnitte nutzen **kanonische Anker** (`#workflow`, `#numeric-estimate`, `#confidence`, `#qa-wall`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, …) bleiben als Alias-IDs gültig.
+- Abschnitte nutzen **kanonische Anker** (`#workflow`, `#features`, `#numeric-estimate`, `#confidence`, `#qa-wall`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, …) bleiben als Alias-IDs gültig.
+- **Kopfnavigation** (Desktop und Mobil, Issue #198): Ablauf → Funktionen → Barrierefreiheit → Vertrauen → Vergleich → FAQ, plus CTA „Jetzt ausprobieren“ (`#start`). Schätzfrage, Selbsteinschätzung und Q&A bleiben als Spotlight-Abschnitte mit Deep Links erreichbar, stehen aber nicht in der Hauptnavigation.
+- **Abschnittsreihenfolge:** Hero → Workflow → Features → Estimate-/Confidence-/Q&A-Spotlights → Accessibility → Trust → Comparison → FAQ → CTA.
 - App-CTAs verlinken immer locale-sicher auf `https://arsnova.eu/{locale}/` (`appHomeUrl`).
 - **Impressum** und **Datenschutz** bleiben bewusst deutschsprachig unter `/impressum/` und `/datenschutz/` (rechtliche Pflichttexte); die lokalisierten Homepages verlinken dorthin.
 

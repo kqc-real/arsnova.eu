@@ -22,15 +22,98 @@ const legacyAliases = [
 ];
 const canonicalAnchors = [
   'workflow',
+  'features',
   'numeric-estimate',
   'confidence',
   'qa-wall',
-  'features',
   'accessibility',
   'trust',
   'comparison',
   'faq',
 ];
+/** Document order for main section ids (Issue #198). */
+const sectionOrder = [
+  'workflow',
+  'features',
+  'numeric-estimate',
+  'confidence',
+  'qa-wall',
+  'accessibility',
+  'trust',
+  'comparison',
+  'faq',
+];
+/** Main nav section targets and mandatory labels (Issue #198). */
+const navSpec = [
+  {
+    anchor: 'workflow',
+    labels: {
+      de: 'Ablauf',
+      en: 'How it works',
+      fr: 'Fonctionnement',
+      it: 'Come funziona',
+      es: 'Cómo funciona',
+    },
+  },
+  {
+    anchor: 'features',
+    labels: {
+      de: 'Funktionen',
+      en: 'Features',
+      fr: 'Fonctionnalités',
+      it: 'Funzionalità',
+      es: 'Funciones',
+    },
+  },
+  {
+    anchor: 'accessibility',
+    labels: {
+      de: 'Barrierefreiheit',
+      en: 'Accessibility',
+      fr: 'Accessibilité',
+      it: 'Accessibilità',
+      es: 'Accesibilidad',
+    },
+  },
+  {
+    anchor: 'trust',
+    labels: {
+      de: 'Vertrauen',
+      en: 'Trust',
+      fr: 'Confiance',
+      it: 'Fiducia',
+      es: 'Confianza',
+    },
+  },
+  {
+    anchor: 'comparison',
+    labels: {
+      de: 'Vergleich',
+      en: 'Comparison',
+      fr: 'Comparatif',
+      it: 'Confronto',
+      es: 'Comparativa',
+    },
+  },
+  {
+    anchor: 'faq',
+    labels: {
+      de: 'FAQ',
+      en: 'FAQ',
+      fr: 'FAQ',
+      it: 'FAQ',
+      es: 'FAQ',
+    },
+  },
+];
+const tryNowLabels = {
+  de: 'Jetzt ausprobieren',
+  en: 'Try it now',
+  fr: 'Essayer maintenant',
+  it: 'Provalo ora',
+  es: 'Probar ahora',
+};
+const removedNavAnchors = ['numeric-estimate', 'qa-wall', 'confidence'];
 const deSmokePhrases = [
   'Jetzt ausprobieren',
   'Zum Inhalt springen',
@@ -44,17 +127,27 @@ const deSmokePhrases = [
 const errors = [];
 const fail = (message) => errors.push(message);
 
+/**
+ * Always rebuild so checks never pass against a stale dist/ from an older commit.
+ * Review #201: a pre-existing locale tree must not short-circuit validation.
+ */
 function ensureBuild() {
-  const hasLocales = locales.every((locale) => existsSync(join(dist, locale, 'index.html')));
-  if (hasLocales) return;
-  console.log('dist/ incomplete — running landing build…');
+  console.log('Running fresh landing build for i18n checks…');
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
     stdio: 'inherit',
     env: process.env,
     shell: process.platform === 'win32',
   });
-  if (result.status !== 0) fail('Landing build failed');
+  if (result.status !== 0) {
+    fail('Landing build failed');
+    return;
+  }
+  for (const locale of locales) {
+    if (!existsSync(join(dist, locale, 'index.html'))) {
+      fail(`Fresh build missing locale page: /${locale}/`);
+    }
+  }
 }
 
 function assertDictionaries() {
@@ -350,6 +443,162 @@ function checkLanguageSwitcherMarkup() {
   }
 }
 
+/**
+ * Extract hash targets from a contiguous HTML fragment of nav links.
+ * Returns anchors in document order (e.g. "workflow").
+ */
+function extractHashAnchors(fragment) {
+  const anchors = [];
+  const re = /href="[^"]*?#([a-z0-9-]+)"/gi;
+  let match;
+  while ((match = re.exec(fragment)) !== null) {
+    anchors.push(match[1]);
+  }
+  return anchors;
+}
+
+function extractMainSectionOrder(html) {
+  const mainMatch = html.match(/<main\b[^>]*id="main-content"[^>]*>([\s\S]*?)<\/main>/i);
+  if (!mainMatch) return null;
+  const order = [];
+  const re =
+    /id="(workflow|features|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
+  let match;
+  while ((match = re.exec(mainMatch[1])) !== null) {
+    order.push(match[1]);
+  }
+  return order;
+}
+
+function checkNavAndSectionOrder() {
+  const expectedAnchors = navSpec.map((item) => item.anchor);
+
+  for (const locale of locales) {
+    const html = readFileSync(join(dist, locale, 'index.html'), 'utf8');
+
+    const desktopHook = html.indexOf('data-main-nav="desktop"');
+    const mobileHook = html.indexOf('data-main-nav="mobile"');
+    if (desktopHook < 0) {
+      fail(`/${locale}/ missing desktop navigation [data-main-nav="desktop"]`);
+      continue;
+    }
+    if (mobileHook < 0) {
+      fail(`/${locale}/ missing mobile navigation [data-main-nav="mobile"]`);
+      continue;
+    }
+    // Slice between stable hooks so nested LanguageSwitcher <div>s cannot truncate the match.
+    const desktopNavHtml = html.slice(desktopHook, mobileHook);
+    const mobileClose = html.indexOf('</ul>', mobileHook);
+    const mobileNavHtml =
+      mobileClose >= 0 ? html.slice(mobileHook, mobileClose + '</ul>'.length) : '';
+    if (!mobileNavHtml) {
+      fail(`/${locale}/ missing mobile navigation markup after [data-main-nav="mobile"]`);
+      continue;
+    }
+
+    const desktopAnchors = extractHashAnchors(desktopNavHtml).filter((anchor) =>
+      expectedAnchors.includes(anchor),
+    );
+    const mobileAnchors = extractHashAnchors(mobileNavHtml).filter((anchor) =>
+      expectedAnchors.includes(anchor),
+    );
+
+    if (desktopAnchors.join(',') !== expectedAnchors.join(',')) {
+      fail(
+        `/${locale}/ desktop nav anchors expected ${expectedAnchors.join(' → ')}, got ${desktopAnchors.join(' → ')}`,
+      );
+    }
+    if (mobileAnchors.join(',') !== expectedAnchors.join(',')) {
+      fail(
+        `/${locale}/ mobile nav anchors expected ${expectedAnchors.join(' → ')}, got ${mobileAnchors.join(' → ')}`,
+      );
+    }
+    if (desktopAnchors.join(',') !== mobileAnchors.join(',')) {
+      fail(`/${locale}/ desktop and mobile nav anchors diverge`);
+    }
+
+    for (const item of navSpec) {
+      const label = item.labels[locale];
+      if (!html.includes(`#${item.anchor}`) || !html.includes(label)) {
+        fail(`/${locale}/ missing nav label ${JSON.stringify(label)} for #${item.anchor}`);
+      }
+      // Label must appear as link text next to the hash (desktop + mobile share markup patterns).
+      const labelNearHref = new RegExp(
+        `href="[^"]*?#${item.anchor}"[^>]*>\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*<`,
+      );
+      const labelMatches = html.match(new RegExp(labelNearHref.source, 'g'));
+      if (!labelMatches || labelMatches.length < 2) {
+        fail(
+          `/${locale}/ expected #${item.anchor} labeled ${JSON.stringify(label)} in desktop and mobile nav`,
+        );
+      }
+    }
+
+    const tryNow = tryNowLabels[locale];
+    const tryNowMatches = html.match(
+      new RegExp(
+        `href="[^"]*?#start"[^>]*>\\s*${tryNow.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*<`,
+        'g',
+      ),
+    );
+    if (!tryNowMatches || tryNowMatches.length < 2) {
+      fail(
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain a separate #start control (desktop + mobile)`,
+      );
+    }
+    if (!html.includes('bg-brand-700') || !html.includes(tryNow)) {
+      fail(
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (brand button)`,
+      );
+    }
+
+    for (const removed of removedNavAnchors) {
+      const navHits = [
+        ...desktopNavHtml.matchAll(new RegExp(`#${removed}`, 'g')),
+        ...mobileNavHtml.matchAll(new RegExp(`#${removed}`, 'g')),
+      ];
+      if (navHits.length) {
+        fail(`/${locale}/ main nav must not link #${removed}`);
+      }
+    }
+
+    const order = extractMainSectionOrder(html);
+    if (!order) {
+      fail(`/${locale}/ missing <main id="main-content">`);
+      continue;
+    }
+    if (order.join(',') !== sectionOrder.join(',')) {
+      fail(
+        `/${locale}/ section order expected ${sectionOrder.join(' → ')}, got ${order.join(' → ')}`,
+      );
+    }
+    if (order.indexOf('features') !== 1 || order.indexOf('workflow') !== 0) {
+      fail(`/${locale}/ Workflow must follow Hero and Features must precede spotlights`);
+    }
+    if (
+      order.indexOf('features') > order.indexOf('numeric-estimate') ||
+      order.indexOf('features') > order.indexOf('confidence') ||
+      order.indexOf('features') > order.indexOf('qa-wall')
+    ) {
+      fail(`/${locale}/ #features must start the feature block before spotlights`);
+    }
+
+    // Footer remains the compact strip (no multi-column redesign).
+    if (!html.includes('©') || !html.includes('Open Source') || !html.includes('MIT')) {
+      fail(`/${locale}/ footer copyright strip changed unexpectedly`);
+    }
+    for (const footerKey of ['impressum', 'datenschutz']) {
+      if (!html.includes(`/${footerKey}/`)) fail(`/${locale}/ footer missing /${footerKey}/`);
+    }
+    if (!html.includes('/legal/accessibility')) {
+      fail(`/${locale}/ footer missing accessibility legal link`);
+    }
+    if (html.includes('app-footer') || html.match(/footer[\s\S]{0,200}grid-cols-3/)) {
+      fail(`/${locale}/ footer must not adopt the app's multi-column information architecture`);
+    }
+  }
+}
+
 ensureBuild();
 if (!errors.length) assertDictionaries();
 if (!errors.length) {
@@ -360,6 +609,7 @@ if (!errors.length) {
   checkLegalPagesOmitHomeHreflang();
   checkLocaleContentSmoke();
   checkLanguageSwitcherMarkup();
+  checkNavAndSectionOrder();
 }
 
 if (errors.length) {
@@ -371,5 +621,7 @@ console.log('Landing i18n checks passed:');
 console.log(`- locales: ${locales.join(', ')}`);
 console.log(`- dictionaries: matching keys`);
 console.log(`- canonical anchors + legacy aliases present`);
+console.log('- nav IA: six section targets + Comparison, desktop/mobile parity');
+console.log(`- section order: ${sectionOrder.join(' → ')}`);
 console.log('- sitemap includes all locales');
 console.log('- no German UI smoke phrases in en/fr/it/es');
