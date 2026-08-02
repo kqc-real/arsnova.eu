@@ -269,6 +269,8 @@ export class AppComponent implements OnInit, OnDestroy {
         if (!isPlatformBrowser(this.platformId)) {
           return;
         }
+        // Mehr-Menü liegt im CDK-Overlay (nicht inert) — bei Navigation schließen.
+        this.footerMoreTrigger?.closeMenu();
         this.toolbarHidden.set(false);
         this.updateRouteFlags();
         this.refreshFooterStatusPollingState({ immediate: true });
@@ -838,11 +840,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const { ServerStatusHelpDialogComponent } =
       await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
 
-    const moreTrigger =
-      typeof document !== 'undefined'
-        ? document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]')
-        : null;
-
     const ref = this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
@@ -856,14 +853,37 @@ export class AppComponent implements OnInit, OnDestroy {
       maxWidth: '100vw',
     });
     ref.afterClosed().subscribe(() => {
-      if (!moreTrigger) return;
-      try {
-        moreTrigger.focus({ preventScroll: true });
-      } catch {
-        moreTrigger.focus();
-      }
+      this.focusFooterMoreAfterStatusDialog();
     });
     void this.loadFooterStats({ forceFresh: true });
+  }
+
+  /**
+   * Fokus nach Betriebsstatus-Dialog nur auf ein noch lebendiges Mehr-Target.
+   * Bei Navigation weg vom Footer (Feedback/immersiv) kein Fokus auf detached Nodes.
+   */
+  private focusFooterMoreAfterStatusDialog(): void {
+    if (typeof document === 'undefined') return;
+    const more = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');
+    // footerVisible deckt Feedback-/immersive Host-Routen ab; isConnected/inert den Detach-Fall.
+    const usable =
+      !!more &&
+      more.isConnected &&
+      !more.closest('[inert]') &&
+      this.footerVisible() &&
+      getComputedStyle(more).visibility !== 'hidden' &&
+      getComputedStyle(more).display !== 'none';
+    if (usable && more) {
+      try {
+        more.focus({ preventScroll: true });
+      } catch {
+        more.focus();
+      }
+      return;
+    }
+    if (!this.isContentOverlayRoute()) {
+      this.focusPrimaryContent();
+    }
   }
 
   onPresetChanged(): void {

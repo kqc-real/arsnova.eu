@@ -114,6 +114,7 @@ function resolveBaseSha() {
 /** Theme-UI-Pfade: nur dann Frontend-Isolation erzwingen (nicht die Check-Skripte selbst). */
 const LANDING_THEME_SCOPE = [
   'apps/landing/src/styles/landing-theme.css',
+  'apps/landing/src/styles/global.css',
   'apps/landing/src/components/ThemeSwitcher.astro',
   'apps/landing/src/components/LanguageSwitcher.astro',
   'apps/landing/src/layouts/BaseLayout.astro',

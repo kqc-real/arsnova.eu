@@ -698,6 +698,45 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('fokussiert nach Status-Dialog nicht ein detached Mehr-Target', async () => {
+    const { dialog, close } = createCloseableDialogMock();
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: MatDialog, useValue: dialog },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: false,
+            versionUpdates: { subscribe: swVersionUpdatesSubscribeMock },
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+            activateUpdate: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.openServerStatusHelp();
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    moreButton.remove();
+
+    close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement).not.toBe(moreButton);
+    fixture.destroy();
+  });
+
   it('nutzt more_vert als Footer-Mehr-Icon (etablierter Menu-Trigger)', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
