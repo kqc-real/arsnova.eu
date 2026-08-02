@@ -4,7 +4,8 @@
 
 /*
  * Sticky header offset for in-page anchors (Issue #198).
- * Applies to canonical section ids and legacy alias spans alike.
+ * Legacy alias spans share this rule and must not also use a negative
+ * absolute offset (`-top-20`), or the landing position would double-shift.
  * No forced smooth scrolling — browsers keep their default / reduced-motion behavior.
  */
 main [id],
