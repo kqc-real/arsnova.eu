@@ -303,7 +303,19 @@ async function inspectFooterMoreKeyboardNavigation(page) {
   if (!closedByEscape) {
     issues.push('Footer-Mehr schließt nicht mit Escape');
   }
-  if (!(await moreButton.evaluate((element) => element === document.activeElement))) {
+  // Material stellt den Fokus asynchron nach Panel-Remove zurück — warten, nicht selbst fokusieren.
+  const focusReturnedAfterEscape = await page
+    .waitForFunction(
+      () => {
+        const more = document.querySelector('button[data-footer-focus="footer-more"]');
+        return !!more && more === document.activeElement;
+      },
+      undefined,
+      { timeout: 2_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!focusReturnedAfterEscape) {
     issues.push('Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück');
   }
 
