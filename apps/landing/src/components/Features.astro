@@ -11,13 +11,13 @@ const f = t.features;
 ---
 
 <section id="features" class="border-b border-landing-outline-variant bg-landing-bg px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="features-heading">
-  <div class="mx-auto max-w-6xl">
+  <div class="mx-auto min-w-0 max-w-6xl">
     <p class="landing-eyebrow">{f.eyebrow}</p>
-    <h2 id="features-heading" class="mt-3 font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">{f.title}</h2>
-    <p class="mt-4 max-w-3xl text-lg leading-8 text-landing-fg-muted">{f.lead}</p>
-    <ul class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    <h2 id="features-heading" class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">{f.title}</h2>
+    <p class="mt-4 max-w-3xl break-words text-lg leading-8 text-landing-fg-muted">{f.lead}</p>
+    <ul class="mt-12 grid min-w-0 gap-8 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {f.items.map((item) => (
-        <li class="landing-card p-6 transition duration-landing-fast hover:border-landing-primary/50 hover:bg-landing-surface-container-high">
+        <li class="landing-card min-w-0 p-6 transition duration-landing-fast hover:border-landing-primary/50 hover:bg-landing-surface-container-high">
           <div class="flex h-10 w-10 items-center justify-center rounded-landing-panel bg-landing-primary-container text-landing-on-primary-container" aria-hidden="true">
             {item.icon === 'shield' && '🛡️'}
             {item.icon === 'bolt' && '⚡'}

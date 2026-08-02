@@ -37,7 +37,7 @@ main [id],
   }
 
   .landing-eyebrow {
-    @apply text-xs font-semibold uppercase leading-6 tracking-[0.12em] text-landing-primary sm:text-sm sm:tracking-[0.24em];
+    @apply max-w-full break-words text-xs font-semibold uppercase leading-6 tracking-[0.12em] text-landing-primary sm:text-sm sm:tracking-[0.24em];
   }
 }
 

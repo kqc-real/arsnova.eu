@@ -92,6 +92,11 @@ async function assertThemeSwitcherRoles(page, buttonId, label) {
   if (banned) throw new Error(`${label}: ${banned}`);
 }
 
+async function activateWithKey(page, locator, key) {
+  await locator.focus();
+  await page.keyboard.press(key);
+}
+
 async function assertThemeSwitcher(page, buttonId, label) {
   await assertThemeSwitcherRoles(page, buttonId, label);
 
@@ -103,25 +108,77 @@ async function assertThemeSwitcher(page, buttonId, label) {
 
   const root = button.locator('xpath=ancestor::*[@data-theme-switcher][1]');
   const menu = root.locator('[data-theme-menu]');
+  const optionOrder = ['system', 'light', 'dark'];
 
-  await button.click();
+  // Keyboard: Enter opens the disclosure.
+  await activateWithKey(page, button, 'Enter');
   if ((await button.getAttribute('aria-expanded')) !== 'true') {
-    throw new Error(`${label}: menu did not open`);
+    throw new Error(`${label}: Enter did not open menu`);
   }
   if (await menu.evaluate((el) => el.classList.contains('hidden'))) {
-    throw new Error(`${label}: menu still hidden after open`);
+    throw new Error(`${label}: menu still hidden after Enter open`);
   }
 
-  const darkOption = menu.locator('[data-theme-option="dark"]');
-  await darkOption.click();
+  // Tab / Shift+Tab through the three options.
+  const seenForward = [];
+  for (let i = 0; i < 3; i += 1) {
+    await page.keyboard.press('Tab');
+    const option = await page.evaluate(() =>
+      document.activeElement?.getAttribute('data-theme-option'),
+    );
+    seenForward.push(option);
+  }
+  if (seenForward.join(',') !== optionOrder.join(',')) {
+    throw new Error(
+      `${label}: Tab order through theme options expected ${optionOrder.join('→')}, got ${seenForward.join('→')}`,
+    );
+  }
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  const backToSystem = await page.evaluate(() =>
+    document.activeElement?.getAttribute('data-theme-option'),
+  );
+  if (backToSystem !== 'system') {
+    throw new Error(`${label}: Shift+Tab did not return to system option (got ${backToSystem})`);
+  }
+
+  // Space activates the focused option (light via Tab then Space).
+  await page.keyboard.press('Tab'); // light
+  await page.keyboard.press('Space');
   if ((await button.getAttribute('aria-expanded')) !== 'false') {
-    throw new Error(`${label}: selecting option did not close menu`);
+    throw new Error(`${label}: Space on option did not close menu`);
   }
   if ((await page.evaluate(() => document.activeElement?.id)) !== buttonId) {
-    throw new Error(`${label}: focus not restored to trigger after selection`);
+    throw new Error(`${label}: focus not restored to trigger after Space selection`);
+  }
+  let stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+  if (stored !== 'light') {
+    throw new Error(`${label}: expected localStorage ${STORAGE_KEY}=light after Space, got ${stored}`);
+  }
+  if (!(await page.evaluate(() => document.documentElement.className.includes('light')))) {
+    throw new Error(`${label}: html.light not applied after Space on light`);
   }
 
-  const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+  // Enter opens again and Enter activates dark.
+  await activateWithKey(page, button, 'Enter');
+  await page.keyboard.press('Tab'); // system
+  await page.keyboard.press('Tab'); // light
+  await page.keyboard.press('Tab'); // dark
+  const focusedDark = await page.evaluate(() =>
+    document.activeElement?.getAttribute('data-theme-option'),
+  );
+  if (focusedDark !== 'dark') {
+    throw new Error(`${label}: expected focus on dark before Enter activate, got ${focusedDark}`);
+  }
+  await page.keyboard.press('Enter');
+  if ((await button.getAttribute('aria-expanded')) !== 'false') {
+    throw new Error(`${label}: Enter on option did not close menu`);
+  }
+  if ((await page.evaluate(() => document.activeElement?.id)) !== buttonId) {
+    throw new Error(`${label}: focus not restored to trigger after Enter selection`);
+  }
+
+  stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
   if (stored !== 'dark') {
     throw new Error(`${label}: expected localStorage ${STORAGE_KEY}=dark, got ${stored}`);
   }
@@ -140,7 +197,11 @@ async function assertThemeSwitcher(page, buttonId, label) {
     throw new Error(`${label}: dark class missing after reload`);
   }
 
-  await button.click();
+  // Space opens; Escape closes and restores focus.
+  await activateWithKey(page, button, 'Space');
+  if ((await button.getAttribute('aria-expanded')) !== 'true') {
+    throw new Error(`${label}: Space did not open menu`);
+  }
   await page.keyboard.press('Escape');
   if ((await button.getAttribute('aria-expanded')) !== 'false') {
     throw new Error(`${label}: Escape did not close menu`);
@@ -152,7 +213,7 @@ async function assertThemeSwitcher(page, buttonId, label) {
   // Mutual exclusion with language switcher when both visible
   const langButton = page.locator('#lang-desktop-button, #lang-mobile-button').first();
   if (await langButton.isVisible()) {
-    await button.click();
+    await activateWithKey(page, button, 'Enter');
     await langButton.click();
     if ((await button.getAttribute('aria-expanded')) !== 'false') {
       throw new Error(`${label}: language menu did not close theme menu`);
@@ -160,9 +221,9 @@ async function assertThemeSwitcher(page, buttonId, label) {
   }
 
   // System preference reactivity via productive matchMedia listener (no apply()).
-  await button.click();
+  await activateWithKey(page, button, 'Enter');
   const systemOption = menu.locator('[data-theme-option="system"]');
-  await systemOption.click();
+  await activateWithKey(page, systemOption, 'Enter');
   const pref = await page.evaluate(() =>
     document.documentElement.getAttribute('data-landing-color-scheme'),
   );
@@ -305,8 +366,48 @@ async function assertReducedMotion(browser) {
   }
 }
 
+async function collectHorizontalOverflowOffenders(page) {
+  return page.evaluate(() => {
+    const vw = window.innerWidth;
+    const offenders = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) continue;
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      const overflowRight = rect.right - vw;
+      const overflowLeft = -rect.left;
+      if (overflowRight > 0.5 || overflowLeft > 0.5) {
+        offenders.push({
+          tag: el.tagName.toLowerCase(),
+          id: el.id || null,
+          cls: String(el.className || '').slice(0, 120),
+          left: Number(rect.left.toFixed(1)),
+          right: Number(rect.right.toFixed(1)),
+          width: Number(rect.width.toFixed(1)),
+          overflowRight: Number(Math.max(0, overflowRight).toFixed(1)),
+          overflowLeft: Number(Math.max(0, overflowLeft).toFixed(1)),
+          text: (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80),
+        });
+      }
+    }
+    offenders.sort(
+      (a, b) =>
+        Math.max(b.overflowRight, b.overflowLeft) - Math.max(a.overflowRight, a.overflowLeft),
+    );
+    const doc = document.documentElement;
+    return {
+      clientWidth: doc.clientWidth,
+      scrollWidth: doc.scrollWidth,
+      innerWidth: vw,
+      offenders: offenders.slice(0, 25),
+    };
+  });
+}
+
 async function assertOverflow(browser) {
-  // Narrow viewport without fake DPR
+  // Narrow viewport without fake DPR. Also stress CI-like Ubuntu/DejaVu metrics
+  // so tracked uppercase labels cannot silently reintroduce scrollWidth growth.
   {
     const context = await browser.newContext({
       viewport: { width: 320, height: 640 },
@@ -314,13 +415,14 @@ async function assertOverflow(browser) {
     const page = await context.newPage();
     try {
       await page.goto(`${BASE_URL}/de/`, { waitUntil: 'networkidle', timeout: 20_000 });
-      const overflow = await page.evaluate(() => {
-        const doc = document.documentElement;
-        return { clientWidth: doc.clientWidth, scrollWidth: doc.scrollWidth };
+      await page.addStyleTag({
+        content:
+          'html,body,*{font-family:"Ubuntu","DejaVu Sans","Liberation Sans",Arial,sans-serif !important;}',
       });
+      const overflow = await collectHorizontalOverflowOffenders(page);
       if (overflow.scrollWidth > overflow.clientWidth + 1) {
         throw new Error(
-          `horizontal overflow at 320px: scrollWidth=${overflow.scrollWidth} clientWidth=${overflow.clientWidth}`,
+          `horizontal overflow at 320px: scrollWidth=${overflow.scrollWidth} clientWidth=${overflow.clientWidth}; offenders=${JSON.stringify(overflow.offenders)}`,
         );
       }
     } finally {

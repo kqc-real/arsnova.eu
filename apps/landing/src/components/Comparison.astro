@@ -17,16 +17,16 @@ const c = t.comparison;
   aria-labelledby="comparison-heading"
 >
   <span id="vergleich" class="absolute top-0 left-0 h-0 w-0 overflow-hidden" aria-hidden="true"></span>
-  <div class="mx-auto max-w-6xl">
+  <div class="mx-auto min-w-0 max-w-6xl">
     <p class="landing-eyebrow">{c.eyebrow}</p>
-    <h2 id="comparison-heading" class="mt-3 font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">{c.title}</h2>
-    <p class="mt-4 max-w-3xl text-lg leading-8 text-landing-fg-muted">{c.lead}</p>
+    <h2 id="comparison-heading" class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">{c.title}</h2>
+    <p class="mt-4 max-w-3xl break-words text-lg leading-8 text-landing-fg-muted">{c.lead}</p>
 
-    <ul class="mt-10 grid gap-6 lg:grid-cols-3" role="list">
+    <ul class="mt-10 grid min-w-0 gap-6 lg:grid-cols-3" role="list">
       {c.points.map((point) => (
-        <li class="landing-card p-6">
-          <h3 class="font-display text-2xl font-semibold text-landing-fg">{point.title}</h3>
-          <p class="mt-3 leading-7 text-landing-fg-muted">{point.description}</p>
+        <li class="landing-card min-w-0 p-6">
+          <h3 class="break-words font-display text-2xl font-semibold text-landing-fg">{point.title}</h3>
+          <p class="mt-3 break-words leading-7 text-landing-fg-muted">{point.description}</p>
         </li>
       ))}
     </ul>

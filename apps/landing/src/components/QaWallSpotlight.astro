@@ -18,16 +18,16 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
   aria-labelledby="qa-wall-heading"
 >
   <span id="fragenwand" class="absolute top-0 left-0 h-0 w-0 overflow-hidden" aria-hidden="true"></span>
-  <div class="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-    <div>
-      <p class="text-xs font-semibold uppercase leading-6 tracking-[0.2em] text-landing-status-emerald sm:text-sm">{q.eyebrow}</p>
-      <h2 id="qa-wall-heading" class="mt-3 font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">
+  <div class="mx-auto grid min-w-0 max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+    <div class="min-w-0">
+      <p class="max-w-full break-words text-xs font-semibold uppercase leading-6 tracking-[0.12em] text-landing-status-emerald sm:text-sm sm:tracking-[0.2em]">{q.eyebrow}</p>
+      <h2 id="qa-wall-heading" class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl">
         {q.title}
       </h2>
-      <p class="mt-5 text-lg leading-8 text-landing-fg-body">{q.lead}</p>
-      <ul class="mt-8 grid gap-3 text-sm leading-6 text-landing-fg-body sm:grid-cols-2" role="list">
+      <p class="mt-5 break-words text-lg leading-8 text-landing-fg-body">{q.lead}</p>
+      <ul class="mt-8 grid min-w-0 gap-3 text-sm leading-6 text-landing-fg-body sm:grid-cols-2" role="list">
         {q.signals.map((item) => (
-          <li class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
+          <li class="min-w-0 rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
             <span class="font-semibold text-landing-fg">{item.label}</span>
             <br />
             {item.text}
@@ -36,7 +36,7 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
       </ul>
       <a
         href={controversyDocsUrl}
-        class="mt-8 inline-flex rounded-landing-button border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-5 py-3 text-sm font-semibold text-landing-status-emerald transition duration-landing-fast hover:border-landing-status-emerald hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
+        class="mt-8 inline-flex max-w-full break-words rounded-landing-button border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-5 py-3 text-sm font-semibold text-landing-status-emerald transition duration-landing-fast hover:border-landing-status-emerald hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -45,21 +45,21 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
     </div>
 
     <div
-      class="landing-panel rounded-landing-card p-4 shadow-landing-2 sm:p-5"
+      class="landing-panel min-w-0 rounded-landing-card p-4 shadow-landing-2 sm:p-5"
       role="region"
       aria-label={q.demoAria}
     >
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-landing-outline-variant pb-4">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-landing-status-emerald">{q.hostView}</p>
-          <h3 class="mt-1 font-display text-2xl font-bold text-landing-fg">{q.demoTitle}</h3>
+      <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-landing-outline-variant pb-4">
+        <div class="min-w-0">
+          <p class="break-words text-xs font-semibold uppercase tracking-[0.12em] text-landing-status-emerald sm:tracking-[0.18em]">{q.hostView}</p>
+          <h3 class="mt-1 break-words font-display text-2xl font-bold text-landing-fg">{q.demoTitle}</h3>
         </div>
-        <span class="rounded-landing-panel border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-3 py-1 text-sm font-semibold text-landing-status-emerald">
+        <span class="shrink-0 rounded-landing-panel border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-3 py-1 text-sm font-semibold text-landing-status-emerald">
           {q.moderationActive}
         </span>
       </div>
 
-      <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-landing-fg-body">
+      <div class="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-semibold text-landing-fg-body">
         <span class="rounded-landing-panel bg-landing-primary px-3 py-1.5 text-landing-on-primary">{q.sortMostSupported}</span>
         <span class="rounded-landing-panel border border-landing-outline-variant px-3 py-1.5">{q.sortBest}</span>
         <span class="rounded-landing-panel border border-landing-status-rose/40 bg-landing-status-rose-bg px-3 py-1.5 text-landing-status-rose">
@@ -67,39 +67,39 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
         </span>
       </div>
 
-      <div class="mt-5 grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <div class="grid gap-3">
+      <div class="mt-5 grid min-w-0 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <div class="grid min-w-0 gap-3">
           {q.questions.map((question) => (
-            <article class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
-              <div class="flex items-start gap-3">
-                <div class="rounded-landing-panel border border-landing-primary/40 bg-landing-primary-container px-2.5 py-2 text-center font-display text-lg font-bold text-landing-on-primary-container">
+            <article class="min-w-0 rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
+              <div class="flex min-w-0 items-start gap-3">
+                <div class="shrink-0 rounded-landing-panel border border-landing-primary/40 bg-landing-primary-container px-2.5 py-2 text-center font-display text-lg font-bold text-landing-on-primary-container">
                   {question.score}
                 </div>
-                <div>
-                  <h4 class="font-semibold leading-6 text-landing-fg">{question.title}</h4>
-                  <p class="mt-1 text-xs leading-5 text-landing-fg-muted">{question.meta}</p>
+                <div class="min-w-0">
+                  <h4 class="break-words font-semibold leading-6 text-landing-fg">{question.title}</h4>
+                  <p class="mt-1 break-words text-xs leading-5 text-landing-fg-muted">{question.meta}</p>
                 </div>
               </div>
             </article>
           ))}
         </div>
 
-        <div class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-landing-fg-muted">{q.wordCloud}</p>
-              <p class="mt-1 text-sm text-landing-fg-body">{q.wordCloudHint}</p>
+        <div class="min-w-0 rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
+          <div class="flex min-w-0 items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="break-words text-xs font-semibold uppercase tracking-[0.12em] text-landing-fg-muted sm:tracking-[0.16em]">{q.wordCloud}</p>
+              <p class="mt-1 break-words text-sm text-landing-fg-body">{q.wordCloudHint}</p>
             </div>
-            <span class="rounded-landing-panel border border-landing-outline px-2.5 py-1 text-xs font-semibold text-landing-fg-body">
+            <span class="shrink-0 rounded-landing-panel border border-landing-outline px-2.5 py-1 text-xs font-semibold text-landing-fg-body">
               {q.frozenLive}
             </span>
           </div>
-          <div class="mt-5 flex min-h-52 flex-wrap content-center items-center justify-center gap-x-4 gap-y-3 rounded-landing-panel border border-landing-outline-variant bg-landing-bg p-4 text-center font-display font-bold leading-none">
+          <div class="mt-5 flex min-h-52 min-w-0 flex-wrap content-center items-center justify-center gap-x-4 gap-y-3 rounded-landing-panel border border-landing-outline-variant bg-landing-bg p-4 text-center font-display font-bold leading-none">
             {q.terms.map((term) => (
-              <span class={term.className}>{term.label}</span>
+              <span class:list={[term.className, 'max-w-full break-words']}>{term.label}</span>
             ))}
           </div>
-          <p class="mt-4 rounded-landing-panel border border-landing-status-violet/40 bg-landing-status-violet-bg p-3 text-sm leading-6 text-landing-status-violet">
+          <p class="mt-4 break-words rounded-landing-panel border border-landing-status-violet/40 bg-landing-status-violet-bg p-3 text-sm leading-6 text-landing-status-violet">
             {q.nextStep}
           </p>
         </div>
