@@ -115,6 +115,8 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
   border-top: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-low);
+  /* Touch-Targets dürfen leicht über die kompakte Leiste ragen. */
+  overflow: visible;
   /* Für Overlays (z. B. Vote-Countdown-Finger): an Oberkante ausrichten */
   anchor-name: --app-footer-anchor;
 }
@@ -280,7 +282,7 @@
   align-items: stretch;
   justify-items: stretch;
   column-gap: 0;
-  row-gap: 0.15rem;
+  row-gap: 0;
   width: 100%;
   max-width: none;
   margin-inline: 0;
@@ -304,34 +306,30 @@
   font: var(--mat-sys-body-small);
 }
 
+/*
+ * Mobil: sichtbare Leiste ~44–48px (WCAG/Touch ≥44px), nicht ~40px knirschend
+ * und nicht Material-48px-Touch als Layout-Höhe. Zweizeilige Labels dürfen wachsen.
+ * Touch-Target: styles.scss (ohne Host-_ngcontent), zentriert, ohne Leisten-Aufblähung.
+ */
 .app-footer__links > .app-footer__primary.mat-mdc-button-base {
   display: inline-flex !important;
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  /* WCAG 2.5.8 Minimum 24px; projektüblich ≥44px — hart, ohne Material-Aufblähung. */
   min-height: 2.75rem !important;
-  height: 2.75rem !important;
-  max-height: 2.75rem !important;
+  height: auto !important;
+  max-height: none !important;
   margin: 0 !important;
-  padding: 0 0.1rem !important;
+  padding: 0.25rem 0.1rem !important;
   border-radius: var(--mat-sys-corner-medium);
   justify-content: center;
   align-items: center;
   white-space: normal;
   --mat-button-text-container-height: 2.75rem;
+  --mat-button-text-touch-target-size: 2.75rem;
   --mat-button-text-horizontal-padding: 0.1rem;
   --mat-button-text-icon-offset: 0;
   --mat-button-text-icon-spacing: 0;
-}
-
-/* Material setzt Touch-Target oft auf 48px — das blähte die Leiste optisch auf. */
-.app-footer__links > .app-footer__primary.mat-mdc-button-base .mat-mdc-button-touch-target {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  height: 100% !important;
-  width: 100% !important;
 }
 
 .app-footer__links .app-footer__primary.mat-mdc-button-base .mdc-button__label {
@@ -344,13 +342,13 @@
   margin: 0 !important;
 }
 
-/* Eigene Stack-Box: Icon über Label mobil, knapper Abstand. */
+/* Eigene Stack-Box: Icon über Label mobil, ausgewogener Abstand. */
 .app-footer__primary-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.05rem;
+  gap: 0.15rem;
   width: 100%;
   min-width: 0;
   line-height: 1;
@@ -359,10 +357,14 @@
 }
 
 .app-footer__link-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-  line-height: 1;
+  /* Kompakt (<960px): bis zu zwei Zeilen, keine Kürzung/Ellipse (#196). */
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: balance;
+  line-height: 1.15;
   text-align: center;
   max-width: 100%;
   font: var(--mat-sys-label-small);
@@ -380,8 +382,12 @@
   width: 1.25rem;
   height: 1.25rem;
   line-height: 1;
-  margin: 0 !important;
   padding: 0;
+}
+
+/* Nur Primärleiste: kein Extra-Margin. Mehr-Menü behält Material-Icon-Spalte. */
+.app-footer__primary-stack .app-footer__icon {
+  margin: 0 !important;
 }
 
 .app-footer__status-action {
@@ -460,9 +466,11 @@
     display: inline-flex;
     flex: 0 0 auto;
     width: auto;
-    min-height: 2.75rem;
+    min-height: 2.75rem !important;
+    height: auto !important;
     padding: 0;
     white-space: nowrap;
+    --mat-button-text-container-height: 2.75rem;
     --mat-button-text-horizontal-padding: 0.85rem;
   }
 
@@ -495,17 +503,6 @@
     grid-column: auto;
     width: auto;
     padding-inline: 0.5rem;
-  }
-}
-
-/* Sehr schmale Viewports: längere Locales dürfen an Wortgrenzen umbrechen. */
-@media (max-width: 359px) {
-  .app-footer__link-text {
-    white-space: normal;
-    overflow-wrap: normal;
-    word-break: normal;
-    hyphens: none;
-    text-wrap: balance;
   }
 }
 

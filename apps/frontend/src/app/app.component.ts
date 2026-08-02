@@ -41,6 +41,10 @@ import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import {
+  resolveFooterStatusColor,
+  resolveFooterStatusDotCssColor,
+} from './shared/server-status-widget/footer-status-color';
+import {
   clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
   focusFooterContentReturn,
@@ -218,43 +222,24 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /**
    * Ampelfarbe für den Betriebsstatus-Eintrag im Mehr-Menü.
-   * Identisch zu ServerStatusWidgetComponent.statusColor() anhand derselben
-   * Footer-Signale (connectionOk / loading / footerStatus).
+   * Gemeinsame Quelle: resolveFooterStatusColor (auch ServerStatusWidget).
    */
-  footerStatusColor = computed((): 'green' | 'yellow' | 'red' | 'gray' => {
-    const loading = !this.footerHealthCheckDone();
-    if (!this.footerConnectionOk() || loading) return 'gray';
-    const s = this.footerStatus();
-    if (!s) return 'gray';
-    switch (s.serviceStatus) {
-      case 'stable':
-        return 'green';
-      case 'limited':
-        return 'yellow';
-      case 'critical':
-        return 'red';
-      default:
-        return 'gray';
-    }
-  });
+  footerStatusColor = computed(() =>
+    resolveFooterStatusColor(
+      this.footerConnectionOk(),
+      !this.footerHealthCheckDone(),
+      this.footerStatus(),
+    ),
+  );
 
   /**
    * Inline-Farbe für den Status-Dot im Mat-Menu-Overlay.
    * Klassen allein verlieren gegen `.mat-mdc-menu-item .mat-icon`; das Overlay
    * liegt außerhalb von `:host`, daher greifen host-scoped ::ng-deep-Regeln nicht.
    */
-  footerStatusDotCssColor = computed(() => {
-    switch (this.footerStatusColor()) {
-      case 'green':
-        return 'var(--app-status-healthy)';
-      case 'yellow':
-        return 'var(--app-status-busy)';
-      case 'red':
-        return 'var(--mat-sys-error)';
-      default:
-        return 'var(--mat-sys-outline-variant)';
-    }
-  });
+  footerStatusDotCssColor = computed(() =>
+    resolveFooterStatusDotCssColor(this.footerStatusColor()),
+  );
 
   ngOnInit(): void {
     this.seo.applyFromRouter();

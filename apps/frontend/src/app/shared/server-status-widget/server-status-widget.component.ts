@@ -6,6 +6,7 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import type { FooterStatusDTO } from '@arsnova/shared-types';
+import { resolveFooterStatusColor, type FooterStatusColor } from './footer-status-color';
 
 @Component({
   selector: 'app-server-status-widget',
@@ -26,19 +27,7 @@ export class ServerStatusWidgetComponent {
     this.openRequested.emit();
   }
 
-  statusColor(): 'green' | 'yellow' | 'red' | 'gray' {
-    if (!this.connectionOk || this.loading) return 'gray';
-    const s = this.stats;
-    if (!s) return 'gray';
-    switch (s.serviceStatus) {
-      case 'stable':
-        return 'green';
-      case 'limited':
-        return 'yellow';
-      case 'critical':
-        return 'red';
-      default:
-        return 'gray';
-    }
+  statusColor(): FooterStatusColor {
+    return resolveFooterStatusColor(this.connectionOk, this.loading, this.stats);
   }
 }

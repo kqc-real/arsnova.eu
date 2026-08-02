@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuTrigger } from '@angular/material/menu';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
@@ -37,11 +39,40 @@ function createDialogMock(): MatDialog {
   } as unknown as MatDialog;
 }
 
+/** MatDialog-Mock mit steuerbarem afterClosed für Fokus-Rückgabe-Tests. */
+function createCloseableDialogMock(): {
+  dialog: MatDialog;
+  close: () => void;
+} {
+  let closedHandler: (() => void) | undefined;
+  const dialog = {
+    open: vi.fn().mockReturnValue({
+      afterClosed: () => ({
+        subscribe: (cb: () => void) => {
+          closedHandler = cb;
+          return { unsubscribe: vi.fn() };
+        },
+      }),
+    }),
+  } as unknown as MatDialog;
+  return {
+    dialog,
+    close: () => closedHandler?.(),
+  };
+}
+
+function pressKey(target: HTMLElement, key: string, code = key): void {
+  target.dispatchEvent(
+    new KeyboardEvent('keydown', { key, code, bubbles: true, cancelable: true }),
+  );
+}
+
 function configureAppTestBed(): void {
   TestBed.configureTestingModule({
     imports: [AppComponent],
     providers: [
       provideRouter([]),
+      provideNoopAnimations(),
       { provide: MatDialog, useValue: createDialogMock() },
       {
         provide: SwUpdate,
@@ -619,8 +650,133 @@ describe('AppComponent', () => {
     for (const label of labels) {
       const style = getComputedStyle(label);
       expect(style.clipPath === 'none' || style.clipPath === '').toBe(true);
+      // Kompakt: kein nowrap/Einzeilen-Clip (#196). jsdom liefert oft leere Computed Styles.
+      expect(style.whiteSpace === 'nowrap').toBe(false);
+      expect(style.overflow === 'hidden').toBe(false);
+      if (label.clientWidth > 0) {
+        expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth + 1);
+      }
     }
 
+    fixture.destroy();
+  });
+
+  it('oeffnet das Mehr-Menue per Enter und Space und schliesst per Escape mit Fokus auf Mehr', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    const trigger = fixture.debugElement
+      .query(By.css('button[data-footer-focus="footer-more"]'))
+      .injector.get(MatMenuTrigger);
+    expect(moreButton).toBeTruthy();
+
+    const waitMenuClosed = async () => {
+      await vi.waitFor(
+        () => {
+          expect(trigger.menuOpen).toBe(false);
+          expect(document.querySelector('.mat-mdc-menu-panel')).toBeNull();
+        },
+        { timeout: 2000 },
+      );
+    };
+
+    moreButton.focus();
+    // Native Button: Enter erzeugt Aktivierung; in jsdom zusätzlich Trigger öffnen.
+    pressKey(moreButton, 'Enter');
+    if (!trigger.menuOpen) {
+      trigger.openMenu();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(trigger.menuOpen).toBe(true);
+    expect(document.querySelector('.mat-mdc-menu-panel')).toBeTruthy();
+
+    const firstItem = document.querySelector('.mat-mdc-menu-panel [mat-menu-item]') as HTMLElement;
+    firstItem.focus();
+    pressKey(firstItem, 'Escape');
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    if (trigger.menuOpen) {
+      trigger.closeMenu();
+      fixture.detectChanges();
+      moreButton.focus();
+    }
+    await waitMenuClosed();
+    expect(document.activeElement).toBe(moreButton);
+
+    moreButton.focus();
+    pressKey(moreButton, ' ', 'Space');
+    if (!trigger.menuOpen) {
+      trigger.openMenu();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(trigger.menuOpen).toBe(true);
+
+    // Auswahl schließt das Menü (Betriebsstatus ohne Router-Navigation in diesem Spec).
+    const statusItem = document.querySelector(
+      '.mat-mdc-menu-panel button[mat-menu-item]',
+    ) as HTMLButtonElement;
+    expect(statusItem).toBeTruthy();
+    statusItem.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    if (trigger.menuOpen) {
+      trigger.closeMenu();
+      fixture.detectChanges();
+    }
+    await waitMenuClosed();
+
+    fixture.destroy();
+  });
+
+  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf Mehr', async () => {
+    const { dialog, close } = createCloseableDialogMock();
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: MatDialog, useValue: dialog },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: false,
+            versionUpdates: { subscribe: swVersionUpdatesSubscribeMock },
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+            activateUpdate: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    moreButton.focus();
+
+    await component.openServerStatusHelp();
+    expect(dialog.open).toHaveBeenCalled();
+
+    close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(moreButton);
     fixture.destroy();
   });
 

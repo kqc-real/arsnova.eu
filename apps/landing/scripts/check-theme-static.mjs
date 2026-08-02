@@ -111,6 +111,29 @@ function resolveBaseSha() {
   return '';
 }
 
+/** Theme-UI-Pfade: nur dann Frontend-Isolation erzwingen (nicht die Check-Skripte selbst). */
+const LANDING_THEME_SCOPE = [
+  'apps/landing/src/styles/landing-theme.css',
+  'apps/landing/src/components/ThemeSwitcher.astro',
+  'apps/landing/src/components/LanguageSwitcher.astro',
+  'apps/landing/src/layouts/BaseLayout.astro',
+  'apps/landing/tailwind.config.mjs',
+];
+
+function diffNameOnly(base, head, paths) {
+  const result = spawnSync('git', ['diff', '--name-only', `${base}...${head}`, '--', ...paths], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    fail(
+      `git diff ${base}...${head} -- ${paths.join(' ')} failed (status=${result.status}): ${(result.stderr || result.stdout || '').trim()}`,
+    );
+    return null;
+  }
+  return (result.stdout || '').trim();
+}
+
 function checkFrontendUntouched() {
   const base = resolveBaseSha();
   if (!base) return;
@@ -127,21 +150,14 @@ function checkFrontendUntouched() {
     return;
   }
 
-  const result = spawnSync(
-    'git',
-    ['diff', '--name-only', `${base}...${head}`, '--', 'apps/frontend'],
-    {
-      cwd: repoRoot,
-      encoding: 'utf8',
-    },
-  );
-  if (result.status !== 0) {
-    fail(
-      `git diff ${base}...${head} -- apps/frontend failed (status=${result.status}): ${(result.stderr || result.stdout || '').trim()}`,
-    );
-    return;
-  }
-  const changed = (result.stdout || '').trim();
+  // Nur bei Landing-Theme-Änderungen: Frontend muss unberührt bleiben.
+  // Reine Frontend-/App-PRs (z. B. Footer) dürfen theme-static nicht blockieren.
+  const landingThemeChanged = diffNameOnly(base, head, LANDING_THEME_SCOPE);
+  if (landingThemeChanged === null) return;
+  if (!landingThemeChanged) return;
+
+  const changed = diffNameOnly(base, head, ['apps/frontend']);
+  if (changed === null) return;
   if (changed) fail(`apps/frontend must remain untouched, but git reports:\n${changed}`);
 }
 

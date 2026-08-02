@@ -281,25 +281,27 @@ flowchart TD
 
 ## Darstellung
 
-Das Widget ist heute ein kompakter Footer-Button. Die frühere `compact`-Variante wurde entfernt;
-alle Kennzahlen liegen im Dialog.
+Der Betriebsstatus ist kein eigener Footer-Button mehr. Einstieg ist
+**Mehr → Betriebsstatus** im globalen App-Footer; alle Kennzahlen liegen im Dialog.
+Die Ampelfarbe kommt aus der gemeinsamen Helper-Quelle
+`resolveFooterStatusColor` / `resolveFooterStatusDotCssColor`
+(`footer-status-color.ts`), die auch `ServerStatusWidgetComponent` nutzt
+(Widget selbst ist nicht mehr in der App-Shell eingebunden).
 
-| Element       | Verwendung                  | Darstellung                                   |
-| ------------- | --------------------------- | --------------------------------------------- |
-| Footer-Button | globale App-Footer-Zeile    | Status-Dot + Label „Betriebsstatus“           |
-| Detaildialog  | Klick auf den Footer-Button | Kennzahlen, SLO-/Laststatus und 30-Tage-Chart |
+| Element          | Verwendung                        | Darstellung                                   |
+| ---------------- | --------------------------------- | --------------------------------------------- |
+| Mehr-Menüeintrag | globaler App-Footer → Menü „Mehr“ | Status-Dot + Label „Betriebsstatus“           |
+| Detaildialog     | Auswahl „Betriebsstatus“          | Kennzahlen, SLO-/Laststatus und 30-Tage-Chart |
 
 ```html
-<app-server-status-widget
-  class="app-footer__status-widget"
-  [connectionOk]="footerConnectionOk()"
-  [loading]="!footerHealthCheckDone()"
-  [stats]="footerStatus()"
-  (openRequested)="openServerStatusHelp()"
-/>
+<button mat-menu-item type="button" (click)="openServerStatusFromMore()">
+  <mat-icon class="app-footer__status-dot" [style.color]="footerStatusDotCssColor()">lens</mat-icon>
+  <span i18n="@@app.footer.serverHelp">Betriebsstatus</span>
+</button>
 ```
 
 Der **Hilfe-Dialog** (`ServerStatusHelpDialogComponent`) wird lazy geladen und ruft dann `health.stats` ab.
+Nach dem Schließen liegt der Fokus wieder auf dem Footer-Trigger **Mehr**.
 
 ---
 
