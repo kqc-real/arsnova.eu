@@ -378,7 +378,7 @@ const jsonLd = {
           var current = api ? api.get() : 'system';
           root.querySelectorAll('[data-theme-option]').forEach(function (option) {
             var active = option.getAttribute('data-theme-option') === current;
-            option.setAttribute('aria-checked', active ? 'true' : 'false');
+            option.setAttribute('aria-pressed', active ? 'true' : 'false');
             option.classList.toggle('bg-landing-surface-container-high', active);
             option.classList.toggle('text-landing-fg', active);
           });

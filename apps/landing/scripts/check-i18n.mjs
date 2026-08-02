@@ -454,13 +454,16 @@ function checkThemeSwitcherMarkup() {
     fail('/de/ missing theme switcher disclosure markup');
   }
   if (html.includes('role="menu"') || html.includes("role='menu'")) {
-    fail('/de/ theme switcher must use radiogroup, not role=menu');
+    fail('/de/ theme switcher must use disclosure buttons, not role=menu');
   }
   if (html.includes('menuitemradio')) {
     fail('/de/ theme switcher must not use menuitemradio');
   }
-  if (!html.includes('role="radiogroup"') || !html.includes('role="radio"')) {
-    fail('/de/ theme switcher must expose radiogroup + radio roles');
+  if (html.includes('role="radiogroup"') || html.includes('role="radio"')) {
+    fail('/de/ theme switcher must use aria-pressed buttons, not radiogroup/radio');
+  }
+  if (!html.includes('aria-pressed')) {
+    fail('/de/ theme switcher missing aria-pressed on options');
   }
   if (html.includes('aria-haspopup')) {
     fail('/de/ theme/language disclosure must not use aria-haspopup');

@@ -175,7 +175,7 @@ async function main() {
   }
   console.log('Screenshot matrix written to', outDir);
   console.log(
-    'Note: Vorher-Referenz = Sky-Blue Landing on main before #199; Nachher = this matrix (+ after-*-hero).',
+    'Nachher: after-de-light-1440-hero.png (+ DE/FR matrix). Vorher-Referenz before-de-light-1440-hero.png bitte von origin/main separat erzeugen (siehe README).',
   );
 }
 

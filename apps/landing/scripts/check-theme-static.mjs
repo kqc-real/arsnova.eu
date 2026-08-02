@@ -89,18 +89,44 @@ function checkNoMatSys() {
   }
 }
 
-function checkFrontendUntouched() {
-  const base =
-    process.env.GITHUB_BASE_SHA ||
-    spawnSync('git', ['merge-base', 'HEAD', 'origin/main'], {
+function resolveBaseSha() {
+  const envBase = (process.env.GITHUB_BASE_SHA || '').trim();
+  // GitHub may send 40 zeros for the first push of a branch.
+  if (envBase && !/^0+$/.test(envBase)) return envBase;
+
+  const remoteCandidates = ['origin/main', 'main'];
+  for (const candidate of remoteCandidates) {
+    const mb = spawnSync('git', ['merge-base', 'HEAD', candidate], {
       cwd: repoRoot,
       encoding: 'utf8',
-    }).stdout.trim();
-  const head = process.env.GITHUB_SHA || 'HEAD';
-  if (!base) {
-    fail('Could not resolve merge-base with origin/main for frontend untouched check');
+    });
+    if (mb.status === 0) {
+      const sha = (mb.stdout || '').trim();
+      if (sha) return sha;
+    }
+  }
+  fail(
+    `Could not resolve merge-base for frontend untouched check (GITHUB_BASE_SHA=${envBase ? JSON.stringify(envBase) : 'unset'}; tried origin/main, main). Checkout with fetch-depth: 0 or pass GITHUB_BASE_SHA.`,
+  );
+  return '';
+}
+
+function checkFrontendUntouched() {
+  const base = resolveBaseSha();
+  if (!base) return;
+  const head = (process.env.GITHUB_SHA || 'HEAD').trim() || 'HEAD';
+
+  const cat = spawnSync('git', ['cat-file', '-e', `${base}^{commit}`], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  if (cat.status !== 0) {
+    fail(
+      `Base SHA ${base} is not available locally for frontend untouched check (${(cat.stderr || '').trim()}). Use fetch-depth: 0 or fetch the base commit.`,
+    );
     return;
   }
+
   const result = spawnSync(
     'git',
     ['diff', '--name-only', `${base}...${head}`, '--', 'apps/frontend'],
@@ -109,6 +135,12 @@ function checkFrontendUntouched() {
       encoding: 'utf8',
     },
   );
+  if (result.status !== 0) {
+    fail(
+      `git diff ${base}...${head} -- apps/frontend failed (status=${result.status}): ${(result.stderr || result.stdout || '').trim()}`,
+    );
+    return;
+  }
   const changed = (result.stdout || '').trim();
   if (changed) fail(`apps/frontend must remain untouched, but git reports:\n${changed}`);
 }
@@ -161,8 +193,11 @@ function checkBuiltThemeArtifacts() {
   if (html.includes('menuitemradio')) {
     fail('Built /de/ must not use menuitemradio');
   }
-  if (!html.includes('role="radiogroup"') || !html.includes('role="radio"')) {
-    fail('Built /de/ missing radiogroup/radio theme switcher roles');
+  if (html.includes('role="radiogroup"') || html.includes('role="radio"')) {
+    fail('Built /de/ must use aria-pressed disclosure buttons, not radiogroup/radio');
+  }
+  if (!html.includes('aria-pressed')) {
+    fail('Built /de/ missing aria-pressed on theme options');
   }
   if (!html.includes('__arsnovaLandingTheme')) fail('Built /de/ missing theme runtime');
   if (html.includes('aria-haspopup')) {

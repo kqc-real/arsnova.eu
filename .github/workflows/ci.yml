@@ -399,6 +399,8 @@ jobs:
       - name: Checkout
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
@@ -430,6 +432,9 @@ jobs:
 
       - name: Landing theme static
         if: needs.changes.outputs.docs_only != 'true'
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
         run: npm run test:theme-static -w @arsnova/landing
 
       - name: Landing accessibility gate

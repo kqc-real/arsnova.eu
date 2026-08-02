@@ -10,15 +10,21 @@ BASE_URL=http://127.0.0.1:4321 npm run test:theme-screenshots -w @arsnova/landin
 
 ## Locales
 
-The script prints nav + theme + language label lengths for `de`/`en`/`fr`/`es`/`it` and picks the longest **non-DE** locale programmatically for the second locale in the matrix (historically often `es` or `it`).
+The capture script prints nav + theme + language label lengths for `de`/`en`/`fr`/`es`/`it`
+and selects the longest **non-DE** locale programmatically. With the current dictionaries
+that is **FR** (longer than ES/IT/EN). The checked-in matrix therefore covers **DE + FR**.
 
 ## Coverage
 
-- light/dark × 320/768/1440 for `de` + longest non-DE locale
+- light/dark × 320/768/1440 for `de` + longest non-DE locale (FR)
 - open theme control, mobile nav, features, trust, FAQ, footer on desktop German
-- `after-de-light-1440-hero.png` — explicit Nachher hero from the current Magenta/Violett build
+- `after-de-light-1440-hero.png` — Nachher-Hero der aktuellen Magenta/Violett-Landing
+- `before-de-light-1440-hero.png` — Vorher-Referenz (Sky-Blue Landing auf `main` vor #199/#202)
 
 ## Before / After
 
-- **Vorher-Referenz:** Sky-Blue Landing on `main` before Issue #199 / PR #202.
-- **Nachher:** this matrix (playful Magenta/Violett theme with light/dark).
+| Datei                           | Bedeutung                                                    |
+| ------------------------------- | ------------------------------------------------------------ |
+| `before-de-light-1440-hero.png` | Sky-Blue Landing von `origin/main` (vor Merge dieses Themes) |
+| `after-de-light-1440-hero.png`  | Magenta/Violett-Theme dieses Branches                        |
+| `de-*` / `fr-*`                 | Vollständige Light/Dark-Viewport-Matrix                      |

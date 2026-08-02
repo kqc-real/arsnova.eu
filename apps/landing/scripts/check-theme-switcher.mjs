@@ -66,8 +66,10 @@ async function assertThemeSwitcherRoles(page, buttonId, label) {
   const root = button.locator('xpath=ancestor::*[@data-theme-switcher][1]');
   const menu = root.locator('[data-theme-menu]');
   const menuRole = await menu.getAttribute('role');
-  if (menuRole !== 'radiogroup') {
-    throw new Error(`${label}: expected role=radiogroup, got ${JSON.stringify(menuRole)}`);
+  if (menuRole === 'menu' || menuRole === 'radiogroup') {
+    throw new Error(
+      `${label}: expected disclosure group (not menu/radiogroup), got ${JSON.stringify(menuRole)}`,
+    );
   }
 
   const banned = await page.evaluate((id) => {
@@ -76,8 +78,15 @@ async function assertThemeSwitcherRoles(page, buttonId, label) {
     if (!switcher) return 'missing switcher';
     if (switcher.querySelector('[role="menu"]')) return 'role=menu present';
     if (switcher.querySelector('[role="menuitemradio"]')) return 'role=menuitemradio present';
-    const radios = switcher.querySelectorAll('[data-theme-option][role="radio"]');
-    if (radios.length !== 3) return `expected 3 role=radio options, got ${radios.length}`;
+    if (switcher.querySelector('[role="radio"]')) return 'role=radio present';
+    if (switcher.querySelector('[role="radiogroup"]')) return 'role=radiogroup present';
+    const options = switcher.querySelectorAll('[data-theme-option]');
+    if (options.length !== 3) return `expected 3 theme options, got ${options.length}`;
+    for (const option of options) {
+      if (!option.hasAttribute('aria-pressed')) {
+        return `option ${option.getAttribute('data-theme-option')} missing aria-pressed`;
+      }
+    }
     return null;
   }, buttonId);
   if (banned) throw new Error(`${label}: ${banned}`);
@@ -319,76 +328,106 @@ async function assertOverflow(browser) {
     }
   }
 
-  // Real zoom at desktop width — open theme + language menus, assert no layout overflow.
-  // CSS zoom is used as specified; menus are opened via DOM APIs because pointer hit-testing
-  // at 200% can be blocked by overlapping sticky nav text while keyboard/AT still work.
+  // 200% browser-zoom equivalent: half of a 1440×900 desktop CSS viewport.
+  // Menus are opened one at a time via the real controls (mutual exclusion).
   {
     const context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
+      viewport: { width: 720, height: 450 },
+      reducedMotion: 'reduce',
     });
     const page = await context.newPage();
     try {
       await page.goto(`${BASE_URL}/de/`, { waitUntil: 'networkidle', timeout: 20_000 });
-      await page.evaluate(() => {
-        document.documentElement.style.zoom = '2';
-        window.scrollTo(0, 0);
-      });
-      await page.evaluate(() => {
-        const openDisclosure = (rootSel, menuSel) => {
-          const root = document.querySelector(rootSel);
-          const button = root?.querySelector('button[aria-controls]');
-          const menu = root?.querySelector(menuSel);
-          if (!button || !menu) return false;
-          menu.classList.remove('hidden');
-          button.setAttribute('aria-expanded', 'true');
-          return true;
-        };
-        if (!openDisclosure('[data-theme-switcher]', '[data-theme-menu]')) {
-          throw new Error('theme menu missing');
-        }
-        if (!openDisclosure('[data-language-switcher]', '[data-lang-menu]')) {
-          throw new Error('language menu missing');
-        }
-      });
-      const metrics = await page.evaluate(() => {
-        const doc = document.documentElement;
-        const header = document.getElementById('main-header');
-        const headerBox = header?.getBoundingClientRect();
-        const themeMenu = document.querySelector('[data-theme-menu]');
-        const langMenu = document.querySelector('[data-lang-menu]');
-        const themeBtn = document.querySelector('#theme-desktop-button');
-        return {
-          clientWidth: doc.clientWidth,
-          scrollWidth: doc.scrollWidth,
-          headerVisible: !!header && (headerBox?.height ?? 0) > 0,
-          headerInView: !!headerBox && headerBox.top < window.innerHeight && headerBox.left >= -1,
-          themeBtnInDom: !!themeBtn,
-          themeMenuOpen: !!themeMenu && !themeMenu.classList.contains('hidden'),
-          langMenuOpen: !!langMenu && !langMenu.classList.contains('hidden'),
-        };
-      });
-      // Under CSS zoom, Chromium reports inflated scrollWidth; compare against zoom-adjusted width.
-      const zoomFactor = 2;
-      const effectiveClient = metrics.clientWidth * zoomFactor;
-      // Prefer: no overflow relative to layout clientWidth when overflow-x is clipped on body,
-      // and header/controls remain present with menus open.
-      const bodyOverflowX = await page.evaluate(() => getComputedStyle(document.body).overflowX);
-      if (!['hidden', 'clip'].includes(bodyOverflowX)) {
+
+      async function assertNoHorizontalOverflow(label) {
+        const metrics = await page.evaluate(() => {
+          const doc = document.documentElement;
+          return { clientWidth: doc.clientWidth, scrollWidth: doc.scrollWidth };
+        });
         if (metrics.scrollWidth > metrics.clientWidth + 1) {
           throw new Error(
-            `horizontal overflow at 200% zoom: scrollWidth=${metrics.scrollWidth} clientWidth=${metrics.clientWidth} (effectiveClient≈${effectiveClient})`,
+            `horizontal overflow at 200%-equivalent viewport (${label}): scrollWidth=${metrics.scrollWidth} clientWidth=${metrics.clientWidth}`,
           );
         }
-      } else if (metrics.scrollWidth > metrics.clientWidth * zoomFactor + 1) {
+      }
+
+      await assertNoHorizontalOverflow('initial');
+
+      const header = page.locator('#main-header');
+      if (!(await header.isVisible())) {
+        throw new Error('200%-equivalent reflow: header not visible');
+      }
+
+      const themeBtn = page
+        .locator('#theme-mobile-button:visible, #theme-desktop-button:visible')
+        .first();
+      await themeBtn.waitFor({ state: 'visible' });
+      await themeBtn.click();
+      if ((await themeBtn.getAttribute('aria-expanded')) !== 'true') {
+        throw new Error('200%-equivalent reflow: theme menu did not open via UI');
+      }
+      await assertNoHorizontalOverflow('theme-menu-open');
+      await page.keyboard.press('Escape');
+      if ((await themeBtn.getAttribute('aria-expanded')) !== 'false') {
+        throw new Error('200%-equivalent reflow: theme menu did not close');
+      }
+
+      const langBtn = page
+        .locator('#lang-mobile-button:visible, #lang-desktop-button:visible')
+        .first();
+      await langBtn.waitFor({ state: 'visible' });
+      await langBtn.click();
+      if ((await langBtn.getAttribute('aria-expanded')) !== 'true') {
+        throw new Error('200%-equivalent reflow: language menu did not open via UI');
+      }
+      if ((await themeBtn.getAttribute('aria-expanded')) !== 'false') {
+        throw new Error('200%-equivalent reflow: theme menu stayed open with language menu');
+      }
+      await assertNoHorizontalOverflow('lang-menu-open');
+      await page.keyboard.press('Escape');
+
+      // Focus order through header controls remains usable.
+      await page.locator('a[href="#main-content"]').focus();
+      const focusTrail = [];
+      for (let i = 0; i < 16; i += 1) {
+        await page.keyboard.press('Tab');
+        const id = await page.evaluate(
+          () => document.activeElement?.id || document.activeElement?.tagName,
+        );
+        focusTrail.push(id);
+      }
+      if (
+        !focusTrail.some(
+          (id) =>
+            String(id).includes('theme') ||
+            String(id).includes('lang') ||
+            String(id).includes('nav'),
+        )
+      ) {
         throw new Error(
-          `horizontal overflow at 200% zoom exceeds zoom-adjusted bound: scrollWidth=${metrics.scrollWidth} bound=${metrics.clientWidth * zoomFactor}`,
+          `200%-equivalent reflow: focus trail missed header controls (${focusTrail.join(' → ')})`,
         );
       }
-      if (!metrics.headerVisible || !metrics.headerInView || !metrics.themeBtnInDom) {
-        throw new Error('200% zoom: header not usable/visible');
-      }
-      if (!metrics.themeMenuOpen || !metrics.langMenuOpen) {
-        throw new Error('200% zoom: theme/lang menus failed to open');
+
+      const sections = [
+        '#start',
+        '#workflow',
+        '#features',
+        '#accessibility',
+        '#trust',
+        '#comparison',
+        '#faq',
+      ];
+      for (const sel of sections) {
+        const box = await page.locator(sel).first().boundingBox();
+        if (!box) throw new Error(`200%-equivalent reflow: missing section ${sel}`);
+        if (box.width > 720 + 1) {
+          throw new Error(
+            `200%-equivalent reflow: section ${sel} wider than viewport (${box.width}px)`,
+          );
+        }
+        await page.locator(sel).first().scrollIntoViewIfNeeded();
+        await assertNoHorizontalOverflow(`section-${sel}`);
       }
     } finally {
       await context.close();
@@ -412,9 +451,14 @@ async function assertFocusVisibility(browser) {
       await page.locator('#theme-desktop-button').click();
       // Keyboard focus so :focus-visible matches (programmatic focus often does not).
       await page.keyboard.press('Tab');
-      const activeRole = await page.evaluate(() => document.activeElement?.getAttribute('role'));
-      if (activeRole !== 'radio') {
-        throw new Error(`focus/${mode}: Tab did not move to a theme radio (role=${activeRole})`);
+      const active = await page.evaluate(() => ({
+        option: document.activeElement?.getAttribute('data-theme-option'),
+        pressed: document.activeElement?.getAttribute('aria-pressed'),
+      }));
+      if (!active.option || active.pressed == null) {
+        throw new Error(
+          `focus/${mode}: Tab did not move to a theme option button (option=${active.option}, aria-pressed=${active.pressed})`,
+        );
       }
       const styles = await page.evaluate(() => {
         const el = document.activeElement;

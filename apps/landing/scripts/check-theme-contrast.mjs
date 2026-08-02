@@ -278,7 +278,9 @@ async function checkDomPairs(page, mode) {
   await page.keyboard.press('Tab');
   const focused = await page.evaluate(() => {
     const el = document.activeElement;
-    if (!el || el.getAttribute('role') !== 'radio') return null;
+    if (!el || !el.hasAttribute('data-theme-option') || !el.hasAttribute('aria-pressed')) {
+      return null;
+    }
     const s = getComputedStyle(el);
     return {
       outlineColor: s.outlineColor,
@@ -308,42 +310,56 @@ async function checkDomPairs(page, mode) {
   }
   await page.keyboard.press('Escape').catch(() => undefined);
 
-  // Status rose text on rose bg (confidence spotlight)
-  const roseCount = await page.locator('.text-landing-status-rose').count();
-  if (roseCount) {
-    const rose = await page.evaluate(() => {
-      const el = document.querySelector('.text-landing-status-rose');
-      if (!el) return null;
-      const s = getComputedStyle(el);
-      let bg = s.backgroundColor;
-      let node = el;
-      while (
-        node &&
-        (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') &&
-        node !== document.documentElement
-      ) {
-        node = node.parentElement;
-        if (!node) break;
-        bg = getComputedStyle(node).backgroundColor;
-      }
-      // Prefer nearest status rose bg container if present
-      const roseBg = el.closest('.bg-landing-status-rose-bg');
-      if (roseBg) bg = getComputedStyle(roseBg).backgroundColor;
-      return { color: s.color, backgroundColor: bg };
-    });
-    if (rose) {
-      const pageBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      const ratio = contrastRatio(rose.color, rose.backgroundColor, { underlay: pageBg });
-      if (ratio + 1e-6 < MIN_TEXT) {
-        errors.push(
-          `${mode}: DOM status rose = ${ratio.toFixed(2)}:1 (need ≥ ${MIN_TEXT}:1) [${rose.color} on ${rose.backgroundColor} over ${pageBg}]`,
-        );
-      } else {
-        console.log(`  ✓ ${mode}: DOM status rose = ${ratio.toFixed(2)}:1`);
-      }
+  const statusTones = [
+    { name: 'rose', text: '.text-landing-status-rose', bg: '.bg-landing-status-rose-bg' },
+    { name: 'amber', text: '.text-landing-status-amber', bg: '.bg-landing-status-amber-bg' },
+    { name: 'emerald', text: '.text-landing-status-emerald', bg: '.bg-landing-status-emerald-bg' },
+    { name: 'violet', text: '.text-landing-status-violet', bg: '.bg-landing-status-violet-bg' },
+  ];
+  for (const tone of statusTones) {
+    const count = await page.locator(tone.text).count();
+    if (!count) {
+      errors.push(`${mode}: DOM status ${tone.name} missing (${tone.text})`);
+      continue;
     }
-  } else {
-    console.log(`  · ${mode}: DOM status rose skipped (not present)`);
+    const pair = await page.evaluate(
+      ({ textSel, bgSel }) => {
+        const el = document.querySelector(textSel);
+        if (!el) return null;
+        const s = getComputedStyle(el);
+        let bg = s.backgroundColor;
+        const nearest = el.closest(bgSel);
+        if (nearest) {
+          bg = getComputedStyle(nearest).backgroundColor;
+        } else {
+          let node = el;
+          while (
+            node &&
+            (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') &&
+            node !== document.documentElement
+          ) {
+            node = node.parentElement;
+            if (!node) break;
+            bg = getComputedStyle(node).backgroundColor;
+          }
+        }
+        return { color: s.color, backgroundColor: bg };
+      },
+      { textSel: tone.text, bgSel: tone.bg },
+    );
+    if (!pair) {
+      errors.push(`${mode}: DOM status ${tone.name} not readable`);
+      continue;
+    }
+    const pageBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const ratio = contrastRatio(pair.color, pair.backgroundColor, { underlay: pageBg });
+    if (ratio + 1e-6 < MIN_TEXT) {
+      errors.push(
+        `${mode}: DOM status ${tone.name} = ${ratio.toFixed(2)}:1 (need ≥ ${MIN_TEXT}:1) [${pair.color} on ${pair.backgroundColor} over ${pageBg}]`,
+      );
+    } else {
+      console.log(`  ✓ ${mode}: DOM status ${tone.name} = ${ratio.toFixed(2)}:1`);
+    }
   }
 
   return errors;
