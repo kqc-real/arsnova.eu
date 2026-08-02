@@ -723,6 +723,11 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
+    const content = fixture.nativeElement.querySelector('.app-main__content') as HTMLElement;
+    const fallbackHeading = document.createElement('h1');
+    fallbackHeading.textContent = 'Ersatzziel nach Dialog';
+    content.append(fallbackHeading);
+
     await component.openServerStatusHelp();
     const moreButton = (fixture.nativeElement as HTMLElement).querySelector(
       'button[data-footer-focus="footer-more"]',
@@ -733,7 +738,11 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(document.activeElement).not.toBe(moreButton);
+    expect(document.activeElement).toBe(fallbackHeading);
+    expect(fallbackHeading.getAttribute('tabindex')).toBe('-1');
+
+    fallbackHeading.blur();
+    expect(fallbackHeading.hasAttribute('tabindex')).toBe(false);
     fixture.destroy();
   });
 

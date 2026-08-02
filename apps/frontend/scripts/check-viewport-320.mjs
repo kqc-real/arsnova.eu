@@ -266,6 +266,7 @@ async function inspectHomeKeyboardNavigation(page) {
 /**
  * Footer-Mehr-Menü: nur echte Tastaturaktion — kein openMenu()/click-Fallback.
  * Enter und Space öffnen; Escape schließt mit Fokus auf Mehr; Auswahl schließt.
+ * Router-closeMenu: History Vorwärts bei offenem Menü (kein Menüeintrag-Klick).
  */
 async function inspectFooterMoreKeyboardNavigation(page) {
   const issues = [];
@@ -341,7 +342,28 @@ async function inspectFooterMoreKeyboardNavigation(page) {
       .catch(() => undefined);
   }
 
-  // Navigation bei offenem Mehr-Menü: Overlay muss weg (nicht nur Footer inert).
+  // Navigation bei offenem Mehr-Menü: History Zurück/Vorwärts (kein Menüeintrag).
+  // Menüauswahl würde das Panel auch ohne Router-closeMenu() schließen.
+  const homeUrl = page.url();
+  await page.locator('a[data-footer-focus="footer-help"]').click();
+  try {
+    await page.waitForURL(/\/help(?:\/|$|\?)/, { timeout: 5_000 });
+  } catch {
+    issues.push('History-Aufbau: Navigation zu Hilfe fehlgeschlagen');
+    return issues;
+  }
+  await page.goBack();
+  try {
+    await page.waitForURL(
+      (url) => url.href === homeUrl || /\/(?:de|en|fr|es|it)\/?$/.test(url.pathname),
+      { timeout: 5_000 },
+    );
+  } catch {
+    issues.push('History-Aufbau: Zurück zur Startseite fehlgeschlagen');
+    return issues;
+  }
+  await dismissOptionalOverlay(page);
+  await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
   await moreButton.focus();
   await page.keyboard.press('Enter');
   const reopened = await page
@@ -352,8 +374,13 @@ async function inspectFooterMoreKeyboardNavigation(page) {
     issues.push('Footer-Mehr öffnet nicht erneut vor Navigationsprüfung');
     return issues;
   }
-  await page.locator('.mat-mdc-menu-panel a[href*="/legal/imprint"]').click();
-  await page.waitForURL(/\/legal\/imprint/, { timeout: 5_000 }).catch(() => undefined);
+  await page.goForward();
+  try {
+    await page.waitForURL(/\/help(?:\/|$|\?)/, { timeout: 5_000 });
+  } catch {
+    issues.push('History-Vorwärts-Navigation zu Hilfe fehlgeschlagen');
+    return issues;
+  }
   const closedByNavigation = await page
     .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
     .then(() => true)
