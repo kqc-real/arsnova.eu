@@ -258,6 +258,156 @@ async function inspectHomeKeyboardNavigation(page) {
   ) {
     issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
   }
+
+  issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
+  return issues;
+}
+
+/**
+ * Footer-Mehr-Menü: nur echte Tastaturaktion — kein openMenu()/click-Fallback.
+ * Enter und Space öffnen; Escape schließt mit Fokus auf Mehr; Auswahl schließt.
+ * Router-closeMenu: History Vorwärts bei offenem Menü (kein Menüeintrag-Klick).
+ */
+async function inspectFooterMoreKeyboardNavigation(page) {
+  const issues = [];
+  const moreButton = page.locator('button[data-footer-focus="footer-more"]');
+  await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
+
+  const footerMenuVisible = () => {
+    const panel = document.querySelector(
+      '.mat-mdc-menu-panel.app-footer__more-menu, .mat-mdc-menu-panel.app-footer__more-menu-panel',
+    );
+    return !!panel && getComputedStyle(panel).visibility !== 'hidden';
+  };
+  const footerMenuGone = () =>
+    !document.querySelector(
+      '.mat-mdc-menu-panel.app-footer__more-menu, .mat-mdc-menu-panel.app-footer__more-menu-panel',
+    );
+
+  await moreButton.focus();
+  await page.keyboard.press('Enter');
+  const openedByEnter = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!openedByEnter) {
+    issues.push('Footer-Mehr öffnet nicht mit Enter');
+    return issues;
+  }
+
+  await page.keyboard.press('Escape');
+  const closedByEscape = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedByEscape) {
+    issues.push('Footer-Mehr schließt nicht mit Escape');
+  }
+  // Material stellt den Fokus asynchron nach Panel-Remove zurück — warten, nicht selbst fokusieren.
+  const focusReturnedAfterEscape = await page
+    .waitForFunction(
+      () => {
+        const more = document.querySelector('button[data-footer-focus="footer-more"]');
+        return !!more && more === document.activeElement;
+      },
+      undefined,
+      { timeout: 2_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!focusReturnedAfterEscape) {
+    issues.push('Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück');
+  }
+
+  await moreButton.focus();
+  await page.keyboard.press('Space');
+  const openedBySpace = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!openedBySpace) {
+    issues.push('Footer-Mehr öffnet nicht mit Space');
+    return issues;
+  }
+
+  // Betriebsstatus: schließt Menü ohne Router-Navigation (öffnet Dialog).
+  await page.locator('.mat-mdc-menu-panel button[mat-menu-item]').first().click();
+  const closedBySelect = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedBySelect) {
+    issues.push('Footer-Mehr schließt nicht nach Menüauswahl');
+  }
+
+  const statusDialog = page.locator('.app-status-help-dialog-panel, mat-dialog-container');
+  if (
+    await statusDialog
+      .first()
+      .isVisible()
+      .catch(() => false)
+  ) {
+    await page.keyboard.press('Escape');
+    await statusDialog
+      .first()
+      .waitFor({ state: 'hidden', timeout: 2_000 })
+      .catch(() => undefined);
+  }
+
+  // Navigation bei offenem Mehr-Menü: History Zurück/Vorwärts (kein Menüeintrag).
+  // Menüauswahl würde das Panel auch ohne Router-closeMenu() schließen.
+  const homeUrl = page.url();
+  await page.locator('a[data-footer-focus="footer-help"]').click();
+  try {
+    await page.waitForURL(/\/help(?:\/|$|\?)/, { timeout: 5_000 });
+  } catch {
+    issues.push('History-Aufbau: Navigation zu Hilfe fehlgeschlagen');
+    return issues;
+  }
+  await page.goBack();
+  try {
+    await page.waitForURL(
+      (url) => url.href === homeUrl || /\/(?:de|en|fr|es|it)\/?$/.test(url.pathname),
+      { timeout: 5_000 },
+    );
+  } catch {
+    issues.push('History-Aufbau: Zurück zur Startseite fehlgeschlagen');
+    return issues;
+  }
+  await dismissOptionalOverlay(page);
+  await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
+  await moreButton.focus();
+  await page.keyboard.press('Enter');
+  const reopened = await page
+    .waitForFunction(footerMenuVisible, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!reopened) {
+    issues.push('Footer-Mehr öffnet nicht erneut vor Navigationsprüfung');
+    return issues;
+  }
+  await page.goForward();
+  try {
+    await page.waitForURL(/\/help(?:\/|$|\?)/, { timeout: 5_000 });
+  } catch {
+    issues.push('History-Vorwärts-Navigation zu Hilfe fehlgeschlagen');
+    return issues;
+  }
+  const closedByNavigation = await page
+    .waitForFunction(footerMenuGone, undefined, { timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closedByNavigation) {
+    issues.push('Footer-Mehr-Menü bleibt nach Router-Navigation im DOM');
+  }
+  const focusInOverlay = await page.evaluate(() => {
+    const active = document.activeElement;
+    return !!active?.closest?.('.cdk-overlay-container, .mat-mdc-menu-panel');
+  });
+  if (focusInOverlay) {
+    issues.push('Fokus bleibt nach Navigation im Mehr-Menü-Overlay');
+  }
+
   return issues;
 }
 
@@ -408,6 +558,115 @@ async function main() {
   }
   await desktopContext.close();
 
+  // Footer-Architektur: Overflow und reale Label-Sichtbarkeit (scrollWidth) an Breakpoints.
+  const footerViewports = [
+    { width: 320, height: 568, label: 'footer-320' },
+    { width: 360, height: 740, label: 'footer-360' },
+    { width: 375, height: 812, label: 'footer-375' },
+    { width: 390, height: 844, label: 'footer-390' },
+    { width: 820, height: 1180, label: 'footer-820' },
+    { width: 959, height: 800, label: 'footer-959' },
+    { width: 960, height: 800, label: 'footer-960' },
+    { width: 1280, height: 800, label: 'footer-desktop' },
+  ];
+  const footerLocales = [
+    {
+      locale: 'de',
+      expected: ['Was arsnova.eu kann', 'So funktioniert’s', 'Mehr'],
+    },
+    {
+      locale: 'en',
+      expected: ['What arsnova.eu can do', 'How it works', 'More'],
+    },
+    {
+      locale: 'fr',
+      expected: ['Ce que permet arsnova.eu', 'Comment ça marche', 'Plus'],
+    },
+    {
+      locale: 'it',
+      expected: ['Cosa può fare arsnova.eu', 'Come funziona', 'Altro'],
+    },
+    {
+      locale: 'es',
+      expected: ['Qué puede hacer arsnova.eu', 'Cómo funciona', 'Más'],
+    },
+  ];
+
+  const inspectFooterLabels = (w) => {
+    const doc = document.documentElement;
+    const body = document.body;
+    const scrollWidth = Math.max(
+      body.scrollWidth,
+      body.offsetWidth,
+      doc.scrollWidth,
+      doc.offsetWidth,
+      doc.clientWidth,
+    );
+    const footer = document.querySelector('footer.app-footer');
+    const primaries = footer ? Array.from(footer.querySelectorAll('.app-footer__primary')) : [];
+    const labels = primaries.map((el) => {
+      const text = el.querySelector('.app-footer__link-text');
+      const rect = text?.getBoundingClientRect();
+      const overflowX = text ? text.scrollWidth > text.clientWidth + 1 : true;
+      const overflowY = text ? text.scrollHeight > text.clientHeight + 1 : true;
+      return {
+        text: text?.textContent?.trim() ?? '',
+        overflowX,
+        overflowY,
+        visible: !!rect && rect.width > 0 && rect.height > 0,
+        scrollWidth: text?.scrollWidth ?? 0,
+        clientWidth: text?.clientWidth ?? 0,
+      };
+    });
+    const footerOverflow = footer ? footer.scrollWidth > footer.clientWidth + 1 : true;
+    return {
+      scrollWidth,
+      okDoc: scrollWidth <= w,
+      primaryCount: primaries.length,
+      labels,
+      footerOverflow,
+    };
+  };
+
+  for (const viewport of footerViewports) {
+    for (const { locale, expected } of footerLocales) {
+      // Volle Locale-Matrix nur an kritischen Breiten; Desktop nur DE.
+      const criticalWidths = new Set([320, 360, 375, 390, 959]);
+      if (!criticalWidths.has(viewport.width) && locale !== 'de') continue;
+
+      const footerContext = await browser.newContext({ viewport });
+      const page = await footerContext.newPage();
+      await page.goto(`${BASE_URL}/${locale}/`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 15000,
+      });
+      await page.waitForLoadState('networkidle').catch(() => {});
+      await dismissOptionalOverlay(page, true);
+
+      const footerCheck = await page.evaluate(inspectFooterLabels, viewport.width);
+      checkedStates += 1;
+      const labelsOk =
+        footerCheck.primaryCount === 3 &&
+        footerCheck.labels.length === 3 &&
+        footerCheck.labels.every(
+          (entry, index) =>
+            entry.text === expected[index] && entry.visible && !entry.overflowX && !entry.overflowY,
+        );
+      const checkLabel = `footer-${locale}-${viewport.width}`;
+      if (footerCheck.okDoc && !footerCheck.footerOverflow && labelsOk) {
+        console.log(`  ${checkLabel} … OK (Footer-Reflow + volle Labels)`);
+      } else {
+        console.error(`  ${checkLabel} … FEHLER: ${JSON.stringify(footerCheck)}`);
+        await page.screenshot({
+          path: join(ARTIFACT_DIR, `${checkLabel}.png`),
+          fullPage: true,
+        });
+        failed += 1;
+      }
+      await footerContext.close();
+    }
+  }
+
   await browser.close();
 
   if (failed > 0) {
@@ -415,7 +674,7 @@ async function main() {
     process.exit(1);
   }
   console.log(
-    `\n✓ Reflow bei ${VIEWPORT_WIDTH}px, Fokus-Sichtbarkeit und ${MIN_TARGET_SIZE}px-Ziele bestanden (${checkedStates} Zustände + Desktop-Join).`,
+    `\n✓ Reflow bei ${VIEWPORT_WIDTH}px, Fokus-Sichtbarkeit und ${MIN_TARGET_SIZE}px-Ziele bestanden (${checkedStates} Zustände + Desktop-Join + Footer-Breakpoints).`,
   );
 }
 

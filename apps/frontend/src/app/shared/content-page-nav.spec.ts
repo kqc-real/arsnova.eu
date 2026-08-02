@@ -32,7 +32,9 @@ describe('content-page-nav', () => {
 
   it('ordnet Content-Pages den Footer-Fokus-Zielen zu', () => {
     expect(contentPageFocusReturnForPath('/de/help')).toBe('footer-help');
-    expect(contentPageFocusReturnForPath('/en/legal/privacy')).toBe('footer-privacy');
+    expect(contentPageFocusReturnForPath('/en/legal/privacy')).toBe('footer-more');
+    expect(contentPageFocusReturnForPath('/de/legal/imprint')).toBe('footer-more');
+    expect(contentPageFocusReturnForPath('/fr/legal/accessibility')).toBe('footer-more');
     expect(contentPageFocusReturnForPath('/news-archive')).toBe('footer-news-archive');
     expect(contentPageFocusReturnForPath('/quiz')).toBeNull();
   });
@@ -48,7 +50,7 @@ describe('content-page-nav', () => {
     prepareContentPageDismiss('/de/legal/imprint');
 
     expect(consumeMotdOverlayReloadSuppress()).toBe(true);
-    expect(consumeContentPageFocusReturn()).toBe('footer-imprint');
+    expect(consumeContentPageFocusReturn()).toBe('footer-more');
   });
 
   it('unterdrückt MOTD beim expliziten Home-Fallback (Direktaufruf)', () => {
@@ -151,6 +153,21 @@ describe('content-page-nav', () => {
     expect(focusFooterContentReturn('footer-help')).toBe(true);
     expect(footer.hasAttribute('inert')).toBe(false);
     expect(document.activeElement).toBe(link);
+
+    footer.remove();
+  });
+
+  it('gibt Legal-Dismiss-Fokus an den Mehr-Button zurück', () => {
+    const footer = document.createElement('footer');
+    footer.className = 'app-footer';
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.setAttribute('data-footer-focus', 'footer-more');
+    footer.append(more);
+    document.body.append(footer);
+
+    expect(focusFooterContentReturn('footer-more')).toBe(true);
+    expect(document.activeElement).toBe(more);
 
     footer.remove();
   });

@@ -1775,8 +1775,7 @@ $markdown-katex-flow-hosts:
 }
 
 /* Motd-Zähler: MD3-Overlap behalten, Ziffern zentrieren; Breite für 99+ wachsen lassen. */
-.top-toolbar__motd-btn.mat-badge .mat-badge-content,
-.app-footer__link--news-archive .app-footer__icon.mat-badge .mat-badge-content {
+.top-toolbar__motd-btn.mat-badge .mat-badge-content {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -1791,7 +1790,60 @@ $markdown-katex-flow-hosts:
   font-weight: 600;
 }
 
-/* Footer: Badge 8px weiter nach rechts (weniger Icon-Abdeckung, klarere Ecke). */
-.app-footer__link--news-archive .app-footer__icon.mat-badge.mat-badge-after .mat-badge-content {
-  left: calc(100% + 8px);
+/*
+ * Footer-Primäraktionen: Material-Touch-Target (≥44px) ohne die sichtbare Leiste
+ * auf 48px aufzublähen. Das Target wird von MatButton ohne Host-_ngcontent erzeugt,
+ * daher greifen Regeln in app.component.scss (Emulated Encapsulation) nicht.
+ */
+.app-footer__links > .app-footer__primary.mat-mdc-button-base .mat-mdc-button-touch-target {
+  position: absolute !important;
+  top: 50% !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: var(--mat-button-text-touch-target-size, 2.75rem) !important;
+  transform: translateY(-50%) !important;
+}
+
+/*
+ * Footer-Mehr-Menü im CDK-Overlay: feste Icon-Spalte + gleicher Gap zum Label
+ * (sonst flattert der Abstand wegen Glyph-Breite / margin:0 auf .app-footer__icon).
+ * Status-Dot-Farben: Material setzt `.mat-mdc-menu-item .mat-icon` höher priorisiert.
+ */
+/* class auf <mat-menu> landet als Panel-Klasse (panelClass-Alias). */
+.app-footer__more-menu.mat-mdc-menu-panel,
+.app-footer__more-menu-panel.mat-mdc-menu-panel {
+  .mat-mdc-menu-item .mat-icon {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    font-size: 1.5rem !important;
+    line-height: 1;
+    margin: 0 !important;
+    margin-inline: 0 0.75rem !important;
+  }
+
+  /* lens optisch kleiner, bleibt aber in derselben 24px-Spalte → Label-Start fluchtet. */
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot {
+    font-size: 0.875rem !important;
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--healthy {
+    color: var(--app-status-healthy);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--busy {
+    color: var(--app-status-busy);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--overloaded {
+    color: var(--mat-sys-error);
+  }
+
+  .mat-mdc-menu-item .mat-icon.app-footer__status-dot--unknown {
+    color: var(--mat-sys-outline-variant);
+  }
 }

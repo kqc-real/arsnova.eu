@@ -146,103 +146,72 @@
               footerHealthCheckDone() ? (apiStatus() ? 'ok' : 'offline') : 'pending'
             "
           >
-            @if (footerShowOnlineOnlyLinks()) {
+            @if (isOnline()) {
               <a
                 matButton
-                class="app-footer__link--news-archive"
-                data-footer-focus="footer-news-archive"
-                [routerLink]="localizedPath('/news-archive')"
-                [attr.aria-label]="footerNewsArchiveAria()"
-              >
-                <mat-icon
-                  class="app-footer__icon"
-                  aria-hidden="true"
-                  [matBadge]="footerNewsArchiveBadgeText()"
-                  [matBadgeHidden]="motdHeaderState.archiveUnreadCount() === 0"
-                  matBadgePosition="above after"
-                  matBadgeOverlap
-                  >newspaper</mat-icon
-                >
-                <span class="app-footer__link-text" i18n="@@app.footer.newsArchive"
-                  >News-Archiv</span
-                >
-              </a>
-            }
-            @if (footerShowOnlineOnlyLinks()) {
-              <a
-                matButton
-                data-footer-focus="footer-help"
-                [routerLink]="localizedPath('/help')"
-                i18n-aria-label="@@app.footer.helpOpenAria"
-                aria-label="So funktioniert’s"
-              >
-                <mat-icon class="app-footer__icon" aria-hidden="true">menu_book</mat-icon>
-                <span class="app-footer__link-text" i18n="@@app.footer.help"
-                  >So funktioniert’s</span
-                >
-              </a>
-              <a
-                matButton
-                class="app-footer__link--external"
+                class="app-footer__primary app-footer__link--external"
                 [href]="infoLandingFeaturesUrl"
                 target="_blank"
                 rel="noopener noreferrer"
                 i18n-aria-label="@@app.footer.infoLandingAria"
                 aria-label="Was arsnova.eu kann (öffnet in neuem Tab)"
               >
-                <mat-icon class="app-footer__icon" aria-hidden="true">info</mat-icon>
-                <span class="app-footer__link-text" i18n="@@app.footer.infoLanding"
-                  >Was arsnova.eu kann</span
-                >
-                <mat-icon
-                  class="app-footer__icon app-footer__icon--external"
-                  iconPositionEnd
-                  aria-hidden="true"
-                  >open_in_new</mat-icon
-                >
+                <span class="app-footer__primary-stack">
+                  <mat-icon class="app-footer__icon" aria-hidden="true">info</mat-icon>
+                  <span class="app-footer__link-text" i18n="@@app.footer.infoLanding"
+                    >Was arsnova.eu kann</span
+                  >
+                </span>
               </a>
-              <a
+            } @else {
+              <button
                 matButton
-                data-footer-focus="footer-imprint"
-                [routerLink]="localizedPath('/legal/imprint')"
-                i18n-aria-label="@@app.footer.imprintOpenAria"
-                aria-label="Impressum"
+                type="button"
+                class="app-footer__primary app-footer__link--external app-footer__link--offline"
+                disabled
+                i18n-aria-label="@@app.footer.infoLandingOfflineAria"
+                aria-label="Was arsnova.eu kann – derzeit offline nicht erreichbar"
               >
-                <mat-icon class="app-footer__icon" aria-hidden="true">gavel</mat-icon>
-                <span class="app-footer__link-text" i18n>Impressum</span>
-              </a>
-              <a
-                matButton
-                data-footer-focus="footer-privacy"
-                [routerLink]="localizedPath('/legal/privacy')"
-                i18n-aria-label="@@app.footer.privacyOpenAria"
-                aria-label="Datenschutz"
-              >
-                <mat-icon class="app-footer__icon" aria-hidden="true">privacy_tip</mat-icon>
-                <span class="app-footer__link-text" i18n>Datenschutz</span>
-              </a>
-              <a
-                matButton
-                data-footer-focus="footer-accessibility"
-                [routerLink]="localizedPath('/legal/accessibility')"
-                i18n-aria-label="@@app.footer.accessibilityOpenAria"
-                aria-label="Barrierefreiheit"
-              >
-                <mat-icon class="app-footer__icon" aria-hidden="true">accessibility</mat-icon>
-                <span class="app-footer__link-text" i18n="@@app.footer.accessibility"
-                  >Barrierefreiheit</span
-                >
-              </a>
+                <span class="app-footer__primary-stack">
+                  <mat-icon class="app-footer__icon" aria-hidden="true">info</mat-icon>
+                  <span class="app-footer__link-text" i18n="@@app.footer.infoLanding"
+                    >Was arsnova.eu kann</span
+                  >
+                </span>
+              </button>
             }
-            @if (serverStatusWidgetVisible()) {
-              <app-server-status-widget
-                class="app-footer__status-widget"
-                [connectionOk]="footerConnectionOk()"
-                [loading]="!footerHealthCheckDone()"
-                [stats]="footerStatus()"
-                (openRequested)="openServerStatusHelp()"
-              />
-            }
+            <a
+              matButton
+              class="app-footer__primary"
+              data-footer-focus="footer-help"
+              [routerLink]="localizedPath('/help')"
+              i18n-aria-label="@@app.footer.helpOpenAria"
+              aria-label="So funktioniert’s"
+            >
+              <span class="app-footer__primary-stack">
+                <mat-icon class="app-footer__icon" aria-hidden="true">menu_book</mat-icon>
+                <span class="app-footer__link-text" i18n="@@app.footer.help"
+                  >So funktioniert’s</span
+                >
+              </span>
+            </a>
+            <button
+              matButton
+              type="button"
+              class="app-footer__primary"
+              #footerMoreButton
+              #footerMoreTrigger="matMenuTrigger"
+              [matMenuTriggerFor]="footerMoreMenu"
+              data-footer-focus="footer-more"
+              i18n-aria-label="@@app.footer.moreOpenAria"
+              aria-label="Mehr"
+            >
+              <span class="app-footer__primary-stack">
+                <!-- more_vert: projektweit etabliertes More-Icon (Menu-Trigger); nicht more_horiz -->
+                <mat-icon class="app-footer__icon" aria-hidden="true">more_vert</mat-icon>
+                <span class="app-footer__link-text" i18n="@@app.footer.more">Mehr</span>
+              </span>
+            </button>
             @if (footerShowApiOffline()) {
               <button
                 matButton
@@ -256,6 +225,62 @@
           </div>
         </div>
       </div>
+      <!-- Außerhalb von row/links: Host darf Flex-/Grid-Verteilung nicht beeinflussen. -->
+      <mat-menu
+        #footerMoreMenu="matMenu"
+        class="app-footer__more-menu app-footer__more-menu-panel"
+        yPosition="above"
+        xPosition="before"
+      >
+        <a
+          mat-menu-item
+          [routerLink]="localizedPath('/legal/imprint')"
+          i18n-aria-label="@@app.footer.imprintOpenAria"
+          aria-label="Impressum"
+        >
+          <mat-icon class="app-footer__icon" aria-hidden="true">gavel</mat-icon>
+          <span i18n="@@app.footer.imprint">Impressum</span>
+        </a>
+        <a
+          mat-menu-item
+          [routerLink]="localizedPath('/legal/privacy')"
+          i18n-aria-label="@@app.footer.privacyOpenAria"
+          aria-label="Datenschutz"
+        >
+          <mat-icon class="app-footer__icon" aria-hidden="true">privacy_tip</mat-icon>
+          <span i18n="@@app.footer.privacy">Datenschutz</span>
+        </a>
+        <a
+          mat-menu-item
+          [routerLink]="localizedPath('/legal/accessibility')"
+          i18n-aria-label="@@app.footer.accessibilityOpenAria"
+          aria-label="Barrierefreiheit"
+        >
+          <mat-icon class="app-footer__icon" aria-hidden="true">accessibility</mat-icon>
+          <span i18n="@@app.footer.accessibility">Barrierefreiheit</span>
+        </a>
+        @if (serverStatusWidgetVisible()) {
+          <button
+            mat-menu-item
+            type="button"
+            (click)="openServerStatusFromMore()"
+            i18n-aria-label="@@app.footer.statusHelpTriggerAria"
+            aria-label="Betriebsstatus öffnen: Statusanzeige und Systemlast-Indikatoren"
+          >
+            <mat-icon
+              class="app-footer__status-dot"
+              [class.app-footer__status-dot--healthy]="footerStatusColor() === 'green'"
+              [class.app-footer__status-dot--busy]="footerStatusColor() === 'yellow'"
+              [class.app-footer__status-dot--overloaded]="footerStatusColor() === 'red'"
+              [class.app-footer__status-dot--unknown]="footerStatusColor() === 'gray'"
+              [style.color]="footerStatusDotCssColor()"
+              aria-hidden="true"
+              >lens</mat-icon
+            >
+            <span i18n="@@app.footer.serverHelpLabel">Betriebsstatus</span>
+          </button>
+        }
+      </mat-menu>
     </footer>
   }
 </div>

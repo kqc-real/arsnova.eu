@@ -23,12 +23,7 @@ export function isContentOverlayPath(pathname: string): boolean {
   );
 }
 
-export type ContentPageFocusReturn =
-  | 'footer-help'
-  | 'footer-news-archive'
-  | 'footer-imprint'
-  | 'footer-privacy'
-  | 'footer-accessibility';
+export type ContentPageFocusReturn = 'footer-help' | 'footer-news-archive' | 'footer-more';
 
 export const CONTENT_PAGE_FOCUS_RETURN_KEY = 'arsnova-content-page-focus-return';
 export const LAST_NON_OVERLAY_PATH_KEY = 'arsnova-last-non-overlay-path';
@@ -59,7 +54,7 @@ export function readLastNonOverlayPath(): string | null {
   }
 }
 
-/** Footer-Link, der nach Schließen der Content-Page wieder Fokus bekommen soll. */
+/** Footer-Trigger, der nach Schließen der Content-Page wieder Fokus bekommen soll. */
 export function contentPageFocusReturnForPath(pathname: string): ContentPageFocusReturn | null {
   const normalized =
     (pathname.startsWith('/') ? pathname : `/${pathname}`).replace(
@@ -70,9 +65,7 @@ export function contentPageFocusReturnForPath(pathname: string): ContentPageFocu
   if (normalized === '/news-archive' || normalized.startsWith('/news-archive/')) {
     return 'footer-news-archive';
   }
-  if (normalized.startsWith('/legal/imprint')) return 'footer-imprint';
-  if (normalized.startsWith('/legal/privacy')) return 'footer-privacy';
-  if (normalized.startsWith('/legal/accessibility')) return 'footer-accessibility';
+  if (normalized.startsWith('/legal/')) return 'footer-more';
   return null;
 }
 
@@ -108,34 +101,26 @@ export function clearStaleContentPageFocusReturn(): void {
   }
 }
 
-/** CSS-Selektor für den Footer-Link zum gespeicherten Fokus-Ziel. */
+/** CSS-Selektor für den Footer-Trigger zum gespeicherten Fokus-Ziel. */
 export function contentPageFocusReturnSelector(target: ContentPageFocusReturn): string {
   switch (target) {
     case 'footer-help':
-      return 'a[data-footer-focus="footer-help"]';
+      return '[data-footer-focus="footer-help"]';
     case 'footer-news-archive':
-      return 'a[data-footer-focus="footer-news-archive"]';
-    case 'footer-imprint':
-      return 'a[data-footer-focus="footer-imprint"]';
-    case 'footer-privacy':
-      return 'a[data-footer-focus="footer-privacy"]';
-    case 'footer-accessibility':
-      return 'a[data-footer-focus="footer-accessibility"]';
+      return '[data-footer-focus="footer-news-archive"]';
+    case 'footer-more':
+      return '[data-footer-focus="footer-more"]';
   }
 }
 
-function contentPageFocusReturnHrefSelector(target: ContentPageFocusReturn): string {
+function contentPageFocusReturnHrefSelector(target: ContentPageFocusReturn): string | null {
   switch (target) {
     case 'footer-help':
       return 'a[href*="/help"]';
     case 'footer-news-archive':
       return 'a[href*="/news-archive"]';
-    case 'footer-imprint':
-      return 'a[href*="/legal/imprint"]';
-    case 'footer-privacy':
-      return 'a[href*="/legal/privacy"]';
-    case 'footer-accessibility':
-      return 'a[href*="/legal/accessibility"]';
+    case 'footer-more':
+      return null;
   }
 }
 
@@ -155,16 +140,18 @@ export function clearAppChromeInert(): void {
 }
 
 /**
- * Fokus auf den Footer-Link legen (inert am Chrome vorher entfernen).
- * `activeElement` darf auch ein Nachfahre des Links sein (Material-Button).
+ * Fokus auf den Footer-Trigger legen (inert am Chrome vorher entfernen).
+ * `activeElement` darf auch ein Nachfahre des Triggers sein (Material-Button).
  */
 export function focusFooterContentReturn(target: ContentPageFocusReturn): boolean {
   if (typeof document === 'undefined') return false;
   clearAppChromeInert();
   const footer = document.querySelector<HTMLElement>('footer.app-footer');
+  const hrefSelector = contentPageFocusReturnHrefSelector(target);
   const link =
     footer?.querySelector<HTMLElement>(contentPageFocusReturnSelector(target)) ??
-    footer?.querySelector<HTMLElement>(contentPageFocusReturnHrefSelector(target)) ??
+    (hrefSelector ? footer?.querySelector<HTMLElement>(hrefSelector) : null) ??
+    document.querySelector<HTMLElement>(contentPageFocusReturnSelector(target)) ??
     null;
   if (!link) {
     return false;

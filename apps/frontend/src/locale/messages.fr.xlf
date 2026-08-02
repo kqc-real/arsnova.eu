@@ -86,14 +86,6 @@
           <context context-type="linenumber">91,93</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.newsArchive" datatype="html">
-        <source>News-Archiv</source>
-        <target>Archives des actualités</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">166</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.helpOpenAria" datatype="html">
         <source>So funktioniert’s</source>
         <target>Comment ça marche</target>
@@ -126,6 +118,46 @@
           <context context-type="linenumber">192</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.infoLandingOfflineAria" datatype="html">
+        <source>Was arsnova.eu kann – derzeit offline nicht erreichbar</source>
+        <target>Ce que permet arsnova.eu – actuellement indisponible hors ligne</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.moreOpenAria" datatype="html">
+        <source>Mehr</source>
+        <target>Plus</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">204</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.more" datatype="html">
+        <source>Mehr</source>
+        <target>Plus</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">208</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.imprint" datatype="html">
+        <source>Impressum</source>
+        <target>Mentions légales</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">223</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.privacy" datatype="html">
+        <source>Datenschutz</source>
+        <target>Confidentialité</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">232</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.footer.imprintOpenAria" datatype="html">
         <source>Impressum</source>
         <target>Mentions légales</target>
@@ -134,28 +166,12 @@
           <context context-type="linenumber">205</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1547876271716599756" datatype="html">
-        <source>Impressum</source>
-        <target>Mentions légales</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">209</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.privacyOpenAria" datatype="html">
         <source>Datenschutz</source>
         <target>Confidentialité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">215</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4082114936887396529" datatype="html">
-        <source>Datenschutz</source>
-        <target>Confidentialité</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.accessibilityOpenAria" datatype="html">
@@ -220,30 +236,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">200</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAria" datatype="html">
-        <source>News-Archiv öffnen</source>
-        <target>Ouvrir les archives d&apos;actualités</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">225</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAriaOne" datatype="html">
-        <source>News-Archiv öffnen, 1 ungelesene Meldung</source>
-        <target>Ouvrir les archives d&apos;actualités, 1 message non lu</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">228</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.newsArchiveAriaCount" datatype="html">
-        <source>News-Archiv öffnen, <x id="INTERPOLATION" equiv-text="formatLocaleBadgeCount(n, this.localeId)"/> ungelesene Meldungen</source>
-        <target>Ouvrir les archives d&apos;actualités, <x id="INTERPOLATION" equiv-text="{{ n }}"/> messages non lus</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">230</context>
         </context-group>
       </trans-unit>
       <trans-unit id="session.notFound" datatype="html">
