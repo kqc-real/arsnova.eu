@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro';
+import ThemeSwitcher from '@/components/ThemeSwitcher.astro';
 import { appAccessibilityUrl, GITHUB_URL } from '@/config/github';
 import { toAbsoluteUrl } from '@/config/site';
 import {
@@ -85,6 +86,56 @@ const jsonLd = {
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
+    <meta name="theme-color" content="#faf7fb" />
+    <script is:inline>
+      (function () {
+        var KEY = 'arsnova-info-color-scheme-v1';
+        var root = document.documentElement;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        function resolve(preference) {
+          if (preference === 'light') return 'light';
+          if (preference === 'dark') return 'dark';
+          try {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          } catch (_e) {
+            return 'light';
+          }
+        }
+        function apply(preference) {
+          var mode = resolve(preference);
+          root.classList.remove('light', 'dark');
+          if (preference === 'light' || preference === 'dark') root.classList.add(preference);
+          root.style.colorScheme = mode;
+          if (meta) meta.setAttribute('content', mode === 'dark' ? '#161018' : '#faf7fb');
+        }
+        var stored = null;
+        try {
+          stored = localStorage.getItem(KEY);
+        } catch (_e) {}
+        var preference =
+          stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+        apply(preference);
+        root.setAttribute('data-landing-color-scheme', preference);
+        window.__arsnovaLandingTheme = {
+          key: KEY,
+          get: function () {
+            return root.getAttribute('data-landing-color-scheme') || 'system';
+          },
+          set: function (value) {
+            if (value !== 'light' && value !== 'dark' && value !== 'system') return;
+            try {
+              localStorage.setItem(KEY, value);
+            } catch (_e) {}
+            root.setAttribute('data-landing-color-scheme', value);
+            apply(value);
+            document.dispatchEvent(
+              new CustomEvent('arsnova-landing-theme-change', { detail: { preference: value } }),
+            );
+          },
+          apply: apply,
+        };
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
@@ -128,14 +179,14 @@ const jsonLd = {
 
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="min-h-screen overflow-x-hidden bg-slate-900 text-slate-100 font-sans antialiased">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-slate-950">
+  <body class="min-h-screen overflow-x-hidden bg-landing-bg font-sans text-landing-fg antialiased">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-landing-panel focus:bg-landing-surface focus:px-4 focus:py-2 focus:text-landing-fg focus:shadow-landing-1">
       {t.nav.skipToContent}
     </a>
-    <header class="sticky top-0 z-50 border-b border-slate-700/80 bg-slate-900/95 backdrop-blur-sm" id="main-header">
+    <header class="sticky top-0 z-50 border-b border-landing-outline-variant bg-landing-bg/95 backdrop-blur-sm" id="main-header">
       <nav class="mx-auto max-w-6xl px-3 py-3 sm:px-4 xl:px-6" aria-label={t.nav.ariaLabel}>
         <div class="flex items-center justify-between gap-2 xl:gap-4">
-          <a href={localeHome} class="inline-flex shrink-0 items-center gap-1.5 font-display text-lg font-bold tracking-tight text-white xl:gap-2 xl:text-xl">
+          <a href={localeHome} class="inline-flex shrink-0 items-center gap-1.5 font-display text-lg font-bold tracking-tight text-landing-fg xl:gap-2 xl:text-xl">
             <img src={`${base}favicon.svg`} alt="" class="h-7 w-7 shrink-0" width="28" height="28" />
             arsnova.eu
           </a>
@@ -144,17 +195,19 @@ const jsonLd = {
             data-main-nav="desktop"
           >
             {navItems.map((item) => (
-              <a href={item.href} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-slate-400 hover:text-white xl:px-1 xl:text-sm">{item.label}</a>
+              <a href={item.href} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg xl:px-1 xl:text-sm">{item.label}</a>
             ))}
-            <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-slate-400 hover:text-white xl:px-1 xl:text-sm" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={GITHUB_URL} class="inline-flex min-h-6 items-center px-0.5 text-xs font-medium text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg xl:px-1 xl:text-sm" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <ThemeSwitcher t={t} idPrefix="theme-desktop" />
             <LanguageSwitcher locale={locale} t={t} idPrefix="lang-desktop" compact />
-            <a href={`${localeHome}#start`} class="rounded-lg bg-brand-700 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-brand-600 xl:px-4 xl:py-2 xl:text-sm">{t.nav.tryNow}</a>
+            <a href={`${localeHome}#start`} class="whitespace-nowrap shrink-0 rounded-landing-button bg-landing-primary px-2.5 py-1.5 text-xs font-semibold text-landing-on-primary shadow-landing-1 transition duration-landing-fast hover:bg-landing-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg xl:px-4 xl:py-2 xl:text-sm">{t.nav.tryNow}</a>
           </div>
-          <div class="flex items-center gap-2 lg:hidden">
+          <div class="flex items-center gap-0.5 lg:hidden">
+            <ThemeSwitcher t={t} idPrefix="theme-mobile" />
             <LanguageSwitcher locale={locale} t={t} idPrefix="lang-mobile" />
             <button
               type="button"
-              class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-landing-panel text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
               aria-expanded="false"
               aria-controls="nav-menu"
               aria-label={t.nav.menuOpen}
@@ -172,16 +225,16 @@ const jsonLd = {
             </button>
           </div>
         </div>
-        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden" data-main-nav="mobile">
+        <ul id="nav-menu" class="hidden flex flex-col gap-1 border-t border-landing-outline-variant pt-4 lg:hidden" data-main-nav="mobile">
           {navItems.map((item) => (
             <li>
-              <a href={item.href} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white">
+              <a href={item.href} class="block min-h-11 rounded-landing-panel px-3 py-2.5 text-sm font-medium text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg">
                 {item.label}
               </a>
             </li>
           ))}
-          <li><a href={GITHUB_URL} class="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href={`${localeHome}#start`} class="mt-2 block min-h-11 rounded-lg bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-600">{t.nav.tryNow}</a></li>
+          <li><a href={GITHUB_URL} class="block min-h-11 rounded-landing-panel px-3 py-2.5 text-sm font-medium text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href={`${localeHome}#start`} class="mt-2 block min-h-11 rounded-landing-button bg-landing-primary px-3 py-2.5 text-center text-sm font-semibold text-landing-on-primary hover:bg-landing-primary-hover">{t.nav.tryNow}</a></li>
         </ul>
       </nav>
     </header>
@@ -204,6 +257,44 @@ const jsonLd = {
           return '#' + (ALIASES[raw] || raw);
         }
 
+        function closeMobileNav() {
+          var navToggle = document.getElementById('nav-toggle');
+          var navMenu = document.getElementById('nav-menu');
+          var openIcon = document.querySelector('.menu-icon-open');
+          var closeIcon = document.querySelector('.menu-icon-close');
+          if (!navToggle || !navMenu || navMenu.classList.contains('hidden')) return;
+          navMenu.classList.add('hidden');
+          navToggle.setAttribute('aria-expanded', 'false');
+          var labelOpen = navToggle.getAttribute('data-label-open') || 'Open menu';
+          navToggle.setAttribute('aria-label', labelOpen);
+          if (openIcon && closeIcon) {
+            openIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+          }
+        }
+
+        function closeAllOverlays(except) {
+          document.querySelectorAll('[data-language-switcher]').forEach(function (root) {
+            if (except && except.contains && except.contains(root)) return;
+            if (except === root) return;
+            var button = root.querySelector('button');
+            var menu = root.querySelector('[data-lang-menu]');
+            if (!button || !menu) return;
+            menu.classList.add('hidden');
+            button.setAttribute('aria-expanded', 'false');
+          });
+          document.querySelectorAll('[data-theme-switcher]').forEach(function (root) {
+            if (except && except.contains && except.contains(root)) return;
+            if (except === root) return;
+            var button = root.querySelector('button[aria-controls]');
+            var menu = root.querySelector('[data-theme-menu]');
+            if (!button || !menu) return;
+            menu.classList.add('hidden');
+            button.setAttribute('aria-expanded', 'false');
+          });
+          if (!except) closeMobileNav();
+        }
+
         document.querySelectorAll('[data-language-switcher]').forEach(function (root) {
           var button = root.querySelector('button');
           var menu = root.querySelector('[data-lang-menu]');
@@ -222,6 +313,10 @@ const jsonLd = {
           }
 
           function setOpen(open) {
+            if (open) {
+              closeAllOverlays(root);
+              closeMobileNav();
+            }
             menu.classList.toggle('hidden', !open);
             button.setAttribute('aria-expanded', open ? 'true' : 'false');
           }
@@ -247,6 +342,78 @@ const jsonLd = {
           });
         });
 
+        function syncThemeOptions(root) {
+          var api = window.__arsnovaLandingTheme;
+          var current = api ? api.get() : 'system';
+          root.querySelectorAll('[data-theme-option]').forEach(function (option) {
+            var active = option.getAttribute('data-theme-option') === current;
+            option.setAttribute('aria-checked', active ? 'true' : 'false');
+            option.classList.toggle('bg-landing-surface-container-high', active);
+            option.classList.toggle('text-landing-fg', active);
+          });
+        }
+
+        document.querySelectorAll('[data-theme-switcher]').forEach(function (root) {
+          var button = root.querySelector('button[aria-controls]');
+          var menu = root.querySelector('[data-theme-menu]');
+          if (!button || !menu) return;
+
+          function setOpen(open) {
+            if (open) {
+              closeAllOverlays(root);
+              closeMobileNav();
+              syncThemeOptions(root);
+            }
+            menu.classList.toggle('hidden', !open);
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+          }
+
+          syncThemeOptions(root);
+
+          button.addEventListener('click', function (event) {
+            event.stopPropagation();
+            setOpen(menu.classList.contains('hidden'));
+          });
+
+          menu.querySelectorAll('[data-theme-option]').forEach(function (option) {
+            option.addEventListener('click', function (event) {
+              event.stopPropagation();
+              var value = option.getAttribute('data-theme-option');
+              if (window.__arsnovaLandingTheme) window.__arsnovaLandingTheme.set(value);
+              syncThemeOptions(root);
+              setOpen(false);
+              button.focus();
+            });
+          });
+
+          document.addEventListener('click', function (event) {
+            if (!root.contains(event.target)) setOpen(false);
+          });
+
+          document.addEventListener('keydown', function (event) {
+            if (event.key !== 'Escape') return;
+            var wasOpen = !menu.classList.contains('hidden');
+            setOpen(false);
+            if (wasOpen) button.focus();
+          });
+
+          document.addEventListener('arsnova-landing-theme-change', function () {
+            syncThemeOptions(root);
+          });
+        });
+
+        var media = window.matchMedia('(prefers-color-scheme: dark)');
+        function onSystemChange() {
+          var api = window.__arsnovaLandingTheme;
+          if (!api || api.get() !== 'system') return;
+          api.apply('system');
+        }
+        if (typeof media.addEventListener === 'function') {
+          media.addEventListener('change', onSystemChange);
+        } else if (typeof media.addListener === 'function') {
+          media.addListener(onSystemChange);
+        }
+
         var toggle = document.getElementById('nav-toggle');
         var menu = document.getElementById('nav-menu');
         var openIcon = document.querySelector('.menu-icon-open');
@@ -255,6 +422,10 @@ const jsonLd = {
         var labelOpen = toggle.getAttribute('data-label-open') || 'Open menu';
         var labelClose = toggle.getAttribute('data-label-close') || 'Close menu';
         toggle.addEventListener('click', function () {
+          // Close theme/lang menus without forcing mobile nav closed (toggle handles that).
+          if (menu.classList.contains('hidden')) {
+            closeAllOverlays(toggle);
+          }
           var open = menu.classList.toggle('hidden');
           toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
           toggle.setAttribute('aria-label', open ? labelOpen : labelClose);
@@ -281,15 +452,15 @@ const jsonLd = {
       <slot />
     </main>
 
-    <footer class="border-t border-slate-700 bg-slate-900">
+    <footer class="border-t border-landing-outline-variant bg-landing-bg">
       <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p class="text-sm text-slate-400">© {new Date().getFullYear()} arsnova.eu · Open Source · MIT</p>
+          <p class="text-sm text-landing-fg-muted">© {new Date().getFullYear()} arsnova.eu · Open Source · MIT</p>
           <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <a href={impressumHref} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.impressum}</a>
-            <a href={privacyHref} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.privacy}</a>
-            <a href={a11yUrl} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200">{t.footer.accessibility}</a>
-            <a href={GITHUB_URL} class="inline-flex min-h-11 items-center px-1 text-sm text-slate-400 hover:text-slate-200" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={impressumHref} class="inline-flex min-h-11 items-center px-1 text-sm text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg">{t.footer.impressum}</a>
+            <a href={privacyHref} class="inline-flex min-h-11 items-center px-1 text-sm text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg">{t.footer.privacy}</a>
+            <a href={a11yUrl} class="inline-flex min-h-11 items-center px-1 text-sm text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg">{t.footer.accessibility}</a>
+            <a href={GITHUB_URL} class="inline-flex min-h-11 items-center px-1 text-sm text-landing-fg-muted transition duration-landing-fast hover:text-landing-fg" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
       </div>

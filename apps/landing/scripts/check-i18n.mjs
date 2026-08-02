@@ -122,6 +122,8 @@ const deSmokePhrases = [
   'Jetzt live ausprobieren',
   'Häufige Fragen vor dem ersten Einsatz',
   'Bereit für die nächste Live-Session?',
+  'Darstellung wählen',
+  'Systemeinstellung',
 ];
 
 const errors = [];
@@ -443,6 +445,34 @@ function checkLanguageSwitcherMarkup() {
   }
 }
 
+function checkThemeSwitcherMarkup() {
+  const html = readFileSync(join(dist, 'de', 'index.html'), 'utf8');
+  if (!html.includes('data-theme-switcher') || !html.includes('data-theme-menu')) {
+    fail('/de/ missing theme switcher disclosure markup');
+  }
+  if (!html.includes('arsnova-info-color-scheme-v1')) {
+    fail('/de/ missing theme storage key arsnova-info-color-scheme-v1');
+  }
+  if (!html.includes('id="theme-desktop-button"') || !html.includes('id="theme-mobile-button"')) {
+    fail('/de/ missing desktop and mobile theme switcher instances');
+  }
+  for (const phrase of ['Darstellung', 'Systemeinstellung', 'Hell', 'Dunkel', 'Darstellung wählen']) {
+    if (!html.includes(phrase)) fail(`/de/ missing theme phrase ${JSON.stringify(phrase)}`);
+  }
+  const fr = readFileSync(join(dist, 'fr', 'index.html'), 'utf8');
+  if (!fr.includes('Apparence') || !fr.includes('Réglage du système')) {
+    fail('/fr/ missing French theme switcher labels');
+  }
+  const it = readFileSync(join(dist, 'it', 'index.html'), 'utf8');
+  if (!it.includes('Aspetto') || !it.includes('Impostazione di sistema')) {
+    fail('/it/ missing Italian theme switcher labels');
+  }
+  const es = readFileSync(join(dist, 'es', 'index.html'), 'utf8');
+  if (!es.includes('Apariencia') || !es.includes('Configuración del sistema')) {
+    fail('/es/ missing Spanish theme switcher labels');
+  }
+}
+
 /**
  * Extract hash targets from a contiguous HTML fragment of nav links.
  * Returns anchors in document order (e.g. "workflow").
@@ -546,9 +576,9 @@ function checkNavAndSectionOrder() {
         `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain a separate #start control (desktop + mobile)`,
       );
     }
-    if (!html.includes('bg-brand-700') || !html.includes(tryNow)) {
+    if (!html.includes('bg-landing-primary') || !html.includes(tryNow)) {
       fail(
-        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (brand button)`,
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (landing primary button)`,
       );
     }
 
@@ -610,6 +640,7 @@ if (!errors.length) {
   checkLocaleContentSmoke();
   checkLanguageSwitcherMarkup();
   checkNavAndSectionOrder();
+  checkThemeSwitcherMarkup();
 }
 
 if (errors.length) {

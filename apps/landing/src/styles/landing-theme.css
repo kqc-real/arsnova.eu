@@ -1,0 +1,217 @@
+/**
+ * Eigenständige semantische Theme-Schicht für info.arsnova.eu (Issue #199).
+ * Visuell an das spielerische Magenta-/Violett-Default-Preset der App angelehnt,
+ * ohne Angular-Material-Systemtokens oder Material-Komponentenbibliotheken.
+ */
+
+:root,
+html.light {
+  color-scheme: light;
+
+  --landing-background: #faf7fb;
+  --landing-surface: #ffffff;
+  --landing-surface-container: #f3eef6;
+  --landing-surface-container-high: #ebe3f0;
+  --landing-on-surface: #1c1b1f;
+  --landing-on-surface-muted: #5a535e;
+  --landing-on-surface-body: #3f3942;
+
+  --landing-primary: #a900a9;
+  --landing-on-primary: #ffffff;
+  --landing-primary-container: #ffd6f4;
+  --landing-on-primary-container: #580055;
+  --landing-primary-hover: #8e008e;
+
+  --landing-tertiary: #7d00fa;
+  --landing-on-tertiary: #ffffff;
+  --landing-tertiary-container: #ebddff;
+  --landing-on-tertiary-container: #2a0054;
+
+  --landing-outline: #7a727e;
+  --landing-outline-variant: #8a8290;
+  --landing-focus: #a900a9;
+  --landing-error: #ba1a1a;
+  --landing-on-error: #ffffff;
+  --landing-shadow-color: 169 0 169;
+
+  /* Fachliche Demo-/Statusfarben (nicht Markensteuerung) */
+  --landing-status-amber-fg: #92400e;
+  --landing-status-amber-bg: #fef3c7;
+  --landing-status-emerald-fg: #065f46;
+  --landing-status-emerald-bg: #d1fae5;
+  --landing-status-rose-fg: #9f1239;
+  --landing-status-rose-bg: #ffe4e6;
+  --landing-status-violet-fg: #5b21b6;
+  --landing-status-violet-bg: #ede9fe;
+
+  --landing-hero-spotlight: rgba(169, 0, 169, 0.16);
+  --landing-hero-spotlight-secondary: rgba(125, 0, 250, 0.1);
+  --landing-theme-color: #faf7fb;
+
+  --landing-radius-button: 9999px;
+  --landing-radius-card: 1.5rem;
+  --landing-radius-panel: 0.75rem;
+  --landing-elevation-1: 0 8px 28px -8px rgb(var(--landing-shadow-color) / 0.22);
+  --landing-elevation-2: 0 14px 44px -10px rgb(var(--landing-shadow-color) / 0.28);
+  --landing-motion-fast: 150ms;
+  --landing-motion-standard: 220ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+
+    --landing-background: #161018;
+    --landing-surface: #1e1722;
+    --landing-surface-container: #2a2230;
+    --landing-surface-container-high: #352c3c;
+    --landing-on-surface: #ece2ec;
+    --landing-on-surface-muted: #c9becb;
+    --landing-on-surface-body: #d8ced9;
+
+    --landing-primary: #ffabf3;
+    --landing-on-primary: #5b005b;
+    --landing-primary-container: #8b008b;
+    --landing-on-primary-container: #ffd6f4;
+    --landing-primary-hover: #ffc2f6;
+
+    --landing-tertiary: #d5baff;
+    --landing-on-tertiary: #3b0091;
+    --landing-tertiary-container: #5e00c8;
+    --landing-on-tertiary-container: #ebddff;
+
+    --landing-outline: #948b97;
+    --landing-outline-variant: #8a8290;
+    --landing-focus: #ffabf3;
+    --landing-error: #ffb4ab;
+    --landing-on-error: #690005;
+    --landing-shadow-color: 255 171 243;
+
+    --landing-status-amber-fg: #fbbf24;
+    --landing-status-amber-bg: rgb(251 191 36 / 0.16);
+    --landing-status-emerald-fg: #6ee7b7;
+    --landing-status-emerald-bg: rgb(52 211 153 / 0.16);
+    --landing-status-rose-fg: #fda4af;
+    --landing-status-rose-bg: rgb(251 113 133 / 0.16);
+    --landing-status-violet-fg: #c4b5fd;
+    --landing-status-violet-bg: rgb(167 139 250 / 0.16);
+
+    --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
+    --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
+    --landing-theme-color: #161018;
+  }
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --landing-background: #161018;
+  --landing-surface: #1e1722;
+  --landing-surface-container: #2a2230;
+  --landing-surface-container-high: #352c3c;
+  --landing-on-surface: #ece2ec;
+  --landing-on-surface-muted: #c9becb;
+  --landing-on-surface-body: #d8ced9;
+
+  --landing-primary: #ffabf3;
+  --landing-on-primary: #5b005b;
+  --landing-primary-container: #8b008b;
+  --landing-on-primary-container: #ffd6f4;
+  --landing-primary-hover: #ffc2f6;
+
+  --landing-tertiary: #d5baff;
+  --landing-on-tertiary: #3b0091;
+  --landing-tertiary-container: #5e00c8;
+  --landing-on-tertiary-container: #ebddff;
+
+  --landing-outline: #948b97;
+  --landing-outline-variant: #8a8290;
+  --landing-focus: #ffabf3;
+  --landing-error: #ffb4ab;
+  --landing-on-error: #690005;
+  --landing-shadow-color: 255 171 243;
+
+  --landing-status-amber-fg: #fbbf24;
+  --landing-status-amber-bg: rgb(251 191 36 / 0.16);
+  --landing-status-emerald-fg: #6ee7b7;
+  --landing-status-emerald-bg: rgb(52 211 153 / 0.16);
+  --landing-status-rose-fg: #fda4af;
+  --landing-status-rose-bg: rgb(251 113 133 / 0.16);
+  --landing-status-violet-fg: #c4b5fd;
+  --landing-status-violet-bg: rgb(167 139 250 / 0.16);
+
+  --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
+  --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
+  --landing-theme-color: #161018;
+}
+
+html,
+body {
+  background-color: var(--landing-background);
+  color: var(--landing-on-surface);
+}
+
+/* Skip-link and focus defaults */
+:focus-visible {
+  outline: 2px solid var(--landing-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-hero-spotlight {
+    animation: landing-hero-drift 28s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes landing-hero-drift {
+  from {
+    transform: translate3d(-2%, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, 1%, 0) scale(1.04);
+  }
+}
+
+@media (forced-colors: active) {
+  :root,
+  html.light,
+  html.dark {
+    --landing-background: Canvas;
+    --landing-surface: Canvas;
+    --landing-surface-container: Canvas;
+    --landing-surface-container-high: Canvas;
+    --landing-on-surface: CanvasText;
+    --landing-on-surface-muted: CanvasText;
+    --landing-on-surface-body: CanvasText;
+    --landing-primary: LinkText;
+    --landing-on-primary: Canvas;
+    --landing-primary-container: Canvas;
+    --landing-on-primary-container: CanvasText;
+    --landing-primary-hover: LinkText;
+    --landing-tertiary: LinkText;
+    --landing-on-tertiary: Canvas;
+    --landing-tertiary-container: Canvas;
+    --landing-on-tertiary-container: CanvasText;
+    --landing-outline: ButtonText;
+    --landing-outline-variant: ButtonText;
+    --landing-focus: Highlight;
+    --landing-error: Mark;
+    --landing-on-error: Canvas;
+  }
+
+  a,
+  button {
+    forced-color-adjust: none;
+  }
+}

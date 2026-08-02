@@ -13,39 +13,42 @@ const localeHome = `${base}${locale}/`.replace(/\/{2,}/g, '/');
 const h = t.hero;
 ---
 
-<section class="relative overflow-hidden bg-slate-900 px-4 py-20 sm:px-6 sm:py-28 lg:py-36" aria-labelledby="hero-heading">
-  <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(14,165,233,0.25),transparent)]" aria-hidden="true" />
-  <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/50 to-transparent" aria-hidden="true" />
+<section class="relative overflow-hidden bg-landing-bg px-4 py-20 sm:px-6 sm:py-28 lg:py-36" aria-labelledby="hero-heading">
+  <div
+    class="landing-hero-spotlight absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,var(--landing-hero-spotlight),transparent),radial-gradient(ellipse_50%_40%_at_80%_10%,var(--landing-hero-spotlight-secondary),transparent)]"
+    aria-hidden="true"
+  />
+  <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-landing-primary/50 to-transparent" aria-hidden="true" />
   <div class="relative mx-auto max-w-5xl text-center">
-    <p class="mx-auto mb-4 max-w-xs text-xs font-semibold uppercase leading-6 tracking-[0.12em] text-brand-400 sm:max-w-none sm:text-sm sm:tracking-[0.24em]">
+    <p class="landing-eyebrow mx-auto mb-4 max-w-xs sm:max-w-none">
       {h.eyebrow}
     </p>
-    <h1 id="hero-heading" class="mx-auto max-w-[22rem] font-display text-3xl font-extrabold tracking-tight text-white sm:max-w-4xl sm:text-5xl lg:text-6xl">
+    <h1 id="hero-heading" class="mx-auto max-w-[22rem] font-display text-3xl font-extrabold tracking-tight text-landing-fg sm:max-w-4xl sm:text-5xl lg:text-6xl">
       <span class="block">{h.titleLine1}</span>
       <span class="block">{h.titleLine2}</span>
-      <span class="mt-2 block text-brand-400 sm:inline">{h.titleAccent1}</span>
-      <span class="block text-brand-400 sm:inline">{h.titleAccent2}</span>
+      <span class="mt-2 block text-landing-primary sm:inline">{h.titleAccent1}</span>
+      <span class="block text-landing-primary sm:inline">{h.titleAccent2}</span>
     </h1>
-    <p class="mx-auto mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-xl">
+    <p class="mx-auto mt-6 max-w-3xl text-base leading-8 text-landing-fg-body sm:text-xl">
       {h.lead}
     </p>
     <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap" id="start">
-      <a href={appHomeUrl(locale)} class="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-brand-700 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900 sm:w-auto">
+      <a href={appHomeUrl(locale)} class="landing-btn-primary w-full max-w-xs sm:w-auto">
         <img src={`${base}favicon.svg`} alt="" class="h-5 w-5 shrink-0" width="20" height="20" />
         {t.cta.tryLive}
       </a>
-      <a href={`${localeHome}#workflow`} class="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-slate-600 bg-slate-800/50 px-6 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:border-slate-500 hover:bg-slate-800 sm:w-auto">
+      <a href={`${localeHome}#workflow`} class="landing-btn-secondary w-full max-w-xs sm:w-auto">
         {t.cta.howItWorks}
       </a>
     </div>
-    <p class="mx-auto mt-6 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-      <a href={`${localeHome}#accessibility`} class="font-semibold text-brand-300 underline-offset-2 hover:text-brand-200 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900 rounded">{h.a11yLink}</a>
+    <p class="mx-auto mt-6 max-w-2xl text-sm leading-7 text-landing-fg-muted sm:text-base">
+      <a href={`${localeHome}#accessibility`} class="landing-link rounded">{h.a11yLink}</a>
       {' '}{h.a11ySuffix}
     </p>
-    <ul class="mt-12 grid gap-3 text-left text-sm text-slate-300 sm:grid-cols-2 xl:grid-cols-4" role="list">
+    <ul class="mt-12 grid gap-3 text-left text-sm text-landing-fg-body sm:grid-cols-2 xl:grid-cols-4" role="list">
       {h.cards.map((card) => (
-        <li class="rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3">
-          <span class="font-semibold text-white">{card.title}</span><br />{card.text}
+        <li class="landing-card px-4 py-3">
+          <span class="font-semibold text-landing-fg">{card.title}</span><br />{card.text}
         </li>
       ))}
     </ul>
