@@ -10,11 +10,11 @@ import { legal, site } from '../config/legal';
   canonicalPath="/datenschutz/"
 >
   <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="de">
-    <h1 class="font-display text-3xl font-bold text-white">Datenschutzerklärung</h1>
-    <p class="mt-2 text-slate-400">Informationen gemäß Art. 13 und 14 DSGVO</p>
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Datenschutzerklärung</h1>
+    <p class="mt-2 text-landing-fg-muted">Informationen gemäß Art. 13 und 14 DSGVO</p>
 
-    <section class="mt-6 rounded-2xl border border-slate-700 bg-slate-800/60 p-5 text-slate-300">
-      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Kurzinfo</p>
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">Kurzinfo</p>
       <ul class="mt-3 list-inside list-disc space-y-1 leading-7">
         <li>Diese Hinweise betreffen primär die Landing- und Informationsseite unter {site.landingUrl}.</li>
         <li>Die Landing setzt selbst keine Cookies und keine Analyse-Tools ein.</li>
@@ -25,9 +25,9 @@ import { legal, site } from '../config/legal';
       </ul>
     </section>
 
-    <section class="mt-8 space-y-8 text-slate-300">
+    <section class="mt-8 space-y-8 text-landing-fg-body">
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">1. Verantwortlicher</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">1. Verantwortlicher</h2>
         <p class="mt-2">
           {legal.provider.name}<br />
           {legal.provider.address.street}<br />
@@ -35,12 +35,12 @@ import { legal, site } from '../config/legal';
           {legal.provider.address.country}
         </p>
         <p class="mt-2">
-          E-Mail: <a href={`mailto:${legal.privacy.email}`} class="text-brand-400 underline underline-offset-2">{legal.privacy.email}</a>
+          E-Mail: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">2. Geltungsbereich</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">2. Geltungsbereich</h2>
         <p class="mt-2">
           Diese Datenschutzerklärung gilt in erster Linie für die statische {site.landingLabel} unter <strong>{site.landingUrl}</strong>. Sie erläutert insbesondere die Verarbeitung beim Aufruf dieser Seiten, beim Nutzen externer Links und beim Hosting der Landing.
         </p>
@@ -50,7 +50,7 @@ import { legal, site } from '../config/legal';
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">3. Daten beim Besuch dieser Website</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">3. Daten beim Besuch dieser Website</h2>
         <p class="mt-2">
           Beim Aufruf dieser Website können durch den Hosting-Anbieter technische Zugriffsdaten verarbeitet werden, insbesondere IP-Adresse, Datum und Uhrzeit des Abrufs, aufgerufene URL, Browserinformationen sowie übertragene Datenmengen. Diese Verarbeitung ist technisch erforderlich, um die Website auszuliefern und die Sicherheit sowie Stabilität des Angebots zu gewährleisten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO.
         </p>
@@ -60,24 +60,24 @@ import { legal, site } from '../config/legal';
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">4. Verlinkung zu Drittanbietern</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">4. Verlinkung zu Drittanbietern</h2>
         <p class="mt-2">
           Auf dieser Website werden Links zu externen Diensten gesetzt, insbesondere zu GitHub und zur Anwendung von {site.name}. Beim Anklicken solcher Links verlassen Sie diese Landing-Seite. Ab diesem Zeitpunkt gelten die Datenschutzhinweise und Nutzungsbedingungen der jeweiligen Anbieter bzw. Betreiber.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">5. Hosting der Landing-Seite</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">5. Hosting der Landing-Seite</h2>
         <p class="mt-2">
           Diese Landing-Seite wird über <strong>{legal.hosting.provider}</strong> bereitgestellt. Dabei kann eine Verarbeitung technischer Zugriffsdaten auf Servern des Anbieters stattfinden. Da der Anbieter in den <strong>{legal.hosting.location}</strong> ansässig ist, kann eine Übermittlung in ein Drittland nicht ausgeschlossen werden.
         </p>
         <p class="mt-2">
-          Weitere Informationen zur Datenverarbeitung durch den Hosting-Anbieter finden Sie in den Datenschutzhinweisen von GitHub: <a href={legal.hosting.privacyUrl} class="text-brand-400 underline underline-offset-2" target="_blank" rel="noopener noreferrer">GitHub Privacy Statement</a>.
+          Weitere Informationen zur Datenverarbeitung durch den Hosting-Anbieter finden Sie in den Datenschutzhinweisen von GitHub: <a href={legal.hosting.privacyUrl} class="landing-link" target="_blank" rel="noopener noreferrer">GitHub Privacy Statement</a>.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">6. Ihre Rechte</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">6. Ihre Rechte</h2>
         <p class="mt-2">Sie haben gegenüber dem Verantwortlichen u. a. folgende Rechte:</p>
         <ul class="mt-2 list-inside list-disc space-y-1">
           <li><strong>Auskunft</strong> (Art. 15 DSGVO) über Ihre verarbeiteten personenbezogenen Daten</li>
@@ -89,26 +89,26 @@ import { legal, site } from '../config/legal';
           <li><strong>Beschwerde</strong> bei einer Aufsichtsbehörde (Art. 77 DSGVO)</li>
         </ul>
         <p class="mt-2">
-          Für Auskünfte und die Ausübung Ihrer Rechte wenden Sie sich bitte an: <a href={`mailto:${legal.privacy.email}`} class="text-brand-400 underline underline-offset-2">{legal.privacy.email}</a>.
+          Für Auskünfte und die Ausübung Ihrer Rechte wenden Sie sich bitte an: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">7. Bereitstellungspflicht</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">7. Bereitstellungspflicht</h2>
         <p class="mt-2">
           Für den rein informatorischen Besuch dieser Landing-Seite müssen Sie uns aktiv keine personenbezogenen Daten mitteilen. Ohne die technisch erforderliche Verarbeitung bestimmter Verbindungsdaten durch den Hosting-Anbieter kann die Website jedoch nicht ausgeliefert werden. Für eine Kontaktaufnahme per E-Mail benötigen wir naturgemäß Ihre Absenderangaben.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">8. Hinweis zur Anwendung arsnova.eu</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">8. Hinweis zur Anwendung arsnova.eu</h2>
         <p class="mt-2">
           Die Anwendung unter <strong>{site.appUrl}</strong> ist datenschutzfreundlich konzipiert und verfolgt einen Local-First-Ansatz. Welche Daten beim Betrieb der Anwendung, bei Sessions oder bei Self-Hosting konkret verarbeitet werden, richtet sich jedoch nach dem jeweiligen Betreiber der Instanz. Bitte beachten Sie deshalb für die Live-Anwendung die dort jeweils bereitgestellten Datenschutzhinweise.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">9. Änderungen</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">9. Änderungen</h2>
         <p class="mt-2">
           Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte Rechtslage oder an die tatsächliche Datenverarbeitung anzugleichen. Die jeweils aktuelle Fassung finden Sie auf dieser Seite.
         </p>

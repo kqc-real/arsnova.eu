@@ -10,19 +10,19 @@ import { legal, site } from '../config/legal';
   canonicalPath="/impressum/"
 >
   <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="de">
-    <h1 class="font-display text-3xl font-bold text-white">Impressum</h1>
-    <p class="mt-2 text-slate-400">Angaben gemäß § 5 DDG</p>
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Impressum</h1>
+    <p class="mt-2 text-landing-fg-muted">Angaben gemäß § 5 DDG</p>
 
-    <section class="mt-6 rounded-2xl border border-slate-700 bg-slate-800/60 p-5 text-slate-300">
-      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Kurzinfo</p>
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">Kurzinfo</p>
       <p class="mt-3 leading-7">
         Diese Seite enthält die Anbieter- und Kontaktangaben für die Landing- und Informationsseite unter <strong>{site.landingUrl}</strong>. Die Live-Anwendung wird getrennt unter <strong>{site.appUrl}</strong> bereitgestellt.
       </p>
     </section>
 
-    <section class="mt-8 space-y-6 text-slate-300">
+    <section class="mt-8 space-y-6 text-landing-fg-body">
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">Anbieter / Diensteanbieter</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Anbieter / Diensteanbieter</h2>
         <p class="mt-2">
           {legal.provider.name}<br />
           {legal.provider.institution && <>{legal.provider.institution}<br /></>}
@@ -33,11 +33,11 @@ import { legal, site } from '../config/legal';
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">Kontakt</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Kontakt</h2>
         <p class="mt-2">
-          E-Mail: <a href={`mailto:${legal.provider.contact.email}`} class="text-brand-400 underline underline-offset-2">{legal.provider.contact.email}</a>
+          E-Mail: <a href={`mailto:${legal.provider.contact.email}`} class="landing-link">{legal.provider.contact.email}</a>
           {legal.provider.contact.website && (
-            <><br />Web: <a href={legal.provider.contact.website} class="text-brand-400 underline underline-offset-2" target="_blank" rel="noopener noreferrer">{legal.provider.contact.website}</a></>
+            <><br />Web: <a href={legal.provider.contact.website} class="landing-link" target="_blank" rel="noopener noreferrer">{legal.provider.contact.website}</a></>
           )}
           {legal.provider.contact.phone && (
             <><br />Telefon: {legal.provider.contact.phone}</>
@@ -47,41 +47,41 @@ import { legal, site } from '../config/legal';
 
       {legal.provider.editorialResponsible && (
         <div>
-          <h2 class="font-display text-lg font-semibold text-white">Verantwortlich für journalistisch-redaktionelle Inhalte gemäß § 18 Abs. 2 MStV</h2>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Verantwortlich für journalistisch-redaktionelle Inhalte gemäß § 18 Abs. 2 MStV</h2>
           <p class="mt-2">{legal.provider.editorialResponsible}</p>
         </div>
       )}
 
       {legal.provider.vatId && (
         <div>
-          <h2 class="font-display text-lg font-semibold text-white">Umsatzsteuer-Identifikation</h2>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Umsatzsteuer-Identifikation</h2>
           <p class="mt-2">{legal.provider.vatId}</p>
         </div>
       )}
 
       {legal.provider.supervisoryAuthority && (
         <div>
-          <h2 class="font-display text-lg font-semibold text-white">Aufsichtsbehörde</h2>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Aufsichtsbehörde</h2>
           <p class="mt-2">{legal.provider.supervisoryAuthority}</p>
         </div>
       )}
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">Haftung für Inhalte</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Haftung für Inhalte</h2>
         <p class="mt-2">
           Wir sind für eigene Inhalte dieser Website nach den allgemeinen Gesetzen verantwortlich. Externe Informationen, auf die lediglich verwiesen oder die automatisiert eingebunden werden, machen wir uns nicht ohne Weiteres zu eigen. Bei Hinweisen auf konkrete Rechtsverletzungen prüfen wir die betroffenen Inhalte und entfernen oder sperren sie, soweit dies rechtlich geboten ist.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">Haftung für Links</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Haftung für Links</h2>
         <p class="mt-2">
           Diese Website enthält Verweise auf externe Angebote Dritter, insbesondere auf GitHub und auf die eigentliche Anwendung von {site.name}. Auf die dortigen Inhalte und Verarbeitungen haben wir keinen laufenden Einfluss. Bei Kenntnis konkreter Rechtsverletzungen entfernen wir entsprechende Links, soweit dies zumutbar und rechtlich erforderlich ist.
         </p>
       </div>
 
       <div>
-        <h2 class="font-display text-lg font-semibold text-white">Urheberrecht</h2>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Urheberrecht</h2>
         <p class="mt-2">
           Inhalte, Texte, Bilder, Marken und Quelltexte dieser Website unterliegen den jeweils anwendbaren Urheber-, Kennzeichen- und Lizenzrechten. Für Code und projektbezogene Materialien gelten ergänzend die im jeweiligen Repository genannten Lizenzbedingungen. Inhalte Dritter werden nach Möglichkeit kenntlich gemacht.
         </p>

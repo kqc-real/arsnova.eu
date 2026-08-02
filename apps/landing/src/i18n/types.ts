@@ -22,6 +22,14 @@ export interface LanguageSwitcherMessages {
   chooseLanguage: string;
 }
 
+export interface ThemeSwitcherMessages {
+  label: string;
+  system: string;
+  light: string;
+  dark: string;
+  chooseAppearance: string;
+}
+
 export interface FooterMessages {
   impressum: string;
   privacy: string;
@@ -187,6 +195,7 @@ export interface Messages {
   meta: MetaMessages;
   nav: NavMessages;
   languageSwitcher: LanguageSwitcherMessages;
+  themeSwitcher: ThemeSwitcherMessages;
   footer: FooterMessages;
   cta: CtaMessages;
   hero: HeroMessages;

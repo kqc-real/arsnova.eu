@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
@@ -88,6 +90,12 @@ jobs:
           BASE_PATH: /
         run: npm run build:landing
 
+      - name: Landing theme static
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: npm run test:theme-static -w @arsnova/landing
+
       - name: Accessibility gate
         run: |
           set -euo pipefail
@@ -108,6 +116,9 @@ jobs:
             sleep 1
           done
           BASE_URL="http://localhost:4321" npm run test:a11y -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:language-switcher -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:theme-contrast -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:theme-switcher -w @arsnova/landing
 
       - name: List artifact root (Debug)
         run: ls -la apps/landing/dist/

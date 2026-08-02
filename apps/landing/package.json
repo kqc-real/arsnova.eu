@@ -13,6 +13,10 @@
     "test:a11y": "A11Y_APP=landing node ../frontend/scripts/check-a11y-static.mjs",
     "test:i18n": "node scripts/check-i18n.mjs",
     "test:language-switcher": "node scripts/check-language-switcher.mjs",
+    "test:theme-static": "node scripts/check-theme-static.mjs",
+    "test:theme-switcher": "node scripts/check-theme-switcher.mjs",
+    "test:theme-contrast": "node scripts/check-theme-contrast.mjs",
+    "test:theme-screenshots": "node scripts/capture-theme-screenshots.mjs",
     "check": "astro check"
   },
   "dependencies": {
