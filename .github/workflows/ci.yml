@@ -428,6 +428,10 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run test:i18n -w @arsnova/landing
 
+      - name: Landing theme static
+        if: needs.changes.outputs.docs_only != 'true'
+        run: npm run test:theme-static -w @arsnova/landing
+
       - name: Landing accessibility gate
         if: needs.changes.outputs.docs_only != 'true'
         run: |
@@ -450,6 +454,8 @@ jobs:
           done
           BASE_URL="http://localhost:4321" npm run test:a11y -w @arsnova/landing
           BASE_URL="http://localhost:4321" npm run test:language-switcher -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:theme-contrast -w @arsnova/landing
+          BASE_URL="http://localhost:4321" npm run test:theme-switcher -w @arsnova/landing
 
   # Explizites `npm run typecheck` (Backend + Frontend, --noEmit) — ergänzt die
   # tsc-Schritte im build-Job; eigener Check in der PR-Übersicht, parallel zu build.

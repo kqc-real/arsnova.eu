@@ -8,4 +8,17 @@ npx astro preview --host 127.0.0.1 --port 4321
 BASE_URL=http://127.0.0.1:4321 npm run test:theme-screenshots -w @arsnova/landing
 ```
 
-Covers light/dark × 320/768/1440 for `de` and `es`, plus open theme control, mobile nav, features, trust, FAQ and footer on desktop German.
+## Locales
+
+The script prints nav + theme + language label lengths for `de`/`en`/`fr`/`es`/`it` and picks the longest **non-DE** locale programmatically for the second locale in the matrix (historically often `es` or `it`).
+
+## Coverage
+
+- light/dark × 320/768/1440 for `de` + longest non-DE locale
+- open theme control, mobile nav, features, trust, FAQ, footer on desktop German
+- `after-de-light-1440-hero.png` — explicit Nachher hero from the current Magenta/Violett build
+
+## Before / After
+
+- **Vorher-Referenz:** Sky-Blue Landing on `main` before Issue #199 / PR #202.
+- **Nachher:** this matrix (playful Magenta/Violett theme with light/dark).

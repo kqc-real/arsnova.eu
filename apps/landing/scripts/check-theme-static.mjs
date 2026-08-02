@@ -3,7 +3,7 @@
  * Static theme architecture checks for Issue #199.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,12 +25,19 @@ function walk(dir, files = []) {
 }
 
 function ensureBuild() {
-  if (existsSync(join(dist, 'de', 'index.html'))) return;
-  console.log('dist/ incomplete — running landing build…');
+  // Always rebuild — never trust a stale dist alone.
+  if (existsSync(dist)) {
+    rmSync(dist, { recursive: true, force: true });
+  }
+  console.log('Running fresh landing build for theme-static checks…');
+  // Do not leak Playwright BASE_URL into Vite/Astro import.meta.env.BASE_URL.
+  const env = { ...process.env };
+  delete env.BASE_URL;
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
     stdio: 'inherit',
     shell: process.platform === 'win32',
+    env,
   });
   if (result.status !== 0) fail('Landing build failed');
 }
@@ -58,7 +65,7 @@ function checkNoSkyBrand() {
     }
   }
   const tw = readFileSync(join(root, 'tailwind.config.mjs'), 'utf8');
-  if (tw.includes("brand:") || tw.includes('brand :')) {
+  if (tw.includes('brand:') || tw.includes('brand :')) {
     fail('tailwind.config.mjs must not define a sky brand palette');
   }
 }
@@ -83,15 +90,61 @@ function checkNoMatSys() {
 }
 
 function checkFrontendUntouched() {
-  const result = spawnSync('git', ['diff', '--name-only', '--', 'apps/frontend'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  });
+  const base =
+    process.env.GITHUB_BASE_SHA ||
+    spawnSync('git', ['merge-base', 'HEAD', 'origin/main'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    }).stdout.trim();
+  const head = process.env.GITHUB_SHA || 'HEAD';
+  if (!base) {
+    fail('Could not resolve merge-base with origin/main for frontend untouched check');
+    return;
+  }
+  const result = spawnSync(
+    'git',
+    ['diff', '--name-only', `${base}...${head}`, '--', 'apps/frontend'],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    },
+  );
   const changed = (result.stdout || '').trim();
   if (changed) fail(`apps/frontend must remain untouched, but git reports:\n${changed}`);
 }
 
+function checkAlphaCapableTailwind() {
+  const tw = readFileSync(join(root, 'tailwind.config.mjs'), 'utf8');
+  for (const token of [
+    '--landing-background-rgb',
+    '--landing-primary-rgb',
+    '--landing-focus-rgb',
+    '<alpha-value>',
+  ]) {
+    if (!tw.includes(token)) fail(`tailwind.config.mjs missing alpha-capable token ${token}`);
+  }
+  const themeCss = readFileSync(join(root, 'src/styles/landing-theme.css'), 'utf8');
+  if (!themeCss.includes('--landing-primary-rgb')) {
+    fail('landing-theme.css missing --landing-*-rgb channel variables');
+  }
+  if (!themeCss.includes(':where(:root)') || !themeCss.includes(':where(html.light)')) {
+    fail(
+      'landing-theme.css must use :where(:root)/:where(html.light) so dark + forced-colors can win',
+    );
+  }
+  if (!themeCss.includes(':where(:root:not(.light))')) {
+    fail('landing-theme.css must use :where(:root:not(.light)) for system dark');
+  }
+  if (!themeCss.includes(':where(html.dark)')) {
+    fail('landing-theme.css must use :where(html.dark) for class dark');
+  }
+  if (/a,\s*button\s*\{\s*forced-color-adjust:\s*none/.test(themeCss)) {
+    fail('landing-theme.css must not blanket-disable forced-color-adjust on a, button');
+  }
+}
+
 function checkBuiltThemeArtifacts() {
+  if (errors.length) return;
   const html = readFileSync(join(dist, 'de', 'index.html'), 'utf8');
   if (!html.includes('arsnova-info-color-scheme-v1')) {
     fail('Built /de/ missing theme storage key');
@@ -102,16 +155,36 @@ function checkBuiltThemeArtifacts() {
   if (!html.includes('id="theme-desktop-button"') || !html.includes('id="theme-mobile-button"')) {
     fail('Built /de/ missing desktop/mobile theme switchers');
   }
-  if (!html.includes('--landing-primary') && !html.includes('landing-primary')) {
-    // CSS may be hashed; ensure FOUC script + theme control exist at least
-    if (!html.includes('__arsnovaLandingTheme')) fail('Built /de/ missing theme runtime');
+  if (html.includes('role="menu"') || html.includes("role='menu'")) {
+    fail('Built /de/ must not use role="menu" for theme switcher');
   }
+  if (html.includes('menuitemradio')) {
+    fail('Built /de/ must not use menuitemradio');
+  }
+  if (!html.includes('role="radiogroup"') || !html.includes('role="radio"')) {
+    fail('Built /de/ missing radiogroup/radio theme switcher roles');
+  }
+  if (!html.includes('__arsnovaLandingTheme')) fail('Built /de/ missing theme runtime');
   if (html.includes('aria-haspopup')) {
     fail('Built /de/ must not use aria-haspopup on disclosure controls');
   }
+  if (
+    !html.includes('data-landing-theme-color="light"') ||
+    !html.includes('data-landing-theme-color="dark"')
+  ) {
+    fail('Built /de/ missing media theme-color metas for no-JS');
+  }
+  if (!html.includes('data-landing-theme-color="explicit"')) {
+    fail('Built /de/ missing explicit theme-color meta');
+  }
 
-  // Theme texts must come from dictionaries — DE page contains German labels
-  for (const phrase of ['Darstellung', 'Systemeinstellung', 'Hell', 'Dunkel', 'Darstellung wählen']) {
+  for (const phrase of [
+    'Darstellung',
+    'Systemeinstellung',
+    'Hell',
+    'Dunkel',
+    'Darstellung wählen',
+  ]) {
     if (!html.includes(phrase)) fail(`Built /de/ missing theme phrase ${JSON.stringify(phrase)}`);
   }
 
@@ -120,10 +193,10 @@ function checkBuiltThemeArtifacts() {
     if (!en.includes(phrase)) fail(`Built /en/ missing theme phrase ${JSON.stringify(phrase)}`);
   }
   for (const dePhrase of ['Darstellung wählen', 'Systemeinstellung']) {
-    if (en.includes(dePhrase)) fail(`Built /en/ contains German theme phrase ${JSON.stringify(dePhrase)}`);
+    if (en.includes(dePhrase))
+      fail(`Built /en/ contains German theme phrase ${JSON.stringify(dePhrase)}`);
   }
 
-  // No external font requests in built HTML
   if (/fonts\.googleapis|fonts\.gstatic|use\.typekit|cdn\.fonts/.test(html)) {
     fail('Built page requests external fonts');
   }
@@ -134,6 +207,7 @@ if (!errors.length) {
   checkNoSkyBrand();
   checkNoMatSys();
   checkFrontendUntouched();
+  checkAlphaCapableTailwind();
   checkBuiltThemeArtifacts();
 }
 

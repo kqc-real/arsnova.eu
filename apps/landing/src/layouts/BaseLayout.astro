@@ -86,12 +86,31 @@ const jsonLd = {
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
-    <meta name="theme-color" content="#faf7fb" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#faf7fb"
+      data-landing-theme-color="light"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#161018"
+      data-landing-theme-color="dark"
+    />
+    <meta
+      name="theme-color"
+      content="#faf7fb"
+      media="not all"
+      data-landing-theme-color="explicit"
+    />
     <script is:inline>
       (function () {
         var KEY = 'arsnova-info-color-scheme-v1';
         var root = document.documentElement;
-        var meta = document.querySelector('meta[name="theme-color"]');
+        var metaLight = document.querySelector('meta[data-landing-theme-color="light"]');
+        var metaDark = document.querySelector('meta[data-landing-theme-color="dark"]');
+        var metaExplicit = document.querySelector('meta[data-landing-theme-color="explicit"]');
         function resolve(preference) {
           if (preference === 'light') return 'light';
           if (preference === 'dark') return 'dark';
@@ -103,10 +122,22 @@ const jsonLd = {
         }
         function apply(preference) {
           var mode = resolve(preference);
+          var color = mode === 'dark' ? '#161018' : '#faf7fb';
           root.classList.remove('light', 'dark');
           if (preference === 'light' || preference === 'dark') root.classList.add(preference);
           root.style.colorScheme = mode;
-          if (meta) meta.setAttribute('content', mode === 'dark' ? '#161018' : '#faf7fb');
+          if (preference === 'system') {
+            if (metaLight) metaLight.setAttribute('media', '(prefers-color-scheme: light)');
+            if (metaDark) metaDark.setAttribute('media', '(prefers-color-scheme: dark)');
+            if (metaExplicit) metaExplicit.setAttribute('media', 'not all');
+          } else {
+            if (metaLight) metaLight.setAttribute('media', 'not all');
+            if (metaDark) metaDark.setAttribute('media', 'not all');
+            if (metaExplicit) {
+              metaExplicit.setAttribute('content', color);
+              metaExplicit.setAttribute('media', '');
+            }
+          }
         }
         var stored = null;
         try {

@@ -20,7 +20,7 @@ const options = [
   <button
     type="button"
     id={buttonId}
-    class="inline-flex h-11 min-h-11 w-11 items-center justify-center rounded-landing-panel text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
+    class="inline-flex h-11 min-h-11 w-11 items-center justify-center rounded-landing-panel text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landing-focus focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
     aria-expanded="false"
     aria-controls={menuId}
     aria-label={t.themeSwitcher.chooseAppearance}
@@ -32,7 +32,7 @@ const options = [
   </button>
   <div
     id={menuId}
-    role="menu"
+    role="radiogroup"
     aria-label={t.themeSwitcher.label}
     class="absolute right-0 z-50 mt-2 hidden min-w-[14rem] rounded-landing-panel border border-landing-outline-variant bg-landing-surface py-1 shadow-landing-2"
     data-theme-menu
@@ -41,10 +41,10 @@ const options = [
       options.map((option) => (
         <button
           type="button"
-          role="menuitemradio"
+          role="radio"
           data-theme-option={option.value}
           aria-checked="false"
-          class="flex min-h-11 w-full items-center px-4 py-2.5 text-left text-sm font-medium text-landing-fg-body transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus:outline-none focus-visible:bg-landing-surface-container-high"
+          class="flex min-h-11 w-full items-center px-4 py-2.5 text-left text-sm font-medium text-landing-fg-body transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landing-focus focus-visible:bg-landing-surface-container-high"
         >
           {option.label}
         </button>

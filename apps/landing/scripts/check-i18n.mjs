@@ -135,10 +135,13 @@ const fail = (message) => errors.push(message);
  */
 function ensureBuild() {
   console.log('Running fresh landing build for i18n checks…');
+  // Do not leak Playwright BASE_URL into Vite/Astro import.meta.env.BASE_URL.
+  const env = { ...process.env };
+  delete env.BASE_URL;
   const result = spawnSync('npm', ['run', 'build'], {
     cwd: root,
     stdio: 'inherit',
-    env: process.env,
+    env,
     shell: process.platform === 'win32',
   });
   if (result.status !== 0) {
@@ -450,13 +453,31 @@ function checkThemeSwitcherMarkup() {
   if (!html.includes('data-theme-switcher') || !html.includes('data-theme-menu')) {
     fail('/de/ missing theme switcher disclosure markup');
   }
+  if (html.includes('role="menu"') || html.includes("role='menu'")) {
+    fail('/de/ theme switcher must use radiogroup, not role=menu');
+  }
+  if (html.includes('menuitemradio')) {
+    fail('/de/ theme switcher must not use menuitemradio');
+  }
+  if (!html.includes('role="radiogroup"') || !html.includes('role="radio"')) {
+    fail('/de/ theme switcher must expose radiogroup + radio roles');
+  }
+  if (html.includes('aria-haspopup')) {
+    fail('/de/ theme/language disclosure must not use aria-haspopup');
+  }
   if (!html.includes('arsnova-info-color-scheme-v1')) {
     fail('/de/ missing theme storage key arsnova-info-color-scheme-v1');
   }
   if (!html.includes('id="theme-desktop-button"') || !html.includes('id="theme-mobile-button"')) {
     fail('/de/ missing desktop and mobile theme switcher instances');
   }
-  for (const phrase of ['Darstellung', 'Systemeinstellung', 'Hell', 'Dunkel', 'Darstellung wählen']) {
+  for (const phrase of [
+    'Darstellung',
+    'Systemeinstellung',
+    'Hell',
+    'Dunkel',
+    'Darstellung wählen',
+  ]) {
     if (!html.includes(phrase)) fail(`/de/ missing theme phrase ${JSON.stringify(phrase)}`);
   }
   const fr = readFileSync(join(dist, 'fr', 'index.html'), 'utf8');

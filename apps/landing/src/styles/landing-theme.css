@@ -2,46 +2,78 @@
  * Eigenständige semantische Theme-Schicht für info.arsnova.eu (Issue #199).
  * Visuell an das spielerische Magenta-/Violett-Default-Preset der App angelehnt,
  * ohne Angular-Material-Systemtokens oder Material-Komponentenbibliotheken.
+ *
+ * Tailwind-Farben nutzen RGB-Kanäle (`--landing-*-rgb`) für Slash-Opacity.
  */
 
-:root,
-html.light {
+/* :where() keeps light/dark at zero specificity so forced-colors rules can win. */
+:where(:root),
+:where(html.light) {
   color-scheme: light;
 
   --landing-background: #faf7fb;
+  --landing-background-rgb: 250 247 251;
   --landing-surface: #ffffff;
+  --landing-surface-rgb: 255 255 255;
   --landing-surface-container: #f3eef6;
+  --landing-surface-container-rgb: 243 238 246;
   --landing-surface-container-high: #ebe3f0;
+  --landing-surface-container-high-rgb: 235 227 240;
   --landing-on-surface: #1c1b1f;
+  --landing-on-surface-rgb: 28 27 31;
   --landing-on-surface-muted: #5a535e;
+  --landing-on-surface-muted-rgb: 90 83 94;
   --landing-on-surface-body: #3f3942;
+  --landing-on-surface-body-rgb: 63 57 66;
 
   --landing-primary: #a900a9;
+  --landing-primary-rgb: 169 0 169;
   --landing-on-primary: #ffffff;
+  --landing-on-primary-rgb: 255 255 255;
   --landing-primary-container: #ffd6f4;
+  --landing-primary-container-rgb: 255 214 244;
   --landing-on-primary-container: #580055;
+  --landing-on-primary-container-rgb: 88 0 85;
   --landing-primary-hover: #8e008e;
+  --landing-primary-hover-rgb: 142 0 142;
 
   --landing-tertiary: #7d00fa;
+  --landing-tertiary-rgb: 125 0 250;
   --landing-on-tertiary: #ffffff;
+  --landing-on-tertiary-rgb: 255 255 255;
   --landing-tertiary-container: #ebddff;
+  --landing-tertiary-container-rgb: 235 221 255;
   --landing-on-tertiary-container: #2a0054;
+  --landing-on-tertiary-container-rgb: 42 0 84;
 
   --landing-outline: #7a727e;
+  --landing-outline-rgb: 122 114 126;
   --landing-outline-variant: #8a8290;
+  --landing-outline-variant-rgb: 138 130 144;
   --landing-focus: #a900a9;
+  --landing-focus-rgb: 169 0 169;
   --landing-error: #ba1a1a;
+  --landing-error-rgb: 186 26 26;
   --landing-on-error: #ffffff;
+  --landing-on-error-rgb: 255 255 255;
   --landing-shadow-color: 169 0 169;
 
   /* Fachliche Demo-/Statusfarben (nicht Markensteuerung) */
   --landing-status-amber-fg: #92400e;
+  --landing-status-amber-fg-rgb: 146 64 14;
+  --landing-status-amber-bg-rgb: 254 243 199;
   --landing-status-amber-bg: #fef3c7;
   --landing-status-emerald-fg: #065f46;
+  --landing-status-emerald-fg-rgb: 6 95 70;
+  --landing-status-emerald-bg-rgb: 209 250 229;
   --landing-status-emerald-bg: #d1fae5;
   --landing-status-rose-fg: #9f1239;
+  --landing-status-rose-fg-rgb: 159 18 57;
+  --landing-status-rose-bg-rgb: 255 228 230;
   --landing-status-rose-bg: #ffe4e6;
   --landing-status-violet-fg: #5b21b6;
+  --landing-status-violet-fg-rgb: 91 33 182;
+  --landing-status-violet-bg-rgb: 237 233 254;
   --landing-status-violet-bg: #ede9fe;
 
   --landing-hero-spotlight: rgba(169, 0, 169, 0.16);
@@ -58,43 +90,72 @@ html.light {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :where(:root:not(.light)) {
     color-scheme: dark;
 
     --landing-background: #161018;
+    --landing-background-rgb: 22 16 24;
     --landing-surface: #1e1722;
+    --landing-surface-rgb: 30 23 34;
     --landing-surface-container: #2a2230;
+    --landing-surface-container-rgb: 42 34 48;
     --landing-surface-container-high: #352c3c;
+    --landing-surface-container-high-rgb: 53 44 60;
     --landing-on-surface: #ece2ec;
+    --landing-on-surface-rgb: 236 226 236;
     --landing-on-surface-muted: #c9becb;
+    --landing-on-surface-muted-rgb: 201 190 203;
     --landing-on-surface-body: #d8ced9;
+    --landing-on-surface-body-rgb: 216 206 217;
 
     --landing-primary: #ffabf3;
+    --landing-primary-rgb: 255 171 243;
     --landing-on-primary: #5b005b;
+    --landing-on-primary-rgb: 91 0 91;
     --landing-primary-container: #8b008b;
+    --landing-primary-container-rgb: 139 0 139;
     --landing-on-primary-container: #ffd6f4;
+    --landing-on-primary-container-rgb: 255 214 244;
     --landing-primary-hover: #ffc2f6;
+    --landing-primary-hover-rgb: 255 194 246;
 
     --landing-tertiary: #d5baff;
+    --landing-tertiary-rgb: 213 186 255;
     --landing-on-tertiary: #3b0091;
+    --landing-on-tertiary-rgb: 59 0 145;
     --landing-tertiary-container: #5e00c8;
+    --landing-tertiary-container-rgb: 94 0 200;
     --landing-on-tertiary-container: #ebddff;
+    --landing-on-tertiary-container-rgb: 235 221 255;
 
     --landing-outline: #948b97;
+    --landing-outline-rgb: 148 139 151;
     --landing-outline-variant: #8a8290;
+    --landing-outline-variant-rgb: 138 130 144;
     --landing-focus: #ffabf3;
+    --landing-focus-rgb: 255 171 243;
     --landing-error: #ffb4ab;
+    --landing-error-rgb: 255 180 171;
     --landing-on-error: #690005;
+    --landing-on-error-rgb: 105 0 5;
     --landing-shadow-color: 255 171 243;
 
     --landing-status-amber-fg: #fbbf24;
-    --landing-status-amber-bg: rgb(251 191 36 / 0.16);
+    --landing-status-amber-fg-rgb: 251 191 36;
+    --landing-status-amber-bg-rgb: 251 191 36;
+    --landing-status-amber-bg: rgb(var(--landing-status-amber-bg-rgb) / 0.16);
     --landing-status-emerald-fg: #6ee7b7;
-    --landing-status-emerald-bg: rgb(52 211 153 / 0.16);
+    --landing-status-emerald-fg-rgb: 110 231 183;
+    --landing-status-emerald-bg-rgb: 52 211 153;
+    --landing-status-emerald-bg: rgb(var(--landing-status-emerald-bg-rgb) / 0.16);
     --landing-status-rose-fg: #fda4af;
-    --landing-status-rose-bg: rgb(251 113 133 / 0.16);
+    --landing-status-rose-fg-rgb: 253 164 175;
+    --landing-status-rose-bg-rgb: 251 113 133;
+    --landing-status-rose-bg: rgb(var(--landing-status-rose-bg-rgb) / 0.16);
     --landing-status-violet-fg: #c4b5fd;
-    --landing-status-violet-bg: rgb(167 139 250 / 0.16);
+    --landing-status-violet-fg-rgb: 196 181 253;
+    --landing-status-violet-bg-rgb: 167 139 250;
+    --landing-status-violet-bg: rgb(var(--landing-status-violet-bg-rgb) / 0.16);
 
     --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
     --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
@@ -102,43 +163,72 @@ html.light {
   }
 }
 
-html.dark {
+:where(html.dark) {
   color-scheme: dark;
 
   --landing-background: #161018;
+  --landing-background-rgb: 22 16 24;
   --landing-surface: #1e1722;
+  --landing-surface-rgb: 30 23 34;
   --landing-surface-container: #2a2230;
+  --landing-surface-container-rgb: 42 34 48;
   --landing-surface-container-high: #352c3c;
+  --landing-surface-container-high-rgb: 53 44 60;
   --landing-on-surface: #ece2ec;
+  --landing-on-surface-rgb: 236 226 236;
   --landing-on-surface-muted: #c9becb;
+  --landing-on-surface-muted-rgb: 201 190 203;
   --landing-on-surface-body: #d8ced9;
+  --landing-on-surface-body-rgb: 216 206 217;
 
   --landing-primary: #ffabf3;
+  --landing-primary-rgb: 255 171 243;
   --landing-on-primary: #5b005b;
+  --landing-on-primary-rgb: 91 0 91;
   --landing-primary-container: #8b008b;
+  --landing-primary-container-rgb: 139 0 139;
   --landing-on-primary-container: #ffd6f4;
+  --landing-on-primary-container-rgb: 255 214 244;
   --landing-primary-hover: #ffc2f6;
+  --landing-primary-hover-rgb: 255 194 246;
 
   --landing-tertiary: #d5baff;
+  --landing-tertiary-rgb: 213 186 255;
   --landing-on-tertiary: #3b0091;
+  --landing-on-tertiary-rgb: 59 0 145;
   --landing-tertiary-container: #5e00c8;
+  --landing-tertiary-container-rgb: 94 0 200;
   --landing-on-tertiary-container: #ebddff;
+  --landing-on-tertiary-container-rgb: 235 221 255;
 
   --landing-outline: #948b97;
+  --landing-outline-rgb: 148 139 151;
   --landing-outline-variant: #8a8290;
+  --landing-outline-variant-rgb: 138 130 144;
   --landing-focus: #ffabf3;
+  --landing-focus-rgb: 255 171 243;
   --landing-error: #ffb4ab;
+  --landing-error-rgb: 255 180 171;
   --landing-on-error: #690005;
+  --landing-on-error-rgb: 105 0 5;
   --landing-shadow-color: 255 171 243;
 
   --landing-status-amber-fg: #fbbf24;
-  --landing-status-amber-bg: rgb(251 191 36 / 0.16);
+  --landing-status-amber-fg-rgb: 251 191 36;
+  --landing-status-amber-bg-rgb: 251 191 36;
+  --landing-status-amber-bg: rgb(var(--landing-status-amber-bg-rgb) / 0.16);
   --landing-status-emerald-fg: #6ee7b7;
-  --landing-status-emerald-bg: rgb(52 211 153 / 0.16);
+  --landing-status-emerald-fg-rgb: 110 231 183;
+  --landing-status-emerald-bg-rgb: 52 211 153;
+  --landing-status-emerald-bg: rgb(var(--landing-status-emerald-bg-rgb) / 0.16);
   --landing-status-rose-fg: #fda4af;
-  --landing-status-rose-bg: rgb(251 113 133 / 0.16);
+  --landing-status-rose-fg-rgb: 253 164 175;
+  --landing-status-rose-bg-rgb: 251 113 133;
+  --landing-status-rose-bg: rgb(var(--landing-status-rose-bg-rgb) / 0.16);
   --landing-status-violet-fg: #c4b5fd;
-  --landing-status-violet-bg: rgb(167 139 250 / 0.16);
+  --landing-status-violet-fg-rgb: 196 181 253;
+  --landing-status-violet-bg-rgb: 167 139 250;
+  --landing-status-violet-bg: rgb(var(--landing-status-violet-bg-rgb) / 0.16);
 
   --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
   --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
@@ -185,33 +275,74 @@ body {
 
 @media (forced-colors: active) {
   :root,
+  :root:not(.light),
   html.light,
   html.dark {
     --landing-background: Canvas;
+    --landing-background-rgb: 255 255 255;
     --landing-surface: Canvas;
+    --landing-surface-rgb: 255 255 255;
     --landing-surface-container: Canvas;
+    --landing-surface-container-rgb: 255 255 255;
     --landing-surface-container-high: Canvas;
+    --landing-surface-container-high-rgb: 255 255 255;
     --landing-on-surface: CanvasText;
+    --landing-on-surface-rgb: 0 0 0;
     --landing-on-surface-muted: CanvasText;
+    --landing-on-surface-muted-rgb: 0 0 0;
     --landing-on-surface-body: CanvasText;
+    --landing-on-surface-body-rgb: 0 0 0;
     --landing-primary: LinkText;
+    --landing-primary-rgb: 0 0 255;
     --landing-on-primary: Canvas;
+    --landing-on-primary-rgb: 255 255 255;
     --landing-primary-container: Canvas;
+    --landing-primary-container-rgb: 255 255 255;
     --landing-on-primary-container: CanvasText;
+    --landing-on-primary-container-rgb: 0 0 0;
     --landing-primary-hover: LinkText;
+    --landing-primary-hover-rgb: 0 0 255;
     --landing-tertiary: LinkText;
+    --landing-tertiary-rgb: 0 0 255;
     --landing-on-tertiary: Canvas;
+    --landing-on-tertiary-rgb: 255 255 255;
     --landing-tertiary-container: Canvas;
+    --landing-tertiary-container-rgb: 255 255 255;
     --landing-on-tertiary-container: CanvasText;
+    --landing-on-tertiary-container-rgb: 0 0 0;
     --landing-outline: ButtonText;
+    --landing-outline-rgb: 0 0 0;
     --landing-outline-variant: ButtonText;
+    --landing-outline-variant-rgb: 0 0 0;
     --landing-focus: Highlight;
+    --landing-focus-rgb: 0 120 215;
     --landing-error: Mark;
+    --landing-error-rgb: 255 0 0;
     --landing-on-error: Canvas;
+    --landing-on-error-rgb: 255 255 255;
+    --landing-status-amber-fg: CanvasText;
+    --landing-status-amber-fg-rgb: 0 0 0;
+    --landing-status-amber-bg-rgb: 255 255 255;
+    --landing-status-amber-bg: Canvas;
+    --landing-status-emerald-fg: CanvasText;
+    --landing-status-emerald-fg-rgb: 0 0 0;
+    --landing-status-emerald-bg-rgb: 255 255 255;
+    --landing-status-emerald-bg: Canvas;
+    --landing-status-rose-fg: CanvasText;
+    --landing-status-rose-fg-rgb: 0 0 0;
+    --landing-status-rose-bg-rgb: 255 255 255;
+    --landing-status-rose-bg: Canvas;
+    --landing-status-violet-fg: CanvasText;
+    --landing-status-violet-fg-rgb: 0 0 0;
+    --landing-status-violet-bg-rgb: 255 255 255;
+    --landing-status-violet-bg: Canvas;
   }
 
-  a,
-  button {
-    forced-color-adjust: none;
+  [data-theme-option]:focus-visible,
+  [data-lang-menu] a:focus-visible,
+  [data-theme-switcher] > button:focus-visible,
+  [data-language-switcher] > button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
   }
 }
