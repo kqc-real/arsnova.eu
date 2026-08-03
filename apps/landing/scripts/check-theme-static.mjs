@@ -238,6 +238,15 @@ function checkBuiltThemeArtifacts() {
     fail('Built /de/ missing aria-pressed on theme options');
   }
   if (!html.includes('__arsnovaLandingTheme')) fail('Built /de/ missing theme runtime');
+  if (
+    !html.includes("URLSearchParams(window.location.search).get('theme')") &&
+    !html.includes('URLSearchParams(window.location.search).get("theme")')
+  ) {
+    fail('Built /de/ missing ?theme= query transfer (Issue #207)');
+  }
+  if (!html.includes('searchParams.delete') || !html.includes('replaceState')) {
+    fail('Built /de/ missing theme query cleanup via history.replaceState');
+  }
   if (html.includes('aria-haspopup')) {
     fail('Built /de/ must not use aria-haspopup on disclosure controls');
   }

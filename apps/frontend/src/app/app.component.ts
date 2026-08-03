@@ -105,8 +105,11 @@ class ConnectionBannerHostDirective {
 })
 export class AppComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
-  /** Footer-Deep-Link zur Informationsseite (Features). */
-  readonly infoLandingFeaturesUrl = infoLandingUrl(INFO_LANDING_ANCHORS.features);
+  readonly themePreset = inject(ThemePresetService);
+  /** Footer-Deep-Link zur Informationsseite (Features); Theme reaktiv (Issue #207). */
+  readonly infoLandingFeaturesUrl = computed(() =>
+    infoLandingUrl(INFO_LANDING_ANCHORS.features, undefined, this.themePreset.theme()),
+  );
   isOnline = signal(true);
   updateAvailable = signal(false);
   updateReloading = signal(false);
@@ -147,7 +150,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.onBeforeInstallPrompt(e as BeforeInstallPromptEvent);
   private appInstalledListener = (): void => this.onAppInstalled();
 
-  readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly swUpdate = inject(SwUpdate, { optional: true });

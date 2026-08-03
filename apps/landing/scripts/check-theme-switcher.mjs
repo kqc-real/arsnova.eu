@@ -696,6 +696,237 @@ async function runViewport(browser, viewport, buttonId, label) {
   }
 }
 
+/**
+ * Cross-Origin theme transfer from Angular via ?theme= (Issue #207).
+ * Validates FOUC-free apply, storage precedence, URL cleanup, and invalid ignore.
+ */
+async function assertThemeQueryTransfer(browser) {
+  async function openWith(path, { colorScheme = 'light', stored = null, viewport = { width: 1280, height: 900 } } = {}) {
+    const context = await browser.newContext({
+      colorScheme,
+      viewport,
+      reducedMotion: 'reduce',
+    });
+    const page = await context.newPage();
+    await page.addInitScript(
+      ({ key, value }) => {
+        try {
+          if (value == null) localStorage.removeItem(key);
+          else localStorage.setItem(key, value);
+        } catch {
+          // ignore
+        }
+      },
+      { key: STORAGE_KEY, value: stored },
+    );
+    await page.goto(`${BASE_URL}${path}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    return { context, page };
+  }
+
+  // dark + hash: apply before paint semantics, persist, strip theme only
+  {
+    const { context, page } = await openWith('/de/?theme=dark#features', { stored: 'light' });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        className: document.documentElement.className,
+        colorScheme: getComputedStyle(document.documentElement).colorScheme,
+        stored: localStorage.getItem(key),
+        href: location.href,
+        search: location.search,
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'dark') {
+        throw new Error(`theme=dark: expected data-landing-color-scheme=dark, got ${state.scheme}`);
+      }
+      if (!state.className.includes('dark')) {
+        throw new Error(`theme=dark: expected html.dark, got ${state.className}`);
+      }
+      if (!state.colorScheme.includes('dark')) {
+        throw new Error(`theme=dark: expected color-scheme dark, got ${state.colorScheme}`);
+      }
+      if (state.stored !== 'dark') {
+        throw new Error(`theme=dark: expected storage dark (override light), got ${state.stored}`);
+      }
+      if (state.search.includes('theme=')) {
+        throw new Error(`theme=dark: theme query not cleaned (${state.search})`);
+      }
+      if (state.hash !== '#features') {
+        throw new Error(`theme=dark: hash must remain #features, got ${state.hash}`);
+      }
+
+      await page.locator('#theme-desktop-button').click();
+      const pressed = await page.locator('#theme-desktop-menu [data-theme-option="dark"]').getAttribute(
+        'aria-pressed',
+      );
+      if (pressed !== 'true') {
+        throw new Error(`theme=dark: ThemeSwitcher dark option not pressed (aria-pressed=${pressed})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // light + workflow hash
+  {
+    const { context, page } = await openWith('/en/?theme=light#workflow', {
+      colorScheme: 'dark',
+      stored: 'dark',
+    });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        className: document.documentElement.className,
+        stored: localStorage.getItem(key),
+        search: location.search,
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'light' || !state.className.includes('light')) {
+        throw new Error(`theme=light: expected light mode, got ${JSON.stringify(state)}`);
+      }
+      if (state.stored !== 'light') {
+        throw new Error(`theme=light: expected storage light, got ${state.stored}`);
+      }
+      if (state.search.includes('theme=') || state.hash !== '#workflow') {
+        throw new Error(`theme=light: cleanup/hash wrong (${state.search} ${state.hash})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // system stays semantic system and follows OS
+  {
+    const { context, page } = await openWith('/fr/?theme=system#accessibility', {
+      colorScheme: 'dark',
+      stored: 'light',
+    });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        className: document.documentElement.className,
+        colorScheme: getComputedStyle(document.documentElement).colorScheme,
+        stored: localStorage.getItem(key),
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'system') {
+        throw new Error(`theme=system: expected scheme system, got ${state.scheme}`);
+      }
+      if (/\b(light|dark)\b/.test(state.className)) {
+        throw new Error(`theme=system: expected no explicit class, got ${state.className}`);
+      }
+      if (!state.colorScheme.includes('dark')) {
+        throw new Error(`theme=system: OS dark should resolve dark, got ${state.colorScheme}`);
+      }
+      if (state.stored !== 'system') {
+        throw new Error(`theme=system: expected storage system, got ${state.stored}`);
+      }
+      if (state.hash !== '#accessibility') {
+        throw new Error(`theme=system: hash lost (${state.hash})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // without theme param: local preference wins
+  {
+    const { context, page } = await openWith('/de/#features', { stored: 'dark' });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        stored: localStorage.getItem(key),
+        search: location.search,
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'dark' || state.stored !== 'dark') {
+        throw new Error(`no theme param: expected stored dark, got ${JSON.stringify(state)}`);
+      }
+      if (state.hash !== '#features') {
+        throw new Error(`no theme param: hash changed (${state.hash})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // invalid theme ignored and not persisted; other params + hash kept
+  {
+    const { context, page } = await openWith('/de/?theme=neon&ref=app#faq', { stored: 'light' });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        stored: localStorage.getItem(key),
+        search: location.search,
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'light' || state.stored !== 'light') {
+        throw new Error(`invalid theme: must keep light preference, got ${JSON.stringify(state)}`);
+      }
+      if (!state.search.includes('theme=neon') || !state.search.includes('ref=app')) {
+        throw new Error(
+          `invalid theme: must not strip params when theme invalid (${state.search})`,
+        );
+      }
+      if (state.hash !== '#faq') {
+        throw new Error(`invalid theme: hash lost (${state.hash})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // valid theme cleanup keeps sibling query params + hash
+  {
+    const { context, page } = await openWith('/de/?utm=1&theme=dark&ref=app#features', {
+      stored: 'light',
+    });
+    try {
+      const state = await page.evaluate((key) => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        stored: localStorage.getItem(key),
+        search: location.search,
+        hash: location.hash,
+      }), STORAGE_KEY);
+      if (state.scheme !== 'dark' || state.stored !== 'dark') {
+        throw new Error(`cleanup: expected dark applied, got ${JSON.stringify(state)}`);
+      }
+      if (state.search.includes('theme=')) {
+        throw new Error(`cleanup: theme still present (${state.search})`);
+      }
+      if (!state.search.includes('utm=1') || !state.search.includes('ref=app')) {
+        throw new Error(`cleanup: sibling params lost (${state.search})`);
+      }
+      if (state.hash !== '#features') {
+        throw new Error(`cleanup: hash lost (${state.hash})`);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  // 320px mobile viewport still applies transfer
+  {
+    const { context, page } = await openWith('/it/?theme=dark#features', {
+      viewport: { width: 320, height: 720 },
+      stored: 'light',
+    });
+    try {
+      const state = await page.evaluate(() => ({
+        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+        className: document.documentElement.className,
+        hash: location.hash,
+      }));
+      if (state.scheme !== 'dark' || !state.className.includes('dark') || state.hash !== '#features') {
+        throw new Error(`320px theme transfer failed: ${JSON.stringify(state)}`);
+      }
+      await page.locator('#theme-mobile-button').waitFor({ state: 'visible' });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main() {
   await waitForServer();
   const browser = await chromium.launch({ headless: true });
@@ -703,6 +934,7 @@ async function main() {
     await runViewport(browser, { width: 1280, height: 900 }, 'theme-desktop-button', 'desktop');
     await runViewport(browser, { width: 390, height: 844 }, 'theme-mobile-button', 'mobile');
     await assertFallbackWithoutStoredValue(browser);
+    await assertThemeQueryTransfer(browser);
     await assertNoJsPrefersColorScheme(browser);
     await assertReducedMotion(browser);
     await assertOverflow(browser);
@@ -711,7 +943,7 @@ async function main() {
     await browser.close();
   }
   console.log(
-    'Theme switcher checks passed (desktop + mobile + fallback + no-js + motion + overflow + focus).',
+    'Theme switcher checks passed (desktop + mobile + fallback + theme-query + no-js + motion + overflow + focus).',
   );
 }
 

@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
+import { ThemePresetService } from './core/theme-preset.service';
 import { markContentPageFocusReturn } from './shared/content-page-nav';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 
@@ -536,9 +537,37 @@ describe('AppComponent', () => {
     expect(link?.textContent ?? '').toContain('Was arsnova.eu kann');
     expect(link?.target).toBe('_blank');
     expect(link?.rel).toContain('noopener');
+    expect(link?.href).toContain('?theme=');
     expect(link?.href).toContain('#features');
     expect(link?.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');
     expect(link?.querySelector('.app-footer__primary-stack')).toBeTruthy();
+
+    fixture.destroy();
+  });
+
+  it('aktualisiert den Info-Landing-Footer-Link reaktiv bei Theme-Wechsel', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setTheme('light');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const link = () =>
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'a.app-footer__link--external',
+      ) as HTMLAnchorElement | null;
+
+    expect(link()?.getAttribute('href')).toBe('https://info.arsnova.eu/de/?theme=light#features');
+
+    themePreset.setTheme('dark');
+    fixture.detectChanges();
+    expect(link()?.getAttribute('href')).toBe('https://info.arsnova.eu/de/?theme=dark#features');
+
+    themePreset.setPreset('serious', { silent: true });
+    fixture.detectChanges();
+    expect(link()?.getAttribute('href')).toBe('https://info.arsnova.eu/de/?theme=dark#features');
 
     fixture.destroy();
   });
