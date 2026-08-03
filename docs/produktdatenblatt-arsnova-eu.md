@@ -43,7 +43,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
   600er Vote-Latenz, sechs Browser-Referenzflows und Lighthouse sind im
   [QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
   lokal grün. Offen sind Staging-Langläufe und Baselines.
-  McCabe-Refactor-Hotspots bleiben ebenfalls offen.
+  Story **0.8** (McCabe-Refactor) ist geschlossen / nicht weiterverfolgt.
 
 ## Epic 1 – Quiz-Verwaltung
 
@@ -51,7 +51,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 - Fragetypen: Single-/Multiple-Choice, Freitext, Kurzantwort, Umfrage, Rating, numerische Schätzfrage.
 - Markdown/KaTeX inkl. Bild-URL/Lightbox und KI-unterstütztem Import.
 - Numerische Schätzfragen (`NUMERIC_ESTIMATE`) unterstützen Ganzzahl-/Dezimal-Eingaben, Plausibilitätsgrenzen, absolutes/relatives Toleranzband, optionale zwei Runden, Statistik, Histogramm und Nähe-Scoring.
-- Offene Punkte: Sync-Härtung/Skalierung, Editor-Toolbar-Ausbau, Word-Cloud-2.0, Schlüsselwort-/Token-Bewertung für `SHORT_TEXT`-Ausbau (1.2ec/1.2ed), neue Fragentypen 1.2f–1.2i.
+- Offene Punkte: Sync-Härtung/Skalierung, Editor-Toolbar-Ausbau, Word-Cloud-2.0, Schlüsselwort-/Token-Bewertung für `SHORT_TEXT`-Ausbau (1.2ec/1.2ed), neue Fragentypen 1.2g–1.2h. **1.2f** (Hotspot) ist aus A11y-Gründen geschlossen; **1.2i** (Confidence) ist fertig.
 
 ## Epic 2 – Session-Start und Host-Steuerung
 
@@ -160,8 +160,7 @@ Produktionsbaselines.
 
 - Abschluss Last-/Performance-Tests (0.7): Staging-Langläufe und
   Produktionsbaselines freigeben
-- Komplexitätsreduktion/Refactor-Hotspots (0.8)
-- Neue Fragentypen und Auswertungslogik (1.2ec–1.2ed, 1.2f–1.2i)
+- Neue Fragentypen und Auswertungslogik (1.2ec–1.2ed, 1.2g–1.2h; 1.2f geschlossen)
 - Sync-Sicherheit/Skalierung (1.6c/1.6d)
 - Asynchrone Quiz-Modi (2.9)
 - Q&A-Erweiterungen (8.5–8.7)
