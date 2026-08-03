@@ -32,7 +32,7 @@ const localeHref = (code: Locale) => `${base}${code}/`.replace(/\/{2,}/g, '/');
     type="button"
     id={buttonId}
     class:list={[
-      'inline-flex min-h-11 items-center rounded-landing-panel font-medium text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-landing-focus focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg',
+      'inline-flex min-h-11 items-center rounded-landing-panel font-medium text-landing-fg-muted transition duration-landing-fast hover:bg-landing-surface-container-high hover:text-landing-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landing-focus focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg',
       compact ? 'gap-1 px-1.5 py-1 text-xs xl:gap-1.5 xl:px-2 xl:text-sm' : 'gap-2 px-2 py-1.5 text-sm',
     ]}
     aria-expanded="false"
@@ -64,7 +64,7 @@ const localeHref = (code: Locale) => `${base}${code}/`.replace(/\/{2,}/g, '/');
               hreflang={code}
               data-locale-link={code}
               class:list={[
-                'block min-h-11 px-4 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-landing-focus focus-visible:bg-landing-surface-container-high',
+                'block min-h-11 px-4 py-2.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landing-focus focus-visible:bg-landing-surface-container-high',
                 active
                   ? 'bg-landing-surface-container-high text-landing-fg'
                   : 'text-landing-fg-body hover:bg-landing-surface-container-high hover:text-landing-fg',

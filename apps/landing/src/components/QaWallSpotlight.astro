@@ -14,7 +14,7 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
 
 <section
   id="qa-wall"
-  class="relative bg-landing-bg px-4 py-16 sm:px-6 sm:py-24"
+  class="relative border-b border-landing-outline-variant bg-landing-bg px-4 py-16 sm:px-6 sm:py-24"
   aria-labelledby="qa-wall-heading"
 >
   <span id="fragenwand" class="absolute top-0 left-0 h-0 w-0 overflow-hidden" aria-hidden="true"></span>
@@ -36,7 +36,7 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
       </ul>
       <a
         href={controversyDocsUrl}
-        class="mt-8 inline-flex max-w-full break-words rounded-landing-button border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-5 py-3 text-sm font-semibold text-landing-status-emerald transition duration-landing-fast hover:border-landing-status-emerald hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg"
+        class="mt-8 inline-flex max-w-full break-words rounded-landing-button border border-landing-status-emerald/40 bg-landing-status-emerald-bg px-5 py-3 text-sm font-semibold text-landing-status-emerald transition duration-landing-fast hover:border-landing-status-emerald hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -49,7 +49,7 @@ const controversyDocsUrl = `${GITHUB_URL}/blob/main/docs/features/controversy-sc
       role="region"
       aria-label={q.demoAria}
     >
-      <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 pb-4">
+      <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-landing-outline-variant pb-4">
         <div class="min-w-0">
           <p class="break-words text-xs font-semibold uppercase tracking-[0.12em] text-landing-status-emerald sm:tracking-[0.18em]">{q.hostView}</p>
           <h3 class="mt-1 break-words font-display text-2xl font-bold text-landing-fg">{q.demoTitle}</h3>

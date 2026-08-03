@@ -91,11 +91,12 @@ describe('content-page-nav', () => {
     }
   });
 
-  it('entfernt Chrome-inert nicht vor history.back (Overlay→Overlay Binding bleibt geschützt)', () => {
-    const toolbar = document.createElement('app-top-toolbar');
-    toolbar.setAttribute('inert', '');
-    (toolbar as HTMLElement & { inert: boolean }).inert = true;
-    document.body.append(toolbar);
+  it('entfernt Chrome-inert nicht vor history.back (Overlay→Overlay bleibt geschützt)', () => {
+    const footer = document.createElement('footer');
+    footer.className = 'app-footer';
+    footer.setAttribute('inert', '');
+    (footer as HTMLElement & { inert: boolean }).inert = true;
+    document.body.append(footer);
 
     const location = { back: vi.fn() };
     const router = { navigateByUrl: vi.fn() };
@@ -105,13 +106,13 @@ describe('content-page-nav', () => {
     dismissContentPage(location as never, router as never);
 
     expect(location.back).toHaveBeenCalledOnce();
-    expect(toolbar.hasAttribute('inert')).toBe(true);
-    expect((toolbar as HTMLElement & { inert: boolean }).inert).toBe(true);
+    expect(footer.hasAttribute('inert')).toBe(true);
+    expect((footer as HTMLElement & { inert: boolean }).inert).toBe(true);
 
     if (lengthDesc) {
       Object.defineProperty(window.history, 'length', lengthDesc);
     }
-    toolbar.remove();
+    footer.remove();
   });
 
   it('navigiert bei Direktaufruf zur lokalisierten Startseite ohne Footer-Fokus-Marker', () => {

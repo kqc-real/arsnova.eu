@@ -1,8 +1,7 @@
-import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -268,13 +267,12 @@ describe('AppComponent', () => {
 
     expect(restored).toBe(true);
     expect(footer.hasAttribute('inert')).toBe(false);
-
     expect(document.activeElement).toBe(helpLink);
 
     fixture.destroy();
   });
 
-  it('laesst Footer auf Content-Overlay-Routen klickbar und setzt Toolbar/Skip-Link inert', () => {
+  it('setzt Toolbar, Footer und Skip-Link auf Content-Overlay-Routen inert', () => {
     window.history.pushState({}, '', '/help');
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
@@ -286,91 +284,19 @@ describe('AppComponent', () => {
     expect(component.isContentOverlayRoute()).toBe(true);
 
     const root = fixture.nativeElement as HTMLElement;
-    const footer = root.querySelector('footer.app-footer') as HTMLElement;
+    const footer = root.querySelector('footer.app-footer') as HTMLElement & { inert?: boolean };
     const toolbar = root.querySelector('app-top-toolbar') as HTMLElement & { inert?: boolean };
     const skip = root.querySelector('a.app-skip-link') as HTMLElement & { inert?: boolean };
+    const helpLink = root.querySelector('a[data-footer-focus="footer-help"]') as HTMLAnchorElement;
 
-    expect(footer.hasAttribute('inert')).toBe(false);
-    expect((footer as HTMLElement & { inert?: boolean }).inert).toBeFalsy();
     // attr.inert '' wird je nach Host als Attribut und/oder Property gesetzt
+    expect(footer.hasAttribute('inert') || footer.inert === true).toBe(true);
     expect(toolbar.hasAttribute('inert') || toolbar.inert === true).toBe(true);
     expect(skip.hasAttribute('inert') || skip.inert === true).toBe(true);
+    // Inerter Footer: Hilfe-Link ist für Pointer/Tastatur außerhalb des Modal-Dialogs nicht bedienbar.
+    expect(helpLink.closest('[inert]')).toBeTruthy();
 
     window.history.pushState({}, '', '/');
-    fixture.destroy();
-  });
-
-  it('schließt die Hilfe-Seite bei erneutem Klick auf den Hilfe-Footer-Button', () => {
-    configureAppTestBed();
-    const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance;
-    const router = TestBed.inject(Router);
-    const location = TestBed.inject(Location);
-    const backSpy = vi.spyOn(location, 'back');
-    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
-    Object.defineProperty(router, 'url', { configurable: true, get: () => '/help' });
-    const lengthDesc = Object.getOwnPropertyDescriptor(window.history, 'length');
-    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
-    fixture.detectChanges();
-
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    const preventSpy = vi.spyOn(event, 'preventDefault');
-    component.onFooterHelpClick(event);
-
-    expect(preventSpy).toHaveBeenCalled();
-    expect(backSpy).toHaveBeenCalled();
-    expect(navigateSpy).not.toHaveBeenCalled();
-
-    if (lengthDesc) {
-      Object.defineProperty(window.history, 'length', lengthDesc);
-    }
-    fixture.destroy();
-  });
-
-  it('laesst die Hilfe-Footer-Navigation zu, wenn keine Hilfe-Seite offen ist', () => {
-    configureAppTestBed();
-    const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance;
-    const router = TestBed.inject(Router);
-    const location = TestBed.inject(Location);
-    const backSpy = vi.spyOn(location, 'back');
-    Object.defineProperty(router, 'url', { configurable: true, get: () => '/' });
-    fixture.detectChanges();
-
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    const preventSpy = vi.spyOn(event, 'preventDefault');
-    component.onFooterHelpClick(event);
-
-    expect(preventSpy).not.toHaveBeenCalled();
-    expect(backSpy).not.toHaveBeenCalled();
-
-    fixture.destroy();
-  });
-
-  it('wechselt von Legal zur Hilfe per Footer-Hilfe-Link ohne preventDefault', () => {
-    configureAppTestBed();
-    const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance;
-    const router = TestBed.inject(Router);
-    const location = TestBed.inject(Location);
-    const backSpy = vi.spyOn(location, 'back');
-    Object.defineProperty(router, 'url', {
-      configurable: true,
-      get: () => '/legal/imprint',
-    });
-    component.isContentOverlayRoute.set(true);
-    fixture.detectChanges();
-
-    const footer = fixture.nativeElement.querySelector('footer.app-footer') as HTMLElement;
-    expect(footer.hasAttribute('inert')).toBe(false);
-
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    const preventSpy = vi.spyOn(event, 'preventDefault');
-    component.onFooterHelpClick(event);
-
-    expect(preventSpy).not.toHaveBeenCalled();
-    expect(backSpy).not.toHaveBeenCalled();
-
     fixture.destroy();
   });
 

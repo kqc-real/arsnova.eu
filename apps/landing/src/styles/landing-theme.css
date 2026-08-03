@@ -241,24 +241,10 @@ body {
   color: var(--landing-on-surface);
 }
 
-/* Skip-link and focus defaults — Outline folgt gerundeter Form. */
+/* Skip-link and focus defaults */
 :focus-visible {
   outline: 2px solid var(--landing-focus);
-  outline-offset: 4px;
-  border-radius: var(--landing-radius-panel);
-}
-
-.rounded-landing-panel:focus-visible {
-  border-radius: var(--landing-radius-panel);
-}
-
-.rounded-landing-card:focus-visible {
-  border-radius: var(--landing-radius-card);
-}
-
-.rounded-landing-button:focus-visible,
-.rounded-full:focus-visible {
-  border-radius: var(--landing-radius-button);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -357,7 +343,6 @@ body {
   [data-theme-switcher] > button:focus-visible,
   [data-language-switcher] > button:focus-visible {
     outline: 2px solid Highlight;
-    outline-offset: 4px;
-    border-radius: var(--landing-radius-panel);
+    outline-offset: 2px;
   }
 }

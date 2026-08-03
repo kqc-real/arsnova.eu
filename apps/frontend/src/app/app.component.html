@@ -131,11 +131,12 @@
     </div>
   </main>
   @if (!isFeedbackRoute() && !isImmersiveHostView()) {
-    <!--
-      Footer bleibt auf Content-Overlay-Routen klickbar (Hilfe/Mehr wechseln oder toggeln).
-      Toolbar/Skip-Link bleiben inert; Tastaturfokus hält cdkTrapFocus im Panel.
-    -->
-    <footer #appFooter class="app-footer" role="contentinfo">
+    <footer
+      #appFooter
+      class="app-footer"
+      role="contentinfo"
+      [attr.inert]="isContentOverlayRoute() ? '' : null"
+    >
       <div class="app-footer__inner">
         <div class="app-footer__row">
           <div
@@ -184,7 +185,6 @@
               class="app-footer__primary"
               data-footer-focus="footer-help"
               [routerLink]="localizedPath('/help')"
-              (click)="onFooterHelpClick($event)"
               i18n-aria-label="@@app.footer.helpOpenAria"
               aria-label="So funktioniert’s"
             >

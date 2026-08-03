@@ -6,9 +6,7 @@ import { markMotdOverlayReloadSuppress } from '../core/motd-storage';
 
 /**
  * Hilfe, Legal und News-Archiv: overlay-artige Content-Pages mit Backdrop/Zurück.
- * Auf diesen Routen sind Toolbar/Skip-Link `inert` (Tab-Reihenfolge).
- * Der Footer bleibt klickbar, damit Content-Pages per Footer-Navigation
- * geschlossen oder gewechselt werden können; Tastaturfokus hält cdkTrapFocus im Panel.
+ * Auf diesen Routen sollen App-Chrome (Toolbar/Footer) nicht per Tab erreichbar sein.
  */
 export function isContentOverlayPath(pathname: string): boolean {
   const normalized =
@@ -126,10 +124,7 @@ function contentPageFocusReturnHrefSelector(target: ContentPageFocusReturn): str
   }
 }
 
-/**
- * Entfernt inert an Toolbar/Skip-Link (und defensiv am Footer),
- * damit Fokus zurück in den Footer kann.
- */
+/** Entfernt inert am App-Chrome, damit Fokus zurück in den Footer kann. */
 export function clearAppChromeInert(): void {
   if (typeof document === 'undefined') return;
   const chrome = Array.from(
@@ -205,7 +200,7 @@ export function shouldDeferContentPageEscape(dialog: MatDialog): boolean {
  * Schließt eine Content-Page: History zurück, sonst lokalisierte Startseite.
  * Beim Direktaufruf (keine History) kein Footer-Fokus-Marker — normale Home-Fokuslogik.
  *
- * Toolbar/Skip-Link-`inert` hier nicht entfernen: bei Overlay→Overlay (Hilfe→Legal→Zurück)
+ * Chrome-`inert` hier nicht entfernen: bei Overlay→Overlay (Hilfe→Legal→Zurück)
  * bliebe die Angular-Binding sonst ohne Re-Apply. `focusFooterContentReturn` entfernt
  * inert erst bei tatsächlicher Rückkehr auf eine Nicht-Overlay-Route.
  */
