@@ -6,6 +6,7 @@ import {
   HostListener,
   inject,
   PLATFORM_ID,
+  signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
@@ -63,6 +64,13 @@ export class HelpComponent implements AfterViewInit {
    * sonst gewinnt der Focus-Trap gegen den Abschnittstitel.
    */
   readonly trapAutoCapture = this.hashSectionOnInit === null;
+
+  /**
+   * Einstiegs-Akkordeons: auf der Übersicht zu, bei aktiver Rolle nur das der gewählten Rolle.
+   * Manuelles Auf/Zu bleibt über expandedChange synchron.
+   */
+  readonly hostEntryExpanded = signal(this.hashSectionOnInit === 'help-host');
+  readonly participantEntryExpanded = signal(this.hashSectionOnInit === 'help-participant');
 
   readonly localizedPath = localizePath;
   readonly infoLandingFeaturesAnchor = INFO_LANDING_ANCHORS.features;
@@ -137,6 +145,7 @@ export class HelpComponent implements AfterViewInit {
 
   /** Scrollt und fokussiert einen erlaubten Rollenabschnitt (Klick und initialer Hash). */
   private focusHelpSection(sectionId: HelpRoleSectionId): void {
+    this.applyRoleEntryExpanded(sectionId);
     const section = document.getElementById(sectionId);
     if (!section) {
       return;
@@ -147,6 +156,12 @@ export class HelpComponent implements AfterViewInit {
     // Nach In-Page-Sprung Fokus verschieben; sonst bleibt er auf der Rollenkarte und Tab
     // läuft wieder durch die Karten oberhalb des Ziels.
     heading.focus({ preventScroll: true });
+  }
+
+  /** Nur das Einstiegspanel der aktiven Rolle öffnen — nie beide Rollen parallel. */
+  private applyRoleEntryExpanded(sectionId: HelpRoleSectionId): void {
+    this.hostEntryExpanded.set(sectionId === 'help-host');
+    this.participantEntryExpanded.set(sectionId === 'help-participant');
   }
 
   private readAllowedHelpSectionHash(): HelpRoleSectionId | null {

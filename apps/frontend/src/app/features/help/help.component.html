@@ -104,7 +104,12 @@
 
           <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
           <mat-accordion class="help-accordion" [multi]="true">
-            <mat-expansion-panel #hostCapabilitiesPanel class="help-panel" [expanded]="true">
+            <mat-expansion-panel
+              #hostCapabilitiesPanel
+              class="help-panel"
+              [expanded]="hostEntryExpanded()"
+              (expandedChange)="hostEntryExpanded.set($event)"
+            >
               <mat-expansion-panel-header>
                 <mat-panel-title i18n="@@help.hostCapabilitiesTitle"
                   >Was kann ich mit arsnova.eu machen?</mat-panel-title
@@ -262,7 +267,12 @@
 
           <h3 class="help-experience-title" i18n="@@help.newUserTitle">Neu bei arsnova.eu</h3>
           <mat-accordion class="help-accordion" [multi]="true">
-            <mat-expansion-panel #participantJoinPanel class="help-panel" [expanded]="true">
+            <mat-expansion-panel
+              #participantJoinPanel
+              class="help-panel"
+              [expanded]="participantEntryExpanded()"
+              (expandedChange)="participantEntryExpanded.set($event)"
+            >
               <mat-expansion-panel-header>
                 <mat-panel-title i18n="@@help.participantJoinTitle"
                   >Wie trete ich einer Session bei?</mat-panel-title
