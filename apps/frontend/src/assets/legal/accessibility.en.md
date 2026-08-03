@@ -1,7 +1,5 @@
 # Accessibility
 
-**Last updated: July 27, 2026**
-
 arsnova.eu is designed so that you can use the application with a keyboard, a screen reader, high levels of zoom, and your operating system’s contrast settings. This page explains the accessibility support available to you and how we maintain it.
 
 ## Our standard

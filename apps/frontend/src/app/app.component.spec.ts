@@ -272,6 +272,34 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('setzt Toolbar, Footer und Skip-Link auf Content-Overlay-Routen inert', () => {
+    window.history.pushState({}, '', '/help');
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    (component as AppComponent & { updateRouteFlags: () => void }).updateRouteFlags();
+    fixture.detectChanges();
+
+    expect(component.isContentOverlayRoute()).toBe(true);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const footer = root.querySelector('footer.app-footer') as HTMLElement & { inert?: boolean };
+    const toolbar = root.querySelector('app-top-toolbar') as HTMLElement & { inert?: boolean };
+    const skip = root.querySelector('a.app-skip-link') as HTMLElement & { inert?: boolean };
+    const helpLink = root.querySelector('a[data-footer-focus="footer-help"]') as HTMLAnchorElement;
+
+    // attr.inert '' wird je nach Host als Attribut und/oder Property gesetzt
+    expect(footer.hasAttribute('inert') || footer.inert === true).toBe(true);
+    expect(toolbar.hasAttribute('inert') || toolbar.inert === true).toBe(true);
+    expect(skip.hasAttribute('inert') || skip.inert === true).toBe(true);
+    // Inerter Footer: Hilfe-Link ist für Pointer/Tastatur außerhalb des Modal-Dialogs nicht bedienbar.
+    expect(helpLink.closest('[inert]')).toBeTruthy();
+
+    window.history.pushState({}, '', '/');
+    fixture.destroy();
+  });
+
   it('entfernt Bootstrap-Fokus aus dem Footer, damit der Skip-Link erster Tab-Stop bleibt', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
