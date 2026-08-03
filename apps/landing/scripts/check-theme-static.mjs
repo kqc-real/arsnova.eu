@@ -14,29 +14,63 @@ const errors = [];
 const fail = (message) => errors.push(message);
 
 /**
- * Theme-/Style-Einstiegspunkte: bei Diff hier muss apps/frontend unberührt bleiben.
- * Exportiert für Unit-Regressionstests.
+ * Style-/Token-Einstiegspunkte: bei Diff hier muss apps/frontend unberührt bleiben
+ * (Issue #199 – keine Angular-Material-/Frontend-Vermischung in Landing-Tokens).
  */
-export const LANDING_THEME_SCOPE = [
+export const LANDING_THEME_STYLE_SCOPE = [
   'apps/landing/src/styles/landing-theme.css',
   'apps/landing/src/styles/global.css',
   'apps/landing/src/components/ThemeSwitcher.astro',
   'apps/landing/src/components/LanguageSwitcher.astro',
-  'apps/landing/src/layouts/BaseLayout.astro',
   'apps/landing/tailwind.config.mjs',
 ];
 
 /**
- * Pure Prüfung: Theme-Scope + Frontend gleichzeitig geändert?
+ * Vollständiger Theme-Scope inkl. FOUC-/Layout-Skript.
+ * Exportiert für Unit-Regressionstests.
+ */
+export const LANDING_THEME_SCOPE = [
+  ...LANDING_THEME_STYLE_SCOPE,
+  'apps/landing/src/layouts/BaseLayout.astro',
+];
+
+/**
+ * Erlaubte Frontend-Brücke für Cross-Origin-Theme-Übergabe (Issue #207).
+ * Nur wirksam zusammen mit BaseLayout, nicht mit Style-/Token-Dateien.
+ */
+export const INFO_LANDING_THEME_BRIDGE_FRONTEND = [
+  'apps/frontend/src/app/core/info-landing-url.ts',
+  'apps/frontend/src/app/core/info-landing-url.spec.ts',
+  'apps/frontend/src/app/shared/info-landing-link/info-landing-link.component.ts',
+  'apps/frontend/src/app/shared/info-landing-link/info-landing-link.component.spec.ts',
+  'apps/frontend/src/app/shared/info-landing-link/info-landing-link.component.html',
+  'apps/frontend/src/app/shared/info-landing-link/info-landing-link.component.scss',
+  'apps/frontend/src/app/app.component.ts',
+  'apps/frontend/src/app/app.component.html',
+  'apps/frontend/src/app/app.component.spec.ts',
+  'apps/frontend/src/app/features/help/help.component.spec.ts',
+];
+
+/**
+ * Pure Prüfung: unzulässige Theme-/Frontend-Vermischung?
+ * Style-Scope + jedes Frontend = Verstoß.
+ * BaseLayout + nur Info-Landing-Bridge-Frontend = erlaubt (Issue #207).
  * @param {string[]} changedPaths relative Repo-Pfade aus git diff --name-only
  */
 export function frontendIsolationViolation(changedPaths) {
   const paths = Array.isArray(changedPaths) ? changedPaths : [];
-  const themeTouched = paths.some((path) => LANDING_THEME_SCOPE.includes(path));
-  const frontendTouched = paths.some(
+  const frontendPaths = paths.filter(
     (path) => path === 'apps/frontend' || path.startsWith('apps/frontend/'),
   );
-  return themeTouched && frontendTouched;
+  if (frontendPaths.length === 0) return false;
+
+  const styleTouched = paths.some((path) => LANDING_THEME_STYLE_SCOPE.includes(path));
+  if (styleTouched) return true;
+
+  const themeTouched = paths.some((path) => LANDING_THEME_SCOPE.includes(path));
+  if (!themeTouched) return false;
+
+  return frontendPaths.some((path) => !INFO_LANDING_THEME_BRIDGE_FRONTEND.includes(path));
 }
 
 function walk(dir, files = []) {
@@ -238,6 +272,15 @@ function checkBuiltThemeArtifacts() {
     fail('Built /de/ missing aria-pressed on theme options');
   }
   if (!html.includes('__arsnovaLandingTheme')) fail('Built /de/ missing theme runtime');
+  if (
+    !html.includes("URLSearchParams(window.location.search).get('theme')") &&
+    !html.includes('URLSearchParams(window.location.search).get("theme")')
+  ) {
+    fail('Built /de/ missing ?theme= query transfer (Issue #207)');
+  }
+  if (!html.includes('searchParams.delete') || !html.includes('replaceState')) {
+    fail('Built /de/ missing theme query cleanup via history.replaceState');
+  }
   if (html.includes('aria-haspopup')) {
     fail('Built /de/ must not use aria-haspopup on disclosure controls');
   }

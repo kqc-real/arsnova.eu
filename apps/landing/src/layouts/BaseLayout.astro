@@ -145,8 +145,32 @@ const jsonLd = {
         } catch (_e) {}
         var preference =
           stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+        // Cross-Origin-Übergabe von arsnova.eu (Issue #207): gültiges ?theme= hat Vorrang.
+        var transferred = null;
+        try {
+          var rawTheme = new URLSearchParams(window.location.search).get('theme');
+          if (rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system') {
+            transferred = rawTheme;
+          }
+        } catch (_e) {}
+        if (transferred) {
+          preference = transferred;
+          try {
+            localStorage.setItem(KEY, transferred);
+          } catch (_e) {}
+        }
         apply(preference);
         root.setAttribute('data-landing-color-scheme', preference);
+        if (transferred) {
+          try {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('theme');
+            var cleanedSearch = url.searchParams.toString();
+            var next =
+              url.pathname + (cleanedSearch ? '?' + cleanedSearch : '') + url.hash;
+            history.replaceState(null, '', next);
+          } catch (_e) {}
+        }
         window.__arsnovaLandingTheme = {
           key: KEY,
           get: function () {

@@ -18,17 +18,27 @@ export const INFO_LANDING_ANCHORS = {
 
 export type InfoLandingAnchor = (typeof INFO_LANDING_ANCHORS)[keyof typeof INFO_LANDING_ANCHORS];
 
+/** Darstellungsmodus für Cross-Origin-Übergabe an die Informationsseite (Issue #207). */
+export type InfoLandingTheme = 'system' | 'light' | 'dark';
+
+const INFO_LANDING_THEMES: readonly InfoLandingTheme[] = ['system', 'light', 'dark'];
+
+function isInfoLandingTheme(value: unknown): value is InfoLandingTheme {
+  return typeof value === 'string' && (INFO_LANDING_THEMES as readonly string[]).includes(value);
+}
+
 /**
  * Locale-sichere URL zur Informationsseite.
- * Niemals nur die Domainwurzel — immer `/{locale}/` (+ optionaler kanonischer Hash).
+ * Niemals nur die Domainwurzel — immer `/{locale}/` (+ optionaler Theme-Query und kanonischer Hash).
+ * Query steht vor dem Hash: `/{locale}/?theme=dark#features`.
  */
 export function infoLandingUrl(
   anchor?: InfoLandingAnchor | null,
   locale: SupportedLocale = getEffectiveLocale(),
+  theme?: InfoLandingTheme,
 ): string {
   const path = `${INFO_LANDING_ORIGIN.replace(/\/$/, '')}/${locale}/`;
-  if (!anchor) {
-    return path;
-  }
-  return `${path}#${anchor}`;
+  const query = isInfoLandingTheme(theme) ? `?theme=${theme}` : '';
+  const hash = anchor ? `#${anchor}` : '';
+  return `${path}${query}${hash}`;
 }
