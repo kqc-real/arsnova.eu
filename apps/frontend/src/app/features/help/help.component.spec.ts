@@ -5,6 +5,7 @@ import { provideRouter, Router, RouterOutlet, withInMemoryScrolling } from '@ang
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLocaleFromPath } from '../../core/locale-from-path';
+import { infoLandingUrl } from '../../core/info-landing-url';
 import { HelpComponent } from './help.component';
 
 vi.mock('../../core/locale-from-path', async (importOriginal) => {
@@ -286,6 +287,39 @@ describe('HelpComponent', () => {
     expect(text).toContain('Für alle');
     expect(text.match(/Neu bei arsnova\.eu/g)?.length).toBeGreaterThanOrEqual(2);
     expect(text.match(/Schon vertraut mit arsnova\.eu/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('platziert den Info-Landing-Block unter der Rollenwahl mit neuem Tab', async () => {
+    const fixture = await createFixture();
+    const root = fixture.nativeElement as HTMLElement;
+    const roleNav = root.querySelector('nav.help-role-nav');
+    const infoAside = root.querySelector('aside.help-info-landing');
+    const hostSection = root.querySelector('#help-host');
+    expect(roleNav).toBeTruthy();
+    expect(infoAside).toBeTruthy();
+    expect(hostSection).toBeTruthy();
+
+    const position = roleNav!.compareDocumentPosition(infoAside!);
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      infoAside!.compareDocumentPosition(hostSection!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    expect(infoAside!.querySelector('#help-info-landing-title')?.textContent?.trim()).toBe(
+      'Mehr zu Nutzen und Hintergründen',
+    );
+    expect(infoAside!.textContent).toContain(
+      'Auf der Informationsseite findest du Einsatzmöglichkeiten',
+    );
+
+    const link = infoAside!.querySelector<HTMLAnchorElement>('a.info-landing-link');
+    expect(link).toBeTruthy();
+    expect(link!.getAttribute('href')).toBe(infoLandingUrl('features'));
+    expect(link!.getAttribute('target')).toBe('_blank');
+    expect(link!.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(link!.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');
+    expect(link!.textContent).toContain('Hintergründe und Einsatzmöglichkeiten');
+    expect(link!.querySelector('.sr-only')?.textContent?.trim()).toBe('öffnet in neuem Tab');
   });
 
   it('hält die Überschriftenreihenfolge für die Info-Landing-Aside ein', async () => {

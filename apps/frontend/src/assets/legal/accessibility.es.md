@@ -1,7 +1,5 @@
 # Accesibilidad
 
-**Actualización: 27 de julio de 2026**
-
 arsnova.eu está diseñado para utilizarse con teclado, lectores de pantalla, niveles altos de ampliación y los modos de contraste del sistema operativo. Esta página explica las funciones de accesibilidad disponibles y cómo garantizamos su calidad.
 
 ## Nuestro estándar de referencia

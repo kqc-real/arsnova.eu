@@ -1,7 +1,5 @@
 # Barrierefreiheit
 
-**Stand: 27. Juli 2026**
-
 arsnova.eu ist so gestaltet, dass du die Anwendung mit Tastatur, Screenreader, starker Vergrößerung und den Kontrastmodi deines Betriebssystems nutzen kannst. Auf dieser Seite erfährst du, welche Unterstützung dir zur Verfügung steht und wie wir die Barrierefreiheit sichern.
 
 ## Unser Maßstab
