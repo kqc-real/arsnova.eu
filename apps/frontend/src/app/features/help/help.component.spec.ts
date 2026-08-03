@@ -350,28 +350,117 @@ describe('HelpComponent', () => {
     expect(root.querySelectorAll('mat-accordion').length).toBe(5);
   });
 
-  it('öffnet das erste Anfängerpanel pro Rolle und hält Referenzpanels geschlossen', async () => {
+  it('lässt auf der Übersichtsansicht alle Akkordeons geschlossen', async () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
+    const panels = root.querySelectorAll('mat-expansion-panel.help-panel');
+    expect(panels.length).toBe(17);
+    for (const panel of Array.from(panels)) {
+      expect(panel.classList.contains('mat-expanded')).toBe(false);
+    }
+  });
+
+  it('öffnet bei Rollenkarten-Klick nur das Einstiegspanel der gewählten Rolle', async () => {
+    const fixture = await createFixture();
+    const root = fixture.nativeElement as HTMLElement;
+    const hostCard = root.querySelector<HTMLAnchorElement>('a.help-role-card[href$="#help-host"]');
+    const participantCard = root.querySelector<HTMLAnchorElement>(
+      'a.help-role-card[href$="#help-participant"]',
+    );
+    const hostSection = root.querySelector('#help-host') as HTMLElement;
+    const participantSection = root.querySelector('#help-participant') as HTMLElement;
+    Object.defineProperty(hostSection, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(participantSection, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    });
     const hostPanels = root.querySelectorAll('#help-host mat-expansion-panel.help-panel');
     const participantPanels = root.querySelectorAll(
       '#help-participant mat-expansion-panel.help-panel',
     );
-    const commonPanels = root.querySelectorAll('#help-common mat-expansion-panel.help-panel');
+
+    hostCard!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(hostPanels[0]?.classList.contains('mat-expanded')).toBe(true);
     for (let i = 1; i < hostPanels.length; i++) {
       expect(hostPanels[i]?.classList.contains('mat-expanded')).toBe(false);
     }
+    for (const panel of Array.from(participantPanels)) {
+      expect(panel.classList.contains('mat-expanded')).toBe(false);
+    }
+
+    participantCard!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(participantPanels[0]?.classList.contains('mat-expanded')).toBe(true);
     for (let i = 1; i < participantPanels.length; i++) {
       expect(participantPanels[i]?.classList.contains('mat-expanded')).toBe(false);
     }
-
-    for (const panel of Array.from(commonPanels)) {
+    for (const panel of Array.from(hostPanels)) {
       expect(panel.classList.contains('mat-expanded')).toBe(false);
     }
+  });
+
+  it('öffnet bei initialem Fragmentaufruf nur das Einstiegspanel der Deep-Link-Rolle', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [HelpRouterHostComponent, HelpComponent],
+      providers: [
+        provideRouter(
+          [
+            { path: 'de/help', component: HelpComponent },
+            { path: 'help', component: HelpComponent },
+          ],
+          withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
+        ),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
+      ],
+    });
+
+    const hostFixture = TestBed.createComponent(HelpRouterHostComponent);
+    document.body.appendChild(hostFixture.nativeElement);
+    hostFixture.detectChanges();
+
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+    const router = TestBed.inject(Router);
+    window.history.replaceState(window.history.state, '', '/de/help#help-participant');
+    const navigated = await router.navigateByUrl('/de/help#help-participant');
+    expect(navigated).toBe(true);
+    hostFixture.detectChanges();
+    await hostFixture.whenStable();
+    hostFixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    hostFixture.detectChanges();
+    await hostFixture.whenStable();
+
+    const hostPanels = document.querySelectorAll('#help-host mat-expansion-panel.help-panel');
+    const participantPanels = document.querySelectorAll(
+      '#help-participant mat-expansion-panel.help-panel',
+    );
+    expect(participantPanels[0]?.classList.contains('mat-expanded')).toBe(true);
+    for (let i = 1; i < participantPanels.length; i++) {
+      expect(participantPanels[i]?.classList.contains('mat-expanded')).toBe(false);
+    }
+    for (const panel of Array.from(hostPanels)) {
+      expect(panel.classList.contains('mat-expanded')).toBe(false);
+    }
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
   });
 
   it('lässt Panels öffnen und schließen und aktualisiert aria-expanded', async () => {
@@ -380,8 +469,14 @@ describe('HelpComponent', () => {
     const hostPanels = root.querySelectorAll('#help-host mat-expansion-panel.help-panel');
     const firstHeader = hostPanels[0]?.querySelector<HTMLElement>('.mat-expansion-panel-header');
     const secondHeader = hostPanels[1]?.querySelector<HTMLElement>('.mat-expansion-panel-header');
-    expect(firstHeader?.getAttribute('aria-expanded')).toBe('true');
+    expect(firstHeader?.getAttribute('aria-expanded')).toBe('false');
     expect(secondHeader?.getAttribute('aria-expanded')).toBe('false');
+
+    firstHeader!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(firstHeader?.getAttribute('aria-expanded')).toBe('true');
 
     secondHeader!.click();
     fixture.detectChanges();
