@@ -15,7 +15,7 @@ import {
   isDevMode,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import {
   NavigationCancel,
   NavigationEnd,
@@ -47,6 +47,7 @@ import {
 import {
   clearStaleContentPageFocusReturn,
   consumeContentPageFocusReturn,
+  dismissContentPage,
   focusFooterContentReturn,
   isContentOverlayPath,
   rememberNonOverlayPath,
@@ -153,6 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly swUpdate = inject(SwUpdate, { optional: true });
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly dialog = inject(MatDialog);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly seo = inject(SeoService);
@@ -186,7 +188,10 @@ export class AppComponent implements OnInit, OnDestroy {
     typeof window !== 'undefined' &&
       this.matchesFooterStatusPollingSuppressedRoute(window.location.pathname),
   );
-  /** Hilfe/Legal/News-Archiv: Overlay-Optik — App-Chrome per inert aus der Tab-Reihenfolge. */
+  /**
+   * Hilfe/Legal/News-Archiv: Overlay-Optik — Toolbar/Skip-Link per inert aus der Tab-Reihenfolge.
+   * Footer bleibt interaktiv, damit Mausklicks Content-Pages schließen/wechseln können.
+   */
   isContentOverlayRoute = signal(
     typeof window !== 'undefined' && isContentOverlayPath(window.location.pathname),
   );
@@ -828,6 +833,29 @@ export class AppComponent implements OnInit, OnDestroy {
     this.footerHealthCheckDone.set(false);
     await this.checkApiConnection();
     this.apiRetrying.set(false);
+  }
+
+  /**
+   * Hilfe-Footer: bei bereits offener Hilfe-Seite schließen (Toggle),
+   * sonst normale RouterLink-Navigation (schließt andere Overlay-Seiten).
+   */
+  onFooterHelpClick(event: Event): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const routerPath = AppComponent.withoutLocalePath(
+      AppComponent.stripQueryAndHash(this.router.url),
+    );
+    const windowPath =
+      typeof window !== 'undefined'
+        ? AppComponent.withoutLocalePath(window.location.pathname)
+        : routerPath;
+    const path = routerPath || windowPath;
+    const onHelp = path === '/help' || path.startsWith('/help/');
+    if (!onHelp) {
+      return;
+    }
+    event.preventDefault();
+    this.footerMoreTrigger?.closeMenu();
+    dismissContentPage(this.location, this.router);
   }
 
   /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */

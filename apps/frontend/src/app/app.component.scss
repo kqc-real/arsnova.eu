@@ -320,16 +320,25 @@
   height: auto !important;
   max-height: none !important;
   margin: 0 !important;
-  padding: 0.25rem 0.1rem !important;
+  /* Luft zwischen Label/Icon und MD3-Strong-Focus-Rahmen (mat-focus-indicator). */
+  padding: 0.5rem 0.5rem !important;
   border-radius: var(--mat-sys-corner-medium);
   justify-content: center;
   align-items: center;
   white-space: normal;
   --mat-button-text-container-height: 2.75rem;
   --mat-button-text-touch-target-size: 2.75rem;
-  --mat-button-text-horizontal-padding: 0.1rem;
+  --mat-button-text-horizontal-padding: 0.5rem;
   --mat-button-text-icon-offset: 0;
   --mat-button-text-icon-spacing: 0;
+}
+
+/*
+ * Footer-Primäraktionen: MD3-Strong-Focus behalten; globale Link-Outline
+ * (:where(a[href]):focus-visible) unterdrücken — sonst Doppelring.
+ */
+.app-footer__primary:focus-visible {
+  outline: none;
 }
 
 .app-footer__links .app-footer__primary.mat-mdc-button-base .mdc-button__label {
@@ -468,10 +477,10 @@
     width: auto;
     min-height: 2.75rem !important;
     height: auto !important;
-    padding: 0;
+    padding: 0.4rem 1.1rem !important;
     white-space: nowrap;
     --mat-button-text-container-height: 2.75rem;
-    --mat-button-text-horizontal-padding: 0.85rem;
+    --mat-button-text-horizontal-padding: 1.1rem;
   }
 
   .app-footer__links .app-footer__primary.mat-mdc-button-base .mdc-button__label {

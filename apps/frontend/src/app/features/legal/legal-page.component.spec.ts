@@ -181,9 +181,7 @@ describe('LegalPageComponent', () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne((r) => r.url.includes('assets/legal/accessibility.de.md'));
-    req.flush(
-      '# Barrierefreiheit\n\n**Stand: 20. Juli 2026**\n\n## Was du nutzen kannst\n\nText zur **Persönliche Zeit**.',
-    );
+    req.flush('# Barrierefreiheit\n\n## Was du nutzen kannst\n\nText zur **Persönliche Zeit**.');
 
     await fixture.whenStable();
     fixture.detectChanges();
