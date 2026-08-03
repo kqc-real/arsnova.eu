@@ -17,11 +17,11 @@ main [id],
 
 @layer components {
   .landing-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-landing-button bg-landing-primary px-6 py-3.5 text-base font-semibold text-landing-on-primary shadow-landing-1 transition duration-landing-fast hover:bg-landing-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg;
+    @apply inline-flex items-center justify-center gap-2 rounded-landing-button bg-landing-primary px-6 py-3.5 text-base font-semibold text-landing-on-primary shadow-landing-1 transition duration-landing-fast hover:bg-landing-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg;
   }
 
   .landing-btn-secondary {
-    @apply inline-flex items-center justify-center rounded-landing-button border border-landing-outline bg-landing-surface-container px-6 py-3.5 text-base font-semibold text-landing-fg transition duration-landing-fast hover:border-landing-primary hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg;
+    @apply inline-flex items-center justify-center rounded-landing-button border border-landing-outline bg-landing-surface-container px-6 py-3.5 text-base font-semibold text-landing-fg transition duration-landing-fast hover:border-landing-primary hover:bg-landing-surface-container-high focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg;
   }
 
   .landing-card {
@@ -33,7 +33,7 @@ main [id],
   }
 
   .landing-link {
-    @apply font-semibold text-landing-primary underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg;
+    @apply font-semibold text-landing-primary underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg;
   }
 
   .landing-eyebrow {
