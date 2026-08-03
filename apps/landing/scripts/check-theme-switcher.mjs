@@ -701,7 +701,10 @@ async function runViewport(browser, viewport, buttonId, label) {
  * Validates FOUC-free apply, storage precedence, URL cleanup, and invalid ignore.
  */
 async function assertThemeQueryTransfer(browser) {
-  async function openWith(path, { colorScheme = 'light', stored = null, viewport = { width: 1280, height: 900 } } = {}) {
+  async function openWith(
+    path,
+    { colorScheme = 'light', stored = null, viewport = { width: 1280, height: 900 } } = {},
+  ) {
     const context = await browser.newContext({
       colorScheme,
       viewport,
@@ -727,15 +730,18 @@ async function assertThemeQueryTransfer(browser) {
   {
     const { context, page } = await openWith('/de/?theme=dark#features', { stored: 'light' });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        className: document.documentElement.className,
-        colorScheme: getComputedStyle(document.documentElement).colorScheme,
-        stored: localStorage.getItem(key),
-        href: location.href,
-        search: location.search,
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          className: document.documentElement.className,
+          colorScheme: getComputedStyle(document.documentElement).colorScheme,
+          stored: localStorage.getItem(key),
+          href: location.href,
+          search: location.search,
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'dark') {
         throw new Error(`theme=dark: expected data-landing-color-scheme=dark, got ${state.scheme}`);
       }
@@ -756,11 +762,13 @@ async function assertThemeQueryTransfer(browser) {
       }
 
       await page.locator('#theme-desktop-button').click();
-      const pressed = await page.locator('#theme-desktop-menu [data-theme-option="dark"]').getAttribute(
-        'aria-pressed',
-      );
+      const pressed = await page
+        .locator('#theme-desktop-menu [data-theme-option="dark"]')
+        .getAttribute('aria-pressed');
       if (pressed !== 'true') {
-        throw new Error(`theme=dark: ThemeSwitcher dark option not pressed (aria-pressed=${pressed})`);
+        throw new Error(
+          `theme=dark: ThemeSwitcher dark option not pressed (aria-pressed=${pressed})`,
+        );
       }
     } finally {
       await context.close();
@@ -774,13 +782,16 @@ async function assertThemeQueryTransfer(browser) {
       stored: 'dark',
     });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        className: document.documentElement.className,
-        stored: localStorage.getItem(key),
-        search: location.search,
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          className: document.documentElement.className,
+          stored: localStorage.getItem(key),
+          search: location.search,
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'light' || !state.className.includes('light')) {
         throw new Error(`theme=light: expected light mode, got ${JSON.stringify(state)}`);
       }
@@ -802,13 +813,16 @@ async function assertThemeQueryTransfer(browser) {
       stored: 'light',
     });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        className: document.documentElement.className,
-        colorScheme: getComputedStyle(document.documentElement).colorScheme,
-        stored: localStorage.getItem(key),
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          className: document.documentElement.className,
+          colorScheme: getComputedStyle(document.documentElement).colorScheme,
+          stored: localStorage.getItem(key),
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'system') {
         throw new Error(`theme=system: expected scheme system, got ${state.scheme}`);
       }
@@ -833,12 +847,15 @@ async function assertThemeQueryTransfer(browser) {
   {
     const { context, page } = await openWith('/de/#features', { stored: 'dark' });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        stored: localStorage.getItem(key),
-        search: location.search,
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          stored: localStorage.getItem(key),
+          search: location.search,
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'dark' || state.stored !== 'dark') {
         throw new Error(`no theme param: expected stored dark, got ${JSON.stringify(state)}`);
       }
@@ -854,12 +871,15 @@ async function assertThemeQueryTransfer(browser) {
   {
     const { context, page } = await openWith('/de/?theme=neon&ref=app#faq', { stored: 'light' });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        stored: localStorage.getItem(key),
-        search: location.search,
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          stored: localStorage.getItem(key),
+          search: location.search,
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'light' || state.stored !== 'light') {
         throw new Error(`invalid theme: must keep light preference, got ${JSON.stringify(state)}`);
       }
@@ -882,12 +902,15 @@ async function assertThemeQueryTransfer(browser) {
       stored: 'light',
     });
     try {
-      const state = await page.evaluate((key) => ({
-        scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
-        stored: localStorage.getItem(key),
-        search: location.search,
-        hash: location.hash,
-      }), STORAGE_KEY);
+      const state = await page.evaluate(
+        (key) => ({
+          scheme: document.documentElement.getAttribute('data-landing-color-scheme'),
+          stored: localStorage.getItem(key),
+          search: location.search,
+          hash: location.hash,
+        }),
+        STORAGE_KEY,
+      );
       if (state.scheme !== 'dark' || state.stored !== 'dark') {
         throw new Error(`cleanup: expected dark applied, got ${JSON.stringify(state)}`);
       }
@@ -917,7 +940,11 @@ async function assertThemeQueryTransfer(browser) {
         className: document.documentElement.className,
         hash: location.hash,
       }));
-      if (state.scheme !== 'dark' || !state.className.includes('dark') || state.hash !== '#features') {
+      if (
+        state.scheme !== 'dark' ||
+        !state.className.includes('dark') ||
+        state.hash !== '#features'
+      ) {
         throw new Error(`320px theme transfer failed: ${JSON.stringify(state)}`);
       }
       await page.locator('#theme-mobile-button').waitFor({ state: 'visible' });
