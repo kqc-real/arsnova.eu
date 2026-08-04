@@ -80,8 +80,9 @@ flowchart TD
   D --> J[lighthouse]
   D --> K[e2e smoke]
   D --> K2[classroom smokes]
-  D --> L[docker build]
-  D --> M[trivy-image]
+  D --> L[docker build<br/>ein Image + Artefakt]
+  L --> M[trivy-image<br/>load/scan, read-only]
+  M --> P[publish-image<br/>GHCR nur main]
 
   H --> Q[deploy-freshness<br/>nur aktueller main-HEAD]
   I --> Q
@@ -95,6 +96,7 @@ flowchart TD
   G2 --> Q
   PUA --> Q
   M --> Q
+  P --> Q
 
   Q --> N[deploy]
 
@@ -298,17 +300,43 @@ nicht die offene S6.5-Zielhostabnahme.
 
 ### 4.14 trivy-image
 
-- **Was?** Baut ein Scan-Image und führt Trivy-Image-Scan aus (HIGH/CRITICAL).
-- **Wo?** In [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nach `build`, außer bei `schedule`.
-- **Warum?** Findet container-spezifische Risiken vor Deployment.
+- **Was?** Lädt das vom Job `docker` exportierte Produktionsimage-Artefakt, prüft
+  Archiv-SHA-256 sowie Image-ID und führt Trivy-Image-Scan aus (HIGH/CRITICAL).
+  Der Job ist read-only (`contents: read`), enthält keinen Image-Build und kein
+  GHCR-Login/Push.
+- **Wo?** In [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Hilfsskript
+  [../scripts/ci/load-production-image.sh](../scripts/ci/load-production-image.sh).
+- **Wann?** Nach `docker`, außer bei `schedule`.
+- **Warum?** Stellt sicher, dass der Scan dasselbe Artefakt betrifft wie Build und
+  Runtime-Smokes, ohne PR-Code `packages: write` zu geben.
+
+### 4.14b publish-image
+
+- **Was?** Nur bei `push` auf `main` und nur nach erfolgreichem `trivy-image`:
+  lädt dasselbe Produktionsimage-Artefakt erneut, pusht es nach
+  `ghcr.io/kqc-real/arsnova.eu:<github.sha>` und setzt Job-Output `image_ref` auf
+  die kanonische Digest-Referenz `ghcr.io/kqc-real/arsnova.eu@sha256:…`. Der Digest
+  kommt aus dem `docker push`-Log (Fallback: `RepoDigests`), nicht aus einem
+  ungültigen `imagetools`-Templatefeld.
+- **Wo?** Job `Publish Scanned Image` in
+  [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Hilfsskript
+  [../scripts/ci/resolve-pushed-image-ref.sh](../scripts/ci/resolve-pushed-image-ref.sh).
+- **Wann?** Nur `push` auf `main`, nach `trivy-image`.
+- **Warum?** `packages: write` bleibt vom PR-/Scan-Job isoliert; unveröffentlichte
+  PRs können GHCR nicht beschreiben.
 
 ### 4.15 docker
 
-- **Was?** Docker-Image-Build (ohne Push).
-- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Build-Definition in [../Dockerfile](../Dockerfile).
+- **Was?** Baut das Produktionsimage genau einmal, führt Compose-/Runtime-Smokes
+  aus und exportiert dasselbe lokale Image als kurzlebiges Actions-Artefakt
+  (`production-image-<github.sha>`, Retention 1 Tag, `overwrite: true` für
+  Job-Reruns) inkl. Image-ID und Archiv-SHA-256.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
+  Build-Definition in [../Dockerfile](../Dockerfile); Export über
+  [../scripts/ci/save-production-image.sh](../scripts/ci/save-production-image.sh).
 - **Wann?** Nach `build`, außer bei `schedule`.
-- **Warum?** Prüft, dass das Release-Artefakt (Container) tatsächlich baubar ist.
+- **Warum?** Prüft Bau- und Laufzeitfähigkeit und übergibt ein unverändertes
+  Artefakt an Trivy/GHCR (kein zweiter Build).
 
 ### 4.16 deploy-freshness
 
@@ -413,15 +441,16 @@ In GitHub findest du Artefakte so:
 3. Gewünschten CI-Run öffnen
 4. Unten im Bereich Artifacts die Downloads auswählen
 
-| Artefaktname            | Erzeugender Job | Inhalt                                                        | Fundstelle im Runner                                                | Retention |
-| ----------------------- | --------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
-| `frontend-dist-browser` | `build`         | Lokalisierter Frontend-Produktionsbuild                       | `apps/frontend/dist/browser`                                        | 1 Tag     |
-| `coverage-reports`      | `test`          | Backend- und Frontend-Coverage (HTML + Textsummary-Dateien)   | `apps/backend/coverage`, `apps/frontend/coverage`                   | 7 Tage    |
-| `verapdf-ua1-report`    | `pdfua`         | veraPDF-Textbericht der fünf PDF/UA-1-Locale-Demos            | `tmp/pdfua-validation/verapdf-ua1.txt`                              | 30 Tage   |
-| `lighthouse-reports`    | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`, `.lighthouseci-a11y`                               | 7 Tage    |
-| `e2e-service-logs`      | `e2e`           | Laufzeitlogs von Backend und Frontend während des Smoke-Tests | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log` | 7 Tage    |
-| `trivy-fs-report`       | `trivy-fs`      | Trivy Filesystem Security Report (SARIF)                      | `trivy-fs.sarif`                                                    | 7 Tage    |
-| `trivy-image-report`    | `trivy-image`   | Trivy Container Image Security Report (SARIF)                 | `trivy-image.sarif`                                                 | 7 Tage    |
+| Artefaktname             | Erzeugender Job | Inhalt                                                        | Fundstelle im Runner                                                | Retention |
+| ------------------------ | --------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
+| `frontend-dist-browser`  | `build`         | Lokalisierter Frontend-Produktionsbuild                       | `apps/frontend/dist/browser`                                        | 1 Tag     |
+| `coverage-reports`       | `test`          | Backend- und Frontend-Coverage (HTML + Textsummary-Dateien)   | `apps/backend/coverage`, `apps/frontend/coverage`                   | 7 Tage    |
+| `verapdf-ua1-report`     | `pdfua`         | veraPDF-Textbericht der fünf PDF/UA-1-Locale-Demos            | `tmp/pdfua-validation/verapdf-ua1.txt`                              | 30 Tage   |
+| `lighthouse-reports`     | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`, `.lighthouseci-a11y`                               | 7 Tage    |
+| `e2e-service-logs`       | `e2e`           | Laufzeitlogs von Backend und Frontend während des Smoke-Tests | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log` | 7 Tage    |
+| `trivy-fs-report`        | `trivy-fs`      | Trivy Filesystem Security Report (SARIF)                      | `trivy-fs.sarif`                                                    | 7 Tage    |
+| `production-image-<sha>` | `docker`        | Komprimiertes Produktionsimage + Integritätsmeta              | `arsnova-eu-production.tar.gz`, `arsnova-eu-production.meta.json`   | 1 Tag     |
+| `trivy-image-report`     | `trivy-image`   | Trivy Container Image Security Report (SARIF)                 | `trivy-image.sarif`                                                 | 7 Tage    |
 
 Hinweise:
 
