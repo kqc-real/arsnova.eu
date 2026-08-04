@@ -143,10 +143,12 @@ Für produktionsrelevante Änderungen zusätzlich prüfen:
 npm run build:prod
 npm run start:prod
 npm run verify:production-serving
-docker compose -f docker-compose.prod.yml --env-file .env.production config
+# Produktion: Image-Env über Wrapper (nach Digest-Deploy: .env.arsnova-image)
+./scripts/prod-compose.sh config
 ```
 
-Für W2.1b zusätzlich:
+Für W2.1b zusätzlich (Compose-Smokes brauchen ein **bereits gebautes** Image —
+kein `compose build` auf dem Produktionsserver; lokal/CI z. B. wie der Docker-Build-Job):
 
 ```bash
 npm test -w @arsnova/backend -- --run \
@@ -156,12 +158,11 @@ npm test -w @arsnova/backend -- --run \
   src/__tests__/session-results-report-pdf.test.ts \
   src/__tests__/session-results-report-pdf.ssrf.test.ts
 npm run typecheck -w @arsnova/backend
-docker compose -f docker-compose.prod.yml --env-file .env.production build app
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
-docker compose -f docker-compose.prod.yml --env-file .env.production \
-  exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
-docker compose -f docker-compose.prod.yml --env-file .env.production \
-  exec -T app node /app/scripts/container-runtime-smoke.mjs
+# Image einmal bauen/taggen (CI), dann Compose nur pullen/starten:
+export ARSNOVA_IMAGE=arsnova-eu:production
+./scripts/prod-compose.sh up -d app
+./scripts/prod-compose.sh exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
+./scripts/prod-compose.sh exec -T app node /app/scripts/container-runtime-smoke.mjs
 npm run validate:pdfua
 ```
 

@@ -857,7 +857,7 @@ sudo cat /var/lib/arsnova-backup/last-success /var/lib/arsnova-restore-check/las
 sudo ARSNOVA_BACKUP_CONFIG=/etc/arsnova-backup/backup.env \
   /usr/local/sbin/arsnova-restic.sh snapshots
 sudo certbot certificates
-docker compose -f /home/deploy/arsnova.eu/docker-compose.prod.yml --env-file /home/deploy/arsnova.eu/.env.production ps
+cd /home/deploy/arsnova.eu && ./scripts/prod-compose.sh ps
 curl -fsS http://127.0.0.1:3000/trpc/health.check
 curl -fsS https://arsnova.eu/trpc/health.check
 ```

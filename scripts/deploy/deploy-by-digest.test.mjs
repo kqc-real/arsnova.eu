@@ -8,9 +8,10 @@ import {
   chmodSync,
   existsSync,
   unlinkSync,
+  readdirSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
@@ -376,16 +377,7 @@ test('compose requires ARSNOVA_IMAGE and binds app/pdf-worker to the same ref', 
   assert.equal(cfg.services.app.build, undefined);
 });
 
-test('fresh-host prod-compose parses postgres without .env.arsnova-image', () => {
-  const docker = spawnSync('docker', ['compose', 'version'], {
-    encoding: 'utf8',
-  });
-  if (docker.status !== 0) {
-    assert.fail('docker compose is required for fresh-host compose tests');
-  }
-
-  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-fresh-host-'));
-  copyFileSync(composeFile, join(projectDir, 'docker-compose.prod.yml'));
+function writeMinimalProdEnv(projectDir) {
   writeFileSync(
     join(projectDir, '.env.production'),
     [
@@ -400,8 +392,11 @@ test('fresh-host prod-compose parses postgres without .env.arsnova-image', () =>
       'NODE_ENV=production',
     ].join('\n') + '\n',
   );
+}
 
-  // Disaster-Recovery-Einstieg: Wrapper ohne Image-Env (wie BACKUP-RESTORE-RUNBOOK).
+function installProdComposeWrapper(projectDir) {
+  copyFileSync(composeFile, join(projectDir, 'docker-compose.prod.yml'));
+  writeMinimalProdEnv(projectDir);
   const wrapper = readFileSync(join(repoRoot, 'scripts/prod-compose.sh'), 'utf8').replace(
     'REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"',
     `REPO_ROOT="${projectDir}"`,
@@ -409,6 +404,19 @@ test('fresh-host prod-compose parses postgres without .env.arsnova-image', () =>
   const wrapperPath = join(projectDir, 'prod-compose.sh');
   writeFileSync(wrapperPath, wrapper);
   chmodSync(wrapperPath, 0o755);
+  return wrapperPath;
+}
+
+test('fresh-host prod-compose parses postgres without .env.arsnova-image', () => {
+  const docker = spawnSync('docker', ['compose', 'version'], {
+    encoding: 'utf8',
+  });
+  if (docker.status !== 0) {
+    assert.fail('docker compose is required for fresh-host compose tests');
+  }
+
+  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-fresh-host-'));
+  const wrapperPath = installProdComposeWrapper(projectDir);
 
   const result = spawnSync('bash', [wrapperPath, 'config', '--format', 'json'], {
     encoding: 'utf8',
@@ -425,6 +433,32 @@ test('fresh-host prod-compose parses postgres without .env.arsnova-image', () =>
     'fresh host must use infra placeholder, not a real deploy digest',
   );
   assert.equal(existsSync(join(projectDir, '.env.arsnova-image')), false);
+});
+
+test('prod-compose prefers .env.arsnova-image over shell ARSNOVA_IMAGE', () => {
+  const docker = spawnSync('docker', ['compose', 'version'], {
+    encoding: 'utf8',
+  });
+  if (docker.status !== 0) {
+    assert.fail('docker compose is required for prod-compose precedence tests');
+  }
+
+  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-image-precedence-'));
+  const wrapperPath = installProdComposeWrapper(projectDir);
+  const fileDigest = `ghcr.io/kqc-real/arsnova.eu@sha256:${'11'.repeat(32)}`;
+  const shellDigest = `ghcr.io/kqc-real/arsnova.eu@sha256:${'22'.repeat(32)}`;
+  writeFileSync(join(projectDir, '.env.arsnova-image'), `ARSNOVA_IMAGE=${fileDigest}\n`);
+
+  const result = spawnSync('bash', [wrapperPath, 'config', '--format', 'json'], {
+    encoding: 'utf8',
+    cwd: projectDir,
+    env: { ...process.env, ARSNOVA_IMAGE: shellDigest },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const cfg = JSON.parse(result.stdout);
+  assert.equal(cfg.services.app.image, fileDigest);
+  assert.equal(cfg.services['pdf-worker'].image, fileDigest);
+  assert.notEqual(cfg.services.app.image, shellDigest);
 });
 
 test('deploy.sh --rollback fails clearly without previous state', () => {
@@ -530,4 +564,55 @@ echo "compose pull app pdf-worker"
   assert.equal(withBootstrap.status, 0, withBootstrap.stderr);
   assert.match(withBootstrap.stdout, /NEW_1C_SCRIPT/);
   assert.doesNotMatch(withBootstrap.stdout + withBootstrap.stderr, /OLD_1B/);
+});
+
+function listMarkdownFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...listMarkdownFiles(full));
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+test('ops docs use prod-compose / digest-deploy, not bare compose or server build', () => {
+  const files = [
+    ...listMarkdownFiles(join(repoRoot, 'docs')),
+    join(repoRoot, 'CONTRIBUTING.md'),
+    join(repoRoot, '.env.production.example'),
+  ];
+
+  const directCompose = /docker\s+compose\s+-f\s+docker-compose\.prod\.yml/;
+  const serverBuild = /build\s+--pull\s+app/;
+
+  const violations = [];
+  for (const file of files) {
+    const text = readFileSync(file, 'utf8');
+    const rel = relative(repoRoot, file);
+    if (directCompose.test(text)) {
+      violations.push(`${rel}: direct docker-compose.prod.yml invocation`);
+    }
+    if (serverBuild.test(text)) {
+      violations.push(`${rel}: server build --pull app`);
+    }
+    // Normalize markdown, then drop explicit "kein … compose build" prose.
+    const normalized = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1');
+    const withoutNegation = normalized.replace(
+      /kein(?:e|en)?\s+(?:docker\s+build\s*\/\s*)?compose\s+build/gi,
+      '',
+    );
+    if (/\b(?:docker\s+)?compose\s+build\b/i.test(withoutNegation)) {
+      violations.push(`${rel}: compose build command`);
+    }
+  }
+
+  assert.deepEqual(
+    violations,
+    [],
+    `production docs must use ./scripts/prod-compose.sh or digest deploy:\n${violations.join('\n')}`,
+  );
 });

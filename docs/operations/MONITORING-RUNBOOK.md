@@ -57,7 +57,7 @@
    strukturierten Ereignisse prüfen:
 
    ```bash
-   docker compose -f docker-compose.prod.yml logs --since 10m app \
+   ./scripts/prod-compose.sh logs --since 10m app \
      | rg 'rate_limit_429|pdf:'
    ```
 
@@ -195,8 +195,8 @@ Fehler. Die Schwellen werden nach vier Wochen Produktionsdaten überprüft.
 
 ```bash
 docker stats --no-stream
-docker compose -f docker-compose.prod.yml ps app pdf-worker
-docker compose -f docker-compose.prod.yml logs --since 10m app pdf-worker \
+./scripts/prod-compose.sh ps app pdf-worker
+./scripts/prod-compose.sh logs --since 10m app pdf-worker \
   | rg 'pdf:|pdf-worker:'
 ```
 

@@ -579,10 +579,19 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   bleiben für Provider-Rebroadcasts zulässig. Eigene Ausgangsbudgets begrenzen
   die Sync-/Reconnect-Verstärkung.
 
-Start immer mit der Repo-Datei:
+Start über den Operator-Wrapper (lädt `.env.production` und `.env.arsnova-image`):
 
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+./scripts/prod-compose.sh up -d
+```
+
+Ohne `.env.arsnova-image` (Fresh-Host) nur Infrastruktur starten, danach Digest-Deploy:
+
+```bash
+./scripts/prod-compose.sh up -d postgres redis
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex>' \
+./scripts/deploy.sh
 ```
 
 ### 6.2 Umgebungsvariablen (Produktion)
@@ -807,14 +816,21 @@ Optionaler HTTP-Smoke aus Nutzerperspektive:
 npm run verify:production-serving -- https://<domain>
 ```
 
-**Manueller Fallback** ohne Skript:
+**Manueller Fallback** ohne CI (Digest-Deploy, **kein** Server-Build):
 
 ```bash
 cd /home/deploy/arsnova.eu
-docker compose -f docker-compose.prod.yml --env-file .env.production build --pull app
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres redis
-docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex-commit>' \
+DEPLOY_BRANCH=main \
+./scripts/deploy.sh
+```
+
+Nur Infrastruktur / Diagnose danach:
+
+```bash
+./scripts/prod-compose.sh ps
+./scripts/prod-compose.sh logs app --tail 80
 ```
 
 **Health prüfen:**
@@ -875,16 +891,18 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 
 ## 9. Kurzreferenz Befehle
 
-| Aktion              | Befehl                                                                                                                                                                              |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deploy ausführen    | `DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' DEPLOY_SHA='<40-hex>' DEPLOY_BRANCH=main ./scripts/deploy.sh`                                                           |
-| App starten         | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d app`                                                                                                    |
-| Stack starten       | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d`                                                                                                        |
-| App stoppen         | `docker compose -f docker-compose.prod.yml --env-file .env.production stop app`                                                                                                     |
-| Logs anzeigen       | `docker compose -f docker-compose.prod.yml --env-file .env.production logs -f app`                                                                                                  |
-| Migrationen         | `docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
-| Nginx neu laden     | `sudo systemctl reload nginx`                                                                                                                                                       |
-| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer)                                                                                                                                  |
+| Aktion                  | Befehl                                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Deploy ausführen        | `DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' DEPLOY_SHA='<40-hex>' DEPLOY_BRANCH=main ./scripts/deploy.sh`                |
+| Stack starten           | `./scripts/prod-compose.sh up -d`                                                                                                        |
+| App starten             | `./scripts/prod-compose.sh up -d app`                                                                                                    |
+| App stoppen             | `./scripts/prod-compose.sh stop app`                                                                                                     |
+| Logs anzeigen           | `./scripts/prod-compose.sh logs -f app`                                                                                                  |
+| Migrationen             | `./scripts/prod-compose.sh run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
+| Recover (unvollständig) | `./scripts/deploy.sh --recover`                                                                                                          |
+| Rollback                | `./scripts/deploy.sh --rollback`                                                                                                         |
+| Nginx neu laden         | `sudo systemctl reload nginx`                                                                                                            |
+| Zertifikat erneuern     | `sudo certbot renew` (läuft automatisch per Timer)                                                                                       |
 
 ---
 
