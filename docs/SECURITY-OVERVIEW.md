@@ -176,7 +176,30 @@ Redis-Ausfall gilt ein hartes lokales Drop-Cap; Rohreports werden weder
 persistiert noch geloggt. Diagnoseaggregate bleiben ausschließlich über
 `health.securityStats` zugänglich.
 
-Builder und Produktionscontainer verwenden **Node.js 24 LTS** (`node:24-alpine`). `.nvmrc` pinnt die lokal empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI und Produktionsimage entfernt.
+Builder und Produktionscontainer verwenden **Node.js 24 LTS**. Beide
+`FROM`-Anweisungen im [Dockerfile](../Dockerfile) sind auf dieselbe
+Multi-Arch-Index-Referenz `node:24-alpine@sha256:…` gepinnt (OCI image index,
+nicht ein einzelner Plattform-Manifest-Digest). Ein veränderlicher Tag allein
+gilt nicht als unveränderliche Basisimage-Referenz. `.nvmrc` pinnt die lokal
+empfohlene Patchversion; die CI prüft Node 24 als Referenzpfad und Node 22 als
+unterstützten Kompatibilitätspfad. Node 20 ist wegen EOL aus Engine-Regel, CI
+und Produktionsimage entfernt.
+
+### Container-Basisimage
+
+Kontrollierte Aktualisierung des gepinnten Digests:
+
+1. Aktuellen Multi-Arch-Index ermitteln:
+   `docker buildx imagetools inspect node:24-alpine`
+2. Den Digest der Index-/Manifest-Liste übernehmen (Eintrag `Digest:` auf der
+   obersten Ebene), nicht den `linux/amd64`- oder `linux/arm64`-Einzeldigest.
+3. Beide `FROM`-Zeilen im Dockerfile auf dieselbe neue Referenz setzen und das
+   Prüfdatum im Dockerfile-Kommentar aktualisieren.
+4. Produktionsimage für `linux/amd64` neu bauen und die bestehenden
+   Container-Runtime-Smokes ausführen (siehe [TESTING.md](TESTING.md) und den
+   Job „Docker Build“ in der CI).
+5. Änderung in einem eigenen PR reviewen; Deploy-Ablauf und Check-Namen bleiben
+   davon unberührt.
 
 Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-NODE-24-ABNAHME.md](implementation/W0.3-W1.1-NODE-24-ABNAHME.md) dokumentiert.
 
