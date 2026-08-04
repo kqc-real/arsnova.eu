@@ -19,8 +19,7 @@ function runLoad(dir, sha) {
   });
 }
 
-const validImageId =
-  'sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+const validImageId = 'sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 test('load-production-image rejects missing archive', () => {
   const dir = mkdtempSync(join(tmpdir(), 'arsnova-image-meta-'));

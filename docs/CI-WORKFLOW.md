@@ -81,7 +81,8 @@ flowchart TD
   D --> K[e2e smoke]
   D --> K2[classroom smokes]
   D --> L[docker build<br/>ein Image + Artefakt]
-  L --> M[trivy-image<br/>load/scan; GHCR nur main]
+  L --> M[trivy-image<br/>load/scan, read-only]
+  M --> P[publish-image<br/>GHCR nur main]
 
   H --> Q[deploy-freshness<br/>nur aktueller main-HEAD]
   I --> Q
@@ -95,6 +96,7 @@ flowchart TD
   G2 --> Q
   PUA --> Q
   M --> Q
+  P --> Q
 
   Q --> N[deploy]
 
@@ -299,23 +301,36 @@ nicht die offene S6.5-Zielhostabnahme.
 ### 4.14 trivy-image
 
 - **Was?** Lädt das vom Job `docker` exportierte Produktionsimage-Artefakt, prüft
-  Archiv-SHA-256 sowie Image-ID, führt Trivy-Image-Scan aus (HIGH/CRITICAL) und
-  pusht bei `push` auf `main` nach erfolgreichem Scan genau dieses Image nach
-  `ghcr.io/kqc-real/arsnova.eu`. Job-Output `image_ref` ist die kanonische
-  Digest-Referenz `ghcr.io/kqc-real/arsnova.eu@sha256:…`. Pull Requests loggen
-  sich nicht an GHCR an und pushen nicht. Der Job enthält keinen Image-Build.
+  Archiv-SHA-256 sowie Image-ID und führt Trivy-Image-Scan aus (HIGH/CRITICAL).
+  Der Job ist read-only (`contents: read`), enthält keinen Image-Build und kein
+  GHCR-Login/Push.
 - **Wo?** In [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Hilfsskript
   [../scripts/ci/load-production-image.sh](../scripts/ci/load-production-image.sh).
 - **Wann?** Nach `docker`, außer bei `schedule`.
-- **Warum?** Stellt sicher, dass Scan und ggf. Registry-Veröffentlichung dasselbe
-  Artefakt betreffen wie Build und Runtime-Smokes.
+- **Warum?** Stellt sicher, dass der Scan dasselbe Artefakt betrifft wie Build und
+  Runtime-Smokes, ohne PR-Code `packages: write` zu geben.
+
+### 4.14b publish-image
+
+- **Was?** Nur bei `push` auf `main` und nur nach erfolgreichem `trivy-image`:
+  lädt dasselbe Produktionsimage-Artefakt erneut, pusht es nach
+  `ghcr.io/kqc-real/arsnova.eu:<github.sha>` und setzt Job-Output `image_ref` auf
+  die kanonische Digest-Referenz `ghcr.io/kqc-real/arsnova.eu@sha256:…`. Der Digest
+  kommt aus dem `docker push`-Log (Fallback: `RepoDigests`), nicht aus einem
+  ungültigen `imagetools`-Templatefeld.
+- **Wo?** Job `Publish Scanned Image` in
+  [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Hilfsskript
+  [../scripts/ci/resolve-pushed-image-ref.sh](../scripts/ci/resolve-pushed-image-ref.sh).
+- **Wann?** Nur `push` auf `main`, nach `trivy-image`.
+- **Warum?** `packages: write` bleibt vom PR-/Scan-Job isoliert; unveröffentlichte
+  PRs können GHCR nicht beschreiben.
 
 ### 4.15 docker
 
 - **Was?** Baut das Produktionsimage genau einmal, führt Compose-/Runtime-Smokes
   aus und exportiert dasselbe lokale Image als kurzlebiges Actions-Artefakt
-  (`production-image-<github.sha>`, Retention 1 Tag) inkl. Image-ID und
-  Archiv-SHA-256.
+  (`production-image-<github.sha>`, Retention 1 Tag, `overwrite: true` für
+  Job-Reruns) inkl. Image-ID und Archiv-SHA-256.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
   Build-Definition in [../Dockerfile](../Dockerfile); Export über
   [../scripts/ci/save-production-image.sh](../scripts/ci/save-production-image.sh).
