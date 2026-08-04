@@ -94,26 +94,26 @@ ist ebenfalls abgeschlossen.
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                            | Inhalt                                                                                                                                                                                                                                   |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                         |
-| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                                                          |
-| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                              |
-| **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                                |
-| **build** (Node 22 & 24)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                                       |
-| **typecheck** (Node 22 & 24, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                               |
-| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln                                                                                                                                                                 |
-| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                           |
-| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                          |
-| **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                                      |
-| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                                      |
-| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
-| **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                                   |
-| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                       |
-| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                                      |
-| **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002           |
-| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `pdfua`, `docker`, `typecheck`, `lighthouse`, `e2e`, `classroom-smokes`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
-| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                                  |
+| Job / Phase                            | Inhalt                                                                                                                                                                                                                           |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                 |
+| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                                                  |
+| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                      |
+| **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                        |
+| **build** (Node 22 & 24)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                               |
+| **typecheck** (Node 22 & 24, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                       |
+| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln                                                                                                                                                         |
+| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                   |
+| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                  |
+| **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                              |
+| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
+| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                      |
+| **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
+| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                               |
+| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
+| **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
+| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; nach Quality-Gates inkl. `publish-image`; übergibt `DEPLOY_IMAGE`/`DEPLOY_SHA`, checkt `DEPLOY_SHA` per SSH vor `scripts/deploy.sh` aus, dann Digest-Pull (kein Server-Build) |
+| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                          |
 
 Matrix: **zwei** unterstützte Versionen (**22** und **24**), `fail-fast: false`.
 
@@ -143,10 +143,12 @@ Für produktionsrelevante Änderungen zusätzlich prüfen:
 npm run build:prod
 npm run start:prod
 npm run verify:production-serving
-docker compose -f docker-compose.prod.yml --env-file .env.production config
+# Produktion: Image-Env über Wrapper (nach Digest-Deploy: .env.arsnova-image)
+./scripts/prod-compose.sh config
 ```
 
-Für W2.1b zusätzlich:
+Für W2.1b zusätzlich (Compose-Smokes brauchen ein **bereits gebautes** Image —
+kein `compose build` auf dem Produktionsserver; lokal/CI z. B. wie der Docker-Build-Job):
 
 ```bash
 npm test -w @arsnova/backend -- --run \
@@ -156,12 +158,11 @@ npm test -w @arsnova/backend -- --run \
   src/__tests__/session-results-report-pdf.test.ts \
   src/__tests__/session-results-report-pdf.ssrf.test.ts
 npm run typecheck -w @arsnova/backend
-docker compose -f docker-compose.prod.yml --env-file .env.production build app
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
-docker compose -f docker-compose.prod.yml --env-file .env.production \
-  exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
-docker compose -f docker-compose.prod.yml --env-file .env.production \
-  exec -T app node /app/scripts/container-runtime-smoke.mjs
+# Image einmal bauen/taggen (CI), dann Compose nur pullen/starten:
+export ARSNOVA_IMAGE=arsnova-eu:production
+./scripts/prod-compose.sh up -d app
+./scripts/prod-compose.sh exec -T pdf-worker node /app/scripts/pdf-worker-runtime-smoke.mjs
+./scripts/prod-compose.sh exec -T app node /app/scripts/container-runtime-smoke.mjs
 npm run validate:pdfua
 ```
 
@@ -248,7 +249,7 @@ verändert.
 
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.
 
-Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgres/Redis starten → Prisma migrate deploy → App starten → Healthcheck**. Der Deploy ist erst erfolgreich, wenn der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet und die Frontend-Shell unter `/de/` ausgeliefert wird. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
+Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pullen → Postgres/Redis starten → Prisma migrate deploy → App/PDF-Worker starten → Healthcheck → Digest-Nachweis → Deploy-State schreiben**. `DEPLOY_IMAGE` muss die kanonische Form `ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>` haben; `ARSNOVA_IMAGE` steuert Compose für `app` und `pdf-worker` und wird in `.env.arsnova-image` persistiert (`./scripts/prod-compose.sh`). Der Deploy ist erst erfolgreich, wenn der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet, die Frontend-Shell unter `/de/` ausgeliefert wird und Registry-Digest, lokale Image-ID sowie laufende Container-Image-IDs übereinstimmen. **Image-Rollback** (`./scripts/deploy.sh --rollback`) stellt `previous.state` wieder her; **Recover** (`--recover`) stellt bei unvollständigem Deploy `current.state` wieder her. Beides setzt **keine** Datenbankmigrationen zurück. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
 
 ---
 

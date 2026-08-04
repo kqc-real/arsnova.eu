@@ -117,16 +117,17 @@ Der produktive Rollout erfolgt über GitHub Actions (`.github/workflows/ci.yml`)
 5. Deploy-Freshness-Check: Nur der aktuelle `main`-HEAD darf weiter zum Production-Deploy.
 6. Deploy-Job, nur bei Push auf `main` **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Alle Quality-Gates waren erfolgreich und `github.sha` ist weiterhin aktueller `main`-HEAD.
 
-Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` mit `DEPLOY_SHA` aus. Das Skript checkt den geprüften Ziel-Commit detached aus, bevor Image-Build, Migrationen und Healthchecks laufen.
+Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` mit `DEPLOY_IMAGE` (Digest) und `DEPLOY_SHA` aus. Das Skript pullt das gescannte GHCR-Image (kein Server-Build), migriert und prüft Health.
 
 ### 6.1 Deploy-Ablauf (serverseitig)
 
 - Ziel-Commit holen und exakt per `DEPLOY_SHA` detached auschecken
-- App-Image Build (`docker compose ... build --pull app`)
+- Digest-Image für `app`/`pdf-worker` pullen (`compose pull` — kein Server-Build)
 - Start von Postgres/Redis
-- Prisma-Migrationen (`npx prisma migrate deploy`)
-- App-Start/Update (`docker compose ... up -d app`)
-- Health-Wait + HTTP-Verifikation (`/trpc/health.check`, Frontend-Shell unter `/de/`)
+- Prisma-Migrationen (`prisma migrate deploy`)
+- App-Start/Update (`prod-compose` / `compose up -d app`)
+- Health-Wait, Digest-Nachweis, HTTP-Verifikation (`/trpc/health.check`, Frontend-Shell unter `/de/`)
+- Deploy-State (`current.state`/`previous.state`) und `.env.arsnova-image` schreiben
 
 ### 6.2 Betriebsdokumente
 

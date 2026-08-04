@@ -19,12 +19,16 @@ tmp/
 .env
 .env.local
 .env.production
+.env.arsnova-image
 .env.*.local
 deploy/backup/backup.env
 deploy/backup/ssh_config
 deploy/backup/known_hosts
 deploy/backup/storagebox_ed25519*
 deploy/monitoring/monitor.env
+
+# ---------- Deploy runtime state (server) ----------
+.deploy-state/
 
 # ---------- IDE ----------
 .idea/

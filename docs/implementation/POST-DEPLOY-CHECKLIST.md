@@ -30,9 +30,9 @@ Sie dient als verbindlicher Smoke-Test fuer den Go/No-Go-Entscheid.
   - Erwartet: Login/Token ok, Daten laden ohne Fehler.
   - Ergebnis/Notiz: `____________________________`
 - **5) Infrastruktur/Container-Health**
-  - Command: `docker compose -f docker-compose.prod.yml --env-file .env.production ps`
+  - Command: `./scripts/prod-compose.sh ps`
   - Erwartet: `app`, `postgres`, `redis` laufen und sind healthy.
-  - Optional Logs: `docker compose -f docker-compose.prod.yml --env-file .env.production logs app --tail 100`
+  - Optional Logs: `./scripts/prod-compose.sh logs app --tail 100`
   - Ergebnis/Notiz: `____________________________`
 
 ## Go/No-Go

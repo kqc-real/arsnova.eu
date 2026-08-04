@@ -72,7 +72,7 @@ Je nach Änderung zusätzlich:
 - [ ] Änderungen an Live-Hotpaths, Yjs oder Reconnect: passende Profile aus
       [docs/PERFORMANCE-TESTING.md](docs/PERFORMANCE-TESTING.md) ausführen und
       Report/Gates im PR nennen
-- [ ] produktionsrelevante Änderung: `npm run build:prod` und, wenn eine echte `.env.production` lokal verfügbar ist, `docker compose -f docker-compose.prod.yml --env-file .env.production config`
+- [ ] produktionsrelevante Änderung: `npm run build:prod` und, wenn eine echte `.env.production` lokal verfügbar ist, `./scripts/prod-compose.sh config` (braucht `.env.arsnova-image` oder `ARSNOVA_IMAGE`)
 - [ ] Prisma-/Datenmodell-Änderung: Schema, Migration/Push-Pfad, Shared Types, Tests und betroffene Doku prüfen
 - [ ] Sicherheits-/Datenschutzänderung: [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und relevante ADRs gegenlesen
 

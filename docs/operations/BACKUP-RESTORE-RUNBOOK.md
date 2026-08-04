@@ -227,7 +227,9 @@ als root aus.
    ```bash
    set -euo pipefail
    cd /home/deploy/arsnova.eu
-   COMPOSE=(docker compose -f docker-compose.prod.yml --env-file .env.production)
+   # prod-compose.sh: auf Fresh-Hosts ohne .env.arsnova-image setzt der Wrapper
+   # einen Infra-Placeholder, damit Compose für postgres parst (kein App-Start).
+   COMPOSE=(./scripts/prod-compose.sh)
    DUMP="$(sudo find /var/lib/arsnova-disaster-restore -type f -name postgres.dump -print -quit)"
    test -n "$DUMP"
    "${COMPOSE[@]}" up -d postgres
@@ -235,8 +237,9 @@ als root aus.
      'exec pg_restore --clean --if-exists --exit-on-error --no-owner --no-acl --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"'
    ```
 
-7. Migrationen und reguläres Deployment ausführen, Healthchecks prüfen und
-   erst danach DNS beziehungsweise Traffic umschalten.
+7. Migrationen und reguläres Digest-Deploy ausführen (`DEPLOY_IMAGE` +
+   `DEPLOY_SHA` → `./scripts/deploy.sh`; schreibt `.env.arsnova-image`),
+   Healthchecks prüfen und erst danach DNS beziehungsweise Traffic umschalten.
 8. Temporäre Restore-Dateien sicher löschen und den zeitlich begrenzten
    Recovery-Key widerrufen.
 

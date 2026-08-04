@@ -387,10 +387,10 @@ npm run build:prod
 ### 15.2 Zielsystem pruefen
 
 ```bash
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs --tail=100 app
-docker compose -f docker-compose.prod.yml logs --tail=100 postgres
-docker compose -f docker-compose.prod.yml logs --tail=100 redis
+./scripts/prod-compose.sh ps
+./scripts/prod-compose.sh logs --tail=100 app
+./scripts/prod-compose.sh logs --tail=100 postgres
+./scripts/prod-compose.sh logs --tail=100 redis
 ```
 
 ### 15.3 Health pruefen

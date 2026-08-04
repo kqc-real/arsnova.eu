@@ -1,8 +1,8 @@
 # =============================================================================
 # arsnova.eu – Produktion (Debian Root-Server)
 # Voraussetzung: `.env.production` liegt im selben Verzeichnis wie diese Datei (nicht im Git).
-# Start: docker compose -f docker-compose.prod.yml up -d
-# (Optional weiterhin: --env-file .env.production, falls die Datei woanders liegt.)
+# `app`/`pdf-worker` brauchen ARSNOVA_IMAGE (Digest). Nach Deploy: `.env.arsnova-image`
+# oder Wrapper: `./scripts/prod-compose.sh up -d`
 #
 # Hinweis: Früher wurden Secrets per `environment: ADMIN_SECRET: ${ADMIN_SECRET}` eingespeist.
 # Ohne `docker compose --env-file …` war `${ADMIN_SECRET}` leer und hat den Admin-Login gebrochen.
@@ -45,7 +45,7 @@ services:
       retries: 5
 
   pdf-worker:
-    image: arsnova-eu:production
+    image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
     container_name: arsnova-v3-pdf-worker
     restart: always
     init: true
@@ -77,10 +77,7 @@ services:
     stop_grace_period: 15s
 
   app:
-    image: arsnova-eu:production
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
     container_name: arsnova-v3-app
     restart: always
     read_only: true

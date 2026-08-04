@@ -579,10 +579,19 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   bleiben für Provider-Rebroadcasts zulässig. Eigene Ausgangsbudgets begrenzen
   die Sync-/Reconnect-Verstärkung.
 
-Start immer mit der Repo-Datei:
+Start über den Operator-Wrapper (lädt `.env.production` und `.env.arsnova-image`):
 
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+./scripts/prod-compose.sh up -d
+```
+
+Ohne `.env.arsnova-image` (Fresh-Host) nur Infrastruktur starten, danach Digest-Deploy:
+
+```bash
+./scripts/prod-compose.sh up -d postgres redis
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex>' \
+./scripts/deploy.sh
 ```
 
 ### 6.2 Umgebungsvariablen (Produktion)
@@ -730,17 +739,41 @@ Empfohlen ist das versionierte Deploy-Skript:
 
 ```bash
 cd /home/deploy/arsnova.eu
-DEPLOY_BRANCH=main ./scripts/deploy.sh
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex-commit>' \
+DEPLOY_BRANCH=main \
+./scripts/deploy.sh
 ```
 
-Das Skript führt aus:
+CI setzt `DEPLOY_IMAGE` aus `publish-image.outputs.image_ref` und `DEPLOY_SHA` auf
+den geprüften Commit, checkt `DEPLOY_SHA` per SSH **vor** `./scripts/deploy.sh` aus
+(Bootstrap gegen altes Working-Tree-Skript) und führt dann aus:
 
-1. Git-Sync auf den Zielbranch.
-2. App-Image bauen (`docker compose build --pull app`).
-3. PostgreSQL und Redis starten.
-4. Prisma-Migrationen mit deaktiviertem App-Entrypoint ausführen (`npx prisma migrate deploy`).
-5. App-Container starten.
-6. Container-Healthcheck, `health.check` und Frontend-Shell unter `/de/` prüfen.
+1. `DEPLOY_IMAGE`/`DEPLOY_SHA` prüfen und `ARSNOVA_IMAGE` exportieren (vor Änderung laufender App-Container).
+2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte) — zusätzlich zum CI-Bootstrap.
+3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server).
+4. PostgreSQL und Redis starten.
+5. Prisma-Migrationen mit deaktiviertem App-Entrypoint ausführen (`prisma migrate deploy`).
+6. App- und PDF-Worker-Container starten.
+7. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
+8. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`).
+
+Rollback nach fehlgeschlagenem Post-Deploy-Smoke (Deploy war erfolgreich, State rotiert):
+
+```bash
+./scripts/deploy.sh --rollback
+```
+
+Das lädt `previous.state` (nicht `github.event.before`) und schreibt danach nur `current.state`
+neu — der fehlgeschlagene Release wird **nicht** zum nächsten Rollback-Ziel.
+
+Bei unvollständigem Deploy (Abbruch vor State-Rotation; State noch auf dem letzten OK-Stand):
+
+```bash
+./scripts/deploy.sh --recover
+```
+
+**Wichtig:** Image-Rollback/Recover setzt **keine** Datenbankmigrationen zurück.
 
 ### Einmalig vor der ersten AOF-Aktivierung
 
@@ -783,14 +816,21 @@ Optionaler HTTP-Smoke aus Nutzerperspektive:
 npm run verify:production-serving -- https://<domain>
 ```
 
-**Manueller Fallback** ohne Skript:
+**Manueller Fallback** ohne CI (Digest-Deploy, **kein** Server-Build):
 
 ```bash
 cd /home/deploy/arsnova.eu
-docker compose -f docker-compose.prod.yml --env-file .env.production build --pull app
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres redis
-docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex-commit>' \
+DEPLOY_BRANCH=main \
+./scripts/deploy.sh
+```
+
+Nur Infrastruktur / Diagnose danach:
+
+```bash
+./scripts/prod-compose.sh ps
+./scripts/prod-compose.sh logs app --tail 80
 ```
 
 **Health prüfen:**
@@ -851,16 +891,18 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 
 ## 9. Kurzreferenz Befehle
 
-| Aktion              | Befehl                                                                                                                                                                              |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deploy ausführen    | `DEPLOY_BRANCH=main ./scripts/deploy.sh`                                                                                                                                            |
-| App starten         | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d app`                                                                                                    |
-| Stack starten       | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d`                                                                                                        |
-| App stoppen         | `docker compose -f docker-compose.prod.yml --env-file .env.production stop app`                                                                                                     |
-| Logs anzeigen       | `docker compose -f docker-compose.prod.yml --env-file .env.production logs -f app`                                                                                                  |
-| Migrationen         | `docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
-| Nginx neu laden     | `sudo systemctl reload nginx`                                                                                                                                                       |
-| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer)                                                                                                                                  |
+| Aktion                  | Befehl                                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Deploy ausführen        | `DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' DEPLOY_SHA='<40-hex>' DEPLOY_BRANCH=main ./scripts/deploy.sh`                |
+| Stack starten           | `./scripts/prod-compose.sh up -d`                                                                                                        |
+| App starten             | `./scripts/prod-compose.sh up -d app`                                                                                                    |
+| App stoppen             | `./scripts/prod-compose.sh stop app`                                                                                                     |
+| Logs anzeigen           | `./scripts/prod-compose.sh logs -f app`                                                                                                  |
+| Migrationen             | `./scripts/prod-compose.sh run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
+| Recover (unvollständig) | `./scripts/deploy.sh --recover`                                                                                                          |
+| Rollback                | `./scripts/deploy.sh --rollback`                                                                                                         |
+| Nginx neu laden         | `sudo systemctl reload nginx`                                                                                                            |
+| Zertifikat erneuern     | `sudo certbot renew` (läuft automatisch per Timer)                                                                                       |
 
 ---
 
@@ -872,7 +914,7 @@ Deployments laufen automatisch, **nur wenn alle CI-Jobs erfolgreich sind** (Buil
 
 1. Push auf `main` oder einen zusätzlich konfigurierten Deploy-Branch → CI startet (Build, Lint, Tests, Docker Build).
 2. Sind alle Jobs grün und die Variable **`DEPLOY_ENABLED`** ist auf `true` gesetzt → **Deploy-Job** startet. **Ohne Server:** `DEPLOY_ENABLED` nicht setzen → Deploy wird übersprungen, CI bleibt grün.
-3. Deploy-Job verbindet sich per SSH mit dem Server, synchronisiert den Zielbranch und führt `./scripts/deploy.sh` aus.
+3. Deploy-Job verbindet sich per SSH mit dem Server, übergibt `DEPLOY_IMAGE` (Digest aus `publish-image`) und `DEPLOY_SHA`, und führt `./scripts/deploy.sh` aus (Image-Pull, kein Server-Build).
 
 ### 10.2 Server-Voraussetzung
 
@@ -913,8 +955,30 @@ Ohne CI (z. B. Hotfix oder bei ausgefallener CI):
 
 ```bash
 cd /home/deploy/arsnova.eu   # oder $DEPLOY_DIR
-git fetch origin && git checkout main && git pull
+git fetch origin
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex-commit>' \
+DEPLOY_BRANCH=main \
 ./scripts/deploy.sh
+```
+
+Rollback nach erfolgreichem Deploy (lädt `previous.state`, ohne DB-Migrations-Rollback):
+
+```bash
+./scripts/deploy.sh --rollback
+```
+
+Recover bei unvollständigem Deploy (lädt `current.state`):
+
+```bash
+./scripts/deploy.sh --recover
+```
+
+Operator-Compose nach Deploy (nutzt `.env.arsnova-image`):
+
+```bash
+./scripts/prod-compose.sh ps
+./scripts/prod-compose.sh logs app --tail 80
 ```
 
 ---
@@ -925,7 +989,7 @@ Wenn ihr bei Hetzner startet und noch keinen Server habt:
 
 1. **Server anlegen:** Hetzner Cloud oder Root – Image **Debian 12** (oder 13). (Optional: Cloud Firewall anlegen mit Regeln für 22, 80, 443.)
 2. **Zugang:** Per SSH mit Root (oder angelegtem User); sofort SSH-Keys einrichten, Root-Login/Passwort-Login deaktivieren (Abschnitt 2.2).
-3. **Reihenfolge:** System aktualisieren (2.1) → User `deploy` anlegen (2.2) → UFW: 22, 80, 443 erlauben, dann aktivieren (2.3) → Docker (3) → Nginx nur mit HTTP starten (4.2) → Certbot Zertifikat beantragen (5.2) → finale Nginx-Config (5.3) → Repo klonen, `.env.production` anlegen (6.2) → `DEPLOY_BRANCH=main ./scripts/deploy.sh` ausführen (7). Danach CI/CD-Secrets setzen und `DEPLOY_ENABLED=true` (10.3).
+3. **Reihenfolge:** System aktualisieren (2.1) → User `deploy` anlegen (2.2) → UFW: 22, 80, 443 erlauben, dann aktivieren (2.3) → Docker (3) → Nginx nur mit HTTP starten (4.2) → Certbot Zertifikat beantragen (5.2) → finale Nginx-Config (5.3) → Repo klonen, `.env.production` anlegen (6.2) → erstes Digest-Deploy mit `DEPLOY_IMAGE`/`DEPLOY_SHA` ausführen (7). Danach CI/CD-Secrets setzen und `DEPLOY_ENABLED=true` (10.3). Der Server braucht Pull-Zugriff auf das öffentliche GHCR-Paket (Owner-Schritt aus Slice 1B).
 
 **Vereinfachung mit Hetzner:** Es gibt keine speziellen Hetzner-Pakete für diese App – der Stack (Debian + Docker + Nginx + Certbot) ist Standard. Die Hetzner Cloud Firewall ist optional und kann UFW ergänzen oder (wenn gewünscht) ersetzen; UFW auf dem System bleibt für viele Setups die einfachste Option.
 
