@@ -145,7 +145,9 @@ jobs:
         run: |
           bash -n scripts/backup/*.sh
           bash -n scripts/backup/tests/*.sh
-          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh
+          bash -n scripts/ci/*.sh
+          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh scripts/ci/*.sh
+          node --test scripts/ci/image-artifact-meta.test.mjs
           python3 -m py_compile scripts/monitoring/arsnova_monitor.py
           python3 -m unittest discover -s scripts/monitoring/tests -p 'test_*.py'
           docker run --rm \
@@ -1543,11 +1545,18 @@ jobs:
           retention-days: 7
 
   # ─── Security Scan (Docker Image) ──────────────────────────────────────────
+  # Scannt genau das vom Job „Docker Build“ exportierte Artefakt (kein zweiter Build).
+  # GHCR-Push nur bei push auf main und nur nach erfolgreichem Scan.
   trivy-image:
     name: Trivy Image Scan
     runs-on: ubuntu-latest
     needs: [changes, docker]
     if: github.event_name != 'schedule'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_ref: ${{ steps.push_ghcr.outputs.image_ref }}
 
     steps:
       - name: Docs-only fast pass
@@ -1562,21 +1571,33 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
-      - name: Build Docker image for scanning
+      - name: Download production image artifact
         if: needs.changes.outputs.docs_only != 'true'
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          context: .
-          push: false
-          load: true
-          tags: arsnova-eu:scan-${{ github.sha }}
-          cache-from: type=gha
+          name: production-image-${{ github.sha }}
+          path: ${{ runner.temp }}/production-image
+
+      - name: Load production image artifact
+        if: needs.changes.outputs.docs_only != 'true'
+        id: load_image
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/load-production-image.sh
+          # Bewusst kein docker build / build-push-action in diesem Job.
+          echo "Trivy Image Scan lädt das Docker-Build-Artefakt; es findet kein zweiter Image-Build statt."
+          scripts/ci/load-production-image.sh \
+            "${{ runner.temp }}/production-image" \
+            "${{ github.sha }}"
+          IMAGE_ID="$(docker image inspect --format '{{.Id}}' arsnova-eu:production)"
+          echo "Gescanntes Image: arsnova-eu:production imageId=$IMAGE_ID"
+          echo "image_id=$IMAGE_ID" >> "$GITHUB_OUTPUT"
 
       - name: Run Trivy image scan
         if: needs.changes.outputs.docs_only != 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: arsnova-eu:scan-${{ github.sha }}
+          image-ref: arsnova-eu:production
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: '1'
@@ -1585,7 +1606,7 @@ jobs:
         if: always() && needs.changes.outputs.docs_only != 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: arsnova-eu:scan-${{ github.sha }}
+          image-ref: arsnova-eu:production
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           format: sarif
@@ -1601,7 +1622,52 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Log in to GHCR
+        if: >-
+          needs.changes.outputs.docs_only != 'true'
+          && github.event_name == 'push'
+          && github.ref == 'refs/heads/main'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push scanned image to GHCR
+        if: >-
+          needs.changes.outputs.docs_only != 'true'
+          && github.event_name == 'push'
+          && github.ref == 'refs/heads/main'
+        id: push_ghcr
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          LOCAL_TAG='arsnova-eu:production'
+          LOCAL_ID="$(docker image inspect --format '{{.Id}}' "$LOCAL_TAG")"
+          COMMIT_TAG="${IMAGE_NAME}:${GITHUB_SHA}"
+
+          echo "Push des bereits gebauten und gescannten Images (kein Rebuild)."
+          echo "localTag=$LOCAL_TAG localImageId=$LOCAL_ID"
+          echo "commitTag=$COMMIT_TAG"
+
+          docker tag "$LOCAL_TAG" "$COMMIT_TAG"
+          docker push "$COMMIT_TAG"
+
+          DIGEST="$(docker buildx imagetools inspect "$COMMIT_TAG" --format '{{.Manifest.Digest}}')"
+          if [[ ! "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Ungültiger Registry-Digest: $DIGEST" >&2
+            exit 1
+          fi
+
+          IMAGE_REF="${IMAGE_NAME}@${DIGEST}"
+          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
+          echo "Registry-Referenz (kanonisch): $IMAGE_REF"
+          echo "Commit-Tag zusätzlich: $COMMIT_TAG"
+
   # ─── Docker Build (inkl. lokalisiertem Frontend-Build) ──────────────────────
+  # Baut das Produktionsimage genau einmal, führt Runtime-Smokes aus und exportiert
+  # dasselbe lokale Image als kurzlebiges Actions-Artefakt für Trivy/GHCR.
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
@@ -1736,6 +1802,27 @@ jobs:
             -e CLIENTS=30 \
             -e UPDATE_CONCURRENCY=15 \
             app node --input-type=module < scripts/load/yjs-sync-load.mjs
+
+      - name: Export production image artifact
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          set -euo pipefail
+          IMAGE_ID="$(docker image inspect --format '{{.Id}}' arsnova-eu:production)"
+          echo "Einziger Produktionsimage-Build dieses Workflows: imageId=$IMAGE_ID"
+          chmod +x scripts/ci/save-production-image.sh
+          scripts/ci/save-production-image.sh \
+            arsnova-eu:production \
+            "${{ runner.temp }}/production-image" \
+            "${{ github.sha }}"
+
+      - name: Upload production image artifact
+        if: needs.changes.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: production-image-${{ github.sha }}
+          path: ${{ runner.temp }}/production-image/
+          if-no-files-found: error
+          retention-days: 1
 
   # ─── Deploy Freshness Check (nur aktueller main-HEAD darf deployen) ──────────
   deploy-freshness:
