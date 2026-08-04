@@ -376,6 +376,57 @@ test('compose requires ARSNOVA_IMAGE and binds app/pdf-worker to the same ref', 
   assert.equal(cfg.services.app.build, undefined);
 });
 
+test('fresh-host prod-compose parses postgres without .env.arsnova-image', () => {
+  const docker = spawnSync('docker', ['compose', 'version'], {
+    encoding: 'utf8',
+  });
+  if (docker.status !== 0) {
+    assert.fail('docker compose is required for fresh-host compose tests');
+  }
+
+  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-fresh-host-'));
+  copyFileSync(composeFile, join(projectDir, 'docker-compose.prod.yml'));
+  writeFileSync(
+    join(projectDir, '.env.production'),
+    [
+      'POSTGRES_USER=arsnova_user',
+      'POSTGRES_PASSWORD=test-password',
+      'POSTGRES_DB=arsnova_v3',
+      'DATABASE_URL=postgresql://arsnova_user:test-password@postgres:5432/arsnova_v3?schema=public',
+      'REDIS_URL=redis://redis:6379',
+      'JWT_SECRET=fresh-host-jwt-secret-00000000000000000001',
+      'ADMIN_SECRET=fresh-host-admin-secret-0000000000000001',
+      'ADMIN_DIAGNOSTIC_SECRET=fresh-host-diagnostic-00000000001',
+      'NODE_ENV=production',
+    ].join('\n') + '\n',
+  );
+
+  // Disaster-Recovery-Einstieg: Wrapper ohne Image-Env (wie BACKUP-RESTORE-RUNBOOK).
+  const wrapper = readFileSync(join(repoRoot, 'scripts/prod-compose.sh'), 'utf8').replace(
+    'REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"',
+    `REPO_ROOT="${projectDir}"`,
+  );
+  const wrapperPath = join(projectDir, 'prod-compose.sh');
+  writeFileSync(wrapperPath, wrapper);
+  chmodSync(wrapperPath, 0o755);
+
+  const result = spawnSync('bash', [wrapperPath, 'config', '--format', 'json'], {
+    encoding: 'utf8',
+    cwd: projectDir,
+    env: { ...process.env, ARSNOVA_IMAGE: '' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stderr, /Infra-Placeholder|Placeholder/i);
+  const cfg = JSON.parse(result.stdout);
+  assert.ok(cfg.services.postgres, 'postgres service must parse on fresh host');
+  assert.match(
+    cfg.services.app.image,
+    /@sha256:0{64}$/,
+    'fresh host must use infra placeholder, not a real deploy digest',
+  );
+  assert.equal(existsSync(join(projectDir, '.env.arsnova-image')), false);
+});
+
 test('deploy.sh --rollback fails clearly without previous state', () => {
   const work = mkdtempSync(join(tmpdir(), 'arsnova-rollback-'));
   mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
