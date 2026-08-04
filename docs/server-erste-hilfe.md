@@ -29,7 +29,7 @@ Auf dem Server:
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 date -Is
 git log -1 --oneline
@@ -96,7 +96,7 @@ Bevorzugt, wenn DB und Redis gesund sind:
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 $COMPOSE restart app
 $COMPOSE ps
@@ -116,7 +116,7 @@ Wenn Container fehlen oder ein Deploy unvollständig war:
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 $COMPOSE up -d postgres redis
 $COMPOSE up -d app
@@ -129,7 +129,7 @@ Nur wenn App-Neustart nicht reicht. Das erzeugt kurze Downtime; Redis-Zustand is
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 $COMPOSE restart
 $COMPOSE ps
@@ -140,7 +140,7 @@ Nicht verwenden, außer bewusst geplant:
 
 ```bash
 # Nicht im Incident ausführen:
-docker compose -f docker-compose.prod.yml --env-file .env.production down -v
+./scripts/prod-compose.sh down -v
 docker volume prune
 ```
 
@@ -179,7 +179,7 @@ Typische Ursachen:
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 curl -i https://arsnova.eu/trpc/health.check
 curl -i http://127.0.0.1:3000/trpc/health.check
@@ -232,10 +232,13 @@ npm run build:prod
 $COMPOSE up -d app
 ```
 
-Auf dem Server ist normalerweise `./scripts/deploy.sh` der bessere Weg, weil Build, Migrationen und Healthcheck zusammenlaufen:
+Auf dem Server ist normalerweise `./scripts/deploy.sh` der bessere Weg, weil Image-Pull, Migrationen und Healthcheck zusammenlaufen. Digest-Deploy braucht `DEPLOY_IMAGE` und `DEPLOY_SHA`:
 
 ```bash
-DEPLOY_BRANCH=main ./scripts/deploy.sh
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex>' \
+DEPLOY_BRANCH=main \
+./scripts/deploy.sh
 ```
 
 ### Assets oder Locale-Dateien 404
@@ -408,7 +411,11 @@ Deploys sollten denselben Lock verwenden, sonst kann der Timer nicht gegen einen
 
 ```bash
 cd /home/deploy/arsnova.eu
-flock -w 1800 /var/tmp/arsnova-docker-build.lock env DEPLOY_BRANCH=main ./scripts/deploy.sh
+flock -w 1800 /var/tmp/arsnova-deploy.lock \
+  env DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+      DEPLOY_SHA='<40-hex>' \
+      DEPLOY_BRANCH=main \
+      ./scripts/deploy.sh
 ```
 
 Nach dem ersten Timer-Lauf prüfen:
@@ -459,7 +466,7 @@ Nicht ausführen:
 ```bash
 # Zerstört Daten, wenn Volumes betroffen sind:
 docker volume prune
-docker compose -f docker-compose.prod.yml --env-file .env.production down -v
+./scripts/prod-compose.sh down -v
 sudo rm -rf /var/lib/docker/volumes
 ```
 
@@ -471,7 +478,7 @@ sudo rm -rf /var/lib/docker/volumes
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 $COMPOSE ps postgres
 $COMPOSE logs --tail=200 postgres
@@ -533,7 +540,7 @@ Redis wird für Rate-Limits, Host-/Admin-Session-Tokens und flüchtige Live-Zust
 
 ```bash
 cd /home/deploy/arsnova.eu
-COMPOSE='docker compose -f docker-compose.prod.yml --env-file .env.production'
+COMPOSE='./scripts/prod-compose.sh'
 
 $COMPOSE ps redis
 $COMPOSE logs --tail=100 redis
@@ -610,17 +617,20 @@ Wenn der Server gesund ist, aber der Stand inkonsistent wirkt:
 
 ```bash
 cd /home/deploy/arsnova.eu
-DEPLOY_BRANCH=main ./scripts/deploy.sh
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
+DEPLOY_SHA='<40-hex>' \
+DEPLOY_BRANCH=main \
+./scripts/deploy.sh
 ```
 
 Das Skript führt aus:
 
-1. Git-Sync auf den Zielbranch.
-2. App-Image bauen.
+1. Digest-Image und Commit-SHA prüfen, Git-Checkout.
+2. Image für app/pdf-worker pullen (kein Server-Build).
 3. Postgres und Redis starten.
 4. Prisma-Migrationen ausführen.
-5. App starten.
-6. Container-Healthcheck und HTTP-Verifikation.
+5. App und PDF-Worker starten.
+6. Healthcheck, Digest-Nachweis, HTTP-Verifikation, Deploy-State schreiben.
 
 ## 15. Monitoring und Alerts einrichten
 

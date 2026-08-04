@@ -1943,6 +1943,21 @@ jobs:
             export DEPLOY_SHA="$DEPLOY_SHA"
             export DEPLOY_IMAGE="$DEPLOY_IMAGE"
             cd "$DEPLOY_DIR"
+            # Bootstrap: Ziel-Commit AUSCHECKEN, bevor deploy.sh startet.
+            # Sonst würde der erste Post-Merge-Lauf noch das alte 1B-Skript
+            # (compose build) aus dem vorherigen Working Tree ausführen.
+            # Inline (nicht checkout-deploy-sha.sh), weil das Helper-Skript
+            # auf dem Server erst nach diesem Checkout vorhanden sein kann.
+            git fetch --prune origin "$DEPLOY_BRANCH"
+            if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
+              git fetch origin "$DEPLOY_SHA"
+            fi
+            if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
+              echo "Fehler: Ziel-Commit $DEPLOY_SHA konnte nicht gefunden werden."
+              exit 1
+            fi
+            git checkout --detach --force "$DEPLOY_SHA"
+            test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
             chmod +x scripts/deploy.sh
             ./scripts/deploy.sh
 
@@ -2013,5 +2028,7 @@ jobs:
             export DEPLOY_DIR="${DEPLOY_DIR:-/home/deploy/arsnova.eu}"
             export DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
             cd "$DEPLOY_DIR"
+            # Kein Checkout vor dem Skript: das installierte 1C-Skript muss
+            # zuerst previous.state lesen; erst danach checkt es den Previous-SHA aus.
             chmod +x scripts/deploy.sh
             ./scripts/deploy.sh --rollback

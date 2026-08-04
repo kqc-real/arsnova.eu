@@ -1,8 +1,8 @@
 # =============================================================================
 # arsnova.eu – Produktion (Debian Root-Server)
 # Voraussetzung: `.env.production` liegt im selben Verzeichnis wie diese Datei (nicht im Git).
-# Start: docker compose -f docker-compose.prod.yml up -d
-# (Optional weiterhin: --env-file .env.production, falls die Datei woanders liegt.)
+# `app`/`pdf-worker` brauchen ARSNOVA_IMAGE (Digest). Nach Deploy: `.env.arsnova-image`
+# oder Wrapper: `./scripts/prod-compose.sh up -d`
 #
 # Hinweis: Früher wurden Secrets per `environment: ADMIN_SECRET: ${ADMIN_SECRET}` eingespeist.
 # Ohne `docker compose --env-file …` war `${ADMIN_SECRET}` leer und hat den Admin-Login gebrochen.

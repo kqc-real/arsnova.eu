@@ -4,7 +4,14 @@
 #
 # Normal:  DEPLOY_IMAGE + DEPLOY_SHA setzen, dann ./scripts/deploy.sh
 # Rollback: ./scripts/deploy.sh --rollback
-#   lädt previous image+sha aus $DEPLOY_DIR/.deploy-state (bzw. Repo-Root).
+#   lädt previous.state (gemeinsamer Image+SHA-Snapshot) nach erfolgreichem Deploy.
+# Recover:  ./scripts/deploy.sh --recover
+#   lädt current.state — für unvollständige Deploys vor State-Rotation.
+#
+# CI bootstrapt DEPLOY_SHA vor dem Aufruf (siehe ci.yml), damit der erste
+# Post-Merge-Lauf nicht mehr das alte 1B-Skript mit compose build trifft.
+# Rollback/Recover starten das aktuell installierte Skript ohne vorherigen
+# Checkout, damit der State zuerst gelesen werden kann.
 #
 # Kanonische Image-Wahrheit: ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>
 # DEPLOY_SHA ist nur für Git-Checkout von Compose/Migrationen/Skripten.
@@ -26,12 +33,13 @@ source "${SCRIPT_DIR}/deploy/lib-deploy-state.sh"
 
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.production"
+IMAGE_ENV_FILE=".env.arsnova-image"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 DEPLOY_SHA="${DEPLOY_SHA:-}"
 DEPLOY_IMAGE="${DEPLOY_IMAGE:-}"
 DEPLOY_DIR="${DEPLOY_DIR:-}"
 HEALTH_MAX_WAIT_SECONDS="${HEALTH_MAX_WAIT_SECONDS:-180}"
-ROLLBACK_MODE=0
+DEPLOY_MODE="normal" # normal | rollback | recover
 
 usage() {
   cat <<'EOF'
@@ -40,9 +48,10 @@ Usage:
   DEPLOY_SHA='<40-hex>' \
   ./scripts/deploy.sh
 
-  ./scripts/deploy.sh --rollback
+  ./scripts/deploy.sh --rollback   # nach erfolgreichem Deploy: previous.state
+  ./scripts/deploy.sh --recover    # bei unvollständigem Deploy: current.state
 
-Hinweis: Image-Rollback setzt keine DB-Migrationen zurück.
+Hinweis: Image-Rollback/Recover setzt keine DB-Migrationen zurück.
 EOF
 }
 
@@ -52,7 +61,10 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
 fi
 
 if [[ "${1:-}" == "--rollback" ]]; then
-  ROLLBACK_MODE=1
+  DEPLOY_MODE="rollback"
+  shift
+elif [[ "${1:-}" == "--recover" ]]; then
+  DEPLOY_MODE="recover"
   shift
 fi
 
@@ -76,13 +88,20 @@ done
 
 STATE_DIR="$(deploy_state_dir "$REPO_ROOT" "$DEPLOY_DIR")"
 
-if (( ROLLBACK_MODE == 1 )); then
-  echo ">>> Rollback-Modus: lade previous image+sha aus Deploy-State …"
+if [[ "$DEPLOY_MODE" == "rollback" ]]; then
+  echo ">>> Rollback-Modus: lade previous.state (Image+SHA) aus Deploy-State …"
   if ! load_previous_deploy_state "$STATE_DIR" DEPLOY_IMAGE DEPLOY_SHA; then
     exit 1
   fi
   echo ">>> Previous image: $DEPLOY_IMAGE"
   echo ">>> Previous sha:    $DEPLOY_SHA"
+elif [[ "$DEPLOY_MODE" == "recover" ]]; then
+  echo ">>> Recover-Modus: lade current.state (letzter OK-Stand) aus Deploy-State …"
+  if ! load_current_deploy_state "$STATE_DIR" DEPLOY_IMAGE DEPLOY_SHA; then
+    exit 1
+  fi
+  echo ">>> Current image: $DEPLOY_IMAGE"
+  echo ">>> Current sha:    $DEPLOY_SHA"
 fi
 
 # Image/SHA validieren, bevor laufende App-Container verändert werden.
@@ -95,7 +114,12 @@ export DEPLOY_SHA
 
 compose() {
   # ARSNOVA_IMAGE muss für Compose-Interpolation im Environment stehen.
-  ARSNOVA_IMAGE="$ARSNOVA_IMAGE" docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"
+  # Zusätzlich .env.arsnova-image laden, falls vorhanden (Operator-Persistenz).
+  local -a env_args=("--env-file" "$ENV_FILE")
+  if [[ -f "$IMAGE_ENV_FILE" ]]; then
+    env_args+=("--env-file" "$IMAGE_ENV_FILE")
+  fi
+  ARSNOVA_IMAGE="$ARSNOVA_IMAGE" docker compose -f "$COMPOSE_FILE" "${env_args[@]}" "$@"
 }
 
 echo ">>> Schritt 1: Ziel-Commit holen und exakt auschecken (Branch: $DEPLOY_BRANCH) …"
@@ -252,15 +276,35 @@ else
 fi
 
 echo ""
-echo ">>> Schritt 10: Deploy-State atomar rotieren (current/previous) …"
-rotate_deploy_state "$STATE_DIR" "$ARSNOVA_IMAGE" "$DEPLOY_SHA"
+echo ">>> Schritt 10: Deploy-State und Operator-Image-Env schreiben …"
+case "$DEPLOY_MODE" in
+  rollback)
+    # Fehlgeschlagenen Release nicht als nächsten Rollback-Ziel speichern.
+    commit_rollback_deploy_state "$STATE_DIR" "$ARSNOVA_IMAGE" "$DEPLOY_SHA"
+    ;;
+  recover)
+    # current war bereits korrekt; Snapshot nur bestätigen, previous unangetastet.
+    write_atomic_snapshot "${STATE_DIR}/current.state" "$ARSNOVA_IMAGE" "$DEPLOY_SHA"
+    ;;
+  *)
+    rotate_deploy_state "$STATE_DIR" "$ARSNOVA_IMAGE" "$DEPLOY_SHA"
+    ;;
+esac
+write_operator_image_env "$REPO_ROOT" "$ARSNOVA_IMAGE"
 echo ">>> Deploy-State aktualisiert unter $STATE_DIR"
+echo ">>> Operator-Image-Env: $REPO_ROOT/$IMAGE_ENV_FILE"
 
 echo ""
 echo ">>> Deploy abgeschlossen."
-if ((ROLLBACK_MODE == 1)); then
-  echo ">>> Modus: Rollback (Image+SHA aus Previous-State)."
-  echo ">>> Hinweis: Image-Rollback setzt keine Datenbankmigrationen zurück."
-fi
+case "$DEPLOY_MODE" in
+  rollback)
+    echo ">>> Modus: Rollback (Image+SHA aus previous.state)."
+    echo ">>> Hinweis: Image-Rollback setzt keine Datenbankmigrationen zurück."
+    ;;
+  recover)
+    echo ">>> Modus: Recover (Image+SHA aus current.state)."
+    echo ">>> Hinweis: Image-Recover setzt keine Datenbankmigrationen zurück."
+    ;;
+esac
 echo ">>> Image: $ARSNOVA_IMAGE"
 echo ">>> Version: $(git log -1 --format='%h – %s (%ci)')"

@@ -19,6 +19,7 @@ tmp/
 .env
 .env.local
 .env.production
+.env.arsnova-image
 .env.*.local
 deploy/backup/backup.env
 deploy/backup/ssh_config

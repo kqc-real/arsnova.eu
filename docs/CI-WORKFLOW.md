@@ -349,12 +349,12 @@ nicht die offene S6.5-Zielhostabnahme.
 
 - **Was?** Server-Deploy via SSH; übergibt `DEPLOY_IMAGE` aus
   `needs.publish-image.outputs.image_ref` (kanonische Digest-Referenz) sowie
-  `DEPLOY_SHA` (`github.sha`) und führt serverseitig
-  [../scripts/deploy.sh](../scripts/deploy.sh) aus. Das Skript setzt
-  `ARSNOVA_IMAGE`, checkt den Commit aus, pullt `app`/`pdf-worker` (kein
+  `DEPLOY_SHA` (`github.sha`). Per SSH wird zuerst `DEPLOY_SHA` ausgecheckt
+  (Bootstrap), danach [../scripts/deploy.sh](../scripts/deploy.sh) gestartet.
+  Das Skript setzt `ARSNOVA_IMAGE`, pullt `app`/`pdf-worker` (kein
   Server-Build), migriert, startet die Services und prüft Health/HTTP sowie
-  Digest→Image-ID→Container-ID für beide Container. Danach wird der
-  Deploy-State (`current`/`previous` unter `.deploy-state/`) atomar rotiert.
+  Digest→Image-ID→Container-ID für beide Container. Danach werden atomare
+  Snapshots (`current.state`/`previous.state`) und `.env.arsnova-image` geschrieben.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist, und `publish-image` eine Digest-Referenz geliefert hat.
 - **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf das gescannte GHCR-Artefakt gepinnt.
@@ -369,8 +369,8 @@ nicht die offene S6.5-Zielhostabnahme.
 ### 4.19 rollback-on-smoke-failure
 
 - **Was?** Automatischer Image-/Commit-Rollback über
-  `./scripts/deploy.sh --rollback`. Der Server lädt `previous.image` und
-  `previous.sha` aus dem lokalen Deploy-State; `github.event.before` wird nicht
+  `./scripts/deploy.sh --rollback` (ohne Checkout vor dem Skriptstart, damit
+  zuerst `previous.state` gelesen wird). `github.event.before` wird nicht
   verwendet. Es findet kein Server-Build statt.
 - **Wo?** Job `Rollback on Smoke Failure` in
   [../.github/workflows/ci.yml](../.github/workflows/ci.yml).

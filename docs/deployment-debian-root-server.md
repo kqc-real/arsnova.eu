@@ -737,25 +737,34 @@ DEPLOY_BRANCH=main \
 ```
 
 CI setzt `DEPLOY_IMAGE` aus `publish-image.outputs.image_ref` und `DEPLOY_SHA` auf
-den geprüften Commit. Das Skript führt aus:
+den geprüften Commit, checkt `DEPLOY_SHA` per SSH **vor** `./scripts/deploy.sh` aus
+(Bootstrap gegen altes Working-Tree-Skript) und führt dann aus:
 
 1. `DEPLOY_IMAGE`/`DEPLOY_SHA` prüfen und `ARSNOVA_IMAGE` exportieren (vor Änderung laufender App-Container).
-2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte).
+2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte) — zusätzlich zum CI-Bootstrap.
 3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server).
 4. PostgreSQL und Redis starten.
 5. Prisma-Migrationen mit deaktiviertem App-Entrypoint ausführen (`prisma migrate deploy`).
 6. App- und PDF-Worker-Container starten.
 7. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
-8. Deploy-State unter `.deploy-state/` atomar rotieren (`current`/`previous` image+sha).
+8. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`).
 
-Rollback nach fehlgeschlagenem Post-Deploy-Smoke:
+Rollback nach fehlgeschlagenem Post-Deploy-Smoke (Deploy war erfolgreich, State rotiert):
 
 ```bash
 ./scripts/deploy.sh --rollback
 ```
 
-Das lädt previous image+sha aus dem Server-State (nicht `github.event.before`).
-**Wichtig:** Image-Rollback setzt **keine** Datenbankmigrationen zurück.
+Das lädt `previous.state` (nicht `github.event.before`) und schreibt danach nur `current.state`
+neu — der fehlgeschlagene Release wird **nicht** zum nächsten Rollback-Ziel.
+
+Bei unvollständigem Deploy (Abbruch vor State-Rotation; State noch auf dem letzten OK-Stand):
+
+```bash
+./scripts/deploy.sh --recover
+```
+
+**Wichtig:** Image-Rollback/Recover setzt **keine** Datenbankmigrationen zurück.
 
 ### Einmalig vor der ersten AOF-Aktivierung
 
@@ -935,10 +944,23 @@ DEPLOY_BRANCH=main \
 ./scripts/deploy.sh
 ```
 
-Rollback auf den zuletzt erfolgreichen Digest-Stand (ohne DB-Migrations-Rollback):
+Rollback nach erfolgreichem Deploy (lädt `previous.state`, ohne DB-Migrations-Rollback):
 
 ```bash
 ./scripts/deploy.sh --rollback
+```
+
+Recover bei unvollständigem Deploy (lädt `current.state`):
+
+```bash
+./scripts/deploy.sh --recover
+```
+
+Operator-Compose nach Deploy (nutzt `.env.arsnova-image`):
+
+```bash
+./scripts/prod-compose.sh ps
+./scripts/prod-compose.sh logs app --tail 80
 ```
 
 ---
