@@ -1,11 +1,18 @@
 # =============================================================================
 # arsnova.eu – Multi-Stage Dockerfile
 # Stage 1: Install dependencies + build
-# Stage 2: Production image (node:24-alpine)
+# Stage 2: Production image (node:24-alpine, Digest-Pinning)
+#
+# Beide Stages verwenden dieselbe Multi-Arch-Index-Referenz von Docker Hub
+# (OCI image index), nicht einen plattformspezifischen Manifest-Digest.
+# Geprüft: 2026-08-04 via
+#   docker buildx imagetools inspect node:24-alpine
+# Aktualisierung des Digests: docs/SECURITY-OVERVIEW.md
+#   („Container-Basisimage“).
 # =============================================================================
 
 # ─── Stage 1: Build ─────────────────────────────────────────────────────────
-FROM node:24-alpine AS builder
+FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS builder
 
 WORKDIR /app
 
@@ -39,13 +46,14 @@ RUN npx tsc -b apps/backend/tsconfig.json \
 RUN npm run build:localize -w @arsnova/frontend
 
 # ─── Stage 2: Production ────────────────────────────────────────────────────
-FROM node:24-alpine AS production
+FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS production
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Security-Patches des unveränderlich referenzierten Alpine-Basisimages einspielen.
+# FROM ist per Digest unveränderlich gepinnt. apk upgrade spielt darüber hinaus
+# Security-Patches der Alpine-Pakete zum Image-Build-Zeitpunkt ein.
 # Chromium für Server-PDF (Playwright nutzt System-Binary, kein Browser-Download).
 # libssh explizit auf >=0.12.1-r0 (CVE-2026-59851), falls Chromium eine ältere Transitivversion zieht.
 RUN apk upgrade --no-cache \
