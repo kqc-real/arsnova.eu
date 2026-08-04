@@ -586,8 +586,21 @@ test('ops docs use prod-compose / digest-deploy, not bare compose or server buil
     join(repoRoot, '.env.production.example'),
   ];
 
-  const directCompose = /docker\s+compose\s+-f\s+docker-compose\.prod\.yml/;
+  // Relativ, absolut oder per Variable: -f docker-compose.prod.yml /
+  // -f $APP_DIR/docker-compose.prod.yml / -f /home/.../docker-compose.prod.yml
+  const directCompose =
+    /docker\s+compose\s+-f\s+(?:["']?)(?:\$\{?\w+\}?\/|\.\/|\/)?(?:\S*?\/)?docker-compose\.prod\.yml/;
   const serverBuild = /build\s+--pull\s+app/;
+
+  // Sanity: Pattern muss auch variable/absolute Pfade erkennen.
+  assert.match(
+    'docker compose -f $APP_DIR/docker-compose.prod.yml --env-file $APP_DIR/.env.production',
+    directCompose,
+  );
+  assert.match(
+    'docker compose -f /home/deploy/arsnova.eu/docker-compose.prod.yml --env-file .env.production',
+    directCompose,
+  );
 
   const violations = [];
   for (const file of files) {

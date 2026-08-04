@@ -7,8 +7,9 @@ Dieses Runbook ist für akute serverseitige Probleme gedacht: 500er, 404, kaputt
 Es ergänzt [deployment-debian-root-server.md](deployment-debian-root-server.md) und nutzt dessen Produktionsannahmen:
 
 - Repo auf dem Server, typischerweise: `/home/deploy/arsnova.eu`
-- Compose-Datei: `docker-compose.prod.yml`
-- Env-Datei: `.env.production`
+- Operator-Compose: `./scripts/prod-compose.sh` (lädt `.env.production` + `.env.arsnova-image`)
+- Compose-Datei: `docker-compose.prod.yml` (nur über den Wrapper)
+- Env-Datei: `.env.production`; Image-Digest: `.env.arsnova-image`
 - Container: `arsnova-v3-app`, `arsnova-v3-postgres`, `arsnova-v3-redis`
 - App lokal: `127.0.0.1:3000`
 - tRPC-WebSocket: `127.0.0.1:3001`
@@ -715,8 +716,6 @@ RESTORE_MAX_AGE_SECONDS="${RESTORE_MAX_AGE_SECONDS:-3456000}"
 CERT_WARN_SECONDS="${CERT_WARN_SECONDS:-1814400}"
 BACKUP_MARKER="/var/lib/arsnova-backup/last-success"
 RESTORE_MARKER="/var/lib/arsnova-restore-check/last-success"
-APP_DIR="/home/deploy/arsnova.eu"
-COMPOSE="docker compose -f $APP_DIR/docker-compose.prod.yml --env-file $APP_DIR/.env.production"
 
 problems=()
 
