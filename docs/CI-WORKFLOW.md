@@ -347,10 +347,17 @@ nicht die offene S6.5-Zielhostabnahme.
 
 ### 4.17 deploy
 
-- **Was?** Server-Deploy via SSH; führt serverseitig [../scripts/deploy.sh](../scripts/deploy.sh) aus.
+- **Was?** Server-Deploy via SSH; übergibt `DEPLOY_IMAGE` aus
+  `needs.publish-image.outputs.image_ref` (kanonische Digest-Referenz) sowie
+  `DEPLOY_SHA` (`github.sha`) und führt serverseitig
+  [../scripts/deploy.sh](../scripts/deploy.sh) aus. Das Skript setzt
+  `ARSNOVA_IMAGE`, checkt den Commit aus, pullt `app`/`pdf-worker` (kein
+  Server-Build), migriert, startet die Services und prüft Health/HTTP sowie
+  Digest→Image-ID→Container-ID für beide Container. Danach wird der
+  Deploy-State (`current`/`previous` unter `.deploy-state/`) atomar rotiert.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist.
-- **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf den tatsächlich geprüften Commit gepinnt.
+- **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist, und `publish-image` eine Digest-Referenz geliefert hat.
+- **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf das gescannte GHCR-Artefakt gepinnt.
 
 ### 4.18 post-deploy-smoke
 
@@ -361,10 +368,15 @@ nicht die offene S6.5-Zielhostabnahme.
 
 ### 4.19 rollback-on-smoke-failure
 
-- **Was?** Automatischer Rollback auf den vorherigen Commit (`github.event.before`) und erneutes serverseitiges Deployment.
-- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Was?** Automatischer Image-/Commit-Rollback über
+  `./scripts/deploy.sh --rollback`. Der Server lädt `previous.image` und
+  `previous.sha` aus dem lokalen Deploy-State; `github.event.before` wird nicht
+  verwendet. Es findet kein Server-Build statt.
+- **Wo?** Job `Rollback on Smoke Failure` in
+  [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug (mit `always()` ausgewertet, damit der Job trotz Fehlerpfad startet).
-- **Warum?** Reduziert Ausfallzeit und stellt den zuletzt funktionierenden Stand schnell wieder her.
+- **Warum?** Reduziert Ausfallzeit und stellt das zuletzt erfolgreich verifizierte Digest-Artefakt wieder her.
+- **Grenze:** Image-Rollback setzt **keine** Datenbankmigrationen zurück. Fehlt ein gültiger Previous-State, bricht das Skript mit Operator-Hinweisen ab.
 
 ---
 
@@ -387,9 +399,10 @@ Vor dem eigentlichen Deploy müssen erfolgreich sein:
 13. audit
 14. trivy-fs
 15. trivy-image
-16. deploy-freshness (`should_deploy=true`)
+16. publish-image (Digest-`image_ref` für `DEPLOY_IMAGE`)
+17. deploy-freshness (`should_deploy=true`)
 
-Wenn eines der Quality-Gates (1–15) fehlschlägt, wird nicht deployt. Wenn danach
+Wenn eines der Quality-Gates (1–16) fehlschlägt, wird nicht deployt. Wenn danach
 `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist,
 wird der Deploy sauber übersprungen.
 

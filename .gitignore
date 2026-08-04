@@ -26,6 +26,9 @@ deploy/backup/known_hosts
 deploy/backup/storagebox_ed25519*
 deploy/monitoring/monitor.env
 
+# ---------- Deploy runtime state (server) ----------
+.deploy-state/
+
 # ---------- IDE ----------
 .idea/
 .cursor/mcp.json
