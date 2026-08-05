@@ -1309,7 +1309,7 @@ function buildReport({
   const gateViolations = [];
   const baselineChanges = [];
 
-  if (baseline) {
+  if (baseline && baselineErrors.length === 0) {
     for (const procedure of enriched) {
       const baselineEntry = baseline.procedures[procedure.id] ?? null;
       if (!baselineEntry) {
@@ -1356,12 +1356,13 @@ function buildReport({
       }
 
       if (procedure.kind === 'subscription') continue;
+      const baselineMissing = procedure.baseline?.missing ?? [];
       const comparison = compareMissingDebt(
-        { [procedure.id]: baselineEntry.missing },
+        { [procedure.id]: baselineMissing },
         { [procedure.id]: procedure.missing },
       );
       const newlyMissing = procedure.missing.filter(
-        (dimension) => !baselineEntry.missing.includes(dimension),
+        (dimension) => !baselineMissing.includes(dimension),
       );
       if (!comparison.ok) {
         gateViolations.push({
@@ -1372,8 +1373,8 @@ function buildReport({
           message: `${procedure.id}: unchanged ${procedure.kind} lost ${newlyMissing.join(', ')} evidence`,
         });
       }
-      if (JSON.stringify(procedure.missing) !== JSON.stringify(baselineEntry.missing)) {
-        const reduced = procedure.missing.length < baselineEntry.missing.length && comparison.ok;
+      if (JSON.stringify(procedure.missing) !== JSON.stringify(baselineMissing)) {
+        const reduced = procedure.missing.length < baselineMissing.length && comparison.ok;
         baselineChanges.push({
           procedure: procedure.id,
           kind: procedure.kind,
@@ -1593,9 +1594,9 @@ function runAudit({
     knownContracts,
   );
   const baselineResult = baselinePath
-    ? readAndValidateBaseline(baselinePath, procedures)
+    ? readAndValidateBaseline(baselinePath)
     : { baseline: null, errors: [] };
-  if (baselinePath && verifyHistory) {
+  if (baselinePath && verifyHistory && baselineResult.errors.length === 0) {
     try {
       baselineResult.errors.push(...verifyBaselineHistory(baselinePath, baselineResult.baseline));
     } catch (error) {
@@ -1621,6 +1622,11 @@ function runCli(argv = process.argv.slice(2)) {
     return 0;
   }
   if (args.real && args.poc) throw new Error('--real and --poc are mutually exclusive');
+  if (args.real && args.failOnIncomplete) {
+    throw new Error(
+      '--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate',
+    );
+  }
   if (args.writeBaseline && args.updateBaseline) {
     throw new Error('--write-baseline and --update-baseline are mutually exclusive');
   }

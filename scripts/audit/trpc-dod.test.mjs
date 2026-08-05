@@ -693,6 +693,18 @@ test('fail-on-incomplete exits non-zero for poc incomplete echo', () => {
   assert.equal(run.status, 1, run.stderr || run.stdout);
 });
 
+test('real mode rejects fail-on-incomplete instead of overriding the Slice 2C gate', () => {
+  const run = spawnSync(process.execPath, [auditScript, '--real', '--fail-on-incomplete'], {
+    encoding: 'utf8',
+    cwd: repoRoot,
+  });
+  assert.equal(run.status, 2, run.stderr || run.stdout);
+  assert.match(
+    run.stderr,
+    /--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate/,
+  );
+});
+
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
@@ -819,7 +831,7 @@ test('baseline requires deleted entries to be removed and blocks incomplete new 
     const withOrphan = structuredClone(baseline);
     withOrphan.procedures['demo.deleted'] = { ...withOrphan.procedures['demo.alpha'] };
     writeFileSync(baselineFile, `${JSON.stringify(withOrphan)}\n`);
-    let checked = readAndValidateBaseline(baselineFile, procedures);
+    let checked = readAndValidateBaseline(baselineFile);
     assert.deepEqual(checked.errors, []);
     let report = buildRealReport(buildReport, procedures, checked.baseline);
     assert.ok(
@@ -838,7 +850,7 @@ test('baseline requires deleted entries to be removed and blocks incomplete new 
     );
     const withNewProcedure = inventariseRouterFile(router, 'demo');
     writeFileSync(baselineFile, `${JSON.stringify(baseline)}\n`);
-    checked = readAndValidateBaseline(baselineFile, withNewProcedure);
+    checked = readAndValidateBaseline(baselineFile);
     assert.deepEqual(checked.errors, []);
     report = buildRealReport(buildReport, withNewProcedure, checked.baseline);
     assert.equal(report.summary.newSinceBaseline, 1);
@@ -859,7 +871,7 @@ test('baseline requires deleted entries to be removed and blocks incomplete new 
     const serializedBaseline = JSON.stringify(baseline);
     const duplicateVersion = `{"version":1,${serializedBaseline.slice(1)}`;
     writeFileSync(baselineFile, duplicateVersion);
-    checked = readAndValidateBaseline(baselineFile, procedures);
+    checked = readAndValidateBaseline(baselineFile);
     assert.ok(
       checked.errors.some((error) => /duplicate baseline JSON key \$\.version/.test(error)),
     );
@@ -911,6 +923,41 @@ test('complete new query is accepted after a monotonic baseline addition', async
     const accepted = buildRealReport(buildReport, current, refreshed);
     assert.deepEqual(accepted.gateViolations, []);
     assert.deepEqual(accepted.baselineChanges, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('real audit reports invalid baseline missing values without throwing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-invalid-baseline-'));
+  try {
+    createHistoryFixture(dir);
+    const baselineFile = join(dir, '.github/trpc-dod-baseline.json');
+    const validBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+
+    for (const [label, invalidMissing] of [
+      ['null', null],
+      ['string', 'happy'],
+    ]) {
+      const invalidBaseline = structuredClone(validBaseline);
+      invalidBaseline.procedures['demo.alpha'].missing = invalidMissing;
+      writeFileSync(baselineFile, `${JSON.stringify(invalidBaseline, null, 2)}\n`);
+      const reportPath = join(dir, `${label}-report.json`);
+      const audit = spawnSync(
+        process.execPath,
+        [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--json-out', reportPath],
+        { cwd: dir, encoding: 'utf8' },
+      );
+
+      assert.equal(audit.status, 2, audit.stderr || audit.stdout);
+      assert.doesNotMatch(audit.stderr, /TypeError/);
+      assert.match(audit.stdout, /baseline procedure demo\.alpha has invalid missing dimensions/);
+      const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+      assert.deepEqual(report.structuralErrors, [
+        'baseline procedure demo.alpha has invalid missing dimensions',
+      ]);
+      assert.equal(report.summary.structuralErrors, 1);
+    }
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -1284,7 +1331,7 @@ test('changed incomplete procedure is an actionable Slice 2C gate violation', as
 `,
     );
     const after = inventariseRouterFile(router, 'demo');
-    const checked = readAndValidateBaseline(baselineFile, after);
+    const checked = readAndValidateBaseline(baselineFile);
     assert.deepEqual(checked.errors, []);
     const report = buildReport({
       mode: 'real',
