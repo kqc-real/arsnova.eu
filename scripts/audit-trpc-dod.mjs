@@ -79,13 +79,23 @@ function parseArgs(argv) {
   return args;
 }
 
+function compareCanonicalStrings(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+function compareCanonicalTuples(left, right) {
+  return compareCanonicalStrings(JSON.stringify(left), JSON.stringify(right));
+}
+
 function walkFiles(root, acc = []) {
   const st = statSync(root);
   if (st.isFile()) {
     if (/\.(ts|tsx|mts|cts)$/.test(root)) acc.push(root);
     return acc;
   }
-  for (const name of readdirSync(root)) {
+  for (const name of readdirSync(root).sort(compareCanonicalStrings)) {
     if (name === 'node_modules' || name === 'dist') continue;
     walkFiles(join(root, name), acc);
   }
@@ -96,19 +106,11 @@ function relPosix(filePath) {
   return relative(REPO_ROOT, filePath).replaceAll('\\', '/');
 }
 
-function isIdentifierLike(kind) {
-  return (
-    kind === ts.SyntaxKind.Identifier ||
-    kind === ts.SyntaxKind.PrivateIdentifier ||
-    (kind >= ts.SyntaxKind.FirstKeyword && kind <= ts.SyntaxKind.LastKeyword) ||
-    kind === ts.SyntaxKind.NumericLiteral
-  );
-}
-
 /**
  * Semantically safe fingerprint normalization:
  * TypeScript scanner with trivia skipped (comments/whitespace), literal token
- * text preserved (strings, templates, regex).
+ * text preserved (strings, templates, regex). Each token is serialized as a
+ * [SyntaxKind, text] tuple so adjacent operators cannot collapse together.
  */
 function normalizeProcedureSource(text) {
   const scanner = ts.createScanner(
@@ -117,19 +119,13 @@ function normalizeProcedureSource(text) {
     ts.LanguageVariant.Standard,
     text,
   );
-  let out = '';
-  let prevKind = ts.SyntaxKind.Unknown;
+  const tokens = [];
   let token = scanner.scan();
   while (token !== ts.SyntaxKind.EndOfFileToken) {
-    const textPart = scanner.getTokenText();
-    if (out && isIdentifierLike(prevKind) && isIdentifierLike(token)) {
-      out += ' ';
-    }
-    out += textPart;
-    prevKind = token;
+    tokens.push([token, scanner.getTokenText()]);
     token = scanner.scan();
   }
-  return out;
+  return JSON.stringify(tokens);
 }
 
 function fingerprintSource(kind, id, source) {
@@ -240,7 +236,7 @@ function inventariseRouterFile(filePath, forcedPrefix = null) {
     }
   }
 
-  procedures.sort((a, b) => a.id.localeCompare(b.id));
+  procedures.sort((a, b) => compareCanonicalStrings(a.id, b.id));
   return procedures;
 }
 
@@ -272,6 +268,7 @@ function isEmptyFunctionBody(fnNode) {
 
 function calleeKey(expr) {
   if (ts.isIdentifier(expr)) return expr.text;
+  if (ts.isCallExpression(expr)) return calleeKey(expr.expression);
   if (ts.isPropertyAccessExpression(expr)) {
     const left = calleeKey(expr.expression);
     return left ? `${left}.${expr.name.text}` : expr.name.text;
@@ -325,6 +322,22 @@ function collectCanonicalHelperBindings(sourceFile, filePath) {
     }
   }
   return bindings;
+}
+
+function isCanonicalHelperReference(identifier, checker, filePath) {
+  const symbol = checker.getSymbolAtLocation(identifier);
+  if (!symbol) return false;
+
+  return (symbol.declarations ?? []).some((declaration) => {
+    if (!ts.isImportSpecifier(declaration)) return false;
+    const imported = (declaration.propertyName ?? declaration.name).text;
+    if (imported !== 'trpcDodIt') return false;
+    const importDeclaration = declaration.parent?.parent?.parent;
+    if (!importDeclaration || !ts.isImportDeclaration(importDeclaration)) return false;
+    const specifier = literalString(importDeclaration.moduleSpecifier);
+    const target = resolveImportTarget(filePath, specifier);
+    return Boolean(target && isCanonicalHelperPath(target));
+  });
 }
 
 function isInsideSkippedContext(node) {
@@ -386,9 +399,20 @@ function isAllowedContract(value, known) {
 }
 
 function collectEvidenceFromFile(filePath, knownContracts) {
-  const text = readFileSync(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest, true);
-  const helperBindings = collectCanonicalHelperBindings(sourceFile, filePath);
+  const absoluteFilePath = resolve(filePath);
+  const program = ts.createProgram([absoluteFilePath], {
+    module: ts.ModuleKind.NodeNext,
+    moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    noEmit: true,
+    skipLibCheck: true,
+    target: ts.ScriptTarget.Latest,
+  });
+  const sourceFile = program.getSourceFile(absoluteFilePath);
+  if (!sourceFile) {
+    throw new Error(`Could not parse evidence file ${absoluteFilePath}`);
+  }
+  const checker = program.getTypeChecker();
+  const helperBindings = collectCanonicalHelperBindings(sourceFile, absoluteFilePath);
   const entries = [];
   const rejected = [];
 
@@ -402,7 +426,9 @@ function collectEvidenceFromFile(filePath, knownContracts) {
       const meta = extractEvidenceObject(node.arguments[0]);
       const fn = node.arguments[1];
       const skipped = isInsideSkippedContext(node);
-      const bound = helperBindings.has(localName);
+      const bound =
+        helperBindings.has(localName) &&
+        isCanonicalHelperReference(node.expression, checker, absoluteFilePath);
 
       const looksLikeHelperCall = bound || localName === 'trpcDodIt' || localName === 'dodIt';
       if (!looksLikeHelperCall || !meta) {
@@ -411,7 +437,7 @@ function collectEvidenceFromFile(filePath, knownContracts) {
         rejected.push({
           entry: {
             ...meta,
-            testFile: relPosix(filePath),
+            testFile: relPosix(absoluteFilePath),
           },
           problems: [
             `call to ${localName} is not bound to canonical helper ${CANONICAL_HELPER_REL}`,
@@ -421,7 +447,7 @@ function collectEvidenceFromFile(filePath, knownContracts) {
         rejected.push({
           entry: {
             ...meta,
-            testFile: relPosix(filePath),
+            testFile: relPosix(absoluteFilePath),
             skipped: true,
           },
           problems: ['evidence is inside a skipped describe/it context'],
@@ -429,7 +455,7 @@ function collectEvidenceFromFile(filePath, knownContracts) {
       } else {
         entries.push({
           ...meta,
-          testFile: relPosix(filePath),
+          testFile: relPosix(absoluteFilePath),
           emptyBody: isEmptyFunctionBody(fn),
           skipped: false,
         });
@@ -571,18 +597,61 @@ function compareMissingDebt(baselineMissingById, currentMissingById) {
 function buildReport({ mode, procedures, invalid, orphanEvidence }) {
   const enriched = procedures.map((p) => {
     const { status, missing } = classifyProcedure(p);
-    return { ...p, status, missing };
+    return {
+      ...p,
+      evidence: {
+        happy: [...p.evidence.happy].sort((a, b) =>
+          compareCanonicalTuples(
+            [a.testFile, a.title, a.mode, a.contract, a.rationale],
+            [b.testFile, b.title, b.mode, b.contract, b.rationale],
+          ),
+        ),
+        error: [...p.evidence.error].sort((a, b) =>
+          compareCanonicalTuples(
+            [a.testFile, a.title, a.mode, a.contract, a.rationale],
+            [b.testFile, b.title, b.mode, b.contract, b.rationale],
+          ),
+        ),
+      },
+      status,
+      missing,
+    };
   });
+  enriched.sort((a, b) =>
+    compareCanonicalTuples([a.id, a.kind, a.sourceFile], [b.id, b.kind, b.sourceFile]),
+  );
 
   const qm = enriched.filter((p) => p.kind !== 'subscription');
   const subs = enriched.filter((p) => p.kind === 'subscription');
+  const invalidEvidence = invalid
+    .map(({ entry, problems }) => ({
+      procedure: entry.procedure ?? null,
+      title: entry.title ?? null,
+      testFile: entry.testFile,
+      problems,
+    }))
+    .sort((a, b) =>
+      compareCanonicalTuples(
+        [a.testFile, a.procedure, a.title, a.problems],
+        [b.testFile, b.procedure, b.title, b.problems],
+      ),
+    );
+  const canonicalOrphanEvidence = orphanEvidence
+    .map((entry) => ({
+      procedure: entry.procedure,
+      title: entry.title,
+      testFile: entry.testFile,
+    }))
+    .sort((a, b) =>
+      compareCanonicalTuples(
+        [a.testFile, a.procedure, a.title],
+        [b.testFile, b.procedure, b.title],
+      ),
+    );
 
   return {
     version: 1,
     mode,
-    // Deterministic canonical report: no wall-clock timestamp.
-    // Optional non-canonical hint only when SOURCE_DATE_EPOCH is set.
-    sourceDateEpoch: process.env.SOURCE_DATE_EPOCH ?? null,
     limits: [
       'Static audit proves helper metadata, canonical import binding, and inventory — not assertion quality.',
       'Arbitrary caller it() tests are ignored by design.',
@@ -591,17 +660,8 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
       'Subscriptions appear in the inventory but are outside the query/mutation gate.',
     ],
     procedures: enriched,
-    invalidEvidence: invalid.map(({ entry, problems }) => ({
-      procedure: entry.procedure ?? null,
-      title: entry.title ?? null,
-      testFile: entry.testFile,
-      problems,
-    })),
-    orphanEvidence: orphanEvidence.map((e) => ({
-      procedure: e.procedure,
-      title: e.title,
-      testFile: e.testFile,
-    })),
+    invalidEvidence,
+    orphanEvidence: canonicalOrphanEvidence,
     summary: {
       queriesMutations: qm.length,
       subscriptions: subs.length,
@@ -619,9 +679,6 @@ function renderMarkdown(report) {
   lines.push('# tRPC DoD Audit');
   lines.push('');
   lines.push(`Mode: \`${report.mode}\``);
-  if (report.sourceDateEpoch) {
-    lines.push(`SOURCE_DATE_EPOCH: ${report.sourceDateEpoch}`);
-  }
   lines.push('');
   lines.push('## Summary');
   lines.push('');
@@ -662,7 +719,9 @@ function ensureParent(filePath) {
 function runAudit({ routerPath, prefix, evidencePaths, mode }) {
   const knownContracts = loadKnownContractsFromHelper();
   const procedures = inventariseRouterFile(routerPath, prefix);
-  const evidenceFiles = evidencePaths.flatMap((p) => walkFiles(resolve(p)));
+  const evidenceFiles = evidencePaths
+    .flatMap((p) => walkFiles(resolve(p)))
+    .sort((a, b) => compareCanonicalStrings(relPosix(a), relPosix(b)));
   const evidenceEntries = [];
   const rejected = [];
   for (const f of evidenceFiles) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
@@ -43,20 +43,33 @@ test('poc mode: ping complete, echo incomplete, subscription report-only; caller
   assert.match(run.stdout, /Complete: 1/);
 });
 
-test('poc JSON report is byte-stable across two runs', () => {
+test('poc JSON report is byte-stable across runner environments and covers indirect evidence', () => {
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
   try {
     const outA = join(dir, 'a.json');
     const outB = join(dir, 'b.json');
-    for (const out of [outA, outB]) {
+    const environmentWithoutSourceDateEpoch = { ...process.env };
+    delete environmentWithoutSourceDateEpoch.SOURCE_DATE_EPOCH;
+    const runs = [
+      { out: outA, env: environmentWithoutSourceDateEpoch },
+      { out: outB, env: { ...process.env, SOURCE_DATE_EPOCH: '1234567890' } },
+    ];
+    for (const { out, env } of runs) {
       const run = spawnSync(process.execPath, [auditScript, '--poc', '--json-out', out], {
         encoding: 'utf8',
         cwd: repoRoot,
-        env: { ...process.env, SOURCE_DATE_EPOCH: '0' },
+        env,
       });
       assert.equal(run.status, 0, run.stderr || run.stdout);
     }
     assert.equal(readFileSync(outA, 'utf8'), readFileSync(outB, 'utf8'));
+    const report = JSON.parse(readFileSync(outA, 'utf8'));
+    assert.equal('sourceDateEpoch' in report, false);
+    const ping = report.procedures.find((procedure) => procedure.id === 'dodPoc.ping');
+    assert.ok(ping);
+    const indirectError = ping.evidence.error.find((entry) => entry.mode === 'indirect');
+    assert.ok(indirectError);
+    assert.match(indirectError.rationale, /shared contract assertion/i);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -112,6 +125,17 @@ test('fingerprint preserves string/template/regex literals; format/comments are 
     const withComment = normalizeProcedureSource('query(async () => /* c */ 1)');
     const withoutComment = normalizeProcedureSource('query(async () => 1)');
     assert.equal(withComment, withoutComment);
+
+    const adjacentOperatorsA = 'return a + ++b';
+    const adjacentOperatorsB = 'return a++ + b';
+    assert.notEqual(
+      normalizeProcedureSource(adjacentOperatorsA),
+      normalizeProcedureSource(adjacentOperatorsB),
+    );
+    assert.notEqual(
+      fingerprintSource('query', 'demo.x', adjacentOperatorsA),
+      fingerprintSource('query', 'demo.x', adjacentOperatorsB),
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -254,11 +278,12 @@ trpcDodIt({
   }
 });
 
-test('describe.skip evidence is rejected; wrong import and local shadowing do not count', async () => {
+test('skip and curried skipIf evidence are rejected; wrong imports and shadowing do not count', async () => {
   const { collectEvidenceFromFile, loadKnownContractsFromHelper } = await loadAudit();
   const known = loadKnownContractsFromHelper();
   const evidenceDir = join(repoRoot, 'apps/backend/src/__tests__/trpc-dod-poc');
   const skippedFile = join(evidenceDir, '_tmp-skipped.evidence.test.ts');
+  const skipIfFile = join(evidenceDir, '_tmp-skip-if.evidence.test.ts');
   const wrongImportFile = join(evidenceDir, '_tmp-wrong-import.evidence.test.ts');
   const shadowFile = join(evidenceDir, '_tmp-shadow.evidence.test.ts');
   try {
@@ -277,6 +302,29 @@ describe.skip('skipped suite', () => {
 `),
     );
     writeFileSync(
+      skipIfFile,
+      withCanonicalImport(`
+import { describe, it } from 'vitest';
+describe.skipIf(true)('skipped suite', () => {
+  trpcDodIt({
+    procedure: 'demo.x',
+    case: 'happy',
+    mode: 'direct',
+    title: 'skipIf suite happy',
+  }, async () => { expect(1).toBe(1); });
+});
+it.skipIf(true)('skipped test', () => {
+  trpcDodIt({
+    procedure: 'demo.x',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'skipIf test error',
+  }, async () => { throw new Error('x'); });
+});
+`),
+    );
+    writeFileSync(
       wrongImportFile,
       `import { trpcDodIt } from './nonexistent-helper';
 trpcDodIt({
@@ -289,19 +337,29 @@ trpcDodIt({
     );
     writeFileSync(
       shadowFile,
-      `function trpcDodIt(_o: unknown, _fn: unknown) {}
-trpcDodIt({
-  procedure: 'demo.x',
-  case: 'happy',
-  mode: 'direct',
-  title: 'shadowed',
-}, async () => { expect(1).toBe(1); });
-`,
+      withCanonicalImport(`
+function fake(_options: unknown, _fn: unknown) {}
+function registerShadowedEvidence() {
+  const trpcDodIt = fake;
+  trpcDodIt({
+    procedure: 'demo.x',
+    case: 'happy',
+    mode: 'direct',
+    title: 'shadowed canonical import',
+  }, async () => { expect(1).toBe(1); });
+}
+registerShadowedEvidence();
+`),
     );
 
     const skipped = collectEvidenceFromFile(skippedFile, known);
     assert.equal(skipped.entries.length, 0);
     assert.ok(skipped.rejected.some((r) => /skipped/i.test(r.problems.join(' '))));
+
+    const skipIf = collectEvidenceFromFile(skipIfFile, known);
+    assert.equal(skipIf.entries.length, 0);
+    assert.equal(skipIf.rejected.length, 2);
+    assert.ok(skipIf.rejected.every((r) => /skipped/i.test(r.problems.join(' '))));
 
     const wrong = collectEvidenceFromFile(wrongImportFile, known);
     assert.equal(wrong.entries.length, 0);
@@ -316,6 +374,7 @@ trpcDodIt({
     );
   } finally {
     rmSync(skippedFile, { force: true });
+    rmSync(skipIfFile, { force: true });
     rmSync(wrongImportFile, { force: true });
     rmSync(shadowFile, { force: true });
   }
@@ -371,6 +430,65 @@ test('subscription is outside query/mutation denominator', async () => {
     assert.equal(report.summary.untested, 1);
     const sub = report.procedures.find((p) => p.id === 'demo.onX');
     assert.equal(sub.status, 'subscription_report_only');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('report collections are byte-stable when evidence input order is reversed', async () => {
+  const { runAudit } = await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const helperPath = join(repoRoot, 'apps/backend/src/__tests__/test-utils/trpc-dod-evidence.ts');
+    const relativeHelperPath = relative(dir, helperPath).replaceAll('\\', '/');
+    const helperSpecifier = relativeHelperPath.startsWith('.')
+      ? relativeHelperPath
+      : `./${relativeHelperPath}`;
+    const happy = writeTempEvidence(
+      dir,
+      `import { trpcDodIt } from '${helperSpecifier}';
+trpcDodIt({
+  procedure: 'demo.alpha',
+  case: 'happy',
+  mode: 'direct',
+  title: 'alpha happy',
+}, async () => { expect(1).toBe(1); });
+`,
+      'z-happy.evidence.test.ts',
+    );
+    const error = writeTempEvidence(
+      dir,
+      `import { trpcDodIt } from '${helperSpecifier}';
+trpcDodIt({
+  procedure: 'demo.alpha',
+  case: 'error',
+  mode: 'direct',
+  contract: 'NOT_FOUND',
+  title: 'alpha error',
+}, async () => { throw new Error('x'); });
+`,
+      'a-error.evidence.test.ts',
+    );
+    const forward = runAudit({
+      routerPath: router,
+      prefix: 'demo',
+      evidencePaths: [happy, error],
+      mode: 'custom',
+    });
+    const reversed = runAudit({
+      routerPath: router,
+      prefix: 'demo',
+      evidencePaths: [error, happy],
+      mode: 'custom',
+    });
+    assert.equal(JSON.stringify(forward), JSON.stringify(reversed));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

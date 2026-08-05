@@ -64,21 +64,22 @@ ausführen.
 - stabile ID aus Router-Präfix + Property-Name
 - Source-Fingerprint: SHA-256 über den mit dem TypeScript-Scanner
   (`skipTrivia: true`) normalisierten Tokenstrom — Kommentare/Whitespace entfallen,
-  Literal-Token (String, Template, Regex) bleiben unverändert
+  jedes Token wird eindeutig als `[SyntaxKind, Text]` serialisiert und Literal-Token
+  (String, Template, Regex) bleiben unverändert
 
 Rename = Löschung + neue ID. Geänderter Fingerprint = fachlich geänderte Prozedur
 (Gate-Semantik ab Slice 2C).
 
 ### 3. Berichtsschema (Version 1)
 
-Maschinenlesbarer Bericht ohne Wall-Clock-Zeitstempel (deterministisch am gleichen
-Commit). Optional `sourceDateEpoch` nur wenn `SOURCE_DATE_EPOCH` gesetzt ist.
+Maschinenlesbarer Bericht ohne Wall-Clock-Zeitstempel oder umgebungsabhängige Felder
+(deterministisch am gleichen Commit). Dateipfade und Berichtskollektionen werden
+kanonisch sortiert.
 
 ```json
 {
   "version": 1,
   "mode": "poc",
-  "sourceDateEpoch": null,
   "procedures": [
     {
       "id": "dodPoc.ping",

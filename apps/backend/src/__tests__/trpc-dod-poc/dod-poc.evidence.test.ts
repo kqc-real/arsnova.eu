@@ -1,7 +1,7 @@
 /**
  * PoC evidence registration for dodPoc.ping / dodPoc.echo (Issue #222 Slice 2A).
  *
- * ping: complete (happy + error, both via createCaller)
+ * ping: complete (direct happy + indirect error through a shared contract helper)
  * echo: intentionally incomplete (happy only); a bare caller it() must not count
  */
 import { describe, expect, it } from 'vitest';
@@ -9,6 +9,12 @@ import { trpcDodIt } from '../test-utils/trpc-dod-evidence';
 import { dodPocRouter } from './fixture-router';
 
 const caller = dodPocRouter.createCaller({ req: undefined });
+
+async function assertPingRejectsForbiddenThroughContractHelper(): Promise<void> {
+  await expect(caller.ping({ name: 'forbidden' })).rejects.toMatchObject({
+    code: 'FORBIDDEN',
+  });
+}
 
 describe('dodPoc.ping formal DoD evidence', () => {
   trpcDodIt(
@@ -30,15 +36,13 @@ describe('dodPoc.ping formal DoD evidence', () => {
     {
       procedure: 'dodPoc.ping',
       case: 'error',
-      mode: 'direct',
+      mode: 'indirect',
       contract: 'FORBIDDEN',
-      title: 'dodPoc.ping rejects forbidden name',
+      rationale:
+        'The shared contract assertion owns the caller invocation; this registration verifies that reusable boundary indirectly.',
+      title: 'dodPoc.ping reusable contract assertion rejects forbidden name',
     },
-    async () => {
-      await expect(caller.ping({ name: 'forbidden' })).rejects.toMatchObject({
-        code: 'FORBIDDEN',
-      });
-    },
+    assertPingRejectsForbiddenThroughContractHelper,
   );
 });
 
