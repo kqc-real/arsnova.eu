@@ -877,19 +877,19 @@ function validateBaselineEvolution(baseline, initialBaseline, previousBaselines 
   const history = previousBaselines.length > 0 ? previousBaselines : [initialBaseline];
   for (const [id, entry] of Object.entries(baseline.procedures)) {
     if (!entry || entry.kind === 'subscription') continue;
-    const previousEntries = history
-      .map((previous) => previous.procedures?.[id])
-      .filter((previous) => previous && previous.kind !== 'subscription');
+    const immediatelyPrevious = history[0]?.procedures?.[id] ?? null;
 
-    if (previousEntries.length === 0) {
+    if (!immediatelyPrevious) {
       if (entry.missing.length > 0) {
+        const existedEarlier = history.slice(1).some((previous) => previous.procedures?.[id]);
         errors.push(
-          `baseline procedure ${id} is new and carries missing ${entry.missing.join(', ')} evidence`,
+          `baseline procedure ${id} ${existedEarlier ? 'is reintroduced after absence' : 'is new'} and carries missing ${entry.missing.join(', ')} evidence`,
         );
       }
       continue;
     }
 
+    const previousEntries = history.map((previous) => previous.procedures?.[id]).filter(Boolean);
     const changed = previousEntries.some(
       (previous) => previous.kind !== entry.kind || previous.fingerprint !== entry.fingerprint,
     );
@@ -1089,17 +1089,26 @@ function verifyBaselineHistory(baselinePath, baseline) {
   );
   const committed = readCommittedBaselineVersions(baselinePath);
   errors.push(...committed.errors);
-  const currentCanonical = JSON.stringify(canonicalBaselineProcedures(baseline.procedures));
-  let previousBaselines = committed.versions.map((version) => version.baseline);
-  if (
-    previousBaselines.length > 1 &&
-    JSON.stringify(canonicalBaselineProcedures(previousBaselines[0].procedures)) ===
-      currentCanonical &&
-    previousBaselines[0].originCommit === baseline.originCommit
-  ) {
-    previousBaselines = previousBaselines.slice(1);
+  const committedBaselines = committed.versions.map((version) => version.baseline);
+  for (let index = 0; index < committed.versions.length - 1; index += 1) {
+    const version = committed.versions[index];
+    errors.push(
+      ...validateBaselineEvolution(
+        version.baseline,
+        initialBaseline,
+        committedBaselines.slice(index + 1),
+      ).map((error) => `committed baseline ${version.commit}: ${error}`),
+    );
   }
-  errors.push(...validateBaselineEvolution(baseline, initialBaseline, previousBaselines));
+  const currentCanonical = JSON.stringify(canonicalBaselineProcedures(baseline.procedures));
+  const currentMatchesLatestCommit =
+    committedBaselines.length > 0 &&
+    JSON.stringify(canonicalBaselineProcedures(committedBaselines[0].procedures)) ===
+      currentCanonical &&
+    committedBaselines[0].originCommit === baseline.originCommit;
+  if (!currentMatchesLatestCommit) {
+    errors.push(...validateBaselineEvolution(baseline, initialBaseline, committedBaselines));
+  }
   return errors;
 }
 

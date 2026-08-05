@@ -60,6 +60,12 @@ oder erforderliche Baseline-Fortschreibung; Exit 2 bedeutet einen Struktur- oder
 Historienfehler. Details stehen in
 [ADR-0034](architecture/decisions/0034-trpc-dod-evidence-helper-and-fingerprint.md).
 
+Eine gelöschte ID verliert ihren Legacy-Bestandsschutz. Wird dieselbe ID später mit
+demselben Fingerprint wieder eingeführt, gilt sie wegen ihrer Abwesenheit in der
+unmittelbar vorherigen Baseline trotzdem als neu und benötigt vollständige
+Happy-/Error-Evidenz. Das Audit prüft diese Anwesenheitsübergänge auch rückwirkend
+über alle committeten Baseline-Versionen.
+
 ### Parallele Unit-Testläufe vermeiden
 
 `npm test` startet **sequentiell** Shared Types, Backend und Frontend — aber **nur ein Lauf zur Zeit**.

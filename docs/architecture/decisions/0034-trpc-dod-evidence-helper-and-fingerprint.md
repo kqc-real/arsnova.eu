@@ -175,6 +175,15 @@ abgedeckte Dimension darf nie erneut als fehlend erscheinen. Damit bleibt eine
 Verbesserung auch nach späteren Baseline-Updates geschützt; die Prüfung hängt nicht
 vom Merge-, Squash- oder Rebase-Verfahren ab.
 
+Die Anwesenheit einer Prozedur wird zusätzlich über jede aufeinanderfolgende
+Baseline-Version geprüft. Fehlt eine ID in der unmittelbar vorherigen Version, ist
+ein späteres Wiederauftauchen eine neue Prozedur — auch wenn ID, Typ und Fingerprint
+mit einem älteren Legacy-Eintrag identisch sind. Sie darf daher nur vollständig,
+also mit leerer `missing`-Liste, wieder aufgenommen werden. Alle bereits committeten
+Versionsübergänge werden bei jedem Audit erneut geprüft, damit ein einmal
+committierter Anwesenheits-Bypass nicht durch einen späteren Baseline-Commit
+unsichtbar werden kann.
+
 `npm run audit:trpc-dod -- --update-baseline` übernimmt ausschließlich einen
 strukturell gültigen Zustand ohne Gate-Verstöße. Das Schreiben verwendet eine
 exklusiv erzeugte Lockdatei, eine exklusiv erzeugte temporäre Datei und einen

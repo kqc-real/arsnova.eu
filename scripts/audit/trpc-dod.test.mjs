@@ -1164,6 +1164,62 @@ test('real history audit survives squash and rebase introduction commits', () =>
   }
 });
 
+test('real history rejects incomplete same-fingerprint reintroduction after committed absence', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-reintroduction-'));
+  try {
+    createHistoryFixture(dir);
+    const routerFile = join(dir, 'apps/backend/src/routers/demo.ts');
+    const baselineFile = join(dir, '.github/trpc-dod-baseline.json');
+    const initialBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+
+    writeFileSync(routerFile, 'export const demoRouter = router({});\n');
+    runCommand(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--update-baseline'],
+      dir,
+    );
+    const deletedBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+    assert.equal('demo.alpha' in deletedBaseline.procedures, false);
+    runCommand('git', ['add', 'apps/backend/src/routers/demo.ts', baselineFile], dir);
+    runCommand('git', ['commit', '-m', 'delete legacy alpha'], dir);
+    const deletedReportPath = join(dir, 'deleted-report.json');
+    runCommand(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--json-out', deletedReportPath],
+      dir,
+    );
+    const deletedReport = JSON.parse(readFileSync(deletedReportPath, 'utf8'));
+    assert.equal(deletedReport.summary.queriesMutations, 0);
+    assert.equal(deletedReport.summary.structuralErrors, 0);
+
+    writeFileSync(
+      routerFile,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    writeFileSync(baselineFile, `${JSON.stringify(initialBaseline, null, 2)}\n`);
+    runCommand('git', ['add', 'apps/backend/src/routers/demo.ts', baselineFile], dir);
+    runCommand('git', ['commit', '-m', 'reintroduce incomplete legacy alpha'], dir);
+    const reintroductionCommit = runCommand('git', ['rev-parse', 'HEAD'], dir);
+
+    const audit = spawnSync(process.execPath, [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real'], {
+      cwd: dir,
+      encoding: 'utf8',
+    });
+    assert.equal(audit.status, 2, audit.stderr || audit.stdout);
+    assert.match(
+      audit.stdout,
+      new RegExp(
+        `committed baseline ${reintroductionCommit}: baseline procedure demo\\.alpha is reintroduced after absence and carries missing happy, error evidence`,
+      ),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('baseline updater persists an improvement and refuses a later evidence regression', () => {
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-update-'));
   try {
