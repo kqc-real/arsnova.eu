@@ -4,24 +4,25 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-07-27 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-08-05 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
 ## NPM-Skripte (Root)
 
-| Befehl                              | Bedeutung                                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `npm run build`                     | `shared-types` → Backend `tsc` → Frontend `ng build`                                                      |
-| `npm run typecheck`                 | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                     |
-| `npm run lint`                      | ESLint über `libs/` und `apps/`                                                                           |
-| `npm test`                          | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)    |
-| `npm run format:check`              | Prettier (ohne Schreiben)                                                                                 |
-| `npm run validate:pdfua`            | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                         |
-| `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)              |
-| `npm run audit:trpc-dod`            | AppRouter und alle Backend-`src/**/*.test.ts` gegen die Git-verankerte Baseline; Schuld report-only       |
-| `npm run audit:trpc-dod:poc`        | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                   |
-| `npm run audit:trpc-dod:test`       | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint) |
+| Befehl                                        | Bedeutung                                                                                                   |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `npm run build`                               | `shared-types` → Backend `tsc` → Frontend `ng build`                                                        |
+| `npm run typecheck`                           | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                       |
+| `npm run lint`                                | ESLint über `libs/` und `apps/`                                                                             |
+| `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)      |
+| `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                   |
+| `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                           |
+| `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                |
+| `npm run audit:trpc-dod`                      | Blockierendes Non-Regression-Gate für AppRouter und alle Backend-`src/**/*.test.ts`; Legacy bleibt zulässig |
+| `npm run audit:trpc-dod -- --update-baseline` | Vollständigen/verbesserten Zustand atomar und monoton in die Git-verankerte Baseline übernehmen             |
+| `npm run audit:trpc-dod:poc`                  | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                     |
+| `npm run audit:trpc-dod:test`                 | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint)   |
 
 Workspace-spezifisch:
 
@@ -33,6 +34,37 @@ Workspace-spezifisch:
 | `@arsnova/frontend`              | `npm run test -w @arsnova/frontend` (`vitest run`)              | `npm run typecheck -w @arsnova/frontend`              |
 
 `npm run typecheck -w @arsnova/backend` setzt ein gebautes `@arsnova/shared-types` (`libs/shared-types/dist`) voraus; das Root-Skript `npm run typecheck` baut die Library zuerst.
+
+### tRPC-DoD-Non-Regression-Gate
+
+Für jede neue Query/Mutation und jede Query/Mutation mit geändertem
+Source-Fingerprint müssen Tests über den kanonischen `trpcDodIt`-Helper sowohl
+`case: 'happy'` als auch `case: 'error'` registrieren. Der Error-Fall benötigt einen
+bekannten tRPC-Vertrag oder einen konkret benannten `DOMAIN:*`-Vertrag. Rename wird
+als Löschung plus neue Prozedur behandelt. Subscriptions erscheinen im Bericht und
+in der Baseline, ihre Evidenz ist jedoch report-only.
+
+Der normale Audit blockiert:
+
+- neue/geänderte Queries oder Mutations mit fehlender Happy-/Error-Evidenz;
+- den Verlust einer zuvor abgedeckten Dimension;
+- eine nicht zur aktuellen Inventur synchronisierte Baseline;
+- strukturell ungültige Evidenz, Inventur oder Baseline-Historie.
+
+Unveränderte Legacy-Schuld blockiert nicht. Nach einer vollständigen neuen oder
+geänderten Prozedur, einer behobenen Legacy-Lücke, einem Rename oder einer Löschung
+ist `npm run audit:trpc-dod -- --update-baseline` auszuführen und die geänderte
+`.github/trpc-dod-baseline.json` mit zu committen. Der Updater verweigert neue oder
+erhöhte Schuld sowie konkurrierende Schreibzugriffe. Exit 1 bedeutet Gate-Verstoß
+oder erforderliche Baseline-Fortschreibung; Exit 2 bedeutet einen Struktur- oder
+Historienfehler. Details stehen in
+[ADR-0034](architecture/decisions/0034-trpc-dod-evidence-helper-and-fingerprint.md).
+
+Eine gelöschte ID verliert ihren Legacy-Bestandsschutz. Wird dieselbe ID später mit
+demselben Fingerprint wieder eingeführt, gilt sie wegen ihrer Abwesenheit in der
+unmittelbar vorherigen Baseline trotzdem als neu und benötigt vollständige
+Happy-/Error-Evidenz. Das Audit prüft diese Anwesenheitsübergänge auch rückwirkend
+über alle committeten Baseline-Versionen.
 
 ### Parallele Unit-Testläufe vermeiden
 

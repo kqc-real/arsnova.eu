@@ -18,6 +18,29 @@ const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const auditScript = join(repoRoot, 'scripts/audit-trpc-dod.mjs');
 const helperImport = '../test-utils/trpc-dod-evidence';
 
+function addFormalEvidence(procedure, ...dimensions) {
+  for (const dimension of dimensions) {
+    procedure.evidence[dimension].push({
+      mode: 'direct',
+      contract: dimension === 'error' ? 'NOT_FOUND' : null,
+      rationale: null,
+      title: `${procedure.id} ${dimension}`,
+      testFile: 'demo.test.ts',
+    });
+  }
+}
+
+function buildRealReport(buildReport, procedures, baseline) {
+  return buildReport({
+    mode: 'real',
+    procedures,
+    invalid: [],
+    orphanEvidence: [],
+    baseline,
+    baselineErrors: [],
+  });
+}
+
 async function loadAudit() {
   return import(new URL('../audit-trpc-dod.mjs', import.meta.url).href);
 }
@@ -102,6 +125,37 @@ function advanceMain(root, label) {
   writeFileSync(join(root, `${label}.md`), `${label}\n`);
   runCommand('git', ['add', `${label}.md`], root);
   runCommand('git', ['commit', '-m', `advance main for ${label}`], root);
+}
+
+function writeHistoryEvidence(root, includeError = true) {
+  const errorEvidence = includeError
+    ? `
+trpcDodIt(
+  {
+    procedure: 'demo.alpha',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'alpha error',
+  },
+  async () => { await caller.demo.alpha(); },
+);
+`
+    : '';
+  writeFileSync(
+    join(root, 'apps/backend/src/routers/demo.test.ts'),
+    `import { trpcDodIt } from '../__tests__/test-utils/trpc-dod-evidence';
+trpcDodIt(
+  {
+    procedure: 'demo.alpha',
+    case: 'happy',
+    mode: 'direct',
+    title: 'alpha happy',
+  },
+  async () => { await caller.demo.alpha(); },
+);
+${errorEvidence}`,
+  );
 }
 
 function assertHistoryAuditPasses(root, label) {
@@ -639,6 +693,18 @@ test('fail-on-incomplete exits non-zero for poc incomplete echo', () => {
   assert.equal(run.status, 1, run.stderr || run.stdout);
 });
 
+test('real mode rejects fail-on-incomplete instead of overriding the Slice 2C gate', () => {
+  const run = spawnSync(process.execPath, [auditScript, '--real', '--fail-on-incomplete'], {
+    encoding: 'utf8',
+    cwd: repoRoot,
+  });
+  assert.equal(run.status, 2, run.stderr || run.stdout);
+  assert.match(
+    run.stderr,
+    /--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate/,
+  );
+});
+
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
@@ -746,7 +812,7 @@ test('conflicting duplicate evidence and unknown procedure ids become structural
   }
 });
 
-test('baseline rejects duplicate JSON keys and orphan entries; new procedures are report-only', async () => {
+test('baseline requires deleted entries to be removed and blocks incomplete new procedures', async () => {
   const { buildReport, createBaseline, inventariseRouterFile, readAndValidateBaseline } =
     await loadAudit();
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
@@ -765,9 +831,13 @@ test('baseline rejects duplicate JSON keys and orphan entries; new procedures ar
     const withOrphan = structuredClone(baseline);
     withOrphan.procedures['demo.deleted'] = { ...withOrphan.procedures['demo.alpha'] };
     writeFileSync(baselineFile, `${JSON.stringify(withOrphan)}\n`);
-    let checked = readAndValidateBaseline(baselineFile, procedures);
+    let checked = readAndValidateBaseline(baselineFile);
+    assert.deepEqual(checked.errors, []);
+    let report = buildRealReport(buildReport, procedures, checked.baseline);
     assert.ok(
-      checked.errors.some((error) => /orphan baseline procedure demo\.deleted/.test(error)),
+      report.baselineChanges.some(
+        (change) => change.procedure === 'demo.deleted' && change.change === 'remove_deleted',
+      ),
     );
 
     writeFileSync(
@@ -780,18 +850,18 @@ test('baseline rejects duplicate JSON keys and orphan entries; new procedures ar
     );
     const withNewProcedure = inventariseRouterFile(router, 'demo');
     writeFileSync(baselineFile, `${JSON.stringify(baseline)}\n`);
-    checked = readAndValidateBaseline(baselineFile, withNewProcedure);
+    checked = readAndValidateBaseline(baselineFile);
     assert.deepEqual(checked.errors, []);
-    const report = buildReport({
-      mode: 'real',
-      procedures: withNewProcedure,
-      invalid: [],
-      orphanEvidence: [],
-      baseline: checked.baseline,
-      baselineErrors: checked.errors,
-    });
+    report = buildRealReport(buildReport, withNewProcedure, checked.baseline);
     assert.equal(report.summary.newSinceBaseline, 1);
     assert.equal(report.summary.structuralErrors, 0);
+    assert.deepEqual(report.gateViolations[0], {
+      procedure: 'demo.beta',
+      kind: 'mutation',
+      change: 'new',
+      missing: ['happy', 'error'],
+      message: 'demo.beta: new mutation missing happy, error evidence',
+    });
     assert.equal(
       report.procedures.find((procedure) => procedure.id === 'demo.beta').baseline.new,
       true,
@@ -801,9 +871,232 @@ test('baseline rejects duplicate JSON keys and orphan entries; new procedures ar
     const serializedBaseline = JSON.stringify(baseline);
     const duplicateVersion = `{"version":1,${serializedBaseline.slice(1)}`;
     writeFileSync(baselineFile, duplicateVersion);
-    checked = readAndValidateBaseline(baselineFile, procedures);
+    checked = readAndValidateBaseline(baselineFile);
     assert.ok(
       checked.errors.some((error) => /duplicate baseline JSON key \$\.version/.test(error)),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('complete new query is accepted after a monotonic baseline addition', async () => {
+  const { buildReport, createBaseline, inventariseRouterFile, validateBaselineEvolution } =
+    await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const originCommit = '2'.repeat(40);
+    const initial = createBaseline(inventariseRouterFile(router, 'demo'), originCommit);
+    writeFileSync(
+      router,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+  beta: publicProcedure.query(async () => 2),
+});
+`,
+    );
+    const current = inventariseRouterFile(router, 'demo');
+    assert.ok(
+      validateBaselineEvolution(createBaseline(current, originCommit), initial, [initial]).some(
+        (error) => /demo\.beta is new and carries missing happy, error evidence/.test(error),
+      ),
+    );
+    addFormalEvidence(
+      current.find((procedure) => procedure.id === 'demo.beta'),
+      'happy',
+      'error',
+    );
+
+    const beforeRefresh = buildRealReport(buildReport, current, initial);
+    assert.deepEqual(beforeRefresh.gateViolations, []);
+    assert.equal(beforeRefresh.baselineChanges[0].change, 'add');
+
+    const refreshed = createBaseline(current, originCommit);
+    assert.deepEqual(validateBaselineEvolution(refreshed, initial, [initial]), []);
+    const accepted = buildRealReport(buildReport, current, refreshed);
+    assert.deepEqual(accepted.gateViolations, []);
+    assert.deepEqual(accepted.baselineChanges, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('real audit reports invalid baseline missing values without throwing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-invalid-baseline-'));
+  try {
+    createHistoryFixture(dir);
+    const baselineFile = join(dir, '.github/trpc-dod-baseline.json');
+    const validBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+
+    for (const [label, invalidMissing] of [
+      ['null', null],
+      ['string', 'happy'],
+    ]) {
+      const invalidBaseline = structuredClone(validBaseline);
+      invalidBaseline.procedures['demo.alpha'].missing = invalidMissing;
+      writeFileSync(baselineFile, `${JSON.stringify(invalidBaseline, null, 2)}\n`);
+      const reportPath = join(dir, `${label}-report.json`);
+      const audit = spawnSync(
+        process.execPath,
+        [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--json-out', reportPath],
+        { cwd: dir, encoding: 'utf8' },
+      );
+
+      assert.equal(audit.status, 2, audit.stderr || audit.stdout);
+      assert.doesNotMatch(audit.stderr, /TypeError/);
+      assert.match(audit.stdout, /baseline procedure demo\.alpha has invalid missing dimensions/);
+      const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+      assert.deepEqual(report.structuralErrors, [
+        'baseline procedure demo.alpha has invalid missing dimensions',
+      ]);
+      assert.equal(report.summary.structuralErrors, 1);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('changed query requires both evidence dimensions before fingerprint refresh', async () => {
+  const { buildReport, createBaseline, inventariseRouterFile, validateBaselineEvolution } =
+    await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const originCommit = '3'.repeat(40);
+    const initial = createBaseline(inventariseRouterFile(router, 'demo'), originCommit);
+    writeFileSync(
+      router,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 2),
+});
+`,
+    );
+    const current = inventariseRouterFile(router, 'demo');
+    addFormalEvidence(current[0], 'happy');
+    let report = buildRealReport(buildReport, current, initial);
+    assert.deepEqual(
+      report.gateViolations.map((violation) => violation.message),
+      ['demo.alpha: changed query missing error evidence'],
+    );
+    assert.ok(
+      validateBaselineEvolution(createBaseline(current, originCommit), initial, [initial]).some(
+        (error) =>
+          /demo\.alpha changed kind or fingerprint and carries missing error evidence/.test(error),
+      ),
+    );
+
+    addFormalEvidence(current[0], 'error');
+    report = buildRealReport(buildReport, current, initial);
+    assert.deepEqual(report.gateViolations, []);
+    const refreshed = createBaseline(current, originCommit);
+    assert.deepEqual(validateBaselineEvolution(refreshed, initial, [initial]), []);
+    assert.deepEqual(buildRealReport(buildReport, current, refreshed).baselineChanges, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('legacy debt stays non-blocking, reductions persist, and regressions are rejected', async () => {
+  const { buildReport, createBaseline, inventariseRouterFile, validateBaselineEvolution } =
+    await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.mutation(async () => 1),
+});
+`,
+    );
+    const originCommit = '4'.repeat(40);
+    const initialProcedures = inventariseRouterFile(router, 'demo');
+    addFormalEvidence(initialProcedures[0], 'happy');
+    const initial = createBaseline(initialProcedures, originCommit);
+
+    const unchanged = inventariseRouterFile(router, 'demo');
+    addFormalEvidence(unchanged[0], 'happy');
+    let report = buildRealReport(buildReport, unchanged, initial);
+    assert.deepEqual(report.gateViolations, []);
+    assert.deepEqual(report.baselineChanges, []);
+
+    addFormalEvidence(unchanged[0], 'error');
+    report = buildRealReport(buildReport, unchanged, initial);
+    assert.deepEqual(report.gateViolations, []);
+    assert.equal(report.baselineChanges[0].change, 'reduce_debt');
+    const improved = createBaseline(unchanged, originCommit);
+    assert.deepEqual(validateBaselineEvolution(improved, initial, [initial]), []);
+
+    const regressed = inventariseRouterFile(router, 'demo');
+    addFormalEvidence(regressed[0], 'error');
+    report = buildRealReport(buildReport, regressed, improved);
+    assert.deepEqual(
+      report.gateViolations.map((violation) => violation.message),
+      ['demo.alpha: unchanged mutation lost happy evidence'],
+    );
+
+    const weakened = structuredClone(improved);
+    weakened.procedures['demo.alpha'].missing = ['happy'];
+    assert.ok(
+      validateBaselineEvolution(weakened, initial, [initial, improved]).some((error) =>
+        /reintroduces missing happy evidence/.test(error),
+      ),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('subscriptions remain report-only while rename is deletion plus a gated new id', async () => {
+  const { buildReport, createBaseline, inventariseRouterFile } = await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const originCommit = '5'.repeat(40);
+    const initial = createBaseline(inventariseRouterFile(router, 'demo'), originCommit);
+    writeFileSync(
+      router,
+      `export const demoRouter = router({
+  beta: publicProcedure.query(async () => 1),
+  onTick: publicProcedure.subscription(() => observable(() => () => {})),
+});
+`,
+    );
+    const current = inventariseRouterFile(router, 'demo');
+    const report = buildRealReport(buildReport, current, initial);
+    assert.deepEqual(
+      report.gateViolations.map((violation) => violation.procedure),
+      ['demo.beta'],
+    );
+    assert.equal(
+      report.gateViolations.some((violation) => violation.procedure === 'demo.onTick'),
+      false,
+    );
+    assert.deepEqual(
+      report.baselineChanges.map((change) => [change.procedure, change.change]),
+      [
+        ['demo.alpha', 'remove_deleted'],
+        ['demo.beta', 'add'],
+        ['demo.onTick', 'add'],
+      ],
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -918,7 +1211,103 @@ test('real history audit survives squash and rebase introduction commits', () =>
   }
 });
 
-test('changed procedure fingerprint is reported but does not invalidate Slice 2B baseline', async () => {
+test('real history rejects incomplete same-fingerprint reintroduction after committed absence', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-reintroduction-'));
+  try {
+    createHistoryFixture(dir);
+    const routerFile = join(dir, 'apps/backend/src/routers/demo.ts');
+    const baselineFile = join(dir, '.github/trpc-dod-baseline.json');
+    const initialBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+
+    writeFileSync(routerFile, 'export const demoRouter = router({});\n');
+    runCommand(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--update-baseline'],
+      dir,
+    );
+    const deletedBaseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+    assert.equal('demo.alpha' in deletedBaseline.procedures, false);
+    runCommand('git', ['add', 'apps/backend/src/routers/demo.ts', baselineFile], dir);
+    runCommand('git', ['commit', '-m', 'delete legacy alpha'], dir);
+    const deletedReportPath = join(dir, 'deleted-report.json');
+    runCommand(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--json-out', deletedReportPath],
+      dir,
+    );
+    const deletedReport = JSON.parse(readFileSync(deletedReportPath, 'utf8'));
+    assert.equal(deletedReport.summary.queriesMutations, 0);
+    assert.equal(deletedReport.summary.structuralErrors, 0);
+
+    writeFileSync(
+      routerFile,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    writeFileSync(baselineFile, `${JSON.stringify(initialBaseline, null, 2)}\n`);
+    runCommand('git', ['add', 'apps/backend/src/routers/demo.ts', baselineFile], dir);
+    runCommand('git', ['commit', '-m', 'reintroduce incomplete legacy alpha'], dir);
+    const reintroductionCommit = runCommand('git', ['rev-parse', 'HEAD'], dir);
+
+    const audit = spawnSync(process.execPath, [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real'], {
+      cwd: dir,
+      encoding: 'utf8',
+    });
+    assert.equal(audit.status, 2, audit.stderr || audit.stdout);
+    assert.match(
+      audit.stdout,
+      new RegExp(
+        `committed baseline ${reintroductionCommit}: baseline procedure demo\\.alpha is reintroduced after absence and carries missing happy, error evidence`,
+      ),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('baseline updater persists an improvement and refuses a later evidence regression', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-update-'));
+  try {
+    createHistoryFixture(dir);
+    writeHistoryEvidence(dir);
+    const baselineFile = join(dir, '.github/trpc-dod-baseline.json');
+    runCommand(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--update-baseline'],
+      dir,
+    );
+    let baseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+    assert.deepEqual(baseline.procedures['demo.alpha'].missing, []);
+    runCommand('git', ['add', 'apps/backend/src/routers/demo.test.ts', baselineFile], dir);
+    runCommand('git', ['commit', '-m', 'accept complete alpha evidence'], dir);
+    assertHistoryAuditPasses(dir, 'improved');
+
+    writeHistoryEvidence(dir, false);
+    const beforeRejectedUpdate = readFileSync(baselineFile, 'utf8');
+    const audit = spawnSync(process.execPath, [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real'], {
+      cwd: dir,
+      encoding: 'utf8',
+    });
+    assert.equal(audit.status, 1, audit.stderr || audit.stdout);
+    assert.match(audit.stdout, /demo\.alpha: unchanged query lost error evidence/);
+    const update = spawnSync(
+      process.execPath,
+      [join(dir, 'scripts/audit-trpc-dod.mjs'), '--real', '--update-baseline'],
+      { cwd: dir, encoding: 'utf8' },
+    );
+    assert.equal(update.status, 1, update.stderr || update.stdout);
+    assert.match(update.stderr, /Refusing baseline update with gate violations/);
+    assert.equal(readFileSync(baselineFile, 'utf8'), beforeRejectedUpdate);
+    baseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
+    assert.deepEqual(baseline.procedures['demo.alpha'].missing, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('changed incomplete procedure is an actionable Slice 2C gate violation', async () => {
   const { buildReport, createBaseline, inventariseRouterFile, readAndValidateBaseline } =
     await loadAudit();
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
@@ -942,7 +1331,7 @@ test('changed procedure fingerprint is reported but does not invalidate Slice 2B
 `,
     );
     const after = inventariseRouterFile(router, 'demo');
-    const checked = readAndValidateBaseline(baselineFile, after);
+    const checked = readAndValidateBaseline(baselineFile);
     assert.deepEqual(checked.errors, []);
     const report = buildReport({
       mode: 'real',
@@ -953,13 +1342,17 @@ test('changed procedure fingerprint is reported but does not invalidate Slice 2B
       baselineErrors: checked.errors,
     });
     assert.equal(report.summary.changedSinceBaseline, 1);
+    assert.equal(report.summary.gateViolations, 1);
+    assert.equal(report.gateViolations[0].procedure, 'demo.alpha');
+    assert.equal(report.gateViolations[0].change, 'changed');
+    assert.deepEqual(report.gateViolations[0].missing, ['happy', 'error']);
     assert.equal(report.summary.structuralErrors, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('real Slice 2B report is deterministic and legacy debt is non-blocking', () => {
+test('real Slice 2C report is deterministic and unchanged legacy debt is non-blocking', () => {
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
   try {
     const baseline = join(repoRoot, '.github/trpc-dod-baseline.json');
@@ -977,6 +1370,8 @@ test('real Slice 2B report is deterministic and legacy debt is non-blocking', ()
     assert.equal(report.summary.queriesMutations, 113);
     assert.equal(report.summary.legacyMissingDimensions, 226);
     assert.equal(report.summary.newSinceBaseline, 0);
+    assert.equal(report.summary.gateViolations, 0);
+    assert.equal(report.summary.baselineChanges, 0);
     assert.equal(report.summary.structuralErrors, 0);
     assert.equal('integrity' in report.baseline, false);
   } finally {
@@ -1005,6 +1400,28 @@ test('baseline initialization uses an exclusive create and preserves an existing
     assert.equal(run.status, 2, run.stderr || run.stdout);
     assert.match(run.stderr, /Refusing to overwrite existing baseline/);
     assert.equal(readFileSync(baselineFile, 'utf8'), 'do not overwrite\n');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('atomic baseline update uses an exclusive lock and never overwrites through contention', async () => {
+  const { writeBaselineAtomically } = await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-lock-'));
+  try {
+    const baselineFile = join(dir, 'baseline.json');
+    const oldBaseline = { version: 1, originCommit: '6'.repeat(40), procedures: {} };
+    const newBaseline = { version: 1, originCommit: '7'.repeat(40), procedures: {} };
+    writeFileSync(baselineFile, `${JSON.stringify(oldBaseline)}\n`);
+    writeFileSync(`${baselineFile}.lock`, 'other process\n');
+    assert.throws(
+      () => writeBaselineAtomically(baselineFile, newBaseline),
+      /Refusing concurrent baseline update/,
+    );
+    assert.deepEqual(JSON.parse(readFileSync(baselineFile, 'utf8')), oldBaseline);
+    rmSync(`${baselineFile}.lock`);
+    writeBaselineAtomically(baselineFile, newBaseline);
+    assert.deepEqual(JSON.parse(readFileSync(baselineFile, 'utf8')), newBaseline);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

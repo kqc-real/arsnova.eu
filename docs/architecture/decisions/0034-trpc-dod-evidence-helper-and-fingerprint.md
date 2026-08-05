@@ -2,7 +2,7 @@
 
 # ADR-0034: tRPC-DoD-Evidenz per Helper, Source-Fingerprint und Audit
 
-**Status:** Proposed
+**Status:** Accepted
 **Datum:** 2026-08-05
 **Entscheider:** Projektteam (Architektur-Checkpoint nach Slice 2B / Issue #222)
 **Letzter Repo-Abgleich:** 2026-08-05
@@ -16,8 +16,9 @@ indirekter Nebeneffekt beweist weder Happy Path noch Fehlervertrag.
 
 Issue #222 fordert deshalb eine **formale, auditierbare Evidenzkonvention** und ein
 späteres Non-Regression-Gate. Slice 2A validiert die Konvention an Fixtures. Slice 2B
-wendet sie auf den vollständigen realen Routerbaum an, versioniert den Ausgangsstand
-und veröffentlicht ihn als Bericht, ohne Evidenzschuld zu blockieren.
+wendet sie auf den vollständigen realen Routerbaum an und versioniert den
+Ausgangsstand. Slice 2C aktiviert das Non-Regression-Gate, ohne unveränderte
+Legacy-Schuld zu blockieren.
 
 ## Entscheidung
 
@@ -116,11 +117,11 @@ Statuswerte für Queries/Mutations: `complete` | `incomplete` | `untested`.
 Subscriptions: `subscription_report_only` (nicht im Query-/Mutation-Nenner).
 Im Realmodus ergänzt der Bericht pro Prozedur den Baseline-Status
 (`legacyDebt`, `missing`, `changed`, `new`) und auf Berichtsebene Baseline-Ursprung,
-Strukturfehler sowie die Summen der Legacy-Schuld. Ein geänderter Fingerprint oder
-eine neue, noch nicht in der Baseline enthaltene Prozedur wird in Slice 2B nur
-ausgewiesen; die Blockiersemantik folgt erst in Slice 2C.
+Strukturfehler, Gate-Verstöße, erforderliche Baseline-Änderungen sowie die Summen
+der Legacy-Schuld. Jeder Gate-Verstoß nennt Prozedur-ID, Änderung (`new`, `changed`
+oder `evidence_regression`) und die konkret fehlenden Evidenzdimensionen.
 
-### 4. Versionierte Baseline (Slice 2B)
+### 4. Versionierte Baseline und Non-Regression-Gate (Slices 2B/2C)
 
 Die Baseline liegt unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
 Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean. Der
@@ -152,19 +153,50 @@ Der Ursprung muss außerdem ein Vorfahr des Einführungs-Commits sein. Spätere
 gemeinsame Änderungen von Baseline und `originCommit` können diesen historischen
 Anker nicht verschieben. CI checkt dafür die vollständige Historie aus.
 
-Gate-Semantik (ab 2C): Eine Dimension, die in der Baseline abgedeckt war und später
-fehlt, ist Verschlechterung (verboten). Das Schließen einer fehlenden Dimension
-reduziert die Schuld. Ein Tausch Happy↔Error gilt als Verschlechterung auf der
-verlorenen Dimension. `compareMissingDebt` im Audit-Skript prüft diese Übergänge.
+Das Slice-2C-Gate verwendet folgende Regeln:
 
-Slice 2B aktiviert dieses Schuld-Gate ausdrücklich **noch nicht**. CI erzeugt nach
-`npm ci` einen deterministischen JSON-/Markdown-Bericht, schreibt Markdown in die
-Job Summary und lädt beide Dateien als `trpc-dod-report` hoch. Bestehende oder
-veränderte Evidenzschuld sowie neue Prozeduren bleiben Exit 0. Nur ungültige
-Inventur-/Baseline-Struktur, Abweichungen von der aus `originCommit` regenerierten
-Baseline, unbekannte Procedure-IDs in Evidenz, verwaiste Baseline-Einträge und
-widersprüchliche doppelte Evidenz sind Fehler. Die initiale Baseline-Erzeugung nutzt
-einen exklusiven atomaren Create und überschreibt nie eine vorhandene Datei.
+- eine neue Query/Mutation benötigt Happy- und Error-Evidenz;
+- eine Query/Mutation mit geändertem Typ oder Source-Fingerprint benötigt ebenfalls
+  beide Dimensionen, unabhängig von ihrer bisherigen Legacy-Schuld;
+- unveränderte Legacy-Schuld bleibt zulässig;
+- der Verlust einer bereits abgedeckten Dimension ist verboten; ein Tausch
+  Happy↔Error verliert ebenfalls eine Dimension und ist daher eine Regression;
+- eine geschlossene Legacy-Lücke muss in der Baseline festgeschrieben werden;
+- Rename ist Löschung plus neue ID, gelöschte IDs müssen entfernt werden;
+- Subscriptions werden inventarisiert und fortgeschrieben, ihre Evidenz blockiert
+  das Query-/Mutation-Gate jedoch nicht.
+
+Code und Baseline können das Gate nicht gemeinsam umgehen. Die initiale Baseline
+wird weiterhin aus `originCommit` und dem Einführungs-Commit rekonstruiert. Zusätzlich
+vergleicht das Audit die aktuelle Baseline mit allen erreichbaren, früher
+committeten Baseline-Versionen: neue oder fingerprint-geänderte Queries/Mutations
+dürfen nur mit leerer `missing`-Liste aufgenommen werden, und eine irgendwann
+abgedeckte Dimension darf nie erneut als fehlend erscheinen. Damit bleibt eine
+Verbesserung auch nach späteren Baseline-Updates geschützt; die Prüfung hängt nicht
+vom Merge-, Squash- oder Rebase-Verfahren ab.
+
+Die Anwesenheit einer Prozedur wird zusätzlich über jede aufeinanderfolgende
+Baseline-Version geprüft. Fehlt eine ID in der unmittelbar vorherigen Version, ist
+ein späteres Wiederauftauchen eine neue Prozedur — auch wenn ID, Typ und Fingerprint
+mit einem älteren Legacy-Eintrag identisch sind. Sie darf daher nur vollständig,
+also mit leerer `missing`-Liste, wieder aufgenommen werden. Alle bereits committeten
+Versionsübergänge werden bei jedem Audit erneut geprüft, damit ein einmal
+committierter Anwesenheits-Bypass nicht durch einen späteren Baseline-Commit
+unsichtbar werden kann.
+
+`npm run audit:trpc-dod -- --update-baseline` übernimmt ausschließlich einen
+strukturell gültigen Zustand ohne Gate-Verstöße. Das Schreiben verwendet eine
+exklusiv erzeugte Lockdatei, eine exklusiv erzeugte temporäre Datei und einen
+atomaren Rename. Bei Konkurrenz oder Regression bleibt die bestehende Baseline
+unverändert. Nach erfolgreicher Aktualisierung müssen Baseline und aktuelle
+Inventur exakt übereinstimmen.
+
+CI erzeugt nach `npm ci` weiterhin einen deterministischen JSON-/Markdown-Bericht,
+schreibt Markdown in die Job Summary und lädt beide Dateien als
+`trpc-dod-report` hoch. Exit 1 bezeichnet Gate-Verstöße oder noch nicht übernommene
+Baseline-Änderungen, Exit 2 strukturelle Inventur-, Evidenz-, Historien- oder
+Baseline-Fehler. Die initiale Baseline-Erzeugung nutzt weiterhin einen exklusiven
+Create und überschreibt nie eine vorhandene Datei.
 
 ### 5. Initiale Klassifikation des realen Routerbaums
 
@@ -198,7 +230,7 @@ Explizit **nicht** automatisch beweisbar:
 - Laufzeit-`skip`/`todo` jenseits der statisch erkennbaren `describe.skip` /
   `it.skip` / `skipIf`-Kontexte.
 
-Das Gate (ab 2C) verhindert neue **formale** Schuld und Baseline-Aufweichen; es
+Das Gate verhindert neue **formale** Schuld und Baseline-Aufweichen; es
 ersetzt kein Review.
 
 ## Konsequenzen
@@ -223,14 +255,15 @@ ersetzt kein Review.
 - **Nur Coverage-Schwellen:** verworfen; Coverage ≠ vertragliche DoD.
 - **Sofortiges 100-%-Gate auf dem Bestand:** verworfen; würde fachfremde PRs blockieren.
 
-## Architektur-Checkpoint (Slice 2B)
+## Architektur-Checkpoint (Slice 2C)
 
-Vor Slice 2C ausdrücklich im PR-Review bestätigen:
+Vor Slice 2D ausdrücklich im PR-Review bestätigen:
 
-1. Vollständigkeit und IDs der rekursiven AppRouter-Inventur
-2. Initiale Klassifikation 50 Queries / 63 Mutations / 8 Subscriptions
-3. Versionierte Baseline mit 226 Legacy-Dimensionen und festem Ursprung
-4. Evidenzscope gemäß `src/**/*.test.ts` und Git-Verankerung am Ursprung
-5. Fehlergrenzen zwischen struktureller Inkonsistenz und report-only Schuld/neuen
-   Prozeduren
-6. Determinismus und CI-Darstellung von JSON, Markdown, Job Summary und Artefakt
+1. Neue und fingerprint-geänderte Queries/Mutations blockieren ohne vollständige
+   Happy-/Error-Evidenz.
+2. Unveränderte 226 Legacy-Dimensionen bleiben nicht blockierend.
+3. Verbesserungen werden monoton übernommen; gemeinsame Code-/Baseline-Aufweichung
+   und konkurrierende Updates werden abgewiesen.
+4. Rename, Löschung und Subscriptions folgen den dokumentierten Regeln.
+5. CI nennt Prozedur, Änderung und fehlende Evidenz und veröffentlicht weiterhin
+   JSON, Markdown, Job Summary und Artefakt.

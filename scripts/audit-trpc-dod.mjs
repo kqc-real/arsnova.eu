@@ -2,8 +2,8 @@
 /**
  * tRPC DoD audit (ADR-0034 / Issue #222).
  *
- * Slice 2B: real AppRouter inventory + versioned legacy baseline report.
- * Coverage debt remains report-only; structural consistency errors fail.
+ * Slice 2C: real AppRouter inventory + versioned non-regression gate.
+ * Existing legacy debt remains non-blocking; new or increased debt fails.
  */
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -15,6 +15,7 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
+  renameSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -64,7 +65,7 @@ function usage() {
   node scripts/audit-trpc-dod.mjs --router <file> --prefix <id> --evidence <dir|file> [--json-out path]
 
 Options:
-  --real                Audit the complete production AppRouter tree (Slice 2B)
+  --real                Audit the complete production AppRouter tree (Slice 2C gate)
   --poc                 Audit the Slice-2A fixture router and evidence tests
   --router <file>       TypeScript file containing router({ ... })
   --prefix <id>         Procedure id prefix (e.g. dodPoc)
@@ -74,8 +75,9 @@ Options:
   --baseline <path>     Versioned real-router baseline (default: .github/trpc-dod-baseline.json)
   --write-baseline      Write an initial baseline instead of running the report
   --origin-commit <sha> Required with --write-baseline (full 40-character SHA)
+  --update-baseline     Atomically accept the current monotonic real-router state
   --fail-on-incomplete  Exit 1 when any query/mutation is incomplete/untested
-                        (default: off; coverage debt is report-only in Slice 2B)
+                        (custom/PoC mode only; real mode always runs the Slice 2C gate)
 `;
 }
 
@@ -90,6 +92,7 @@ function parseArgs(argv) {
     mdOut: null,
     baseline: null,
     writeBaseline: false,
+    updateBaseline: false,
     originCommit: null,
     originSnapshot: false,
     failOnIncomplete: false,
@@ -99,6 +102,7 @@ function parseArgs(argv) {
     if (a === '--real') args.real = true;
     else if (a === '--poc') args.poc = true;
     else if (a === '--write-baseline') args.writeBaseline = true;
+    else if (a === '--update-baseline') args.updateBaseline = true;
     else if (a === '--fail-on-incomplete') args.failOnIncomplete = true;
     else if (a === '--router') args.router = argv[++i];
     else if (a === '--prefix') args.prefix = argv[++i];
@@ -861,6 +865,50 @@ function createBaseline(procedures, originCommit) {
   };
 }
 
+function validateBaselineEvolution(baseline, initialBaseline, previousBaselines = []) {
+  const errors = [];
+  if (baseline.originCommit !== initialBaseline.originCommit) {
+    errors.push(
+      `baseline originCommit differs from immutable initial origin ${initialBaseline.originCommit}`,
+    );
+    return errors;
+  }
+
+  const history = previousBaselines.length > 0 ? previousBaselines : [initialBaseline];
+  for (const [id, entry] of Object.entries(baseline.procedures)) {
+    if (!entry || entry.kind === 'subscription') continue;
+    const immediatelyPrevious = history[0]?.procedures?.[id] ?? null;
+
+    if (!immediatelyPrevious) {
+      if (entry.missing.length > 0) {
+        const existedEarlier = history.slice(1).some((previous) => previous.procedures?.[id]);
+        errors.push(
+          `baseline procedure ${id} ${existedEarlier ? 'is reintroduced after absence' : 'is new'} and carries missing ${entry.missing.join(', ')} evidence`,
+        );
+      }
+      continue;
+    }
+
+    const previousEntries = history.map((previous) => previous.procedures?.[id]).filter(Boolean);
+    const changed = previousEntries.some(
+      (previous) => previous.kind !== entry.kind || previous.fingerprint !== entry.fingerprint,
+    );
+    if (changed && entry.missing.length > 0) {
+      errors.push(
+        `baseline procedure ${id} changed kind or fingerprint and carries missing ${entry.missing.join(', ')} evidence`,
+      );
+      continue;
+    }
+
+    for (const dimension of entry.missing) {
+      if (previousEntries.some((previous) => !previous.missing.includes(dimension))) {
+        errors.push(`baseline procedure ${id} reintroduces missing ${dimension} evidence`);
+      }
+    }
+  }
+  return errors.sort(compareCanonicalStrings);
+}
+
 function validateBaselineAgainstOrigin(baseline, lockedOriginCommit, originProcedures) {
   const errors = [];
   if (baseline.originCommit !== lockedOriginCommit) {
@@ -912,6 +960,25 @@ function readBaselineHistoryAnchor(baselinePath, readGit = gitText) {
     throw new Error('initial committed baseline has no valid originCommit');
   }
   return { introductionCommit, originCommit: initialBaseline.originCommit };
+}
+
+function readCommittedBaselineVersions(baselinePath) {
+  const relativeBaseline = relPosix(baselinePath);
+  const commits = gitText(['log', '--format=%H', '--', relativeBaseline])
+    .split('\n')
+    .filter(Boolean);
+  const versions = [];
+  const errors = [];
+  for (const commit of commits) {
+    const text = gitText(['show', `${commit}:${relativeBaseline}`]);
+    const parsed = parseBaselineDocument(`${commit}:${relativeBaseline}`, text);
+    if (parsed.errors.length > 0) {
+      errors.push(...parsed.errors.map((error) => `committed baseline ${commit}: ${error}`));
+      continue;
+    }
+    versions.push({ commit, baseline: parsed.baseline });
+  }
+  return { versions, errors };
 }
 
 function gitIsAncestor(ancestor, descendant) {
@@ -990,6 +1057,15 @@ function verifyBaselineHistory(baselinePath, baseline) {
   if (!/^[0-9a-f]{40}$/.test(baseline.originCommit ?? '')) return [];
   const { introductionCommit, originCommit: lockedOriginCommit } =
     readBaselineHistoryAnchor(baselinePath);
+  const relativeBaseline = relPosix(baselinePath);
+  const initialDocument = parseBaselineDocument(
+    `${introductionCommit}:${relativeBaseline}`,
+    gitText(['show', `${introductionCommit}:${relativeBaseline}`]),
+  );
+  if (initialDocument.errors.length > 0) {
+    return initialDocument.errors.map((error) => `initial committed baseline is invalid: ${error}`);
+  }
+  const initialBaseline = initialDocument.baseline;
   const originReport = auditCommitSnapshot(lockedOriginCommit);
   const introductionReport = auditCommitSnapshot(introductionCommit);
   const errors = originReport.structuralErrors.map(
@@ -1005,12 +1081,34 @@ function verifyBaselineHistory(baselinePath, baseline) {
   }
   errors.push(
     ...validateBaselineSnapshots(
-      baseline,
+      initialBaseline,
       lockedOriginCommit,
       originReport.procedures,
       introductionReport.procedures,
     ),
   );
+  const committed = readCommittedBaselineVersions(baselinePath);
+  errors.push(...committed.errors);
+  const committedBaselines = committed.versions.map((version) => version.baseline);
+  for (let index = 0; index < committed.versions.length - 1; index += 1) {
+    const version = committed.versions[index];
+    errors.push(
+      ...validateBaselineEvolution(
+        version.baseline,
+        initialBaseline,
+        committedBaselines.slice(index + 1),
+      ).map((error) => `committed baseline ${version.commit}: ${error}`),
+    );
+  }
+  const currentCanonical = JSON.stringify(canonicalBaselineProcedures(baseline.procedures));
+  const currentMatchesLatestCommit =
+    committedBaselines.length > 0 &&
+    JSON.stringify(canonicalBaselineProcedures(committedBaselines[0].procedures)) ===
+      currentCanonical &&
+    committedBaselines[0].originCommit === baseline.originCommit;
+  if (!currentMatchesLatestCommit) {
+    errors.push(...validateBaselineEvolution(baseline, initialBaseline, committedBaselines));
+  }
   return errors;
 }
 
@@ -1042,8 +1140,7 @@ function duplicateJsonKeyErrors(filePath, text) {
   return errors;
 }
 
-function readAndValidateBaseline(filePath, procedures) {
-  const text = readFileSync(filePath, 'utf8');
+function parseBaselineDocument(filePath, text) {
   const errors = duplicateJsonKeyErrors(filePath, text);
   let baseline;
   try {
@@ -1079,9 +1176,7 @@ function readAndValidateBaseline(filePath, procedures) {
     errors.push('baseline procedures must be an object');
     baseline.procedures = {};
   }
-  const currentById = new Map(procedures.map((procedure) => [procedure.id, procedure]));
   for (const [id, entry] of Object.entries(baseline.procedures)) {
-    if (!currentById.has(id)) errors.push(`orphan baseline procedure ${id}`);
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
       errors.push(`baseline procedure ${id} must be an object`);
       continue;
@@ -1112,6 +1207,10 @@ function readAndValidateBaseline(filePath, procedures) {
     }
   }
   return { baseline, errors: [...new Set(errors)].sort(compareCanonicalStrings) };
+}
+
+function readAndValidateBaseline(filePath) {
+  return parseBaselineDocument(filePath, readFileSync(filePath, 'utf8'));
 }
 
 function buildReport({
@@ -1207,6 +1306,110 @@ function buildReport({
   const legacy = enriched.filter(
     (procedure) => procedure.kind !== 'subscription' && procedure.baseline?.legacyDebt,
   );
+  const gateViolations = [];
+  const baselineChanges = [];
+
+  if (baseline && baselineErrors.length === 0) {
+    for (const procedure of enriched) {
+      const baselineEntry = baseline.procedures[procedure.id] ?? null;
+      if (!baselineEntry) {
+        baselineChanges.push({
+          procedure: procedure.id,
+          kind: procedure.kind,
+          change: 'add',
+          missing: procedure.missing,
+          message: `${procedure.id}: add ${procedure.kind} to baseline (missing: ${procedure.missing.join(', ') || 'none'})`,
+        });
+        if (procedure.kind !== 'subscription' && procedure.missing.length > 0) {
+          gateViolations.push({
+            procedure: procedure.id,
+            kind: procedure.kind,
+            change: 'new',
+            missing: procedure.missing,
+            message: `${procedure.id}: new ${procedure.kind} missing ${procedure.missing.join(', ')} evidence`,
+          });
+        }
+        continue;
+      }
+
+      const sourceChanged =
+        baselineEntry.kind !== procedure.kind ||
+        baselineEntry.fingerprint !== procedure.fingerprint;
+      if (sourceChanged) {
+        baselineChanges.push({
+          procedure: procedure.id,
+          kind: procedure.kind,
+          change: 'refresh_fingerprint',
+          missing: procedure.missing,
+          message: `${procedure.id}: refresh changed ${procedure.kind} baseline (missing: ${procedure.missing.join(', ') || 'none'})`,
+        });
+        if (procedure.kind !== 'subscription' && procedure.missing.length > 0) {
+          gateViolations.push({
+            procedure: procedure.id,
+            kind: procedure.kind,
+            change: 'changed',
+            missing: procedure.missing,
+            message: `${procedure.id}: changed ${procedure.kind} missing ${procedure.missing.join(', ')} evidence`,
+          });
+        }
+        continue;
+      }
+
+      if (procedure.kind === 'subscription') continue;
+      const baselineMissing = procedure.baseline?.missing ?? [];
+      const comparison = compareMissingDebt(
+        { [procedure.id]: baselineMissing },
+        { [procedure.id]: procedure.missing },
+      );
+      const newlyMissing = procedure.missing.filter(
+        (dimension) => !baselineMissing.includes(dimension),
+      );
+      if (!comparison.ok) {
+        gateViolations.push({
+          procedure: procedure.id,
+          kind: procedure.kind,
+          change: 'evidence_regression',
+          missing: newlyMissing,
+          message: `${procedure.id}: unchanged ${procedure.kind} lost ${newlyMissing.join(', ')} evidence`,
+        });
+      }
+      if (JSON.stringify(procedure.missing) !== JSON.stringify(baselineMissing)) {
+        const reduced = procedure.missing.length < baselineMissing.length && comparison.ok;
+        baselineChanges.push({
+          procedure: procedure.id,
+          kind: procedure.kind,
+          change: reduced ? 'reduce_debt' : 'increase_debt',
+          missing: procedure.missing,
+          message: `${procedure.id}: ${reduced ? 'reduce' : 'increase'} baseline debt to ${procedure.missing.join(', ') || 'none'}`,
+        });
+      }
+    }
+
+    const currentIds = new Set(enriched.map((procedure) => procedure.id));
+    for (const [id, entry] of Object.entries(baseline.procedures)) {
+      if (currentIds.has(id)) continue;
+      baselineChanges.push({
+        procedure: id,
+        kind: entry.kind,
+        change: 'remove_deleted',
+        missing: [],
+        message: `${id}: remove deleted ${entry.kind} from baseline (missing: none)`,
+      });
+    }
+  }
+
+  gateViolations.sort((left, right) =>
+    compareCanonicalTuples(
+      [left.procedure, left.change, left.missing],
+      [right.procedure, right.change, right.missing],
+    ),
+  );
+  baselineChanges.sort((left, right) =>
+    compareCanonicalTuples(
+      [left.procedure, left.change, left.missing],
+      [right.procedure, right.change, right.missing],
+    ),
+  );
 
   return {
     version: 1,
@@ -1228,6 +1431,8 @@ function buildReport({
     invalidEvidence,
     orphanEvidence: canonicalOrphanEvidence,
     structuralErrors,
+    gateViolations,
+    baselineChanges,
     summary: {
       queriesMutations: qm.length,
       subscriptions: subs.length,
@@ -1243,6 +1448,8 @@ function buildReport({
       ),
       changedSinceBaseline: enriched.filter((procedure) => procedure.baseline?.changed).length,
       newSinceBaseline: enriched.filter((procedure) => procedure.baseline?.new).length,
+      gateViolations: gateViolations.length,
+      baselineChanges: baselineChanges.length,
       structuralErrors: structuralErrors.length,
     },
   };
@@ -1266,6 +1473,8 @@ function renderMarkdown(report) {
     lines.push(`- Legacy missing dimensions: ${report.summary.legacyMissingDimensions}`);
     lines.push(`- Changed since baseline: ${report.summary.changedSinceBaseline}`);
     lines.push(`- New since baseline: ${report.summary.newSinceBaseline}`);
+    lines.push(`- Gate violations: ${report.summary.gateViolations}`);
+    lines.push(`- Baseline changes required: ${report.summary.baselineChanges}`);
     lines.push(`- Structural errors: ${report.summary.structuralErrors}`);
     lines.push(`- Baseline origin: \`${report.baseline.originCommit}\``);
   }
@@ -1289,6 +1498,22 @@ function renderMarkdown(report) {
       lines.push(`- ${e.testFile}: ${e.problems.join('; ')}`);
     }
   }
+  if (report.gateViolations.length) {
+    lines.push('');
+    lines.push('## Gate violations');
+    lines.push('');
+    for (const violation of report.gateViolations) lines.push(`- ${violation.message}`);
+  }
+  if (report.baselineChanges.length) {
+    lines.push('');
+    lines.push('## Baseline changes required');
+    lines.push('');
+    for (const change of report.baselineChanges) lines.push(`- ${change.message}`);
+    lines.push('');
+    lines.push(
+      'Run `npm run audit:trpc-dod -- --update-baseline` after resolving gate violations.',
+    );
+  }
   if (report.structuralErrors.length) {
     lines.push('');
     lines.push('## Structural errors');
@@ -1305,6 +1530,30 @@ function renderMarkdown(report) {
 
 function ensureParent(filePath) {
   mkdirSync(dirname(filePath), { recursive: true });
+}
+
+function writeBaselineAtomically(filePath, baseline) {
+  ensureParent(filePath);
+  const lockPath = `${filePath}.lock`;
+  const temporaryPath = `${filePath}.tmp-${process.pid}`;
+  try {
+    writeFileSync(lockPath, `${process.pid}\n`, { flag: 'wx', mode: 0o600 });
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
+      throw new Error(`Refusing concurrent baseline update; lock exists: ${lockPath}`);
+    }
+    throw error;
+  }
+  try {
+    writeFileSync(temporaryPath, `${JSON.stringify(baseline, null, 2)}\n`, {
+      flag: 'wx',
+      mode: 0o600,
+    });
+    renameSync(temporaryPath, filePath);
+  } finally {
+    rmSync(temporaryPath, { force: true });
+    rmSync(lockPath, { force: true });
+  }
 }
 
 function runAudit({
@@ -1345,9 +1594,9 @@ function runAudit({
     knownContracts,
   );
   const baselineResult = baselinePath
-    ? readAndValidateBaseline(baselinePath, procedures)
+    ? readAndValidateBaseline(baselinePath)
     : { baseline: null, errors: [] };
-  if (baselinePath && verifyHistory) {
+  if (baselinePath && verifyHistory && baselineResult.errors.length === 0) {
     try {
       baselineResult.errors.push(...verifyBaselineHistory(baselinePath, baselineResult.baseline));
     } catch (error) {
@@ -1373,6 +1622,14 @@ function runCli(argv = process.argv.slice(2)) {
     return 0;
   }
   if (args.real && args.poc) throw new Error('--real and --poc are mutually exclusive');
+  if (args.real && args.failOnIncomplete) {
+    throw new Error(
+      '--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate',
+    );
+  }
+  if (args.writeBaseline && args.updateBaseline) {
+    throw new Error('--write-baseline and --update-baseline are mutually exclusive');
+  }
 
   let routerPath;
   let prefix;
@@ -1433,7 +1690,7 @@ function runCli(argv = process.argv.slice(2)) {
     return 0;
   }
 
-  const report = runAudit({
+  let report = runAudit({
     routerPath,
     prefix,
     evidencePaths,
@@ -1445,6 +1702,42 @@ function runCli(argv = process.argv.slice(2)) {
     baselinePath,
     verifyHistory: mode === 'real',
   });
+
+  if (args.updateBaseline) {
+    if (!args.real) throw new Error('--update-baseline is only supported with --real');
+    if (report.structuralErrors.length > 0) {
+      process.stderr.write(
+        `Refusing baseline update with structural errors:\n${report.structuralErrors.map((error) => `- ${error}`).join('\n')}\n`,
+      );
+      return 2;
+    }
+    if (report.gateViolations.length > 0) {
+      process.stderr.write(
+        `Refusing baseline update with gate violations:\n${report.gateViolations.map((violation) => `- ${violation.message}`).join('\n')}\n`,
+      );
+      return 1;
+    }
+    const candidate = createBaseline(report.procedures, report.baseline.originCommit);
+    const candidateHistoryErrors = verifyBaselineHistory(baselinePath, candidate);
+    if (candidateHistoryErrors.length > 0) {
+      process.stderr.write(
+        `Refusing non-monotonic baseline update:\n${candidateHistoryErrors.map((error) => `- ${error}`).join('\n')}\n`,
+      );
+      return 2;
+    }
+    writeBaselineAtomically(baselinePath, candidate);
+    report = runAudit({
+      routerPath,
+      prefix,
+      evidencePaths,
+      evidenceExcludes,
+      evidenceFilePredicate: (filePath) => isBackendVitestTestFile(filePath),
+      mode,
+      routerTree,
+      baselinePath,
+      verifyHistory: true,
+    });
+  }
   const md = renderMarkdown(report);
   process.stdout.write(`${md}\n`);
 
@@ -1466,6 +1759,9 @@ function runCli(argv = process.argv.slice(2)) {
     }
   }
   if (mode === 'real' && report.structuralErrors.length) return 2;
+  if (mode === 'real' && (report.gateViolations.length > 0 || report.baselineChanges.length > 0)) {
+    return 1;
+  }
   return 0;
 }
 
@@ -1481,10 +1777,12 @@ export {
   validateEvidenceMeta,
   compareMissingDebt,
   createBaseline,
+  validateBaselineEvolution,
   validateBaselineAgainstOrigin,
   validateBaselineSnapshots,
   readBaselineHistoryAnchor,
   readAndValidateBaseline,
+  writeBaselineAtomically,
   readBackendVitestIncludes,
   isBackendVitestTestFile,
   loadKnownContractsFromHelper,
