@@ -195,9 +195,11 @@ Kontrollierte Aktualisierung des gepinnten Digests:
    obersten Ebene), nicht den `linux/amd64`- oder `linux/arm64`-Einzeldigest.
 3. Beide `FROM`-Zeilen im Dockerfile auf dieselbe neue Referenz setzen und das
    Prüfdatum im Dockerfile-Kommentar aktualisieren.
-4. Produktionsimage für `linux/amd64` neu bauen und die bestehenden
-   Container-Runtime-Smokes ausführen (siehe [TESTING.md](TESTING.md) und den
-   Job „Docker Build“ in der CI).
+4. Produktionsimage **nativ für `linux/arm64`** neu bauen (CI-Job „Docker Build“
+   auf `ubuntu-24.04-arm`) und die bestehenden Container-Runtime-Smokes
+   ausführen (siehe [TESTING.md](TESTING.md)). Ein Multi-Arch-Basisimage
+   garantiert kein Multi-Arch-Anwendungsimage — der Build-Runner bestimmt die
+   Image-Architektur ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)).
 5. Änderung in einem eigenen PR reviewen; Deploy-Ablauf und Check-Namen bleiben
    davon unberührt.
 

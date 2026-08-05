@@ -612,6 +612,25 @@ Prüfen:
 $COMPOSE restart app
 ```
 
+## 13b. Architekturfehler (amd64-Image auf ARM64-Host)
+
+Symptom: Deploy bricht nach Image-Pull mit
+`Image-Architektur … ist mit Docker-Hostarchitektur arm64 nicht kompatibel` ab.
+Dann wurden Migration und App-Recreate nicht ausgeführt; Deploy-State und
+`.env.arsnova-image` bleiben unverändert.
+
+```bash
+cd /home/deploy/arsnova.eu
+docker info --format '{{.Architecture}}'
+docker image inspect --format '{{.Architecture}}' "$ARSNOVA_IMAGE"
+# bzw. Digest aus .env.arsnova-image / Deploy-Log
+```
+
+**Nicht:** Server-Build, `platform: linux/amd64` oder Emulation. Auf ein natives
+ARM64-Digest aus CI warten bzw. bei angerissenem Worker den letzten OK-Stand
+mit `./scripts/deploy.sh --recover` wiederherstellen (setzt keine DB-Migrationen
+zurück). Siehe [#229](https://github.com/kqc-real/arsnova.eu/issues/229).
+
 ## 14. Deploy erneut ausführen
 
 Wenn der Server gesund ist, aber der Stand inkonsistent wirkt:

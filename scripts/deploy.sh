@@ -30,6 +30,8 @@ cd "$REPO_ROOT"
 source "${SCRIPT_DIR}/deploy/lib-image-ref.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/deploy/lib-deploy-state.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/deploy/lib-arch.sh"
 
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.production"
@@ -193,14 +195,24 @@ echo ">>> Schritt 3: Image pullen (kein Build) …"
 compose pull app pdf-worker
 
 echo ""
-echo ">>> Schritt 4: Infrastruktur starten (Postgres + Redis)"
-compose up -d postgres redis
+echo ">>> Schritt 3b: Architektur-Preflight (Host vs. Image, vor Container-Änderung) …"
+# Nach Pull, vor compose up/run und vor State-/Env-Schreiboperationen.
+require_image_compatible_with_host "$ARSNOVA_IMAGE" || exit 1
+
+echo ""
+echo ">>> Schritt 4: Infrastruktur starten (Postgres + Redis) und auf Bereitschaft warten"
+# --wait: Healthchecks von postgres/redis müssen grün sein, bevor migriert wird.
+# Notwendig, weil der Migrationslauf mit --no-deps die depends_on-Wartelogik
+# von Compose nicht mehr nutzt (#229).
+compose up -d --wait postgres redis
 
 echo ""
 echo ">>> Schritt 5: Prisma-Migrationen anwenden"
 # Vor dem App-Rollout explizit migrieren; der App-Entrypoint wiederholt diesen
 # idempotenten Check beim Containerstart als zusätzliche Startbarriere.
-compose run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
+# --no-deps: pdf-worker/app nicht als Abhängigkeit vorzeitig starten/ersetzen
+# (Incident #229: amd64-Image + depends_on machte den Worker unhealthy).
+compose run --rm --no-deps --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
 
 echo ""
 echo ">>> Schritt 6: App und PDF-Worker starten"

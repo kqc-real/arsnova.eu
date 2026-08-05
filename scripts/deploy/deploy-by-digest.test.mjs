@@ -19,6 +19,7 @@ import test from 'node:test';
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const imageRefLib = join(repoRoot, 'scripts/deploy/lib-image-ref.sh');
 const stateLib = join(repoRoot, 'scripts/deploy/lib-deploy-state.sh');
+const archLib = join(repoRoot, 'scripts/deploy/lib-arch.sh');
 const deployScript = join(repoRoot, 'scripts/deploy.sh');
 const composeFile = join(repoRoot, 'docker-compose.prod.yml');
 const ciWorkflow = join(repoRoot, '.github/workflows/ci.yml');
@@ -39,6 +40,7 @@ function sourceCheck(expression, env = {}) {
     `set -euo pipefail
      source "${imageRefLib}"
      source "${stateLib}"
+     source "${archLib}"
      ${expression}`,
     env,
   );
@@ -98,6 +100,7 @@ test('deploy.sh and helpers contain no build commands', () => {
     deployScript,
     imageRefLib,
     stateLib,
+    archLib,
     join(repoRoot, 'scripts/prod-compose.sh'),
     join(repoRoot, 'scripts/deploy/checkout-deploy-sha.sh'),
   ];
@@ -117,6 +120,261 @@ test('deploy.sh and helpers contain no build commands', () => {
   assert.match(readFileSync(deployScript, 'utf8'), /compose pull app pdf-worker/);
   assert.match(readFileSync(deployScript, 'utf8'), /--rollback/);
   assert.match(readFileSync(deployScript, 'utf8'), /--recover/);
+});
+
+test('normalize_docker_arch maps aarch64/x86_64 aliases', () => {
+  const result = sourceCheck(`
+    test "$(normalize_docker_arch aarch64)" = arm64
+    test "$(normalize_docker_arch ARM64)" = arm64
+    test "$(normalize_docker_arch x86_64)" = amd64
+    test "$(normalize_docker_arch amd64)" = amd64
+  `);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('architecture preflight accepts arm64 host + arm64 image', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Architektur-Preflight OK/);
+});
+
+function assertArchDiag(stderr, host, image, required = 'arm64') {
+  assert.match(stderr, new RegExp(`Hostarchitektur:\\s*${host}`));
+  assert.match(stderr, new RegExp(`Imagearchitektur:\\s*${image}`));
+  assert.match(stderr, new RegExp(`erforderlich:\\s*${required}`));
+  assert.match(stderr, /Abbruch vor Migration/);
+}
+
+test('architecture preflight rejects amd64 image on arm64 host (incident #229)', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'amd64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Image-Architektur amd64/);
+  assertArchDiag(result.stderr, 'arm64', 'amd64', 'arm64');
+});
+
+test('architecture preflight rejects empty or unknown architectures with full diag', () => {
+  let result = sourceCheck(`
+    docker_host_architecture() { printf '\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assertArchDiag(result.stderr, '<leer>', 'arm64', 'arm64');
+
+  result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf '\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assertArchDiag(result.stderr, 'arm64', '<leer>', 'arm64');
+
+  result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'riscv64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /unbekannt/i);
+  assertArchDiag(result.stderr, 'arm64', 'riscv64', 'arm64');
+});
+
+test('architecture preflight accepts aarch64 host alias with arm64 image', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'aarch64\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('deploy.sh runs arch preflight after pull and before compose up/run', () => {
+  const text = readFileSync(deployScript, 'utf8');
+  const pullIdx = text.indexOf('compose pull app pdf-worker');
+  const archIdx = text.indexOf('require_image_compatible_with_host');
+  const upIdx = text.indexOf('compose up -d --wait postgres redis');
+  const migrateIdx = text.indexOf('compose run --rm --no-deps --entrypoint "" app');
+  const rotateIdx = text.indexOf('rotate_deploy_state');
+  const envIdx = text.indexOf('write_operator_image_env');
+
+  assert.ok(pullIdx >= 0 && archIdx > pullIdx, 'preflight after pull');
+  assert.ok(upIdx > archIdx, 'preflight before compose up');
+  assert.ok(migrateIdx > upIdx, 'infra wait before migrate');
+  assert.ok(migrateIdx > archIdx, 'preflight before migrate');
+  assert.ok(rotateIdx > migrateIdx, 'state rotation after migrate');
+  assert.ok(envIdx > archIdx, 'env write after preflight success path');
+});
+
+test('prisma migrate uses --no-deps so pdf-worker is not started as dependency', () => {
+  const text = readFileSync(deployScript, 'utf8');
+  const migrateLine = text.split('\n').find((line) => line.includes('prisma migrate deploy'));
+  assert.ok(migrateLine, 'migrate command missing');
+  assert.match(migrateLine, /compose run --rm --no-deps --entrypoint ""/);
+  assert.doesNotMatch(
+    migrateLine,
+    /compose run --rm --entrypoint/,
+    'migrate without --no-deps would start depends_on services',
+  );
+
+  // Compose-Vertrag: app depends_on pdf-worker — ohne --no-deps würde migrate ihn starten.
+  const composeText = readFileSync(composeFile, 'utf8');
+  assert.match(composeText, /pdf-worker:\s*\n\s*condition:\s*service_healthy/);
+});
+
+test('real deploy.sh aborts amd64 image before compose up/run and state writes', () => {
+  const work = mkdtempSync(join(tmpdir(), 'arsnova-arch-e2e-'));
+  const bin = join(work, 'mock-bin');
+  const mockLog = join(work, 'mock-commands.log');
+  mkdirSync(bin, { recursive: true });
+  mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
+  mkdirSync(join(work, '.deploy-state'), { mode: 0o700 });
+  copyFileSync(composeFile, join(work, 'docker-compose.prod.yml'));
+  writeFileSync(
+    join(work, '.env.production'),
+    [
+      'POSTGRES_USER=arsnova_user',
+      'POSTGRES_PASSWORD=test-password',
+      'POSTGRES_DB=arsnova_v3',
+      'DATABASE_URL=postgresql://arsnova_user:test-password@postgres:5432/arsnova_v3?schema=public',
+      'REDIS_URL=redis://redis:6379',
+      'JWT_SECRET=arch-e2e-jwt-secret-00000000000000000001',
+      'ADMIN_SECRET=arch-e2e-admin-secret-0000000000000001',
+      'ADMIN_DIAGNOSTIC_SECRET=arch-e2e-diagnostic-0000000000001',
+      'NODE_ENV=production',
+    ].join('\n') + '\n',
+  );
+  writeFileSync(
+    join(work, '.deploy-state', 'current.state'),
+    `IMAGE=${VALID_DIGEST}\nSHA=${VALID_SHA}\n`,
+  );
+  writeFileSync(join(work, '.env.arsnova-image'), `ARSNOVA_IMAGE=${VALID_DIGEST}\n`);
+  const beforeState = readFileSync(join(work, '.deploy-state', 'current.state'), 'utf8');
+  const beforeEnv = readFileSync(join(work, '.env.arsnova-image'), 'utf8');
+
+  for (const name of [
+    'lib-image-ref.sh',
+    'lib-deploy-state.sh',
+    'lib-arch.sh',
+    'checkout-deploy-sha.sh',
+  ]) {
+    const src = join(repoRoot, 'scripts', 'deploy', name);
+    if (existsSync(src)) {
+      writeFileSync(join(work, 'scripts', 'deploy', name), readFileSync(src));
+    }
+  }
+  // Echtes produktives Deploy-Skript (nicht Mini-Harness).
+  writeFileSync(join(work, 'scripts', 'deploy.sh'), readFileSync(deployScript));
+  chmodSync(join(work, 'scripts', 'deploy.sh'), 0o755);
+
+  writeFileSync(
+    join(bin, 'git'),
+    `#!/usr/bin/env bash
+printf 'git %s\\n' "$*" >>"${mockLog}"
+case "$1" in
+  fetch|cat-file|checkout) exit 0 ;;
+  rev-parse) printf '%s\\n' "${VALID_SHA}" ;;
+  log) printf 'deadbeef test commit\\n' ;;
+  *) exit 0 ;;
+esac
+`,
+  );
+  writeFileSync(
+    join(bin, 'curl'),
+    `#!/usr/bin/env bash
+printf 'curl %s\\n' "$*" >>"${mockLog}"
+exit 0
+`,
+  );
+  writeFileSync(
+    join(bin, 'docker'),
+    `#!/usr/bin/env bash
+printf 'docker %s\\n' "$*" >>"${mockLog}"
+if [[ "$1" == "info" ]]; then
+  printf 'arm64\\n'
+  exit 0
+fi
+if [[ "$1" == "image" && "$2" == "inspect" ]]; then
+  # Host arm64, Image amd64 → Incident #229
+  printf 'amd64\\n'
+  exit 0
+fi
+if [[ "$1" == "compose" ]]; then
+  shift
+  args="$*"
+  if [[ "$args" == *" up "* || "$args" == up* || "$args" == *" run "* || "$args" == run* ]]; then
+    echo "UNEXPECTED compose mutation: $args" >&2
+    exit 99
+  fi
+  if [[ "$args" == *config* && "$args" == *json* ]]; then
+    printf '%s\\n' "{\\"services\\":{\\"app\\":{\\"image\\":\\"${VALID_DIGEST}\\"},\\"pdf-worker\\":{\\"image\\":\\"${VALID_DIGEST}\\"}}}"
+    exit 0
+  fi
+  if [[ "$args" == *config* || "$args" == *pull* ]]; then
+    exit 0
+  fi
+  exit 0
+fi
+exit 0
+`,
+  );
+  chmodSync(join(bin, 'git'), 0o755);
+  chmodSync(join(bin, 'curl'), 0o755);
+  chmodSync(join(bin, 'docker'), 0o755);
+
+  const result = spawnSync('bash', [join(work, 'scripts', 'deploy.sh')], {
+    encoding: 'utf8',
+    cwd: work,
+    env: {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH}`,
+      DEPLOY_IMAGE: VALID_DIGEST,
+      DEPLOY_SHA: VALID_SHA,
+      DEPLOY_DIR: work,
+      DEPLOY_BRANCH: 'main',
+    },
+  });
+
+  assert.notEqual(result.status, 0, result.stdout + result.stderr);
+  assertArchDiag(`${result.stderr}${result.stdout}`, 'arm64', 'amd64', 'arm64');
+  assert.match(`${result.stderr}${result.stdout}`, /nicht kompatibel/);
+
+  const log = existsSync(mockLog) ? readFileSync(mockLog, 'utf8') : '';
+  assert.match(log, /docker compose .*config/);
+  assert.match(log, /docker compose .*pull/);
+  assert.doesNotMatch(log, /docker compose .* up\b/);
+  assert.doesNotMatch(log, /docker compose .* run\b/);
+  assert.equal(readFileSync(join(work, '.deploy-state', 'current.state'), 'utf8'), beforeState);
+  assert.equal(readFileSync(join(work, '.env.arsnova-image'), 'utf8'), beforeEnv);
+  assert.equal(existsSync(join(work, '.deploy-state', 'previous.state')), false);
+});
+
+test('CI Trivy image scan sets TRIVY_PLATFORM=linux/arm64', () => {
+  const yaml = readFileSync(ciWorkflow, 'utf8');
+  const trivy = yaml.split('name: Trivy Image Scan')[1]?.split(/^ {2}[a-z]/m)[0];
+  assert.ok(trivy, 'Trivy Image Scan job missing');
+  assert.match(trivy, /TRIVY_PLATFORM:\s*linux\/arm64/);
+});
+
+test('Docker Build job runs natively on ubuntu-24.04-arm for linux/arm64', () => {
+  const yaml = readFileSync(ciWorkflow, 'utf8');
+  const dockerSection = yaml.split('name: Docker Build')[1]?.split(/^ {2}[a-z]/m)[0];
+  assert.ok(dockerSection, 'Docker Build job missing');
+  assert.match(dockerSection, /runs-on:\s*ubuntu-24\.04-arm/);
+  assert.match(dockerSection, /platforms:\s*linux\/arm64/);
+  assert.match(dockerSection, /assert-native-arm64\.sh/);
+  assert.match(dockerSection, /scope=production-arm64/);
+  assert.doesNotMatch(
+    dockerSection.split('Build Docker image')[0] || '',
+    /runs-on:\s*ubuntu-latest/,
+  );
 });
 
 test('atomic snapshot rotation writes current/previous with safe modes', () => {
@@ -465,7 +723,7 @@ test('deploy.sh --rollback fails clearly without previous state', () => {
   const work = mkdtempSync(join(tmpdir(), 'arsnova-rollback-'));
   mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
   writeFileSync(join(work, '.env.production'), 'NODE_ENV=production\n');
-  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh']) {
+  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
     writeFileSync(
       join(work, 'scripts', 'deploy', name),
       readFileSync(join(repoRoot, 'scripts', 'deploy', name)),
