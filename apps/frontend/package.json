@@ -80,7 +80,7 @@
     "@angular/localize": "^21.2.19",
     "@types/express": "^5.0.1",
     "@types/katex": "^0.16.8",
-    "@types/marked": "^5.0.2",
+    "@types/marked": "^6.0.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.5.4",
