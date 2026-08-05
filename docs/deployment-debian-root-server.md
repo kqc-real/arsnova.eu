@@ -753,7 +753,7 @@ den geprüften Commit, checkt `DEPLOY_SHA` per SSH **vor** `./scripts/deploy.sh`
 2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte) — zusätzlich zum CI-Bootstrap.
 3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server).
 4. Architektur-Preflight: Docker-Host und gepulltes Image müssen `arm64` sein; sonst Abbruch **vor** Migration/`compose up` und **ohne** State-/Env-Änderung ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)).
-5. PostgreSQL und Redis starten.
+5. PostgreSQL und Redis starten und auf Health warten (`compose up -d --wait`).
 6. Prisma-Migrationen mit `compose run --rm --no-deps` (kein vorzeitiger Start von `pdf-worker`/`app`).
 7. App- und PDF-Worker-Container starten.
 8. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.

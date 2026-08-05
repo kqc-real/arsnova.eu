@@ -185,13 +185,14 @@ test('deploy.sh runs arch preflight after pull and before compose up/run', () =>
   const text = readFileSync(deployScript, 'utf8');
   const pullIdx = text.indexOf('compose pull app pdf-worker');
   const archIdx = text.indexOf('require_image_compatible_with_host');
-  const upIdx = text.indexOf('compose up -d postgres redis');
+  const upIdx = text.indexOf('compose up -d --wait postgres redis');
   const migrateIdx = text.indexOf('compose run --rm --no-deps --entrypoint "" app');
   const rotateIdx = text.indexOf('rotate_deploy_state');
   const envIdx = text.indexOf('write_operator_image_env');
 
   assert.ok(pullIdx >= 0 && archIdx > pullIdx, 'preflight after pull');
   assert.ok(upIdx > archIdx, 'preflight before compose up');
+  assert.ok(migrateIdx > upIdx, 'infra wait before migrate');
   assert.ok(migrateIdx > archIdx, 'preflight before migrate');
   assert.ok(rotateIdx > migrateIdx, 'state rotation after migrate');
   assert.ok(envIdx > archIdx, 'env write after preflight success path');
@@ -207,6 +208,62 @@ test('prisma migrate uses --no-deps so pdf-worker is not started as dependency',
     /compose run --rm --entrypoint/,
     'migrate without --no-deps would start depends_on services',
   );
+
+  // Compose-Vertrag: app depends_on pdf-worker — ohne --no-deps würde migrate ihn starten.
+  const composeText = readFileSync(composeFile, 'utf8');
+  assert.match(composeText, /pdf-worker:\s*\n\s*condition:\s*service_healthy/);
+});
+
+test('arch preflight failure leaves deploy state and operator image env untouched', () => {
+  const work = mkdtempSync(join(tmpdir(), 'arsnova-arch-abort-'));
+  mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
+  mkdirSync(join(work, '.deploy-state'), { mode: 0o700 });
+  writeFileSync(join(work, '.env.production'), 'NODE_ENV=production\n');
+  writeFileSync(
+    join(work, '.deploy-state', 'current.state'),
+    `IMAGE=${VALID_DIGEST}\nSHA=${VALID_SHA}\n`,
+  );
+  writeFileSync(join(work, '.env.arsnova-image'), `ARSNOVA_IMAGE=${VALID_DIGEST}\n`);
+  const beforeState = readFileSync(join(work, '.deploy-state', 'current.state'), 'utf8');
+  const beforeEnv = readFileSync(join(work, '.env.arsnova-image'), 'utf8');
+
+  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
+    writeFileSync(
+      join(work, 'scripts', 'deploy', name),
+      readFileSync(join(repoRoot, 'scripts', 'deploy', name)),
+    );
+  }
+
+  // Minimaler Fail-Pfad: Preflight schlägt fehl, State-/Env-Schreiber dürfen nicht laufen.
+  const harness = `#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+source "\${SCRIPT_DIR}/deploy/lib-arch.sh"
+source "\${SCRIPT_DIR}/deploy/lib-deploy-state.sh"
+STATE_DIR="$REPO_ROOT/.deploy-state"
+docker_host_architecture() { printf 'arm64\\n'; }
+image_architecture() { printf 'amd64\\n'; }
+if ! require_image_compatible_with_host "${VALID_DIGEST}"; then
+  # bewusst kein rotate_deploy_state / write_operator_image_env
+  exit 1
+fi
+rotate_deploy_state "$STATE_DIR" "${VALID_DIGEST}" "${VALID_SHA}"
+write_operator_image_env "$REPO_ROOT" "ghcr.io/kqc-real/arsnova.eu@sha256:${'ff'.repeat(32)}"
+`;
+  writeFileSync(join(work, 'scripts', 'deploy.sh'), harness);
+  chmodSync(join(work, 'scripts', 'deploy.sh'), 0o755);
+
+  const result = spawnSync('bash', [join(work, 'scripts', 'deploy.sh')], {
+    encoding: 'utf8',
+    cwd: work,
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Image-Architektur amd64/);
+  assert.equal(readFileSync(join(work, '.deploy-state', 'current.state'), 'utf8'), beforeState);
+  assert.equal(readFileSync(join(work, '.env.arsnova-image'), 'utf8'), beforeEnv);
+  assert.equal(existsSync(join(work, '.deploy-state', 'previous.state')), false);
 });
 
 test('Docker Build job runs natively on ubuntu-24.04-arm for linux/arm64', () => {

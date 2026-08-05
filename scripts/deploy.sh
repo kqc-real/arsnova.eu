@@ -200,8 +200,11 @@ echo ">>> Schritt 3b: Architektur-Preflight (Host vs. Image, vor Container-Ände
 require_image_compatible_with_host "$ARSNOVA_IMAGE" || exit 1
 
 echo ""
-echo ">>> Schritt 4: Infrastruktur starten (Postgres + Redis)"
-compose up -d postgres redis
+echo ">>> Schritt 4: Infrastruktur starten (Postgres + Redis) und auf Bereitschaft warten"
+# --wait: Healthchecks von postgres/redis müssen grün sein, bevor migriert wird.
+# Notwendig, weil der Migrationslauf mit --no-deps die depends_on-Wartelogik
+# von Compose nicht mehr nutzt (#229).
+compose up -d --wait postgres redis
 
 echo ""
 echo ">>> Schritt 5: Prisma-Migrationen anwenden"
