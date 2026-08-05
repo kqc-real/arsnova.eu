@@ -630,6 +630,10 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npx prisma generate --schema prisma/schema.prisma
 
+      - name: tRPC DoD audit PoC unit tests
+        if: needs.changes.outputs.docs_only != 'true'
+        run: npm run audit:trpc-dod:test
+
       - name: Install matching Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
         run: node node_modules/playwright/cli.js install --with-deps chromium
