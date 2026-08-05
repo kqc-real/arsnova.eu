@@ -26,42 +26,59 @@ Neue formale DoD-Evidenz wird ausschließlich über
 
 `apps/backend/src/__tests__/test-utils/trpc-dod-evidence.ts`
 
-registriert (`trpcDodIt`). Pflichtfelder der Objektliteral-Metadaten:
+registriert (`trpcDodIt`). Das Audit akzeptiert nur Call-Sites, deren lokaler
+Bezeichner aus diesem Modul importiert ist (inkl. `import { trpcDodIt as alias }`).
+Lokales Shadowing oder Imports aus anderen Modulen zählen nicht.
 
-| Feld        | Bedeutung                                                                                                    |
-| ----------- | ------------------------------------------------------------------------------------------------------------ |
-| `procedure` | Stabile Router-/Prozedur-ID (`router.procedure`)                                                             |
-| `case`      | `happy` oder `error`                                                                                         |
-| `mode`      | `direct` oder `indirect`                                                                                     |
-| `contract`  | Bei `error` Pflicht: `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION`, `NOT_FOUND`, `CONFLICT` oder `DOMAIN:<name>` |
-| `rationale` | Bei `indirect` Pflicht; begründet, warum kein direkter Caller-Aufruf nötig ist                               |
-| `title`     | Anzeigetitel / Vitest-Titel                                                                                  |
+Pflichtfelder der Objektliteral-Metadaten:
 
-Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen **nicht**. Übersprungene Tests
-zählen nicht. Die fachliche Relevanz des Testkörpers bleibt Review-Gegenstand; der
-Helper und das Audit prüfen die Metadatenkonvention und grobe Leerheitsregeln, nicht
-die didaktische Qualität der Assertion.
+| Feld        | Bedeutung                                                                        |
+| ----------- | -------------------------------------------------------------------------------- |
+| `procedure` | Stabile Router-/Prozedur-ID (`router.procedure`)                                 |
+| `case`      | `happy` oder `error`                                                             |
+| `mode`      | `direct` oder `indirect`                                                         |
+| `contract`  | Bei `error` Pflicht: Eintrag aus `TRPC_DOD_KNOWN_CONTRACTS` oder `DOMAIN:<name>` |
+| `rationale` | Bei `indirect` Pflicht; begründet, warum kein direkter Caller-Aufruf nötig ist   |
+| `title`     | Anzeigetitel / Vitest-Titel                                                      |
 
-### 2. Inventur und Fingerprint per TypeScript-AST
+`TRPC_DOD_KNOWN_CONTRACTS` ist die verbindliche Taxonomie: standardisierte tRPC-Codes
+(`UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`,
+`TOO_MANY_REQUESTS`, `PRECONDITION_FAILED`, `TIMEOUT`, `PAYLOAD_TOO_LARGE`,
+`INTERNAL_SERVER_ERROR`, `SERVICE_UNAVAILABLE`, …) plus semantisches `VALIDATION`
+und `DOMAIN:<name>`. Der TypeScript-Typ lässt kein freies `| string` zu; Runtime-Audit
+und Typdefinition lesen dieselbe Array-Quelle.
+
+Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen **nicht**. Evidenz in
+`describe.skip` / `it.skip` / `skipIf` zählt nicht. Die fachliche Relevanz des
+Testkörpers bleibt Review-Gegenstand; der Helper und das Audit prüfen
+Metadatenkonvention, kanonische Import-Bindung und grobe Leerheitsregeln.
+
+PoC-Direct-Evidenz muss die Fixture-Prozedur über `createCaller` tatsächlich
+ausführen.
+
+### 2. Inventur und Fingerprint per TypeScript-AST/Scanner
 
 `scripts/audit-trpc-dod.mjs` inventarisiert Prozeduren strukturell (AST):
 
 - Erkennung von `.query(`, `.mutation(`, `.subscription(` in `router({ ... })`-Objekten
 - stabile ID aus Router-Präfix + Property-Name
-- Source-Fingerprint: SHA-256 über normalisierten Prozedur-Quelltext
-  (Blockkommentare und Zeilenkommentare entfernt, Whitespace kollabiert)
+- Source-Fingerprint: SHA-256 über den mit dem TypeScript-Scanner
+  (`skipTrivia: true`) normalisierten Tokenstrom — Kommentare/Whitespace entfallen,
+  Literal-Token (String, Template, Regex) bleiben unverändert
 
 Rename = Löschung + neue ID. Geänderter Fingerprint = fachlich geänderte Prozedur
 (Gate-Semantik ab Slice 2C).
 
 ### 3. Berichtsschema (Version 1)
 
-Maschinenlesbarer Bericht (Auszug):
+Maschinenlesbarer Bericht ohne Wall-Clock-Zeitstempel (deterministisch am gleichen
+Commit). Optional `sourceDateEpoch` nur wenn `SOURCE_DATE_EPOCH` gesetzt ist.
 
 ```json
 {
   "version": 1,
   "mode": "poc",
+  "sourceDateEpoch": null,
   "procedures": [
     {
       "id": "dodPoc.ping",
@@ -88,7 +105,8 @@ Subscriptions: `subscription_report_only` (nicht im Query-/Mutation-Nenner).
 
 ### 4. Baseline-Format (vorbereitet, noch nicht produktiv)
 
-Ab Slice 2B versioniert unter `.github/trpc-dod-baseline.json`:
+Ab Slice 2B versioniert unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
+Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean:
 
 ```json
 {
@@ -98,20 +116,27 @@ Ab Slice 2B versioniert unter `.github/trpc-dod-baseline.json`:
     "router.procedure": {
       "kind": "query",
       "fingerprint": "sha256:...",
-      "legacyIncomplete": true
+      "missing": ["error"]
     }
   }
 }
 ```
 
+Gate-Semantik (ab 2C): Eine Dimension, die in der Baseline abgedeckt war und später
+fehlt, ist Verschlechterung (verboten). Das Schließen einer fehlenden Dimension
+reduziert die Schuld. Ein Tausch Happy↔Error gilt als Verschlechterung auf der
+verlorenen Dimension. `compareMissingDebt` im Audit-Skript prüft diese Übergänge.
+
 Slice 2A erzeugt **keine** produktive Baseline und aktiviert **kein** blockierendes
-CI-Gate.
+CI-Gate. Die PoC-Unit-Tests laufen nach `npm ci` im Job „Tests“
+(`npm run audit:trpc-dod:test`), nicht im Workflow-Lint vor Dependency-Install.
 
 ### 5. PoC-Scope
 
 Genau zwei Fixture-Queries/Mutations (`dodPoc.ping`, `dodPoc.echo`) plus eine
 Subscription (`dodPoc.onTick`) unter
-`apps/backend/src/__tests__/trpc-dod-poc/`. Nicht in `AppRouter` gemountet.
+`apps/backend/src/__tests__/trpc-dod-poc/`. Echter tRPC-Router via
+`publicProcedure`/`router`, nicht in `AppRouter` gemountet.
 
 ## Grenzen der statischen Semantikprüfung
 
@@ -121,7 +146,8 @@ Explizit **nicht** automatisch beweisbar:
 - ob ein `DOMAIN:*`-Vertrag fachlich der richtige ist;
 - ob indirekte Evidenz die Produktionspfade hinreichend abdeckt;
 - ob Mocks die Prozedur so weit stubben, dass der Test inhaltsleer wird;
-- Laufzeit-`skip`/`todo` jenseits der statisch erkennbaren `it.skip`-Formen am Helper.
+- Laufzeit-`skip`/`todo` jenseits der statisch erkennbaren `describe.skip` /
+  `it.skip` / `skipIf`-Kontexte.
 
 Das Gate (ab 2C) verhindert neue **formale** Schuld und Baseline-Aufweichen; es
 ersetzt kein Review.
@@ -138,9 +164,9 @@ ersetzt kein Review.
 
 - Bestands-Tests müssen später schrittweise migriert werden (Slice 2D).
 - False Negatives möglich, wenn Evidenz-Metadaten syntaktisch abweichen
-  (nicht-literale Felder, umbenannter Helper-Import).
-- False Positives möglich, wenn Metadaten korrekt sind, der Test aber schwach ist
-  (bewusst Review, nicht Scanner).
+  (nicht-literale Felder).
+- False Positives möglich, wenn Metadaten und Caller korrekt sind, der Test aber
+  fachlich schwach ist (bewusst Review, nicht Scanner).
 
 ## Alternativen (geprüft)
 
@@ -152,7 +178,7 @@ ersetzt kein Review.
 
 Vor Slice 2B ausdrücklich im PR-Review bestätigen:
 
-1. Helper-API und Pflichtfelder
-2. Fingerprint-Normalisierung
-3. Berichtsschema Version 1
-4. Baseline-Format (Vorbereitung)
+1. Helper-API und Fehlervertrags-Taxonomie
+2. Semantisch sichere Fingerprint-Normalisierung (Scanner/Literale)
+3. Berichtsschema Version 1 (deterministisch)
+4. Baseline-Format mit `missing[]` je Happy-/Error-Dimension

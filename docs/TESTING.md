@@ -10,17 +10,17 @@
 
 ## NPM-Skripte (Root)
 
-| Befehl                              | Bedeutung                                                                                              |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `npm run build`                     | `shared-types` → Backend `tsc` → Frontend `ng build`                                                   |
-| `npm run typecheck`                 | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                  |
-| `npm run lint`                      | ESLint über `libs/` und `apps/`                                                                        |
-| `npm test`                          | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell) |
-| `npm run format:check`              | Prettier (ohne Schreiben)                                                                              |
-| `npm run validate:pdfua`            | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                      |
-| `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)           |
-| `npm run audit:trpc-dod`            | PoC-Audit der tRPC-DoD-Evidenzkonvention (ADR-0034 / Issue #222 Slice 2A; kein blockierendes Gate)     |
-| `npm run audit:trpc-dod:test`       | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs`                                      |
+| Befehl                              | Bedeutung                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `npm run build`                     | `shared-types` → Backend `tsc` → Frontend `ng build`                                                      |
+| `npm run typecheck`                 | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                     |
+| `npm run lint`                      | ESLint über `libs/` und `apps/`                                                                           |
+| `npm test`                          | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)    |
+| `npm run format:check`              | Prettier (ohne Schreiben)                                                                                 |
+| `npm run validate:pdfua`            | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                         |
+| `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)              |
+| `npm run audit:trpc-dod`            | PoC-Audit der tRPC-DoD-Evidenzkonvention (ADR-0034 / Issue #222 Slice 2A; kein blockierendes Gate)        |
+| `npm run audit:trpc-dod:test`       | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint) |
 
 Workspace-spezifisch:
 

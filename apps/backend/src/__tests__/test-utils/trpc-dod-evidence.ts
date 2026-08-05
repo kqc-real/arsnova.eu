@@ -2,16 +2,33 @@
  * Formale tRPC-DoD-Evidenz für Vitest (ADR-0034 / Issue #222).
  *
  * Nur Aufrufe von `trpcDodIt` mit literal auswertbaren Metadaten zählen für das
- * Audit. Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen nicht.
+ * Audit — und nur, wenn der Bezeichner aus diesem Modul gebunden ist.
+ * Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen nicht.
  */
 import { it } from 'vitest';
 
+/**
+ * Repo-taugliche Fehlervertrags-Taxonomie.
+ * Standardisierte tRPC-Codes plus semantisches `VALIDATION` und `DOMAIN:<name>`.
+ * Single source for the TS helper; the audit extracts this array via AST.
+ */
 export const TRPC_DOD_KNOWN_CONTRACTS = [
   'UNAUTHORIZED',
   'FORBIDDEN',
-  'VALIDATION',
   'NOT_FOUND',
   'CONFLICT',
+  'BAD_REQUEST',
+  'TIMEOUT',
+  'PRECONDITION_FAILED',
+  'PAYLOAD_TOO_LARGE',
+  'TOO_MANY_REQUESTS',
+  'CLIENT_CLOSED_REQUEST',
+  'METHOD_NOT_SUPPORTED',
+  'INTERNAL_SERVER_ERROR',
+  'SERVICE_UNAVAILABLE',
+  'PARSE_ERROR',
+  /** Semantic input/schema validation contract (may surface as BAD_REQUEST at runtime). */
+  'VALIDATION',
 ] as const;
 
 export type TrpcDodKnownContract = (typeof TRPC_DOD_KNOWN_CONTRACTS)[number];
@@ -27,7 +44,7 @@ export interface TrpcDodEvidenceOptions {
   case: TrpcDodCase;
   mode: TrpcDodMode;
   /** Required when `case === 'error'`. */
-  contract?: TrpcDodContract | string;
+  contract?: TrpcDodContract;
   /** Required when `mode === 'indirect'`. */
   rationale?: string;
   /** Vitest title; also appears in the audit report. */

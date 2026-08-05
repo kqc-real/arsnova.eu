@@ -83,7 +83,7 @@
     "load:security-acceptance:plan": "node scripts/load/run-security-acceptance.mjs --plan",
     "validate:pdfua": "node scripts/validate-pdfua.mjs",
     "audit:trpc-dod": "node scripts/audit-trpc-dod.mjs --poc",
-    "audit:trpc-dod:test": "node --test scripts/ci/audit-trpc-dod.test.mjs",
+    "audit:trpc-dod:test": "node --test scripts/audit/trpc-dod.test.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "verify:production-serving": "node scripts/verify-production-serving.mjs",
     "verify:csp-report-only": "node scripts/verify-csp-report-only.mjs",

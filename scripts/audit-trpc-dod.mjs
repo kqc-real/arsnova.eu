@@ -6,14 +6,7 @@
  * No blocking production gate in this slice.
  */
 import { createHash } from 'node:crypto';
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,16 +16,26 @@ const ts = require('typescript');
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, '..');
+const CANONICAL_HELPER_REL = 'apps/backend/src/__tests__/test-utils/trpc-dod-evidence.ts';
+const CANONICAL_HELPER_ABS = join(REPO_ROOT, CANONICAL_HELPER_REL);
 const DEFAULT_POC_ROUTER = join(
   REPO_ROOT,
   'apps/backend/src/__tests__/trpc-dod-poc/fixture-router.ts',
 );
-const DEFAULT_POC_EVIDENCE_GLOBS = [
-  join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc'),
-  join(REPO_ROOT, 'apps/backend/src/__tests__/test-utils'),
-];
+const DEFAULT_POC_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
 
-const HELPER_CALLEES = new Set(['trpcDodIt', 'dodIt']);
+const SKIP_CALLEES = new Set([
+  'describe.skip',
+  'describe.skipIf',
+  'it.skip',
+  'it.skipIf',
+  'test.skip',
+  'test.skipIf',
+  'suite.skip',
+  'xdescribe',
+  'xit',
+  'xtest',
+]);
 
 function usage() {
   return `Usage:
@@ -70,11 +73,8 @@ function parseArgs(argv) {
     else if (a === '--evidence') args.evidence.push(argv[++i]);
     else if (a === '--json-out') args.jsonOut = argv[++i];
     else if (a === '--md-out') args.mdOut = argv[++i];
-    else if (a === '--help' || a === '-h') {
-      args.help = true;
-    } else {
-      throw new Error(`Unknown argument: ${a}\n${usage()}`);
-    }
+    else if (a === '--help' || a === '-h') args.help = true;
+    else throw new Error(`Unknown argument: ${a}\n${usage()}`);
   }
   return args;
 }
@@ -92,15 +92,44 @@ function walkFiles(root, acc = []) {
   return acc;
 }
 
+function relPosix(filePath) {
+  return relative(REPO_ROOT, filePath).replaceAll('\\', '/');
+}
+
+function isIdentifierLike(kind) {
+  return (
+    kind === ts.SyntaxKind.Identifier ||
+    kind === ts.SyntaxKind.PrivateIdentifier ||
+    (kind >= ts.SyntaxKind.FirstKeyword && kind <= ts.SyntaxKind.LastKeyword) ||
+    kind === ts.SyntaxKind.NumericLiteral
+  );
+}
+
+/**
+ * Semantically safe fingerprint normalization:
+ * TypeScript scanner with trivia skipped (comments/whitespace), literal token
+ * text preserved (strings, templates, regex).
+ */
 function normalizeProcedureSource(text) {
-  let s = text.replace(/\/\*[\s\S]*?\*\//g, ' ');
-  s = s.replace(/(^|[^:])\/\/.*$/gm, '$1');
-  s = s.replace(/\s+/g, ' ').trim();
-  // Collapse insignificant spaces around punctuation so formatting-only edits
-  // do not change fingerprints (identifiers/keywords stay space-separated).
-  s = s.replace(/\s*([()[\]{};,:])\s*/g, '$1');
-  s = s.replace(/\s*=>\s*/g, '=>');
-  return s;
+  const scanner = ts.createScanner(
+    ts.ScriptTarget.Latest,
+    /* skipTrivia */ true,
+    ts.LanguageVariant.Standard,
+    text,
+  );
+  let out = '';
+  let prevKind = ts.SyntaxKind.Unknown;
+  let token = scanner.scan();
+  while (token !== ts.SyntaxKind.EndOfFileToken) {
+    const textPart = scanner.getTokenText();
+    if (out && isIdentifierLike(prevKind) && isIdentifierLike(token)) {
+      out += ' ';
+    }
+    out += textPart;
+    prevKind = token;
+    token = scanner.scan();
+  }
+  return out;
 }
 
 function fingerprintSource(kind, id, source) {
@@ -204,7 +233,7 @@ function inventariseRouterFile(filePath, forcedPrefix = null) {
       procedures.push({
         id,
         kind: found.kind,
-        sourceFile: relative(REPO_ROOT, filePath).replaceAll('\\', '/'),
+        sourceFile: relPosix(filePath),
         fingerprint: fingerprintSource(found.kind, id, raw),
         evidence: { happy: [], error: [] },
       });
@@ -241,34 +270,179 @@ function isEmptyFunctionBody(fnNode) {
   return false;
 }
 
-function collectEvidenceFromFile(filePath) {
-  const text = readFileSync(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest, true);
-  const entries = [];
+function calleeKey(expr) {
+  if (ts.isIdentifier(expr)) return expr.text;
+  if (ts.isPropertyAccessExpression(expr)) {
+    const left = calleeKey(expr.expression);
+    return left ? `${left}.${expr.name.text}` : expr.name.text;
+  }
+  return null;
+}
+
+function resolveImportTarget(fromFile, specifier) {
+  if (!specifier || specifier.startsWith('node:')) return null;
+  if (specifier.startsWith('.') || specifier.startsWith('/')) {
+    const base = resolve(dirname(fromFile), specifier);
+    const candidates = [
+      base,
+      `${base}.ts`,
+      `${base}.tsx`,
+      `${base}.mts`,
+      `${base}.cts`,
+      `${base}.js`,
+      join(base, 'index.ts'),
+    ];
+    for (const c of candidates) {
+      if (existsSync(c) && statSync(c).isFile()) return resolve(c);
+    }
+    return resolve(base);
+  }
+  return null;
+}
+
+function isCanonicalHelperPath(absPath) {
+  return resolve(absPath) === CANONICAL_HELPER_ABS;
+}
+
+/**
+ * Map local binding name -> true if bound to exported `trpcDodIt` from the
+ * canonical helper module (including `import { trpcDodIt as alias }`).
+ */
+function collectCanonicalHelperBindings(sourceFile, filePath) {
+  const bindings = new Map();
+  for (const stmt of sourceFile.statements) {
+    if (!ts.isImportDeclaration(stmt) || !stmt.importClause) continue;
+    const spec = literalString(stmt.moduleSpecifier);
+    const target = resolveImportTarget(filePath, spec);
+    if (!target || !isCanonicalHelperPath(target)) continue;
+    const named = stmt.importClause.namedBindings;
+    if (!named || !ts.isNamedImports(named)) continue;
+    for (const el of named.elements) {
+      const imported = (el.propertyName ?? el.name).text;
+      if (imported === 'trpcDodIt') {
+        bindings.set(el.name.text, true);
+      }
+    }
+  }
+  return bindings;
+}
+
+function isInsideSkippedContext(node) {
+  let current = node.parent;
+  while (current) {
+    if (ts.isCallExpression(current)) {
+      const key = calleeKey(current.expression);
+      if (key && SKIP_CALLEES.has(key)) return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
+function loadKnownContractsFromHelper() {
+  const text = readFileSync(CANONICAL_HELPER_ABS, 'utf8');
+  const sourceFile = ts.createSourceFile(CANONICAL_HELPER_ABS, text, ts.ScriptTarget.Latest, true);
+  const contracts = [];
 
   function visit(node) {
-    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-      if (HELPER_CALLEES.has(node.expression.text) && node.arguments.length >= 1) {
-        const meta = extractEvidenceObject(node.arguments[0]);
-        const fn = node.arguments[1];
-        if (meta) {
-          entries.push({
-            ...meta,
-            testFile: relative(REPO_ROOT, filePath).replaceAll('\\', '/'),
-            emptyBody: isEmptyFunctionBody(fn),
-            skipped: false,
-          });
-        }
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === 'TRPC_DOD_KNOWN_CONTRACTS' &&
+      node.initializer &&
+      ts.isAsExpression(node.initializer) &&
+      ts.isArrayLiteralExpression(node.initializer.expression)
+    ) {
+      for (const el of node.initializer.expression.elements) {
+        const s = literalString(el);
+        if (s) contracts.push(s);
+      }
+    }
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === 'TRPC_DOD_KNOWN_CONTRACTS' &&
+      node.initializer &&
+      ts.isArrayLiteralExpression(node.initializer)
+    ) {
+      for (const el of node.initializer.elements) {
+        const s = literalString(el);
+        if (s) contracts.push(s);
       }
     }
     ts.forEachChild(node, visit);
   }
 
   visit(sourceFile);
-  return entries;
+  if (contracts.length === 0) {
+    throw new Error(`Could not extract TRPC_DOD_KNOWN_CONTRACTS from ${CANONICAL_HELPER_REL}`);
+  }
+  return new Set(contracts);
 }
 
-function validateEvidenceMeta(entry) {
+function isAllowedContract(value, known) {
+  if (known.has(value)) return true;
+  return /^DOMAIN:[A-Za-z][A-Za-z0-9_:-]*$/.test(value);
+}
+
+function collectEvidenceFromFile(filePath, knownContracts) {
+  const text = readFileSync(filePath, 'utf8');
+  const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest, true);
+  const helperBindings = collectCanonicalHelperBindings(sourceFile, filePath);
+  const entries = [];
+  const rejected = [];
+
+  function visit(node) {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.arguments.length >= 1
+    ) {
+      const localName = node.expression.text;
+      const meta = extractEvidenceObject(node.arguments[0]);
+      const fn = node.arguments[1];
+      const skipped = isInsideSkippedContext(node);
+      const bound = helperBindings.has(localName);
+
+      const looksLikeHelperCall = bound || localName === 'trpcDodIt' || localName === 'dodIt';
+      if (!looksLikeHelperCall || !meta) {
+        // continue
+      } else if (!bound) {
+        rejected.push({
+          entry: {
+            ...meta,
+            testFile: relPosix(filePath),
+          },
+          problems: [
+            `call to ${localName} is not bound to canonical helper ${CANONICAL_HELPER_REL}`,
+          ],
+        });
+      } else if (skipped) {
+        rejected.push({
+          entry: {
+            ...meta,
+            testFile: relPosix(filePath),
+            skipped: true,
+          },
+          problems: ['evidence is inside a skipped describe/it context'],
+        });
+      } else {
+        entries.push({
+          ...meta,
+          testFile: relPosix(filePath),
+          emptyBody: isEmptyFunctionBody(fn),
+          skipped: false,
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return { entries, rejected };
+}
+
+function validateEvidenceMeta(entry, knownContracts) {
   const problems = [];
   if (!entry.procedure || typeof entry.procedure !== 'string') {
     problems.push('missing procedure');
@@ -285,17 +459,8 @@ function validateEvidenceMeta(entry) {
   if (entry.case === 'error') {
     if (!entry.contract || !String(entry.contract).trim()) {
       problems.push('error evidence requires contract');
-    } else {
-      const known = new Set([
-        'UNAUTHORIZED',
-        'FORBIDDEN',
-        'VALIDATION',
-        'NOT_FOUND',
-        'CONFLICT',
-      ]);
-      if (!known.has(entry.contract) && !/^DOMAIN:[A-Za-z][A-Za-z0-9_:-]*$/.test(entry.contract)) {
-        problems.push(`meaningless contract ${JSON.stringify(entry.contract)}`);
-      }
+    } else if (!isAllowedContract(entry.contract, knownContracts)) {
+      problems.push(`meaningless contract ${JSON.stringify(entry.contract)}`);
     }
   }
   if (entry.mode === 'indirect' && (!entry.rationale || !String(entry.rationale).trim())) {
@@ -304,16 +469,19 @@ function validateEvidenceMeta(entry) {
   if (entry.emptyBody) {
     problems.push('empty test body');
   }
+  if (entry.skipped) {
+    problems.push('skipped evidence');
+  }
   return problems;
 }
 
-function attachEvidence(procedures, evidenceEntries) {
+function attachEvidence(procedures, evidenceEntries, rejected = [], knownContracts) {
   const byId = new Map(procedures.map((p) => [p.id, p]));
-  const invalid = [];
+  const invalid = [...rejected];
   const orphanEvidence = [];
 
   for (const entry of evidenceEntries) {
-    const problems = validateEvidenceMeta(entry);
+    const problems = validateEvidenceMeta(entry, knownContracts);
     if (problems.length) {
       invalid.push({ entry, problems });
       continue;
@@ -345,10 +513,7 @@ function attachEvidence(procedures, evidenceEntries) {
 
 function classifyProcedure(proc) {
   if (proc.kind === 'subscription') {
-    return {
-      status: 'subscription_report_only',
-      missing: [],
-    };
+    return { status: 'subscription_report_only', missing: [] };
   }
   const missing = [];
   if (proc.evidence.happy.length === 0) missing.push('happy');
@@ -356,6 +521,51 @@ function classifyProcedure(proc) {
   if (missing.length === 2) return { status: 'untested', missing };
   if (missing.length > 0) return { status: 'incomplete', missing };
   return { status: 'complete', missing: [] };
+}
+
+/**
+ * Monotonic debt comparison per happy/error dimension.
+ * Returns { improved, worsened, unchanged } id lists plus ok flag.
+ */
+function compareMissingDebt(baselineMissingById, currentMissingById) {
+  const ids = new Set([...Object.keys(baselineMissingById), ...Object.keys(currentMissingById)]);
+  const improved = [];
+  const worsened = [];
+  const unchanged = [];
+
+  for (const id of [...ids].sort()) {
+    const before = new Set(baselineMissingById[id] ?? []);
+    const after = new Set(currentMissingById[id] ?? []);
+    let lostCoverage = false;
+    let gainedCoverage = false;
+    for (const dim of ['happy', 'error']) {
+      const had = !before.has(dim);
+      const has = !after.has(dim);
+      if (had && !has) lostCoverage = true;
+      if (!had && has) gainedCoverage = true;
+    }
+    // New procedure not in baseline: any missing is new debt if incomplete
+    if (!(id in baselineMissingById)) {
+      if (after.size > 0) worsened.push(id);
+      else unchanged.push(id);
+      continue;
+    }
+    // Deleted procedure: ignore here (caller removes from baseline)
+    if (!(id in currentMissingById)) {
+      unchanged.push(id);
+      continue;
+    }
+    if (lostCoverage) worsened.push(id);
+    else if (gainedCoverage || after.size < before.size) improved.push(id);
+    else unchanged.push(id);
+  }
+
+  return {
+    ok: worsened.length === 0,
+    improved,
+    worsened,
+    unchanged,
+  };
 }
 
 function buildReport({ mode, procedures, invalid, orphanEvidence }) {
@@ -370,10 +580,14 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
   return {
     version: 1,
     mode,
-    generatedAt: new Date().toISOString(),
+    // Deterministic canonical report: no wall-clock timestamp.
+    // Optional non-canonical hint only when SOURCE_DATE_EPOCH is set.
+    sourceDateEpoch: process.env.SOURCE_DATE_EPOCH ?? null,
     limits: [
-      'Static audit proves helper metadata and inventory, not assertion quality.',
+      'Static audit proves helper metadata, canonical import binding, and inventory — not assertion quality.',
       'Arbitrary caller it() tests are ignored by design.',
+      'Only trpcDodIt bindings imported from the canonical helper module count.',
+      'Evidence inside describe.skip / it.skip (and skipIf) is rejected.',
       'Subscriptions appear in the inventory but are outside the query/mutation gate.',
     ],
     procedures: enriched,
@@ -405,7 +619,9 @@ function renderMarkdown(report) {
   lines.push('# tRPC DoD Audit');
   lines.push('');
   lines.push(`Mode: \`${report.mode}\``);
-  lines.push(`Generated: ${report.generatedAt}`);
+  if (report.sourceDateEpoch) {
+    lines.push(`SOURCE_DATE_EPOCH: ${report.sourceDateEpoch}`);
+  }
   lines.push('');
   lines.push('## Summary');
   lines.push('');
@@ -443,6 +659,26 @@ function ensureParent(filePath) {
   mkdirSync(dirname(filePath), { recursive: true });
 }
 
+function runAudit({ routerPath, prefix, evidencePaths, mode }) {
+  const knownContracts = loadKnownContractsFromHelper();
+  const procedures = inventariseRouterFile(routerPath, prefix);
+  const evidenceFiles = evidencePaths.flatMap((p) => walkFiles(resolve(p)));
+  const evidenceEntries = [];
+  const rejected = [];
+  for (const f of evidenceFiles) {
+    const { entries, rejected: fileRejected } = collectEvidenceFromFile(f, knownContracts);
+    evidenceEntries.push(...entries);
+    rejected.push(...fileRejected);
+  }
+  const { invalid, orphanEvidence } = attachEvidence(
+    procedures,
+    evidenceEntries,
+    rejected,
+    knownContracts,
+  );
+  return buildReport({ mode, procedures, invalid, orphanEvidence });
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -459,7 +695,7 @@ function main() {
     mode = 'poc';
     routerPath = DEFAULT_POC_ROUTER;
     prefix = 'dodPoc';
-    evidencePaths = DEFAULT_POC_EVIDENCE_GLOBS;
+    evidencePaths = DEFAULT_POC_EVIDENCE_DIRS;
   } else {
     mode = 'custom';
     if (!args.router || !args.prefix || args.evidence.length === 0) {
@@ -474,12 +710,7 @@ function main() {
     throw new Error(`Router file not found: ${routerPath}`);
   }
 
-  const procedures = inventariseRouterFile(routerPath, prefix);
-  const evidenceFiles = evidencePaths.flatMap((p) => walkFiles(resolve(p)));
-  const evidenceEntries = evidenceFiles.flatMap((f) => collectEvidenceFromFile(f));
-  const { invalid, orphanEvidence } = attachEvidence(procedures, evidenceEntries);
-  const report = buildReport({ mode, procedures, invalid, orphanEvidence });
-
+  const report = runAudit({ routerPath, prefix, evidencePaths, mode });
   const md = renderMarkdown(report);
   process.stdout.write(`${md}\n`);
 
@@ -495,9 +726,7 @@ function main() {
   }
 
   if (args.failOnIncomplete) {
-    const bad = report.procedures.some(
-      (p) => p.kind !== 'subscription' && p.status !== 'complete',
-    );
+    const bad = report.procedures.some((p) => p.kind !== 'subscription' && p.status !== 'complete');
     if (bad || report.invalidEvidence.length || report.orphanEvidence.length) {
       return 1;
     }
@@ -514,6 +743,10 @@ export {
   fingerprintSource,
   normalizeProcedureSource,
   validateEvidenceMeta,
+  compareMissingDebt,
+  loadKnownContractsFromHelper,
+  runAudit,
+  CANONICAL_HELPER_REL,
 };
 
 const invokedAsCli =

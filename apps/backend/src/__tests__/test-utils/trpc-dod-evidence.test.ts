@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertTrpcDodEvidenceOptions,
   isTrpcDodContract,
+  TRPC_DOD_KNOWN_CONTRACTS,
   type TrpcDodEvidenceOptions,
 } from './trpc-dod-evidence';
 
@@ -26,12 +27,21 @@ describe('trpcDodEvidence options', () => {
 
   it('rejects meaningless error contracts', () => {
     expect(() =>
-      assertTrpcDodEvidenceOptions(base({ case: 'error', contract: 'whatever' })),
+      assertTrpcDodEvidenceOptions(
+        base({ case: 'error', contract: 'whatever' as TrpcDodEvidenceOptions['contract'] }),
+      ),
     ).toThrow(/contract/i);
   });
 
-  it('accepts DOMAIN contracts', () => {
+  it('accepts expanded tRPC codes and DOMAIN contracts', () => {
+    expect(TRPC_DOD_KNOWN_CONTRACTS).toContain('BAD_REQUEST');
+    expect(TRPC_DOD_KNOWN_CONTRACTS).toContain('TOO_MANY_REQUESTS');
     expect(isTrpcDodContract('DOMAIN:SESSION_ENDED')).toBe(true);
+    expect(() =>
+      assertTrpcDodEvidenceOptions(
+        base({ case: 'error', contract: 'TOO_MANY_REQUESTS', title: 'rate limit' }),
+      ),
+    ).not.toThrow();
     expect(() =>
       assertTrpcDodEvidenceOptions(
         base({ case: 'error', contract: 'DOMAIN:SESSION_ENDED', title: 'domain error' }),
