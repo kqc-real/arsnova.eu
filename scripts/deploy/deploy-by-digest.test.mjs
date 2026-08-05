@@ -19,6 +19,7 @@ import test from 'node:test';
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const imageRefLib = join(repoRoot, 'scripts/deploy/lib-image-ref.sh');
 const stateLib = join(repoRoot, 'scripts/deploy/lib-deploy-state.sh');
+const archLib = join(repoRoot, 'scripts/deploy/lib-arch.sh');
 const deployScript = join(repoRoot, 'scripts/deploy.sh');
 const composeFile = join(repoRoot, 'docker-compose.prod.yml');
 const ciWorkflow = join(repoRoot, '.github/workflows/ci.yml');
@@ -39,6 +40,7 @@ function sourceCheck(expression, env = {}) {
     `set -euo pipefail
      source "${imageRefLib}"
      source "${stateLib}"
+     source "${archLib}"
      ${expression}`,
     env,
   );
@@ -98,6 +100,7 @@ test('deploy.sh and helpers contain no build commands', () => {
     deployScript,
     imageRefLib,
     stateLib,
+    archLib,
     join(repoRoot, 'scripts/prod-compose.sh'),
     join(repoRoot, 'scripts/deploy/checkout-deploy-sha.sh'),
   ];
@@ -117,6 +120,107 @@ test('deploy.sh and helpers contain no build commands', () => {
   assert.match(readFileSync(deployScript, 'utf8'), /compose pull app pdf-worker/);
   assert.match(readFileSync(deployScript, 'utf8'), /--rollback/);
   assert.match(readFileSync(deployScript, 'utf8'), /--recover/);
+});
+
+test('normalize_docker_arch maps aarch64/x86_64 aliases', () => {
+  const result = sourceCheck(`
+    test "$(normalize_docker_arch aarch64)" = arm64
+    test "$(normalize_docker_arch ARM64)" = arm64
+    test "$(normalize_docker_arch x86_64)" = amd64
+    test "$(normalize_docker_arch amd64)" = amd64
+  `);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('architecture preflight accepts arm64 host + arm64 image', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Architektur-Preflight OK/);
+});
+
+test('architecture preflight rejects amd64 image on arm64 host (incident #229)', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'amd64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Image-Architektur amd64/);
+  assert.match(result.stderr, /Docker-Hostarchitektur arm64/);
+  assert.match(result.stderr, /Abbruch vor Migration/);
+});
+
+test('architecture preflight rejects empty or unknown architectures', () => {
+  let result = sourceCheck(`
+    docker_host_architecture() { printf '\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /leer|unbekannt/i);
+
+  result = sourceCheck(`
+    docker_host_architecture() { printf 'arm64\\n'; }
+    image_architecture() { printf 'riscv64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /unbekannt/i);
+});
+
+test('architecture preflight accepts aarch64 host alias with arm64 image', () => {
+  const result = sourceCheck(`
+    docker_host_architecture() { printf 'aarch64\\n'; }
+    image_architecture() { printf 'arm64\\n'; }
+    require_image_compatible_with_host "${VALID_DIGEST}"
+  `);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('deploy.sh runs arch preflight after pull and before compose up/run', () => {
+  const text = readFileSync(deployScript, 'utf8');
+  const pullIdx = text.indexOf('compose pull app pdf-worker');
+  const archIdx = text.indexOf('require_image_compatible_with_host');
+  const upIdx = text.indexOf('compose up -d postgres redis');
+  const migrateIdx = text.indexOf('compose run --rm --no-deps --entrypoint "" app');
+  const rotateIdx = text.indexOf('rotate_deploy_state');
+  const envIdx = text.indexOf('write_operator_image_env');
+
+  assert.ok(pullIdx >= 0 && archIdx > pullIdx, 'preflight after pull');
+  assert.ok(upIdx > archIdx, 'preflight before compose up');
+  assert.ok(migrateIdx > archIdx, 'preflight before migrate');
+  assert.ok(rotateIdx > migrateIdx, 'state rotation after migrate');
+  assert.ok(envIdx > archIdx, 'env write after preflight success path');
+});
+
+test('prisma migrate uses --no-deps so pdf-worker is not started as dependency', () => {
+  const text = readFileSync(deployScript, 'utf8');
+  const migrateLine = text.split('\n').find((line) => line.includes('prisma migrate deploy'));
+  assert.ok(migrateLine, 'migrate command missing');
+  assert.match(migrateLine, /compose run --rm --no-deps --entrypoint ""/);
+  assert.doesNotMatch(
+    migrateLine,
+    /compose run --rm --entrypoint/,
+    'migrate without --no-deps would start depends_on services',
+  );
+});
+
+test('Docker Build job runs natively on ubuntu-24.04-arm for linux/arm64', () => {
+  const yaml = readFileSync(ciWorkflow, 'utf8');
+  const dockerSection = yaml.split('name: Docker Build')[1]?.split(/^ {2}[a-z]/m)[0];
+  assert.ok(dockerSection, 'Docker Build job missing');
+  assert.match(dockerSection, /runs-on:\s*ubuntu-24\.04-arm/);
+  assert.match(dockerSection, /platforms:\s*linux\/arm64/);
+  assert.match(dockerSection, /assert-native-arm64\.sh/);
+  assert.match(dockerSection, /scope=production-arm64/);
+  assert.doesNotMatch(
+    dockerSection.split('Build Docker image')[0] || '',
+    /runs-on:\s*ubuntu-latest/,
+  );
 });
 
 test('atomic snapshot rotation writes current/previous with safe modes', () => {
@@ -465,7 +569,7 @@ test('deploy.sh --rollback fails clearly without previous state', () => {
   const work = mkdtempSync(join(tmpdir(), 'arsnova-rollback-'));
   mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
   writeFileSync(join(work, '.env.production'), 'NODE_ENV=production\n');
-  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh']) {
+  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
     writeFileSync(
       join(work, 'scripts', 'deploy', name),
       readFileSync(join(repoRoot, 'scripts', 'deploy', name)),

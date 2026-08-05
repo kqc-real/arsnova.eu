@@ -1689,11 +1689,12 @@ jobs:
           echo "Commit-Tag zusätzlich: $COMMIT_TAG"
 
   # ─── Docker Build (inkl. lokalisiertem Frontend-Build) ──────────────────────
-  # Baut das Produktionsimage genau einmal, führt Runtime-Smokes aus und exportiert
-  # dasselbe lokale Image als kurzlebiges Actions-Artefakt für Trivy/GHCR.
+  # Baut das Produktionsimage genau einmal nativ für linux/arm64 (Produktionsserver),
+  # führt Runtime-Smokes aus und exportiert dasselbe lokale Image als kurzlebiges
+  # Actions-Artefakt für Trivy/GHCR. Kein Multi-Arch-Manifest in diesem Job (#229).
   docker:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     needs: [changes, build]
     if: github.event_name != 'schedule'
 
@@ -1706,6 +1707,13 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
+      - name: Assert native ARM64 runner and Docker host
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/assert-native-arm64.sh
+          scripts/ci/assert-native-arm64.sh arm64
+
       - name: Set up Docker Buildx
         if: needs.changes.outputs.docs_only != 'true'
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
@@ -1717,9 +1725,17 @@ jobs:
           context: .
           push: false
           load: true
+          platforms: linux/arm64
           tags: arsnova-eu:production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Separater Cache-Scope, damit amd64-GHA-Cache den ARM64-Build nicht vergiftet.
+          cache-from: type=gha,scope=production-arm64
+          cache-to: type=gha,mode=max,scope=production-arm64
+
+      - name: Assert built image is linux/arm64
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          set -euo pipefail
+          scripts/ci/assert-native-arm64.sh arm64 arsnova-eu:production
 
       - name: Verify hardened production Compose runtime
         if: needs.changes.outputs.docs_only != 'true'

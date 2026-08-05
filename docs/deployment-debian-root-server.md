@@ -752,11 +752,14 @@ den geprüften Commit, checkt `DEPLOY_SHA` per SSH **vor** `./scripts/deploy.sh`
 1. `DEPLOY_IMAGE`/`DEPLOY_SHA` prüfen und `ARSNOVA_IMAGE` exportieren (vor Änderung laufender App-Container).
 2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte) — zusätzlich zum CI-Bootstrap.
 3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server).
-4. PostgreSQL und Redis starten.
-5. Prisma-Migrationen mit deaktiviertem App-Entrypoint ausführen (`prisma migrate deploy`).
-6. App- und PDF-Worker-Container starten.
-7. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
-8. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`).
+4. Architektur-Preflight: Docker-Host und gepulltes Image müssen `arm64` sein; sonst Abbruch **vor** Migration/`compose up` und **ohne** State-/Env-Änderung ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)).
+5. PostgreSQL und Redis starten.
+6. Prisma-Migrationen mit `compose run --rm --no-deps` (kein vorzeitiger Start von `pdf-worker`/`app`).
+7. App- und PDF-Worker-Container starten.
+8. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
+9. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`).
+
+**Bei Architekturfehler (Operator):** laufende Container nicht mit dem inkompatiblen Digest neu erstellen; Image-/Hostarchitektur prüfen (`docker info`, `docker image inspect`); auf ein natives ARM64-Digest-Deploy warten bzw. `--recover` auf den letzten OK-Stand. Kein Server-Build, keine Emulation (`platform: linux/amd64`).
 
 Rollback nach fehlgeschlagenem Post-Deploy-Smoke (Deploy war erfolgreich, State rotiert):
 
@@ -1011,7 +1014,7 @@ Für die **Erstphase** mit geringem Lastaufkommen reicht die kleinste sinnvolle 
 | Groß         | 16 vCPU / 32 GB RAM  | 25–35                                            | ~1.200–1.500                              |
 
 - **Bedeutung:** „Gleichzeitige Quizze“ = Sessions mit Status ≠ `FINISHED`. „Teilnehmer (alle verbunden)“ = gleichzeitig verbundene Clients (praktische Obergrenze). Bei höherer Teilnehmerzahl pro Quiz sinkt die Quiz-Anzahl.
-- **CX vs. CAX:** **CX** = x86_64 (Intel/AMD), **CAX** = ARM64 (Ampere Altra). Node.js, Docker, PostgreSQL und Redis laufen grundsätzlich auf beiden Architekturen. **Empfehlung: CX (x86)** für maximale Kompatibilität, weil native npm-Binaries auf ARM vereinzelt mehr Risiko bedeuten.
+- **CX vs. CAX:** **CX** = x86_64 (Intel/AMD), **CAX** = ARM64 (Ampere Altra). Die **aktuelle Produktion und das CI-Produktionsimage sind linux/arm64** (nativer Build auf `ubuntu-24.04-arm`, siehe [#229](https://github.com/kqc-real/arsnova.eu/issues/229)). Ein Multi-Arch-Basisimage macht das Anwendungsimage nicht automatisch multi-arch.
 - **2 vCPU:** Bei hoher Last kann CPU (Node Event-Loop + PostgreSQL) zum Engpass werden; für Dauerlast ab mittlerer Auslastung 4 vCPU oder mehr wählen.
 - **Preise:** Anbieterpreise ändern sich. Vor Beschaffung immer die aktuelle Preisliste und den gewünschten Standort prüfen.
 

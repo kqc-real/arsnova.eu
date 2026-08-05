@@ -327,16 +327,19 @@ nicht die offene S6.5-Zielhostabnahme.
 
 ### 4.15 docker
 
-- **Was?** Baut das Produktionsimage genau einmal, führt Compose-/Runtime-Smokes
-  aus und exportiert dasselbe lokale Image als kurzlebiges Actions-Artefakt
+- **Was?** Baut das Produktionsimage genau einmal **nativ auf
+  `ubuntu-24.04-arm`** für `linux/arm64` (aktuelle Produktions-Zielplattform),
+  prüft Runner-/Docker-/Image-Architektur, führt Compose-/Runtime-Smokes aus und
+  exportiert dasselbe lokale Image als kurzlebiges Actions-Artefakt
   (`production-image-<github.sha>`, Retention 1 Tag, `overwrite: true` für
-  Job-Reruns) inkl. Image-ID und Archiv-SHA-256.
+  Job-Reruns) inkl. Image-ID und Archiv-SHA-256. Kein Multi-Arch-Manifest
+  (siehe [#229](https://github.com/kqc-real/arsnova.eu/issues/229)).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
   Build-Definition in [../Dockerfile](../Dockerfile); Export über
   [../scripts/ci/save-production-image.sh](../scripts/ci/save-production-image.sh).
 - **Wann?** Nach `build`, außer bei `schedule`.
-- **Warum?** Prüft Bau- und Laufzeitfähigkeit und übergibt ein unverändertes
-  Artefakt an Trivy/GHCR (kein zweiter Build).
+- **Warum?** Produktion läuft auf ARM64; ein Multi-Arch-Basisimage garantiert
+  kein Multi-Arch-Anwendungsimage. Build/Scan/Publish bleiben ein Artefakt.
 
 ### 4.16 deploy-freshness
 
@@ -352,7 +355,8 @@ nicht die offene S6.5-Zielhostabnahme.
   `DEPLOY_SHA` (`github.sha`). Per SSH wird zuerst `DEPLOY_SHA` ausgecheckt
   (Bootstrap), danach [../scripts/deploy.sh](../scripts/deploy.sh) gestartet.
   Das Skript setzt `ARSNOVA_IMAGE`, pullt `app`/`pdf-worker` (kein
-  Server-Build), migriert, startet die Services und prüft Health/HTTP sowie
+  Server-Build), prüft Host- vs. Image-Architektur (`arm64`), migriert mit
+  `--no-deps`, startet die Services und prüft Health/HTTP sowie
   Digest→Image-ID→Container-ID für beide Container. Danach werden atomare
   Snapshots (`current.state`/`previous.state`) und `.env.arsnova-image` geschrieben.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
