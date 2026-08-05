@@ -607,6 +607,5 @@
       "fingerprint": "sha256:788368161c5dca9c81869c98aa986deed4a9cb39df139cdee55881a74e25de7e",
       "missing": ["happy", "error"]
     }
-  },
-  "integrity": "sha256:0901c2e6d6e6aa2f798af9d41549241be7d5f26861558a41eac5e7000947e717"
+  }
 }

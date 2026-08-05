@@ -54,6 +54,13 @@ Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen **nicht**. Evidenz in
 Testkörpers bleibt Review-Gegenstand; der Helper und das Audit prüfen
 Metadatenkonvention, kanonische Import-Bindung und grobe Leerheitsregeln.
 
+Der Realmodus deckt exakt den in `apps/backend/vitest.config.ts` festgelegten
+Backend-Testscope `src/**/*.test.ts` ab, also auch Tests neben Implementierungen
+unter `src/lib` oder `src/routers`. Ändert sich dieses Include, bricht der Audit
+strukturell ab, bis der Matcher bewusst nachgezogen wird. Nur die separat in
+Slice 2A ausgewerteten, nicht im `AppRouter` gemounteten PoC-Fixtures sind vom
+Realmodus ausgeschlossen.
+
 PoC-Direct-Evidenz muss die Fixture-Prozedur über `createCaller` tatsächlich
 ausführen.
 
@@ -108,16 +115,16 @@ kanonisch sortiert.
 Statuswerte für Queries/Mutations: `complete` | `incomplete` | `untested`.
 Subscriptions: `subscription_report_only` (nicht im Query-/Mutation-Nenner).
 Im Realmodus ergänzt der Bericht pro Prozedur den Baseline-Status
-(`legacyDebt`, `missing`, `changed`) und auf Berichtsebene Baseline-Ursprung,
-Strukturfehler sowie die Summen der Legacy-Schuld. Ein geänderter Fingerprint wird
-in Slice 2B nur ausgewiesen; die Blockiersemantik folgt erst in Slice 2C.
+(`legacyDebt`, `missing`, `changed`, `new`) und auf Berichtsebene Baseline-Ursprung,
+Strukturfehler sowie die Summen der Legacy-Schuld. Ein geänderter Fingerprint oder
+eine neue, noch nicht in der Baseline enthaltene Prozedur wird in Slice 2B nur
+ausgewiesen; die Blockiersemantik folgt erst in Slice 2C.
 
 ### 4. Versionierte Baseline (Slice 2B)
 
 Die Baseline liegt unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
 Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean. Der
-`originCommit` ist der letzte Router-Ursprung vor Slice 2B; `integrity` schützt die
-kanonische Nutzlast vor unbemerkter oder nur teilweiser Manipulation:
+`originCommit` ist der letzte Router- und Test-Ursprung vor Slice 2B:
 
 ```json
 {
@@ -129,10 +136,19 @@ kanonische Nutzlast vor unbemerkter oder nur teilweiser Manipulation:
       "fingerprint": "sha256:...",
       "missing": ["error"]
     }
-  },
-  "integrity": "sha256:<digest>"
+  }
 }
 ```
+
+Ein in derselben Datei gespeicherter Hash wäre nur eine Konsistenzsumme und könnte
+zusammen mit einer aufgeweichten Baseline neu berechnet werden. Stattdessen wird
+der `originCommit` aus dem einzigen Eltern-Commit des ersten Git-Commits, der die
+Baseline eingeführt hat, abgeleitet. Weder Baseline-Inhalt noch ein gemeinsam
+geänderter `originCommit` können diesen Git-DAG-Anker verschieben. Das Audit exportiert
+Router, Vitest-Konfiguration und Testdateien direkt aus diesem Git-Stand, führt mit
+der aktuellen Audit-Implementierung die Klassifikation erneut aus und verlangt eine
+exakte Übereinstimmung mit den gespeicherten Baseline-Einträgen. CI checkt dafür die
+vollständige Historie aus.
 
 Gate-Semantik (ab 2C): Eine Dimension, die in der Baseline abgedeckt war und später
 fehlt, ist Verschlechterung (verboten). Das Schließen einer fehlenden Dimension
@@ -142,9 +158,11 @@ verlorenen Dimension. `compareMissingDebt` im Audit-Skript prüft diese Übergä
 Slice 2B aktiviert dieses Schuld-Gate ausdrücklich **noch nicht**. CI erzeugt nach
 `npm ci` einen deterministischen JSON-/Markdown-Bericht, schreibt Markdown in die
 Job Summary und lädt beide Dateien als `trpc-dod-report` hoch. Bestehende oder
-veränderte Evidenzschuld bleibt Exit 0. Nur ungültige Inventur-/Baseline-Struktur,
-Baseline-Integritätsfehler, unbekannte Procedure-IDs, verwaiste Einträge und
-widersprüchliche doppelte Evidenz sind Fehler.
+veränderte Evidenzschuld sowie neue Prozeduren bleiben Exit 0. Nur ungültige
+Inventur-/Baseline-Struktur, Abweichungen von der aus `originCommit` regenerierten
+Baseline, unbekannte Procedure-IDs in Evidenz, verwaiste Baseline-Einträge und
+widersprüchliche doppelte Evidenz sind Fehler. Die initiale Baseline-Erzeugung nutzt
+einen exklusiven atomaren Create und überschreibt nie eine vorhandene Datei.
 
 ### 5. Initiale Klassifikation des realen Routerbaums
 
@@ -210,5 +228,7 @@ Vor Slice 2C ausdrücklich im PR-Review bestätigen:
 1. Vollständigkeit und IDs der rekursiven AppRouter-Inventur
 2. Initiale Klassifikation 50 Queries / 63 Mutations / 8 Subscriptions
 3. Versionierte Baseline mit 226 Legacy-Dimensionen und festem Ursprung
-4. Fehlergrenzen zwischen struktureller Inkonsistenz und report-only Schuld
-5. Determinismus und CI-Darstellung von JSON, Markdown, Job Summary und Artefakt
+4. Evidenzscope gemäß `src/**/*.test.ts` und Git-Verankerung am Ursprung
+5. Fehlergrenzen zwischen struktureller Inkonsistenz und report-only Schuld/neuen
+   Prozeduren
+6. Determinismus und CI-Darstellung von JSON, Markdown, Job Summary und Artefakt

@@ -6,8 +6,22 @@
  * Coverage debt remains report-only; structural consistency errors fail.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,9 +38,11 @@ const DEFAULT_POC_ROUTER = join(
 );
 const DEFAULT_POC_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
 const DEFAULT_REAL_ROUTER = join(REPO_ROOT, 'apps/backend/src/routers/index.ts');
-const DEFAULT_REAL_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src/__tests__')];
+const DEFAULT_REAL_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src')];
 const DEFAULT_REAL_EVIDENCE_EXCLUDES = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
 const DEFAULT_BASELINE = join(REPO_ROOT, '.github/trpc-dod-baseline.json');
+const BACKEND_VITEST_CONFIG = join(REPO_ROOT, 'apps/backend/vitest.config.ts');
+const BACKEND_VITEST_INCLUDE = 'src/**/*.test.ts';
 
 const SKIP_CALLEES = new Set([
   'describe.skip',
@@ -75,6 +91,7 @@ function parseArgs(argv) {
     baseline: null,
     writeBaseline: false,
     originCommit: null,
+    originSnapshot: false,
     failOnIncomplete: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -90,6 +107,7 @@ function parseArgs(argv) {
     else if (a === '--md-out') args.mdOut = argv[++i];
     else if (a === '--baseline') args.baseline = argv[++i];
     else if (a === '--origin-commit') args.originCommit = argv[++i];
+    else if (a === '--origin-snapshot') args.originSnapshot = true;
     else if (a === '--help' || a === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${a}\n${usage()}`);
   }
@@ -126,6 +144,65 @@ function isPathInside(filePath, directory) {
 
 function relPosix(filePath) {
   return relative(REPO_ROOT, filePath).replaceAll('\\', '/');
+}
+
+function objectProperty(object, name) {
+  return object.properties.find(
+    (property) => ts.isPropertyAssignment(property) && propertyNameText(property.name) === name,
+  );
+}
+
+function readBackendVitestIncludes(configPath = BACKEND_VITEST_CONFIG) {
+  const text = readFileSync(configPath, 'utf8');
+  const sourceFile = ts.createSourceFile(configPath, text, ts.ScriptTarget.Latest, true);
+  let configObject = null;
+
+  for (const statement of sourceFile.statements) {
+    if (
+      ts.isExportAssignment(statement) &&
+      ts.isCallExpression(statement.expression) &&
+      statement.expression.arguments[0] &&
+      ts.isObjectLiteralExpression(statement.expression.arguments[0])
+    ) {
+      configObject = statement.expression.arguments[0];
+      break;
+    }
+  }
+  const testProperty = configObject ? objectProperty(configObject, 'test') : null;
+  const testObject =
+    testProperty &&
+    ts.isPropertyAssignment(testProperty) &&
+    ts.isObjectLiteralExpression(testProperty.initializer)
+      ? testProperty.initializer
+      : null;
+  const includeProperty = testObject ? objectProperty(testObject, 'include') : null;
+  const includeArray =
+    includeProperty &&
+    ts.isPropertyAssignment(includeProperty) &&
+    ts.isArrayLiteralExpression(includeProperty.initializer)
+      ? includeProperty.initializer
+      : null;
+  if (!includeArray) {
+    throw new Error(`Could not resolve literal test.include from ${relPosix(configPath)}`);
+  }
+  return includeArray.elements.map(literalString).filter((value) => value !== null);
+}
+
+function assertBackendVitestContract(configPath = BACKEND_VITEST_CONFIG) {
+  const includes = readBackendVitestIncludes(configPath);
+  if (JSON.stringify(includes) !== JSON.stringify([BACKEND_VITEST_INCLUDE])) {
+    throw new Error(
+      `Unsupported backend Vitest include ${JSON.stringify(includes)}; update the tRPC DoD evidence matcher`,
+    );
+  }
+}
+
+function isBackendVitestTestFile(filePath, repoRoot = REPO_ROOT) {
+  const backendRelative = relative(join(repoRoot, 'apps/backend'), resolve(filePath)).replaceAll(
+    '\\',
+    '/',
+  );
+  return backendRelative.startsWith('src/') && backendRelative.endsWith('.test.ts');
 }
 
 /**
@@ -765,15 +842,6 @@ function canonicalBaselineProcedures(procedures) {
   );
 }
 
-function baselineIntegrity({ version, originCommit, procedures }) {
-  const payload = JSON.stringify({
-    version,
-    originCommit,
-    procedures: canonicalBaselineProcedures(procedures),
-  });
-  return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
-}
-
 function createBaseline(procedures, originCommit) {
   if (!/^[0-9a-f]{40}$/.test(originCommit)) {
     throw new Error('--origin-commit must be a full lowercase 40-character Git SHA');
@@ -786,12 +854,112 @@ function createBaseline(procedures, originCommit) {
       missing: classifyProcedure(procedure).missing,
     };
   }
-  const baseline = {
+  return {
     version: 1,
     originCommit,
     procedures: canonicalBaselineProcedures(entries),
   };
-  return { ...baseline, integrity: baselineIntegrity(baseline) };
+}
+
+function validateBaselineAgainstOrigin(baseline, lockedOriginCommit, originProcedures) {
+  const errors = [];
+  if (baseline.originCommit !== lockedOriginCommit) {
+    errors.push(
+      `baseline originCommit differs from immutable initial origin ${lockedOriginCommit}`,
+    );
+    return errors;
+  }
+  const expected = createBaseline(originProcedures, lockedOriginCommit);
+  if (
+    JSON.stringify(canonicalBaselineProcedures(baseline.procedures)) !==
+    JSON.stringify(expected.procedures)
+  ) {
+    errors.push('baseline procedures do not match the audit regenerated from originCommit');
+  }
+  return errors;
+}
+
+function gitText(args) {
+  return execFileSync('git', args, {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+  }).trim();
+}
+
+function readLockedBaselineOrigin(baselinePath) {
+  const relativeBaseline = relPosix(baselinePath);
+  if (relativeBaseline.startsWith('../')) {
+    throw new Error('real baseline must be inside the repository');
+  }
+  const additions = gitText(['log', '--diff-filter=A', '--format=%H', '--', relativeBaseline])
+    .split('\n')
+    .filter(Boolean);
+  if (additions.length === 0) {
+    throw new Error(`baseline has no committed introduction: ${relativeBaseline}`);
+  }
+  const introductionCommit = additions.at(-1);
+  const introductionLine = gitText(['rev-list', '--parents', '-n', '1', introductionCommit]);
+  const [, ...parents] = introductionLine.split(' ');
+  if (parents.length !== 1 || !/^[0-9a-f]{40}$/.test(parents[0])) {
+    throw new Error('baseline introduction must have exactly one parent commit');
+  }
+  return parents[0];
+}
+
+function auditOriginCommit(originCommit) {
+  const snapshotRoot = mkdtempSync(join(tmpdir(), 'trpc-dod-origin-'));
+  try {
+    const archive = execFileSync(
+      'git',
+      [
+        'archive',
+        '--format=tar',
+        originCommit,
+        'apps/backend/src',
+        'apps/backend/vitest.config.ts',
+      ],
+      { cwd: REPO_ROOT, maxBuffer: 100 * 1024 * 1024 },
+    );
+    execFileSync('tar', ['-xf', '-', '-C', snapshotRoot], {
+      input: archive,
+      maxBuffer: 100 * 1024 * 1024,
+    });
+    const snapshotScriptDir = join(snapshotRoot, 'scripts');
+    mkdirSync(snapshotScriptDir, { recursive: true });
+    const snapshotScript = join(snapshotScriptDir, 'audit-trpc-dod.mjs');
+    copyFileSync(fileURLToPath(import.meta.url), snapshotScript);
+    symlinkSync(join(REPO_ROOT, 'node_modules'), join(snapshotRoot, 'node_modules'), 'dir');
+    const reportPath = join(snapshotRoot, 'origin-report.json');
+    const childOutput = execFileSync(
+      process.execPath,
+      [snapshotScript, '--real', '--origin-snapshot', '--json-out', reportPath],
+      {
+        cwd: snapshotRoot,
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      },
+    );
+    if (!existsSync(reportPath)) {
+      throw new Error(`origin audit did not write its report: ${childOutput.slice(0, 500).trim()}`);
+    }
+    return JSON.parse(readFileSync(reportPath, 'utf8'));
+  } finally {
+    rmSync(snapshotRoot, { recursive: true, force: true });
+  }
+}
+
+function verifyBaselineHistory(baselinePath, baseline) {
+  if (!/^[0-9a-f]{40}$/.test(baseline.originCommit ?? '')) return [];
+  const lockedOriginCommit = readLockedBaselineOrigin(baselinePath);
+  const originReport = auditOriginCommit(lockedOriginCommit);
+  const errors = originReport.structuralErrors.map(
+    (error) => `originCommit audit is structurally invalid: ${error}`,
+  );
+  errors.push(
+    ...validateBaselineAgainstOrigin(baseline, lockedOriginCommit, originReport.procedures),
+  );
+  return errors;
 }
 
 function duplicateJsonKeyErrors(filePath, text) {
@@ -830,20 +998,19 @@ function readAndValidateBaseline(filePath, procedures) {
     baseline = JSON.parse(text);
   } catch (error) {
     return {
-      baseline: { version: null, originCommit: null, integrity: null, procedures: {} },
+      baseline: { version: null, originCommit: null, procedures: {} },
       errors: [...errors, `baseline JSON is invalid: ${error.message}`],
     };
   }
 
   if (!baseline || typeof baseline !== 'object' || Array.isArray(baseline)) {
     return {
-      baseline: { version: null, originCommit: null, integrity: null, procedures: {} },
+      baseline: { version: null, originCommit: null, procedures: {} },
       errors: [...errors, 'baseline root must be an object'],
     };
   }
   const unexpectedRoot = Object.keys(baseline).filter(
-    (key) =>
-      key !== 'version' && key !== 'originCommit' && key !== 'procedures' && key !== 'integrity',
+    (key) => key !== 'version' && key !== 'originCommit' && key !== 'procedures',
   );
   if (unexpectedRoot.length) {
     errors.push(`baseline has unknown root fields: ${unexpectedRoot.sort().join(', ')}`);
@@ -860,12 +1027,6 @@ function readAndValidateBaseline(filePath, procedures) {
     errors.push('baseline procedures must be an object');
     baseline.procedures = {};
   }
-  if (!/^sha256:[0-9a-f]{64}$/.test(baseline.integrity ?? '')) {
-    errors.push('baseline integrity must be a sha256 fingerprint');
-  } else if (baseline.integrity !== baselineIntegrity(baseline)) {
-    errors.push('baseline integrity mismatch (possible baseline manipulation)');
-  }
-
   const currentById = new Map(procedures.map((procedure) => [procedure.id, procedure]));
   for (const [id, entry] of Object.entries(baseline.procedures)) {
     if (!currentById.has(id)) errors.push(`orphan baseline procedure ${id}`);
@@ -898,10 +1059,6 @@ function readAndValidateBaseline(filePath, procedures) {
       errors.push(`baseline subscription ${id} must not carry query/mutation debt`);
     }
   }
-  for (const id of currentById.keys()) {
-    if (!(id in baseline.procedures)) errors.push(`baseline is missing current procedure ${id}`);
-  }
-
   return { baseline, errors: [...new Set(errors)].sort(compareCanonicalStrings) };
 }
 
@@ -937,12 +1094,20 @@ function buildReport({
       },
       status,
       missing,
-      baseline: baselineEntry
-        ? {
-            missing: baselineMissing,
-            legacyDebt: baselineMissing.length > 0,
-            changed: baselineEntry.kind !== p.kind || baselineEntry.fingerprint !== p.fingerprint,
-          }
+      baseline: baseline
+        ? baselineEntry
+          ? {
+              missing: baselineMissing,
+              legacyDebt: baselineMissing.length > 0,
+              changed: baselineEntry.kind !== p.kind || baselineEntry.fingerprint !== p.fingerprint,
+              new: false,
+            }
+          : {
+              missing: null,
+              legacyDebt: false,
+              changed: false,
+              new: true,
+            }
         : null,
     };
   });
@@ -1006,7 +1171,6 @@ function buildReport({
       ? {
           version: baseline.version,
           originCommit: baseline.originCommit,
-          integrity: baseline.integrity,
         }
       : null,
     invalidEvidence,
@@ -1026,6 +1190,7 @@ function buildReport({
         0,
       ),
       changedSinceBaseline: enriched.filter((procedure) => procedure.baseline?.changed).length,
+      newSinceBaseline: enriched.filter((procedure) => procedure.baseline?.new).length,
       structuralErrors: structuralErrors.length,
     },
   };
@@ -1048,6 +1213,7 @@ function renderMarkdown(report) {
     lines.push(`- Legacy procedures with debt: ${report.summary.legacyProcedures}`);
     lines.push(`- Legacy missing dimensions: ${report.summary.legacyMissingDimensions}`);
     lines.push(`- Changed since baseline: ${report.summary.changedSinceBaseline}`);
+    lines.push(`- New since baseline: ${report.summary.newSinceBaseline}`);
     lines.push(`- Structural errors: ${report.summary.structuralErrors}`);
     lines.push(`- Baseline origin: \`${report.baseline.originCommit}\``);
   }
@@ -1058,8 +1224,9 @@ function renderMarkdown(report) {
     const miss = p.missing.length ? ` missing=${p.missing.join(',')}` : '';
     const legacy = p.baseline?.legacyDebt ? ` legacy=${p.baseline.missing.join(',')}` : '';
     const changed = p.baseline?.changed ? ' changed-since-baseline' : '';
+    const isNew = p.baseline?.new ? ' new-since-baseline' : '';
     lines.push(
-      `- \`${p.id}\` (${p.kind}) → **${p.status}**${miss}${legacy}${changed} · \`${p.fingerprint.slice(0, 15)}…\``,
+      `- \`${p.id}\` (${p.kind}) → **${p.status}**${miss}${legacy}${changed}${isNew} · \`${p.fingerprint.slice(0, 15)}…\``,
     );
   }
   if (report.invalidEvidence.length) {
@@ -1093,9 +1260,11 @@ function runAudit({
   prefix,
   evidencePaths,
   evidenceExcludes = [],
+  evidenceFilePredicate = null,
   mode,
   routerTree = false,
   baselinePath = null,
+  verifyHistory = false,
 }) {
   const knownContracts = loadKnownContractsFromHelper();
   const procedures = routerTree
@@ -1104,6 +1273,7 @@ function runAudit({
   const evidenceFiles = evidencePaths
     .flatMap((p) => walkFiles(resolve(p)))
     .filter((filePath) => !evidenceExcludes.some((dir) => isPathInside(filePath, dir)))
+    .filter((filePath) => !evidenceFilePredicate || evidenceFilePredicate(filePath))
     .filter((filePath) => {
       const text = readFileSync(filePath, 'utf8');
       return text.includes('trpc-dod-evidence') || /\b(?:trpcDodIt|dodIt)\s*\(/.test(text);
@@ -1125,6 +1295,15 @@ function runAudit({
   const baselineResult = baselinePath
     ? readAndValidateBaseline(baselinePath, procedures)
     : { baseline: null, errors: [] };
+  if (baselinePath && verifyHistory) {
+    try {
+      baselineResult.errors.push(...verifyBaselineHistory(baselinePath, baselineResult.baseline));
+    } catch (error) {
+      baselineResult.errors.push(
+        `baseline history verification failed: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+  }
   return buildReport({
     mode,
     procedures,
@@ -1135,8 +1314,8 @@ function runAudit({
   });
 }
 
-function main() {
-  const args = parseArgs(process.argv.slice(2));
+function runCli(argv = process.argv.slice(2)) {
+  const args = parseArgs(argv);
   if (args.help) {
     process.stdout.write(usage());
     return 0;
@@ -1152,13 +1331,14 @@ function main() {
   let evidenceExcludes = [];
 
   if (args.real) {
-    mode = 'real';
+    mode = args.originSnapshot ? 'origin' : 'real';
     routerPath = DEFAULT_REAL_ROUTER;
     prefix = null;
     evidencePaths = DEFAULT_REAL_EVIDENCE_DIRS;
     evidenceExcludes = DEFAULT_REAL_EVIDENCE_EXCLUDES;
     routerTree = true;
-    baselinePath = resolve(args.baseline ?? DEFAULT_BASELINE);
+    baselinePath = args.originSnapshot ? null : resolve(args.baseline ?? DEFAULT_BASELINE);
+    assertBackendVitestContract();
   } else if (args.poc) {
     mode = 'poc';
     routerPath = DEFAULT_POC_ROUTER;
@@ -1181,13 +1361,20 @@ function main() {
   if (args.writeBaseline) {
     if (!args.real) throw new Error('--write-baseline is only supported with --real');
     if (!args.originCommit) throw new Error('--origin-commit is required with --write-baseline');
-    if (existsSync(baselinePath)) {
-      throw new Error(`Refusing to overwrite existing baseline: ${baselinePath}`);
-    }
     const procedures = inventariseRouterTree(routerPath);
     const baseline = createBaseline(procedures, args.originCommit);
     ensureParent(baselinePath);
-    writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
+    try {
+      writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`, {
+        flag: 'wx',
+        mode: 0o600,
+      });
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
+        throw new Error(`Refusing to overwrite existing baseline: ${baselinePath}`);
+      }
+      throw error;
+    }
     process.stdout.write(
       `Wrote ${procedures.length} procedures to ${relPosix(baselinePath)} (origin ${args.originCommit}).\n`,
     );
@@ -1199,9 +1386,12 @@ function main() {
     prefix,
     evidencePaths,
     evidenceExcludes,
+    evidenceFilePredicate:
+      mode === 'real' || mode === 'origin' ? (filePath) => isBackendVitestTestFile(filePath) : null,
     mode,
     routerTree,
     baselinePath,
+    verifyHistory: mode === 'real',
   });
   const md = renderMarkdown(report);
   process.stdout.write(`${md}\n`);
@@ -1238,20 +1428,24 @@ export {
   normalizeProcedureSource,
   validateEvidenceMeta,
   compareMissingDebt,
-  baselineIntegrity,
   createBaseline,
+  validateBaselineAgainstOrigin,
   readAndValidateBaseline,
+  readBackendVitestIncludes,
+  isBackendVitestTestFile,
   loadKnownContractsFromHelper,
   runAudit,
   CANONICAL_HELPER_REL,
+  runCli,
 };
 
 const invokedAsCli =
-  Boolean(process.argv[1]) && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+  Boolean(process.argv[1]) &&
+  realpathSync(fileURLToPath(import.meta.url)) === realpathSync(resolve(process.argv[1]));
 
 if (invokedAsCli) {
   try {
-    process.exitCode = main();
+    process.exitCode = runCli();
   } catch (err) {
     console.error(err instanceof Error ? err.message : err);
     process.exitCode = 2;
