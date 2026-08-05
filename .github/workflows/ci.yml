@@ -614,6 +614,8 @@ jobs:
       - name: Checkout
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
@@ -630,9 +632,29 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npx prisma generate --schema prisma/schema.prisma
 
-      - name: tRPC DoD audit PoC unit tests
+      - name: tRPC DoD audit unit tests
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run audit:trpc-dod:test
+
+      - name: tRPC DoD real-router report
+        if: needs.changes.outputs.docs_only != 'true'
+        run: >-
+          npm run audit:trpc-dod --
+          --json-out artifacts/trpc-dod/report.json
+          --md-out artifacts/trpc-dod/report.md
+
+      - name: Add tRPC DoD report to job summary
+        if: always() && needs.changes.outputs.docs_only != 'true'
+        run: cat artifacts/trpc-dod/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload tRPC DoD report
+        if: always() && needs.changes.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: trpc-dod-report
+          path: artifacts/trpc-dod/
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Install matching Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'

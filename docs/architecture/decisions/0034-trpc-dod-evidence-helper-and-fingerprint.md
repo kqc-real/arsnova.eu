@@ -4,7 +4,7 @@
 
 **Status:** Proposed
 **Datum:** 2026-08-05
-**Entscheider:** Projektteam (Architektur-Checkpoint nach Slice 2A / Issue #222)
+**Entscheider:** Projektteam (Architektur-Checkpoint nach Slice 2B / Issue #222)
 **Letzter Repo-Abgleich:** 2026-08-05
 
 ## Kontext
@@ -15,8 +15,9 @@ fachlich relevanten Fehlerfall. Eine bloße Zählung von `caller.<procedure>()`-
 indirekter Nebeneffekt beweist weder Happy Path noch Fehlervertrag.
 
 Issue #222 fordert deshalb eine **formale, auditierbare Evidenzkonvention** und ein
-späteres Non-Regression-Gate. Slice 2A validiert die Konvention an Fixtures, ohne den
-realen Routerbaum zu blockieren.
+späteres Non-Regression-Gate. Slice 2A validiert die Konvention an Fixtures. Slice 2B
+wendet sie auf den vollständigen realen Routerbaum an, versioniert den Ausgangsstand
+und veröffentlicht ihn als Bericht, ohne Evidenzschuld zu blockieren.
 
 ## Entscheidung
 
@@ -53,6 +54,13 @@ Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen **nicht**. Evidenz in
 Testkörpers bleibt Review-Gegenstand; der Helper und das Audit prüfen
 Metadatenkonvention, kanonische Import-Bindung und grobe Leerheitsregeln.
 
+Der Realmodus deckt exakt den in `apps/backend/vitest.config.ts` festgelegten
+Backend-Testscope `src/**/*.test.ts` ab, also auch Tests neben Implementierungen
+unter `src/lib` oder `src/routers`. Ändert sich dieses Include, bricht der Audit
+strukturell ab, bis der Matcher bewusst nachgezogen wird. Nur die separat in
+Slice 2A ausgewerteten, nicht im `AppRouter` gemounteten PoC-Fixtures sind vom
+Realmodus ausgeschlossen.
+
 PoC-Direct-Evidenz muss die Fixture-Prozedur über `createCaller` tatsächlich
 ausführen.
 
@@ -61,6 +69,9 @@ ausführen.
 `scripts/audit-trpc-dod.mjs` inventarisiert Prozeduren strukturell (AST):
 
 - Erkennung von `.query(`, `.mutation(`, `.subscription(` in `router({ ... })`-Objekten
+- rekursive Auflösung der im `appRouter` gemounteten benannten Router-Imports,
+  einschließlich verschachtelter Mounts wie `admin.motd`; nicht auflösbare Einträge
+  sind Strukturfehler statt stiller Auslassungen
 - stabile ID aus Router-Präfix + Property-Name
 - Source-Fingerprint: SHA-256 über den mit dem TypeScript-Scanner
   (`skipTrivia: true`) normalisierten Tokenstrom — Kommentare/Whitespace entfallen,
@@ -103,11 +114,17 @@ kanonisch sortiert.
 
 Statuswerte für Queries/Mutations: `complete` | `incomplete` | `untested`.
 Subscriptions: `subscription_report_only` (nicht im Query-/Mutation-Nenner).
+Im Realmodus ergänzt der Bericht pro Prozedur den Baseline-Status
+(`legacyDebt`, `missing`, `changed`, `new`) und auf Berichtsebene Baseline-Ursprung,
+Strukturfehler sowie die Summen der Legacy-Schuld. Ein geänderter Fingerprint oder
+eine neue, noch nicht in der Baseline enthaltene Prozedur wird in Slice 2B nur
+ausgewiesen; die Blockiersemantik folgt erst in Slice 2C.
 
-### 4. Baseline-Format (vorbereitet, noch nicht produktiv)
+### 4. Versionierte Baseline (Slice 2B)
 
-Ab Slice 2B versioniert unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
-Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean:
+Die Baseline liegt unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
+Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean. Der
+`originCommit` ist der letzte Router- und Test-Ursprung vor Slice 2B:
 
 ```json
 {
@@ -123,16 +140,47 @@ Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean:
 }
 ```
 
+Ein in derselben Datei gespeicherter Hash wäre nur eine Konsistenzsumme und könnte
+zusammen mit einer aufgeweichten Baseline neu berechnet werden. Stattdessen wird
+der `originCommit` aus dem Inhalt des ersten Git-Commits gelockt, der die Baseline
+enthält. Dieser Commit bleibt sowohl bei Merge-Commits als auch nach Squash- oder
+Rebase-Merges der maßgebliche Einführungs-Snapshot; seine Eltern-Topologie ist
+unerheblich. Das Audit exportiert Router, Vitest-Konfiguration und Testdateien sowohl
+aus dem gelockten Ursprung als auch aus dem Einführungs-Snapshot, klassifiziert beide
+mit der aktuellen Audit-Implementierung und verlangt identische Baseline-Einträge.
+Der Ursprung muss außerdem ein Vorfahr des Einführungs-Commits sein. Spätere
+gemeinsame Änderungen von Baseline und `originCommit` können diesen historischen
+Anker nicht verschieben. CI checkt dafür die vollständige Historie aus.
+
 Gate-Semantik (ab 2C): Eine Dimension, die in der Baseline abgedeckt war und später
 fehlt, ist Verschlechterung (verboten). Das Schließen einer fehlenden Dimension
 reduziert die Schuld. Ein Tausch Happy↔Error gilt als Verschlechterung auf der
 verlorenen Dimension. `compareMissingDebt` im Audit-Skript prüft diese Übergänge.
 
-Slice 2A erzeugt **keine** produktive Baseline und aktiviert **kein** blockierendes
-CI-Gate. Die PoC-Unit-Tests laufen nach `npm ci` im Job „Tests“
-(`npm run audit:trpc-dod:test`), nicht im Workflow-Lint vor Dependency-Install.
+Slice 2B aktiviert dieses Schuld-Gate ausdrücklich **noch nicht**. CI erzeugt nach
+`npm ci` einen deterministischen JSON-/Markdown-Bericht, schreibt Markdown in die
+Job Summary und lädt beide Dateien als `trpc-dod-report` hoch. Bestehende oder
+veränderte Evidenzschuld sowie neue Prozeduren bleiben Exit 0. Nur ungültige
+Inventur-/Baseline-Struktur, Abweichungen von der aus `originCommit` regenerierten
+Baseline, unbekannte Procedure-IDs in Evidenz, verwaiste Baseline-Einträge und
+widersprüchliche doppelte Evidenz sind Fehler. Die initiale Baseline-Erzeugung nutzt
+einen exklusiven atomaren Create und überschreibt nie eine vorhandene Datei.
 
-### 5. PoC-Scope
+### 5. Initiale Klassifikation des realen Routerbaums
+
+Stand `8efc52783a012309ffc9c89cd37f2790ae76bfb2`:
+
+- 121 gemountete Prozeduren insgesamt
+- 50 Queries und 63 Mutations (113 im DoD-Nenner)
+- 8 Subscriptions (sichtbar, aber report-only)
+- 113 Prozeduren mit Legacy-Schuld bzw. 226 fehlende Dimensionen
+
+Außerhalb der Slice-2A-Fixtures existiert noch keine formale `trpcDodIt`-Evidenz.
+Die früher ermittelten 28 direkten Caller-Lücken dienen nur als Plausibilitätsvergleich:
+Sie beruhen auf einer anderen, schwächeren Heuristik und sind weder Nenner noch
+Baseline für den neuen Audit.
+
+### 6. PoC-Scope
 
 Genau zwei Fixture-Queries/Mutations (`dodPoc.ping`, `dodPoc.echo`) plus eine
 Subscription (`dodPoc.onTick`) unter
@@ -175,11 +223,14 @@ ersetzt kein Review.
 - **Nur Coverage-Schwellen:** verworfen; Coverage ≠ vertragliche DoD.
 - **Sofortiges 100-%-Gate auf dem Bestand:** verworfen; würde fachfremde PRs blockieren.
 
-## Architektur-Checkpoint (Slice 2A)
+## Architektur-Checkpoint (Slice 2B)
 
-Vor Slice 2B ausdrücklich im PR-Review bestätigen:
+Vor Slice 2C ausdrücklich im PR-Review bestätigen:
 
-1. Helper-API und Fehlervertrags-Taxonomie
-2. Semantisch sichere Fingerprint-Normalisierung (Scanner/Literale)
-3. Berichtsschema Version 1 (deterministisch)
-4. Baseline-Format mit `missing[]` je Happy-/Error-Dimension
+1. Vollständigkeit und IDs der rekursiven AppRouter-Inventur
+2. Initiale Klassifikation 50 Queries / 63 Mutations / 8 Subscriptions
+3. Versionierte Baseline mit 226 Legacy-Dimensionen und festem Ursprung
+4. Evidenzscope gemäß `src/**/*.test.ts` und Git-Verankerung am Ursprung
+5. Fehlergrenzen zwischen struktureller Inkonsistenz und report-only Schuld/neuen
+   Prozeduren
+6. Determinismus und CI-Darstellung von JSON, Markdown, Job Summary und Artefakt
