@@ -1590,6 +1590,9 @@ jobs:
       - name: Run Trivy image scan
         if: needs.changes.outputs.docs_only != 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        env:
+          # Produktionsartefakt ist arm64-only (#229); Trivy defaultet sonst auf amd64.
+          TRIVY_PLATFORM: linux/arm64
         with:
           image-ref: arsnova-eu:production
           severity: HIGH,CRITICAL
@@ -1599,6 +1602,8 @@ jobs:
       - name: Generate Trivy image SARIF report
         if: always() && needs.changes.outputs.docs_only != 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        env:
+          TRIVY_PLATFORM: linux/arm64
         with:
           image-ref: arsnova-eu:production
           severity: HIGH,CRITICAL

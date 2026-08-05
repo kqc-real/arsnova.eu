@@ -35,6 +35,38 @@ image_architecture() {
   normalize_docker_arch "$raw"
 }
 
+# Einheitliche Abbruchdiagnose: immer Host, Image und Sollarchitektur.
+arch_reject() {
+  local reason="${1:?}"
+  local host_arch="${2-}"
+  local image_arch="${3-}"
+  local required="${4-}"
+  local host_disp image_disp required_disp
+
+  if [[ -z "$host_arch" ]]; then
+    host_disp='<leer>'
+  else
+    host_disp="$host_arch"
+  fi
+  if [[ -z "$image_arch" ]]; then
+    image_disp='<leer>'
+  else
+    image_disp="$image_arch"
+  fi
+  if [[ -z "$required" ]]; then
+    required_disp='<leer>'
+  else
+    required_disp="$required"
+  fi
+
+  echo "Fehler: $reason" >&2
+  echo "  Hostarchitektur:    $host_disp" >&2
+  echo "  Imagearchitektur:   $image_disp" >&2
+  echo "  erforderlich:       $required_disp" >&2
+  echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+  return 1
+}
+
 # Prüft Host- und Imagearchitektur nach dem Pull, vor jeder Compose-Änderung.
 # Bei Fehler: klare Meldung, kein Container-Recreate, kein State-/Env-Schreiben.
 require_image_compatible_with_host() {
@@ -48,38 +80,38 @@ require_image_compatible_with_host() {
   image_arch="$(normalize_docker_arch "$(image_architecture "$image_ref")")"
 
   if [[ -z "$host_arch" ]]; then
-    echo "Fehler: Docker-Hostarchitektur ist leer oder unbekannt." >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "Docker-Hostarchitektur ist leer oder unbekannt." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if [[ -z "$image_arch" ]]; then
-    echo "Fehler: Image-Architektur für $image_ref ist leer oder unbekannt." >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "Image-Architektur für ${image_ref} ist leer oder unbekannt." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if ! is_known_deploy_arch "$host_arch"; then
-    echo "Fehler: unbekannte Docker-Hostarchitektur: $host_arch" >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "unbekannte Docker-Hostarchitektur: ${host_arch}." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if ! is_known_deploy_arch "$image_arch"; then
-    echo "Fehler: unbekannte Image-Architektur: $image_arch" >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "unbekannte Image-Architektur: ${image_arch}." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if [[ "$required" != "arm64" ]]; then
-    echo "Fehler: erforderliche Produktionsarchitektur muss arm64 sein (ist: $required)." >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "erforderliche Produktionsarchitektur muss arm64 sein (ist: ${required})." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if [[ "$host_arch" != "$required" ]]; then
-    echo "Fehler: Docker-Hostarchitektur $host_arch ist nicht die erforderliche Produktionsarchitektur $required." >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "Docker-Hostarchitektur ${host_arch} ist nicht die erforderliche Produktionsarchitektur ${required}." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
   if [[ "$image_arch" != "$host_arch" ]]; then
-    echo "Fehler: Image-Architektur $image_arch ist mit Docker-Hostarchitektur $host_arch nicht kompatibel." >&2
-    echo "Abbruch vor Migration und Änderung laufender App-Container." >&2
+    arch_reject "Image-Architektur ${image_arch} ist mit Docker-Hostarchitektur ${host_arch} nicht kompatibel." \
+      "$host_arch" "$image_arch" "$required"
     return 1
   fi
 

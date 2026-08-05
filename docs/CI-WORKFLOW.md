@@ -301,9 +301,10 @@ nicht die offene S6.5-Zielhostabnahme.
 ### 4.14 trivy-image
 
 - **Was?** Lädt das vom Job `docker` exportierte Produktionsimage-Artefakt, prüft
-  Archiv-SHA-256 sowie Image-ID und führt Trivy-Image-Scan aus (HIGH/CRITICAL).
-  Der Job ist read-only (`contents: read`), enthält keinen Image-Build und kein
-  GHCR-Login/Push.
+  Archiv-SHA-256 sowie Image-ID und führt Trivy-Image-Scan aus (HIGH/CRITICAL)
+  mit `TRIVY_PLATFORM=linux/arm64` (ARM64-only Artefakt; Trivy defaultet sonst
+  auf amd64). Der Job ist read-only (`contents: read`), enthält keinen
+  Image-Build und kein GHCR-Login/Push.
 - **Wo?** In [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Hilfsskript
   [../scripts/ci/load-production-image.sh](../scripts/ci/load-production-image.sh).
 - **Wann?** Nach `docker`, außer bei `schedule`.
