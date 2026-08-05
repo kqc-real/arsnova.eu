@@ -712,7 +712,8 @@ test('baseline rejects duplicate JSON keys and orphan entries; new procedures ar
     );
 
     // Deliberately inject exactly one second root key to test duplicate-key detection.
-    const duplicateVersion = JSON.stringify(baseline).replace('{', '{"version":1,');
+    const serializedBaseline = JSON.stringify(baseline);
+    const duplicateVersion = `{"version":1,${serializedBaseline.slice(1)}`;
     writeFileSync(baselineFile, duplicateVersion);
     checked = readAndValidateBaseline(baselineFile, procedures);
     assert.ok(
