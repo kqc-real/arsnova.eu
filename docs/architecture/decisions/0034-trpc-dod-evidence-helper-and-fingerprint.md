@@ -267,3 +267,17 @@ Vor Slice 2D ausdrücklich im PR-Review bestätigen:
 4. Rename, Löschung und Subscriptions folgen den dokumentierten Regeln.
 5. CI nennt Prozedur, Änderung und fehlende Evidenz und veröffentlicht weiterhin
    JSON, Markdown, Job Summary und Artefakt.
+
+## Slice-2D-Fortschritt
+
+Die Bestandsbereinigung erfolgt ausschließlich in kleinen Routergruppen und
+aktiviert noch kein 100-%-Gate. Die erste Gruppe `admin.motd` ist vollständig
+migriert: Alle elf Queries und Mutations haben je einen direkten Happy Path und
+einen fachlich relevanten Fehlervertrag. Für die lesenden Listenpfade ist dies
+die Admin-Authentifizierungsgrenze; für Detail- und Änderungsoperationen sind es
+`NOT_FOUND`, Zeitfenster- oder Eingabevalidierungsfehler. Damit sinkt die
+verbleibende Legacy-Schuld auf 102 Prozeduren beziehungsweise 204 Dimensionen.
+
+Die weitere Reihenfolge bleibt `admin`, `quizSync`, anschließend Session, Q&A
+und Quick Feedback. Erst nach vollständiger realer Bestandsbereinigung darf das
+Gate auf 100 % umgestellt werden.

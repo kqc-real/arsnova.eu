@@ -55,57 +55,57 @@
     "admin.motd.motdCreate": {
       "kind": "mutation",
       "fingerprint": "sha256:d8110dd83e1cd65638ba72c4e24e7e43528f53fa8e3d84194f4af6818f4691b9",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.motdDelete": {
       "kind": "mutation",
       "fingerprint": "sha256:831bb0819a111bf00f0da8e352a88f0d6c04becb50ed033f267954741cd37ddf",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.motdGet": {
       "kind": "query",
       "fingerprint": "sha256:d4f1b4e3359f8320a0d8d39f6dfb25c13b29b99b30034425b6473bc186f36afa",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.motdList": {
       "kind": "query",
       "fingerprint": "sha256:b665b591bd6edc9470d76f078df3136a7bd65d0c0f92f7bd70f01a4dfebd5c65",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.motdResetInteractionStats": {
       "kind": "mutation",
       "fingerprint": "sha256:07989ab8b31f50cb0df05a9553fdabeb24547e9b09a36d7863cb907d9d21624a",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.motdUpdate": {
       "kind": "mutation",
       "fingerprint": "sha256:04f281ee4ad8f3c7b7299594823eaa117c2fc6266b029c0497032802375f8f48",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.templateCreate": {
       "kind": "mutation",
       "fingerprint": "sha256:0c1cf443c0a5375fc68a9f8926be5e3b4bc96188567757b29101c00b929a9136",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.templateDelete": {
       "kind": "mutation",
       "fingerprint": "sha256:387d6ffd10504c16a78a2341c009d34a0e0c758a93ce97aa85cc383827fd2bed",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.templateGet": {
       "kind": "query",
       "fingerprint": "sha256:e4787abdcad710c3f69b9d299b8cb4c9a7b2a688ae38e24686f1d2a49eb06a2a",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.templateList": {
       "kind": "query",
       "fingerprint": "sha256:8975352e435fb3b870f3fcddae2a7215c46a76ca19c7324d638f53e617f12d3b",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.motd.templateUpdate": {
       "kind": "mutation",
       "fingerprint": "sha256:72c643ae1aa7e6e0b84b8f17dd8bd7ba1f718776deb9d36f9c0010321c2c4252",
-      "missing": ["happy", "error"]
+      "missing": []
     },
     "admin.resetMaxParticipantsRecord": {
       "kind": "mutation",

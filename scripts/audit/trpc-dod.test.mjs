@@ -1352,7 +1352,7 @@ test('changed incomplete procedure is an actionable Slice 2C gate violation', as
   }
 });
 
-test('real Slice 2C report is deterministic and unchanged legacy debt is non-blocking', () => {
+test('real gate report is deterministic and unchanged legacy debt is non-blocking', () => {
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
   try {
     const baseline = join(repoRoot, '.github/trpc-dod-baseline.json');
@@ -1368,12 +1368,24 @@ test('real Slice 2C report is deterministic and unchanged legacy debt is non-blo
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
     assert.equal(report.summary.queriesMutations, 113);
-    assert.equal(report.summary.legacyMissingDimensions, 226);
+    assert.equal(report.summary.complete, 11);
+    assert.equal(report.summary.untested, 102);
+    assert.equal(report.summary.legacyProcedures, 102);
+    assert.equal(report.summary.legacyMissingDimensions, 204);
     assert.equal(report.summary.newSinceBaseline, 0);
     assert.equal(report.summary.gateViolations, 0);
     assert.equal(report.summary.baselineChanges, 0);
     assert.equal(report.summary.structuralErrors, 0);
     assert.equal('integrity' in report.baseline, false);
+    const migrated = report.procedures.filter((procedure) =>
+      procedure.id.startsWith('admin.motd.'),
+    );
+    assert.equal(migrated.length, 11);
+    assert.ok(
+      migrated.every(
+        (procedure) => procedure.status === 'complete' && procedure.baseline?.legacyDebt === false,
+      ),
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
