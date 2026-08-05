@@ -552,3 +552,189 @@ test('fail-on-incomplete exits non-zero for poc incomplete echo', () => {
   });
   assert.equal(run.status, 1, run.stderr || run.stdout);
 });
+
+test('real router tree inventory follows mounted and nested routers exactly', async () => {
+  const { inventariseRouterTree } = await loadAudit();
+  const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
+  assert.equal(procedures.length, 121);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 50);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 63);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
+  assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
+  assert.equal(
+    procedures.some((procedure) => procedure.id.startsWith('adminMotd.')),
+    false,
+  );
+});
+
+test('conflicting duplicate evidence and unknown procedure ids become structural errors', async () => {
+  const { attachEvidence, buildReport, inventariseRouterFile, loadKnownContractsFromHelper } =
+    await loadAudit();
+  const known = loadKnownContractsFromHelper();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const procedures = inventariseRouterFile(router, 'demo');
+    const common = {
+      procedure: 'demo.alpha',
+      case: 'error',
+      mode: 'direct',
+      title: 'same evidence key',
+      testFile: 'demo.test.ts',
+      emptyBody: false,
+      skipped: false,
+    };
+    const entries = [
+      { ...common, contract: 'NOT_FOUND' },
+      { ...common, contract: 'FORBIDDEN' },
+      {
+        ...common,
+        procedure: 'demo.unknown',
+        case: 'happy',
+        title: 'unknown procedure',
+        contract: undefined,
+      },
+    ];
+    const { invalid, orphanEvidence } = attachEvidence(procedures, entries, [], known);
+    const report = buildReport({ mode: 'real', procedures, invalid, orphanEvidence });
+    assert.ok(report.structuralErrors.some((error) => /conflicting metadata/.test(error)));
+    assert.ok(report.structuralErrors.some((error) => /unknown procedure evidence/.test(error)));
+    assert.equal(report.procedures[0].evidence.error.length, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('baseline rejects manipulation, duplicate JSON keys, orphan entries, and missing procedures', async () => {
+  const { baselineIntegrity, createBaseline, inventariseRouterFile, readAndValidateBaseline } =
+    await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const procedures = inventariseRouterFile(router, 'demo');
+    const baselineFile = join(dir, 'baseline.json');
+    const baseline = createBaseline(procedures, '1'.repeat(40));
+
+    writeFileSync(
+      baselineFile,
+      `${JSON.stringify({ ...baseline, integrity: 'sha256:' + '0'.repeat(64) })}\n`,
+    );
+    let checked = readAndValidateBaseline(baselineFile, procedures);
+    assert.ok(checked.errors.some((error) => /integrity mismatch/.test(error)));
+
+    const withOrphan = structuredClone(baseline);
+    withOrphan.procedures['demo.deleted'] = { ...withOrphan.procedures['demo.alpha'] };
+    withOrphan.integrity = baselineIntegrity(withOrphan);
+    writeFileSync(baselineFile, `${JSON.stringify(withOrphan)}\n`);
+    checked = readAndValidateBaseline(baselineFile, procedures);
+    assert.ok(
+      checked.errors.some((error) => /orphan baseline procedure demo\.deleted/.test(error)),
+    );
+
+    const withoutCurrent = structuredClone(baseline);
+    delete withoutCurrent.procedures['demo.alpha'];
+    withoutCurrent.integrity = baselineIntegrity(withoutCurrent);
+    writeFileSync(baselineFile, `${JSON.stringify(withoutCurrent)}\n`);
+    checked = readAndValidateBaseline(baselineFile, procedures);
+    assert.ok(checked.errors.some((error) => /missing current procedure demo\.alpha/.test(error)));
+
+    const duplicateVersion = JSON.stringify(baseline).replace('{', '{"version":1,');
+    writeFileSync(baselineFile, duplicateVersion);
+    checked = readAndValidateBaseline(baselineFile, procedures);
+    assert.ok(
+      checked.errors.some((error) => /duplicate baseline JSON key \$\.version/.test(error)),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('changed procedure fingerprint is reported but does not invalidate Slice 2B baseline', async () => {
+  const { buildReport, createBaseline, inventariseRouterFile, readAndValidateBaseline } =
+    await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const router = writeTempRouter(
+      dir,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    const before = inventariseRouterFile(router, 'demo');
+    const baseline = createBaseline(before, '2'.repeat(40));
+    const baselineFile = join(dir, 'baseline.json');
+    writeFileSync(baselineFile, `${JSON.stringify(baseline)}\n`);
+    writeFileSync(
+      router,
+      `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 2),
+});
+`,
+    );
+    const after = inventariseRouterFile(router, 'demo');
+    const checked = readAndValidateBaseline(baselineFile, after);
+    assert.deepEqual(checked.errors, []);
+    const report = buildReport({
+      mode: 'real',
+      procedures: after,
+      invalid: [],
+      orphanEvidence: [],
+      baseline: checked.baseline,
+      baselineErrors: checked.errors,
+    });
+    assert.equal(report.summary.changedSinceBaseline, 1);
+    assert.equal(report.summary.structuralErrors, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('real Slice 2B report is deterministic and legacy debt is non-blocking', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
+  try {
+    const baseline = join(repoRoot, '.github/trpc-dod-baseline.json');
+    const outputs = [join(dir, 'first.json'), join(dir, 'second.json')];
+    for (const output of outputs) {
+      const run = spawnSync(
+        process.execPath,
+        [auditScript, '--real', '--baseline', baseline, '--json-out', output],
+        { encoding: 'utf8', cwd: repoRoot },
+      );
+      assert.equal(run.status, 0, run.stderr || run.stdout);
+    }
+    assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
+    const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
+    assert.equal(report.summary.queriesMutations, 113);
+    assert.equal(report.summary.legacyMissingDimensions, 226);
+    assert.equal(report.summary.structuralErrors, 0);
+
+    const manipulatedBaseline = JSON.parse(readFileSync(baseline, 'utf8'));
+    manipulatedBaseline.integrity = `sha256:${'0'.repeat(64)}`;
+    const manipulatedBaselineFile = join(dir, 'manipulated-baseline.json');
+    const errorReportFile = join(dir, 'error-report.json');
+    writeFileSync(manipulatedBaselineFile, `${JSON.stringify(manipulatedBaseline)}\n`);
+    const failed = spawnSync(
+      process.execPath,
+      [auditScript, '--real', '--baseline', manipulatedBaselineFile, '--json-out', errorReportFile],
+      { encoding: 'utf8', cwd: repoRoot },
+    );
+    assert.equal(failed.status, 2, failed.stderr || failed.stdout);
+    const errorReport = JSON.parse(readFileSync(errorReportFile, 'utf8'));
+    assert.ok(errorReport.structuralErrors.some((error) => /integrity mismatch/.test(error)));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

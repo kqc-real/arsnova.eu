@@ -2,8 +2,8 @@
 /**
  * tRPC DoD audit (ADR-0034 / Issue #222).
  *
- * Slice 2A: PoC mode over fixture routers + helper evidence.
- * No blocking production gate in this slice.
+ * Slice 2B: real AppRouter inventory + versioned legacy baseline report.
+ * Coverage debt remains report-only; structural consistency errors fail.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -23,6 +23,10 @@ const DEFAULT_POC_ROUTER = join(
   'apps/backend/src/__tests__/trpc-dod-poc/fixture-router.ts',
 );
 const DEFAULT_POC_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
+const DEFAULT_REAL_ROUTER = join(REPO_ROOT, 'apps/backend/src/routers/index.ts');
+const DEFAULT_REAL_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src/__tests__')];
+const DEFAULT_REAL_EVIDENCE_EXCLUDES = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
+const DEFAULT_BASELINE = join(REPO_ROOT, '.github/trpc-dod-baseline.json');
 
 const SKIP_CALLEES = new Set([
   'describe.skip',
@@ -39,40 +43,53 @@ const SKIP_CALLEES = new Set([
 
 function usage() {
   return `Usage:
+  node scripts/audit-trpc-dod.mjs --real [--json-out path] [--md-out path]
   node scripts/audit-trpc-dod.mjs --poc [--json-out path] [--md-out path]
   node scripts/audit-trpc-dod.mjs --router <file> --prefix <id> --evidence <dir|file> [--json-out path]
 
 Options:
+  --real                Audit the complete production AppRouter tree (Slice 2B)
   --poc                 Audit the Slice-2A fixture router and evidence tests
   --router <file>       TypeScript file containing router({ ... })
   --prefix <id>         Procedure id prefix (e.g. dodPoc)
   --evidence <path>     File or directory with trpcDodIt call sites (repeatable)
   --json-out <path>     Write machine-readable report
   --md-out <path>       Write human-readable markdown summary
+  --baseline <path>     Versioned real-router baseline (default: .github/trpc-dod-baseline.json)
+  --write-baseline      Write an initial baseline instead of running the report
+  --origin-commit <sha> Required with --write-baseline (full 40-character SHA)
   --fail-on-incomplete  Exit 1 when any query/mutation is incomplete/untested
-                        (default: off; not a CI gate in Slice 2A)
+                        (default: off; coverage debt is report-only in Slice 2B)
 `;
 }
 
 function parseArgs(argv) {
   const args = {
+    real: false,
     poc: false,
     router: null,
     prefix: null,
     evidence: [],
     jsonOut: null,
     mdOut: null,
+    baseline: null,
+    writeBaseline: false,
+    originCommit: null,
     failOnIncomplete: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
-    if (a === '--poc') args.poc = true;
+    if (a === '--real') args.real = true;
+    else if (a === '--poc') args.poc = true;
+    else if (a === '--write-baseline') args.writeBaseline = true;
     else if (a === '--fail-on-incomplete') args.failOnIncomplete = true;
     else if (a === '--router') args.router = argv[++i];
     else if (a === '--prefix') args.prefix = argv[++i];
     else if (a === '--evidence') args.evidence.push(argv[++i]);
     else if (a === '--json-out') args.jsonOut = argv[++i];
     else if (a === '--md-out') args.mdOut = argv[++i];
+    else if (a === '--baseline') args.baseline = argv[++i];
+    else if (a === '--origin-commit') args.originCommit = argv[++i];
     else if (a === '--help' || a === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${a}\n${usage()}`);
   }
@@ -100,6 +117,11 @@ function walkFiles(root, acc = []) {
     walkFiles(join(root, name), acc);
   }
   return acc;
+}
+
+function isPathInside(filePath, directory) {
+  const rel = relative(resolve(directory), resolve(filePath));
+  return rel === '' || (!rel.startsWith('..') && !rel.startsWith('/'));
 }
 
 function relPosix(filePath) {
@@ -238,6 +260,116 @@ function inventariseRouterFile(filePath, forcedPrefix = null) {
 
   procedures.sort((a, b) => compareCanonicalStrings(a.id, b.id));
   return procedures;
+}
+
+function collectNamedImports(sourceFile, filePath) {
+  const imports = new Map();
+  for (const stmt of sourceFile.statements) {
+    if (!ts.isImportDeclaration(stmt) || !stmt.importClause) continue;
+    const specifier = literalString(stmt.moduleSpecifier);
+    const target = resolveImportTarget(filePath, specifier);
+    const named = stmt.importClause.namedBindings;
+    if (!target || !named || !ts.isNamedImports(named)) continue;
+    for (const element of named.elements) {
+      imports.set(element.name.text, {
+        exportedName: (element.propertyName ?? element.name).text,
+        filePath: target,
+      });
+    }
+  }
+  return imports;
+}
+
+function loadRouterModule(filePath) {
+  const absolute = resolve(filePath);
+  const text = readFileSync(absolute, 'utf8');
+  const sourceFile = ts.createSourceFile(absolute, text, ts.ScriptTarget.Latest, true);
+  return {
+    filePath: absolute,
+    text,
+    sourceFile,
+    routers: new Map(collectRouters(sourceFile).map((router) => [router.varName, router])),
+    imports: collectNamedImports(sourceFile, absolute),
+  };
+}
+
+/** Inventory only procedures reachable from the mounted production router tree. */
+function inventariseRouterTree(entryFile, rootRouterName = 'appRouter') {
+  const moduleCache = new Map();
+  const procedures = [];
+  const ids = new Set();
+
+  function getModule(filePath) {
+    const absolute = resolve(filePath);
+    if (!moduleCache.has(absolute)) moduleCache.set(absolute, loadRouterModule(absolute));
+    return moduleCache.get(absolute);
+  }
+
+  function visitRouter(filePath, routerName, prefix, stack) {
+    const module = getModule(filePath);
+    const router = module.routers.get(routerName);
+    const key = `${module.filePath}#${routerName}`;
+    if (!router) {
+      throw new Error(`Could not resolve router ${routerName} in ${relPosix(module.filePath)}`);
+    }
+    if (stack.includes(key)) {
+      throw new Error(`Router cycle detected: ${[...stack, key].join(' -> ')}`);
+    }
+
+    for (const prop of router.object.properties) {
+      if (!ts.isPropertyAssignment(prop)) {
+        throw new Error(
+          `Unsupported router member in ${relPosix(module.filePath)}:${sourceLine(module.sourceFile, prop)}`,
+        );
+      }
+      const localName = propertyNameText(prop.name);
+      if (!localName) {
+        throw new Error(
+          `Computed router member in ${relPosix(module.filePath)}:${sourceLine(module.sourceFile, prop)}`,
+        );
+      }
+      const id = prefix ? `${prefix}.${localName}` : localName;
+      const found = findProcedureKind(prop.initializer);
+      if (found) {
+        if (ids.has(id)) throw new Error(`Duplicate procedure id ${id}`);
+        ids.add(id);
+        const raw = module.text.slice(prop.getStart(module.sourceFile), prop.getEnd());
+        procedures.push({
+          id,
+          kind: found.kind,
+          sourceFile: relPosix(module.filePath),
+          fingerprint: fingerprintSource(found.kind, id, raw),
+          evidence: { happy: [], error: [] },
+        });
+        continue;
+      }
+
+      if (!ts.isIdentifier(prop.initializer)) {
+        throw new Error(
+          `Unresolved router entry ${id} in ${relPosix(module.filePath)}:${sourceLine(module.sourceFile, prop)}`,
+        );
+      }
+      const nestedName = prop.initializer.text;
+      if (module.routers.has(nestedName)) {
+        visitRouter(module.filePath, nestedName, id, [...stack, key]);
+        continue;
+      }
+      const imported = module.imports.get(nestedName);
+      if (!imported) {
+        throw new Error(
+          `Unresolved router binding ${nestedName} for ${id} in ${relPosix(module.filePath)}`,
+        );
+      }
+      visitRouter(imported.filePath, imported.exportedName, id, [...stack, key]);
+    }
+  }
+
+  visitRouter(resolve(entryFile), rootRouterName, '', []);
+  return procedures.sort((a, b) => compareCanonicalStrings(a.id, b.id));
+}
+
+function sourceLine(sourceFile, node) {
+  return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
 }
 
 function extractEvidenceObject(arg) {
@@ -505,11 +637,32 @@ function attachEvidence(procedures, evidenceEntries, rejected = [], knownContrac
   const byId = new Map(procedures.map((p) => [p.id, p]));
   const invalid = [...rejected];
   const orphanEvidence = [];
+  const candidatesByKey = new Map();
 
   for (const entry of evidenceEntries) {
     const problems = validateEvidenceMeta(entry, knownContracts);
     if (problems.length) {
       invalid.push({ entry, problems });
+      continue;
+    }
+    const key = JSON.stringify([entry.procedure, entry.case, entry.testFile, entry.title]);
+    const signature = JSON.stringify([entry.mode, entry.contract ?? null, entry.rationale ?? null]);
+    const previous = candidatesByKey.get(key);
+    if (!previous) {
+      candidatesByKey.set(key, { entry, signature, conflict: false });
+    } else if (previous.signature !== signature) {
+      previous.conflict = true;
+    }
+  }
+
+  for (const { entry, conflict } of candidatesByKey.values()) {
+    if (conflict) {
+      invalid.push({
+        entry,
+        problems: [
+          'duplicate evidence key (procedure/case/testFile/title) has conflicting metadata',
+        ],
+      });
       continue;
     }
     const proc = byId.get(entry.procedure);
@@ -594,9 +747,178 @@ function compareMissingDebt(baselineMissingById, currentMissingById) {
   };
 }
 
-function buildReport({ mode, procedures, invalid, orphanEvidence }) {
+function canonicalBaselineProcedures(procedures) {
+  return Object.fromEntries(
+    Object.entries(procedures)
+      .sort(([left], [right]) => compareCanonicalStrings(left, right))
+      .map(([id, entry]) => {
+        if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return [id, entry];
+        return [
+          id,
+          {
+            kind: entry.kind,
+            fingerprint: entry.fingerprint,
+            missing: Array.isArray(entry.missing) ? [...entry.missing] : entry.missing,
+          },
+        ];
+      }),
+  );
+}
+
+function baselineIntegrity({ version, originCommit, procedures }) {
+  const payload = JSON.stringify({
+    version,
+    originCommit,
+    procedures: canonicalBaselineProcedures(procedures),
+  });
+  return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
+}
+
+function createBaseline(procedures, originCommit) {
+  if (!/^[0-9a-f]{40}$/.test(originCommit)) {
+    throw new Error('--origin-commit must be a full lowercase 40-character Git SHA');
+  }
+  const entries = {};
+  for (const procedure of [...procedures].sort((a, b) => compareCanonicalStrings(a.id, b.id))) {
+    entries[procedure.id] = {
+      kind: procedure.kind,
+      fingerprint: procedure.fingerprint,
+      missing: classifyProcedure(procedure).missing,
+    };
+  }
+  const baseline = {
+    version: 1,
+    originCommit,
+    procedures: canonicalBaselineProcedures(entries),
+  };
+  return { ...baseline, integrity: baselineIntegrity(baseline) };
+}
+
+function duplicateJsonKeyErrors(filePath, text) {
+  const sourceFile = ts.parseJsonText(filePath, text);
+  const errors = sourceFile.parseDiagnostics.map(
+    (diagnostic) =>
+      `baseline JSON parse error: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')}`,
+  );
+  const root = sourceFile.statements[0]?.expression;
+
+  function visit(node, path) {
+    if (ts.isObjectLiteralExpression(node)) {
+      const seen = new Set();
+      for (const property of node.properties) {
+        if (!ts.isPropertyAssignment(property)) continue;
+        const name = propertyNameText(property.name);
+        if (name === null) continue;
+        if (seen.has(name)) errors.push(`duplicate baseline JSON key ${path}.${name}`);
+        seen.add(name);
+        visit(property.initializer, `${path}.${name}`);
+      }
+    } else if (ts.isArrayLiteralExpression(node)) {
+      node.elements.forEach((element, index) => visit(element, `${path}[${index}]`));
+    }
+  }
+
+  if (root) visit(root, '$');
+  return errors;
+}
+
+function readAndValidateBaseline(filePath, procedures) {
+  const text = readFileSync(filePath, 'utf8');
+  const errors = duplicateJsonKeyErrors(filePath, text);
+  let baseline;
+  try {
+    baseline = JSON.parse(text);
+  } catch (error) {
+    return {
+      baseline: { version: null, originCommit: null, integrity: null, procedures: {} },
+      errors: [...errors, `baseline JSON is invalid: ${error.message}`],
+    };
+  }
+
+  if (!baseline || typeof baseline !== 'object' || Array.isArray(baseline)) {
+    return {
+      baseline: { version: null, originCommit: null, integrity: null, procedures: {} },
+      errors: [...errors, 'baseline root must be an object'],
+    };
+  }
+  const unexpectedRoot = Object.keys(baseline).filter(
+    (key) =>
+      key !== 'version' && key !== 'originCommit' && key !== 'procedures' && key !== 'integrity',
+  );
+  if (unexpectedRoot.length) {
+    errors.push(`baseline has unknown root fields: ${unexpectedRoot.sort().join(', ')}`);
+  }
+  if (baseline.version !== 1) errors.push('baseline version must be 1');
+  if (!/^[0-9a-f]{40}$/.test(baseline.originCommit ?? '')) {
+    errors.push('baseline originCommit must be a full lowercase 40-character Git SHA');
+  }
+  if (
+    !baseline.procedures ||
+    typeof baseline.procedures !== 'object' ||
+    Array.isArray(baseline.procedures)
+  ) {
+    errors.push('baseline procedures must be an object');
+    baseline.procedures = {};
+  }
+  if (!/^sha256:[0-9a-f]{64}$/.test(baseline.integrity ?? '')) {
+    errors.push('baseline integrity must be a sha256 fingerprint');
+  } else if (baseline.integrity !== baselineIntegrity(baseline)) {
+    errors.push('baseline integrity mismatch (possible baseline manipulation)');
+  }
+
+  const currentById = new Map(procedures.map((procedure) => [procedure.id, procedure]));
+  for (const [id, entry] of Object.entries(baseline.procedures)) {
+    if (!currentById.has(id)) errors.push(`orphan baseline procedure ${id}`);
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      errors.push(`baseline procedure ${id} must be an object`);
+      continue;
+    }
+    const unexpected = Object.keys(entry).filter(
+      (key) => key !== 'kind' && key !== 'fingerprint' && key !== 'missing',
+    );
+    if (unexpected.length) {
+      errors.push(`baseline procedure ${id} has unknown fields: ${unexpected.sort().join(', ')}`);
+    }
+    if (!['query', 'mutation', 'subscription'].includes(entry.kind)) {
+      errors.push(`baseline procedure ${id} has invalid kind`);
+    }
+    if (!/^sha256:[0-9a-f]{64}$/.test(entry.fingerprint ?? '')) {
+      errors.push(`baseline procedure ${id} has invalid fingerprint`);
+    }
+    if (
+      !Array.isArray(entry.missing) ||
+      entry.missing.some((dimension) => dimension !== 'happy' && dimension !== 'error') ||
+      new Set(entry.missing).size !== entry.missing.length ||
+      JSON.stringify(entry.missing) !==
+        JSON.stringify(['happy', 'error'].filter((dimension) => entry.missing.includes(dimension)))
+    ) {
+      errors.push(`baseline procedure ${id} has invalid missing dimensions`);
+    }
+    if (entry.kind === 'subscription' && entry.missing?.length !== 0) {
+      errors.push(`baseline subscription ${id} must not carry query/mutation debt`);
+    }
+  }
+  for (const id of currentById.keys()) {
+    if (!(id in baseline.procedures)) errors.push(`baseline is missing current procedure ${id}`);
+  }
+
+  return { baseline, errors: [...new Set(errors)].sort(compareCanonicalStrings) };
+}
+
+function buildReport({
+  mode,
+  procedures,
+  invalid,
+  orphanEvidence,
+  baseline = null,
+  baselineErrors = [],
+}) {
   const enriched = procedures.map((p) => {
     const { status, missing } = classifyProcedure(p);
+    const baselineEntry = baseline?.procedures?.[p.id] ?? null;
+    const baselineMissing = Array.isArray(baselineEntry?.missing)
+      ? baselineEntry.missing.filter((dimension) => dimension === 'happy' || dimension === 'error')
+      : [];
     return {
       ...p,
       evidence: {
@@ -615,6 +937,13 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
       },
       status,
       missing,
+      baseline: baselineEntry
+        ? {
+            missing: baselineMissing,
+            legacyDebt: baselineMissing.length > 0,
+            changed: baselineEntry.kind !== p.kind || baselineEntry.fingerprint !== p.fingerprint,
+          }
+        : null,
     };
   });
   enriched.sort((a, b) =>
@@ -648,6 +977,19 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
         [b.testFile, b.procedure, b.title],
       ),
     );
+  const structuralErrors = [
+    ...baselineErrors,
+    ...invalidEvidence.map(
+      (entry) =>
+        `invalid evidence ${entry.testFile}:${entry.procedure ?? '<unknown>'}: ${entry.problems.join('; ')}`,
+    ),
+    ...canonicalOrphanEvidence.map(
+      (entry) => `unknown procedure evidence ${entry.testFile}:${entry.procedure}`,
+    ),
+  ].sort(compareCanonicalStrings);
+  const legacy = enriched.filter(
+    (procedure) => procedure.kind !== 'subscription' && procedure.baseline?.legacyDebt,
+  );
 
   return {
     version: 1,
@@ -660,8 +1002,16 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
       'Subscriptions appear in the inventory but are outside the query/mutation gate.',
     ],
     procedures: enriched,
+    baseline: baseline
+      ? {
+          version: baseline.version,
+          originCommit: baseline.originCommit,
+          integrity: baseline.integrity,
+        }
+      : null,
     invalidEvidence,
     orphanEvidence: canonicalOrphanEvidence,
+    structuralErrors,
     summary: {
       queriesMutations: qm.length,
       subscriptions: subs.length,
@@ -670,6 +1020,13 @@ function buildReport({ mode, procedures, invalid, orphanEvidence }) {
       untested: qm.filter((p) => p.status === 'untested').length,
       invalidEvidence: invalid.length,
       orphanEvidence: orphanEvidence.length,
+      legacyProcedures: legacy.length,
+      legacyMissingDimensions: legacy.reduce(
+        (sum, procedure) => sum + procedure.baseline.missing.length,
+        0,
+      ),
+      changedSinceBaseline: enriched.filter((procedure) => procedure.baseline?.changed).length,
+      structuralErrors: structuralErrors.length,
     },
   };
 }
@@ -687,13 +1044,22 @@ function renderMarkdown(report) {
   lines.push(`- Complete: ${report.summary.complete}`);
   lines.push(`- Incomplete: ${report.summary.incomplete}`);
   lines.push(`- Untested: ${report.summary.untested}`);
+  if (report.baseline) {
+    lines.push(`- Legacy procedures with debt: ${report.summary.legacyProcedures}`);
+    lines.push(`- Legacy missing dimensions: ${report.summary.legacyMissingDimensions}`);
+    lines.push(`- Changed since baseline: ${report.summary.changedSinceBaseline}`);
+    lines.push(`- Structural errors: ${report.summary.structuralErrors}`);
+    lines.push(`- Baseline origin: \`${report.baseline.originCommit}\``);
+  }
   lines.push('');
   lines.push('## Procedures');
   lines.push('');
   for (const p of report.procedures) {
     const miss = p.missing.length ? ` missing=${p.missing.join(',')}` : '';
+    const legacy = p.baseline?.legacyDebt ? ` legacy=${p.baseline.missing.join(',')}` : '';
+    const changed = p.baseline?.changed ? ' changed-since-baseline' : '';
     lines.push(
-      `- \`${p.id}\` (${p.kind}) → **${p.status}**${miss} · \`${p.fingerprint.slice(0, 15)}…\``,
+      `- \`${p.id}\` (${p.kind}) → **${p.status}**${miss}${legacy}${changed} · \`${p.fingerprint.slice(0, 15)}…\``,
     );
   }
   if (report.invalidEvidence.length) {
@@ -703,6 +1069,12 @@ function renderMarkdown(report) {
     for (const e of report.invalidEvidence) {
       lines.push(`- ${e.testFile}: ${e.problems.join('; ')}`);
     }
+  }
+  if (report.structuralErrors.length) {
+    lines.push('');
+    lines.push('## Structural errors');
+    lines.push('');
+    for (const error of report.structuralErrors) lines.push(`- ${error}`);
   }
   lines.push('');
   lines.push('## Static limits');
@@ -716,11 +1088,26 @@ function ensureParent(filePath) {
   mkdirSync(dirname(filePath), { recursive: true });
 }
 
-function runAudit({ routerPath, prefix, evidencePaths, mode }) {
+function runAudit({
+  routerPath,
+  prefix,
+  evidencePaths,
+  evidenceExcludes = [],
+  mode,
+  routerTree = false,
+  baselinePath = null,
+}) {
   const knownContracts = loadKnownContractsFromHelper();
-  const procedures = inventariseRouterFile(routerPath, prefix);
+  const procedures = routerTree
+    ? inventariseRouterTree(routerPath)
+    : inventariseRouterFile(routerPath, prefix);
   const evidenceFiles = evidencePaths
     .flatMap((p) => walkFiles(resolve(p)))
+    .filter((filePath) => !evidenceExcludes.some((dir) => isPathInside(filePath, dir)))
+    .filter((filePath) => {
+      const text = readFileSync(filePath, 'utf8');
+      return text.includes('trpc-dod-evidence') || /\b(?:trpcDodIt|dodIt)\s*\(/.test(text);
+    })
     .sort((a, b) => compareCanonicalStrings(relPosix(a), relPosix(b)));
   const evidenceEntries = [];
   const rejected = [];
@@ -735,7 +1122,17 @@ function runAudit({ routerPath, prefix, evidencePaths, mode }) {
     rejected,
     knownContracts,
   );
-  return buildReport({ mode, procedures, invalid, orphanEvidence });
+  const baselineResult = baselinePath
+    ? readAndValidateBaseline(baselinePath, procedures)
+    : { baseline: null, errors: [] };
+  return buildReport({
+    mode,
+    procedures,
+    invalid,
+    orphanEvidence,
+    baseline: baselineResult.baseline,
+    baselineErrors: baselineResult.errors,
+  });
 }
 
 function main() {
@@ -744,13 +1141,25 @@ function main() {
     process.stdout.write(usage());
     return 0;
   }
+  if (args.real && args.poc) throw new Error('--real and --poc are mutually exclusive');
 
   let routerPath;
   let prefix;
   let evidencePaths;
   let mode;
+  let routerTree = false;
+  let baselinePath = null;
+  let evidenceExcludes = [];
 
-  if (args.poc) {
+  if (args.real) {
+    mode = 'real';
+    routerPath = DEFAULT_REAL_ROUTER;
+    prefix = null;
+    evidencePaths = DEFAULT_REAL_EVIDENCE_DIRS;
+    evidenceExcludes = DEFAULT_REAL_EVIDENCE_EXCLUDES;
+    routerTree = true;
+    baselinePath = resolve(args.baseline ?? DEFAULT_BASELINE);
+  } else if (args.poc) {
     mode = 'poc';
     routerPath = DEFAULT_POC_ROUTER;
     prefix = 'dodPoc';
@@ -769,7 +1178,31 @@ function main() {
     throw new Error(`Router file not found: ${routerPath}`);
   }
 
-  const report = runAudit({ routerPath, prefix, evidencePaths, mode });
+  if (args.writeBaseline) {
+    if (!args.real) throw new Error('--write-baseline is only supported with --real');
+    if (!args.originCommit) throw new Error('--origin-commit is required with --write-baseline');
+    if (existsSync(baselinePath)) {
+      throw new Error(`Refusing to overwrite existing baseline: ${baselinePath}`);
+    }
+    const procedures = inventariseRouterTree(routerPath);
+    const baseline = createBaseline(procedures, args.originCommit);
+    ensureParent(baselinePath);
+    writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
+    process.stdout.write(
+      `Wrote ${procedures.length} procedures to ${relPosix(baselinePath)} (origin ${args.originCommit}).\n`,
+    );
+    return 0;
+  }
+
+  const report = runAudit({
+    routerPath,
+    prefix,
+    evidencePaths,
+    evidenceExcludes,
+    mode,
+    routerTree,
+    baselinePath,
+  });
   const md = renderMarkdown(report);
   process.stdout.write(`${md}\n`);
 
@@ -790,11 +1223,13 @@ function main() {
       return 1;
     }
   }
+  if (mode === 'real' && report.structuralErrors.length) return 2;
   return 0;
 }
 
 export {
   inventariseRouterFile,
+  inventariseRouterTree,
   collectEvidenceFromFile,
   attachEvidence,
   buildReport,
@@ -803,6 +1238,9 @@ export {
   normalizeProcedureSource,
   validateEvidenceMeta,
   compareMissingDebt,
+  baselineIntegrity,
+  createBaseline,
+  readAndValidateBaseline,
   loadKnownContractsFromHelper,
   runAudit,
   CANONICAL_HELPER_REL,

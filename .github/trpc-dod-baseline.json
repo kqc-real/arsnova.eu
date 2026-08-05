@@ -1,0 +1,612 @@
+{
+  "version": 1,
+  "originCommit": "8efc52783a012309ffc9c89cd37f2790ae76bfb2",
+  "procedures": {
+    "admin.deleteAllSessions": {
+      "kind": "mutation",
+      "fingerprint": "sha256:62b14e195c6aacd6e347659fecf80ef7371bb97159dd6250ccf8e7cc63dd8a90",
+      "missing": ["happy", "error"]
+    },
+    "admin.deleteSession": {
+      "kind": "mutation",
+      "fingerprint": "sha256:f97a8a6464bd08a4ff2d76eac03d348514ded7787ccdca2fda888cca4ffcb84d",
+      "missing": ["happy", "error"]
+    },
+    "admin.exportForAuthorities": {
+      "kind": "mutation",
+      "fingerprint": "sha256:5d7c517f2e4975d6895e3ae09aa7805e6a2dc1bdaabce28ce4d035794c42bfc3",
+      "missing": ["happy", "error"]
+    },
+    "admin.exportSessionAsQuizImport": {
+      "kind": "mutation",
+      "fingerprint": "sha256:9c40e2cac1ae56838cc0cc72143c70a5f93252b071dfbe27b1c5cb5daa59dd1c",
+      "missing": ["happy", "error"]
+    },
+    "admin.getSessionByCode": {
+      "kind": "query",
+      "fingerprint": "sha256:c4fd5218302fba0ea57433274d42d89ca2a4fb2542a2ad0ccf0c72e5bad81a5d",
+      "missing": ["happy", "error"]
+    },
+    "admin.getSessionDetail": {
+      "kind": "query",
+      "fingerprint": "sha256:f8d910622db5c71faf62907ad2b7da113765b21932da40dacee7b93bfdc0fcbe",
+      "missing": ["happy", "error"]
+    },
+    "admin.listSessions": {
+      "kind": "query",
+      "fingerprint": "sha256:0209f03dd37401c46f5b8c007ff8c2a8d6b60d1de017f41eb2b3a1a1b9a093dc",
+      "missing": ["happy", "error"]
+    },
+    "admin.login": {
+      "kind": "mutation",
+      "fingerprint": "sha256:5f0aa79646380f1827173bb81625f0f28ba7c9d243f0753e518a2033eb542e95",
+      "missing": ["happy", "error"]
+    },
+    "admin.logout": {
+      "kind": "mutation",
+      "fingerprint": "sha256:9d36b22e3e62490cb875aafdbc01f40ab5283dab636fc10e52a4ccfbb5374985",
+      "missing": ["happy", "error"]
+    },
+    "admin.monitoringStats": {
+      "kind": "query",
+      "fingerprint": "sha256:a88f5be68d0393ad53fcbfe39b2e48a9c15a6fc715188fdc0c7dcb93bf6d985d",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdCreate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:d8110dd83e1cd65638ba72c4e24e7e43528f53fa8e3d84194f4af6818f4691b9",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdDelete": {
+      "kind": "mutation",
+      "fingerprint": "sha256:831bb0819a111bf00f0da8e352a88f0d6c04becb50ed033f267954741cd37ddf",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdGet": {
+      "kind": "query",
+      "fingerprint": "sha256:d4f1b4e3359f8320a0d8d39f6dfb25c13b29b99b30034425b6473bc186f36afa",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdList": {
+      "kind": "query",
+      "fingerprint": "sha256:b665b591bd6edc9470d76f078df3136a7bd65d0c0f92f7bd70f01a4dfebd5c65",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdResetInteractionStats": {
+      "kind": "mutation",
+      "fingerprint": "sha256:07989ab8b31f50cb0df05a9553fdabeb24547e9b09a36d7863cb907d9d21624a",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.motdUpdate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:04f281ee4ad8f3c7b7299594823eaa117c2fc6266b029c0497032802375f8f48",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.templateCreate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:0c1cf443c0a5375fc68a9f8926be5e3b4bc96188567757b29101c00b929a9136",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.templateDelete": {
+      "kind": "mutation",
+      "fingerprint": "sha256:387d6ffd10504c16a78a2341c009d34a0e0c758a93ce97aa85cc383827fd2bed",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.templateGet": {
+      "kind": "query",
+      "fingerprint": "sha256:e4787abdcad710c3f69b9d299b8cb4c9a7b2a688ae38e24686f1d2a49eb06a2a",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.templateList": {
+      "kind": "query",
+      "fingerprint": "sha256:8975352e435fb3b870f3fcddae2a7215c46a76ca19c7324d638f53e617f12d3b",
+      "missing": ["happy", "error"]
+    },
+    "admin.motd.templateUpdate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:72c643ae1aa7e6e0b84b8f17dd8bd7ba1f718776deb9d36f9c0010321c2c4252",
+      "missing": ["happy", "error"]
+    },
+    "admin.resetMaxParticipantsRecord": {
+      "kind": "mutation",
+      "fingerprint": "sha256:4b6e338bc1459f8e52692ca835ba25c998e1a5335fd3e53d89efbf6a50a4cfbd",
+      "missing": ["happy", "error"]
+    },
+    "admin.setLegalHold": {
+      "kind": "mutation",
+      "fingerprint": "sha256:12881c2fa015d5580c66d00486d9a5dfc498ef8583a0b16fb44d5fa39326853b",
+      "missing": ["happy", "error"]
+    },
+    "admin.whoami": {
+      "kind": "query",
+      "fingerprint": "sha256:f1c4a96b93a78df5ac50e6d20c4029449163d0ecee3c042482bd8a2294ba6089",
+      "missing": ["happy", "error"]
+    },
+    "health.check": {
+      "kind": "query",
+      "fingerprint": "sha256:c539196db4f021a6be67ea45bacacd57d20e47f3b35ea00f71698d4e76928096",
+      "missing": ["happy", "error"]
+    },
+    "health.footerBundle": {
+      "kind": "query",
+      "fingerprint": "sha256:713f65fbe5c5b0b8062e5bc7ab80586897c3f7e6705fb3cf11a4a776dddc5016",
+      "missing": ["happy", "error"]
+    },
+    "health.ping": {
+      "kind": "subscription",
+      "fingerprint": "sha256:ca8e03077315cef534518def8957a8c758082efca1a5805abb3b4b2804055898",
+      "missing": []
+    },
+    "health.securityStats": {
+      "kind": "query",
+      "fingerprint": "sha256:835e5e144c38520c9dd6bbaa9364f77cac85ed5e2ed6633aa1885086b2e7c984",
+      "missing": ["happy", "error"]
+    },
+    "health.stats": {
+      "kind": "query",
+      "fingerprint": "sha256:d04b1b0cd7c37bd1f275aa0076d1fc1c0e489910d7a83ac4819a4a807363b45d",
+      "missing": ["happy", "error"]
+    },
+    "motd.getCurrent": {
+      "kind": "query",
+      "fingerprint": "sha256:13265a9e786ac6ceb68d8591491fb50e2695e2caaa81c2e248279631d3de3ae2",
+      "missing": ["happy", "error"]
+    },
+    "motd.getHeaderState": {
+      "kind": "query",
+      "fingerprint": "sha256:5db0ba8b6ec24037313eaceb63ad33ffcade42ae657004281931825cdbccedb6",
+      "missing": ["happy", "error"]
+    },
+    "motd.listArchive": {
+      "kind": "query",
+      "fingerprint": "sha256:254816621e448d5333d6c53e269d86e5aade5f2e322c79e2f62a9fdd7a942a64",
+      "missing": ["happy", "error"]
+    },
+    "motd.recordInteraction": {
+      "kind": "mutation",
+      "fingerprint": "sha256:48240e6ec5e6f22d5c1842de63f928c303ead85ca35c06b198fdd5d59a6932a3",
+      "missing": ["happy", "error"]
+    },
+    "qa.deleteOwn": {
+      "kind": "mutation",
+      "fingerprint": "sha256:050010f7e1e97cd204471b0da73544ff6b0bb2546608e7b5c4b6264d7a97fff1",
+      "missing": ["happy", "error"]
+    },
+    "qa.list": {
+      "kind": "query",
+      "fingerprint": "sha256:7831e6b7c29eb823740828a4e4270bb076e475956a52a66093d367be0f7c4623",
+      "missing": ["happy", "error"]
+    },
+    "qa.moderate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:f2f735081fc805d8baa7465e98549fbbf40c73d8fe6d7d7c0134ecca942c2494",
+      "missing": ["happy", "error"]
+    },
+    "qa.onQuestionsUpdated": {
+      "kind": "subscription",
+      "fingerprint": "sha256:56f93a5a933fde582f9df5b7b5b9deaa3476ae8084c29324603713944cc59c62",
+      "missing": []
+    },
+    "qa.submit": {
+      "kind": "mutation",
+      "fingerprint": "sha256:a736ceb0dec4e413e1f5be4849de4371ebe5959bce90efa2d447dc67b1cee4ad",
+      "missing": ["happy", "error"]
+    },
+    "qa.toggleModeration": {
+      "kind": "mutation",
+      "fingerprint": "sha256:ea6fd374098626c7ef9746b96abe9a949170a3e0a133c841f5f707446770fd96",
+      "missing": ["happy", "error"]
+    },
+    "qa.upvote": {
+      "kind": "mutation",
+      "fingerprint": "sha256:6a6d18212bac4ab624e62ba770acef8cca6f416b001add31f932d30c7d2b2c7b",
+      "missing": ["happy", "error"]
+    },
+    "qa.vote": {
+      "kind": "mutation",
+      "fingerprint": "sha256:157de389e753cd361bfe89a755c5eb6c0d57233395b42d4936da70c268b19d10",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.changeType": {
+      "kind": "mutation",
+      "fingerprint": "sha256:58647b200be90f028345855a2a176de241e9726c1e26089ae7a2d8f97149f942",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.create": {
+      "kind": "mutation",
+      "fingerprint": "sha256:fc05b0494edb1adbde419bd084133765b421712feff05cbb93e8363486e64e6c",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.end": {
+      "kind": "mutation",
+      "fingerprint": "sha256:f42f8cde28d7a1c2ec50dcfd6972f0d269ce26547535afe394dcd8f3a62e54b0",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.hostResults": {
+      "kind": "query",
+      "fingerprint": "sha256:3e3e2eba656f9dce745153f4b2c10a88b16888d817c91d19e8aa0c5daa1b4464",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.isActive": {
+      "kind": "query",
+      "fingerprint": "sha256:973bd9b6ac0875becd1b2213b68b3d933e4ee5df4e400e0744bda8d25e80c751",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.isActiveForReconnect": {
+      "kind": "query",
+      "fingerprint": "sha256:24bf836507d46e8d051f98a29eaab5858cf217b593e3f0348d405c2b76605e10",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.leaveTempo": {
+      "kind": "mutation",
+      "fingerprint": "sha256:4327c68faa02b6e2d49cec2eb3fb824ac03d5bd13b8191c3aea0c0bc7e189ebb",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.onHostResults": {
+      "kind": "subscription",
+      "fingerprint": "sha256:ab92d9c3b51bc16b84d858270ae256f539fef4bda9aa243c356a65cf3c529f30",
+      "missing": []
+    },
+    "quickFeedback.onResults": {
+      "kind": "subscription",
+      "fingerprint": "sha256:27bfe8a90df6dda5e9dd2e8972255877e120f64bec45820d2010d1e7b4023299",
+      "missing": []
+    },
+    "quickFeedback.reset": {
+      "kind": "mutation",
+      "fingerprint": "sha256:eeac7636d660ecff594d5c67d4a92a66e6cb9e7f2a0e5484d7399518bdc5f567",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.results": {
+      "kind": "query",
+      "fingerprint": "sha256:a50b6eb72df0fe089a9c1a16d33f7561f5ed6c52baccff3fe5e54b2f03f559d7",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.startDiscussion": {
+      "kind": "mutation",
+      "fingerprint": "sha256:756e054245b8c883738b91abe0caa9395a6ae0102aab218a2a234f35fdc19d8c",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.startSecondRound": {
+      "kind": "mutation",
+      "fingerprint": "sha256:76322af5d327e5e75fed7014aa493ba4c7f263080742dd15f23f80150f380620",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.toggleLock": {
+      "kind": "mutation",
+      "fingerprint": "sha256:206d5f9c47572b48a5ad08e6abb3bbb132e01bfba15692e0b3062afe200bf960",
+      "missing": ["happy", "error"]
+    },
+    "quickFeedback.vote": {
+      "kind": "mutation",
+      "fingerprint": "sha256:3adcd4e3f09cc158897e3c737842e4f7598b40ef0b3536c088035c64caadee7b",
+      "missing": ["happy", "error"]
+    },
+    "quiz.upload": {
+      "kind": "mutation",
+      "fingerprint": "sha256:a1d3b9afbc90c08db88eaaf4efa2493090d1c97e4bb4a88dc3c5e3cead076f8f",
+      "missing": ["happy", "error"]
+    },
+    "quizSync.createShare": {
+      "kind": "mutation",
+      "fingerprint": "sha256:e5ec39b7616a498cdf740e646653aa339c1b077ad0bc7e975d25a828e4d1af50",
+      "missing": ["happy", "error"]
+    },
+    "quizSync.rotateShare": {
+      "kind": "mutation",
+      "fingerprint": "sha256:16787fa310fb25034877bbf392fad452aa6693b5f787b99d368803f3bc12fe66",
+      "missing": ["happy", "error"]
+    },
+    "quizSync.validateShare": {
+      "kind": "mutation",
+      "fingerprint": "sha256:7ce54b9f226e0c36ef0b7926f801018445c1bfbed426aeca4f092f2b341c3258",
+      "missing": ["happy", "error"]
+    },
+    "session.attachQuizToSession": {
+      "kind": "mutation",
+      "fingerprint": "sha256:d92fbe295dcd1cab389e1eeff18f30b7d17075999c08ebec37727001074b2a4b",
+      "missing": ["happy", "error"]
+    },
+    "session.bindQuizHistoryScope": {
+      "kind": "mutation",
+      "fingerprint": "sha256:6f955e3580568df8a48f1d829dcf2587da9891c75329532e571ea7a33c14ea79",
+      "missing": ["happy", "error"]
+    },
+    "session.closeQaChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:ff30f4f4a67bf73fc8031fdaed166a508ee09a0eb68b71d867302adb7a90170e",
+      "missing": ["happy", "error"]
+    },
+    "session.closeQuickFeedbackChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:a08e37aef40fa629b630ea41fd3245b0d7568b47b3ce6a95db3864c969f5ba43",
+      "missing": ["happy", "error"]
+    },
+    "session.confirmReadingReady": {
+      "kind": "mutation",
+      "fingerprint": "sha256:9bdd8757f47016a4c1e3f4de3d9c0ea74324eafa00deb9cda8c4fd4fd4331a03",
+      "missing": ["happy", "error"]
+    },
+    "session.create": {
+      "kind": "mutation",
+      "fingerprint": "sha256:e0277c3c1e4ad9a91d262b534d9f44123ae422b1660cacba0b6943244aee82c8",
+      "missing": ["happy", "error"]
+    },
+    "session.deleteBonusTokenForQuiz": {
+      "kind": "mutation",
+      "fingerprint": "sha256:4fae60479b1b039ca77a16c00a27c3f12e7469138cb740a9b17c730c19f8d0ad",
+      "missing": ["happy", "error"]
+    },
+    "session.enableQaChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:15ce87a26618d59003d3c17ab98c3b95b5a80b8e346a8be65e48a3559cb761c6",
+      "missing": ["happy", "error"]
+    },
+    "session.enableQuickFeedbackChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:b0e3be8f8a79e8d1a4ed32259344c736c3788d295615f277ed4f688867162375",
+      "missing": ["happy", "error"]
+    },
+    "session.end": {
+      "kind": "mutation",
+      "fingerprint": "sha256:c07473e727fb4173a138e13b7745ce1194da1f7adc9f59ff30f26e4432636c9f",
+      "missing": ["happy", "error"]
+    },
+    "session.getActiveQuizIds": {
+      "kind": "query",
+      "fingerprint": "sha256:4673d694de8be7075cd6046faa8d1e2e3c189ab181113b658fd2799006bc4adc",
+      "missing": ["happy", "error"]
+    },
+    "session.getBonusTokens": {
+      "kind": "query",
+      "fingerprint": "sha256:e7a9637ed969ab2ffa9c9d8f49669b0ea5947cb4368326b2fd5486398310cff4",
+      "missing": ["happy", "error"]
+    },
+    "session.getBonusTokensForQuiz": {
+      "kind": "query",
+      "fingerprint": "sha256:f592c17636686875438a557809134289775018c6666211813f2fc603657c11cd",
+      "missing": ["happy", "error"]
+    },
+    "session.getCurrentQuestionForHost": {
+      "kind": "query",
+      "fingerprint": "sha256:4504d9666ea3ffe22ab771349b88ebb068ae149c333679849e57d2e65ec8a9a3",
+      "missing": ["happy", "error"]
+    },
+    "session.getCurrentQuestionForStudent": {
+      "kind": "query",
+      "fingerprint": "sha256:adb024efc509660c0eda7c9924db4dffce468dda75be8cdb9d7b6a3ef6d77e04",
+      "missing": ["happy", "error"]
+    },
+    "session.getExportData": {
+      "kind": "query",
+      "fingerprint": "sha256:f80f8a8976f079060382855879f0d048e09eb8740d912ab4eca40631c601263a",
+      "missing": ["happy", "error"]
+    },
+    "session.getFreetextSessionExport": {
+      "kind": "query",
+      "fingerprint": "sha256:e303b7bc3e7bceb18b13df0b32d32532fe5bd50dc5adea4585de0ec9dd4924f3",
+      "missing": ["happy", "error"]
+    },
+    "session.getHasSubmittedFeedback": {
+      "kind": "query",
+      "fingerprint": "sha256:cddf6145ebd81da52645409fa47ab4c0cadf4b7a6c3826666b733ada76444c4d",
+      "missing": ["happy", "error"]
+    },
+    "session.getHostVoteProgress": {
+      "kind": "query",
+      "fingerprint": "sha256:32f8db60154ba18e5888dcd43660f2a6aaaf615f27920f5ba35aeaff87e2e818",
+      "missing": ["happy", "error"]
+    },
+    "session.getInfo": {
+      "kind": "query",
+      "fingerprint": "sha256:217173ad225fe2b3c15b3310eae19940f27e146fcd6bbe5a7af2f33cb07191c9",
+      "missing": ["happy", "error"]
+    },
+    "session.getInfoForReconnect": {
+      "kind": "query",
+      "fingerprint": "sha256:af08d790f9aa2ceaa5d9e2ca1d6e11c15bba3e4175dd726737d06811fd218ba3",
+      "missing": ["happy", "error"]
+    },
+    "session.getLastSessionAnalysisForQuiz": {
+      "kind": "query",
+      "fingerprint": "sha256:b8b1c6f6c2e6c780834073979b5d1c971ac4dd4efd8dc0cab3581a5abc7d2ea1",
+      "missing": ["happy", "error"]
+    },
+    "session.getLastSessionExportDataForQuiz": {
+      "kind": "query",
+      "fingerprint": "sha256:ce2842481dd1e08ca17cb4f471780796aefea9437088aa3a123d865acaf0ba0e",
+      "missing": ["happy", "error"]
+    },
+    "session.getLastSessionExportPdfForQuiz": {
+      "kind": "query",
+      "fingerprint": "sha256:91dc8a18e9d0f3ccdee02826d615d6de8571f4a09a1d1fd7efc9594d9262ccc1",
+      "missing": ["happy", "error"]
+    },
+    "session.getLeaderboard": {
+      "kind": "query",
+      "fingerprint": "sha256:6bd279da51c04442a3d0dd079a1d04caaa411232aca9f42a91fb16176e79fa00",
+      "missing": ["happy", "error"]
+    },
+    "session.getLiveFreetext": {
+      "kind": "query",
+      "fingerprint": "sha256:c6c580963391a43998a0059792c44c7e8767a76913840e35c77dcec53a11fd5d",
+      "missing": ["happy", "error"]
+    },
+    "session.getParticipantNicknames": {
+      "kind": "query",
+      "fingerprint": "sha256:a988f40151ac6b3095b1e0e72594ff062bff89479ce2275bd376bc1739e9d70e",
+      "missing": ["happy", "error"]
+    },
+    "session.getParticipantSelf": {
+      "kind": "query",
+      "fingerprint": "sha256:f98fed81faa2ee79417c9574ca5db97790f98076d0441554d0261d5e089a7cee",
+      "missing": ["happy", "error"]
+    },
+    "session.getParticipants": {
+      "kind": "query",
+      "fingerprint": "sha256:9dc527f3d7fa0a7e88dc0ce341eff315e8cd8ef5121a260ee171d5d86d96d9a6",
+      "missing": ["happy", "error"]
+    },
+    "session.getPersonalResult": {
+      "kind": "query",
+      "fingerprint": "sha256:6a492cef00e8f0be3859fd632f84d46ad287d6504eae941976d15baa4593f001",
+      "missing": ["happy", "error"]
+    },
+    "session.getPersonalScorecard": {
+      "kind": "query",
+      "fingerprint": "sha256:ca3c4cded11945d91bfa46713dabcd23723f7ef274126c78b89379b075d6f581",
+      "missing": ["happy", "error"]
+    },
+    "session.getQuizCollectionHistoryAvailability": {
+      "kind": "query",
+      "fingerprint": "sha256:a70c153a45ec2d3ee3998e8f4cc9cb36bbaec84709a42425ff57eea4761197c4",
+      "missing": ["happy", "error"]
+    },
+    "session.getReactions": {
+      "kind": "query",
+      "fingerprint": "sha256:b699b46e48eb4722749072ff1b240383768317088235e9f440a6893ee8c6eab5",
+      "missing": ["happy", "error"]
+    },
+    "session.getSessionConfidenceSummary": {
+      "kind": "query",
+      "fingerprint": "sha256:56cdceecd31243fcd8449d8826e2c2c597ce2e25b0745c0cc1d85b845d910cee",
+      "missing": ["happy", "error"]
+    },
+    "session.getSessionExportPdf": {
+      "kind": "query",
+      "fingerprint": "sha256:df524046890b465f9c0eaebab7167495e67d56cb498d9dd900d977801db3311a",
+      "missing": ["happy", "error"]
+    },
+    "session.getSessionFeedbackSummary": {
+      "kind": "query",
+      "fingerprint": "sha256:066a65365c5d58bae2b3276382919996b95ea0c8efa8183e633cde765ab38c89",
+      "missing": ["happy", "error"]
+    },
+    "session.getTeamLeaderboard": {
+      "kind": "query",
+      "fingerprint": "sha256:44515b4bea57df38265b59f8718e82e2d41d3ad6f08af84eae7cc9d1b59cd89b",
+      "missing": ["happy", "error"]
+    },
+    "session.getTeams": {
+      "kind": "query",
+      "fingerprint": "sha256:7dbc497ce01a1bff286738738ab3ddf8a01545e3a04ffe7d4105f7fa7754837c",
+      "missing": ["happy", "error"]
+    },
+    "session.join": {
+      "kind": "mutation",
+      "fingerprint": "sha256:008d85f60b1839ec68fb57ef788b384c6352f8aa815eb2c5076025fe7a35384b",
+      "missing": ["happy", "error"]
+    },
+    "session.markParticipantOffline": {
+      "kind": "mutation",
+      "fingerprint": "sha256:48bc85793237884c949b78641f31c1e4fed269f1b511969d22815451d8eea9df",
+      "missing": ["happy", "error"]
+    },
+    "session.nextQuestion": {
+      "kind": "mutation",
+      "fingerprint": "sha256:cacd43a30747accbf83377d2e3a69ca5ccf8821311204256549df1dafbc33448",
+      "missing": ["happy", "error"]
+    },
+    "session.onCurrentQuestionForHostChanged": {
+      "kind": "subscription",
+      "fingerprint": "sha256:d97a750385f15fdd223240afc9ba2d37401285c8e5a7cf619097cb0813c02d00",
+      "missing": []
+    },
+    "session.onHostVoteProgressChanged": {
+      "kind": "subscription",
+      "fingerprint": "sha256:fd51802c51718304f1253914d6dc5cdee60503016d1b6fd9edc4fc848d971fd6",
+      "missing": []
+    },
+    "session.onParticipantJoined": {
+      "kind": "subscription",
+      "fingerprint": "sha256:14cee8b4381ea302f5277eba4155add9fb1267203c89e1f1c4f7fd8fab3d81da",
+      "missing": []
+    },
+    "session.onStatusChanged": {
+      "kind": "subscription",
+      "fingerprint": "sha256:22d8ebdec783e89d025d4cd1eb6084e4a7409e291493ca14b70f97ba4a6ccd63",
+      "missing": []
+    },
+    "session.prevQuestion": {
+      "kind": "mutation",
+      "fingerprint": "sha256:031b4650832ba3a98ba173959e8a8b29ad1d155cfc4ebcebb0998d9b2f15973b",
+      "missing": ["happy", "error"]
+    },
+    "session.react": {
+      "kind": "mutation",
+      "fingerprint": "sha256:370d7b4ccb8cda9984ff7656e68ddf59d323996e822ae58df7ee81e4a047bd7d",
+      "missing": ["happy", "error"]
+    },
+    "session.reopenQaChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:fea0db9ac47427593a3ab21cc262cb502972843a1d27c1661bd74778b0162f46",
+      "missing": ["happy", "error"]
+    },
+    "session.reopenQuickFeedbackChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:919acfea0c2bad5e3351b79616cead7576148950f4899aca06247701931af989",
+      "missing": ["happy", "error"]
+    },
+    "session.revealAnswers": {
+      "kind": "mutation",
+      "fingerprint": "sha256:373428e2b662f31afe973bb12cad3eea9f1e594c97ae92f095049432d8f00d15",
+      "missing": ["happy", "error"]
+    },
+    "session.revealResults": {
+      "kind": "mutation",
+      "fingerprint": "sha256:12daa00b0b1192adc5815728e5e679199315be5f10588add4730978f1c8510b4",
+      "missing": ["happy", "error"]
+    },
+    "session.setPreferredLiveChannel": {
+      "kind": "mutation",
+      "fingerprint": "sha256:1207e0bf5ed89ade0e6498ce0769cf3a33e33b000afc91792da20699ca275600",
+      "missing": ["happy", "error"]
+    },
+    "session.setTimerAccommodation": {
+      "kind": "mutation",
+      "fingerprint": "sha256:8f643a8a13c1eedc734804f5190a5ee7a9e462af31142a7d56c35c4e404c4fdd",
+      "missing": ["happy", "error"]
+    },
+    "session.startDiscussion": {
+      "kind": "mutation",
+      "fingerprint": "sha256:5799bf2460d24ac7125f5721a0264551790735df4f6f657c95adf5fc4089dac9",
+      "missing": ["happy", "error"]
+    },
+    "session.startQa": {
+      "kind": "mutation",
+      "fingerprint": "sha256:dec102a3c5390c9e6d89ae30779fe149e9d8f59d2d38480dc6e770057771a833",
+      "missing": ["happy", "error"]
+    },
+    "session.startSecondRound": {
+      "kind": "mutation",
+      "fingerprint": "sha256:fd91978978325787a1362e5b61969ca63fe0eee6199aef4d274d5a8bec86f4c3",
+      "missing": ["happy", "error"]
+    },
+    "session.submitSessionFeedback": {
+      "kind": "mutation",
+      "fingerprint": "sha256:a25f62b15b1d7c1361b272b2e145c02d8b15a43b9b3035f622d86060eecf5097",
+      "missing": ["happy", "error"]
+    },
+    "session.updateQaTitle": {
+      "kind": "mutation",
+      "fingerprint": "sha256:a757558c1309a4122f1f50bf67bf5b8c5eeea5d0b5128b4ab5f5991d828c163f",
+      "missing": ["happy", "error"]
+    },
+    "session.verifyBonusTokenForQuiz": {
+      "kind": "query",
+      "fingerprint": "sha256:8e6917a5c1a4de1818e5b34db5f5ce3dd282a88a80b9b3dc5f1142fe110710f9",
+      "missing": ["happy", "error"]
+    },
+    "vote.submit": {
+      "kind": "mutation",
+      "fingerprint": "sha256:c2dcbdabc6b4364616c593efff00ab7885385bad0de7c8763e4635de039bc8f7",
+      "missing": ["happy", "error"]
+    },
+    "wordCloud.analyze": {
+      "kind": "mutation",
+      "fingerprint": "sha256:788368161c5dca9c81869c98aa986deed4a9cb39df139cdee55881a74e25de7e",
+      "missing": ["happy", "error"]
+    }
+  },
+  "integrity": "sha256:0901c2e6d6e6aa2f798af9d41549241be7d5f26861558a41eac5e7000947e717"
+}
