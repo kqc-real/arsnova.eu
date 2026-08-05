@@ -887,38 +887,54 @@ function gitText(args) {
   }).trim();
 }
 
-function readLockedBaselineOrigin(baselinePath) {
+function readBaselineHistoryAnchor(baselinePath, readGit = gitText) {
   const relativeBaseline = relPosix(baselinePath);
   if (relativeBaseline.startsWith('../')) {
     throw new Error('real baseline must be inside the repository');
   }
-  const additions = gitText(['log', '--diff-filter=A', '--format=%H', '--', relativeBaseline])
+  const additions = readGit(['log', '--diff-filter=A', '--format=%H', '--', relativeBaseline])
     .split('\n')
     .filter(Boolean);
   if (additions.length === 0) {
     throw new Error(`baseline has no committed introduction: ${relativeBaseline}`);
   }
   const introductionCommit = additions.at(-1);
-  const introductionLine = gitText(['rev-list', '--parents', '-n', '1', introductionCommit]);
-  const [, ...parents] = introductionLine.split(' ');
-  if (parents.length !== 1 || !/^[0-9a-f]{40}$/.test(parents[0])) {
-    throw new Error('baseline introduction must have exactly one parent commit');
+  if (!/^[0-9a-f]{40}$/.test(introductionCommit)) {
+    throw new Error('baseline introduction has no valid commit id');
   }
-  return parents[0];
+  const initialText = readGit(['show', `${introductionCommit}:${relativeBaseline}`]);
+  const duplicateErrors = duplicateJsonKeyErrors(relativeBaseline, initialText);
+  if (duplicateErrors.length) {
+    throw new Error(`initial committed baseline is invalid: ${duplicateErrors.join('; ')}`);
+  }
+  const initialBaseline = JSON.parse(initialText);
+  if (!/^[0-9a-f]{40}$/.test(initialBaseline.originCommit ?? '')) {
+    throw new Error('initial committed baseline has no valid originCommit');
+  }
+  return { introductionCommit, originCommit: initialBaseline.originCommit };
 }
 
-function auditOriginCommit(originCommit) {
+function gitIsAncestor(ancestor, descendant) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd: REPO_ROOT,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch (error) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 1) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function auditCommitSnapshot(commit) {
   const snapshotRoot = mkdtempSync(join(tmpdir(), 'trpc-dod-origin-'));
   try {
     const archive = execFileSync(
       'git',
-      [
-        'archive',
-        '--format=tar',
-        originCommit,
-        'apps/backend/src',
-        'apps/backend/vitest.config.ts',
-      ],
+      ['archive', '--format=tar', commit, 'apps/backend/src', 'apps/backend/vitest.config.ts'],
       { cwd: REPO_ROOT, maxBuffer: 100 * 1024 * 1024 },
     );
     execFileSync('tar', ['-xf', '-', '-C', snapshotRoot], {
@@ -941,7 +957,9 @@ function auditOriginCommit(originCommit) {
       },
     );
     if (!existsSync(reportPath)) {
-      throw new Error(`origin audit did not write its report: ${childOutput.slice(0, 500).trim()}`);
+      throw new Error(
+        `snapshot audit did not write its report: ${childOutput.slice(0, 500).trim()}`,
+      );
     }
     return JSON.parse(readFileSync(reportPath, 'utf8'));
   } finally {
@@ -949,15 +967,49 @@ function auditOriginCommit(originCommit) {
   }
 }
 
+function validateBaselineSnapshots(
+  baseline,
+  lockedOriginCommit,
+  originProcedures,
+  introductionProcedures,
+) {
+  const errors = validateBaselineAgainstOrigin(baseline, lockedOriginCommit, originProcedures);
+  const originExpected = createBaseline(originProcedures, lockedOriginCommit);
+  const introductionExpected = createBaseline(introductionProcedures, lockedOriginCommit);
+  if (
+    JSON.stringify(originExpected.procedures) !== JSON.stringify(introductionExpected.procedures)
+  ) {
+    errors.push(
+      'baseline-defining router or evidence changed between originCommit and baseline introduction',
+    );
+  }
+  return errors;
+}
+
 function verifyBaselineHistory(baselinePath, baseline) {
   if (!/^[0-9a-f]{40}$/.test(baseline.originCommit ?? '')) return [];
-  const lockedOriginCommit = readLockedBaselineOrigin(baselinePath);
-  const originReport = auditOriginCommit(lockedOriginCommit);
+  const { introductionCommit, originCommit: lockedOriginCommit } =
+    readBaselineHistoryAnchor(baselinePath);
+  const originReport = auditCommitSnapshot(lockedOriginCommit);
+  const introductionReport = auditCommitSnapshot(introductionCommit);
   const errors = originReport.structuralErrors.map(
     (error) => `originCommit audit is structurally invalid: ${error}`,
   );
   errors.push(
-    ...validateBaselineAgainstOrigin(baseline, lockedOriginCommit, originReport.procedures),
+    ...introductionReport.structuralErrors.map(
+      (error) => `baseline introduction audit is structurally invalid: ${error}`,
+    ),
+  );
+  if (!gitIsAncestor(lockedOriginCommit, introductionCommit)) {
+    errors.push('locked originCommit is not an ancestor of the baseline introduction');
+  }
+  errors.push(
+    ...validateBaselineSnapshots(
+      baseline,
+      lockedOriginCommit,
+      originReport.procedures,
+      introductionReport.procedures,
+    ),
   );
   return errors;
 }
@@ -1430,6 +1482,8 @@ export {
   compareMissingDebt,
   createBaseline,
   validateBaselineAgainstOrigin,
+  validateBaselineSnapshots,
+  readBaselineHistoryAnchor,
   readAndValidateBaseline,
   readBackendVitestIncludes,
   isBackendVitestTestFile,

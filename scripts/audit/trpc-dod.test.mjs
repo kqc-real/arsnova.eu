@@ -1,5 +1,13 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -28,6 +36,84 @@ function writeTempEvidence(dir, body, name = 'evidence.test.ts') {
 
 function withCanonicalImport(body) {
   return `import { trpcDodIt } from '${helperImport}';\n${body}`;
+}
+
+function runCommand(command, args, cwd) {
+  const run = spawnSync(command, args, { cwd, encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr || run.stdout);
+  return run.stdout.trim();
+}
+
+function createHistoryFixture(root) {
+  mkdirSync(join(root, 'scripts'), { recursive: true });
+  mkdirSync(join(root, 'apps/backend/src/routers'), { recursive: true });
+  mkdirSync(join(root, 'apps/backend/src/__tests__/test-utils'), { recursive: true });
+  copyFileSync(auditScript, join(root, 'scripts/audit-trpc-dod.mjs'));
+  symlinkSync(join(repoRoot, 'node_modules'), join(root, 'node_modules'), 'dir');
+  writeFileSync(
+    join(root, 'apps/backend/vitest.config.ts'),
+    `export default defineConfig({ test: { include: ['src/**/*.test.ts'] } });\n`,
+  );
+  writeFileSync(
+    join(root, 'apps/backend/src/routers/index.ts'),
+    `import { demoRouter } from './demo';
+export const appRouter = router({ demo: demoRouter });
+`,
+  );
+  writeFileSync(
+    join(root, 'apps/backend/src/routers/demo.ts'),
+    `export const demoRouter = router({
+  alpha: publicProcedure.query(async () => 1),
+});
+`,
+  );
+  writeFileSync(
+    join(root, 'apps/backend/src/__tests__/test-utils/trpc-dod-evidence.ts'),
+    `export const TRPC_DOD_KNOWN_CONTRACTS = ['NOT_FOUND'] as const;\n`,
+  );
+
+  runCommand('git', ['init', '-b', 'main'], root);
+  runCommand('git', ['config', 'user.name', 'tRPC DoD Test'], root);
+  runCommand('git', ['config', 'user.email', 'trpc-dod@example.invalid'], root);
+  runCommand('git', ['config', 'core.hooksPath', '/dev/null'], root);
+  runCommand('git', ['add', 'apps', 'scripts'], root);
+  runCommand('git', ['commit', '-m', 'origin'], root);
+  const originCommit = runCommand('git', ['rev-parse', 'HEAD'], root);
+
+  runCommand('git', ['switch', '-c', 'feature'], root);
+  runCommand(
+    process.execPath,
+    [
+      join(root, 'scripts/audit-trpc-dod.mjs'),
+      '--real',
+      '--write-baseline',
+      '--origin-commit',
+      originCommit,
+    ],
+    root,
+  );
+  runCommand('git', ['add', '.github/trpc-dod-baseline.json'], root);
+  runCommand('git', ['commit', '-m', 'introduce baseline'], root);
+  return originCommit;
+}
+
+function advanceMain(root, label) {
+  runCommand('git', ['switch', 'main'], root);
+  writeFileSync(join(root, `${label}.md`), `${label}\n`);
+  runCommand('git', ['add', `${label}.md`], root);
+  runCommand('git', ['commit', '-m', `advance main for ${label}`], root);
+}
+
+function assertHistoryAuditPasses(root, label) {
+  const reportPath = join(root, `${label}-report.json`);
+  runCommand(
+    process.execPath,
+    [join(root, 'scripts/audit-trpc-dod.mjs'), '--real', '--json-out', reportPath],
+    root,
+  );
+  const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+  assert.equal(report.summary.queriesMutations, 1);
+  assert.equal(report.summary.structuralErrors, 0);
 }
 
 test('poc mode: ping complete, echo incomplete, subscription report-only; caller it ignored', () => {
@@ -724,9 +810,8 @@ test('baseline rejects duplicate JSON keys and orphan entries; new procedures ar
   }
 });
 
-test('originCommit regeneration rejects jointly recomputed baseline weakening', async () => {
-  const { createBaseline, inventariseRouterFile, validateBaselineAgainstOrigin } =
-    await loadAudit();
+test('originCommit regeneration rejects jointly recomputed baseline weakening and input drift', async () => {
+  const { createBaseline, inventariseRouterFile, validateBaselineSnapshots } = await loadAudit();
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
   try {
     const router = writeTempRouter(
@@ -746,22 +831,88 @@ test('originCommit regeneration rejects jointly recomputed baseline weakening', 
     });
     const originCommit = '3'.repeat(40);
     const baseline = createBaseline(originProcedures, originCommit);
+    const introductionProcedures = structuredClone(originProcedures);
     assert.deepEqual(baseline.procedures['demo.alpha'].missing, ['error']);
+    assert.deepEqual(
+      validateBaselineSnapshots(baseline, originCommit, originProcedures, introductionProcedures),
+      [],
+    );
 
     const weakened = structuredClone(baseline);
     weakened.procedures['demo.alpha'].missing = ['happy', 'error'];
     assert.ok(
-      validateBaselineAgainstOrigin(weakened, originCommit, originProcedures).some((error) =>
-        /do not match the audit regenerated/.test(error),
-      ),
+      validateBaselineSnapshots(
+        weakened,
+        originCommit,
+        originProcedures,
+        introductionProcedures,
+      ).some((error) => /do not match the audit regenerated/.test(error)),
     );
 
     weakened.originCommit = '4'.repeat(40);
     assert.ok(
-      validateBaselineAgainstOrigin(weakened, originCommit, originProcedures).some((error) =>
-        /immutable initial origin/.test(error),
-      ),
+      validateBaselineSnapshots(
+        weakened,
+        originCommit,
+        originProcedures,
+        introductionProcedures,
+      ).some((error) => /immutable initial origin/.test(error)),
     );
+
+    introductionProcedures[0].evidence.error.push({
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      rationale: null,
+      title: 'introduced error evidence',
+      testFile: 'introduction.test.ts',
+    });
+    assert.ok(
+      validateBaselineSnapshots(
+        baseline,
+        originCommit,
+        originProcedures,
+        introductionProcedures,
+      ).some((error) => /changed between originCommit and baseline introduction/.test(error)),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('baseline history anchor is independent of merge, squash, and rebase parent topology', async () => {
+  const { createBaseline, readBaselineHistoryAnchor } = await loadAudit();
+  const baselinePath = join(repoRoot, '.github/trpc-dod-baseline.json');
+  const originCommit = '7'.repeat(40);
+  const initialBaseline = createBaseline([], originCommit);
+
+  for (const introductionCommit of ['8'.repeat(40), '9'.repeat(40), 'a'.repeat(40)]) {
+    const anchor = readBaselineHistoryAnchor(baselinePath, (args) => {
+      if (args[0] === 'log') return introductionCommit;
+      if (args[0] === 'show') return JSON.stringify(initialBaseline);
+      throw new Error(`unexpected git call: ${args.join(' ')}`);
+    });
+    assert.deepEqual(anchor, { introductionCommit, originCommit });
+  }
+});
+
+test('real history audit survives squash and rebase introduction commits', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-history-'));
+  try {
+    const squashRoot = join(dir, 'squash');
+    mkdirSync(squashRoot);
+    createHistoryFixture(squashRoot);
+    advanceMain(squashRoot, 'squash');
+    runCommand('git', ['merge', '--squash', 'feature'], squashRoot);
+    runCommand('git', ['commit', '-m', 'squash merge baseline'], squashRoot);
+    assertHistoryAuditPasses(squashRoot, 'squash');
+
+    const rebaseRoot = join(dir, 'rebase');
+    mkdirSync(rebaseRoot);
+    createHistoryFixture(rebaseRoot);
+    advanceMain(rebaseRoot, 'rebase');
+    runCommand('git', ['switch', 'feature'], rebaseRoot);
+    runCommand('git', ['rebase', 'main'], rebaseRoot);
+    assertHistoryAuditPasses(rebaseRoot, 'rebase');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

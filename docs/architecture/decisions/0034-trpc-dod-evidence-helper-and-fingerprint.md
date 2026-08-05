@@ -142,13 +142,15 @@ Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean. Der
 
 Ein in derselben Datei gespeicherter Hash wäre nur eine Konsistenzsumme und könnte
 zusammen mit einer aufgeweichten Baseline neu berechnet werden. Stattdessen wird
-der `originCommit` aus dem einzigen Eltern-Commit des ersten Git-Commits, der die
-Baseline eingeführt hat, abgeleitet. Weder Baseline-Inhalt noch ein gemeinsam
-geänderter `originCommit` können diesen Git-DAG-Anker verschieben. Das Audit exportiert
-Router, Vitest-Konfiguration und Testdateien direkt aus diesem Git-Stand, führt mit
-der aktuellen Audit-Implementierung die Klassifikation erneut aus und verlangt eine
-exakte Übereinstimmung mit den gespeicherten Baseline-Einträgen. CI checkt dafür die
-vollständige Historie aus.
+der `originCommit` aus dem Inhalt des ersten Git-Commits gelockt, der die Baseline
+enthält. Dieser Commit bleibt sowohl bei Merge-Commits als auch nach Squash- oder
+Rebase-Merges der maßgebliche Einführungs-Snapshot; seine Eltern-Topologie ist
+unerheblich. Das Audit exportiert Router, Vitest-Konfiguration und Testdateien sowohl
+aus dem gelockten Ursprung als auch aus dem Einführungs-Snapshot, klassifiziert beide
+mit der aktuellen Audit-Implementierung und verlangt identische Baseline-Einträge.
+Der Ursprung muss außerdem ein Vorfahr des Einführungs-Commits sein. Spätere
+gemeinsame Änderungen von Baseline und `originCommit` können diesen historischen
+Anker nicht verschieben. CI checkt dafür die vollständige Historie aus.
 
 Gate-Semantik (ab 2C): Eine Dimension, die in der Baseline abgedeckt war und später
 fehlt, ist Verschlechterung (verboten). Das Schließen einer fehlenden Dimension
