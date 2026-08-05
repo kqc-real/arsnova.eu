@@ -19,6 +19,8 @@
 | `npm run format:check`              | Prettier (ohne Schreiben)                                                                              |
 | `npm run validate:pdfua`            | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                      |
 | `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)           |
+| `npm run audit:trpc-dod`            | PoC-Audit der tRPC-DoD-Evidenzkonvention (ADR-0034 / Issue #222 Slice 2A; kein blockierendes Gate)     |
+| `npm run audit:trpc-dod:test`       | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs`                                      |
 
 Workspace-spezifisch:
 

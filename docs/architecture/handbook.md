@@ -88,6 +88,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0028: Quiz-Bewertung und Effective-Vote-Regel vereinheitlichen](./decisions/0028-quiz-scoring-and-effective-vote-rule.md)
 - [ADR-0029: Tempo als vordefiniertes Blitzlicht-Template statt eigenem Session-Kanal](./decisions/0029-tempo-as-predefined-blitzlicht-template.md)
 - [ADR-0031: Quiz-Editor-Aenderungserkennung zentralisieren](./decisions/0031-centralized-quiz-editor-save-detection.md)
+- [ADR-0034: tRPC-DoD-Evidenz per Helper, Source-Fingerprint und Audit (Proposed)](./decisions/0034-trpc-dod-evidence-helper-and-fingerprint.md)
 
 **Vertiefende Architektur-Dokumente:**
 
