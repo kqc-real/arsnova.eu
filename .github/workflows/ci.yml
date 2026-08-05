@@ -636,7 +636,7 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run audit:trpc-dod:test
 
-      - name: tRPC DoD real-router report
+      - name: tRPC DoD real-router non-regression gate
         if: needs.changes.outputs.docs_only != 'true'
         run: >-
           npm run audit:trpc-dod --

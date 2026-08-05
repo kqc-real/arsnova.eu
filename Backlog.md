@@ -164,7 +164,15 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ### Tests
 
-- Mindestens ein Unit-Test pro tRPC-Mutation/-Query (Happy Path + ein Fehlerfall).
+- Jede neue oder fachlich geänderte tRPC-Mutation/-Query weist über den kanonischen
+  `trpcDodIt`-Helper einen Happy Path und mindestens einen fachlich relevanten
+  Fehlervertrag nach. Neue ID oder geänderter Source-Fingerprint gilt als Änderung;
+  Rename ist Löschung plus neue ID. Unveränderte, versionierte Legacy-Lücken
+  blockieren fachfremde Änderungen nicht, dürfen aber nicht wachsen. Eine
+  geschlossene Lücke wird mit
+  `npm run audit:trpc-dod -- --update-baseline` dauerhaft aus der Baseline entfernt.
+  Subscriptions bleiben im Audit sichtbar, aber außerhalb dieses
+  Query-/Mutation-Gates.
 - Automatisierter Test, dass `QuestionStudentDTO` im Status `ACTIVE` kein `isCorrect` enthält.
 - Automatisierter Test, dass `AnswerOptionRevealedDTO` im Status `RESULTS` `isCorrect` korrekt enthält.
 
