@@ -450,6 +450,8 @@ describe('adminMotdRouter', () => {
         data: expect.objectContaining({
           status: 'DRAFT',
           priority: 0,
+          startsAt: STARTS_AT,
+          endsAt: ENDS_AT,
           contentVersion: 1,
           templateId: null,
         }),
