@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "extensions": [".js", ".mjs", ".cjs", ".ts", ".mts"],
+  "scope": ["scripts/**", "apps/**/scripts/**", "libs/**/scripts/**", ".github/scripts/**"],
+  "profiles": [
+    {
+      "name": "k6",
+      "runtime": "k6 virtual-user runtime",
+      "include": ["scripts/load/k6-*.js"],
+      "exclude": [],
+      "globals": ["__ENV", "__ITER", "__VU"]
+    },
+    {
+      "name": "playwright-node",
+      "runtime": "Node.js process controlling Playwright browsers",
+      "include": ["apps/frontend/scripts/**"],
+      "exclude": [],
+      "globals": ["Node.js"]
+    },
+    {
+      "name": "github-actions-node",
+      "runtime": "Node.js helper invoked by GitHub Actions",
+      "include": [".github/scripts/**"],
+      "exclude": [],
+      "globals": ["Node.js"]
+    },
+    {
+      "name": "node",
+      "runtime": "Node.js CLI, test, build or operations process",
+      "include": [
+        "scripts/**",
+        "apps/backend/scripts/**",
+        "apps/landing/scripts/**",
+        "libs/**/scripts/**"
+      ],
+      "exclude": ["scripts/load/k6-*.js"],
+      "globals": ["Node.js"]
+    }
+  ],
+  "exceptions": [
+    {
+      "glob": "scripts/load/artillery/reports/**",
+      "reason": "Artillery reports are generated runtime output and are excluded by the existing tmp/report handling."
+    }
+  ]
+}

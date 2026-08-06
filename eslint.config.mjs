@@ -8,12 +8,6 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ['**/*.ts', '**/*.mts'],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.browser,
-      },
-    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
@@ -29,7 +23,45 @@ export default tseslint.config(
   },
   {
     files: ['apps/frontend/src/**/*.ts'],
+    languageOptions: { globals: globals.browser },
     processor: angular.processInlineTemplates,
+  },
+  {
+    files: ['apps/backend/**/*.{ts,mts}', 'libs/**/*.{ts,mts}'],
+    languageOptions: { globals: globals.node },
+  },
+  // Laufzeitprofile für operative Skripte. Die vollständige Zuordnung wird
+  // durch scripts/script-lint-inventory.json und dessen Validator erzwungen.
+  {
+    files: [
+      'scripts/**/*.{js,mjs,cjs,ts,mts}',
+      'apps/backend/scripts/**/*.{js,mjs,cjs,ts,mts}',
+      'apps/landing/scripts/**/*.{js,mjs,cjs,ts,mts}',
+      'libs/**/scripts/**/*.{js,mjs,cjs,ts,mts}',
+    ],
+    ignores: ['scripts/load/k6-*.js'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['apps/frontend/scripts/**/*.{js,mjs,cjs,ts,mts}'],
+    // Playwright startet hier unter Node. Browser-Code läuft ausschließlich
+    // innerhalb der vom Browser evaluierten Callbacks und erhält keine
+    // Browser-Globals im Node-Prozess.
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['.github/scripts/**/*.{js,mjs,cjs,ts,mts}'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['scripts/load/k6-*.js'],
+    languageOptions: {
+      globals: {
+        __ENV: 'readonly',
+        __ITER: 'readonly',
+        __VU: 'readonly',
+      },
+    },
   },
   {
     files: ['apps/frontend/src/**/*.html'],
@@ -47,6 +79,8 @@ export default tseslint.config(
       '**/.astro/**',
       '**/coverage/**',
       '**/tmp/**',
+      // Das reguläre Anwendungs-Lint bleibt in Slice 3A unverändert. Das
+      // spezialisierte Skript-Lint deaktiviert diese Ignore-Regel gezielt.
       '**/scripts/**',
       '**/*.config.mjs',
     ],

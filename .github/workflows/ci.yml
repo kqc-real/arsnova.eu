@@ -540,6 +540,10 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run lint
 
+      - name: Report script ESLint inventory
+        if: needs.changes.outputs.docs_only != 'true'
+        run: npm run lint:scripts:test && npm run lint:scripts
+
       - name: Check i18n locale consistency
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run check:i18n -w @arsnova/frontend
