@@ -165,10 +165,15 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.5 lint
 
-- **Was?** ESLint über `libs/` und `apps/`.
+- **Was?** Blockierendes ESLint-Gate über `libs/`, `apps/` und alle inventarisierten
+  operativen JS-/TS-Skripte. Das Voll-Gate verlangt null Fehler und null Warnungen;
+  Negativ-/Mutationstests prüfen die Laufzeitprofile sowie Changed- und Voll-Gate.
+  Das Changed-Script-Gate verwendet bei Pull Requests `base.sha…head.sha`, bei Pushes
+  `before…sha` und behandelt Löschungen, Renames sowie Null-SHAs explizit.
 - **Wo?** Script in [../package.json](../package.json).
 - **Wann?** Nach erfolgreichem `build`.
-- **Warum?** Hält Codequalität und Konsistenz im Team hoch.
+- **Warum?** Verhindert sowohl neue Skript-Lintschuld als auch unbemerkte Lücken in
+  der laufzeitspezifischen Inventur; der bestehende Check-Kontext bleibt unverändert.
 
 ### 4.6 audit
 

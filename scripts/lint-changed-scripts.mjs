@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
+import { relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
 import {
@@ -82,6 +83,21 @@ export function lintFailures(results) {
   return results.filter((result) => result.errorCount > 0 || result.warningCount > 0);
 }
 
+export function assertLintCoverage(files, results) {
+  const expected = new Set(files);
+  const seen = new Set();
+  for (const result of results) {
+    const file = relative(process.cwd(), result.filePath).split(sep).join('/');
+    if (!expected.has(file)) throw new Error(`Unexpected changed-script lint result: ${file}`);
+    if (seen.has(file)) throw new Error(`Duplicate changed-script lint result: ${file}`);
+    seen.add(file);
+  }
+  const missing = files.filter((file) => !seen.has(file));
+  if (missing.length > 0) {
+    throw new Error(`Missing changed-script lint result:\n${missing.join('\n')}`);
+  }
+}
+
 export function resolveRange({ base, head, currentHead, emptyTree }) {
   const resolvedHead = head?.trim() || currentHead;
   const candidateBase = base?.trim() || `${resolvedHead}^`;
@@ -153,6 +169,7 @@ async function main() {
 
   const eslint = new ESLint({ ignore: false });
   const results = await eslint.lintFiles(selection.files);
+  assertLintCoverage(selection.files, results);
   const failures = lintFailures(results);
   if (failures.length > 0) {
     const formatter = await eslint.loadFormatter('stylish');

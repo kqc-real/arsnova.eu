@@ -542,9 +542,9 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run lint
 
-      - name: Report script ESLint inventory
+      - name: Test script lint gates
         if: needs.changes.outputs.docs_only != 'true'
-        run: npm run lint:scripts:test && npm run lint:scripts
+        run: npm run lint:scripts:test
 
       - name: Enforce changed script lint
         if: needs.changes.outputs.docs_only != 'true'

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ESLint } from 'eslint';
 import {
+  assertLintCoverage,
   lintFailures,
   parseChangedEntries,
   resolveRange,
@@ -114,4 +115,17 @@ test('changed scripts fail on either an ESLint error or warning', async () => {
   assert.equal(errorResult.errorCount > 0, true);
   assert.equal(warningResult.warningCount > 0, true);
   assert.deepEqual(lintFailures([errorResult, warningResult]), [errorResult, warningResult]);
+});
+
+test('changed gate rejects incomplete or duplicated lint evidence', () => {
+  const files = ['scripts/a.mjs', 'scripts/b.mjs'];
+  const result = (file) => ({ filePath: new URL(`../${file}`, import.meta.url).pathname });
+  assert.throws(
+    () => assertLintCoverage(files, [result(files[0])]),
+    /Missing changed-script lint result.*scripts\/b\.mjs/s,
+  );
+  assert.throws(
+    () => assertLintCoverage(files, [result(files[0]), result(files[0]), result(files[1])]),
+    /Duplicate changed-script lint result.*scripts\/a\.mjs/s,
+  );
 });
