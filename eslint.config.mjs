@@ -3,14 +3,78 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 import angular from 'angular-eslint';
 
-const browserGlobalNames = Object.keys(globals.browser);
+const browserOnlyGlobalNames = Object.keys(globals.browser).filter(
+  (name) => !Object.hasOwn(globals.node, name),
+);
 const forbidBrowserGlobalsInNodeScripts = [
   'error',
-  ...browserGlobalNames.map((name) => ({
+  ...browserOnlyGlobalNames.map((name) => ({
     name,
     message: 'Browser-Global ist in diesem Node-Laufzeitprofil nicht verfügbar.',
   })),
 ];
+const browserCallbackMethods = new Set([
+  'evaluate',
+  'evaluateAll',
+  'evaluateHandle',
+  'waitForFunction',
+]);
+
+const runtimeProfilePlugin = {
+  rules: {
+    'no-browser-global-outside-playwright-callback': {
+      meta: {
+        type: 'problem',
+        schema: [],
+        messages: {
+          browserGlobal:
+            'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
+        },
+      },
+      create(context) {
+        const sourceCode = context.sourceCode;
+        const isGlobalReference = (node) => {
+          let scope = sourceCode.getScope(node);
+          while (scope) {
+            const reference = scope.references.find((candidate) => candidate.identifier === node);
+            if (reference) return reference.resolved === null;
+            scope = scope.upper;
+          }
+          return false;
+        };
+        const isBrowserCallback = (node) => {
+          for (let current = node; current; current = current.parent) {
+            if (
+              !['ArrowFunctionExpression', 'FunctionExpression'].includes(current.type) ||
+              current.parent?.type !== 'CallExpression' ||
+              !current.parent.arguments.includes(current)
+            ) {
+              continue;
+            }
+            const property =
+              current.parent.callee.type === 'MemberExpression'
+                ? current.parent.callee.property
+                : null;
+            return property?.type === 'Identifier' && browserCallbackMethods.has(property.name);
+          }
+          return false;
+        };
+        return {
+          Identifier(node) {
+            if (
+              !browserOnlyGlobalNames.includes(node.name) ||
+              !isGlobalReference(node) ||
+              isBrowserCallback(node)
+            ) {
+              return;
+            }
+            context.report({ node, messageId: 'browserGlobal' });
+          },
+        };
+      },
+    },
+  },
+};
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -68,12 +132,18 @@ export default tseslint.config(
     files: [
       'scripts/**/*.{ts,mts}',
       'apps/backend/scripts/**/*.{ts,mts}',
-      'apps/frontend/scripts/**/*.{ts,mts}',
       'apps/landing/scripts/**/*.{ts,mts}',
       'libs/**/scripts/**/*.{ts,mts}',
       '.github/scripts/**/*.{ts,mts}',
     ],
     rules: { 'no-restricted-globals': forbidBrowserGlobalsInNodeScripts },
+  },
+  {
+    files: ['apps/frontend/scripts/**/*.{ts,mts}'],
+    plugins: { 'runtime-profile': runtimeProfilePlugin },
+    rules: {
+      'runtime-profile/no-browser-global-outside-playwright-callback': 'error',
+    },
   },
   {
     files: ['scripts/load/k6-*.js'],

@@ -87,19 +87,18 @@ test('runtime profiles expose only their declared globals', async () => {
   );
 });
 
-test('Node and Playwright-Node TypeScript profiles reject browser globals', async () => {
+test('Node TypeScript profiles reject browser-only globals while keeping Node Web APIs', async () => {
   const eslint = new ESLint({ ignore: false });
-  for (const filePath of [
-    'scripts/check-runtime.ts',
-    'scripts/check-runtime.mts',
-    'apps/frontend/scripts/check-runtime.mts',
-  ]) {
+  for (const filePath of ['scripts/check-runtime.ts', 'scripts/check-runtime.mts']) {
     const config = await eslint.calculateConfigForFile(filePath);
     assert.equal(Object.hasOwn(config.languageOptions.globals, 'process'), true);
     assert.equal('window' in config.languageOptions.globals, false);
-    const result = await eslint.lintText('process.stdout.write("ok"); window.alert("no");', {
-      filePath,
-    });
+    const result = await eslint.lintText(
+      'console.log(new URL("https://example.org")); window.alert("no");',
+      {
+        filePath,
+      },
+    );
     const restrictedMessages = result[0].messages.filter(
       (message) => message.ruleId === 'no-restricted-globals',
     );
@@ -109,4 +108,31 @@ test('Node and Playwright-Node TypeScript profiles reject browser globals', asyn
       /Browser-Global ist in diesem Node-Laufzeitprofil nicht verfügbar\./,
     );
   }
+});
+
+test('Playwright TypeScript profiles allow browser callbacks but reject browser-only globals elsewhere', async () => {
+  const eslint = new ESLint({ ignore: false });
+  const outsideCallback = await eslint.lintText('window.location.href;', {
+    filePath: 'apps/frontend/scripts/check-runtime.mts',
+  });
+  assert.deepEqual(
+    outsideCallback[0].messages
+      .filter(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      )
+      .map((message) => message.message),
+    ['Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.'],
+  );
+
+  const browserCallback = await eslint.lintText('page.evaluate(() => window.location.href);', {
+    filePath: 'apps/frontend/scripts/check-runtime.mts',
+  });
+  assert.equal(
+    browserCallback[0].messages.some(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    ),
+    false,
+  );
 });
