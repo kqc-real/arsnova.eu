@@ -14,7 +14,8 @@ const ROWS = [
   {
     id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1',
     name: 'Wartungsankündigung',
-    description: 'Sachliche Ankündigung geplanter Ausfallzeiten; Platzhalter für Datum und Uhrzeit anpassen.',
+    description:
+      'Sachliche Ankündigung geplanter Ausfallzeiten; Platzhalter für Datum und Uhrzeit anpassen.',
     de: `## Geplante Wartung
 
 Wir führen am **TT.MM.JJJJ** zwischen **HH:MM** und **HH:MM Uhr** (Ortszeit) Wartungsarbeiten durch. In dieser Zeit kann **arsnova** kurzzeitig **nicht erreichbar** sein oder nur **eingeschränkt** nutzbar sein.
@@ -44,7 +45,8 @@ Ci scusiamo per gli eventuali disagi e ti ringraziamo per la comprensione.`,
   {
     id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2',
     name: 'Neues Feature',
-    description: 'Freundlicher Hinweis auf eine Verbesserung; Kurzbeschreibung und Nutzen konkretisieren.',
+    description:
+      'Freundlicher Hinweis auf eine Verbesserung; Kurzbeschreibung und Nutzen konkretisieren.',
     de: `## Neu für dich
 
 Wir haben **arsnova** verbessert. **Kurzbeschreibung des Features einfügen** — damit wird die Nutzung für dich **einfacher** oder **übersichtlicher**.
@@ -89,10 +91,11 @@ Ti auguriamo buon lavoro con la piattaforma.`,
   {
     id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3',
     name: 'Spendenaufruf',
-    description: 'Respektvoller Hinweis auf freiwillige Unterstützung; Link oder Zahlungsweg ergänzen.',
+    description:
+      'Respektvoller Hinweis auf freiwillige Unterstützung; Link oder Zahlungsweg ergänzen.',
     de: `## arsnova unterstützen
 
-**arsnova** soll für Lehrende und Lernende **kostenlos** nutzbar bleiben. Wenn dir die Plattform hilft, freuen wir uns über eine **freiwillige Unterstützung** — z. B. für **Betrieb** und **Weiterentwicklung**.
+**arsnova** soll für Lehrende und Lernende **kostenlos** nutzbar bleiben. Wenn dir die Plattform hilft, freuen wir uns über eine **freiwillige Unterstützung** — z.\u202fB. für **Betrieb** und **Weiterentwicklung**.
 
 **[Link oder Hinweis zur Spendenmöglichkeit einfügen]**
 

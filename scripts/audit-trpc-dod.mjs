@@ -611,7 +611,7 @@ function isAllowedContract(value, known) {
   return /^DOMAIN:[A-Za-z][A-Za-z0-9_:-]*$/.test(value);
 }
 
-function collectEvidenceFromFile(filePath, knownContracts) {
+function collectEvidenceFromFile(filePath) {
   const absoluteFilePath = resolve(filePath);
   const program = ts.createProgram([absoluteFilePath], {
     module: ts.ModuleKind.NodeNext,
@@ -1540,7 +1540,9 @@ function writeBaselineAtomically(filePath, baseline) {
     writeFileSync(lockPath, `${process.pid}\n`, { flag: 'wx', mode: 0o600 });
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
-      throw new Error(`Refusing concurrent baseline update; lock exists: ${lockPath}`);
+      throw new Error(`Refusing concurrent baseline update; lock exists: ${lockPath}`, {
+        cause: error,
+      });
     }
     throw error;
   }
@@ -1583,7 +1585,7 @@ function runAudit({
   const evidenceEntries = [];
   const rejected = [];
   for (const f of evidenceFiles) {
-    const { entries, rejected: fileRejected } = collectEvidenceFromFile(f, knownContracts);
+    const { entries, rejected: fileRejected } = collectEvidenceFromFile(f);
     evidenceEntries.push(...entries);
     rejected.push(...fileRejected);
   }
@@ -1675,7 +1677,9 @@ function runCli(argv = process.argv.slice(2)) {
       });
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
-        throw new Error(`Refusing to overwrite existing baseline: ${baselinePath}`);
+        throw new Error(`Refusing to overwrite existing baseline: ${baselinePath}`, {
+          cause: error,
+        });
       }
       throw error;
     }

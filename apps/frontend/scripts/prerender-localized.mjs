@@ -11,13 +11,13 @@ const angularBuildPrivatePath = require.resolve('@angular/build/private', {
   paths: [__dirname, path.join(__dirname, '..'), path.join(__dirname, '..', '..', '..')],
 });
 
-let zoneNodePath = null;
+let zoneNodePath;
 try {
   zoneNodePath = require.resolve('zone.js/node', {
     paths: [__dirname, path.join(__dirname, '..'), path.join(__dirname, '..', '..', '..')],
   });
 } catch {
-  zoneNodePath = null;
+  // zone.js is optional for builds that do not include the server runtime shim.
 }
 
 if (zoneNodePath) {

@@ -1,20 +1,5 @@
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-type EnsureSchemaModule = {
-  shouldSeedMotdRuntime: (nodeEnv: string | undefined) => boolean;
-  shouldSeedMotdMakingOfRuntime: (nodeEnv: string | undefined) => boolean;
-  shouldSeedMotdFeatureRuntime: (nodeEnv: string | undefined) => boolean;
-  getMotdWelcomeSeedFiles: () => string[];
-  getMotdMakingOfSeedFiles: () => string[];
-  getMotdFeatureSeedFiles: () => string[];
-};
-
-const cjsRequire = createRequire(__filename);
-const ensureSchema = cjsRequire(
-  path.resolve(__dirname, '../../../../scripts/ensure-schema.js'),
-) as EnsureSchemaModule;
+import * as ensureSchema from '../../../../scripts/ensure-schema.mjs';
 
 describe('ensure-schema MOTD runtime seeding', () => {
   it('überspringt Making-of-Re-Seeding in Produktion', () => {

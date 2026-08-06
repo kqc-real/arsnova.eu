@@ -13,20 +13,20 @@ const xlfPath = path.join(localeDir, 'messages.xlf');
 const enPath = path.join(localeDir, 'messages.en.xlf');
 
 const TARGET_BY_ID = {
-  '3293413491190500382': '"\"" was duplicated.',
+  '3293413491190500382': '""" was duplicated.',
   '4762683087008225986': 'Duplicate failed.',
-  '1590286753172731809': '"\"" is currently live and cannot be deleted.',
-  '3191214074647652455': 'Really delete "\""? This cannot be undone.',
-  '4443887030685792442': '"\"" was deleted.',
+  '1590286753172731809': '""" is currently live and cannot be deleted.',
+  '3191214074647652455': 'Really delete """? This cannot be undone.',
+  '4443887030685792442': '""" was deleted.',
   '4357290152640831712': 'Delete failed.',
-  '6566123000837537104': '"\"" was exported.',
+  '6566123000837537104': '""" was exported.',
   '1016176997972069088': 'Export failed.',
-  '523492152856026511': '"\"" was imported.',
+  '523492152856026511': '""" was imported.',
   '990033847964014823': 'Import failed.',
   '4312378971475601737': 'Prompt copied to clipboard.',
   '1470494159022701029': 'Copy failed – please copy manually.',
   '1234862766189211955': 'Add the AI JSON first.',
-  '3967078712690677551': 'AI "\"" was imported.',
+  '3967078712690677551': 'AI """ was imported.',
   '4513949433042265518': 'AI import failed.',
   '4816916877207589304': 'Session <x id="PH"/> started.',
   '8680320837061900030': 'Live start failed.',
@@ -70,7 +70,10 @@ while ((match = unitRegex.exec(xlf)) !== null) {
   if (!enIds.has(id) && TARGET_BY_ID[id]) {
     const inner = match[2];
     const targetEscaped = TARGET_BY_ID[id].replace(/&/g, '&amp;');
-    const withTarget = inner.replace(/\s*<\/source>\s*/, `</source>\n        <target>${targetEscaped}</target>\n        `);
+    const withTarget = inner.replace(
+      /\s*<\/source>\s*/,
+      `</source>\n        <target>${targetEscaped}</target>\n        `,
+    );
     toInsert.push(`      <trans-unit id="${id}" datatype="html">
         ${withTarget.trim()}
       </trans-unit>`);

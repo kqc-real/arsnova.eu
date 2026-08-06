@@ -49,10 +49,6 @@ function createHttpClient(hostToken) {
   });
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function percentile(values, p) {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);

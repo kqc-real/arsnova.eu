@@ -244,7 +244,6 @@ async function run() {
   const reconnectP95Ms = Math.round(percentile(reconnectConnectMs, 95));
   const reconnectMaxMs = Math.round(Math.max(0, ...reconnectConnectMs));
 
-  const revealStartedAt = performance.now();
   const revealResult = await hostTrpc.session.revealResults.mutate({ code });
 
   let statusFanoutLatencyMs = null;

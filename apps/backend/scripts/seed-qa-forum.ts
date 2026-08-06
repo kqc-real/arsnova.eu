@@ -11,6 +11,11 @@
  * nicht fuer Produktivdaten.
  */
 import { randomUUID } from 'crypto';
+import { format } from 'node:util';
+
+function log(...values: unknown[]): void {
+  process.stdout.write(`${format(...values)}\n`);
+}
 
 type QaQuestionStatus = 'ACTIVE' | 'PINNED';
 type QaVoteDirection = 'UP' | 'DOWN';
@@ -271,7 +276,7 @@ const QUESTION_FRAMES = [
 ];
 
 function printUsage(): void {
-  console.log(`
+  log(`
 Q&A-Forum einer bestehenden Session befuellen
 
 Usage:
@@ -649,8 +654,8 @@ async function main(): Promise<void> {
     const plannedDownVotes = planned.votes.length - plannedUpVotes;
 
     if (options.dryRun) {
-      console.log('Dry run: Es wird nichts geschrieben.');
-      console.log({
+      log('Dry run: Es wird nichts geschrieben.');
+      log({
         sessionCode: session.code,
         sessionStatus: session.status,
         existingQuestionCount,
@@ -757,9 +762,9 @@ async function main(): Promise<void> {
     const upVotes = generated.votes.filter((vote) => vote.direction === 'UP').length;
     const downVotes = generated.votes.length - upVotes;
 
-    console.log('');
-    console.log('Q&A-Forum befuellt.');
-    console.log({
+    log('');
+    log('Q&A-Forum befuellt.');
+    log({
       sessionCode: session.code,
       participantsReused: existingParticipants.length,
       participantsCreated: missingParticipants.length,
@@ -772,7 +777,7 @@ async function main(): Promise<void> {
       qAndAChannel: 'enabled/open',
       sortModes: ['Meist unterstuetzt', 'Beste Fragen', 'Umstritten'],
     });
-    console.log('');
+    log('');
   } finally {
     await prisma.$disconnect();
   }

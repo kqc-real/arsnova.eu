@@ -12,6 +12,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
+import { format } from 'node:util';
 import { prisma } from '../src/db';
 import { calculateVoteScore } from '../src/lib/quizScoring';
 import {
@@ -33,6 +34,10 @@ type CliOptions = {
   dryRun: boolean;
   help: boolean;
 };
+
+function log(...values: unknown[]): void {
+  process.stdout.write(`${format(...values)}\n`);
+}
 
 type SessionQuestion = {
   id: string;
@@ -68,7 +73,7 @@ const DEFAULT_PARTICIPANT_PREFIX = 'Seed';
 const DEFAULT_CORRECT_RATE = 0.72;
 
 function printUsage(): void {
-  console.log(`
+  log(`
 Bestehende Quiz-Session fuer eine Frage befuellen
 
 Usage:
@@ -670,7 +675,7 @@ async function main(): Promise<void> {
   };
 
   if (options.dryRun) {
-    console.log(JSON.stringify(summary, null, 2));
+    log(JSON.stringify(summary, null, 2));
     return;
   }
 
@@ -721,7 +726,7 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(
+  log(
     JSON.stringify(
       {
         ...summary,

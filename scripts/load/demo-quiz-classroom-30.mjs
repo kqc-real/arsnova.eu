@@ -286,7 +286,7 @@ function buildVoteInput(
       const correctId = correct[0] ?? question.answers[0].id;
       const wrongId = wrong[0] ?? question.answers[question.answers.length - 1].id;
       const otherWrongId = wrong[1] ?? wrongId;
-      let answerId = correctId;
+      let answerId;
       if (requiresDebrief) {
         // Fehlkonzept Würfel: Mehrheit „22“ (nicht 26), mit natürlicher Varianz (~80 %)
         const distractor22 =
@@ -444,7 +444,7 @@ async function submitVotes(publicTrpc, participants, question, metadata, round) 
   };
 }
 
-async function openQuestionForVoting(hostTrpc, code, statusBefore) {
+async function openQuestionForVoting(hostTrpc, code) {
   const status = await hostTrpc.session.nextQuestion.mutate({ code });
   if (status.status === 'QUESTION_OPEN') {
     await hostTrpc.session.revealAnswers.mutate({ code });

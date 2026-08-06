@@ -12,6 +12,7 @@
  * Zum Neu-Anlegen zuerst die Session (oder in Prisma Studio) löschen.
  */
 import { randomBytes } from 'crypto';
+import { format } from 'node:util';
 import { prisma } from '../src/db';
 import { calculateVoteScore } from '../src/lib/quizScoring';
 import type { Difficulty, QuestionType } from '@arsnova/shared-types';
@@ -34,6 +35,10 @@ const NICKNAMES = [
   'Ada Lovelace',
 ];
 
+function log(...values: unknown[]): void {
+  process.stdout.write(`${format(...values)}\n`);
+}
+
 function generateBonusCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = randomBytes(8);
@@ -47,12 +52,12 @@ function generateBonusCode(): string {
 async function main(): Promise<void> {
   const existing = await prisma.session.findUnique({ where: { code: SESSION_CODE } });
   if (existing) {
-    console.log('');
-    console.log(`Session ${SESSION_CODE} existiert bereits.`);
-    console.log('  Host:  /session/' + SESSION_CODE + '/host');
-    console.log('  Join:  /join → Code ' + SESSION_CODE);
-    console.log('  Neu anlegen: Session in Prisma Studio löschen, dann Skript erneut ausführen.');
-    console.log('');
+    log('');
+    log(`Session ${SESSION_CODE} existiert bereits.`);
+    log('  Host:  /session/' + SESSION_CODE + '/host');
+    log('  Join:  /join → Code ' + SESSION_CODE);
+    log('  Neu anlegen: Session in Prisma Studio löschen, dann Skript erneut ausführen.');
+    log('');
     process.exit(0);
   }
 
@@ -223,15 +228,15 @@ async function main(): Promise<void> {
     if (code !== 'P2021') throw e;
   }
 
-  console.log('');
-  console.log('Demo-Session angelegt.');
-  console.log('  Session-Code: ', SESSION_CODE);
-  console.log('  Host-Ansicht:  /session/' + SESSION_CODE + '/host');
-  console.log('  Join-URL:      /join (Code ' + SESSION_CODE + ' eingeben)');
-  console.log(
+  log('');
+  log('Demo-Session angelegt.');
+  log('  Session-Code: ', SESSION_CODE);
+  log('  Host-Ansicht:  /session/' + SESSION_CODE + '/host');
+  log('  Join-URL:      /join (Code ' + SESSION_CODE + ' eingeben)');
+  log(
     '  Teilnehmende:    ' + participants.length + ', Top ' + BONUS_TOKEN_TOP + ' mit Bonus-Code.',
   );
-  console.log('');
+  log('');
 }
 
 main()

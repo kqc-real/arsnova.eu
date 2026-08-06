@@ -305,7 +305,7 @@ async function main() {
   }
   const metricsAfterLoad = await healthTrpc.health.securityStats.query();
 
-  let recoveryPdfSucceeded = false;
+  let recoveryPdfSucceeded;
   try {
     await probeTrpc.session.getSessionExportPdf.query({
       code: pdfSession.code,
