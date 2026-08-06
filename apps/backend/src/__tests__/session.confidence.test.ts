@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -196,144 +197,161 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     expect(result).not.toHaveProperty('confidenceResult');
   });
 
-  it('liefert Teilnehmenden bei RESULTS keine Confidence-Aggregate', async () => {
-    prismaMock.session.findUnique.mockResolvedValue(buildSession('RESULTS'));
-    prismaMock.vote.findMany.mockResolvedValue([
-      {
-        freeText: null,
-        selectedAnswers: [{ answerOptionId: WRONG_ID }],
-        isCorrect: false,
-        confidenceValue: 5,
-      },
-      {
-        freeText: null,
-        selectedAnswers: [{ answerOptionId: RIGHT_ID }],
-        isCorrect: true,
-        confidenceValue: 2,
-      },
-    ]);
-
-    const result = await caller.getCurrentQuestionForStudent({ code: CODE });
-
-    expect(result).toMatchObject({
-      confidenceEnabled: true,
-      totalVotes: 2,
-    });
-    expect(result).not.toHaveProperty('confidenceResult');
-  });
-
-  it('exportiert confidenceResult für beendete Sessions mit aktiviertem Sicherheitsgrad', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: CODE,
-      status: 'FINISHED',
-      type: 'QUIZ',
-      endedAt: new Date('2026-07-13T14:00:00.000Z'),
-      answerDisplayOrder: null,
-      quiz: {
-        name: 'Confidence-Quiz',
-        teamMode: false,
-        teamCount: null,
-        teamNames: [],
-        questions: [buildConfidenceScQuestion()],
-      },
-      votes: [
+  trpcDodIt(
+    {
+      procedure: 'session.getCurrentQuestionForStudent',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:RESULTS_WITHOUT_AGGREGATES',
+      title: 'liefert Teilnehmenden bei RESULTS keine Confidence-Aggregate',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue(buildSession('RESULTS'));
+      prismaMock.vote.findMany.mockResolvedValue([
         {
-          questionId: QUESTION_ID,
-          round: 1,
-          score: 0,
-          confidenceValue: 5,
+          freeText: null,
+          selectedAnswers: [{ answerOptionId: WRONG_ID }],
           isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          score: 1000,
-          confidenceValue: 1,
-          isCorrect: true,
-          selectedAnswers: [
-            {
-              answerOptionId: RIGHT_ID,
-              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          score: 0,
-          confidenceValue: 4,
-          isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          score: 1000,
           confidenceValue: 5,
-          isCorrect: true,
-          selectedAnswers: [
-            {
-              answerOptionId: RIGHT_ID,
-              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
-            },
-          ],
         },
         {
-          questionId: QUESTION_ID,
-          round: 1,
-          score: 1000,
-          confidenceValue: 3,
+          freeText: null,
+          selectedAnswers: [{ answerOptionId: RIGHT_ID }],
           isCorrect: true,
-          selectedAnswers: [
-            {
-              answerOptionId: RIGHT_ID,
-              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
-            },
-          ],
+          confidenceValue: 2,
         },
-      ],
-      bonusTokens: [],
-      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }, { id: 'p4' }, { id: 'p5' }],
-    });
+      ]);
 
-    const result = await hostCaller.getExportData({ code: CODE });
+      const result = await caller.getCurrentQuestionForStudent({ code: CODE });
 
-    expect(result.questions[0]).toMatchObject({
-      type: 'SINGLE_CHOICE',
-      participantCount: 5,
-      aggregationRound: 1,
-      confidenceEnabled: true,
-      confidenceResult: {
+      expect(result).toMatchObject({
+        confidenceEnabled: true,
+        totalVotes: 2,
+      });
+      expect(result).not.toHaveProperty('confidenceResult');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getExportData',
+      case: 'happy',
+      mode: 'direct',
+      title: 'exportiert confidenceResult für beendete Sessions mit aktiviertem Sicherheitsgrad',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: CODE,
+        status: 'FINISHED',
+        type: 'QUIZ',
+        endedAt: new Date('2026-07-13T14:00:00.000Z'),
+        answerDisplayOrder: null,
+        quiz: {
+          name: 'Confidence-Quiz',
+          teamMode: false,
+          teamCount: null,
+          teamNames: [],
+          questions: [buildConfidenceScQuestion()],
+        },
+        votes: [
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            score: 0,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            score: 1000,
+            confidenceValue: 1,
+            isCorrect: true,
+            selectedAnswers: [
+              {
+                answerOptionId: RIGHT_ID,
+                answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            score: 0,
+            confidenceValue: 4,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            score: 1000,
+            confidenceValue: 5,
+            isCorrect: true,
+            selectedAnswers: [
+              {
+                answerOptionId: RIGHT_ID,
+                answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            score: 1000,
+            confidenceValue: 3,
+            isCorrect: true,
+            selectedAnswers: [
+              {
+                answerOptionId: RIGHT_ID,
+                answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+              },
+            ],
+          },
+        ],
+        bonusTokens: [],
+        participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }, { id: 'p4' }, { id: 'p5' }],
+      });
+
+      const result = await hostCaller.getExportData({ code: CODE });
+
+      expect(result.questions[0]).toMatchObject({
+        type: 'SINGLE_CHOICE',
+        participantCount: 5,
+        aggregationRound: 1,
+        confidenceEnabled: true,
+        confidenceResult: {
+          highConfidenceWrongCount: 2,
+          crossTab: {
+            correctHigh: 1,
+            correctMid: 1,
+            correctLow: 1,
+            incorrectHigh: 2,
+          },
+          highConfidenceWrongOptions: [{ answerId: WRONG_ID, text: '5', count: 2 }],
+        },
+      });
+      expect(result.confidenceSummary).toMatchObject({
+        responseCount: 5,
+        includedQuestionCount: 1,
+        suppressedQuestionCount: 0,
+        priorityQuestionCount: 1,
         highConfidenceWrongCount: 2,
-        crossTab: {
-          correctHigh: 1,
-          correctMid: 1,
-          correctLow: 1,
-          incorrectHigh: 2,
-        },
-        highConfidenceWrongOptions: [{ answerId: WRONG_ID, text: '5', count: 2 }],
-      },
-    });
-    expect(result.confidenceSummary).toMatchObject({
-      responseCount: 5,
-      includedQuestionCount: 1,
-      suppressedQuestionCount: 0,
-      priorityQuestionCount: 1,
-      highConfidenceWrongCount: 2,
-    });
-  });
+      });
+    },
+  );
 
   it('exportiert confidenceResult aus Runde 2, wenn zweite Runde vorhanden ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -554,89 +572,97 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     expect(result.confidenceSummary).toBeUndefined();
   });
 
-  it('liefert getSessionConfidenceSummary ohne Host-Token für beendete Quiz-Sessions', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: CODE,
-      status: 'FINISHED',
-      type: 'QUIZ',
-      quiz: {
-        questions: [buildConfidenceScQuestion()],
-      },
-      votes: [
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          confidenceValue: 5,
-          isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
+  trpcDodIt(
+    {
+      procedure: 'session.getSessionConfidenceSummary',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert getSessionConfidenceSummary ohne Host-Token für beendete Quiz-Sessions',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: CODE,
+        status: 'FINISHED',
+        type: 'QUIZ',
+        quiz: {
+          questions: [buildConfidenceScQuestion()],
         },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          confidenceValue: 5,
-          isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          confidenceValue: 5,
-          isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          confidenceValue: 5,
-          isCorrect: false,
-          selectedAnswers: [
-            {
-              answerOptionId: WRONG_ID,
-              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
-            },
-          ],
-        },
-        {
-          questionId: QUESTION_ID,
-          round: 1,
-          confidenceValue: 3,
-          isCorrect: true,
-          selectedAnswers: [
-            {
-              answerOptionId: RIGHT_ID,
-              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
-            },
-          ],
-        },
-      ],
-    });
+        votes: [
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [
+              {
+                answerOptionId: WRONG_ID,
+                answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+              },
+            ],
+          },
+          {
+            questionId: QUESTION_ID,
+            round: 1,
+            confidenceValue: 3,
+            isCorrect: true,
+            selectedAnswers: [
+              {
+                answerOptionId: RIGHT_ID,
+                answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+              },
+            ],
+          },
+        ],
+      });
 
-    const result = await caller.getSessionConfidenceSummary({ code: CODE });
+      const result = await caller.getSessionConfidenceSummary({ code: CODE });
 
-    expect(result).toMatchObject({
-      responseCount: 5,
-      includedQuestionCount: 1,
-      priorityQuestionCount: 1,
-      highConfidenceWrongCount: 4,
-    });
-    expect(hostAuthMocks.isHostSessionTokenValidMock).not.toHaveBeenCalled();
-  });
+      expect(result).toMatchObject({
+        responseCount: 5,
+        includedQuestionCount: 1,
+        priorityQuestionCount: 1,
+        highConfidenceWrongCount: 4,
+      });
+      expect(hostAuthMocks.isHostSessionTokenValidMock).not.toHaveBeenCalled();
+    },
+  );
 
   it('liefert getExportData mit Host-Token für beendete Quiz-Sessions', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -820,18 +846,43 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     });
   });
 
-  it('liefert null für getSessionConfidenceSummary solange die Session noch läuft', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: CODE,
-      status: 'RESULTS',
-      type: 'QUIZ',
-      quiz: { questions: [buildConfidenceScQuestion()] },
-      votes: [],
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getSessionConfidenceSummary',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:SESSION_NOT_FINISHED',
+      title: 'liefert null für getSessionConfidenceSummary solange die Session noch läuft',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: CODE,
+        status: 'RESULTS',
+        type: 'QUIZ',
+        quiz: { questions: [buildConfidenceScQuestion()] },
+        votes: [],
+      });
 
-    const result = await caller.getSessionConfidenceSummary({ code: CODE });
+      const result = await caller.getSessionConfidenceSummary({ code: CODE });
 
-    expect(result).toBeNull();
-  });
+      expect(result).toBeNull();
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getExportData',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.getExportData weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(hostCaller.getExportData({ code: CODE })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  },
+);

@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -36,39 +37,56 @@ describe('session.submitSessionFeedback', () => {
     vi.clearAllMocks();
   });
 
-  it('lehnt Bewertungen ab, wenn kein Quiz gestartet wurde', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      status: 'FINISHED',
-      quizStarted: false,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.submitSessionFeedback',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Bewertungen ab, wenn kein Quiz gestartet wurde',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'FINISHED',
+        quizStarted: false,
+      });
 
-    await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Bewertung nur nach gestartetem Quiz möglich.',
-    });
-    expect(prismaMock.sessionFeedback.findUnique).not.toHaveBeenCalled();
-    expect(prismaMock.sessionFeedback.create).not.toHaveBeenCalled();
-  });
+      await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Bewertung nur nach gestartetem Quiz möglich.',
+      });
+      expect(prismaMock.sessionFeedback.findUnique).not.toHaveBeenCalled();
+      expect(prismaMock.sessionFeedback.create).not.toHaveBeenCalled();
+    },
+  );
 
-  it('speichert Bewertungen nach einem gestarteten Quiz', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      status: 'FINISHED',
-      quizStarted: true,
-    });
-    prismaMock.sessionFeedback.findUnique.mockResolvedValue(null);
-    prismaMock.sessionFeedback.create.mockResolvedValue({ id: 'feedback-1' });
+  trpcDodIt(
+    {
+      procedure: 'session.submitSessionFeedback',
+      case: 'happy',
+      mode: 'direct',
+      title: 'speichert Bewertungen nach einem gestarteten Quiz',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'FINISHED',
+        quizStarted: true,
+      });
+      prismaMock.sessionFeedback.findUnique.mockResolvedValue(null);
+      prismaMock.sessionFeedback.create.mockResolvedValue({ id: 'feedback-1' });
 
-    await expect(caller.submitSessionFeedback(feedbackInput)).resolves.toEqual({ success: true });
-    expect(prismaMock.sessionFeedback.create).toHaveBeenCalledWith({
-      data: {
-        sessionId: 'sess-1',
-        participantId: feedbackInput.participantId,
-        overallRating: 4,
-        questionQualityRating: 5,
-        wouldRepeat: true,
-      },
-    });
-  });
+      await expect(caller.submitSessionFeedback(feedbackInput)).resolves.toEqual({ success: true });
+      expect(prismaMock.sessionFeedback.create).toHaveBeenCalledWith({
+        data: {
+          sessionId: 'sess-1',
+          participantId: feedbackInput.participantId,
+          overallRating: 4,
+          questionQualityRating: 5,
+          wouldRepeat: true,
+        },
+      });
+    },
+  );
 });

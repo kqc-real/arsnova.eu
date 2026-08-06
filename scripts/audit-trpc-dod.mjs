@@ -65,7 +65,7 @@ function usage() {
   node scripts/audit-trpc-dod.mjs --router <file> --prefix <id> --evidence <dir|file> [--json-out path]
 
 Options:
-  --real                Audit the complete production AppRouter tree (Slice 2C gate)
+  --real                Audit the complete production AppRouter tree and baseline gate
   --poc                 Audit the Slice-2A fixture router and evidence tests
   --router <file>       TypeScript file containing router({ ... })
   --prefix <id>         Procedure id prefix (e.g. dodPoc)
@@ -77,7 +77,7 @@ Options:
   --origin-commit <sha> Required with --write-baseline (full 40-character SHA)
   --update-baseline     Atomically accept the current monotonic real-router state
   --fail-on-incomplete  Exit 1 when any query/mutation is incomplete/untested
-                        (custom/PoC mode only; real mode always runs the Slice 2C gate)
+                        (CI uses this in real mode for the Slice-2D 100% gate)
 `;
 }
 
@@ -1622,11 +1622,6 @@ function runCli(argv = process.argv.slice(2)) {
     return 0;
   }
   if (args.real && args.poc) throw new Error('--real and --poc are mutually exclusive');
-  if (args.real && args.failOnIncomplete) {
-    throw new Error(
-      '--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate',
-    );
-  }
   if (args.writeBaseline && args.updateBaseline) {
     throw new Error('--write-baseline and --update-baseline are mutually exclusive');
   }
@@ -1752,13 +1747,13 @@ function runCli(argv = process.argv.slice(2)) {
     writeFileSync(out, md.endsWith('\n') ? md : `${md}\n`);
   }
 
+  if (mode === 'real' && report.structuralErrors.length) return 2;
   if (args.failOnIncomplete) {
     const bad = report.procedures.some((p) => p.kind !== 'subscription' && p.status !== 'complete');
     if (bad || report.invalidEvidence.length || report.orphanEvidence.length) {
       return 1;
     }
   }
-  if (mode === 'real' && report.structuralErrors.length) return 2;
   if (mode === 'real' && (report.gateViolations.length > 0 || report.baselineChanges.length > 0)) {
     return 1;
   }

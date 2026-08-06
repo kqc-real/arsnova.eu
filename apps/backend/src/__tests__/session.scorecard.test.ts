@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -25,50 +26,64 @@ describe('session.getPersonalScorecard', () => {
     vi.clearAllMocks();
   });
 
-  it('wertet positive SHORT_TEXT-Punkte in der persoenlichen Scorecard als korrekt', async () => {
-    const participantId = '11111111-1111-4111-8111-111111111111';
-    const otherParticipantId = '22222222-2222-4222-8222-222222222222';
-    const questionId = '33333333-3333-4333-8333-333333333333';
+  trpcDodIt(
+    {
+      procedure: 'session.getPersonalScorecard',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wertet positive SHORT_TEXT-Punkte in der persoenlichen Scorecard als korrekt',
+    },
+    async () => {
+      const participantId = '11111111-1111-4111-8111-111111111111';
+      const otherParticipantId = '22222222-2222-4222-8222-222222222222';
+      const questionId = '33333333-3333-4333-8333-333333333333';
 
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      status: 'RESULTS',
-      quiz: {
-        questions: [
-          {
-            id: questionId,
-            type: 'SHORT_TEXT',
-            answers: [{ id: '44444444-4444-4444-8444-444444444444', isCorrect: true }],
-          },
-        ],
-      },
-      participants: [{ id: participantId }, { id: otherParticipantId }],
-    });
-    prismaMock.vote.findUnique.mockResolvedValue({
-      score: 215,
-      streakCount: 2,
-      streakBonus: 1.1,
-      selectedAnswers: [],
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      { participantId, questionId, round: 1, score: 215, responseTimeMs: 1200 },
-      { participantId: otherParticipantId, questionId, round: 1, score: 180, responseTimeMs: 1400 },
-    ]);
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'RESULTS',
+        quiz: {
+          questions: [
+            {
+              id: questionId,
+              type: 'SHORT_TEXT',
+              answers: [{ id: '44444444-4444-4444-8444-444444444444', isCorrect: true }],
+            },
+          ],
+        },
+        participants: [{ id: participantId }, { id: otherParticipantId }],
+      });
+      prismaMock.vote.findUnique.mockResolvedValue({
+        score: 215,
+        streakCount: 2,
+        streakBonus: 1.1,
+        selectedAnswers: [],
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        { participantId, questionId, round: 1, score: 215, responseTimeMs: 1200 },
+        {
+          participantId: otherParticipantId,
+          questionId,
+          round: 1,
+          score: 180,
+          responseTimeMs: 1400,
+        },
+      ]);
 
-    const result = await caller.getPersonalScorecard({
-      code: 'ABC123',
-      participantId,
-      questionIndex: 0,
-      round: 1,
-    });
+      const result = await caller.getPersonalScorecard({
+        code: 'ABC123',
+        participantId,
+        questionIndex: 0,
+        round: 1,
+      });
 
-    expect(result).toEqual(
-      expect.objectContaining({
-        wasCorrect: true,
-        questionScore: 215,
-      }),
-    );
-  });
+      expect(result).toEqual(
+        expect.objectContaining({
+          wasCorrect: true,
+          questionScore: 215,
+        }),
+      );
+    },
+  );
 
   it('wertet positive NUMERIC_ESTIMATE-Punkte in der persoenlichen Scorecard als korrekt', async () => {
     const participantId = '11111111-1111-4111-8111-111111111111';
@@ -260,3 +275,31 @@ describe('session.getPersonalScorecard', () => {
     );
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getPersonalScorecard',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine gueltige Anfrage ohne Quiz-Frage ab',
+  },
+  async () => {
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'RESULTS',
+      quiz: { questions: [] },
+      participants: [],
+    });
+
+    await expect(
+      caller.getPersonalScorecard({
+        code: 'ABC123',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        questionIndex: 0,
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.vote.findUnique).not.toHaveBeenCalled();
+  },
+);

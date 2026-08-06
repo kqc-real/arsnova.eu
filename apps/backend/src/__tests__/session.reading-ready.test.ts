@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks, presenceMocks, readingReadyMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -87,36 +88,47 @@ describe('session reading-ready flow', () => {
     prismaMock.vote.findMany.mockResolvedValue([]);
   });
 
-  it('bestätigt Bereitschaft idempotent in QUESTION_OPEN und liefert Fortschritt zurück', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'QUESTION_OPEN',
-      currentQuestion: 0,
-      participants: [{ id: PARTICIPANT_ID, nickname: 'Ada', teamId: null, team: null }],
-      quiz: { questions: [{ id: QUESTION_ID }] },
-    });
-    presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set([PARTICIPANT_ID]));
-    readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
+  trpcDodIt(
+    {
+      procedure: 'session.confirmReadingReady',
+      case: 'happy',
+      mode: 'direct',
+      title: 'bestätigt Bereitschaft idempotent in QUESTION_OPEN und liefert Fortschritt zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        participants: [{ id: PARTICIPANT_ID, nickname: 'Ada', teamId: null, team: null }],
+        quiz: { questions: [{ id: QUESTION_ID }] },
+      });
+      presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set([PARTICIPANT_ID]));
+      readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
 
-    const result = await caller.confirmReadingReady({
-      code: 'ABC123',
-      participantId: PARTICIPANT_ID,
-      questionId: QUESTION_ID,
-    });
+      const result = await caller.confirmReadingReady({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+        questionId: QUESTION_ID,
+      });
 
-    expect(readingReadyMocks.markParticipantReadingReady).toHaveBeenCalledWith(
-      SESSION_ID,
-      QUESTION_ID,
-      PARTICIPANT_ID,
-    );
-    expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(SESSION_ID, PARTICIPANT_ID);
-    expect(result).toEqual({
-      connectedCount: 1,
-      readyCount: 1,
-      allConnectedReady: true,
-      participantReady: true,
-    });
-  });
+      expect(readingReadyMocks.markParticipantReadingReady).toHaveBeenCalledWith(
+        SESSION_ID,
+        QUESTION_ID,
+        PARTICIPANT_ID,
+      );
+      expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(
+        SESSION_ID,
+        PARTICIPANT_ID,
+      );
+      expect(result).toEqual({
+        connectedCount: 1,
+        readyCount: 1,
+        allConnectedReady: true,
+        participantReady: true,
+      });
+    },
+  );
 
   it('liefert dem Host den Lesephasen-Fortschritt für aktuell verbundene Teilnehmende', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -144,72 +156,91 @@ describe('session reading-ready flow', () => {
     expect(result).toMatchObject({ connectedCount: 2 });
   });
 
-  it('liefert Teilnehmenden den eigenen Ready-Status in QUESTION_OPEN zurück', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'QUESTION_OPEN',
-      currentQuestion: 0,
-      currentRound: 1,
-      answerDisplayOrder: null,
-      statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
-      quiz: {
-        defaultTimer: null,
-        timerScaleByDifficulty: true,
-        preset: 'SERIOUS',
-        questions: [
-          {
-            id: QUESTION_ID,
-            text: 'Was ist 2 + 2?',
-            type: 'SINGLE_CHOICE',
-            difficulty: 'MEDIUM',
-            order: 0,
-            ratingMin: null,
-            ratingMax: null,
-            ratingLabelMin: null,
-            ratingLabelMax: null,
-            answers: [],
-          },
-        ],
-      },
-      _count: { participants: 2 },
-    });
-    prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
-    readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
+  trpcDodIt(
+    {
+      procedure: 'session.getCurrentQuestionForStudent',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Teilnehmenden den eigenen Ready-Status in QUESTION_OPEN zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        currentRound: 1,
+        answerDisplayOrder: null,
+        statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
+        quiz: {
+          defaultTimer: null,
+          timerScaleByDifficulty: true,
+          preset: 'SERIOUS',
+          questions: [
+            {
+              id: QUESTION_ID,
+              text: 'Was ist 2 + 2?',
+              type: 'SINGLE_CHOICE',
+              difficulty: 'MEDIUM',
+              order: 0,
+              ratingMin: null,
+              ratingMax: null,
+              ratingLabelMin: null,
+              ratingLabelMax: null,
+              answers: [],
+            },
+          ],
+        },
+        _count: { participants: 2 },
+      });
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
+      readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
 
-    const result = await caller.getCurrentQuestionForStudent({
-      code: 'ABC123',
-      participantId: PARTICIPANT_ID,
-    });
+      const result = await caller.getCurrentQuestionForStudent({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+      });
 
-    expect(prismaMock.participant.findFirst).toHaveBeenCalledWith({
-      where: { id: PARTICIPANT_ID, sessionId: SESSION_ID },
-      select: { id: true },
-    });
-    expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(SESSION_ID, PARTICIPANT_ID);
-    expect(result).toMatchObject({
-      id: QUESTION_ID,
-      participantReady: true,
-    });
-  });
+      expect(prismaMock.participant.findFirst).toHaveBeenCalledWith({
+        where: { id: PARTICIPANT_ID, sessionId: SESSION_ID },
+        select: { id: true },
+      });
+      expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(
+        SESSION_ID,
+        PARTICIPANT_ID,
+      );
+      expect(result).toMatchObject({
+        id: QUESTION_ID,
+        participantReady: true,
+      });
+    },
+  );
 
-  it('räumt den Ready-State beim Freigeben der Antworten auf', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'QUESTION_OPEN',
-      currentQuestion: 0,
-      currentRound: 1,
-      quiz: { questions: [{ id: QUESTION_ID }] },
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.revealAnswers',
+      case: 'happy',
+      mode: 'direct',
+      title: 'räumt den Ready-State beim Freigeben der Antworten auf',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        currentRound: 1,
+        quiz: { questions: [{ id: QUESTION_ID }] },
+      });
 
-    const result = await hostCaller.revealAnswers({ code: 'ABC123' });
+      const result = await hostCaller.revealAnswers({ code: 'ABC123' });
 
-    expect(readingReadyMocks.clearReadingReady).toHaveBeenCalledWith(SESSION_ID, QUESTION_ID);
-    expect(result).toMatchObject({
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-    });
-  });
+      expect(readingReadyMocks.clearReadingReady).toHaveBeenCalledWith(SESSION_ID, QUESTION_ID);
+      expect(result).toMatchObject({
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
+    },
+  );
 
   it('räumt den Ready-State beim Wechsel zur nächsten Frage auf', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -468,3 +499,32 @@ describe('session reading-ready flow', () => {
     expect(findManyMock).toHaveBeenCalledTimes(1);
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.confirmReadingReady',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine Teilnahme ab, die nicht zur Session gehoert',
+  },
+  async () => {
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      participants: [],
+      quiz: { questions: [{ id: QUESTION_ID }] },
+    });
+
+    await expect(
+      caller.confirmReadingReady({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+        questionId: QUESTION_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(readingReadyMocks.markParticipantReadingReady).not.toHaveBeenCalled();
+  },
+);

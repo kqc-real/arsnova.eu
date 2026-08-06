@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { TRPCError } from '@trpc/server';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
@@ -171,33 +172,41 @@ describe('session.join', () => {
     expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(SESSION_ID, PARTICIPANT_ID);
   });
 
-  it('legt ohne rejoinToken einen neuen Teilnehmer an und gibt dessen Token zurück', async () => {
-    prismaMock.participant.create.mockResolvedValue({
-      id: PARTICIPANT_ID,
-    });
-    prismaMock.participant.count.mockResolvedValue(4);
+  trpcDodIt(
+    {
+      procedure: 'session.join',
+      case: 'happy',
+      mode: 'direct',
+      title: 'legt ohne rejoinToken einen neuen Teilnehmer an und gibt dessen Token zurück',
+    },
+    async () => {
+      prismaMock.participant.create.mockResolvedValue({
+        id: PARTICIPANT_ID,
+      });
+      prismaMock.participant.count.mockResolvedValue(4);
 
-    const result = await caller.join({
-      code: 'ABC123',
-      nickname: '  Ada Lovelace  ',
-      anonymousClientId: CLIENT_ID,
-    });
+      const result = await caller.join({
+        code: 'ABC123',
+        nickname: '  Ada Lovelace  ',
+        anonymousClientId: CLIENT_ID,
+      });
 
-    expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
-    expect(prismaMock.participant.create).toHaveBeenCalledWith({
-      data: {
-        sessionId: SESSION_ID,
-        nickname: 'Ada Lovelace',
-        teamId: undefined,
-      },
-    });
-    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
-    expect(result.participantId).toBe(PARTICIPANT_ID);
-    expect(result.rejoinToken).toBe(PARTICIPANT_ID);
-    expect(result.participantCount).toBe(4);
-    expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
-    expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
-  });
+      expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
+      expect(prismaMock.participant.create).toHaveBeenCalledWith({
+        data: {
+          sessionId: SESSION_ID,
+          nickname: 'Ada Lovelace',
+          teamId: undefined,
+        },
+      });
+      expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
+      expect(result.participantId).toBe(PARTICIPANT_ID);
+      expect(result.rejoinToken).toBe(PARTICIPANT_ID);
+      expect(result.participantCount).toBe(4);
+      expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
+      expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
+    },
+  );
 
   it('lässt Rejoins auch bei ausgefallenem oder ausgeschöpftem Globalbudget unverzögert', async () => {
     invalidSessionCodeMocks.rejectInvalidSessionCode.mockRejectedValue(
@@ -262,23 +271,32 @@ describe('session.join', () => {
     );
   });
 
-  it('delegiert ungültige Codes an den zentralen Fehlerpfad', async () => {
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'session.join',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'delegiert ungültige Codes an den zentralen Fehlerpfad',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(
-      caller.join({
-        code: 'ZZZ999',
-        nickname: 'Ada',
-        anonymousClientId: CLIENT_ID,
-      }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      await expect(
+        caller.join({
+          code: 'ZZZ999',
+          nickname: 'Ada',
+          anonymousClientId: CLIENT_ID,
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
-      CLIENT_ID,
-      'ZZZ999',
-      'join',
-    );
-  });
+      expect(invalidSessionCodeMocks.rejectInvalidSessionCode).toHaveBeenCalledWith(
+        CLIENT_ID,
+        'ZZZ999',
+        'join',
+      );
+    },
+  );
 
   it('lässt 500 gültige Join-Inputs aus demselben Netz ohne Fehlbudget durch', async () => {
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });

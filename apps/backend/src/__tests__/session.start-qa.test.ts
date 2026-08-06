@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -48,31 +49,39 @@ describe('session.startQa (Story 8.1)', () => {
     });
   });
 
-  it('startet eine Q&A-Session aus der Lobby in ACTIVE', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      type: 'Q_AND_A',
-      quizId: null,
-      status: 'LOBBY',
-      qaEnabled: true,
-      qaOpen: true,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.startQa',
+      case: 'happy',
+      mode: 'direct',
+      title: 'startet eine Q&A-Session aus der Lobby in ACTIVE',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        type: 'Q_AND_A',
+        quizId: null,
+        status: 'LOBBY',
+        qaEnabled: true,
+        qaOpen: true,
+      });
 
-    const result = await caller.startQa({ code: 'abc123' });
+      const result = await caller.startQa({ code: 'abc123' });
 
-    expect(result.status).toBe('ACTIVE');
-    expect(result.currentQuestion).toBeNull();
-    expect(result.currentRound).toBe(1);
-    expect(result.activeAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-    expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
-      where: { code: 'ABC123' },
-      select: { id: true, status: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
-    });
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: expect.objectContaining({ status: 'ACTIVE' }),
-    });
-  });
+      expect(result.status).toBe('ACTIVE');
+      expect(result.currentQuestion).toBeNull();
+      expect(result.currentRound).toBe(1);
+      expect(result.activeAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
+        where: { code: 'ABC123' },
+        select: { id: true, status: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
+      });
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE' }),
+      });
+    },
+  );
 
   it('lässt Quiz-Sessions mit Fragen-Kanal in der Lobby (Beitrittsphase fürs Quiz bleibt)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -113,21 +122,30 @@ describe('session.startQa (Story 8.1)', () => {
     });
   });
 
-  it('lehnt den Start außerhalb der Lobby ab', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      type: 'Q_AND_A',
-      quizId: null,
-      status: 'ACTIVE',
-      qaEnabled: true,
-      qaOpen: true,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.startQa',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt den Start außerhalb der Lobby ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        type: 'Q_AND_A',
+        quizId: null,
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+      });
 
-    await expect(caller.startQa({ code: 'ABC123' })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Q&A-Session kann nur aus Status LOBBY gestartet werden. Aktuell: ACTIVE.',
-    });
+      await expect(caller.startQa({ code: 'ABC123' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Q&A-Session kann nur aus Status LOBBY gestartet werden. Aktuell: ACTIVE.',
+      });
 
-    expect(prismaMock.session.update).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
 });

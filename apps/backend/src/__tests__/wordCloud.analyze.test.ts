@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { extractHostTokenFromContextMock, isHostSessionTokenValidMock } = vi.hoisted(() => ({
   extractHostTokenFromContextMock: vi.fn(),
@@ -21,65 +22,73 @@ describe('wordCloud.analyze', () => {
     isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('buendelt paraphrasennahe Fragen im Themenmodus zu erklaerbaren Clustern', async () => {
-    const result = await hostCaller.analyze({
-      sessionCode: 'ABC123',
-      mode: 'THEME',
-      locale: 'de',
-      metric: 'BEST',
-      maxEntries: 5,
-      items: [
-        {
-          id: '11111111-1111-4111-8111-111111111111',
-          text: 'Kommt Kapitel 4 in der Klausur vor?',
-          weight: 8,
-        },
-        {
-          id: '22222222-2222-4222-8222-222222222222',
-          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
-          weight: 5,
-        },
-        {
-          id: '33333333-3333-4333-8333-333333333333',
-          text: 'Wie funktioniert lineare Regression im Praxisprojekt?',
-          weight: 3,
-        },
-        {
-          id: '44444444-4444-4444-8444-444444444444',
-          text: 'Wann nutzen wir lineare Regression fuer Prognosen?',
-          weight: 4,
-        },
-      ],
-    });
+  trpcDodIt(
+    {
+      procedure: 'wordCloud.analyze',
+      case: 'happy',
+      mode: 'direct',
+      title: 'buendelt paraphrasennahe Fragen im Themenmodus zu erklaerbaren Clustern',
+    },
+    async () => {
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'THEME',
+        locale: 'de',
+        metric: 'BEST',
+        maxEntries: 5,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 8,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 5,
+          },
+          {
+            id: '33333333-3333-4333-8333-333333333333',
+            text: 'Wie funktioniert lineare Regression im Praxisprojekt?',
+            weight: 3,
+          },
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            text: 'Wann nutzen wir lineare Regression fuer Prognosen?',
+            weight: 4,
+          },
+        ],
+      });
 
-    expect(result.mode).toBe('THEME');
-    expect(result.metric).toBe('BEST');
-    expect(result.fallbackUsed).toBe(false);
-    expect(result.entries).toHaveLength(2);
-    expect(result.entries[0]).toMatchObject({
-      key: 'kapitel 4',
-      label: 'Kapitel 4',
-      count: 13,
-      basisLabel: 'Kapitel 4',
-      variants: ['Kapitel 4'],
-    });
-    expect(result.entries[0]?.members).toHaveLength(2);
-    expect(result.entries[0]?.members.map((member) => member.text)).toEqual([
-      'Kommt Kapitel 4 in der Klausur vor?',
-      'Brauchen wir Kapitel 4 fuer die Pruefung?',
-    ]);
-    expect(result.entries[0]?.confidence).toBeGreaterThanOrEqual(0.65);
-    expect(result.entries[0]?.confidence).toBeLessThan(0.85);
-    expect(result.entries[1]).toMatchObject({
-      key: 'lineare regression',
-      label: 'lineare Regression',
-      count: 7,
-      basisLabel: 'lineare Regression',
-      variants: ['lineare Regression'],
-    });
-    expect(result.entries[1]?.confidence).toBeGreaterThanOrEqual(0.65);
-    expect(result.entries[1]?.confidence).toBeLessThan(0.85);
-  });
+      expect(result.mode).toBe('THEME');
+      expect(result.metric).toBe('BEST');
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.entries).toHaveLength(2);
+      expect(result.entries[0]).toMatchObject({
+        key: 'kapitel 4',
+        label: 'Kapitel 4',
+        count: 13,
+        basisLabel: 'Kapitel 4',
+        variants: ['Kapitel 4'],
+      });
+      expect(result.entries[0]?.members).toHaveLength(2);
+      expect(result.entries[0]?.members.map((member) => member.text)).toEqual([
+        'Kommt Kapitel 4 in der Klausur vor?',
+        'Brauchen wir Kapitel 4 fuer die Pruefung?',
+      ]);
+      expect(result.entries[0]?.confidence).toBeGreaterThanOrEqual(0.65);
+      expect(result.entries[0]?.confidence).toBeLessThan(0.85);
+      expect(result.entries[1]).toMatchObject({
+        key: 'lineare regression',
+        label: 'lineare Regression',
+        count: 7,
+        basisLabel: 'lineare Regression',
+        variants: ['lineare Regression'],
+      });
+      expect(result.entries[1]?.confidence).toBeGreaterThanOrEqual(0.65);
+      expect(result.entries[1]?.confidence).toBeLessThan(0.85);
+    },
+  );
 
   it('buendelt englische Paraphrasen im Themenmodus ueber gemeinsame Kernphrasen', async () => {
     const result = await hostCaller.analyze({
@@ -354,26 +363,35 @@ describe('wordCloud.analyze', () => {
     ]);
   });
 
-  it('lehnt den Analysepfad ohne gueltigen Host-Token ab', async () => {
-    extractHostTokenFromContextMock.mockReturnValue(null);
+  trpcDodIt(
+    {
+      procedure: 'wordCloud.analyze',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt den Analysepfad ohne gueltigen Host-Token ab',
+    },
+    async () => {
+      extractHostTokenFromContextMock.mockReturnValue(null);
 
-    await expect(
-      hostCaller.analyze({
-        sessionCode: 'ABC123',
-        mode: 'LEXICAL',
-        locale: 'de',
-        metric: 'TOP',
-        items: [
-          {
-            id: '11111111-1111-4111-8111-111111111111',
-            text: 'Kapitel 4 in der Klausur',
-            weight: 8,
-          },
-        ],
-      }),
-    ).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Host-Authentifizierung erforderlich.',
-    });
-  });
+      await expect(
+        hostCaller.analyze({
+          sessionCode: 'ABC123',
+          mode: 'LEXICAL',
+          locale: 'de',
+          metric: 'TOP',
+          items: [
+            {
+              id: '11111111-1111-4111-8111-111111111111',
+              text: 'Kapitel 4 in der Klausur',
+              weight: 8,
+            },
+          ],
+        }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+    },
+  );
 });

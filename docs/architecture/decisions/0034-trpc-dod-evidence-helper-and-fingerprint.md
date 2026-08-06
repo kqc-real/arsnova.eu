@@ -121,7 +121,7 @@ Strukturfehler, Gate-Verstöße, erforderliche Baseline-Änderungen sowie die Su
 der Legacy-Schuld. Jeder Gate-Verstoß nennt Prozedur-ID, Änderung (`new`, `changed`
 oder `evidence_regression`) und die konkret fehlenden Evidenzdimensionen.
 
-### 4. Versionierte Baseline und Non-Regression-Gate (Slices 2B/2C)
+### 4. Versionierte Baseline, Non-Regression- und 100-%-Gate (Slices 2B–2D)
 
 Die Baseline liegt unter `.github/trpc-dod-baseline.json`. Schuld wird **pro
 Dimension** (`happy` / `error`) versioniert — nicht als einzelner Boolean. Der
@@ -165,6 +165,14 @@ Das Slice-2C-Gate verwendet folgende Regeln:
 - Rename ist Löschung plus neue ID, gelöschte IDs müssen entfernt werden;
 - Subscriptions werden inventarisiert und fortgeschrieben, ihre Evidenz blockiert
   das Query-/Mutation-Gate jedoch nicht.
+
+Nach Abschluss von Slice 2D enthält die Baseline für jede Query und Mutation eine
+leere `missing`-Liste. CI ruft den Real-Audit zusätzlich mit
+`--fail-on-incomplete` auf. Damit blockiert jede unvollständige Query/Mutation
+unmittelbar, auch wenn ihr Source-Fingerprint unverändert wäre. Die versionierte
+Baseline und ihre Historienprüfung bleiben daneben nötig: Sie schützen weiterhin
+gegen gemeinsame Baseline-Manipulation, gelöschte/reintroduzierte IDs und
+inkonsistente Fingerprints.
 
 Code und Baseline können das Gate nicht gemeinsam umgehen. Die initiale Baseline
 wird weiterhin aus `originCommit` und dem Einführungs-Commit rekonstruiert. Zusätzlich
@@ -243,7 +251,8 @@ ersetzt kein Review.
 
 ### Negativ / Risiken
 
-- Bestands-Tests müssen später schrittweise migriert werden (Slice 2D).
+- Die statische Erfassung kann weiterhin keine inhaltlich schwachen Assertions oder
+  gemeinsam manipulierte Mocks erkennen; das bleibt Gegenstand des Reviews.
 - False Negatives möglich, wenn Evidenz-Metadaten syntaktisch abweichen
   (nicht-literale Felder).
 - False Positives möglich, wenn Metadaten und Caller korrekt sind, der Test aber
@@ -253,7 +262,8 @@ ersetzt kein Review.
 
 - **Regex über `caller.`-Aufrufe:** verworfen; belegt weder Happy noch Error-Vertrag.
 - **Nur Coverage-Schwellen:** verworfen; Coverage ≠ vertragliche DoD.
-- **Sofortiges 100-%-Gate auf dem Bestand:** verworfen; würde fachfremde PRs blockieren.
+- **Sofortiges 100-%-Gate in Slice 2B/2C:** verworfen; hätte fachfremde PRs vor der
+  Bestandsbereinigung blockiert. Nach Slice 2D ist es aktiviert.
 
 ## Architektur-Checkpoint (Slice 2C)
 
@@ -268,16 +278,15 @@ Vor Slice 2D ausdrücklich im PR-Review bestätigen:
 5. CI nennt Prozedur, Änderung und fehlende Evidenz und veröffentlicht weiterhin
    JSON, Markdown, Job Summary und Artefakt.
 
-## Slice-2D-Fortschritt
+## Slice-2D-Abschluss
 
-Die Bestandsbereinigung erfolgt ausschließlich in kleinen Routergruppen und
-aktiviert noch kein 100-%-Gate. Die erste Gruppe `admin.motd` ist vollständig
-migriert: Alle elf Queries und Mutations haben je einen direkten Happy Path und
-einen fachlich relevanten Fehlervertrag. Für die lesenden Listenpfade ist dies
-die Admin-Authentifizierungsgrenze; für Detail- und Änderungsoperationen sind es
-`NOT_FOUND`, Zeitfenster- oder Eingabevalidierungsfehler. Damit sinkt die
-verbleibende Legacy-Schuld auf 102 Prozeduren beziehungsweise 204 Dimensionen.
+Die Bereinigung ist vollständig: Der reale Routerbaum umfasst weiterhin 121
+Prozeduren (50 Queries, 63 Mutations und 8 report-only Subscriptions). Alle 113
+Queries und Mutations haben mindestens einen direkten Happy Path und einen
+ausgeführten Fehlervertrag. Die Baseline enthält folglich keine Legacy-Schuld
+mehr (0 Prozeduren, 0 fehlende Dimensionen).
 
-Die weitere Reihenfolge bleibt `admin`, `quizSync`, anschließend Session, Q&A
-und Quick Feedback. Erst nach vollständiger realer Bestandsbereinigung darf das
-Gate auf 100 % umgestellt werden.
+CI führt deshalb den Real-Audit mit `--fail-on-incomplete` aus. Neue Features
+müssen ihre Happy-/Error-Evidenz im selben Pull Request liefern; auch das Entfernen
+eines bestehenden Evidenzpfads macht das Gate rot. Die Baseline-Historienprüfung
+bleibt aktiv und ist vom verwendeten Merge-Verfahren unabhängig.

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, checkQuizUploadAttemptRateMock, checkQuizUploadStorageRateMock } = vi.hoisted(
   () => ({
@@ -34,89 +35,106 @@ describe('quiz.upload (Story 2.1a)', () => {
     checkQuizUploadStorageRateMock.mockResolvedValue({ allowed: true, remaining: 299 });
   });
 
-  it('erstellt Quiz mit Fragen und Antworten und liefert quizId', async () => {
-    const input = {
-      name: 'Test-Quiz',
-      showLeaderboard: true,
-      allowCustomNicknames: true,
-      enableSoundEffects: true,
-      enableRewardEffects: true,
-      enableMotivationMessages: true,
-      enableEmojiReactions: true,
-      anonymousMode: false,
-      teamMode: false,
-      teamNames: [],
-      nicknameTheme: 'NOBEL_LAUREATES' as const,
-      questions: [
-        {
-          text: 'Was ist 2+2?',
-          type: 'SINGLE_CHOICE' as const,
-          difficulty: 'EASY' as const,
-          order: 0,
-          answers: [
-            { text: '3', isCorrect: false },
-            { text: '4', isCorrect: true },
-          ],
-        },
-      ],
-    };
+  trpcDodIt(
+    {
+      procedure: 'quiz.upload',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erstellt Quiz mit Fragen und Antworten und liefert quizId',
+    },
+    async () => {
+      const input = {
+        name: 'Test-Quiz',
+        showLeaderboard: true,
+        allowCustomNicknames: true,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        anonymousMode: false,
+        teamMode: false,
+        teamNames: [],
+        nicknameTheme: 'NOBEL_LAUREATES' as const,
+        questions: [
+          {
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE' as const,
+            difficulty: 'EASY' as const,
+            order: 0,
+            answers: [
+              { text: '3', isCorrect: false },
+              { text: '4', isCorrect: true },
+            ],
+          },
+        ],
+      };
 
-    const result = await caller.upload(input);
+      const result = await caller.upload(input);
 
-    expect(result.quizId).toBe(QUIZ_ID);
-    expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledWith('0.0.0.0');
-    expect(checkQuizUploadStorageRateMock).toHaveBeenCalledWith('0.0.0.0', {
-      payloadBytes: expect.any(Number),
-      complexity: 4,
-    });
-    expect(prismaMock.quiz.create).toHaveBeenCalledTimes(1);
-    const createCall = prismaMock.quiz.create.mock.calls[0]![0];
-    expect(createCall.data.name).toBe('Test-Quiz');
-    expect(createCall.data.questions.create).toHaveLength(1);
-    expect(createCall.data.questions.create[0].text).toBe('Was ist 2+2?');
-    expect(createCall.data.questions.create[0].answers.create).toHaveLength(2);
-    expect(createCall.data.questions.create[0].answers.create[1]).toEqual({
-      text: '4',
-      isCorrect: true,
-    });
-    expect(createCall.data.motifImageUrl).toBeNull();
-    expect(createCall.data.timerScaleByDifficulty).toBe(true);
-  });
+      expect(result.quizId).toBe(QUIZ_ID);
+      expect(checkQuizUploadAttemptRateMock).toHaveBeenCalledWith('0.0.0.0');
+      expect(checkQuizUploadStorageRateMock).toHaveBeenCalledWith('0.0.0.0', {
+        payloadBytes: expect.any(Number),
+        complexity: 4,
+      });
+      expect(prismaMock.quiz.create).toHaveBeenCalledTimes(1);
+      const createCall = prismaMock.quiz.create.mock.calls[0]![0];
+      expect(createCall.data.name).toBe('Test-Quiz');
+      expect(createCall.data.questions.create).toHaveLength(1);
+      expect(createCall.data.questions.create[0].text).toBe('Was ist 2+2?');
+      expect(createCall.data.questions.create[0].answers.create).toHaveLength(2);
+      expect(createCall.data.questions.create[0].answers.create[1]).toEqual({
+        text: '4',
+        isCorrect: true,
+      });
+      expect(createCall.data.motifImageUrl).toBeNull();
+      expect(createCall.data.timerScaleByDifficulty).toBe(true);
+    },
+  );
 
-  it('begrenzt Upload-Spam vor jedem Datenbankschreibzugriff', async () => {
-    checkQuizUploadStorageRateMock.mockResolvedValue({
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: 120,
-    });
-    const input = {
-      name: 'Spam',
-      showLeaderboard: true,
-      allowCustomNicknames: true,
-      enableSoundEffects: true,
-      enableRewardEffects: true,
-      enableMotivationMessages: true,
-      enableEmojiReactions: true,
-      anonymousMode: false,
-      teamMode: false,
-      nicknameTheme: 'NOBEL_LAUREATES' as const,
-      questions: [
-        {
-          text: 'Frage',
-          type: 'SINGLE_CHOICE' as const,
-          difficulty: 'MEDIUM' as const,
-          order: 0,
-          answers: [{ text: 'A', isCorrect: true }],
-        },
-      ],
-    };
+  trpcDodIt(
+    {
+      procedure: 'quiz.upload',
+      case: 'error',
+      mode: 'direct',
+      contract: 'TOO_MANY_REQUESTS',
+      title: 'begrenzt Upload-Spam vor jedem Datenbankschreibzugriff',
+    },
+    async () => {
+      checkQuizUploadStorageRateMock.mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 120,
+      });
+      const input = {
+        name: 'Spam',
+        showLeaderboard: true,
+        allowCustomNicknames: true,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        anonymousMode: false,
+        teamMode: false,
+        nicknameTheme: 'NOBEL_LAUREATES' as const,
+        questions: [
+          {
+            text: 'Frage',
+            type: 'SINGLE_CHOICE' as const,
+            difficulty: 'MEDIUM' as const,
+            order: 0,
+            answers: [{ text: 'A', isCorrect: true }],
+          },
+        ],
+      };
 
-    await expect(caller.upload(input)).rejects.toMatchObject({
-      code: 'TOO_MANY_REQUESTS',
-      cause: { retryAfterSeconds: 120 },
-    });
-    expect(prismaMock.quiz.create).not.toHaveBeenCalled();
-  });
+      await expect(caller.upload(input)).rejects.toMatchObject({
+        code: 'TOO_MANY_REQUESTS',
+        cause: { retryAfterSeconds: 120 },
+      });
+      expect(prismaMock.quiz.create).not.toHaveBeenCalled();
+    },
+  );
 
   it('ignoriert gefälschte Proxy-Header für beide Quiz-Upload-Budgets', async () => {
     const trustedIpCaller = quizRouter.createCaller({

@@ -3,6 +3,7 @@
  * Mocked: Redis (pingRedis) und Prisma (session.count/findMany).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import type Redis from 'ioredis';
 
 vi.mock('../redis', () => ({
@@ -198,25 +199,42 @@ describe('health.check', () => {
     });
   });
 
-  it('gibt status "ok" zurück wenn Redis erreichbar ist', async () => {
-    vi.mocked(pingRedis).mockResolvedValue(true);
+  trpcDodIt(
+    {
+      procedure: 'health.check',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt status "ok" zurück wenn Redis erreichbar ist',
+    },
+    async () => {
+      vi.mocked(pingRedis).mockResolvedValue(true);
 
-    const result = await caller.check(undefined);
+      const result = await caller.check(undefined);
 
-    expect(result.status).toBe('ok');
-    expect(result.redis).toBe('ok');
-    expect(result.timestamp).toBeDefined();
-    expect(result.version).toBeDefined();
-  });
+      expect(result.status).toBe('ok');
+      expect(result.redis).toBe('ok');
+      expect(result.timestamp).toBeDefined();
+      expect(result.version).toBeDefined();
+    },
+  );
 
-  it('gibt redis "unavailable" zurück wenn Redis nicht erreichbar ist', async () => {
-    vi.mocked(pingRedis).mockResolvedValue(false);
+  trpcDodIt(
+    {
+      procedure: 'health.check',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:REDIS_UNAVAILABLE',
+      title: 'gibt redis "unavailable" zurück wenn Redis nicht erreichbar ist',
+    },
+    async () => {
+      vi.mocked(pingRedis).mockResolvedValue(false);
 
-    const result = await caller.check(undefined);
+      const result = await caller.check(undefined);
 
-    expect(result.status).toBe('ok');
-    expect(result.redis).toBe('unavailable');
-  });
+      expect(result.status).toBe('ok');
+      expect(result.redis).toBe('unavailable');
+    },
+  );
 });
 
 describe('health.footerBundle', () => {
@@ -240,23 +258,56 @@ describe('health.footerBundle', () => {
     });
   });
 
-  it('liefert check und stats in einem Aufruf', async () => {
-    vi.mocked(pingRedis).mockResolvedValue(true);
-    vi.mocked(prisma.session.count).mockResolvedValue(0);
-    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
-      id: 'default',
-      updatedAt: new Date(),
-      maxParticipantsSingleSession: 42,
-      completedSessionsTotal: 0,
-    } as never);
+  trpcDodIt(
+    {
+      procedure: 'health.footerBundle',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert check und stats in einem Aufruf',
+    },
+    async () => {
+      vi.mocked(pingRedis).mockResolvedValue(true);
+      vi.mocked(prisma.session.count).mockResolvedValue(0);
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+        id: 'default',
+        updatedAt: new Date(),
+        maxParticipantsSingleSession: 42,
+        completedSessionsTotal: 0,
+      } as never);
 
-    const result = await caller.footerBundle(undefined);
+      const result = await caller.footerBundle(undefined);
 
-    expect(result.check.status).toBe('ok');
-    expect(result.check.redis).toBe('ok');
-    expect(result.stats.serviceStatus).toBe('stable');
-    expect(result.stats.loadStatus).toBe('healthy');
-  });
+      expect(result.check.status).toBe('ok');
+      expect(result.check.redis).toBe('ok');
+      expect(result.stats.serviceStatus).toBe('stable');
+      expect(result.stats.loadStatus).toBe('healthy');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'health.footerBundle',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:REDIS_UNAVAILABLE',
+      title: 'health.footerBundle gibt Redis-Degradation ohne Ausfall des Footer-Bundles aus',
+    },
+    async () => {
+      vi.mocked(pingRedis).mockResolvedValue(false);
+      vi.mocked(prisma.session.count).mockResolvedValue(0);
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+        id: 'default',
+        updatedAt: new Date(),
+        maxParticipantsSingleSession: 0,
+        completedSessionsTotal: 0,
+      } as never);
+
+      const result = await caller.footerBundle(undefined);
+
+      expect(result.check.redis).toBe('unavailable');
+      expect(result.stats.serviceStatus).toBeDefined();
+    },
+  );
 
   it('nutzt fuer wiederholte Footer-Abfragen den Serverstats-Cache', async () => {
     vi.mocked(pingRedis).mockResolvedValue(true);
@@ -296,54 +347,70 @@ describe('health.stats', () => {
     });
   });
 
-  it('liefert Initialwerte (0) wenn keine Sessions existieren', async () => {
-    vi.mocked(prisma.session.count).mockResolvedValue(0);
-    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'health.stats',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Initialwerte (0) wenn keine Sessions existieren',
+    },
+    async () => {
+      vi.mocked(prisma.session.count).mockResolvedValue(0);
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
 
-    const result = await caller.stats(undefined);
+      const result = await caller.stats(undefined);
 
-    expect(result.openSessions).toBe(0);
-    expect(result.activeSessions).toBe(0);
-    expect(result.totalParticipants).toBe(0);
-    expect(result.votesLastMinute).toBe(0);
-    expect(result.sessionTransitionsLastMinute).toBe(0);
-    expect(result.activeCountdownSessions).toBe(0);
-    expect(result.completedSessions).toBe(0);
-    expect(result.maxParticipantsSingleSession).toBe(0);
-    expect(result.dailyHighscores).toHaveLength(100);
-    expect(
-      result.dailyHighscores.every((entry) => entry.count === 0 && entry.updatedAt === null),
-    ).toBe(true);
-    expect(result.dailyHighscoresStatistics).toEqual({
-      median: 0,
-      standardDeviation: 0,
-      max: 0,
-    });
-    expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
-    expect(result.serviceStatus).toBe('stable');
-    expect(result.loadStatus).toBe('healthy');
-  });
+      expect(result.openSessions).toBe(0);
+      expect(result.activeSessions).toBe(0);
+      expect(result.totalParticipants).toBe(0);
+      expect(result.votesLastMinute).toBe(0);
+      expect(result.sessionTransitionsLastMinute).toBe(0);
+      expect(result.activeCountdownSessions).toBe(0);
+      expect(result.completedSessions).toBe(0);
+      expect(result.maxParticipantsSingleSession).toBe(0);
+      expect(result.dailyHighscores).toHaveLength(100);
+      expect(
+        result.dailyHighscores.every((entry) => entry.count === 0 && entry.updatedAt === null),
+      ).toBe(true);
+      expect(result.dailyHighscoresStatistics).toEqual({
+        median: 0,
+        standardDeviation: 0,
+        max: 0,
+      });
+      expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
+      expect(result.serviceStatus).toBe('stable');
+      expect(result.loadStatus).toBe('healthy');
+    },
+  );
 
-  it('liefert rollierende PDF-Ergebnis- und Ablehnungsmetriken nur authentifiziert', async () => {
-    vi.mocked(prisma.session.count).mockResolvedValue(0);
-    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
-    vi.mocked(readPdfSignals).mockResolvedValue({
-      completedLastMinute: 7,
-      failedLastMinute: 1,
-      rejectedLastMinute: 3,
-    });
+  trpcDodIt(
+    {
+      procedure: 'health.securityStats',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert rollierende PDF-Ergebnis- und Ablehnungsmetriken nur authentifiziert',
+    },
+    async () => {
+      vi.mocked(prisma.session.count).mockResolvedValue(0);
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+      vi.mocked(readPdfSignals).mockResolvedValue({
+        completedLastMinute: 7,
+        failedLastMinute: 1,
+        rejectedLastMinute: 3,
+      });
 
-    const result = await authenticatedCaller.securityStats(undefined);
+      const result = await authenticatedCaller.securityStats(undefined);
 
-    expect(result).toMatchObject({
-      databaseStatus: 'ok',
-      pdfActiveJobs: 0,
-      pdfMaxConcurrentJobs: 1,
-      pdfCompletedLastMinute: 7,
-      pdfFailedLastMinute: 1,
-      pdfRejectedLastMinute: 3,
-    });
-  });
+      expect(result).toMatchObject({
+        databaseStatus: 'ok',
+        pdfActiveJobs: 0,
+        pdfMaxConcurrentJobs: 1,
+        pdfCompletedLastMinute: 7,
+        pdfFailedLastMinute: 1,
+        pdfRejectedLastMinute: 3,
+      });
+    },
+  );
 
   it('meldet PostgreSQL-Ausfall im geschützten Diagnose-Snapshot', async () => {
     vi.mocked(prisma.$queryRawUnsafe).mockRejectedValue(new Error('database unavailable'));
@@ -504,11 +571,20 @@ describe('health.stats', () => {
     });
   });
 
-  it('verweigert health.securityStats ohne Diagnose-Secret', async () => {
-    await expect(caller.securityStats(undefined)).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-    });
-  });
+  trpcDodIt(
+    {
+      procedure: 'health.securityStats',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verweigert health.securityStats ohne Diagnose-Secret',
+    },
+    async () => {
+      await expect(caller.securityStats(undefined)).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+    },
+  );
 
   it('verweigert health.securityStats mit ungültigem Diagnose-Secret', async () => {
     await expect(invalidAdminCaller.securityStats(undefined)).rejects.toMatchObject({
@@ -796,35 +872,44 @@ describe('health.stats', () => {
     expect(result.activeBlitzRounds).toBe(2);
   });
 
-  it('nutzt DB-Statistiken weiter, wenn Redis-Scan fehlschlägt', async () => {
-    vi.mocked(getRedis).mockReturnValueOnce({
-      scan: vi.fn().mockRejectedValue(new Error('redis unavailable')),
-    } as unknown as Redis);
-    vi.mocked(prisma.session.count).mockResolvedValueOnce(6).mockResolvedValueOnce(11);
-    vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 's-1' }, { id: 's-2' }] as never);
-    vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(69);
-    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
-      new Map([
-        ['s-1', 40],
-        ['s-2', 29],
-      ]),
-    );
-    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
-      id: 'default',
-      updatedAt: new Date(),
-      maxParticipantsSingleSession: 120,
-      completedSessionsTotal: 0,
-    } as never);
+  trpcDodIt(
+    {
+      procedure: 'health.stats',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:REDIS_SCAN_FAILURE',
+      title: 'nutzt DB-Statistiken weiter, wenn Redis-Scan fehlschlägt',
+    },
+    async () => {
+      vi.mocked(getRedis).mockReturnValueOnce({
+        scan: vi.fn().mockRejectedValue(new Error('redis unavailable')),
+      } as unknown as Redis);
+      vi.mocked(prisma.session.count).mockResolvedValueOnce(6).mockResolvedValueOnce(11);
+      vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 's-1' }, { id: 's-2' }] as never);
+      vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(69);
+      vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+        new Map([
+          ['s-1', 40],
+          ['s-2', 29],
+        ]),
+      );
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+        id: 'default',
+        updatedAt: new Date(),
+        maxParticipantsSingleSession: 120,
+        completedSessionsTotal: 0,
+      } as never);
 
-    const result = await caller.stats(undefined);
+      const result = await caller.stats(undefined);
 
-    expect(result.openSessions).toBe(6);
-    expect(result.activeSessions).toBe(2);
-    expect(result.totalParticipants).toBe(69);
-    expect(result.completedSessions).toBe(11);
-    expect(result.activeBlitzRounds).toBe(0);
-    expect(result.maxParticipantsSingleSession).toBe(120);
-  });
+      expect(result.openSessions).toBe(6);
+      expect(result.activeSessions).toBe(2);
+      expect(result.totalParticipants).toBe(69);
+      expect(result.completedSessions).toBe(11);
+      expect(result.activeBlitzRounds).toBe(0);
+      expect(result.maxParticipantsSingleSession).toBe(120);
+    },
+  );
 
   it('nutzt monotone completedSessionsTotal auch wenn FINISHED-Zeilen sinken', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(0).mockResolvedValueOnce(11);

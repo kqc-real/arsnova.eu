@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -54,39 +55,47 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     prismaMock.participant.groupBy.mockResolvedValue([]);
   });
 
-  it('liefert aktuelle Frage mit Antwortoptionen und isCorrect', async () => {
-    const a1Id = 'aaaaaaaa-1111-4111-8111-111111111111';
-    const a2Id = 'bbbbbbbb-2222-4222-8222-222222222222';
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      quiz: {
-        questions: [
-          {
-            id: '11111111-1111-4111-8111-111111111111',
-            order: 0,
-            text: 'Was ist 2+2?',
-            type: 'SINGLE_CHOICE',
-            difficulty: 'MEDIUM',
-            answers: [
-              { id: a1Id, text: '3', isCorrect: false },
-              { id: a2Id, text: '4', isCorrect: true },
-            ],
-          },
-        ],
-      },
-      currentQuestion: 0,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getCurrentQuestionForHost',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert aktuelle Frage mit Antwortoptionen und isCorrect',
+    },
+    async () => {
+      const a1Id = 'aaaaaaaa-1111-4111-8111-111111111111';
+      const a2Id = 'bbbbbbbb-2222-4222-8222-222222222222';
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        quiz: {
+          questions: [
+            {
+              id: '11111111-1111-4111-8111-111111111111',
+              order: 0,
+              text: 'Was ist 2+2?',
+              type: 'SINGLE_CHOICE',
+              difficulty: 'MEDIUM',
+              answers: [
+                { id: a1Id, text: '3', isCorrect: false },
+                { id: a2Id, text: '4', isCorrect: true },
+              ],
+            },
+          ],
+        },
+        currentQuestion: 0,
+      });
 
-    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+      const result = await caller.getCurrentQuestionForHost({ code: CODE });
 
-    expect(result).not.toBeNull();
-    expect(result!.order).toBe(0);
-    expect(result!.text).toBe('Was ist 2+2?');
-    expect(result!.type).toBe('SINGLE_CHOICE');
-    expect(result!.answers).toHaveLength(2);
-    expect(result!.answers[0]).toEqual({ id: a1Id, text: '3', isCorrect: false });
-    expect(result!.answers[1]).toEqual({ id: a2Id, text: '4', isCorrect: true });
-  });
+      expect(result).not.toBeNull();
+      expect(result!.order).toBe(0);
+      expect(result!.text).toBe('Was ist 2+2?');
+      expect(result!.type).toBe('SINGLE_CHOICE');
+      expect(result!.answers).toHaveLength(2);
+      expect(result!.answers[0]).toEqual({ id: a1Id, text: '3', isCorrect: false });
+      expect(result!.answers[1]).toEqual({ id: a2Id, text: '4', isCorrect: true });
+    },
+  );
 
   it('skaliert den Host-Timer nach Schwierigkeitsgrad, wenn die Quiz-Option aktiv ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -309,37 +318,45 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     });
   });
 
-  it('liefert aktiven NUMERIC_ESTIMATE-Fortschritt ohne Rohwerte oder Histogramme zu laden', async () => {
-    const questionId = 'cccccccc-3333-4333-8333-333333333333';
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: CODE,
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-      quiz: {
-        questions: [
-          {
-            id: questionId,
-            order: 0,
-            type: 'NUMERIC_ESTIMATE',
-            answers: [],
-          },
-        ],
-      },
-    });
-    prismaMock.vote.count.mockResolvedValueOnce(17);
+  trpcDodIt(
+    {
+      procedure: 'session.getHostVoteProgress',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert aktiven NUMERIC_ESTIMATE-Fortschritt ohne Rohwerte oder Histogramme zu laden',
+    },
+    async () => {
+      const questionId = 'cccccccc-3333-4333-8333-333333333333';
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: CODE,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+        quiz: {
+          questions: [
+            {
+              id: questionId,
+              order: 0,
+              type: 'NUMERIC_ESTIMATE',
+              answers: [],
+            },
+          ],
+        },
+      });
+      prismaMock.vote.count.mockResolvedValueOnce(17);
 
-    const result = await caller.getHostVoteProgress({ code: CODE });
+      const result = await caller.getHostVoteProgress({ code: CODE });
 
-    expect(result).toEqual({
-      questionId,
-      questionOrder: 0,
-      round: 1,
-      totalVotes: 17,
-    });
-    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({
+        questionId,
+        questionOrder: 0,
+        round: 1,
+        totalVotes: 17,
+      });
+      expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+    },
+  );
 
   it('meldet dem Host noch antwortende Personen mit Zeitanpassung', async () => {
     const questionId = '11111111-1111-4111-8111-111111111111';
@@ -832,12 +849,37 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     ]);
   });
 
-  it('lehnt die Host-Abfrage ohne gültigen Token ab', async () => {
-    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+  trpcDodIt(
+    {
+      procedure: 'session.getCurrentQuestionForHost',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt die Host-Abfrage ohne gültigen Token ab',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
 
-    await expect(caller.getCurrentQuestionForHost({ code: CODE })).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Host-Session ungültig oder abgelaufen.',
-    });
-  });
+      await expect(caller.getCurrentQuestionForHost({ code: CODE })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Session ungültig oder abgelaufen.',
+      });
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getHostVoteProgress',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.getHostVoteProgress weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(caller.getHostVoteProgress({ code: CODE })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  },
+);

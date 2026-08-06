@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -97,23 +98,55 @@ describe('session.getQuizCollectionHistoryAvailability', () => {
     ]);
   });
 
-  it('liefert Verfügbarkeitsflags für Bonus-Codes und letzte Auswertung', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.session.findFirst
-      .mockResolvedValueOnce({ id: 'session-bonus' })
-      .mockResolvedValueOnce({ id: 'session-analysis' });
+  trpcDodIt(
+    {
+      procedure: 'session.getQuizCollectionHistoryAvailability',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Verfügbarkeitsflags für Bonus-Codes und letzte Auswertung',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findFirst
+        .mockResolvedValueOnce({ id: 'session-bonus' })
+        .mockResolvedValueOnce({ id: 'session-analysis' });
 
-    const result = await caller.getQuizCollectionHistoryAvailability([
-      { quizId: QUIZ_ID, accessProof },
-    ]);
+      const result = await caller.getQuizCollectionHistoryAvailability([
+        { quizId: QUIZ_ID, accessProof },
+      ]);
 
-    expect(result).toEqual([
-      {
-        quizId: QUIZ_ID,
-        hasBonusTokens: true,
-        hasLastSessionAnalysis: true,
-      },
-    ]);
-    expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
-  });
+      expect(result).toEqual([
+        {
+          quizId: QUIZ_ID,
+          hasBonusTokens: true,
+          hasLastSessionAnalysis: true,
+        },
+      ]);
+      expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getQuizCollectionHistoryAvailability',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine unbekannte Quiz-ID mit gueltigem Historienzugriff ab',
+  },
+  async () => {
+    vi.clearAllMocks();
+    prismaMock.quiz.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.getQuizCollectionHistoryAvailability([
+        {
+          quizId: QUIZ_ID,
+          accessProof: '22222222-2222-4222-8222-222222222222',
+        },
+      ]),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.session.findFirst).not.toHaveBeenCalled();
+  },
+);

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, invalidSessionCodeMock } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -9,10 +11,15 @@ const { prismaMock } = vi.hoisted(() => ({
       findMany: vi.fn(),
     },
   },
+  invalidSessionCodeMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -22,69 +29,78 @@ const caller = sessionRouter.createCaller({ req: undefined });
 describe('session.getLeaderboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
   });
 
-  it('zaehlt bei MULTIPLE_CHOICE nur vollständig korrekt beantwortete Fragen als "Richtig"', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      quiz: {
-        showLeaderboard: true,
-        questions: [{ type: 'MULTIPLE_CHOICE' }],
-      },
-      participants: [
-        { id: 'p1', nickname: 'Ada' },
+  trpcDodIt(
+    {
+      procedure: 'session.getLeaderboard',
+      case: 'happy',
+      mode: 'direct',
+      title: 'zaehlt bei MULTIPLE_CHOICE nur vollständig korrekt beantwortete Fragen als "Richtig"',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        quiz: {
+          showLeaderboard: true,
+          questions: [{ type: 'MULTIPLE_CHOICE' }],
+        },
+        participants: [
+          { id: 'p1', nickname: 'Ada' },
+          {
+            id: 'p2',
+            nickname: 'Bob',
+            team: { name: ':apple: Team Apfel', color: '#1E88E5' },
+          },
+        ],
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
         {
-          id: 'p2',
-          nickname: 'Bob',
-          team: { name: ':apple: Team Apfel', color: '#1E88E5' },
+          participantId: 'p1',
+          questionId: 'q1',
+          round: 1,
+          score: 2000,
+          responseTimeMs: 1000,
+          question: {
+            type: 'MULTIPLE_CHOICE',
+            answers: [
+              { id: 'a1', isCorrect: true },
+              { id: 'a2', isCorrect: true },
+              { id: 'a3', isCorrect: false },
+            ],
+          },
+          selectedAnswers: [{ answerOptionId: 'a1' }, { answerOptionId: 'a2' }],
         },
-      ],
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      {
-        participantId: 'p1',
-        questionId: 'q1',
-        round: 1,
-        score: 2000,
-        responseTimeMs: 1000,
-        question: {
-          type: 'MULTIPLE_CHOICE',
-          answers: [
-            { id: 'a1', isCorrect: true },
-            { id: 'a2', isCorrect: true },
-            { id: 'a3', isCorrect: false },
-          ],
+        {
+          participantId: 'p2',
+          questionId: 'q1',
+          round: 1,
+          score: 0,
+          responseTimeMs: 1200,
+          question: {
+            type: 'MULTIPLE_CHOICE',
+            answers: [
+              { id: 'a1', isCorrect: true },
+              { id: 'a2', isCorrect: true },
+              { id: 'a3', isCorrect: false },
+            ],
+          },
+          selectedAnswers: [{ answerOptionId: 'a1' }],
         },
-        selectedAnswers: [{ answerOptionId: 'a1' }, { answerOptionId: 'a2' }],
-      },
-      {
-        participantId: 'p2',
-        questionId: 'q1',
-        round: 1,
-        score: 0,
-        responseTimeMs: 1200,
-        question: {
-          type: 'MULTIPLE_CHOICE',
-          answers: [
-            { id: 'a1', isCorrect: true },
-            { id: 'a2', isCorrect: true },
-            { id: 'a3', isCorrect: false },
-          ],
-        },
-        selectedAnswers: [{ answerOptionId: 'a1' }],
-      },
-    ]);
+      ]);
 
-    const result = await caller.getLeaderboard({ code: 'ABC123' });
+      const result = await caller.getLeaderboard({ code: 'ABC123' });
 
-    expect(result).toEqual([
-      expect.objectContaining({
-        nickname: 'Ada',
-        correctCount: 1,
-        totalQuestions: 1,
-      }),
-    ]);
-  });
+      expect(result).toEqual([
+        expect.objectContaining({
+          nickname: 'Ada',
+          correctCount: 1,
+          totalQuestions: 1,
+        }),
+      ]);
+    },
+  );
 
   it('nutzt nur Antwortzeiten von positiv bewerteten Antworten als Tiebreaker', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -405,3 +421,23 @@ describe('session.getLeaderboard', () => {
     ]);
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getLeaderboard',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Reconnect-Enumerationsschutz',
+  },
+  async () => {
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.getLeaderboard({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
+  },
+);
