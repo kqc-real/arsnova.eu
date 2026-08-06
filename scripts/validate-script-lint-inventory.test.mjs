@@ -14,14 +14,29 @@ const inventory = {
   exceptions: [{ glob: 'scripts/generated/**', reason: 'generated fixture output' }],
   profiles: [
     { name: 'k6', include: ['scripts/load/k6-*.js'], exclude: [] },
-    { name: 'node', include: ['scripts/**'], exclude: ['scripts/load/k6-*.js'] },
-    { name: 'playwright-node', include: ['apps/frontend/scripts/**'], exclude: [] },
+    {
+      name: 'node',
+      include: ['scripts/**'],
+      exclude: ['scripts/load/k6-*.js', 'scripts/verify-csp-browser.mjs'],
+    },
+    {
+      name: 'playwright-node',
+      include: [
+        'apps/frontend/scripts/**',
+        'apps/landing/scripts/**',
+        'scripts/verify-csp-browser.mjs',
+      ],
+      exclude: [],
+    },
   ],
 };
 
 test('classifies k6 and Node scripts without overlapping globals', () => {
   assert.deepEqual(classifyFile('scripts/load/k6-health.js', inventory), ['k6']);
   assert.deepEqual(classifyFile('scripts/load/run-k6.mjs', inventory), ['node']);
+  assert.deepEqual(classifyFile('apps/landing/scripts/check-theme.mjs', inventory), [
+    'playwright-node',
+  ]);
 });
 
 test('recognizes a new script path without silently assigning a profile', () => {
@@ -162,6 +177,30 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
     ),
     false,
   );
+
+  const namedBrowserCallback = await eslint.lintText(
+    'const readLocation = () => window.location.href; page.waitForFunction(readLocation);',
+    { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
+  );
+  assert.equal(
+    namedBrowserCallback[0].messages.some(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    ),
+    false,
+  );
+
+  const shadowedCallbackName = await eslint.lintText(
+    'const readLocation = () => "ok"; { const readLocation = () => window.location.href; } page.waitForFunction(readLocation);',
+    { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
+  );
+  assert.equal(
+    shadowedCallbackName[0].messages.filter(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    ).length,
+    1,
+  );
 });
 
 test('Node scripts reject explicit globalThis browser-only access', async () => {
@@ -183,5 +222,41 @@ test('Node scripts reject explicit globalThis browser-only access', async () => 
       'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
       'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
     ],
+  );
+});
+
+test('Playwright callbacks outside frontend scripts include addInitScript', async () => {
+  const eslint = new ESLint({ ignore: false });
+  for (const [filePath, source] of [
+    [
+      'apps/landing/scripts/check-runtime.mjs',
+      'page.addInitScript(() => localStorage.setItem("theme", "dark"));',
+    ],
+    [
+      'scripts/verify-csp-browser.mjs',
+      'context.addInitScript(() => document.documentElement.dataset.test = "ok");',
+    ],
+  ]) {
+    const result = await eslint.lintText(source, { filePath });
+    assert.equal(
+      result[0].messages.some(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      ),
+      false,
+    );
+  }
+
+  const outsideCallback = await eslint.lintText('document.title = "no";', {
+    filePath: 'apps/landing/scripts/check-runtime.mjs',
+  });
+  assert.deepEqual(
+    outsideCallback[0].messages
+      .filter(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      )
+      .map((message) => message.message),
+    ['Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.'],
   );
 });
