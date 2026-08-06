@@ -759,8 +759,12 @@ trpcDodIt({
     assert.equal(run.status, 0, run.stderr || run.stdout);
     const report = JSON.parse(readFileSync(reportFile, 'utf8'));
     const healthCheck = report.procedures.find((procedure) => procedure.id === 'health.check');
-    assert.equal(healthCheck.evidence.happy.length, 1);
-    assert.deepEqual(healthCheck.missing, ['error']);
+    // `health.check` has one canonical happy-path proof; the temporary test file
+    // must add a second one although it lives outside `src/__tests__`.
+    assert.equal(healthCheck.evidence.happy.length, 2);
+    // The canonical test suite already proves the error path, so the combined
+    // report remains complete after adding the out-of-tree happy-path proof.
+    assert.deepEqual(healthCheck.missing, []);
   } finally {
     rmSync(evidenceFile, { force: true });
     rmSync(dir, { recursive: true, force: true });
@@ -1351,7 +1355,7 @@ test('changed incomplete procedure is an actionable Slice 2C gate violation', as
   }
 });
 
-test('real gate report is deterministic and unchanged legacy debt is non-blocking', () => {
+test('real gate report is deterministic and complete coverage has no legacy debt', () => {
   const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-'));
   try {
     const baseline = join(repoRoot, '.github/trpc-dod-baseline.json');
@@ -1367,22 +1371,25 @@ test('real gate report is deterministic and unchanged legacy debt is non-blockin
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
     assert.equal(report.summary.queriesMutations, 113);
-    assert.equal(report.summary.complete, 11);
-    assert.equal(report.summary.untested, 102);
-    assert.equal(report.summary.legacyProcedures, 102);
-    assert.equal(report.summary.legacyMissingDimensions, 204);
+    assert.equal(report.summary.complete, 113);
+    assert.equal(report.summary.untested, 0);
+    assert.equal(report.summary.legacyProcedures, 0);
+    assert.equal(report.summary.legacyMissingDimensions, 0);
     assert.equal(report.summary.newSinceBaseline, 0);
     assert.equal(report.summary.gateViolations, 0);
     assert.equal(report.summary.baselineChanges, 0);
     assert.equal(report.summary.structuralErrors, 0);
     assert.equal('integrity' in report.baseline, false);
-    const migrated = report.procedures.filter((procedure) =>
-      procedure.id.startsWith('admin.motd.'),
+    const queriesMutations = report.procedures.filter(
+      (procedure) => procedure.kind !== 'subscription',
     );
-    assert.equal(migrated.length, 11);
+    assert.equal(queriesMutations.length, 113);
     assert.ok(
-      migrated.every(
-        (procedure) => procedure.status === 'complete' && procedure.baseline?.legacyDebt === false,
+      queriesMutations.every(
+        (procedure) =>
+          procedure.status === 'complete' &&
+          procedure.missing.length === 0 &&
+          procedure.baseline?.legacyDebt === false,
       ),
     );
   } finally {
