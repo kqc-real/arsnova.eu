@@ -61,9 +61,12 @@ test('runtime profiles expose only their declared globals', async () => {
   );
   assert.deepEqual(
     playwrightResult[0].messages
-      .filter((message) => message.ruleId === 'no-undef')
+      .filter(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      )
       .map((message) => message.message),
-    ["'window' is not defined."],
+    ['Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.'],
   );
 
   const githubResult = await eslint.lintText('process.stdout.write("ok"); window.alert("no");', {
@@ -134,5 +137,51 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
         message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
     ),
     false,
+  );
+
+  const nestedBrowserCallback = await eslint.lintText(
+    'page.evaluate(() => [1].map(() => window.location.href));',
+    { filePath: 'apps/frontend/scripts/check-runtime.mts' },
+  );
+  assert.equal(
+    nestedBrowserCallback[0].messages.some(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    ),
+    false,
+  );
+
+  const browserJavaScriptCallback = await eslint.lintText(
+    'page.evaluate(() => window.location.href);',
+    { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
+  );
+  assert.equal(
+    browserJavaScriptCallback[0].messages.some(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    ),
+    false,
+  );
+});
+
+test('Node scripts reject explicit globalThis browser-only access', async () => {
+  const eslint = new ESLint({ ignore: false });
+  const result = await eslint.lintText(
+    'globalThis.window.alert("no"); globalThis.document.title;',
+    {
+      filePath: 'scripts/check-runtime.mts',
+    },
+  );
+  assert.deepEqual(
+    result[0].messages
+      .filter(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      )
+      .map((message) => message.message),
+    [
+      'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
+      'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
+    ],
   );
 });
