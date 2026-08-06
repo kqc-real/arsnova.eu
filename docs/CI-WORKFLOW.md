@@ -174,6 +174,9 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nach erfolgreichem `build`.
 - **Warum?** Verhindert sowohl neue Skript-Lintschuld als auch unbemerkte Lücken in
   der laufzeitspezifischen Inventur; der bestehende Check-Kontext bleibt unverändert.
+  Bei docs-only Änderungen wird das Anwendungs-Lint übersprungen, der
+  Required-Check-Validator läuft jedoch weiterhin, damit eine reine
+  Dokumentationsänderung die generierte Soll-/Ist-Darstellung nicht umgehen kann.
 
 ### 4.6 audit
 
@@ -484,29 +487,121 @@ Hinweise:
 
 ## 10) Branch Protection (Required Checks)
 
-Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Protection für `main` diese Checks als **required** gesetzt werden (GitHub-Display-Namen aus dem Workflow):
+Die kanonische Soll-Konfiguration steht ausschließlich in
+[`.github/required-checks.json`](../.github/required-checks.json). Der generierte
+Abschnitt unten trennt dieses Soll von der zuletzt ermittelten Ruleset-Momentaufnahme.
+`npm run validate:required-checks` prüft Manifest-Schema, Ruleset-Zuordnung,
+Workflow-Job-IDs, gerenderte Matrixnamen, mehrdeutige Produzenten und die
+Dokumentationssynchronität. Der PR-Validator verwendet keine Ruleset-API und benötigt
+keine administrativen Secrets.
 
-1. `Build & Validate (Node 22)`
-2. `Build & Validate (Node 24)`
-3. `Build Landing`
-4. `Changed Files Format`
-5. `Migration Drift`
-6. `lint`
-7. `Typecheck (workspaces)` (Matrix: Node 22 und 24)
-8. `Tests`
-9. `PDF/UA-1 Validation`
-10. `Lighthouse CI`
-11. `Playwright Smoke E2E`
-12. `Classroom Scenario Smokes`
-13. `Security Audit`
-14. `Trivy Filesystem Scan`
-15. `Trivy Image Scan`
-16. `Workflow Lint`
-17. `Dependency Review`
+### Owner-Abgleich und dauerhafter manueller Drift-Prozess
 
-Empfehlung: `deploy-freshness`, `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
+Verantwortlich ist eine Repository-Owner-Rolle mit `Administration: read`. Solange
+keine separat sicherheitsgeprüfte GitHub App mit dieser Leseberechtigung existiert,
+wird kein PAT oder langlebiges Administrationstoken im Repository hinterlegt. Der
+Owner führt den Abgleich mindestens am ersten Werktag jedes Monats sowie vor und nach
+jeder Ergänzung oder Umbenennung eines Required Checks aus:
+
+```bash
+gh api repos/kqc-real/arsnova.eu/rulesets --jq '.[].id' |
+  while read -r ruleset_id; do
+    gh api "repos/kqc-real/arsnova.eu/rulesets/$ruleset_id"
+  done | jq -s . > /tmp/arsnova-required-rulesets.json
+
+node scripts/validate-required-checks.mjs \
+  --live-rulesets /tmp/arsnova-required-rulesets.json
+```
+
+Zeitstempel, verwendeter Endpunkt und das Ergebnis werden ohne Tokens oder vollständige
+API-Antwort als Kommentar in #221 oder in einem dort verlinkten Admin-Run dokumentiert.
+Erst danach setzt der Owner `ownerVerification.status` auf `verified` und hinterlegt
+den Evidenzlink. Fehlende Leserechte oder Drift sind ein Fehler und dürfen nicht als
+Erfolg dokumentiert werden.
+
+Bei einer Umbenennung gilt diese Reihenfolge:
+
+1. Neuen Checknamen im Workflow zusätzlich verfügbar machen.
+2. Neuen Kontext im Ruleset ergänzen und einen erfolgreichen Lauf abwarten.
+3. Alten Kontext erst danach aus Ruleset und Workflow entfernen.
+
+`deploy-freshness`, `deploy`, `post-deploy-smoke` und
+`rollback-on-smoke-failure` bleiben außerhalb der PR-Required-Checks, weil sie nur im
+Push-/Release-Pfad sinnvoll sind.
 
 **Docs-only und Ruleset:** GitHub-Rulesets können Pflicht-Checks nicht pfadabhängig ausnehmen. Stattdessen melden docs-only-PRs dieselben Check-Namen per **Fast Pass** (Job läuft, schwere Steps werden übersprungen) als `success` — so bleibt das Ruleset für Code-PRs streng, Doku-PRs bleiben mergebar.
+
+<!-- required-checks:start -->
+
+## Required Checks: Soll-Konfiguration und Ist-Snapshot
+
+Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.json), Zielbranch `main`.
+
+### Kanonische Soll-Konfiguration
+
+| Kontext                        | Ruleset        | Quelle                                                                                       | Zweck                                                                     |
+| ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Build & Validate (Node 22)     | CI-CD          | workflow: .github/workflows/ci.yml#build                                                     | Build und Produktionsvalidierung auf der unterstützten Node-22-Linie.     |
+| Build & Validate (Node 24)     | CI-CD          | workflow: .github/workflows/ci.yml#build                                                     | Build und lokalisierter Produktionsbuild auf Node 24.                     |
+| Build Landing                  | CI-CD          | workflow: .github/workflows/ci.yml#landing-build, .github/workflows/deploy-landing.yml#build | Produktionsbuild und Accessibility-Prüfung der Landingpage.               |
+| Changed Files Format           | CI-CD          | workflow: .github/workflows/ci.yml#format                                                    | Prettier-Gate für geänderte Dateien.                                      |
+| Classroom Scenario Smokes      | CI-CD          | workflow: .github/workflows/ci.yml#classroom-smokes                                          | Reale Unterrichtsszenarien gegen Backend und Realtime-Pfade.              |
+| CodeQL (JavaScript/TypeScript) | CI-CD          | workflow: .github/workflows/codeql.yml#analyze                                               | SAST für JavaScript und TypeScript.                                       |
+| Dependency Review              | CI-CD          | workflow: .github/workflows/ci.yml#dependency-review                                         | Blockiert riskante Abhängigkeitsänderungen in Pull Requests.              |
+| Docker Build                   | CI-CD          | workflow: .github/workflows/ci.yml#docker                                                    | Produktionsimage und Compose-Runtime-Smokes.                              |
+| Lighthouse CI                  | CI-CD          | workflow: .github/workflows/ci.yml#lighthouse                                                | Performance- und Accessibility-Budgets im Browser.                        |
+| lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                                                      | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
+| Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                                                 | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
+| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                                                       | End-to-End-, axe-, Reflow- und Fokus-Smokes.                              |
+| PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body                            | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
+| Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                                                     | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
+| Tests                          | CI-CD          | workflow: .github/workflows/ci.yml#test                                                      | Workspace-Tests mit absoluten Coverage-Gates.                             |
+| Trivy Filesystem Scan          | CI-CD          | workflow: .github/workflows/ci.yml#trivy-fs                                                  | Filesystem-Scan auf High- und Critical-Befunde.                           |
+| Trivy Image Scan               | CI-CD          | workflow: .github/workflows/ci.yml#trivy-image                                               | Scan des später veröffentlichten Produktionsimages.                       |
+| Typecheck (workspaces) (22)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                                                 | Workspace-Typecheck auf der unterstützten Node-22-Linie.                  |
+| Typecheck (workspaces) (24)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                                                 | Workspace-Typecheck auf Node 24.                                          |
+| Workflow Lint                  | CI-CD          | workflow: .github/workflows/ci.yml#actionlint                                                | Workflow-, Operations-, Deployment- und Monitoring-Validatoren.           |
+
+### Ermittelte Ruleset-Momentaufnahme
+
+Status: **pending** · Erfasst: 2026-08-06T14:49:45Z · Endpunkt: `GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id}` · Erfassung: `coding-agent-read-only-snapshot`.
+
+| Ruleset                   | Required Context               |
+| ------------------------- | ------------------------------ |
+| CI-CD (18572555)          | Build & Validate (Node 22)     |
+| CI-CD (18572555)          | Build & Validate (Node 24)     |
+| CI-CD (18572555)          | Build Landing                  |
+| CI-CD (18572555)          | Changed Files Format           |
+| CI-CD (18572555)          | Classroom Scenario Smokes      |
+| CI-CD (18572555)          | CodeQL (JavaScript/TypeScript) |
+| CI-CD (18572555)          | Dependency Review              |
+| CI-CD (18572555)          | Docker Build                   |
+| CI-CD (18572555)          | Lighthouse CI                  |
+| CI-CD (18572555)          | lint                           |
+| CI-CD (18572555)          | Migration Drift                |
+| CI-CD (18572555)          | Playwright Smoke E2E           |
+| CI-CD (18572555)          | Security Audit                 |
+| CI-CD (18572555)          | Tests                          |
+| CI-CD (18572555)          | Trivy Filesystem Scan          |
+| CI-CD (18572555)          | Trivy Image Scan               |
+| CI-CD (18572555)          | Typecheck (workspaces) (22)    |
+| CI-CD (18572555)          | Typecheck (workspaces) (24)    |
+| CI-CD (18572555)          | Workflow Lint                  |
+| main protected (13010249) | PR-Template vollständig        |
+
+### Sichtbare, derzeit nicht required gesetzte Workflow-Kontexte
+
+| Kontext             | Quelle                         | Begründung                                                                                                                                              |
+| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PDF/UA-1 Validation | .github/workflows/ci.yml#pdfua | Im read-only Snapshot vom 06.08.2026 nicht als Required Check enthalten; die Abweichung zum Audittext muss der Owner im 4B-Checkpoint bewusst auflösen. |
+
+### Offene Beobachtungen für den Owner-Checkpoint
+
+- Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.
+- Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.
+- PDF/UA-1 Validation läuft blockierend in CI, fehlt aber im erfassten Live-Ruleset; Audittext und Live-Stand widersprechen sich hier.
+
+<!-- required-checks:end -->
 
 ---
 

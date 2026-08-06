@@ -1,0 +1,246 @@
+{
+  "$schema": "./required-checks.schema.json",
+  "version": 1,
+  "targetBranch": "main",
+  "ownerVerification": {
+    "status": "pending",
+    "capturedAt": "2026-08-06T14:49:45Z",
+    "endpoint": "GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id}",
+    "capturedBy": "coding-agent-read-only-snapshot",
+    "evidence": null
+  },
+  "rulesets": [
+    {
+      "name": "CI-CD",
+      "id": 18572555,
+      "contexts": [
+        "Build & Validate (Node 22)",
+        "Build & Validate (Node 24)",
+        "Build Landing",
+        "Changed Files Format",
+        "Classroom Scenario Smokes",
+        "CodeQL (JavaScript/TypeScript)",
+        "Dependency Review",
+        "Docker Build",
+        "Lighthouse CI",
+        "Migration Drift",
+        "Playwright Smoke E2E",
+        "Security Audit",
+        "Tests",
+        "Trivy Filesystem Scan",
+        "Trivy Image Scan",
+        "Typecheck (workspaces) (22)",
+        "Typecheck (workspaces) (24)",
+        "Workflow Lint",
+        "lint"
+      ]
+    },
+    {
+      "name": "main protected",
+      "id": 13010249,
+      "contexts": ["PR-Template vollständig"]
+    }
+  ],
+  "checks": [
+    {
+      "context": "Build & Validate (Node 22)",
+      "ruleset": "CI-CD",
+      "purpose": "Build und Produktionsvalidierung auf der unterstützten Node-22-Linie.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "build" }]
+      }
+    },
+    {
+      "context": "Build & Validate (Node 24)",
+      "ruleset": "CI-CD",
+      "purpose": "Build und lokalisierter Produktionsbuild auf Node 24.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "build" }]
+      }
+    },
+    {
+      "context": "Build Landing",
+      "ruleset": "CI-CD",
+      "purpose": "Produktionsbuild und Accessibility-Prüfung der Landingpage.",
+      "source": {
+        "type": "workflow",
+        "producers": [
+          { "workflow": ".github/workflows/ci.yml", "job": "landing-build" },
+          { "workflow": ".github/workflows/deploy-landing.yml", "job": "build" }
+        ]
+      }
+    },
+    {
+      "context": "Changed Files Format",
+      "ruleset": "CI-CD",
+      "purpose": "Prettier-Gate für geänderte Dateien.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "format" }]
+      }
+    },
+    {
+      "context": "Classroom Scenario Smokes",
+      "ruleset": "CI-CD",
+      "purpose": "Reale Unterrichtsszenarien gegen Backend und Realtime-Pfade.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "classroom-smokes" }]
+      }
+    },
+    {
+      "context": "CodeQL (JavaScript/TypeScript)",
+      "ruleset": "CI-CD",
+      "purpose": "SAST für JavaScript und TypeScript.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/codeql.yml", "job": "analyze" }]
+      }
+    },
+    {
+      "context": "Dependency Review",
+      "ruleset": "CI-CD",
+      "purpose": "Blockiert riskante Abhängigkeitsänderungen in Pull Requests.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "dependency-review" }]
+      }
+    },
+    {
+      "context": "Docker Build",
+      "ruleset": "CI-CD",
+      "purpose": "Produktionsimage und Compose-Runtime-Smokes.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "docker" }]
+      }
+    },
+    {
+      "context": "Lighthouse CI",
+      "ruleset": "CI-CD",
+      "purpose": "Performance- und Accessibility-Budgets im Browser.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "lighthouse" }]
+      }
+    },
+    {
+      "context": "Migration Drift",
+      "ruleset": "CI-CD",
+      "purpose": "Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "migration" }]
+      }
+    },
+    {
+      "context": "Playwright Smoke E2E",
+      "ruleset": "CI-CD",
+      "purpose": "End-to-End-, axe-, Reflow- und Fokus-Smokes.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "e2e" }]
+      }
+    },
+    {
+      "context": "Security Audit",
+      "ruleset": "CI-CD",
+      "purpose": "Produktionsabhängigkeits-Audit und SBOM-Erzeugung.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "audit" }]
+      }
+    },
+    {
+      "context": "Tests",
+      "ruleset": "CI-CD",
+      "purpose": "Workspace-Tests mit absoluten Coverage-Gates.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "test" }]
+      }
+    },
+    {
+      "context": "Trivy Filesystem Scan",
+      "ruleset": "CI-CD",
+      "purpose": "Filesystem-Scan auf High- und Critical-Befunde.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "trivy-fs" }]
+      }
+    },
+    {
+      "context": "Trivy Image Scan",
+      "ruleset": "CI-CD",
+      "purpose": "Scan des später veröffentlichten Produktionsimages.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "trivy-image" }]
+      }
+    },
+    {
+      "context": "Typecheck (workspaces) (22)",
+      "ruleset": "CI-CD",
+      "purpose": "Workspace-Typecheck auf der unterstützten Node-22-Linie.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "typecheck" }]
+      }
+    },
+    {
+      "context": "Typecheck (workspaces) (24)",
+      "ruleset": "CI-CD",
+      "purpose": "Workspace-Typecheck auf Node 24.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "typecheck" }]
+      }
+    },
+    {
+      "context": "Workflow Lint",
+      "ruleset": "CI-CD",
+      "purpose": "Workflow-, Operations-, Deployment- und Monitoring-Validatoren.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "actionlint" }]
+      }
+    },
+    {
+      "context": "lint",
+      "ruleset": "CI-CD",
+      "purpose": "Anwendungs- und laufzeitspezifisches Skript-Linting.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "lint" }]
+      }
+    },
+    {
+      "context": "PR-Template vollständig",
+      "ruleset": "main protected",
+      "purpose": "Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review.",
+      "source": {
+        "type": "workflow",
+        "producers": [
+          { "workflow": ".github/workflows/pr-template-gate.yml", "job": "validate-pr-body" }
+        ]
+      }
+    }
+  ],
+  "nonRequiredWorkflowChecks": [
+    {
+      "context": "PDF/UA-1 Validation",
+      "reason": "Im read-only Snapshot vom 06.08.2026 nicht als Required Check enthalten; die Abweichung zum Audittext muss der Owner im 4B-Checkpoint bewusst auflösen.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "pdfua" }]
+      }
+    }
+  ],
+  "observations": [
+    "Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.",
+    "Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.",
+    "PDF/UA-1 Validation läuft blockierend in CI, fehlt aber im erfassten Live-Ruleset; Audittext und Live-Stand widersprechen sich hier."
+  ]
+}
