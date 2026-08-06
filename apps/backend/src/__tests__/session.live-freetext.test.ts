@@ -303,10 +303,17 @@ trpcDodIt(
     case: 'error',
     mode: 'direct',
     contract: 'VALIDATION',
-    title: 'session.getActiveQuizIds weist ungültige Eingaben vor dem Resolver zurück',
+    title: 'weist einen Eintrag mit ungueltiger Quiz-ID vor dem zugriffsgefilterten Resolver ab',
   },
   async () => {
-    await expect(caller.getActiveQuizIds({} as never)).rejects.toMatchObject({
+    await expect(
+      caller.getActiveQuizIds([
+        {
+          quizId: 'keine-uuid',
+          accessProof: '11111111-1111-4111-8111-111111111111',
+        },
+      ]),
+    ).rejects.toMatchObject({
       code: 'BAD_REQUEST',
     });
   },

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, invalidSessionCodeMock } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -10,10 +11,15 @@ const { prismaMock } = vi.hoisted(() => ({
       findMany: vi.fn(),
     },
   },
+  invalidSessionCodeMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -23,6 +29,7 @@ const caller = sessionRouter.createCaller({ req: undefined });
 describe('session.getLeaderboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
   });
 
   trpcDodIt(
@@ -420,10 +427,17 @@ trpcDodIt(
     procedure: 'session.getLeaderboard',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getLeaderboard weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Reconnect-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getLeaderboard({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.getLeaderboard({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
   },
 );

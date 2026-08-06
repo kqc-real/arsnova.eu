@@ -59,9 +59,10 @@ describe('session.getInfo (ADR-0009)', () => {
   trpcDodIt(
     {
       procedure: 'session.getInfoForReconnect',
-      case: 'happy',
+      case: 'error',
       mode: 'direct',
-      title: 'klassifiziert den getrennten Fallback-Pfad als Poll/Reconnect',
+      contract: 'NOT_FOUND',
+      title: 'klassifiziert einen unbekannten Code als Poll/Reconnect',
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue(null);
@@ -78,6 +79,43 @@ describe('session.getInfo (ADR-0009)', () => {
         'BAD999',
         'pollReconnect',
       );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getInfoForReconnect',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Kanalinformationen fuer eine bestehende Q&A-Session beim Reconnect',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: 'ABC123',
+        type: 'Q_AND_A',
+        status: 'LOBBY',
+        title: 'Offene Fragerunde',
+        quizId: null,
+        moderationMode: true,
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Offene Fragerunde',
+        qaModerationMode: true,
+        quickFeedbackEnabled: false,
+        quickFeedbackOpen: false,
+        _count: { participants: 3 },
+      });
+
+      const result = await caller.getInfoForReconnect({ code: 'ABC123' });
+
+      expect(result).toMatchObject({
+        code: 'ABC123',
+        channels: {
+          qa: { enabled: true, open: true, title: 'Offene Fragerunde' },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
     },
   );
 
@@ -362,25 +400,18 @@ trpcDodIt(
     procedure: 'session.getInfo',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getInfo weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet unbekannte Codes ueber den Lookup-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getInfo({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
-  },
-);
+    vi.clearAllMocks();
+    resetSessionReadCachesForTests();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
 
-trpcDodIt(
-  {
-    procedure: 'session.getInfoForReconnect',
-    case: 'error',
-    mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getInfoForReconnect weist ungültige Eingaben vor dem Resolver zurück',
-  },
-  async () => {
-    await expect(caller.getInfoForReconnect({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    await expect(caller.getInfo({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'lookup');
   },
 );

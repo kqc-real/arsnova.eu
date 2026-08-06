@@ -1063,11 +1063,17 @@ trpcDodIt(
     procedure: 'qa.upvote',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'qa.upvote weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine nicht vorhandene Frage mit gueltigem Upvote-Input ab',
   },
   async () => {
-    await expect(caller.upvote({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+    prismaMock.qaQuestion.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.upvote({ questionId: QUESTION_ID, participantId: PARTICIPANT_ID }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.participant.findUnique).not.toHaveBeenCalled();
   },
 );
 

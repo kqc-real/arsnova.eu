@@ -505,12 +505,26 @@ trpcDodIt(
     procedure: 'session.confirmReadingReady',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.confirmReadingReady weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine Teilnahme ab, die nicht zur Session gehoert',
   },
   async () => {
-    await expect(caller.confirmReadingReady({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      participants: [],
+      quiz: { questions: [{ id: QUESTION_ID }] },
     });
+
+    await expect(
+      caller.confirmReadingReady({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+        questionId: QUESTION_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(readingReadyMocks.markParticipantReadingReady).not.toHaveBeenCalled();
   },
 );

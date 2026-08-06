@@ -281,12 +281,25 @@ trpcDodIt(
     procedure: 'session.getPersonalScorecard',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getPersonalScorecard weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine gueltige Anfrage ohne Quiz-Frage ab',
   },
   async () => {
-    await expect(caller.getPersonalScorecard({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'RESULTS',
+      quiz: { questions: [] },
+      participants: [],
     });
+
+    await expect(
+      caller.getPersonalScorecard({
+        code: 'ABC123',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        questionIndex: 0,
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.vote.findUnique).not.toHaveBeenCalled();
   },
 );

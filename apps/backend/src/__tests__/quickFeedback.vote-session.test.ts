@@ -1515,11 +1515,26 @@ trpcDodIt(
     procedure: 'quickFeedback.end',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'quickFeedback.end weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'UNAUTHORIZED',
+    title: 'schuetzt eine sessiongebundene Runde vor Enden ohne Host-Token',
   },
   async () => {
-    await expect(hostCaller.end({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+      }),
+    );
+    extractHostTokenMock.mockReturnValue(null);
+
+    await expect(hostCaller.end({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    expect(redisMock.multi).not.toHaveBeenCalled();
   },
 );
 
@@ -1528,13 +1543,26 @@ trpcDodIt(
     procedure: 'quickFeedback.hostResults',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'quickFeedback.hostResults weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'UNAUTHORIZED',
+    title: 'schuetzt die Host-Ergebnisse einer sessiongebundenen Runde ohne Host-Token',
   },
   async () => {
-    await expect(hostCaller.hostResults({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+      }),
+    );
+    extractHostTokenMock.mockReturnValue(null);
+
+    await expect(hostCaller.hostResults({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
     });
+    expect(redisMock.hgetall).not.toHaveBeenCalled();
   },
 );
 
@@ -1543,13 +1571,19 @@ trpcDodIt(
     procedure: 'quickFeedback.isActiveForReconnect',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'quickFeedback.isActiveForReconnect weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen fehlenden Session-Code ueber den Reconnect-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.isActiveForReconnect({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(null);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    rejectInvalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.isActiveForReconnect({ sessionCode: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
   },
 );
 
@@ -1559,10 +1593,15 @@ trpcDodIt(
     case: 'error',
     mode: 'direct',
     contract: 'VALIDATION',
-    title: 'quickFeedback.leaveTempo weist ungültige Eingaben vor dem Resolver zurück',
+    title: 'weist eine syntaktisch ungueltige Teilnehmer-ID vor dem idempotenten Resolver ab',
   },
   async () => {
-    await expect(caller.leaveTempo({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+
+    await expect(
+      caller.leaveTempo({ sessionCode: 'ABC123', voterId: 'keine-uuid' }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(redisMock.eval).not.toHaveBeenCalled();
   },
 );
 
@@ -1571,10 +1610,16 @@ trpcDodIt(
     procedure: 'quickFeedback.results',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'quickFeedback.results weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'meldet eine abgelaufene Feedback-Runde nach gueltigem Lookup als nicht gefunden',
   },
   async () => {
-    await expect(caller.results({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(null);
+    redisMock.exists.mockResolvedValue(1);
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   },
 );

@@ -1,37 +1,41 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks, joinAdmissionMocks } = vi.hoisted(() => ({
-  prismaMock: {
-    session: {
-      findUnique: vi.fn(),
+const { prismaMock, hostAuthMocks, joinAdmissionMocks, invalidSessionCodeMock } = vi.hoisted(
+  () => ({
+    prismaMock: {
+      session: {
+        findUnique: vi.fn(),
+      },
+      team: {
+        findMany: vi.fn(),
+        createMany: vi.fn(),
+      },
+      participant: {
+        create: vi.fn(),
+        count: vi.fn(),
+        findMany: vi.fn(),
+      },
+      vote: {
+        findMany: vi.fn(),
+      },
+      qaQuestion: {
+        findMany: vi.fn(),
+      },
+      $executeRaw: vi.fn().mockResolvedValue(1),
     },
-    team: {
-      findMany: vi.fn(),
-      createMany: vi.fn(),
+    hostAuthMocks: {
+      extractHostTokenMock: vi.fn(),
+      extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
+      isHostSessionTokenValidMock: vi.fn(),
     },
-    participant: {
-      create: vi.fn(),
-      count: vi.fn(),
-      findMany: vi.fn(),
+    joinAdmissionMocks: {
+      awaitJoinAdmissionSlot: vi.fn(),
     },
-    vote: {
-      findMany: vi.fn(),
-    },
-    qaQuestion: {
-      findMany: vi.fn(),
-    },
-    $executeRaw: vi.fn().mockResolvedValue(1),
-  },
-  hostAuthMocks: {
-    extractHostTokenMock: vi.fn(),
-    extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
-    isHostSessionTokenValidMock: vi.fn(),
-  },
-  joinAdmissionMocks: {
-    awaitJoinAdmissionSlot: vi.fn(),
-  },
-}));
+    invalidSessionCodeMock: vi.fn(),
+  }),
+);
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -54,6 +58,10 @@ vi.mock('../lib/joinAdmission', () => ({
   awaitJoinAdmissionSlot: joinAdmissionMocks.awaitJoinAdmissionSlot,
 }));
 
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMock,
+}));
+
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
@@ -70,6 +78,7 @@ describe('session team mode (Story 7.1)', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
@@ -664,13 +673,18 @@ trpcDodIt(
     procedure: 'session.getTeamLeaderboard',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getTeamLeaderboard weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Reconnect-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getTeamLeaderboard({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.getTeamLeaderboard({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
   },
 );
 
@@ -679,10 +693,17 @@ trpcDodIt(
     procedure: 'session.getTeams',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getTeams weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Lookup-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getTeams({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.getTeams({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'lookup');
   },
 );

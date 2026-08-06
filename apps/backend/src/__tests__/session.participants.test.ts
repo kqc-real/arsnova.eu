@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TRPCError } from '@trpc/server';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks, presenceMocks } = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, presenceMocks, invalidSessionCodeMock } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -22,6 +23,7 @@ const { prismaMock, hostAuthMocks, presenceMocks } = vi.hoisted(() => ({
     getActiveParticipantCountForSession: vi.fn(),
     removeParticipantPresence: vi.fn(),
   },
+  invalidSessionCodeMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -33,6 +35,10 @@ vi.mock('../lib/presence', () => ({
   getActiveParticipantIdsForSession: vi.fn(),
   removeParticipantPresence: presenceMocks.removeParticipantPresence,
   touchParticipantPresence: vi.fn(),
+}));
+
+vi.mock('../lib/invalidSessionCode', () => ({
+  rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
 vi.mock('../lib/hostAuth', async () => {
@@ -62,6 +68,7 @@ describe('session participant access (Story 2.2)', () => {
     resetSessionReadCachesForTests();
     presenceMocks.getActiveParticipantCountForSession.mockResolvedValue(0);
     presenceMocks.removeParticipantPresence.mockResolvedValue(undefined);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -461,13 +468,19 @@ trpcDodIt(
     procedure: 'session.getParticipantNicknames',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getParticipantNicknames weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Lookup-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getParticipantNicknames({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    resetParticipantNicknameCacheForTests();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.getParticipantNicknames({ code: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'lookup');
   },
 );
 
@@ -476,13 +489,23 @@ trpcDodIt(
     procedure: 'session.getParticipantSelf',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.getParticipantSelf weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen unbekannten Code ueber den Reconnect-Enumerationsschutz',
   },
   async () => {
-    await expect(caller.getParticipantSelf({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(
+      caller.getParticipantSelf({
+        code: 'BAD999',
+        participantId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
   },
 );
 
@@ -492,12 +515,18 @@ trpcDodIt(
     case: 'error',
     mode: 'direct',
     contract: 'VALIDATION',
-    title: 'session.markParticipantOffline weist ungültige Eingaben vor dem Resolver zurück',
+    title: 'weist einen syntaktisch ungueltigen Session-Code vor dem idempotenten Resolver ab',
   },
   async () => {
-    await expect(caller.markParticipantOffline({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
+    vi.clearAllMocks();
+
+    await expect(
+      caller.markParticipantOffline({
+        code: 'BAD',
+        participantId: '11111111-1111-4111-8111-111111111111',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
   },
 );
 
@@ -506,12 +535,22 @@ trpcDodIt(
     procedure: 'session.setTimerAccommodation',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title: 'session.setTimerAccommodation weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine Teilnahme ab, die nicht zur angegebenen Session gehört',
   },
   async () => {
-    await expect(caller.setTimerAccommodation({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    vi.clearAllMocks();
+    prismaMock.participant.findFirst.mockResolvedValue(null);
+
+    await expect(
+      caller.setTimerAccommodation({
+        code: 'ABC123',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        accommodation: 'OFF',
+      }),
+    ).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
   },
 );
