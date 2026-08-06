@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, checkVoteRateMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -116,39 +117,47 @@ describe('vote.submit', () => {
     );
   });
 
-  it('berechnet Punkte bei korrekter SINGLE_CHOICE-Antwort', async () => {
-    prismaMock.question.findFirst.mockResolvedValue({
-      id: 'question-1',
-      quizId: 'quiz-1',
-      type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
-      shortTextMaxLength: null,
-      shortTextCaseSensitive: false,
-      ratingMin: null,
-      ratingMax: null,
-      answers: [
-        { id: ANSWER_ID_1, text: '4', isCorrect: true },
-        { id: ANSWER_ID_2, text: '5', isCorrect: false },
-      ],
-    });
+  trpcDodIt(
+    {
+      procedure: 'vote.submit',
+      case: 'happy',
+      mode: 'direct',
+      title: 'berechnet Punkte bei korrekter SINGLE_CHOICE-Antwort',
+    },
+    async () => {
+      prismaMock.question.findFirst.mockResolvedValue({
+        id: 'question-1',
+        quizId: 'quiz-1',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        shortTextMaxLength: null,
+        shortTextCaseSensitive: false,
+        ratingMin: null,
+        ratingMax: null,
+        answers: [
+          { id: ANSWER_ID_1, text: '4', isCorrect: true },
+          { id: ANSWER_ID_2, text: '5', isCorrect: false },
+        ],
+      });
 
-    await caller.submit({
-      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
-      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
-      answerIds: [ANSWER_ID_1],
-    });
+      await caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+      });
 
-    expect(prismaMock.vote.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          score: 2000,
-          streakCount: 1,
-          streakBonus: 1.0,
+      expect(prismaMock.vote.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            score: 2000,
+            streakCount: 1,
+            streakBonus: 1.0,
+          }),
         }),
-      }),
-    );
-  });
+      );
+    },
+  );
 
   it('spart bei der ersten Frage Streak- und Idempotenz-Vorabfragen', async () => {
     prismaMock.question.findFirst.mockResolvedValue({
@@ -483,60 +492,69 @@ describe('vote.submit', () => {
     );
   });
 
-  it('lehnt Timer-Votes nach Ergebnisfreigabe ausserhalb der Grace-Period ab', async () => {
-    const activeAt = new Date('2026-05-24T10:00:00.000Z');
-    const resultsAt = new Date('2026-05-24T10:00:10.500Z');
-    const nowSpy = vi
-      .spyOn(Date, 'now')
-      .mockReturnValue(new Date('2026-05-24T10:00:12.001Z').getTime());
-    prismaMock.participant.findFirst.mockResolvedValue({
-      id: 'participant-1',
-      sessionId: 'session-1',
-      session: {
-        status: 'RESULTS',
+  trpcDodIt(
+    {
+      procedure: 'vote.submit',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Timer-Votes nach Ergebnisfreigabe ausserhalb der Grace-Period ab',
+    },
+    async () => {
+      const activeAt = new Date('2026-05-24T10:00:00.000Z');
+      const resultsAt = new Date('2026-05-24T10:00:10.500Z');
+      const nowSpy = vi
+        .spyOn(Date, 'now')
+        .mockReturnValue(new Date('2026-05-24T10:00:12.001Z').getTime());
+      prismaMock.participant.findFirst.mockResolvedValue({
+        id: 'participant-1',
+        sessionId: 'session-1',
+        session: {
+          status: 'RESULTS',
+          quizId: 'quiz-1',
+          currentQuestion: 0,
+          currentRound: 1,
+          statusChangedAt: resultsAt,
+          activeQuestionStartedAt: activeAt,
+        },
+      });
+      prismaMock.quiz.findUnique.mockResolvedValue({
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+      });
+      prismaMock.question.findFirst.mockResolvedValue({
+        id: 'question-1',
+        order: 0,
         quizId: 'quiz-1',
-        currentQuestion: 0,
-        currentRound: 1,
-        statusChangedAt: resultsAt,
-        activeQuestionStartedAt: activeAt,
-      },
-    });
-    prismaMock.quiz.findUnique.mockResolvedValue({
-      defaultTimer: null,
-      timerScaleByDifficulty: true,
-    });
-    prismaMock.question.findFirst.mockResolvedValue({
-      id: 'question-1',
-      order: 0,
-      quizId: 'quiz-1',
-      type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
-      timer: 10,
-      shortTextMaxLength: null,
-      shortTextCaseSensitive: false,
-      ratingMin: null,
-      ratingMax: null,
-      answers: [
-        { id: ANSWER_ID_1, text: 'A', isCorrect: true },
-        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
-      ],
-    });
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        timer: 10,
+        shortTextMaxLength: null,
+        shortTextCaseSensitive: false,
+        ratingMin: null,
+        ratingMax: null,
+        answers: [
+          { id: ANSWER_ID_1, text: 'A', isCorrect: true },
+          { id: ANSWER_ID_2, text: 'B', isCorrect: false },
+        ],
+      });
 
-    try {
-      await expect(
-        caller.submit({
-          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-          participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
-          questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
-          answerIds: [ANSWER_ID_1],
-        }),
-      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
-    } finally {
-      nowSpy.mockRestore();
-    }
+      try {
+        await expect(
+          caller.submit({
+            sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+            participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+            questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+            answerIds: [ANSWER_ID_1],
+          }),
+        ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      } finally {
+        nowSpy.mockRestore();
+      }
 
-    expect(prismaMock.vote.create).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.vote.create).not.toHaveBeenCalled();
+    },
+  );
 
   it('lehnt Timer-Votes nach vorzeitiger Ergebnisfreigabe trotz rechnerischer Grace-Period ab', async () => {
     const activeAt = new Date('2026-05-24T10:00:00.000Z');

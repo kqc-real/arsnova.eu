@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { TRPCError } from '@trpc/server';
 
 const {
@@ -204,26 +205,34 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
   });
 
-  it('liefert aktive Standalone-Runden ohne Session-Nachschlag', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'YESNO',
-        locked: false,
-        totalVotes: 0,
-        distribution: { YES: 0, NO: 0, MAYBE: 0 },
-        sessionBound: false,
-      }),
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.isActive',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert aktive Standalone-Runden ohne Session-Nachschlag',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          totalVotes: 0,
+          distribution: { YES: 0, NO: 0, MAYBE: 0 },
+          sessionBound: false,
+        }),
+      );
 
-    await expect(
-      caller.isActive({
-        sessionCode: 'ABC123',
-      }),
-    ).resolves.toEqual({ active: true });
+      await expect(
+        caller.isActive({
+          sessionCode: 'ABC123',
+        }),
+      ).resolves.toEqual({ active: true });
 
-    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
-    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+      expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+    },
+  );
 
   it('liefert für aktive Session-Blitzlichter die Routing-Metadaten mit', async () => {
     redisMock.get.mockResolvedValue(
@@ -261,53 +270,79 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
   });
 
-  it('klassifiziert den Startseiten-Resolver ohne Blitzlicht oder Session als Lookup', async () => {
-    redisMock.get.mockResolvedValue(null);
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.isActive',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:NOT_ACTIVE',
+      title: 'klassifiziert den Startseiten-Resolver ohne Blitzlicht oder Session als Lookup',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(
-      caller.isActive({
-        sessionCode: 'BAD999',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
-      }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      await expect(
+        caller.isActive({
+          sessionCode: 'BAD999',
+          anonymousClientId: '11111111-1111-4111-8111-111111111111',
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
-      '11111111-1111-4111-8111-111111111111',
-      'BAD999',
-      'lookup',
-    );
-  });
+      expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111',
+        'BAD999',
+        'lookup',
+      );
+    },
+  );
 
-  it('klassifiziert einen abgelaufenen Recent-Code als Poll/Reconnect', async () => {
-    redisMock.get.mockResolvedValue(null);
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.isActiveForReconnect',
+      case: 'happy',
+      mode: 'direct',
+      title: 'klassifiziert einen abgelaufenen Recent-Code als Poll/Reconnect',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(
-      caller.isActiveForReconnect({
-        sessionCode: 'OLD999',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
-      }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      await expect(
+        caller.isActiveForReconnect({
+          sessionCode: 'OLD999',
+          anonymousClientId: '11111111-1111-4111-8111-111111111111',
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
-      '11111111-1111-4111-8111-111111111111',
-      'OLD999',
-      'pollReconnect',
-    );
-  });
+      expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111',
+        'OLD999',
+        'pollReconnect',
+      );
+    },
+  );
 
-  it('zählt Ergebnisabrufe natürlich abgelaufener bekannter Blitzlichter nicht als Code-Fehler', async () => {
-    redisMock.get.mockResolvedValue(null);
-    redisMock.exists.mockResolvedValue(1);
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.results',
+      case: 'happy',
+      mode: 'direct',
+      title:
+        'zählt Ergebnisabrufe natürlich abgelaufener bekannter Blitzlichter nicht als Code-Fehler',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(null);
+      redisMock.exists.mockResolvedValue(1);
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(caller.results({ sessionCode: 'OLD999' })).rejects.toMatchObject({
-      code: 'NOT_FOUND',
-    });
+      await expect(caller.results({ sessionCode: 'OLD999' })).rejects.toMatchObject({
+        code: 'NOT_FOUND',
+      });
 
-    expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
-  });
+      expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+    },
+  );
 
   it('beendet Ergebnis-Subscriptions natürlich abgelaufener Blitzlichter ohne Code-Fehler', async () => {
     redisMock.get.mockResolvedValue(null);
@@ -323,53 +358,70 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
   });
 
-  it('markiert beendete Blitzlichter für das auslaufende Client-Polling', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'YESNO',
-        locked: false,
-        totalVotes: 0,
-        distribution: { YES: 0, NO: 0, MAYBE: 0 },
-      }),
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.end',
+      case: 'happy',
+      mode: 'direct',
+      title: 'markiert beendete Blitzlichter für das auslaufende Client-Polling',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          totalVotes: 0,
+          distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        }),
+      );
 
-    await expect(hostCaller.end({ sessionCode: 'OLD999' })).resolves.toEqual({ ok: true });
+      await expect(hostCaller.end({ sessionCode: 'OLD999' })).resolves.toEqual({ ok: true });
 
-    const multi = redisMock.multi.mock.results.at(-1)?.value as {
-      set: ReturnType<typeof vi.fn>;
-    };
-    expect(multi.set).toHaveBeenCalledWith('qf:known:OLD999', '1', 'EX', 300);
-    expect(invalidateFeedbackHostTokenMock).toHaveBeenCalledWith('OLD999');
-  });
+      const multi = redisMock.multi.mock.results.at(-1)?.value as {
+        set: ReturnType<typeof vi.fn>;
+      };
+      expect(multi.set).toHaveBeenCalledWith('qf:known:OLD999', '1', 'EX', 300);
+      expect(invalidateFeedbackHostTokenMock).toHaveBeenCalledWith('OLD999');
+    },
+  );
 
-  it('lehnt ab, wenn die Live-Session beendet ist', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'MOOD',
-        locked: false,
-        totalVotes: 0,
-        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
-        sessionBound: true,
-      }),
-    );
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      quickFeedbackEnabled: true,
-      quickFeedbackOpen: true,
-      status: 'FINISHED',
-      _count: { participants: 0 },
-    });
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.vote',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt ab, wenn die Live-Session beendet ist',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          totalVotes: 0,
+          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: true,
+        }),
+      );
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+        status: 'FINISHED',
+        _count: { participants: 0 },
+      });
 
-    await expect(
-      caller.vote({
-        sessionCode: 'ABCDEF',
-        voterId: VOTER_ID,
-        value: 'POSITIVE',
-      }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+      await expect(
+        caller.vote({
+          sessionCode: 'ABCDEF',
+          voterId: VOTER_ID,
+          value: 'POSITIVE',
+        }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
-    expect(redisMock.get).toHaveBeenCalledWith('qf:ABCDEF');
-  });
+      expect(redisMock.get).toHaveBeenCalledWith('qf:ABCDEF');
+    },
+  );
 
   it('lehnt ab, wenn der Blitzlicht-Kanal für Teilnehmende geschlossen ist', async () => {
     redisMock.get.mockResolvedValue(
@@ -401,28 +453,36 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
   });
 
-  it('erlaubt Standalone-Blitzlicht-Stimmen ohne Session-Nachschlag', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'MOOD',
-        locked: false,
-        totalVotes: 0,
-        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
-        sessionBound: false,
-      }),
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.vote',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erlaubt Standalone-Blitzlicht-Stimmen ohne Session-Nachschlag',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          totalVotes: 0,
+          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: false,
+        }),
+      );
 
-    await expect(
-      caller.vote({
-        sessionCode: 'ABCDEF',
-        voterId: VOTER_ID,
-        value: 'POSITIVE',
-      }),
-    ).resolves.toEqual({ ok: true });
+      await expect(
+        caller.vote({
+          sessionCode: 'ABCDEF',
+          voterId: VOTER_ID,
+          value: 'POSITIVE',
+        }),
+      ).resolves.toEqual({ ok: true });
 
-    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
-    expect(redisMock.sismember).toHaveBeenCalledWith('qf:voters:ABCDEF', VOTER_ID);
-  });
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+      expect(redisMock.sismember).toHaveBeenCalledWith('qf:voters:ABCDEF', VOTER_ID);
+    },
+  );
 
   it('aktualisiert Presence bei sessiongebundenen Blitzlicht-Stimmen', async () => {
     redisMock.get.mockResolvedValue(
@@ -542,57 +602,66 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
   });
 
-  it('entfernt Standalone-Tempo-Auswahl beim Verlassen aus dem Barometer', async () => {
-    redisMock.hget.mockResolvedValue('FOLLOWING');
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'TEMPO',
-        locked: false,
-        totalVotes: 1,
-        distribution: { SPEED_UP: 0, FOLLOWING: 1, SLOW_DOWN: 0, LOST: 0 },
-        sessionBound: false,
-      }),
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.leaveTempo',
+      case: 'happy',
+      mode: 'direct',
+      title: 'entfernt Standalone-Tempo-Auswahl beim Verlassen aus dem Barometer',
+    },
+    async () => {
+      redisMock.hget.mockResolvedValue('FOLLOWING');
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'TEMPO',
+          locked: false,
+          totalVotes: 1,
+          distribution: { SPEED_UP: 0, FOLLOWING: 1, SLOW_DOWN: 0, LOST: 0 },
+          sessionBound: false,
+        }),
+      );
 
-    await expect(
-      caller.leaveTempo({
-        sessionCode: 'ABCDEF',
-        voterId: VOTER_ID,
-      }),
-    ).resolves.toEqual({ ok: true });
+      await expect(
+        caller.leaveTempo({
+          sessionCode: 'ABCDEF',
+          voterId: VOTER_ID,
+        }),
+      ).resolves.toEqual({ ok: true });
 
-    const multi = redisMock.multi.mock.results[redisMock.multi.mock.results.length - 1]?.value as {
-      set: ReturnType<typeof vi.fn>;
-      hdel: ReturnType<typeof vi.fn>;
-      hset: ReturnType<typeof vi.fn>;
-      expire: ReturnType<typeof vi.fn>;
-      exec: ReturnType<typeof vi.fn>;
-    };
-    expect(multi.hdel).toHaveBeenCalledWith('qf:choices:ABCDEF', VOTER_ID);
-    expect(multi.set).toHaveBeenCalledWith(
-      'qf:ABCDEF',
-      expect.any(String),
-      'EX',
-      expect.any(Number),
-    );
-    const stored = JSON.parse(String(multi.set.mock.calls[0]?.[1])) as {
-      totalVotes: number;
-      distribution: Record<string, number>;
-    };
-    expect(stored.totalVotes).toBe(0);
-    expect(stored.distribution).toMatchObject({
-      SPEED_UP: 0,
-      FOLLOWING: 0,
-      SLOW_DOWN: 0,
-      LOST: 0,
-    });
-    expect(multi.hset).toHaveBeenCalledWith(
-      'qf:tempo:buckets:ABCDEF',
-      expect.any(String),
-      expect.stringContaining('"totalVotes":0'),
-    );
-    expect(multi.expire).toHaveBeenCalledWith('qf:choices:ABCDEF', expect.any(Number));
-  });
+      const multi = redisMock.multi.mock.results[redisMock.multi.mock.results.length - 1]
+        ?.value as {
+        set: ReturnType<typeof vi.fn>;
+        hdel: ReturnType<typeof vi.fn>;
+        hset: ReturnType<typeof vi.fn>;
+        expire: ReturnType<typeof vi.fn>;
+        exec: ReturnType<typeof vi.fn>;
+      };
+      expect(multi.hdel).toHaveBeenCalledWith('qf:choices:ABCDEF', VOTER_ID);
+      expect(multi.set).toHaveBeenCalledWith(
+        'qf:ABCDEF',
+        expect.any(String),
+        'EX',
+        expect.any(Number),
+      );
+      const stored = JSON.parse(String(multi.set.mock.calls[0]?.[1])) as {
+        totalVotes: number;
+        distribution: Record<string, number>;
+      };
+      expect(stored.totalVotes).toBe(0);
+      expect(stored.distribution).toMatchObject({
+        SPEED_UP: 0,
+        FOLLOWING: 0,
+        SLOW_DOWN: 0,
+        LOST: 0,
+      });
+      expect(multi.hset).toHaveBeenCalledWith(
+        'qf:tempo:buckets:ABCDEF',
+        expect.any(String),
+        expect.stringContaining('"totalVotes":0'),
+      );
+      expect(multi.expire).toHaveBeenCalledWith('qf:choices:ABCDEF', expect.any(Number));
+    },
+  );
 
   it('wechselt bei Tempo per Delta auf die neue Auswahl', async () => {
     redisMock.hget.mockResolvedValue('SPEED_UP');
@@ -684,52 +753,60 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
   });
 
-  it('liefert fuer Tempo ab drei aktiven Teilnehmenden Default-Following und Tendenz aus', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'TEMPO',
-        locked: false,
-        totalVotes: 0,
-        distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
-        sessionBound: true,
-      }),
-    );
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      quickFeedbackEnabled: true,
-      quickFeedbackOpen: true,
-      status: 'ACTIVE',
-      _count: { participants: 3 },
-    });
-    getActiveParticipantIdsForSessionMock.mockResolvedValue(new Set(['p1', 'p2', 'p3']));
-    redisMock.hgetall.mockImplementation(async (key: string) =>
-      key === 'qf:tempo:buckets:ABCDEF'
-        ? {
-            [String(Date.now())]: JSON.stringify({
-              totalVotes: 0,
-              distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
-            }),
-          }
-        : {},
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.hostResults',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert fuer Tempo ab drei aktiven Teilnehmenden Default-Following und Tendenz aus',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'TEMPO',
+          locked: false,
+          totalVotes: 0,
+          distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+          sessionBound: true,
+        }),
+      );
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+        status: 'ACTIVE',
+        _count: { participants: 3 },
+      });
+      getActiveParticipantIdsForSessionMock.mockResolvedValue(new Set(['p1', 'p2', 'p3']));
+      redisMock.hgetall.mockImplementation(async (key: string) =>
+        key === 'qf:tempo:buckets:ABCDEF'
+          ? {
+              [String(Date.now())]: JSON.stringify({
+                totalVotes: 0,
+                distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+              }),
+            }
+          : {},
+      );
 
-    const result = await caller.hostResults({ sessionCode: 'ABCDEF' });
+      const result = await caller.hostResults({ sessionCode: 'ABCDEF' });
 
-    expect(result.distribution).toMatchObject({
-      SPEED_UP: 0,
-      FOLLOWING: 3,
-      SLOW_DOWN: 0,
-      LOST: 0,
-    });
-    expect(result.tempoTrend).toMatchObject({
-      status: 'FOLLOWING',
-      active: true,
-      activeParticipants: 3,
-      tempoVotes: 3,
-      requiredVotes: 3,
-    });
-    expect(JSON.stringify(result)).not.toContain(VOTER_ID);
-  });
+      expect(result.distribution).toMatchObject({
+        SPEED_UP: 0,
+        FOLLOWING: 3,
+        SLOW_DOWN: 0,
+        LOST: 0,
+      });
+      expect(result.tempoTrend).toMatchObject({
+        status: 'FOLLOWING',
+        active: true,
+        activeParticipants: 3,
+        tempoVotes: 3,
+        requiredVotes: 3,
+      });
+      expect(JSON.stringify(result)).not.toContain(VOTER_ID);
+    },
+  );
 
   it('zaehlt bei Tempo bekannte Session-Teilnehmende ohne Presence nicht als online', async () => {
     redisMock.get.mockResolvedValue(
@@ -964,20 +1041,28 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
   });
 
-  it('erlaubt Standalone-Blitzlicht ohne Host-Token', async () => {
-    const result = await caller.create({
-      type: 'MOOD',
-    });
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.create',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erlaubt Standalone-Blitzlicht ohne Host-Token',
+    },
+    async () => {
+      const result = await caller.create({
+        type: 'MOOD',
+      });
 
-    expect(result.sessionCode).toHaveLength(6);
-    expect(result.hostToken).toBe('feedback-owner-token');
-    expect(createFeedbackHostTokenMock).toHaveBeenCalledWith(result.sessionCode);
-    expect(redisMock.multi).toHaveBeenCalledTimes(1);
-    const multi = redisMock.multi.mock.results[0]?.value as {
-      set: ReturnType<typeof vi.fn>;
-    };
-    expect(multi.set).toHaveBeenCalledWith(`qf:known:${result.sessionCode}`, '1', 'EX', 2_100);
-  });
+      expect(result.sessionCode).toHaveLength(6);
+      expect(result.hostToken).toBe('feedback-owner-token');
+      expect(createFeedbackHostTokenMock).toHaveBeenCalledWith(result.sessionCode);
+      expect(redisMock.multi).toHaveBeenCalledTimes(1);
+      const multi = redisMock.multi.mock.results[0]?.value as {
+        set: ReturnType<typeof vi.fn>;
+      };
+      expect(multi.set).toHaveBeenCalledWith(`qf:known:${result.sessionCode}`, '1', 'EX', 2_100);
+    },
+  );
 
   it('ignoriert gefälschte Proxy-Header für den Standalone-Create-Bucket', async () => {
     const trustedIpCaller = quickFeedbackRouter.createCaller({
@@ -1012,20 +1097,29 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(createFeedbackHostTokenMock).not.toHaveBeenCalled();
   });
 
-  it('lehnt sessiongebundene Blitzlicht-Erstellung ohne Host-Token ab', async () => {
-    extractHostTokenMock.mockReturnValue(null);
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.create',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt sessiongebundene Blitzlicht-Erstellung ohne Host-Token ab',
+    },
+    async () => {
+      extractHostTokenMock.mockReturnValue(null);
 
-    await expect(
-      hostCaller.create({
-        type: 'MOOD',
-        sessionCode: 'ABC123',
-      }),
-    ).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Host-Authentifizierung erforderlich.',
-    });
-    expect(checkQuickFeedbackSessionCreateRateMock).not.toHaveBeenCalled();
-  });
+      await expect(
+        hostCaller.create({
+          type: 'MOOD',
+          sessionCode: 'ABC123',
+        }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+      expect(checkQuickFeedbackSessionCreateRateMock).not.toHaveBeenCalled();
+    },
+  );
 
   it('begrenzt sessiongebundene Host-Starts pro Session statt pro Hörsaal-IP', async () => {
     checkQuickFeedbackSessionCreateRateMock.mockResolvedValue({
@@ -1048,22 +1142,30 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(redisMock.multi).not.toHaveBeenCalled();
   });
 
-  it('erlaubt Standalone-Blitzlicht-Steuerung mit Blitzlicht-Host-Token', async () => {
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'MOOD',
-        locked: false,
-        totalVotes: 0,
-        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
-        sessionBound: false,
-      }),
-    );
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.toggleLock',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erlaubt Standalone-Blitzlicht-Steuerung mit Blitzlicht-Host-Token',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          totalVotes: 0,
+          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: false,
+        }),
+      );
 
-    const result = await caller.toggleLock({ sessionCode: 'ABC123' });
+      const result = await caller.toggleLock({ sessionCode: 'ABC123' });
 
-    expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', undefined);
-    expect(result).toEqual({ locked: true });
-  });
+      expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', undefined);
+      expect(result).toEqual({ locked: true });
+    },
+  );
 
   it('erlaubt Standalone-Blitzlicht-Steuerung ueber WebSocket-connectionParams', async () => {
     redisMock.get.mockResolvedValue(
@@ -1089,29 +1191,38 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(result).toEqual({ locked: true });
   });
 
-  it('lehnt Standalone-Blitzlicht-Steuerung ohne Blitzlicht-Host-Token ab', async () => {
-    const { TRPCError } = await import('@trpc/server');
-    assertFeedbackHostAccessMock.mockRejectedValue(
-      new TRPCError({
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.toggleLock',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt Standalone-Blitzlicht-Steuerung ohne Blitzlicht-Host-Token ab',
+    },
+    async () => {
+      const { TRPCError } = await import('@trpc/server');
+      assertFeedbackHostAccessMock.mockRejectedValue(
+        new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Blitzlicht-Host-Authentifizierung erforderlich.',
+        }),
+      );
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          totalVotes: 0,
+          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: false,
+        }),
+      );
+
+      await expect(caller.toggleLock({ sessionCode: 'ABC123' })).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
         message: 'Blitzlicht-Host-Authentifizierung erforderlich.',
-      }),
-    );
-    redisMock.get.mockResolvedValue(
-      JSON.stringify({
-        type: 'MOOD',
-        locked: false,
-        totalVotes: 0,
-        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
-        sessionBound: false,
-      }),
-    );
-
-    await expect(caller.toggleLock({ sessionCode: 'ABC123' })).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Blitzlicht-Host-Authentifizierung erforderlich.',
-    });
-  });
+      });
+    },
+  );
 
   it('lehnt sessiongebundene Blitzlicht-Steuerung ohne Host-Token ab', async () => {
     extractHostTokenMock.mockReturnValue(null);
@@ -1130,4 +1241,385 @@ describe('quickFeedback.vote und Session-Status', () => {
       message: 'Host-Authentifizierung erforderlich.',
     });
   });
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.changeType',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wechselt den Typ und leert alle bisherigen Abstimmungsdaten',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: true,
+          totalVotes: 4,
+          distribution: { POSITIVE: 3, NEUTRAL: 1, NEGATIVE: 0 },
+          sessionBound: false,
+          discussion: true,
+          currentRound: 2,
+        }),
+      );
+
+      await expect(caller.changeType({ sessionCode: 'ABC123', type: 'YESNO' })).resolves.toEqual({
+        ok: true,
+      });
+
+      const multi = redisMock.multi.mock.results.at(-1)?.value as {
+        set: ReturnType<typeof vi.fn>;
+        del: ReturnType<typeof vi.fn>;
+      };
+      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      });
+      expect(multi.del).toHaveBeenCalledWith('qf:choices:r1:ABC123');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.changeType',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'fordert für einen Typwechsel einen gültigen Blitzlicht-Host-Token',
+    },
+    async () => {
+      assertFeedbackHostAccessMock.mockRejectedValue(new TRPCError({ code: 'UNAUTHORIZED' }));
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          totalVotes: 0,
+          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: false,
+        }),
+      );
+
+      await expect(
+        caller.changeType({ sessionCode: 'ABC123', type: 'YESNO' }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.reset',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt dieselbe Blitzlicht-Art auf eine leere, offene Runde zurück',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: true,
+          totalVotes: 3,
+          distribution: { YES: 2, NO: 1, MAYBE: 0 },
+          sessionBound: false,
+          discussion: true,
+          currentRound: 2,
+        }),
+      );
+
+      await expect(caller.reset({ sessionCode: 'ABC123' })).resolves.toEqual({ ok: true });
+
+      const multi = redisMock.multi.mock.results.at(-1)?.value as {
+        set: ReturnType<typeof vi.fn>;
+        del: ReturnType<typeof vi.fn>;
+      };
+      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      });
+      expect(multi.del).toHaveBeenCalledWith('qf:voters:ABC123');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.reset',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verweigert das Zurücksetzen ohne Blitzlicht-Host-Token',
+    },
+    async () => {
+      assertFeedbackHostAccessMock.mockRejectedValue(new TRPCError({ code: 'UNAUTHORIZED' }));
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          totalVotes: 0,
+          distribution: { YES: 0, NO: 0, MAYBE: 0 },
+          sessionBound: false,
+        }),
+      );
+
+      await expect(caller.reset({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.startDiscussion',
+      case: 'happy',
+      mode: 'direct',
+      title: 'sichert Runde 1 inklusive Auswahlzustand und sperrt die Diskussion',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          totalVotes: 3,
+          distribution: { YES: 2, NO: 1, MAYBE: 0 },
+          sessionBound: false,
+        }),
+      );
+      redisMock.hgetall.mockResolvedValue({ [VOTER_ID]: 'YES' });
+
+      await expect(caller.startDiscussion({ sessionCode: 'ABC123' })).resolves.toEqual({
+        ok: true,
+      });
+
+      const multi = redisMock.multi.mock.results.at(-1)?.value as {
+        set: ReturnType<typeof vi.fn>;
+        hset: ReturnType<typeof vi.fn>;
+      };
+      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        locked: true,
+        discussion: true,
+        currentRound: 1,
+        round1Total: 3,
+        round1Distribution: { YES: 2, NO: 1, MAYBE: 0 },
+      });
+      expect(multi.hset).toHaveBeenCalledWith('qf:choices:r1:ABC123', { [VOTER_ID]: 'YES' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.startDiscussion',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'verhindert das erneute Starten einer bereits aktiven Diskussion',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: true,
+          totalVotes: 3,
+          distribution: { YES: 2, NO: 1, MAYBE: 0 },
+          sessionBound: false,
+          discussion: true,
+        }),
+      );
+
+      await expect(caller.startDiscussion({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.startSecondRound',
+      case: 'happy',
+      mode: 'direct',
+      title: 'öffnet nach der Diskussion eine leere zweite Abstimmungsrunde',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: true,
+          totalVotes: 3,
+          distribution: { YES: 2, NO: 1, MAYBE: 0 },
+          sessionBound: false,
+          discussion: true,
+          currentRound: 1,
+          round1Total: 3,
+          round1Distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        }),
+      );
+
+      await expect(caller.startSecondRound({ sessionCode: 'ABC123' })).resolves.toEqual({
+        ok: true,
+      });
+
+      const multi = redisMock.multi.mock.results.at(-1)?.value as {
+        set: ReturnType<typeof vi.fn>;
+        del: ReturnType<typeof vi.fn>;
+      };
+      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        locked: false,
+        discussion: false,
+        currentRound: 2,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      });
+      expect(multi.del).toHaveBeenCalledWith('qf:choices:ABC123');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.startSecondRound',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'verlangt vor der zweiten Abstimmungsrunde eine laufende Diskussion',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          totalVotes: 0,
+          distribution: { YES: 0, NO: 0, MAYBE: 0 },
+          sessionBound: false,
+          discussion: false,
+        }),
+      );
+
+      await expect(caller.startSecondRound({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'quickFeedback.end',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'schuetzt eine sessiongebundene Runde vor Enden ohne Host-Token',
+  },
+  async () => {
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+      }),
+    );
+    extractHostTokenMock.mockReturnValue(null);
+
+    await expect(hostCaller.end({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    expect(redisMock.multi).not.toHaveBeenCalled();
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'quickFeedback.hostResults',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'schuetzt die Host-Ergebnisse einer sessiongebundenen Runde ohne Host-Token',
+  },
+  async () => {
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 0,
+        distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+      }),
+    );
+    extractHostTokenMock.mockReturnValue(null);
+
+    await expect(hostCaller.hostResults({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    expect(redisMock.hgetall).not.toHaveBeenCalled();
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'quickFeedback.isActiveForReconnect',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'leitet einen fehlenden Session-Code ueber den Reconnect-Enumerationsschutz',
+  },
+  async () => {
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(null);
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    rejectInvalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+
+    await expect(caller.isActiveForReconnect({ sessionCode: 'BAD999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    expect(rejectInvalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'BAD999', 'pollReconnect');
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'quickFeedback.leaveTempo',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'weist eine syntaktisch ungueltige Teilnehmer-ID vor dem idempotenten Resolver ab',
+  },
+  async () => {
+    vi.clearAllMocks();
+
+    await expect(
+      caller.leaveTempo({ sessionCode: 'ABC123', voterId: 'keine-uuid' }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(redisMock.eval).not.toHaveBeenCalled();
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'quickFeedback.results',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'meldet eine abgelaufene Feedback-Runde nach gueltigem Lookup als nicht gefunden',
+  },
+  async () => {
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(null);
+    redisMock.exists.mockResolvedValue(1);
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+  },
+);

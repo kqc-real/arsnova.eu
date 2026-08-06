@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -90,40 +91,62 @@ describe('session.end', () => {
     expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
   });
 
-  it('vergibt Bonus-Codes erst, wenn die letzte Frage erreicht wurde', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      status: 'RESULTS',
-      currentQuestion: 1,
-      quizId: 'quiz-1',
-      quiz: {
-        name: 'Quiz',
-        bonusTokenCount: 3,
-        questions: [{ type: 'SINGLE_CHOICE' }, { type: 'SINGLE_CHOICE' }],
-      },
-      participants: [{ id: 'p1', nickname: 'Ada' }],
-      bonusTokens: [],
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      { participantId: 'p1', questionId: 'q1', round: 1, score: 2000, responseTimeMs: 900 },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.end',
+      case: 'happy',
+      mode: 'direct',
+      title: 'vergibt Bonus-Codes erst, wenn die letzte Frage erreicht wurde',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'RESULTS',
+        currentQuestion: 1,
+        quizId: 'quiz-1',
+        quiz: {
+          name: 'Quiz',
+          bonusTokenCount: 3,
+          questions: [{ type: 'SINGLE_CHOICE' }, { type: 'SINGLE_CHOICE' }],
+        },
+        participants: [{ id: 'p1', nickname: 'Ada' }],
+        bonusTokens: [],
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        { participantId: 'p1', questionId: 'q1', round: 1, score: 2000, responseTimeMs: 900 },
+      ]);
 
-    await caller.end({ code: 'ABC123' });
+      await caller.end({ code: 'ABC123' });
 
-    expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
-    expect(prismaMock.bonusToken.createMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: [
-          expect.objectContaining({
-            sessionId: 'sess-1',
-            participantId: 'p1',
-            nickname: 'Ada',
-            quizName: 'Quiz',
-            totalScore: 2000,
-            rank: 1,
-          }),
-        ],
-      }),
-    );
-  });
+      expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
+      expect(prismaMock.bonusToken.createMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: [
+            expect.objectContaining({
+              sessionId: 'sess-1',
+              participantId: 'p1',
+              nickname: 'Ada',
+              quizName: 'Quiz',
+              totalScore: 2000,
+              rank: 1,
+            }),
+          ],
+        }),
+      );
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.end',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.end weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(caller.end({ code: 'ABC123' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  },
+);

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { redisMock, prismaMock, motdRateMocks } = vi.hoisted(() => ({
   redisMock: {
@@ -89,22 +90,30 @@ describe('motd router', () => {
 
   const ctx = { req: undefined };
 
-  it('getCurrent: leeres/fehlendes input → Locale de (kein 400)', async () => {
-    prismaMock.motd.findMany.mockResolvedValue([
-      {
-        id: M1,
-        priority: 5,
-        contentVersion: 1,
-        startsAt: new Date('2026-06-01T00:00:00.000Z'),
-        endsAt: new Date('2026-06-20T00:00:00.000Z'),
-        locales: [{ locale: 'de', markdown: 'OK' }],
-      },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'motd.getCurrent',
+      case: 'happy',
+      mode: 'direct',
+      title: 'getCurrent: leeres/fehlendes input → Locale de (kein 400)',
+    },
+    async () => {
+      prismaMock.motd.findMany.mockResolvedValue([
+        {
+          id: M1,
+          priority: 5,
+          contentVersion: 1,
+          startsAt: new Date('2026-06-01T00:00:00.000Z'),
+          endsAt: new Date('2026-06-20T00:00:00.000Z'),
+          locales: [{ locale: 'de', markdown: 'OK' }],
+        },
+      ]);
 
-    const caller = motdRouter.createCaller(ctx);
-    const result = await caller.getCurrent({});
-    expect(result.motd?.markdown).toBe('OK');
-  });
+      const caller = motdRouter.createCaller(ctx);
+      const result = await caller.getCurrent({});
+      expect(result.motd?.markdown).toBe('OK');
+    },
+  );
 
   it('getCurrent wählt höchste Priorität bei Überlappung', async () => {
     prismaMock.motd.findMany.mockResolvedValue([
@@ -260,50 +269,66 @@ describe('motd router', () => {
     expect(result.motd).toBeNull();
   });
 
-  it('listArchive: Archiv-Where = beendet oder laufendes PUBLISHED mit visibleInArchive', async () => {
-    const now = new Date('2026-06-15T12:00:00.000Z');
-    prismaMock.motd.findUnique.mockResolvedValue(null);
-    prismaMock.motd.findMany.mockResolvedValue([]);
-    prismaMock.motd.count.mockResolvedValue(0);
-    prismaMock.motd.aggregate.mockResolvedValue({ _max: { endsAt: null } });
-    prismaMock.motdInteractionCounter.findUnique.mockResolvedValue(null);
-    const caller = motdRouter.createCaller(ctx);
-    await caller.listArchive({ locale: 'de', pageSize: 10 });
-    expect(prismaMock.motd.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          visibleInArchive: true,
-          status: { not: 'DRAFT' },
-          OR: [
-            { endsAt: { lt: now } },
-            {
-              AND: [{ status: 'PUBLISHED' }, { startsAt: { lte: now } }, { endsAt: { gt: now } }],
-            },
-          ],
+  trpcDodIt(
+    {
+      procedure: 'motd.listArchive',
+      case: 'happy',
+      mode: 'direct',
+      title: 'listArchive: Archiv-Where = beendet oder laufendes PUBLISHED mit visibleInArchive',
+    },
+    async () => {
+      const now = new Date('2026-06-15T12:00:00.000Z');
+      prismaMock.motd.findUnique.mockResolvedValue(null);
+      prismaMock.motd.findMany.mockResolvedValue([]);
+      prismaMock.motd.count.mockResolvedValue(0);
+      prismaMock.motd.aggregate.mockResolvedValue({ _max: { endsAt: null } });
+      prismaMock.motdInteractionCounter.findUnique.mockResolvedValue(null);
+      const caller = motdRouter.createCaller(ctx);
+      await caller.listArchive({ locale: 'de', pageSize: 10 });
+      expect(prismaMock.motd.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            visibleInArchive: true,
+            status: { not: 'DRAFT' },
+            OR: [
+              { endsAt: { lt: now } },
+              {
+                AND: [{ status: 'PUBLISHED' }, { startsAt: { lte: now } }, { endsAt: { gt: now } }],
+              },
+            ],
+          }),
         }),
-      }),
-    );
-  });
+      );
+    },
+  );
 
-  it('recordInteraction inkrementiert bei gültiger MOTD', async () => {
-    prismaMock.motd.findUnique.mockResolvedValue({
-      id: M1,
-      contentVersion: 2,
-    });
-    prismaMock.motdInteractionCounter.upsert.mockResolvedValue({});
-    const caller = motdRouter.createCaller(ctx);
-    await caller.recordInteraction({ motdId: M1, contentVersion: 2, kind: 'ACK' });
-    expect(prismaMock.motdInteractionCounter.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          motdId_contentVersion: {
-            motdId: M1,
-            contentVersion: 2,
+  trpcDodIt(
+    {
+      procedure: 'motd.recordInteraction',
+      case: 'happy',
+      mode: 'direct',
+      title: 'recordInteraction inkrementiert bei gültiger MOTD',
+    },
+    async () => {
+      prismaMock.motd.findUnique.mockResolvedValue({
+        id: M1,
+        contentVersion: 2,
+      });
+      prismaMock.motdInteractionCounter.upsert.mockResolvedValue({});
+      const caller = motdRouter.createCaller(ctx);
+      await caller.recordInteraction({ motdId: M1, contentVersion: 2, kind: 'ACK' });
+      expect(prismaMock.motdInteractionCounter.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            motdId_contentVersion: {
+              motdId: M1,
+              contentVersion: 2,
+            },
           },
-        },
-      }),
-    );
-  });
+        }),
+      );
+    },
+  );
 
   it('recordInteraction THUMB_UP_REVOKE verringert Zähler wenn vorhanden', async () => {
     prismaMock.motd.findUnique.mockResolvedValue({
@@ -382,116 +407,160 @@ describe('motd router', () => {
     expect(prismaMock.motdInteractionCounter.update).toHaveBeenCalled();
   });
 
-  it('recordInteraction NOT_FOUND bei Versionskonflikt', async () => {
-    prismaMock.motd.findUnique.mockResolvedValue({
-      id: M1,
-      contentVersion: 1,
-    });
-    const caller = motdRouter.createCaller(ctx);
-    await expect(
-      caller.recordInteraction({ motdId: M1, contentVersion: 99, kind: 'ACK' }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
-  });
+  trpcDodIt(
+    {
+      procedure: 'motd.recordInteraction',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'recordInteraction NOT_FOUND bei Versionskonflikt',
+    },
+    async () => {
+      prismaMock.motd.findUnique.mockResolvedValue({
+        id: M1,
+        contentVersion: 1,
+      });
+      const caller = motdRouter.createCaller(ctx);
+      await expect(
+        caller.recordInteraction({ motdId: M1, contentVersion: 99, kind: 'ACK' }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
 
-  it('getCurrent wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {
-    motdRateMocks.checkMotdGetCurrentRate.mockResolvedValue({
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: 12,
-    });
-    const caller = motdRouter.createCaller(ctx);
-    await expect(caller.getCurrent({ locale: 'de' })).rejects.toMatchObject({
-      code: 'TOO_MANY_REQUESTS',
-    });
-    expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
-    expect(loggerMock.warn).toHaveBeenCalledWith(
-      'rate_limit_429',
-      expect.objectContaining({
-        path: 'getCurrent',
-        category: 'other',
-        ipSource: 'missing-req',
-      }),
-    );
-    expect(loggerMock.warn).not.toHaveBeenCalledWith('motd:rate_limit_429', expect.anything());
-  });
+  trpcDodIt(
+    {
+      procedure: 'motd.getCurrent',
+      case: 'error',
+      mode: 'direct',
+      contract: 'TOO_MANY_REQUESTS',
+      title: 'getCurrent wirft TOO_MANY_REQUESTS wenn Rate-Limit greift',
+    },
+    async () => {
+      motdRateMocks.checkMotdGetCurrentRate.mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 12,
+      });
+      const caller = motdRouter.createCaller(ctx);
+      await expect(caller.getCurrent({ locale: 'de' })).rejects.toMatchObject({
+        code: 'TOO_MANY_REQUESTS',
+      });
+      expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
+      expect(loggerMock.warn).toHaveBeenCalledWith(
+        'rate_limit_429',
+        expect.objectContaining({
+          path: 'getCurrent',
+          category: 'other',
+          ipSource: 'missing-req',
+        }),
+      );
+      expect(loggerMock.warn).not.toHaveBeenCalledWith('motd:rate_limit_429', expect.anything());
+    },
+  );
 
-  it('listArchive wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {
-    motdRateMocks.checkMotdListArchiveRate.mockResolvedValue({
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: 5,
-    });
-    const caller = motdRouter.createCaller(ctx);
-    await expect(caller.listArchive({ locale: 'de', pageSize: 5 })).rejects.toMatchObject({
-      code: 'TOO_MANY_REQUESTS',
-    });
-    expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
-  });
+  trpcDodIt(
+    {
+      procedure: 'motd.listArchive',
+      case: 'error',
+      mode: 'direct',
+      contract: 'TOO_MANY_REQUESTS',
+      title: 'listArchive wirft TOO_MANY_REQUESTS wenn Rate-Limit greift',
+    },
+    async () => {
+      motdRateMocks.checkMotdListArchiveRate.mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 5,
+      });
+      const caller = motdRouter.createCaller(ctx);
+      await expect(caller.listArchive({ locale: 'de', pageSize: 5 })).rejects.toMatchObject({
+        code: 'TOO_MANY_REQUESTS',
+      });
+      expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
+    },
+  );
 
-  it('getHeaderState wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {
-    motdRateMocks.checkMotdGetCurrentRate.mockResolvedValue({
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: 3,
-    });
-    const caller = motdRouter.createCaller(ctx);
-    await expect(caller.getHeaderState({ locale: 'de' })).rejects.toMatchObject({
-      code: 'TOO_MANY_REQUESTS',
-    });
-    expect(prismaMock.motd.count).not.toHaveBeenCalled();
-    expect(prismaMock.motd.aggregate).not.toHaveBeenCalled();
-  });
+  trpcDodIt(
+    {
+      procedure: 'motd.getHeaderState',
+      case: 'error',
+      mode: 'direct',
+      contract: 'TOO_MANY_REQUESTS',
+      title: 'getHeaderState wirft TOO_MANY_REQUESTS wenn Rate-Limit greift',
+    },
+    async () => {
+      motdRateMocks.checkMotdGetCurrentRate.mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 3,
+      });
+      const caller = motdRouter.createCaller(ctx);
+      await expect(caller.getHeaderState({ locale: 'de' })).rejects.toMatchObject({
+        code: 'TOO_MANY_REQUESTS',
+      });
+      expect(prismaMock.motd.count).not.toHaveBeenCalled();
+      expect(prismaMock.motd.aggregate).not.toHaveBeenCalled();
+    },
+  );
 
-  it('getHeaderState liefert Overlay- und Archiv-Flags inkl. archiveCount', async () => {
-    prismaMock.motd.findMany
-      .mockResolvedValueOnce([
-        {
-          id: M1,
-          priority: 1,
-          contentVersion: 2,
-          startsAt: new Date('2026-06-01T00:00:00.000Z'),
-          endsAt: new Date('2026-06-20T00:00:00.000Z'),
-          locales: [{ locale: 'de', markdown: 'Live' }],
-        },
-      ])
-      .mockResolvedValueOnce([
-        {
-          id: 'a',
-          contentVersion: 1,
-          startsAt: new Date('2026-06-01T00:00:00.000Z'),
-          endsAt: new Date('2026-12-31T23:59:59.000Z'),
-          locales: [{ locale: 'de', markdown: 'A' }],
-        },
-        {
-          id: 'b',
-          contentVersion: 1,
-          startsAt: new Date('2026-05-01T00:00:00.000Z'),
-          endsAt: new Date('2026-11-30T23:59:59.000Z'),
-          locales: [{ locale: 'en', markdown: 'B' }],
-        },
-        {
-          id: 'c',
-          contentVersion: 1,
-          startsAt: new Date('2026-04-01T00:00:00.000Z'),
-          endsAt: new Date('2026-10-31T23:59:59.000Z'),
-          locales: [{ locale: 'de', markdown: 'C' }],
-        },
-        {
-          id: 'd',
-          contentVersion: 1,
-          startsAt: new Date('2026-03-01T00:00:00.000Z'),
-          endsAt: new Date('2026-09-30T23:59:59.000Z'),
-          locales: [{ locale: 'fr', markdown: 'D' }],
-        },
-      ]);
-    const caller = motdRouter.createCaller(ctx);
-    const r = await caller.getHeaderState({ locale: 'de' });
-    expect(r.hasActiveOverlay).toBe(true);
-    expect(r.hasArchiveEntries).toBe(true);
-    expect(r.archiveCount).toBe(4);
-    expect(r.archiveMaxEndsAtIso).toBe('2026-12-31T23:59:59.000Z');
-    expect(r.archiveUnreadCount).toBe(4);
-  });
+  trpcDodIt(
+    {
+      procedure: 'motd.getHeaderState',
+      case: 'happy',
+      mode: 'direct',
+      title: 'getHeaderState liefert Overlay- und Archiv-Flags inkl. archiveCount',
+    },
+    async () => {
+      prismaMock.motd.findMany
+        .mockResolvedValueOnce([
+          {
+            id: M1,
+            priority: 1,
+            contentVersion: 2,
+            startsAt: new Date('2026-06-01T00:00:00.000Z'),
+            endsAt: new Date('2026-06-20T00:00:00.000Z'),
+            locales: [{ locale: 'de', markdown: 'Live' }],
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: 'a',
+            contentVersion: 1,
+            startsAt: new Date('2026-06-01T00:00:00.000Z'),
+            endsAt: new Date('2026-12-31T23:59:59.000Z'),
+            locales: [{ locale: 'de', markdown: 'A' }],
+          },
+          {
+            id: 'b',
+            contentVersion: 1,
+            startsAt: new Date('2026-05-01T00:00:00.000Z'),
+            endsAt: new Date('2026-11-30T23:59:59.000Z'),
+            locales: [{ locale: 'en', markdown: 'B' }],
+          },
+          {
+            id: 'c',
+            contentVersion: 1,
+            startsAt: new Date('2026-04-01T00:00:00.000Z'),
+            endsAt: new Date('2026-10-31T23:59:59.000Z'),
+            locales: [{ locale: 'de', markdown: 'C' }],
+          },
+          {
+            id: 'd',
+            contentVersion: 1,
+            startsAt: new Date('2026-03-01T00:00:00.000Z'),
+            endsAt: new Date('2026-09-30T23:59:59.000Z'),
+            locales: [{ locale: 'fr', markdown: 'D' }],
+          },
+        ]);
+      const caller = motdRouter.createCaller(ctx);
+      const r = await caller.getHeaderState({ locale: 'de' });
+      expect(r.hasActiveOverlay).toBe(true);
+      expect(r.hasArchiveEntries).toBe(true);
+      expect(r.archiveCount).toBe(4);
+      expect(r.archiveMaxEndsAtIso).toBe('2026-12-31T23:59:59.000Z');
+      expect(r.archiveUnreadCount).toBe(4);
+    },
+  );
 
   it('getHeaderState setzt archiveUnreadCount anhand archiveSeenUpToEndsAtIso', async () => {
     prismaMock.motd.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce(

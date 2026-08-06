@@ -340,18 +340,49 @@ async function inspectFooterMoreKeyboardNavigation(page) {
     issues.push('Footer-Mehr schließt nicht nach Menüauswahl');
   }
 
-  const statusDialog = page.locator('.app-status-help-dialog-panel, mat-dialog-container');
-  if (
-    await statusDialog
-      .first()
-      .isVisible()
-      .catch(() => false)
-  ) {
-    await page.keyboard.press('Escape');
-    await statusDialog
-      .first()
-      .waitFor({ state: 'hidden', timeout: 2_000 })
-      .catch(() => undefined);
+  // Der Dialog wird via dynamischem Import asynchron geöffnet. Nicht nur einen
+  // momentanen Sichtbarkeitswert prüfen: Sonst kann der folgende Footer-Klick
+  // mit dem nachträglich erscheinenden Modal konkurrieren.
+  const statusDialog = page.locator('.app-status-help-dialog-panel');
+  const statusDialogOpened = await statusDialog
+    .waitFor({ state: 'visible', timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!statusDialogOpened) {
+    issues.push('Betriebsstatus-Dialog öffnet nicht nach Auswahl im Footer-Mehr-Menü');
+    return issues;
+  }
+
+  await page.keyboard.press('Escape');
+  const statusDialogClosed = await statusDialog
+    .waitFor({ state: 'hidden', timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!statusDialogClosed) {
+    issues.push('Betriebsstatus-Dialog schließt nicht mit Escape');
+    return issues;
+  }
+  const statusBackdropGone = await page
+    .locator('.cdk-overlay-backdrop')
+    .waitFor({ state: 'detached', timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!statusBackdropGone) {
+    issues.push('Betriebsstatus-Backdrop bleibt nach Escape aktiv');
+    return issues;
+  }
+  const focusReturnedAfterStatusDialog = await page
+    .waitForFunction(
+      () =>
+        document.querySelector('button[data-footer-focus="footer-more"]') ===
+        document.activeElement,
+      undefined,
+      { timeout: 2_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!focusReturnedAfterStatusDialog) {
+    issues.push('Fokus kehrt nach dem Betriebsstatus-Dialog nicht zu Footer-Mehr zurück');
   }
 
   // Navigation bei offenem Mehr-Menü: History Zurück/Vorwärts (kein Menüeintrag).

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -100,54 +101,71 @@ describe('session.verifyBonusTokenForQuiz', () => {
     prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 1 });
   });
 
-  it('liefert gueltige Bonus-Code-Details aus der DB', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.bonusToken.findFirst.mockResolvedValue({
-      token: 'BNS-TEST-1234',
-      nickname: 'Ada',
-      rank: 1,
-      totalScore: 42,
-      session: { code: 'ABCDEF' },
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.verifyBonusTokenForQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert gueltige Bonus-Code-Details aus der DB',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.bonusToken.findFirst.mockResolvedValue({
+        token: 'BNS-TEST-1234',
+        nickname: 'Ada',
+        rank: 1,
+        totalScore: 42,
+        session: { code: 'ABCDEF' },
+      });
 
-    const result = await caller.verifyBonusTokenForQuiz({
-      quizId: QUIZ_ID,
-      accessProof,
-      bonusCode: 'bns-test-1234',
-    });
+      const result = await caller.verifyBonusTokenForQuiz({
+        quizId: QUIZ_ID,
+        accessProof,
+        bonusCode: 'bns-test-1234',
+      });
 
-    expect(prismaMock.bonusToken.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          token: 'BNS-TEST-1234',
-          session: expect.objectContaining({
-            quizId: { in: [QUIZ_ID] },
-            status: 'FINISHED',
+      expect(prismaMock.bonusToken.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            token: 'BNS-TEST-1234',
+            session: expect.objectContaining({
+              quizId: { in: [QUIZ_ID] },
+              status: 'FINISHED',
+            }),
           }),
         }),
-      }),
-    );
-    expect(result).toEqual({
-      valid: true,
-      sessionCode: 'ABCDEF',
-      nickname: 'Ada',
-      rank: 1,
-      totalScore: 42,
-    });
-  });
+      );
+      expect(result).toEqual({
+        valid: true,
+        sessionCode: 'ABCDEF',
+        nickname: 'Ada',
+        rank: 1,
+        totalScore: 42,
+      });
+    },
+  );
 
-  it('liefert valid=false wenn kein Bonus-Code gefunden wird', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.bonusToken.findFirst.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'session.verifyBonusTokenForQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:BONUS_TOKEN_NOT_FOUND',
+      title: 'liefert valid=false wenn kein Bonus-Code gefunden wird',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.bonusToken.findFirst.mockResolvedValue(null);
 
-    const result = await caller.verifyBonusTokenForQuiz({
-      quizId: QUIZ_ID,
-      accessProof,
-      bonusCode: 'BNS-UNKNOWN',
-    });
+      const result = await caller.verifyBonusTokenForQuiz({
+        quizId: QUIZ_ID,
+        accessProof,
+        bonusCode: 'BNS-UNKNOWN',
+      });
 
-    expect(result).toEqual({ valid: false });
-  });
+      expect(result).toEqual({ valid: false });
+    },
+  );
 
   it('lehnt Zugriff mit ungueltigem Besitz-Nachweis ab', async () => {
     await expect(
@@ -164,41 +182,58 @@ describe('session.verifyBonusTokenForQuiz', () => {
     expect(prismaMock.bonusToken.findFirst).not.toHaveBeenCalled();
   });
 
-  it('loescht einen gueltigen Bonus-Code aus der Quiz-Historie', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+  trpcDodIt(
+    {
+      procedure: 'session.deleteBonusTokenForQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'loescht einen gueltigen Bonus-Code aus der Quiz-Historie',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
 
-    const result = await caller.deleteBonusTokenForQuiz({
-      quizId: QUIZ_ID,
-      accessProof,
-      bonusCode: 'BNS-TEST-1234',
-    });
+      const result = await caller.deleteBonusTokenForQuiz({
+        quizId: QUIZ_ID,
+        accessProof,
+        bonusCode: 'BNS-TEST-1234',
+      });
 
-    expect(prismaMock.bonusToken.deleteMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          token: 'BNS-TEST-1234',
-          session: expect.objectContaining({
-            quizId: { in: [QUIZ_ID] },
-            status: 'FINISHED',
+      expect(prismaMock.bonusToken.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            token: 'BNS-TEST-1234',
+            session: expect.objectContaining({
+              quizId: { in: [QUIZ_ID] },
+              status: 'FINISHED',
+            }),
           }),
         }),
-      }),
-    );
-    expect(result).toEqual({ deleted: true });
-  });
+      );
+      expect(result).toEqual({ deleted: true });
+    },
+  );
 
-  it('meldet deleted=false wenn beim Loeschen kein Bonus-Code vorhanden ist', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 0 });
+  trpcDodIt(
+    {
+      procedure: 'session.deleteBonusTokenForQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:BONUS_TOKEN_NOT_FOUND',
+      title: 'meldet deleted=false wenn beim Loeschen kein Bonus-Code vorhanden ist',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 0 });
 
-    const result = await caller.deleteBonusTokenForQuiz({
-      quizId: QUIZ_ID,
-      accessProof,
-      bonusCode: 'BNS-ABCD-0000',
-    });
+      const result = await caller.deleteBonusTokenForQuiz({
+        quizId: QUIZ_ID,
+        accessProof,
+        bonusCode: 'BNS-ABCD-0000',
+      });
 
-    expect(result).toEqual({ deleted: false });
-  });
+      expect(result).toEqual({ deleted: false });
+    },
+  );
 
   it('prueft und loescht Bonus-Codes ueber mehrere passende Quizkopien mit identischem Proof', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);

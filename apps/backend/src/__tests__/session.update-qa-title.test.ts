@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -41,26 +42,34 @@ describe('session.updateQaTitle', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('setzt qaTitle bei Quiz-Session mit Q&A-Kanal', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      type: 'QUIZ',
-      qaEnabled: true,
-    });
-    prismaMock.session.update.mockResolvedValue({
-      qaTitle: 'Diskussion',
-      title: null,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.updateQaTitle',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt qaTitle bei Quiz-Session mit Q&A-Kanal',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+      });
+      prismaMock.session.update.mockResolvedValue({
+        qaTitle: 'Diskussion',
+        title: null,
+      });
 
-    const result = await caller.updateQaTitle({ code: CODE, qaTitle: 'Diskussion' });
+      const result = await caller.updateQaTitle({ code: CODE, qaTitle: 'Diskussion' });
 
-    expect(result).toEqual({ qaTitle: 'Diskussion', title: null });
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { qaTitle: 'Diskussion' },
-      select: { qaTitle: true, title: true },
-    });
-  });
+      expect(result).toEqual({ qaTitle: 'Diskussion', title: null });
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: { qaTitle: 'Diskussion' },
+        select: { qaTitle: true, title: true },
+      });
+    },
+  );
 
   it('synchronisiert title bei reiner Q_AND_A-Session', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -102,16 +111,25 @@ describe('session.updateQaTitle', () => {
     });
   });
 
-  it('lehnt ab wenn Q&A nicht aktiv', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      type: 'QUIZ',
-      qaEnabled: false,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.updateQaTitle',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt ab wenn Q&A nicht aktiv',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: false,
+      });
 
-    await expect(caller.updateQaTitle({ code: CODE, qaTitle: 'X' })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
-    expect(prismaMock.session.update).not.toHaveBeenCalled();
-  });
+      await expect(caller.updateQaTitle({ code: CODE, qaTitle: 'X' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
 });

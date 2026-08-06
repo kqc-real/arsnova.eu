@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, loadSignalMocks } =
   vi.hoisted(() => ({
@@ -73,33 +74,41 @@ describe('session.nextQuestion (Story 2.3)', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('wechselt von LOBBY zu QUESTION_OPEN wenn Lesephase aktiv', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'LOBBY',
-      currentQuestion: null,
-      quiz: {
-        readingPhaseEnabled: true,
-        questions: [{ id: 'q1' }, { id: 'q2' }],
-      },
-    });
-    prismaMock.session.update.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'QUESTION_OPEN',
-      currentQuestion: 0,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.nextQuestion',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wechselt von LOBBY zu QUESTION_OPEN wenn Lesephase aktiv',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'LOBBY',
+        currentQuestion: null,
+        quiz: {
+          readingPhaseEnabled: true,
+          questions: [{ id: 'q1' }, { id: 'q2' }],
+        },
+      });
+      prismaMock.session.update.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+      });
 
-    const result = await caller.nextQuestion({ code: CODE });
+      const result = await caller.nextQuestion({ code: CODE });
 
-    expect(result.status).toBe('QUESTION_OPEN');
-    expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: SESSION_ID },
-        data: expect.objectContaining({ status: 'QUESTION_OPEN', currentQuestion: 0 }),
-      }),
-    );
-  });
+      expect(result.status).toBe('QUESTION_OPEN');
+      expect(result.currentQuestion).toBe(0);
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'QUESTION_OPEN', currentQuestion: 0 }),
+        }),
+      );
+    },
+  );
 
   it('wechselt von LOBBY zu ACTIVE wenn Lesephase deaktiviert', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -214,14 +223,23 @@ describe('session.nextQuestion (Story 2.3)', () => {
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
   });
 
-  it('wirft NOT_FOUND wenn Session fehlt', async () => {
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'session.nextQuestion',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'wirft NOT_FOUND wenn Session fehlt',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(caller.nextQuestion({ code: 'NONEXI' })).rejects.toMatchObject({
-      code: 'NOT_FOUND',
-      message: 'Session oder Quiz nicht gefunden.',
-    });
-  });
+      await expect(caller.nextQuestion({ code: 'NONEXI' })).rejects.toMatchObject({
+        code: 'NOT_FOUND',
+        message: 'Session oder Quiz nicht gefunden.',
+      });
+    },
+  );
 
   it('wirft BAD_REQUEST wenn Status nicht LOBBY/PAUSED/RESULTS', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -354,19 +372,28 @@ describe('session.revealAnswers (Story 2.3)', () => {
     );
   });
 
-  it('wirft BAD_REQUEST wenn nicht QUESTION_OPEN', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.revealAnswers',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'wirft BAD_REQUEST wenn nicht QUESTION_OPEN',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
 
-    await expect(caller.revealAnswers({ code: CODE })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Antworten freigeben nur im Status QUESTION_OPEN (Lesephase).',
-    });
-  });
+      await expect(caller.revealAnswers({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Antworten freigeben nur im Status QUESTION_OPEN (Lesephase).',
+      });
+    },
+  );
 });
 
 describe('session.revealResults (Story 2.3)', () => {
@@ -381,30 +408,38 @@ describe('session.revealResults (Story 2.3)', () => {
     );
   });
 
-  it('wechselt von ACTIVE zu RESULTS', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-    });
-    prismaMock.session.update.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'RESULTS',
-      currentQuestion: 0,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.revealResults',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wechselt von ACTIVE zu RESULTS',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
+      prismaMock.session.update.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 0,
+      });
 
-    const result = await caller.revealResults({ code: CODE });
+      const result = await caller.revealResults({ code: CODE });
 
-    expect(result.status).toBe('RESULTS');
-    expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: SESSION_ID },
-        data: expect.objectContaining({ status: 'RESULTS' }),
-      }),
-    );
-  });
+      expect(result.status).toBe('RESULTS');
+      expect(result.currentQuestion).toBe(0);
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'RESULTS' }),
+        }),
+      );
+    },
+  );
 
   it('wartet mit Ergebnissen bis garantierte Zusatzzeit beendet ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -517,19 +552,28 @@ describe('session.revealResults (Story 2.3)', () => {
     );
   });
 
-  it('wirft BAD_REQUEST wenn nicht ACTIVE', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'RESULTS',
-      currentQuestion: 0,
-      currentRound: 1,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.revealResults',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'wirft BAD_REQUEST wenn nicht ACTIVE',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
 
-    await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Ergebnis anzeigen nur im Status ACTIVE.',
-    });
-  });
+      await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Ergebnis anzeigen nur im Status ACTIVE.',
+      });
+    },
+  );
 });
 
 describe('session.prevQuestion', () => {
@@ -540,42 +584,59 @@ describe('session.prevQuestion', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('wechselt von RESULTS zu RESULTS mit vorheriger Frage', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'RESULTS',
-      currentQuestion: 2,
-    });
-    prismaMock.session.update.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'RESULTS',
-      currentQuestion: 1,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.prevQuestion',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wechselt von RESULTS zu RESULTS mit vorheriger Frage',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 2,
+      });
+      prismaMock.session.update.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 1,
+      });
 
-    const result = await caller.prevQuestion({ code: CODE });
+      const result = await caller.prevQuestion({ code: CODE });
 
-    expect(result.status).toBe('RESULTS');
-    expect(result.currentQuestion).toBe(1);
-    expect(prismaMock.session.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: SESSION_ID },
-        data: expect.objectContaining({ status: 'RESULTS', currentQuestion: 1, currentRound: 1 }),
-      }),
-    );
-  });
+      expect(result.status).toBe('RESULTS');
+      expect(result.currentQuestion).toBe(1);
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'RESULTS', currentQuestion: 1, currentRound: 1 }),
+        }),
+      );
+    },
+  );
 
-  it('wirft BAD_REQUEST wenn Status nicht RESULTS oder DISCUSSION', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-      currentQuestion: 2,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.prevQuestion',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'wirft BAD_REQUEST wenn Status nicht RESULTS oder DISCUSSION',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 2,
+      });
 
-    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
-    });
-  });
+      await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
+      });
+    },
+  );
 
   it('wirft BAD_REQUEST bei erster Frage (currentQuestion === 0)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -594,69 +655,133 @@ describe('session.prevQuestion', () => {
 describe('session peer-instruction steering gates', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('lehnt die Diskussionsphase fuer NUMERIC_ESTIMATE ohne Zwei-Runden-Konfiguration ab', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-      quiz: {
-        questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: false }],
-      },
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.startDiscussion',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt die Diskussionsphase fuer NUMERIC_ESTIMATE ohne Zwei-Runden-Konfiguration ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+        quiz: {
+          questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: false }],
+        },
+      });
 
-    await expect(caller.startDiscussion({ code: CODE })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
-    });
-    expect(prismaMock.session.update).not.toHaveBeenCalled();
-  });
+      await expect(caller.startDiscussion({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
 
-  it('startet die Diskussionsphase fuer NUMERIC_ESTIMATE mit Zwei-Runden-Konfiguration', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-      currentQuestion: 0,
-      currentRound: 1,
-      quiz: {
-        questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: true }],
-      },
-    });
-    prismaMock.session.update.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'DISCUSSION',
-      currentQuestion: 0,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.startDiscussion',
+      case: 'happy',
+      mode: 'direct',
+      title: 'startet die Diskussionsphase fuer NUMERIC_ESTIMATE mit Zwei-Runden-Konfiguration',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+        quiz: {
+          questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: true }],
+        },
+      });
+      prismaMock.session.update.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'DISCUSSION',
+        currentQuestion: 0,
+      });
 
-    const result = await caller.startDiscussion({ code: CODE });
+      const result = await caller.startDiscussion({ code: CODE });
 
-    expect(result).toEqual(
-      expect.objectContaining({ status: 'DISCUSSION', currentQuestion: 0, currentRound: 1 }),
-    );
-    expect(prismaMock.session.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: SESSION_ID },
-        data: expect.objectContaining({ status: 'DISCUSSION' }),
-      }),
-    );
-  });
+      expect(result).toEqual(
+        expect.objectContaining({ status: 'DISCUSSION', currentQuestion: 0, currentRound: 1 }),
+      );
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'DISCUSSION' }),
+        }),
+      );
+    },
+  );
 
-  it('lehnt Runde 2 fuer NUMERIC_ESTIMATE ohne Zwei-Runden-Konfiguration ab', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'DISCUSSION',
-      currentQuestion: 0,
-      quiz: {
-        questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: false }],
-      },
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.startSecondRound',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wechselt nach einer Diskussion in die zweite Abstimmungsrunde',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'DISCUSSION',
+        currentQuestion: 0,
+        quiz: {
+          questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: true }],
+        },
+      });
 
-    await expect(caller.startSecondRound({ code: CODE })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
-    });
-    expect(prismaMock.session.update).not.toHaveBeenCalled();
-  });
+      const result = await caller.startSecondRound({ code: CODE });
+
+      expect(result).toMatchObject({
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 2,
+        activeAt: expect.any(String),
+      });
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'ACTIVE', currentRound: 2 }),
+        }),
+      );
+      expect(loadSignalMocks.markCountdownSessionActive).toHaveBeenCalledWith(SESSION_ID);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.startSecondRound',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Runde 2 fuer NUMERIC_ESTIMATE ohne Zwei-Runden-Konfiguration ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'DISCUSSION',
+        currentQuestion: 0,
+        quiz: {
+          questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: false }],
+        },
+      });
+
+      await expect(caller.startSecondRound({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
 });

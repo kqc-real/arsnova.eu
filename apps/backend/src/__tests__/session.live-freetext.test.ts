@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
@@ -94,58 +95,75 @@ describe('session.getLiveFreetext', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('liefert Freitextantworten der aktuell aktiven FREETEXT-Frage', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      currentQuestion: 1,
-      quiz: {
-        questions: [
-          {
-            id: QUESTION_ID,
-            order: 1,
-            type: 'FREETEXT',
-            text: 'Was war heute hilfreich?',
-          },
-        ],
-      },
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      { freeText: ' Klare Struktur ' },
-      { freeText: 'Mehr Praxisbeispiele' },
-      { freeText: '   ' },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.getLiveFreetext',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Freitextantworten der aktuell aktiven FREETEXT-Frage',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        currentQuestion: 1,
+        quiz: {
+          questions: [
+            {
+              id: QUESTION_ID,
+              order: 1,
+              type: 'FREETEXT',
+              text: 'Was war heute hilfreich?',
+            },
+          ],
+        },
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        { freeText: ' Klare Struktur ' },
+        { freeText: 'Mehr Praxisbeispiele' },
+        { freeText: '   ' },
+      ]);
 
-    const result = await caller.getLiveFreetext({ code: 'ABC123' });
+      const result = await caller.getLiveFreetext({ code: 'ABC123' });
 
-    expect(result.sessionId).toBe(SESSION_ID);
-    expect(result.questionId).toBe(QUESTION_ID);
-    expect(result.questionType).toBe('FREETEXT');
-    expect(result.responses).toEqual(['Klare Struktur', 'Mehr Praxisbeispiele']);
-    expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
-  });
+      expect(result.sessionId).toBe(SESSION_ID);
+      expect(result.questionId).toBe(QUESTION_ID);
+      expect(result.questionType).toBe('FREETEXT');
+      expect(result.responses).toEqual(['Klare Struktur', 'Mehr Praxisbeispiele']);
+      expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
+    },
+  );
 
-  it('gibt bei nicht-FREITEXT-Fragen leere Antworten zurück', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      currentQuestion: 0,
-      quiz: {
-        questions: [
-          {
-            id: QUESTION_ID,
-            order: 0,
-            type: 'SINGLE_CHOICE',
-            text: 'Welche Antwort stimmt?',
-          },
-        ],
-      },
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getLiveFreetext',
+      case: 'error',
+      mode: 'direct',
+      contract: 'DOMAIN:NOT_FREETEXT',
+      title: 'gibt bei nicht-FREITEXT-Fragen leere Antworten zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        currentQuestion: 0,
+        quiz: {
+          questions: [
+            {
+              id: QUESTION_ID,
+              order: 0,
+              type: 'SINGLE_CHOICE',
+              text: 'Welche Antwort stimmt?',
+            },
+          ],
+        },
+      });
 
-    const result = await caller.getLiveFreetext({ code: 'ABC123' });
+      const result = await caller.getLiveFreetext({ code: 'ABC123' });
 
-    expect(result.questionType).toBe('SINGLE_CHOICE');
-    expect(result.responses).toEqual([]);
-    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
-  });
+      expect(result.questionType).toBe('SINGLE_CHOICE');
+      expect(result.responses).toEqual([]);
+      expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+    },
+  );
 
   it('akzeptiert Host-Tokens aus WebSocket-Connection-Params', async () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue(null);
@@ -181,52 +199,60 @@ describe('session.getActiveQuizIds', () => {
     vi.clearAllMocks();
   });
 
-  it('liefert nur authorisierte Quiz-IDs von laufenden Sessions', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.quiz.findMany.mockResolvedValue([
-      {
-        id: ACTIVE_QUIZ_ID,
-        ...QUIZ_INPUT,
-        description: null,
-        teamCount: null,
-        backgroundMusic: null,
-        questions: QUIZ_INPUT.questions.map((question) => ({
-          ...question,
-          ratingMin: null,
-          ratingMax: null,
-          ratingLabelMin: null,
-          ratingLabelMax: null,
-        })),
-      },
-    ]);
-    prismaMock.session.findMany.mockResolvedValue([
-      { quizId: ACTIVE_QUIZ_ID, _count: { participants: 5 } },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.getActiveQuizIds',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert nur authorisierte Quiz-IDs von laufenden Sessions',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.quiz.findMany.mockResolvedValue([
+        {
+          id: ACTIVE_QUIZ_ID,
+          ...QUIZ_INPUT,
+          description: null,
+          teamCount: null,
+          backgroundMusic: null,
+          questions: QUIZ_INPUT.questions.map((question) => ({
+            ...question,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+          })),
+        },
+      ]);
+      prismaMock.session.findMany.mockResolvedValue([
+        { quizId: ACTIVE_QUIZ_ID, _count: { participants: 5 } },
+      ]);
 
-    const result = await caller.getActiveQuizIds([
-      { quizId: ACTIVE_QUIZ_ID, accessProof },
-      {
-        quizId: INACTIVE_QUIZ_ID,
-        accessProof: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-      },
-    ]);
+      const result = await caller.getActiveQuizIds([
+        { quizId: ACTIVE_QUIZ_ID, accessProof },
+        {
+          quizId: INACTIVE_QUIZ_ID,
+          accessProof: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        },
+      ]);
 
-    expect(result).toEqual([{ quizId: ACTIVE_QUIZ_ID, participantCountIncludingHost: 6 }]);
-    expect(prismaMock.session.findMany).toHaveBeenCalledWith({
-      where: {
-        status: { not: 'FINISHED' },
-        quizId: { in: [ACTIVE_QUIZ_ID] },
-      },
-      select: {
-        quizId: true,
-        _count: {
-          select: {
-            participants: true,
+      expect(result).toEqual([{ quizId: ACTIVE_QUIZ_ID, participantCountIncludingHost: 6 }]);
+      expect(prismaMock.session.findMany).toHaveBeenCalledWith({
+        where: {
+          status: { not: 'FINISHED' },
+          quizId: { in: [ACTIVE_QUIZ_ID] },
+        },
+        select: {
+          quizId: true,
+          _count: {
+            select: {
+              participants: true,
+            },
           },
         },
-      },
-    });
-  });
+      });
+    },
+  );
 });
 
 describe('session.getFreetextSessionExport', () => {
@@ -237,28 +263,74 @@ describe('session.getFreetextSessionExport', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('aggregiert Freitextantworten pro Frage für Session-Export', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      code: 'ABC123',
-      quiz: {
-        questions: [
-          { id: QUESTION_ID, order: 0, text: 'Feedback?' },
-          { id: '7b90667d-d4ef-4dce-bf09-76eeb91a5efd', order: 1, text: 'Was verbessern?' },
-        ],
-      },
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      { questionId: QUESTION_ID, freeText: ' Klar ' },
-      { questionId: QUESTION_ID, freeText: 'Klar' },
-      { questionId: '7b90667d-d4ef-4dce-bf09-76eeb91a5efd', freeText: 'Mehr Beispiele' },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.getFreetextSessionExport',
+      case: 'happy',
+      mode: 'direct',
+      title: 'aggregiert Freitextantworten pro Frage für Session-Export',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: 'ABC123',
+        quiz: {
+          questions: [
+            { id: QUESTION_ID, order: 0, text: 'Feedback?' },
+            { id: '7b90667d-d4ef-4dce-bf09-76eeb91a5efd', order: 1, text: 'Was verbessern?' },
+          ],
+        },
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        { questionId: QUESTION_ID, freeText: ' Klar ' },
+        { questionId: QUESTION_ID, freeText: 'Klar' },
+        { questionId: '7b90667d-d4ef-4dce-bf09-76eeb91a5efd', freeText: 'Mehr Beispiele' },
+      ]);
 
-    const result = await caller.getFreetextSessionExport({ code: 'ABC123' });
+      const result = await caller.getFreetextSessionExport({ code: 'ABC123' });
 
-    expect(result.sessionId).toBe(SESSION_ID);
-    expect(result.entries).toHaveLength(2);
-    expect(result.entries[0]?.aggregates[0]).toEqual({ text: 'Klar', count: 2 });
-    expect(result.entries[1]?.aggregates[0]).toEqual({ text: 'Mehr Beispiele', count: 1 });
-  });
+      expect(result.sessionId).toBe(SESSION_ID);
+      expect(result.entries).toHaveLength(2);
+      expect(result.entries[0]?.aggregates[0]).toEqual({ text: 'Klar', count: 2 });
+      expect(result.entries[1]?.aggregates[0]).toEqual({ text: 'Mehr Beispiele', count: 1 });
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getActiveQuizIds',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'weist einen Eintrag mit ungueltiger Quiz-ID vor dem zugriffsgefilterten Resolver ab',
+  },
+  async () => {
+    await expect(
+      caller.getActiveQuizIds([
+        {
+          quizId: 'keine-uuid',
+          accessProof: '11111111-1111-4111-8111-111111111111',
+        },
+      ]),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.getFreetextSessionExport',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.getFreetextSessionExport weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(caller.getFreetextSessionExport({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  },
+);
