@@ -249,6 +249,30 @@ test('Node scripts reject explicit globalThis browser-only access', async () => 
   );
 });
 
+test('Playwright browser callbacks reject Node globals while the controller keeps them', async () => {
+  const outside = await runtimeProfileErrors(
+    withPlaywrightPage('process.stdout.write("controller");'),
+  );
+  const inside = await runtimeProfileErrors(
+    withPlaywrightPage('page.evaluate(() => process.cwd());'),
+  );
+  assert.equal(outside.length, 0);
+  assert.equal(inside.length, 1);
+  assert.match(inside[0].message, /Node-Global ist innerhalb/);
+});
+
+test('k6 globals are rejected by Node and Playwright TypeScript profiles', async () => {
+  const eslint = new ESLint({ ignore: false });
+  for (const filePath of ['scripts/check-runtime.mts', 'apps/frontend/scripts/check-runtime.mts']) {
+    const result = await eslint.lintText('__ENV.TARGET;', { filePath });
+    const messages = result[0].messages.filter(
+      (message) => message.ruleId === 'no-restricted-globals',
+    );
+    assert.equal(messages.length, 1);
+    assert.match(messages[0].message, /k6-Global ist außerhalb/);
+  }
+});
+
 test('Playwright callbacks outside frontend scripts include addInitScript', async () => {
   const eslint = new ESLint({ ignore: false });
   for (const [filePath, source] of [

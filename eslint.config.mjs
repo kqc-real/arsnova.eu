@@ -6,11 +6,26 @@ import angular from 'angular-eslint';
 const browserOnlyGlobalNames = Object.keys(globals.browser).filter(
   (name) => !Object.hasOwn(globals.node, name),
 );
-const forbidBrowserGlobalsInNodeScripts = [
+const nodeOnlyGlobalNames = Object.keys(globals.node).filter(
+  (name) => !Object.hasOwn(globals.browser, name),
+);
+const k6GlobalNames = ['__ENV', '__ITER', '__VU'];
+const forbidForeignGlobalsInNodeScripts = [
   'error',
   ...browserOnlyGlobalNames.map((name) => ({
     name,
     message: 'Browser-Global ist in diesem Node-Laufzeitprofil nicht verfügbar.',
+  })),
+  ...k6GlobalNames.map((name) => ({
+    name,
+    message: 'k6-Global ist außerhalb des k6-Laufzeitprofils nicht verfügbar.',
+  })),
+];
+const forbidK6Globals = [
+  'error',
+  ...k6GlobalNames.map((name) => ({
+    name,
+    message: 'k6-Global ist außerhalb des k6-Laufzeitprofils nicht verfügbar.',
   })),
 ];
 const browserCallbackMethods = new Set([
@@ -58,6 +73,7 @@ const runtimeProfilePlugin = {
             properties: {
               allowPlaywrightCallbacks: { type: 'boolean' },
               checkBareBrowserGlobals: { type: 'boolean' },
+              checkNodeGlobalsInBrowserCallbacks: { type: 'boolean' },
             },
             additionalProperties: false,
           },
@@ -65,6 +81,8 @@ const runtimeProfilePlugin = {
         messages: {
           browserGlobal:
             'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
+          nodeGlobal:
+            'Node-Global ist innerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
         },
       },
       create(context) {
@@ -77,6 +95,8 @@ const runtimeProfilePlugin = {
         const playwrightReceiverFactoryProperties = new Map();
         const allowPlaywrightCallbacks = context.options[0]?.allowPlaywrightCallbacks === true;
         const checkBareBrowserGlobals = context.options[0]?.checkBareBrowserGlobals === true;
+        const checkNodeGlobalsInBrowserCallbacks =
+          context.options[0]?.checkNodeGlobalsInBrowserCallbacks === true;
         const isGlobalReference = (node) => {
           for (let scope = sourceCode.getScope(node); scope; scope = scope.upper) {
             const reference = scope.references.find((candidate) => candidate.identifier === node);
@@ -545,6 +565,17 @@ const runtimeProfilePlugin = {
           },
           Identifier(node) {
             if (
+              checkNodeGlobalsInBrowserCallbacks &&
+              nodeOnlyGlobalNames.includes(node.name) &&
+              isGlobalReference(node) &&
+              !isMemberProperty(node) &&
+              !isObjectPropertyKey(node) &&
+              isBrowserCallback(node)
+            ) {
+              context.report({ node, messageId: 'nodeGlobal' });
+              return;
+            }
+            if (
               !checkBareBrowserGlobals ||
               !browserOnlyGlobalNames.includes(node.name) ||
               !isGlobalReference(node) ||
@@ -557,6 +588,18 @@ const runtimeProfilePlugin = {
             context.report({ node, messageId: 'browserGlobal' });
           },
           MemberExpression(node) {
+            if (
+              checkNodeGlobalsInBrowserCallbacks &&
+              node.object.type === 'Identifier' &&
+              node.object.name === 'globalThis' &&
+              !node.computed &&
+              node.property.type === 'Identifier' &&
+              nodeOnlyGlobalNames.includes(node.property.name) &&
+              isBrowserCallback(node)
+            ) {
+              context.report({ node: node.property, messageId: 'nodeGlobal' });
+              return;
+            }
             if (
               node.object.type !== 'Identifier' ||
               node.object.name !== 'globalThis' ||
@@ -648,7 +691,7 @@ export default tseslint.config(
       '.github/scripts/**/*.{ts,mts}',
     ],
     ignores: playwrightScriptFiles,
-    rules: { 'no-restricted-globals': forbidBrowserGlobalsInNodeScripts },
+    rules: { 'no-restricted-globals': forbidForeignGlobalsInNodeScripts },
   },
   {
     files: playwrightScriptFiles,
@@ -656,8 +699,13 @@ export default tseslint.config(
     rules: {
       'runtime-profile/no-browser-global-outside-playwright-callback': [
         'error',
-        { allowPlaywrightCallbacks: true, checkBareBrowserGlobals: true },
+        {
+          allowPlaywrightCallbacks: true,
+          checkBareBrowserGlobals: true,
+          checkNodeGlobalsInBrowserCallbacks: true,
+        },
       ],
+      'no-restricted-globals': forbidK6Globals,
     },
   },
   {

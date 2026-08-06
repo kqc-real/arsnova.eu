@@ -299,6 +299,8 @@ jobs:
       - name: Checkout
         if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 24
         if: needs.changes.outputs.docs_only != 'true'
@@ -543,6 +545,13 @@ jobs:
       - name: Report script ESLint inventory
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run lint:scripts:test && npm run lint:scripts
+
+      - name: Enforce changed script lint
+        if: needs.changes.outputs.docs_only != 'true'
+        env:
+          SCRIPT_LINT_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          SCRIPT_LINT_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: npm run lint:scripts:changed
 
       - name: Check i18n locale consistency
         if: needs.changes.outputs.docs_only != 'true'
