@@ -3,6 +3,15 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 import angular from 'angular-eslint';
 
+const browserGlobalNames = Object.keys(globals.browser);
+const forbidBrowserGlobalsInNodeScripts = [
+  'error',
+  ...browserGlobalNames.map((name) => ({
+    name,
+    message: 'Browser-Global ist in diesem Node-Laufzeitprofil nicht verfügbar.',
+  })),
+];
+
 export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -52,6 +61,19 @@ export default tseslint.config(
   {
     files: ['.github/scripts/**/*.{js,mjs,cjs,ts,mts}'],
     languageOptions: { globals: globals.node },
+  },
+  // typescript-eslint deaktiviert no-undef für TS-Dateien. Diese explizite
+  // Regel hält den Laufzeitvertrag auch für .ts/.mts durchsetzbar.
+  {
+    files: [
+      'scripts/**/*.{ts,mts}',
+      'apps/backend/scripts/**/*.{ts,mts}',
+      'apps/frontend/scripts/**/*.{ts,mts}',
+      'apps/landing/scripts/**/*.{ts,mts}',
+      'libs/**/scripts/**/*.{ts,mts}',
+      '.github/scripts/**/*.{ts,mts}',
+    ],
+    rules: { 'no-restricted-globals': forbidBrowserGlobalsInNodeScripts },
   },
   {
     files: ['scripts/load/k6-*.js'],

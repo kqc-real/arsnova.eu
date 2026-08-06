@@ -86,3 +86,27 @@ test('runtime profiles expose only their declared globals', async () => {
     ["'process' is not defined."],
   );
 });
+
+test('Node and Playwright-Node TypeScript profiles reject browser globals', async () => {
+  const eslint = new ESLint({ ignore: false });
+  for (const filePath of [
+    'scripts/check-runtime.ts',
+    'scripts/check-runtime.mts',
+    'apps/frontend/scripts/check-runtime.mts',
+  ]) {
+    const config = await eslint.calculateConfigForFile(filePath);
+    assert.equal(Object.hasOwn(config.languageOptions.globals, 'process'), true);
+    assert.equal('window' in config.languageOptions.globals, false);
+    const result = await eslint.lintText('process.stdout.write("ok"); window.alert("no");', {
+      filePath,
+    });
+    const restrictedMessages = result[0].messages.filter(
+      (message) => message.ruleId === 'no-restricted-globals',
+    );
+    assert.equal(restrictedMessages.length, 1);
+    assert.match(
+      restrictedMessages[0].message,
+      /Browser-Global ist in diesem Node-Laufzeitprofil nicht verfügbar\./,
+    );
+  }
+});
