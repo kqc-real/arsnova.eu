@@ -39,6 +39,17 @@ const withPlaywrightPage = (source) => `
   ${source}
 `;
 
+const runtimeProfileErrors = async (
+  source,
+  filePath = 'apps/frontend/scripts/check-runtime.mjs',
+) => {
+  const eslint = new ESLint({ ignore: false });
+  const result = await eslint.lintText(source, { filePath });
+  return result[0].messages.filter(
+    (message) => message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+  );
+};
+
 test('classifies k6 and Node scripts without overlapping globals', () => {
   assert.deepEqual(classifyFile('scripts/load/k6-health.js', inventory), ['k6']);
   assert.deepEqual(classifyFile('scripts/load/run-k6.mjs', inventory), ['node']);
@@ -277,12 +288,9 @@ test('Playwright callbacks outside frontend scripts include addInitScript', asyn
 });
 
 test('Playwright callback exemptions require a proven receiver and argument zero', async () => {
-  const eslint = new ESLint({ ignore: false });
   for (const source of [
     'const helper = { evaluate(callback) { return callback(); } }; helper.evaluate(() => window.location.href);',
-    withPlaywrightPage(
-      'page.evaluate(() => "ok", () => window.location.href);',
-    ),
+    withPlaywrightPage('page.evaluate(() => "ok", () => window.location.href);'),
     'import { devices } from "playwright"; devices.launch().evaluate(() => window.location.href);',
     withPlaywrightPage(
       'const helper = { evaluate(callback) { return callback(); } }; page = helper; page.evaluate(() => window.location.href);',
@@ -291,15 +299,111 @@ test('Playwright callback exemptions require a proven receiver and argument zero
       'const helper = { evaluate(callback) { return callback(); } }; function read(target) { target.evaluate(() => window.location.href); } read(page); read(helper);',
     ),
   ]) {
-    const result = await eslint.lintText(source, {
-      filePath: 'apps/frontend/scripts/check-runtime.mjs',
-    });
-    assert.equal(
-      result[0].messages.filter(
-        (message) =>
-          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
-      ).length,
-      1,
-    );
+    assert.equal((await runtimeProfileErrors(source)).length, 1);
   }
+});
+
+test('mixed factory returns cannot authorize a foreign receiver', async () => {
+  const allowed = await runtimeProfileErrors(
+    withPlaywrightPage('page.evaluate(() => document.title);'),
+  );
+  const rejected = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      const helper = { evaluate(callback) { return callback(); } };
+      function makeTarget(usePage) {
+        if (usePage) return page;
+        return helper;
+      }
+      makeTarget(false).evaluate(() => window.location.href);
+    `),
+  );
+  assert.equal(allowed.length, 0);
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0].message, /außerhalb eines Playwright-Browsercallbacks/);
+});
+
+test('expression-bodied factories require every conditional result to be Playwright', async () => {
+  const allowed = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      const makeTarget = (usePage) => usePage ? page : page.locator('body');
+      makeTarget(false).evaluate(() => document.title);
+    `),
+  );
+  const rejected = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      const helper = { evaluate(callback) { return callback(); } };
+      const makeHelper = () => helper;
+      makeHelper().evaluate(() => window.location.href);
+    `),
+  );
+  assert.equal(allowed.length, 0);
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0].message, /außerhalb eines Playwright-Browsercallbacks/);
+});
+
+test('block factories allow callbacks only when every value return is Playwright', async () => {
+  const allowed = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      function makeTarget(usePage) {
+        if (usePage) return page;
+        return page.locator('body');
+      }
+      makeTarget(false).evaluate(() => document.title);
+    `),
+  );
+  const rejected = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      const helper = { evaluate(callback) { return callback(); } };
+      helper.evaluate(() => window.location.href);
+    `),
+  );
+  assert.equal(allowed.length, 0);
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0].message, /außerhalb eines Playwright-Browsercallbacks/);
+});
+
+test('unknown and valueless factory paths are rejected conservatively', async () => {
+  const allowed = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      function makeKnownTarget(usePage) {
+        if (usePage) return page;
+        throw new Error('unavailable');
+      }
+      makeKnownTarget(true).evaluate(() => document.title);
+    `),
+  );
+  const rejected = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      function makeTarget(usePage) {
+        if (usePage) return page;
+        return;
+      }
+      makeTarget(false).evaluate(() => window.location.href);
+    `),
+  );
+  assert.equal(allowed.length, 0);
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0].message, /außerhalb eines Playwright-Browsercallbacks/);
+});
+
+test('object factory properties remain trusted only across proven call sites', async () => {
+  const allowed = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      function wrap(target) { return { target }; }
+      const { target } = wrap(page);
+      target.evaluate(() => document.title);
+    `),
+  );
+  const rejected = await runtimeProfileErrors(
+    withPlaywrightPage(`
+      const helper = { evaluate(callback) { return callback(); } };
+      function wrap(target) { return { target }; }
+      wrap(page);
+      const { target } = wrap(helper);
+      target.evaluate(() => window.location.href);
+    `),
+  );
+  assert.equal(allowed.length, 0);
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0].message, /außerhalb eines Playwright-Browsercallbacks/);
 });

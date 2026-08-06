@@ -73,6 +73,7 @@ const runtimeProfilePlugin = {
         const playwrightReceiverVariables = new Set();
         const untrustedPlaywrightReceiverVariables = new Set();
         const playwrightReceiverFactories = new Set();
+        const untrustedPlaywrightReceiverFactories = new Set();
         const playwrightReceiverFactoryProperties = new Map();
         const allowPlaywrightCallbacks = context.options[0]?.allowPlaywrightCallbacks === true;
         const checkBareBrowserGlobals = context.options[0]?.checkBareBrowserGlobals === true;
@@ -98,7 +99,9 @@ const runtimeProfilePlugin = {
               current = current.argument;
               continue;
             }
-            if (['ChainExpression', 'TSAsExpression', 'TSNonNullExpression'].includes(current.type)) {
+            if (
+              ['ChainExpression', 'TSAsExpression', 'TSNonNullExpression'].includes(current.type)
+            ) {
               current = current.expression;
               continue;
             }
@@ -139,7 +142,10 @@ const runtimeProfilePlugin = {
                 : definition.node.type === 'VariableDeclarator'
                   ? definition.node.init
                   : null;
-            return playwrightReceiverFactories.has(factory);
+            return (
+              playwrightReceiverFactories.has(factory) &&
+              !untrustedPlaywrightReceiverFactories.has(factory)
+            );
           });
         };
         const resolvedFunctions = (node) => {
@@ -169,6 +175,12 @@ const runtimeProfilePlugin = {
                 !untrustedPlaywrightReceiverVariables.has(variable))
             );
           }
+          if (current.type === 'ConditionalExpression') {
+            return (
+              isPlaywrightReceiver(current.consequent, seen) &&
+              isPlaywrightReceiver(current.alternate, seen)
+            );
+          }
           if (current.type !== 'CallExpression') return false;
           if (current.callee.type === 'Identifier') return resolvesToFactory(current.callee);
           if (
@@ -180,6 +192,99 @@ const runtimeProfilePlugin = {
             return false;
           }
           return isPlaywrightReceiver(current.callee.object, seen);
+        };
+        const combineBranches = (...branches) => ({
+          returns: branches.flatMap((branch) => branch.returns),
+          canContinue: branches.some((branch) => branch.canContinue),
+          unknown: branches.some((branch) => branch.unknown),
+        });
+        const analyzeStatements = (statements) => {
+          const result = { returns: [], canContinue: true, unknown: false };
+          for (const statement of statements) {
+            if (!result.canContinue) break;
+            const outcome = analyzeStatement(statement);
+            result.returns.push(...outcome.returns);
+            result.canContinue = outcome.canContinue;
+            result.unknown ||= outcome.unknown;
+          }
+          return result;
+        };
+        const analyzeStatement = (statement) => {
+          switch (statement.type) {
+            case 'ReturnStatement':
+              return statement.argument
+                ? { returns: [statement.argument], canContinue: false, unknown: false }
+                : { returns: [], canContinue: false, unknown: true };
+            case 'ThrowStatement':
+              return { returns: [], canContinue: false, unknown: false };
+            case 'BlockStatement':
+              return analyzeStatements(statement.body);
+            case 'IfStatement':
+              return combineBranches(
+                analyzeStatement(statement.consequent),
+                statement.alternate
+                  ? analyzeStatement(statement.alternate)
+                  : { returns: [], canContinue: true, unknown: false },
+              );
+            case 'TryStatement': {
+              if (statement.finalizer?.body.length) {
+                return { returns: [], canContinue: true, unknown: true };
+              }
+              const body = analyzeStatement(statement.block);
+              return statement.handler
+                ? combineBranches(body, analyzeStatement(statement.handler.body))
+                : body;
+            }
+            case 'LabeledStatement':
+              return analyzeStatement(statement.body);
+            case 'ForStatement':
+            case 'ForInStatement':
+            case 'ForOfStatement':
+            case 'WhileStatement': {
+              const body = analyzeStatement(statement.body);
+              return { ...body, canContinue: true };
+            }
+            case 'DoWhileStatement':
+              return analyzeStatement(statement.body);
+            case 'BreakStatement':
+            case 'ContinueStatement':
+            case 'SwitchStatement':
+            case 'WithStatement':
+              return { returns: [], canContinue: true, unknown: true };
+            default:
+              return { returns: [], canContinue: true, unknown: false };
+          }
+        };
+        const analyzeFunctionReturns = (fn) => {
+          if (fn.type === 'ArrowFunctionExpression' && fn.expression) {
+            return { returns: [fn.body], canContinue: false, unknown: false };
+          }
+          return analyzeStatement(fn.body);
+        };
+        const receiverPropertiesReturnedBy = (summary) => {
+          if (summary.unknown || summary.canContinue || summary.returns.length === 0) return [];
+          const returnedObjects = summary.returns.map(unwrapExpression);
+          if (returnedObjects.some((returned) => returned?.type !== 'ObjectExpression')) return [];
+          const [first, ...rest] = returnedObjects;
+          return first.properties
+            .filter(
+              (property) =>
+                property.type === 'Property' &&
+                property.key.type === 'Identifier' &&
+                isPlaywrightReceiver(property.value),
+            )
+            .map((property) => property.key.name)
+            .filter((name) =>
+              rest.every((returned) =>
+                returned.properties.some(
+                  (property) =>
+                    property.type === 'Property' &&
+                    property.key.type === 'Identifier' &&
+                    property.key.name === name &&
+                    isPlaywrightReceiver(property.value),
+                ),
+              ),
+            );
         };
         const isSupportedBrowserCallbackCall = (call, callback) =>
           call?.type === 'CallExpression' &&
@@ -223,6 +328,32 @@ const runtimeProfilePlugin = {
             let changed = true;
             while (changed) {
               changed = false;
+              for (const fn of nodes.filter((current) =>
+                ['ArrowFunctionExpression', 'FunctionExpression', 'FunctionDeclaration'].includes(
+                  current.type,
+                ),
+              )) {
+                const summary = analyzeFunctionReturns(fn);
+                if (
+                  !summary.unknown &&
+                  !summary.canContinue &&
+                  summary.returns.length > 0 &&
+                  summary.returns.every((returned) => isPlaywrightReceiver(returned)) &&
+                  !playwrightReceiverFactories.has(fn)
+                ) {
+                  playwrightReceiverFactories.add(fn);
+                  changed = true;
+                }
+                const properties = receiverPropertiesReturnedBy(summary);
+                const knownProperties = playwrightReceiverFactoryProperties.get(fn) ?? new Set();
+                for (const property of properties) {
+                  if (!knownProperties.has(property)) {
+                    knownProperties.add(property);
+                    changed = true;
+                  }
+                }
+                playwrightReceiverFactoryProperties.set(fn, knownProperties);
+              }
               for (const current of nodes) {
                 if (
                   current.type === 'VariableDeclarator' &&
@@ -235,10 +366,7 @@ const runtimeProfilePlugin = {
                     changed = true;
                   }
                 }
-                if (
-                  current.type === 'VariableDeclarator' &&
-                  current.id.type === 'ObjectPattern'
-                ) {
+                if (current.type === 'VariableDeclarator' && current.id.type === 'ObjectPattern') {
                   const initializer = unwrapExpression(current.init);
                   if (
                     initializer?.type === 'CallExpression' &&
@@ -277,50 +405,11 @@ const runtimeProfilePlugin = {
                     changed = true;
                   }
                 }
-                if (current.type === 'ReturnStatement') {
-                  let owner = current.parent;
-                  while (
-                    owner &&
-                    !['ArrowFunctionExpression', 'FunctionExpression', 'FunctionDeclaration'].includes(
-                      owner.type,
-                    )
-                  ) {
-                    owner = owner.parent;
-                  }
-                  if (
-                    owner &&
-                    isPlaywrightReceiver(current.argument) &&
-                    !playwrightReceiverFactories.has(owner)
-                  ) {
-                    playwrightReceiverFactories.add(owner);
-                    changed = true;
-                  }
-                  const returned = unwrapExpression(current.argument);
-                  if (owner && returned?.type === 'ObjectExpression') {
-                    const properties = playwrightReceiverFactoryProperties.get(owner) ?? new Set();
-                    for (const property of returned.properties) {
-                      if (
-                        property.type !== 'Property' ||
-                        property.key.type !== 'Identifier' ||
-                        !isPlaywrightReceiver(property.value) ||
-                        properties.has(property.key.name)
-                      ) {
-                        continue;
-                      }
-                      properties.add(property.key.name);
-                      changed = true;
-                    }
-                    playwrightReceiverFactoryProperties.set(owner, properties);
-                  }
-                }
                 if (current.type === 'CallExpression' && current.callee.type === 'Identifier') {
                   for (const fn of resolvedFunctions(current.callee)) {
                     current.arguments.forEach((argument, index) => {
                       const parameter = fn.params[index];
-                      if (
-                        parameter?.type !== 'Identifier' ||
-                        !isPlaywrightReceiver(argument)
-                      ) {
+                      if (parameter?.type !== 'Identifier' || !isPlaywrightReceiver(argument)) {
                         return;
                       }
                       const variable = resolveVariable(parameter);
@@ -337,11 +426,71 @@ const runtimeProfilePlugin = {
             let trustChanged = true;
             while (trustChanged) {
               trustChanged = false;
+              for (const factory of playwrightReceiverFactories) {
+                const summary = analyzeFunctionReturns(factory);
+                if (
+                  !untrustedPlaywrightReceiverFactories.has(factory) &&
+                  (summary.unknown ||
+                    summary.canContinue ||
+                    summary.returns.length === 0 ||
+                    !summary.returns.every((returned) => isPlaywrightReceiver(returned)))
+                ) {
+                  untrustedPlaywrightReceiverFactories.add(factory);
+                  trustChanged = true;
+                }
+              }
               for (const current of nodes) {
                 if (
-                  current.type === 'AssignmentExpression' &&
-                  current.left.type === 'Identifier'
+                  current.type === 'VariableDeclarator' &&
+                  current.id.type === 'Identifier' &&
+                  current.init !== null
                 ) {
+                  const variable = resolveVariable(current.id);
+                  if (
+                    variable &&
+                    playwrightReceiverVariables.has(variable) &&
+                    !untrustedPlaywrightReceiverVariables.has(variable) &&
+                    !isPlaywrightReceiver(current.init)
+                  ) {
+                    untrustedPlaywrightReceiverVariables.add(variable);
+                    trustChanged = true;
+                  }
+                }
+                if (current.type === 'VariableDeclarator' && current.id.type === 'ObjectPattern') {
+                  const initializer = unwrapExpression(current.init);
+                  const factories =
+                    initializer?.type === 'CallExpression' &&
+                    initializer.callee.type === 'Identifier'
+                      ? resolvedFunctions(initializer.callee)
+                      : [];
+                  for (const property of current.id.properties) {
+                    if (
+                      property.type !== 'Property' ||
+                      property.key.type !== 'Identifier' ||
+                      property.value.type !== 'Identifier'
+                    ) {
+                      continue;
+                    }
+                    const variable = resolveVariable(property.value);
+                    const isProvenProperty =
+                      factories.length > 0 &&
+                      factories.every((factory) =>
+                        receiverPropertiesReturnedBy(analyzeFunctionReturns(factory)).includes(
+                          property.key.name,
+                        ),
+                      );
+                    if (
+                      variable &&
+                      playwrightReceiverVariables.has(variable) &&
+                      !untrustedPlaywrightReceiverVariables.has(variable) &&
+                      !isProvenProperty
+                    ) {
+                      untrustedPlaywrightReceiverVariables.add(variable);
+                      trustChanged = true;
+                    }
+                  }
+                }
+                if (current.type === 'AssignmentExpression' && current.left.type === 'Identifier') {
                   const variable = resolveVariable(current.left);
                   if (
                     variable &&
