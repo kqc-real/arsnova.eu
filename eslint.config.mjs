@@ -20,6 +20,27 @@ const browserCallbackMethods = new Set([
   'evaluateHandle',
   'waitForFunction',
 ]);
+const playwrightReceiverFactoryMethods = new Set([
+  'contentFrame',
+  'filter',
+  'first',
+  'frame',
+  'frameLocator',
+  'getByAltText',
+  'getByLabel',
+  'getByPlaceholder',
+  'getByRole',
+  'getByTestId',
+  'getByText',
+  'getByTitle',
+  'last',
+  'launch',
+  'locator',
+  'newContext',
+  'newPage',
+  'nth',
+  'owner',
+]);
 const playwrightScriptFiles = [
   'apps/frontend/scripts/**/*.{js,mjs,cjs,ts,mts}',
   'apps/landing/scripts/**/*.{js,mjs,cjs,ts,mts}',
@@ -49,6 +70,10 @@ const runtimeProfilePlugin = {
       create(context) {
         const sourceCode = context.sourceCode;
         const namedBrowserCallbacks = new Set();
+        const playwrightReceiverVariables = new Set();
+        const untrustedPlaywrightReceiverVariables = new Set();
+        const playwrightReceiverFactories = new Set();
+        const playwrightReceiverFactoryProperties = new Map();
         const allowPlaywrightCallbacks = context.options[0]?.allowPlaywrightCallbacks === true;
         const checkBareBrowserGlobals = context.options[0]?.checkBareBrowserGlobals === true;
         const isGlobalReference = (node) => {
@@ -66,6 +91,104 @@ const runtimeProfilePlugin = {
           !node.parent.computed;
         const isObjectPropertyKey = (node) =>
           node.parent?.type === 'Property' && node.parent.key === node && !node.parent.computed;
+        const unwrapExpression = (node) => {
+          let current = node;
+          while (current) {
+            if (current.type === 'AwaitExpression') {
+              current = current.argument;
+              continue;
+            }
+            if (['ChainExpression', 'TSAsExpression', 'TSNonNullExpression'].includes(current.type)) {
+              current = current.expression;
+              continue;
+            }
+            break;
+          }
+          return current;
+        };
+        const resolveVariable = (node) => {
+          for (let scope = sourceCode.getScope(node); scope; scope = scope.upper) {
+            const reference = scope.references.find((candidate) => candidate.identifier === node);
+            if (reference) return reference.resolved;
+            const declared = scope.variables.find((variable) =>
+              variable.identifiers.includes(node),
+            );
+            if (declared) return declared;
+          }
+          return null;
+        };
+        const resolvesToPlaywrightImport = (node) => {
+          const variable = resolveVariable(node);
+          return variable?.defs.some(
+            (definition) =>
+              definition.type === 'ImportBinding' &&
+              definition.node.type === 'ImportSpecifier' &&
+              definition.node.imported.type === 'Identifier' &&
+              ['chromium', 'firefox', 'webkit'].includes(definition.node.imported.name) &&
+              ['playwright', '@playwright/test'].includes(
+                definition.parent?.source?.value ?? definition.node.parent?.source?.value,
+              ),
+          );
+        };
+        const resolvesToFactory = (node) => {
+          const variable = resolveVariable(node);
+          return variable?.defs.some((definition) => {
+            const factory =
+              definition.node.type === 'FunctionDeclaration'
+                ? definition.node
+                : definition.node.type === 'VariableDeclarator'
+                  ? definition.node.init
+                  : null;
+            return playwrightReceiverFactories.has(factory);
+          });
+        };
+        const resolvedFunctions = (node) => {
+          const variable = resolveVariable(node);
+          const functions = [];
+          for (const definition of variable?.defs ?? []) {
+            const fn =
+              definition.node.type === 'FunctionDeclaration'
+                ? definition.node
+                : definition.node.type === 'VariableDeclarator'
+                  ? definition.node.init
+                  : null;
+            if (fn && 'params' in fn) functions.push(fn);
+          }
+          return functions;
+        };
+        const isPlaywrightReceiver = (node, seen = new Set()) => {
+          const current = unwrapExpression(node);
+          if (!current || seen.has(current)) return false;
+          seen.add(current);
+          if (current.type === 'Identifier') {
+            const variable = resolveVariable(current);
+            return (
+              resolvesToPlaywrightImport(current) ||
+              (variable !== null &&
+                playwrightReceiverVariables.has(variable) &&
+                !untrustedPlaywrightReceiverVariables.has(variable))
+            );
+          }
+          if (current.type !== 'CallExpression') return false;
+          if (current.callee.type === 'Identifier') return resolvesToFactory(current.callee);
+          if (
+            current.callee.type !== 'MemberExpression' ||
+            current.callee.computed ||
+            current.callee.property.type !== 'Identifier' ||
+            !playwrightReceiverFactoryMethods.has(current.callee.property.name)
+          ) {
+            return false;
+          }
+          return isPlaywrightReceiver(current.callee.object, seen);
+        };
+        const isSupportedBrowserCallbackCall = (call, callback) =>
+          call?.type === 'CallExpression' &&
+          call.arguments[0] === callback &&
+          call.callee.type === 'MemberExpression' &&
+          !call.callee.computed &&
+          call.callee.property.type === 'Identifier' &&
+          browserCallbackMethods.has(call.callee.property.name) &&
+          isPlaywrightReceiver(call.callee.object);
         const isBrowserCallback = (node) => {
           for (let current = node; current; current = current.parent) {
             if (
@@ -76,62 +199,197 @@ const runtimeProfilePlugin = {
               continue;
             }
             if (namedBrowserCallbacks.has(current)) return true;
-            if (
-              current.parent?.type !== 'CallExpression' ||
-              !current.parent.arguments.includes(current)
-            ) {
-              continue;
-            }
-            const property =
-              current.parent.callee.type === 'MemberExpression'
-                ? current.parent.callee.property
-                : null;
-            if (property?.type === 'Identifier' && browserCallbackMethods.has(property.name)) {
-              return true;
-            }
+            if (isSupportedBrowserCallbackCall(current.parent, current)) return true;
           }
           return false;
         };
         return {
           Program(node) {
             const pending = [node];
+            const nodes = [];
             while (pending.length > 0) {
               const current = pending.pop();
-              if (
-                current.type === 'CallExpression' &&
-                current.callee.type === 'MemberExpression' &&
-                current.callee.property.type === 'Identifier' &&
-                browserCallbackMethods.has(current.callee.property.name)
-              ) {
-                for (const argument of current.arguments) {
-                  if (argument.type !== 'Identifier') continue;
-                  for (let scope = sourceCode.getScope(argument); scope; scope = scope.upper) {
-                    const reference = scope.references.find(
-                      (candidate) => candidate.identifier === argument,
-                    );
-                    if (!reference?.resolved) continue;
-                    for (const definition of reference.resolved.defs) {
-                      if (definition.node.type === 'FunctionDeclaration') {
-                        namedBrowserCallbacks.add(definition.node);
-                      } else if (
-                        definition.node.type === 'VariableDeclarator' &&
-                        ['ArrowFunctionExpression', 'FunctionExpression'].includes(
-                          definition.node.init?.type,
-                        )
-                      ) {
-                        namedBrowserCallbacks.add(definition.node.init);
-                      }
-                    }
-                    break;
-                  }
-                }
-              }
+              nodes.push(current);
               for (const [key, value] of Object.entries(current)) {
                 if (key === 'parent') continue;
                 if (Array.isArray(value)) {
                   pending.push(...value.filter((item) => item?.type));
                 } else if (value?.type) {
                   pending.push(value);
+                }
+              }
+            }
+
+            let changed = true;
+            while (changed) {
+              changed = false;
+              for (const current of nodes) {
+                if (
+                  current.type === 'VariableDeclarator' &&
+                  current.id.type === 'Identifier' &&
+                  isPlaywrightReceiver(current.init)
+                ) {
+                  const variable = resolveVariable(current.id);
+                  if (variable && !playwrightReceiverVariables.has(variable)) {
+                    playwrightReceiverVariables.add(variable);
+                    changed = true;
+                  }
+                }
+                if (
+                  current.type === 'VariableDeclarator' &&
+                  current.id.type === 'ObjectPattern'
+                ) {
+                  const initializer = unwrapExpression(current.init);
+                  if (
+                    initializer?.type === 'CallExpression' &&
+                    initializer.callee.type === 'Identifier'
+                  ) {
+                    const returnedProperties = new Set(
+                      resolvedFunctions(initializer.callee).flatMap((fn) => [
+                        ...(playwrightReceiverFactoryProperties.get(fn) ?? []),
+                      ]),
+                    );
+                    for (const property of current.id.properties) {
+                      if (
+                        property.type !== 'Property' ||
+                        property.key.type !== 'Identifier' ||
+                        property.value.type !== 'Identifier' ||
+                        !returnedProperties.has(property.key.name)
+                      ) {
+                        continue;
+                      }
+                      const variable = resolveVariable(property.value);
+                      if (variable && !playwrightReceiverVariables.has(variable)) {
+                        playwrightReceiverVariables.add(variable);
+                        changed = true;
+                      }
+                    }
+                  }
+                }
+                if (
+                  current.type === 'AssignmentExpression' &&
+                  current.left.type === 'Identifier' &&
+                  isPlaywrightReceiver(current.right)
+                ) {
+                  const variable = resolveVariable(current.left);
+                  if (variable && !playwrightReceiverVariables.has(variable)) {
+                    playwrightReceiverVariables.add(variable);
+                    changed = true;
+                  }
+                }
+                if (current.type === 'ReturnStatement') {
+                  let owner = current.parent;
+                  while (
+                    owner &&
+                    !['ArrowFunctionExpression', 'FunctionExpression', 'FunctionDeclaration'].includes(
+                      owner.type,
+                    )
+                  ) {
+                    owner = owner.parent;
+                  }
+                  if (
+                    owner &&
+                    isPlaywrightReceiver(current.argument) &&
+                    !playwrightReceiverFactories.has(owner)
+                  ) {
+                    playwrightReceiverFactories.add(owner);
+                    changed = true;
+                  }
+                  const returned = unwrapExpression(current.argument);
+                  if (owner && returned?.type === 'ObjectExpression') {
+                    const properties = playwrightReceiverFactoryProperties.get(owner) ?? new Set();
+                    for (const property of returned.properties) {
+                      if (
+                        property.type !== 'Property' ||
+                        property.key.type !== 'Identifier' ||
+                        !isPlaywrightReceiver(property.value) ||
+                        properties.has(property.key.name)
+                      ) {
+                        continue;
+                      }
+                      properties.add(property.key.name);
+                      changed = true;
+                    }
+                    playwrightReceiverFactoryProperties.set(owner, properties);
+                  }
+                }
+                if (current.type === 'CallExpression' && current.callee.type === 'Identifier') {
+                  for (const fn of resolvedFunctions(current.callee)) {
+                    current.arguments.forEach((argument, index) => {
+                      const parameter = fn.params[index];
+                      if (
+                        parameter?.type !== 'Identifier' ||
+                        !isPlaywrightReceiver(argument)
+                      ) {
+                        return;
+                      }
+                      const variable = resolveVariable(parameter);
+                      if (variable && !playwrightReceiverVariables.has(variable)) {
+                        playwrightReceiverVariables.add(variable);
+                        changed = true;
+                      }
+                    });
+                  }
+                }
+              }
+            }
+
+            let trustChanged = true;
+            while (trustChanged) {
+              trustChanged = false;
+              for (const current of nodes) {
+                if (
+                  current.type === 'AssignmentExpression' &&
+                  current.left.type === 'Identifier'
+                ) {
+                  const variable = resolveVariable(current.left);
+                  if (
+                    variable &&
+                    playwrightReceiverVariables.has(variable) &&
+                    !untrustedPlaywrightReceiverVariables.has(variable) &&
+                    !isPlaywrightReceiver(current.right)
+                  ) {
+                    untrustedPlaywrightReceiverVariables.add(variable);
+                    trustChanged = true;
+                  }
+                }
+                if (current.type !== 'CallExpression' || current.callee.type !== 'Identifier') {
+                  continue;
+                }
+                for (const fn of resolvedFunctions(current.callee)) {
+                  current.arguments.forEach((argument, index) => {
+                    const parameter = fn.params[index];
+                    if (parameter?.type !== 'Identifier') return;
+                    const variable = resolveVariable(parameter);
+                    if (
+                      variable &&
+                      playwrightReceiverVariables.has(variable) &&
+                      !untrustedPlaywrightReceiverVariables.has(variable) &&
+                      !isPlaywrightReceiver(argument)
+                    ) {
+                      untrustedPlaywrightReceiverVariables.add(variable);
+                      trustChanged = true;
+                    }
+                  });
+                }
+              }
+            }
+
+            for (const current of nodes) {
+              const callback = current.type === 'CallExpression' ? current.arguments[0] : null;
+              if (!callback || !isSupportedBrowserCallbackCall(current, callback)) continue;
+              if (callback.type !== 'Identifier') continue;
+              const variable = resolveVariable(callback);
+              for (const definition of variable?.defs ?? []) {
+                if (definition.node.type === 'FunctionDeclaration') {
+                  namedBrowserCallbacks.add(definition.node);
+                } else if (
+                  definition.node.type === 'VariableDeclarator' &&
+                  ['ArrowFunctionExpression', 'FunctionExpression'].includes(
+                    definition.node.init?.type,
+                  )
+                ) {
+                  namedBrowserCallbacks.add(definition.node.init);
                 }
               }
             }

@@ -31,6 +31,14 @@ const inventory = {
   ],
 };
 
+const withPlaywrightPage = (source) => `
+  import { chromium } from 'playwright';
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  ${source}
+`;
+
 test('classifies k6 and Node scripts without overlapping globals', () => {
   assert.deepEqual(classifyFile('scripts/load/k6-health.js', inventory), ['k6']);
   assert.deepEqual(classifyFile('scripts/load/run-k6.mjs', inventory), ['node']);
@@ -143,9 +151,10 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
     ['Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.'],
   );
 
-  const browserCallback = await eslint.lintText('page.evaluate(() => window.location.href);', {
-    filePath: 'apps/frontend/scripts/check-runtime.mts',
-  });
+  const browserCallback = await eslint.lintText(
+    withPlaywrightPage('page.evaluate(() => window.location.href);'),
+    { filePath: 'apps/frontend/scripts/check-runtime.mts' },
+  );
   assert.equal(
     browserCallback[0].messages.some(
       (message) =>
@@ -155,7 +164,7 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
   );
 
   const nestedBrowserCallback = await eslint.lintText(
-    'page.evaluate(() => [1].map(() => window.location.href));',
+    withPlaywrightPage('page.evaluate(() => [1].map(() => window.location.href));'),
     { filePath: 'apps/frontend/scripts/check-runtime.mts' },
   );
   assert.equal(
@@ -167,7 +176,7 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
   );
 
   const browserJavaScriptCallback = await eslint.lintText(
-    'page.evaluate(() => window.location.href);',
+    withPlaywrightPage('page.evaluate(() => window.location.href);'),
     { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
   );
   assert.equal(
@@ -179,7 +188,9 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
   );
 
   const namedBrowserCallback = await eslint.lintText(
-    'const readLocation = () => window.location.href; page.waitForFunction(readLocation);',
+    withPlaywrightPage(
+      'const readLocation = () => window.location.href; page.waitForFunction(readLocation);',
+    ),
     { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
   );
   assert.equal(
@@ -191,7 +202,9 @@ test('Playwright TypeScript profiles allow browser callbacks but reject browser-
   );
 
   const shadowedCallbackName = await eslint.lintText(
-    'const readLocation = () => "ok"; { const readLocation = () => window.location.href; } page.waitForFunction(readLocation);',
+    withPlaywrightPage(
+      'const readLocation = () => "ok"; { const readLocation = () => window.location.href; } page.waitForFunction(readLocation);',
+    ),
     { filePath: 'apps/frontend/scripts/check-runtime.mjs' },
   );
   assert.equal(
@@ -230,11 +243,13 @@ test('Playwright callbacks outside frontend scripts include addInitScript', asyn
   for (const [filePath, source] of [
     [
       'apps/landing/scripts/check-runtime.mjs',
-      'page.addInitScript(() => localStorage.setItem("theme", "dark"));',
+      withPlaywrightPage('page.addInitScript(() => localStorage.setItem("theme", "dark"));'),
     ],
     [
       'scripts/verify-csp-browser.mjs',
-      'context.addInitScript(() => document.documentElement.dataset.test = "ok");',
+      withPlaywrightPage(
+        'context.addInitScript(() => document.documentElement.dataset.test = "ok");',
+      ),
     ],
   ]) {
     const result = await eslint.lintText(source, { filePath });
@@ -259,4 +274,32 @@ test('Playwright callbacks outside frontend scripts include addInitScript', asyn
       .map((message) => message.message),
     ['Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.'],
   );
+});
+
+test('Playwright callback exemptions require a proven receiver and argument zero', async () => {
+  const eslint = new ESLint({ ignore: false });
+  for (const source of [
+    'const helper = { evaluate(callback) { return callback(); } }; helper.evaluate(() => window.location.href);',
+    withPlaywrightPage(
+      'page.evaluate(() => "ok", () => window.location.href);',
+    ),
+    'import { devices } from "playwright"; devices.launch().evaluate(() => window.location.href);',
+    withPlaywrightPage(
+      'const helper = { evaluate(callback) { return callback(); } }; page = helper; page.evaluate(() => window.location.href);',
+    ),
+    withPlaywrightPage(
+      'const helper = { evaluate(callback) { return callback(); } }; function read(target) { target.evaluate(() => window.location.href); } read(page); read(helper);',
+    ),
+  ]) {
+    const result = await eslint.lintText(source, {
+      filePath: 'apps/frontend/scripts/check-runtime.mjs',
+    });
+    assert.equal(
+      result[0].messages.filter(
+        (message) =>
+          message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+      ).length,
+      1,
+    );
+  }
 });
