@@ -275,14 +275,22 @@ trpcDodIt(
     procedure: 'session.getLastSessionExportPdfForQuiz',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title:
-      'session.getLastSessionExportPdfForQuiz weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine unbekannte Quiz-ID vor Session-Lookup und PDF-Rendern ab',
   },
   async () => {
-    await expect(caller.getLastSessionExportPdfForQuiz({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
+    vi.clearAllMocks();
+    prismaMock.quiz.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.getLastSessionExportPdfForQuiz({
+        quizId: QUIZ_ID,
+        accessProof: '22222222-2222-4222-8222-222222222222',
+        localeId: 'de',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.session.findFirst).not.toHaveBeenCalled();
+    expect(buildSessionResultsPdfMock).not.toHaveBeenCalled();
   },
 );
 

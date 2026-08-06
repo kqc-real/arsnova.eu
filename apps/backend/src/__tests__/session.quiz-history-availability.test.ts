@@ -132,13 +132,21 @@ trpcDodIt(
     procedure: 'session.getQuizCollectionHistoryAvailability',
     case: 'error',
     mode: 'direct',
-    contract: 'VALIDATION',
-    title:
-      'session.getQuizCollectionHistoryAvailability weist ungültige Eingaben vor dem Resolver zurück',
+    contract: 'NOT_FOUND',
+    title: 'lehnt eine unbekannte Quiz-ID mit gueltigem Historienzugriff ab',
   },
   async () => {
-    await expect(caller.getQuizCollectionHistoryAvailability({} as never)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
+    vi.clearAllMocks();
+    prismaMock.quiz.findUnique.mockResolvedValue(null);
+
+    await expect(
+      caller.getQuizCollectionHistoryAvailability([
+        {
+          quizId: QUIZ_ID,
+          accessProof: '22222222-2222-4222-8222-222222222222',
+        },
+      ]),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(prismaMock.session.findFirst).not.toHaveBeenCalled();
   },
 );
