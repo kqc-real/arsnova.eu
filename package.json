@@ -29,6 +29,8 @@
     "test:coverage": "npm run build:libs && npm run test:coverage -w @arsnova/shared-types && npm run test -w @arsnova/session-export-report && npm run test:coverage -w @arsnova/backend && npm run test:coverage -w @arsnova/frontend",
     "clean:generated": "node scripts/clean-generated.mjs",
     "lint": "eslint libs/ apps/ --no-warn-ignored",
+    "lint:scripts": "node scripts/lint-scripts.mjs",
+    "lint:scripts:test": "node --test scripts/validate-script-lint-inventory.test.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,html,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,html,css,scss,md}\"",
     "format:check:changed": "node scripts/check-changed-format.mjs",
