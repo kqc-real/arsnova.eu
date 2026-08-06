@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const {
   prismaMock,
@@ -81,39 +82,47 @@ describe('session.create (Story 2.1a)', () => {
     });
   });
 
-  it('erstellt Session mit Code und Status LOBBY', async () => {
-    const result = await caller.create({ quizId: QUIZ_ID });
+  trpcDodIt(
+    {
+      procedure: 'session.create',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erstellt Session mit Code und Status LOBBY',
+    },
+    async () => {
+      const result = await caller.create({ quizId: QUIZ_ID });
 
-    expect(result.sessionId).toBe(SESSION_ID);
-    expect(result.code).toBe(CODE);
-    expect(result.status).toBe('LOBBY');
-    expect(result.quizName).toBe('Mein Quiz');
-    expect(result.hostToken).toBe(HOST_TOKEN);
-    expect(prismaMock.session.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          status: 'LOBBY',
-          currentQuestion: null,
-          type: 'QUIZ',
-          quizId: QUIZ_ID,
-          qaEnabled: false,
-          qaOpen: false,
-          qaTitle: null,
-          qaModerationMode: false,
-          quickFeedbackEnabled: false,
-          quickFeedbackOpen: false,
-          onboardingProfileConfigured: true,
-          onboardingAllowCustomNicknames: false,
-          onboardingAnonymousMode: false,
-          onboardingTeamMode: false,
-          onboardingTeamCount: null,
-          onboardingTeamAssignment: 'AUTO',
-          onboardingTeamNames: [],
-          onboardingNicknameTheme: 'HIGH_SCHOOL',
+      expect(result.sessionId).toBe(SESSION_ID);
+      expect(result.code).toBe(CODE);
+      expect(result.status).toBe('LOBBY');
+      expect(result.quizName).toBe('Mein Quiz');
+      expect(result.hostToken).toBe(HOST_TOKEN);
+      expect(prismaMock.session.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'LOBBY',
+            currentQuestion: null,
+            type: 'QUIZ',
+            quizId: QUIZ_ID,
+            qaEnabled: false,
+            qaOpen: false,
+            qaTitle: null,
+            qaModerationMode: false,
+            quickFeedbackEnabled: false,
+            quickFeedbackOpen: false,
+            onboardingProfileConfigured: true,
+            onboardingAllowCustomNicknames: false,
+            onboardingAnonymousMode: false,
+            onboardingTeamMode: false,
+            onboardingTeamCount: null,
+            onboardingTeamAssignment: 'AUTO',
+            onboardingTeamNames: [],
+            onboardingNicknameTheme: 'HIGH_SCHOOL',
+          }),
         }),
-      }),
-    );
-  });
+      );
+    },
+  );
 
   it('setzt beim Start ab bestimmter Frage nur den initialen Fragenzeiger', async () => {
     await caller.create({ quizId: QUIZ_ID, startQuestionIndex: 2 });
@@ -128,13 +137,24 @@ describe('session.create (Story 2.1a)', () => {
     );
   });
 
-  it('weist einen Startindex außerhalb des Quiz zurück', async () => {
-    await expect(caller.create({ quizId: QUIZ_ID, startQuestionIndex: 3 })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.create',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'weist einen Startindex außerhalb des Quiz zurück',
+    },
+    async () => {
+      await expect(caller.create({ quizId: QUIZ_ID, startQuestionIndex: 3 })).rejects.toMatchObject(
+        {
+          code: 'BAD_REQUEST',
+        },
+      );
 
-    expect(prismaMock.session.create).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.session.create).not.toHaveBeenCalled();
+    },
+  );
 
   it('setzt Q&A-Vorab-Moderation standardmäßig an wenn Q&A aktiviert', async () => {
     prismaMock.session.create.mockResolvedValueOnce({

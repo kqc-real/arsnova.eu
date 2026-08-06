@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -86,42 +87,50 @@ describe('qa router (Epic 8)', () => {
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
   });
 
-  it('liefert sichtbare Fragen für einen Teilnehmer inklusive Upvote-Status', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      code: 'CODE12',
-      type: 'QUIZ',
-      qaEnabled: true,
-      qaOpen: true,
-      qaModerationMode: false,
-    });
-    prismaMock.qaQuestion.findMany.mockResolvedValue([
-      {
-        id: QUESTION_ID,
-        participantId: 'other-participant',
-        text: 'Was ist klausurrelevant?',
-        upvoteCount: 4,
-        status: 'ACTIVE',
-        createdAt: new Date('2026-03-13T12:00:00.000Z'),
-        upvotes: [{ participantId: PARTICIPANT_ID, direction: 'UP' }],
-      },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'qa.list',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert sichtbare Fragen für einen Teilnehmer inklusive Upvote-Status',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: 'CODE12',
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+      });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        {
+          id: QUESTION_ID,
+          participantId: 'other-participant',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 4,
+          status: 'ACTIVE',
+          createdAt: new Date('2026-03-13T12:00:00.000Z'),
+          upvotes: [{ participantId: PARTICIPANT_ID, direction: 'UP' }],
+        },
+      ]);
 
-    const result = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+      const result = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
 
-    expect(result).toEqual([
-      {
-        id: QUESTION_ID,
-        text: 'Was ist klausurrelevant?',
-        upvoteCount: 4,
-        status: 'ACTIVE',
-        createdAt: '2026-03-13T12:00:00.000Z',
-        hasUpvoted: true,
-        isOwn: false,
-        myVote: 'UP',
-      },
-    ]);
-  });
+      expect(result).toEqual([
+        {
+          id: QUESTION_ID,
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 4,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          hasUpvoted: true,
+          isOwn: false,
+          myVote: 'UP',
+        },
+      ]);
+    },
+  );
 
   it('fragt ohne participantId nur freigegebene Q&A-Status ab', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -146,74 +155,91 @@ describe('qa router (Epic 8)', () => {
     );
   });
 
-  it('legt eine neue Frage an und setzt ohne Moderation den Status ACTIVE', async () => {
-    prismaMock.participant.findUnique.mockResolvedValue({
-      id: PARTICIPANT_ID,
-      sessionId: SESSION_ID,
-      session: {
-        id: SESSION_ID,
-        type: 'QUIZ',
-        qaEnabled: true,
-        qaOpen: true,
-        qaModerationMode: false,
-        moderationMode: false,
-        status: 'ACTIVE',
-      },
-    });
-    prismaMock.qaQuestion.count.mockResolvedValue(0);
-    prismaMock.qaQuestion.create.mockResolvedValue({
-      id: QUESTION_ID,
-      text: 'Wie viele Punkte gibt es?',
-      upvoteCount: 0,
-      status: 'ACTIVE',
-      createdAt: new Date('2026-03-13T12:00:00.000Z'),
-      upvotes: [],
-    });
-
-    const result = await caller.submit({
-      sessionId: SESSION_ID,
-      participantId: PARTICIPANT_ID,
-      text: '  Wie viele Punkte gibt es?  ',
-    });
-
-    expect(prismaMock.qaQuestion.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          sessionId: SESSION_ID,
-          participantId: PARTICIPANT_ID,
-          text: 'Wie viele Punkte gibt es?',
+  trpcDodIt(
+    {
+      procedure: 'qa.submit',
+      case: 'happy',
+      mode: 'direct',
+      title: 'legt eine neue Frage an und setzt ohne Moderation den Status ACTIVE',
+    },
+    async () => {
+      prismaMock.participant.findUnique.mockResolvedValue({
+        id: PARTICIPANT_ID,
+        sessionId: SESSION_ID,
+        session: {
+          id: SESSION_ID,
+          type: 'QUIZ',
+          qaEnabled: true,
+          qaOpen: true,
+          qaModerationMode: false,
+          moderationMode: false,
           status: 'ACTIVE',
-        }),
-      }),
-    );
-    expect(result.status).toBe('ACTIVE');
-  });
+        },
+      });
+      prismaMock.qaQuestion.count.mockResolvedValue(0);
+      prismaMock.qaQuestion.create.mockResolvedValue({
+        id: QUESTION_ID,
+        text: 'Wie viele Punkte gibt es?',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [],
+      });
 
-  it('lehnt neue Fragen ab, wenn die Session beendet ist', async () => {
-    prismaMock.participant.findUnique.mockResolvedValue({
-      id: PARTICIPANT_ID,
-      sessionId: SESSION_ID,
-      session: {
-        id: SESSION_ID,
-        type: 'QUIZ',
-        qaEnabled: true,
-        qaOpen: true,
-        qaModerationMode: false,
-        moderationMode: false,
-        status: 'FINISHED',
-      },
-    });
-
-    await expect(
-      caller.submit({
+      const result = await caller.submit({
         sessionId: SESSION_ID,
         participantId: PARTICIPANT_ID,
-        text: 'Noch eine Frage?',
-      }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        text: '  Wie viele Punkte gibt es?  ',
+      });
 
-    expect(prismaMock.qaQuestion.create).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.qaQuestion.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            sessionId: SESSION_ID,
+            participantId: PARTICIPANT_ID,
+            text: 'Wie viele Punkte gibt es?',
+            status: 'ACTIVE',
+          }),
+        }),
+      );
+      expect(result.status).toBe('ACTIVE');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.submit',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt neue Fragen ab, wenn die Session beendet ist',
+    },
+    async () => {
+      prismaMock.participant.findUnique.mockResolvedValue({
+        id: PARTICIPANT_ID,
+        sessionId: SESSION_ID,
+        session: {
+          id: SESSION_ID,
+          type: 'QUIZ',
+          qaEnabled: true,
+          qaOpen: true,
+          qaModerationMode: false,
+          moderationMode: false,
+          status: 'FINISHED',
+        },
+      });
+
+      await expect(
+        caller.submit({
+          sessionId: SESSION_ID,
+          participantId: PARTICIPANT_ID,
+          text: 'Noch eine Frage?',
+        }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+
+      expect(prismaMock.qaQuestion.create).not.toHaveBeenCalled();
+    },
+  );
 
   it('begrenzt Studierende auf maximal 10 Fragen pro Session', async () => {
     prismaMock.participant.findUnique.mockResolvedValue({
@@ -242,78 +268,100 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
-  it('togglet Upvotes pro Teilnehmer und Frage', async () => {
-    prismaMock.qaQuestion.findUnique
-      .mockResolvedValueOnce({
-        id: QUESTION_ID,
+  trpcDodIt(
+    {
+      procedure: 'qa.upvote',
+      case: 'happy',
+      mode: 'direct',
+      title: 'togglet Upvotes pro Teilnehmer und Frage',
+    },
+    async () => {
+      prismaMock.qaQuestion.findUnique
+        .mockResolvedValueOnce({
+          id: QUESTION_ID,
+          sessionId: SESSION_ID,
+          status: 'ACTIVE',
+          upvoteCount: 1,
+          session: {
+            id: SESSION_ID,
+            type: 'QUIZ',
+            qaEnabled: true,
+            qaOpen: true,
+            status: 'ACTIVE',
+          },
+        })
+        .mockResolvedValueOnce({ upvoteCount: 2 });
+      prismaMock.participant.findUnique.mockResolvedValue({
+        id: PARTICIPANT_ID,
         sessionId: SESSION_ID,
-        status: 'ACTIVE',
-        upvoteCount: 1,
-        session: { id: SESSION_ID, type: 'QUIZ', qaEnabled: true, qaOpen: true, status: 'ACTIVE' },
-      })
-      .mockResolvedValueOnce({ upvoteCount: 2 });
-    prismaMock.participant.findUnique.mockResolvedValue({
-      id: PARTICIPANT_ID,
-      sessionId: SESSION_ID,
-    });
-    prismaMock.qaUpvote.findUnique.mockResolvedValue(null);
-    prismaMock.$transaction.mockResolvedValue([]);
-    prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 0 });
-
-    const result = await caller.upvote({
-      questionId: QUESTION_ID,
-      participantId: PARTICIPANT_ID,
-    });
-
-    expect(result).toEqual({
-      questionId: QUESTION_ID,
-      upvoted: true,
-      upvoteCount: 2,
-    });
-  });
-
-  it('moderiert Fragen und erlaubt mehrfaches Pinnen', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      type: 'QUIZ',
-      qaEnabled: true,
-      qaOpen: true,
-      status: 'ACTIVE',
-    });
-    prismaMock.qaQuestion.findUnique
-      .mockResolvedValueOnce({
-        id: QUESTION_ID,
-        sessionId: SESSION_ID,
-        participantId: PARTICIPANT_ID,
-        text: 'Welche Themen kommen dran?',
-        upvoteCount: 5,
-        status: 'ACTIVE',
-        createdAt: new Date('2026-03-13T12:00:00.000Z'),
-      })
-      .mockResolvedValueOnce({
-        id: QUESTION_ID,
-        participantId: PARTICIPANT_ID,
-        text: 'Welche Themen kommen dran?',
-        upvoteCount: 5,
-        status: 'PINNED',
-        createdAt: new Date('2026-03-13T12:00:00.000Z'),
-        upvotes: [],
       });
-    prismaMock.qaQuestion.update.mockResolvedValue({});
+      prismaMock.qaUpvote.findUnique.mockResolvedValue(null);
+      prismaMock.$transaction.mockResolvedValue([]);
+      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 0 });
 
-    const result = await hostCaller.moderate({
-      sessionCode: 'ABC123',
-      questionId: QUESTION_ID,
-      action: 'PIN',
-    });
+      const result = await caller.upvote({
+        questionId: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+      });
 
-    expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith({
-      where: { id: QUESTION_ID },
-      data: { status: 'PINNED' },
-    });
-    expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
-    expect(result.status).toBe('PINNED');
-  });
+      expect(result).toEqual({
+        questionId: QUESTION_ID,
+        upvoted: true,
+        upvoteCount: 2,
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.moderate',
+      case: 'happy',
+      mode: 'direct',
+      title: 'moderiert Fragen und erlaubt mehrfaches Pinnen',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.qaQuestion.findUnique
+        .mockResolvedValueOnce({
+          id: QUESTION_ID,
+          sessionId: SESSION_ID,
+          participantId: PARTICIPANT_ID,
+          text: 'Welche Themen kommen dran?',
+          upvoteCount: 5,
+          status: 'ACTIVE',
+          createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        })
+        .mockResolvedValueOnce({
+          id: QUESTION_ID,
+          participantId: PARTICIPANT_ID,
+          text: 'Welche Themen kommen dran?',
+          upvoteCount: 5,
+          status: 'PINNED',
+          createdAt: new Date('2026-03-13T12:00:00.000Z'),
+          upvotes: [],
+        });
+      prismaMock.qaQuestion.update.mockResolvedValue({});
+
+      const result = await hostCaller.moderate({
+        sessionCode: 'ABC123',
+        questionId: QUESTION_ID,
+        action: 'PIN',
+      });
+
+      expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith({
+        where: { id: QUESTION_ID },
+        data: { status: 'PINNED' },
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
+      expect(result.status).toBe('PINNED');
+    },
+  );
 
   it('löscht Fragen bei Host-Moderation physisch aus PostgreSQL', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -352,53 +400,79 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
-  it('lehnt Moderation ohne gültigen Host-Token ab', async () => {
-    await expect(
-      caller.moderate({
-        sessionCode: 'ABC123',
-        questionId: QUESTION_ID,
-        action: 'PIN',
-      }),
-    ).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Host-Authentifizierung erforderlich.',
-    });
-  });
-
-  it('schaltet Q&A-Moderation mit Host-Rechten um', async () => {
-    prismaMock.session.findFirst.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'ACTIVE',
-    });
-    prismaMock.session.update.mockResolvedValue({ qaModerationMode: true });
-
-    const result = await hostCaller.toggleModeration({ sessionCode: 'ABC123', enabled: true });
-
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { qaModerationMode: true },
-      select: { qaModerationMode: true },
-    });
-    expect(result).toEqual({ enabled: true });
-  });
-
-  it('lehnt qa.list mit moderatorView ohne Host-Token ab', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      code: 'ABC123',
-      type: 'QUIZ',
-      qaEnabled: true,
-      qaOpen: true,
-      qaModerationMode: true,
-    });
-
-    await expect(caller.list({ sessionId: SESSION_ID, moderatorView: true })).rejects.toMatchObject(
-      {
+  trpcDodIt(
+    {
+      procedure: 'qa.moderate',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt Moderation ohne gültigen Host-Token ab',
+    },
+    async () => {
+      await expect(
+        caller.moderate({
+          sessionCode: 'ABC123',
+          questionId: QUESTION_ID,
+          action: 'PIN',
+        }),
+      ).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
         message: 'Host-Authentifizierung erforderlich.',
-      },
-    );
-  });
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.toggleModeration',
+      case: 'happy',
+      mode: 'direct',
+      title: 'schaltet Q&A-Moderation mit Host-Rechten um',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.update.mockResolvedValue({ qaModerationMode: true });
+
+      const result = await hostCaller.toggleModeration({ sessionCode: 'ABC123', enabled: true });
+
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: { qaModerationMode: true },
+        select: { qaModerationMode: true },
+      });
+      expect(result).toEqual({ enabled: true });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.list',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt qa.list mit moderatorView ohne Host-Token ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: 'ABC123',
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: true,
+      });
+
+      await expect(
+        caller.list({ sessionId: SESSION_ID, moderatorView: true }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+    },
+  );
 
   it('liefert qa.list mit moderatorView bei gültigem Host-Token', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -851,4 +925,166 @@ describe('qa router (Epic 8)', () => {
     });
     expect(prismaMock.qaQuestion.create).not.toHaveBeenCalled();
   });
+
+  trpcDodIt(
+    {
+      procedure: 'qa.deleteOwn',
+      case: 'happy',
+      mode: 'direct',
+      title: 'markiert die eigene Frage bei geöffnetem Q&A-Kanal als gelöscht',
+    },
+    async () => {
+      prismaMock.qaQuestion.findUnique.mockResolvedValue({
+        id: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+        sessionId: SESSION_ID,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.qaQuestion.update.mockResolvedValue({ id: QUESTION_ID, status: 'DELETED' });
+
+      await expect(
+        caller.deleteOwn({ questionId: QUESTION_ID, participantId: PARTICIPANT_ID }),
+      ).resolves.toEqual({ deleted: true });
+      expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith({
+        where: { id: QUESTION_ID },
+        data: { status: 'DELETED' },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.deleteOwn',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'verhindert das Löschen einer fremden Q&A-Frage',
+    },
+    async () => {
+      prismaMock.qaQuestion.findUnique.mockResolvedValue({
+        id: QUESTION_ID,
+        participantId: '55555555-5555-4555-8555-555555555555',
+        sessionId: SESSION_ID,
+        status: 'ACTIVE',
+      });
+
+      await expect(
+        caller.deleteOwn({ questionId: QUESTION_ID, participantId: PARTICIPANT_ID }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+      expect(prismaMock.qaQuestion.update).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.vote',
+      case: 'happy',
+      mode: 'direct',
+      title: 'speichert ein neues Downvote und aktualisiert den gewichteten Zähler',
+    },
+    async () => {
+      prismaMock.qaQuestion.findUnique
+        .mockResolvedValueOnce({
+          id: QUESTION_ID,
+          sessionId: SESSION_ID,
+          participantId: '55555555-5555-4555-8555-555555555555',
+          status: 'ACTIVE',
+          upvoteCount: 3,
+          session: {
+            id: SESSION_ID,
+            type: 'QUIZ',
+            qaEnabled: true,
+            qaOpen: true,
+            status: 'ACTIVE',
+          },
+        })
+        .mockResolvedValueOnce({ upvoteCount: 2 });
+      prismaMock.participant.findUnique.mockResolvedValue({
+        id: PARTICIPANT_ID,
+        sessionId: SESSION_ID,
+      });
+      prismaMock.qaUpvote.findUnique.mockResolvedValue(null);
+      prismaMock.$transaction.mockResolvedValue([]);
+
+      const result = await caller.vote({
+        questionId: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+        direction: 'DOWN',
+      });
+
+      expect(result).toEqual({ questionId: QUESTION_ID, myVote: 'DOWN', upvoteCount: 2 });
+      expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith({
+        where: { id: QUESTION_ID },
+        data: { upvoteCount: { increment: -1 } },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.vote',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'verhindert die Bewertung der eigenen Q&A-Frage',
+    },
+    async () => {
+      prismaMock.qaQuestion.findUnique.mockResolvedValue({
+        id: QUESTION_ID,
+        sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
+        status: 'ACTIVE',
+        upvoteCount: 0,
+        session: {
+          id: SESSION_ID,
+          type: 'QUIZ',
+          qaEnabled: true,
+          qaOpen: true,
+          status: 'ACTIVE',
+        },
+      });
+
+      await expect(
+        caller.vote({ questionId: QUESTION_ID, participantId: PARTICIPANT_ID, direction: 'UP' }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+      expect(prismaMock.qaUpvote.findUnique).not.toHaveBeenCalled();
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'qa.upvote',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'qa.upvote weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.upvote({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'qa.toggleModeration',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'qa.toggleModeration weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(
+      hostCaller.toggleModeration({ sessionCode: 'ABC123', enabled: true }),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  },
+);

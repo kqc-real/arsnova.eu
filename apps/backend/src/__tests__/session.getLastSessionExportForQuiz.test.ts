@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
-const { buildSessionResultsPdfMock, prismaMock } = vi.hoisted(() => ({
+const { buildSessionResultsPdfMock, hostAuthMocks, prismaMock } = vi.hoisted(() => ({
   buildSessionResultsPdfMock: vi.fn(),
+  hostAuthMocks: {
+    extractHostTokenMock: vi.fn(),
+    extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
+    isHostSessionTokenValidMock: vi.fn(),
+  },
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
@@ -27,9 +33,18 @@ vi.mock('../lib/session-results-report-pdf', () => ({
   buildSessionResultsPdfFilename: vi.fn(() => 'arsnova-results-test-ABC123.pdf'),
 }));
 
+vi.mock('../lib/hostAuth', async () => {
+  const { buildHostAuthTestMock } = await import('./lib/hostAuth-vitest-mock');
+  return buildHostAuthTestMock({
+    extractHostToken: hostAuthMocks.extractHostTokenMock,
+    extractHostTokenFromConnectionParams: hostAuthMocks.extractHostTokenFromConnectionParamsMock,
+    isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
+  });
+});
+
 import { sessionRouter } from '../routers/session';
 
-const caller = sessionRouter.createCaller({ req: undefined });
+const caller = sessionRouter.createCaller({ req: {} as never });
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
 const SESSION_CODE = 'ABC123';
 const QUIZ_INPUT = {
@@ -98,6 +113,9 @@ function finishedSessionFixture() {
 describe('session.getLastSessionExportForQuiz', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     buildSessionResultsPdfMock.mockResolvedValue(Buffer.from('%PDF-1.4\n% test'));
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
@@ -132,30 +150,93 @@ describe('session.getLastSessionExportForQuiz', () => {
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 
-  it('liefert NOT_FOUND ohne beendete Session', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.session.findFirst.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'session.getLastSessionExportDataForQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'liefert NOT_FOUND ohne beendete Session',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findFirst.mockResolvedValue(null);
 
-    await expect(
-      caller.getLastSessionExportDataForQuiz({ quizId: QUIZ_ID, accessProof }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
-  });
+      await expect(
+        caller.getLastSessionExportDataForQuiz({ quizId: QUIZ_ID, accessProof }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
 
-  it('liefert PDF fuer die zuletzt beendete Session', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
-    prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
+  trpcDodIt(
+    {
+      procedure: 'session.getLastSessionExportDataForQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert die Exportdaten der zuletzt beendeten Session im autorisierten Quiz-Scope',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
+      prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
 
-    const result = await caller.getLastSessionExportPdfForQuiz({
-      quizId: QUIZ_ID,
-      accessProof,
-      localeId: 'de',
-    });
+      const result = await caller.getLastSessionExportDataForQuiz({ quizId: QUIZ_ID, accessProof });
 
-    expect(result.mimeType).toBe('application/pdf');
-    expect(result.fileName).toBe('arsnova-results-test-ABC123.pdf');
-    expect(result.contentBase64.length).toBeGreaterThan(0);
-  });
+      expect(prismaMock.session.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ status: 'FINISHED', quizId: { in: [QUIZ_ID] } }),
+        }),
+      );
+      expect(result).toMatchObject({ sessionCode: SESSION_CODE, quizName: 'Chemie' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getLastSessionExportPdfForQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert PDF fuer die zuletzt beendete Session',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
+      prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
+
+      const result = await caller.getLastSessionExportPdfForQuiz({
+        quizId: QUIZ_ID,
+        accessProof,
+        localeId: 'de',
+      });
+
+      expect(result.mimeType).toBe('application/pdf');
+      expect(result.fileName).toBe('arsnova-results-test-ABC123.pdf');
+      expect(result.contentBase64.length).toBeGreaterThan(0);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getSessionExportPdf',
+      case: 'happy',
+      mode: 'direct',
+      title: 'rendert den host-autorisierten Ergebnisbericht als PDF',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue(finishedSessionFixture());
+
+      const result = await caller.getSessionExportPdf({ code: SESSION_CODE, localeId: 'de' });
+
+      expect(result).toMatchObject({
+        mimeType: 'application/pdf',
+        fileName: 'arsnova-results-test-ABC123.pdf',
+      });
+      expect(buildSessionResultsPdfMock).toHaveBeenCalledWith(
+        expect.objectContaining({ sessionCode: SESSION_CODE }),
+        { localeId: 'de', profile: 'visual' },
+      );
+    },
+  );
 
   it('lädt und rendert einen zusätzlichen parallelen PDF-Request nicht', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
@@ -188,3 +269,37 @@ describe('session.getLastSessionExportForQuiz', () => {
     await expect(first).resolves.toMatchObject({ mimeType: 'application/pdf' });
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getLastSessionExportPdfForQuiz',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title:
+      'session.getLastSessionExportPdfForQuiz weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getLastSessionExportPdfForQuiz({} as never)).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.getSessionExportPdf',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.getSessionExportPdf weist ungültige Host-Token vor dem PDF-Rendern ab',
+  },
+  async () => {
+    buildSessionResultsPdfMock.mockClear();
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(
+      caller.getSessionExportPdf({ code: SESSION_CODE, localeId: 'de' }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    expect(buildSessionResultsPdfMock).not.toHaveBeenCalled();
+  },
+);

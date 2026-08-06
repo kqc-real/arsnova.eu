@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks, joinAdmissionMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -73,28 +74,36 @@ describe('session team mode (Story 7.1)', () => {
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 
-  it('liefert Teams einer Session und initialisiert konfigurierte Team-Namen bei Bedarf', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      quiz: { teamMode: true, teamCount: 2, teamNames: ['Rot', 'Blau'] },
-    });
-    prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
-      { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
-      { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
-    ]);
-    prismaMock.team.createMany.mockResolvedValue({ count: 2 });
+  trpcDodIt(
+    {
+      procedure: 'session.getTeams',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Teams einer Session und initialisiert konfigurierte Team-Namen bei Bedarf',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        quiz: { teamMode: true, teamCount: 2, teamNames: ['Rot', 'Blau'] },
+      });
+      prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+        { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
+        { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
+      ]);
+      prismaMock.team.createMany.mockResolvedValue({ count: 2 });
 
-    const result = await caller.getTeams({ code: 'ABC123' });
+      const result = await caller.getTeams({ code: 'ABC123' });
 
-    expect(result.teamCount).toBe(2);
-    expect(result.teams.map((team) => team.name)).toEqual(['Rot', 'Blau']);
-    expect(prismaMock.team.createMany).toHaveBeenCalledWith({
-      data: [
-        { sessionId: SESSION_ID, name: 'Rot', color: '#1E88E5' },
-        { sessionId: SESSION_ID, name: 'Blau', color: '#43A047' },
-      ],
-    });
-  });
+      expect(result.teamCount).toBe(2);
+      expect(result.teams.map((team) => team.name)).toEqual(['Rot', 'Blau']);
+      expect(prismaMock.team.createMany).toHaveBeenCalledWith({
+        data: [
+          { sessionId: SESSION_ID, name: 'Rot', color: '#1E88E5' },
+          { sessionId: SESSION_ID, name: 'Blau', color: '#43A047' },
+        ],
+      });
+    },
+  );
 
   it('liefert Teams auch für quizlose Sessions mit gespeichertem Onboarding-Profil', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -212,47 +221,56 @@ describe('session team mode (Story 7.1)', () => {
     expect(result.teamName).toBe('Team A');
   });
 
-  it('liefert harmonisierte Team-Scores als sichtbaren Durchschnitt auch fuer groessere Teams', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      quiz: { teamMode: true, teamCount: 2, teamNames: [] },
-    });
-    prismaMock.team.findMany.mockResolvedValue([
-      { id: TEAM_A_ID, name: 'Team A', color: '#1E88E5', _count: { participants: 2 } },
-      { id: TEAM_B_ID, name: 'Team B', color: '#43A047', _count: { participants: 1 } },
-    ]);
-    prismaMock.participant.findMany.mockResolvedValue([
-      { id: 'p1', teamId: TEAM_A_ID },
-      { id: 'p2', teamId: TEAM_A_ID },
-      { id: 'p3', teamId: TEAM_B_ID },
-    ]);
-    prismaMock.vote.findMany.mockResolvedValue([
-      { participantId: 'p1', questionId: 'q1', round: 1, score: 2800 },
-      { participantId: 'p2', questionId: 'q1', round: 1, score: 2735.34 },
-      { participantId: 'p3', questionId: 'q1', round: 1, score: 2500 },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.getTeamLeaderboard',
+      case: 'happy',
+      mode: 'direct',
+      title:
+        'liefert harmonisierte Team-Scores als sichtbaren Durchschnitt auch fuer groessere Teams',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        quiz: { teamMode: true, teamCount: 2, teamNames: [] },
+      });
+      prismaMock.team.findMany.mockResolvedValue([
+        { id: TEAM_A_ID, name: 'Team A', color: '#1E88E5', _count: { participants: 2 } },
+        { id: TEAM_B_ID, name: 'Team B', color: '#43A047', _count: { participants: 1 } },
+      ]);
+      prismaMock.participant.findMany.mockResolvedValue([
+        { id: 'p1', teamId: TEAM_A_ID },
+        { id: 'p2', teamId: TEAM_A_ID },
+        { id: 'p3', teamId: TEAM_B_ID },
+      ]);
+      prismaMock.vote.findMany.mockResolvedValue([
+        { participantId: 'p1', questionId: 'q1', round: 1, score: 2800 },
+        { participantId: 'p2', questionId: 'q1', round: 1, score: 2735.34 },
+        { participantId: 'p3', questionId: 'q1', round: 1, score: 2500 },
+      ]);
 
-    const result = await caller.getTeamLeaderboard({ code: 'ABC123' });
+      const result = await caller.getTeamLeaderboard({ code: 'ABC123' });
 
-    expect(result).toEqual([
-      {
-        rank: 1,
-        teamName: 'Team A',
-        teamColor: '#1E88E5',
-        totalScore: 2767.7,
-        memberCount: 2,
-        averageScore: 2767.7,
-      },
-      {
-        rank: 2,
-        teamName: 'Team B',
-        teamColor: '#43A047',
-        totalScore: 2500,
-        memberCount: 1,
-        averageScore: 2500,
-      },
-    ]);
-  });
+      expect(result).toEqual([
+        {
+          rank: 1,
+          teamName: 'Team A',
+          teamColor: '#1E88E5',
+          totalScore: 2767.7,
+          memberCount: 2,
+          averageScore: 2767.7,
+        },
+        {
+          rank: 2,
+          teamName: 'Team B',
+          teamColor: '#43A047',
+          totalScore: 2500,
+          memberCount: 1,
+          averageScore: 2500,
+        },
+      ]);
+    },
+  );
 
   it('nutzt Antwortzeiten nur von beitragenden Team-Votes als Gleichstand-Tiebreaker', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -640,3 +658,31 @@ describe('session team mode (Story 7.1)', () => {
     });
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getTeamLeaderboard',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'session.getTeamLeaderboard weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getTeamLeaderboard({} as never)).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.getTeams',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'session.getTeams weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getTeams({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  },
+);

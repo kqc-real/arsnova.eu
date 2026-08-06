@@ -693,16 +693,15 @@ test('fail-on-incomplete exits non-zero for poc incomplete echo', () => {
   assert.equal(run.status, 1, run.stderr || run.stdout);
 });
 
-test('real mode rejects fail-on-incomplete instead of overriding the Slice 2C gate', () => {
+test('real mode accepts the Slice-2D full-coverage flag on a complete baseline', () => {
   const run = spawnSync(process.execPath, [auditScript, '--real', '--fail-on-incomplete'], {
     encoding: 'utf8',
     cwd: repoRoot,
   });
-  assert.equal(run.status, 2, run.stderr || run.stdout);
-  assert.match(
-    run.stderr,
-    /--fail-on-incomplete is not supported with --real; real mode always runs the Slice 2C gate/,
-  );
+  assert.equal(run.status, 0, run.stderr || run.stdout);
+  assert.match(run.stdout, /Complete: 113/);
+  assert.match(run.stdout, /Incomplete: 0/);
+  assert.match(run.stdout, /Untested: 0/);
 });
 
 test('real router tree inventory follows mounted and nested routers exactly', async () => {

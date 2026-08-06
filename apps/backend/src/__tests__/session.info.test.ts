@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { TRPCError } from '@trpc/server';
 
 const QUIZ_ID = 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee';
@@ -55,79 +56,95 @@ describe('session.getInfo (ADR-0009)', () => {
     );
   });
 
-  it('klassifiziert den getrennten Fallback-Pfad als Poll/Reconnect', async () => {
-    prismaMock.session.findUnique.mockResolvedValue(null);
+  trpcDodIt(
+    {
+      procedure: 'session.getInfoForReconnect',
+      case: 'happy',
+      mode: 'direct',
+      title: 'klassifiziert den getrennten Fallback-Pfad als Poll/Reconnect',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue(null);
 
-    await expect(
-      caller.getInfoForReconnect({
-        code: 'BAD999',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
-      }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      await expect(
+        caller.getInfoForReconnect({
+          code: 'BAD999',
+          anonymousClientId: '11111111-1111-4111-8111-111111111111',
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
-    expect(invalidSessionCodeMock).toHaveBeenCalledWith(
-      '11111111-1111-4111-8111-111111111111',
-      'BAD999',
-      'pollReconnect',
-    );
-  });
+      expect(invalidSessionCodeMock).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111',
+        'BAD999',
+        'pollReconnect',
+      );
+    },
+  );
 
-  it('liefert Kanalinformationen für eine Quiz-Session mit Q&A und Blitz-Feedback', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      code: 'ABC123',
-      type: 'QUIZ',
-      status: 'LOBBY',
-      title: null,
-      quizId: QUIZ_ID,
-      quizStarted: true,
-      qaEnabled: true,
-      qaOpen: true,
-      qaTitle: 'Fragen zur Vorlesung',
-      qaModerationMode: true,
-      quickFeedbackEnabled: true,
-      quickFeedbackOpen: true,
-      _count: { participants: 12 },
-    });
-    prismaMock.quiz.findUnique.mockResolvedValue({
-      name: 'Demo Quiz',
-      nicknameTheme: 'NOBEL_LAUREATES',
-      allowCustomNicknames: true,
-      anonymousMode: false,
-      showLeaderboard: true,
-      enableSoundEffects: true,
-      enableRewardEffects: true,
-      enableMotivationMessages: true,
-      enableEmojiReactions: true,
-      readingPhaseEnabled: true,
-      defaultTimer: 30,
-      backgroundMusic: null,
-      teamMode: false,
-      teamCount: null,
-      teamAssignment: null,
-      bonusTokenCount: null,
-      preset: 'PLAYFUL',
-      motifImageUrl: null,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getInfo',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Kanalinformationen für eine Quiz-Session mit Q&A und Blitz-Feedback',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'LOBBY',
+        title: null,
+        quizId: QUIZ_ID,
+        quizStarted: true,
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Fragen zur Vorlesung',
+        qaModerationMode: true,
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+        _count: { participants: 12 },
+      });
+      prismaMock.quiz.findUnique.mockResolvedValue({
+        name: 'Demo Quiz',
+        nicknameTheme: 'NOBEL_LAUREATES',
+        allowCustomNicknames: true,
+        anonymousMode: false,
+        showLeaderboard: true,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        readingPhaseEnabled: true,
+        defaultTimer: 30,
+        backgroundMusic: null,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: null,
+        bonusTokenCount: null,
+        preset: 'PLAYFUL',
+        motifImageUrl: null,
+      });
 
-    const result = await caller.getInfo({ code: 'abc123' });
+      const result = await caller.getInfo({ code: 'abc123' });
 
-    expect(typeof result.serverTime).toBe('string');
-    expect(Number.isNaN(Date.parse(result.serverTime))).toBe(false);
-    expect(result.channels).toEqual({
-      quiz: { enabled: true },
-      qa: {
-        enabled: true,
-        open: true,
-        title: 'Fragen zur Vorlesung',
-        moderationMode: true,
-      },
-      quickFeedback: { enabled: true, open: true },
-    });
-    expect(result.quizStarted).toBe(true);
-    expect(result.quizName).toBe('Demo Quiz');
-    expect(result.nicknameTheme).toBe('NOBEL_LAUREATES');
-  });
+      expect(typeof result.serverTime).toBe('string');
+      expect(Number.isNaN(Date.parse(result.serverTime))).toBe(false);
+      expect(result.channels).toEqual({
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen zur Vorlesung',
+          moderationMode: true,
+        },
+        quickFeedback: { enabled: true, open: true },
+      });
+      expect(result.quizStarted).toBe(true);
+      expect(result.quizName).toBe('Demo Quiz');
+      expect(result.nicknameTheme).toBe('NOBEL_LAUREATES');
+    },
+  );
 
   it('liefert nicknameTheme KINDERGARTEN aus dem Quiz (Join-Liste Kita)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -339,3 +356,31 @@ describe('session.getInfo (ADR-0009)', () => {
     expect(prismaMock.quiz.findUnique).toHaveBeenCalledTimes(1);
   });
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getInfo',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'session.getInfo weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getInfo({} as never)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.getInfoForReconnect',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title: 'session.getInfoForReconnect weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getInfoForReconnect({} as never)).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  },
+);

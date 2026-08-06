@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -97,23 +98,47 @@ describe('session.getQuizCollectionHistoryAvailability', () => {
     ]);
   });
 
-  it('liefert Verfügbarkeitsflags für Bonus-Codes und letzte Auswertung', async () => {
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.session.findFirst
-      .mockResolvedValueOnce({ id: 'session-bonus' })
-      .mockResolvedValueOnce({ id: 'session-analysis' });
+  trpcDodIt(
+    {
+      procedure: 'session.getQuizCollectionHistoryAvailability',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Verfügbarkeitsflags für Bonus-Codes und letzte Auswertung',
+    },
+    async () => {
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findFirst
+        .mockResolvedValueOnce({ id: 'session-bonus' })
+        .mockResolvedValueOnce({ id: 'session-analysis' });
 
-    const result = await caller.getQuizCollectionHistoryAvailability([
-      { quizId: QUIZ_ID, accessProof },
-    ]);
+      const result = await caller.getQuizCollectionHistoryAvailability([
+        { quizId: QUIZ_ID, accessProof },
+      ]);
 
-    expect(result).toEqual([
-      {
-        quizId: QUIZ_ID,
-        hasBonusTokens: true,
-        hasLastSessionAnalysis: true,
-      },
-    ]);
-    expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
-  });
+      expect(result).toEqual([
+        {
+          quizId: QUIZ_ID,
+          hasBonusTokens: true,
+          hasLastSessionAnalysis: true,
+        },
+      ]);
+      expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
+    },
+  );
 });
+
+trpcDodIt(
+  {
+    procedure: 'session.getQuizCollectionHistoryAvailability',
+    case: 'error',
+    mode: 'direct',
+    contract: 'VALIDATION',
+    title:
+      'session.getQuizCollectionHistoryAvailability weist ungültige Eingaben vor dem Resolver zurück',
+  },
+  async () => {
+    await expect(caller.getQuizCollectionHistoryAvailability({} as never)).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  },
+);

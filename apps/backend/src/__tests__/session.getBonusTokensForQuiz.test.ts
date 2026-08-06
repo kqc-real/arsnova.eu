@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import {
   createLegacyQuizHistoryAccessProof,
   createQuizHistoryAccessProof,
@@ -101,59 +102,76 @@ describe('session.getBonusTokensForQuiz', () => {
     ]);
   });
 
-  it('liefert beendete Sessions mit Bonus-Tokens zur Server-Quiz-ID', async () => {
-    const endedAt = new Date('2026-03-10T12:00:00.000Z');
-    const generatedAt = new Date('2026-03-10T12:05:00.000Z');
-    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
-    prismaMock.session.findMany.mockResolvedValue([
-      {
-        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-        code: 'ABCDEF',
-        endedAt,
-        startedAt: new Date('2026-03-10T11:00:00.000Z'),
-        quiz: { name: 'Chemie' },
-        bonusTokens: [
-          {
-            token: 'BNS-TEST-1234',
-            nickname: 'Ada',
-            quizName: 'Chemie',
-            totalScore: 42,
-            rank: 1,
-            generatedAt,
-          },
-        ],
-      },
-    ]);
+  trpcDodIt(
+    {
+      procedure: 'session.getBonusTokensForQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert beendete Sessions mit Bonus-Tokens zur Server-Quiz-ID',
+    },
+    async () => {
+      const endedAt = new Date('2026-03-10T12:00:00.000Z');
+      const generatedAt = new Date('2026-03-10T12:05:00.000Z');
+      const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+      prismaMock.session.findMany.mockResolvedValue([
+        {
+          id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          code: 'ABCDEF',
+          endedAt,
+          startedAt: new Date('2026-03-10T11:00:00.000Z'),
+          quiz: { name: 'Chemie' },
+          bonusTokens: [
+            {
+              token: 'BNS-TEST-1234',
+              nickname: 'Ada',
+              quizName: 'Chemie',
+              totalScore: 42,
+              rank: 1,
+              generatedAt,
+            },
+          ],
+        },
+      ]);
 
-    const result = await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
+      const result = await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
 
-    expect(prismaMock.session.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          quizId: { in: [QUIZ_ID] },
-          status: 'FINISHED',
+      expect(prismaMock.session.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            quizId: { in: [QUIZ_ID] },
+            status: 'FINISHED',
+          }),
         }),
-      }),
-    );
-    expect(result.sessions).toHaveLength(1);
-    expect(result.sessions[0]?.sessionCode).toBe('ABCDEF');
-    expect(result.sessions[0]?.endedAt).toBe(endedAt.toISOString());
-    expect(result.sessions[0]?.tokens[0]?.token).toBe('BNS-TEST-1234');
-  });
+      );
+      expect(result.sessions).toHaveLength(1);
+      expect(result.sessions[0]?.sessionCode).toBe('ABCDEF');
+      expect(result.sessions[0]?.endedAt).toBe(endedAt.toISOString());
+      expect(result.sessions[0]?.tokens[0]?.token).toBe('BNS-TEST-1234');
+    },
+  );
 
-  it('lehnt Zugriff mit ungueltigem Besitz-Nachweis ab', async () => {
-    await expect(
-      caller.getBonusTokensForQuiz({
-        quizId: QUIZ_ID,
-        accessProof: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-      }),
-    ).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-      message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getBonusTokensForQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt Zugriff mit ungueltigem Besitz-Nachweis ab',
+    },
+    async () => {
+      await expect(
+        caller.getBonusTokensForQuiz({
+          quizId: QUIZ_ID,
+          accessProof: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
+      });
 
-    expect(prismaMock.session.findMany).not.toHaveBeenCalled();
-  });
+      expect(prismaMock.session.findMany).not.toHaveBeenCalled();
+    },
+  );
 
   it('aggregiert Sessions aus mehreren serverseitigen Quizkopien mit identischem Proof', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);

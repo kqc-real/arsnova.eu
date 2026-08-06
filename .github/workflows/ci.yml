@@ -636,10 +636,11 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run audit:trpc-dod:test
 
-      - name: tRPC DoD real-router non-regression gate
+      - name: tRPC DoD real-router full-coverage gate
         if: needs.changes.outputs.docs_only != 'true'
         run: >-
           npm run audit:trpc-dod --
+          --fail-on-incomplete
           --json-out artifacts/trpc-dod/report.json
           --md-out artifacts/trpc-dod/report.md
 
