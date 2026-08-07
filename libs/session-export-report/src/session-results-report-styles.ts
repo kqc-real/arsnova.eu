@@ -968,9 +968,29 @@ p { margin: 0 0 0.65rem; }
 }
 
 .report-bar-leading-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
-  font-size: 15pt;
+  font-size: 11pt;
   line-height: 1;
+}
+
+.report-emoji-svg-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--report-primary, #002395);
+}
+
+.report-bar-emoji-svg {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: middle;
+}
+
+.report-emoji-glyph {
+  display: none !important;
 }
 
 .report-bar-label-text {
@@ -1808,6 +1828,10 @@ html.report-pdf-ua .report-heat-cell {
   grid-template-columns: auto;
 }
 html.report-pdf-ua .report-chart-grid {
+  grid-template-columns: 1fr;
+}
+html.report-pdf-ua .report-bar-label:has(.report-bar-leading-emoji),
+html.report-pdf-ua .report-pi-label:has(.report-bar-leading-emoji) {
   grid-template-columns: 1fr;
 }
 `;
