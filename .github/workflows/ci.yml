@@ -521,23 +521,20 @@ jobs:
     steps:
       - name: Docs-only fast pass
         if: needs.changes.outputs.docs_only == 'true'
-        run: echo "Docs-only change — skipping lint."
+        run: echo "Docs-only change — skipping application lint; required-check validation remains active."
 
       - name: Checkout
-        if: needs.changes.outputs.docs_only != 'true'
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
 
       - name: Setup Node.js 24
-        if: needs.changes.outputs.docs_only != 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: 24
           cache: npm
 
       - name: Install dependencies
-        if: needs.changes.outputs.docs_only != 'true'
         run: npm ci
 
       - name: Run ESLint
@@ -547,6 +544,9 @@ jobs:
       - name: Test script lint gates
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run lint:scripts:test
+
+      - name: Validate required-check manifest and documentation
+        run: npm run validate:required-checks:test && npm run validate:required-checks
 
       - name: Enforce changed script lint
         if: needs.changes.outputs.docs_only != 'true'
