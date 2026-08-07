@@ -16,12 +16,12 @@ Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als 
 
 | Tool                    | Version                                                                         | Prüfbefehl               |
 | ----------------------- | ------------------------------------------------------------------------------- | ------------------------ |
-| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.12+ unterstützt | `node -v`                |
+| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.13+ unterstützt | `node -v`                |
 | npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                       | `npm -v`                 |
 | Docker & Docker Compose | aktuell                                                                         | `docker compose version` |
 | Git                     | aktuell                                                                         | `git -v`                 |
 
-**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.12+ LTS** bleibt als Kompatibilitätspfad unterstützt. EOL- und ungerade Majors sind nicht unterstützt. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
+**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.13+ LTS** bleibt als Kompatibilitätspfad unterstützt. EOL- und ungerade Majors sind nicht unterstützt. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
 
 ### Windows? Bitte direkt WSL2 nutzen
 

@@ -213,7 +213,7 @@ async function main() {
     return threshold;
   })();
 
-  let artilleryExitCode = 0;
+  let artilleryExitCode;
   try {
     artilleryExitCode = await runArtillery();
   } catch (error) {

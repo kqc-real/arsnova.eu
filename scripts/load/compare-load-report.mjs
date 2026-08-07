@@ -78,14 +78,18 @@ async function readJson(filePath, label) {
     source = await readFile(absolutePath, 'utf8');
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`${label} konnte nicht gelesen werden ("${absolutePath}"): ${detail}`);
+    throw new Error(`${label} konnte nicht gelesen werden ("${absolutePath}"): ${detail}`, {
+      cause: error,
+    });
   }
 
   try {
     return JSON.parse(source);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`${label} enthält kein valides JSON ("${absolutePath}"): ${detail}`);
+    throw new Error(`${label} enthält kein valides JSON ("${absolutePath}"): ${detail}`, {
+      cause: error,
+    });
   }
 }
 

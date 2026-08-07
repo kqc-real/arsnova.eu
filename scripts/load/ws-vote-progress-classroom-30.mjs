@@ -271,7 +271,9 @@ async function run() {
       PROGRESS_P95_LIMIT_MS,
       () => progressMaxTotalVotes >= PARTICIPANTS,
     );
-  } catch (error) {}
+  } catch {
+    // Auswertung erfolgt über Snapshot und Grenzwertprüfungen unten.
+  }
 
   const progressSnapshot = await hostTrpc.session.getHostVoteProgress.query({ code });
 
@@ -285,7 +287,9 @@ async function run() {
       STATUS_AFTER_REVEAL_LIMIT_MS,
       () => lastStatus === 'RESULTS',
     );
-  } catch (error) {}
+  } catch {
+    // Auswertung erfolgt über Snapshot und Grenzwertprüfungen unten.
+  }
 
   progressSub.unsubscribe();
   statusSub.unsubscribe();

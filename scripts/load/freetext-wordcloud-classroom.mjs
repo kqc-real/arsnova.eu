@@ -558,10 +558,12 @@ async function execute(config) {
     ),
     95,
   );
-  const reportRounds = rounds.map((round) => {
-    const { durationSamplesMs: _durationSamplesMs, ...votes } = round.votes;
-    return { ...round, votes };
-  });
+  const reportRounds = rounds.map((round) => ({
+    ...round,
+    votes: Object.fromEntries(
+      Object.entries(round.votes).filter(([key]) => key !== 'durationSamplesMs'),
+    ),
+  }));
 
   return {
     report: {

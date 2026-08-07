@@ -328,7 +328,7 @@ async function run() {
     results.push(await generateForLocale(locale));
   }
 
-  console.log(JSON.stringify({ locales, results }, null, 2));
+  process.stdout.write(`${JSON.stringify({ locales, results }, null, 2)}\n`);
 }
 
 run().catch((error) => {

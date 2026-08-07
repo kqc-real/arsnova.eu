@@ -8,7 +8,7 @@
  * Text-Updates für bestehende DBs: prisma/migrations/20260525100000_motd_welcome_copy_v7/migration.sql
  * Making-of-MOTD (6 Monate, nach Willkommen): 20260329140000_motd_making_of_ai (id …bbbbbbbb…).
  *
- * Nutzung: DATABASE_URL gesetzt oder Default localhost (wie ensure-schema.js).
+ * Nutzung: DATABASE_URL gesetzt oder Default localhost (wie ensure-schema.mjs).
  *   node scripts/seed-dev-motd.mjs
  */
 import { randomUUID } from 'node:crypto';

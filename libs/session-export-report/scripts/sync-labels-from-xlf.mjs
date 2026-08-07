@@ -20,7 +20,6 @@ const repoRoot = path.resolve(__dirname, '../../..');
 const outPath = path.join(__dirname, '../src/labels-i18n.generated.ts');
 
 const unitRe = /<trans-unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/trans-unit>/g;
-const sourceRe = /<source>([\s\S]*?)<\/source>/;
 const targetRe = /<target>([\s\S]*?)<\/target>/;
 
 function decode(text) {

@@ -4,27 +4,28 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-08-05 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-08-06 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
 ## NPM-Skripte (Root)
 
-| Befehl                                        | Bedeutung                                                                                                                                             |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run build`                               | `shared-types` → Backend `tsc` → Frontend `ng build`                                                                                                  |
-| `npm run typecheck`                           | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                                                                 |
-| `npm run lint`                                | ESLint über `libs/` und `apps/`                                                                                                                       |
-| `npm run lint:scripts`                        | Reportende ESLint-Inventur für operative JS-/TS-Skripte; unbekannte Skriptpfade scheitern, bekannte Altbefunde werden nach Laufzeitprofil ausgewiesen |
-| `npm run lint:scripts:test`                   | Negativtests für Skriptinventur und minimale Laufzeit-Globals                                                                                         |
-| `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                                                |
-| `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                                             |
-| `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                                                     |
-| `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                                                          |
-| `npm run audit:trpc-dod`                      | Blockierendes Non-Regression-Gate für AppRouter und alle Backend-`src/**/*.test.ts`; Legacy bleibt zulässig                                           |
-| `npm run audit:trpc-dod -- --update-baseline` | Vollständigen/verbesserten Zustand atomar und monoton in die Git-verankerte Baseline übernehmen                                                       |
-| `npm run audit:trpc-dod:poc`                  | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                                                               |
-| `npm run audit:trpc-dod:test`                 | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint)                                             |
+| Befehl                                        | Bedeutung                                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                               | `shared-types` → Backend `tsc` → Frontend `ng build`                                                                      |
+| `npm run typecheck`                           | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                                     |
+| `npm run lint`                                | Blockierendes ESLint-Gate über `libs/`, `apps/` und alle inventarisierten operativen JS-/TS-Skripte                       |
+| `npm run lint:scripts`                        | Blockierendes Voll-Gate: jede inventarisierte Skriptdatei muss ohne ESLint-Fehler und ohne Warnungen bestehen             |
+| `npm run lint:scripts:changed`                | Deterministisches Zusatz-Gate für neue/geänderte Skripte im angegebenen Git-SHA-Bereich; behandelt Löschungen und Renames |
+| `npm run lint:scripts:test`                   | Negativ-, Profil- und Mutationstests für Inventur, Changed-Script- und Voll-Gate                                          |
+| `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                    |
+| `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                 |
+| `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                         |
+| `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                              |
+| `npm run audit:trpc-dod`                      | Blockierendes Non-Regression-Gate für AppRouter und alle Backend-`src/**/*.test.ts`; Legacy bleibt zulässig               |
+| `npm run audit:trpc-dod -- --update-baseline` | Vollständigen/verbesserten Zustand atomar und monoton in die Git-verankerte Baseline übernehmen                           |
+| `npm run audit:trpc-dod:poc`                  | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                                   |
+| `npm run audit:trpc-dod:test`                 | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint)                 |
 
 Workspace-spezifisch:
 
@@ -139,7 +140,7 @@ Auslöser: **Push** und **Pull Request** auf `main`.
 | **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                        |
 | **build** (Node 22 & 24)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                               |
 | **typecheck** (Node 22 & 24, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                       |
-| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln; zusätzlich reportende Skriptinventur mit `npm run lint:scripts:test && npm run lint:scripts` (Slice 3A, noch kein vollständiges Gate)                  |
+| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln und blockierendem Voll-Gate für alle inventarisierten Skripte; zusätzlich Negativ-/Mutationstests und deterministisches Changed-Script-Gate             |
 | **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                   |
 | **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                  |
 | **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                              |

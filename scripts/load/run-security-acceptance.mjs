@@ -793,7 +793,7 @@ export function monitorTargetHealth(
     let failureStartedAt = null;
     const healthUrl = buildHealthCheckUrl(trpcUrl);
     while (!stopped) {
-      let healthy = false;
+      let healthy;
       const checkStartedAt = Date.now();
       try {
         const response = await fetchFn(healthUrl, { signal: AbortSignal.timeout(5_000) });

@@ -44,4 +44,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('dictionaries-ok');
+process.stdout.write('dictionaries-ok\n');

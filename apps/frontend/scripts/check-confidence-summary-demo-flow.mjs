@@ -14,7 +14,7 @@
  *
  * PRIORITY_QUESTION_COUNT steuert, wie viele Demo-Fragen absichtlich ein
  * Fehlkonzept-Signal bekommen (max. Anzahl in PREFERRED_PRIORITY_ORDERS).
- * Die Assertion folgt der Produktregel (≥2 Personen und ≥10 % falsch+sicher).
+ * Die Assertion folgt der Produktregel (≥2 Personen und ≥10 % falsch+sicher).
  *
  * Bestehende Session (Host-Token aus Browser-LocalStorage oder Backend minten):
  *   SESSION_CODE=XFNHXE HOST_TOKEN=... BASE_URL=http://localhost:4200 PARTICIPANTS=30 \
@@ -247,7 +247,7 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       const correctId = correct[0] ?? question.answers[0].id;
       const wrongId = wrong[0] ?? question.answers[question.answers.length - 1].id;
       const otherWrongId = wrong[1] ?? wrongId;
-      let answerId = correctId;
+      let answerId;
       if (requiresDebrief) {
         // Fehlkonzept Würfel: Mehrheit „22“ (nicht 26), aber mit natürlicher Varianz (~80 %)
         const distractor22 =
@@ -504,7 +504,7 @@ function validateSummary(summary, expectedQuestions, steeredPriorityOrders) {
       throw new Error(
         `Gesteuerte Prioritätsfrage ${order + 1} verfehlt die Nachbesprechungs-Schwelle ` +
           `(incorrectHigh=${incorrectHigh}, n=${question.responseCount}; ` +
-          `braucht ≥${CONFIDENCE_DEBRIEF_MIN_RESPONSES} und ≥${Math.round(CONFIDENCE_DEBRIEF_MIN_SHARE * 100)} %).`,
+          `braucht ≥${CONFIDENCE_DEBRIEF_MIN_RESPONSES} und ≥${Math.round(CONFIDENCE_DEBRIEF_MIN_SHARE * 100)}\u202f%).`,
       );
     }
   }

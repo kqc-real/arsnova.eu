@@ -1,12 +1,16 @@
 /**
- * ensure-schema.js – Stellt sicher, dass alle DB-Spalten/Enums existieren.
+ * ensure-schema.mjs – Stellt sicher, dass alle DB-Spalten/Enums existieren.
  * Wird im Docker-Entrypoint vor dem App-Start ausgeführt.
  * Nutzt `pg` direkt, damit das Script unabhängig vom Prisma-Client-Setup läuft.
  */
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const { Client } = require('pg');
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import pg from 'pg';
+
+const { Client } = pg;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DEFAULT_DATABASE_URL =
   'postgresql://arsnova_user:secretpassword@localhost:5432/arsnova_v3_dev?schema=public';
@@ -419,7 +423,7 @@ async function main() {
   }
 }
 
-module.exports = {
+export {
   DEFAULT_DATABASE_URL,
   shouldSeedMotdRuntime,
   shouldSeedMotdMakingOfRuntime,
@@ -432,7 +436,7 @@ module.exports = {
   seedMotdFeatureSql,
 };
 
-if (require.main === module) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
     const detail = formatErr(err);
     console.error('>>> ensure-schema fehlgeschlagen:', detail);

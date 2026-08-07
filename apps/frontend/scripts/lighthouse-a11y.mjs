@@ -7,7 +7,6 @@
  * Oder: LIGHTHOUSE_URL=http://localhost:3000/de/ npm run lighthouse:a11y
  */
 import { spawn } from 'child_process';
-import { createServer } from 'http';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';

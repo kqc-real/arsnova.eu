@@ -23,7 +23,7 @@ function requireJsonValue(value, name) {
       throw error;
     }
     const detail = error instanceof Error ? ` ${error.message}` : '';
-    throw new TypeError(`${name} muss als JSON serialisierbar sein.${detail}`);
+    throw new TypeError(`${name} muss als JSON serialisierbar sein.${detail}`, { cause: error });
   }
 }
 
@@ -131,6 +131,7 @@ export async function writeJsonAtomic(filePath, value) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
       `JSON-Report konnte nicht atomar nach "${targetPath}" geschrieben werden: ${detail}`,
+      { cause: error },
     );
   }
 
@@ -215,6 +216,7 @@ export async function writeJUnitReport(filePath, report) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
       `JUnit-Report konnte nicht atomar nach "${targetPath}" geschrieben werden: ${detail}`,
+      { cause: error },
     );
   }
 
