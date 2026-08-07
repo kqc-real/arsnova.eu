@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { ESLint } from 'eslint';
 import {
@@ -83,6 +84,32 @@ test('rejects a rename from an inventoried script into an unchecked path', () =>
   );
 });
 
+test('rejects a rename from an inventoried script into a documented exception', () => {
+  const inventoryWithException = {
+    ...inventory,
+    exceptions: [{ glob: 'scripts/load/artillery/reports/**', reason: 'generated output' }],
+  };
+  assert.deepEqual(
+    selectChangedScripts(
+      [
+        {
+          kind: 'R',
+          status: 'R100',
+          oldPath: 'scripts/checked.mjs',
+          path: 'scripts/load/artillery/reports/unchecked.mjs',
+        },
+      ],
+      inventoryWithException,
+    ),
+    {
+      files: [],
+      errors: [
+        'scripts/checked.mjs -> scripts/load/artillery/reports/unchecked.mjs: renamed script left the inventoried scope',
+      ],
+    },
+  );
+});
+
 test('uses the empty tree for a null push SHA and explicit PR ranges unchanged', () => {
   assert.deepEqual(
     resolveRange({
@@ -128,4 +155,14 @@ test('changed gate rejects incomplete or duplicated lint evidence', () => {
     () => assertLintCoverage(files, [result(files[0]), result(files[0]), result(files[1])]),
     /Duplicate changed-script lint result.*scripts\/a\.mjs/s,
   );
+});
+
+test('CI lints the pull-request merge tree with complete history', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  const lintJob = workflow.match(/\n {2}lint:\n(?<job>[\s\S]*?)\n {2}# ─── Security Audit/)?.groups
+    ?.job;
+  assert.ok(lintJob, 'lint job must remain present in ci.yml');
+  assert.match(lintJob, /uses: actions\/checkout@[a-f0-9]+\n\s+with:\n\s+fetch-depth: 0/);
+  assert.doesNotMatch(lintJob, /\n\s+ref:/);
+  assert.match(lintJob, /SCRIPT_LINT_HEAD_SHA: \$\{\{ github\.sha \}\}/);
 });

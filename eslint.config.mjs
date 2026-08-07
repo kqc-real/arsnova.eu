@@ -73,6 +73,7 @@ const runtimeProfilePlugin = {
             properties: {
               allowPlaywrightCallbacks: { type: 'boolean' },
               checkBareBrowserGlobals: { type: 'boolean' },
+              checkK6Globals: { type: 'boolean' },
               checkNodeGlobalsInBrowserCallbacks: { type: 'boolean' },
             },
             additionalProperties: false,
@@ -83,6 +84,7 @@ const runtimeProfilePlugin = {
             'Browser-Global ist außerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
           nodeGlobal:
             'Node-Global ist innerhalb eines Playwright-Browsercallbacks nicht verfügbar.',
+          k6Global: 'k6-Global ist außerhalb des k6-Laufzeitprofils nicht verfügbar.',
         },
       },
       create(context) {
@@ -95,6 +97,7 @@ const runtimeProfilePlugin = {
         const playwrightReceiverFactoryProperties = new Map();
         const allowPlaywrightCallbacks = context.options[0]?.allowPlaywrightCallbacks === true;
         const checkBareBrowserGlobals = context.options[0]?.checkBareBrowserGlobals === true;
+        const checkK6Globals = context.options[0]?.checkK6Globals === true;
         const checkNodeGlobalsInBrowserCallbacks =
           context.options[0]?.checkNodeGlobalsInBrowserCallbacks === true;
         const isGlobalReference = (node) => {
@@ -588,6 +591,18 @@ const runtimeProfilePlugin = {
             context.report({ node, messageId: 'browserGlobal' });
           },
           MemberExpression(node) {
+            const globalThisProperty =
+              node.object.type === 'Identifier' && node.object.name === 'globalThis'
+                ? node.computed && node.property.type === 'Literal'
+                  ? node.property.value
+                  : !node.computed && node.property.type === 'Identifier'
+                    ? node.property.name
+                    : null
+                : null;
+            if (checkK6Globals && k6GlobalNames.includes(globalThisProperty)) {
+              context.report({ node: node.property, messageId: 'k6Global' });
+              return;
+            }
             if (
               checkNodeGlobalsInBrowserCallbacks &&
               node.object.type === 'Identifier' &&
@@ -671,7 +686,11 @@ export default tseslint.config(
     rules: {
       'runtime-profile/no-browser-global-outside-playwright-callback': [
         'error',
-        { allowPlaywrightCallbacks: false, checkBareBrowserGlobals: false },
+        {
+          allowPlaywrightCallbacks: false,
+          checkBareBrowserGlobals: false,
+          checkK6Globals: true,
+        },
       ],
     },
   },
@@ -702,6 +721,7 @@ export default tseslint.config(
         {
           allowPlaywrightCallbacks: true,
           checkBareBrowserGlobals: true,
+          checkK6Globals: true,
           checkNodeGlobalsInBrowserCallbacks: true,
         },
       ],

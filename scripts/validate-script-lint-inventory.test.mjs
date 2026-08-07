@@ -264,12 +264,24 @@ test('Playwright browser callbacks reject Node globals while the controller keep
 test('k6 globals are rejected by Node and Playwright TypeScript profiles', async () => {
   const eslint = new ESLint({ ignore: false });
   for (const filePath of ['scripts/check-runtime.mts', 'apps/frontend/scripts/check-runtime.mts']) {
-    const result = await eslint.lintText('__ENV.TARGET;', { filePath });
-    const messages = result[0].messages.filter(
+    const [bareResult, memberResult] = await Promise.all([
+      eslint.lintText('__ENV.TARGET;', { filePath }),
+      eslint.lintText('globalThis.__ENV.TARGET; globalThis["__VU"];', { filePath }),
+    ]);
+    const bareMessages = bareResult[0].messages.filter(
       (message) => message.ruleId === 'no-restricted-globals',
     );
-    assert.equal(messages.length, 1);
-    assert.match(messages[0].message, /k6-Global ist außerhalb/);
+    const memberMessages = memberResult[0].messages.filter(
+      (message) =>
+        message.ruleId === 'runtime-profile/no-browser-global-outside-playwright-callback',
+    );
+    assert.equal(bareMessages.length, 1);
+    assert.match(bareMessages[0].message, /k6-Global ist außerhalb/);
+    assert.equal(memberMessages.length, 2);
+    assert.equal(
+      memberMessages.every((message) => /k6-Global ist außerhalb/.test(message.message)),
+      true,
+    );
   }
 });
 
