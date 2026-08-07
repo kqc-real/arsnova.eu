@@ -31,8 +31,8 @@ describe('renderMarkdownWithKatex', () => {
     const tildeFence = '~~~js\n**baz **\n~~~';
     expect(normalizeEmphasisWhitespace(tildeFence)).toBe('~~~js\n**baz **\n~~~');
 
-    const indentedBlock = '    **indented **';
-    expect(normalizeEmphasisWhitespace(indentedBlock)).toBe('    **indented **');
+    const indentedBlock = '\n\n    **indented **';
+    expect(normalizeEmphasisWhitespace(indentedBlock)).toBe('\n\n    **indented **');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {
@@ -264,6 +264,11 @@ describe('renderMarkdownWithKatex', () => {
 
     expect(result.html).toContain('<li><strong>Auskunft</strong> über Ihre Daten</li>');
     expect(result.html).toContain('<li><strong>Berichtigung</strong> unrichtiger Daten</li>');
+  });
+
+  it('normalisiert Emphasis-Leerzeichen auch in eingerückten Listen-Fortsetzungen', () => {
+    const listContinuation = '- item\n    **wichtig **';
+    expect(normalizeEmphasisWhitespace(listContinuation)).toBe('- item\n    **wichtig** ');
   });
 });
 

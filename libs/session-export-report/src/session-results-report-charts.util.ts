@@ -436,7 +436,7 @@ export function renderOptionBarsHtml(
       const pctLabel = formatLocalePercentValue(pct, localeId);
       const inlinePercent = valueTemplate ? '' : `<span class="report-bar-pct">${pctLabel}</span>`;
       return `<li class="report-bar-row">
-        <div class="report-bar-label">${formatReportBarLabelHtml(option.text, escapeHtml)}${correct}</div>
+        <div class="report-bar-label">${formatReportBarLabelHtml(option.text, escapeHtml, localeId)}${correct}</div>
         <div class="report-bar-track"><div class="${fillClass}" style="width:${width}%">${inlinePercent}</div></div>
         <div class="report-bar-value">${
           valueTemplate
@@ -488,7 +488,7 @@ export function renderPeerInstructionOptionComparisonHtml(
           ? ` <span class="report-tag">${escapeHtml(optionCorrectLabel)}</span>`
           : '';
       return `<li class="report-pi-row">
-        <div class="report-pi-label">${formatReportBarLabelHtml(key, escapeHtml)}${correctTag}</div>
+        <div class="report-pi-label">${formatReportBarLabelHtml(key, escapeHtml, localeId)}${correctTag}</div>
         <div class="report-pi-bars">
           <div class="report-pi-bar-group" aria-label="${escapeHtml(round1Label)}">
             <span class="report-pi-round">${escapeHtml(round1Label)}</span>
@@ -523,7 +523,7 @@ export function renderFreetextTopBarsHtml(
       const width = Math.max(4, Math.round((entry.count / max) * 100));
       const pct = Math.round((entry.count / total) * 100);
       return `<li class="report-bar-row">
-        <div class="report-bar-label">${formatReportBarLabelHtml(entry.text, escapeHtml)}</div>
+        <div class="report-bar-label">${formatReportBarLabelHtml(entry.text, escapeHtml, localeId)}</div>
         <div class="report-bar-track"><div class="report-bar-fill" style="width:${width}%"><span class="report-bar-pct">${formatLocalePercentValue(pct, localeId)}</span></div></div>
         <div class="report-bar-value">${formatLocaleCount(entry.count, localeId)}</div>
       </li>`;
