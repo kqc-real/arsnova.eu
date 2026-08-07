@@ -8,7 +8,7 @@
 **Verbindlicher Rahmen:** Jede studierende Person bearbeitet die **gesamte Ticketstrecke** in der hier empfohlenen Reihenfolge. Der frühere Regelfall **„Pflichtkern + Vertiefungspfad“** gilt für dieses Dokument nicht mehr.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
-**Stand dieser Empfehlung:** 2026-05-31 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+**Stand dieser Empfehlung:** 2026-08-07 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
 
 ## Kurz gesagt
 
@@ -17,7 +17,7 @@ Wenn du nur wissen willst, **was das für dich praktisch heißt**, dann ist der 
 - Du bearbeitest **alle Tickets dieser Liste** selbst.
 - Du startest nach der Vorlesungs-Demo mit **Ticket 1 der aktuellen Tabelle** und gehst die Liste dann **in Reihenfolge** durch.
 - Erledigte Referenzstories wie **5.4a**, **8.6**, **8.7**, **1.7a** und **1.7b** bleiben als Code- und Review-Beispiele nützlich, sind aber **keine** aktuellen Studententickets mehr.
-- Die Strecke ist didaktisch bewusst aufgebaut: **überschaubarer Produktausbau → Q&A/Live-Logik → neue Fragentypen → Qualität/Performance → Security-Härtung**.
+- Die Strecke ist didaktisch bewusst aufgebaut: **überschaubarer Produktausbau → Q&A/Live-Logik → neue Fragentypen → Qualität und Querschnitt**.
 
 ---
 
@@ -73,14 +73,12 @@ Die folgende Struktur listet die **offenen oder laufenden, für dich relevanten 
 | 6   | **1.2g–1.2h** | Zuordnung, Reihenfolge                       | Weitere Fragetypen                        | **Varianten nach dem ersten Fragentyp:** dieselben Muster wiederholen und bewusst abstrahieren, ohne Schema- und UI-Regeln zu verwässern. **1.2f** (Hotspot) ist aus A11y-Gründen geschlossen; **1.2i** (Confidence) ist fertig. |
 | 7   | **2.9**       | Asynchrone Quiz-Modi und Feedback-Strategien | Produktmodell, Dashboard, Datenschutz     | **Große Produktfläche:** greift tief in Session-Status, Fortschritt und Feedback ein; braucht vorher Routine in Fragentypen und Live-Flows.                                                                                      |
 | 8   | **0.7**       | Last- & Performance-Tests mit E2E-Szenarien  | Tooling, Messung, CI, Metriken            | **Qualitätsschicht:** erst sinnvoll, wenn mehrere reale Kernflows verstanden und technisch nachvollzogen wurden.                                                                                                                 |
-| 9   | **1.6d**      | Sync-Performance & Skalierung                | Messen, Profiling, Hypothesen             | **Gezielte Optimierung:** baut auf Mess- und Testlogik aus 0.7 auf, statt blind an Performanceproblemen zu schrauben.                                                                                                            |
-| 10  | **6.6**       | UX Thinking Aloud & Umsetzung                | Methode, Findings, iterative Verbesserung | **Methodischer Perspektivwechsel:** nach mehreren Produktflächen ist genug Material da, um Beobachtungen systematisch in Änderungen zu übersetzen.                                                                               |
-| 11  | **6.5**       | Barrierefreiheit (Prüfung Projektende)       | Querschnitt, Audit, A11y                  | **Später Querschnitt:** sinnvoll, wenn die relevanten UI-Flächen bereits stehen und nicht mehr im Stundenrhythmus umgebaut werden.                                                                                               |
-| 12  | **1.6c**      | Sync-Sicherheit härten                       | Security, verteilte Logik, Review-Tiefe   | **Höchstes Fehlerrisiko:** kommt bewusst zuletzt, wenn Architekturverständnis, Prüfdisziplin und Review-Sorgfalt aufgebaut sind. **0.8** (McCabe) ist geschlossen / nicht weiterverfolgt.                                        |
+| 9   | **6.6**       | UX Thinking Aloud & Umsetzung                | Methode, Findings, iterative Verbesserung | **Methodischer Perspektivwechsel:** nach mehreren Produktflächen ist genug Material da, um Beobachtungen systematisch in Änderungen zu übersetzen.                                                                               |
+| 10  | **6.5**       | Barrierefreiheit (Prüfung Projektende)       | Querschnitt, Audit, A11y                  | **Später Querschnitt:** sinnvoll, wenn die relevanten UI-Flächen bereits stehen und nicht mehr im Stundenrhythmus umgebaut werden.                                                                                               |
 
 ### 3.2 Greenfield-Referenz: 1.7a
 
-Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeline, Lightbox, i18n und Tests relevant. Als **umgesetzte Story** gehört sie aber **nicht** mehr in die studentische Ticketstrecke. Gleiches gilt für **5.4a**, **8.6**, **8.7**, **1.7b** und **1.2i**: Diese Stories können für Review-Übungen dienen, sind aber keine aktuellen Umsetzungstickets. **Geschlossen (nicht umgesetzt)** und ebenfalls nicht Teil der Strecke: **1.2f** (Hotspot, A11y) und **0.8** (McCabe-Refactor).
+Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeline, Lightbox, i18n und Tests relevant. Als **umgesetzte Story** gehört sie aber **nicht** mehr in die studentische Ticketstrecke. Gleiches gilt für **5.4a**, **8.6**, **8.7**, **1.7b** und **1.2i**: Diese Stories können für Review-Übungen dienen, sind aber keine aktuellen Umsetzungstickets. **Geschlossen (nicht umgesetzt)** und ebenfalls nicht Teil der Strecke: **1.2f** (Hotspot, A11y), **0.8** (McCabe-Refactor) und **1.6d** (keine Optimierung ohne nachgewiesenes Performanceproblem). **1.6c** ist technisch umgesetzt und verbleibt nur als automatischer betrieblicher Cutover-Termin am **1. Oktober 2026**.
 
 ---
 
@@ -89,10 +87,9 @@ Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeli
 Zur Orientierung für die Betreuung — nicht als Alternativpfade, sondern als **Lernbogen über die komplette Strecke**:
 
 1. **Phase A (1–3):** Überschaubare Produkt- und Live-Ausbaustufen.
-2. **Phase B (4–8):** Bewertungslogik, neue Fragentypen und größere Session-Modelle.
-3. **Phase C (9–10):** Performance, Last und Sync-Skalierung messbar machen.
-4. **Phase D (11–13):** UX, Barrierefreiheit und Wartbarkeit als Querschnitt.
-5. **Phase E (14):** Security-Härtung erst mit aufgebauter Review- und Architekturkompetenz.
+2. **Phase B (4–7):** Bewertungslogik, neue Fragentypen und größere Session-Modelle.
+3. **Phase C (8):** Last und Performance messbar machen.
+4. **Phase D (9–10):** UX und Barrierefreiheit als Querschnitt.
 
 ---
 
