@@ -44,7 +44,7 @@
 | 1    | 1.6   | Yjs Multi-Device-Sync                                                              | 🟢   | ✅ Fertig      |
 | 1    | 1.6a  | Quiz auf anderem Gerät öffnen (Sync-Key/Link)                                      | 🟡   | ✅ Fertig      |
 | 1    | 1.6b  | Preset & Optionen beim Sync mitführen                                              | 🟢   | ✅ Fertig      |
-| 1    | 1.6c  | Sync-Sicherheit härten                                                             | 🔴   | 🗓️ Cutover    |
+| 1    | 1.6c  | Sync-Sicherheit härten                                                             | 🔴   | 🗓️ Cutover     |
 | 1    | 1.6d  | Sync-Performance & Skalierung optimieren                                           | 🟡   | 🚫 Geschlossen |
 | 1    | 1.7   | Markdown & KaTeX                                                                   | 🔴   | ✅ Fertig      |
 | 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                                                | 🟡   | ✅ Fertig      |
