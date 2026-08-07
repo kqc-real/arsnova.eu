@@ -706,7 +706,7 @@ export class QuizListComponent implements OnInit {
       teamAssignment: 'AUTO',
       teamNames: [],
       backgroundMusic: null,
-      nicknameTheme: presetDefaults.nicknameTheme ?? 'HIGH_SCHOOL',
+      nicknameTheme: presetDefaults.nicknameTheme ?? 'KINDERGARTEN',
       bonusTokenCount: null,
       readingPhaseEnabled: presetDefaults.readingPhaseEnabled ?? false,
       preset,

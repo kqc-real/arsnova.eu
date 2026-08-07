@@ -316,11 +316,19 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     const start = field.selectionStart ?? 0;
     const end = field.selectionEnd ?? start;
     const v = field.value;
-    const selected = v.slice(start, end);
-    const inserted = wrap + selected + wrapEnd;
+    let selected = v.slice(start, end);
+
+    let trailingSpaces = '';
+    const match = selected.match(/\s+$/);
+    if (match) {
+      trailingSpaces = match[0];
+      selected = selected.slice(0, -trailingSpaces.length);
+    }
+
+    const inserted = wrap + selected + wrapEnd + trailingSpaces;
     const next = v.slice(0, start) + inserted + v.slice(end);
     field.value = next;
-    field.setSelectionRange(start + wrap.length, end + wrap.length);
+    field.setSelectionRange(start + wrap.length, start + wrap.length + selected.length);
     this.onInput(field.value);
   }
 

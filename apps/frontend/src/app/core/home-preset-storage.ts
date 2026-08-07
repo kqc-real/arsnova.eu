@@ -51,7 +51,7 @@ export function readHomePresetOnboardingProfile(
   const preset: QuizPreset = quizPreset === 'SERIOUS' ? 'SERIOUS' : 'PLAYFUL';
   const presetDefaults = QUIZ_PRESETS[preset];
   const defaultProfile: HomePresetOnboardingProfile = {
-    nicknameTheme: presetDefaults.nicknameTheme ?? 'HIGH_SCHOOL',
+    nicknameTheme: presetDefaults.nicknameTheme ?? 'KINDERGARTEN',
     allowCustomNicknames: false,
     anonymousMode: presetDefaults.anonymousMode ?? false,
     teamMode: false,

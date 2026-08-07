@@ -170,7 +170,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 10rem;
+  font-weight: 600;
+}
+
+.vote-player-badge__self-prefix {
   font-weight: 500;
+  opacity: 0.85;
+  margin-inline-end: 0.15em;
 }
 
 .vote-player-badge__kita-id {

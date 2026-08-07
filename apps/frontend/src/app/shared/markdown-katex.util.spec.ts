@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   appendMotdContentVersionToAssetImgSrc,
+  normalizeEmphasisWhitespace,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
 } from './markdown-katex.util';
@@ -13,6 +14,19 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('<strong>Test</strong>');
     expect(result.html).toContain('katex');
     expect(result.katexError).toBeNull();
+  });
+
+  it('toleriert Leerzeichen vor schließenden Emphasis-Delimitern wie **Freue **', () => {
+    const result = renderMarkdownWithKatex('**Freue **');
+    expect(result.html).toContain('<strong>Freue</strong>');
+  });
+
+  it('belässt wörtlichen Code in Inline-Spans und Codeblöcken unverändert', () => {
+    const codeSpan = 'Code `**foo **` bleibt wörtlich';
+    expect(normalizeEmphasisWhitespace(codeSpan)).toBe('Code `**foo **` bleibt wörtlich');
+
+    const codeBlock = '```\n**bar **\n```';
+    expect(normalizeEmphasisWhitespace(codeBlock)).toBe('```\n**bar **\n```');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {
