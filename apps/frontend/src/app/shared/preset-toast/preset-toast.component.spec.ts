@@ -79,11 +79,12 @@ describe('PresetToastComponent', () => {
       expect(comp.nameMode()).toBe('nicknameTheme');
     });
 
-    it('setzt nicknameTheme auf NOBEL_LAUREATES zurück', () => {
+    it('setzt nicknameTheme auf KINDERGARTEN für spielerisch zurück', () => {
       const comp = createToast();
-      comp.nicknameThemeValue.set('KINDERGARTEN');
+      comp.themePreset.setPreset('spielerisch');
+      comp.nicknameThemeValue.set('HIGH_SCHOOL');
       comp.resetOptions();
-      expect(comp.nicknameThemeValue()).toBe('NOBEL_LAUREATES');
+      expect(comp.nicknameThemeValue()).toBe('KINDERGARTEN');
     });
 
     it('setzt teamCount auf 2 zurück', () => {
@@ -365,7 +366,7 @@ describe('PresetToastComponent', () => {
       comp.ngOnInit();
 
       expect(comp.nameMode()).toBe('nicknameTheme');
-      expect(comp.nicknameThemeValue()).toBe('NOBEL_LAUREATES');
+      expect(comp.nicknameThemeValue()).toBe('KINDERGARTEN');
     });
 
     it('validiert nicknameTheme beim Laden aus localStorage', () => {
@@ -383,7 +384,7 @@ describe('PresetToastComponent', () => {
       comp.themePreset.setPreset('spielerisch');
       comp.ngOnInit();
 
-      expect(comp.nicknameThemeValue()).toBe('NOBEL_LAUREATES');
+      expect(comp.nicknameThemeValue()).toBe('KINDERGARTEN');
     });
 
     it('validiert teamCountValue beim Laden (Bereich 2–8)', () => {

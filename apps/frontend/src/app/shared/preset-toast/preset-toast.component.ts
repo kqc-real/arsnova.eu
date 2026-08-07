@@ -178,7 +178,7 @@ export class PresetToastComponent implements OnInit {
 
   optionState = signal<PresetOptionState>({});
   nameMode = signal<NameMode>('nicknameTheme');
-  nicknameThemeValue = signal<NicknameTheme>('NOBEL_LAUREATES');
+  nicknameThemeValue = signal<NicknameTheme>('KINDERGARTEN');
   teamCountValue = signal<number>(DEFAULT_TEAM_COUNT);
 
   toastTitle = signal('');
@@ -302,7 +302,7 @@ export class PresetToastComponent implements OnInit {
     const preset = this.themePreset.preset();
     this.optionState.set(getPresetDefaults(preset));
     this.nameMode.set(preset === 'serious' ? 'anonymousMode' : 'nicknameTheme');
-    this.nicknameThemeValue.set('NOBEL_LAUREATES');
+    this.nicknameThemeValue.set(preset === 'serious' ? 'NOBEL_LAUREATES' : 'KINDERGARTEN');
     this.teamCountValue.set(DEFAULT_TEAM_COUNT);
   }
 
@@ -431,7 +431,7 @@ export class PresetToastComponent implements OnInit {
   private readStoredPreset(preset: 'serious' | 'spielerisch'): PresetStorageEntry {
     let state: PresetOptionState = getPresetDefaults(preset);
     let nm: NameMode = preset === 'serious' ? 'anonymousMode' : 'nicknameTheme';
-    let themeVal: NicknameTheme = 'NOBEL_LAUREATES';
+    let themeVal: NicknameTheme = preset === 'serious' ? 'NOBEL_LAUREATES' : 'KINDERGARTEN';
     let teamCount = DEFAULT_TEAM_COUNT;
 
     try {
