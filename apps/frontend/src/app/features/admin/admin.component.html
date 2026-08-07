@@ -352,7 +352,7 @@
                                     }
                                   </section>
                                   @if (detail.questions?.length) {
-                                    <div class="admin-questions">
+                                    <div class="admin-questions" appMarkdownImageLightbox>
                                       @for (question of detail.questions!; track question.id) {
                                         <article class="admin-question">
                                           <p

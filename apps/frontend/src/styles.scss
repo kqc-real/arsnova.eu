@@ -643,25 +643,22 @@ html {
   font: var(--mat-sys-body-small);
 }
 
-.markdown-lightbox-enabled img[data-markdown-image-lightbox='true'],
-img[data-markdown-image-lightbox='true'] {
+/* Fade-in/Zoom nur mit Lightbox-Directive — sonst bleiben Bilder bei state=loading unsichtbar. */
+.markdown-lightbox-enabled img[data-markdown-image-lightbox='true'] {
   cursor: -webkit-zoom-in !important;
   cursor: zoom-in !important;
   transition: opacity 180ms ease-out;
 }
 
 .markdown-lightbox-enabled
-  img[data-markdown-image-lightbox='true'][data-markdown-image-state='loading'],
-img[data-markdown-image-lightbox='true'][data-markdown-image-state='loading'] {
+  img[data-markdown-image-lightbox='true'][data-markdown-image-state='loading'] {
   opacity: 0;
 }
 
 .markdown-lightbox-enabled
   img[data-markdown-image-lightbox='true'][data-markdown-image-state='ready'],
 .markdown-lightbox-enabled
-  img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'],
-img[data-markdown-image-lightbox='true'][data-markdown-image-state='ready'],
-img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
+  img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   opacity: 1;
 }
 

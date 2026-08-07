@@ -15,7 +15,12 @@ import { MatTab, MatTabContent, MatTabGroup } from '@angular/material/tabs';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
-import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithKatex,
+} from '../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
 import { AdminMonitoringPanelComponent } from './admin-monitoring-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
@@ -62,6 +67,7 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
     MatTabGroup,
     MatTab,
     MatTabContent,
+    MarkdownImageLightboxDirective,
     AdminMotdPanelComponent,
     AdminMonitoringPanelComponent,
   ],
@@ -71,6 +77,8 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
 export class AdminComponent implements OnInit {
   private readonly locale = inject(LOCALE_ID);
   private readonly sanitizer = inject(DomSanitizer);
+  /** Stabiles SafeHtml für Change Detection — sonst reißt Lightbox-restoreFocus den Trigger ab. */
+  private readonly quizRichTextCache = new Map<string, SafeHtml>();
   readonly adminSecret = signal('');
   readonly loginLoading = signal(false);
   readonly loginError = signal<string | null>(null);
@@ -563,13 +571,26 @@ export class AdminComponent implements OnInit {
 
   /**
    * Session-Detail: Fragen/Antworten wie in der Live-Ansicht (Markdown + KaTeX, DOMPurify im Util).
+   * Root-`/assets/…`-Bilder werden absolutisiert (lokalisierte Builds mit base href).
+   * Ergebnis wird gecacht, damit Change Detection denselben SafeHtml-Referenz behält
+   * und MatDialog-restoreFocus den Lightbox-Trigger nicht an einem detached Node sucht.
    */
   renderQuizRichText(text: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const { html } = renderMarkdownWithKatex(text ?? '', {
+    const source = text ?? '';
+    const cacheKey = `${headingStartLevel}\u0000${source}`;
+    const cached = this.quizRichTextCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+    const { html } = renderMarkdownWithKatex(source, {
       imagePolicy: 'allow-relative-and-https',
       headingStartLevel,
     });
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
+      absolutizeMarkdownHtmlRootAssetImgSrc(html, resolveMotdAssetOrigin()),
+    );
+    this.quizRichTextCache.set(cacheKey, rendered);
+    return rendered;
   }
 
   private async verifyAdminSession(): Promise<void> {

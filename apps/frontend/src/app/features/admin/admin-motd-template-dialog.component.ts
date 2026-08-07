@@ -14,7 +14,11 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { trpc } from '../../core/trpc.client';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
-import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithoutKatex,
+} from '../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
 export type AdminMotdTemplateDialogData = { templateId: string | null };
@@ -60,7 +64,10 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
   /** Live aus DE (Fallback EN); `innerHTML` liegt außerhalb des Encapsulation-Scopes → Typo in `styles.scss`. */
   readonly previewHtml = computed<SafeHtml>(() => {
     const raw = this.tplMdDe().trim() || this.tplMdEn().trim() || '…';
-    const html = renderMarkdownWithoutKatex(raw);
+    const html = absolutizeMarkdownHtmlRootAssetImgSrc(
+      renderMarkdownWithoutKatex(raw),
+      resolveMotdAssetOrigin(),
+    );
     return this.sanitizer.bypassSecurityTrustHtml(html);
   });
 
