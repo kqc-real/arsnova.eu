@@ -1,6 +1,8 @@
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import {
   planQuestionContinuationStamps,
+  stampQuestionContinuationsOnPdf,
   stripPdfRunningHeader,
   toWinAnsiSafe,
 } from './session-results-report-continuation.util';
@@ -143,5 +145,24 @@ describe('planQuestionContinuationStamps', () => {
       "Quiz CODE Profil d'apprentissage des équipes Uniquement les équipes. Points forts : taux de réponses correctes d'au moins 80 %. Codes bonus",
     ];
     expect(planQuestionContinuationStamps(pages, frQuestions)).toEqual([]);
+  });
+});
+
+describe('stampQuestionContinuationsOnPdf', () => {
+  it('extrahiert Seitentext mit dem unterstützten PDF.js-ESM-Pfad', async () => {
+    const doc = await PDFDocument.create();
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    doc.addPage().drawText('FRAGE 1 VON 1 Testfrage', { x: 40, y: 760, font, size: 12 });
+    doc.addPage().drawText('Antwortverteilung', { x: 40, y: 760, font, size: 12 });
+
+    const stamped = await stampQuestionContinuationsOnPdf(await doc.save(), [
+      {
+        questionNumber: 1,
+        label: 'Frage 1 - Fortsetzung: Testfrage',
+        shortLabel: 'Frage 1 - Fortsetzung',
+      },
+    ]);
+
+    expect(Buffer.from(stamped).includes(Buffer.from('/BaseFont /Helvetica-Bold'))).toBe(true);
   });
 });
