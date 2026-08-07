@@ -566,7 +566,7 @@ export class AdminComponent implements OnInit {
    */
   renderQuizRichText(text: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
     const { html } = renderMarkdownWithKatex(text ?? '', {
-      imagePolicy: 'allow-relative-and-https',
+      imagePolicy: 'external-https-and-app-assets',
       headingStartLevel,
     });
     return this.sanitizer.bypassSecurityTrustHtml(html);

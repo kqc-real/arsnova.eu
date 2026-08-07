@@ -27,6 +27,12 @@ describe('renderMarkdownWithKatex', () => {
 
     const codeBlock = '```\n**bar **\n```';
     expect(normalizeEmphasisWhitespace(codeBlock)).toBe('```\n**bar **\n```');
+
+    const tildeFence = '~~~js\n**baz **\n~~~';
+    expect(normalizeEmphasisWhitespace(tildeFence)).toBe('~~~js\n**baz **\n~~~');
+
+    const indentedBlock = '    **indented **';
+    expect(normalizeEmphasisWhitespace(indentedBlock)).toBe('    **indented **');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {

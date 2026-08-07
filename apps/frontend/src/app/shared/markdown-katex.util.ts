@@ -52,11 +52,14 @@ function normalizeMathExpressionBeforeKatex(raw: string): string {
 /**
  * Toleriert typische Eingabefehler wie `**text **` oder `_text _` (Leerzeichen vor schließenden Delimitern),
  * die nach striktem CommonMark-Standard das Rendering von Fett/Kursiv unterbinden.
- * Code-Spans (`...`) und Code-Blöcke (```...```) bleiben unverändert.
+ * Sämtliche Code-Formen (Backtick/Tilde-Fences ```/~~~, eingerückte Codeblöcke und Inline-Code) bleiben unverändert.
  */
 export function normalizeEmphasisWhitespace(raw: string): string {
   if (!raw || (!raw.includes('**') && !raw.includes('__'))) return raw;
-  const parts = raw.split(/(```[\s\S]*?```|`[^`\n]+`)/g);
+
+  const parts = raw.split(
+    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`+[^`\n]+`+|(?:^(?: {4}|\t).*(?:\r?\n|$))+)/gm,
+  );
   return parts
     .map((part, index) => {
       if (index % 2 === 1) {
