@@ -21,13 +21,29 @@ describe('formatReportBarLabelHtml', () => {
     expect(formatReportBarLabelHtml('😡 Genervt', escape)).toContain('report-bar-emoji-svg');
   });
 
-  it('hält verschiedene Stimmungsemojis visuell unterscheidbar', () => {
+  it('hält verschiedene Stimmungsemojis visuell unterscheidbar und schriftunabhängig', () => {
     const happy = formatReportBarLabelHtml('😄 Sehr gut', escape);
     const grinning = formatReportBarLabelHtml('😀 Grinsend', escape);
 
     expect(happy).toContain('report-emoji-svg-wrap');
-    expect(grinning).toContain('report-emoji-glyph--unmapped');
+    expect(grinning).toContain('report-emoji-svg-wrap');
     expect(happy).not.toEqual(grinning);
+  });
+
+  it('lokalisiert PDF/UA Fallback-Labels in allen 5 unterstützten Sprachen (de, en, fr, es, it)', () => {
+    expect(formatReportBarLabelHtml('😄', escape, 'de')).toContain('[Stimmung: Sehr gut]');
+    expect(formatReportBarLabelHtml('😄', escape, 'en')).toContain('[Mood: Very good]');
+    expect(formatReportBarLabelHtml('😄', escape, 'fr')).toContain('[Humeur : Très bien]');
+    expect(formatReportBarLabelHtml('😄', escape, 'es')).toContain('[Estado: Muy bien]');
+    expect(formatReportBarLabelHtml('😄', escape, 'it')).toContain('[Umore: Molto bene]');
+
+    expect(formatReportBarLabelHtml('👍', escape, 'en')).toContain('[Choice: Yes]');
+    expect(formatReportBarLabelHtml('👍', escape, 'es')).toContain('[Opción: Sí]');
+    expect(formatReportBarLabelHtml('👍', escape, 'it')).toContain('[Scelta: Sì]');
+
+    expect(formatReportBarLabelHtml('🐶', escape, 'en')).toContain('[Option]');
+    expect(formatReportBarLabelHtml('🐶', escape, 'es')).toContain('[Opción]');
+    expect(formatReportBarLabelHtml('🐶', escape, 'it')).toContain('[Opzione]');
   });
 
   it('lässt reinen Text unverändert', () => {
@@ -43,13 +59,14 @@ describe('formatReportBarLabelHtml', () => {
     expect(html).not.toContain('report-bar-label-text');
   });
 
-  it('bewahrt die Identität von nicht gemappten Emojis als sichtbare Glyphen', () => {
-    const htmlDog = formatReportBarLabelHtml('🐶 Hund', escape);
-    const htmlCat = formatReportBarLabelHtml('🐱 Katze', escape);
+  it('bewahrt die Identität von nicht gemappten Emojis mit SVG-Bullet und lokalisiertem Text-Fallback', () => {
+    const htmlDog = formatReportBarLabelHtml('🐶 Hund', escape, 'en');
+    const htmlCat = formatReportBarLabelHtml('🐱 Katze', escape, 'en');
 
-    expect(htmlDog).toContain('report-emoji-glyph--unmapped');
+    expect(htmlDog).toContain('report-bar-bullet-svg');
     expect(htmlDog).toContain('🐶');
-    expect(htmlCat).toContain('report-emoji-glyph--unmapped');
+    expect(htmlDog).toContain('[Option]');
+    expect(htmlCat).toContain('report-bar-bullet-svg');
     expect(htmlCat).toContain('🐱');
     expect(htmlDog).not.toEqual(htmlCat);
   });

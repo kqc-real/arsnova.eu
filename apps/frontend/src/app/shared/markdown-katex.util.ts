@@ -58,7 +58,7 @@ export function normalizeEmphasisWhitespace(raw: string): string {
   if (!raw || (!raw.includes('**') && !raw.includes('__'))) return raw;
 
   const parts = raw.split(
-    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`+[^`\n]+`+|(?:^(?: {4}|\t).*(?:\r?\n|$))+)/gm,
+    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`+[^`\n]+`+|(?:(?:^|\r?\n)(?:\r?\n)(?: {4}|\t)[^\n]*(?:\r?\n|$))+)/gm,
   );
   return parts
     .map((part, index) => {
