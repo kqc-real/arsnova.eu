@@ -15,7 +15,12 @@ import { MatTab, MatTabContent, MatTabGroup } from '@angular/material/tabs';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
-import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithKatex,
+} from '../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
 import { AdminMonitoringPanelComponent } from './admin-monitoring-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
@@ -62,6 +67,7 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
     MatTabGroup,
     MatTab,
     MatTabContent,
+    MarkdownImageLightboxDirective,
     AdminMotdPanelComponent,
     AdminMonitoringPanelComponent,
   ],
@@ -563,13 +569,16 @@ export class AdminComponent implements OnInit {
 
   /**
    * Session-Detail: Fragen/Antworten wie in der Live-Ansicht (Markdown + KaTeX, DOMPurify im Util).
+   * Root-`/assets/…`-Bilder werden absolutisiert (lokalisierte Builds mit base href).
    */
   renderQuizRichText(text: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
     const { html } = renderMarkdownWithKatex(text ?? '', {
       imagePolicy: 'allow-relative-and-https',
       headingStartLevel,
     });
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      absolutizeMarkdownHtmlRootAssetImgSrc(html, resolveMotdAssetOrigin()),
+    );
   }
 
   private async verifyAdminSession(): Promise<void> {
