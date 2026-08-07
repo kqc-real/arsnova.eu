@@ -48,4 +48,25 @@ describe('AdminComponent', () => {
       }
     }
   });
+
+  it('liefert für denselben Text und Heading-Level dieselbe SafeHtml-Referenz', () => {
+    TestBed.configureTestingModule({
+      imports: [AdminComponent],
+    });
+
+    const fixture = TestBed.createComponent(AdminComponent);
+    const first = fixture.componentInstance.renderQuizRichText(
+      '![Demo](https://example.org/a.png)',
+    );
+    const second = fixture.componentInstance.renderQuizRichText(
+      '![Demo](https://example.org/a.png)',
+    );
+    const differentLevel = fixture.componentInstance.renderQuizRichText(
+      '![Demo](https://example.org/a.png)',
+      4,
+    );
+
+    expect(second).toBe(first);
+    expect(differentLevel).not.toBe(first);
+  });
 });
