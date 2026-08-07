@@ -54,8 +54,9 @@ export function selectChangedScripts(entries, inventory) {
       entry.kind === 'R' &&
       isRelevantScript(entry.oldPath, inventory) &&
       isScoped(entry.oldPath, inventory) &&
+      !isDocumentedException(entry.oldPath, inventory) &&
       isRelevantScript(path, inventory) &&
-      !isScoped(path, inventory)
+      (!isScoped(path, inventory) || isDocumentedException(path, inventory))
     ) {
       errors.push(`${entry.oldPath} -> ${path}: renamed script left the inventoried scope`);
       continue;
