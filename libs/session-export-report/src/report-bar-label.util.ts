@@ -3,7 +3,7 @@ const LEADING_EMOJI_RE = new RegExp(
   'u',
 );
 
-function getEmojiSvgHtml(emoji: string): string {
+function getEmojiSvgHtml(emoji: string): string | null {
   // Common mood / quiz survey emojis
   if (/^(?:😄|😃|😀|😊|🙂|😁|😆|🥰)$/u.test(emoji)) {
     return `<svg class="report-bar-emoji-svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" role="presentation"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6" r="1" fill="currentColor"/><circle cx="10.5" cy="6" r="1" fill="currentColor"/><path d="M4.5 9.5 C5.5 12, 10.5 12, 11.5 9.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
@@ -29,9 +29,7 @@ function getEmojiSvgHtml(emoji: string): string {
   if (/^🚀$/u.test(emoji)) {
     return `<svg class="report-bar-emoji-svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" role="presentation"><path d="M8 2 C11 2 13 4 13 8 L11 10 L8 8 L6 10 L3 8 C3 4 5 2 8 2 Z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 2 L13 8 L8 13 L3 8 Z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>`;
   }
-
-  // Fallback for any other emoji: SVG bullet disc
-  return `<svg class="report-bar-emoji-svg report-bar-bullet-svg" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" role="presentation"><circle cx="8" cy="8" r="5" fill="currentColor"/></svg>`;
+  return null;
 }
 
 /** Führendes Emoji vom Antworttext trennen — wie in der App (`leading-answer-emoji.util`). */
@@ -48,7 +46,11 @@ export function formatReportBarLabelHtml(
   const rest = (match[3] ?? '').trimStart();
   const svgHtml = getEmojiSvgHtml(emoji);
 
-  const emojiSpan = `<span class="report-bar-leading-emoji" title="${escapeHtml(emoji)}"><span class="report-emoji-svg-wrap" aria-hidden="true">${svgHtml}</span><span class="report-emoji-glyph" aria-hidden="true">${escapeHtml(emoji)}</span></span>`;
+  const emojiContent = svgHtml
+    ? `<span class="report-emoji-svg-wrap" aria-hidden="true">${svgHtml}</span><span class="report-emoji-glyph" aria-hidden="true">${escapeHtml(emoji)}</span><span class="report-emoji-text-fallback">${escapeHtml(emoji)}</span>`
+    : `<span class="report-emoji-glyph report-emoji-glyph--unmapped" aria-hidden="false">${escapeHtml(emoji)}</span>`;
+
+  const emojiSpan = `<span class="report-bar-leading-emoji" title="${escapeHtml(emoji)}">${emojiContent}</span>`;
 
   if (!rest) {
     return emojiSpan;

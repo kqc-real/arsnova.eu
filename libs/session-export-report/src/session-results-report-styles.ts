@@ -993,6 +993,15 @@ p { margin: 0 0 0.65rem; }
   display: none !important;
 }
 
+.report-emoji-text-fallback {
+  display: none;
+}
+
+.report-emoji-glyph--unmapped {
+  display: inline-flex !important;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+
 .report-bar-label-text {
   min-width: 0;
   word-spacing: normal;
@@ -1833,5 +1842,8 @@ html.report-pdf-ua .report-chart-grid {
 html.report-pdf-ua .report-bar-label:has(.report-bar-leading-emoji),
 html.report-pdf-ua .report-pi-label:has(.report-bar-leading-emoji) {
   grid-template-columns: 1fr;
+}
+html.report-pdf-ua .report-emoji-text-fallback {
+  display: inline !important;
 }
 `;

@@ -308,7 +308,7 @@ describe('QuizNewComponent', () => {
           enableSoundEffects: true,
         },
         nameMode: 'nicknameTheme',
-        nicknameThemeValue: 'HIGH_SCHOOL',
+        nicknameThemeValue: 'KINDERGARTEN',
         teamCountValue: 2,
       }),
     );

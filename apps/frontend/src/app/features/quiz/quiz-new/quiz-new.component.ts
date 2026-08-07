@@ -475,6 +475,7 @@ function hasLocalPresetOverridesForQuizPreset(quizPreset: QuizPreset): boolean {
     const parsed = PresetStorageEntrySchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return false;
     const defaults = presetDefaultOptions(quizPreset);
+    const presetTheme = QUIZ_PRESETS[quizPreset]?.nicknameTheme ?? 'KINDERGARTEN';
     const entry = parsed.data;
     const hasOptionOverride = Object.entries(defaults).some(
       ([id, defaultValue]) => id in entry.options && entry.options[id] !== defaultValue,
@@ -483,7 +484,7 @@ function hasLocalPresetOverridesForQuizPreset(quizPreset: QuizPreset): boolean {
     return (
       hasOptionOverride ||
       entry.nameMode !== defaultNameMode ||
-      entry.nicknameThemeValue !== 'HIGH_SCHOOL' ||
+      entry.nicknameThemeValue !== presetTheme ||
       entry.teamCountValue !== DEFAULT_TEAM_COUNT
     );
   } catch {

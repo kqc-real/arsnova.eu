@@ -29,6 +29,18 @@ describe('formatReportBarLabelHtml', () => {
     const html = formatReportBarLabelHtml('😄', escape);
     expect(html).toContain('class="report-bar-leading-emoji"');
     expect(html).toContain('class="report-emoji-svg-wrap"');
+    expect(html).toContain('class="report-emoji-text-fallback"');
     expect(html).not.toContain('report-bar-label-text');
+  });
+
+  it('bewahrt die Identität von nicht gemappten Emojis als sichtbare Glyphen', () => {
+    const htmlDog = formatReportBarLabelHtml('🐶 Hund', escape);
+    const htmlCat = formatReportBarLabelHtml('🐱 Katze', escape);
+
+    expect(htmlDog).toContain('report-emoji-glyph--unmapped');
+    expect(htmlDog).toContain('🐶');
+    expect(htmlCat).toContain('report-emoji-glyph--unmapped');
+    expect(htmlCat).toContain('🐱');
+    expect(htmlDog).not.toEqual(htmlCat);
   });
 });
