@@ -15,6 +15,11 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.katexError).toBeNull();
   });
 
+  it('toleriert Leerzeichen vor schließenden Emphasis-Delimitern wie **Freue **', () => {
+    const result = renderMarkdownWithKatex('**Freue **');
+    expect(result.html).toContain('<strong>Freue</strong>');
+  });
+
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {
     const result = renderMarkdownWithKatex('# Abschnitt\n\n## Detail\n\n#### Tief', {
       headingStartLevel: 3,

@@ -49,11 +49,22 @@ function normalizeMathExpressionBeforeKatex(raw: string): string {
   return s.trim();
 }
 
+/**
+ * Toleriert typische Eingabefehler wie `**text **` oder `_text _` (Leerzeichen vor schließenden Delimitern),
+ * die nach striktem CommonMark-Standard das Rendering von Fett/Kursiv unterbinden.
+ */
+export function normalizeEmphasisWhitespace(raw: string): string {
+  if (!raw || (!raw.includes('**') && !raw.includes('__'))) return raw;
+  return raw
+    .replace(/\*\*([^\s*\n](?:[^\n*]*?[^\s*\n])?)\s+\*\*/g, '**$1** ')
+    .replace(/__([^\s_\n](?:[^\n_]*?[^\s_\n])?)\s+__/g, '__$1__ ');
+}
+
 export function renderMarkdownWithKatex(
   source = '',
   options?: MarkdownRenderOptions,
 ): MarkdownRenderResult {
-  const input = source;
+  const input = normalizeEmphasisWhitespace(source);
   let katexError: string | null = null;
   const renderedMath: string[] = [];
 

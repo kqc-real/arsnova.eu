@@ -281,7 +281,7 @@ export class TopToolbarComponent {
     this.dialog
       .open(MotdArchiveDialogComponent, {
         data: { locale },
-        width: 'min(32rem, calc(100vw - 1.5rem))',
+        width: 'min(42rem, calc(100vw - 1.5rem))',
         maxWidth: '100vw',
         maxHeight: 'min(90dvh, calc(100vh - 2rem))',
         autoFocus: 'first-tabbable',

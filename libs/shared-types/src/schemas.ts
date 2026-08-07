@@ -4005,7 +4005,7 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     showQuestionTypeIndicators: true,
     anonymousMode: false,
     allowCustomNicknames: false,
-    nicknameTheme: 'HIGH_SCHOOL',
+    nicknameTheme: 'KINDERGARTEN',
     defaultTimer: DEFAULT_TIMER_SECONDS,
     timerScaleByDifficulty: true,
     readingPhaseEnabled: false, // Story 2.6: Schnelles Spieltempo

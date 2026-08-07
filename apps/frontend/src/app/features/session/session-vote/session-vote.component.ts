@@ -590,9 +590,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const team = this.playerTeamName()?.trim();
     if (team) {
       const teamLabel = this.teamNameDisplayLabel(team);
-      return $localize`:@@sessionVote.playerTeamBadgeAria:${nick}:nickname:, ${teamLabel}:teamName:`;
+      return $localize`:@@sessionVote.playerTeamBadgeAria:Du bist ${nick}:nickname:, ${teamLabel}:teamName:`;
     }
-    return nick;
+    return $localize`:@@sessionVote.playerBadgeAria:Du bist ${nick}:nickname:`;
   });
 
   teamNameUsesEmojiMarker(teamName: string | null | undefined): boolean {
