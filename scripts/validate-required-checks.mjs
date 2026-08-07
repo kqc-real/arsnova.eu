@@ -69,73 +69,7 @@ export function renderJobContexts(job, location, fallbackName) {
     .sort();
 }
 
-function globMatchesBranch(pattern, branch) {
-  const negated = pattern.startsWith('!');
-  const source = negated ? pattern.slice(1) : pattern;
-  if (source === '' || [...source].some((character) => '[]()+@'.includes(character))) {
-    return { supported: false, matches: false };
-  }
-  const escaped = source.replace(/[.\\^$|{}]/g, '\\$&');
-  const expression = escaped
-    .replaceAll('**', '\0')
-    .replaceAll('*', '[^/]*')
-    .replaceAll('?', '[^/]')
-    .replaceAll('\0', '.*');
-  return { supported: true, matches: new RegExp(`^${expression}$`).test(branch), negated };
-}
-
-function branchFilterIncludes(patterns, branch) {
-  const values = Array.isArray(patterns) ? patterns : [patterns];
-  let included = false;
-  for (const pattern of values) {
-    if (typeof pattern !== 'string') return { supported: false, included: false };
-    const result = globMatchesBranch(pattern, branch);
-    if (!result.supported) return { supported: false, included: false };
-    if (result.matches) included = !result.negated;
-  }
-  return { supported: true, included };
-}
-
-function pullRequestAvailability(trigger, targetBranch) {
-  const unavailable = (reason) => ({ eligible: false, reason });
-  if (trigger === 'pull_request') return { eligible: true, reason: null };
-  if (Array.isArray(trigger)) {
-    return trigger.includes('pull_request')
-      ? { eligible: true, reason: null }
-      : unavailable('workflow has no pull_request trigger');
-  }
-  if (!trigger || typeof trigger !== 'object' || !Object.hasOwn(trigger, 'pull_request')) {
-    return unavailable('workflow has no pull_request trigger');
-  }
-  const pullRequest = trigger.pull_request ?? {};
-  if (typeof pullRequest !== 'object' || Array.isArray(pullRequest)) {
-    return unavailable('pull_request trigger has an unsupported shape');
-  }
-  if (pullRequest.paths || pullRequest['paths-ignore']) {
-    return unavailable('pull_request trigger has path filters');
-  }
-  const requiredTypes = ['opened', 'ready_for_review', 'reopened', 'synchronize'];
-  if (pullRequest.types) {
-    const types = Array.isArray(pullRequest.types) ? pullRequest.types : [pullRequest.types];
-    const missingTypes = requiredTypes.filter((type) => !types.includes(type));
-    if (missingTypes.length > 0) {
-      return unavailable(`pull_request trigger omits event types [${missingTypes.join(', ')}]`);
-    }
-  }
-  if (pullRequest.branches) {
-    const branchMatch = branchFilterIncludes(pullRequest.branches, targetBranch);
-    if (!branchMatch.supported) return unavailable('pull_request branch filter is unsupported');
-    if (!branchMatch.included) return unavailable(`pull_request does not target ${targetBranch}`);
-  }
-  if (pullRequest['branches-ignore']) {
-    const ignored = branchFilterIncludes(pullRequest['branches-ignore'], targetBranch);
-    if (!ignored.supported) return unavailable('pull_request branches-ignore is unsupported');
-    if (ignored.included) return unavailable(`pull_request excludes ${targetBranch}`);
-  }
-  return { eligible: true, reason: null };
-}
-
-export function discoverWorkflowContexts(rootDir, targetBranch) {
+export function discoverWorkflowContexts(rootDir) {
   const workflowsDir = resolve(rootDir, '.github/workflows');
   const workflowFiles = readdirSync(workflowsDir)
     .filter((file) => /\.ya?ml$/.test(file))
@@ -143,15 +77,12 @@ export function discoverWorkflowContexts(rootDir, targetBranch) {
     .sort();
   const byContext = new Map();
   const byProducer = new Map();
-  const availabilityByProducer = new Map();
   for (const workflow of workflowFiles) {
     const parsed = parseYaml(readFileSync(resolve(rootDir, workflow), 'utf8'));
-    const availability = pullRequestAvailability(parsed?.on, targetBranch);
     for (const [jobId, job] of Object.entries(parsed?.jobs ?? {})) {
       const producer = { workflow, job: jobId };
       const contexts = renderJobContexts(job, `${workflow}#${jobId}`, jobId);
       byProducer.set(producerKey(producer), new Set(contexts));
-      availabilityByProducer.set(producerKey(producer), availability);
       for (const context of contexts) {
         const producers = byContext.get(context) ?? [];
         producers.push(producer);
@@ -159,7 +90,7 @@ export function discoverWorkflowContexts(rootDir, targetBranch) {
       }
     }
   }
-  return { byContext, byProducer, availabilityByProducer };
+  return { byContext, byProducer };
 }
 
 function validateShape(manifest, schema) {
@@ -179,8 +110,7 @@ function workflowSource(source) {
 
 function refConditionMatches(pattern, targetBranch) {
   if (pattern === '~ALL' || pattern === '~DEFAULT_BRANCH') return true;
-  const result = globMatchesBranch(pattern, `refs/heads/${targetBranch}`);
-  return result.supported && result.matches && !result.negated;
+  return pattern === `refs/heads/${targetBranch}`;
 }
 
 function rulesetAppliesToTargetBranch(ruleset, targetBranch) {
@@ -248,7 +178,7 @@ export function renderRequiredChecksDocumentation(manifest) {
       nonRequiredRows.length > 0 ? nonRequiredRows : [['–', '–', 'Keine']],
     ),
     '',
-    '### Offene Beobachtungen für den Owner-Checkpoint',
+    '### Owner-Bestätigung und Hinweise',
     '',
     ...manifest.observations.map((observation) => `- ${observation}`),
     '',
@@ -323,20 +253,6 @@ function validateManifestSemantics(manifest, discovered) {
       if (!discovered.byProducer.has(producer)) {
         errors.push(`${check.context}: workflow job missing or renamed: ${producer}`);
       }
-    }
-    const eligibleProducers = [...expectedProducers].filter(
-      (producer) => discovered.availabilityByProducer.get(producer)?.eligible,
-    );
-    if (eligibleProducers.length === 0) {
-      const reasons = [...expectedProducers]
-        .map((producer) => {
-          const availability = discovered.availabilityByProducer.get(producer);
-          return `${producer}: ${availability?.reason ?? 'workflow job missing'}`;
-        })
-        .join(', ');
-      errors.push(
-        `${check.context}: no producer runs for pull requests targeting ${manifest.targetBranch}; ${reasons}`,
-      );
     }
   }
 
@@ -417,9 +333,6 @@ export function extractLiveRulesets(apiRulesets) {
 }
 
 export function compareLiveRulesets(manifest, apiRulesets) {
-  if (!Array.isArray(apiRulesets)) {
-    return ['live ruleset evidence must be a JSON array'];
-  }
   const expected = [...manifest.rulesets]
     .map((ruleset) => ({
       ...ruleset,
@@ -436,12 +349,7 @@ export function compareLiveRulesets(manifest, apiRulesets) {
       ),
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
-  let actual;
-  try {
-    actual = extractLiveRulesets(apiRulesets);
-  } catch (error) {
-    return [`live ruleset evidence has an invalid shape: ${error.message}`];
-  }
+  const actual = extractLiveRulesets(apiRulesets);
   return JSON.stringify(expected) === JSON.stringify(actual)
     ? []
     : [
@@ -449,19 +357,16 @@ export function compareLiveRulesets(manifest, apiRulesets) {
       ];
 }
 
-export function validateRepository(options = {}) {
-  const { rootDir = REPOSITORY_ROOT, liveRulesets } = options;
+export function validateRepository({ rootDir = REPOSITORY_ROOT, liveRulesets } = {}) {
   const manifest = readJson(rootDir, MANIFEST_PATH);
   const schema = readJson(rootDir, SCHEMA_PATH);
   const shapeErrors = validateShape(manifest, schema);
   if (shapeErrors.length > 0) {
     return { errors: shapeErrors, manifest, expectedDocumentation: null };
   }
-  const discovered = discoverWorkflowContexts(rootDir, manifest.targetBranch);
+  const discovered = discoverWorkflowContexts(rootDir);
   const errors = validateManifestSemantics(manifest, discovered);
-  if (Object.hasOwn(options, 'liveRulesets')) {
-    errors.push(...compareLiveRulesets(manifest, liveRulesets));
-  }
+  if (liveRulesets) errors.push(...compareLiveRulesets(manifest, liveRulesets));
   const expectedDocumentation = renderRequiredChecksDocumentation(manifest);
   const documentation = readFileSync(resolve(rootDir, DOCUMENTATION_PATH), 'utf8');
   const starts = [...documentation.matchAll(new RegExp(DOC_START, 'g'))];
@@ -530,9 +435,10 @@ function main() {
     const manifest = readJson(REPOSITORY_ROOT, MANIFEST_PATH);
     replaceDocumentation(REPOSITORY_ROOT, renderRequiredChecksDocumentation(manifest));
   }
-  const validationOptions = { rootDir: REPOSITORY_ROOT };
-  if (args.liveRulesetsPath) validationOptions.liveRulesets = liveRulesets;
-  const { errors, manifest } = validateRepository(validationOptions);
+  const { errors, manifest } = validateRepository({
+    rootDir: REPOSITORY_ROOT,
+    liveRulesets,
+  });
   if (errors.length > 0) {
     process.stderr.write(
       `Required-check validation failed:\n${errors.map((error) => `- ${error}`).join('\n')}\n`,

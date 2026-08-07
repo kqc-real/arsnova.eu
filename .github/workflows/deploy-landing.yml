@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Landing
+    name: Deploy Landing Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

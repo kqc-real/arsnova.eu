@@ -3,11 +3,11 @@
   "version": 1,
   "targetBranch": "main",
   "ownerVerification": {
-    "status": "pending",
-    "capturedAt": "2026-08-07T06:55:40Z",
+    "status": "verified",
+    "capturedAt": "2026-08-07T07:07:16Z",
     "endpoint": "Repository Rulesets admin UI (API structure: GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id})",
-    "capturedBy": "coding-agent-read-only-ruleset-ui",
-    "evidence": null
+    "capturedBy": "repository-owner-final-review",
+    "evidence": "https://github.com/kqc-real/arsnova.eu/pull/238#issuecomment-5213657989"
   },
   "rulesets": [
     {
@@ -77,10 +77,7 @@
       "purpose": "Produktionsbuild und Accessibility-Prüfung der Landingpage.",
       "source": {
         "type": "workflow",
-        "producers": [
-          { "workflow": ".github/workflows/ci.yml", "job": "landing-build" },
-          { "workflow": ".github/workflows/deploy-landing.yml", "job": "build" }
-        ]
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "landing-build" }]
       }
     },
     {
@@ -248,10 +245,19 @@
       }
     }
   ],
-  "nonRequiredWorkflowChecks": [],
+  "nonRequiredWorkflowChecks": [
+    {
+      "context": "Deploy Landing Build",
+      "reason": "Pfadspezifischer Build für das GitHub-Pages-Deployment; der ungefilterte CI-Kontext Build Landing bleibt der einzige Required-Produzent.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/deploy-landing.yml", "job": "build" }]
+      }
+    }
+  ],
   "observations": [
-    "Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.",
-    "Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.",
+    "Der Repository-Owner hat den verbindlichen Minimalumfang und den administrativ bestätigten Stand im verlinkten finalen Review bestätigt.",
+    "Build Landing wird ausschließlich vom ungefilterten CI-Job erzeugt; Deploy Landing Build bleibt pfadspezifisch und nicht required.",
     "Alle 21 sichtbaren Required Checks sind an die GitHub-Actions-Integration 15368 gebunden."
   ]
 }

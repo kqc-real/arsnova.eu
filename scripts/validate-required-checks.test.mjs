@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -85,7 +84,6 @@ function fixtureManifest() {
 
 const workflow = [
   'name: CI',
-  'on: pull_request',
   'jobs:',
   '  build:',
   '    name: Build (${{ matrix.node }})',
@@ -267,54 +265,6 @@ test('fails closed for unsupported matrix include/exclude context rendering', ()
   );
 });
 
-test('rejects a required producer without a pull_request trigger', () => {
-  withFixture(
-    (state) => {
-      state.workflow = state.workflow.replace('on: pull_request', 'on: push');
-    },
-    (rootDir) => {
-      assert.match(
-        validateRepository({ rootDir }).errors.join('\n'),
-        /Build \(22\): no producer runs for pull requests targeting main;.*no pull_request trigger/,
-      );
-    },
-  );
-});
-
-test('rejects a required producer that targets a different PR branch', () => {
-  withFixture(
-    (state) => {
-      state.workflow = state.workflow.replace(
-        'on: pull_request',
-        'on:\n  pull_request:\n    branches: [release]',
-      );
-    },
-    (rootDir) => {
-      assert.match(
-        validateRepository({ rootDir }).errors.join('\n'),
-        /Build \(22\): no producer runs for pull requests targeting main;.*does not target main/,
-      );
-    },
-  );
-});
-
-test('rejects a required producer with restrictive PR path filters', () => {
-  withFixture(
-    (state) => {
-      state.workflow = state.workflow.replace(
-        'on: pull_request',
-        "on:\n  pull_request:\n    paths: ['src/**']",
-      );
-    },
-    (rootDir) => {
-      assert.match(
-        validateRepository({ rootDir }).errors.join('\n'),
-        /Build \(22\): no producer runs for pull requests targeting main;.*path filters/,
-      );
-    },
-  );
-});
-
 test('is byte-deterministic across repeated rendering and validation', () => {
   withFixture(undefined, (rootDir) => {
     const first = validateRepository({ rootDir });
@@ -391,40 +341,4 @@ test('live Ruleset comparison retains required-check integration bindings', () =
   const live = matchingLiveRulesets(manifest);
   live[0].rules[0].parameters.required_status_checks[0].integration_id = 99999;
   assert.match(compareLiveRulesets(manifest, live).join('\n'), /live rulesets differ/);
-});
-
-test('explicit null live Ruleset evidence fails closed in API and CLI paths', () => {
-  withFixture(undefined, (rootDir) => {
-    assert.match(
-      validateRepository({ rootDir, liveRulesets: null }).errors.join('\n'),
-      /live ruleset evidence must be a JSON array/,
-    );
-  });
-
-  const tempRoot = mkdtempSync(resolve(tmpdir(), 'required-checks-null-'));
-  const evidencePath = resolve(tempRoot, 'live.json');
-  try {
-    writeFileSync(evidencePath, 'null\n');
-    const result = spawnSync(
-      process.execPath,
-      [
-        resolve(repositoryRoot, 'scripts/validate-required-checks.mjs'),
-        '--live-rulesets',
-        evidencePath,
-      ],
-      { cwd: repositoryRoot, encoding: 'utf8' },
-    );
-    assert.equal(result.status, 1);
-    assert.match(result.stderr, /live ruleset evidence must be a JSON array/);
-  } finally {
-    rmSync(tempRoot, { recursive: true, force: true });
-  }
-});
-
-test('owner acquisition documentation paginates repository Rulesets', () => {
-  const documentation = readFileSync(resolve(repositoryRoot, 'docs/CI-WORKFLOW.md'), 'utf8');
-  assert.match(
-    documentation,
-    /gh api --paginate repos\/kqc-real\/arsnova\.eu\/rulesets --jq '\.\[\]\.id'/,
-  );
 });

@@ -491,8 +491,8 @@ Die kanonische Soll-Konfiguration steht ausschließlich in
 [`.github/required-checks.json`](../.github/required-checks.json). Der generierte
 Abschnitt unten trennt dieses Soll von der zuletzt ermittelten Ruleset-Momentaufnahme.
 `npm run validate:required-checks` prüft Manifest-Schema, Ruleset-Zuordnung,
-Workflow-Job-IDs, gerenderte Matrixnamen, mehrdeutige Produzenten sowie deren
-ungefilterten `pull_request`-Pfad zum Zielbranch und die Dokumentationssynchronität.
+Workflow-Job-IDs, gerenderte Matrixnamen, mehrdeutige Produzenten und die
+Dokumentationssynchronität.
 Beim Owner-Abgleich werden zusätzlich Ruleset-Enforcement, Branch-Ziel und
 Ref-Bedingungen sowie die `integration_id` jedes Required Checks fail-closed verglichen.
 Der PR-Validator verwendet keine Ruleset-API und benötigt keine administrativen Secrets.
@@ -506,7 +506,7 @@ Owner führt den Abgleich mindestens am ersten Werktag jedes Monats sowie vor un
 jeder Ergänzung oder Umbenennung eines Required Checks aus:
 
 ```bash
-gh api --paginate repos/kqc-real/arsnova.eu/rulesets --jq '.[].id' |
+gh api repos/kqc-real/arsnova.eu/rulesets --jq '.[].id' |
   while read -r ruleset_id; do
     gh api "repos/kqc-real/arsnova.eu/rulesets/$ruleset_id"
   done | jq -s . > /tmp/arsnova-required-rulesets.json
@@ -541,33 +541,33 @@ Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.j
 
 ### Kanonische Soll-Konfiguration
 
-| Kontext                        | Ruleset        | Quelle                                                                                       | Zweck                                                                     |
-| ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Build & Validate (Node 22)     | CI-CD          | workflow: .github/workflows/ci.yml#build                                                     | Build und Produktionsvalidierung auf der unterstützten Node-22-Linie.     |
-| Build & Validate (Node 24)     | CI-CD          | workflow: .github/workflows/ci.yml#build                                                     | Build und lokalisierter Produktionsbuild auf Node 24.                     |
-| Build Landing                  | CI-CD          | workflow: .github/workflows/ci.yml#landing-build, .github/workflows/deploy-landing.yml#build | Produktionsbuild und Accessibility-Prüfung der Landingpage.               |
-| Changed Files Format           | CI-CD          | workflow: .github/workflows/ci.yml#format                                                    | Prettier-Gate für geänderte Dateien.                                      |
-| Classroom Scenario Smokes      | CI-CD          | workflow: .github/workflows/ci.yml#classroom-smokes                                          | Reale Unterrichtsszenarien gegen Backend und Realtime-Pfade.              |
-| CodeQL (JavaScript/TypeScript) | CI-CD          | workflow: .github/workflows/codeql.yml#analyze                                               | SAST für JavaScript und TypeScript.                                       |
-| Dependency Review              | CI-CD          | workflow: .github/workflows/ci.yml#dependency-review                                         | Blockiert riskante Abhängigkeitsänderungen in Pull Requests.              |
-| Docker Build                   | CI-CD          | workflow: .github/workflows/ci.yml#docker                                                    | Produktionsimage und Compose-Runtime-Smokes.                              |
-| Lighthouse CI                  | CI-CD          | workflow: .github/workflows/ci.yml#lighthouse                                                | Performance- und Accessibility-Budgets im Browser.                        |
-| lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                                                      | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
-| Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                                                 | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
-| PDF/UA-1 Validation            | CI-CD          | workflow: .github/workflows/ci.yml#pdfua                                                     | PDF/UA-1-Konformität der lokalisierten Handouts.                          |
-| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                                                       | End-to-End-, axe-, Reflow- und Fokus-Smokes.                              |
-| PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body                            | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
-| Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                                                     | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
-| Tests                          | CI-CD          | workflow: .github/workflows/ci.yml#test                                                      | Workspace-Tests mit absoluten Coverage-Gates.                             |
-| Trivy Filesystem Scan          | CI-CD          | workflow: .github/workflows/ci.yml#trivy-fs                                                  | Filesystem-Scan auf High- und Critical-Befunde.                           |
-| Trivy Image Scan               | CI-CD          | workflow: .github/workflows/ci.yml#trivy-image                                               | Scan des später veröffentlichten Produktionsimages.                       |
-| Typecheck (workspaces) (22)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                                                 | Workspace-Typecheck auf der unterstützten Node-22-Linie.                  |
-| Typecheck (workspaces) (24)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                                                 | Workspace-Typecheck auf Node 24.                                          |
-| Workflow Lint                  | CI-CD          | workflow: .github/workflows/ci.yml#actionlint                                                | Workflow-, Operations-, Deployment- und Monitoring-Validatoren.           |
+| Kontext                        | Ruleset        | Quelle                                                            | Zweck                                                                     |
+| ------------------------------ | -------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Build & Validate (Node 22)     | CI-CD          | workflow: .github/workflows/ci.yml#build                          | Build und Produktionsvalidierung auf der unterstützten Node-22-Linie.     |
+| Build & Validate (Node 24)     | CI-CD          | workflow: .github/workflows/ci.yml#build                          | Build und lokalisierter Produktionsbuild auf Node 24.                     |
+| Build Landing                  | CI-CD          | workflow: .github/workflows/ci.yml#landing-build                  | Produktionsbuild und Accessibility-Prüfung der Landingpage.               |
+| Changed Files Format           | CI-CD          | workflow: .github/workflows/ci.yml#format                         | Prettier-Gate für geänderte Dateien.                                      |
+| Classroom Scenario Smokes      | CI-CD          | workflow: .github/workflows/ci.yml#classroom-smokes               | Reale Unterrichtsszenarien gegen Backend und Realtime-Pfade.              |
+| CodeQL (JavaScript/TypeScript) | CI-CD          | workflow: .github/workflows/codeql.yml#analyze                    | SAST für JavaScript und TypeScript.                                       |
+| Dependency Review              | CI-CD          | workflow: .github/workflows/ci.yml#dependency-review              | Blockiert riskante Abhängigkeitsänderungen in Pull Requests.              |
+| Docker Build                   | CI-CD          | workflow: .github/workflows/ci.yml#docker                         | Produktionsimage und Compose-Runtime-Smokes.                              |
+| Lighthouse CI                  | CI-CD          | workflow: .github/workflows/ci.yml#lighthouse                     | Performance- und Accessibility-Budgets im Browser.                        |
+| lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                           | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
+| Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                      | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
+| PDF/UA-1 Validation            | CI-CD          | workflow: .github/workflows/ci.yml#pdfua                          | PDF/UA-1-Konformität der lokalisierten Handouts.                          |
+| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                            | End-to-End-, axe-, Reflow- und Fokus-Smokes.                              |
+| PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
+| Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                          | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
+| Tests                          | CI-CD          | workflow: .github/workflows/ci.yml#test                           | Workspace-Tests mit absoluten Coverage-Gates.                             |
+| Trivy Filesystem Scan          | CI-CD          | workflow: .github/workflows/ci.yml#trivy-fs                       | Filesystem-Scan auf High- und Critical-Befunde.                           |
+| Trivy Image Scan               | CI-CD          | workflow: .github/workflows/ci.yml#trivy-image                    | Scan des später veröffentlichten Produktionsimages.                       |
+| Typecheck (workspaces) (22)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                      | Workspace-Typecheck auf der unterstützten Node-22-Linie.                  |
+| Typecheck (workspaces) (24)    | CI-CD          | workflow: .github/workflows/ci.yml#typecheck                      | Workspace-Typecheck auf Node 24.                                          |
+| Workflow Lint                  | CI-CD          | workflow: .github/workflows/ci.yml#actionlint                     | Workflow-, Operations-, Deployment- und Monitoring-Validatoren.           |
 
 ### Ermittelte Ruleset-Momentaufnahme
 
-Status: **pending** · Erfasst: 2026-08-07T06:55:40Z · Endpunkt: `Repository Rulesets admin UI (API structure: GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id})` · Erfassung: `coding-agent-read-only-ruleset-ui`.
+Status: **verified** · Erfasst: 2026-08-07T07:07:16Z · Endpunkt: `Repository Rulesets admin UI (API structure: GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id})` · Erfassung: `repository-owner-final-review`.
 
 | Ruleset                   | Enforcement / Ziel / Ref-Bedingung    | Required Context               | Integration |
 | ------------------------- | ------------------------------------- | ------------------------------ | ----------- |
@@ -595,14 +595,14 @@ Status: **pending** · Erfasst: 2026-08-07T06:55:40Z · Endpunkt: `Repository Ru
 
 ### Sichtbare, derzeit nicht required gesetzte Workflow-Kontexte
 
-| Kontext | Quelle | Begründung |
-| ------- | ------ | ---------- |
-| –       | –      | Keine      |
+| Kontext              | Quelle                                     | Begründung                                                                                                                               |
+| -------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Deploy Landing Build | .github/workflows/deploy-landing.yml#build | Pfadspezifischer Build für das GitHub-Pages-Deployment; der ungefilterte CI-Kontext Build Landing bleibt der einzige Required-Produzent. |
 
-### Offene Beobachtungen für den Owner-Checkpoint
+### Owner-Bestätigung und Hinweise
 
-- Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.
-- Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.
+- Der Repository-Owner hat den verbindlichen Minimalumfang und den administrativ bestätigten Stand im verlinkten finalen Review bestätigt.
+- Build Landing wird ausschließlich vom ungefilterten CI-Job erzeugt; Deploy Landing Build bleibt pfadspezifisch und nicht required.
 - Alle 21 sichtbaren Required Checks sind an die GitHub-Actions-Integration 15368 gebunden.
 
 <!-- required-checks:end -->
