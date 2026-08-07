@@ -491,9 +491,11 @@ Die kanonische Soll-Konfiguration steht ausschließlich in
 [`.github/required-checks.json`](../.github/required-checks.json). Der generierte
 Abschnitt unten trennt dieses Soll von der zuletzt ermittelten Ruleset-Momentaufnahme.
 `npm run validate:required-checks` prüft Manifest-Schema, Ruleset-Zuordnung,
-Workflow-Job-IDs, gerenderte Matrixnamen, mehrdeutige Produzenten und die
-Dokumentationssynchronität. Der PR-Validator verwendet keine Ruleset-API und benötigt
-keine administrativen Secrets.
+Workflow-Job-IDs, gerenderte Matrixnamen, mehrdeutige Produzenten sowie deren
+ungefilterten `pull_request`-Pfad zum Zielbranch und die Dokumentationssynchronität.
+Beim Owner-Abgleich werden zusätzlich Ruleset-Enforcement, Branch-Ziel und
+Ref-Bedingungen sowie die `integration_id` jedes Required Checks fail-closed verglichen.
+Der PR-Validator verwendet keine Ruleset-API und benötigt keine administrativen Secrets.
 
 ### Owner-Abgleich und dauerhafter manueller Drift-Prozess
 
@@ -504,7 +506,7 @@ Owner führt den Abgleich mindestens am ersten Werktag jedes Monats sowie vor un
 jeder Ergänzung oder Umbenennung eines Required Checks aus:
 
 ```bash
-gh api repos/kqc-real/arsnova.eu/rulesets --jq '.[].id' |
+gh api --paginate repos/kqc-real/arsnova.eu/rulesets --jq '.[].id' |
   while read -r ruleset_id; do
     gh api "repos/kqc-real/arsnova.eu/rulesets/$ruleset_id"
   done | jq -s . > /tmp/arsnova-required-rulesets.json
@@ -552,6 +554,7 @@ Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.j
 | Lighthouse CI                  | CI-CD          | workflow: .github/workflows/ci.yml#lighthouse                                                | Performance- und Accessibility-Budgets im Browser.                        |
 | lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                                                      | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
 | Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                                                 | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
+| PDF/UA-1 Validation            | CI-CD          | workflow: .github/workflows/ci.yml#pdfua                                                     | PDF/UA-1-Konformität der lokalisierten Handouts.                          |
 | Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                                                       | End-to-End-, axe-, Reflow- und Fokus-Smokes.                              |
 | PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body                            | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
 | Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                                                     | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
@@ -564,42 +567,43 @@ Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.j
 
 ### Ermittelte Ruleset-Momentaufnahme
 
-Status: **pending** · Erfasst: 2026-08-06T14:49:45Z · Endpunkt: `GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id}` · Erfassung: `coding-agent-read-only-snapshot`.
+Status: **pending** · Erfasst: 2026-08-07T06:55:40Z · Endpunkt: `Repository Rulesets admin UI (API structure: GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id})` · Erfassung: `coding-agent-read-only-ruleset-ui`.
 
-| Ruleset                   | Required Context               |
-| ------------------------- | ------------------------------ |
-| CI-CD (18572555)          | Build & Validate (Node 22)     |
-| CI-CD (18572555)          | Build & Validate (Node 24)     |
-| CI-CD (18572555)          | Build Landing                  |
-| CI-CD (18572555)          | Changed Files Format           |
-| CI-CD (18572555)          | Classroom Scenario Smokes      |
-| CI-CD (18572555)          | CodeQL (JavaScript/TypeScript) |
-| CI-CD (18572555)          | Dependency Review              |
-| CI-CD (18572555)          | Docker Build                   |
-| CI-CD (18572555)          | Lighthouse CI                  |
-| CI-CD (18572555)          | lint                           |
-| CI-CD (18572555)          | Migration Drift                |
-| CI-CD (18572555)          | Playwright Smoke E2E           |
-| CI-CD (18572555)          | Security Audit                 |
-| CI-CD (18572555)          | Tests                          |
-| CI-CD (18572555)          | Trivy Filesystem Scan          |
-| CI-CD (18572555)          | Trivy Image Scan               |
-| CI-CD (18572555)          | Typecheck (workspaces) (22)    |
-| CI-CD (18572555)          | Typecheck (workspaces) (24)    |
-| CI-CD (18572555)          | Workflow Lint                  |
-| main protected (13010249) | PR-Template vollständig        |
+| Ruleset                   | Enforcement / Ziel / Ref-Bedingung    | Required Context               | Integration |
+| ------------------------- | ------------------------------------- | ------------------------------ | ----------- |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Build & Validate (Node 22)     | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Build & Validate (Node 24)     | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Build Landing                  | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Changed Files Format           | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Classroom Scenario Smokes      | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | CodeQL (JavaScript/TypeScript) | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Dependency Review              | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Docker Build                   | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Lighthouse CI                  | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | lint                           | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Migration Drift                | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | PDF/UA-1 Validation            | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Playwright Smoke E2E           | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Security Audit                 | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Tests                          | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Trivy Filesystem Scan          | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Trivy Image Scan               | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Typecheck (workspaces) (22)    | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Typecheck (workspaces) (24)    | 15368       |
+| CI-CD (18572555)          | active; branch; +~DEFAULT_BRANCH / -– | Workflow Lint                  | 15368       |
+| main protected (13010249) | active; branch; +~DEFAULT_BRANCH / -– | PR-Template vollständig        | 15368       |
 
 ### Sichtbare, derzeit nicht required gesetzte Workflow-Kontexte
 
-| Kontext             | Quelle                         | Begründung                                                                                                                                              |
-| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PDF/UA-1 Validation | .github/workflows/ci.yml#pdfua | Im read-only Snapshot vom 06.08.2026 nicht als Required Check enthalten; die Abweichung zum Audittext muss der Owner im 4B-Checkpoint bewusst auflösen. |
+| Kontext | Quelle | Begründung |
+| ------- | ------ | ---------- |
+| –       | –      | Keine      |
 
 ### Offene Beobachtungen für den Owner-Checkpoint
 
 - Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.
 - Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.
-- PDF/UA-1 Validation läuft blockierend in CI, fehlt aber im erfassten Live-Ruleset; Audittext und Live-Stand widersprechen sich hier.
+- Alle 21 sichtbaren Required Checks sind an die GitHub-Actions-Integration 15368 gebunden.
 
 <!-- required-checks:end -->
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -31,8 +32,25 @@ function fixtureManifest() {
       evidence: null,
     },
     rulesets: [
-      { name: 'CI-CD', id: 1, contexts: ['Build (22)', 'Build (24)', 'Workflow Lint'] },
-      { name: 'main protected', id: 2, contexts: ['PR-Template vollständig'] },
+      {
+        name: 'CI-CD',
+        id: 1,
+        enforcement: 'active',
+        target: 'branch',
+        conditions: { refName: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+        checks: ['Build (22)', 'Build (24)', 'Workflow Lint'].map((context) => ({
+          context,
+          integrationId: 15368,
+        })),
+      },
+      {
+        name: 'main protected',
+        id: 2,
+        enforcement: 'active',
+        target: 'branch',
+        conditions: { refName: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+        checks: [{ context: 'PR-Template vollständig', integrationId: null }],
+      },
     ],
     checks: [
       {
@@ -67,6 +85,7 @@ function fixtureManifest() {
 
 const workflow = [
   'name: CI',
+  'on: pull_request',
   'jobs:',
   '  build:',
   '    name: Build (${{ matrix.node }})',
@@ -164,6 +183,34 @@ test('rejects a required context assigned to the wrong ruleset', () => {
   );
 });
 
+test('rejects a recorded Ruleset that does not apply to the target branch', () => {
+  withFixture(
+    (state) => {
+      state.manifest.rulesets[0].conditions.refName.include = ['refs/heads/release'];
+    },
+    (rootDir) => {
+      assert.match(
+        validateRepository({ rootDir }).errors.join('\n'),
+        /CI-CD: ruleset conditions do not apply to main/,
+      );
+    },
+  );
+});
+
+test('anchors the canonical target branch to main', () => {
+  withFixture(
+    (state) => {
+      state.manifest.targetBranch = 'release';
+    },
+    (rootDir) => {
+      assert.match(
+        validateRepository({ rootDir }).errors.join('\n'),
+        /manifest\/targetBranch must be equal to constant/,
+      );
+    },
+  );
+});
+
 test('rejects stale generated documentation', () => {
   withFixture(
     (state) => {
@@ -220,6 +267,54 @@ test('fails closed for unsupported matrix include/exclude context rendering', ()
   );
 });
 
+test('rejects a required producer without a pull_request trigger', () => {
+  withFixture(
+    (state) => {
+      state.workflow = state.workflow.replace('on: pull_request', 'on: push');
+    },
+    (rootDir) => {
+      assert.match(
+        validateRepository({ rootDir }).errors.join('\n'),
+        /Build \(22\): no producer runs for pull requests targeting main;.*no pull_request trigger/,
+      );
+    },
+  );
+});
+
+test('rejects a required producer that targets a different PR branch', () => {
+  withFixture(
+    (state) => {
+      state.workflow = state.workflow.replace(
+        'on: pull_request',
+        'on:\n  pull_request:\n    branches: [release]',
+      );
+    },
+    (rootDir) => {
+      assert.match(
+        validateRepository({ rootDir }).errors.join('\n'),
+        /Build \(22\): no producer runs for pull requests targeting main;.*does not target main/,
+      );
+    },
+  );
+});
+
+test('rejects a required producer with restrictive PR path filters', () => {
+  withFixture(
+    (state) => {
+      state.workflow = state.workflow.replace(
+        'on: pull_request',
+        "on:\n  pull_request:\n    paths: ['src/**']",
+      );
+    },
+    (rootDir) => {
+      assert.match(
+        validateRepository({ rootDir }).errors.join('\n'),
+        /Build \(22\): no producer runs for pull requests targeting main;.*path filters/,
+      );
+    },
+  );
+});
+
 test('is byte-deterministic across repeated rendering and validation', () => {
   withFixture(undefined, (rootDir) => {
     const first = validateRepository({ rootDir });
@@ -229,27 +324,107 @@ test('is byte-deterministic across repeated rendering and validation', () => {
   });
 });
 
-test('live Ruleset comparison fails closed for missing and wrong assignments', () => {
-  const manifest = fixtureManifest();
-  const matching = manifest.rulesets.map((ruleset) => ({
+function matchingLiveRulesets(manifest) {
+  return manifest.rulesets.map((ruleset) => ({
     id: ruleset.id,
     name: ruleset.name,
+    enforcement: ruleset.enforcement,
+    target: ruleset.target,
+    conditions: {
+      ref_name: {
+        include: [...ruleset.conditions.refName.include],
+        exclude: [...ruleset.conditions.refName.exclude],
+      },
+    },
     rules: [
       {
         type: 'required_status_checks',
         parameters: {
-          required_status_checks: ruleset.contexts.map((context) => ({ context })),
+          required_status_checks: ruleset.checks.map((check) => ({
+            context: check.context,
+            ...(check.integrationId === null ? {} : { integration_id: check.integrationId }),
+          })),
         },
       },
     ],
   }));
+}
+
+test('live Ruleset comparison fails closed for missing and jointly weakened assignments', () => {
+  const manifest = fixtureManifest();
+  const matching = matchingLiveRulesets(manifest);
   assert.deepEqual(compareLiveRulesets(manifest, matching), []);
   const jointlyWeakened = structuredClone(manifest);
   jointlyWeakened.checks = jointlyWeakened.checks.filter((check) => check.context !== 'Build (24)');
-  jointlyWeakened.rulesets[0].contexts = jointlyWeakened.rulesets[0].contexts.filter(
-    (context) => context !== 'Build (24)',
+  jointlyWeakened.rulesets[0].checks = jointlyWeakened.rulesets[0].checks.filter(
+    (check) => check.context !== 'Build (24)',
   );
   assert.match(compareLiveRulesets(jointlyWeakened, matching).join('\n'), /live rulesets differ/);
   matching[0].rules[0].parameters.required_status_checks.pop();
   assert.match(compareLiveRulesets(manifest, matching).join('\n'), /live rulesets differ/);
+});
+
+test('live Ruleset comparison retains enforcement, target and ref applicability', () => {
+  const manifest = fixtureManifest();
+  for (const mutate of [
+    (ruleset) => {
+      ruleset.enforcement = 'evaluate';
+    },
+    (ruleset) => {
+      ruleset.target = 'tag';
+    },
+    (ruleset) => {
+      ruleset.conditions.ref_name.include = ['refs/heads/release'];
+    },
+    (ruleset) => {
+      ruleset.conditions.ref_name.exclude = ['refs/heads/main'];
+    },
+  ]) {
+    const live = matchingLiveRulesets(manifest);
+    mutate(live[0]);
+    assert.match(compareLiveRulesets(manifest, live).join('\n'), /live rulesets differ/);
+  }
+});
+
+test('live Ruleset comparison retains required-check integration bindings', () => {
+  const manifest = fixtureManifest();
+  const live = matchingLiveRulesets(manifest);
+  live[0].rules[0].parameters.required_status_checks[0].integration_id = 99999;
+  assert.match(compareLiveRulesets(manifest, live).join('\n'), /live rulesets differ/);
+});
+
+test('explicit null live Ruleset evidence fails closed in API and CLI paths', () => {
+  withFixture(undefined, (rootDir) => {
+    assert.match(
+      validateRepository({ rootDir, liveRulesets: null }).errors.join('\n'),
+      /live ruleset evidence must be a JSON array/,
+    );
+  });
+
+  const tempRoot = mkdtempSync(resolve(tmpdir(), 'required-checks-null-'));
+  const evidencePath = resolve(tempRoot, 'live.json');
+  try {
+    writeFileSync(evidencePath, 'null\n');
+    const result = spawnSync(
+      process.execPath,
+      [
+        resolve(repositoryRoot, 'scripts/validate-required-checks.mjs'),
+        '--live-rulesets',
+        evidencePath,
+      ],
+      { cwd: repositoryRoot, encoding: 'utf8' },
+    );
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /live ruleset evidence must be a JSON array/);
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test('owner acquisition documentation paginates repository Rulesets', () => {
+  const documentation = readFileSync(resolve(repositoryRoot, 'docs/CI-WORKFLOW.md'), 'utf8');
+  assert.match(
+    documentation,
+    /gh api --paginate repos\/kqc-real\/arsnova\.eu\/rulesets --jq '\.\[\]\.id'/,
+  );
 });

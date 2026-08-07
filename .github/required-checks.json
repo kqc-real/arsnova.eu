@@ -4,41 +4,52 @@
   "targetBranch": "main",
   "ownerVerification": {
     "status": "pending",
-    "capturedAt": "2026-08-06T14:49:45Z",
-    "endpoint": "GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id}",
-    "capturedBy": "coding-agent-read-only-snapshot",
+    "capturedAt": "2026-08-07T06:55:40Z",
+    "endpoint": "Repository Rulesets admin UI (API structure: GET /repos/kqc-real/arsnova.eu/rulesets/{ruleset_id})",
+    "capturedBy": "coding-agent-read-only-ruleset-ui",
     "evidence": null
   },
   "rulesets": [
     {
       "name": "CI-CD",
       "id": 18572555,
-      "contexts": [
-        "Build & Validate (Node 22)",
-        "Build & Validate (Node 24)",
-        "Build Landing",
-        "Changed Files Format",
-        "Classroom Scenario Smokes",
-        "CodeQL (JavaScript/TypeScript)",
-        "Dependency Review",
-        "Docker Build",
-        "Lighthouse CI",
-        "Migration Drift",
-        "Playwright Smoke E2E",
-        "Security Audit",
-        "Tests",
-        "Trivy Filesystem Scan",
-        "Trivy Image Scan",
-        "Typecheck (workspaces) (22)",
-        "Typecheck (workspaces) (24)",
-        "Workflow Lint",
-        "lint"
+      "enforcement": "active",
+      "target": "branch",
+      "conditions": {
+        "refName": { "include": ["~DEFAULT_BRANCH"], "exclude": [] }
+      },
+      "checks": [
+        { "context": "Build & Validate (Node 22)", "integrationId": 15368 },
+        { "context": "Build & Validate (Node 24)", "integrationId": 15368 },
+        { "context": "Build Landing", "integrationId": 15368 },
+        { "context": "Changed Files Format", "integrationId": 15368 },
+        { "context": "Classroom Scenario Smokes", "integrationId": 15368 },
+        { "context": "CodeQL (JavaScript/TypeScript)", "integrationId": 15368 },
+        { "context": "Dependency Review", "integrationId": 15368 },
+        { "context": "Docker Build", "integrationId": 15368 },
+        { "context": "Lighthouse CI", "integrationId": 15368 },
+        { "context": "Migration Drift", "integrationId": 15368 },
+        { "context": "PDF/UA-1 Validation", "integrationId": 15368 },
+        { "context": "Playwright Smoke E2E", "integrationId": 15368 },
+        { "context": "Security Audit", "integrationId": 15368 },
+        { "context": "Tests", "integrationId": 15368 },
+        { "context": "Trivy Filesystem Scan", "integrationId": 15368 },
+        { "context": "Trivy Image Scan", "integrationId": 15368 },
+        { "context": "Typecheck (workspaces) (22)", "integrationId": 15368 },
+        { "context": "Typecheck (workspaces) (24)", "integrationId": 15368 },
+        { "context": "Workflow Lint", "integrationId": 15368 },
+        { "context": "lint", "integrationId": 15368 }
       ]
     },
     {
       "name": "main protected",
       "id": 13010249,
-      "contexts": ["PR-Template vollständig"]
+      "enforcement": "active",
+      "target": "branch",
+      "conditions": {
+        "refName": { "include": ["~DEFAULT_BRANCH"], "exclude": [] }
+      },
+      "checks": [{ "context": "PR-Template vollständig", "integrationId": 15368 }]
     }
   ],
   "checks": [
@@ -217,6 +228,15 @@
       }
     },
     {
+      "context": "PDF/UA-1 Validation",
+      "ruleset": "CI-CD",
+      "purpose": "PDF/UA-1-Konformität der lokalisierten Handouts.",
+      "source": {
+        "type": "workflow",
+        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "pdfua" }]
+      }
+    },
+    {
       "context": "PR-Template vollständig",
       "ruleset": "main protected",
       "purpose": "Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review.",
@@ -228,19 +248,10 @@
       }
     }
   ],
-  "nonRequiredWorkflowChecks": [
-    {
-      "context": "PDF/UA-1 Validation",
-      "reason": "Im read-only Snapshot vom 06.08.2026 nicht als Required Check enthalten; die Abweichung zum Audittext muss der Owner im 4B-Checkpoint bewusst auflösen.",
-      "source": {
-        "type": "workflow",
-        "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "pdfua" }]
-      }
-    }
-  ],
+  "nonRequiredWorkflowChecks": [],
   "observations": [
     "Owner-Verifikation aus 4B steht aus; dieser read-only Snapshot ist noch kein administrativer Nachweis.",
     "Der Required-Kontext Build Landing wird von zwei Workflow-Jobs erzeugt und ist deshalb vor einer Umbenennung administrativ zu klären.",
-    "PDF/UA-1 Validation läuft blockierend in CI, fehlt aber im erfassten Live-Ruleset; Audittext und Live-Stand widersprechen sich hier."
+    "Alle 21 sichtbaren Required Checks sind an die GitHub-Actions-Integration 15368 gebunden."
   ]
 }
