@@ -583,6 +583,12 @@ function questionMetaFromUpload(questions) {
     skipReadingPhase: question.skipReadingPhase === true,
     numericReferenceValue: question.numericReferenceValue ?? null,
     answers: Array.isArray(question.answers) ? question.answers : [],
+    matchingPairs: Array.isArray(question.matchingPairs) ? question.matchingPairs : [],
+    orderingItems: Array.isArray(question.orderingItems) ? question.orderingItems : [],
+    categories: Array.isArray(question.categories) ? question.categories : [],
+    categorizationItems: Array.isArray(question.categorizationItems)
+      ? question.categorizationItems
+      : [],
   }));
 }
 
