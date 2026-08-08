@@ -970,9 +970,9 @@ describe('HomeComponent', () => {
       document.body.append(outside);
       outside.focus();
       fixture.detectChanges();
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
+      // restoreFocus-Grace (50ms) vor MOTD-Open abwarten
+      await vi.advanceTimersByTimeAsync(60);
+      fixture.detectChanges();
 
       expect(fixture.componentInstance.motd()).not.toBeNull();
       expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
@@ -1020,15 +1020,64 @@ describe('HomeComponent', () => {
       document.body.append(outside);
       outside.focus();
       fixture.detectChanges();
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(60);
+      fixture.detectChanges();
 
       expect(fixture.componentInstance.motd()).not.toBeNull();
       expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
 
       footer.remove();
       outside.remove();
+    });
+
+    it('öffnet aufgeschobenes MOTD nicht wenn Fokus nach Overlay kurz auf body und dann Footer-Mehr zurückkehrt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const footer = document.createElement('footer');
+      footer.className = 'app-footer';
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.setAttribute('data-footer-focus', 'footer-more');
+      more.textContent = 'Mehr';
+      footer.append(more);
+      document.body.append(footer);
+      more.focus();
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cdk-overlay-pane';
+      const menuItem = document.createElement('button');
+      menuItem.type = 'button';
+      menuItem.textContent = 'Impressum';
+      overlay.append(menuItem);
+      document.body.append(overlay);
+      menuItem.focus();
+      expect(fixture.componentInstance.motd()).toBeNull();
+
+      // MatMenu-Escape: Fokus kurz auf body, dann restoreFocus auf Mehr.
+      document.body.setAttribute('tabindex', '-1');
+      document.body.focus();
+      document.body.removeAttribute('tabindex');
+      more.focus();
+      await vi.advanceTimersByTimeAsync(60);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(document.activeElement).toBe(more);
+
+      footer.remove();
+      overlay.remove();
     });
 
     it('öffnet aufgeschobenes MOTD nicht bei Fokus im Sprachmenü-Overlay', async () => {

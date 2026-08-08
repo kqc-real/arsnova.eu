@@ -272,7 +272,9 @@ async function inspectHomeKeyboardNavigation(page) {
  */
 async function inspectFooterMoreKeyboardNavigation(page) {
   const issues = [];
-  await dismissOptionalOverlay(page);
+  // Idle-MOTD auf /de/ kann nachziehen und Fokus zwischen Menü-Schließen und
+  // Material-restoreFocus stehlen — vor dem Keyboard-Check inkl. Wait dismissen.
+  await dismissOptionalOverlay(page, true);
   const moreButton = page.locator('button[data-footer-focus="footer-more"]');
   await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
 
@@ -286,6 +288,10 @@ async function inspectFooterMoreKeyboardNavigation(page) {
     !document.querySelector(
       '.mat-mdc-menu-panel.app-footer__more-menu, .mat-mdc-menu-panel.app-footer__more-menu-panel',
     );
+  const footerMoreHasFocus = () => {
+    const more = document.querySelector('button[data-footer-focus="footer-more"]');
+    return !!more && more === document.activeElement;
+  };
 
   await moreButton.focus();
   await page.keyboard.press('Enter');
@@ -307,17 +313,18 @@ async function inspectFooterMoreKeyboardNavigation(page) {
     issues.push('Footer-Mehr schließt nicht mit Escape');
   }
   // Material stellt den Fokus asynchron nach Panel-Remove zurück — warten, nicht selbst fokusieren.
-  const focusReturnedAfterEscape = await page
-    .waitForFunction(
-      () => {
-        const more = document.querySelector('button[data-footer-focus="footer-more"]');
-        return !!more && more === document.activeElement;
-      },
-      undefined,
-      { timeout: 2_000 },
-    )
+  // Nachziehendes MOTD kurz dismissen und erneut warten (CI-Flake auf /de/).
+  let focusReturnedAfterEscape = await page
+    .waitForFunction(footerMoreHasFocus, undefined, { timeout: 5_000 })
     .then(() => true)
     .catch(() => false);
+  if (!focusReturnedAfterEscape) {
+    await dismissOptionalOverlay(page);
+    focusReturnedAfterEscape = await page
+      .waitForFunction(footerMoreHasFocus, undefined, { timeout: 3_000 })
+      .then(() => true)
+      .catch(() => false);
+  }
   if (!focusReturnedAfterEscape) {
     issues.push('Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück');
   }

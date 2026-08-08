@@ -865,18 +865,26 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.isChromeOrOverlayFocus(active)) {
         return;
       }
-      const pending = this.pendingToolbarDeferredMotd;
-      this.clearToolbarMotdDefer();
-      if (
-        !pending ||
-        this.suppressMotdForJoinIntent() ||
-        this.sessionCode().trim().length > 0 ||
-        this.isJoining() ||
-        this.motd()
-      ) {
-        return;
-      }
-      this.openMotdOverlay(pending, active);
+      // MatMenu Escape: Fokus liegt kurz auf body, bevor restoreFocus auf Footer-Mehr
+      // zurückkehrt. Ohne Delay öffnet MOTD und stiehlt den Fokus (a11y:layout /de/).
+      this.scheduleTimeout(() => {
+        const delayedActive = document.activeElement;
+        if (this.isChromeOrOverlayFocus(delayedActive)) {
+          return;
+        }
+        const pending = this.pendingToolbarDeferredMotd;
+        this.clearToolbarMotdDefer();
+        if (
+          !pending ||
+          this.suppressMotdForJoinIntent() ||
+          this.sessionCode().trim().length > 0 ||
+          this.isJoining() ||
+          this.motd()
+        ) {
+          return;
+        }
+        this.openMotdOverlay(pending, delayedActive instanceof Element ? delayedActive : null);
+      }, 50);
     };
     document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
   }
