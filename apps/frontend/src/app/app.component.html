@@ -202,6 +202,7 @@
               #footerMoreButton
               #footerMoreTrigger="matMenuTrigger"
               [matMenuTriggerFor]="footerMoreMenu"
+              (menuClosed)="onFooterMoreMenuClosed()"
               data-footer-focus="footer-more"
               i18n-aria-label="@@app.footer.moreOpenAria"
               aria-label="Mehr"

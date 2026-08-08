@@ -142,6 +142,9 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
   @ViewChild('footerMoreTrigger') private footerMoreTrigger?: MatMenuTrigger;
+  @ViewChild('footerMoreButton', { read: ElementRef })
+  private footerMoreButton?: ElementRef<HTMLButtonElement>;
+  private footerMoreFocusGraceTimers: number[] = [];
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -470,6 +473,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.connectionBannerRef?.destroy();
     this.connectionBannerRef = null;
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
+    this.clearFooterMoreFocusGraceTimers();
     if (isPlatformBrowser(this.platformId)) {
       document.removeEventListener('visibilitychange', this.onDocumentVisibilityForPwaUpdate);
       document.removeEventListener(
@@ -830,6 +834,52 @@ export class AppComponent implements OnInit, OnDestroy {
     this.footerHealthCheckDone.set(false);
     await this.checkApiConnection();
     this.apiRetrying.set(false);
+  }
+
+  /**
+   * Nach Schließen des Footer-Mehr-Menüs: Fokus auf Auslöser zurückholen, wenn
+   * Material-restoreFocus gegen Idle-MOTD/body verliert (a11y:layout /de/).
+   */
+  onFooterMoreMenuClosed(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.clearFooterMoreFocusGraceTimers();
+    const run = (): void => this.ensureFooterMoreFocusAfterMenu();
+    queueMicrotask(run);
+    this.footerMoreFocusGraceTimers.push(
+      window.setTimeout(run, 0),
+      window.setTimeout(run, 50),
+      window.setTimeout(run, 150),
+    );
+  }
+
+  private clearFooterMoreFocusGraceTimers(): void {
+    for (const id of this.footerMoreFocusGraceTimers) {
+      window.clearTimeout(id);
+    }
+    this.footerMoreFocusGraceTimers = [];
+  }
+
+  private ensureFooterMoreFocusAfterMenu(): void {
+    if (typeof document === 'undefined') return;
+    if (this.footerMoreTrigger?.menuOpen) return;
+    const more =
+      this.footerMoreButton?.nativeElement ??
+      document.querySelector<HTMLButtonElement>('button[data-footer-focus="footer-more"]');
+    if (!more?.isConnected) return;
+    const active = document.activeElement;
+    if (active === more) return;
+    const lostToTransient =
+      !active ||
+      active === document.body ||
+      active === document.documentElement ||
+      (active instanceof Element &&
+        !!active.closest('.home-motd-sheet, .home-motd-layer, .cdk-overlay-backdrop'));
+    if (!lostToTransient) return;
+    try {
+      more.focus({ preventScroll: true });
+    } catch {
+      more.focus();
+    }
   }
 
   /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */

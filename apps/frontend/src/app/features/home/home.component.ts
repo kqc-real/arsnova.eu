@@ -884,7 +884,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
         this.openMotdOverlay(pending, delayedActive instanceof Element ? delayedActive : null);
-      }, 50);
+      }, 250);
     };
     document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
   }

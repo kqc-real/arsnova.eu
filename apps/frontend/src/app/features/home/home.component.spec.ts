@@ -971,7 +971,7 @@ describe('HomeComponent', () => {
       outside.focus();
       fixture.detectChanges();
       // restoreFocus-Grace (50ms) vor MOTD-Open abwarten
-      await vi.advanceTimersByTimeAsync(60);
+      await vi.advanceTimersByTimeAsync(260);
       fixture.detectChanges();
 
       expect(fixture.componentInstance.motd()).not.toBeNull();
@@ -1020,7 +1020,7 @@ describe('HomeComponent', () => {
       document.body.append(outside);
       outside.focus();
       fixture.detectChanges();
-      await vi.advanceTimersByTimeAsync(60);
+      await vi.advanceTimersByTimeAsync(260);
       fixture.detectChanges();
 
       expect(fixture.componentInstance.motd()).not.toBeNull();
@@ -1070,7 +1070,7 @@ describe('HomeComponent', () => {
       document.body.focus();
       document.body.removeAttribute('tabindex');
       more.focus();
-      await vi.advanceTimersByTimeAsync(60);
+      await vi.advanceTimersByTimeAsync(260);
       fixture.detectChanges();
 
       expect(fixture.componentInstance.motd()).toBeNull();
