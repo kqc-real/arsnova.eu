@@ -1453,6 +1453,189 @@
                 }
               </div>
             </div>
+          } @else if (isOrdering() && isActive()) {
+            <div class="vote-ordering">
+              <p class="vote-ordering__hint" i18n="@@sessionVote.orderingHint">
+                Bringe die Elemente in die richtige Reihenfolge. Nutze die Pfeile nach oben oder
+                unten.
+              </p>
+              <ol class="vote-ordering__list" role="list">
+                @for (
+                  item of orderingItemsState();
+                  track item.id;
+                  let idx = $index;
+                  let isFirst = $first;
+                  let isLast = $last
+                ) {
+                  <li class="vote-ordering__item">
+                    <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
+                    <span
+                      class="vote-ordering__text markdown-body"
+                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                    ></span>
+                    <div class="vote-ordering__actions">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="vote-ordering__move"
+                        [disabled]="isFirst || voteInteractionLocked()"
+                        (click)="moveOrderingItemUp(idx)"
+                        i18n-aria-label="@@sessionVote.orderingUpAria"
+                        aria-label="Nach oben verschieben"
+                      >
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="vote-ordering__move"
+                        [disabled]="isLast || voteInteractionLocked()"
+                        (click)="moveOrderingItemDown(idx)"
+                        i18n-aria-label="@@sessionVote.orderingDownAria"
+                        aria-label="Nach unten verschieben"
+                      >
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ol>
+            </div>
+          } @else if (isOrdering() && isResults()) {
+            <div class="vote-ordering vote-ordering--result">
+              <p class="vote-ordering__result-title" i18n="@@sessionVote.orderingResultSubmitted">
+                Deine eingereichte Reihenfolge
+              </p>
+              <ol class="vote-ordering__list">
+                @for (item of orderingItemsState(); track item.id; let idx = $index) {
+                  <li class="vote-ordering__item vote-ordering__item--readonly">
+                    <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
+                    <span
+                      class="vote-ordering__text markdown-body"
+                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                    ></span>
+                  </li>
+                }
+              </ol>
+            </div>
+          } @else if (isMatching() && isActive()) {
+            <div class="vote-matching">
+              <div class="vote-matching__header">
+                <p class="vote-matching__hint" i18n="@@sessionVote.matchingHint">
+                  Wähle zu jedem Begriff das passende Gegenstück.
+                </p>
+                <p class="vote-matching__progress" aria-live="polite">
+                  {{ matchingProgressLabel() }}
+                </p>
+              </div>
+              <div class="vote-matching__list">
+                @for (sel of matchingSelectionsState(); track sel.left) {
+                  <div class="vote-matching__pair" [class.vote-matching__pair--done]="!!sel.right">
+                    <div
+                      class="vote-matching__left markdown-body"
+                      [innerHTML]="renderMarkdown(sel.left, 4)"
+                    ></div>
+                    <mat-form-field appearance="outline" class="vote-matching__select-field">
+                      <mat-label i18n="@@sessionVote.matchingSelectLabel"
+                        >Zuordnung wählen</mat-label
+                      >
+                      <mat-select
+                        [value]="sel.right"
+                        (selectionChange)="setMatchingSelection(sel.left, $event.value)"
+                        [disabled]="voteInteractionLocked()"
+                      >
+                        @for (opt of getMatchingRightOptionsForLeft(sel.left); track opt) {
+                          <mat-option [value]="opt">{{ opt }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else if (isMatching() && isResults()) {
+            <div class="vote-matching vote-matching--result">
+              <p class="vote-matching__result-title" i18n="@@sessionVote.matchingResultSubmitted">
+                Deine eingereichten Zuordnungen
+              </p>
+              <div class="vote-matching__list">
+                @for (sel of matchingSelectionsState(); track sel.left) {
+                  <div class="vote-matching__pair vote-matching__pair--readonly">
+                    <span
+                      class="vote-matching__left markdown-body"
+                      [innerHTML]="renderMarkdown(sel.left, 4)"
+                    ></span>
+                    <mat-icon class="vote-matching__arrow" aria-hidden="true"
+                      >arrow_forward</mat-icon
+                    >
+                    <span
+                      class="vote-matching__right markdown-body"
+                      [innerHTML]="renderMarkdown(sel.right || '–', 4)"
+                    ></span>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else if (isCategorization() && isActive()) {
+            <div class="vote-categorization">
+              <div class="vote-categorization__header">
+                <p class="vote-categorization__hint" i18n="@@sessionVote.categorizationHint">
+                  Ordne jedes Element einer Kategorie zu.
+                </p>
+                <p class="vote-categorization__progress" aria-live="polite">
+                  {{ categorizationProgressLabel() }}
+                </p>
+              </div>
+              <div class="vote-categorization__list">
+                @for (sel of categorizationSelectionsState(); track sel.text) {
+                  <div
+                    class="vote-categorization__item"
+                    [class.vote-categorization__item--done]="!!sel.categoryId"
+                  >
+                    <div
+                      class="vote-categorization__item-text markdown-body"
+                      [innerHTML]="renderMarkdown(sel.text, 4)"
+                    ></div>
+                    <mat-form-field appearance="outline" class="vote-categorization__select-field">
+                      <mat-label i18n="@@sessionVote.categorizationSelectLabel"
+                        >Kategorie wählen</mat-label
+                      >
+                      <mat-select
+                        [value]="sel.categoryId"
+                        (selectionChange)="setCategorizationSelection(sel.text, $event.value)"
+                        [disabled]="voteInteractionLocked()"
+                      >
+                        @for (cat of getCategoriesForCurrentQuestion(); track cat.id) {
+                          <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else if (isCategorization() && isResults()) {
+            <div class="vote-categorization vote-categorization--result">
+              <p
+                class="vote-categorization__result-title"
+                i18n="@@sessionVote.categorizationResultSubmitted"
+              >
+                Deine Kategorisierungen
+              </p>
+              <div class="vote-categorization__list">
+                @for (sel of categorizationSelectionsState(); track sel.text) {
+                  <div class="vote-categorization__item vote-categorization__item--readonly">
+                    <span
+                      class="vote-categorization__item-text markdown-body"
+                      [innerHTML]="renderMarkdown(sel.text, 4)"
+                    ></span>
+                    <span class="vote-categorization__badge">{{
+                      getCategoryNameById(sel.categoryId)
+                    }}</span>
+                  </div>
+                }
+              </div>
+            </div>
           }
 
           @if (showConfidencePrompt()) {

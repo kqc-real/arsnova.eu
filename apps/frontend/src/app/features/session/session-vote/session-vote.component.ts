@@ -19,8 +19,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
@@ -31,7 +33,10 @@ import {
   localizeKnownServerError,
   localizeKnownServerMessage,
 } from '../../../core/localize-known-server-message';
-import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import {
+  renderMarkdownWithKatex,
+  stripLeadingOrderedListLabel,
+} from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import {
   answerOptionColor,
@@ -150,6 +155,9 @@ type StoredVoteResponse = {
   ratingValue?: number;
   numericValue?: number;
   confidenceValue?: number;
+  orderingSequence?: string[];
+  matchingSelections?: { left: string; right: string }[];
+  categorizationSelections?: { text: string; categoryId: string }[];
   sent: true;
   updatedAt: string;
 };
@@ -385,8 +393,10 @@ export function getNumericEstimateMotivation(input: {
     MatButton,
     MatButtonToggle,
     MatButtonToggleGroup,
+    MatFormFieldModule,
     MatIcon,
     MatProgressSpinner,
+    MatSelectModule,
     CountdownFingersComponent,
     DecimalPipe,
     NgTemplateOutlet,
@@ -1252,6 +1262,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'RATING';
   });
+  readonly isOrdering = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'ORDERING';
+  });
+  readonly isMatching = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'MATCHING';
+  });
+  readonly isCategorization = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'CATEGORIZATION';
+  });
+
+  readonly orderingSequenceState = signal<string[]>([]);
+  readonly orderingItemsState = signal<Array<{ id: string; text: string }>>([]);
+  readonly matchingSelectionsState = signal<{ left: string; right: string }[]>([]);
+  readonly matchingRightOptionsState = signal<string[]>([]);
+  readonly categorizationSelectionsState = signal<{ text: string; categoryId: string }[]>([]);
+  readonly categoriesState = signal<Array<{ id: string; name: string }>>([]);
+
   readonly isConfidenceEnabled = computed(() => {
     const q = this.currentQuestion();
     if (!q || !('type' in q) || !questionSupportsConfidence(q.type)) {
@@ -1271,6 +1301,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     if (this.isNumericEstimate()) {
       return this.numericValidationError() === null && this.numericParsedValue() !== null;
+    }
+    if (this.isOrdering()) {
+      return this.orderingItemsState().length > 0;
+    }
+    if (this.isMatching()) {
+      return (
+        this.matchingSelectionsState().length > 0 &&
+        this.matchingSelectionsState().every((s) => Boolean(s.right))
+      );
+    }
+    if (this.isCategorization()) {
+      return (
+        this.categorizationSelectionsState().length > 0 &&
+        this.categorizationSelectionsState().every((s) => Boolean(s.categoryId))
+      );
     }
     return false;
   });
@@ -1626,12 +1671,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private hasLocalVoteState(): boolean {
+    const hasStructuredDraft =
+      this.matchingSelectionsState().some((selection) => Boolean(selection.right)) ||
+      this.categorizationSelectionsState().some((selection) => Boolean(selection.categoryId));
     return (
       this.selectedAnswerIds().size > 0 ||
       this.freeTextValue().trim().length > 0 ||
       this.ratingValue() !== null ||
       this.confidenceValue() !== null ||
-      this.numericInputValue().trim().length > 0
+      this.numericInputValue().trim().length > 0 ||
+      hasStructuredDraft
     );
   }
 
@@ -1656,6 +1705,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       );
       if (typeof parsed.numericValue === 'number') {
         this.numericInputValue.set(String(parsed.numericValue));
+      }
+      if (Array.isArray(parsed.matchingSelections)) {
+        this.matchingSelectionsState.set(parsed.matchingSelections);
+      }
+      if (Array.isArray(parsed.categorizationSelections)) {
+        this.categorizationSelectionsState.set(parsed.categorizationSelections);
+      }
+      if (Array.isArray(parsed.orderingSequence) && parsed.orderingSequence.length > 0) {
+        const byId = new Map(this.orderingItemsState().map((item) => [item.id, item]));
+        const restored = parsed.orderingSequence
+          .map((id) => byId.get(id))
+          .filter((item): item is { id: string; text: string } => Boolean(item));
+        if (restored.length === parsed.orderingSequence.length) {
+          this.orderingItemsState.set(restored);
+          this.orderingSequenceState.set(parsed.orderingSequence);
+        }
       }
       this.voteSent.set(parsed.sent === true);
     } catch {
@@ -1682,6 +1747,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       ratingValue,
       numericValue,
       confidenceValue,
+      orderingSequence:
+        question.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined,
+      matchingSelections: question.type === 'MATCHING' ? this.matchingSelectionsState() : undefined,
+      categorizationSelections:
+        question.type === 'CATEGORIZATION' ? this.categorizationSelectionsState() : undefined,
       sent: true,
       updatedAt: new Date().toISOString(),
     };
@@ -1701,7 +1771,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.isFreetext() ||
       this.isShortText() ||
       this.isRating() ||
-      this.isNumericEstimate()
+      this.isNumericEstimate() ||
+      this.isOrdering() ||
+      this.isMatching() ||
+      this.isCategorization()
     );
   });
   readonly voteSubmitDisabled = computed(() => {
@@ -1722,6 +1795,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       answerReady = this.ratingValue() !== null;
     } else if (this.isNumericEstimate()) {
       answerReady = this.numericValidationError() === null && this.numericParsedValue() !== null;
+    } else if (this.isOrdering()) {
+      answerReady = this.orderingItemsState().length > 0;
+    } else if (this.isMatching()) {
+      answerReady =
+        this.matchingSelectionsState().length > 0 &&
+        this.matchingSelectionsState().every((s) => Boolean(s.right));
+    } else if (this.isCategorization()) {
+      answerReady =
+        this.categorizationSelectionsState().length > 0 &&
+        this.categorizationSelectionsState().every((s) => Boolean(s.categoryId));
     }
 
     if (!answerReady) {
@@ -2665,7 +2748,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cacheKey = `${headingStartLevel}\u0000escape\u0000${value}`;
     const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -2675,11 +2758,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
+          // Kurzlabels (Antworten/Ordering/Matching): „2. Schritt“ nicht als <ol>→„1.“.
+          escapeListMarkers: headingStartLevel >= 4,
         }).html,
       ),
     );
     this.markdownCache.set(cacheKey, rendered);
     return rendered;
+  }
+
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    return this.renderMarkdown(stripLeadingOrderedListLabel(value), 4);
   }
 
   renderQuestionMarkdown(value: string): SafeHtml {
@@ -3902,6 +3991,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.scorecardQuestionIndex = -1;
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
+        this.initStructuredQuestionState(q);
         this.startCountdown(q);
       } else if (prevHadTimer && !newHasTimer) {
         this.stopCountdown();
@@ -4109,6 +4199,136 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
+  moveOrderingItemUp(index: number): void {
+    if (index <= 0) return;
+    const items = [...this.orderingItemsState()];
+    const temp = items[index - 1];
+    items[index - 1] = items[index]!;
+    items[index] = temp!;
+    this.orderingItemsState.set(items);
+    this.orderingSequenceState.set(items.map((item) => item.id));
+  }
+
+  moveOrderingItemDown(index: number): void {
+    const items = [...this.orderingItemsState()];
+    if (index >= items.length - 1) return;
+    const temp = items[index + 1];
+    items[index + 1] = items[index]!;
+    items[index] = temp!;
+    this.orderingItemsState.set(items);
+    this.orderingSequenceState.set(items.map((item) => item.id));
+  }
+
+  setMatchingSelection(left: string, right: string): void {
+    const selections = this.matchingSelectionsState().map((s) =>
+      s.left === left ? { ...s, right } : s,
+    );
+    this.matchingSelectionsState.set(selections);
+  }
+
+  getMatchingRightOptionsForLeft(left: string): string[] {
+    const current = this.matchingSelectionsState().find(
+      (selection) => selection.left === left,
+    )?.right;
+    const usedByOthers = new Set(
+      this.matchingSelectionsState()
+        .filter((selection) => selection.left !== left && selection.right)
+        .map((selection) => selection.right),
+    );
+    return this.matchingRightOptionsState().filter(
+      (option) => option === current || !usedByOthers.has(option),
+    );
+  }
+
+  matchingProgressLabel(): string {
+    const total = this.matchingSelectionsState().length;
+    const done = this.matchingSelectionsState().filter((selection) =>
+      Boolean(selection.right),
+    ).length;
+    return $localize`:@@sessionVote.matchingProgress:${done}:done: von ${total}:total: zugeordnet`;
+  }
+
+  categorizationProgressLabel(): string {
+    const total = this.categorizationSelectionsState().length;
+    const done = this.categorizationSelectionsState().filter((selection) =>
+      Boolean(selection.categoryId),
+    ).length;
+    return $localize`:@@sessionVote.categorizationProgress:${done}:done: von ${total}:total: eingeordnet`;
+  }
+
+  setCategorizationSelection(text: string, categoryId: string): void {
+    const selections = this.categorizationSelectionsState().map((s) =>
+      s.text === text ? { ...s, categoryId } : s,
+    );
+    this.categorizationSelectionsState.set(selections);
+  }
+
+  getCategoriesForCurrentQuestion(): { id: string; name: string }[] {
+    return this.categoriesState();
+  }
+
+  getCategoryNameById(catId: string): string {
+    const cats = this.getCategoriesForCurrentQuestion();
+    const found = cats.find((c) => c.id === catId);
+    return found?.name ?? catId;
+  }
+
+  private initStructuredQuestionState(question: CurrentQuestion | null): void {
+    if (!question || !('type' in question)) {
+      this.orderingItemsState.set([]);
+      this.orderingSequenceState.set([]);
+      this.matchingSelectionsState.set([]);
+      this.matchingRightOptionsState.set([]);
+      this.categorizationSelectionsState.set([]);
+      this.categoriesState.set([]);
+      return;
+    }
+
+    if (question.type === 'ORDERING') {
+      const items =
+        'orderingItems' in question && Array.isArray(question.orderingItems)
+          ? question.orderingItems
+          : [];
+      this.orderingItemsState.set(items.map((item) => ({ id: item.id, text: item.text })));
+      this.orderingSequenceState.set(items.map((item) => item.id));
+    } else {
+      this.orderingItemsState.set([]);
+      this.orderingSequenceState.set([]);
+    }
+
+    if (question.type === 'MATCHING') {
+      const lefts =
+        'matchingLeftOptions' in question && Array.isArray(question.matchingLeftOptions)
+          ? question.matchingLeftOptions
+          : [];
+      const rights =
+        'matchingRightOptions' in question && Array.isArray(question.matchingRightOptions)
+          ? question.matchingRightOptions
+          : [];
+      this.matchingRightOptionsState.set(rights);
+      this.matchingSelectionsState.set(lefts.map((left) => ({ left, right: '' })));
+    } else {
+      this.matchingRightOptionsState.set([]);
+      this.matchingSelectionsState.set([]);
+    }
+
+    if (question.type === 'CATEGORIZATION') {
+      const categories =
+        'categories' in question && Array.isArray(question.categories) ? question.categories : [];
+      const items =
+        'categorizationItems' in question && Array.isArray(question.categorizationItems)
+          ? question.categorizationItems
+          : [];
+      this.categoriesState.set(categories);
+      this.categorizationSelectionsState.set(
+        items.map((item) => ({ text: item.text, categoryId: '' })),
+      );
+    } else {
+      this.categoriesState.set([]);
+      this.categorizationSelectionsState.set([]);
+    }
+  }
+
   private voteScrollBehavior(): ScrollBehavior {
     if (typeof globalThis.matchMedia !== 'function') return 'auto';
     return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
@@ -4245,6 +4465,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
+      const orderingSeq =
+        q.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined;
+      const matchingSel = q.type === 'MATCHING' ? this.matchingSelectionsState() : undefined;
+      const categorizationSel =
+        q.type === 'CATEGORIZATION' ? this.categorizationSelectionsState() : undefined;
+
       await trpc.vote.submit.mutate({
         sessionId: this.sessionId(),
         participantId: this.participantId(),
@@ -4254,6 +4480,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ratingValue: rating,
         numericValue,
         confidenceValue: confidence,
+        orderingSequence: orderingSeq,
+        matchingSelections: matchingSel,
+        categorizationSelections: categorizationSel,
         round: this.currentRound(),
       });
       this.voteSent.set(true);

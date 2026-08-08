@@ -1,5 +1,5 @@
 {
-  "exportVersion": 27,
+  "exportVersion": 28,
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
@@ -227,11 +227,148 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
+        "text": "### Put the 6 phases of protein biosynthesis into the correct molecular order.\n\n> **Teaching move:** Use ordering prompts in biology, chemistry, or physics to practice multi-step reaction chains before exams.\n\nArrange the steps from DNA unwinding in the nucleus to the finished 3D protein folding in the cytoplasm.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "step1",
+            "text": "Unwinding: RNA polymerase binds at promoter and unwinds the DNA double helix."
+          },
+          {
+            "id": "step2",
+            "text": "Transcription: Reading the template strand and synthesizing complementary pre-mRNA."
+          },
+          {
+            "id": "step3",
+            "text": "Processing: Splicing pre-mRNA (removing introns) and adding cap & poly-A tail."
+          },
+          {
+            "id": "step4",
+            "text": "Nuclear Export: Mature mRNA exits the nucleus through pores to ribosomes in cytoplasm."
+          },
+          {
+            "id": "step5",
+            "text": "Translation: Ribosome reads mRNA; tRNAs link amino acids starting at codon AUG."
+          },
+          {
+            "id": "step6",
+            "text": "Folding: Detached amino acid chain folds into a functional 3D protein structure."
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Match the historical dates of the Weimar Republic to the corresponding event.\n\n> **Teaching move:** Use matching prompts in history, social studies, or geography to check key dates, treaties, or constitutional organs 1:1.\n\n_Match each date on the left to its historical milestone on the right._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "left": "9 November 1918",
+            "right": "Proclamation of the German Republic by Philipp Scheidemann (fall of monarchy)"
+          },
+          {
+            "left": "28 June 1919",
+            "right": "Signing of the Treaty of Versailles under German protest"
+          },
+          {
+            "left": "11 August 1919",
+            "right": "Weimar Constitution comes into force"
+          },
+          {
+            "left": "15 November 1923",
+            "right": "Introduction of the Rentenmark halts hyperinflation"
+          },
+          {
+            "left": "25 October 1929",
+            "right": "Wall Street crash (\"Black Friday\") triggers Global Great Depression"
+          },
+          {
+            "left": "30 January 1933",
+            "right": "Appointment of Adolf Hitler as Chancellor marks the end of the Republic"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Categorize the following 9 literary works, quotes, and motifs into their correct period.\n\n> **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.\n\n_Assign each item to one of the three literary movements._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "categories": [
+          {
+            "id": "cat_aufklaerung",
+            "name": "Enlightenment (c. 1720–1785)"
+          },
+          {
+            "id": "cat_sturm",
+            "name": "Sturm und Drang (c. 1765–1785)"
+          },
+          {
+            "id": "cat_romantik",
+            "name": "Romanticism (c. 1795–1835)"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "text": "Nathan the Wise (G. E. Lessing & Ring Parable / Tolerance)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "The Sorrows of Young Werther (J. W. von Goethe & Emotionalism)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "The Marble Statue & Poem \"Mondnacht\" (Joseph von Eichendorff)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "\"Sapere aude! – Dare to know / Have courage to use your own reason!\" (Immanuel Kant)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Poem \"Prometheus\" (\"Cover your heaven, Zeus, with clouds...\")",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "The \"Blue Flower\" as central symbol of longing (Novalis)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "Intrigue and Love (Friedrich Schiller & Social critique)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Emilia Galotti (G. E. Lessing & Bourgeois Tragedy)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "The Sandman & Dark Romanticism / The Uncanny (E. T. A. Hoffmann)",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
         "text": "### How likely are you to try a live quiz like this in one of your own classes?\n\n> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 11,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

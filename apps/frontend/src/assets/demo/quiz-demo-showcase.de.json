@@ -1,5 +1,5 @@
 {
-  "exportVersion": 27,
+  "exportVersion": 28,
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Team-Quiz",
@@ -227,11 +227,148 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
+        "text": "### Bringe die 6 Phasen der Proteinbiosynthese in die richtige molekulare Reihenfolge.\n\n> **Unterrichtsidee:** Nutze Sortierfragen in Biologie, Chemie oder Physik, um komplexere mehrstufige Reaktionsketten vor dem Abitur prüfungssicher einzuüben.\n\nBringe die Phasen von der Entwindung der DNA im Zellkern bis zur fertigen Proteinfaltung im Zytoplasma in die korrekte Abfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "step1",
+            "text": "Entwindung: Die RNA-Polymerase bindet am Promoter und entwindet den DNA-Doppelstrang."
+          },
+          {
+            "id": "step2",
+            "text": "Transkription: Ablesen des codogenen Strangs und Synthese der komplementären prä-m-RNA."
+          },
+          {
+            "id": "step3",
+            "text": "Prozessierung: Spleißen der prä-m-RNA (Introns entfernen) und Anfügen von Cap & Poly-A-Schwanz."
+          },
+          {
+            "id": "step4",
+            "text": "Kernexport: Die reife m-RNA wandert durch die Kernporen ins Zytoplasma zu den Ribosomen."
+          },
+          {
+            "id": "step5",
+            "text": "Translation: Ribosom liest m-RNA ab; t-RNAs knüpfen Aminosäuren am Start-Codon (AUG) an."
+          },
+          {
+            "id": "step6",
+            "text": "Faltung: Die abgelöste Aminosäurekette faltet sich zur funktionsfähigen 3D-Proteinstruktur."
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne den historischen Daten der Weimarer Republik das passende Ereignis zu.\n\n> **Unterrichtsidee:** Nutze Zuordnungsfragen in Geschichte, SOWI oder Geografie, um Schlüsseldaten, Verträge oder Verfassungsorgane 1:1 barrierefrei abzufragen.\n\n_Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "left": "9. November 1918",
+            "right": "Ausrufung der Republik durch Philipp Scheidemann (Sturz der Monarchie)"
+          },
+          {
+            "left": "28. Juni 1919",
+            "right": "Unterzeichnung des Versailler Vertrags unter deutschem Protest"
+          },
+          {
+            "left": "11. August 1919",
+            "right": "Inkrafttreten der Weimarer Reichsverfassung (Reichspräsidentenverfassung)"
+          },
+          {
+            "left": "15. November 1923",
+            "right": "Einführung der Rentenmark stoppt die galoppierende Hyperinflation"
+          },
+          {
+            "left": "25. Oktober 1929",
+            "right": "Börsenkrach in New York („Schwarzer Freitag“) löst Weltwirtschaftskrise aus"
+          },
+          {
+            "left": "30. Januar 1933",
+            "right": "Ernennung Adolf Hitlers zum Reichskanzler leitet das Ende der Republik ein"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne die folgenden 9 Werke, Zitate und Motive der richtigen Epoche zu.\n\n> **Unterrichtsidee:** Nutze Kategorisierungsfragen im Deutsch- oder Fremdsprachenunterricht, um mehrere Texte, Schlüsselbegriffe oder Autoren Epochen und Stilrichtungen zuzuordnen.\n\n_Ordne jedes Element einer der drei Literaturepochen zu._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "categories": [
+          {
+            "id": "cat_aufklaerung",
+            "name": "Aufklärung (ca. 1720–1785)"
+          },
+          {
+            "id": "cat_sturm",
+            "name": "Sturm und Drang (ca. 1765–1785)"
+          },
+          {
+            "id": "cat_romantik",
+            "name": "Romantik (ca. 1795–1835)"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "text": "Nathan der Weise (G. E. Lessing & Toleranzgedanke/Ringparabel)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Die Leiden des jungen Werthers (J. W. von Goethe & Gefühlsüberschwang)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Das Marmorbild & Das Gedicht „Mondnacht“ (Joseph von Eichendorff)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "„Sapere aude! – Habe Mut, dich deines eigenen Verstandes zu bedienen!“ (I. Kant)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Gedicht „Prometheus“ („Bedecke deinen Himmel, Zeus, mit Wolkendunst...“)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Die „Blaue Blume“ als zentrales Symbol der Sehnsucht (Novalis)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "Kabale und Liebe (Friedrich Schiller & Kritik am Ständecharakter)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Emilia Galotti (G. E. Lessing & Bürgerliches Trauerspiel)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Der Sandmann & Die Schwarze Romantik / Unheimliche (E. T. A. Hoffmann)",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
         "text": "### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?\n\n> **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 11,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

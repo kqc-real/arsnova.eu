@@ -2237,6 +2237,288 @@
                               }
                             }
                           </div>
+                        } @else if (q.type === 'ORDERING') {
+                          <div class="session-host__ordering">
+                            @if (effectiveStatus() === 'ACTIVE') {
+                              <p
+                                class="session-host__ordering-waiting"
+                                i18n="@@sessionHost.orderingWaiting"
+                              >
+                                Warte auf Sortierungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p class="session-host__ordering-vote-count">
+                                  {{ formatCount(voteCount) }} Sortierungen eingegangen
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__ordering-results">
+                                @if ($any(q).orderingStats; as orderingStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        orderingStats.fullyCorrectCount,
+                                        orderingStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                <h3
+                                  class="session-host__ordering-title"
+                                  i18n="@@sessionHost.orderingCorrectSequence"
+                                >
+                                  Soll-Reihenfolge
+                                </h3>
+                                <ol class="session-host__ordering-solution-list">
+                                  @for (
+                                    item of $any(q).orderingItems || [];
+                                    track item.id || $index;
+                                    let idx = $index
+                                  ) {
+                                    <li class="session-host__ordering-solution-item">
+                                      <span class="session-host__ordering-num" aria-hidden="true">{{
+                                        idx + 1
+                                      }}</span>
+                                      <span
+                                        class="session-host__ordering-text markdown-body"
+                                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                                      ></span>
+                                    </li>
+                                  }
+                                </ol>
+                                @if ($any(q).orderingStats?.commonSwaps?.length) {
+                                  <h4
+                                    class="session-host__ordering-subtitle"
+                                    i18n="@@sessionHost.orderingCommonSwaps"
+                                  >
+                                    Häufige Vertauschungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      swap of $any(q).orderingStats.commonSwaps;
+                                      track swap.itemAId + swap.itemBId
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >„{{ swap.itemAText }}“ ↔ „{{ swap.itemBText }}“</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(swap.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
+                        } @else if (q.type === 'MATCHING') {
+                          <div class="session-host__matching">
+                            @if (effectiveStatus() === 'ACTIVE') {
+                              <p
+                                class="session-host__matching-waiting"
+                                i18n="@@sessionHost.matchingWaiting"
+                              >
+                                Warte auf Zuordnungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p class="session-host__matching-vote-count">
+                                  {{ formatCount(voteCount) }} Zuordnungen eingegangen
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__matching-results">
+                                @if ($any(q).matchingStats; as matchingStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        matchingStats.fullyCorrectCount,
+                                        matchingStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                <h3
+                                  class="session-host__matching-title"
+                                  i18n="@@sessionHost.matchingCorrectPairs"
+                                >
+                                  Korrekte Paare
+                                </h3>
+                                <div class="session-host__matching-grid">
+                                  @for (pair of $any(q).matchingPairs || []; track $index) {
+                                    <div class="session-host__matching-pair">
+                                      <span
+                                        class="session-host__matching-left markdown-body"
+                                        [innerHTML]="renderMarkdown(pair.left, 4)"
+                                      ></span>
+                                      <mat-icon
+                                        class="session-host__matching-arrow"
+                                        aria-hidden="true"
+                                        >arrow_forward</mat-icon
+                                      >
+                                      <span
+                                        class="session-host__matching-right markdown-body"
+                                        [innerHTML]="renderMarkdown(pair.right, 4)"
+                                      ></span>
+                                    </div>
+                                  }
+                                </div>
+                                @if ($any(q).matchingStats?.pairHitRates?.length) {
+                                  <h4
+                                    class="session-host__matching-subtitle"
+                                    i18n="@@sessionHost.matchingHitRates"
+                                  >
+                                    Trefferquote pro Paar
+                                  </h4>
+                                  <ul class="session-host__hit-rates">
+                                    @for (
+                                      pair of $any(q).matchingStats.pairHitRates;
+                                      track pair.left
+                                    ) {
+                                      <li class="session-host__hit-rate">
+                                        <div class="session-host__hit-rate-copy">
+                                          <span class="session-host__hit-rate-label"
+                                            >{{ pair.left }} → {{ pair.right }}</span
+                                          >
+                                          <span class="session-host__hit-rate-value"
+                                            >{{ pair.hitRatePercent }} %</span
+                                          >
+                                        </div>
+                                        <div
+                                          class="session-host__hit-rate-track"
+                                          role="presentation"
+                                        >
+                                          <div
+                                            class="session-host__hit-rate-fill"
+                                            [style.width]="hostHitRateBarWidth(pair.hitRatePercent)"
+                                          ></div>
+                                        </div>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                                @if ($any(q).matchingStats?.commonConfusions?.length) {
+                                  <h4
+                                    class="session-host__matching-subtitle"
+                                    i18n="@@sessionHost.matchingConfusions"
+                                  >
+                                    Häufige Fehlzuordnungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      confusion of $any(q).matchingStats.commonConfusions;
+                                      track confusion.left + confusion.wrongRight
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >{{ confusion.left }} → {{ confusion.wrongRight }}</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(confusion.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
+                        } @else if (q.type === 'CATEGORIZATION') {
+                          <div class="session-host__categorization">
+                            @if (effectiveStatus() === 'ACTIVE') {
+                              <p
+                                class="session-host__categorization-waiting"
+                                i18n="@@sessionHost.categorizationWaiting"
+                              >
+                                Warte auf Kategorisierungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p class="session-host__categorization-vote-count">
+                                  {{ formatCount(voteCount) }} Kategorisierungen eingegangen
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__categorization-results">
+                                @if ($any(q).categorizationStats; as categorizationStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        categorizationStats.fullyCorrectCount,
+                                        categorizationStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                <h3
+                                  class="session-host__categorization-title"
+                                  i18n="@@sessionHost.categorizationOverview"
+                                >
+                                  Soll-Kategorien
+                                </h3>
+                                <div class="session-host__categorization-grid">
+                                  @for (cat of $any(q).categories || []; track cat.id) {
+                                    <div class="session-host__categorization-card">
+                                      <h4 class="session-host__category-name">{{ cat.name }}</h4>
+                                      <ul class="session-host__category-items">
+                                        @for (
+                                          item of getHostCategorizationItemsForCategory(q, cat.id);
+                                          track $index
+                                        ) {
+                                          <li
+                                            class="session-host__category-item markdown-body"
+                                            [innerHTML]="renderMarkdown(item.text, 4)"
+                                          ></li>
+                                        }
+                                      </ul>
+                                    </div>
+                                  }
+                                </div>
+                                @if (
+                                  $any(q).categorizationStats?.commonMisclassifications?.length
+                                ) {
+                                  <h4
+                                    class="session-host__categorization-subtitle"
+                                    i18n="@@sessionHost.categorizationMisclassifications"
+                                  >
+                                    Häufige Fehlkategorisierungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      miss of $any(q).categorizationStats.commonMisclassifications;
+                                      track miss.itemText + miss.wrongCategoryId
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >{{ miss.itemText }} → {{ miss.wrongCategoryName }}</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(miss.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
                         } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
                           <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
                           <div

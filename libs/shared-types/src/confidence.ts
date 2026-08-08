@@ -13,6 +13,9 @@ export const CONFIDENCE_ELIGIBLE_QUESTION_TYPES = [
   'SINGLE_CHOICE',
   'SHORT_TEXT',
   'NUMERIC_ESTIMATE',
+  'MATCHING',
+  'ORDERING',
+  'CATEGORIZATION',
 ] as const;
 
 export type ConfidenceEligibleQuestionType = (typeof CONFIDENCE_ELIGIBLE_QUESTION_TYPES)[number];

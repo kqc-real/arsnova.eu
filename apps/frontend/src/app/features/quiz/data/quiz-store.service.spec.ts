@@ -1772,7 +1772,7 @@ describe('QuizStoreService', () => {
         question.type === 'NUMERIC_ESTIMATE' && question.text.includes('Französische Revolution'),
     );
 
-    expect(demo?.questions).toHaveLength(9);
+    expect(demo?.questions).toHaveLength(12);
     expect(piQuestion).toEqual(
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
@@ -1868,7 +1868,7 @@ describe('QuizStoreService', () => {
     const service = TestBed.inject(QuizStoreService);
     const demo = service.getQuizById(DEMO_QUIZ_ID);
 
-    expect(demo?.questions).toHaveLength(9);
+    expect(demo?.questions).toHaveLength(12);
     expect(demo?.questions.map((question) => question.type)).toEqual([
       'SURVEY',
       'NUMERIC_ESTIMATE',
@@ -1878,6 +1878,9 @@ describe('QuizStoreService', () => {
       'SINGLE_CHOICE',
       'SHORT_TEXT',
       'NUMERIC_ESTIMATE',
+      'ORDERING',
+      'MATCHING',
+      'CATEGORIZATION',
       'RATING',
     ]);
   });

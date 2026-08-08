@@ -5,6 +5,7 @@ import {
   normalizeEmphasisWhitespace,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
+  stripLeadingOrderedListLabel,
 } from './markdown-katex.util';
 
 describe('renderMarkdownWithKatex', () => {
@@ -33,6 +34,23 @@ describe('renderMarkdownWithKatex', () => {
 
     const indentedBlock = '\n\n    **indented **';
     expect(normalizeEmphasisWhitespace(indentedBlock)).toBe('\n\n    **indented **');
+  });
+
+  it('escapet führende Listenmarker in Kurzlabels, damit „2. Schritt“ nicht als „1.“ erscheint', () => {
+    const withoutEscape = renderMarkdownWithKatex('2. Transkription: Ablesen');
+    expect(withoutEscape.html).toMatch(/<ol\b/i);
+
+    const withEscape = renderMarkdownWithKatex('2. Transkription: Ablesen', {
+      escapeListMarkers: true,
+    });
+    expect(withEscape.html).not.toMatch(/<ol\b/i);
+    expect(withEscape.html).toContain('2. Transkription');
+  });
+
+  it('entfernt führende Ordnungsnummern nur für Ordering-Labels', () => {
+    expect(stripLeadingOrderedListLabel('1. Entwindung: DNA')).toBe('Entwindung: DNA');
+    expect(stripLeadingOrderedListLabel('12. Kernexport')).toBe('Kernexport');
+    expect(stripLeadingOrderedListLabel('9. November 1918')).toBe('November 1918');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {

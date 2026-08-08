@@ -169,6 +169,83 @@
                   </p>
                 }
               </div>
+            } @else if (slide.question.type === 'ORDERING') {
+              <div class="quiz-preview-question__host-only-block">
+                <p
+                  class="quiz-preview-question__host-only-label"
+                  i18n="@@quizPreview.orderingHostOnlyLabel"
+                >
+                  Musterlösung – Soll-Reihenfolge
+                </p>
+                <ol class="quiz-preview-question__ordering-list">
+                  @for (
+                    item of slide.question.orderingItems;
+                    track item.id || $index;
+                    let i = $index
+                  ) {
+                    <li class="quiz-preview-question__ordering-item">
+                      <span class="quiz-preview-question__ordering-num">{{ i + 1 }}.</span>
+                      <span
+                        class="quiz-preview-question__answer-content markdown-body"
+                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                      ></span>
+                    </li>
+                  }
+                </ol>
+              </div>
+            } @else if (slide.question.type === 'MATCHING') {
+              <div class="quiz-preview-question__host-only-block">
+                <p
+                  class="quiz-preview-question__host-only-label"
+                  i18n="@@quizPreview.matchingHostOnlyLabel"
+                >
+                  Musterlösung – Zuordnungspaare
+                </p>
+                <div class="quiz-preview-question__matching-grid">
+                  @for (pair of slide.question.matchingPairs; track $index) {
+                    <div class="quiz-preview-question__matching-pair">
+                      <span
+                        class="quiz-preview-question__matching-left markdown-body"
+                        [innerHTML]="renderAnswerMarkdown(pair.left)"
+                      ></span>
+                      <mat-icon class="quiz-preview-question__matching-arrow" aria-hidden="true"
+                        >arrow_forward</mat-icon
+                      >
+                      <span
+                        class="quiz-preview-question__matching-right markdown-body"
+                        [innerHTML]="renderAnswerMarkdown(pair.right)"
+                      ></span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else if (slide.question.type === 'CATEGORIZATION') {
+              <div class="quiz-preview-question__host-only-block">
+                <p
+                  class="quiz-preview-question__host-only-label"
+                  i18n="@@quizPreview.categorizationHostOnlyLabel"
+                >
+                  Musterlösung – Kategorisierung
+                </p>
+                <div class="quiz-preview-question__categorization-wrap">
+                  @for (cat of slide.question.categories; track cat.id) {
+                    <div class="quiz-preview-question__category-card">
+                      <h4 class="quiz-preview-question__category-title">{{ cat.name }}</h4>
+                      <ul class="quiz-preview-question__category-items">
+                        @for (
+                          item of getCategorizationItemsForCategory(slide.question, cat.id);
+                          track $index
+                        ) {
+                          <li
+                            class="quiz-preview-question__category-item markdown-body"
+                            [innerHTML]="renderAnswerMarkdown(item.text)"
+                          ></li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                </div>
+              </div>
             } @else {
               <ol class="quiz-preview-question__answers">
                 @for (answer of slide.question.answers; track answer.id; let i = $index) {

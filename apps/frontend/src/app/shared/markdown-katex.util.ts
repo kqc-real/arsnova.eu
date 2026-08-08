@@ -21,6 +21,11 @@ export interface MarkdownRenderOptions {
    * Ausnahme: Legal-Markdown mit `1`, wenn die führende `#`-Überschrift ohnehin entfernt wird.
    */
   headingStartLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+  /**
+   * Kurzlabels (Antworten, Ordering-/Matching-Elemente): führende Listenmarker escapen,
+   * damit „2. Schritt“ nicht als einzeilige `<ol>` mit Anzeige „1.“ landet.
+   */
+  escapeListMarkers?: boolean;
 }
 
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
@@ -72,11 +77,31 @@ export function normalizeEmphasisWhitespace(raw: string): string {
     .join('');
 }
 
+/**
+ * Verhindert, dass kurze Labels wie „2. Translation“ oder „9. November 1918“
+ * als eigenständige Markdown-Liste gerendert werden (Browser zeigt dann oft „1.“).
+ */
+export function escapeLeadingMarkdownListMarkers(source: string): string {
+  if (!source) return source;
+  return source
+    .replace(/^(\s*)(\d+)\.(\s+)/gm, '$1$2\\.$3')
+    .replace(/^(\s*)([*+-])(\s+)/gm, '$1\\$2$3');
+}
+
+/**
+ * Entfernt eine führende Ordnungsnummer („1. “, „12. “) aus Ordering-Item-Texten.
+ * Nur für Reihenfolge-Elemente nutzen — nicht für Matching-Daten wie „9. November 1918“.
+ */
+export function stripLeadingOrderedListLabel(text: string): string {
+  return text.replace(/^\s*\d+\.\s+/, '');
+}
+
 export function renderMarkdownWithKatex(
   source = '',
   options?: MarkdownRenderOptions,
 ): MarkdownRenderResult {
-  const input = normalizeEmphasisWhitespace(source);
+  const prepared = options?.escapeListMarkers ? escapeLeadingMarkdownListMarkers(source) : source;
+  const input = normalizeEmphasisWhitespace(prepared);
   let katexError: string | null = null;
   const renderedMath: string[] = [];
 

@@ -60,7 +60,10 @@ import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dial
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { answerOptionColor, answerOptionShape } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
-import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import {
+  renderMarkdownWithKatex,
+  stripLeadingOrderedListLabel,
+} from '../../../shared/markdown-katex.util';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
@@ -665,6 +668,12 @@ export class QuizPreviewComponent implements OnDestroy {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
   }
 
+  getCategorizationItemsForCategory(question: QuizQuestion, categoryId: string) {
+    return (question.categorizationItems || []).filter(
+      (item) => item.correctCategoryId === categoryId,
+    );
+  }
+
   shortTextConfigSummary(
     question: Pick<
       QuizQuestion,
@@ -822,11 +831,17 @@ export class QuizPreviewComponent implements OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'allow-relative-and-https',
           headingStartLevel: 4,
+          escapeListMarkers: true,
         }).html,
       ),
     );
     this.answerMarkdownCache.set(value, rendered);
     return rendered;
+  }
+
+  /** Ordering-Item-Text ohne doppelte Positionsnummer (UI zeigt bereits 1., 2., …). */
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    return this.renderAnswerMarkdown(stripLeadingOrderedListLabel(value));
   }
 
   ratingScaleValues(min: number | null, max: number | null): number[] {

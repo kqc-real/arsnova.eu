@@ -24,6 +24,7 @@ import {
   questionSupportsConfidence,
 } from '@arsnova/shared-types';
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
 import { quizUploadAttemptProcedure, resolveClientIp, router } from '../trpc';
 import { prisma } from '../db';
 import { checkQuizUploadStorageRate } from '../lib/rateLimit';
@@ -321,6 +322,16 @@ export const quizRouter = router({
                 questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
                   ? (q.confidenceLabelHigh ?? null)
                   : null,
+              matchingPairs:
+                q.type === 'MATCHING' ? (q.matchingPairs ?? Prisma.DbNull) : Prisma.DbNull,
+              orderingItems:
+                q.type === 'ORDERING' ? (q.orderingItems ?? Prisma.DbNull) : Prisma.DbNull,
+              categories:
+                q.type === 'CATEGORIZATION' ? (q.categories ?? Prisma.DbNull) : Prisma.DbNull,
+              categorizationItems:
+                q.type === 'CATEGORIZATION'
+                  ? (q.categorizationItems ?? Prisma.DbNull)
+                  : Prisma.DbNull,
               answers: {
                 create: q.answers.map((a) => ({
                   text: a.text,
