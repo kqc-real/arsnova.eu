@@ -123,6 +123,8 @@
     "eslint": "^10.0.0",
     "globals": "^17.3.0",
     "husky": "^9.1.7",
+    "ip-address": "10.3.1",
+    "js-yaml": "4.3.1",
     "lint-staged": "^17.0.8",
     "prettier": "^3.2.0",
     "typescript": "~5.9.0",
@@ -146,12 +148,30 @@
     "fast-uri": "^3.1.5",
     "find-my-way": "^9.7.0",
     "hono": "^4.12.5",
+    "ip-address": "$ip-address",
+    "js-yaml": "$js-yaml",
     "minimatch": "^10.2.1",
     "postcss": "8.5.23",
     "sharp": "^0.35.0",
     "shell-quote": "^1.9.0",
+    "socket.io-parser": "4.2.7",
     "tar": "^7.5.8",
     "webpack-dev-server": "5.2.6",
-    "yjs": "13.6.31"
+    "yjs": "13.6.31",
+    "artillery": {
+      "js-yaml": "3.15.1"
+    },
+    "astro": {
+      "js-yaml": "$js-yaml"
+    },
+    "@astrojs/internal-helpers": {
+      "js-yaml": "$js-yaml"
+    },
+    "node-gyp": {
+      "undici": "7.29.0"
+    },
+    "@angular/build": {
+      "undici": "7.29.0"
+    }
   }
 }
