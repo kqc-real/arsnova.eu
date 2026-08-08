@@ -338,7 +338,12 @@ async function joinParticipantSession(participant, code, hardFailures) {
 async function startOrAdvanceQuestion(host, prompt, hardFailures, label) {
   await dismissDialogIfPresent(host);
   const startButtons = host.getByRole('button', { name: START_QUESTION_RE });
-  if (await startButtons.first().isVisible().catch(() => false)) {
+  if (
+    await startButtons
+      .first()
+      .isVisible()
+      .catch(() => false)
+  ) {
     await startButtons.first().click();
   }
 
@@ -396,8 +401,9 @@ function wrongMatchingSelections(pairs) {
 }
 
 function wrongCategorizationSelections(question) {
-  const fallback = question.categories.find((category) => category.id !== 'cat_aufklaerung')
-    ?? question.categories[0];
+  const fallback =
+    question.categories.find((category) => category.id !== 'cat_aufklaerung') ??
+    question.categories[0];
   return question.categorizationItems.map((item) => {
     const wrong =
       question.categories.find((category) => category.id !== item.correctCategoryId) ?? fallback;
@@ -433,7 +439,14 @@ async function submitWrongShadowVote(publicTrpc, shadow, code, questionMeta, har
   return true;
 }
 
-async function submitWrongShadowVotes(publicTrpc, shadows, code, questionMeta, hardFailures, label) {
+async function submitWrongShadowVotes(
+  publicTrpc,
+  shadows,
+  code,
+  questionMeta,
+  hardFailures,
+  label,
+) {
   for (let index = 0; index < shadows.length; index += 1) {
     const ok = await submitWrongShadowVote(
       publicTrpc,
@@ -528,7 +541,12 @@ async function runOrderingFlow(
   const downButtons = participant.locator(
     '.vote-ordering__item >> nth=0 >> button[aria-label*="unten" i], .vote-ordering__item >> nth=0 >> button[aria-label*="down" i]',
   );
-  if (await downButtons.first().isEnabled().catch(() => false)) {
+  if (
+    await downButtons
+      .first()
+      .isEnabled()
+      .catch(() => false)
+  ) {
     await downButtons.first().click();
     logStep(true, 'Participant moves ORDERING item');
   } else {
@@ -587,7 +605,10 @@ async function selectMatOption(page, formFieldLocator, optionText) {
   const needle = String(optionText || '').trim();
   const option = page
     .getByRole('option', {
-      name: new RegExp(needle.slice(0, Math.min(48, needle.length)).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'),
+      name: new RegExp(
+        needle.slice(0, Math.min(48, needle.length)).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        'i',
+      ),
     })
     .first();
   await option.waitFor({ state: 'visible', timeout: 8_000 });
@@ -689,7 +710,12 @@ async function runMatchingFlow(
     host,
     participant,
     hardFailures,
-    [/Korrekte Paare|correct pairs/i, /Trefferquote|hit rate/i, /9\. November 1918/, /30\. Januar 1933/],
+    [
+      /Korrekte Paare|correct pairs/i,
+      /Trefferquote|hit rate/i,
+      /9\. November 1918/,
+      /30\. Januar 1933/,
+    ],
     'MATCHING',
   );
 }
@@ -945,7 +971,15 @@ async function main() {
     await joinParticipantSession(participant, code, hardFailures);
 
     if (hardFailures.length === 0) {
-      await runOrderingFlow(host, participant, publicTrpc, shadows, code, hardFailures, quizPayload);
+      await runOrderingFlow(
+        host,
+        participant,
+        publicTrpc,
+        shadows,
+        code,
+        hardFailures,
+        quizPayload,
+      );
       await host.screenshot({
         path: join(ARTIFACT_DIR, 'host-ordering-results.png'),
         fullPage: true,
@@ -957,7 +991,15 @@ async function main() {
     }
 
     if (hardFailures.length === 0) {
-      await runMatchingFlow(host, participant, publicTrpc, shadows, code, hardFailures, quizPayload);
+      await runMatchingFlow(
+        host,
+        participant,
+        publicTrpc,
+        shadows,
+        code,
+        hardFailures,
+        quizPayload,
+      );
       await host.screenshot({
         path: join(ARTIFACT_DIR, 'host-matching-results.png'),
         fullPage: true,

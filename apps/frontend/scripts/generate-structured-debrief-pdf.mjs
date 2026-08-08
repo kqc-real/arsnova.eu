@@ -230,14 +230,14 @@ function buildStructuredVote(participant, question, metadata, participantIndex, 
       matchingSelections = correctMatching(pairs);
       confidenceValue = clampConfidence(4 + (participantIndex % 2));
     } else if (band < 0.5) {
-      matchingSelections = swapTwoMatchingPairs(pairs, participantIndex % 5, (participantIndex + 2) % 6);
+      matchingSelections = swapTwoMatchingPairs(
+        pairs,
+        participantIndex % 5,
+        (participantIndex + 2) % 6,
+      );
       confidenceValue = clampConfidence(3 + (participantIndex % 2));
     } else if (band < 0.65) {
-      matchingSelections = swapTwoMatchingPairs(
-        swapTwoMatchingPairs(pairs, 0, 1),
-        3,
-        4,
-      );
+      matchingSelections = swapTwoMatchingPairs(swapTwoMatchingPairs(pairs, 0, 1), 3, 4);
       confidenceValue = clampConfidence(2 + (participantIndex % 3));
     } else if (band < 0.85) {
       // Typisches Muster: alle Daten um ein Ereignis verschoben
@@ -368,9 +368,10 @@ function summarizeVotes(exportData) {
   return (exportData.questions || []).map((question) => {
     const fullCorrect = question.structuredFullCorrectCount ?? question.fullCorrectCount;
     const n = question.responseCount ?? question.participantCount;
-    const incorrectHigh = question.confidenceSummary?.crossTab?.incorrectHigh
-      ?? question.result?.crossTab?.incorrectHigh
-      ?? null;
+    const incorrectHigh =
+      question.confidenceSummary?.crossTab?.incorrectHigh ??
+      question.result?.crossTab?.incorrectHigh ??
+      null;
     return {
       type: question.type,
       responses: n,

@@ -63,31 +63,43 @@ async function main() {
 
   // Set host token in sessionStorage
   await hostPage.goto(`${BASE_URL}/de/session/${code}/host`);
-  await hostPage.evaluate(({ code, token }) => {
-    sessionStorage.setItem(`arsnova-host-token:${code}`, token);
-  }, { code, token: hostToken });
+  await hostPage.evaluate(
+    ({ code, token }) => {
+      sessionStorage.setItem(`arsnova-host-token:${code}`, token);
+    },
+    { code, token: hostToken },
+  );
   await hostPage.goto(`${BASE_URL}/de/session/${code}/host`);
   await hostPage.waitForTimeout(2000);
 
   // Set participant ID in localStorage
   const p0 = participants[0];
   await votePage.goto(`${BASE_URL}/de/session/${code}/vote`);
-  await votePage.evaluate(({ code, pid }) => {
-    localStorage.setItem(`arsnova-participant-${code}`, pid);
-  }, { code, pid: p0.participantId });
+  await votePage.evaluate(
+    ({ code, pid }) => {
+      localStorage.setItem(`arsnova-participant-${code}`, pid);
+    },
+    { code, pid: p0.participantId },
+  );
   await votePage.goto(`${BASE_URL}/de/session/${code}/vote`);
   await votePage.waitForTimeout(2000);
 
   const targetTypes = ['ORDERING', 'MATCHING', 'CATEGORIZATION'];
 
   for (let i = 0; i < uploadPayload.questions.length; i++) {
-    await hostTrpc.session.nextQuestion.mutate({ code }).catch((e) => console.log(`next error: ${e.message}`));
+    await hostTrpc.session.nextQuestion
+      .mutate({ code })
+      .catch((e) => console.log(`next error: ${e.message}`));
     await hostTrpc.session.revealAnswers.mutate({ code }).catch(() => {});
 
-    const qStudent = await publicTrpc.session.getCurrentQuestionForStudent.query({ code }).catch(() => null);
+    const qStudent = await publicTrpc.session.getCurrentQuestionForStudent
+      .query({ code })
+      .catch(() => null);
     if (!qStudent) break;
 
-    console.log(`Question ${i + 1}/${uploadPayload.questions.length}: order=${qStudent.order}, type=${qStudent.type}`);
+    console.log(
+      `Question ${i + 1}/${uploadPayload.questions.length}: order=${qStudent.order}, type=${qStudent.type}`,
+    );
 
     if (targetTypes.includes(qStudent.type)) {
       const typeName = qStudent.type.toLowerCase();
@@ -126,7 +138,9 @@ async function main() {
           }));
         }
 
-        await pTrpc.vote.submit.mutate(voteInput).catch((err) => console.error(`Vote submit error: ${err.message}`));
+        await pTrpc.vote.submit
+          .mutate(voteInput)
+          .catch((err) => console.error(`Vote submit error: ${err.message}`));
       }
 
       // 2. Capture Vote Page

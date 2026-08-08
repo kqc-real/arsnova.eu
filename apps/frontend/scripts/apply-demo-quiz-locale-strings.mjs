@@ -369,56 +369,125 @@ Gesucht ist das Jahr, das historisch üblicherweise als Beginn der Französische
         ratingLabelMax: 'Ich probiere es aus',
       },
       {
-        text: md`### Bringe die 6 Phasen der Proteinbiosynthese in die richtige molekulare Reihenfolge.
+        text: md`
+### Bringe die 6 Phasen der Proteinbiosynthese in die richtige molekulare Reihenfolge.
 
 > **Unterrichtsidee:** Nutze Sortierfragen in Biologie, Chemie oder Physik, um komplexere mehrstufige Reaktionsketten vor dem Abitur prüfungssicher einzuüben.
 
-Bringe die Phasen von der Entwindung der DNA im Zellkern bis zur fertigen Proteinfaltung im Zytoplasma in die korrekte Abfolge.`,
+Bringe die Phasen von der Entwindung der DNA im Zellkern bis zur fertigen Proteinfaltung im Zytoplasma in die korrekte Abfolge.
+        `,
         orderingItems: [
-          { id: 'step1', text: 'Entwindung: Die RNA-Polymerase bindet am Promoter und entwindet den DNA-Doppelstrang.' },
-          { id: 'step2', text: 'Transkription: Ablesen des codogenen Strangs und Synthese der komplementären prä-m-RNA.' },
-          { id: 'step3', text: 'Prozessierung: Spleißen der prä-m-RNA (Introns entfernen) und Anfügen von Cap & Poly-A-Schwanz.' },
-          { id: 'step4', text: 'Kernexport: Die reife m-RNA wandert durch die Kernporen ins Zytoplasma zu den Ribosomen.' },
-          { id: 'step5', text: 'Translation: Ribosom liest m-RNA ab; t-RNAs knüpfen Aminosäuren am Start-Codon (AUG) an.' },
-          { id: 'step6', text: 'Faltung: Die abgelöste Aminosäurekette faltet sich zur funktionsfähigen 3D-Proteinstruktur.' },
+          {
+            id: 'step1',
+            text: 'Entwindung: Die RNA-Polymerase bindet am Promoter und entwindet den DNA-Doppelstrang.',
+          },
+          {
+            id: 'step2',
+            text: 'Transkription: Ablesen des codogenen Strangs und Synthese der komplementären prä-m-RNA.',
+          },
+          {
+            id: 'step3',
+            text: 'Prozessierung: Spleißen der prä-m-RNA (Introns entfernen) und Anfügen von Cap & Poly-A-Schwanz.',
+          },
+          {
+            id: 'step4',
+            text: 'Kernexport: Die reife m-RNA wandert durch die Kernporen ins Zytoplasma zu den Ribosomen.',
+          },
+          {
+            id: 'step5',
+            text: 'Translation: Ribosom liest m-RNA ab; t-RNAs knüpfen Aminosäuren am Start-Codon (AUG) an.',
+          },
+          {
+            id: 'step6',
+            text: 'Faltung: Die abgelöste Aminosäurekette faltet sich zur funktionsfähigen 3D-Proteinstruktur.',
+          },
         ],
       },
       {
-        text: md`### Ordne den historischen Daten der Weimarer Republik das passende Ereignis zu.
+        text: md`
+### Ordne den historischen Daten der Weimarer Republik das passende Ereignis zu.
 
 > **Unterrichtsidee:** Nutze Zuordnungsfragen in Geschichte, SOWI oder Geografie, um Schlüsseldaten, Verträge oder Verfassungsorgane 1:1 barrierefrei abzufragen.
 
-_Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._`,
+_Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
+        `,
         matchingPairs: [
-          { left: '9. November 1918', right: 'Ausrufung der Republik durch Philipp Scheidemann (Sturz der Monarchie)' },
-          { left: '28. Juni 1919', right: 'Unterzeichnung des Versailler Vertrags unter deutschem Protest' },
-          { left: '11. August 1919', right: 'Inkrafttreten der Weimarer Reichsverfassung (Reichspräsidentenverfassung)' },
-          { left: '15. November 1923', right: 'Einführung der Rentenmark stoppt die galoppierende Hyperinflation' },
-          { left: '25. Oktober 1929', right: 'Börsenkrach in New York („Schwarzer Freitag“) löst Weltwirtschaftskrise aus' },
-          { left: '30. Januar 1933', right: 'Ernennung Adolf Hitlers zum Reichskanzler leitet das Ende der Republik ein' },
+          {
+            left: '9. November 1918',
+            right: 'Ausrufung der Republik durch Philipp Scheidemann (Sturz der Monarchie)',
+          },
+          {
+            left: '28. Juni 1919',
+            right: 'Unterzeichnung des Versailler Vertrags unter deutschem Protest',
+          },
+          {
+            left: '11. August 1919',
+            right: 'Inkrafttreten der Weimarer Reichsverfassung (Reichspräsidentenverfassung)',
+          },
+          {
+            left: '15. November 1923',
+            right: 'Einführung der Rentenmark stoppt die galoppierende Hyperinflation',
+          },
+          {
+            left: '25. Oktober 1929',
+            right: 'Börsenkrach in New York („Schwarzer Freitag“) löst Weltwirtschaftskrise aus',
+          },
+          {
+            left: '30. Januar 1933',
+            right: 'Ernennung Adolf Hitlers zum Reichskanzler leitet das Ende der Republik ein',
+          },
         ],
       },
       {
-        text: md`### Ordne die folgenden 9 Werke, Zitate und Motive der richtigen Epoche zu.
+        text: md`
+### Ordne die folgenden 9 Werke, Zitate und Motive der richtigen Epoche zu.
 
 > **Unterrichtsidee:** Nutze Kategorisierungsfragen im Deutsch- oder Fremdsprachenunterricht, um mehrere Texte, Schlüsselbegriffe oder Autoren Epochen und Stilrichtungen zuzuordnen.
 
-_Ordne jedes Element einer der drei Literaturepochen zu._`,
+_Ordne jedes Element einer der drei Literaturepochen zu._
+        `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Aufklärung (ca. 1720–1785)' },
           { id: 'cat_sturm', name: 'Sturm und Drang (ca. 1765–1785)' },
           { id: 'cat_romantik', name: 'Romantik (ca. 1795–1835)' },
         ],
         categorizationItems: [
-          { text: 'Nathan der Weise (G. E. Lessing & Toleranzgedanke/Ringparabel)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Die Leiden des jungen Werthers (J. W. von Goethe & Gefühlsüberschwang)', correctCategoryId: 'cat_sturm' },
-          { text: 'Das Marmorbild & Das Gedicht „Mondnacht“ (Joseph von Eichendorff)', correctCategoryId: 'cat_romantik' },
-          { text: '„Sapere aude! – Habe Mut, dich deines eigenen Verstandes zu bedienen!“ (I. Kant)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Gedicht „Prometheus“ („Bedecke deinen Himmel, Zeus, mit Wolkendunst...“)', correctCategoryId: 'cat_sturm' },
-          { text: 'Die „Blaue Blume“ als zentrales Symbol der Sehnsucht (Novalis)', correctCategoryId: 'cat_romantik' },
-          { text: 'Kabale und Liebe (Friedrich Schiller & Kritik am Ständecharakter)', correctCategoryId: 'cat_sturm' },
-          { text: 'Emilia Galotti (G. E. Lessing & Bürgerliches Trauerspiel)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Der Sandmann & Die Schwarze Romantik / Unheimliche (E. T. A. Hoffmann)', correctCategoryId: 'cat_romantik' },
+          {
+            text: 'Nathan der Weise (G. E. Lessing & Toleranzgedanke/Ringparabel)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Die Leiden des jungen Werthers (J. W. von Goethe & Gefühlsüberschwang)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Das Marmorbild & Das Gedicht „Mondnacht“ (Joseph von Eichendorff)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: '„Sapere aude! – Habe Mut, dich deines eigenen Verstandes zu bedienen!“ (I. Kant)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Gedicht „Prometheus“ („Bedecke deinen Himmel, Zeus, mit Wolkendunst...“)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Die „Blaue Blume“ als zentrales Symbol der Sehnsucht (Novalis)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Kabale und Liebe (Friedrich Schiller & Kritik am Ständecharakter)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Emilia Galotti (G. E. Lessing & Bürgerliches Trauerspiel)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Der Sandmann & Die Schwarze Romantik / Unheimliche (E. T. A. Hoffmann)',
+            correctCategoryId: 'cat_romantik',
+          },
         ],
       },
     ],
@@ -573,56 +642,122 @@ Expected answer: the year commonly used as the beginning of the French Revolutio
         ratingLabelMax: 'Ready to try it',
       },
       {
-        text: md`### Put the 6 phases of protein biosynthesis into the correct molecular order.
+        text: md`
+### Put the 6 phases of protein biosynthesis into the correct molecular order.
 
 > **Teaching move:** Use ordering prompts in biology, chemistry, or physics to practice multi-step reaction chains before exams.
 
-Arrange the steps from DNA unwinding in the nucleus to the finished 3D protein folding in the cytoplasm.`,
+Arrange the steps from DNA unwinding in the nucleus to the finished 3D protein folding in the cytoplasm.
+        `,
         orderingItems: [
-          { id: 'step1', text: 'Unwinding: RNA polymerase binds at promoter and unwinds the DNA double helix.' },
-          { id: 'step2', text: 'Transcription: Reading the template strand and synthesizing complementary pre-mRNA.' },
-          { id: 'step3', text: 'Processing: Splicing pre-mRNA (removing introns) and adding cap & poly-A tail.' },
-          { id: 'step4', text: 'Nuclear Export: Mature mRNA exits the nucleus through pores to ribosomes in cytoplasm.' },
-          { id: 'step5', text: 'Translation: Ribosome reads mRNA; tRNAs link amino acids starting at codon AUG.' },
-          { id: 'step6', text: 'Folding: Detached amino acid chain folds into a functional 3D protein structure.' },
+          {
+            id: 'step1',
+            text: 'Unwinding: RNA polymerase binds at promoter and unwinds the DNA double helix.',
+          },
+          {
+            id: 'step2',
+            text: 'Transcription: Reading the template strand and synthesizing complementary pre-mRNA.',
+          },
+          {
+            id: 'step3',
+            text: 'Processing: Splicing pre-mRNA (removing introns) and adding cap & poly-A tail.',
+          },
+          {
+            id: 'step4',
+            text: 'Nuclear Export: Mature mRNA exits the nucleus through pores to ribosomes in cytoplasm.',
+          },
+          {
+            id: 'step5',
+            text: 'Translation: Ribosome reads mRNA; tRNAs link amino acids starting at codon AUG.',
+          },
+          {
+            id: 'step6',
+            text: 'Folding: Detached amino acid chain folds into a functional 3D protein structure.',
+          },
         ],
       },
       {
-        text: md`### Match the historical dates of the Weimar Republic to the corresponding event.
+        text: md`
+### Match the historical dates of the Weimar Republic to the corresponding event.
 
 > **Teaching move:** Use matching prompts in history, social studies, or geography to check key dates, treaties, or constitutional organs 1:1.
 
-_Match each date on the left to its historical milestone on the right._`,
+_Match each date on the left to its historical milestone on the right._
+        `,
         matchingPairs: [
-          { left: '9 November 1918', right: 'Proclamation of the German Republic by Philipp Scheidemann (fall of monarchy)' },
-          { left: '28 June 1919', right: 'Signing of the Treaty of Versailles under German protest' },
+          {
+            left: '9 November 1918',
+            right: 'Proclamation of the German Republic by Philipp Scheidemann (fall of monarchy)',
+          },
+          {
+            left: '28 June 1919',
+            right: 'Signing of the Treaty of Versailles under German protest',
+          },
           { left: '11 August 1919', right: 'Weimar Constitution comes into force' },
-          { left: '15 November 1923', right: 'Introduction of the Rentenmark halts hyperinflation' },
-          { left: '25 October 1929', right: 'Wall Street crash ("Black Friday") triggers Global Great Depression' },
-          { left: '30 January 1933', right: 'Appointment of Adolf Hitler as Chancellor marks the end of the Republic' },
+          {
+            left: '15 November 1923',
+            right: 'Introduction of the Rentenmark halts hyperinflation',
+          },
+          {
+            left: '25 October 1929',
+            right: 'Wall Street crash ("Black Friday") triggers Global Great Depression',
+          },
+          {
+            left: '30 January 1933',
+            right: 'Appointment of Adolf Hitler as Chancellor marks the end of the Republic',
+          },
         ],
       },
       {
-        text: md`### Categorize the following 9 literary works, quotes, and motifs into their correct period.
+        text: md`
+### Categorize the following 9 literary works, quotes, and motifs into their correct period.
 
 > **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.
 
-_Assign each item to one of the three literary movements._`,
+_Assign each item to one of the three literary movements._
+        `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Enlightenment (c. 1720–1785)' },
           { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
           { id: 'cat_romantik', name: 'Romanticism (c. 1795–1835)' },
         ],
         categorizationItems: [
-          { text: 'Nathan the Wise (G. E. Lessing & Ring Parable / Tolerance)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'The Sorrows of Young Werther (J. W. von Goethe & Emotionalism)', correctCategoryId: 'cat_sturm' },
-          { text: 'The Marble Statue & Poem "Mondnacht" (Joseph von Eichendorff)', correctCategoryId: 'cat_romantik' },
-          { text: '"Sapere aude! – Dare to know / Have courage to use your own reason!" (Immanuel Kant)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Poem "Prometheus" ("Cover your heaven, Zeus, with clouds...")', correctCategoryId: 'cat_sturm' },
-          { text: 'The "Blue Flower" as central symbol of longing (Novalis)', correctCategoryId: 'cat_romantik' },
-          { text: 'Intrigue and Love (Friedrich Schiller & Social critique)', correctCategoryId: 'cat_sturm' },
-          { text: 'Emilia Galotti (G. E. Lessing & Bourgeois Tragedy)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'The Sandman & Dark Romanticism / The Uncanny (E. T. A. Hoffmann)', correctCategoryId: 'cat_romantik' },
+          {
+            text: 'Nathan the Wise (G. E. Lessing & Ring Parable / Tolerance)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'The Sorrows of Young Werther (J. W. von Goethe & Emotionalism)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'The Marble Statue & Poem "Mondnacht" (Joseph von Eichendorff)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: '"Sapere aude! – Dare to know / Have courage to use your own reason!" (Immanuel Kant)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Poem "Prometheus" ("Cover your heaven, Zeus, with clouds...")',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'The "Blue Flower" as central symbol of longing (Novalis)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Intrigue and Love (Friedrich Schiller & Social critique)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Emilia Galotti (G. E. Lessing & Bourgeois Tragedy)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'The Sandman & Dark Romanticism / The Uncanny (E. T. A. Hoffmann)',
+            correctCategoryId: 'cat_romantik',
+          },
         ],
       },
     ],
@@ -780,56 +915,119 @@ On cherche l’année généralement retenue comme début de la Révolution fran
         ratingLabelMax: 'Je vais l’essayer',
       },
       {
-        text: md`### Mettez les 6 phases de la biosynthèse des protéines dans l'ordre moléculaire correct.
+        text: md`
+### Mettez les 6 phases de la biosynthèse des protéines dans l'ordre moléculaire correct.
 
 > **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.
 
-Mettez les étapes dans l'ordre, du déroulement de l'ADN dans le noyau au repliement 3D final de la protéine dans le cytoplasme.`,
+Mettez les étapes dans l'ordre, du déroulement de l'ADN dans le noyau au repliement 3D final de la protéine dans le cytoplasme.
+        `,
         orderingItems: [
-          { id: 'step1', text: 'Déroulement : L\'ARN polymérase se lie au promoteur et déroule la double hélice d\'ADN.' },
-          { id: 'step2', text: 'Transcription : Lecture du brin codant et synthèse de l\'ARN pré-messager complémentaire.' },
-          { id: 'step3', text: 'Maturation : Épissage de l\'ARN pré-messager (retrait des introns) et ajout de la coiffe et queue poly-A.' },
-          { id: 'step4', text: 'Export nucléaire : L\'ARN messager mature quitte le noyau par les pores vers les ribosomes.' },
-          { id: 'step5', text: 'Traduction : Le ribosome lit l\'ARNm ; les ARNt assemblent les acides aminés au codon AUG.' },
-          { id: 'step6', text: 'Repliement : La chaîne d\'acides aminés se replie en une structure protéique 3D fonctionnelle.' },
+          {
+            id: 'step1',
+            text: "Déroulement : L'ARN polymérase se lie au promoteur et déroule la double hélice d'ADN.",
+          },
+          {
+            id: 'step2',
+            text: "Transcription : Lecture du brin codant et synthèse de l'ARN pré-messager complémentaire.",
+          },
+          {
+            id: 'step3',
+            text: "Maturation : Épissage de l'ARN pré-messager (retrait des introns) et ajout de la coiffe et queue poly-A.",
+          },
+          {
+            id: 'step4',
+            text: "Export nucléaire : L'ARN messager mature quitte le noyau par les pores vers les ribosomes.",
+          },
+          {
+            id: 'step5',
+            text: "Traduction : Le ribosome lit l'ARNm ; les ARNt assemblent les acides aminés au codon AUG.",
+          },
+          {
+            id: 'step6',
+            text: "Repliement : La chaîne d'acides aminés se replie en une structure protéique 3D fonctionnelle.",
+          },
         ],
       },
       {
-        text: md`### Associez les dates historiques de la République de Weimar à l'événement correspondant.
+        text: md`
+### Associez les dates historiques de la République de Weimar à l'événement correspondant.
 
 > **Piste pédagogique :** utilisez des questions d'association en histoire ou géographie pour vérifier des dates clés ou traités de manière 1:1.
 
-_Associez chaque date à gauche à l'événement historique correspondant à droite._`,
+_Associez chaque date à gauche à l'événement historique correspondant à droite._
+        `,
         matchingPairs: [
-          { left: '9 novembre 1918', right: 'Proclamation de la République allemande par Philipp Scheidemann' },
+          {
+            left: '9 novembre 1918',
+            right: 'Proclamation de la République allemande par Philipp Scheidemann',
+          },
           { left: '28 juin 1919', right: 'Signature du traité de Versailles' },
           { left: '11 août 1919', right: 'Entrée en vigueur de la Constitution de Weimar' },
-          { left: '15 novembre 1923', right: 'Lancement du Rentenmark qui stoppe l\'hyperinflation' },
-          { left: '25 octobre 1929', right: 'Krach de Wall Street ("Vendredi noir") déclenchant la Grande Dépression' },
-          { left: '30 janvier 1933', right: 'Nomination d\'Adolf Hitler comme chancelier marquant la fin de la République' },
+          {
+            left: '15 novembre 1923',
+            right: "Lancement du Rentenmark qui stoppe l'hyperinflation",
+          },
+          {
+            left: '25 octobre 1929',
+            right: 'Krach de Wall Street ("Vendredi noir") déclenchant la Grande Dépression',
+          },
+          {
+            left: '30 janvier 1933',
+            right: "Nomination d'Adolf Hitler comme chancelier marquant la fin de la République",
+          },
         ],
       },
       {
-        text: md`### Classifiez les 9 œuvres littéraires, citations et motifs suivants dans leur période correspondante.
+        text: md`
+### Classifiez les 9 œuvres littéraires, citations et motifs suivants dans leur période correspondante.
 
 > **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.
 
-_Associez chaque élément à l'un des trois mouvements littéraires._`,
+_Associez chaque élément à l'un des trois mouvements littéraires._
+        `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Lumières / Aufklärung (v. 1720–1785)' },
           { id: 'cat_sturm', name: 'Sturm und Drang (v. 1765–1785)' },
           { id: 'cat_romantik', name: 'Romantisme (v. 1795–1835)' },
         ],
         categorizationItems: [
-          { text: 'Nathan le Sage (G. E. Lessing & Parabole de l\'anneau / Tolérance)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Les Souffrances du jeune Werther (J. W. von Goethe & Passion débordante)', correctCategoryId: 'cat_sturm' },
-          { text: 'La Statue de marbre & Poème "Mondnacht" (Joseph von Eichendorff)', correctCategoryId: 'cat_romantik' },
-          { text: '"Sapere aude ! – Aie le courage de te servir de ton propre entendement !" (Immanuel Kant)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Poème "Prométhée" ("Couvre ton ciel, Zeus, de vapeurs de nuages...")', correctCategoryId: 'cat_sturm' },
-          { text: 'La "Fleur bleue" comme symbole central de la nostalgie (Novalis)', correctCategoryId: 'cat_romantik' },
-          { text: 'Intrigue et Amour (Friedrich Schiller & Critique sociale)', correctCategoryId: 'cat_sturm' },
-          { text: 'Emilia Galotti (G. E. Lessing & Tragédie bourgeoise)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'L\'Homme au sable & Romantisme noir / L\'Inquiétante étrangeté (E. T. A. Hoffmann)', correctCategoryId: 'cat_romantik' },
+          {
+            text: "Nathan le Sage (G. E. Lessing & Parabole de l'anneau / Tolérance)",
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Les Souffrances du jeune Werther (J. W. von Goethe & Passion débordante)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'La Statue de marbre & Poème "Mondnacht" (Joseph von Eichendorff)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: '"Sapere aude ! – Aie le courage de te servir de ton propre entendement !" (Immanuel Kant)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Poème "Prométhée" ("Couvre ton ciel, Zeus, de vapeurs de nuages...")',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'La "Fleur bleue" comme symbole central de la nostalgie (Novalis)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Intrigue et Amour (Friedrich Schiller & Critique sociale)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Emilia Galotti (G. E. Lessing & Tragédie bourgeoise)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: "L'Homme au sable & Romantisme noir / L'Inquiétante étrangeté (E. T. A. Hoffmann)",
+            correctCategoryId: 'cat_romantik',
+          },
         ],
       },
     ],
@@ -986,56 +1184,119 @@ Buscamos el año que se suele tomar como inicio de la Revolución francesa.
         ratingLabelMax: 'Lo voy a probar',
       },
       {
-        text: md`### Ordena las 6 fases de la biosíntesis de proteínas en la secuencia molecular correcta.
+        text: md`
+### Ordena las 6 fases de la biosíntesis de proteínas en la secuencia molecular correcta.
 
 > **Uso didáctico:** Úsalo como pregunta de ordenación en biología o química para ensayar cadenas de reacción complejas antes de los exámenes.
 
-Ordena los pasos desde el desenrollamiento del ADN en el núcleo hasta el plegamiento 3D final de la proteína en el citoplasma.`,
+Ordena los pasos desde el desenrollamiento del ADN en el núcleo hasta el plegamiento 3D final de la proteína en el citoplasma.
+        `,
         orderingItems: [
-          { id: 'step1', text: 'Desenrollamiento: La ARN polimerasa se une al promotor y desenrolla la doble hélice de ADN.' },
-          { id: 'step2', text: 'Transcripción: Lectura de la hebra molde y síntesis del ARN pre-mensajero complementario.' },
-          { id: 'step3', text: 'Procesamiento: Empalme del ARN pre-mensajero (eliminación de intrones) y adición de capuchón y cola poli-A.' },
-          { id: 'step4', text: 'Exportación nuclear: El ARN mensajero maduro sale del núcleo hacia los ribosomas en el citoplasma.' },
-          { id: 'step5', text: 'Traducción: El ribosoma lee el ARNm; los ARNt unen aminoácidos a partir del codón AUG.' },
-          { id: 'step6', text: 'Plegamiento: La cadena de aminoácidos se pliega en una estructura proteica 3D funcional.' },
+          {
+            id: 'step1',
+            text: 'Desenrollamiento: La ARN polimerasa se une al promotor y desenrolla la doble hélice de ADN.',
+          },
+          {
+            id: 'step2',
+            text: 'Transcripción: Lectura de la hebra molde y síntesis del ARN pre-mensajero complementario.',
+          },
+          {
+            id: 'step3',
+            text: 'Procesamiento: Empalme del ARN pre-mensajero (eliminación de intrones) y adición de capuchón y cola poli-A.',
+          },
+          {
+            id: 'step4',
+            text: 'Exportación nuclear: El ARN mensajero maduro sale del núcleo hacia los ribosomas en el citoplasma.',
+          },
+          {
+            id: 'step5',
+            text: 'Traducción: El ribosoma lee el ARNm; los ARNt unen aminoácidos a partir del codón AUG.',
+          },
+          {
+            id: 'step6',
+            text: 'Plegamiento: La cadena de aminoácidos se pliega en una estructura proteica 3D funcional.',
+          },
         ],
       },
       {
-        text: md`### Empareja las fechas históricas de la República de Weimar con el evento correspondiente.
+        text: md`
+### Empareja las fechas históricas de la República de Weimar con el evento correspondiente.
 
 > **Uso didáctico:** Úsalo como pregunta de emparejamiento en historia o ciencias sociales para comprobar fechas clave o tratados 1:1.
 
-_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._`,
+_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
+        `,
         matchingPairs: [
-          { left: '9 de noviembre de 1918', right: 'Proclamación de la República alemana por Philipp Scheidemann' },
+          {
+            left: '9 de noviembre de 1918',
+            right: 'Proclamación de la República alemana por Philipp Scheidemann',
+          },
           { left: '28 de junio de 1919', right: 'Firma del Tratado de Versalles' },
           { left: '11 de agosto de 1919', right: 'Entrada en vigor de la Constitución de Weimar' },
-          { left: '15 de noviembre de 1923', right: 'Introducción del Rentenmark para frenar la hiperinflación' },
-          { left: '25 de octubre de 1929', right: 'Crack de Wall Street ("Viernes Negro") que desata la Gran Depresión' },
-          { left: '30 de enero de 1933', right: 'Nombramiento de Adolf Hitler como canciller, marcando el fin de la República' },
+          {
+            left: '15 de noviembre de 1923',
+            right: 'Introducción del Rentenmark para frenar la hiperinflación',
+          },
+          {
+            left: '25 de octubre de 1929',
+            right: 'Crack de Wall Street ("Viernes Negro") que desata la Gran Depresión',
+          },
+          {
+            left: '30 de enero de 1933',
+            right: 'Nombramiento de Adolf Hitler como canciller, marcando el fin de la República',
+          },
         ],
       },
       {
-        text: md`### Clasifica las siguientes 9 obras literarias, citas y motivos en su época correspondiente.
+        text: md`
+### Clasifica las siguientes 9 obras literarias, citas y motivos en su época correspondiente.
 
 > **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.
 
-_Asigna cada elemento a uno de los tres movimientos literarios._`,
+_Asigna cada elemento a uno de los tres movimientos literarios._
+        `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Ilustración / Aufklärung (c. 1720–1785)' },
           { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
           { id: 'cat_romantik', name: 'Romanticismo (c. 1795–1835)' },
         ],
         categorizationItems: [
-          { text: 'Natán el Sabio (G. E. Lessing & Parábola del anillo / Tolerancia)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Las cuitas del joven Werther (J. W. von Goethe & Pasión desbordante)', correctCategoryId: 'cat_sturm' },
-          { text: 'La estatua de mármol y Poema "Mondnacht" (Joseph von Eichendorff)', correctCategoryId: 'cat_romantik' },
-          { text: '"¡Sapere aude! – ¡Ten el valor de servirte de tu propio entendimiento!" (Immanuel Kant)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Poema "Prometeo" ("Cubre tu cielo, Zeus, con manto de nubes...")', correctCategoryId: 'cat_sturm' },
-          { text: 'La "Flor Azul" como símbolo central del anhelo (Novalis)', correctCategoryId: 'cat_romantik' },
-          { text: 'Intriga y amor (Friedrich Schiller & Crítica social)', correctCategoryId: 'cat_sturm' },
-          { text: 'Emilia Galotti (G. E. Lessing & Tragedia burguesa)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'El hombre de la arena y Romanticismo oscuro / Lo siniestro (E. T. A. Hoffmann)', correctCategoryId: 'cat_romantik' },
+          {
+            text: 'Natán el Sabio (G. E. Lessing & Parábola del anillo / Tolerancia)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Las cuitas del joven Werther (J. W. von Goethe & Pasión desbordante)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'La estatua de mármol y Poema "Mondnacht" (Joseph von Eichendorff)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: '"¡Sapere aude! – ¡Ten el valor de servirte de tu propio entendimiento!" (Immanuel Kant)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Poema "Prometeo" ("Cubre tu cielo, Zeus, con manto de nubes...")',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'La "Flor Azul" como símbolo central del anhelo (Novalis)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Intriga y amor (Friedrich Schiller & Crítica social)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Emilia Galotti (G. E. Lessing & Tragedia burguesa)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'El hombre de la arena y Romanticismo oscuro / Lo siniestro (E. T. A. Hoffmann)',
+            correctCategoryId: 'cat_romantik',
+          },
         ],
       },
     ],
@@ -1192,56 +1453,119 @@ Cerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.
         ratingLabelMax: 'Lo provo',
       },
       {
-        text: md`### Metti le 6 fasi della biosintesi proteica nel corretto ordine molecolare.
+        text: md`
+### Metti le 6 fasi della biosintesi proteica nel corretto ordine molecolare.
 
 > **Uso didattico:** Usalo come domanda di ordinamento in biologia o chimica per esercitarsi su catene di reazioni complesse prima degli esami.
 
-Disponi le fasi dal srotolamento del DNA nel nucleo fino al ripiegamento 3D finale della proteina nel citoplasma.`,
+Disponi le fasi dal srotolamento del DNA nel nucleo fino al ripiegamento 3D finale della proteina nel citoplasma.
+        `,
         orderingItems: [
-          { id: 'step1', text: 'Srotolamento: L\'RNA polimerasi si lega al promotore e srotola la doppia elica di DNA.' },
-          { id: 'step2', text: 'Trascrizione: Lettura del filamento stampo e sintesi dell\'pre-mRNA complementare.' },
-          { id: 'step3', text: 'Maturazione: Splicing dell\'pre-mRNA (rimozione degli introni) e aggiunta del cappuccio e coda poly-A.' },
-          { id: 'step4', text: 'Esportazione nucleare: L\'mRNA maturo esce dal nucleo verso i ribosomi nel citoplasma.' },
-          { id: 'step5', text: 'Traduzione: Il ribosoma legge l\'mRNA; i tRNA legano gli amminoacidi dal codone AUG.' },
-          { id: 'step6', text: 'Ripiegamento: La catena amminoacidica si ripiega nella struttura proteica 3D funzionale.' },
+          {
+            id: 'step1',
+            text: "Srotolamento: L'RNA polimerasi si lega al promotore e srotola la doppia elica di DNA.",
+          },
+          {
+            id: 'step2',
+            text: "Trascrizione: Lettura del filamento stampo e sintesi dell'pre-mRNA complementare.",
+          },
+          {
+            id: 'step3',
+            text: "Maturazione: Splicing dell'pre-mRNA (rimozione degli introni) e aggiunta del cappuccio e coda poly-A.",
+          },
+          {
+            id: 'step4',
+            text: "Esportazione nucleare: L'mRNA maturo esce dal nucleo verso i ribosomi nel citoplasma.",
+          },
+          {
+            id: 'step5',
+            text: "Traduzione: Il ribosoma legge l'mRNA; i tRNA legano gli amminoacidi dal codone AUG.",
+          },
+          {
+            id: 'step6',
+            text: 'Ripiegamento: La catena amminoacidica si ripiega nella struttura proteica 3D funzionale.',
+          },
         ],
       },
       {
-        text: md`### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.
+        text: md`
+### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.
 
 > **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.
 
-_Collega ciascuna data a sinistra con il relativo evento storico a destra._`,
+_Collega ciascuna data a sinistra con il relativo evento storico a destra._
+        `,
         matchingPairs: [
-          { left: '9 novembre 1918', right: 'Proclamazione della Repubblica tedesca da parte di Philipp Scheidemann' },
+          {
+            left: '9 novembre 1918',
+            right: 'Proclamazione della Repubblica tedesca da parte di Philipp Scheidemann',
+          },
           { left: '28 giugno 1919', right: 'Firma del Trattato di Versailles' },
           { left: '11 agosto 1919', right: 'Entrata in vigore della Costituzione di Weimar' },
-          { left: '15 novembre 1923', right: 'Introduzione del Rentenmark per fermare l\'iperinflazione' },
-          { left: '25 ottobre 1929', right: 'Crollo di Wall Street ("Venerdì nero") che scatena la Grande Depressione' },
-          { left: '30 gennaio 1933', right: 'Nomina di Adolf Hitler a Cancelliere, che segna la fine della Repubblica' },
+          {
+            left: '15 novembre 1923',
+            right: "Introduzione del Rentenmark per fermare l'iperinflazione",
+          },
+          {
+            left: '25 ottobre 1929',
+            right: 'Crollo di Wall Street ("Venerdì nero") che scatena la Grande Depressione',
+          },
+          {
+            left: '30 gennaio 1933',
+            right: 'Nomina di Adolf Hitler a Cancelliere, che segna la fine della Repubblica',
+          },
         ],
       },
       {
-        text: md`### Classifica le seguenti 9 opere letterarie, citazioni e motivi nella loro epoca corrispondente.
+        text: md`
+### Classifica le seguenti 9 opere letterarie, citazioni e motivi nella loro epoca corrispondente.
 
 > **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.
 
-_Assegna ciascun elemento a uno dei tre movimenti letterari._`,
+_Assegna ciascun elemento a uno dei tre movimenti letterari._
+        `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Illuminismo / Aufklärung (c. 1720–1785)' },
           { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
           { id: 'cat_romantik', name: 'Romanticismo (c. 1795–1835)' },
         ],
         categorizationItems: [
-          { text: 'Nathan il saggio (G. E. Lessing & Parabola dell\'anello / Tolleranza)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'I dolori del giovane Werther (J. W. von Goethe & Passione travolgente)', correctCategoryId: 'cat_sturm' },
-          { text: 'La statua di marmo & Poesia "Mondnacht" (Joseph von Eichendorff)', correctCategoryId: 'cat_romantik' },
-          { text: '"Sapere aude! – Abbi il coraggio di servirti della tua propria intelligenza!" (I. Kant)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'Poesia "Prometeo" ("Copri il tuo cielo, Zeus, con veli di nubi...")', correctCategoryId: 'cat_sturm' },
-          { text: 'Il "Fiore Blu" come simbolo centrale della nostalgia (Novalis)', correctCategoryId: 'cat_romantik' },
-          { text: 'Intrigo e amore (Friedrich Schiller & Critica sociale)', correctCategoryId: 'cat_sturm' },
-          { text: 'Emilia Galotti (G. E. Lessing & Tragedia borghese)', correctCategoryId: 'cat_aufklaerung' },
-          { text: 'L\'uomo della sabbia & Romanticismo nero / Il perturbante (E. T. A. Hoffmann)', correctCategoryId: 'cat_romantik' },
+          {
+            text: "Nathan il saggio (G. E. Lessing & Parabola dell'anello / Tolleranza)",
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'I dolori del giovane Werther (J. W. von Goethe & Passione travolgente)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'La statua di marmo & Poesia "Mondnacht" (Joseph von Eichendorff)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: '"Sapere aude! – Abbi il coraggio di servirti della tua propria intelligenza!" (I. Kant)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Poesia "Prometeo" ("Copri il tuo cielo, Zeus, con veli di nubi...")',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Il "Fiore Blu" come simbolo centrale della nostalgia (Novalis)',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Intrigo e amore (Friedrich Schiller & Critica sociale)',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Emilia Galotti (G. E. Lessing & Tragedia borghese)',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: "L'uomo della sabbia & Romanticismo nero / Il perturbante (E. T. A. Hoffmann)",
+            correctCategoryId: 'cat_romantik',
+          },
         ],
       },
     ],

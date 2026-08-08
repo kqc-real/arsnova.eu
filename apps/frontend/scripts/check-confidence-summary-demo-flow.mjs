@@ -366,9 +366,16 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
     case 'CATEGORIZATION':
       vote = {
         ...base,
-        categorizationSelections: (metadata.categorizationItems || question.categorizationItems || []).map((item) => ({
+        categorizationSelections: (
+          metadata.categorizationItems ||
+          question.categorizationItems ||
+          []
+        ).map((item) => ({
           text: item.text,
-          categoryId: item.correctCategoryId || (metadata.categories || question.categories || [])[0]?.id || '',
+          categoryId:
+            item.correctCategoryId ||
+            (metadata.categories || question.categories || [])[0]?.id ||
+            '',
         })),
       };
       break;
