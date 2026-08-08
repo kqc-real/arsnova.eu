@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Unterrichts-Szenario: Demo-Quiz mit 30 Teilnehmenden, 9 Fragen, alle abstimmen.
+ * Unterrichts-Szenario: Demo-Quiz mit 30 Teilnehmenden, 12 Fragen, alle abstimmen.
  *
  * Ablauf (entspricht Live-Start des Praxis-Showcase):
  * 1. Host laedt Demo-Quiz hoch und erstellt Session
  * 2. 30 Teilnehmende joinen (Team-Modus, Kindergarten-Nicknames)
- * 3. Host oeffnet nacheinander alle 9 Fragen; TN voten jeweils
+ * 3. Host oeffnet nacheinander alle 12 Fragen; TN voten jeweils
  * 4. Frage 8 (Franz. Revolution): zwei Runden (Peer Instruction mit Lernzuwachs)
  * 5. Session endet mit FINISHED
  *
@@ -76,7 +76,7 @@ const SESSION_CODE = String(process.env.SESSION_CODE || '')
 const HOST_TOKEN_ENV = String(process.env.HOST_TOKEN || '').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
-const EXPECTED_QUESTIONS = Math.max(1, Number(process.env.EXPECTED_QUESTIONS || 9));
+const EXPECTED_QUESTIONS = Math.max(1, Number(process.env.EXPECTED_QUESTIONS || 12));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 /** Backend: max. 1 Vote/s pro Teilnehmer (checkVoteRate). */
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
@@ -391,6 +391,79 @@ function buildVoteInput(
         ratingValue: participantIndex % 10 < 5 ? 5 : participantIndex % 10 < 8 ? 4 : 3,
       };
       break;
+    case 'ORDERING': {
+      const items = metadata.orderingItems || question.orderingItems || [];
+      const correct = items.map((item) => item.id || item.text);
+      if (correct.length === 0) {
+        throw new Error(`Frage ${metadata.order} (ORDERING) hat keine orderingItems.`);
+      }
+      const band = participantIndex / n;
+      let orderingSequence;
+      if (band < 0.35) {
+        orderingSequence = correct;
+      } else if (band < 0.7) {
+        orderingSequence = [...correct];
+        const swapAt = Math.min(correct.length - 2, 1 + (participantIndex % 3));
+        [orderingSequence[swapAt], orderingSequence[swapAt + 1]] = [
+          orderingSequence[swapAt + 1],
+          orderingSequence[swapAt],
+        ];
+      } else {
+        orderingSequence = [...correct.slice(1), correct[0]];
+      }
+      vote = { ...base, orderingSequence };
+      break;
+    }
+    case 'MATCHING': {
+      const pairs = metadata.matchingPairs || question.matchingPairs || [];
+      if (pairs.length === 0) {
+        throw new Error(`Frage ${metadata.order} (MATCHING) hat keine matchingPairs.`);
+      }
+      const band = participantIndex / n;
+      let matchingSelections;
+      if (band < 0.35) {
+        matchingSelections = pairs.map((pair) => ({ left: pair.left, right: pair.right }));
+      } else if (band < 0.7) {
+        const a = participantIndex % pairs.length;
+        const b = (a + 1) % pairs.length;
+        matchingSelections = pairs.map((pair, index) => {
+          if (index === a) return { left: pair.left, right: pairs[b].right };
+          if (index === b) return { left: pair.left, right: pairs[a].right };
+          return { left: pair.left, right: pair.right };
+        });
+      } else {
+        matchingSelections = pairs.map((pair, index) => ({
+          left: pair.left,
+          right: pairs[(index + 1) % pairs.length].right,
+        }));
+      }
+      vote = { ...base, matchingSelections };
+      break;
+    }
+    case 'CATEGORIZATION': {
+      const items = metadata.categorizationItems || question.categorizationItems || [];
+      const categories = metadata.categories || question.categories || [];
+      if (items.length === 0 || categories.length === 0) {
+        throw new Error(`Frage ${metadata.order} (CATEGORIZATION) fehlt Kategorien/Elemente.`);
+      }
+      const band = participantIndex / n;
+      let categorizationSelections;
+      if (band < 0.35) {
+        categorizationSelections = items.map((item) => ({
+          text: item.text,
+          categoryId: item.correctCategoryId,
+        }));
+      } else {
+        categorizationSelections = items.map((item, index) => {
+          const wrong =
+            categories.find((category) => category.id !== item.correctCategoryId) ??
+            categories[(participantIndex + index) % categories.length];
+          return { text: item.text, categoryId: wrong.id };
+        });
+      }
+      vote = { ...base, categorizationSelections };
+      break;
+    }
     default:
       throw new Error(`Unbekannter Fragentyp: ${question.type}`);
   }
