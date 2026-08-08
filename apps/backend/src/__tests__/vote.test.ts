@@ -1163,7 +1163,17 @@ describe('vote.submit', () => {
       expect.objectContaining({
         where: expect.objectContaining({
           question: {
-            type: { in: ['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'SHORT_TEXT', 'NUMERIC_ESTIMATE'] },
+            type: {
+              in: [
+                'MULTIPLE_CHOICE',
+                'SINGLE_CHOICE',
+                'SHORT_TEXT',
+                'NUMERIC_ESTIMATE',
+                'MATCHING',
+                'ORDERING',
+                'CATEGORIZATION',
+              ],
+            },
           },
         }),
       }),

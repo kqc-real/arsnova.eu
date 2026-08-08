@@ -49,7 +49,7 @@ if (
   throw new Error('PRIORITY_QUESTION_COUNT muss eine positive ganze Zahl sein.');
 }
 /** Fragen mit robustem Steuerpfad für Fehlkonzept-Hinweis (MC-Auslassung, Würfel). */
-const PREFERRED_PRIORITY_ORDERS = [3, 4];
+const PREFERRED_PRIORITY_ORDERS = [9, 10];
 /** Wie shared-types `isConfidenceDebriefRecommended`. */
 const CONFIDENCE_DEBRIEF_MIN_RESPONSES = 2;
 const CONFIDENCE_DEBRIEF_MIN_SHARE = 0.1;
@@ -303,8 +303,8 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
     case 'NUMERIC_ESTIMATE':
       if (metadata.numericTwoRounds === true) {
         // Peer Instruction: Runde 1 oft außerhalb des Bands (1700–1900), Runde 2 klarer Lernzuwachs
-        // Außerhalb 1700–1900, aber innerhalb numericMin/Max (1500–2000)
-        const outsideBand = [1500, 1600, 1648, 1655, 1918, 1950, 1999, 2000];
+        // Außerhalb des Toleranzbands (1780–1795), aber innerhalb numericMin/Max (1700–1900)
+        const outsideBand = [1710, 1725, 1750, 1770, 1800, 1820, 1848, 1888];
         if (round === 1) {
           vote = {
             ...base,
@@ -344,6 +344,40 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       break;
     case 'RATING':
       vote = { ...base, ratingValue: 3 + (participantIndex % 3) };
+      break;
+    case 'FREETEXT':
+      vote = { ...base, freeText: 'Tolles Feedback aus dem Demo-Quiz' };
+      break;
+    case 'ORDERING':
+      vote = {
+        ...base,
+        orderingSequence: (question.orderingItems || []).map((i) => i.id || i.text),
+      };
+      break;
+    case 'MATCHING':
+      vote = {
+        ...base,
+        matchingSelections: (metadata.matchingPairs || question.matchingPairs || []).map((p) => ({
+          left: p.left,
+          right: p.right || (p.rightOptions && p.rightOptions[0]) || '',
+        })),
+      };
+      break;
+    case 'CATEGORIZATION':
+      vote = {
+        ...base,
+        categorizationSelections: (
+          metadata.categorizationItems ||
+          question.categorizationItems ||
+          []
+        ).map((item) => ({
+          text: item.text,
+          categoryId:
+            item.correctCategoryId ||
+            (metadata.categories || question.categories || [])[0]?.id ||
+            '',
+        })),
+      };
       break;
     default:
       throw new Error(`Nicht unterstützter Demo-Fragentyp: ${question.type}`);

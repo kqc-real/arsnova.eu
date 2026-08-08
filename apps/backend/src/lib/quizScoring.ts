@@ -23,6 +23,9 @@ export const SCORED_QUESTION_TYPES = [
   'SINGLE_CHOICE',
   'SHORT_TEXT',
   'NUMERIC_ESTIMATE',
+  'MATCHING',
+  'ORDERING',
+  'CATEGORIZATION',
 ] as const satisfies readonly QuestionType[];
 
 const NUMERIC_ESTIMATE_MIN_IN_BAND_SCORE_RATIO = 0.1;

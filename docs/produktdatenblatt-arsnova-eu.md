@@ -51,7 +51,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 - Fragetypen: Single-/Multiple-Choice, Freitext, Kurzantwort, Umfrage, Rating, numerische Schätzfrage.
 - Markdown/KaTeX inkl. Bild-URL/Lightbox und KI-unterstütztem Import.
 - Numerische Schätzfragen (`NUMERIC_ESTIMATE`) unterstützen Ganzzahl-/Dezimal-Eingaben, Plausibilitätsgrenzen, absolutes/relatives Toleranzband, optionale zwei Runden, Statistik, Histogramm und Nähe-Scoring.
-- Offene Punkte: Editor-Toolbar-Ausbau, Word-Cloud-2.0, Schlüsselwort-/Token-Bewertung für `SHORT_TEXT`-Ausbau (1.2ec/1.2ed), neue Fragentypen 1.2g–1.2h. **1.2f** (Hotspot) ist aus A11y-Gründen geschlossen; **1.2i** (Confidence) ist fertig. Die Sync-Härtung ist technisch umgesetzt; der UUID-only-Legacy-Zugriff endet automatisch am **1. Oktober 2026**. Weitere Sync-Performance-Optimierungen sind ohne nachgewiesenen Engpass nicht geplant.
+- Offene Punkte: Editor-Toolbar-Ausbau, Word-Cloud-2.0, Schlüsselwort-/Token-Bewertung für `SHORT_TEXT`-Ausbau (1.2ec/1.2ed), neue Fragentypen 1.2g–1.2h, 1.2j. **1.2f** (Hotspot) ist aus A11y-Gründen geschlossen; **1.2i** (Confidence) ist fertig. Die Sync-Härtung ist technisch umgesetzt; der UUID-only-Legacy-Zugriff endet automatisch am **1. Oktober 2026**. Weitere Sync-Performance-Optimierungen sind ohne nachgewiesenen Engpass nicht geplant.
 
 ## Epic 2 – Session-Start und Host-Steuerung
 
@@ -160,7 +160,7 @@ Produktionsbaselines.
 
 - Abschluss Last-/Performance-Tests (0.7): Staging-Langläufe und
   Produktionsbaselines freigeben
-- Neue Fragentypen und Auswertungslogik (1.2ec–1.2ed, 1.2g–1.2h; 1.2f geschlossen)
+- Neue Fragentypen und Auswertungslogik (1.2ec–1.2ed, 1.2g–1.2h, 1.2j; 1.2f geschlossen)
 - Betrieblicher Sync-Termin: automatischer UUID-only-Legacy-Cutoff am 1. Oktober 2026 (1.6c); 1.6d ist mangels nachgewiesenem Engpass geschlossen
 - Asynchrone Quiz-Modi (2.9)
 - Q&A-Erweiterungen (8.5–8.7)

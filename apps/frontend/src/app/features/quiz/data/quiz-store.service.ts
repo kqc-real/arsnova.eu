@@ -76,7 +76,10 @@ export type SupportedQuestionType =
   | 'SHORT_TEXT'
   | 'SURVEY'
   | 'RATING'
-  | 'NUMERIC_ESTIMATE';
+  | 'NUMERIC_ESTIMATE'
+  | 'MATCHING'
+  | 'ORDERING'
+  | 'CATEGORIZATION';
 
 export interface QuizAnswer {
   id: string;
@@ -126,6 +129,13 @@ export interface QuizQuestion {
   confidenceEnabled?: boolean;
   confidenceLabelLow?: string | null;
   confidenceLabelHigh?: string | null;
+  // Story 1.2g: Matching
+  matchingPairs?: Array<{ left: string; right: string }>;
+  // Story 1.2h: Ordering
+  orderingItems?: Array<{ id: string; text: string }>;
+  // Story 1.2j: Categorization
+  categories?: Array<{ id: string; name: string }>;
+  categorizationItems?: Array<{ text: string; correctCategoryId: string }>;
 }
 
 export interface QuizSettings {
@@ -287,6 +297,10 @@ export interface AddQuizQuestionInput {
   confidenceEnabled?: boolean;
   confidenceLabelLow?: string | null;
   confidenceLabelHigh?: string | null;
+  matchingPairs?: Array<{ left: string; right: string }>;
+  orderingItems?: Array<{ id: string; text: string }>;
+  categories?: Array<{ id: string; name: string }>;
+  categorizationItems?: Array<{ text: string; correctCategoryId: string }>;
 }
 
 export interface CreateQuizDocumentInput {
@@ -337,6 +351,10 @@ type ValidatedQuestionInput = {
   confidenceEnabled: boolean;
   confidenceLabelLow: string | null;
   confidenceLabelHigh: string | null;
+  matchingPairs: Array<{ left: string; right: string }> | null;
+  orderingItems: Array<{ id: string; text: string }> | null;
+  categories: Array<{ id: string; name: string }> | null;
+  categorizationItems: Array<{ text: string; correctCategoryId: string }> | null;
 };
 
 type ShortTextQuestionSettingsInput = {
@@ -594,6 +612,10 @@ function getLocalQuestionValidationIssues(
     value.numericUnitFamily !== undefined ||
     value.numericRequireUnit !== undefined ||
     value.numericAcceptEquivalentUnits !== undefined;
+  const hasMatchingConfig = value.matchingPairs !== undefined;
+  const hasOrderingConfig = value.orderingItems !== undefined;
+  const hasCategorizationConfig =
+    value.categories !== undefined || value.categorizationItems !== undefined;
 
   if (value.type !== 'RATING' && hasRatingConfig) {
     issues.push({
@@ -722,6 +744,146 @@ function getLocalQuestionValidationIssues(
     }
 
     return issues;
+  }
+
+  if (value.type === 'MATCHING') {
+    if (hasOrderingConfig || hasCategorizationConfig || hasShortTextConfig) {
+      issues.push({
+        path: ['matchingPairs'],
+        message: $localize`Zuordnungsfragen erlauben nur Zuordnungs-Konfiguration.`,
+      });
+    }
+    if (value.answers.length > 0) {
+      issues.push({
+        path: ['answers'],
+        message: $localize`Zuordnungsfragen verwenden keine Antwortoptionen.`,
+      });
+    }
+    const pairs = value.matchingPairs ?? [];
+    if (pairs.length < 2 || pairs.length > 6) {
+      issues.push({
+        path: ['matchingPairs'],
+        message: $localize`Zuordnungsfragen benötigen 2 bis 6 Paare.`,
+      });
+      return issues;
+    }
+    const lefts = new Set<string>();
+    const rights = new Set<string>();
+    for (const [index, pair] of pairs.entries()) {
+      const left = pair.left.trim();
+      const right = pair.right.trim();
+      if (lefts.has(left)) {
+        issues.push({
+          path: ['matchingPairs', index, 'left'],
+          message: $localize`Linke Begriffe müssen eindeutig sein.`,
+        });
+      }
+      if (rights.has(right)) {
+        issues.push({
+          path: ['matchingPairs', index, 'right'],
+          message: $localize`Rechte Begriffe müssen eindeutig sein.`,
+        });
+      }
+      lefts.add(left);
+      rights.add(right);
+    }
+    return issues;
+  }
+
+  if (value.type === 'ORDERING') {
+    if (hasMatchingConfig || hasCategorizationConfig || hasShortTextConfig) {
+      issues.push({
+        path: ['orderingItems'],
+        message: $localize`Reihenfolgefragen erlauben nur Reihenfolge-Konfiguration.`,
+      });
+    }
+    if (value.answers.length > 0) {
+      issues.push({
+        path: ['answers'],
+        message: $localize`Reihenfolgefragen verwenden keine Antwortoptionen.`,
+      });
+    }
+    const items = value.orderingItems ?? [];
+    if (items.length < 3 || items.length > 8) {
+      issues.push({
+        path: ['orderingItems'],
+        message: $localize`Reihenfolgefragen benötigen 3 bis 8 Elemente.`,
+      });
+      return issues;
+    }
+    const ids = new Set<string>();
+    for (const [index, item] of items.entries()) {
+      if (ids.has(item.id)) {
+        issues.push({
+          path: ['orderingItems', index, 'id'],
+          message: $localize`Element-IDs müssen eindeutig sein.`,
+        });
+      }
+      ids.add(item.id);
+    }
+    return issues;
+  }
+
+  if (value.type === 'CATEGORIZATION') {
+    if (hasMatchingConfig || hasOrderingConfig || hasShortTextConfig) {
+      issues.push({
+        path: ['categories'],
+        message: $localize`Kategorisierungsfragen erlauben nur Kategorisierungs-Konfiguration.`,
+      });
+    }
+    if (value.answers.length > 0) {
+      issues.push({
+        path: ['answers'],
+        message: $localize`Kategorisierungsfragen verwenden keine Antwortoptionen.`,
+      });
+    }
+    const categories = value.categories ?? [];
+    const categorizationItems = value.categorizationItems ?? [];
+    if (categories.length < 2 || categories.length > 4) {
+      issues.push({
+        path: ['categories'],
+        message: $localize`Kategorisierungsfragen benötigen 2 bis 4 Kategorien.`,
+      });
+    }
+    if (categorizationItems.length < 4 || categorizationItems.length > 12) {
+      issues.push({
+        path: ['categorizationItems'],
+        message: $localize`Kategorisierungsfragen benötigen 4 bis 12 Elemente.`,
+      });
+      return issues;
+    }
+    const categoryIds = new Set(categories.map((category) => category.id));
+    if (categoryIds.size !== categories.length) {
+      issues.push({
+        path: ['categories'],
+        message: $localize`Kategorie-IDs müssen eindeutig sein.`,
+      });
+    }
+    const itemTexts = new Set<string>();
+    for (const [index, item] of categorizationItems.entries()) {
+      const text = item.text.trim();
+      if (itemTexts.has(text)) {
+        issues.push({
+          path: ['categorizationItems', index, 'text'],
+          message: $localize`Elemente müssen eindeutig sein.`,
+        });
+      }
+      itemTexts.add(text);
+      if (!categoryIds.has(item.correctCategoryId)) {
+        issues.push({
+          path: ['categorizationItems', index, 'correctCategoryId'],
+          message: $localize`Zielkategorie muss existieren.`,
+        });
+      }
+    }
+    return issues;
+  }
+
+  if (hasMatchingConfig || hasOrderingConfig || hasCategorizationConfig) {
+    issues.push({
+      path: ['type'],
+      message: $localize`Matching-/Reihenfolge-/Kategorisierungs-Konfiguration ist für diesen Fragetyp nicht erlaubt.`,
+    });
   }
 
   if (value.answers.length < 2) {
@@ -1281,6 +1443,18 @@ export class QuizStoreService implements OnDestroy {
                   numericTwoRounds: question.numericTwoRounds ?? undefined,
                 }
               : {}),
+            ...(question.type === 'MATCHING'
+              ? { matchingPairs: question.matchingPairs ?? undefined }
+              : {}),
+            ...(question.type === 'ORDERING'
+              ? { orderingItems: question.orderingItems ?? undefined }
+              : {}),
+            ...(question.type === 'CATEGORIZATION'
+              ? {
+                  categories: question.categories ?? undefined,
+                  categorizationItems: question.categorizationItems ?? undefined,
+                }
+              : {}),
             enabled: question.enabled !== false,
           };
         }),
@@ -1449,6 +1623,14 @@ export class QuizStoreService implements OnDestroy {
               numericTwoRounds: q.numericTwoRounds ?? undefined,
             }
           : {}),
+        ...(q.type === 'MATCHING' ? { matchingPairs: q.matchingPairs ?? undefined } : {}),
+        ...(q.type === 'ORDERING' ? { orderingItems: q.orderingItems ?? undefined } : {}),
+        ...(q.type === 'CATEGORIZATION'
+          ? {
+              categories: q.categories ?? undefined,
+              categorizationItems: q.categorizationItems ?? undefined,
+            }
+          : {}),
         ...(questionSupportsConfidence(q.type)
           ? {
               confidenceEnabled: q.confidenceEnabled ?? false,
@@ -1544,6 +1726,9 @@ export class QuizStoreService implements OnDestroy {
           const shortTextSettings = resolveQuestionShortTextSettings(question);
           const confidenceSettings = resolveQuestionConfidenceSettings(question);
           const isNumericEstimate = question.type === 'NUMERIC_ESTIMATE';
+          const isMatching = question.type === 'MATCHING';
+          const isOrdering = question.type === 'ORDERING';
+          const isCategorization = question.type === 'CATEGORIZATION';
           return {
             id: generateUuid(),
             text: question.text,
@@ -1590,6 +1775,12 @@ export class QuizStoreService implements OnDestroy {
             numericMin: isNumericEstimate ? (question.numericMin ?? null) : null,
             numericMax: isNumericEstimate ? (question.numericMax ?? null) : null,
             numericTwoRounds: isNumericEstimate ? (question.numericTwoRounds ?? false) : false,
+            matchingPairs: isMatching ? (question.matchingPairs ?? undefined) : undefined,
+            orderingItems: isOrdering ? (question.orderingItems ?? undefined) : undefined,
+            categories: isCategorization ? (question.categories ?? undefined) : undefined,
+            categorizationItems: isCategorization
+              ? (question.categorizationItems ?? undefined)
+              : undefined,
           };
         }),
     };
@@ -1645,6 +1836,11 @@ export class QuizStoreService implements OnDestroy {
       numericMin: parsed.numericMin,
       numericMax: parsed.numericMax,
       numericTwoRounds: parsed.numericTwoRounds,
+      matchingPairs: parsed.type === 'MATCHING' ? (parsed.matchingPairs ?? undefined) : undefined,
+      orderingItems: parsed.type === 'ORDERING' ? (parsed.orderingItems ?? undefined) : undefined,
+      categories: parsed.type === 'CATEGORIZATION' ? (parsed.categories ?? undefined) : undefined,
+      categorizationItems:
+        parsed.type === 'CATEGORIZATION' ? (parsed.categorizationItems ?? undefined) : undefined,
     };
 
     const updatedAt = new Date().toISOString();
@@ -1712,6 +1908,11 @@ export class QuizStoreService implements OnDestroy {
       numericMin: parsed.numericMin,
       numericMax: parsed.numericMax,
       numericTwoRounds: parsed.numericTwoRounds,
+      matchingPairs: parsed.type === 'MATCHING' ? (parsed.matchingPairs ?? undefined) : undefined,
+      orderingItems: parsed.type === 'ORDERING' ? (parsed.orderingItems ?? undefined) : undefined,
+      categories: parsed.type === 'CATEGORIZATION' ? (parsed.categories ?? undefined) : undefined,
+      categorizationItems:
+        parsed.type === 'CATEGORIZATION' ? (parsed.categorizationItems ?? undefined) : undefined,
     };
 
     const updatedAt = new Date().toISOString();
@@ -3197,6 +3398,23 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     numericMin: input.numericMin ?? undefined,
     numericMax: input.numericMax ?? undefined,
     numericTwoRounds: input.numericTwoRounds ?? undefined,
+    matchingPairs: input.matchingPairs?.map((pair) => ({
+      left: pair.left.trim(),
+      right: pair.right.trim(),
+    })),
+    orderingItems: input.orderingItems,
+    categories: input.categories,
+    categorizationItems: input.categorizationItems?.map((item) => ({
+      text: item.text.trim(),
+      correctCategoryId: item.correctCategoryId,
+    })),
+    ...(questionSupportsConfidence(input.type)
+      ? {
+          confidenceEnabled: input.confidenceEnabled ?? undefined,
+          confidenceLabelLow: normalizeNullableLabel(input.confidenceLabelLow),
+          confidenceLabelHigh: normalizeNullableLabel(input.confidenceLabelHigh),
+        }
+      : {}),
   });
 
   if (!parsed.success) {
@@ -3210,8 +3428,12 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
   }
 
   const isNumeric = parsed.data.type === 'NUMERIC_ESTIMATE';
+  const isStructured =
+    parsed.data.type === 'MATCHING' ||
+    parsed.data.type === 'ORDERING' ||
+    parsed.data.type === 'CATEGORIZATION';
   const answers =
-    parsed.data.type === 'FREETEXT' || parsed.data.type === 'RATING' || isNumeric
+    parsed.data.type === 'FREETEXT' || parsed.data.type === 'RATING' || isNumeric || isStructured
       ? []
       : parsed.data.answers.map((answer) => ({
           text: answer.text,
@@ -3258,6 +3480,11 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     numericMin: isNumeric ? (input.numericMin ?? null) : null,
     numericMax: isNumeric ? (input.numericMax ?? null) : null,
     numericTwoRounds: isNumeric ? (input.numericTwoRounds ?? false) : false,
+    matchingPairs: parsed.data.type === 'MATCHING' ? (parsed.data.matchingPairs ?? null) : null,
+    orderingItems: parsed.data.type === 'ORDERING' ? (parsed.data.orderingItems ?? null) : null,
+    categories: parsed.data.type === 'CATEGORIZATION' ? (parsed.data.categories ?? null) : null,
+    categorizationItems:
+      parsed.data.type === 'CATEGORIZATION' ? (parsed.data.categorizationItems ?? null) : null,
   };
 }
 
@@ -3283,6 +3510,9 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
   const isStoredRating = typeRaw === 'RATING';
   const isStoredShortText = typeRaw === 'SHORT_TEXT';
   const isStoredNumericEstimate = typeRaw === 'NUMERIC_ESTIMATE';
+  const isStoredMatching = typeRaw === 'MATCHING';
+  const isStoredOrdering = typeRaw === 'ORDERING';
+  const isStoredCategorization = typeRaw === 'CATEGORIZATION';
 
   const parsed = AddQuestionInputSchema.safeParse({
     text: candidate['text'],
@@ -3343,6 +3573,28 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
           numericMin: readNumberOrNull(candidate['numericMin']) ?? undefined,
           numericMax: readNumberOrNull(candidate['numericMax']) ?? undefined,
           numericTwoRounds: readBoolean(candidate['numericTwoRounds']) ?? undefined,
+        }
+      : {}),
+    ...(isStoredMatching
+      ? {
+          matchingPairs: Array.isArray(candidate['matchingPairs'])
+            ? candidate['matchingPairs']
+            : undefined,
+        }
+      : {}),
+    ...(isStoredOrdering
+      ? {
+          orderingItems: Array.isArray(candidate['orderingItems'])
+            ? candidate['orderingItems']
+            : undefined,
+        }
+      : {}),
+    ...(isStoredCategorization
+      ? {
+          categories: Array.isArray(candidate['categories']) ? candidate['categories'] : undefined,
+          categorizationItems: Array.isArray(candidate['categorizationItems'])
+            ? candidate['categorizationItems']
+            : undefined,
         }
       : {}),
     ...(typeRaw && questionSupportsConfidence(typeRaw)
@@ -3419,6 +3671,16 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     numericTwoRounds: isNumericStored
       ? (readBoolean(candidate['numericTwoRounds']) ?? false)
       : false,
+    matchingPairs:
+      parsed.data.type === 'MATCHING' ? (parsed.data.matchingPairs ?? undefined) : undefined,
+    orderingItems:
+      parsed.data.type === 'ORDERING' ? (parsed.data.orderingItems ?? undefined) : undefined,
+    categories:
+      parsed.data.type === 'CATEGORIZATION' ? (parsed.data.categories ?? undefined) : undefined,
+    categorizationItems:
+      parsed.data.type === 'CATEGORIZATION'
+        ? (parsed.data.categorizationItems ?? undefined)
+        : undefined,
   };
 }
 

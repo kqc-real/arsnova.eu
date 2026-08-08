@@ -17,6 +17,12 @@ export function questionTypeLabel(type: QuestionType): string {
       return $localize`:@@quizPreview.typeRating:Bewertung`;
     case 'NUMERIC_ESTIMATE':
       return $localize`:@@quizPreview.typeNumericEstimate:Numerische Schätzfrage`;
+    case 'MATCHING':
+      return $localize`:@@quizPreview.typeMatching:Zuordnung`;
+    case 'ORDERING':
+      return $localize`:@@quizPreview.typeOrdering:Reihenfolge`;
+    case 'CATEGORIZATION':
+      return $localize`:@@quizPreview.typeCategorization:Kategorisierung`;
     default: {
       const _exhaustive: never = type;
       return String(_exhaustive);

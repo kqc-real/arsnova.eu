@@ -278,7 +278,10 @@ function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | unde
     type === 'SINGLE_CHOICE' ||
     type === 'MULTIPLE_CHOICE' ||
     type === 'SHORT_TEXT' ||
-    type === 'NUMERIC_ESTIMATE'
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
   );
 }
 
@@ -507,6 +510,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly wordCloudFrozen = signal(false);
   readonly frozenWordCloudResponses = signal<string[] | null>(null);
+  getHostCategorizationItemsForCategory(
+    question: HostCurrentQuestionDTO | null | undefined,
+    categoryId: string,
+  ): Array<{ text: string; correctCategoryId: string }> {
+    return (question?.categorizationItems || []).filter(
+      (item) => item.correctCategoryId === categoryId,
+    );
+  }
+
+  hostStructuredCorrectSummary(
+    fullyCorrectCount: number | undefined,
+    totalVotes: number | undefined,
+  ): string {
+    const correct = fullyCorrectCount ?? 0;
+    const total = totalVotes ?? 0;
+    if (total <= 0) {
+      return $localize`:@@sessionHost.structuredNoVotes:Noch keine Antworten`;
+    }
+    const percent = Math.round((correct / total) * 100);
+    return $localize`:@@sessionHost.structuredCorrectSummary:${correct}:correct: von ${total}:total: vollständig korrekt (${percent}:percent: %)`;
+  }
+
+  hostHitRateBarWidth(percent: number | undefined): string {
+    const value = Math.max(0, Math.min(100, percent ?? 0));
+    return `${value}%`;
+  }
+
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
   readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
@@ -3998,7 +4028,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cacheKey = `${headingStartLevel}\u0000escape\u0000${value}`;
     const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -4008,11 +4038,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
+          escapeListMarkers: headingStartLevel >= 4,
         }).html,
       ),
     );
     this.markdownCache.set(cacheKey, rendered);
     return rendered;
+  }
+
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    return this.renderMarkdown(value, 4);
   }
 
   hostQuestionTypeLabel(type: HostCurrentQuestionDTO['type']): string {

@@ -240,6 +240,18 @@ const EN_LABELS: SessionResultsReportLabels = {
   piComparisonTitle: 'Peer Instruction — round 1 vs. round 2',
   freetextMoreTemplate: '+ {0} more responses',
   shortTextExpectedSolutions: 'Accepted solutions',
+  structuredSolutionOrderingTitle: 'Correct sequence (model solution)',
+  structuredSolutionMatchingTitle: 'Correct pairs (model solution)',
+  structuredSolutionCategorizationTitle: 'Correct categories (model solution)',
+  structuredFullyCorrect: 'Fully correct',
+  structuredCommonSwaps: 'Common swaps',
+  structuredCommonConfusions: 'Common mismatches',
+  structuredCommonMisclassifications: 'Common misclassifications',
+  structuredPairHitRates: 'Hit rate per pair',
+  structuredHitRateItemTemplate: '{0} → {1}: {2}%',
+  structuredSwapItemTemplate: '“{0}” ↔ “{1}” ({2})',
+  structuredConfusionItemTemplate: '{0} → {1} · {2}',
+  structuredMisclassificationItemTemplate: '{0} → {1} · {2}',
   ratingStdDev: 'Standard deviation',
   ratingAverageTemplate: 'Avg. {0} out of 5 ★',
   ratingAverageWithSigmaTemplate: 'Avg. {0} out of 5 ★ · σ {1}',
@@ -342,6 +354,9 @@ const EN_LABELS: SessionResultsReportLabels = {
   questionTypeSurvey: 'Survey',
   questionTypeRating: 'Rating',
   questionTypeNumericEstimate: 'Numerical estimate',
+  questionTypeMatching: 'Matching question',
+  questionTypeOrdering: 'Ordering question',
+  questionTypeCategorization: 'Categorization question',
 };
 
 function mergeLabels(overrides: Partial<SessionResultsReportLabels>): SessionResultsReportLabels {

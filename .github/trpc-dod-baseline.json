@@ -19,7 +19,7 @@
     },
     "admin.exportSessionAsQuizImport": {
       "kind": "mutation",
-      "fingerprint": "sha256:9c40e2cac1ae56838cc0cc72143c70a5f93252b071dfbe27b1c5cb5daa59dd1c",
+      "fingerprint": "sha256:e782a7a6901bba70491dfd90f43edd3bc01898a3176d58d32cc211e7edcf02ce",
       "missing": []
     },
     "admin.getSessionByCode": {
@@ -284,7 +284,7 @@
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:a1d3b9afbc90c08db88eaaf4efa2493090d1c97e4bb4a88dc3c5e3cead076f8f",
+      "fingerprint": "sha256:238fe6606f27dd3c9b960d92a4506c8395b7e7366e5f81201cfedf6916f9abe2",
       "missing": []
     },
     "quizSync.createShare": {
@@ -374,7 +374,7 @@
     },
     "session.getCurrentQuestionForStudent": {
       "kind": "query",
-      "fingerprint": "sha256:adb024efc509660c0eda7c9924db4dffce468dda75be8cdb9d7b6a3ef6d77e04",
+      "fingerprint": "sha256:9fcf45f2bc551f95f1f43a745d93a083b5e25929dbe305bedce27319545b094a",
       "missing": []
     },
     "session.getExportData": {
@@ -424,7 +424,7 @@
     },
     "session.getLeaderboard": {
       "kind": "query",
-      "fingerprint": "sha256:6bd279da51c04442a3d0dd079a1d04caaa411232aca9f42a91fb16176e79fa00",
+      "fingerprint": "sha256:fc0a810ab57e0f78925aba13ebf448bbc400343d35882f3dadc8ed83def638b1",
       "missing": []
     },
     "session.getLiveFreetext": {
@@ -454,7 +454,7 @@
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:ca3c4cded11945d91bfa46713dabcd23723f7ef274126c78b89379b075d6f581",
+      "fingerprint": "sha256:3b624a63b35ddef8f89460c1b0799d7e7d8b8d9b28c1d1ddd39c1ee3c1a5926d",
       "missing": []
     },
     "session.getQuizCollectionHistoryAvailability": {
@@ -599,7 +599,7 @@
     },
     "vote.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:c2dcbdabc6b4364616c593efff00ab7885385bad0de7c8763e4635de039bc8f7",
+      "fingerprint": "sha256:f49bb811c45d44569c814f9f5240da86d72184fda9ab21aa0c01e14f2bfb0bc2",
       "missing": []
     },
     "wordCloud.analyze": {

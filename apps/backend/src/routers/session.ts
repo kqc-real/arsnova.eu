@@ -100,6 +100,10 @@ import {
   createLegacyQuizHistoryAccessProof,
   evaluateNumericAnswer,
   evaluateShortAnswer,
+  stableShuffleWithContext,
+  buildMatchingStats,
+  buildOrderingStats,
+  buildCategorizationStats,
   normalizeShortTextValue,
   normalizeTimerAccommodation,
   resolveEffectiveQuestionTimer,
@@ -172,6 +176,22 @@ const participantNicknameCache = new Map<
   { expiresAt: number; payload: { nicknames: string[]; participantCount: number } }
 >();
 
+/**
+ * Opaque shuffle seed for MATCHING/ORDERING/CATEGORIZATION option order.
+ * Mixes a server secret so clients cannot reconstruct the canonical order from public IDs.
+ */
+function buildStructuredOptionShuffleSeed(participantKey: string, questionId: string): string {
+  const secret =
+    process.env['STRUCTURED_SHUFFLE_SECRET']?.trim() || process.env['JWT_SECRET']?.trim() || '';
+  const material = `${participantKey}:${questionId}`;
+  if (secret.length > 0) {
+    return createHmac('sha256', secret).update(material, 'utf8').digest('hex');
+  }
+  return createHash('sha256')
+    .update(`arsnova-structured-shuffle-v1:${material}`, 'utf8')
+    .digest('hex');
+}
+
 function getEmojiKey(sessionId: string, questionId: string, round: number): string {
   const r = round >= 1 && round <= 2 ? round : 1;
   return `${sessionId}:${questionId}:r${r}`;
@@ -212,7 +232,7 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
   orderAnswersByDisplayMap,
@@ -1371,6 +1391,10 @@ interface QuestionWithAnswersForExport {
   numericInputType: string | null;
   numericDecimalPlaces: number | null;
   confidenceEnabled: boolean;
+  matchingPairs?: Prisma.JsonValue | null;
+  orderingItems?: Prisma.JsonValue | null;
+  categories?: Prisma.JsonValue | null;
+  categorizationItems?: Prisma.JsonValue | null;
   answers: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
 interface VoteForExport {
@@ -1384,6 +1408,9 @@ interface VoteForExport {
   confidenceValue?: number | null;
   isCorrect?: boolean | null;
   responseTimeMs?: number | null;
+  matchingSelections?: Prisma.JsonValue | null;
+  orderingSequence?: Prisma.JsonValue | null;
+  categorizationSelections?: Prisma.JsonValue | null;
 }
 interface BonusTokenForExport {
   token: string;
@@ -1906,6 +1933,10 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           }
           break;
         }
+        case 'MATCHING':
+        case 'ORDERING':
+        case 'CATEGORIZATION':
+          break;
         default:
           break;
       }
@@ -1952,6 +1983,60 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             : undefined;
       const correctPercentage = computeCorrectPercentage(correctCount, incorrectCount);
 
+      const matchingPairs =
+        q.type === 'MATCHING'
+          ? ((q.matchingPairs as Array<{ left: string; right: string }> | null) ?? [])
+          : undefined;
+      const orderingItems =
+        q.type === 'ORDERING'
+          ? ((q.orderingItems as Array<{ id: string; text: string }> | null) ?? [])
+          : undefined;
+      const categories =
+        q.type === 'CATEGORIZATION'
+          ? ((q.categories as Array<{ id: string; name: string }> | null) ?? [])
+          : undefined;
+      const categorizationItems =
+        q.type === 'CATEGORIZATION'
+          ? ((q.categorizationItems as Array<{
+              text: string;
+              correctCategoryId: string;
+            }> | null) ?? [])
+          : undefined;
+
+      const matchingStats =
+        matchingPairs && matchingPairs.length > 0
+          ? buildMatchingStats(
+              votes.map((vote) => ({
+                selections:
+                  (vote.matchingSelections as Array<{ left: string; right: string }> | null) ?? [],
+              })),
+              matchingPairs,
+            )
+          : undefined;
+      const orderingStats =
+        orderingItems && orderingItems.length > 0
+          ? buildOrderingStats(
+              votes.map((vote) => ({
+                sequence: (vote.orderingSequence as string[] | null) ?? [],
+              })),
+              orderingItems,
+            )
+          : undefined;
+      const categorizationStats =
+        categories && categories.length > 0 && categorizationItems && categorizationItems.length > 0
+          ? buildCategorizationStats(
+              votes.map((vote) => ({
+                selections:
+                  (vote.categorizationSelections as Array<{
+                    text: string;
+                    categoryId: string;
+                  }> | null) ?? [],
+              })),
+              categorizationItems,
+              categories,
+            )
+          : undefined;
+
       return {
         questionOrder: q.order,
         questionTextShort: q.text.slice(0, QUESTION_TEXT_SHORT_MAX),
@@ -1967,6 +2052,14 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             : undefined,
         shortTextIncorrectAggregates:
           q.type === 'SHORT_TEXT' ? shortTextIncorrectAggregates : undefined,
+        matchingPairs: matchingPairs && matchingPairs.length > 0 ? matchingPairs : undefined,
+        matchingStats,
+        orderingItems: orderingItems && orderingItems.length > 0 ? orderingItems : undefined,
+        orderingStats,
+        categories: categories && categories.length > 0 ? categories : undefined,
+        categorizationItems:
+          categorizationItems && categorizationItems.length > 0 ? categorizationItems : undefined,
+        categorizationStats,
         correctCount,
         incorrectCount,
         correctPercentage: correctPercentage ?? undefined,
@@ -2178,6 +2271,10 @@ const quizHistoryAccessQuizSelect = Prisma.validator<Prisma.QuizSelect>()({
       numericMax: true,
       numericTwoRounds: true,
       skipReadingPhase: true,
+      matchingPairs: true,
+      orderingItems: true,
+      categories: true,
+      categorizationItems: true,
       answers: {
         select: {
           text: true,
@@ -2271,6 +2368,28 @@ function buildQuizHistoryAccessPayload(
               numericMin: question.numericMin ?? undefined,
               numericMax: question.numericMax ?? undefined,
               numericTwoRounds: question.numericTwoRounds ?? undefined,
+            }
+          : {}),
+        ...(question.type === 'MATCHING'
+          ? {
+              matchingPairs:
+                (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+            }
+          : {}),
+        ...(question.type === 'ORDERING'
+          ? {
+              orderingItems:
+                (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [],
+            }
+          : {}),
+        ...(question.type === 'CATEGORIZATION'
+          ? {
+              categories: (question.categories as Array<{ id: string; name: string }> | null) ?? [],
+              categorizationItems:
+                (question.categorizationItems as Array<{
+                  text: string;
+                  correctCategoryId: string;
+                }> | null) ?? [],
             }
           : {}),
         answers: question.answers.map((answer) => ({
@@ -3054,6 +3173,10 @@ type HostCurrentQuestionSession = {
       confidenceEnabled: boolean;
       confidenceLabelLow: string | null;
       confidenceLabelHigh: string | null;
+      matchingPairs: Prisma.JsonValue | null;
+      orderingItems: Prisma.JsonValue | null;
+      categories: Prisma.JsonValue | null;
+      categorizationItems: Prisma.JsonValue | null;
       answers: Array<{ id: string; text: string; isCorrect: boolean }>;
     }>;
   } | null;
@@ -3378,6 +3501,28 @@ async function buildHostCurrentQuestionDto(
           numericTwoRounds: question.numericTwoRounds,
         }
       : {}),
+    ...(question.type === 'MATCHING'
+      ? {
+          matchingPairs:
+            (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+        }
+      : {}),
+    ...(question.type === 'ORDERING'
+      ? {
+          orderingItems:
+            (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [],
+        }
+      : {}),
+    ...(question.type === 'CATEGORIZATION'
+      ? {
+          categories: (question.categories as Array<{ id: string; name: string }> | null) ?? [],
+          categorizationItems:
+            (question.categorizationItems as Array<{
+              text: string;
+              correctCategoryId: string;
+            }> | null) ?? [],
+        }
+      : {}),
   };
 
   if (session.status === 'DISCUSSION') {
@@ -3532,6 +3677,108 @@ async function buildHostCurrentQuestionDto(
               ? voteSummary.incorrectFreeTextResponses
               : undefined,
           voteDistribution,
+        },
+      );
+    }
+
+    if (
+      question.type === 'MATCHING' ||
+      question.type === 'ORDERING' ||
+      question.type === 'CATEGORIZATION'
+    ) {
+      if (session.status === 'ACTIVE') {
+        const totalVotes = await prisma.vote.count({ where: voteWhere });
+        return { ...base, totalVotes };
+      }
+
+      const structuredVotes = await prisma.vote.findMany({
+        where: voteWhere,
+        select: {
+          isCorrect: true,
+          matchingSelections: true,
+          orderingSequence: true,
+          categorizationSelections: true,
+        },
+      });
+      const totalVotes = structuredVotes.length;
+      const correctVoterCount = structuredVotes.filter((vote) => vote.isCorrect === true).length;
+
+      if (question.type === 'MATCHING') {
+        const correctPairs =
+          (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [];
+        const matchingStats = buildMatchingStats(
+          structuredVotes.map((vote) => ({
+            selections:
+              (vote.matchingSelections as Array<{ left: string; right: string }> | null) ?? [],
+          })),
+          correctPairs,
+        );
+        return withHostConfidenceResult(
+          session.status,
+          session.id,
+          question,
+          currentRound,
+          answersOrdered,
+          {
+            ...base,
+            totalVotes,
+            correctVoterCount,
+            incorrectVoterCount: totalVotes - correctVoterCount,
+            matchingStats,
+          },
+        );
+      }
+
+      if (question.type === 'ORDERING') {
+        const correctItems =
+          (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [];
+        const orderingStats = buildOrderingStats(
+          structuredVotes.map((vote) => ({ sequence: vote.orderingSequence ?? [] })),
+          correctItems,
+        );
+        return withHostConfidenceResult(
+          session.status,
+          session.id,
+          question,
+          currentRound,
+          answersOrdered,
+          {
+            ...base,
+            totalVotes,
+            correctVoterCount,
+            incorrectVoterCount: totalVotes - correctVoterCount,
+            orderingStats,
+          },
+        );
+      }
+
+      const categories = (question.categories as Array<{ id: string; name: string }> | null) ?? [];
+      const correctItems =
+        (question.categorizationItems as Array<{
+          text: string;
+          correctCategoryId: string;
+        }> | null) ?? [];
+      const categorizationStats = buildCategorizationStats(
+        structuredVotes.map((vote) => ({
+          selections:
+            (vote.categorizationSelections as Array<{ text: string; categoryId: string }> | null) ??
+            [],
+        })),
+        correctItems,
+        categories,
+      );
+      return withHostConfidenceResult(
+        session.status,
+        session.id,
+        question,
+        currentRound,
+        answersOrdered,
+        {
+          ...base,
+          totalVotes,
+          correctVoterCount,
+          incorrectVoterCount: totalVotes - correctVoterCount,
+          categorizationStats,
         },
       );
     }
@@ -3701,6 +3948,10 @@ async function fetchHostCurrentQuestionEnvelope(
               confidenceEnabled: true,
               confidenceLabelLow: true,
               confidenceLabelHigh: true,
+              matchingPairs: true,
+              orderingItems: true,
+              categories: true,
+              categorizationItems: true,
               answers: { select: { id: true, text: true, isCorrect: true } },
             },
           },
@@ -5875,12 +6126,68 @@ export const sessionRouter = router({
               participantCount: session._count.participants,
               totalVotes,
               currentRound: session.currentRound,
+              // Unshuffled prompts are cached once; personal shuffle happens after the cache hit.
+              matchingLeftOptions:
+                question.type === 'MATCHING'
+                  ? (
+                      (question.matchingPairs as Array<{ left: string; right: string }> | null) ??
+                      []
+                    ).map((p) => p.left)
+                  : undefined,
+              matchingRightOptions:
+                question.type === 'MATCHING'
+                  ? (
+                      (question.matchingPairs as Array<{ left: string; right: string }> | null) ??
+                      []
+                    ).map((p) => p.right)
+                  : undefined,
+              orderingItems:
+                question.type === 'ORDERING'
+                  ? (
+                      (question.orderingItems as Array<{ id: string; text: string }> | null) ?? []
+                    ).map((i) => ({
+                      id: i.id,
+                      text: i.text,
+                    }))
+                  : undefined,
+              categories:
+                question.type === 'CATEGORIZATION'
+                  ? ((question.categories as Array<{ id: string; name: string }> | null) ?? []).map(
+                      (c) => ({ id: c.id, name: c.name }),
+                    )
+                  : undefined,
+              categorizationItems:
+                question.type === 'CATEGORIZATION'
+                  ? ((question.categorizationItems as Array<{ text: string }> | null) ?? []).map(
+                      (ci) => ({ text: ci.text }),
+                    )
+                  : undefined,
             });
           },
         )) as z.infer<typeof QuestionStudentDTOSchema>;
 
+        const participantKey =
+          participantBelongsToSession && participantId ? participantId : 'anonymous';
+        // Salted seed so clients cannot reverse the shuffle from public participant/question IDs.
+        const shuffleSeed = buildStructuredOptionShuffleSeed(participantKey, question.id);
+        const personalizedDto: z.infer<typeof QuestionStudentDTOSchema> = {
+          ...baseDto,
+          matchingRightOptions:
+            question.type === 'MATCHING' && baseDto.matchingRightOptions
+              ? stableShuffleWithContext(baseDto.matchingRightOptions, shuffleSeed, question.id)
+              : baseDto.matchingRightOptions,
+          orderingItems:
+            question.type === 'ORDERING' && baseDto.orderingItems
+              ? stableShuffleWithContext(baseDto.orderingItems, shuffleSeed, question.id)
+              : baseDto.orderingItems,
+          categorizationItems:
+            question.type === 'CATEGORIZATION' && baseDto.categorizationItems
+              ? stableShuffleWithContext(baseDto.categorizationItems, shuffleSeed, question.id)
+              : baseDto.categorizationItems,
+        };
+
         if (!participantBelongsToSession || !participantId) {
-          return baseDto;
+          return personalizedDto;
         }
 
         const participant = await prisma.participant.findFirst({
@@ -5888,9 +6195,9 @@ export const sessionRouter = router({
           select: { timerAccommodation: true },
         });
         const timerAccommodation = normalizeTimerAccommodation(participant?.timerAccommodation);
-        const sessionTimer = baseDto.sessionTimer ?? baseDto.timer;
+        const sessionTimer = personalizedDto.sessionTimer ?? personalizedDto.timer;
         return QuestionStudentDTOSchema.parse({
-          ...baseDto,
+          ...personalizedDto,
           sessionTimer,
           timer: resolvePersonalTimerSeconds(sessionTimer, timerAccommodation),
           timerAccommodation,
@@ -5947,6 +6254,48 @@ export const sessionRouter = router({
                 ? buildNumericHistogram(voteSummary.numericValues, numericBand)
                 : undefined;
 
+            const isStructuredType =
+              question.type === 'MATCHING' ||
+              question.type === 'ORDERING' ||
+              question.type === 'CATEGORIZATION';
+            const structuredVotes = isStructuredType
+              ? await prisma.vote.findMany({
+                  where: {
+                    sessionId: session.id,
+                    questionId: question.id,
+                    round: session.currentRound,
+                  },
+                  select: {
+                    isCorrect: true,
+                    matchingSelections: true,
+                    orderingSequence: true,
+                    categorizationSelections: true,
+                  },
+                })
+              : [];
+            const structuredCorrectCount = structuredVotes.filter(
+              (vote) => vote.isCorrect === true,
+            ).length;
+            const matchingPairs =
+              question.type === 'MATCHING'
+                ? ((question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [])
+                : null;
+            const orderingItems =
+              question.type === 'ORDERING'
+                ? ((question.orderingItems as Array<{ id: string; text: string }> | null) ?? [])
+                : null;
+            const categories =
+              question.type === 'CATEGORIZATION'
+                ? ((question.categories as Array<{ id: string; name: string }> | null) ?? [])
+                : null;
+            const categorizationItems =
+              question.type === 'CATEGORIZATION'
+                ? ((question.categorizationItems as Array<{
+                    text: string;
+                    correctCategoryId: string;
+                  }> | null) ?? [])
+                : null;
+
             return QuestionRevealedDTOSchema.parse({
               id: question.id,
               text: question.text,
@@ -5974,10 +6323,18 @@ export const sessionRouter = router({
               ...getShortTextDtoFields(question.type, question),
               ...getConfidenceDtoFields(question),
               correctVoterCount:
-                question.type === 'SHORT_TEXT' ? voteSummary.correctVoteCount : undefined,
+                question.type === 'SHORT_TEXT'
+                  ? voteSummary.correctVoteCount
+                  : isStructuredType
+                    ? structuredCorrectCount
+                    : undefined,
               incorrectVoterCount:
-                question.type === 'SHORT_TEXT' ? voteSummary.incorrectVoteCount : undefined,
-              totalVotes: voteSummary.totalVotes,
+                question.type === 'SHORT_TEXT'
+                  ? voteSummary.incorrectVoteCount
+                  : isStructuredType
+                    ? structuredVotes.length - structuredCorrectCount
+                    : undefined,
+              totalVotes: isStructuredType ? structuredVotes.length : voteSummary.totalVotes,
               ...(question.type === 'NUMERIC_ESTIMATE'
                 ? {
                     numericToleranceMode: estimateToleranceMode ?? undefined,
@@ -5993,6 +6350,44 @@ export const sessionRouter = router({
                 : {}),
               numericStats,
               numericHistogram,
+              matchingPairs,
+              orderingItems,
+              categories,
+              categorizationItems,
+              matchingStats:
+                question.type === 'MATCHING' && matchingPairs
+                  ? buildMatchingStats(
+                      structuredVotes.map((vote) => ({
+                        selections:
+                          (vote.matchingSelections as Array<{
+                            left: string;
+                            right: string;
+                          }> | null) ?? [],
+                      })),
+                      matchingPairs,
+                    )
+                  : undefined,
+              orderingStats:
+                question.type === 'ORDERING' && orderingItems
+                  ? buildOrderingStats(
+                      structuredVotes.map((vote) => ({ sequence: vote.orderingSequence ?? [] })),
+                      orderingItems,
+                    )
+                  : undefined,
+              categorizationStats:
+                question.type === 'CATEGORIZATION' && categories && categorizationItems
+                  ? buildCategorizationStats(
+                      structuredVotes.map((vote) => ({
+                        selections:
+                          (vote.categorizationSelections as Array<{
+                            text: string;
+                            categoryId: string;
+                          }> | null) ?? [],
+                      })),
+                      categorizationItems,
+                      categories,
+                    )
+                  : undefined,
             });
           },
         )) as z.infer<typeof QuestionRevealedDTOSchema>;
@@ -6429,7 +6824,14 @@ export const sessionRouter = router({
         s.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
 
         if (questionCountsTowardsTotalQuestions(v.question.type as QuestionType)) {
-          if (v.question.type === 'SHORT_TEXT' || v.question.type === 'NUMERIC_ESTIMATE') {
+          const voteQuestionType = v.question.type as QuestionType;
+          if (
+            voteQuestionType === 'SHORT_TEXT' ||
+            voteQuestionType === 'NUMERIC_ESTIMATE' ||
+            voteQuestionType === 'MATCHING' ||
+            voteQuestionType === 'ORDERING' ||
+            voteQuestionType === 'CATEGORIZATION'
+          ) {
             if (v.isCorrect ?? v.score > 0) {
               s.correctCount++;
             }
@@ -6926,7 +7328,13 @@ export const sessionRouter = router({
 
       let wasCorrect: boolean | null = null;
       if (isScored && myVote) {
-        if (questionType === 'SHORT_TEXT' || questionType === 'NUMERIC_ESTIMATE') {
+        if (
+          questionType === 'SHORT_TEXT' ||
+          questionType === 'NUMERIC_ESTIMATE' ||
+          questionType === 'MATCHING' ||
+          questionType === 'ORDERING' ||
+          questionType === 'CATEGORIZATION'
+        ) {
           wasCorrect = myVote.isCorrect ?? myVote.score > 0;
         } else {
           const selectedSet = new Set(myVote.selectedAnswers.map((a) => a.answerOptionId));

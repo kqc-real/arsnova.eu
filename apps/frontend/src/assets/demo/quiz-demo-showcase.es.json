@@ -1,5 +1,5 @@
 {
-  "exportVersion": 27,
+  "exportVersion": 28,
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Showcase docente: demo por equipos",
@@ -227,11 +227,148 @@
         "confidenceLabelHigh": "Muy seguro"
       },
       {
+        "text": "### Ordena las 6 fases de la biosíntesis de proteínas en la secuencia molecular correcta.\n\n> **Uso didáctico:** Úsalo como pregunta de ordenación en biología o química para ensayar cadenas de reacción complejas antes de los exámenes.\n\nOrdena los pasos desde el desenrollamiento del ADN en el núcleo hasta el plegamiento 3D final de la proteína en el citoplasma.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "step1",
+            "text": "Desenrollamiento: La ARN polimerasa se une al promotor y desenrolla la doble hélice de ADN."
+          },
+          {
+            "id": "step2",
+            "text": "Transcripción: Lectura de la hebra molde y síntesis del ARN pre-mensajero complementario."
+          },
+          {
+            "id": "step3",
+            "text": "Procesamiento: Empalme del ARN pre-mensajero (eliminación de intrones) y adición de capuchón y cola poli-A."
+          },
+          {
+            "id": "step4",
+            "text": "Exportación nuclear: El ARN mensajero maduro sale del núcleo hacia los ribosomas en el citoplasma."
+          },
+          {
+            "id": "step5",
+            "text": "Traducción: El ribosoma lee el ARNm; los ARNt unen aminoácidos a partir del codón AUG."
+          },
+          {
+            "id": "step6",
+            "text": "Plegamiento: La cadena de aminoácidos se pliega en una estructura proteica 3D funcional."
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Empareja las fechas históricas de la República de Weimar con el evento correspondiente.\n\n> **Uso didáctico:** Úsalo como pregunta de emparejamiento en historia o ciencias sociales para comprobar fechas clave o tratados 1:1.\n\n_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "left": "9 de noviembre de 1918",
+            "right": "Proclamación de la República alemana por Philipp Scheidemann"
+          },
+          {
+            "left": "28 de junio de 1919",
+            "right": "Firma del Tratado de Versalles"
+          },
+          {
+            "left": "11 de agosto de 1919",
+            "right": "Entrada en vigor de la Constitución de Weimar"
+          },
+          {
+            "left": "15 de noviembre de 1923",
+            "right": "Introducción del Rentenmark para frenar la hiperinflación"
+          },
+          {
+            "left": "25 de octubre de 1929",
+            "right": "Crack de Wall Street (\"Viernes Negro\") que desata la Gran Depresión"
+          },
+          {
+            "left": "30 de enero de 1933",
+            "right": "Nombramiento de Adolf Hitler como canciller, marcando el fin de la República"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Clasifica las siguientes 9 obras literarias, citas y motivos en su época correspondiente.\n\n> **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.\n\n_Asigna cada elemento a uno de los tres movimientos literarios._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "categories": [
+          {
+            "id": "cat_aufklaerung",
+            "name": "Ilustración / Aufklärung (c. 1720–1785)"
+          },
+          {
+            "id": "cat_sturm",
+            "name": "Sturm und Drang (c. 1765–1785)"
+          },
+          {
+            "id": "cat_romantik",
+            "name": "Romanticismo (c. 1795–1835)"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "text": "Natán el Sabio (G. E. Lessing & Parábola del anillo / Tolerancia)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Las cuitas del joven Werther (J. W. von Goethe & Pasión desbordante)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "La estatua de mármol y Poema \"Mondnacht\" (Joseph von Eichendorff)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "\"¡Sapere aude! – ¡Ten el valor de servirte de tu propio entendimiento!\" (Immanuel Kant)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Poema \"Prometeo\" (\"Cubre tu cielo, Zeus, con manto de nubes...\")",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "La \"Flor Azul\" como símbolo central del anhelo (Novalis)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "Intriga y amor (Friedrich Schiller & Crítica social)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Emilia Galotti (G. E. Lessing & Tragedia burguesa)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "El hombre de la arena y Romanticismo oscuro / Lo siniestro (E. T. A. Hoffmann)",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
         "text": "### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?\n\n> **Uso didáctico:** Úsalo como pulso rápido, exit ticket o breve autoevaluación.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 11,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

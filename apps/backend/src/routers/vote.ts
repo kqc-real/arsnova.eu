@@ -8,6 +8,9 @@ import {
   SubmitVoteOutputSchema,
   evaluateNumericAnswer,
   evaluateShortAnswer,
+  evaluateMatchingAnswer,
+  evaluateOrderingAnswer,
+  evaluateCategorizationAnswer,
   hasAtMostNumericDecimalPlaces,
   normalizeShortTextValue,
   normalizeTimerAccommodation,
@@ -34,6 +37,7 @@ import {
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
+import { Prisma } from '@prisma/client';
 import { checkVoteRate } from '../lib/rateLimit';
 import {
   calculateVoteScore,
@@ -460,6 +464,103 @@ export const voteRouter = router({
           }
           break;
         }
+        case 'MATCHING': {
+          const pairs =
+            (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [];
+          const selections = input.matchingSelections ?? [];
+          if (selections.length !== pairs.length || pairs.length < 2) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Für Zuordnungsfragen ist eine vollständige Zuordnung erforderlich.',
+            });
+          }
+          const leftSet = new Set(pairs.map((pair) => pair.left.trim()));
+          const rightSet = new Set(pairs.map((pair) => pair.right.trim()));
+          const usedLefts = new Set<string>();
+          const usedRights = new Set<string>();
+          for (const selection of selections) {
+            const left = selection.left.trim();
+            const right = selection.right.trim();
+            if (!leftSet.has(left) || !rightSet.has(right)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Zuordnung enthält ungültige Begriffe.',
+              });
+            }
+            if (usedLefts.has(left)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Jeder linke Begriff darf nur einmal zugeordnet werden.',
+              });
+            }
+            if (usedRights.has(right)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Jeder rechte Begriff darf nur einmal zugeordnet werden.',
+              });
+            }
+            usedLefts.add(left);
+            usedRights.add(right);
+          }
+          break;
+        }
+        case 'ORDERING': {
+          const items =
+            (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [];
+          const sequence = input.orderingSequence ?? [];
+          if (sequence.length !== items.length || items.length < 3) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Für Reihenfolgefragen ist eine vollständige Sortierung erforderlich.',
+            });
+          }
+          const itemIds = new Set(items.map((item) => item.id));
+          const seen = new Set<string>();
+          for (const itemId of sequence) {
+            if (!itemIds.has(itemId) || seen.has(itemId)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Reihenfolge enthält ungültige oder doppelte Elemente.',
+              });
+            }
+            seen.add(itemId);
+          }
+          break;
+        }
+        case 'CATEGORIZATION': {
+          const categories =
+            (question.categories as Array<{ id: string; name: string }> | null) ?? [];
+          const items =
+            (question.categorizationItems as Array<{
+              text: string;
+              correctCategoryId: string;
+            }> | null) ?? [];
+          const selections = input.categorizationSelections ?? [];
+          if (selections.length !== items.length || items.length < 4 || categories.length < 2) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Für Kategorisierungsfragen ist eine vollständige Einordnung erforderlich.',
+            });
+          }
+          const categoryIds = new Set(categories.map((category) => category.id));
+          const itemTexts = new Set(items.map((item) => item.text.trim()));
+          const seenTexts = new Set<string>();
+          for (const selection of selections) {
+            const text = selection.text.trim();
+            if (
+              !itemTexts.has(text) ||
+              !categoryIds.has(selection.categoryId) ||
+              seenTexts.has(text)
+            ) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Kategorisierung enthält ungültige Elemente oder Kategorien.',
+              });
+            }
+            seenTexts.add(text);
+          }
+          break;
+        }
         default:
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Unbekannter Fragetyp.' });
       }
@@ -543,6 +644,25 @@ export const voteRouter = router({
         numericIsCorrectOverride =
           numericEstimateToleranceBand !== null &&
           isNumericValueInBand(input.numericValue, numericEstimateToleranceBand);
+      } else if (questionType === 'MATCHING') {
+        numericIsCorrectOverride = evaluateMatchingAnswer(
+          input.matchingSelections ?? [],
+          (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+        );
+      } else if (questionType === 'ORDERING') {
+        const correctSeq =
+          (question.orderingItems as Array<{ id: string; text: string }> | null)?.map(
+            (i) => i.id,
+          ) ?? [];
+        numericIsCorrectOverride = evaluateOrderingAnswer(input.orderingSequence ?? [], correctSeq);
+      } else if (questionType === 'CATEGORIZATION') {
+        numericIsCorrectOverride = evaluateCategorizationAnswer(
+          input.categorizationSelections ?? [],
+          (question.categorizationItems as Array<{
+            text: string;
+            correctCategoryId: string;
+          }> | null) ?? [],
+        );
       }
 
       const baseScore = calculateVoteScore({
@@ -588,7 +708,10 @@ export const voteRouter = router({
       const voteIsCorrect =
         questionType === 'SHORT_TEXT'
           ? (shortTextEvaluation?.points ?? 0) > 0
-          : questionType === 'NUMERIC_ESTIMATE'
+          : questionType === 'NUMERIC_ESTIMATE' ||
+              questionType === 'MATCHING' ||
+              questionType === 'ORDERING' ||
+              questionType === 'CATEGORIZATION'
             ? numericIsCorrectOverride === true
             : questionType === 'SINGLE_CHOICE' || questionType === 'MULTIPLE_CHOICE'
               ? isExactCorrectSelection(answerIds, correctAnswerIds)
@@ -642,6 +765,15 @@ export const voteRouter = router({
             ratingValue: input.ratingValue ?? null,
             numericValue: input.numericValue ?? null,
             confidenceValue: input.confidenceValue ?? null,
+            matchingSelections:
+              questionType === 'MATCHING'
+                ? (input.matchingSelections ?? Prisma.DbNull)
+                : Prisma.DbNull,
+            orderingSequence: questionType === 'ORDERING' ? (input.orderingSequence ?? []) : [],
+            categorizationSelections:
+              questionType === 'CATEGORIZATION'
+                ? (input.categorizationSelections ?? Prisma.DbNull)
+                : Prisma.DbNull,
             responseTimeMs,
             score,
             isCorrect: voteIsCorrect,
@@ -675,11 +807,14 @@ export const voteRouter = router({
       }
       if (participant.session.code) {
         const progressIsCorrect =
-          questionType === 'SHORT_TEXT'
+          questionType === 'SHORT_TEXT' ||
+          questionType === 'SINGLE_CHOICE' ||
+          questionType === 'MULTIPLE_CHOICE' ||
+          questionType === 'MATCHING' ||
+          questionType === 'ORDERING' ||
+          questionType === 'CATEGORIZATION'
             ? voteIsCorrect === true
-            : questionType === 'SINGLE_CHOICE' || questionType === 'MULTIPLE_CHOICE'
-              ? voteIsCorrect === true
-              : undefined;
+            : undefined;
         recordVoteCachesForCode(participant.session.code, input.questionId, round, {
           answerIds: shortTextMatchedAnswer ? [shortTextMatchedAnswer.id] : answerIds,
           freeText,

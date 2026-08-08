@@ -1,5 +1,5 @@
 {
-  "exportVersion": 27,
+  "exportVersion": 28,
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Showcase didattico: demo a squadre",
@@ -227,11 +227,148 @@
         "confidenceLabelHigh": "Molto sicuro"
       },
       {
+        "text": "### Metti le 6 fasi della biosintesi proteica nel corretto ordine molecolare.\n\n> **Uso didattico:** Usalo come domanda di ordinamento in biologia o chimica per esercitarsi su catene di reazioni complesse prima degli esami.\n\nDisponi le fasi dal srotolamento del DNA nel nucleo fino al ripiegamento 3D finale della proteina nel citoplasma.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "step1",
+            "text": "Srotolamento: L'RNA polimerasi si lega al promotore e srotola la doppia elica di DNA."
+          },
+          {
+            "id": "step2",
+            "text": "Trascrizione: Lettura del filamento stampo e sintesi dell'pre-mRNA complementare."
+          },
+          {
+            "id": "step3",
+            "text": "Maturazione: Splicing dell'pre-mRNA (rimozione degli introni) e aggiunta del cappuccio e coda poly-A."
+          },
+          {
+            "id": "step4",
+            "text": "Esportazione nucleare: L'mRNA maturo esce dal nucleo verso i ribosomi nel citoplasma."
+          },
+          {
+            "id": "step5",
+            "text": "Traduzione: Il ribosoma legge l'mRNA; i tRNA legano gli amminoacidi dal codone AUG."
+          },
+          {
+            "id": "step6",
+            "text": "Ripiegamento: La catena amminoacidica si ripiega nella struttura proteica 3D funzionale."
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.\n\n> **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.\n\n_Collega ciascuna data a sinistra con il relativo evento storico a destra._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "left": "9 novembre 1918",
+            "right": "Proclamazione della Repubblica tedesca da parte di Philipp Scheidemann"
+          },
+          {
+            "left": "28 giugno 1919",
+            "right": "Firma del Trattato di Versailles"
+          },
+          {
+            "left": "11 agosto 1919",
+            "right": "Entrata in vigore della Costituzione di Weimar"
+          },
+          {
+            "left": "15 novembre 1923",
+            "right": "Introduzione del Rentenmark per fermare l'iperinflazione"
+          },
+          {
+            "left": "25 ottobre 1929",
+            "right": "Crollo di Wall Street (\"Venerdì nero\") che scatena la Grande Depressione"
+          },
+          {
+            "left": "30 gennaio 1933",
+            "right": "Nomina di Adolf Hitler a Cancelliere, che segna la fine della Repubblica"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Classifica le seguenti 9 opere letterarie, citazioni e motivi nella loro epoca corrispondente.\n\n> **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.\n\n_Assegna ciascun elemento a uno dei tre movimenti letterari._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "categories": [
+          {
+            "id": "cat_aufklaerung",
+            "name": "Illuminismo / Aufklärung (c. 1720–1785)"
+          },
+          {
+            "id": "cat_sturm",
+            "name": "Sturm und Drang (c. 1765–1785)"
+          },
+          {
+            "id": "cat_romantik",
+            "name": "Romanticismo (c. 1795–1835)"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "text": "Nathan il saggio (G. E. Lessing & Parabola dell'anello / Tolleranza)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "I dolori del giovane Werther (J. W. von Goethe & Passione travolgente)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "La statua di marmo & Poesia \"Mondnacht\" (Joseph von Eichendorff)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "\"Sapere aude! – Abbi il coraggio di servirti della tua propria intelligenza!\" (I. Kant)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Poesia \"Prometeo\" (\"Copri il tuo cielo, Zeus, con veli di nubi...\")",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Il \"Fiore Blu\" come simbolo centrale della nostalgia (Novalis)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "Intrigo e amore (Friedrich Schiller & Critica sociale)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Emilia Galotti (G. E. Lessing & Tragedia borghese)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "L'uomo della sabbia & Romanticismo nero / Il perturbante (E. T. A. Hoffmann)",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
         "text": "### Quanto è probabile che tu provi presto un quiz live come questo in una tua lezione?\n\n> **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 11,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

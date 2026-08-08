@@ -1,5 +1,5 @@
 {
-  "exportVersion": 27,
+  "exportVersion": 28,
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Showcase pédagogique : démo en équipe",
@@ -227,11 +227,148 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
+        "text": "### Mettez les 6 phases de la biosynthèse des protéines dans l'ordre moléculaire correct.\n\n> **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.\n\nMettez les étapes dans l'ordre, du déroulement de l'ADN dans le noyau au repliement 3D final de la protéine dans le cytoplasme.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "step1",
+            "text": "Déroulement : L'ARN polymérase se lie au promoteur et déroule la double hélice d'ADN."
+          },
+          {
+            "id": "step2",
+            "text": "Transcription : Lecture du brin codant et synthèse de l'ARN pré-messager complémentaire."
+          },
+          {
+            "id": "step3",
+            "text": "Maturation : Épissage de l'ARN pré-messager (retrait des introns) et ajout de la coiffe et queue poly-A."
+          },
+          {
+            "id": "step4",
+            "text": "Export nucléaire : L'ARN messager mature quitte le noyau par les pores vers les ribosomes."
+          },
+          {
+            "id": "step5",
+            "text": "Traduction : Le ribosome lit l'ARNm ; les ARNt assemblent les acides aminés au codon AUG."
+          },
+          {
+            "id": "step6",
+            "text": "Repliement : La chaîne d'acides aminés se replie en une structure protéique 3D fonctionnelle."
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Associez les dates historiques de la République de Weimar à l'événement correspondant.\n\n> **Piste pédagogique :** utilisez des questions d'association en histoire ou géographie pour vérifier des dates clés ou traités de manière 1:1.\n\n_Associez chaque date à gauche à l'événement historique correspondant à droite._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "left": "9 novembre 1918",
+            "right": "Proclamation de la République allemande par Philipp Scheidemann"
+          },
+          {
+            "left": "28 juin 1919",
+            "right": "Signature du traité de Versailles"
+          },
+          {
+            "left": "11 août 1919",
+            "right": "Entrée en vigueur de la Constitution de Weimar"
+          },
+          {
+            "left": "15 novembre 1923",
+            "right": "Lancement du Rentenmark qui stoppe l'hyperinflation"
+          },
+          {
+            "left": "25 octobre 1929",
+            "right": "Krach de Wall Street (\"Vendredi noir\") déclenchant la Grande Dépression"
+          },
+          {
+            "left": "30 janvier 1933",
+            "right": "Nomination d'Adolf Hitler comme chancelier marquant la fin de la République"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Classifiez les 9 œuvres littéraires, citations et motifs suivants dans leur période correspondante.\n\n> **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.\n\n_Associez chaque élément à l'un des trois mouvements littéraires._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "categories": [
+          {
+            "id": "cat_aufklaerung",
+            "name": "Lumières / Aufklärung (v. 1720–1785)"
+          },
+          {
+            "id": "cat_sturm",
+            "name": "Sturm und Drang (v. 1765–1785)"
+          },
+          {
+            "id": "cat_romantik",
+            "name": "Romantisme (v. 1795–1835)"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "text": "Nathan le Sage (G. E. Lessing & Parabole de l'anneau / Tolérance)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Les Souffrances du jeune Werther (J. W. von Goethe & Passion débordante)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "La Statue de marbre & Poème \"Mondnacht\" (Joseph von Eichendorff)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "\"Sapere aude ! – Aie le courage de te servir de ton propre entendement !\" (Immanuel Kant)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "Poème \"Prométhée\" (\"Couvre ton ciel, Zeus, de vapeurs de nuages...\")",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "La \"Fleur bleue\" comme symbole central de la nostalgie (Novalis)",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "text": "Intrigue et Amour (Friedrich Schiller & Critique sociale)",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "text": "Emilia Galotti (G. E. Lessing & Tragédie bourgeoise)",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "text": "L'Homme au sable & Romantisme noir / L'Inquiétante étrangeté (E. T. A. Hoffmann)",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
         "text": "### Quelle est la probabilité que vous utilisiez bientôt un quiz en direct comme celui-ci dans l’un de vos cours ?\n\n> **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 11,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

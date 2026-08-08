@@ -589,6 +589,165 @@ function renderConfidenceSection(
   return `${confidenceSectionHeading(labels, localeId, total)}${charts}${topSignalNote}`;
 }
 
+function renderStructuredSolutionHtml(
+  q: QuestionExportEntry,
+  labels: SessionResultsReportLabels,
+  localeId: string,
+): string {
+  let html = '';
+
+  if (q.type === 'ORDERING' && q.orderingItems?.length) {
+    const steps = q.orderingItems
+      .map(
+        (item, index) => `<li class="report-structured-step">
+          <span class="report-structured-step-num" aria-hidden="true">${index + 1}</span>
+          <span class="report-structured-step-text">${escapeHtml(
+            stripMarkdownToPlainText(item.text),
+          )}</span>
+        </li>`,
+      )
+      .join('');
+    html += `<section class="report-structured-solution" aria-label="${escapeHtml(
+      labels.structuredSolutionOrderingTitle,
+    )}">
+      <header class="report-structured-solution-header">
+        <span class="report-structured-solution-badge" aria-hidden="true">✓</span>
+        <h3>${escapeHtml(labels.structuredSolutionOrderingTitle)}</h3>
+      </header>
+      <ol class="report-structured-steps">${steps}</ol>
+    </section>`;
+    if (q.orderingStats?.commonSwaps?.length) {
+      html += `<aside class="report-structured-insights">
+        <h4>${escapeHtml(labels.structuredCommonSwaps)}</h4>
+        <ul class="report-structured-chips">${q.orderingStats.commonSwaps
+          .map(
+            (swap) => `<li class="report-structured-chip">
+              <span class="report-structured-chip-label">${escapeHtml(
+                labels.structuredSwapItemTemplate
+                  .replace('{0}', stripMarkdownToPlainText(swap.itemAText))
+                  .replace('{1}', stripMarkdownToPlainText(swap.itemBText))
+                  .replace('{2}', formatLocaleCount(swap.count, localeId)),
+              )}</span>
+            </li>`,
+          )
+          .join('')}</ul>
+      </aside>`;
+    }
+  }
+
+  if (q.type === 'MATCHING' && q.matchingPairs?.length) {
+    const pairs = q.matchingPairs
+      .map(
+        (pair) => `<li class="report-structured-pair">
+          <span class="report-structured-pair-left">${escapeHtml(
+            stripMarkdownToPlainText(pair.left),
+          )}</span>
+          <span class="report-structured-pair-arrow" aria-hidden="true">→</span>
+          <span class="report-structured-pair-right">${escapeHtml(
+            stripMarkdownToPlainText(pair.right),
+          )}</span>
+        </li>`,
+      )
+      .join('');
+    html += `<section class="report-structured-solution" aria-label="${escapeHtml(
+      labels.structuredSolutionMatchingTitle,
+    )}">
+      <header class="report-structured-solution-header">
+        <span class="report-structured-solution-badge" aria-hidden="true">✓</span>
+        <h3>${escapeHtml(labels.structuredSolutionMatchingTitle)}</h3>
+      </header>
+      <ul class="report-structured-pairs">${pairs}</ul>
+    </section>`;
+    if (q.matchingStats?.pairHitRates?.length) {
+      html += `<aside class="report-structured-insights">
+        <h4>${escapeHtml(labels.structuredPairHitRates)}</h4>
+        <ul class="report-structured-hit-rates">${q.matchingStats.pairHitRates
+          .map((pair) => {
+            const width = Math.max(0, Math.min(100, pair.hitRatePercent));
+            return `<li class="report-structured-hit-rate">
+              <div class="report-structured-hit-rate-copy">
+                <span>${escapeHtml(stripMarkdownToPlainText(pair.left))} → ${escapeHtml(
+                  stripMarkdownToPlainText(pair.right),
+                )}</span>
+                <strong>${escapeHtml(formatLocaleCount(pair.hitRatePercent, localeId))} %</strong>
+              </div>
+              <div class="report-structured-hit-rate-track" role="presentation">
+                <div class="report-structured-hit-rate-fill" style="width:${width}%"></div>
+              </div>
+            </li>`;
+          })
+          .join('')}</ul>
+      </aside>`;
+    }
+    if (q.matchingStats?.commonConfusions?.length) {
+      html += `<aside class="report-structured-insights report-structured-insights--warn">
+        <h4>${escapeHtml(labels.structuredCommonConfusions)}</h4>
+        <ul class="report-structured-chips">${q.matchingStats.commonConfusions
+          .map(
+            (confusion) => `<li class="report-structured-chip">
+              <span class="report-structured-chip-label">${escapeHtml(
+                labels.structuredConfusionItemTemplate
+                  .replace('{0}', stripMarkdownToPlainText(confusion.left))
+                  .replace('{1}', stripMarkdownToPlainText(confusion.wrongRight))
+                  .replace('{2}', formatLocaleCount(confusion.count, localeId)),
+              )}</span>
+            </li>`,
+          )
+          .join('')}</ul>
+      </aside>`;
+    }
+  }
+
+  if (q.type === 'CATEGORIZATION' && q.categories?.length && q.categorizationItems?.length) {
+    const cards = q.categories
+      .map((category) => {
+        const items = q.categorizationItems!.filter(
+          (item) => item.correctCategoryId === category.id,
+        );
+        return `<article class="report-structured-category-card">
+          <h4>${escapeHtml(stripMarkdownToPlainText(category.name))}</h4>
+          <ul class="report-structured-category-items">${items
+            .map(
+              (item) =>
+                `<li><span class="report-structured-category-dot" aria-hidden="true"></span>${escapeHtml(
+                  stripMarkdownToPlainText(item.text),
+                )}</li>`,
+            )
+            .join('')}</ul>
+        </article>`;
+      })
+      .join('');
+    html += `<section class="report-structured-solution" aria-label="${escapeHtml(
+      labels.structuredSolutionCategorizationTitle,
+    )}">
+      <header class="report-structured-solution-header">
+        <span class="report-structured-solution-badge" aria-hidden="true">✓</span>
+        <h3>${escapeHtml(labels.structuredSolutionCategorizationTitle)}</h3>
+      </header>
+      <div class="report-structured-category-grid">${cards}</div>
+    </section>`;
+    if (q.categorizationStats?.commonMisclassifications?.length) {
+      html += `<aside class="report-structured-insights report-structured-insights--warn">
+        <h4>${escapeHtml(labels.structuredCommonMisclassifications)}</h4>
+        <ul class="report-structured-chips">${q.categorizationStats.commonMisclassifications
+          .map(
+            (miss) => `<li class="report-structured-chip">
+              <span class="report-structured-chip-label">${escapeHtml(
+                labels.structuredMisclassificationItemTemplate
+                  .replace('{0}', stripMarkdownToPlainText(miss.itemText))
+                  .replace('{1}', stripMarkdownToPlainText(miss.wrongCategoryName))
+                  .replace('{2}', formatLocaleCount(miss.count, localeId)),
+              )}</span>
+            </li>`,
+          )
+          .join('')}</ul>
+      </aside>`;
+    }
+  }
+
+  return html;
+}
+
 function renderQuestion(
   q: QuestionExportEntry,
   labels: SessionResultsReportLabels,
@@ -642,10 +801,16 @@ function renderQuestion(
       .join('')}</ul>`;
   }
 
+  body += renderStructuredSolutionHtml(q, labels, localeId);
+
   if (q.correctCount !== undefined || q.incorrectCount !== undefined) {
     const correctnessTotal = (q.correctCount ?? 0) + (q.incorrectCount ?? 0);
     const correctnessLabel =
-      q.type === 'MULTIPLE_CHOICE' ? labels.multipleChoiceFullyCorrect : labels.shortTextCorrect;
+      q.type === 'MULTIPLE_CHOICE'
+        ? labels.multipleChoiceFullyCorrect
+        : q.type === 'ORDERING' || q.type === 'MATCHING' || q.type === 'CATEGORIZATION'
+          ? labels.structuredFullyCorrect
+          : labels.shortTextCorrect;
     body += `<p class="report-correctness-summary"><strong>${escapeHtml(correctnessLabel)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(
       labels.countOfTemplate
         .replace('{0}', formatLocaleCount(q.correctCount ?? 0, localeId))

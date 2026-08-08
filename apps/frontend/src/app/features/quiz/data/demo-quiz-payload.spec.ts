@@ -4,7 +4,7 @@ import { getDemoQuizPayload, getDemoQuizSeedFingerprint } from './demo-quiz-payl
 describe('getDemoQuizSeedFingerprint', () => {
   it('ändert sich mit exportVersion, Motiv-URL und komplettem Payload (Demo-Reseed)', () => {
     const de = getDemoQuizSeedFingerprint('de');
-    expect(de).toMatch(/^de\|27\|/);
+    expect(de).toMatch(/^de\|28\|/);
     expect(de).toContain(
       'https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg',
     );
@@ -60,8 +60,8 @@ describe('getDemoQuizSeedFingerprint', () => {
         (question) => question.type === 'NUMERIC_ESTIMATE' && question.text?.includes(headline),
       );
 
-      expect(payload.exportVersion).toBe(27);
-      expect(payload.quiz?.questions).toHaveLength(9);
+      expect(payload.exportVersion).toBe(28);
+      expect(payload.quiz?.questions).toHaveLength(12);
       expect(estimateQuestion?.text).toContain(headline);
       expect(estimateQuestion).toMatchObject({
         order: 7,
@@ -197,7 +197,7 @@ describe('getDemoQuizSeedFingerprint', () => {
   });
 
   it('aktiviert den Sicherheitsgrad an ausgewählten bewertbaren Showcase-Fragen', () => {
-    const confidenceOrders = new Set([1, 2, 3, 4, 6, 7]);
+    const confidenceOrders = new Set([1, 2, 3, 4, 6, 7, 8, 9, 10]);
 
     for (const locale of ['de', 'en', 'es', 'fr', 'it'] as const) {
       const payload = getDemoQuizPayload(locale) as {
@@ -246,7 +246,7 @@ describe('getDemoQuizSeedFingerprint', () => {
         };
       };
 
-      expect(payload.quiz?.questions).toHaveLength(9);
+      expect(payload.quiz?.questions).toHaveLength(12);
       expect(payload.quiz?.questions?.some((question) => question.text?.includes('58 cm'))).toBe(
         false,
       );

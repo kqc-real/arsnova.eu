@@ -14,6 +14,12 @@ import {
   resolvePersonalTimerSeconds,
   SetTimerAccommodationInputSchema,
   SubmitVoteInputSchema,
+  evaluateMatchingAnswer,
+  evaluateOrderingAnswer,
+  evaluateCategorizationAnswer,
+  stableShuffleWithContext,
+  buildMatchingStats,
+  buildOrderingStats,
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
 } from './schemas.js';
@@ -313,5 +319,131 @@ describe('tRPC-WebSocket-Participant-Binding', () => {
         participantId: 'not-a-uuid',
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
+  it('deterministisches stableShuffleWithContext ist stabil pro Participant & Question', () => {
+    const items = ['A', 'B', 'C', 'D', 'E'];
+    const p1_q1_run1 = stableShuffleWithContext(items, 'participant-1', 'question-100');
+    const p1_q1_run2 = stableShuffleWithContext(items, 'participant-1', 'question-100');
+    const p2_q1_run1 = stableShuffleWithContext(items, 'participant-2', 'question-100');
+
+    expect(p1_q1_run1).toEqual(p1_q1_run2);
+    expect(p1_q1_run1).not.toEqual(items); // Shuffled
+    expect(p1_q1_run1).not.toEqual(p2_q1_run1); // Differing seed for different participant
+  });
+
+  it('wertet MATCHING-Antworten korrekt aus (100% Treffer nötig)', () => {
+    const pairs = [
+      { left: 'HTTP 200', right: 'OK' },
+      { left: 'HTTP 404', right: 'Not Found' },
+    ];
+    const correct = [
+      { left: 'HTTP 200', right: 'OK' },
+      { left: 'HTTP 404', right: 'Not Found' },
+    ];
+    const wrong = [
+      { left: 'HTTP 200', right: 'Not Found' },
+      { left: 'HTTP 404', right: 'OK' },
+    ];
+
+    expect(evaluateMatchingAnswer(correct, pairs)).toBe(true);
+    expect(evaluateMatchingAnswer(wrong, pairs)).toBe(false);
+  });
+
+  it('wertet ORDERING-Antworten korrekt aus', () => {
+    const correctSeq = ['id-1', 'id-2', 'id-3'];
+    expect(evaluateOrderingAnswer(['id-1', 'id-2', 'id-3'], correctSeq)).toBe(true);
+    expect(evaluateOrderingAnswer(['id-2', 'id-1', 'id-3'], correctSeq)).toBe(false);
+  });
+
+  it('wertet CATEGORIZATION-Antworten korrekt aus', () => {
+    const model = [
+      { text: 'Angular', correctCategoryId: 'fe' },
+      { text: 'Node', correctCategoryId: 'be' },
+    ];
+    const correctSel = [
+      { text: 'Angular', categoryId: 'fe' },
+      { text: 'Node', categoryId: 'be' },
+    ];
+    const wrongSel = [
+      { text: 'Angular', categoryId: 'be' },
+      { text: 'Node', categoryId: 'fe' },
+    ];
+
+    expect(evaluateCategorizationAnswer(correctSel, model)).toBe(true);
+    expect(evaluateCategorizationAnswer(wrongSel, model)).toBe(false);
+  });
+
+  it('validiert SubmitVoteInput für MATCHING, ORDERING und CATEGORIZATION', () => {
+    const baseVote = { sessionId, participantId, questionId };
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        matchingSelections: [
+          { left: 'HTTP 200', right: 'OK' },
+          { left: 'HTTP 404', right: 'Not Found' },
+        ],
+      }).success,
+    ).toBe(true);
+
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        orderingSequence: ['Step 1', 'Step 2', 'Step 3'],
+      }).success,
+    ).toBe(true);
+
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        categorizationSelections: [
+          { text: 'Angular', categoryId: 'fe' },
+          { text: 'Node', categoryId: 'be' },
+          { text: 'React', categoryId: 'fe' },
+          { text: 'Express', categoryId: 'be' },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('aggregiert Matching- und Ordering-Statistiken', () => {
+    const matchingStats = buildMatchingStats(
+      [
+        {
+          selections: [
+            { left: 'A', right: '1' },
+            { left: 'B', right: '2' },
+          ],
+        },
+        {
+          selections: [
+            { left: 'A', right: '2' },
+            { left: 'B', right: '1' },
+          ],
+        },
+      ],
+      [
+        { left: 'A', right: '1' },
+        { left: 'B', right: '2' },
+      ],
+    );
+    expect(matchingStats.fullyCorrectCount).toBe(1);
+    expect(matchingStats.pairHitRates[0]?.hitRatePercent).toBe(50);
+    expect(matchingStats.commonConfusions[0]?.wrongRight).toBe('2');
+
+    const orderingStats = buildOrderingStats(
+      [{ sequence: ['a', 'b', 'c'] }, { sequence: ['b', 'a', 'c'] }],
+      [
+        { id: 'a', text: 'A' },
+        { id: 'b', text: 'B' },
+        { id: 'c', text: 'C' },
+      ],
+    );
+    expect(orderingStats.fullyCorrectCount).toBe(1);
+    expect(orderingStats.commonSwaps.length).toBeGreaterThan(0);
+    // One adjacent transposition (a↔b) must count once per vote, not twice.
+    expect(orderingStats.commonSwaps[0]?.count).toBe(1);
   });
 });

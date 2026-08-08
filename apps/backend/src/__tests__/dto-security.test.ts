@@ -19,7 +19,10 @@ describe('DTO security (Story 2.4)', () => {
 
   it('accepts valid ACTIVE payload without isCorrect (QuestionStudentDTO)', () => {
     const parsed = QuestionStudentDTOSchema.parse(validStudentPayload);
-    expect(parsed.answers[0]).toEqual({ id: validStudentPayload.answers[0]!.id, text: validStudentPayload.answers[0]!.text });
+    expect(parsed.answers[0]).toEqual({
+      id: validStudentPayload.answers[0]!.id,
+      text: validStudentPayload.answers[0]!.text,
+    });
     expect(Object.prototype.hasOwnProperty.call(parsed.answers[0] ?? {}, 'isCorrect')).toBe(false);
   });
 
@@ -52,5 +55,47 @@ describe('DTO security (Story 2.4)', () => {
     if (withIsCorrect.success) {
       expect(withIsCorrect.data.isCorrect).toBe(false);
     }
+  });
+
+  it('strips solution data (correctCategoryId) from CATEGORIZATION QuestionStudentDTO', () => {
+    const categorizationStudentPayload = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Ordne die Elemente zu',
+      type: 'CATEGORIZATION' as const,
+      timer: 30,
+      difficulty: 'MEDIUM' as const,
+      order: 1,
+      answers: [],
+      categories: [{ id: 'cat1', name: 'Kategorie 1' }],
+      categorizationItems: [{ text: 'Element A' }],
+    };
+
+    const parsed = QuestionStudentDTOSchema.parse(categorizationStudentPayload);
+    expect(parsed.categorizationItems?.[0]).toEqual({ text: 'Element A' });
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        parsed.categorizationItems?.[0] ?? {},
+        'correctCategoryId',
+      ),
+    ).toBe(false);
+  });
+
+  it('strips matching solution pairing from ACTIVE MATCHING QuestionStudentDTO', () => {
+    const matchingStudentPayload = {
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Ordne zu',
+      type: 'MATCHING' as const,
+      timer: 30,
+      difficulty: 'MEDIUM' as const,
+      order: 1,
+      answers: [],
+      matchingLeftOptions: ['HTTP 200'],
+      matchingRightOptions: ['OK'],
+    };
+
+    const parsed = QuestionStudentDTOSchema.parse(matchingStudentPayload);
+    expect(parsed.matchingLeftOptions).toEqual(['HTTP 200']);
+    expect(parsed.matchingRightOptions).toEqual(['OK']);
+    expect((parsed as Record<string, unknown>)['matchingPairs']).toBeUndefined();
   });
 });
