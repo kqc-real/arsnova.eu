@@ -198,7 +198,10 @@ async function inspectHomeKeyboardNavigation(page) {
   // Footer-Mehr zuerst: Skip-Link/#main-content und Mobile-Menü dürfen Material-
   // restoreFocus für den Footer-Auslöser nicht als vorherigen Fokus „vergiften“.
   issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
-  await dismissOptionalOverlay(page);
+  // Footer-History-Check endet auf /help — zurück zur Startseite für Skip-Link/Mobile.
+  await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await dismissOptionalOverlay(page, true);
 
   await page.evaluate(() => {
     document.body.setAttribute('tabindex', '-1');
