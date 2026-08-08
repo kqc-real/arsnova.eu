@@ -195,6 +195,11 @@ async function inspectHomeKeyboardNavigation(page) {
   const issues = [];
   // Idle-MOTD kann nach dem ersten Dismiss noch nachziehen und Fokus stehlen.
   await dismissOptionalOverlay(page, true);
+  // Footer-Mehr zuerst: Skip-Link/#main-content und Mobile-Menü dürfen Material-
+  // restoreFocus für den Footer-Auslöser nicht als vorherigen Fokus „vergiften“.
+  issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
+  await dismissOptionalOverlay(page);
+
   await page.evaluate(() => {
     document.body.setAttribute('tabindex', '-1');
     document.body.focus();
@@ -261,7 +266,6 @@ async function inspectHomeKeyboardNavigation(page) {
     issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
   }
 
-  issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
   return issues;
 }
 
@@ -326,7 +330,18 @@ async function inspectFooterMoreKeyboardNavigation(page) {
       .catch(() => false);
   }
   if (!focusReturnedAfterEscape) {
-    issues.push('Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück');
+    const activeInfo = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!(el instanceof Element)) return { tag: null, id: null, cls: null };
+      return {
+        tag: el.tagName.toLowerCase(),
+        id: el.id || null,
+        cls: typeof el.className === 'string' ? el.className.slice(0, 80) : null,
+      };
+    });
+    issues.push(
+      `Fokus kehrt nach Escape nicht zum Footer-Mehr-Auslöser zurück (active=${activeInfo.tag}${activeInfo.id ? '#' + activeInfo.id : ''}${activeInfo.cls ? '.' + activeInfo.cls.split(/\s+/).slice(0, 2).join('.') : ''})`,
+    );
   }
 
   await moreButton.focus();

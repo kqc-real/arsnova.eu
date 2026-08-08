@@ -145,6 +145,13 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('footerMoreButton', { read: ElementRef })
   private footerMoreButton?: ElementRef<HTMLButtonElement>;
   private footerMoreFocusGraceTimers: number[] = [];
+  /** Escape hat das Footer-Mehr-Menü geschlossen → Fokus muss auf den Auslöser. */
+  private footerMoreClosedByEscape = false;
+  private readonly footerMoreEscapeCapture = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && this.footerMoreTrigger?.menuOpen) {
+      this.footerMoreClosedByEscape = true;
+    }
+  };
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -251,6 +258,8 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       // Vor Router-Events: kein veralteter Footer-Fokus nach Reload/Locale-Redirect.
       clearStaleContentPageFocusReturn();
+      // Capture: Flag setzen bevor Material das Menü schließt (HostListener wäre zu spät).
+      document.addEventListener('keydown', this.footerMoreEscapeCapture, true);
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
@@ -475,6 +484,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
     this.clearFooterMoreFocusGraceTimers();
     if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('keydown', this.footerMoreEscapeCapture, true);
       document.removeEventListener('visibilitychange', this.onDocumentVisibilityForPwaUpdate);
       document.removeEventListener(
         'visibilitychange',
@@ -837,13 +847,16 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Nach Schließen des Footer-Mehr-Menüs: Fokus auf Auslöser zurückholen, wenn
-   * Material-restoreFocus gegen Idle-MOTD/body verliert (a11y:layout /de/).
+   * Nach Escape-Schließen des Footer-Mehr-Menüs Fokus auf den Auslöser sichern.
+   * Material-restoreFocus kann gegen Skip-Link-/MOTD-Fokus verlieren (a11y:layout /de/).
    */
   onFooterMoreMenuClosed(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    const closedByEscape = this.footerMoreClosedByEscape;
+    this.footerMoreClosedByEscape = false;
+    if (!closedByEscape) return;
     this.clearFooterMoreFocusGraceTimers();
-    const run = (): void => this.ensureFooterMoreFocusAfterMenu();
+    const run = (): void => this.ensureFooterMoreFocusAfterEscape();
     queueMicrotask(run);
     this.footerMoreFocusGraceTimers.push(
       window.setTimeout(run, 0),
@@ -859,22 +872,22 @@ export class AppComponent implements OnInit, OnDestroy {
     this.footerMoreFocusGraceTimers = [];
   }
 
-  private ensureFooterMoreFocusAfterMenu(): void {
+  private ensureFooterMoreFocusAfterEscape(): void {
     if (typeof document === 'undefined') return;
     if (this.footerMoreTrigger?.menuOpen) return;
     const more =
       this.footerMoreButton?.nativeElement ??
       document.querySelector<HTMLButtonElement>('button[data-footer-focus="footer-more"]');
     if (!more?.isConnected) return;
+    if (document.activeElement === more) return;
+    // Dialog/Navigation nach Menüauswahl: nicht gegen konkurrierenden Fokus kämpfen.
     const active = document.activeElement;
-    if (active === more) return;
-    const lostToTransient =
-      !active ||
-      active === document.body ||
-      active === document.documentElement ||
-      (active instanceof Element &&
-        !!active.closest('.home-motd-sheet, .home-motd-layer, .cdk-overlay-backdrop'));
-    if (!lostToTransient) return;
+    if (
+      active instanceof Element &&
+      active.closest('.mat-mdc-dialog-panel, .app-status-help-dialog-panel')
+    ) {
+      return;
+    }
     try {
       more.focus({ preventScroll: true });
     } catch {
@@ -1013,6 +1026,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapePressed(): void {
+    if (this.footerMoreTrigger?.menuOpen) {
+      this.footerMoreClosedByEscape = true;
+    }
     if (this.presetToastVisible()) {
       this.closePresetToast();
     }
