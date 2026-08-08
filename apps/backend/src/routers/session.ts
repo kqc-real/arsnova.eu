@@ -176,6 +176,22 @@ const participantNicknameCache = new Map<
   { expiresAt: number; payload: { nicknames: string[]; participantCount: number } }
 >();
 
+/**
+ * Opaque shuffle seed for MATCHING/ORDERING/CATEGORIZATION option order.
+ * Mixes a server secret so clients cannot reconstruct the canonical order from public IDs.
+ */
+function buildStructuredOptionShuffleSeed(participantKey: string, questionId: string): string {
+  const secret =
+    process.env['STRUCTURED_SHUFFLE_SECRET']?.trim() || process.env['JWT_SECRET']?.trim() || '';
+  const material = `${participantKey}:${questionId}`;
+  if (secret.length > 0) {
+    return createHmac('sha256', secret).update(material, 'utf8').digest('hex');
+  }
+  return createHash('sha256')
+    .update(`arsnova-structured-shuffle-v1:${material}`, 'utf8')
+    .digest('hex');
+}
+
 function getEmojiKey(sessionId: string, questionId: string, round: number): string {
   const r = round >= 1 && round <= 2 ? round : 1;
   return `${sessionId}:${questionId}:r${r}`;
@@ -216,7 +232,7 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
   orderAnswersByDisplayMap,
@@ -6150,8 +6166,10 @@ export const sessionRouter = router({
           },
         )) as z.infer<typeof QuestionStudentDTOSchema>;
 
-        const shuffleSeed =
+        const participantKey =
           participantBelongsToSession && participantId ? participantId : 'anonymous';
+        // Salted seed so clients cannot reverse the shuffle from public participant/question IDs.
+        const shuffleSeed = buildStructuredOptionShuffleSeed(participantKey, question.id);
         const personalizedDto: z.infer<typeof QuestionStudentDTOSchema> = {
           ...baseDto,
           matchingRightOptions:
@@ -6806,7 +6824,14 @@ export const sessionRouter = router({
         s.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
 
         if (questionCountsTowardsTotalQuestions(v.question.type as QuestionType)) {
-          if (v.question.type === 'SHORT_TEXT' || v.question.type === 'NUMERIC_ESTIMATE') {
+          const voteQuestionType = v.question.type as QuestionType;
+          if (
+            voteQuestionType === 'SHORT_TEXT' ||
+            voteQuestionType === 'NUMERIC_ESTIMATE' ||
+            voteQuestionType === 'MATCHING' ||
+            voteQuestionType === 'ORDERING' ||
+            voteQuestionType === 'CATEGORIZATION'
+          ) {
             if (v.isCorrect ?? v.score > 0) {
               s.correctCount++;
             }
@@ -7303,7 +7328,13 @@ export const sessionRouter = router({
 
       let wasCorrect: boolean | null = null;
       if (isScored && myVote) {
-        if (questionType === 'SHORT_TEXT' || questionType === 'NUMERIC_ESTIMATE') {
+        if (
+          questionType === 'SHORT_TEXT' ||
+          questionType === 'NUMERIC_ESTIMATE' ||
+          questionType === 'MATCHING' ||
+          questionType === 'ORDERING' ||
+          questionType === 'CATEGORIZATION'
+        ) {
           wasCorrect = myVote.isCorrect ?? myVote.score > 0;
         } else {
           const selectedSet = new Set(myVote.selectedAnswers.map((a) => a.answerOptionId));

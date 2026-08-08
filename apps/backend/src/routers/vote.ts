@@ -476,21 +476,31 @@ export const voteRouter = router({
           }
           const leftSet = new Set(pairs.map((pair) => pair.left.trim()));
           const rightSet = new Set(pairs.map((pair) => pair.right.trim()));
+          const usedLefts = new Set<string>();
           const usedRights = new Set<string>();
           for (const selection of selections) {
-            if (!leftSet.has(selection.left.trim()) || !rightSet.has(selection.right.trim())) {
+            const left = selection.left.trim();
+            const right = selection.right.trim();
+            if (!leftSet.has(left) || !rightSet.has(right)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Zuordnung enthält ungültige Begriffe.',
               });
             }
-            if (usedRights.has(selection.right.trim())) {
+            if (usedLefts.has(left)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Jeder linke Begriff darf nur einmal zugeordnet werden.',
+              });
+            }
+            if (usedRights.has(right)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Jeder rechte Begriff darf nur einmal zugeordnet werden.',
               });
             }
-            usedRights.add(selection.right.trim());
+            usedLefts.add(left);
+            usedRights.add(right);
           }
           break;
         }

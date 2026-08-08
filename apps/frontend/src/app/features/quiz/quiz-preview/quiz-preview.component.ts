@@ -60,10 +60,7 @@ import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dial
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { answerOptionColor, answerOptionShape } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
-import {
-  renderMarkdownWithKatex,
-  stripLeadingOrderedListLabel,
-} from '../../../shared/markdown-katex.util';
+import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
@@ -839,9 +836,9 @@ export class QuizPreviewComponent implements OnDestroy {
     return rendered;
   }
 
-  /** Ordering-Item-Text ohne doppelte Positionsnummer (UI zeigt bereits 1., 2., …). */
+  /** Ordering-Item-Text inkl. führender Zahlen (z. B. „9. November“); escapeListMarkers verhindert <ol>. */
   renderOrderingItemMarkdown(value: string): SafeHtml {
-    return this.renderAnswerMarkdown(stripLeadingOrderedListLabel(value));
+    return this.renderAnswerMarkdown(value);
   }
 
   ratingScaleValues(min: number | null, max: number | null): number[] {

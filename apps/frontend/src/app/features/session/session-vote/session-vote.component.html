@@ -1541,6 +1541,7 @@
                       >
                       <mat-select
                         [value]="sel.right"
+                        [attr.aria-label]="matchingSelectAriaLabel(sel.left)"
                         (selectionChange)="setMatchingSelection(sel.left, $event.value)"
                         [disabled]="voteInteractionLocked()"
                       >
@@ -1602,6 +1603,7 @@
                       >
                       <mat-select
                         [value]="sel.categoryId"
+                        [attr.aria-label]="categorizationSelectAriaLabel(sel.text)"
                         (selectionChange)="setCategorizationSelection(sel.text, $event.value)"
                         [disabled]="voteInteractionLocked()"
                       >

@@ -58,10 +58,7 @@ import {
 } from '../../../core/locale-from-path';
 import { trpc } from '../../../core/trpc.client';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
-import {
-  renderMarkdownWithKatex,
-  stripLeadingOrderedListLabel,
-} from '../../../shared/markdown-katex.util';
+import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import {
   answerOptionColor,
@@ -281,7 +278,10 @@ function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | unde
     type === 'SINGLE_CHOICE' ||
     type === 'MULTIPLE_CHOICE' ||
     type === 'SHORT_TEXT' ||
-    type === 'NUMERIC_ESTIMATE'
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
   );
 }
 
@@ -4047,7 +4047,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   renderOrderingItemMarkdown(value: string): SafeHtml {
-    return this.renderMarkdown(stripLeadingOrderedListLabel(value), 4);
+    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    return this.renderMarkdown(value, 4);
   }
 
   hostQuestionTypeLabel(type: HostCurrentQuestionDTO['type']): string {

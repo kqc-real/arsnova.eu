@@ -1360,17 +1360,20 @@ export const CategorizationItemStudentDTOSchema = z.object({
 });
 export type CategorizationItemStudentDTO = z.infer<typeof CategorizationItemStudentDTOSchema>;
 
-/** Deterministischer Shuffle über FNV-1a Hash aus Seed (participantId + questionId) */
+/**
+ * Deterministischer Shuffle über FNV-1a Hash aus Seed.
+ * Caller sollte einen serverseitig gesalzenen Seed übergeben (nicht nur öffentliche IDs).
+ */
 export function stableShuffleWithContext<T>(
   items: ReadonlyArray<T>,
-  participantId: string,
-  questionId: string,
+  seedPartA: string,
+  seedPartB: string,
 ): T[] {
   const result = [...items];
   if (result.length <= 1) return result;
 
   let h = 2166136261;
-  const str = `${participantId}:${questionId}`;
+  const str = `${seedPartA}:${seedPartB}`;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
     h = Math.imul(h, 16777619);
@@ -1569,17 +1572,19 @@ export function buildOrderingStats(
       const key = `${position}\u0000${itemId}`;
       positionCounts.set(key, (positionCounts.get(key) ?? 0) + 1);
     });
+    // Count each transposition at most once per vote (pair A↔B, not twice from both positions).
+    const seenSwapsInVote = new Set<string>();
     for (let i = 0; i < correctSequence.length; i++) {
       const expected = correctSequence[i];
       const actual = vote.sequence[i];
       if (!expected || !actual || expected === actual) continue;
       const expectedPos = vote.sequence.indexOf(expected);
       if (expectedPos < 0) continue;
-      if (vote.sequence[i] === expected) continue;
-      // Adjacent inversion: items swapped relative to correct order
       const a = expected < actual ? expected : actual;
       const b = expected < actual ? actual : expected;
       const swapKey = `${a}\u0000${b}`;
+      if (seenSwapsInVote.has(swapKey)) continue;
+      seenSwapsInVote.add(swapKey);
       swapCounts.set(swapKey, (swapCounts.get(swapKey) ?? 0) + 1);
     }
   }

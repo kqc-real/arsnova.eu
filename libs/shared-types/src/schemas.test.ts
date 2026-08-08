@@ -443,5 +443,7 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
     );
     expect(orderingStats.fullyCorrectCount).toBe(1);
     expect(orderingStats.commonSwaps.length).toBeGreaterThan(0);
+    // One adjacent transposition (a↔b) must count once per vote, not twice.
+    expect(orderingStats.commonSwaps[0]?.count).toBe(1);
   });
 });

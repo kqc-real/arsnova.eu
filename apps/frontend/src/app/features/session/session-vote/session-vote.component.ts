@@ -33,10 +33,7 @@ import {
   localizeKnownServerError,
   localizeKnownServerMessage,
 } from '../../../core/localize-known-server-message';
-import {
-  renderMarkdownWithKatex,
-  stripLeadingOrderedListLabel,
-} from '../../../shared/markdown-katex.util';
+import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import {
   answerOptionColor,
@@ -233,7 +230,10 @@ function isScoredQuestionType(type: CurrentQuestion['type'] | null | undefined):
     type === 'SINGLE_CHOICE' ||
     type === 'MULTIPLE_CHOICE' ||
     type === 'SHORT_TEXT' ||
-    type === 'NUMERIC_ESTIMATE'
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
   );
 }
 
@@ -2768,7 +2768,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderOrderingItemMarkdown(value: string): SafeHtml {
-    return this.renderMarkdown(stripLeadingOrderedListLabel(value), 4);
+    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    return this.renderMarkdown(value, 4);
   }
 
   renderQuestionMarkdown(value: string): SafeHtml {
@@ -3993,6 +3994,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSentEmoji.set('');
         this.initStructuredQuestionState(q);
         this.startCountdown(q);
+      } else if (this.shouldReinitStructuredQuestionState(prev, q)) {
+        // QUESTION_OPEN liefert Preview ohne Structured-Optionen; bei ACTIVE nachziehen.
+        this.initStructuredQuestionState(q);
       } else if (prevHadTimer && !newHasTimer) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
@@ -4010,12 +4014,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const isScored = isScoredQuestionType(qType);
 
         if (isScored) {
-          let answeredCorrectly = false;
+          let answeredCorrectly: boolean | null = null;
 
           if ('type' in q && q.type === 'SHORT_TEXT') {
             answeredCorrectly = this.isShortTextResponseCorrectForQuestion(q);
           } else if ('type' in q && q.type === 'NUMERIC_ESTIMATE') {
             answeredCorrectly = this.isNumericEstimateResponseCorrectForQuestion(q);
+          } else if (
+            'type' in q &&
+            (q.type === 'MATCHING' || q.type === 'ORDERING' || q.type === 'CATEGORIZATION')
+          ) {
+            // Stored server correctness (scorecard); avoid false "wrong" from empty answers[].
+            answeredCorrectly = this.scorecard()?.wasCorrect ?? null;
           } else if ('answers' in q) {
             const selected = this.selectedAnswerIds();
             const revealed = (q as QuestionRevealedDTO).answers;
@@ -4027,24 +4037,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
               [...selected].every((id) => correctIds.has(id));
           }
 
-          if (answeredCorrectly && settings.enableRewardEffects) {
-            this.showRewardEffect.set(true);
-          }
-          if (settings.enableMotivationMessages) {
-            const playful = this.isPlayfulPreset();
-            this.motivationMessage.set(
-              'type' in q && q.type === 'NUMERIC_ESTIMATE'
-                ? this.numericEstimateMotivationMessage(q)
-                : pickRandom(
-                    answeredCorrectly
-                      ? playful
-                        ? MESSAGES_CORRECT_PLAYFUL
-                        : MESSAGES_CORRECT_SERIOUS
-                      : playful
-                        ? MESSAGES_WRONG_PLAYFUL
-                        : MESSAGES_WRONG_SERIOUS,
-                  ),
-            );
+          if (answeredCorrectly !== null) {
+            if (answeredCorrectly && settings.enableRewardEffects) {
+              this.showRewardEffect.set(true);
+            }
+            if (settings.enableMotivationMessages) {
+              const playful = this.isPlayfulPreset();
+              this.motivationMessage.set(
+                'type' in q && q.type === 'NUMERIC_ESTIMATE'
+                  ? this.numericEstimateMotivationMessage(q)
+                  : pickRandom(
+                      answeredCorrectly
+                        ? playful
+                          ? MESSAGES_CORRECT_PLAYFUL
+                          : MESSAGES_CORRECT_SERIOUS
+                        : playful
+                          ? MESSAGES_WRONG_PLAYFUL
+                          : MESSAGES_WRONG_SERIOUS,
+                    ),
+              );
+            }
           }
         }
       }
@@ -4248,12 +4260,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionVote.matchingProgress:${done}:done: von ${total}:total: zugeordnet`;
   }
 
+  matchingSelectAriaLabel(left: string): string {
+    return $localize`:@@sessionVote.matchingSelectAria:Zuordnung für „${left}:item:“`;
+  }
+
   categorizationProgressLabel(): string {
     const total = this.categorizationSelectionsState().length;
     const done = this.categorizationSelectionsState().filter((selection) =>
       Boolean(selection.categoryId),
     ).length;
     return $localize`:@@sessionVote.categorizationProgress:${done}:done: von ${total}:total: eingeordnet`;
+  }
+
+  categorizationSelectAriaLabel(itemText: string): string {
+    return $localize`:@@sessionVote.categorizationSelectAria:Kategorie für „${itemText}:item:“`;
   }
 
   setCategorizationSelection(text: string, categoryId: string): void {
@@ -4271,6 +4291,57 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const cats = this.getCategoriesForCurrentQuestion();
     const found = cats.find((c) => c.id === catId);
     return found?.name ?? catId;
+  }
+
+  private questionHasStructuredVotePayload(question: CurrentQuestion | null): boolean {
+    if (!question || !('type' in question)) return false;
+    if (question.type === 'ORDERING') {
+      return (
+        'orderingItems' in question &&
+        Array.isArray(question.orderingItems) &&
+        question.orderingItems.length > 0
+      );
+    }
+    if (question.type === 'MATCHING') {
+      return (
+        'matchingLeftOptions' in question &&
+        Array.isArray(question.matchingLeftOptions) &&
+        question.matchingLeftOptions.length > 0
+      );
+    }
+    if (question.type === 'CATEGORIZATION') {
+      return (
+        'categorizationItems' in question &&
+        Array.isArray(question.categorizationItems) &&
+        question.categorizationItems.length > 0
+      );
+    }
+    return false;
+  }
+
+  private structuredVoteStateIsEmpty(question: CurrentQuestion): boolean {
+    if (!('type' in question)) return true;
+    if (question.type === 'ORDERING') return this.orderingItemsState().length === 0;
+    if (question.type === 'MATCHING') return this.matchingSelectionsState().length === 0;
+    if (question.type === 'CATEGORIZATION') {
+      return this.categorizationSelectionsState().length === 0;
+    }
+    return true;
+  }
+
+  private shouldReinitStructuredQuestionState(
+    prev: CurrentQuestion | null,
+    next: CurrentQuestion | null,
+  ): boolean {
+    if (!next || !('type' in next)) return false;
+    if (next.type !== 'ORDERING' && next.type !== 'MATCHING' && next.type !== 'CATEGORIZATION') {
+      return false;
+    }
+    if (!this.questionHasStructuredVotePayload(next)) return false;
+    if (this.structuredVoteStateIsEmpty(next)) return true;
+    return (
+      this.questionHasStructuredVotePayload(next) && !this.questionHasStructuredVotePayload(prev)
+    );
   }
 
   private initStructuredQuestionState(question: CurrentQuestion | null): void {

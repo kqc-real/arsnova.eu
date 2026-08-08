@@ -47,10 +47,10 @@ describe('renderMarkdownWithKatex', () => {
     expect(withEscape.html).toContain('2. Transkription');
   });
 
-  it('entfernt führende Ordnungsnummern nur für Ordering-Labels', () => {
-    expect(stripLeadingOrderedListLabel('1. Entwindung: DNA')).toBe('Entwindung: DNA');
-    expect(stripLeadingOrderedListLabel('12. Kernexport')).toBe('Kernexport');
-    expect(stripLeadingOrderedListLabel('9. November 1918')).toBe('November 1918');
+  it('bewahrt führende Zahlen in Ordering-/Kurzlabels (kein Strip von „9. November“)', () => {
+    expect(stripLeadingOrderedListLabel('1. Entwindung: DNA')).toBe('1. Entwindung: DNA');
+    expect(stripLeadingOrderedListLabel('12. Kernexport')).toBe('12. Kernexport');
+    expect(stripLeadingOrderedListLabel('9. November 1918')).toBe('9. November 1918');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {

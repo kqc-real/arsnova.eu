@@ -89,11 +89,11 @@ export function escapeLeadingMarkdownListMarkers(source: string): string {
 }
 
 /**
- * Entfernt eine führende Ordnungsnummer („1. “, „12. “) aus Ordering-Item-Texten.
- * Nur für Reihenfolge-Elemente nutzen — nicht für Matching-Daten wie „9. November 1918“.
+ * Früher: entfernte führende Ordnungsnummern. Das zerstörte legitime Texte wie „9. November“.
+ * Beibehalten als No-Op für Aufrufer; für List-Rendering `escapeLeadingMarkdownListMarkers` nutzen.
  */
 export function stripLeadingOrderedListLabel(text: string): string {
-  return text.replace(/^\s*\d+\.\s+/, '');
+  return text;
 }
 
 export function renderMarkdownWithKatex(
