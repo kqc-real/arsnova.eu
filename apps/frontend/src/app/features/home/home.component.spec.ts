@@ -981,6 +981,56 @@ describe('HomeComponent', () => {
       outside.remove();
     });
 
+    it('rendert MOTD nicht solange der Fokus auf Footer-Mehr liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const footer = document.createElement('footer');
+      footer.className = 'app-footer';
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.setAttribute('data-footer-focus', 'footer-more');
+      more.textContent = 'Mehr';
+      footer.append(more);
+      document.body.append(footer);
+      more.focus();
+      expect(document.activeElement).toBe(more);
+
+      const fixture = createHomeFixture();
+      await fixture.componentInstance['loadMotdOverlay']();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).toBeNull();
+      expect(document.activeElement).toBe(more);
+
+      const outside = document.createElement('button');
+      outside.type = 'button';
+      outside.textContent = 'Außerhalb';
+      document.body.append(outside);
+      outside.focus();
+      fixture.detectChanges();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(fixture.componentInstance.motd()).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-layer')).not.toBeNull();
+
+      footer.remove();
+      outside.remove();
+    });
+
     it('öffnet aufgeschobenes MOTD nicht bei Fokus im Sprachmenü-Overlay', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

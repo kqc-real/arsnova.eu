@@ -193,6 +193,8 @@ async function inspectKeyboardFocus(page) {
 
 async function inspectHomeKeyboardNavigation(page) {
   const issues = [];
+  // Idle-MOTD kann nach dem ersten Dismiss noch nachziehen und Fokus stehlen.
+  await dismissOptionalOverlay(page, true);
   await page.evaluate(() => {
     document.body.setAttribute('tabindex', '-1');
     document.body.focus();
@@ -270,6 +272,7 @@ async function inspectHomeKeyboardNavigation(page) {
  */
 async function inspectFooterMoreKeyboardNavigation(page) {
   const issues = [];
+  await dismissOptionalOverlay(page);
   const moreButton = page.locator('button[data-footer-focus="footer-more"]');
   await moreButton.waitFor({ state: 'visible', timeout: 5_000 });
 
