@@ -2,7 +2,7 @@ import { lookup as dnsLookup } from 'node:dns/promises';
 import type { LookupAddress } from 'node:dns';
 import { Agent, request, type Dispatcher } from 'undici';
 import ipaddr from 'ipaddr.js';
-import { imageSize } from 'image-size';
+import { readAllowedImageDimensions } from './allowedImageDimensions';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_MAX_BYTES = 400_000;
@@ -223,10 +223,8 @@ function validateImageType(response: SafeFetchResponse, bytes: Uint8Array): Safe
       'Animierte oder komplexe Bildformate sind für PDF-Berichte nicht zulässig.',
     );
   }
-  let dimensions: ReturnType<typeof imageSize>;
-  try {
-    dimensions = imageSize(bytes);
-  } catch {
+  const dimensions = readAllowedImageDimensions(bytes, detected as SafeExternalImage['mimeType']);
+  if (!dimensions) {
     throw new SafeExternalImageFetchError('INVALID_IMAGE_TYPE', 'Die Bildstruktur ist ungültig.');
   }
   const width = dimensions.width;

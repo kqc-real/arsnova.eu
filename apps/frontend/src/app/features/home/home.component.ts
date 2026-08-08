@@ -820,10 +820,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const activeElement = document.activeElement;
-    if (
-      this.isToolbarOrToolbarOverlayFocus(activeElement instanceof Element ? activeElement : null)
-    ) {
-      // Kein Vollbild-Layer über Toolbar-/Overlay-Fokus (Menü, News-Dialog): Öffnen aufschieben.
+    if (this.isChromeOrOverlayFocus(activeElement instanceof Element ? activeElement : null)) {
+      // Kein Vollbild-Layer über Toolbar-/Footer-/Overlay-Fokus (Menü, News-Dialog): Öffnen aufschieben.
       this.deferMotdUntilToolbarBlur(motd);
       return;
     }
@@ -862,9 +860,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.toolbarMotdFocusListener = () => {
       const active = document.activeElement;
-      // Toolbar-Host und zugehörige Material-Overlays (Sprachmenü, News-Dialog) —
-      // Overlays liegen in `.cdk-overlay-container`, nicht unter `app-top-toolbar`.
-      if (this.isToolbarOrToolbarOverlayFocus(active)) {
+      // Toolbar/Footer und zugehörige Material-Overlays (Sprachmenü, News-/Mehr-Menü) —
+      // Overlays liegen in `.cdk-overlay-container`, nicht unter `app-top-toolbar`/`footer`.
+      if (this.isChromeOrOverlayFocus(active)) {
         return;
       }
       const pending = this.pendingToolbarDeferredMotd;
@@ -883,12 +881,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     document.addEventListener('focusin', this.toolbarMotdFocusListener, true);
   }
 
-  /** Fokus in Toolbar oder in einem CDK-Overlay (MatMenu/MatDialog aus der Toolbar). */
-  private isToolbarOrToolbarOverlayFocus(active: Element | null): boolean {
+  /** Fokus in Toolbar, Footer oder zugehörigem CDK-Overlay (MatMenu/MatDialog). */
+  private isChromeOrOverlayFocus(active: Element | null): boolean {
     if (!(active instanceof Element)) {
       return false;
     }
     if (active.closest('app-top-toolbar')) {
+      return true;
+    }
+    // Footer-Mehr/Menü: Escape stellt Fokus auf Mehr zurück — MOTD darf das nicht stehlen.
+    if (active.closest('footer, .app-footer, [data-footer-focus]')) {
       return true;
     }
     return !!active.closest('.cdk-overlay-pane');

@@ -27,7 +27,6 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "highlight.js": "^11.11.1",
-    "image-size": "^2.0.2",
     "ioredis": "^5.10.0",
     "ipaddr.js": "^2.4.0",
     "katex": "^0.18.1",
