@@ -5187,4 +5187,192 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.voteAnswerReady()).toBe(false);
     fixture.destroy();
   });
+
+  it('initialisiert Ordering in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'ordering-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+        { id: 'item-c', text: 'C' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      orderingSequence: ['item-c', 'item-b', 'item-a'],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.orderingItemsState.set([
+      { id: 'item-c', text: 'C' },
+      { id: 'item-b', text: 'B' },
+      { id: 'item-a', text: 'A' },
+    ]);
+    component.orderingSequenceState.set(['item-c', 'item-b', 'item-a']);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.orderingSequenceState()).toEqual(['item-a', 'item-b', 'item-c']);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.moveOrderingItemDown(0);
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').orderingSequence).toEqual([
+      'item-b',
+      'item-a',
+      'item-c',
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
+
+  it('initialisiert Matching in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'matching-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Ordne zu',
+      type: 'MATCHING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      matchingLeftOptions: [
+        { id: 'left-a', text: 'A' },
+        { id: 'left-b', text: 'B' },
+      ],
+      matchingRightOptions: [
+        { id: 'right-1', text: '1' },
+        { id: 'right-2', text: '2' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      matchingSelections: [
+        { leftId: 'left-a', rightId: 'right-2' },
+        { leftId: 'left-b', rightId: 'right-1' },
+      ],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.matchingRightOptionsState.set(round1Question.matchingRightOptions);
+    component.matchingSelectionsState.set([
+      { leftId: 'left-a', leftText: 'A', rightId: 'right-2' },
+      { leftId: 'left-b', leftText: 'B', rightId: 'right-1' },
+    ]);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.matchingSelectionsState()).toEqual([
+      { leftId: 'left-a', leftText: 'A', rightId: '' },
+      { leftId: 'left-b', leftText: 'B', rightId: '' },
+    ]);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.setMatchingSelection('left-a', 'right-1');
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').matchingSelections).toEqual([
+      { leftId: 'left-a', rightId: 'right-1' },
+      { leftId: 'left-b', rightId: '' },
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
+
+  it('initialisiert Categorization in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'categorization-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Kategorisiere',
+      type: 'CATEGORIZATION',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      categories: [
+        { id: 'cat-a', name: 'A' },
+        { id: 'cat-b', name: 'B' },
+      ],
+      categorizationItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      categorizationSelections: [
+        { itemId: 'item-a', categoryId: 'cat-b' },
+        { itemId: 'item-b', categoryId: 'cat-a' },
+      ],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.categoriesState.set(round1Question.categories);
+    component.categorizationSelectionsState.set([
+      { itemId: 'item-a', itemText: 'A', categoryId: 'cat-b' },
+      { itemId: 'item-b', itemText: 'B', categoryId: 'cat-a' },
+    ]);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.categorizationSelectionsState()).toEqual([
+      { itemId: 'item-a', itemText: 'A', categoryId: '' },
+      { itemId: 'item-b', itemText: 'B', categoryId: '' },
+    ]);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.setCategorizationSelection('item-a', 'cat-a');
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').categorizationSelections).toEqual([
+      { itemId: 'item-a', categoryId: 'cat-a' },
+      { itemId: 'item-b', categoryId: '' },
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
 });

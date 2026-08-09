@@ -471,6 +471,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly voteClosed = signal(false);
   readonly voteError = signal<string | null>(null);
   readonly voteSending = signal(false);
+  readonly structuredRoundTransitionPending = signal(false);
   readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
@@ -1177,7 +1178,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return s !== null && s <= 0;
   });
   readonly voteInteractionLocked = computed(
-    () => this.voteSent() || this.voteSending() || this.timerExpired() || this.voteClosed(),
+    () =>
+      this.voteSent() ||
+      this.voteSending() ||
+      this.timerExpired() ||
+      this.voteClosed() ||
+      this.structuredRoundTransitionPending(),
   );
   readonly voteSubmissionLocked = computed(() => this.voteSent() || this.voteClosed());
 
@@ -1838,7 +1844,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
   readonly voteSubmitDisabled = computed(() => {
     if (!this.showVoteSubmitAction()) return true;
-    if (this.voteSending() || this.debounced() || this.voteClosed() || this.timerExpired()) {
+    if (
+      this.voteSending() ||
+      this.debounced() ||
+      this.voteClosed() ||
+      this.timerExpired() ||
+      this.structuredRoundTransitionPending()
+    ) {
       return true;
     }
 
@@ -3179,6 +3191,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private resetForSecondRoundStart(): void {
+    const question = this.currentQuestion();
+    this.structuredRoundTransitionPending.set(
+      question?.type === 'MATCHING' ||
+        question?.type === 'ORDERING' ||
+        question?.type === 'CATEGORIZATION',
+    );
     this.clearLateSubmitCloseTimeout();
     this.voteSent.set(false);
     this.voteClosed.set(false);
@@ -4035,6 +4053,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSentEmoji.set('');
         this.currentRound.set(qRound);
       }
+      const reinitStructuredForSecondRound =
+        this.structuredRoundTransitionPending() &&
+        qRound === 2 &&
+        this.questionHasStructuredVotePayload(q);
 
       if (newId !== prevId) {
         this.clearLateSubmitCloseTimeout();
@@ -4055,10 +4077,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
         this.initStructuredQuestionState(q);
+        this.structuredRoundTransitionPending.set(false);
         this.startCountdown(q);
-      } else if (this.shouldReinitStructuredQuestionState(prev, q)) {
+      } else if (
+        reinitStructuredForSecondRound ||
+        this.shouldReinitStructuredQuestionState(prev, q)
+      ) {
         // QUESTION_OPEN liefert Preview ohne Structured-Optionen; bei ACTIVE nachziehen.
         this.initStructuredQuestionState(q);
+        if (reinitStructuredForSecondRound) {
+          this.structuredRoundTransitionPending.set(false);
+        }
       } else if (prevHadTimer && !newHasTimer) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
