@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Unterrichts-Szenario: Demo-Quiz mit 30 Teilnehmenden, 12 Fragen, alle abstimmen.
+ * Unterrichts-Szenario: Demo-Quiz mit 30 Teilnehmenden, 13 Fragen, alle abstimmen.
  *
  * Ablauf (entspricht Live-Start des Praxis-Showcase):
  * 1. Host laedt Demo-Quiz hoch und erstellt Session
  * 2. 30 Teilnehmende joinen (Team-Modus, Kindergarten-Nicknames)
- * 3. Host oeffnet nacheinander alle 12 Fragen; TN voten jeweils
- * 4. Frage 8 (Franz. Revolution): zwei Runden (Peer Instruction mit Lernzuwachs)
+ * 3. Host oeffnet nacheinander alle 13 Fragen; TN voten jeweils
+ * 4. Frage 9 (Franz. Revolution): zwei Runden (Peer Instruction mit Lernzuwachs)
  * 5. Session endet mit FINISHED
  *
  * Die Vote-Verteilungen sind didaktisch ausbalanciert (Varianz, Distraktoren,
@@ -69,6 +69,14 @@ const PRIOR_KNOWLEDGE_NEEDLES_BY_LOCALE = {
   it: ['conoscenze pregresse'],
 };
 
+const FREETEXT_RESPONSES_BY_LOCALE = {
+  de: ['Praxis', 'Beispiele', 'Austausch', 'Visualisierung', 'Feedback'],
+  en: ['Practice', 'Examples', 'Discussion', 'Visualisation', 'Feedback'],
+  fr: ['Pratique', 'Exemples', 'Échanges', 'Visualisation', 'Retours'],
+  es: ['Práctica', 'Ejemplos', 'Intercambio', 'Visualización', 'Comentarios'],
+  it: ['Pratica', 'Esempi', 'Confronto', 'Visualizzazione', 'Feedback'],
+};
+
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const SESSION_CODE = String(process.env.SESSION_CODE || '')
   .trim()
@@ -76,13 +84,13 @@ const SESSION_CODE = String(process.env.SESSION_CODE || '')
 const HOST_TOKEN_ENV = String(process.env.HOST_TOKEN || '').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
-const EXPECTED_QUESTIONS = Math.max(1, Number(process.env.EXPECTED_QUESTIONS || 12));
+const EXPECTED_QUESTIONS = Math.max(1, Number(process.env.EXPECTED_QUESTIONS || 13));
 const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 /** Backend: max. 1 Vote/s pro Teilnehmer (checkVoteRate). */
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
 const CONFIDENCE_SEED = Number(process.env.CONFIDENCE_SEED || 20260713) >>> 0;
 /** Fragen mit Fehlkonzept-Hinweis für den Nachbesprechungsplan (MC + Würfel). */
-const PRIORITY_QUESTION_ORDERS = new Set([3, 4]);
+const PRIORITY_QUESTION_ORDERS = new Set([4, 5]);
 
 function createSeededRandom(seed) {
   let state = seed || 0x6d2b79f5;
@@ -299,10 +307,10 @@ function buildVoteInput(
         } else {
           answerId = correctId;
         }
-      } else if (metadata.order === 2) {
+      } else if (metadata.order === 3) {
         // ~40 % falsch bei niedriger Sicherheit → „Grundlage erneut erklären“
         answerId = participantIndex % 5 < 2 ? wrongId : correctId;
-      } else if (metadata.order === 5) {
+      } else if (metadata.order === 6) {
         // Code-Sprache: ~25 % richtig → empirisch schwierig
         answerId = participantIndex % 4 === 0 ? correctId : otherWrongId;
       } else {
@@ -364,7 +372,7 @@ function buildVoteInput(
                 : outsideBand[participantIndex % outsideBand.length],
           };
         }
-      } else if (metadata.order === 1) {
+      } else if (metadata.order === 2) {
         // π: Mehrheit exakt richtig, wenige Ausreißer
         vote = {
           ...base,
@@ -384,6 +392,11 @@ function buildVoteInput(
         freeText: participantIndex % 3 === 0 ? 'Peer Instruction' : 'Think Pair Share',
       };
       break;
+    case 'FREETEXT': {
+      const responses = FREETEXT_RESPONSES_BY_LOCALE[QUIZ_CONTENT_LOCALE];
+      vote = { ...base, freeText: responses[participantIndex % responses.length] };
+      break;
+    }
     case 'RATING':
       vote = {
         ...base,
@@ -485,7 +498,7 @@ function buildVoteInput(
       } else {
         vote.confidenceValue = randomConfidenceValue(1, 2);
       }
-    } else if (metadata.order === 1) {
+    } else if (metadata.order === 2) {
       vote.confidenceValue = randomConfidenceValue(1, 2);
     } else {
       vote.confidenceValue = randomConfidenceValue(1, 3);
