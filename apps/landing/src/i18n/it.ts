@@ -4,7 +4,7 @@ const it: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz in diretta, domande di stima numerica e bacheca delle domande',
     homeDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
     siteNameInfo: 'arsnova.eu – Informazioni',
     ogLocale: 'it_IT',
   },
@@ -209,7 +209,7 @@ const it: Messages = {
         number: '01',
         title: 'Prepara un quiz',
         description:
-          'Crea domande direttamente o importa contenuti esistenti. Markdown, KaTeX, risposta breve e domande di stima numerica sono integrati.',
+          'Crea domande direttamente o importa contenuti esistenti. Markdown, KaTeX, risposta breve, stima numerica, abbinamento, ordinamento e classificazione sono integrati.',
       },
       {
         number: '02',
@@ -263,7 +263,7 @@ const it: Messages = {
       {
         title: 'Più di un quiz standard',
         description:
-          'MC/SC, risposte brevi, valutazioni, fase di lettura, Peer Instruction e modalità presentatore supportano apprendimento, formazione e moderazione in diretta.',
+          'MC/SC, risposte brevi, valutazioni, abbinamento, ordinamento, classificazione, fase di lettura, Peer Instruction e modalità presentatore supportano apprendimento e moderazione in diretta.',
         icon: 'toggle',
       },
       {
@@ -301,6 +301,53 @@ const it: Messages = {
         description:
           'Docker, Postgres, Redis e registro di amministrazione rendono la piattaforma affidabile anche per distribuzione, gestione operativa e tracciabilità.',
         icon: 'server',
+      },
+    ],
+  },
+  structuredQuestionTypes: {
+    eyebrow: 'Tipi di domanda strutturati',
+    title: 'Abbinare, ordinare e classificare con interazioni complete e risultati utili',
+    lead: 'Tre formati trasformano relazioni, sequenze e confini concettuali in attività interattive. Le soluzioni restano nascoste durante la votazione e compaiono con gli errori frequenti solo dopo la rivelazione.',
+    interactionLabel: 'Interazione',
+    exampleLabel: 'Esempio didattico',
+    resultLabel: 'Risultati',
+    scoringNote:
+      'Tutti e tre i formati assegnano un punteggio. Attualmente una risposta riceve tutti i punti oppure nessun punto; non sono previsti punteggi parziali.',
+    revealNote:
+      'Durante un turno attivo restano nascosti gli abbinamenti corretti, la sequenza prevista e le categorie di destinazione. La soluzione e le distribuzioni dettagliate compaiono dopo la rivelazione.',
+    items: [
+      {
+        id: 'matching',
+        title: 'Abbinare',
+        description:
+          'Abbinare uno a uno termini, definizioni o esempi. I risultati mettono in evidenza gli abbinamenti confusi più spesso.',
+        interaction:
+          'Ogni termine riceve una sola destinazione, ogni destinazione viene usata una volta e tutti gli abbinamenti devono essere completati.',
+        example: 'Abbinare date storiche agli eventi corrispondenti.',
+        result: 'Coppie corrette, tassi di successo e destinazioni confuse più spesso.',
+        symbol: 'A↔B',
+      },
+      {
+        id: 'ordering',
+        title: 'Ordinare',
+        description:
+          'Disporre nella sequenza corretta passaggi, eventi o fasi di un processo. I risultati mostrano le posizioni che hanno creato maggiore incertezza.',
+        interaction:
+          'Tutti gli elementi formano una sequenza lineare completa con comandi di spostamento visibili e tastiera, senza richiedere il trascinamento.',
+        example: 'Ordinare le fasi di un processo biologico.',
+        result: 'Sequenza corretta, distribuzione per posizione e scambi frequenti.',
+        symbol: '1→3',
+      },
+      {
+        id: 'categorisation',
+        title: 'Classificare',
+        description:
+          'Assegnare termini o esempi alle categorie appropriate. I risultati evidenziano le distinzioni comprese e gli errori di classificazione più frequenti.',
+        interaction:
+          'Ogni elemento riceve esattamente una categoria e tutti gli elementi devono essere classificati.',
+        example: 'Classificare opere letterarie per periodo.',
+        result: 'Classificazione corretta, distribuzione per categoria ed errori frequenti.',
+        symbol: '▦',
       },
     ],
   },
@@ -386,7 +433,7 @@ const it: Messages = {
       {
         title: 'Più formati di interazione',
         description:
-          'Oltre al quiz: domande di stima numerica, fase di lettura, Peer Instruction, sondaggio rapido, bacheca delle domande e nuvola di parole pesata nella stessa piattaforma — non solo sondaggi su slide.',
+          'Oltre al quiz: abbinamento, ordinamento, classificazione, stima numerica, fase di lettura, Peer Instruction, sondaggio rapido, bacheca delle domande e nuvola di parole pesata in un’unica piattaforma.',
       },
       {
         title: 'Più controllo su dati e accesso',
@@ -462,7 +509,7 @@ const it: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informazioni',
     webAppDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
     featureList: [
       'Quiz in diretta e votazioni',
       'Autovalutazione sulle domande valutate',
@@ -470,7 +517,7 @@ const it: Messages = {
       'Domande di stima numerica con due turni e statistica',
       'Bacheca delle domande con moderazione, voti a favore e contro',
       'Sala d’attesa, presentatore, QR/codice',
-      'Tipi di domanda MC/SC/risposte brevi/testo libero/sondaggio/valutazione/stima numerica',
+      'Tipi di domanda MC/SC/risposte brevi/testo libero/sondaggio/valutazione/stima numerica/abbinamento/ordinamento/classificazione',
       'Markdown e KaTeX',
       'Fase di lettura e Peer Instruction',
       'Nuvola di parole Q&A e testo libero con frasi e pesatura',

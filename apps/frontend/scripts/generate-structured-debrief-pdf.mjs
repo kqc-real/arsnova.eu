@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Erzeugt den Nachbesprechungsplan-PDF für die drei Demo-Fragen
+ * Erzeugt lokalisierte Nachbesprechungsplan-PDFs für die drei Demo-Fragen
  * ORDERING / MATCHING / CATEGORIZATION mit realistischer, gestreuter Abstimmung.
  *
  * Run (Backend muss laufen):
@@ -8,7 +8,8 @@
  *     node apps/frontend/scripts/generate-structured-debrief-pdf.mjs
  *
  * Optional:
- *   PARTICIPANTS=20 OUTPUT=e2e/test-output/nachbesprechungsplan-strukturiert.pdf
+ *   PARTICIPANTS=20 DEMO_PDF_LOCALES=de,en,fr,es,it
+ *   OUTPUT=e2e/test-output/nachbesprechungsplan-strukturiert.{locale}.pdf
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -21,15 +22,22 @@ import {
   buildSessionResultsPlaywrightPdfOptions,
   buildQuestionContinuationStamps,
   stampQuestionContinuationsOnPdf,
-  getSessionResultsReportLabelsDe,
+  getSessionResultsReportLabelsForLocale,
 } from '@arsnova/session-export-report';
 import { kindergartenNickname } from '../../../scripts/load/lib/kindergarten-nicknames.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '../../..');
-const DEMO_QUIZ_JSON = join(__dirname, '../src/assets/demo/quiz-demo-showcase.de.json');
 const FRONTEND_ASSET_ROOT = join(REPO_ROOT, 'apps/frontend/src/assets');
 const STRUCTURED_TYPES = ['ORDERING', 'MATCHING', 'CATEGORIZATION'];
+const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'es', 'it'];
+const QUIZ_NAMES = {
+  de: 'Nachbesprechungsplan Strukturiert',
+  en: 'Structured debriefing plan',
+  fr: 'Plan de bilan structuré',
+  es: 'Plan estructurado para la puesta en común',
+  it: 'Piano strutturato per la discussione dei risultati',
+};
 
 const TRPC = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').replace(/\/+$/, '');
 const ASSET_BASE_URL = String(
@@ -39,10 +47,39 @@ const ASSET_BASE_URL = String(
 ).replace(/\/$/, '');
 const PARTICIPANT_COUNT = Math.max(8, Number(process.env.PARTICIPANTS || 20));
 const VOTE_COOLDOWN_MS = Math.max(1_100, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
-const OUT = resolve(
+const OUT_PATTERN = resolve(
   process.env.OUTPUT || join(REPO_ROOT, 'e2e/test-output/nachbesprechungsplan-strukturiert.pdf'),
 );
+const REQUESTED_LOCALES = String(process.env.DEMO_PDF_LOCALES || SUPPORTED_LOCALES.join(','))
+  .split(',')
+  .map((locale) => locale.trim().toLowerCase())
+  .filter(Boolean);
+const LOCALES = [...new Set(REQUESTED_LOCALES)];
+for (const locale of LOCALES) {
+  if (!SUPPORTED_LOCALES.includes(locale)) {
+    throw new Error(`Nicht unterstützte DEMO_PDF_LOCALES-Sprache: ${locale}`);
+  }
+}
+if (LOCALES.length === 0) {
+  throw new Error('DEMO_PDF_LOCALES muss mindestens eine Sprache enthalten.');
+}
 const sleep = (ms) => new Promise((resolveWait) => setTimeout(resolveWait, ms));
+
+function demoQuizJson(locale) {
+  return join(__dirname, `../src/assets/demo/quiz-demo-showcase.${locale}.json`);
+}
+
+function outputPathForLocale(locale) {
+  if (OUT_PATTERN.includes('{locale}')) {
+    return OUT_PATTERN.replaceAll('{locale}', locale);
+  }
+  if (LOCALES.length === 1) {
+    return OUT_PATTERN;
+  }
+  return OUT_PATTERN.toLowerCase().endsWith('.pdf')
+    ? `${OUT_PATTERN.slice(0, -4)}.${locale}.pdf`
+    : `${OUT_PATTERN}.${locale}.pdf`;
+}
 
 function createPublicTrpc() {
   return createTRPCProxyClient({ links: [httpBatchLink({ url: TRPC })] });
@@ -67,8 +104,8 @@ async function readDemoLocalAsset(relativePath) {
   }
 }
 
-async function loadStructuredQuizPayload() {
-  const raw = JSON.parse(await readFile(DEMO_QUIZ_JSON, 'utf8'));
+async function loadStructuredQuizPayload(locale) {
+  const raw = JSON.parse(await readFile(demoQuizJson(locale), 'utf8'));
   const quiz = raw.quiz;
   const byType = Object.fromEntries(
     quiz.questions
@@ -88,7 +125,7 @@ async function loadStructuredQuizPayload() {
   });
 
   return {
-    name: 'Nachbesprechungsplan Strukturiert',
+    name: QUIZ_NAMES[locale],
     description: quiz.description,
     motifImageUrl: quiz.motifImageUrl ?? null,
     showLeaderboard: true,
@@ -319,15 +356,15 @@ async function openQuestion(hostTrpc, publicTrpc, code) {
   return question;
 }
 
-async function renderPdf(exportData) {
-  const labels = getSessionResultsReportLabelsDe();
+async function renderPdf(exportData, locale) {
+  const labels = getSessionResultsReportLabelsForLocale(locale);
   let html = buildSessionResultsReportHtml(exportData, labels, {
-    localeId: 'de',
+    localeId: locale,
     generatedAt: new Date().toISOString(),
     assetBaseUrl: ASSET_BASE_URL,
     pageNumbersViaCss: false,
     pdfUaSafeVisuals: false,
-    quizContentLocale: 'de',
+    quizContentLocale: locale,
     includeTeachingNotes: true,
   });
   html = await inlineExportImagesInHtml(html, {
@@ -354,7 +391,7 @@ async function renderPdf(exportData) {
       buildQuestionContinuationStamps(exportData, labels),
       {
         documentTitle: `${labels.documentTitle} — ${exportData.quizName}`,
-        localeId: 'de',
+        localeId: locale,
         claimPdfUa: false,
       },
     );
@@ -381,17 +418,13 @@ function summarizeVotes(exportData) {
   });
 }
 
-async function main() {
-  const publicTrpc = createPublicTrpc();
-  await publicTrpc.health.check.query();
-
-  const quizPayload = await loadStructuredQuizPayload();
+async function generateLocalePdf(publicTrpc, locale) {
+  const quizPayload = await loadStructuredQuizPayload(locale);
   console.log(
-    `Demo-Fragen: ORDERING ${quizPayload.questions[0].orderingItems.length} · ` +
+    `[${locale}] Demo-Fragen: ORDERING ${quizPayload.questions[0].orderingItems.length} · ` +
       `MATCHING ${quizPayload.questions[1].matchingPairs.length} · ` +
       `CATEGORIZATION ${quizPayload.questions[2].categorizationItems.length}`,
   );
-  console.log(`Teilnehmende: ${PARTICIPANT_COUNT}`);
 
   const { quizId } = await publicTrpc.quiz.upload.mutate(quizPayload);
   const { code, hostToken } = await publicTrpc.session.create.mutate({
@@ -407,7 +440,7 @@ async function main() {
     participants.push(
       await publicTrpc.session.join.mutate({
         code,
-        nickname: kindergartenNickname(index),
+        nickname: `${kindergartenNickname(index)}-${locale.toUpperCase()}`,
         anonymousClientId: globalThis.crypto.randomUUID(),
       }),
     );
@@ -417,7 +450,7 @@ async function main() {
     const metadata = quizPayload.questions[questionIndex];
     const question = await openQuestion(hostTrpc, publicTrpc, code);
     if (question.type !== metadata.type) {
-      throw new Error(`Erwartet ${metadata.type}, aktiv ist ${question.type}`);
+      throw new Error(`[${locale}] Erwartet ${metadata.type}, aktiv ist ${question.type}`);
     }
     if (questionIndex > 0) {
       // Rate-Limit: 1 Vote/s pro Teilnehmer über Fragen hinweg
@@ -425,7 +458,7 @@ async function main() {
     }
     await submitVotes(publicTrpc, participants, question, metadata);
     await hostTrpc.session.revealResults.mutate({ code });
-    console.log(`OK ${metadata.type} ausgewertet`);
+    console.log(`[${locale}] OK ${metadata.type} ausgewertet`);
   }
 
   const finished = await hostTrpc.session.nextQuestion.mutate({ code });
@@ -434,12 +467,24 @@ async function main() {
   }
 
   const exportData = await hostTrpc.session.getExportData.query({ code });
-  console.log('Verteilung:', JSON.stringify(summarizeVotes(exportData), null, 2));
+  console.log(`[${locale}] Verteilung:`, JSON.stringify(summarizeVotes(exportData), null, 2));
 
-  const pdf = await renderPdf(exportData);
-  await mkdir(dirname(OUT), { recursive: true });
-  await writeFile(OUT, pdf);
-  console.log(JSON.stringify({ code, bytes: pdf.length, output: OUT }));
+  const pdf = await renderPdf(exportData, locale);
+  const output = outputPathForLocale(locale);
+  await mkdir(dirname(output), { recursive: true });
+  await writeFile(output, pdf);
+  return { locale, code, bytes: pdf.length, output };
+}
+
+async function main() {
+  const publicTrpc = createPublicTrpc();
+  await publicTrpc.health.check.query();
+  console.log(`Sprachen: ${LOCALES.join(', ')} · Teilnehmende je Sprache: ${PARTICIPANT_COUNT}`);
+  const results = [];
+  for (const locale of LOCALES) {
+    results.push(await generateLocalePdf(publicTrpc, locale));
+  }
+  console.log(JSON.stringify(results, null, 2));
 }
 
 try {

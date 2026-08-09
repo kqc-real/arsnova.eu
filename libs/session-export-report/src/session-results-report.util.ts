@@ -686,15 +686,24 @@ function renderStructuredSolutionHtml(
   }
 
   if (q.type === 'MATCHING' && q.matchingPairs?.length) {
-    const pairs = q.matchingPairs
+    const matchingColumns = q.matchingPairs.map((pair, index) => ({
+      ...pair,
+      key: String.fromCharCode(65 + index),
+    }));
+    const matchingMatrixPageClass =
+      matchingColumns.length >= 5 ? ' report-structured-matrix--new-page' : '';
+    const pairs = matchingColumns
       .map(
-        (pair) => `<li class="report-structured-pair">
+        (column) => `<li class="report-structured-pair">
           <span class="report-structured-pair-left">${escapeHtml(
-            stripMarkdownToPlainText(pair.left),
+            stripMarkdownToPlainText(column.left),
           )}</span>
           <span class="report-structured-pair-arrow" aria-hidden="true">→</span>
+          <span class="report-structured-pair-key" aria-label="${escapeHtml(
+            `${column.key}: ${stripMarkdownToPlainText(column.right)}`,
+          )}">${column.key}</span>
           <span class="report-structured-pair-right">${escapeHtml(
-            stripMarkdownToPlainText(pair.right),
+            stripMarkdownToPlainText(column.right),
           )}</span>
         </li>`,
       )
@@ -710,17 +719,23 @@ function renderStructuredSolutionHtml(
     </section>`;
     if (q.matchingStats) {
       const total = q.matchingStats.totalVotes;
-      const matchingColumns = q.matchingPairs.map((pair, index) => ({
-        ...pair,
-        key: String.fromCharCode(65 + index),
-      }));
       const counts = new Map(
         q.matchingStats.selectionCounts.map((entry) => [
           `${entry.leftId}\u0000${entry.rightId}`,
           entry.count,
         ]),
       );
-      html += `<section class="report-structured-matrix report-structured-matrix--matching">
+      html += `<section class="report-structured-matrix report-structured-matrix--matching${matchingMatrixPageClass}">
+        <ol class="report-structured-matrix-legend" aria-label="${escapeHtml(
+          labels.structuredMatchingMatrixTitle,
+        )}">${matchingColumns
+          .map(
+            (column) => `<li>
+              <span class="report-structured-matrix-legend-key" aria-hidden="true">${column.key}</span>
+              <span>${escapeHtml(stripMarkdownToPlainText(column.right))}</span>
+            </li>`,
+          )
+          .join('')}</ol>
         <table class="report-table">
           <caption>${escapeHtml(labels.structuredMatchingMatrixTitle)}</caption>
           <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${matchingColumns
@@ -746,16 +761,6 @@ function renderStructuredSolutionHtml(
             )
             .join('')}</tbody>
         </table>
-        <ol class="report-structured-matrix-legend" aria-label="${escapeHtml(
-          labels.structuredMatchingMatrixTitle,
-        )}">${matchingColumns
-          .map(
-            (column) => `<li>
-              <span class="report-structured-matrix-legend-key" aria-hidden="true">${column.key}</span>
-              <span>${escapeHtml(stripMarkdownToPlainText(column.right))}</span>
-            </li>`,
-          )
-          .join('')}</ol>
       </section>`;
     }
     if (q.matchingStats?.pairHitRates?.length) {

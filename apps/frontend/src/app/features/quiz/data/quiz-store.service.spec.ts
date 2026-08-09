@@ -1864,15 +1864,15 @@ describe('QuizStoreService', () => {
         question.type === 'NUMERIC_ESTIMATE' && question.text.includes('Französische Revolution'),
     );
 
-    expect(demo?.questions).toHaveLength(12);
+    expect(demo?.questions).toHaveLength(13);
     expect(piQuestion).toEqual(
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
         numericTolerancePercent: null,
-        numericIntervalLeft: 3.1,
-        numericIntervalRight: 3.2,
+        numericIntervalLeft: 3.135,
+        numericIntervalRight: 3.145,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
         numericMin: 3,
@@ -1884,8 +1884,8 @@ describe('QuizStoreService', () => {
       expect.objectContaining({
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 1789,
-        numericIntervalLeft: 1700,
-        numericIntervalRight: 1900,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
         numericInputType: 'INTEGER',
         numericMin: 1500,
         numericMax: 2000,
@@ -1897,8 +1897,8 @@ describe('QuizStoreService', () => {
         type: 'NUMERIC_ESTIMATE',
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
-        numericIntervalLeft: 3.1,
-        numericIntervalRight: 3.2,
+        numericIntervalLeft: 3.135,
+        numericIntervalRight: 3.145,
         numericMin: 3,
         numericMax: 3.5,
       }),
@@ -1907,8 +1907,8 @@ describe('QuizStoreService', () => {
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
         numericReferenceValue: 1789,
-        numericIntervalLeft: 1700,
-        numericIntervalRight: 1900,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
       }),
     );
   });
@@ -1960,9 +1960,10 @@ describe('QuizStoreService', () => {
     const service = TestBed.inject(QuizStoreService);
     const demo = service.getQuizById(DEMO_QUIZ_ID);
 
-    expect(demo?.questions).toHaveLength(12);
+    expect(demo?.questions).toHaveLength(13);
     expect(demo?.questions.map((question) => question.type)).toEqual([
       'SURVEY',
+      'FREETEXT',
       'NUMERIC_ESTIMATE',
       'SINGLE_CHOICE',
       'MULTIPLE_CHOICE',

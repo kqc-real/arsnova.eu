@@ -4,7 +4,7 @@ const fr: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz en direct, questions d’estimation numérique et mur de questions',
     homeDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
     siteNameInfo: 'arsnova.eu – Informations',
     ogLocale: 'fr_FR',
   },
@@ -207,7 +207,7 @@ const fr: Messages = {
         number: '01',
         title: 'Préparer un quiz',
         description:
-          'Créer des questions directement ou importer des contenus existants. Markdown, KaTeX, réponse courte et questions d’estimation numérique sont intégrés.',
+          'Crée directement des questions ou importe des contenus existants. Markdown, KaTeX, réponse courte, estimation numérique, association, mise en ordre et classement sont intégrés.',
       },
       {
         number: '02',
@@ -261,7 +261,7 @@ const fr: Messages = {
       {
         title: 'Plus qu’un quiz standard',
         description:
-          'QCM/QCU, réponses courtes, évaluations, phase de lecture, Peer Instruction et mode présentateur soutiennent l’apprentissage, la formation et l’animation en direct.',
+          'QCM/QCU, réponses courtes, évaluations, association, mise en ordre, classement, phase de lecture, Peer Instruction et mode présentateur soutiennent l’apprentissage et l’animation en direct.',
         icon: 'toggle',
       },
       {
@@ -299,6 +299,53 @@ const fr: Messages = {
         description:
           'Docker, Postgres, Redis et journal d’administration rendent la plateforme fiable aussi pour l’hébergement, l’exploitation et la traçabilité.',
         icon: 'server',
+      },
+    ],
+  },
+  structuredQuestionTypes: {
+    eyebrow: 'Formats de questions structurées',
+    title: 'Associer, ordonner et classer — des interactions complètes et analysables',
+    lead: 'Trois formats rendent interactifs les relations, les enchaînements et les distinctions entre notions. Les solutions restent cachées pendant le vote ; elles apparaissent avec les erreurs fréquentes après la révélation.',
+    interactionLabel: 'Interaction',
+    exampleLabel: 'Exemple pédagogique',
+    resultLabel: 'Résultats',
+    scoringNote:
+      'Les trois formats sont notés. Une réponse obtient actuellement tous les points ou aucun ; aucun crédit partiel n’est attribué.',
+    revealNote:
+      'Pendant un tour actif, les bonnes associations, l’ordre attendu et les catégories cibles restent cachés. La solution modèle et les répartitions détaillées apparaissent après la révélation.',
+    items: [
+      {
+        id: 'matching',
+        title: 'Associer',
+        description:
+          'Associer un à un des termes, des définitions ou des exemples. Les résultats font apparaître les confusions les plus fréquentes.',
+        interaction:
+          'Chaque terme reçoit une seule cible, chaque cible n’est utilisée qu’une fois et toutes les associations doivent être complétées.',
+        example: 'Associer des dates historiques aux événements correspondants.',
+        result: 'Paires correctes, taux de réussite et cibles souvent confondues.',
+        symbol: 'A↔B',
+      },
+      {
+        id: 'ordering',
+        title: 'Ordonner',
+        description:
+          'Remettre dans le bon ordre des étapes, des événements ou les phases d’un processus. Les résultats montrent les positions qui ont suscité des hésitations.',
+        interaction:
+          'Tous les éléments forment une suite linéaire complète grâce aux commandes de déplacement visibles et au clavier, sans glisser-déposer obligatoire.',
+        example: 'Ordonner les étapes d’un processus biologique.',
+        result: 'Séquence modèle, répartition par position et inversions fréquentes.',
+        symbol: '1→3',
+      },
+      {
+        id: 'categorisation',
+        title: 'Classer',
+        description:
+          'Classer des termes ou des exemples dans les catégories appropriées. Les résultats font apparaître les distinctions bien comprises et les erreurs de classement fréquentes.',
+        interaction:
+          'Chaque élément reçoit exactement une catégorie et tous les éléments doivent être classés.',
+        example: 'Classer des œuvres littéraires par période.',
+        result: 'Classement modèle, répartition par catégorie et erreurs fréquentes.',
+        symbol: '▦',
       },
     ],
   },
@@ -392,7 +439,7 @@ const fr: Messages = {
       {
         title: 'Plus de formats d’interaction',
         description:
-          'Outre le quiz : questions d’estimation numérique, phase de lecture, Peer Instruction, sondage express, mur de questions et nuage de mots pondéré dans la même plateforme — pas seulement des sondages sur diapos.',
+          'Outre le quiz : association, mise en ordre, classement, estimation numérique, phase de lecture, Peer Instruction, sondage express, mur de questions et nuage de mots pondéré sur la même plateforme.',
       },
       {
         title: 'Plus de contrôle sur les données et l’accès',
@@ -468,7 +515,7 @@ const fr: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informations',
     webAppDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
     featureList: [
       'Quiz en direct et votes',
       'Autoévaluation sur les questions notées',
@@ -476,7 +523,7 @@ const fr: Messages = {
       'Questions d’estimation numérique avec deux tours et statistiques',
       'Mur de questions avec modération, votes pour et contre',
       'Salle d’attente, présentateur, QR/code',
-      'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique',
+      'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique/association/mise en ordre/classement',
       'Markdown et KaTeX',
       'Phase de lecture et Peer Instruction',
       'Nuage de mots Q&A et texte libre avec phrases et pondération',

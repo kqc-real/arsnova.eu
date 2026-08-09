@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionExportDTO } from '@arsnova/shared-types';
 import { getSessionResultsReportLabelsDe } from './labels-de';
+import { SESSION_RESULTS_REPORT_STYLES } from './session-results-report-styles';
 import { buildSessionResultsReportHtml } from './session-results-report.util';
 
 describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
+  it('hält die Matching-Legende beim Druck vollständig direkt vor der Matrix', () => {
+    expect(SESSION_RESULTS_REPORT_STYLES).toMatch(
+      /\.report-structured-matrix-legend\s*\{[\s\S]*?break-inside:\s*avoid;[\s\S]*?page-break-inside:\s*avoid;[\s\S]*?break-after:\s*avoid;[\s\S]*?page-break-after:\s*avoid;/,
+    );
+  });
+
   it('rendert Sortierung, Zuordnung und Kategorisierung vollständig mit Nullzellen', () => {
     const data: SessionExportDTO = {
       sessionId: '11111111-1111-4111-8111-111111111111',
@@ -111,6 +118,10 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
     expect(matchingMatrix).toContain(
       '<span class="report-structured-matrix-legend-key" aria-hidden="true">B</span>',
     );
+    expect((matchingMatrix ?? '').indexOf('report-structured-matrix-legend')).toBeLessThan(
+      (matchingMatrix ?? '').indexOf('<table'),
+    );
+    expect(html).toContain('<span class="report-structured-pair-key" aria-label="A: 1">A</span>');
     expect(matchingMatrix).not.toContain('<th scope="col">1</th>');
     expect(matchingMatrix).not.toContain('<th scope="col">2</th>');
   });
@@ -160,7 +171,7 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
       generatedAt: '2026-08-09T10:00:00.000Z',
     });
     const matchingMatrix = html.match(
-      /<section class="report-structured-matrix report-structured-matrix--matching">[\s\S]*?<\/section>/,
+      /<section class="report-structured-matrix report-structured-matrix--matching report-structured-matrix--new-page">[\s\S]*?<\/section>/,
     )?.[0];
     const matchingHeader = matchingMatrix?.match(/<thead>[\s\S]*?<\/thead>/)?.[0];
     const matchingLegend = matchingMatrix?.match(
@@ -169,6 +180,9 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
 
     expect(matchingHeader?.match(/report-structured-matrix-key/g)).toHaveLength(6);
     expect(matchingLegend?.match(/report-structured-matrix-legend-key/g)).toHaveLength(6);
+    expect(SESSION_RESULTS_REPORT_STYLES).toMatch(
+      /\.report-structured-matrix--new-page\s*\{[\s\S]*?break-before:\s*page;[\s\S]*?page-break-before:\s*always;/,
+    );
     for (const [index, rightLabel] of rightLabels.entries()) {
       const key = String.fromCharCode(65 + index);
       expect(matchingHeader).toContain(`>${key}</span></th>`);

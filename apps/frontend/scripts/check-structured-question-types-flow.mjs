@@ -5,7 +5,7 @@
  * Confidence und Host-Nachbesprechungsplan nach Session-Ende.
  *
  * Nutzt die Demo-Fragen aus `quiz-demo-showcase.de.json`
- * (6 Sortierschritte, 6 Matching-Paare, 9 Kategorisierungen).
+ * (6 Sortierschritte, 6 Matching-Paare, 6 Kategorisierungen).
  *
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
@@ -51,9 +51,9 @@ const END_SESSION_RE = /session beenden|end session/i;
 const CONFIRM_END_SESSION_RE = /trotzdem verlassen|leave anyway|leave session/i;
 
 /** Sichtbarer Prompt-Ausschnitt (Markdown-Syntax erscheint nicht im gerenderten Text). */
-const ORDERING_PROMPT = '6 Phasen der Proteinbiosynthese';
+const ORDERING_PROMPT = 'Schritte der Genexpression';
 const MATCHING_PROMPT = 'historischen Daten der Weimarer Republik';
-const CATEGORIZATION_PROMPT = '9 Werke, Zitate und Motive';
+const CATEGORIZATION_PROMPT = 'sechs Werke';
 
 async function loadStructuredDemoQuizPayload() {
   const raw = JSON.parse(await readFile(DEMO_QUIZ_JSON, 'utf8'));
@@ -851,7 +851,7 @@ async function runOrderingFlow(
     hardFailures,
     [
       /Soll-Reihenfolge|correct sequence/i,
-      /RNA-Polymerase|Entwindung/,
+      /Transkription|RNA-Prozessierung/,
       /0 von 5 vollständig korrekt|0 of 5/i,
     ],
     'ORDERING',

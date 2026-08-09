@@ -1,9 +1,9 @@
 {
-  "exportVersion": 28,
+  "exportVersion": 29,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Showcase didattico: demo a squadre",
-    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQuesta demo è pensata per un **uso reale in classe**. Non vuole essere il quiz disciplinare perfetto dall’inizio alla fine. Il suo obiettivo è un altro: mostrare a docenti, formatori e facilitatori come arsnova.eu possa rendere una sessione dal vivo più varia, più visiva e più coinvolgente.\n\nUsala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** per mostrare come puoi:\n- iniziare con un check-in emotivo o sociale\n- usare immagini invece di sole domande testuali\n- inserire formule e notazione scientifica nelle materie STEM\n- provare domande di stima numerica con valore di riferimento, fascia di tolleranza e due turni\n- raccogliere risposte brevi in testo libero che poi riappaiono come nuvola di parole\n- usare bene domande a scelta multipla e scale di valutazione rapide\n- chiedere il **grado di sicurezza** (1–5) dopo le risposte valutate e individuare risposte **errate con alta sicurezza** nella vista host\n- aggiungere energia con timer, squadre, classifica e codici bonus\n- mostrare frammenti di codice in informatica o in corsi tecnici\n\nLe domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.\n\n**Suggerimento per la demo:** Entra nella sessione anche da un secondo dispositivo, idealmente scansionando il QR code con il telefono. Così puoi provare in modo realistico il passaggio tra la vista host e l’esperienza del partecipante.\n\n**Un altro suggerimento:** Poi apri il quiz in modalità modifica per vedere come le domande sono realizzate con Markdown e KaTeX.\n\n**E ancora una cosa:** Se ti servono altri tipi di domanda o funzionalità, puoi richiederli senza problemi. Trovi i contatti nelle note legali.",
+    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQueste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte di una sola parola e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Che clima c’è nel gruppo in questo momento?\n\n> **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Clicca per ingrandire.*",
+        "text": "### Che clima c’è nel gruppo in questo momento?\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Clicca per ingrandire.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -49,33 +49,43 @@
         ]
       },
       {
-        "text": "### Arrotonda $\\pi$ a due cifre decimali.\n\n> **Uso didattico:** Usalo come prompt STEM rapido che unisce formule, media e risposta aperta.\n\n![Il numero pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Che cosa ti aiuta a imparare?\n\nRispondi con **una sola parola**. Le risposte saranno visualizzate sotto forma di nuvola di parole.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 1,
+        "skipReadingPhase": true,
+        "answers": [],
+        "confidenceEnabled": false
+      },
+      {
+        "text": "### Arrotonda $\\pi$ a due cifre decimali.\n\n![Il numero pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 1,
+        "order": 2,
         "skipReadingPhase": true,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
         "numericTolerancePercent": null,
-        "numericIntervalLeft": 3.1,
-        "numericIntervalRight": 3.2,
+        "numericIntervalLeft": 3.135,
+        "numericIntervalRight": 3.145,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
         "numericMin": 3,
         "numericMax": 3.5,
         "numericTwoRounds": false,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Immagine generata dall’IA o foto reale?\n\n> **Uso didattico:** Usalo come avvio visivo, reset dell’attenzione o spunto di discussione a bassa soglia.\n\n![Scena sul tetto](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
+        "text": "### Immagine generata dall’IA o foto reale?\n\n![Scena sul tetto](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "EASY",
-        "order": 2,
+        "order": 3,
         "answers": [
           {
             "text": "Immagine generata dall’IA",
@@ -87,15 +97,15 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Quali di questi usi si prestano bene a un rapido check dal vivo?\n\n> **Uso didattico:** Usalo per mostrare una domanda a scelta multipla con più risposte corrette.\n\n_Sono possibili più risposte corrette._",
+        "text": "### Quali di questi usi sono adatti a una breve verifica in diretta?\n\n_Sono possibili più risposte corrette._",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 3,
+        "order": 4,
         "skipReadingPhase": true,
         "answers": [
           {
@@ -107,24 +117,24 @@
             "isCorrect": true
           },
           {
-            "text": "Rilevare in modo anonimo il livello di sicurezza prima del ripasso",
-            "isCorrect": true
+            "text": "Assegnare voti individuali senza verificare l’identità",
+            "isCorrect": false
           },
           {
-            "text": "Usarlo solo per verifiche valutate alla fine di un’unità",
+            "text": "Valutare definitivamente obiettivi complessi con una sola votazione",
             "isCorrect": false
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Quanti pezzi visibili ha il classico Cubo di Rubik?\n\n> **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### Da quanti cubetti visibili dall’esterno è composto un classico Cubo di Rubik 3×3?\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 4,
+        "order": 5,
         "answers": [
           {
             "text": "28",
@@ -144,15 +154,15 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### In quale linguaggio è scritto questo codice?\n\n> **Uso didattico:** Usalo come rapido prompt di riconoscimento in informatica, nelle attività maker o nelle materie STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Per quale ambiente di programmazione creativa è stato scritto questo sketch?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 5,
+        "order": 6,
         "answers": [
           {
             "text": "Groovy",
@@ -173,11 +183,11 @@
         ]
       },
       {
-        "text": "### Come si chiama il metodo didattico in cui chi apprende vota prima individualmente, poi discute brevemente e infine vota di nuovo?\n\n> **Uso didattico:** Usalo come domanda impegnativa di richiamo terminologico per mostrare varianti esplicite, piccole inversioni di lettere adiacenti e feedback trasparente nelle risposte brevi con punti parziali.\n\nCerchiamo il termine didattico consolidato per questa sequenza.",
+        "text": "### Come si chiama il metodo didattico in cui chi apprende vota prima individualmente, poi discute brevemente e infine vota di nuovo?\n\nCerchiamo il termine didattico consolidato per questa sequenza.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
-        "order": 6,
+        "order": 7,
         "answers": [
           {
             "text": "Peer Instruction",
@@ -204,78 +214,78 @@
         "shortTextTrimWhitespace": true,
         "shortTextNormalizeWhitespace": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### In quale anno iniziò la Rivoluzione francese?\n\n> **Uso didattico:** Usalo come domanda di stima in due turni: prima raccogli stime spontanee, poi discutete brevemente e confrontate il secondo turno con valore di riferimento, fascia di tolleranza e punteggio.\n\nCerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.",
+        "text": "### In quale anno iniziò la Rivoluzione francese?\n\nCerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 7,
+        "order": 8,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 1789,
         "numericTolerancePercent": null,
-        "numericIntervalLeft": 1700,
-        "numericIntervalRight": 1900,
+        "numericIntervalLeft": 1788.5,
+        "numericIntervalRight": 1789.5,
         "numericInputType": "INTEGER",
         "numericMin": 1500,
         "numericMax": 2000,
         "numericTwoRounds": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Metti le 6 fasi della biosintesi proteica nel corretto ordine molecolare.\n\n> **Uso didattico:** Usalo come domanda di ordinamento in biologia o chimica per esercitarsi su catene di reazioni complesse prima degli esami.\n\nDisponi le fasi dal srotolamento del DNA nel nucleo fino al ripiegamento 3D finale della proteina nel citoplasma.",
+        "text": "### Metti in ordine le fasi dell’espressione genica in una cellula eucariotica.\n\nDisponi i sei passaggi nella sequenza corretta.",
         "type": "ORDERING",
         "timer": null,
         "difficulty": "HARD",
-        "order": 8,
+        "order": 9,
         "answers": [],
         "orderingItems": [
           {
             "id": "5f46d99e-2bf7-4ef8-bfb3-5c90353e798d",
-            "text": "Srotolamento: L'RNA polimerasi si lega al promotore e srotola la doppia elica di DNA."
+            "text": "Trascrizione"
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "Trascrizione: Lettura del filamento stampo e sintesi dell'pre-mRNA complementare."
+            "text": "Maturazione dell’RNA"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Maturazione: Splicing dell'pre-mRNA (rimozione degli introni) e aggiunta del cappuccio e coda poly-A."
+            "text": "Esportazione dell’mRNA maturo"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
-            "text": "Esportazione nucleare: L'mRNA maturo esce dal nucleo verso i ribosomi nel citoplasma."
+            "text": "Inizio della traduzione"
           },
           {
             "id": "1d6fb5a5-dc43-4313-9f53-48b2ff903fa4",
-            "text": "Traduzione: Il ribosoma legge l'mRNA; i tRNA legano gli amminoacidi dal codone AUG."
+            "text": "Allungamento della catena polipeptidica"
           },
           {
             "id": "fd2f863c-6c7b-4592-b537-9f15b51ee9ec",
-            "text": "Ripiegamento: La catena amminoacidica si ripiega nella struttura proteica 3D funzionale."
+            "text": "Terminazione e rilascio della catena polipeptidica"
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.\n\n> **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.\n\n_Collega ciascuna data a sinistra con il relativo evento storico a destra._",
+        "text": "### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.\n\n_Collega ciascuna data a sinistra con il relativo evento storico a destra._",
         "type": "MATCHING",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 9,
+        "order": 10,
         "answers": [],
         "matchingPairs": [
           {
             "leftId": "95d15b08-c999-403d-adb0-cfc18a4249ad",
             "left": "9 novembre 1918",
-            "right": "Proclamazione della Repubblica tedesca da parte di Philipp Scheidemann",
+            "right": "Proclamazione della Repubblica da parte di Philipp Scheidemann",
             "rightId": "30b3ddd5-65c0-46c3-9184-116c6d60ec80"
           },
           {
@@ -287,39 +297,39 @@
           {
             "leftId": "be54805d-8643-48b0-9034-d90567bc2b12",
             "left": "11 agosto 1919",
-            "right": "Entrata in vigore della Costituzione di Weimar",
+            "right": "Firma della Costituzione di Weimar da parte di Friedrich Ebert",
             "rightId": "d130f8c6-42a6-423b-bc45-7382bbfce72d"
           },
           {
             "leftId": "023134ad-42c5-4474-b865-1cf3142291e2",
             "left": "15 novembre 1923",
-            "right": "Introduzione del Rentenmark per fermare l'iperinflazione",
+            "right": "Introduzione del Rentenmark",
             "rightId": "bc1f2b60-a2d1-45a8-bb91-9931858f0745"
           },
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
-            "left": "25 ottobre 1929",
-            "right": "Crollo di Wall Street (\"Venerdì nero\") che scatena la Grande Depressione",
+            "left": "29 ottobre 1929",
+            "right": "Crollo massiccio delle quotazioni a Wall Street («Black Tuesday»)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
             "leftId": "9e8bd516-2844-4f20-9222-6c5817327907",
             "left": "30 gennaio 1933",
-            "right": "Nomina di Adolf Hitler a Cancelliere, che segna la fine della Repubblica",
+            "right": "Nomina di Adolf Hitler a cancelliere",
             "rightId": "f97e1e9a-c0fa-423d-be92-35802101930d"
           }
         ],
         "matchingShuffleRight": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Classifica le seguenti 9 opere letterarie, citazioni e motivi nella loro epoca corrispondente.\n\n> **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.\n\n_Assegna ciascun elemento a uno dei tre movimenti letterari._",
+        "text": "### Classifica le sei opere seguenti per epoca letteraria.\n\n_Assegna ciascun elemento a uno dei tre movimenti letterari._",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 10,
+        "order": 11,
         "answers": [],
         "categories": [
           {
@@ -338,66 +348,51 @@
         "categorizationItems": [
           {
             "id": "cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b",
-            "text": "Nathan il saggio (G. E. Lessing & Parabola dell'anello / Tolleranza)",
+            "text": "Nathan il saggio",
             "correctCategoryId": "cat_aufklaerung"
           },
           {
             "id": "a42a3285-7b06-4a76-a89c-127d99a85a80",
-            "text": "I dolori del giovane Werther (J. W. von Goethe & Passione travolgente)",
-            "correctCategoryId": "cat_sturm"
+            "text": "Emilia Galotti",
+            "correctCategoryId": "cat_aufklaerung"
           },
           {
             "id": "66528b34-d7b3-43f6-8704-f0cddeccdf4f",
-            "text": "La statua di marmo & Poesia \"Mondnacht\" (Joseph von Eichendorff)",
-            "correctCategoryId": "cat_romantik"
+            "text": "I dolori del giovane Werther",
+            "correctCategoryId": "cat_sturm"
           },
           {
             "id": "2855285d-df2a-451e-9b90-bbd8cbdc249d",
-            "text": "\"Sapere aude! – Abbi il coraggio di servirti della tua propria intelligenza!\" (I. Kant)",
-            "correctCategoryId": "cat_aufklaerung"
+            "text": "I masnadieri",
+            "correctCategoryId": "cat_sturm"
           },
           {
             "id": "f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0",
-            "text": "Poesia \"Prometeo\" (\"Copri il tuo cielo, Zeus, con veli di nubi...\")",
-            "correctCategoryId": "cat_sturm"
-          },
-          {
-            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
-            "text": "Il \"Fiore Blu\" come simbolo centrale della nostalgia (Novalis)",
+            "text": "L’uomo della sabbia",
             "correctCategoryId": "cat_romantik"
           },
           {
-            "id": "d9d952ae-d363-4871-945d-b480df58b3fb",
-            "text": "Intrigo e amore (Friedrich Schiller & Critica sociale)",
-            "correctCategoryId": "cat_sturm"
-          },
-          {
-            "id": "6e89535f-1fc5-44f0-bfd8-2ee31bb9608f",
-            "text": "Emilia Galotti (G. E. Lessing & Tragedia borghese)",
-            "correctCategoryId": "cat_aufklaerung"
-          },
-          {
-            "id": "ffb67168-962f-43f1-af15-d5d1d45858bd",
-            "text": "L'uomo della sabbia & Romanticismo nero / Il perturbante (E. T. A. Hoffmann)",
+            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
+            "text": "Notte di luna",
             "correctCategoryId": "cat_romantik"
           }
         ],
         "categorizationShuffleItems": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Per niente sicuro/a",
+        "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Quanto è probabile che tu provi presto un quiz live come questo in una tua lezione?\n\n> **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.",
+        "text": "### Quanto è probabile che tu provi presto un quiz in diretta come questo in una tua lezione?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 11,
+        "order": 12,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,
-        "ratingLabelMin": "Non ancora",
-        "ratingLabelMax": "Lo provo"
+        "ratingLabelMin": "Molto improbabile",
+        "ratingLabelMax": "Molto probabile"
       }
     ]
   }

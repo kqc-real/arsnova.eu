@@ -1502,6 +1502,11 @@ p { margin: 0 0 0.65rem; }
   break-inside: avoid;
 }
 
+.report-structured-matrix--new-page {
+  break-before: page;
+  page-break-before: always;
+}
+
 .report-structured-matrix .report-table {
   table-layout: fixed;
 }
@@ -1513,6 +1518,23 @@ p { margin: 0 0 0.65rem; }
 .report-structured-matrix .report-table th:not(:first-child),
 .report-structured-matrix .report-table td {
   text-align: center;
+}
+
+.report-structured-matrix .report-table th,
+.report-structured-matrix .report-table td {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.report-structured-matrix .report-table thead {
+  display: table-header-group;
+}
+
+.report-structured-matrix .report-table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .report-structured-matrix-key {
@@ -1533,11 +1555,15 @@ p { margin: 0 0 0.65rem; }
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.3rem 0.65rem;
-  margin: 0.5rem 0 0;
+  margin: 0 0 0.5rem;
   padding: 0;
   list-style: none;
   font-size: 8pt;
   line-height: 1.25;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .report-structured-matrix-legend li {
@@ -1545,6 +1571,15 @@ p { margin: 0 0 0.65rem; }
   align-items: flex-start;
   gap: 0.35rem;
   min-width: 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.report-structured-matrix-legend li > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
 }
 
 .report-structured-matrix-legend-key {
@@ -1558,6 +1593,21 @@ p { margin: 0 0 0.65rem; }
   background: var(--report-brand, #002395);
   color: #fff;
   font-size: 7.25pt;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.report-structured-pair-key {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--report-brand, #002395);
+  color: #fff;
+  font-size: 7.5pt;
   font-weight: 700;
   line-height: 1;
 }

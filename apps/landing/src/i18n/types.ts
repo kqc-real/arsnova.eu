@@ -145,6 +145,26 @@ export interface FeaturesMessages {
   items: Array<{ title: string; description: string; icon: string }>;
 }
 
+export interface StructuredQuestionTypesMessages {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  interactionLabel: string;
+  exampleLabel: string;
+  resultLabel: string;
+  scoringNote: string;
+  revealNote: string;
+  items: Array<{
+    id: 'matching' | 'ordering' | 'categorisation';
+    title: string;
+    description: string;
+    interaction: string;
+    example: string;
+    result: string;
+    symbol: string;
+  }>;
+}
+
 export interface AccessibilityMessages {
   eyebrow: string;
   title: string;
@@ -204,6 +224,7 @@ export interface Messages {
   qaWall: QaWallMessages;
   workflow: WorkflowMessages;
   features: FeaturesMessages;
+  structuredQuestionTypes: StructuredQuestionTypesMessages;
   accessibility: AccessibilityMessages;
   trust: TrustMessages;
   comparison: ComparisonMessages;

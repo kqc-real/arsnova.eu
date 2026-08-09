@@ -5,7 +5,7 @@ const es: Messages = {
     homeTitle:
       'arsnova.eu | Cuestionario en directo, preguntas de estimación numérica y muro de preguntas',
     homeDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     siteNameInfo: 'arsnova.eu – Información',
     ogLocale: 'es_ES',
   },
@@ -209,7 +209,7 @@ const es: Messages = {
         number: '01',
         title: 'Preparar un cuestionario',
         description:
-          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta y preguntas de estimación numérica están integrados.',
+          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta, estimación numérica, relacionar, ordenar y clasificar están integrados.',
       },
       {
         number: '02',
@@ -263,7 +263,7 @@ const es: Messages = {
       {
         title: 'Más que un cuestionario estándar',
         description:
-          'MC/SC, respuestas cortas, valoraciones, fase de lectura, Peer Instruction y modo de presentación apoyan el aprendizaje, la formación y la moderación en directo.',
+          'MC/SC, respuestas cortas, valoraciones, relacionar, ordenar, clasificar, fase de lectura, Peer Instruction y modo de presentación apoyan el aprendizaje y la moderación en directo.',
         icon: 'toggle',
       },
       {
@@ -301,6 +301,53 @@ const es: Messages = {
         description:
           'Docker, Postgres, Redis y registro de administración hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
         icon: 'server',
+      },
+    ],
+  },
+  structuredQuestionTypes: {
+    eyebrow: 'Tipos de pregunta estructurados',
+    title: 'Relacionar, ordenar y clasificar con interacciones completas y resultados útiles',
+    lead: 'Tres formatos convierten relaciones, secuencias y límites conceptuales en tareas activas. Las soluciones permanecen ocultas durante la votación y se muestran con los errores frecuentes después de revelar los resultados.',
+    interactionLabel: 'Interacción',
+    exampleLabel: 'Ejemplo didáctico',
+    resultLabel: 'Resultados',
+    scoringNote:
+      'Los tres formatos se puntúan. Actualmente, una respuesta recibe todos los puntos o ninguno; no hay puntuación parcial.',
+    revealNote:
+      'Durante una ronda activa permanecen ocultas las relaciones correctas, el orden esperado y las categorías de destino. La solución y las distribuciones detalladas aparecen al revelar los resultados.',
+    items: [
+      {
+        id: 'matching',
+        title: 'Relacionar',
+        description:
+          'Relacionar uno a uno términos, definiciones o ejemplos. Los resultados muestran las confusiones más frecuentes.',
+        interaction:
+          'Cada término recibe un único destino, cada destino se usa una vez y hay que completar todas las relaciones.',
+        example: 'Relacionar fechas históricas con sus acontecimientos.',
+        result: 'Pares correctos, tasas de acierto y destinos confundidos con frecuencia.',
+        symbol: 'A↔B',
+      },
+      {
+        id: 'ordering',
+        title: 'Ordenar',
+        description:
+          'Colocar pasos, acontecimientos o fases de un proceso en el orden correcto. Los resultados muestran qué posiciones generaron más dudas.',
+        interaction:
+          'Todos los elementos forman una secuencia lineal completa mediante controles visibles y el teclado, sin exigir arrastrar y soltar.',
+        example: 'Ordenar las fases de un proceso biológico.',
+        result: 'Secuencia correcta, distribución por posición e intercambios frecuentes.',
+        symbol: '1→3',
+      },
+      {
+        id: 'categorisation',
+        title: 'Clasificar',
+        description:
+          'Asignar términos o ejemplos a las categorías correspondientes. Los resultados muestran las distinciones bien comprendidas y los errores de clasificación más frecuentes.',
+        interaction:
+          'Cada elemento recibe exactamente una categoría y todos los elementos deben estar clasificados.',
+        example: 'Clasificar obras literarias por época.',
+        result: 'Clasificación correcta, distribución por categoría y errores frecuentes.',
+        symbol: '▦',
       },
     ],
   },
@@ -387,7 +434,7 @@ const es: Messages = {
       {
         title: 'Más formatos de interacción',
         description:
-          'Además del cuestionario: preguntas de estimación numérica, fase de lectura, Peer Instruction, sondeo rápido, muro de preguntas y nube de palabras ponderada en la misma plataforma — no solo encuestas en diapositivas.',
+          'Además del cuestionario: relacionar, ordenar, clasificar, estimación numérica, fase de lectura, Peer Instruction, sondeo rápido, muro de preguntas y nube de palabras ponderada en una sola plataforma.',
       },
       {
         title: 'Más control sobre datos y acceso',
@@ -463,7 +510,7 @@ const es: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
     webAppDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     featureList: [
       'Cuestionario en directo y votaciones',
       'Autoevaluación en preguntas puntuables',
@@ -471,7 +518,7 @@ const es: Messages = {
       'Preguntas de estimación numérica con dos rondas y estadística',
       'Muro de preguntas con moderación, votos a favor y en contra',
       'Sala de espera, presentador, QR/código',
-      'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica',
+      'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica/relacionar/ordenar/clasificar',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',
       'Nube de palabras Q&A y texto libre con frases y ponderación',

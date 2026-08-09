@@ -1,9 +1,9 @@
 {
-  "exportVersion": 28,
+  "exportVersion": 29,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Showcase docente: demo por equipos",
-    "description": "![Showcase docente](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase docente\n\nEsta demo está pensada para el **uso real en el aula**. No pretende ser el quiz perfecto de principio a fin. Su objetivo es otro: mostrar a docentes, formadores y facilitadores cómo arsnova.eu puede hacer que una sesión en vivo sea más variada, más visual y más lúdica.\n\nÚsala como una **demo breve por equipos, al estilo Kahoot, para clases en vivo** para mostrar cómo puedes:\n- arrancar con un check-in emocional o social\n- usar imágenes en lugar de preguntas solo de texto\n- incorporar fórmulas y notación científica en STEM\n- probar preguntas de estimación numérica con valor de referencia, banda de tolerancia y dos rondas\n- recoger respuestas breves en texto libre que después reaparecen como nube de palabras\n- usar bien preguntas de respuesta múltiple y escalas de valoración\n- pedir el **grado de confianza** (1–5) tras las respuestas evaluadas y detectar respuestas **incorrectas con alta confianza** en la vista del anfitrión\n- añadir energía con temporizadores, equipos, clasificación y códigos de bonificación\n- mostrar fragmentos de código en informática o en materias técnicas\n\nLas preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.\n\n**Consejo para la demo:** Únete también a la sesión desde un segundo dispositivo, idealmente escaneando el código QR con el móvil. Así podrás ensayar de forma realista el cambio entre la vista del anfitrión y la experiencia del participante.\n\n**Otro consejo:** Después abre el cuestionario en modo de edición para ver cómo están hechas las preguntas con Markdown y KaTeX.\n\n**Y una cosa más:** Si echas en falta otros tipos de pregunta o funciones, puedes pedirlos sin problema. Encontrarás los datos de contacto en el aviso legal.",
+    "description": "![Showcase docente](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase docente\n\nEstas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.\n\nLa demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas de una sola palabra y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.\n\nLos temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### ¿Cómo está el grupo ahora mismo?\n\n> **Uso didáctico:** Úsalo como check-in rápido al empezar la clase, antes de dar feedback o después de una actividad exigente.\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Haz clic para ampliar.*",
+        "text": "### ¿Cómo está el grupo ahora mismo?\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Haz clic para ampliar.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -49,33 +49,43 @@
         ]
       },
       {
-        "text": "### Redondea $\\pi$ a dos decimales.\n\n> **Uso didáctico:** Úsalo como una consigna breve de STEM que combine fórmulas, medios y respuesta abierta.\n\n![El número pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### ¿Qué te ayuda a aprender?\n\nResponde con **una palabra**. Las respuestas se mostrarán como una nube de palabras.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 1,
+        "skipReadingPhase": true,
+        "answers": [],
+        "confidenceEnabled": false
+      },
+      {
+        "text": "### Redondea $\\pi$ a dos decimales.\n\n![El número pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 1,
+        "order": 2,
         "skipReadingPhase": true,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
         "numericTolerancePercent": null,
-        "numericIntervalLeft": 3.1,
-        "numericIntervalRight": 3.2,
+        "numericIntervalLeft": 3.135,
+        "numericIntervalRight": 3.145,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
         "numericMin": 3,
         "numericMax": 3.5,
         "numericTwoRounds": false,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Imagen creada por IA o foto real?\n\n> **Uso didáctico:** Úsalo como calentamiento visual, reinicio de atención o punto de partida para una conversación sencilla.\n\n![Escena en una azotea](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
+        "text": "### ¿Imagen creada por IA o foto real?\n\n![Escena en una azotea](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "EASY",
-        "order": 2,
+        "order": 3,
         "answers": [
           {
             "text": "Imagen generada por IA",
@@ -87,15 +97,15 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?\n\n> **Uso didáctico:** Úsalo para mostrar una pregunta de respuesta múltiple con varias opciones correctas.\n\n_Puede haber varias respuestas correctas._",
+        "text": "### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?\n\n_Puede haber varias respuestas correctas._",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 3,
+        "order": 4,
         "skipReadingPhase": true,
         "answers": [
           {
@@ -107,24 +117,24 @@
             "isCorrect": true
           },
           {
-            "text": "Medir de forma anónima la confianza antes de repasar para un examen",
-            "isCorrect": true
+            "text": "Asignar notas individuales sin comprobar la identidad",
+            "isCorrect": false
           },
           {
-            "text": "Usarlo solo para pruebas calificadas al final de una unidad",
+            "text": "Evaluar definitivamente objetivos complejos a partir de una sola votación",
             "isCorrect": false
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Cuántas piezas visibles tiene el cubo de Rubik clásico?\n\n> **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.\n\nLa pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.\n\nSugerencia opcional: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### ¿Cuántos cubitos visibles desde el exterior forman un cubo de Rubik 3×3 clásico?\n\nLa pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.\n\nSugerencia opcional: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 4,
+        "order": 5,
         "answers": [
           {
             "text": "28",
@@ -144,15 +154,15 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿En qué lenguaje está escrito este código?\n\n> **Uso didáctico:** Úsalo como reconocimiento rápido en informática, maker o asignaturas STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### ¿Para qué entorno de programación creativa se escribió este sketch?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 5,
+        "order": 6,
         "answers": [
           {
             "text": "Groovy",
@@ -173,11 +183,11 @@
         ]
       },
       {
-        "text": "### ¿Cómo se llama el método didáctico en el que el alumnado vota primero de forma individual, luego debate brevemente y después vuelve a votar?\n\n> **Uso didáctico:** Úsalo como una pregunta exigente de recuerdo de conceptos para mostrar variantes explícitas, letras vecinas intercambiadas y retroalimentación transparente en respuestas cortas con puntos parciales.\n\nBuscamos el término pedagógico establecido para esta secuencia.",
+        "text": "### ¿Cómo se llama el método didáctico en el que el alumnado vota primero de forma individual, luego debate brevemente y después vuelve a votar?\n\nBuscamos el término pedagógico establecido para esta secuencia.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
-        "order": 6,
+        "order": 7,
         "answers": [
           {
             "text": "Peer Instruction",
@@ -204,78 +214,78 @@
         "shortTextTrimWhitespace": true,
         "shortTextNormalizeWhitespace": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿En qué año comenzó la Revolución francesa?\n\n> **Uso didáctico:** Úsalo como pregunta de estimación en dos rondas: primero recoge estimaciones espontáneas, luego debatid brevemente y comparad la segunda ronda con el valor de referencia, la banda de tolerancia y la puntuación.\n\nBuscamos el año que se suele tomar como inicio de la Revolución francesa.",
+        "text": "### ¿En qué año comenzó la Revolución francesa?\n\nBuscamos el año que se suele tomar como inicio de la Revolución francesa.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 7,
+        "order": 8,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 1789,
         "numericTolerancePercent": null,
-        "numericIntervalLeft": 1700,
-        "numericIntervalRight": 1900,
+        "numericIntervalLeft": 1788.5,
+        "numericIntervalRight": 1789.5,
         "numericInputType": "INTEGER",
         "numericMin": 1500,
         "numericMax": 2000,
         "numericTwoRounds": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### Ordena las 6 fases de la biosíntesis de proteínas en la secuencia molecular correcta.\n\n> **Uso didáctico:** Úsalo como pregunta de ordenación en biología o química para ensayar cadenas de reacción complejas antes de los exámenes.\n\nOrdena los pasos desde el desenrollamiento del ADN en el núcleo hasta el plegamiento 3D final de la proteína en el citoplasma.",
+        "text": "### Ordena los pasos de la expresión génica en una célula eucariota.\n\nColoca los seis pasos en la secuencia correcta.",
         "type": "ORDERING",
         "timer": null,
         "difficulty": "HARD",
-        "order": 8,
+        "order": 9,
         "answers": [],
         "orderingItems": [
           {
             "id": "5f46d99e-2bf7-4ef8-bfb3-5c90353e798d",
-            "text": "Desenrollamiento: La ARN polimerasa se une al promotor y desenrolla la doble hélice de ADN."
+            "text": "Transcripción"
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "Transcripción: Lectura de la hebra molde y síntesis del ARN pre-mensajero complementario."
+            "text": "Procesamiento del ARN"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Procesamiento: Empalme del ARN pre-mensajero (eliminación de intrones) y adición de capuchón y cola poli-A."
+            "text": "Exportación del ARNm maduro"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
-            "text": "Exportación nuclear: El ARN mensajero maduro sale del núcleo hacia los ribosomas en el citoplasma."
+            "text": "Inicio de la traducción"
           },
           {
             "id": "1d6fb5a5-dc43-4313-9f53-48b2ff903fa4",
-            "text": "Traducción: El ribosoma lee el ARNm; los ARNt unen aminoácidos a partir del codón AUG."
+            "text": "Elongación de la cadena polipeptídica"
           },
           {
             "id": "fd2f863c-6c7b-4592-b537-9f15b51ee9ec",
-            "text": "Plegamiento: La cadena de aminoácidos se pliega en una estructura proteica 3D funcional."
+            "text": "Terminación y liberación de la cadena polipeptídica"
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### Empareja las fechas históricas de la República de Weimar con el evento correspondiente.\n\n> **Uso didáctico:** Úsalo como pregunta de emparejamiento en historia o ciencias sociales para comprobar fechas clave o tratados 1:1.\n\n_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._",
+        "text": "### Relaciona cada fecha de la República de Weimar con el acontecimiento correspondiente.\n\n_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._",
         "type": "MATCHING",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 9,
+        "order": 10,
         "answers": [],
         "matchingPairs": [
           {
             "leftId": "95d15b08-c999-403d-adb0-cfc18a4249ad",
             "left": "9 de noviembre de 1918",
-            "right": "Proclamación de la República alemana por Philipp Scheidemann",
+            "right": "Proclamación de la República por Philipp Scheidemann",
             "rightId": "30b3ddd5-65c0-46c3-9184-116c6d60ec80"
           },
           {
@@ -287,39 +297,39 @@
           {
             "leftId": "be54805d-8643-48b0-9034-d90567bc2b12",
             "left": "11 de agosto de 1919",
-            "right": "Entrada en vigor de la Constitución de Weimar",
+            "right": "Firma de la Constitución de Weimar por Friedrich Ebert",
             "rightId": "d130f8c6-42a6-423b-bc45-7382bbfce72d"
           },
           {
             "leftId": "023134ad-42c5-4474-b865-1cf3142291e2",
             "left": "15 de noviembre de 1923",
-            "right": "Introducción del Rentenmark para frenar la hiperinflación",
+            "right": "Introducción del Rentenmark",
             "rightId": "bc1f2b60-a2d1-45a8-bb91-9931858f0745"
           },
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
-            "left": "25 de octubre de 1929",
-            "right": "Crack de Wall Street (\"Viernes Negro\") que desata la Gran Depresión",
+            "left": "29 de octubre de 1929",
+            "right": "Desplome masivo de las cotizaciones en Wall Street («Black Tuesday»)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
             "leftId": "9e8bd516-2844-4f20-9222-6c5817327907",
             "left": "30 de enero de 1933",
-            "right": "Nombramiento de Adolf Hitler como canciller, marcando el fin de la República",
+            "right": "Nombramiento de Adolf Hitler como canciller",
             "rightId": "f97e1e9a-c0fa-423d-be92-35802101930d"
           }
         ],
         "matchingShuffleRight": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### Clasifica las siguientes 9 obras literarias, citas y motivos en su época correspondiente.\n\n> **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.\n\n_Asigna cada elemento a uno de los tres movimientos literarios._",
+        "text": "### Clasifica las seis obras siguientes por época literaria.\n\n_Asigna cada elemento a uno de los tres movimientos literarios._",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 10,
+        "order": 11,
         "answers": [],
         "categories": [
           {
@@ -338,66 +348,51 @@
         "categorizationItems": [
           {
             "id": "cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b",
-            "text": "Natán el Sabio (G. E. Lessing & Parábola del anillo / Tolerancia)",
+            "text": "Natán el Sabio",
             "correctCategoryId": "cat_aufklaerung"
           },
           {
             "id": "a42a3285-7b06-4a76-a89c-127d99a85a80",
-            "text": "Las cuitas del joven Werther (J. W. von Goethe & Pasión desbordante)",
-            "correctCategoryId": "cat_sturm"
+            "text": "Emilia Galotti",
+            "correctCategoryId": "cat_aufklaerung"
           },
           {
             "id": "66528b34-d7b3-43f6-8704-f0cddeccdf4f",
-            "text": "La estatua de mármol y Poema \"Mondnacht\" (Joseph von Eichendorff)",
-            "correctCategoryId": "cat_romantik"
+            "text": "Las penas del joven Werther",
+            "correctCategoryId": "cat_sturm"
           },
           {
             "id": "2855285d-df2a-451e-9b90-bbd8cbdc249d",
-            "text": "\"¡Sapere aude! – ¡Ten el valor de servirte de tu propio entendimiento!\" (Immanuel Kant)",
-            "correctCategoryId": "cat_aufklaerung"
+            "text": "Los bandidos",
+            "correctCategoryId": "cat_sturm"
           },
           {
             "id": "f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0",
-            "text": "Poema \"Prometeo\" (\"Cubre tu cielo, Zeus, con manto de nubes...\")",
-            "correctCategoryId": "cat_sturm"
-          },
-          {
-            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
-            "text": "La \"Flor Azul\" como símbolo central del anhelo (Novalis)",
+            "text": "El hombre de la arena",
             "correctCategoryId": "cat_romantik"
           },
           {
-            "id": "d9d952ae-d363-4871-945d-b480df58b3fb",
-            "text": "Intriga y amor (Friedrich Schiller & Crítica social)",
-            "correctCategoryId": "cat_sturm"
-          },
-          {
-            "id": "6e89535f-1fc5-44f0-bfd8-2ee31bb9608f",
-            "text": "Emilia Galotti (G. E. Lessing & Tragedia burguesa)",
-            "correctCategoryId": "cat_aufklaerung"
-          },
-          {
-            "id": "ffb67168-962f-43f1-af15-d5d1d45858bd",
-            "text": "El hombre de la arena y Romanticismo oscuro / Lo siniestro (E. T. A. Hoffmann)",
+            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
+            "text": "Noche de luna",
             "correctCategoryId": "cat_romantik"
           }
         ],
         "categorizationShuffleItems": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
-        "confidenceLabelHigh": "Sehr sicher"
+        "confidenceLabelLow": "Muy inseguro/a",
+        "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?\n\n> **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.",
+        "text": "### ¿Qué probabilidad hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 11,
+        "order": 12,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,
-        "ratingLabelMin": "Todavía no",
-        "ratingLabelMax": "Lo voy a probar"
+        "ratingLabelMin": "Muy improbable",
+        "ratingLabelMax": "Muy probable"
       }
     ]
   }

@@ -10571,7 +10571,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.typeMatching" datatype="html">
         <source>Zuordnung</source>
-        <target>Assignment</target>
+        <target>Matching</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">445</context>
@@ -10583,7 +10583,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.typeOrdering" datatype="html">
         <source>Reihenfolge</source>
-        <target>Series</target>
+        <target>Ordering</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">449</context>
@@ -10595,7 +10595,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.typeCategorization" datatype="html">
         <source>Kategorisierung</source>
-        <target>Categorization</target>
+        <target>Categorisation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">453</context>

@@ -4,7 +4,7 @@ const en: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
     homeDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
@@ -206,7 +206,7 @@ const en: Messages = {
         number: '01',
         title: 'Prepare a quiz',
         description:
-          'Create questions directly or import existing content. Markdown, KaTeX, short answer and numeric estimation questions are built in.',
+          'Create questions directly or import existing content. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in.',
       },
       {
         number: '02',
@@ -260,7 +260,7 @@ const en: Messages = {
       {
         title: 'More than a standard quiz',
         description:
-          'MC/SC, short answers, ratings, reading phase, Peer Instruction and presenter mode support learning, training and live facilitation.',
+          'MC/SC, short answers, ratings, matching, ordering, categorisation, reading phase, Peer Instruction and presenter mode support learning, training and live facilitation.',
         icon: 'toggle',
       },
       {
@@ -298,6 +298,52 @@ const en: Messages = {
         description:
           'Docker, Postgres, Redis and an admin activity log make the platform reliable for deployment, operations and auditability.',
         icon: 'server',
+      },
+    ],
+  },
+  structuredQuestionTypes: {
+    eyebrow: 'Structured question types',
+    title: 'Match, order and categorise — complete interactions with useful results',
+    lead: 'Three formats turn relationships, sequences and conceptual boundaries into active tasks. Solutions stay hidden while voting is open; model answers and common error patterns appear only after reveal.',
+    interactionLabel: 'Interaction',
+    exampleLabel: 'Teaching example',
+    resultLabel: 'Results',
+    scoringNote:
+      'All three formats are scored. An answer currently receives full credit or no credit; partial credit is not available.',
+    revealNote:
+      'During an active round, correct pairings, target order and target categories remain hidden. The model answer and detailed distributions appear only after reveal.',
+    items: [
+      {
+        id: 'matching',
+        title: 'Matching',
+        description:
+          'Match terms, definitions or examples one to one. The results reveal common mix-ups.',
+        interaction:
+          'Each term receives exactly one target, each target is used once, and every match must be completed.',
+        example: 'Match historical dates to the corresponding events.',
+        result: 'Correct pairs, hit rates and frequently confused targets.',
+        symbol: 'A↔B',
+      },
+      {
+        id: 'ordering',
+        title: 'Ordering',
+        description:
+          'Put steps, events or stages of a process in the correct order. The results show which positions caused uncertainty.',
+        interaction:
+          'Every item forms one complete linear sequence, using visible move controls and the keyboard without requiring drag-and-drop.',
+        example: 'Order the stages of a biological process.',
+        result: 'Model sequence, position distribution and common swaps.',
+        symbol: '1→3',
+      },
+      {
+        id: 'categorisation',
+        title: 'Categorisation',
+        description:
+          'Assign terms or examples to the appropriate categories. The results reveal clear distinctions and common misclassifications.',
+        interaction: 'Each item receives exactly one category, and every item must be assigned.',
+        example: 'Classify literary works by period.',
+        result: 'Model grouping, category distribution and common misclassifications.',
+        symbol: '▦',
       },
     ],
   },
@@ -382,7 +428,7 @@ const en: Messages = {
       {
         title: 'More interaction formats',
         description:
-          'Alongside quizzes: numeric estimation questions, reading phase, Peer Instruction, Pulse Check, Q&A wall and weighted word cloud in the same platform — not only slide polls.',
+          'Alongside quizzes: matching, ordering, categorisation, numeric estimation questions, reading phase, Peer Instruction, Pulse Check, Q&A wall and weighted word cloud in one platform — not only slide polls.',
       },
       {
         title: 'More control over data and access',
@@ -458,7 +504,7 @@ const en: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: live quiz, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     featureList: [
       'Live quiz and voting',
       'Confidence rating on scored questions',
@@ -466,7 +512,7 @@ const en: Messages = {
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Waiting room, presenter, QR/code',
-      'Question types MC/SC/short answer/free text/survey/rating/numeric estimation',
+      'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorisation',
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',
       'Q&A and free-text word cloud with phrases and weighting',

@@ -23,6 +23,7 @@ const legacyAliases = [
 const canonicalAnchors = [
   'workflow',
   'features',
+  'structured-question-types',
   'numeric-estimate',
   'confidence',
   'qa-wall',
@@ -35,6 +36,7 @@ const canonicalAnchors = [
 const sectionOrder = [
   'workflow',
   'features',
+  'structured-question-types',
   'numeric-estimate',
   'confidence',
   'qa-wall',
@@ -138,12 +140,24 @@ function ensureBuild() {
   // Do not leak Playwright BASE_URL into Vite/Astro import.meta.env.BASE_URL.
   const env = { ...process.env };
   delete env.BASE_URL;
-  const result = spawnSync('npm', ['run', 'build'], {
-    cwd: root,
-    stdio: 'inherit',
-    env,
-    shell: process.platform === 'win32',
-  });
+  if (!env.PUBLIC_GITHUB_REPO) {
+    const repoResult = spawnSync(process.execPath, [join(root, 'scripts/get-github-repo.mjs')], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    env.PUBLIC_GITHUB_REPO = repoResult.stdout.trim() || 'kqc-real/arsnova.eu';
+  }
+  // Reuse the Node runtime that launched this check so Astro's Node >=22 contract
+  // is not accidentally bypassed by another `npm` executable on PATH.
+  const result = spawnSync(
+    process.execPath,
+    [join(root, '../../node_modules/astro/bin/astro.mjs'), 'build'],
+    {
+      cwd: root,
+      stdio: 'inherit',
+      env,
+    },
+  );
   if (result.status !== 0) {
     fail('Landing build failed');
     return;
@@ -257,6 +271,13 @@ function checkLegalPagesOmitHomeHreflang() {
  */
 const localeContentSmoke = {
   de: {
+    structured: [
+      'Zuordnen',
+      'Sortieren',
+      'Kategorisieren',
+      'volle oder keine Punkte',
+      'In aktiven Runden bleiben Paarung, Soll-Reihenfolge und Zielkategorien verborgen',
+    ],
     matrix: [
       'Richtig · geringe Sicherheit',
       'Richtig · mittlere Sicherheit',
@@ -279,6 +300,13 @@ const localeContentSmoke = {
     banned: ['selbstsicher falsch', 'Elaborierte Word Cloud', 'didaktischen Moment passen'],
   },
   en: {
+    structured: [
+      'Matching',
+      'Ordering',
+      'Categorisation',
+      'full credit or no credit',
+      'correct pairings, target order and target categories remain hidden',
+    ],
     matrix: [
       'Correct · low confidence',
       'Correct · medium confidence',
@@ -303,6 +331,13 @@ const localeContentSmoke = {
     banned: ['Until then only neutral progress', 'Facilitator view Q&amp;A'],
   },
   fr: {
+    structured: [
+      'Associer',
+      'Ordonner',
+      'Classer',
+      'tous les points ou aucun',
+      'les bonnes associations, l’ordre attendu et les catégories cibles restent cachés',
+    ],
     matrix: [
       'Réponse correcte · confiance faible',
       'Réponse correcte · confiance moyenne',
@@ -336,6 +371,13 @@ const localeContentSmoke = {
     ],
   },
   it: {
+    structured: [
+      'Abbinare',
+      'Ordinare',
+      'Classificare',
+      'tutti i punti oppure nessun punto',
+      'gli abbinamenti corretti, la sequenza prevista e le categorie di destinazione',
+    ],
     matrix: [
       'Corretta · sicurezza bassa',
       'Corretta · sicurezza media',
@@ -366,6 +408,13 @@ const localeContentSmoke = {
     ],
   },
   es: {
+    structured: [
+      'Relacionar',
+      'Ordenar',
+      'Clasificar',
+      'todos los puntos o ninguno',
+      'las relaciones correctas, el orden esperado y las categorías de destino',
+    ],
     matrix: [
       'Correcta · confianza baja',
       'Correcta · confianza media',
@@ -408,6 +457,17 @@ function checkLocaleContentSmoke() {
   for (const locale of locales) {
     const html = readFileSync(join(dist, locale, 'index.html'), 'utf8');
     const smoke = localeContentSmoke[locale];
+    for (const phrase of smoke.structured) {
+      if (!html.includes(phrase)) {
+        fail(`/${locale}/ missing structured-question phrase ${JSON.stringify(phrase)}`);
+      }
+    }
+    for (const id of ['matching', 'ordering', 'categorisation']) {
+      const titleId = `id="structured-${id}-title"`;
+      if (html.split(titleId).length !== 2) {
+        fail(`/${locale}/ must render exactly one independent ${id} card`);
+      }
+    }
     for (const label of smoke.matrix) {
       if (!html.includes(label)) fail(`/${locale}/ missing matrix label ${JSON.stringify(label)}`);
     }
@@ -516,7 +576,7 @@ function extractMainSectionOrder(html) {
   if (!mainMatch) return null;
   const order = [];
   const re =
-    /id="(workflow|features|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
+    /id="(workflow|features|structured-question-types|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
   let match;
   while ((match = re.exec(mainMatch[1])) !== null) {
     order.push(match[1]);
