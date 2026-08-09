@@ -96,7 +96,8 @@ services:
       - '127.0.0.1:3001:3001'
       - '127.0.0.1:3002:3002'
     environment:
-      # Fixe Laufzeitwerte; DATABASE_URL, REDIS_URL, JWT_SECRET, ADMIN_* kommen aus `.env.production`
+      # Fixe Laufzeitwerte; DATABASE_URL, REDIS_URL, JWT_SECRET,
+      # STRUCTURED_SHUFFLE_SECRET und ADMIN_* kommen aus `.env.production`
       PORT: '3000'
       HOST: '0.0.0.0'
       WS_PORT: '3001'

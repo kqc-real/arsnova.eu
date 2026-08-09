@@ -28,6 +28,8 @@ werden lokal pro Session, Person, Frage und Runde gespeichert und nach einem Rel
 Während `ACTIVE` enthalten Teilnehmer-DTOs nur opake IDs und sichtbare Texte. Paarbildung,
 Soll-Reihenfolge, Zielkategorien und Live-Verteilungen werden nicht ausgeliefert. Das serverseitige
 Scoring prüft die vollständige Antwort gegen die kanonischen IDs; aktuell gibt es keine Teilpunkte.
+Die persönliche Startreihenfolge wird mit einem serverseitigen HMAC-Seed abgeleitet. Produktion kann
+dafür `STRUCTURED_SHUFFLE_SECRET` setzen; ohne separaten Wert wird `JWT_SECRET` verwendet.
 
 ## Ergebnisse und Bericht
 
