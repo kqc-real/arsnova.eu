@@ -710,18 +710,25 @@ function renderStructuredSolutionHtml(
     </section>`;
     if (q.matchingStats) {
       const total = q.matchingStats.totalVotes;
+      const matchingColumns = q.matchingPairs.map((pair, index) => ({
+        ...pair,
+        key: String.fromCharCode(65 + index),
+      }));
       const counts = new Map(
         q.matchingStats.selectionCounts.map((entry) => [
           `${entry.leftId}\u0000${entry.rightId}`,
           entry.count,
         ]),
       );
-      html += `<section class="report-structured-matrix">
+      html += `<section class="report-structured-matrix report-structured-matrix--matching">
         <table class="report-table">
           <caption>${escapeHtml(labels.structuredMatchingMatrixTitle)}</caption>
-          <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${q.matchingPairs
+          <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${matchingColumns
             .map(
-              (pair) => `<th scope="col">${escapeHtml(stripMarkdownToPlainText(pair.right))}</th>`,
+              (column) =>
+                `<th scope="col"><span class="report-structured-matrix-key" aria-label="${escapeHtml(
+                  `${column.key}: ${stripMarkdownToPlainText(column.right)}`,
+                )}">${column.key}</span></th>`,
             )
             .join('')}</tr></thead>
           <tbody>${q.matchingPairs
@@ -739,6 +746,16 @@ function renderStructuredSolutionHtml(
             )
             .join('')}</tbody>
         </table>
+        <ol class="report-structured-matrix-legend" aria-label="${escapeHtml(
+          labels.structuredMatchingMatrixTitle,
+        )}">${matchingColumns
+          .map(
+            (column) => `<li>
+              <span class="report-structured-matrix-legend-key" aria-hidden="true">${column.key}</span>
+              <span>${escapeHtml(stripMarkdownToPlainText(column.right))}</span>
+            </li>`,
+          )
+          .join('')}</ol>
       </section>`;
     }
     if (q.matchingStats?.pairHitRates?.length) {

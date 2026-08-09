@@ -1515,6 +1515,53 @@ p { margin: 0 0 0.65rem; }
   text-align: center;
 }
 
+.report-structured-matrix-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  min-height: 1.35rem;
+  border-radius: 999px;
+  background: var(--report-brand, #002395);
+  color: #fff;
+  font-size: 8pt;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.report-structured-matrix-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 0.65rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 8pt;
+  line-height: 1.25;
+}
+
+.report-structured-matrix-legend li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.report-structured-matrix-legend-key {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--report-brand, #002395);
+  color: #fff;
+  font-size: 7.25pt;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .report-structured-matrix-cell--correct {
   background: color-mix(in srgb, var(--report-success) 14%, #fff);
   box-shadow: inset 0 0 0 1px var(--report-success);

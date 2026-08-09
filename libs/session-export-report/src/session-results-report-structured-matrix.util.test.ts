@@ -102,5 +102,79 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
     expect(html).toContain('0 (0\u202f%)');
     expect(html).toContain('2 (100\u202f%)');
     expect(html).toContain('✓ Musterlösung');
+    const matchingMatrix = html.match(
+      /<section class="report-structured-matrix report-structured-matrix--matching">[\s\S]*?<\/section>/,
+    )?.[0];
+    expect(matchingMatrix).toContain(
+      '<span class="report-structured-matrix-key" aria-label="A: 1">A</span>',
+    );
+    expect(matchingMatrix).toContain(
+      '<span class="report-structured-matrix-legend-key" aria-hidden="true">B</span>',
+    );
+    expect(matchingMatrix).not.toContain('<th scope="col">1</th>');
+    expect(matchingMatrix).not.toContain('<th scope="col">2</th>');
+  });
+
+  it('hält sechs lange Matching-Antworten mit Kurzkennungen und Legende lesbar', () => {
+    const rightLabels = [
+      'Ausrufung der Republik durch Philipp Scheidemann nach dem Ende der Monarchie',
+      'Unterzeichnung des Versailler Vertrags unter deutschem Protest',
+      'Inkrafttreten der Weimarer Reichsverfassung mit einem starken Reichspräsidenten',
+      'Einführung der Rentenmark beendet die galoppierende Hyperinflation',
+      'Börsenkrach in New York löst die weltweite Wirtschaftskrise aus',
+      'Ernennung des Reichskanzlers leitet das Ende der demokratischen Republik ein',
+    ];
+    const matchingPairs = rightLabels.map((right, index) => ({
+      leftId: `left-${index + 1}`,
+      left: `${index + 1}. Datum`,
+      rightId: `right-${index + 1}`,
+      right,
+    }));
+    const data: SessionExportDTO = {
+      sessionId: '22222222-2222-4222-8222-222222222222',
+      sessionCode: 'ABC123',
+      quizName: 'Lange Zuordnungen',
+      finishedAt: '2026-08-09T10:00:00.000Z',
+      participantCount: 2,
+      teamMode: false,
+      questions: [
+        {
+          questionOrder: 0,
+          questionTextShort: 'Historische Ereignisse zuordnen',
+          type: 'MATCHING',
+          participantCount: 2,
+          matchingPairs,
+          matchingStats: {
+            totalVotes: 2,
+            fullyCorrectCount: 1,
+            pairHitRates: [],
+            commonConfusions: [],
+            selectionCounts: matchingPairs.map((pair) => ({ ...pair, count: 2 })),
+          },
+        },
+      ],
+    };
+
+    const html = buildSessionResultsReportHtml(data, getSessionResultsReportLabelsDe(), {
+      localeId: 'de',
+      generatedAt: '2026-08-09T10:00:00.000Z',
+    });
+    const matchingMatrix = html.match(
+      /<section class="report-structured-matrix report-structured-matrix--matching">[\s\S]*?<\/section>/,
+    )?.[0];
+    const matchingHeader = matchingMatrix?.match(/<thead>[\s\S]*?<\/thead>/)?.[0];
+    const matchingLegend = matchingMatrix?.match(
+      /<ol class="report-structured-matrix-legend"[\s\S]*?<\/ol>/,
+    )?.[0];
+
+    expect(matchingHeader?.match(/report-structured-matrix-key/g)).toHaveLength(6);
+    expect(matchingLegend?.match(/report-structured-matrix-legend-key/g)).toHaveLength(6);
+    for (const [index, rightLabel] of rightLabels.entries()) {
+      const key = String.fromCharCode(65 + index);
+      expect(matchingHeader).toContain(`>${key}</span></th>`);
+      expect(matchingHeader).not.toContain(`<th scope="col">${rightLabel}</th>`);
+      expect(matchingLegend).toContain(`aria-hidden="true">${key}</span>`);
+      expect(matchingLegend).toContain(rightLabel);
+    }
   });
 });
