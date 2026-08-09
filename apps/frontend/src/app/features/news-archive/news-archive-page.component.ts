@@ -67,6 +67,10 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
 @Component({
   selector: 'app-news-archive-page',
   standalone: true,
+  // Archiv-Markdown erzeugt beliebige verschachtelte DOM-Strukturen in `[innerHTML]`.
+  // Der Prerender bleibt für Crawler erhalten; der Browser baut nur diese Komponente
+  // aus dem TransferState neu auf, bevor der aktuelle API-Stand geladen wird.
+  host: { ngSkipHydration: 'true' },
   imports: [
     MatButton,
     MatIcon,
