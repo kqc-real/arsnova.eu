@@ -6416,6 +6416,83 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   font: var(--mat-sys-title-medium);
 }
 
+.session-host__neutral-space {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.session-host__neutral-title,
+.session-host__neutral-subtitle {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__neutral-title {
+  font: var(--mat-sys-title-medium);
+}
+
+.session-host__neutral-subtitle {
+  margin-bottom: 0.45rem;
+  font: var(--mat-sys-title-small);
+}
+
+.session-host__neutral-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.session-host__neutral-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session-host__neutral-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+
+  &--plain {
+    display: block;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.session-host__neutral-number {
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-host__neutral-text {
+  min-width: 0;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
 .session-host__ordering-subtitle,
 .session-host__matching-subtitle,
 .session-host__categorization-subtitle {
@@ -6549,7 +6626,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   align-items: baseline;
   justify-content: space-between;
   gap: 0.35rem 1rem;
-  margin: 0 0 1rem;
+  margin: 1rem 0;
   padding: 0.75rem 0.9rem;
   border-radius: var(--mat-sys-corner-medium);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
@@ -6657,6 +6734,10 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 }
 
 @media (max-width: 599px) {
+  .session-host__neutral-columns {
+    grid-template-columns: 1fr;
+  }
+
   .session-host__matching-pair {
     flex-wrap: wrap;
     align-items: flex-start;

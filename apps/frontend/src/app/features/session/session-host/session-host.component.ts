@@ -525,6 +525,59 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  hostNeutralOrderingItems(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    const canonical = [...(question?.orderingItems ?? [])];
+    const neutral = [...canonical].sort((a, b) => a.id.localeCompare(b.id));
+    if (neutral.length > 1 && neutral.every((item, index) => item.id === canonical[index]?.id)) {
+      neutral.push(neutral.shift()!);
+    }
+    return neutral;
+  }
+
+  hostNeutralMatchingLeftOptions(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    return [...(question?.matchingPairs ?? [])]
+      .sort((a, b) => a.leftId.localeCompare(b.leftId))
+      .map((pair) => ({ id: pair.leftId, text: pair.left }));
+  }
+
+  hostNeutralMatchingRightOptions(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    const displayedLeft = this.hostNeutralMatchingLeftOptions(question);
+    const rightByLeft = new Map(
+      (question?.matchingPairs ?? []).map((pair) => [
+        pair.leftId,
+        { id: pair.rightId, text: pair.right },
+      ]),
+    );
+    const neutral = displayedLeft.flatMap((left) => {
+      const right = rightByLeft.get(left.id);
+      return right ? [right] : [];
+    });
+    if (neutral.length > 1) {
+      neutral.push(neutral.shift()!);
+    }
+    return neutral;
+  }
+
+  hostNeutralCategories(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; name: string }> {
+    return [...(question?.categories ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  hostNeutralCategorizationItems(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    return [...(question?.categorizationItems ?? [])]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map(({ id, text }) => ({ id, text }));
+  }
+
   hostMatchingMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
     return (question.matchingPairs ?? []).map((pair) => ({ id: pair.leftId, label: pair.left }));
   }

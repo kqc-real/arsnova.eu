@@ -473,6 +473,158 @@ describe('session reading-ready flow', () => {
     expect(secondMatching.matchingRightOptions).toEqual(firstMatching.matchingRightOptions);
   });
 
+  it('liefert in der Diskussion für alle strukturierten Typen nur den vollständigen neutralen Optionsraum', async () => {
+    prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
+    const structuredQuestions = [
+      {
+        type: 'ORDERING',
+        orderingItems: [
+          { id: 'item-a', text: 'Erstens' },
+          { id: 'item-b', text: 'Zweitens' },
+          { id: 'item-c', text: 'Drittens' },
+        ],
+      },
+      {
+        type: 'MATCHING',
+        matchingShuffleRight: false,
+        matchingPairs: [
+          { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+          { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+        ],
+      },
+      {
+        type: 'CATEGORIZATION',
+        categorizationShuffleItems: false,
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'Element B', correctCategoryId: 'cat-b' },
+        ],
+      },
+    ] as const;
+
+    for (const structured of structuredQuestions) {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'DISCUSSION',
+        currentQuestion: 0,
+        currentRound: 1,
+        answerDisplayOrder: null,
+        statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
+        quiz: {
+          defaultTimer: 30,
+          timerScaleByDifficulty: true,
+          preset: 'SERIOUS',
+          questions: [
+            {
+              id: QUESTION_ID,
+              text: 'Strukturierte Frage',
+              difficulty: 'MEDIUM',
+              order: 0,
+              timer: 30,
+              ratingMin: null,
+              ratingMax: null,
+              ratingLabelMin: null,
+              ratingLabelMax: null,
+              answers: [],
+              ...structured,
+            },
+          ],
+        },
+        _count: { participants: 2 },
+      });
+
+      const result = await caller.getCurrentQuestionForStudent({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+      });
+
+      expect(result?.type).toBe(structured.type);
+      expect(JSON.stringify(result)).not.toContain('correctCategoryId');
+      expect(result).not.toHaveProperty('matchingPairs');
+      if (structured.type === 'ORDERING') {
+        expect(result).toHaveProperty('orderingItems');
+        expect((result as { orderingItems?: Array<{ id: string }> }).orderingItems).toHaveLength(3);
+        expect(
+          (result as { orderingItems?: Array<{ id: string }> }).orderingItems?.map(
+            (item) => item.id,
+          ),
+        ).not.toEqual(['item-a', 'item-b', 'item-c']);
+      } else if (structured.type === 'MATCHING') {
+        const matching = result as {
+          matchingLeftOptions?: Array<{ id: string }>;
+          matchingRightOptions?: Array<{ id: string }>;
+        };
+        expect(matching.matchingLeftOptions?.map((option) => option.id)).toEqual([
+          'left-a',
+          'left-b',
+        ]);
+        expect(matching.matchingRightOptions?.map((option) => option.id)).toEqual([
+          'right-b',
+          'right-a',
+        ]);
+      } else {
+        expect((result as { categories?: unknown[] }).categories).toHaveLength(2);
+        expect((result as { categorizationItems?: unknown[] }).categorizationItems).toHaveLength(2);
+      }
+    }
+  });
+
+  it('liefert ORDERING auch während ACTIVE niemals in kanonischer Lösungsreihenfolge', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
+      activeQuestionStartedAt: new Date('2026-04-28T10:00:00.000Z'),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: QUESTION_ID,
+            text: 'Sortiere',
+            type: 'ORDERING',
+            difficulty: 'MEDIUM',
+            order: 0,
+            timer: 30,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            orderingItems: [
+              { id: 'item-a', text: 'Erstens' },
+              { id: 'item-b', text: 'Zweitens' },
+              { id: 'item-c', text: 'Drittens' },
+            ],
+            answers: [],
+          },
+        ],
+      },
+      _count: { participants: 2 },
+    });
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: PARTICIPANT_ID,
+      timerAccommodation: null,
+    });
+
+    const result = await caller.getCurrentQuestionForStudent({
+      code: 'ABC123',
+      participantId: PARTICIPANT_ID,
+    });
+
+    expect(result?.type).toBe('ORDERING');
+    expect(
+      (result as { orderingItems?: Array<{ id: string }> }).orderingItems?.map((item) => item.id),
+    ).not.toEqual(['item-a', 'item-b', 'item-c']);
+  });
+
   it('haelt den Vote-Count nach Current-Question-Invalidierung im eigenen Cache', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

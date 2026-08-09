@@ -6032,6 +6032,60 @@ export const sessionRouter = router({
       );
 
       const totalQuestions = quiz.questions.length;
+      const participantKey =
+        participantBelongsToSession && participantId ? participantId : 'anonymous';
+      // Salted seed so clients cannot reverse the shuffle from public participant/question IDs.
+      const structuredShuffleSeed = buildStructuredOptionShuffleSeed(participantKey, question.id);
+      const matchingShuffleSeed = question.matchingShuffleRight
+        ? structuredShuffleSeed
+        : buildStructuredOptionShuffleSeed('shared', question.id);
+      const matchingLeftOptions =
+        question.type === 'MATCHING'
+          ? ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
+              id: pair.leftId,
+              text: pair.left,
+            }))
+          : undefined;
+      const matchingRightOptions =
+        question.type === 'MATCHING'
+          ? stableNonCanonicalShuffle(
+              ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
+                id: pair.rightId,
+                text: pair.right,
+              })),
+              matchingShuffleSeed,
+              question.id,
+            )
+          : undefined;
+      const orderingItems =
+        question.type === 'ORDERING'
+          ? stableNonCanonicalShuffle(
+              ((question.orderingItems as OrderingItemInput[] | null) ?? []).map((item) => ({
+                id: item.id,
+                text: item.text,
+              })),
+              structuredShuffleSeed,
+              question.id,
+            )
+          : undefined;
+      const categories =
+        question.type === 'CATEGORIZATION'
+          ? ((question.categories as CategorizationCategoryInput[] | null) ?? []).map(
+              (category) => ({ id: category.id, name: category.name }),
+            )
+          : undefined;
+      const categorizationItems =
+        question.type === 'CATEGORIZATION'
+          ? ((question.categorizationItems as CategorizationItemInput[] | null) ?? []).map(
+              (item) => ({ id: item.id, text: item.text }),
+            )
+          : undefined;
+      const displayedCategorizationItems =
+        question.type === 'CATEGORIZATION' &&
+        question.categorizationShuffleItems &&
+        categorizationItems
+          ? stableShuffleWithContext(categorizationItems, structuredShuffleSeed, question.id)
+          : categorizationItems;
 
       if (session.status === 'QUESTION_OPEN') {
         const participantReady =
@@ -6079,6 +6133,11 @@ export const sessionRouter = router({
           numericDecimalPlaces: question.numericDecimalPlaces ?? null,
           numericMin: question.numericMin ?? null,
           numericMax: question.numericMax ?? null,
+          matchingLeftOptions,
+          matchingRightOptions,
+          orderingItems,
+          categories,
+          categorizationItems: displayedCategorizationItems,
         });
       }
 
@@ -6134,13 +6193,7 @@ export const sessionRouter = router({
               totalVotes,
               currentRound: session.currentRound,
               // Unshuffled prompts are cached once; personal shuffle happens after the cache hit.
-              matchingLeftOptions:
-                question.type === 'MATCHING'
-                  ? ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
-                      id: pair.leftId,
-                      text: pair.left,
-                    }))
-                  : undefined,
+              matchingLeftOptions,
               matchingRightOptions:
                 question.type === 'MATCHING'
                   ? ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
@@ -6150,17 +6203,12 @@ export const sessionRouter = router({
                   : undefined,
               orderingItems:
                 question.type === 'ORDERING'
-                  ? ((question.orderingItems as OrderingItemInput[] | null) ?? []).map((i) => ({
-                      id: i.id,
-                      text: i.text,
+                  ? ((question.orderingItems as OrderingItemInput[] | null) ?? []).map((item) => ({
+                      id: item.id,
+                      text: item.text,
                     }))
                   : undefined,
-              categories:
-                question.type === 'CATEGORIZATION'
-                  ? ((question.categories as CategorizationCategoryInput[] | null) ?? []).map(
-                      (category) => ({ id: category.id, name: category.name }),
-                    )
-                  : undefined,
+              categories,
               categorizationItems:
                 question.type === 'CATEGORIZATION'
                   ? ((question.categorizationItems as CategorizationItemInput[] | null) ?? []).map(
@@ -6171,13 +6219,6 @@ export const sessionRouter = router({
           },
         )) as z.infer<typeof QuestionStudentDTOSchema>;
 
-        const participantKey =
-          participantBelongsToSession && participantId ? participantId : 'anonymous';
-        // Salted seed so clients cannot reverse the shuffle from public participant/question IDs.
-        const shuffleSeed = buildStructuredOptionShuffleSeed(participantKey, question.id);
-        const matchingShuffleSeed = question.matchingShuffleRight
-          ? shuffleSeed
-          : buildStructuredOptionShuffleSeed('shared', question.id);
         const personalizedDto: z.infer<typeof QuestionStudentDTOSchema> = {
           ...baseDto,
           matchingRightOptions:
@@ -6190,13 +6231,17 @@ export const sessionRouter = router({
               : baseDto.matchingRightOptions,
           orderingItems:
             question.type === 'ORDERING' && baseDto.orderingItems
-              ? stableShuffleWithContext(baseDto.orderingItems, shuffleSeed, question.id)
+              ? stableNonCanonicalShuffle(baseDto.orderingItems, structuredShuffleSeed, question.id)
               : baseDto.orderingItems,
           categorizationItems:
             question.type === 'CATEGORIZATION' &&
             question.categorizationShuffleItems &&
             baseDto.categorizationItems
-              ? stableShuffleWithContext(baseDto.categorizationItems, shuffleSeed, question.id)
+              ? stableShuffleWithContext(
+                  baseDto.categorizationItems,
+                  structuredShuffleSeed,
+                  question.id,
+                )
               : baseDto.categorizationItems,
         };
 

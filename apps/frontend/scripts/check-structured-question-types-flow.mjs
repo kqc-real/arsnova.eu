@@ -199,6 +199,168 @@ async function waitForText(page, matcher, timeout = 15_000) {
   return null;
 }
 
+function structuredVisibleTerms(question) {
+  if (question.type === 'ORDERING') {
+    return question.orderingItems.map((item) => item.text);
+  }
+  if (question.type === 'MATCHING') {
+    return question.matchingPairs.flatMap((pair) => [pair.left, pair.right]);
+  }
+  return [
+    ...question.categories.map((category) => category.name),
+    ...question.categorizationItems.map((item) => item.text),
+  ];
+}
+
+async function assertNoHorizontalPageScroll(page, label, hardFailures) {
+  const previousViewport = page.viewportSize() ?? MOBILE;
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.waitForTimeout(150);
+  const dimensions = await page.evaluate(() => ({
+    viewport: globalThis.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+  }));
+  await page.setViewportSize(previousViewport);
+  if (dimensions.document > dimensions.viewport + 1 || dimensions.body > dimensions.viewport + 1) {
+    hardFailures.push(`${label} overflows horizontally at 320px: ${JSON.stringify(dimensions)}.`);
+    logStep(false, `${label} 320px reflow`);
+    return false;
+  }
+  logStep(true, `${label} 320px reflow`);
+  return true;
+}
+
+async function assertHostNeutralOptions(host, question, label, phase, hardFailures) {
+  const neutral = host.locator('.session-host__neutral-space').first();
+  const visible = await neutral
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!visible) {
+    hardFailures.push(`Host ${phase} missing neutral option space for ${label}.`);
+    logStep(false, `Host ${phase} neutral ${label} options`);
+    return false;
+  }
+
+  const text = await neutral.innerText();
+  const missing = structuredVisibleTerms(question).filter((term) => !text.includes(term));
+  if (
+    missing.length > 0 ||
+    /Soll-Reihenfolge|Korrekte Paare|Soll-Kategorien|vollständig korrekt/i.test(text)
+  ) {
+    hardFailures.push(
+      `Host ${phase} neutral ${label} options are incomplete or reveal a solution: ${JSON.stringify({ missing, text })}`,
+    );
+    logStep(false, `Host ${phase} neutral ${label} options`);
+    return false;
+  }
+
+  if (question.type === 'ORDERING') {
+    const displayed = await neutral.locator('.session-host__neutral-text').allTextContents();
+    const canonical = question.orderingItems.map((item) => item.text);
+    if (JSON.stringify(displayed) === JSON.stringify(canonical)) {
+      hardFailures.push(`Host ${phase} exposes canonical ORDERING sequence before RESULTS.`);
+      logStep(false, `Host ${phase} non-canonical ORDERING`);
+      return false;
+    }
+  } else if (question.type === 'MATCHING') {
+    const lists = neutral.locator('.session-host__neutral-columns > section');
+    const left = await lists.nth(0).locator('.session-host__neutral-item').allTextContents();
+    const right = await lists.nth(1).locator('.session-host__neutral-item').allTextContents();
+    const correctByLeft = new Map(question.matchingPairs.map((pair) => [pair.left, pair.right]));
+    if (
+      left.length !== question.matchingPairs.length ||
+      right.length !== question.matchingPairs.length ||
+      left.some((term, index) => correctByLeft.get(term.trim()) === right[index]?.trim())
+    ) {
+      hardFailures.push(`Host ${phase} exposes an implicit MATCHING row pairing.`);
+      logStep(false, `Host ${phase} independent MATCHING sets`);
+      return false;
+    }
+  } else {
+    const sections = await neutral.locator('.session-host__neutral-columns > section').count();
+    if (sections !== 2) {
+      hardFailures.push(`Host ${phase} does not separate categories and items.`);
+      logStep(false, `Host ${phase} independent CATEGORIZATION sets`);
+      return false;
+    }
+  }
+
+  logStep(true, `Host ${phase} neutral ${label} options`);
+  return true;
+}
+
+async function assertVoteDiscussionOptions(participant, question, label, hardFailures) {
+  const preview = participant.locator('.vote-structured-preview').first();
+  const visible = await preview
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!visible) {
+    hardFailures.push(`Participant DISCUSSION missing read-only options for ${label}.`);
+    logStep(false, `Participant DISCUSSION ${label} options`);
+    return false;
+  }
+  const text = await preview.innerText();
+  const missing = structuredVisibleTerms(question).filter((term) => !text.includes(term));
+  const interactiveCount = await preview.locator('button, input, select, mat-select').count();
+  if (
+    missing.length > 0 ||
+    interactiveCount > 0 ||
+    /Richtige Lösung|Richtig|Falsch|Correct solution|Correct|Wrong/i.test(text)
+  ) {
+    hardFailures.push(
+      `Participant DISCUSSION ${label} is incomplete, interactive, or solution-marked: ${JSON.stringify({ missing, interactiveCount, text })}`,
+    );
+    logStep(false, `Participant DISCUSSION ${label} options`);
+    return false;
+  }
+  logStep(true, `Participant DISCUSSION ${label} options`);
+  await assertNoHorizontalPageScroll(participant, `Participant DISCUSSION ${label}`, hardFailures);
+  await scanA11y(participant, `vote-discussion-${label.toLowerCase()}`);
+  return true;
+}
+
+async function assertStructuredParticipantResults(participant, question, label, hardFailures) {
+  const blocks = participant.locator('.structured-result-block');
+  const ready = await blocks
+    .nth(1)
+    .waitFor({ state: 'visible', timeout: 12_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!ready) {
+    hardFailures.push(`Participant RESULTS missing answer/solution hierarchy for ${label}.`);
+    logStep(false, `Participant RESULTS hierarchy ${label}`);
+    return false;
+  }
+  const ownHeading = (await blocks.nth(0).locator('h2').innerText()).trim();
+  const solutionHeading = (await blocks.nth(1).locator('h2').innerText()).trim();
+  const ownText = await blocks.nth(0).innerText();
+  const solutionText = await blocks.nth(1).innerText();
+  const missing = structuredVisibleTerms(question).filter((term) => !solutionText.includes(term));
+  const summaryVisible = await participant
+    .locator('.structured-result-summary')
+    .isVisible()
+    .catch(() => false);
+  if (
+    !/Deine Antwort|Your answer/i.test(ownHeading) ||
+    !/Richtige Lösung|Correct solution/i.test(solutionHeading) ||
+    !/Falsch|Wrong/i.test(ownText) ||
+    missing.length > 0 ||
+    !summaryVisible
+  ) {
+    hardFailures.push(
+      `Participant RESULTS ${label} is incomplete: ${JSON.stringify({ ownHeading, solutionHeading, missing, summaryVisible })}`,
+    );
+    logStep(false, `Participant RESULTS hierarchy ${label}`);
+    return false;
+  }
+  logStep(true, `Participant RESULTS hierarchy ${label}`);
+  await assertNoHorizontalPageScroll(participant, `Participant RESULTS ${label}`, hardFailures);
+  return true;
+}
+
 async function dismissDialogIfPresent(page) {
   const dialog = page.getByRole('dialog').first();
   if (!(await dialog.isVisible().catch(() => false))) {
@@ -474,7 +636,14 @@ async function submitWrongShadowVotes(
   return true;
 }
 
-async function revealAndAssertHostResults(host, participant, hardFailures, hostMatchers, label) {
+async function revealAndAssertHostResults(
+  host,
+  participant,
+  hardFailures,
+  hostMatchers,
+  label,
+  questionMeta,
+) {
   const hostReady = await waitForText(host, /5 von 5|5 of 5|100\s*%/i, 20_000);
   if (!hostReady) {
     hardFailures.push(`Host never observed all participant votes for ${label}.`);
@@ -495,6 +664,24 @@ async function revealAndAssertHostResults(host, participant, hardFailures, hostM
   }
   logStep(true, `Host RESULTS for ${label}`);
 
+  const result = host.locator(`.session-host__${label.toLowerCase()}-results`).first();
+  const orderedSolutionFirst = await result
+    .evaluate((element) => {
+      const solution = element.querySelector('h3');
+      const insight = element.querySelector('.session-host__structured-insight');
+      if (!solution || !insight) return false;
+      return Boolean(solution.compareDocumentPosition(insight) & Node.DOCUMENT_POSITION_FOLLOWING);
+    })
+    .catch(() => false);
+  if (!orderedSolutionFirst) {
+    hardFailures.push(`Host RESULTS does not show the ${label} solution before its summary.`);
+    logStep(false, `Host RESULTS ${label} solution-first hierarchy`);
+  } else {
+    logStep(true, `Host RESULTS ${label} solution-first hierarchy`);
+  }
+
+  await assertStructuredParticipantResults(participant, questionMeta, label, hardFailures);
+
   await participant.waitForTimeout(500);
   await scanA11y(host, `host-results-${label}`);
   await scanA11y(participant, `vote-results-${label}`);
@@ -514,6 +701,7 @@ async function runOrderingFlow(
   if (!(await startOrAdvanceQuestion(host, ORDERING_PROMPT, hardFailures, 'ORDERING'))) {
     return;
   }
+  await assertHostNeutralOptions(host, questionMeta, 'ORDERING', 'ACTIVE Runde 1', hardFailures);
 
   const waiting = await waitForText(host, /Warte auf Sortierungen|waiting for/i, 8_000);
   if (!waiting) {
@@ -617,6 +805,8 @@ async function runOrderingFlow(
     return;
   }
   logStep(true, 'Participant ORDERING discussion phase');
+  await assertHostNeutralOptions(host, questionMeta, 'ORDERING', 'DISCUSSION', hardFailures);
+  await assertVoteDiscussionOptions(participant, questionMeta, 'ORDERING', hardFailures);
 
   await clickButton(host, SECOND_ROUND_RE);
   const roundTwoVisible = await waitForText(
@@ -630,6 +820,7 @@ async function runOrderingFlow(
     return;
   }
   logStep(true, 'Participant ORDERING round 2');
+  await assertHostNeutralOptions(host, questionMeta, 'ORDERING', 'ACTIVE Runde 2', hardFailures);
 
   const roundTwoFirstItem = participant.locator('.vote-ordering__item').first();
   const roundTwoMoveDown = roundTwoFirstItem.locator('button').nth(2);
@@ -664,10 +855,13 @@ async function runOrderingFlow(
       /0 von 5 vollständig korrekt|0 of 5/i,
     ],
     'ORDERING',
+    questionMeta,
   );
 
   const submittedOrderBeforeReload = await participant
-    .locator('.vote-ordering--result .vote-ordering__text')
+    .locator('.structured-result-block')
+    .first()
+    .locator('.vote-ordering__text')
     .allTextContents();
   await participant.evaluate(() => {
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
@@ -680,11 +874,7 @@ async function runOrderingFlow(
   await participant.reload({ waitUntil: 'domcontentloaded' });
   await dismissDialogIfPresent(participant);
 
-  const submitted = await waitForText(
-    participant,
-    /Deine eingereichte Reihenfolge|submitted sequence/i,
-    8_000,
-  );
+  const submitted = await waitForText(participant, /Deine Antwort|Your answer/i, 8_000);
   if (!submitted) {
     hardFailures.push('Participant ORDERING result title missing.');
     logStep(false, 'Participant ORDERING result view');
@@ -692,7 +882,9 @@ async function runOrderingFlow(
     logStep(true, 'Participant ORDERING result view');
   }
   const submittedOrderAfterReload = await participant
-    .locator('.vote-ordering--result .vote-ordering__text')
+    .locator('.structured-result-block')
+    .first()
+    .locator('.vote-ordering__text')
     .allTextContents();
   if (
     submittedOrderBeforeReload.length === 0 ||
@@ -738,6 +930,7 @@ async function runMatchingFlow(
   if (!(await startOrAdvanceQuestion(host, MATCHING_PROMPT, hardFailures, 'MATCHING'))) {
     return;
   }
+  await assertHostNeutralOptions(host, questionMeta, 'MATCHING', 'ACTIVE Runde 1', hardFailures);
 
   const waiting = await waitForText(host, /Warte auf Zuordnungen|waiting for/i, 8_000);
   if (!waiting) {
@@ -818,6 +1011,49 @@ async function runMatchingFlow(
   await scanA11y(participant, 'vote-active-matching');
   if (!(await submitCurrentAnswer(participant, hardFailures, 'MATCHING'))) return;
 
+  const firstRoundComplete = await waitForText(host, /5 von 5|5 of 5|100\s*%/i, 20_000);
+  if (!firstRoundComplete) {
+    hardFailures.push('Host never observed all MATCHING votes in round 1.');
+    logStep(false, 'Host receives MATCHING round 1 votes');
+    return;
+  }
+  await clickButton(host, DISCUSSION_PHASE_RE);
+  if (
+    !(await waitForText(participant, /zweite runde|zweite abstimmung|second (vote|round)/i, 12_000))
+  ) {
+    hardFailures.push('Participant never entered the MATCHING discussion phase.');
+    logStep(false, 'Participant MATCHING discussion phase');
+    return;
+  }
+  await assertHostNeutralOptions(host, questionMeta, 'MATCHING', 'DISCUSSION', hardFailures);
+  await assertVoteDiscussionOptions(participant, questionMeta, 'MATCHING', hardFailures);
+
+  await clickButton(host, SECOND_ROUND_RE);
+  if (!(await waitForText(participant, /nur runde 2 zählt|only round 2 counts/i, 12_000))) {
+    hardFailures.push('Participant never received the MATCHING round 2 vote UI.');
+    logStep(false, 'Participant MATCHING round 2');
+    return;
+  }
+  await assertHostNeutralOptions(host, questionMeta, 'MATCHING', 'ACTIVE Runde 2', hardFailures);
+  for (let index = 0; index < wrongPairs.length; index += 1) {
+    await selectMatOption(participant, fields.nth(index), rightLabels[wrongPairs[index].rightId]);
+  }
+  await participant.waitForTimeout(1100);
+  if (
+    !(await submitWrongShadowVotes(
+      publicTrpc,
+      shadows,
+      code,
+      questionMeta,
+      hardFailures,
+      'MATCHING Runde 2',
+      2,
+    ))
+  ) {
+    return;
+  }
+  if (!(await submitCurrentAnswer(participant, hardFailures, 'MATCHING Runde 2'))) return;
+
   await revealAndAssertHostResults(
     host,
     participant,
@@ -829,6 +1065,7 @@ async function runMatchingFlow(
       /30\. Januar 1933/,
     ],
     'MATCHING',
+    questionMeta,
   );
 }
 
@@ -848,6 +1085,13 @@ async function runCategorizationFlow(
   ) {
     return;
   }
+  await assertHostNeutralOptions(
+    host,
+    questionMeta,
+    'CATEGORIZATION',
+    'ACTIVE Runde 1',
+    hardFailures,
+  );
 
   const waiting = await waitForText(host, /Warte auf Kategorisierungen|waiting for/i, 8_000);
   if (!waiting) {
@@ -912,19 +1156,69 @@ async function runCategorizationFlow(
   await scanA11y(participant, 'vote-active-categorization');
   if (!(await submitCurrentAnswer(participant, hardFailures, 'CATEGORIZATION'))) return;
 
+  const firstRoundComplete = await waitForText(host, /5 von 5|5 of 5|100\s*%/i, 20_000);
+  if (!firstRoundComplete) {
+    hardFailures.push('Host never observed all CATEGORIZATION votes in round 1.');
+    logStep(false, 'Host receives CATEGORIZATION round 1 votes');
+    return;
+  }
+  await clickButton(host, DISCUSSION_PHASE_RE);
+  if (
+    !(await waitForText(participant, /zweite runde|zweite abstimmung|second (vote|round)/i, 12_000))
+  ) {
+    hardFailures.push('Participant never entered the CATEGORIZATION discussion phase.');
+    logStep(false, 'Participant CATEGORIZATION discussion phase');
+    return;
+  }
+  await assertHostNeutralOptions(host, questionMeta, 'CATEGORIZATION', 'DISCUSSION', hardFailures);
+  await assertVoteDiscussionOptions(participant, questionMeta, 'CATEGORIZATION', hardFailures);
+
+  await clickButton(host, SECOND_ROUND_RE);
+  if (!(await waitForText(participant, /nur runde 2 zählt|only round 2 counts/i, 12_000))) {
+    hardFailures.push('Participant never received the CATEGORIZATION round 2 vote UI.');
+    logStep(false, 'Participant CATEGORIZATION round 2');
+    return;
+  }
+  await assertHostNeutralOptions(
+    host,
+    questionMeta,
+    'CATEGORIZATION',
+    'ACTIVE Runde 2',
+    hardFailures,
+  );
+  for (let index = 0; index < wrongSelections.length; index += 1) {
+    await selectMatOption(
+      participant,
+      fields.nth(index),
+      categories[wrongSelections[index].categoryId],
+    );
+  }
+  await participant.waitForTimeout(1100);
+  if (
+    !(await submitWrongShadowVotes(
+      publicTrpc,
+      shadows,
+      code,
+      questionMeta,
+      hardFailures,
+      'CATEGORIZATION Runde 2',
+      2,
+    ))
+  ) {
+    return;
+  }
+  if (!(await submitCurrentAnswer(participant, hardFailures, 'CATEGORIZATION Runde 2'))) return;
+
   await revealAndAssertHostResults(
     host,
     participant,
     hardFailures,
     [/Soll-Kategorien|categories/i, /Aufklärung/, /Nathan der Weise/, /Sandmann/],
     'CATEGORIZATION',
+    questionMeta,
   );
 
-  const submitted = await waitForText(
-    participant,
-    /Deine Kategorisierungen|your categorizations/i,
-    8_000,
-  );
+  const submitted = await waitForText(participant, /Deine Antwort|Your answer/i, 8_000);
   if (!submitted) {
     hardFailures.push('Participant CATEGORIZATION result title missing.');
     logStep(false, 'Participant CATEGORIZATION result view');

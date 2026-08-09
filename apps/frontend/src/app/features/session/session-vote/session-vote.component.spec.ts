@@ -5019,6 +5019,281 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it.each([
+    {
+      type: 'ORDERING',
+      fields: {
+        orderingItems: [
+          { id: 'item-b', text: 'Zweitens' },
+          { id: 'item-a', text: 'Erstens' },
+        ],
+      },
+      expected: ['Erstens', 'Zweitens'],
+    },
+    {
+      type: 'MATCHING',
+      fields: {
+        matchingLeftOptions: [
+          { id: 'left-a', text: 'Alpha' },
+          { id: 'left-b', text: 'Beta' },
+        ],
+        matchingRightOptions: [
+          { id: 'right-b', text: 'Zwei' },
+          { id: 'right-a', text: 'Eins' },
+        ],
+      },
+      expected: ['Alpha', 'Beta', 'Eins', 'Zwei'],
+    },
+    {
+      type: 'CATEGORIZATION',
+      fields: {
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A' },
+          { id: 'item-b', text: 'Element B' },
+        ],
+      },
+      expected: ['Kategorie A', 'Kategorie B', 'Element A', 'Element B'],
+    },
+  ] as const)(
+    'zeigt im Vote-Diskussionszustand für $type alle Optionen schreibgeschützt und ohne Lösung',
+    async ({ type, fields, expected }) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'DISCUSSION',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: 'structured-discussion-question',
+        text: 'Diskutiert diese Frage',
+        type,
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        ...fields,
+      });
+
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      for (
+        let attempt = 0;
+        attempt < 10 && !fixture.nativeElement.querySelector('.vote-structured-preview');
+        attempt += 1
+      ) {
+        await flushComponentAfterStable(fixture, 50);
+        fixture.detectChanges();
+      }
+
+      const preview = fixture.nativeElement.querySelector(
+        '.vote-structured-preview',
+      ) as HTMLElement;
+      const text = preview.textContent ?? '';
+      for (const term of expected) expect(text).toContain(term);
+      expect(preview.querySelector('button, input, select, mat-select')).toBeNull();
+      expect(text).not.toMatch(/Richtige Lösung|Richtig|Falsch/);
+      fixture.destroy();
+    },
+  );
+
+  it.each([
+    {
+      type: 'ORDERING',
+      question: {
+        orderingItems: [
+          { id: 'item-a', text: 'Richtig zuerst' },
+          { id: 'item-b', text: 'Richtig danach' },
+        ],
+      },
+      response: { orderingSequence: ['item-b', 'item-a'] },
+      solutionTerms: ['Richtig zuerst', 'Richtig danach'],
+    },
+    {
+      type: 'MATCHING',
+      question: {
+        matchingPairs: [
+          { leftId: 'left-a', left: 'Alpha', rightId: 'right-a', right: 'Eins' },
+          { leftId: 'left-b', left: 'Beta', rightId: 'right-b', right: 'Zwei' },
+        ],
+      },
+      response: {
+        matchingSelections: [
+          { leftId: 'left-a', rightId: 'right-b' },
+          { leftId: 'left-b', rightId: 'right-a' },
+        ],
+      },
+      solutionTerms: ['Alpha', 'Beta', 'Eins', 'Zwei'],
+    },
+    {
+      type: 'CATEGORIZATION',
+      question: {
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'Element B', correctCategoryId: 'cat-b' },
+        ],
+      },
+      response: {
+        categorizationSelections: [
+          { itemId: 'item-a', categoryId: 'cat-b' },
+          { itemId: 'item-b', categoryId: 'cat-a' },
+        ],
+      },
+      solutionTerms: ['Kategorie A', 'Kategorie B', 'Element A', 'Element B'],
+    },
+  ] as const)(
+    'trennt im Vote-Ergebnis für $type die falsche eigene Antwort von der vollständigen Lösung',
+    async ({ type, question, response, solutionTerms }) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'RESULTS',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: 'structured-result-question',
+        text: 'Strukturierte Ergebnisfrage',
+        type,
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        ...question,
+      });
+      getPersonalScorecardQueryMock.mockResolvedValue({
+        questionOrder: 1,
+        totalQuestions: 1,
+        wasCorrect: false,
+        questionScore: 0,
+        baseScore: 0,
+        streakCount: 0,
+        streakMultiplier: 1,
+        currentRank: 1,
+        previousRank: null,
+        rankChange: 0,
+        totalScore: 0,
+        ...response,
+      });
+
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      for (
+        let attempt = 0;
+        attempt < 10 &&
+        fixture.nativeElement.querySelectorAll('.structured-result-block').length < 2;
+        attempt += 1
+      ) {
+        await flushComponentAfterStable(fixture, 50);
+        fixture.detectChanges();
+      }
+
+      const summary = fixture.nativeElement.querySelector(
+        '.structured-result-summary',
+      ) as HTMLElement;
+      const blocks = Array.from(
+        fixture.nativeElement.querySelectorAll('.structured-result-block'),
+      ) as HTMLElement[];
+      expect(summary.textContent).toContain('0 von 2 richtig');
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0]?.querySelector('h2')?.textContent).toContain('Deine Antwort');
+      expect(blocks[0]?.textContent).toContain('Falsch');
+      expect(blocks[0]?.querySelector('mat-icon')).not.toBeNull();
+      expect(blocks[1]?.querySelector('h2')?.textContent).toContain('Richtige Lösung');
+      for (const term of solutionTerms) expect(blocks[1]?.textContent).toContain(term);
+      fixture.destroy();
+    },
+  );
+
+  it('zeigt bei einem nicht abgegebenen strukturierten Vote niemals die kanonische Lösung als eigene Antwort', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'ordering-no-vote-result',
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      totalVotes: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'Kanonisch zuerst' },
+        { id: 'item-b', text: 'Kanonisch danach' },
+      ],
+    });
+    getPersonalScorecardQueryMock.mockResolvedValue({
+      questionOrder: 1,
+      totalQuestions: 1,
+      wasCorrect: null,
+      questionScore: 0,
+      baseScore: 0,
+      streakCount: 0,
+      streakMultiplier: 1,
+      currentRank: 0,
+      previousRank: null,
+      rankChange: 0,
+      totalScore: 0,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    for (
+      let attempt = 0;
+      attempt < 10 && fixture.nativeElement.querySelectorAll('.structured-result-block').length < 2;
+      attempt += 1
+    ) {
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+    }
+
+    const blocks = fixture.nativeElement.querySelectorAll('.structured-result-block');
+    expect(blocks[0]?.textContent).toContain('Keine Antwort abgegeben');
+    expect(blocks[0]?.textContent).not.toContain('Kanonisch zuerst');
+    expect(blocks[1]?.textContent).toContain('Kanonisch zuerst');
+    expect(fixture.nativeElement.querySelector('.structured-result-summary')).toBeNull();
+    fixture.destroy();
+  });
+
   it('sendet Matching über stabile IDs und tauscht vollständig belegte Zuordnungen', async () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;

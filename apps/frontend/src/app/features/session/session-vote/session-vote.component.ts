@@ -4552,6 +4552,80 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       : $localize`:@@sessionVote.structuredWrong:Falsch`;
   }
 
+  structuredResultSummary(question: CurrentQuestion): {
+    correct: number;
+    total: number;
+    fullyCorrect: boolean;
+    label: string;
+  } | null {
+    if (!this.hasStructuredParticipantAnswer(question)) return null;
+    let correct: number;
+    let total: number;
+
+    if (question.type === 'ORDERING' && 'orderingItems' in question) {
+      total = question.orderingItems?.length ?? 0;
+      correct = this.orderingItemsState().filter((item, index) =>
+        this.orderingPositionIsCorrect(item.id, index),
+      ).length;
+    } else if (question.type === 'MATCHING' && 'matchingPairs' in question) {
+      total = question.matchingPairs?.length ?? 0;
+      correct = this.matchingSelectionsState().filter(
+        (selection) => selection.rightId === this.getCorrectMatchingRightId(selection.leftId),
+      ).length;
+    } else if (question.type === 'CATEGORIZATION' && 'categorizationItems' in question) {
+      total = question.categorizationItems?.length ?? 0;
+      correct = this.categorizationSelectionsState().filter(
+        (selection) =>
+          selection.categoryId === this.getCorrectCategorizationCategoryId(selection.itemId),
+      ).length;
+    } else {
+      return null;
+    }
+
+    const fullyCorrect = total > 0 && correct === total;
+    const label = fullyCorrect
+      ? $localize`:@@sessionVote.structuredSummaryFullyCorrect:${correct}:correct: von ${total}:total: richtig – vollständig korrekt`
+      : $localize`:@@sessionVote.structuredSummary:${correct}:correct: von ${total}:total: richtig`;
+    return { correct, total, fullyCorrect, label };
+  }
+
+  hasStructuredParticipantAnswer(question: CurrentQuestion): boolean {
+    if (!this.voteSent()) return false;
+    if (question.type === 'ORDERING' && 'orderingItems' in question) {
+      const total = question.orderingItems?.length ?? 0;
+      return total > 0 && this.orderingItemsState().length === total;
+    }
+    if (question.type === 'MATCHING' && 'matchingPairs' in question) {
+      const total = question.matchingPairs?.length ?? 0;
+      return (
+        total > 0 &&
+        this.matchingSelectionsState().length === total &&
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId))
+      );
+    }
+    if (question.type === 'CATEGORIZATION' && 'categorizationItems' in question) {
+      const total = question.categorizationItems?.length ?? 0;
+      return (
+        total > 0 &&
+        this.categorizationSelectionsState().length === total &&
+        this.categorizationSelectionsState().every((selection) => Boolean(selection.categoryId))
+      );
+    }
+    return false;
+  }
+
+  getCorrectCategorizationItemsForCategory(
+    categoryId: string,
+  ): Array<{ id: string; text: string }> {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'CATEGORIZATION' || !('categorizationItems' in question)) {
+      return [];
+    }
+    return (question.categorizationItems ?? [])
+      .filter((item) => (item as { correctCategoryId?: string }).correctCategoryId === categoryId)
+      .map(({ id, text }) => ({ id, text }));
+  }
+
   private questionHasStructuredVotePayload(question: CurrentQuestion | null): boolean {
     if (!question || !('type' in question)) return false;
     if (question.type === 'ORDERING') {

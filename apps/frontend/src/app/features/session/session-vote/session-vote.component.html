@@ -1034,6 +1034,132 @@
               [innerHTML]="renderQuestionMarkdown(q.text)"
             ></div>
           </section>
+          @if (q.type === 'ORDERING') {
+            <section
+              class="vote-structured-preview"
+              aria-labelledby="vote-discussion-ordering-heading"
+            >
+              <h2
+                class="vote-structured-preview__title"
+                id="vote-discussion-ordering-heading"
+                i18n="@@sessionVote.discussionOrderingOptions"
+              >
+                Elemente in neutraler Reihenfolge
+              </h2>
+              <ol class="vote-structured-preview__list" role="list">
+                @for (item of $any(q).orderingItems || []; track item.id; let idx = $index) {
+                  <li class="vote-structured-preview__item">
+                    <span class="vote-structured-preview__number" aria-hidden="true">{{
+                      idx + 1
+                    }}</span>
+                    <span
+                      class="vote-structured-preview__text markdown-body"
+                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                    ></span>
+                  </li>
+                }
+              </ol>
+            </section>
+          } @else if (q.type === 'MATCHING') {
+            <section
+              class="vote-structured-preview"
+              aria-labelledby="vote-discussion-matching-heading"
+            >
+              <h2
+                class="vote-structured-preview__title"
+                id="vote-discussion-matching-heading"
+                i18n="@@sessionVote.discussionMatchingOptions"
+              >
+                Begriffe und Gegenstücke
+              </h2>
+              <div class="vote-structured-preview__columns">
+                <section aria-labelledby="vote-discussion-matching-left-heading">
+                  <h3
+                    class="vote-structured-preview__subtitle"
+                    id="vote-discussion-matching-left-heading"
+                    i18n="@@sessionVote.matchingLeftOptions"
+                  >
+                    Begriffe
+                  </h3>
+                  <ul class="vote-structured-preview__list" role="list">
+                    @for (item of $any(q).matchingLeftOptions || []; track item.id) {
+                      <li
+                        class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+                <section aria-labelledby="vote-discussion-matching-right-heading">
+                  <h3
+                    class="vote-structured-preview__subtitle"
+                    id="vote-discussion-matching-right-heading"
+                    i18n="@@sessionVote.matchingRightOptions"
+                  >
+                    Gegenstücke
+                  </h3>
+                  <ul class="vote-structured-preview__list" role="list">
+                    @for (item of $any(q).matchingRightOptions || []; track item.id) {
+                      <li
+                        class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+              </div>
+            </section>
+          } @else if (q.type === 'CATEGORIZATION') {
+            <section
+              class="vote-structured-preview"
+              aria-labelledby="vote-discussion-categorization-heading"
+            >
+              <h2
+                class="vote-structured-preview__title"
+                id="vote-discussion-categorization-heading"
+                i18n="@@sessionVote.discussionCategorizationOptions"
+              >
+                Kategorien und Elemente
+              </h2>
+              <div class="vote-structured-preview__columns">
+                <section aria-labelledby="vote-discussion-categories-heading">
+                  <h3
+                    class="vote-structured-preview__subtitle"
+                    id="vote-discussion-categories-heading"
+                    i18n="@@sessionVote.categoriesLabel"
+                  >
+                    Kategorien
+                  </h3>
+                  <ul class="vote-structured-preview__list" role="list">
+                    @for (category of $any(q).categories || []; track category.id) {
+                      <li
+                        class="vote-structured-preview__item vote-structured-preview__item--plain"
+                      >
+                        {{ category.name }}
+                      </li>
+                    }
+                  </ul>
+                </section>
+                <section aria-labelledby="vote-discussion-category-items-heading">
+                  <h3
+                    class="vote-structured-preview__subtitle"
+                    id="vote-discussion-category-items-heading"
+                    i18n="@@sessionVote.categorizationItemsLabel"
+                  >
+                    Elemente
+                  </h3>
+                  <ul class="vote-structured-preview__list" role="list">
+                    @for (item of $any(q).categorizationItems || []; track item.id) {
+                      <li
+                        class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+              </div>
+            </section>
+          }
           <div class="vote-discussion" role="status" aria-live="polite">
             <div class="vote-discussion__icon-ring">
               <mat-icon class="vote-discussion__icon">groups</mat-icon>
@@ -1528,37 +1654,66 @@
             </div>
           } @else if (isOrdering() && isResults()) {
             <div class="vote-ordering vote-ordering--result">
-              <p class="vote-ordering__result-title" i18n="@@sessionVote.orderingResultSubmitted">
-                Deine eingereichte Reihenfolge
-              </p>
-              <ol class="vote-ordering__list">
-                @for (item of orderingItemsState(); track item.id; let idx = $index) {
-                  @let positionCorrect = orderingPositionIsCorrect(item.id, idx);
-                  <li
-                    class="vote-ordering__item vote-ordering__item--readonly"
-                    [class.structured-result--correct]="positionCorrect"
-                    [class.structured-result--wrong]="!positionCorrect"
-                  >
-                    <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
-                    <span
-                      class="vote-ordering__text markdown-body"
-                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
-                    ></span>
-                    <span class="structured-result__status">
-                      <mat-icon aria-hidden="true">{{
-                        positionCorrect ? 'check_circle' : 'cancel'
-                      }}</mat-icon>
-                      <span>{{ structuredAnswerStatusLabel(positionCorrect) }}</span>
-                    </span>
-                    @if (!positionCorrect) {
-                      <span class="structured-result__correction">
-                        <span i18n="@@sessionVote.correctPosition">Richtige Position:</span>
-                        {{ orderingCorrectPosition(item.id) }}
-                      </span>
+              @if (structuredResultSummary(q); as summary) {
+                <p class="structured-result-summary" role="status">
+                  <mat-icon aria-hidden="true">{{
+                    summary.fullyCorrect ? 'check_circle' : 'cancel'
+                  }}</mat-icon>
+                  <span>{{ summary.label }}</span>
+                </p>
+              }
+              <section class="structured-result-block" aria-labelledby="vote-ordering-own-heading">
+                <h2 class="structured-result-block__title" id="vote-ordering-own-heading" i18n>
+                  Deine Antwort
+                </h2>
+                @if (hasStructuredParticipantAnswer(q)) {
+                  <ol class="vote-ordering__list">
+                    @for (item of orderingItemsState(); track item.id; let idx = $index) {
+                      @let positionCorrect = orderingPositionIsCorrect(item.id, idx);
+                      <li
+                        class="vote-ordering__item vote-ordering__item--readonly"
+                        [class.structured-result--correct]="positionCorrect"
+                        [class.structured-result--wrong]="!positionCorrect"
+                      >
+                        <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
+                        <span
+                          class="vote-ordering__text markdown-body"
+                          [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                        ></span>
+                        <span class="structured-result__status">
+                          <mat-icon aria-hidden="true">{{
+                            positionCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                          <span>{{ structuredAnswerStatusLabel(positionCorrect) }}</span>
+                        </span>
+                      </li>
                     }
-                  </li>
+                  </ol>
+                } @else {
+                  <p class="structured-result-block__empty" i18n="@@sessionVote.structuredNoAnswer">
+                    Keine Antwort abgegeben.
+                  </p>
                 }
-              </ol>
+              </section>
+              <section
+                class="structured-result-block"
+                aria-labelledby="vote-ordering-solution-heading"
+              >
+                <h2 class="structured-result-block__title" id="vote-ordering-solution-heading" i18n>
+                  Richtige Lösung
+                </h2>
+                <ol class="vote-ordering__list">
+                  @for (item of $any(q).orderingItems || []; track item.id; let idx = $index) {
+                    <li class="vote-ordering__item vote-ordering__item--readonly">
+                      <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
+                      <span
+                        class="vote-ordering__text markdown-body"
+                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                      ></span>
+                    </li>
+                  }
+                </ol>
+              </section>
             </div>
           } @else if (isMatching() && isActive()) {
             <div class="vote-matching">
@@ -1591,47 +1746,79 @@
             </div>
           } @else if (isMatching() && isResults()) {
             <div class="vote-matching vote-matching--result">
-              <p class="vote-matching__result-title" i18n="@@sessionVote.matchingResultSubmitted">
-                Deine eingereichten Zuordnungen
-              </p>
-              <div class="vote-matching__list">
-                @for (sel of matchingSelectionsState(); track sel.leftId) {
-                  @let correctRightId = getCorrectMatchingRightId(sel.leftId);
-                  @let pairCorrect = sel.rightId === correctRightId;
-                  <div
-                    class="vote-matching__pair vote-matching__pair--readonly"
-                    [class.structured-result--correct]="pairCorrect"
-                    [class.structured-result--wrong]="!pairCorrect"
-                  >
-                    <span
-                      class="vote-matching__left markdown-body"
-                      [innerHTML]="renderMarkdown(sel.leftText, 4)"
-                    ></span>
-                    <mat-icon class="vote-matching__arrow" aria-hidden="true"
-                      >arrow_forward</mat-icon
-                    >
-                    <span
-                      class="vote-matching__right markdown-body"
-                      [innerHTML]="renderMarkdown(getMatchingRightTextById(sel.rightId), 4)"
-                    ></span>
-                    <span class="structured-result__status">
-                      <mat-icon aria-hidden="true">{{
-                        pairCorrect ? 'check_circle' : 'cancel'
-                      }}</mat-icon>
-                      <span>{{ structuredAnswerStatusLabel(pairCorrect) }}</span>
-                    </span>
-                    @if (!pairCorrect) {
-                      <span class="structured-result__correction">
-                        <span i18n="@@sessionVote.correctAssignment">Richtige Zuordnung:</span>
+              @if (structuredResultSummary(q); as summary) {
+                <p class="structured-result-summary" role="status">
+                  <mat-icon aria-hidden="true">{{
+                    summary.fullyCorrect ? 'check_circle' : 'cancel'
+                  }}</mat-icon>
+                  <span>{{ summary.label }}</span>
+                </p>
+              }
+              <section class="structured-result-block" aria-labelledby="vote-matching-own-heading">
+                <h2 class="structured-result-block__title" id="vote-matching-own-heading" i18n>
+                  Deine Antwort
+                </h2>
+                @if (hasStructuredParticipantAnswer(q)) {
+                  <ul class="vote-matching__list" role="list">
+                    @for (sel of matchingSelectionsState(); track sel.leftId) {
+                      @let correctRightId = getCorrectMatchingRightId(sel.leftId);
+                      @let pairCorrect = sel.rightId === correctRightId;
+                      <li
+                        class="vote-matching__pair vote-matching__pair--readonly"
+                        [class.structured-result--correct]="pairCorrect"
+                        [class.structured-result--wrong]="!pairCorrect"
+                      >
                         <span
-                          class="markdown-body"
-                          [innerHTML]="renderMarkdown(getMatchingRightTextById(correctRightId), 4)"
+                          class="vote-matching__left markdown-body"
+                          [innerHTML]="renderMarkdown(sel.leftText, 4)"
                         ></span>
-                      </span>
+                        <mat-icon class="vote-matching__arrow" aria-hidden="true"
+                          >arrow_forward</mat-icon
+                        >
+                        <span
+                          class="vote-matching__right markdown-body"
+                          [innerHTML]="renderMarkdown(getMatchingRightTextById(sel.rightId), 4)"
+                        ></span>
+                        <span class="structured-result__status">
+                          <mat-icon aria-hidden="true">{{
+                            pairCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                          <span>{{ structuredAnswerStatusLabel(pairCorrect) }}</span>
+                        </span>
+                      </li>
                     }
-                  </div>
+                  </ul>
+                } @else {
+                  <p class="structured-result-block__empty" i18n="@@sessionVote.structuredNoAnswer">
+                    Keine Antwort abgegeben.
+                  </p>
                 }
-              </div>
+              </section>
+              <section
+                class="structured-result-block"
+                aria-labelledby="vote-matching-solution-heading"
+              >
+                <h2 class="structured-result-block__title" id="vote-matching-solution-heading" i18n>
+                  Richtige Lösung
+                </h2>
+                <ul class="vote-matching__list" role="list">
+                  @for (pair of $any(q).matchingPairs || []; track pair.leftId) {
+                    <li class="vote-matching__pair vote-matching__pair--readonly">
+                      <span
+                        class="vote-matching__left markdown-body"
+                        [innerHTML]="renderMarkdown(pair.left, 4)"
+                      ></span>
+                      <mat-icon class="vote-matching__arrow" aria-hidden="true"
+                        >arrow_forward</mat-icon
+                      >
+                      <span
+                        class="vote-matching__right markdown-body"
+                        [innerHTML]="renderMarkdown(pair.right, 4)"
+                      ></span>
+                    </li>
+                  }
+                </ul>
+              </section>
             </div>
           } @else if (isCategorization() && isActive()) {
             <div class="vote-categorization">
@@ -1661,43 +1848,92 @@
             </div>
           } @else if (isCategorization() && isResults()) {
             <div class="vote-categorization vote-categorization--result">
-              <p
-                class="vote-categorization__result-title"
-                i18n="@@sessionVote.categorizationResultSubmitted"
+              @if (structuredResultSummary(q); as summary) {
+                <p class="structured-result-summary" role="status">
+                  <mat-icon aria-hidden="true">{{
+                    summary.fullyCorrect ? 'check_circle' : 'cancel'
+                  }}</mat-icon>
+                  <span>{{ summary.label }}</span>
+                </p>
+              }
+              <section
+                class="structured-result-block"
+                aria-labelledby="vote-categorization-own-heading"
               >
-                Deine Kategorisierungen
-              </p>
-              <div class="vote-categorization__list">
-                @for (sel of categorizationSelectionsState(); track sel.itemId) {
-                  @let correctCategoryId = getCorrectCategorizationCategoryId(sel.itemId);
-                  @let categoryCorrect = sel.categoryId === correctCategoryId;
-                  <div
-                    class="vote-categorization__item vote-categorization__item--readonly"
-                    [class.structured-result--correct]="categoryCorrect"
-                    [class.structured-result--wrong]="!categoryCorrect"
-                  >
-                    <span
-                      class="vote-categorization__item-text markdown-body"
-                      [innerHTML]="renderMarkdown(sel.itemText, 4)"
-                    ></span>
-                    <span class="vote-categorization__badge">{{
-                      getCategoryNameById(sel.categoryId)
-                    }}</span>
-                    <span class="structured-result__status">
-                      <mat-icon aria-hidden="true">{{
-                        categoryCorrect ? 'check_circle' : 'cancel'
-                      }}</mat-icon>
-                      <span>{{ structuredAnswerStatusLabel(categoryCorrect) }}</span>
-                    </span>
-                    @if (!categoryCorrect) {
-                      <span class="structured-result__correction">
-                        <span i18n="@@sessionVote.correctCategory">Richtige Kategorie:</span>
-                        {{ getCategoryNameById(correctCategoryId) }}
-                      </span>
+                <h2
+                  class="structured-result-block__title"
+                  id="vote-categorization-own-heading"
+                  i18n
+                >
+                  Deine Antwort
+                </h2>
+                @if (hasStructuredParticipantAnswer(q)) {
+                  <ul class="vote-categorization__list" role="list">
+                    @for (sel of categorizationSelectionsState(); track sel.itemId) {
+                      @let correctCategoryId = getCorrectCategorizationCategoryId(sel.itemId);
+                      @let categoryCorrect = sel.categoryId === correctCategoryId;
+                      <li
+                        class="vote-categorization__item vote-categorization__item--readonly"
+                        [class.structured-result--correct]="categoryCorrect"
+                        [class.structured-result--wrong]="!categoryCorrect"
+                      >
+                        <span
+                          class="vote-categorization__item-text markdown-body"
+                          [innerHTML]="renderMarkdown(sel.itemText, 4)"
+                        ></span>
+                        <span class="vote-categorization__badge">{{
+                          getCategoryNameById(sel.categoryId)
+                        }}</span>
+                        <span class="structured-result__status">
+                          <mat-icon aria-hidden="true">{{
+                            categoryCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                          <span>{{ structuredAnswerStatusLabel(categoryCorrect) }}</span>
+                        </span>
+                      </li>
                     }
-                  </div>
+                  </ul>
+                } @else {
+                  <p class="structured-result-block__empty" i18n="@@sessionVote.structuredNoAnswer">
+                    Keine Antwort abgegeben.
+                  </p>
                 }
-              </div>
+              </section>
+              <section
+                class="structured-result-block"
+                aria-labelledby="vote-categorization-solution-heading"
+              >
+                <h2
+                  class="structured-result-block__title"
+                  id="vote-categorization-solution-heading"
+                  i18n
+                >
+                  Richtige Lösung
+                </h2>
+                <div class="vote-categorization__solution-grid">
+                  @for (category of $any(q).categories || []; track category.id) {
+                    <section
+                      class="vote-categorization__solution-card"
+                      [attr.aria-labelledby]="'vote-category-solution-' + category.id"
+                    >
+                      <h3
+                        class="vote-categorization__solution-title"
+                        [id]="'vote-category-solution-' + category.id"
+                      >
+                        {{ category.name }}
+                      </h3>
+                      <ul class="vote-categorization__solution-items" role="list">
+                        @for (
+                          item of getCorrectCategorizationItemsForCategory(category.id);
+                          track item.id
+                        ) {
+                          <li class="markdown-body" [innerHTML]="renderMarkdown(item.text, 4)"></li>
+                        }
+                      </ul>
+                    </section>
+                  }
+                </div>
+              </section>
             </div>
           }
 

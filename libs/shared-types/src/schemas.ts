@@ -3470,6 +3470,16 @@ export const QuestionPreviewDTOSchema = z.object({
   confidenceEnabled: z.boolean().optional(),
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
+  /**
+   * Lösungsfreie Optionsräume für die Diskussionsphase. In QUESTION_OPEN werden
+   * diese Felder bewusst nicht gesetzt; korrekte Paare/Reihenfolgen/Kategorien
+   * bleiben bis RESULTS ausschließlich im Revealed-DTO.
+   */
+  matchingLeftOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  matchingRightOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  orderingItems: z.array(OrderingItemInputSchema).optional(),
+  categories: z.array(CategorizationCategoryInputSchema).optional(),
+  categorizationItems: z.array(CategorizationItemStudentDTOSchema).optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
