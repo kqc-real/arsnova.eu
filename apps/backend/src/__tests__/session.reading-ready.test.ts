@@ -400,6 +400,79 @@ describe('session reading-ready flow', () => {
     expect((result as { answers?: unknown[] }).answers).toEqual([]);
   });
 
+  it('liefert MATCHING-Rechte auch bei deaktivierter individueller Mischung nie in Lösungsreihenfolge', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
+      activeQuestionStartedAt: new Date('2026-04-28T10:00:00.000Z'),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: QUESTION_ID,
+            text: 'Ordne zu',
+            type: 'MATCHING',
+            difficulty: 'MEDIUM',
+            order: 0,
+            timer: 30,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            matchingShuffleRight: false,
+            matchingPairs: [
+              { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+              { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+            ],
+            answers: [],
+          },
+        ],
+      },
+      _count: { participants: 2 },
+    });
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: PARTICIPANT_ID,
+      timerAccommodation: null,
+    });
+
+    const first = await caller.getCurrentQuestionForStudent({
+      code: 'ABC123',
+      participantId: PARTICIPANT_ID,
+    });
+    const second = await caller.getCurrentQuestionForStudent({
+      code: 'ABC123',
+      participantId: PARTICIPANT_ID_2,
+    });
+
+    expect(first?.type).toBe('MATCHING');
+    expect(second?.type).toBe('MATCHING');
+    if (first?.type !== 'MATCHING' || second?.type !== 'MATCHING') {
+      throw new Error('Expected MATCHING student DTOs');
+    }
+    const firstMatching = first as {
+      matchingLeftOptions?: Array<{ id: string; text: string }>;
+      matchingRightOptions?: Array<{ id: string; text: string }>;
+    };
+    const secondMatching = second as {
+      matchingRightOptions?: Array<{ id: string; text: string }>;
+    };
+    expect(firstMatching.matchingLeftOptions?.map((option) => option.id)).toEqual([
+      'left-a',
+      'left-b',
+    ]);
+    expect(firstMatching.matchingRightOptions?.map((option) => option.id)).toEqual([
+      'right-b',
+      'right-a',
+    ]);
+    expect(secondMatching.matchingRightOptions).toEqual(firstMatching.matchingRightOptions);
+  });
+
   it('haelt den Vote-Count nach Current-Question-Invalidierung im eigenen Cache', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

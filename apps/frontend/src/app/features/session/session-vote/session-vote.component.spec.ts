@@ -5375,4 +5375,196 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(localStorage.getItem(round1Key)).toBe(round1Draft);
     fixture.destroy();
   });
+
+  it('wiederholt den strukturierten Rundenwechsel nach einem vorübergehenden Abruffehler', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const round1Question = {
+      id: 'ordering-round-retry',
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+        { id: 'item-c', text: 'C' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    component.status.set('ACTIVE');
+    component.currentRound.set(2);
+    component.currentQuestion.set(round1Question);
+    component.orderingItemsState.set([
+      { id: 'item-c', text: 'C' },
+      { id: 'item-b', text: 'B' },
+      { id: 'item-a', text: 'A' },
+    ]);
+    (
+      component as unknown as {
+        resetForSecondRoundStart: () => void;
+      }
+    ).resetForSecondRoundStart();
+    currentQuestionQueryMock
+      .mockRejectedValueOnce(new Error('temporary network error'))
+      .mockResolvedValueOnce(round2Question);
+
+    await (
+      component as unknown as {
+        refreshQuestion: () => Promise<void>;
+      }
+    ).refreshQuestion();
+
+    expect(component.structuredRoundTransitionPending()).toBe(true);
+    expect(currentQuestionQueryMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(currentQuestionQueryMock).toHaveBeenCalledTimes(2);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(component.orderingSequenceState()).toEqual(['item-a', 'item-b', 'item-c']);
+    fixture.destroy();
+  });
+
+  it.each([
+    {
+      label: 'Matching',
+      question: {
+        id: 'matching-results-reload',
+        text: 'Ordne zu',
+        type: 'MATCHING',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        matchingPairs: [
+          { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+          { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+        ],
+      },
+      response: {
+        matchingSelections: [
+          { leftId: 'left-a', rightId: 'right-b' },
+          { leftId: 'left-b', rightId: 'right-a' },
+        ],
+      },
+      expected: [
+        { leftId: 'left-a', leftText: 'A', rightId: 'right-b' },
+        { leftId: 'left-b', leftText: 'B', rightId: 'right-a' },
+      ],
+    },
+    {
+      label: 'Ordering',
+      question: {
+        id: 'ordering-results-reload',
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        orderingItems: [
+          { id: 'item-a', text: 'A' },
+          { id: 'item-b', text: 'B' },
+          { id: 'item-c', text: 'C' },
+        ],
+      },
+      response: { orderingSequence: ['item-c', 'item-a', 'item-b'] },
+      expected: ['item-c', 'item-a', 'item-b'],
+    },
+    {
+      label: 'Categorization',
+      question: {
+        id: 'categorization-results-reload',
+        text: 'Kategorisiere',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        categories: [
+          { id: 'cat-a', name: 'A' },
+          { id: 'cat-b', name: 'B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', categoryId: 'cat-a' },
+          { id: 'item-b', text: 'B', categoryId: 'cat-a' },
+          { id: 'item-c', text: 'C', categoryId: 'cat-b' },
+          { id: 'item-d', text: 'D', categoryId: 'cat-b' },
+        ],
+      },
+      response: {
+        categorizationSelections: [
+          { itemId: 'item-a', categoryId: 'cat-b' },
+          { itemId: 'item-b', categoryId: 'cat-a' },
+          { itemId: 'item-c', categoryId: 'cat-a' },
+          { itemId: 'item-d', categoryId: 'cat-b' },
+        ],
+      },
+      expected: [
+        { itemId: 'item-a', itemText: 'A', categoryId: 'cat-b' },
+        { itemId: 'item-b', itemText: 'B', categoryId: 'cat-a' },
+        { itemId: 'item-c', itemText: 'C', categoryId: 'cat-a' },
+        { itemId: 'item-d', itemText: 'D', categoryId: 'cat-b' },
+      ],
+    },
+  ])(
+    'stellt die persistierte $label-Antwort beim Ergebnis-Neuladen ohne LocalStorage wieder her',
+    async ({ question, response, expected }) => {
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      const component = fixture.componentInstance;
+      component.status.set('RESULTS');
+      component.participantId.set('11111111-1111-4111-8111-111111111111');
+      component.currentQuestion.set({
+        id: 'previous-question',
+        text: 'Vorherige Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+      } as never);
+      currentQuestionQueryMock.mockResolvedValueOnce(question);
+      getPersonalScorecardQueryMock.mockResolvedValueOnce({
+        questionOrder: 1,
+        totalQuestions: 1,
+        wasCorrect: false,
+        questionScore: 0,
+        baseScore: 0,
+        streakCount: 0,
+        streakMultiplier: 1,
+        currentRank: 1,
+        previousRank: null,
+        rankChange: 0,
+        totalScore: 0,
+        ...response,
+      });
+
+      await (
+        component as unknown as {
+          refreshQuestion: () => Promise<void>;
+        }
+      ).refreshQuestion();
+
+      expect(component.voteSent()).toBe(true);
+      if (question.type === 'MATCHING') {
+        expect(component.matchingSelectionsState()).toEqual(expected);
+      } else if (question.type === 'ORDERING') {
+        expect(component.orderingSequenceState()).toEqual(expected);
+      } else {
+        expect(component.categorizationSelectionsState()).toEqual(expected);
+      }
+      fixture.destroy();
+    },
+  );
 });

@@ -1391,6 +1391,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  shouldOfferDiscussionPhase(q: HostCurrentQuestionDTO | null): boolean {
+    const structuredRoundOne =
+      q?.currentRound === 1 &&
+      (q.type === 'MATCHING' || q.type === 'ORDERING' || q.type === 'CATEGORIZATION');
+    return (
+      this.effectiveStatus() === 'ACTIVE' &&
+      (structuredRoundOne || this.shouldShowPeerInstructionSuggestion(q))
+    );
+  }
+
   private previousStatus: string | null = null;
   private previousReadingReadyQuestionId: string | null = null;
   private previousAllConnectedParticipantsReady = false;

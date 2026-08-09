@@ -36,6 +36,8 @@ const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const JOIN_BUTTON_RE = /join now|jetzt beitreten/i;
 const START_QUESTION_RE = /start first question|erste frage starten|nächste frage|next question/i;
 const REVEAL_RESULTS_RE = /show results|ergebnis zeigen/i;
+const DISCUSSION_PHASE_RE = /diskussionsphase|discussion phase/i;
+const SECOND_ROUND_RE = /zweite abstimmung|second (vote|round)/i;
 const SUBMIT_ANSWER_RE = /submit|absenden/i;
 const PARTICIPANT_NAME = 'StrukturTester';
 const API_PARTICIPANT_PREFIX = 'StrukturShadow';
@@ -411,7 +413,15 @@ function wrongCategorizationSelections(question) {
   });
 }
 
-async function submitWrongShadowVote(publicTrpc, shadow, code, questionMeta, hardFailures, label) {
+async function submitWrongShadowVote(
+  publicTrpc,
+  shadow,
+  code,
+  questionMeta,
+  hardFailures,
+  label,
+  round = 1,
+) {
   const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
   if (!question?.id || question.type !== questionMeta.type) {
     hardFailures.push(`Shadow vote: unexpected ACTIVE question for ${label}.`);
@@ -424,6 +434,7 @@ async function submitWrongShadowVote(publicTrpc, shadow, code, questionMeta, har
     participantId: shadow.participantId,
     questionId: question.id,
     confidenceValue: HIGH_CONFIDENCE,
+    round,
   };
 
   if (questionMeta.type === 'ORDERING') {
@@ -446,6 +457,7 @@ async function submitWrongShadowVotes(
   questionMeta,
   hardFailures,
   label,
+  round = 1,
 ) {
   for (let index = 0; index < shadows.length; index += 1) {
     const ok = await submitWrongShadowVote(
@@ -455,6 +467,7 @@ async function submitWrongShadowVotes(
       questionMeta,
       hardFailures,
       `${label}#${index + 1}`,
+      round,
     );
     if (!ok) return false;
   }
@@ -575,6 +588,72 @@ async function runOrderingFlow(
   await scanA11y(participant, 'vote-active-ordering');
   if (!(await submitCurrentAnswer(participant, hardFailures, 'ORDERING'))) return;
 
+  const firstRoundComplete = await waitForText(host, /5 von 5|5 of 5|100\s*%/i, 20_000);
+  if (!firstRoundComplete) {
+    hardFailures.push('Host never observed all ORDERING votes in round 1.');
+    logStep(false, 'Host receives ORDERING round 1 votes');
+    return;
+  }
+  logStep(true, 'Host receives ORDERING round 1 votes');
+
+  await clickButton(host, DISCUSSION_PHASE_RE);
+  const discussionVisible = await waitForText(
+    participant,
+    /runde 2|zweite runde|zweite abstimmung|second (vote|round)/i,
+    12_000,
+  );
+  if (!discussionVisible) {
+    const participantText = (await visibleText(participant).catch(() => '')).slice(0, 600);
+    await participant
+      .screenshot({
+        path: join(ARTIFACT_DIR, 'vote-ordering-discussion-failure.png'),
+        fullPage: true,
+      })
+      .catch(() => undefined);
+    hardFailures.push(
+      `Participant never entered the ORDERING discussion phase. Visible text: ${participantText}`,
+    );
+    logStep(false, 'Participant ORDERING discussion phase');
+    return;
+  }
+  logStep(true, 'Participant ORDERING discussion phase');
+
+  await clickButton(host, SECOND_ROUND_RE);
+  const roundTwoVisible = await waitForText(
+    participant,
+    /nur runde 2 zählt|only round 2 counts/i,
+    12_000,
+  );
+  if (!roundTwoVisible) {
+    hardFailures.push('Participant never received the ORDERING round 2 vote UI.');
+    logStep(false, 'Participant ORDERING round 2');
+    return;
+  }
+  logStep(true, 'Participant ORDERING round 2');
+
+  const roundTwoFirstItem = participant.locator('.vote-ordering__item').first();
+  const roundTwoMoveDown = roundTwoFirstItem.locator('button').nth(2);
+  await roundTwoMoveDown.click();
+  logStep(true, 'Participant changes ORDERING sequence in round 2');
+
+  // Production protects each participant identity against accidental double submits.
+  await participant.waitForTimeout(1100);
+
+  if (
+    !(await submitWrongShadowVotes(
+      publicTrpc,
+      shadows,
+      code,
+      questionMeta,
+      hardFailures,
+      'ORDERING Runde 2',
+      2,
+    ))
+  ) {
+    return;
+  }
+  if (!(await submitCurrentAnswer(participant, hardFailures, 'ORDERING Runde 2'))) return;
+
   await revealAndAssertHostResults(
     host,
     participant,
@@ -587,6 +666,20 @@ async function runOrderingFlow(
     'ORDERING',
   );
 
+  const submittedOrderBeforeReload = await participant
+    .locator('.vote-ordering--result .vote-ordering__text')
+    .allTextContents();
+  await participant.evaluate(() => {
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('arsnova-vote-response-')) {
+        localStorage.removeItem(key);
+      }
+    }
+  });
+  await participant.reload({ waitUntil: 'domcontentloaded' });
+  await dismissDialogIfPresent(participant);
+
   const submitted = await waitForText(
     participant,
     /Deine eingereichte Reihenfolge|submitted sequence/i,
@@ -597,6 +690,20 @@ async function runOrderingFlow(
     logStep(false, 'Participant ORDERING result view');
   } else {
     logStep(true, 'Participant ORDERING result view');
+  }
+  const submittedOrderAfterReload = await participant
+    .locator('.vote-ordering--result .vote-ordering__text')
+    .allTextContents();
+  if (
+    submittedOrderBeforeReload.length === 0 ||
+    JSON.stringify(submittedOrderAfterReload) !== JSON.stringify(submittedOrderBeforeReload)
+  ) {
+    hardFailures.push(
+      `ORDERING result reload did not restore the persisted participant sequence: ${JSON.stringify({ submittedOrderBeforeReload, submittedOrderAfterReload })}`,
+    );
+    logStep(false, 'Participant ORDERING result survives reload without local draft');
+  } else {
+    logStep(true, 'Participant ORDERING result survives reload without local draft');
   }
 }
 

@@ -4320,6 +4320,47 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'bietet für %s in Runde 1 den produktiven Diskussionspfad an',
+    async (type) => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: 1,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 1,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const exitAnchor = fixture.nativeElement.querySelector(
+        '.session-host__exit-anchor',
+      ) as HTMLElement;
+      const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').replace(/^groups/, '').trim(),
+      );
+
+      expect(buttonTexts).toContain('Diskussionsphase');
+      expect(buttonTexts).toContain('Ergebnis zeigen');
+      fixture.destroy();
+    },
+  );
+
   it('zeigt "komplett richtig" nicht bei Single-Choice-Ergebnisfragen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(

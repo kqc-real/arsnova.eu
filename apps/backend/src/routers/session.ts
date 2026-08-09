@@ -198,6 +198,18 @@ function buildStructuredOptionShuffleSeed(participantKey: string, questionId: st
   return createHmac('sha256', secret).update(material, 'utf8').digest('hex');
 }
 
+/**
+ * Matching answers must never retain canonical pair order in ACTIVE: with two pairs a normal
+ * Fisher-Yates shuffle would otherwise leak the complete solution with 50% probability.
+ */
+function stableNonCanonicalShuffle<T>(items: readonly T[], seed: string, context: string): T[] {
+  const shuffled = stableShuffleWithContext(items, seed, context);
+  if (shuffled.length > 1 && shuffled.every((item, index) => Object.is(item, items[index]))) {
+    return [...shuffled.slice(1), shuffled[0]!];
+  }
+  return shuffled;
+}
+
 function getEmojiKey(sessionId: string, questionId: string, round: number): string {
   const r = round >= 1 && round <= 2 ? round : 1;
   return `${sessionId}:${questionId}:r${r}`;
@@ -2998,7 +3010,15 @@ function questionSupportsSecondRound(
   question: { type: string; numericTwoRounds?: boolean | null } | null | undefined,
 ): boolean {
   if (!question) return false;
-  if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE') return true;
+  if (
+    question.type === 'SINGLE_CHOICE' ||
+    question.type === 'MULTIPLE_CHOICE' ||
+    question.type === 'MATCHING' ||
+    question.type === 'ORDERING' ||
+    question.type === 'CATEGORIZATION'
+  ) {
+    return true;
+  }
   return question.type === 'NUMERIC_ESTIMATE' && question.numericTwoRounds === true;
 }
 
@@ -6155,13 +6175,18 @@ export const sessionRouter = router({
           participantBelongsToSession && participantId ? participantId : 'anonymous';
         // Salted seed so clients cannot reverse the shuffle from public participant/question IDs.
         const shuffleSeed = buildStructuredOptionShuffleSeed(participantKey, question.id);
+        const matchingShuffleSeed = question.matchingShuffleRight
+          ? shuffleSeed
+          : buildStructuredOptionShuffleSeed('shared', question.id);
         const personalizedDto: z.infer<typeof QuestionStudentDTOSchema> = {
           ...baseDto,
           matchingRightOptions:
-            question.type === 'MATCHING' &&
-            question.matchingShuffleRight &&
-            baseDto.matchingRightOptions
-              ? stableShuffleWithContext(baseDto.matchingRightOptions, shuffleSeed, question.id)
+            question.type === 'MATCHING' && baseDto.matchingRightOptions
+              ? stableNonCanonicalShuffle(
+                  baseDto.matchingRightOptions,
+                  matchingShuffleSeed,
+                  question.id,
+                )
               : baseDto.matchingRightOptions,
           orderingItems:
             question.type === 'ORDERING' && baseDto.orderingItems
@@ -7291,6 +7316,9 @@ export const sessionRouter = router({
           isCorrect: true,
           streakCount: true,
           streakBonus: true,
+          matchingSelections: true,
+          orderingSequence: true,
+          categorizationSelections: true,
           selectedAnswers: { select: { answerOptionId: true } },
         },
       });
@@ -7440,6 +7468,18 @@ export const sessionRouter = router({
         previousRank,
         rankChange,
         totalScore,
+        matchingSelections:
+          questionType === 'MATCHING' && Array.isArray(myVote?.matchingSelections)
+            ? (myVote.matchingSelections as MatchingSelection[])
+            : undefined,
+        orderingSequence:
+          questionType === 'ORDERING' && Array.isArray(myVote?.orderingSequence)
+            ? myVote.orderingSequence
+            : undefined,
+        categorizationSelections:
+          questionType === 'CATEGORIZATION' && Array.isArray(myVote?.categorizationSelections)
+            ? (myVote.categorizationSelections as CategorizationSelection[])
+            : undefined,
       };
     }),
 

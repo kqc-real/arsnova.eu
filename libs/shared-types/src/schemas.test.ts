@@ -182,6 +182,65 @@ describe('öffentliche Contract-Schemas', () => {
     );
   });
 
+  it('weist getrimmt doppelte sichtbare Ordering-Elemente und Kategorienamen zurück', () => {
+    const ordering = QuizUploadInputSchema.safeParse({
+      ...quizUploadBase,
+      questions: [
+        {
+          text: 'Sortiere',
+          type: 'ORDERING',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [],
+          orderingItems: [
+            { id: 'step-a', text: 'Start' },
+            { id: 'step-b', text: ' Start ' },
+            { id: 'step-c', text: 'Ende' },
+          ],
+        },
+      ],
+    });
+    expect(ordering.success).toBe(false);
+    if (!ordering.success) {
+      expect(ordering.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['questions', 0, 'orderingItems', 1, 'text'] }),
+        ]),
+      );
+    }
+
+    const categorization = QuizUploadInputSchema.safeParse({
+      ...quizUploadBase,
+      questions: [
+        {
+          text: 'Ordne zu',
+          type: 'CATEGORIZATION',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [],
+          categories: [
+            { id: 'category-a', name: 'Literatur' },
+            { id: 'category-b', name: ' Literatur ' },
+          ],
+          categorizationItems: [
+            { id: 'item-a', text: 'A', correctCategoryId: 'category-a' },
+            { id: 'item-b', text: 'B', correctCategoryId: 'category-a' },
+            { id: 'item-c', text: 'C', correctCategoryId: 'category-b' },
+            { id: 'item-d', text: 'D', correctCategoryId: 'category-b' },
+          ],
+        },
+      ],
+    });
+    expect(categorization.success).toBe(false);
+    if (!categorization.success) {
+      expect(categorization.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['questions', 0, 'categories', 1, 'name'] }),
+        ]),
+      );
+    }
+  });
+
   it('weist Lösungsdaten in studentischen Antwortoptionen strikt zurück', () => {
     const result = AnswerOptionStudentDTOSchema.safeParse({
       id: answerId,

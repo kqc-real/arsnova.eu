@@ -2069,7 +2069,16 @@ export const AddQuestionInputSchema = z
         });
       } else {
         const ids = new Set<string>();
+        const texts = new Set<string>();
         value.orderingItems.forEach((item, index) => {
+          const text = item.text.trim();
+          if (texts.has(text)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['orderingItems', index, 'text'],
+              message: 'Elemente müssen eindeutig sein.',
+            });
+          }
           if (ids.has(item.id)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -2077,6 +2086,7 @@ export const AddQuestionInputSchema = z
               message: 'Element-IDs müssen eindeutig sein.',
             });
           }
+          texts.add(text);
           ids.add(item.id);
         });
       }
@@ -2125,6 +2135,7 @@ export const AddQuestionInputSchema = z
       }
       if (value.categories && value.categorizationItems) {
         const categoryIds = new Set(value.categories.map((category) => category.id));
+        const categoryNames = new Set<string>();
         if (categoryIds.size !== value.categories.length) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -2132,6 +2143,17 @@ export const AddQuestionInputSchema = z
             message: 'Kategorie-IDs müssen eindeutig sein.',
           });
         }
+        value.categories.forEach((category, index) => {
+          const name = category.name.trim();
+          if (categoryNames.has(name)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categories', index, 'name'],
+              message: 'Kategorienamen müssen eindeutig sein.',
+            });
+          }
+          categoryNames.add(name);
+        });
         const itemTexts = new Set<string>();
         const itemIds = new Set<string>();
         value.categorizationItems.forEach((item, index) => {
@@ -3202,6 +3224,21 @@ export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 // Vote-Schemas (Story 3.3)
 // ---------------------------------------------------------------------------
 
+export const MatchingSelectionInputSchema = z.object({
+  leftId: z.string().min(1).max(100),
+  rightId: z.string().min(1).max(100),
+});
+export type MatchingSelectionInput = z.infer<typeof MatchingSelectionInputSchema>;
+
+export const OrderingSequenceInputSchema = z.array(z.string().min(1)).min(3).max(8);
+export type OrderingSequenceInput = z.infer<typeof OrderingSequenceInputSchema>;
+
+export const CategorizationSelectionInputSchema = z.object({
+  itemId: z.string().min(1).max(100),
+  categoryId: z.string().min(1).max(100),
+});
+export type CategorizationSelectionInput = z.infer<typeof CategorizationSelectionInputSchema>;
+
 /** Input: Abstimmung abgeben */
 export const SubmitVoteInputSchema = z.object({
   sessionId: z.uuid(),
@@ -3214,27 +3251,9 @@ export const SubmitVoteInputSchema = z.object({
   responseTimeMs: z.number().int().min(0).optional(), // Antwortzeit in ms
   round: z.number().int().min(1).max(2).optional().default(1), // Story 2.7: Peer Instruction Runde
   confidenceValue: z.number().int().min(CONFIDENCE_SCALE_MIN).max(CONFIDENCE_SCALE_MAX).optional(), // Story 1.2i
-  matchingSelections: z
-    .array(
-      z.object({
-        leftId: z.string().min(1).max(100),
-        rightId: z.string().min(1).max(100),
-      }),
-    )
-    .min(2)
-    .max(6)
-    .optional(), // Story 1.2g
-  orderingSequence: z.array(z.string().min(1)).min(3).max(8).optional(), // Story 1.2h (Item-IDs)
-  categorizationSelections: z
-    .array(
-      z.object({
-        itemId: z.string().min(1).max(100),
-        categoryId: z.string().min(1).max(100),
-      }),
-    )
-    .min(4)
-    .max(12)
-    .optional(), // Story 1.2j
+  matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(), // Story 1.2g
+  orderingSequence: OrderingSequenceInputSchema.optional(), // Story 1.2h (Item-IDs)
+  categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(), // Story 1.2j
 });
 export type SubmitVoteInput = z.infer<typeof SubmitVoteInputSchema>;
 
@@ -3735,6 +3754,10 @@ export const PersonalScorecardDTOSchema = z.object({
   rankChange: z.number(), // Differenz (positiv = aufgestiegen)
   totalScore: z.number(), // Gesamtpunktzahl bisher
   bonusToken: z.string().nullable().optional(), // Story 4.6: Token-Code (nur für Top-X, sonst null)
+  /** Eigene persistierte strukturierte Antwort; nur nach Freigabe über die persönliche Scorecard. */
+  matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(),
+  orderingSequence: OrderingSequenceInputSchema.optional(),
+  categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(),
 });
 export type PersonalScorecardDTO = z.infer<typeof PersonalScorecardDTOSchema>;
 

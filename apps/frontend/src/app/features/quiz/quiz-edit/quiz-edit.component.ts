@@ -3847,11 +3847,13 @@ export class QuizEditComponent implements OnDestroy {
       const items = question.orderingItems ?? [];
       if (items.length < 3 || items.length > 8) return false;
       const ids = new Set<string>();
+      const texts = new Set<string>();
       for (const item of items) {
         const text = item.text.trim();
         if (!item.id.trim() || !text || text.length > 500) return false;
-        if (ids.has(item.id)) return false;
+        if (ids.has(item.id) || texts.has(text)) return false;
         ids.add(item.id);
+        texts.add(text);
       }
       return true;
     }
@@ -3863,10 +3865,13 @@ export class QuizEditComponent implements OnDestroy {
       if (categories.length < 2 || categories.length > 4) return false;
       if (categorizationItems.length < 4 || categorizationItems.length > 12) return false;
       const categoryIds = new Set(categories.map((category) => category.id));
+      const categoryNames = new Set<string>();
       if (categoryIds.size !== categories.length) return false;
       for (const category of categories) {
         const name = category.name.trim();
         if (!category.id.trim() || !name || name.length > 200) return false;
+        if (categoryNames.has(name)) return false;
+        categoryNames.add(name);
       }
       const itemTexts = new Set<string>();
       const itemIds = new Set<string>();

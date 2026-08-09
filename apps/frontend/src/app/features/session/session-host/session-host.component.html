@@ -3877,7 +3877,7 @@
               }}</span>
             </p>
           }
-          @if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
+          @if (shouldOfferDiscussionPhase(displayedCurrentQuestionForHost())) {
             <button
               mat-flat-button
               color="primary"
@@ -3910,10 +3910,12 @@
             >
               @if (canForceClosePersonalTimers()) {
                 <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
-              } @else {
+              } @else if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
                 <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
                   >Ergebnis trotzdem zeigen</span
                 >
+              } @else {
+                <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
               }
             </button>
           } @else {

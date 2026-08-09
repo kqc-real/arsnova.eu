@@ -175,6 +175,56 @@ describe('session.getPersonalScorecard', () => {
     );
   });
 
+  it('liefert die eigene persistierte strukturierte Antwort für einen RESULTS-Reload', async () => {
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = '33333333-3333-4333-8333-333333333333';
+    const orderingSequence = ['step-c', 'step-a', 'step-b'];
+
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'RESULTS',
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            type: 'ORDERING',
+            answers: [],
+          },
+        ],
+      },
+      participants: [{ id: participantId }],
+    });
+    prismaMock.vote.findUnique.mockResolvedValue({
+      score: 0,
+      isCorrect: false,
+      streakCount: 0,
+      streakBonus: 1,
+      selectedAnswers: [],
+      matchingSelections: null,
+      orderingSequence,
+      categorizationSelections: null,
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { participantId, questionId, round: 1, score: 0, responseTimeMs: 1200 },
+    ]);
+
+    const result = await caller.getPersonalScorecard({
+      code: 'ABC123',
+      participantId,
+      questionIndex: 0,
+      round: 1,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        wasCorrect: false,
+        orderingSequence,
+        matchingSelections: undefined,
+        categorizationSelections: undefined,
+      }),
+    );
+  });
+
   it('nutzt fuer die Rangliste Runde 2 als Ersatz und ignoriert dort Antwortzeiten', async () => {
     const participantId = '11111111-1111-4111-8111-111111111111';
     const otherParticipantId = '22222222-2222-4222-8222-222222222222';

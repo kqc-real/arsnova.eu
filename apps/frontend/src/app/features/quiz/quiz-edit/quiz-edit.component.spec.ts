@@ -2205,6 +2205,51 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.orderingItemsArray.dirty).toBe(true);
   });
 
+  it('weist doppelte sichtbare Ordering-Elemente und Kategorienamen auch im Editor zurück', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    const validate = (
+      component as unknown as {
+        isQuestionInputValid: (question: unknown) => boolean;
+      }
+    ).isQuestionInputValid.bind(component);
+
+    expect(
+      validate({
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        timer: null,
+        answers: [],
+        orderingItems: [
+          { id: 'item-a', text: 'Alpha' },
+          { id: 'item-b', text: ' Alpha ' },
+          { id: 'item-c', text: 'Beta' },
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      validate({
+        text: 'Kategorisiere',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        timer: null,
+        answers: [],
+        categories: [
+          { id: 'cat-a', name: 'Kategorie' },
+          { id: 'cat-b', name: ' Kategorie ' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'B', correctCategoryId: 'cat-a' },
+          { id: 'item-c', text: 'C', correctCategoryId: 'cat-b' },
+          { id: 'item-d', text: 'D', correctCategoryId: 'cat-b' },
+        ],
+      }),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
   it('speichert Matching-Paare mit stabilen IDs und konfigurierbarer Mischung', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

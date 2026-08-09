@@ -127,6 +127,8 @@ const TIMER_ACCOMMODATION_MODES = [
 const VOTE_RESPONSE_STORAGE_KEY = 'arsnova-vote-response';
 const VOTE_FALLBACK_POLL_MS = 2000;
 const VOTE_FALLBACK_POLL_JITTER_MS = 800;
+const STRUCTURED_ROUND_REFRESH_RETRY_BASE_MS = 500;
+const STRUCTURED_ROUND_REFRESH_RETRY_MAX_MS = 5000;
 const VOTE_ANCHOR_TOP = 'vote-top';
 const VOTE_ANCHOR_QUESTION = 'vote-question-anchor';
 const VOTE_ANCHOR_OPTIONS_START = 'vote-options-start';
@@ -504,6 +506,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   private lateSubmitCloseTimeout: ReturnType<typeof setTimeout> | null = null;
   private lobbyArrivalTimeout: ReturnType<typeof setTimeout> | null = null;
+  private structuredRoundRefreshRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private structuredRoundRefreshRetryAttempt = 0;
   private pendingJoinArrival = false;
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
@@ -1720,53 +1724,67 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (typeof parsed.numericValue === 'number') {
         this.numericInputValue.set(String(parsed.numericValue));
       }
-      if (Array.isArray(parsed.matchingSelections)) {
-        const validRightIds = new Set(this.matchingRightOptionsState().map((option) => option.id));
-        const restoredByLeftId = new Map(
-          parsed.matchingSelections.map((selection) => [selection.leftId, selection.rightId]),
-        );
-        const usedRightIds = new Set<string>();
-        this.matchingSelectionsState.update((current) =>
-          current.map((selection) => {
-            const rightId = restoredByLeftId.get(selection.leftId) ?? '';
-            if (!validRightIds.has(rightId) || usedRightIds.has(rightId)) return selection;
-            usedRightIds.add(rightId);
-            return { ...selection, rightId };
-          }),
-        );
-      }
-      if (Array.isArray(parsed.categorizationSelections)) {
-        const validCategoryIds = new Set(this.categoriesState().map((category) => category.id));
-        const restoredByItemId = new Map(
-          parsed.categorizationSelections.map((selection) => [
-            selection.itemId,
-            selection.categoryId,
-          ]),
-        );
-        this.categorizationSelectionsState.update((current) =>
-          current.map((selection) => {
-            const categoryId = restoredByItemId.get(selection.itemId) ?? '';
-            return validCategoryIds.has(categoryId) ? { ...selection, categoryId } : selection;
-          }),
-        );
-      }
-      if (Array.isArray(parsed.orderingSequence) && parsed.orderingSequence.length > 0) {
-        const byId = new Map(this.orderingItemsState().map((item) => [item.id, item]));
-        const restored = parsed.orderingSequence
-          .map((id) => byId.get(id))
-          .filter((item): item is { id: string; text: string } => Boolean(item));
-        if (
-          restored.length === byId.size &&
-          parsed.orderingSequence.length === byId.size &&
-          new Set(parsed.orderingSequence).size === byId.size
-        ) {
-          this.orderingItemsState.set(restored);
-          this.orderingSequenceState.set(parsed.orderingSequence);
-        }
-      }
+      this.restoreStructuredVoteState(question, parsed);
       this.voteSent.set(parsed.sent === true);
     } catch {
       /* noop */
+    }
+  }
+
+  private restoreStructuredVoteState(
+    question: CurrentQuestion,
+    response: Pick<
+      StoredVoteResponse,
+      'matchingSelections' | 'orderingSequence' | 'categorizationSelections'
+    >,
+  ): void {
+    if (question.type === 'MATCHING' && Array.isArray(response.matchingSelections)) {
+      const validRightIds = new Set(this.matchingRightOptionsState().map((option) => option.id));
+      const restoredByLeftId = new Map(
+        response.matchingSelections.map((selection) => [selection.leftId, selection.rightId]),
+      );
+      const usedRightIds = new Set<string>();
+      this.matchingSelectionsState.update((current) =>
+        current.map((selection) => {
+          const rightId = restoredByLeftId.get(selection.leftId) ?? '';
+          if (!validRightIds.has(rightId) || usedRightIds.has(rightId)) return selection;
+          usedRightIds.add(rightId);
+          return { ...selection, rightId };
+        }),
+      );
+    }
+    if (question.type === 'CATEGORIZATION' && Array.isArray(response.categorizationSelections)) {
+      const validCategoryIds = new Set(this.categoriesState().map((category) => category.id));
+      const restoredByItemId = new Map(
+        response.categorizationSelections.map((selection) => [
+          selection.itemId,
+          selection.categoryId,
+        ]),
+      );
+      this.categorizationSelectionsState.update((current) =>
+        current.map((selection) => {
+          const categoryId = restoredByItemId.get(selection.itemId) ?? '';
+          return validCategoryIds.has(categoryId) ? { ...selection, categoryId } : selection;
+        }),
+      );
+    }
+    if (
+      question.type === 'ORDERING' &&
+      Array.isArray(response.orderingSequence) &&
+      response.orderingSequence.length > 0
+    ) {
+      const byId = new Map(this.orderingItemsState().map((item) => [item.id, item]));
+      const restored = response.orderingSequence
+        .map((id) => byId.get(id))
+        .filter((item): item is { id: string; text: string } => Boolean(item));
+      if (
+        restored.length === byId.size &&
+        response.orderingSequence.length === byId.size &&
+        new Set(response.orderingSequence).size === byId.size
+      ) {
+        this.orderingItemsState.set(restored);
+        this.orderingSequenceState.set(response.orderingSequence);
+      }
     }
   }
 
@@ -2862,6 +2880,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private handleSessionFinished(): void {
     this.stopCountdown();
     this.stopFallbackPolling();
+    this.clearStructuredRoundRefreshRetry();
     this.statusSub?.unsubscribe();
     this.statusSub = null;
     this.qaSub?.unsubscribe();
@@ -3192,6 +3211,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private resetForSecondRoundStart(): void {
     const question = this.currentQuestion();
+    this.clearStructuredRoundRefreshRetry();
     this.structuredRoundTransitionPending.set(
       question?.type === 'MATCHING' ||
         question?.type === 'ORDERING' ||
@@ -3211,6 +3231,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.showRewardEffect.set(false);
     this.scorecard.set(null);
     this.scorecardQuestionIndex = -1;
+  }
+
+  private clearStructuredRoundRefreshRetry(): void {
+    if (this.structuredRoundRefreshRetryTimer) {
+      clearTimeout(this.structuredRoundRefreshRetryTimer);
+      this.structuredRoundRefreshRetryTimer = null;
+    }
+    this.structuredRoundRefreshRetryAttempt = 0;
+  }
+
+  private scheduleStructuredRoundRefreshRetry(): void {
+    if (!this.structuredRoundTransitionPending() || this.structuredRoundRefreshRetryTimer) {
+      return;
+    }
+    const delay = Math.min(
+      STRUCTURED_ROUND_REFRESH_RETRY_BASE_MS * 2 ** this.structuredRoundRefreshRetryAttempt,
+      STRUCTURED_ROUND_REFRESH_RETRY_MAX_MS,
+    );
+    this.structuredRoundRefreshRetryAttempt += 1;
+    this.structuredRoundRefreshRetryTimer = setTimeout(() => {
+      this.structuredRoundRefreshRetryTimer = null;
+      void this.refreshQuestion();
+    }, delay);
   }
 
   private async refreshSessionInfoFallback(): Promise<void> {
@@ -3275,6 +3318,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.stopFallbackPolling();
+    this.clearStructuredRoundRefreshRetry();
     if (this.lobbyArrivalTimeout) {
       clearTimeout(this.lobbyArrivalTimeout);
       this.lobbyArrivalTimeout = null;
@@ -4078,6 +4122,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSentEmoji.set('');
         this.initStructuredQuestionState(q);
         this.structuredRoundTransitionPending.set(false);
+        this.clearStructuredRoundRefreshRetry();
         this.startCountdown(q);
       } else if (
         reinitStructuredForSecondRound ||
@@ -4087,6 +4132,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.initStructuredQuestionState(q);
         if (reinitStructuredForSecondRound) {
           this.structuredRoundTransitionPending.set(false);
+          this.clearStructuredRoundRefreshRetry();
         }
       } else if (prevHadTimer && !newHasTimer) {
         this.stopCountdown();
@@ -4160,7 +4206,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const qOrder = (q as { order: number }).order;
         if (qOrder !== this.scorecardQuestionIndex) {
           this.scorecardQuestionIndex = qOrder;
-          void this.loadScorecard(qOrder, 'type' in q ? q.type : null);
+          await this.loadScorecard(qOrder, 'type' in q ? q.type : null, q);
         }
       }
 
@@ -4219,8 +4265,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.questionIdsWithRound2QuestionScroll.add(newId);
         }
       }
+      if (this.structuredRoundTransitionPending()) {
+        this.scheduleStructuredRoundRefreshRetry();
+      }
     } catch {
-      /* noop */
+      this.scheduleStructuredRoundRefreshRetry();
     }
   }
 
@@ -4906,17 +4955,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   async loadScorecard(
     questionIndex: number,
     questionType: CurrentQuestion['type'] | null | undefined = this.currentQuestion()?.type,
+    question: CurrentQuestion | null = this.currentQuestion(),
   ): Promise<void> {
     const pid = this.participantId();
     if (!this.code || !pid || !isScoredQuestionType(questionType)) return;
+    const requestedRound = this.currentRound();
+    const requestedQuestionId = question?.id ?? null;
+    const currentQuestionIdAtRequest = this.currentQuestion()?.id ?? null;
     try {
       const sc = await trpc.session.getPersonalScorecard.query({
         code: this.code,
         participantId: pid,
         questionIndex,
-        round: this.currentRound(),
+        round: requestedRound,
       });
+      const currentQuestionId = this.currentQuestion()?.id ?? null;
+      if (
+        this.currentRound() !== requestedRound ||
+        (currentQuestionId !== currentQuestionIdAtRequest &&
+          currentQuestionId !== requestedQuestionId)
+      ) {
+        return;
+      }
       this.scorecard.set(sc);
+      if (question && requestedQuestionId === question.id) {
+        this.restoreStructuredVoteState(question, sc);
+      }
       if (sc.wasCorrect !== null) {
         this.voteSent.set(true);
         this.timeoutMessage.set(null);
@@ -4927,12 +4991,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const totalParticipants = settings.participantCount ?? 1;
         this.motivationMessage.set(
           questionType === 'NUMERIC_ESTIMATE'
-            ? this.numericEstimateMotivationMessage()
+            ? this.numericEstimateMotivationMessage(question)
             : getContextMotivation(sc, totalParticipants, this.isPlayfulPreset()),
         );
       }
     } catch {
-      /* noop */
+      if (this.currentRound() === requestedRound && this.scorecardQuestionIndex === questionIndex) {
+        this.scorecardQuestionIndex = -1;
+      }
     }
   }
 

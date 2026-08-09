@@ -660,6 +660,57 @@ describe('session peer-instruction steering gates', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'erlaubt den produktiven Diskussions- und Runde-2-Pfad für %s',
+    async (type) => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({
+          id: SESSION_ID,
+          status: 'ACTIVE',
+          currentQuestion: 0,
+          currentRound: 1,
+          activeQuestionStartedAt: new Date('2026-08-09T10:00:00.000Z'),
+          quiz: {
+            defaultTimer: null,
+            timerScaleByDifficulty: true,
+            questions: [
+              {
+                id: '33333333-3333-4333-8333-333333333333',
+                type,
+                timer: null,
+                difficulty: 'MEDIUM',
+              },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          status: 'ACTIVE',
+          currentRound: 1,
+        })
+        .mockResolvedValueOnce({
+          id: SESSION_ID,
+          status: 'DISCUSSION',
+          currentQuestion: 0,
+          quiz: { questions: [{ type }] },
+        });
+      prismaMock.session.update.mockResolvedValue({ id: SESSION_ID });
+      prismaMock.$executeRaw.mockResolvedValue(1);
+      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+        fn(prismaMock),
+      );
+      prismaMock.participant.groupBy.mockResolvedValue([]);
+
+      await expect(caller.startDiscussion({ code: CODE })).resolves.toMatchObject({
+        status: 'DISCUSSION',
+        currentRound: 1,
+      });
+      await expect(caller.startSecondRound({ code: CODE })).resolves.toMatchObject({
+        status: 'ACTIVE',
+        currentRound: 2,
+      });
+    },
+  );
+
   trpcDodIt(
     {
       procedure: 'session.startDiscussion',

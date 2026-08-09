@@ -835,13 +835,22 @@ function getLocalQuestionValidationIssues(
       return issues;
     }
     const ids = new Set<string>();
+    const texts = new Set<string>();
     for (const [index, item] of items.entries()) {
+      const text = item.text.trim();
+      if (texts.has(text)) {
+        issues.push({
+          path: ['orderingItems', index, 'text'],
+          message: $localize`Elemente müssen eindeutig sein.`,
+        });
+      }
       if (ids.has(item.id)) {
         issues.push({
           path: ['orderingItems', index, 'id'],
           message: $localize`Element-IDs müssen eindeutig sein.`,
         });
       }
+      texts.add(text);
       ids.add(item.id);
     }
     return issues;
@@ -876,11 +885,22 @@ function getLocalQuestionValidationIssues(
       return issues;
     }
     const categoryIds = new Set(categories.map((category) => category.id));
+    const categoryNames = new Set<string>();
     if (categoryIds.size !== categories.length) {
       issues.push({
         path: ['categories'],
         message: $localize`Kategorie-IDs müssen eindeutig sein.`,
       });
+    }
+    for (const [index, category] of categories.entries()) {
+      const name = category.name.trim();
+      if (categoryNames.has(name)) {
+        issues.push({
+          path: ['categories', index, 'name'],
+          message: $localize`:@@quizEdit.duplicateCategoryNames:Kategorienamen müssen eindeutig sein.`,
+        });
+      }
+      categoryNames.add(name);
     }
     const itemTexts = new Set<string>();
     const itemIds = new Set<string>();

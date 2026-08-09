@@ -568,6 +568,46 @@ describe('QuizStoreService', () => {
     expect(service.getQuizById(created.id)?.questions.length).toBe(0);
   });
 
+  it('validiert eindeutige sichtbare Ordering-Elemente und Kategorienamen', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Strukturierte Eindeutigkeit' });
+
+    expect(() =>
+      service.addQuestion(created.id, {
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        answers: [],
+        orderingItems: [
+          { id: 'step-a', text: 'Start' },
+          { id: 'step-b', text: ' Start ' },
+          { id: 'step-c', text: 'Ende' },
+        ],
+      }),
+    ).toThrowError(/Elemente müssen eindeutig sein/);
+
+    expect(() =>
+      service.addQuestion(created.id, {
+        text: 'Ordne zu',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        answers: [],
+        categories: [
+          { id: 'category-a', name: 'Literatur' },
+          { id: 'category-b', name: ' Literatur ' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', correctCategoryId: 'category-a' },
+          { id: 'item-b', text: 'B', correctCategoryId: 'category-a' },
+          { id: 'item-c', text: 'C', correctCategoryId: 'category-b' },
+          { id: 'item-d', text: 'D', correctCategoryId: 'category-b' },
+        ],
+      }),
+    ).toThrowError(/Kategorienamen müssen eindeutig sein/);
+
+    expect(service.getQuizById(created.id)?.questions).toHaveLength(0);
+  });
+
   it('ignoriert ungültige gespeicherte Einträge', () => {
     localStorage.setItem(
       QUIZ_STORAGE_KEY,
