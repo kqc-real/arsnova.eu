@@ -374,7 +374,7 @@
     },
     "session.getCurrentQuestionForStudent": {
       "kind": "query",
-      "fingerprint": "sha256:61bfa1ffdd73b231bf2f7d48f9dc412c9f39c0c495ac17e714d0f47b9afa26be",
+      "fingerprint": "sha256:ee09f1516f2fe847bf14a0e111b5aad237710934ae21ea5b79771000e5dc855f",
       "missing": []
     },
     "session.getExportData": {
@@ -454,7 +454,7 @@
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:3b624a63b35ddef8f89460c1b0799d7e7d8b8d9b28c1d1ddd39c1ee3c1a5926d",
+      "fingerprint": "sha256:f97adf12a018a5d9c80a7739992990314a1f1bd50e9aa24fd6098446884adfd8",
       "missing": []
     },
     "session.getQuizCollectionHistoryAvailability": {
