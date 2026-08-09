@@ -324,6 +324,7 @@ export const quizRouter = router({
                   : null,
               matchingPairs:
                 q.type === 'MATCHING' ? (q.matchingPairs ?? Prisma.DbNull) : Prisma.DbNull,
+              matchingShuffleRight: q.type === 'MATCHING' ? (q.matchingShuffleRight ?? true) : true,
               orderingItems:
                 q.type === 'ORDERING' ? (q.orderingItems ?? Prisma.DbNull) : Prisma.DbNull,
               categories:
@@ -332,6 +333,8 @@ export const quizRouter = router({
                 q.type === 'CATEGORIZATION'
                   ? (q.categorizationItems ?? Prisma.DbNull)
                   : Prisma.DbNull,
+              categorizationShuffleItems:
+                q.type === 'CATEGORIZATION' ? (q.categorizationShuffleItems ?? true) : true,
               answers: {
                 create: q.answers.map((a) => ({
                   text: a.text,

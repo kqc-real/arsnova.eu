@@ -395,8 +395,8 @@ async function submitCurrentAnswer(participant, hardFailures, label) {
 
 function wrongMatchingSelections(pairs) {
   return pairs.map((pair, index) => ({
-    left: pair.left,
-    right: pairs[(index + 1) % pairs.length].right,
+    leftId: pair.leftId,
+    rightId: pairs[(index + 1) % pairs.length].rightId,
   }));
 }
 
@@ -407,7 +407,7 @@ function wrongCategorizationSelections(question) {
   return question.categorizationItems.map((item) => {
     const wrong =
       question.categories.find((category) => category.id !== item.correctCategoryId) ?? fallback;
-    return { text: item.text, categoryId: wrong.id };
+    return { itemId: item.id, categoryId: wrong.id };
   });
 }
 

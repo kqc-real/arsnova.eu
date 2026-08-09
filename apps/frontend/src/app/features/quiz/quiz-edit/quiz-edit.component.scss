@@ -766,6 +766,14 @@
   margin-top: 0.4rem;
 }
 
+.quiz-edit-answer__reorder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.25rem;
+}
+
 /* Schmale Viewports: Löschen-Icon nicht neben dem Editor — Zeile 1 (Auswahl + Löschen), Zeile 2 Editor in voller Breite */
 @media (max-width: 599px) {
   .quiz-edit-answer {
@@ -786,6 +794,12 @@
     grid-row: 1;
     margin-top: 0;
     align-self: center;
+  }
+
+  .quiz-edit-answer__reorder-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin-top: 0;
   }
 
   .quiz-edit-answer__field {

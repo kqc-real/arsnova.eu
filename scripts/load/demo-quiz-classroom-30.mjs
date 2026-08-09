@@ -422,19 +422,22 @@ function buildVoteInput(
       const band = participantIndex / n;
       let matchingSelections;
       if (band < 0.35) {
-        matchingSelections = pairs.map((pair) => ({ left: pair.left, right: pair.right }));
+        matchingSelections = pairs.map((pair) => ({
+          leftId: pair.leftId,
+          rightId: pair.rightId,
+        }));
       } else if (band < 0.7) {
         const a = participantIndex % pairs.length;
         const b = (a + 1) % pairs.length;
         matchingSelections = pairs.map((pair, index) => {
-          if (index === a) return { left: pair.left, right: pairs[b].right };
-          if (index === b) return { left: pair.left, right: pairs[a].right };
-          return { left: pair.left, right: pair.right };
+          if (index === a) return { leftId: pair.leftId, rightId: pairs[b].rightId };
+          if (index === b) return { leftId: pair.leftId, rightId: pairs[a].rightId };
+          return { leftId: pair.leftId, rightId: pair.rightId };
         });
       } else {
         matchingSelections = pairs.map((pair, index) => ({
-          left: pair.left,
-          right: pairs[(index + 1) % pairs.length].right,
+          leftId: pair.leftId,
+          rightId: pairs[(index + 1) % pairs.length].rightId,
         }));
       }
       vote = { ...base, matchingSelections };
@@ -450,7 +453,7 @@ function buildVoteInput(
       let categorizationSelections;
       if (band < 0.35) {
         categorizationSelections = items.map((item) => ({
-          text: item.text,
+          itemId: item.id,
           categoryId: item.correctCategoryId,
         }));
       } else {
@@ -458,7 +461,7 @@ function buildVoteInput(
           const wrong =
             categories.find((category) => category.id !== item.correctCategoryId) ??
             categories[(participantIndex + index) % categories.length];
-          return { text: item.text, categoryId: wrong.id };
+          return { itemId: item.id, categoryId: wrong.id };
         });
       }
       vote = { ...base, categorizationSelections };

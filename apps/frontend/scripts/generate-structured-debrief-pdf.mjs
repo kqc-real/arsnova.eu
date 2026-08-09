@@ -135,34 +135,34 @@ function rotateSequence(sequence, shift) {
 }
 
 function correctMatching(pairs) {
-  return pairs.map((pair) => ({ left: pair.left, right: pair.right }));
+  return pairs.map((pair) => ({ leftId: pair.leftId, rightId: pair.rightId }));
 }
 
 function shiftMatching(pairs, shift) {
   return pairs.map((pair, index) => ({
-    left: pair.left,
-    right: pairs[(index + shift) % pairs.length].right,
+    leftId: pair.leftId,
+    rightId: pairs[(index + shift) % pairs.length].rightId,
   }));
 }
 
 function swapTwoMatchingPairs(pairs, a, b) {
   return pairs.map((pair, index) => {
-    if (index === a) return { left: pair.left, right: pairs[b].right };
-    if (index === b) return { left: pair.left, right: pairs[a].right };
-    return { left: pair.left, right: pair.right };
+    if (index === a) return { leftId: pair.leftId, rightId: pairs[b].rightId };
+    if (index === b) return { leftId: pair.leftId, rightId: pairs[a].rightId };
+    return { leftId: pair.leftId, rightId: pair.rightId };
   });
 }
 
 function correctCategorization(question) {
   return question.categorizationItems.map((item) => ({
-    text: item.text,
+    itemId: item.id,
     categoryId: item.correctCategoryId,
   }));
 }
 
 function remapCategories(question, remap) {
   return question.categorizationItems.map((item) => ({
-    text: item.text,
+    itemId: item.id,
     categoryId: remap[item.correctCategoryId] ?? item.correctCategoryId,
   }));
 }
@@ -171,13 +171,13 @@ function misclassifySome(question, count, seed) {
   const categories = question.categories;
   return question.categorizationItems.map((item, index) => {
     if (index >= count) {
-      return { text: item.text, categoryId: item.correctCategoryId };
+      return { itemId: item.id, categoryId: item.correctCategoryId };
     }
     const wrong =
       categories[(seed + index) % categories.length].id === item.correctCategoryId
         ? categories[(seed + index + 1) % categories.length].id
         : categories[(seed + index) % categories.length].id;
-    return { text: item.text, categoryId: wrong };
+    return { itemId: item.id, categoryId: wrong };
   });
 }
 

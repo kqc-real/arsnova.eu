@@ -1,6 +1,6 @@
 {
   "exportVersion": 28,
-  "exportedAt": "2026-07-13T13:00:00.000Z",
+  "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Showcase pédagogique : démo en équipe",
     "description": "![Showcase pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase pédagogique\n\nCette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.\n\nUtilisez-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment vous pouvez :\n- démarrer avec un rapide tour d’humeur ou un check-in social\n- utiliser des images plutôt que des consignes purement textuelles\n- intégrer des formules et de la notation scientifique en STEM\n- tester des questions d’estimation numérique avec valeur de référence, bande de tolérance et deux tours\n- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots\n- utiliser à bon escient les choix multiples et les échelles d’évaluation\n- demander le **degré de confiance** (1–5) après les réponses notées et repérer les réponses **incorrectes avec un degré de confiance élevé** dans la vue hôte\n- ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus\n- afficher des extraits de code en informatique ou dans des cours techniques\n\nLes questions sont volontairement variées. L’idée est de vous donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.\n\n**Conseil pour la démo :** Rejoignez la session sur un deuxième appareil, idéalement en scannant le QR code avec votre téléphone. Vous pourrez ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.\n\n**Autre conseil :** Ouvrez ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.\n\n**Et encore une chose :** Si vous souhaitez d’autres formats de questions ou fonctionnalités, n’hésitez pas à les demander. Les coordonnées figurent dans les mentions légales.",
@@ -67,8 +67,8 @@
         "numericMax": 3.5,
         "numericTwoRounds": false,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### Image IA ou photo réelle ?\n\n> **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.\n\n![Scène de toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
@@ -87,8 +87,8 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### Lesquels de ces usages conviennent à une question flash en direct ?\n\n> **Piste pédagogique :** utilisez cette question pour illustrer un format à réponses multiples.\n\n_Plusieurs réponses possibles._",
@@ -107,7 +107,7 @@
             "isCorrect": true
           },
           {
-            "text": "Sonder anonymement l’autoévaluation avant une révision",
+            "text": "Sonder anonymement le niveau de confiance avant une révision",
             "isCorrect": true
           },
           {
@@ -116,8 +116,8 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### Combien de pièces visibles possède le Rubik’s Cube classique ?\n\n> **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nRessource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérience préalable — ressource en allemand](https://www.youtube.com/watch?v=EoINieyz6gE).",
@@ -144,8 +144,8 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### Dans quel langage ce code est-il écrit ?\n\n> **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
@@ -204,8 +204,8 @@
         "shortTextTrimWhitespace": true,
         "shortTextNormalizeWhitespace": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### En quelle année la Révolution française a-t-elle commencé ?\n\n> **Piste pédagogique :** utilisez cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.\n\nOn cherche l’année généralement retenue comme début de la Révolution française.",
@@ -216,6 +216,7 @@
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 1789,
+        "numericTolerancePercent": null,
         "numericIntervalLeft": 1700,
         "numericIntervalRight": 1900,
         "numericInputType": "INTEGER",
@@ -223,8 +224,8 @@
         "numericMax": 2000,
         "numericTwoRounds": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Au hasard",
-        "confidenceLabelHigh": "Très sûr"
+        "confidenceLabelLow": "Geraten",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
         "text": "### Mettez les 6 phases de la biosynthèse des protéines dans l'ordre moléculaire correct.\n\n> **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.\n\nMettez les étapes dans l'ordre, du déroulement de l'ADN dans le noyau au repliement 3D final de la protéine dans le cytoplasme.",
@@ -235,27 +236,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "step1",
+            "id": "5f46d99e-2bf7-4ef8-bfb3-5c90353e798d",
             "text": "Déroulement : L'ARN polymérase se lie au promoteur et déroule la double hélice d'ADN."
           },
           {
-            "id": "step2",
+            "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
             "text": "Transcription : Lecture du brin codant et synthèse de l'ARN pré-messager complémentaire."
           },
           {
-            "id": "step3",
+            "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
             "text": "Maturation : Épissage de l'ARN pré-messager (retrait des introns) et ajout de la coiffe et queue poly-A."
           },
           {
-            "id": "step4",
+            "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
             "text": "Export nucléaire : L'ARN messager mature quitte le noyau par les pores vers les ribosomes."
           },
           {
-            "id": "step5",
+            "id": "1d6fb5a5-dc43-4313-9f53-48b2ff903fa4",
             "text": "Traduction : Le ribosome lit l'ARNm ; les ARNt assemblent les acides aminés au codon AUG."
           },
           {
-            "id": "step6",
+            "id": "fd2f863c-6c7b-4592-b537-9f15b51ee9ec",
             "text": "Repliement : La chaîne d'acides aminés se replie en une structure protéique 3D fonctionnelle."
           }
         ],
@@ -272,30 +273,43 @@
         "answers": [],
         "matchingPairs": [
           {
+            "leftId": "95d15b08-c999-403d-adb0-cfc18a4249ad",
             "left": "9 novembre 1918",
-            "right": "Proclamation de la République allemande par Philipp Scheidemann"
+            "right": "Proclamation de la République allemande par Philipp Scheidemann",
+            "rightId": "30b3ddd5-65c0-46c3-9184-116c6d60ec80"
           },
           {
+            "leftId": "984ef5dc-fd8c-47e9-9c57-8d6e6e799835",
             "left": "28 juin 1919",
-            "right": "Signature du traité de Versailles"
+            "right": "Signature du traité de Versailles",
+            "rightId": "65399907-87d5-491b-aea8-18e76093e3a4"
           },
           {
+            "leftId": "be54805d-8643-48b0-9034-d90567bc2b12",
             "left": "11 août 1919",
-            "right": "Entrée en vigueur de la Constitution de Weimar"
+            "right": "Entrée en vigueur de la Constitution de Weimar",
+            "rightId": "d130f8c6-42a6-423b-bc45-7382bbfce72d"
           },
           {
+            "leftId": "023134ad-42c5-4474-b865-1cf3142291e2",
             "left": "15 novembre 1923",
-            "right": "Lancement du Rentenmark qui stoppe l'hyperinflation"
+            "right": "Lancement du Rentenmark qui stoppe l'hyperinflation",
+            "rightId": "bc1f2b60-a2d1-45a8-bb91-9931858f0745"
           },
           {
+            "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "25 octobre 1929",
-            "right": "Krach de Wall Street (\"Vendredi noir\") déclenchant la Grande Dépression"
+            "right": "Krach de Wall Street (\"Vendredi noir\") déclenchant la Grande Dépression",
+            "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
+            "leftId": "9e8bd516-2844-4f20-9222-6c5817327907",
             "left": "30 janvier 1933",
-            "right": "Nomination d'Adolf Hitler comme chancelier marquant la fin de la République"
+            "right": "Nomination d'Adolf Hitler comme chancelier marquant la fin de la République",
+            "rightId": "f97e1e9a-c0fa-423d-be92-35802101930d"
           }
         ],
+        "matchingShuffleRight": true,
         "confidenceEnabled": true,
         "confidenceLabelLow": "Geraten",
         "confidenceLabelHigh": "Sehr sicher"
@@ -323,42 +337,52 @@
         ],
         "categorizationItems": [
           {
+            "id": "cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b",
             "text": "Nathan le Sage (G. E. Lessing & Parabole de l'anneau / Tolérance)",
             "correctCategoryId": "cat_aufklaerung"
           },
           {
+            "id": "a42a3285-7b06-4a76-a89c-127d99a85a80",
             "text": "Les Souffrances du jeune Werther (J. W. von Goethe & Passion débordante)",
             "correctCategoryId": "cat_sturm"
           },
           {
+            "id": "66528b34-d7b3-43f6-8704-f0cddeccdf4f",
             "text": "La Statue de marbre & Poème \"Mondnacht\" (Joseph von Eichendorff)",
             "correctCategoryId": "cat_romantik"
           },
           {
+            "id": "2855285d-df2a-451e-9b90-bbd8cbdc249d",
             "text": "\"Sapere aude ! – Aie le courage de te servir de ton propre entendement !\" (Immanuel Kant)",
             "correctCategoryId": "cat_aufklaerung"
           },
           {
+            "id": "f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0",
             "text": "Poème \"Prométhée\" (\"Couvre ton ciel, Zeus, de vapeurs de nuages...\")",
             "correctCategoryId": "cat_sturm"
           },
           {
+            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
             "text": "La \"Fleur bleue\" comme symbole central de la nostalgie (Novalis)",
             "correctCategoryId": "cat_romantik"
           },
           {
+            "id": "d9d952ae-d363-4871-945d-b480df58b3fb",
             "text": "Intrigue et Amour (Friedrich Schiller & Critique sociale)",
             "correctCategoryId": "cat_sturm"
           },
           {
+            "id": "6e89535f-1fc5-44f0-bfd8-2ee31bb9608f",
             "text": "Emilia Galotti (G. E. Lessing & Tragédie bourgeoise)",
             "correctCategoryId": "cat_aufklaerung"
           },
           {
+            "id": "ffb67168-962f-43f1-af15-d5d1d45858bd",
             "text": "L'Homme au sable & Romantisme noir / L'Inquiétante étrangeté (E. T. A. Hoffmann)",
             "correctCategoryId": "cat_romantik"
           }
         ],
+        "categorizationShuffleItems": true,
         "confidenceEnabled": true,
         "confidenceLabelLow": "Geraten",
         "confidenceLabelHigh": "Sehr sicher"

@@ -358,8 +358,8 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       vote = {
         ...base,
         matchingSelections: (metadata.matchingPairs || question.matchingPairs || []).map((p) => ({
-          left: p.left,
-          right: p.right || (p.rightOptions && p.rightOptions[0]) || '',
+          leftId: p.leftId,
+          rightId: p.rightId,
         })),
       };
       break;
@@ -371,7 +371,7 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
           question.categorizationItems ||
           []
         ).map((item) => ({
-          text: item.text,
+          itemId: item.id,
           categoryId:
             item.correctCategoryId ||
             (metadata.categories || question.categories || [])[0]?.id ||

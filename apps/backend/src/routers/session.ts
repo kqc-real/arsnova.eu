@@ -132,6 +132,10 @@ import {
   type NumericRoundComparisonDTO,
   type Difficulty,
   type TeamLearningProfileEntry,
+  type MatchingPairInput,
+  type OrderingItemInput,
+  type CategorizationCategoryInput,
+  type CategorizationItemInput,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -170,6 +174,8 @@ import {
  * Flüchtig – kein Redis/DB nötig.
  */
 const emojiStore = new Map<string, Map<string, string>>();
+type MatchingSelection = { leftId: string; rightId: string };
+type CategorizationSelection = { itemId: string; categoryId: string };
 const PARTICIPANT_NICKNAMES_CACHE_TTL_MS = 5_000;
 const participantNicknameCache = new Map<
   string,
@@ -180,16 +186,15 @@ const participantNicknameCache = new Map<
  * Opaque shuffle seed for MATCHING/ORDERING/CATEGORIZATION option order.
  * Mixes a server secret so clients cannot reconstruct the canonical order from public IDs.
  */
+const ephemeralStructuredShuffleSecret = randomBytes(32).toString('hex');
+
 function buildStructuredOptionShuffleSeed(participantKey: string, questionId: string): string {
   const secret =
-    process.env['STRUCTURED_SHUFFLE_SECRET']?.trim() || process.env['JWT_SECRET']?.trim() || '';
+    process.env['STRUCTURED_SHUFFLE_SECRET']?.trim() ||
+    process.env['JWT_SECRET']?.trim() ||
+    ephemeralStructuredShuffleSecret;
   const material = `${participantKey}:${questionId}`;
-  if (secret.length > 0) {
-    return createHmac('sha256', secret).update(material, 'utf8').digest('hex');
-  }
-  return createHash('sha256')
-    .update(`arsnova-structured-shuffle-v1:${material}`, 'utf8')
-    .digest('hex');
+  return createHmac('sha256', secret).update(material, 'utf8').digest('hex');
 }
 
 function getEmojiKey(sessionId: string, questionId: string, round: number): string {
@@ -232,7 +237,7 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
-import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
   orderAnswersByDisplayMap,
@@ -1391,10 +1396,12 @@ interface QuestionWithAnswersForExport {
   numericInputType: string | null;
   numericDecimalPlaces: number | null;
   confidenceEnabled: boolean;
+  matchingShuffleRight?: boolean;
   matchingPairs?: Prisma.JsonValue | null;
   orderingItems?: Prisma.JsonValue | null;
   categories?: Prisma.JsonValue | null;
   categorizationItems?: Prisma.JsonValue | null;
+  categorizationShuffleItems?: boolean;
   answers: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
 interface VoteForExport {
@@ -1984,31 +1991,23 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       const correctPercentage = computeCorrectPercentage(correctCount, incorrectCount);
 
       const matchingPairs =
-        q.type === 'MATCHING'
-          ? ((q.matchingPairs as Array<{ left: string; right: string }> | null) ?? [])
-          : undefined;
+        q.type === 'MATCHING' ? ((q.matchingPairs as MatchingPairInput[] | null) ?? []) : undefined;
       const orderingItems =
-        q.type === 'ORDERING'
-          ? ((q.orderingItems as Array<{ id: string; text: string }> | null) ?? [])
-          : undefined;
+        q.type === 'ORDERING' ? ((q.orderingItems as OrderingItemInput[] | null) ?? []) : undefined;
       const categories =
         q.type === 'CATEGORIZATION'
-          ? ((q.categories as Array<{ id: string; name: string }> | null) ?? [])
+          ? ((q.categories as CategorizationCategoryInput[] | null) ?? [])
           : undefined;
       const categorizationItems =
         q.type === 'CATEGORIZATION'
-          ? ((q.categorizationItems as Array<{
-              text: string;
-              correctCategoryId: string;
-            }> | null) ?? [])
+          ? ((q.categorizationItems as CategorizationItemInput[] | null) ?? [])
           : undefined;
 
       const matchingStats =
         matchingPairs && matchingPairs.length > 0
           ? buildMatchingStats(
               votes.map((vote) => ({
-                selections:
-                  (vote.matchingSelections as Array<{ left: string; right: string }> | null) ?? [],
+                selections: (vote.matchingSelections as MatchingSelection[] | null) ?? [],
               })),
               matchingPairs,
             )
@@ -2027,10 +2026,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           ? buildCategorizationStats(
               votes.map((vote) => ({
                 selections:
-                  (vote.categorizationSelections as Array<{
-                    text: string;
-                    categoryId: string;
-                  }> | null) ?? [],
+                  (vote.categorizationSelections as CategorizationSelection[] | null) ?? [],
               })),
               categorizationItems,
               categories,
@@ -2272,9 +2268,11 @@ const quizHistoryAccessQuizSelect = Prisma.validator<Prisma.QuizSelect>()({
       numericTwoRounds: true,
       skipReadingPhase: true,
       matchingPairs: true,
+      matchingShuffleRight: true,
       orderingItems: true,
       categories: true,
       categorizationItems: true,
+      categorizationShuffleItems: true,
       answers: {
         select: {
           text: true,
@@ -2372,24 +2370,21 @@ function buildQuizHistoryAccessPayload(
           : {}),
         ...(question.type === 'MATCHING'
           ? {
-              matchingPairs:
-                (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+              matchingPairs: (question.matchingPairs as MatchingPairInput[] | null) ?? [],
+              matchingShuffleRight: question.matchingShuffleRight,
             }
           : {}),
         ...(question.type === 'ORDERING'
           ? {
-              orderingItems:
-                (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [],
+              orderingItems: (question.orderingItems as OrderingItemInput[] | null) ?? [],
             }
           : {}),
         ...(question.type === 'CATEGORIZATION'
           ? {
-              categories: (question.categories as Array<{ id: string; name: string }> | null) ?? [],
+              categories: (question.categories as CategorizationCategoryInput[] | null) ?? [],
               categorizationItems:
-                (question.categorizationItems as Array<{
-                  text: string;
-                  correctCategoryId: string;
-                }> | null) ?? [],
+                (question.categorizationItems as CategorizationItemInput[] | null) ?? [],
+              categorizationShuffleItems: question.categorizationShuffleItems,
             }
           : {}),
         answers: question.answers.map((answer) => ({
@@ -3174,9 +3169,11 @@ type HostCurrentQuestionSession = {
       confidenceLabelLow: string | null;
       confidenceLabelHigh: string | null;
       matchingPairs: Prisma.JsonValue | null;
+      matchingShuffleRight: boolean;
       orderingItems: Prisma.JsonValue | null;
       categories: Prisma.JsonValue | null;
       categorizationItems: Prisma.JsonValue | null;
+      categorizationShuffleItems: boolean;
       answers: Array<{ id: string; text: string; isCorrect: boolean }>;
     }>;
   } | null;
@@ -3503,24 +3500,21 @@ async function buildHostCurrentQuestionDto(
       : {}),
     ...(question.type === 'MATCHING'
       ? {
-          matchingPairs:
-            (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+          matchingPairs: (question.matchingPairs as MatchingPairInput[] | null) ?? [],
+          matchingShuffleRight: question.matchingShuffleRight,
         }
       : {}),
     ...(question.type === 'ORDERING'
       ? {
-          orderingItems:
-            (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [],
+          orderingItems: (question.orderingItems as OrderingItemInput[] | null) ?? [],
         }
       : {}),
     ...(question.type === 'CATEGORIZATION'
       ? {
-          categories: (question.categories as Array<{ id: string; name: string }> | null) ?? [],
+          categories: (question.categories as CategorizationCategoryInput[] | null) ?? [],
           categorizationItems:
-            (question.categorizationItems as Array<{
-              text: string;
-              correctCategoryId: string;
-            }> | null) ?? [],
+            (question.categorizationItems as CategorizationItemInput[] | null) ?? [],
+          categorizationShuffleItems: question.categorizationShuffleItems,
         }
       : {}),
   };
@@ -3704,12 +3698,10 @@ async function buildHostCurrentQuestionDto(
       const correctVoterCount = structuredVotes.filter((vote) => vote.isCorrect === true).length;
 
       if (question.type === 'MATCHING') {
-        const correctPairs =
-          (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [];
+        const correctPairs = (question.matchingPairs as MatchingPairInput[] | null) ?? [];
         const matchingStats = buildMatchingStats(
           structuredVotes.map((vote) => ({
-            selections:
-              (vote.matchingSelections as Array<{ left: string; right: string }> | null) ?? [],
+            selections: (vote.matchingSelections as MatchingSelection[] | null) ?? [],
           })),
           correctPairs,
         );
@@ -3730,8 +3722,7 @@ async function buildHostCurrentQuestionDto(
       }
 
       if (question.type === 'ORDERING') {
-        const correctItems =
-          (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [];
+        const correctItems = (question.orderingItems as OrderingItemInput[] | null) ?? [];
         const orderingStats = buildOrderingStats(
           structuredVotes.map((vote) => ({ sequence: vote.orderingSequence ?? [] })),
           correctItems,
@@ -3752,17 +3743,11 @@ async function buildHostCurrentQuestionDto(
         );
       }
 
-      const categories = (question.categories as Array<{ id: string; name: string }> | null) ?? [];
-      const correctItems =
-        (question.categorizationItems as Array<{
-          text: string;
-          correctCategoryId: string;
-        }> | null) ?? [];
+      const categories = (question.categories as CategorizationCategoryInput[] | null) ?? [];
+      const correctItems = (question.categorizationItems as CategorizationItemInput[] | null) ?? [];
       const categorizationStats = buildCategorizationStats(
         structuredVotes.map((vote) => ({
-          selections:
-            (vote.categorizationSelections as Array<{ text: string; categoryId: string }> | null) ??
-            [],
+          selections: (vote.categorizationSelections as CategorizationSelection[] | null) ?? [],
         })),
         correctItems,
         categories,
@@ -3949,9 +3934,11 @@ async function fetchHostCurrentQuestionEnvelope(
               confidenceLabelLow: true,
               confidenceLabelHigh: true,
               matchingPairs: true,
+              matchingShuffleRight: true,
               orderingItems: true,
               categories: true,
               categorizationItems: true,
+              categorizationShuffleItems: true,
               answers: { select: { id: true, text: true, isCorrect: true } },
             },
           },
@@ -6129,37 +6116,35 @@ export const sessionRouter = router({
               // Unshuffled prompts are cached once; personal shuffle happens after the cache hit.
               matchingLeftOptions:
                 question.type === 'MATCHING'
-                  ? (
-                      (question.matchingPairs as Array<{ left: string; right: string }> | null) ??
-                      []
-                    ).map((p) => p.left)
+                  ? ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
+                      id: pair.leftId,
+                      text: pair.left,
+                    }))
                   : undefined,
               matchingRightOptions:
                 question.type === 'MATCHING'
-                  ? (
-                      (question.matchingPairs as Array<{ left: string; right: string }> | null) ??
-                      []
-                    ).map((p) => p.right)
+                  ? ((question.matchingPairs as MatchingPairInput[] | null) ?? []).map((pair) => ({
+                      id: pair.rightId,
+                      text: pair.right,
+                    }))
                   : undefined,
               orderingItems:
                 question.type === 'ORDERING'
-                  ? (
-                      (question.orderingItems as Array<{ id: string; text: string }> | null) ?? []
-                    ).map((i) => ({
+                  ? ((question.orderingItems as OrderingItemInput[] | null) ?? []).map((i) => ({
                       id: i.id,
                       text: i.text,
                     }))
                   : undefined,
               categories:
                 question.type === 'CATEGORIZATION'
-                  ? ((question.categories as Array<{ id: string; name: string }> | null) ?? []).map(
-                      (c) => ({ id: c.id, name: c.name }),
+                  ? ((question.categories as CategorizationCategoryInput[] | null) ?? []).map(
+                      (category) => ({ id: category.id, name: category.name }),
                     )
                   : undefined,
               categorizationItems:
                 question.type === 'CATEGORIZATION'
-                  ? ((question.categorizationItems as Array<{ text: string }> | null) ?? []).map(
-                      (ci) => ({ text: ci.text }),
+                  ? ((question.categorizationItems as CategorizationItemInput[] | null) ?? []).map(
+                      (item) => ({ id: item.id, text: item.text }),
                     )
                   : undefined,
             });
@@ -6173,7 +6158,9 @@ export const sessionRouter = router({
         const personalizedDto: z.infer<typeof QuestionStudentDTOSchema> = {
           ...baseDto,
           matchingRightOptions:
-            question.type === 'MATCHING' && baseDto.matchingRightOptions
+            question.type === 'MATCHING' &&
+            question.matchingShuffleRight &&
+            baseDto.matchingRightOptions
               ? stableShuffleWithContext(baseDto.matchingRightOptions, shuffleSeed, question.id)
               : baseDto.matchingRightOptions,
           orderingItems:
@@ -6181,7 +6168,9 @@ export const sessionRouter = router({
               ? stableShuffleWithContext(baseDto.orderingItems, shuffleSeed, question.id)
               : baseDto.orderingItems,
           categorizationItems:
-            question.type === 'CATEGORIZATION' && baseDto.categorizationItems
+            question.type === 'CATEGORIZATION' &&
+            question.categorizationShuffleItems &&
+            baseDto.categorizationItems
               ? stableShuffleWithContext(baseDto.categorizationItems, shuffleSeed, question.id)
               : baseDto.categorizationItems,
         };
@@ -6278,22 +6267,19 @@ export const sessionRouter = router({
             ).length;
             const matchingPairs =
               question.type === 'MATCHING'
-                ? ((question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [])
+                ? ((question.matchingPairs as MatchingPairInput[] | null) ?? [])
                 : null;
             const orderingItems =
               question.type === 'ORDERING'
-                ? ((question.orderingItems as Array<{ id: string; text: string }> | null) ?? [])
+                ? ((question.orderingItems as OrderingItemInput[] | null) ?? [])
                 : null;
             const categories =
               question.type === 'CATEGORIZATION'
-                ? ((question.categories as Array<{ id: string; name: string }> | null) ?? [])
+                ? ((question.categories as CategorizationCategoryInput[] | null) ?? [])
                 : null;
             const categorizationItems =
               question.type === 'CATEGORIZATION'
-                ? ((question.categorizationItems as Array<{
-                    text: string;
-                    correctCategoryId: string;
-                  }> | null) ?? [])
+                ? ((question.categorizationItems as CategorizationItemInput[] | null) ?? [])
                 : null;
 
             return QuestionRevealedDTOSchema.parse({
@@ -6358,11 +6344,7 @@ export const sessionRouter = router({
                 question.type === 'MATCHING' && matchingPairs
                   ? buildMatchingStats(
                       structuredVotes.map((vote) => ({
-                        selections:
-                          (vote.matchingSelections as Array<{
-                            left: string;
-                            right: string;
-                          }> | null) ?? [],
+                        selections: (vote.matchingSelections as MatchingSelection[] | null) ?? [],
                       })),
                       matchingPairs,
                     )
@@ -6379,10 +6361,7 @@ export const sessionRouter = router({
                   ? buildCategorizationStats(
                       structuredVotes.map((vote) => ({
                         selections:
-                          (vote.categorizationSelections as Array<{
-                            text: string;
-                            categoryId: string;
-                          }> | null) ?? [],
+                          (vote.categorizationSelections as CategorizationSelection[] | null) ?? [],
                       })),
                       categorizationItems,
                       categories,

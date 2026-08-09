@@ -125,15 +125,15 @@ async function main() {
         };
 
         if (qStudent.type === 'ORDERING') {
-          voteInput.orderingSequence = origQ.orderingItems.map((item) => item.text);
+          voteInput.orderingSequence = origQ.orderingItems.map((item) => item.id);
         } else if (qStudent.type === 'MATCHING') {
           voteInput.matchingSelections = origQ.matchingPairs.map((p) => ({
-            left: p.left,
-            right: p.right,
+            leftId: p.leftId,
+            rightId: p.rightId,
           }));
         } else if (qStudent.type === 'CATEGORIZATION') {
           voteInput.categorizationSelections = origQ.categorizationItems.map((item) => ({
-            text: item.text,
+            itemId: item.id,
             categoryId: item.correctCategoryId,
           }));
         }

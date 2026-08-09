@@ -21,6 +21,41 @@ const EMOTION_IMAGE_URL =
 const PI_IMAGE_URL = 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif';
 const ROOFTOP_SCENE_IMAGE_URL = '/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png';
 const CODE_FENCE = '```';
+const ORDERING_ITEM_IDS = [
+  '5f46d99e-2bf7-4ef8-bfb3-5c90353e798d',
+  '5cdfcfe2-c879-476b-b2f1-76c783571830',
+  '77ac6f31-b8ce-483c-8af5-d0abdf15e88c',
+  '89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23',
+  '1d6fb5a5-dc43-4313-9f53-48b2ff903fa4',
+  'fd2f863c-6c7b-4592-b537-9f15b51ee9ec',
+];
+const MATCHING_LEFT_IDS = [
+  '95d15b08-c999-403d-adb0-cfc18a4249ad',
+  '984ef5dc-fd8c-47e9-9c57-8d6e6e799835',
+  'be54805d-8643-48b0-9034-d90567bc2b12',
+  '023134ad-42c5-4474-b865-1cf3142291e2',
+  '10e6b6b2-9ef3-4a52-855b-592e1eb69678',
+  '9e8bd516-2844-4f20-9222-6c5817327907',
+];
+const MATCHING_RIGHT_IDS = [
+  '30b3ddd5-65c0-46c3-9184-116c6d60ec80',
+  '65399907-87d5-491b-aea8-18e76093e3a4',
+  'd130f8c6-42a6-423b-bc45-7382bbfce72d',
+  'bc1f2b60-a2d1-45a8-bb91-9931858f0745',
+  '9342f709-78d4-488b-bffb-b781b168f5c1',
+  'f97e1e9a-c0fa-423d-be92-35802101930d',
+];
+const CATEGORIZATION_ITEM_IDS = [
+  'cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b',
+  'a42a3285-7b06-4a76-a89c-127d99a85a80',
+  '66528b34-d7b3-43f6-8704-f0cddeccdf4f',
+  '2855285d-df2a-451e-9b90-bbd8cbdc249d',
+  'f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0',
+  '94c4b1ae-1ef0-4a22-b641-f3463b983d41',
+  'd9d952ae-d363-4871-945d-b480df58b3fb',
+  '6e89535f-1fc5-44f0-bfd8-2ee31bb9608f',
+  'ffb67168-962f-43f1-af15-d5d1d45858bd',
+];
 
 const PROCESSING_SKETCH = [
   'float angle = 0;',
@@ -88,12 +123,25 @@ function buildPayload(locale) {
         },
         {
           text: locale.questions[1].text,
-          type: 'FREETEXT',
+          type: 'NUMERIC_ESTIMATE',
           timer: null,
           difficulty: 'MEDIUM',
           order: 1,
           skipReadingPhase: true,
           answers: [],
+          numericToleranceMode: 'ABSOLUTE_INTERVAL',
+          numericReferenceValue: 3.14,
+          numericTolerancePercent: null,
+          numericIntervalLeft: 3.1,
+          numericIntervalRight: 3.2,
+          numericInputType: 'DECIMAL',
+          numericDecimalPlaces: 2,
+          numericMin: 3,
+          numericMax: 3.5,
+          numericTwoRounds: false,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
+          confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
         },
         {
           text: locale.questions[2].text,
@@ -102,6 +150,9 @@ function buildPayload(locale) {
           difficulty: 'EASY',
           order: 2,
           answers: locale.questions[2].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
+          confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
         },
         {
           text: locale.questions[3].text,
@@ -111,6 +162,9 @@ function buildPayload(locale) {
           order: 3,
           skipReadingPhase: true,
           answers: locale.questions[3].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
+          confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
         },
         {
           text: locale.questions[4].text,
@@ -119,6 +173,9 @@ function buildPayload(locale) {
           difficulty: 'HARD',
           order: 4,
           answers: locale.questions[4].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
+          confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
         },
         {
           text: locale.questions[5].text,
@@ -142,6 +199,9 @@ function buildPayload(locale) {
           shortTextAllowPartialCredit: true,
           shortTextTrimWhitespace: true,
           shortTextNormalizeWhitespace: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
+          confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
         },
         {
           text: locale.questions[7].text,
@@ -152,11 +212,12 @@ function buildPayload(locale) {
           answers: [],
           numericToleranceMode: 'ABSOLUTE_INTERVAL',
           numericReferenceValue: 1789,
-          numericIntervalLeft: 1788.5,
-          numericIntervalRight: 1789.5,
+          numericTolerancePercent: null,
+          numericIntervalLeft: 1700,
+          numericIntervalRight: 1900,
           numericInputType: 'INTEGER',
-          numericMin: 1700,
-          numericMax: 1900,
+          numericMin: 1500,
+          numericMax: 2000,
           numericTwoRounds: true,
           confidenceEnabled: true,
           confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
@@ -169,7 +230,10 @@ function buildPayload(locale) {
           difficulty: 'HARD',
           order: 8,
           answers: [],
-          orderingItems: locale.questions[9].orderingItems,
+          orderingItems: locale.questions[9].orderingItems.map((item, index) => ({
+            ...item,
+            id: ORDERING_ITEM_IDS[index],
+          })),
           confidenceEnabled: true,
           confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
           confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
@@ -181,7 +245,12 @@ function buildPayload(locale) {
           difficulty: 'MEDIUM',
           order: 9,
           answers: [],
-          matchingPairs: locale.questions[10].matchingPairs,
+          matchingPairs: locale.questions[10].matchingPairs.map((pair, index) => ({
+            leftId: MATCHING_LEFT_IDS[index],
+            ...pair,
+            rightId: MATCHING_RIGHT_IDS[index],
+          })),
+          matchingShuffleRight: true,
           confidenceEnabled: true,
           confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
           confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
@@ -194,7 +263,11 @@ function buildPayload(locale) {
           order: 10,
           answers: [],
           categories: locale.questions[11].categories,
-          categorizationItems: locale.questions[11].categorizationItems,
+          categorizationItems: locale.questions[11].categorizationItems.map((item, index) => ({
+            id: CATEGORIZATION_ITEM_IDS[index],
+            ...item,
+          })),
+          categorizationShuffleItems: true,
           confidenceEnabled: true,
           confidenceLabelLow: locale.confidenceLabelLow ?? 'Geraten',
           confidenceLabelHigh: locale.confidenceLabelHigh ?? 'Sehr sicher',
@@ -233,6 +306,7 @@ Nutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu
 - numerische Schätzfragen mit Referenzwert, Toleranzband und zwei Runden ausprobierst
 - kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden
 - Multiple-Choice- und Rating-Fragen sinnvoll einsetzt
+- nach bewerteten Antworten eine **Selbsteinschätzung** (1–5) abfragst und **selbstsicher falsche** Antworten in der Host-Ansicht erkennst
 - mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust
 - Codebeispiele im Informatik- oder Technikunterricht einsetzt
 
@@ -1048,6 +1122,7 @@ Esta demo está pensada para el **uso real en el aula**. No pretende ser el quiz
 - probar preguntas de estimación numérica con valor de referencia, banda de tolerancia y dos rondas
 - recoger respuestas breves en texto libre que después reaparecen como nube de palabras
 - usar bien preguntas de respuesta múltiple y escalas de valoración
+- pedir el **grado de confianza** (1–5) tras las respuestas evaluadas y detectar respuestas **incorrectas con alta confianza** en la vista del anfitrión
 - añadir energía con temporizadores, equipos, clasificación y códigos de bonificación
 - mostrar fragmentos de código en informática o en materias técnicas
 
@@ -1317,6 +1392,7 @@ Usala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** p
 - provare domande di stima numerica con valore di riferimento, fascia di tolleranza e due turni
 - raccogliere risposte brevi in testo libero che poi riappaiono come nuvola di parole
 - usare bene domande a scelta multipla e scale di valutazione rapide
+- chiedere il **grado di sicurezza** (1–5) dopo le risposte valutate e individuare risposte **errate con alta sicurezza** nella vista host
 - aggiungere energia con timer, squadre, classifica e codici bonus
 - mostrare frammenti di codice in informatica o in corsi tecnici
 

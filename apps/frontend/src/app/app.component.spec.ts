@@ -714,6 +714,29 @@ describe('AppComponent', () => {
   // Tastatur Enter/Space/Escape für Mehr-Menü: verbindlicher Nachweis in
   // apps/frontend/scripts/check-viewport-320.mjs (Playwright, ohne Reparatur-Fallbacks).
 
+  it('stiehlt nach dem Escape-Grace-Callback keinen bereits neu gesetzten Fokus', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer.app-footer')!;
+    const moreButton = footer.querySelector(
+      'button[data-footer-focus="footer-more"]',
+    ) as HTMLButtonElement;
+    const otherLink = footer.querySelector('a[href]') as HTMLAnchorElement;
+    otherLink.focus();
+
+    (
+      component as unknown as {
+        ensureFooterMoreFocusAfterEscape: () => void;
+      }
+    ).ensureFooterMoreFocusAfterEscape();
+
+    expect(document.activeElement).toBe(otherLink);
+    expect(document.activeElement).not.toBe(moreButton);
+    fixture.destroy();
+  });
+
   it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf Mehr', async () => {
     const { dialog, close } = createCloseableDialogMock();
     TestBed.configureTestingModule({

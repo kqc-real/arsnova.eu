@@ -12,6 +12,7 @@ import {
   QuestionRevealedDTOSchema,
   QuestionStudentDTOSchema,
   resolvePersonalTimerSeconds,
+  serializeQuizHistoryAccessMaterial,
   SetTimerAccommodationInputSchema,
   SubmitVoteInputSchema,
   evaluateMatchingAnswer,
@@ -20,6 +21,7 @@ import {
   stableShuffleWithContext,
   buildMatchingStats,
   buildOrderingStats,
+  buildCategorizationStats,
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
 } from './schemas.js';
@@ -104,6 +106,80 @@ describe('öffentliche Contract-Schemas', () => {
     expect(payloadBytes).toBeGreaterThan(QUIZ_UPLOAD_MAX_PAYLOAD_BYTES);
     expect(payloadBytes).toBeLessThan(2 * 1024 * 1024);
     expect(QuizUploadInputSchema.safeParse(payload).success).toBe(false);
+  });
+
+  it('bindet alle strukturierten Lösungen und Shuffle-Optionen in den Historiennachweis ein', () => {
+    const serializeQuestion = (question: Record<string, unknown>) =>
+      serializeQuizHistoryAccessMaterial({
+        ...quizUploadBase,
+        questions: [
+          {
+            text: 'Strukturfrage',
+            difficulty: 'MEDIUM',
+            order: 0,
+            answers: [],
+            ...question,
+          },
+        ],
+      } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+
+    const matching = {
+      type: 'MATCHING',
+      matchingPairs: [
+        { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+        { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+      ],
+      matchingShuffleRight: true,
+    };
+    expect(
+      serializeQuestion({
+        ...matching,
+        matchingPairs: matching.matchingPairs.map((pair, index) =>
+          index === 0 ? { ...pair, right: 'geändert' } : pair,
+        ),
+      }),
+    ).not.toBe(serializeQuestion(matching));
+    expect(serializeQuestion({ ...matching, matchingShuffleRight: false })).not.toBe(
+      serializeQuestion(matching),
+    );
+
+    const ordering = {
+      type: 'ORDERING',
+      orderingItems: [
+        { id: 'step-a', text: 'A' },
+        { id: 'step-b', text: 'B' },
+        { id: 'step-c', text: 'C' },
+      ],
+    };
+    expect(
+      serializeQuestion({ ...ordering, orderingItems: [...ordering.orderingItems].reverse() }),
+    ).not.toBe(serializeQuestion(ordering));
+
+    const categorization = {
+      type: 'CATEGORIZATION',
+      categories: [
+        { id: 'category-a', name: 'A' },
+        { id: 'category-b', name: 'B' },
+      ],
+      categorizationItems: [
+        { id: 'item-a', text: 'A1', correctCategoryId: 'category-a' },
+        { id: 'item-b', text: 'A2', correctCategoryId: 'category-a' },
+        { id: 'item-c', text: 'B1', correctCategoryId: 'category-b' },
+        { id: 'item-d', text: 'B2', correctCategoryId: 'category-b' },
+      ],
+      categorizationShuffleItems: true,
+    };
+    expect(
+      serializeQuestion({
+        ...categorization,
+        categorizationItems: categorization.categorizationItems.map((item, index) =>
+          index === 0 ? { ...item, correctCategoryId: 'category-b' } : item,
+        ),
+      }),
+    ).not.toBe(serializeQuestion(categorization));
+    expect(serializeQuestion({ ...categorization, categorizationShuffleItems: false })).not.toBe(
+      serializeQuestion(categorization),
+    );
   });
 
   it('weist Lösungsdaten in studentischen Antwortoptionen strikt zurück', () => {
@@ -332,24 +408,41 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
     expect(p1_q1_run1).toEqual(p1_q1_run2);
     expect(p1_q1_run1).not.toEqual(items); // Shuffled
     expect(p1_q1_run1).not.toEqual(p2_q1_run1); // Differing seed for different participant
+    for (let seed = 0; seed < 2_000; seed += 1) {
+      expect(stableShuffleWithContext(items, `participant-${seed}`, 'question')).toHaveLength(
+        items.length,
+      );
+      expect(stableShuffleWithContext(items, `participant-${seed}`, 'question').sort()).toEqual(
+        [...items].sort(),
+      );
+    }
   });
 
   it('wertet MATCHING-Antworten korrekt aus (100% Treffer nötig)', () => {
     const pairs = [
-      { left: 'HTTP 200', right: 'OK' },
-      { left: 'HTTP 404', right: 'Not Found' },
+      { leftId: 'http-200', left: 'HTTP 200', rightId: 'ok', right: 'OK' },
+      { leftId: 'http-404', left: 'HTTP 404', rightId: 'not-found', right: 'Not Found' },
     ];
     const correct = [
-      { left: 'HTTP 200', right: 'OK' },
-      { left: 'HTTP 404', right: 'Not Found' },
+      { leftId: 'http-200', rightId: 'ok' },
+      { leftId: 'http-404', rightId: 'not-found' },
     ];
     const wrong = [
-      { left: 'HTTP 200', right: 'Not Found' },
-      { left: 'HTTP 404', right: 'OK' },
+      { leftId: 'http-200', rightId: 'not-found' },
+      { leftId: 'http-404', rightId: 'ok' },
     ];
 
     expect(evaluateMatchingAnswer(correct, pairs)).toBe(true);
     expect(evaluateMatchingAnswer(wrong, pairs)).toBe(false);
+    expect(
+      evaluateMatchingAnswer(
+        [
+          { leftId: 'http-200', rightId: 'ok' },
+          { leftId: 'http-200', rightId: 'ok' },
+        ],
+        pairs,
+      ),
+    ).toBe(false);
   });
 
   it('wertet ORDERING-Antworten korrekt aus', () => {
@@ -360,20 +453,29 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
 
   it('wertet CATEGORIZATION-Antworten korrekt aus', () => {
     const model = [
-      { text: 'Angular', correctCategoryId: 'fe' },
-      { text: 'Node', correctCategoryId: 'be' },
+      { id: 'angular', text: 'Angular', correctCategoryId: 'fe' },
+      { id: 'node', text: 'Node', correctCategoryId: 'be' },
     ];
     const correctSel = [
-      { text: 'Angular', categoryId: 'fe' },
-      { text: 'Node', categoryId: 'be' },
+      { itemId: 'angular', categoryId: 'fe' },
+      { itemId: 'node', categoryId: 'be' },
     ];
     const wrongSel = [
-      { text: 'Angular', categoryId: 'be' },
-      { text: 'Node', categoryId: 'fe' },
+      { itemId: 'angular', categoryId: 'be' },
+      { itemId: 'node', categoryId: 'fe' },
     ];
 
     expect(evaluateCategorizationAnswer(correctSel, model)).toBe(true);
     expect(evaluateCategorizationAnswer(wrongSel, model)).toBe(false);
+    expect(
+      evaluateCategorizationAnswer(
+        [
+          { itemId: 'angular', categoryId: 'fe' },
+          { itemId: 'angular', categoryId: 'fe' },
+        ],
+        model,
+      ),
+    ).toBe(false);
   });
 
   it('validiert SubmitVoteInput für MATCHING, ORDERING und CATEGORIZATION', () => {
@@ -382,8 +484,8 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
       SubmitVoteInputSchema.safeParse({
         ...baseVote,
         matchingSelections: [
-          { left: 'HTTP 200', right: 'OK' },
-          { left: 'HTTP 404', right: 'Not Found' },
+          { leftId: 'http-200', rightId: 'ok' },
+          { leftId: 'http-404', rightId: 'not-found' },
         ],
       }).success,
     ).toBe(true);
@@ -399,10 +501,10 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
       SubmitVoteInputSchema.safeParse({
         ...baseVote,
         categorizationSelections: [
-          { text: 'Angular', categoryId: 'fe' },
-          { text: 'Node', categoryId: 'be' },
-          { text: 'React', categoryId: 'fe' },
-          { text: 'Express', categoryId: 'be' },
+          { itemId: 'angular', categoryId: 'fe' },
+          { itemId: 'node', categoryId: 'be' },
+          { itemId: 'react', categoryId: 'fe' },
+          { itemId: 'express', categoryId: 'be' },
         ],
       }).success,
     ).toBe(true);
@@ -413,25 +515,31 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
       [
         {
           selections: [
-            { left: 'A', right: '1' },
-            { left: 'B', right: '2' },
+            { leftId: 'a', rightId: '1' },
+            { leftId: 'b', rightId: '2' },
           ],
         },
         {
           selections: [
-            { left: 'A', right: '2' },
-            { left: 'B', right: '1' },
+            { leftId: 'a', rightId: '2' },
+            { leftId: 'b', rightId: '1' },
           ],
         },
       ],
       [
-        { left: 'A', right: '1' },
-        { left: 'B', right: '2' },
+        { leftId: 'a', left: 'A', rightId: '1', right: '1' },
+        { leftId: 'b', left: 'B', rightId: '2', right: '2' },
       ],
     );
     expect(matchingStats.fullyCorrectCount).toBe(1);
     expect(matchingStats.pairHitRates[0]?.hitRatePercent).toBe(50);
     expect(matchingStats.commonConfusions[0]?.wrongRight).toBe('2');
+    expect(matchingStats.selectionCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ leftId: 'a', rightId: '1', count: 1 }),
+        expect.objectContaining({ leftId: 'a', rightId: '2', count: 1 }),
+      ]),
+    );
 
     const orderingStats = buildOrderingStats(
       [{ sequence: ['a', 'b', 'c'] }, { sequence: ['b', 'a', 'c'] }],
@@ -445,5 +553,51 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
     expect(orderingStats.commonSwaps.length).toBeGreaterThan(0);
     // One adjacent transposition (a↔b) must count once per vote, not twice.
     expect(orderingStats.commonSwaps[0]?.count).toBe(1);
+
+    const shiftedOrderingStats = buildOrderingStats(
+      [{ sequence: ['b', 'c', 'a'] }],
+      [
+        { id: 'a', text: 'A' },
+        { id: 'b', text: 'B' },
+        { id: 'c', text: 'C' },
+      ],
+    );
+    expect(shiftedOrderingStats.commonSwaps).toEqual([]);
+  });
+
+  it('aggregiert die vollständige Kategorisierungsmatrix über stabile IDs', () => {
+    const stats = buildCategorizationStats(
+      [
+        {
+          selections: [
+            { itemId: 'angular', categoryId: 'fe' },
+            { itemId: 'node', categoryId: 'be' },
+          ],
+        },
+        {
+          selections: [
+            { itemId: 'angular', categoryId: 'be' },
+            { itemId: 'node', categoryId: 'be' },
+          ],
+        },
+      ],
+      [
+        { id: 'angular', text: 'Angular', correctCategoryId: 'fe' },
+        { id: 'node', text: 'Node', correctCategoryId: 'be' },
+      ],
+      [
+        { id: 'fe', name: 'Frontend' },
+        { id: 'be', name: 'Backend' },
+      ],
+    );
+
+    expect(stats.fullyCorrectCount).toBe(1);
+    expect(stats.itemCategoryCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ itemId: 'angular', categoryId: 'fe', count: 1 }),
+        expect.objectContaining({ itemId: 'angular', categoryId: 'be', count: 1 }),
+        expect.objectContaining({ itemId: 'node', categoryId: 'be', count: 2 }),
+      ]),
+    );
   });
 });

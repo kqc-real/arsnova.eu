@@ -1328,37 +1328,48 @@ export type AnswerOptionInput = z.infer<typeof AnswerOptionInputSchema>;
 
 /** Matching-Paar für den Editor & Import/Export (Story 1.2g) */
 export const MatchingPairInputSchema = z.object({
+  leftId: z.string().min(1).max(100),
   left: z.string().min(1, { error: 'Linker Begriff darf nicht leer sein' }).max(500),
+  rightId: z.string().min(1).max(100),
   right: z.string().min(1, { error: 'Rechter Begriff darf nicht leer sein' }).max(500),
 });
 export type MatchingPairInput = z.infer<typeof MatchingPairInputSchema>;
 
 /** Ordering-Element für den Editor & Import/Export (Story 1.2h) */
 export const OrderingItemInputSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).max(100),
   text: z.string().min(1, { error: 'Element-Text darf nicht leer sein' }).max(500),
 });
 export type OrderingItemInput = z.infer<typeof OrderingItemInputSchema>;
 
 /** Categorization-Kategorie für den Editor & Import/Export (Story 1.2j) */
 export const CategorizationCategoryInputSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).max(100),
   name: z.string().min(1, { error: 'Kategoriename darf nicht leer sein' }).max(200),
 });
 export type CategorizationCategoryInput = z.infer<typeof CategorizationCategoryInputSchema>;
 
 /** Categorization-Element für den Editor & Import/Export (Story 1.2j) */
 export const CategorizationItemInputSchema = z.object({
+  id: z.string().min(1).max(100),
   text: z.string().min(1, { error: 'Element-Text darf nicht leer sein' }).max(500),
-  correctCategoryId: z.string().min(1),
+  correctCategoryId: z.string().min(1).max(100),
 });
 export type CategorizationItemInput = z.infer<typeof CategorizationItemInputSchema>;
 
 /** Categorization-Element DTO für Studenten (ohne correctCategoryId) */
 export const CategorizationItemStudentDTOSchema = z.object({
+  id: z.string().min(1).max(100),
   text: z.string().min(1).max(500),
 });
 export type CategorizationItemStudentDTO = z.infer<typeof CategorizationItemStudentDTOSchema>;
+
+/** Einzelne, lösungsfreie Auswahloption mit stabiler ID. */
+export const StructuredOptionStudentDTOSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z.string().min(1).max(500),
+});
+export type StructuredOptionStudentDTO = z.infer<typeof StructuredOptionStudentDTOSchema>;
 
 /**
  * Deterministischer Shuffle über FNV-1a Hash aus Seed.
@@ -1383,7 +1394,9 @@ export function stableShuffleWithContext<T>(
     h ^= h << 13;
     h ^= h >>> 17;
     h ^= h << 5;
-    const rnd = Math.abs(h) / 2147483647;
+    // Unsigned normalization is always in [0, 1). Math.abs(INT32_MIN) divided by
+    // INT32_MAX can exceed 1 and would occasionally address result[i + 1].
+    const rnd = (h >>> 0) / 0x1_0000_0000;
     const j = Math.floor(rnd * (i + 1));
     const temp = result[i]!;
     result[i] = result[j]!;
@@ -1393,15 +1406,28 @@ export function stableShuffleWithContext<T>(
 }
 
 export function evaluateMatchingAnswer(
-  studentSelections: ReadonlyArray<{ left: string; right: string }>,
-  correctPairs: ReadonlyArray<{ left: string; right: string }>,
+  studentSelections: ReadonlyArray<{ leftId: string; rightId: string }>,
+  correctPairs: ReadonlyArray<{ leftId: string; rightId: string }>,
 ): boolean {
   if (!studentSelections || !correctPairs || studentSelections.length !== correctPairs.length) {
     return false;
   }
-  const pairMap = new Map(correctPairs.map((p) => [p.left.trim(), p.right.trim()]));
+  const expectedLeftIds = new Set(correctPairs.map((pair) => pair.leftId));
+  const expectedRightIds = new Set(correctPairs.map((pair) => pair.rightId));
+  const selectedLeftIds = new Set(studentSelections.map((selection) => selection.leftId));
+  const selectedRightIds = new Set(studentSelections.map((selection) => selection.rightId));
+  if (
+    expectedLeftIds.size !== correctPairs.length ||
+    expectedRightIds.size !== correctPairs.length ||
+    selectedLeftIds.size !== studentSelections.length ||
+    selectedRightIds.size !== studentSelections.length
+  ) {
+    return false;
+  }
+  const pairMap = new Map(correctPairs.map((p) => [p.leftId, p.rightId]));
   return studentSelections.every(
-    (sel) => pairMap.has(sel.left.trim()) && pairMap.get(sel.left.trim()) === sel.right.trim(),
+    (selection) =>
+      pairMap.has(selection.leftId) && pairMap.get(selection.leftId) === selection.rightId,
   );
 }
 
@@ -1416,15 +1442,24 @@ export function evaluateOrderingAnswer(
 }
 
 export function evaluateCategorizationAnswer(
-  studentSelections: ReadonlyArray<{ text: string; categoryId: string }>,
-  correctItems: ReadonlyArray<{ text: string; correctCategoryId: string }>,
+  studentSelections: ReadonlyArray<{ itemId: string; categoryId: string }>,
+  correctItems: ReadonlyArray<{ id: string; correctCategoryId: string }>,
 ): boolean {
   if (!studentSelections || !correctItems || studentSelections.length !== correctItems.length) {
     return false;
   }
-  const itemMap = new Map(correctItems.map((ci) => [ci.text.trim(), ci.correctCategoryId.trim()]));
+  const expectedItemIds = new Set(correctItems.map((item) => item.id));
+  const selectedItemIds = new Set(studentSelections.map((selection) => selection.itemId));
+  if (
+    expectedItemIds.size !== correctItems.length ||
+    selectedItemIds.size !== studentSelections.length
+  ) {
+    return false;
+  }
+  const itemMap = new Map(correctItems.map((item) => [item.id, item.correctCategoryId]));
   return studentSelections.every(
-    (sel) => itemMap.has(sel.text.trim()) && itemMap.get(sel.text.trim()) === sel.categoryId.trim(),
+    (selection) =>
+      itemMap.has(selection.itemId) && itemMap.get(selection.itemId) === selection.categoryId,
   );
 }
 
@@ -1433,7 +1468,9 @@ export const MatchingStatsDTOSchema = z.object({
   fullyCorrectCount: z.number().int().min(0),
   pairHitRates: z.array(
     z.object({
+      leftId: z.string(),
       left: z.string(),
+      rightId: z.string(),
       right: z.string(),
       correctCount: z.number().int().min(0),
       hitRatePercent: z.number().int().min(0).max(100),
@@ -1441,8 +1478,19 @@ export const MatchingStatsDTOSchema = z.object({
   ),
   commonConfusions: z.array(
     z.object({
+      leftId: z.string(),
       left: z.string(),
+      wrongRightId: z.string(),
       wrongRight: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  selectionCounts: z.array(
+    z.object({
+      leftId: z.string(),
+      left: z.string(),
+      rightId: z.string(),
+      right: z.string(),
       count: z.number().int().min(0),
     }),
   ),
@@ -1477,6 +1525,7 @@ export const CategorizationStatsDTOSchema = z.object({
   fullyCorrectCount: z.number().int().min(0),
   itemCategoryCounts: z.array(
     z.object({
+      itemId: z.string(),
       itemText: z.string(),
       categoryId: z.string(),
       categoryName: z.string(),
@@ -1485,6 +1534,7 @@ export const CategorizationStatsDTOSchema = z.object({
   ),
   commonMisclassifications: z.array(
     z.object({
+      itemId: z.string(),
       itemText: z.string(),
       wrongCategoryId: z.string(),
       wrongCategoryName: z.string(),
@@ -1500,16 +1550,24 @@ function percentRate(count: number, total: number): number {
 }
 
 export function buildMatchingStats(
-  votes: ReadonlyArray<{ selections: ReadonlyArray<{ left: string; right: string }> }>,
-  correctPairs: ReadonlyArray<{ left: string; right: string }>,
+  votes: ReadonlyArray<{ selections: ReadonlyArray<{ leftId: string; rightId: string }> }>,
+  correctPairs: ReadonlyArray<{
+    leftId: string;
+    left: string;
+    rightId: string;
+    right: string;
+  }>,
 ): MatchingStatsDTO {
   const totalVotes = votes.length;
   let fullyCorrectCount = 0;
   const pairCorrectCounts = new Map<string, number>();
   const confusionCounts = new Map<string, number>();
+  const selectionCounts = new Map<string, number>();
+  const pairByLeftId = new Map(correctPairs.map((pair) => [pair.leftId, pair]));
+  const rightTextById = new Map(correctPairs.map((pair) => [pair.rightId, pair.right]));
 
   for (const pair of correctPairs) {
-    pairCorrectCounts.set(pair.left.trim(), 0);
+    pairCorrectCounts.set(pair.leftId, 0);
   }
 
   for (const vote of votes) {
@@ -1517,14 +1575,15 @@ export function buildMatchingStats(
       fullyCorrectCount += 1;
     }
     for (const selection of vote.selections) {
-      const left = selection.left.trim();
-      const right = selection.right.trim();
-      const expected = correctPairs.find((pair) => pair.left.trim() === left)?.right.trim();
+      const { leftId, rightId } = selection;
+      const expected = pairByLeftId.get(leftId)?.rightId;
       if (expected === undefined) continue;
-      if (expected === right) {
-        pairCorrectCounts.set(left, (pairCorrectCounts.get(left) ?? 0) + 1);
+      const selectionKey = `${leftId}\u0000${rightId}`;
+      selectionCounts.set(selectionKey, (selectionCounts.get(selectionKey) ?? 0) + 1);
+      if (expected === rightId) {
+        pairCorrectCounts.set(leftId, (pairCorrectCounts.get(leftId) ?? 0) + 1);
       } else {
-        const key = `${left}\u0000${right}`;
+        const key = `${leftId}\u0000${rightId}`;
         confusionCounts.set(key, (confusionCounts.get(key) ?? 0) + 1);
       }
     }
@@ -1534,9 +1593,11 @@ export function buildMatchingStats(
     totalVotes,
     fullyCorrectCount,
     pairHitRates: correctPairs.map((pair) => {
-      const correctCount = pairCorrectCounts.get(pair.left.trim()) ?? 0;
+      const correctCount = pairCorrectCounts.get(pair.leftId) ?? 0;
       return {
+        leftId: pair.leftId,
         left: pair.left,
+        rightId: pair.rightId,
         right: pair.right,
         correctCount,
         hitRatePercent: percentRate(correctCount, totalVotes),
@@ -1544,12 +1605,31 @@ export function buildMatchingStats(
     }),
     commonConfusions: [...confusionCounts.entries()]
       .map(([key, count]) => {
-        const [left, wrongRight] = key.split('\u0000');
-        return { left: left ?? '', wrongRight: wrongRight ?? '', count };
+        const [leftId = '', wrongRightId = ''] = key.split('\u0000');
+        return {
+          leftId,
+          left: pairByLeftId.get(leftId)?.left ?? leftId,
+          wrongRightId,
+          wrongRight: rightTextById.get(wrongRightId) ?? wrongRightId,
+          count,
+        };
       })
-      .filter((entry) => entry.left && entry.wrongRight)
+      .filter((entry) => entry.leftId && entry.wrongRightId)
       .sort((a, b) => b.count - a.count)
       .slice(0, 8),
+    selectionCounts: [...selectionCounts.entries()]
+      .map(([key, count]) => {
+        const [leftId = '', rightId = ''] = key.split('\u0000');
+        return {
+          leftId,
+          left: pairByLeftId.get(leftId)?.left ?? leftId,
+          rightId,
+          right: rightTextById.get(rightId) ?? rightId,
+          count,
+        };
+      })
+      .filter((entry) => entry.leftId && entry.rightId)
+      .sort((a, b) => a.left.localeCompare(b.left) || b.count - a.count),
   };
 }
 
@@ -1572,14 +1652,14 @@ export function buildOrderingStats(
       const key = `${position}\u0000${itemId}`;
       positionCounts.set(key, (positionCounts.get(key) ?? 0) + 1);
     });
-    // Count each transposition at most once per vote (pair A↔B, not twice from both positions).
+    // Count only actual reciprocal transpositions A↔B, not arbitrary cycles or shifts.
     const seenSwapsInVote = new Set<string>();
     for (let i = 0; i < correctSequence.length; i++) {
       const expected = correctSequence[i];
       const actual = vote.sequence[i];
       if (!expected || !actual || expected === actual) continue;
       const expectedPos = vote.sequence.indexOf(expected);
-      if (expectedPos < 0) continue;
+      if (expectedPos < 0 || correctSequence[expectedPos] !== actual) continue;
       const a = expected < actual ? expected : actual;
       const b = expected < actual ? actual : expected;
       const swapKey = `${a}\u0000${b}`;
@@ -1621,15 +1701,14 @@ export function buildOrderingStats(
 }
 
 export function buildCategorizationStats(
-  votes: ReadonlyArray<{ selections: ReadonlyArray<{ text: string; categoryId: string }> }>,
-  correctItems: ReadonlyArray<{ text: string; correctCategoryId: string }>,
+  votes: ReadonlyArray<{ selections: ReadonlyArray<{ itemId: string; categoryId: string }> }>,
+  correctItems: ReadonlyArray<{ id: string; text: string; correctCategoryId: string }>,
   categories: ReadonlyArray<{ id: string; name: string }>,
 ): CategorizationStatsDTO {
   const totalVotes = votes.length;
   const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
-  const correctByText = new Map(
-    correctItems.map((item) => [item.text.trim(), item.correctCategoryId.trim()]),
-  );
+  const itemById = new Map(correctItems.map((item) => [item.id, item]));
+  const correctById = new Map(correctItems.map((item) => [item.id, item.correctCategoryId]));
   let fullyCorrectCount = 0;
   const itemCategoryCounts = new Map<string, number>();
   const misclassificationCounts = new Map<string, number>();
@@ -1639,11 +1718,12 @@ export function buildCategorizationStats(
       fullyCorrectCount += 1;
     }
     for (const selection of vote.selections) {
-      const text = selection.text.trim();
-      const categoryId = selection.categoryId.trim();
-      const countKey = `${text}\u0000${categoryId}`;
+      const itemId = selection.itemId;
+      const categoryId = selection.categoryId;
+      if (!itemById.has(itemId) || !categoryNameById.has(categoryId)) continue;
+      const countKey = `${itemId}\u0000${categoryId}`;
       itemCategoryCounts.set(countKey, (itemCategoryCounts.get(countKey) ?? 0) + 1);
-      const expected = correctByText.get(text);
+      const expected = correctById.get(itemId);
       if (expected && expected !== categoryId) {
         misclassificationCounts.set(countKey, (misclassificationCounts.get(countKey) ?? 0) + 1);
       }
@@ -1655,9 +1735,10 @@ export function buildCategorizationStats(
     fullyCorrectCount,
     itemCategoryCounts: [...itemCategoryCounts.entries()]
       .map(([key, count]) => {
-        const [itemText = '', categoryId = ''] = key.split('\u0000');
+        const [itemId = '', categoryId = ''] = key.split('\u0000');
         return {
-          itemText,
+          itemId,
+          itemText: itemById.get(itemId)?.text ?? itemId,
           categoryId,
           categoryName: categoryNameById.get(categoryId) ?? categoryId,
           count,
@@ -1666,9 +1747,10 @@ export function buildCategorizationStats(
       .sort((a, b) => a.itemText.localeCompare(b.itemText) || b.count - a.count),
     commonMisclassifications: [...misclassificationCounts.entries()]
       .map(([key, count]) => {
-        const [itemText = '', wrongCategoryId = ''] = key.split('\u0000');
+        const [itemId = '', wrongCategoryId = ''] = key.split('\u0000');
         return {
-          itemText,
+          itemId,
+          itemText: itemById.get(itemId)?.text ?? itemId,
           wrongCategoryId,
           wrongCategoryName: categoryNameById.get(wrongCategoryId) ?? wrongCategoryId,
           count,
@@ -1725,11 +1807,13 @@ export const AddQuestionInputSchema = z
     confidenceLabelHigh: z.string().max(50).optional(),
     // Story 1.2g: Matching
     matchingPairs: z.array(MatchingPairInputSchema).min(2).max(6).optional(),
+    matchingShuffleRight: z.boolean().optional(),
     // Story 1.2h: Ordering
     orderingItems: z.array(OrderingItemInputSchema).min(3).max(8).optional(),
     // Story 1.2j: Categorization
     categories: z.array(CategorizationCategoryInputSchema).min(2).max(4).optional(),
     categorizationItems: z.array(CategorizationItemInputSchema).min(4).max(12).optional(),
+    categorizationShuffleItems: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     const hasConfidenceConfig =
@@ -1866,10 +1950,13 @@ export const AddQuestionInputSchema = z
       return;
     }
 
-    const hasMatchingConfig = value.matchingPairs !== undefined;
+    const hasMatchingConfig =
+      value.matchingPairs !== undefined || value.matchingShuffleRight !== undefined;
     const hasOrderingConfig = value.orderingItems !== undefined;
     const hasCategorizationConfig =
-      value.categories !== undefined || value.categorizationItems !== undefined;
+      value.categories !== undefined ||
+      value.categorizationItems !== undefined ||
+      value.categorizationShuffleItems !== undefined;
 
     if (value.type === 'MATCHING') {
       if (
@@ -1906,6 +1993,8 @@ export const AddQuestionInputSchema = z
       } else {
         const lefts = new Set<string>();
         const rights = new Set<string>();
+        const leftIds = new Set<string>();
+        const rightIds = new Set<string>();
         value.matchingPairs.forEach((pair, index) => {
           const left = pair.left.trim();
           const right = pair.right.trim();
@@ -1923,8 +2012,24 @@ export const AddQuestionInputSchema = z
               message: 'Rechte Begriffe müssen eindeutig sein.',
             });
           }
+          if (leftIds.has(pair.leftId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'leftId'],
+              message: 'Linke IDs müssen eindeutig sein.',
+            });
+          }
+          if (rightIds.has(pair.rightId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'rightId'],
+              message: 'Rechte IDs müssen eindeutig sein.',
+            });
+          }
           lefts.add(left);
           rights.add(right);
+          leftIds.add(pair.leftId);
+          rightIds.add(pair.rightId);
         });
       }
       return;
@@ -2028,6 +2133,7 @@ export const AddQuestionInputSchema = z
           });
         }
         const itemTexts = new Set<string>();
+        const itemIds = new Set<string>();
         value.categorizationItems.forEach((item, index) => {
           const text = item.text.trim();
           if (itemTexts.has(text)) {
@@ -2038,6 +2144,14 @@ export const AddQuestionInputSchema = z
             });
           }
           itemTexts.add(text);
+          if (itemIds.has(item.id)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categorizationItems', index, 'id'],
+              message: 'Element-IDs müssen eindeutig sein.',
+            });
+          }
+          itemIds.add(item.id);
           if (!categoryIds.has(item.correctCategoryId)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -2410,6 +2524,12 @@ type QuizHistoryAccessMaterial = {
     confidenceEnabled: boolean;
     confidenceLabelLow: string | null;
     confidenceLabelHigh: string | null;
+    matchingPairs: MatchingPairInput[] | null;
+    matchingShuffleRight: boolean;
+    orderingItems: OrderingItemInput[] | null;
+    categories: CategorizationCategoryInput[] | null;
+    categorizationItems: CategorizationItemInput[] | null;
+    categorizationShuffleItems: boolean;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -2536,6 +2656,28 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
           questionSupportsConfidence(question.type) && (question.confidenceEnabled ?? false)
             ? (question.confidenceLabelHigh ?? null)
             : null,
+        matchingPairs:
+          question.type === 'MATCHING'
+            ? (question.matchingPairs ?? []).map((pair) => ({ ...pair }))
+            : null,
+        matchingShuffleRight:
+          question.type === 'MATCHING' ? (question.matchingShuffleRight ?? true) : false,
+        orderingItems:
+          question.type === 'ORDERING'
+            ? (question.orderingItems ?? []).map((item) => ({ ...item }))
+            : null,
+        categories:
+          question.type === 'CATEGORIZATION'
+            ? (question.categories ?? []).map((category) => ({ ...category }))
+            : null,
+        categorizationItems:
+          question.type === 'CATEGORIZATION'
+            ? (question.categorizationItems ?? []).map((item) => ({ ...item }))
+            : null,
+        categorizationShuffleItems:
+          question.type === 'CATEGORIZATION'
+            ? (question.categorizationShuffleItems ?? true)
+            : false,
         answers: [...question.answers]
           .map((answer) => ({ text: answer.text, isCorrect: answer.isCorrect }))
           .sort(
@@ -3014,9 +3156,11 @@ export const HostCurrentQuestionDTOSchema = z.object({
   confidenceResult: ConfidenceResultDTOSchema.optional(),
   // Stories 1.2g / 1.2h / 1.2j
   matchingPairs: z.array(MatchingPairInputSchema).nullable().optional(),
+  matchingShuffleRight: z.boolean().optional(),
   orderingItems: z.array(OrderingItemInputSchema).nullable().optional(),
   categories: z.array(CategorizationCategoryInputSchema).nullable().optional(),
   categorizationItems: z.array(CategorizationItemInputSchema).nullable().optional(),
+  categorizationShuffleItems: z.boolean().optional(),
   matchingStats: MatchingStatsDTOSchema.optional(),
   orderingStats: OrderingStatsDTOSchema.optional(),
   categorizationStats: CategorizationStatsDTOSchema.optional(),
@@ -3073,8 +3217,8 @@ export const SubmitVoteInputSchema = z.object({
   matchingSelections: z
     .array(
       z.object({
-        left: z.string().min(1).max(500),
-        right: z.string().min(1).max(500),
+        leftId: z.string().min(1).max(100),
+        rightId: z.string().min(1).max(100),
       }),
     )
     .min(2)
@@ -3084,8 +3228,8 @@ export const SubmitVoteInputSchema = z.object({
   categorizationSelections: z
     .array(
       z.object({
-        text: z.string().min(1).max(500),
-        categoryId: z.string().min(1),
+        itemId: z.string().min(1).max(100),
+        categoryId: z.string().min(1).max(100),
       }),
     )
     .min(4)
@@ -3184,9 +3328,11 @@ export const QuestionRevealedDTOSchema = z.object({
   confidenceResult: ConfidenceResultDTOSchema.optional(),
   // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen
   matchingPairs: z.array(MatchingPairInputSchema).nullable().optional(),
+  matchingShuffleRight: z.boolean().optional(),
   orderingItems: z.array(OrderingItemInputSchema).nullable().optional(),
   categories: z.array(CategorizationCategoryInputSchema).nullable().optional(),
   categorizationItems: z.array(CategorizationItemInputSchema).nullable().optional(),
+  categorizationShuffleItems: z.boolean().optional(),
   matchingStats: MatchingStatsDTOSchema.optional(),
   orderingStats: OrderingStatsDTOSchema.optional(),
   categorizationStats: CategorizationStatsDTOSchema.optional(),
@@ -3249,8 +3395,8 @@ export const QuestionStudentDTOSchema = z.object({
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
   // Story 1.2g, 1.2h, 1.2j: Data-Stripped Student DTOs
-  matchingLeftOptions: z.array(z.string()).optional(),
-  matchingRightOptions: z.array(z.string()).optional(),
+  matchingLeftOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  matchingRightOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
   orderingItems: z.array(OrderingItemInputSchema).optional(),
   categories: z.array(CategorizationCategoryInputSchema).optional(),
   categorizationItems: z.array(CategorizationItemStudentDTOSchema).optional(),
@@ -3903,9 +4049,11 @@ const ExportedQuestionSchema = z.object({
   confidenceLabelHigh: z.string().nullable().optional(),
   // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen in Export/Import
   matchingPairs: z.array(MatchingPairInputSchema).optional(),
+  matchingShuffleRight: z.boolean().optional(),
   orderingItems: z.array(OrderingItemInputSchema).optional(),
   categories: z.array(CategorizationCategoryInputSchema).optional(),
   categorizationItems: z.array(CategorizationItemInputSchema).optional(),
+  categorizationShuffleItems: z.boolean().optional(),
   /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
   enabled: z.boolean().optional().default(true),
 });

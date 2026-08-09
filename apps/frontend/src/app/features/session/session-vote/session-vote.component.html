@@ -1456,8 +1456,11 @@
           } @else if (isOrdering() && isActive()) {
             <div class="vote-ordering">
               <p class="vote-ordering__hint" i18n="@@sessionVote.orderingHint">
-                Bringe die Elemente in die richtige Reihenfolge. Nutze die Pfeile nach oben oder
-                unten.
+                Bringe die Elemente in die richtige Reihenfolge. Du kannst sie schrittweise oder
+                direkt an den Anfang und ans Ende verschieben.
+              </p>
+              <p class="sr-only" aria-live="polite" aria-atomic="true">
+                {{ orderingAnnouncement() }}
               </p>
               <ol class="vote-ordering__list" role="list">
                 @for (
@@ -1473,15 +1476,28 @@
                       class="vote-ordering__text markdown-body"
                       [innerHTML]="renderOrderingItemMarkdown(item.text)"
                     ></span>
-                    <div class="vote-ordering__actions">
+                    <div
+                      class="vote-ordering__actions"
+                      role="group"
+                      [attr.aria-label]="orderingActionsAriaLabel(item.text)"
+                    >
                       <button
                         mat-icon-button
                         type="button"
                         class="vote-ordering__move"
                         [disabled]="isFirst || voteInteractionLocked()"
-                        (click)="moveOrderingItemUp(idx)"
-                        i18n-aria-label="@@sessionVote.orderingUpAria"
-                        aria-label="Nach oben verschieben"
+                        (click)="moveOrderingItem(idx, 'start')"
+                        [attr.aria-label]="orderingMoveAriaLabel(item.text, 'start')"
+                      >
+                        <mat-icon>first_page</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="vote-ordering__move"
+                        [disabled]="isFirst || voteInteractionLocked()"
+                        (click)="moveOrderingItem(idx, 'up')"
+                        [attr.aria-label]="orderingMoveAriaLabel(item.text, 'up')"
                       >
                         <mat-icon>arrow_upward</mat-icon>
                       </button>
@@ -1490,11 +1506,20 @@
                         type="button"
                         class="vote-ordering__move"
                         [disabled]="isLast || voteInteractionLocked()"
-                        (click)="moveOrderingItemDown(idx)"
-                        i18n-aria-label="@@sessionVote.orderingDownAria"
-                        aria-label="Nach unten verschieben"
+                        (click)="moveOrderingItem(idx, 'down')"
+                        [attr.aria-label]="orderingMoveAriaLabel(item.text, 'down')"
                       >
                         <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="vote-ordering__move"
+                        [disabled]="isLast || voteInteractionLocked()"
+                        (click)="moveOrderingItem(idx, 'end')"
+                        [attr.aria-label]="orderingMoveAriaLabel(item.text, 'end')"
+                      >
+                        <mat-icon>last_page</mat-icon>
                       </button>
                     </div>
                   </li>
@@ -1508,12 +1533,29 @@
               </p>
               <ol class="vote-ordering__list">
                 @for (item of orderingItemsState(); track item.id; let idx = $index) {
-                  <li class="vote-ordering__item vote-ordering__item--readonly">
+                  @let positionCorrect = orderingPositionIsCorrect(item.id, idx);
+                  <li
+                    class="vote-ordering__item vote-ordering__item--readonly"
+                    [class.structured-result--correct]="positionCorrect"
+                    [class.structured-result--wrong]="!positionCorrect"
+                  >
                     <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
                     <span
                       class="vote-ordering__text markdown-body"
                       [innerHTML]="renderOrderingItemMarkdown(item.text)"
                     ></span>
+                    <span class="structured-result__status">
+                      <mat-icon aria-hidden="true">{{
+                        positionCorrect ? 'check_circle' : 'cancel'
+                      }}</mat-icon>
+                      <span>{{ structuredAnswerStatusLabel(positionCorrect) }}</span>
+                    </span>
+                    @if (!positionCorrect) {
+                      <span class="structured-result__correction">
+                        <span i18n="@@sessionVote.correctPosition">Richtige Position:</span>
+                        {{ orderingCorrectPosition(item.id) }}
+                      </span>
+                    }
                   </li>
                 }
               </ol>
@@ -1529,28 +1571,18 @@
                 </p>
               </div>
               <div class="vote-matching__list">
-                @for (sel of matchingSelectionsState(); track sel.left) {
-                  <div class="vote-matching__pair" [class.vote-matching__pair--done]="!!sel.right">
-                    <div
-                      class="vote-matching__left markdown-body"
-                      [innerHTML]="renderMarkdown(sel.left, 4)"
-                    ></div>
-                    <mat-form-field appearance="outline" class="vote-matching__select-field">
-                      <mat-label i18n="@@sessionVote.matchingSelectLabel"
-                        >Zuordnung wählen</mat-label
-                      >
-                      <mat-select
-                        [value]="sel.right"
-                        [attr.aria-label]="matchingSelectAriaLabel(sel.left)"
-                        (selectionChange)="setMatchingSelection(sel.left, $event.value)"
-                        [disabled]="voteInteractionLocked()"
-                      >
-                        @for (opt of getMatchingRightOptionsForLeft(sel.left); track opt) {
-                          <mat-option [value]="opt">{{ opt }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
+                @for (sel of matchingSelectionsState(); track sel.leftId) {
+                  <app-item-selection-row
+                    [attr.data-incomplete]="!sel.rightId ? 'true' : null"
+                    [itemText]="sel.leftText"
+                    [options]="getMatchingRightOptionsForLeft(sel.leftId)"
+                    [selectedId]="sel.rightId"
+                    selectLabel="Zuordnung wählen"
+                    i18n-selectLabel="@@sessionVote.matchingSelectLabel"
+                    [selectAriaLabel]="matchingSelectAriaLabel(sel.leftText)"
+                    [disabled]="voteInteractionLocked()"
+                    (selectedIdChange)="setMatchingSelection(sel.leftId, $event)"
+                  />
                 }
               </div>
             </div>
@@ -1560,19 +1592,40 @@
                 Deine eingereichten Zuordnungen
               </p>
               <div class="vote-matching__list">
-                @for (sel of matchingSelectionsState(); track sel.left) {
-                  <div class="vote-matching__pair vote-matching__pair--readonly">
+                @for (sel of matchingSelectionsState(); track sel.leftId) {
+                  @let correctRightId = getCorrectMatchingRightId(sel.leftId);
+                  @let pairCorrect = sel.rightId === correctRightId;
+                  <div
+                    class="vote-matching__pair vote-matching__pair--readonly"
+                    [class.structured-result--correct]="pairCorrect"
+                    [class.structured-result--wrong]="!pairCorrect"
+                  >
                     <span
                       class="vote-matching__left markdown-body"
-                      [innerHTML]="renderMarkdown(sel.left, 4)"
+                      [innerHTML]="renderMarkdown(sel.leftText, 4)"
                     ></span>
                     <mat-icon class="vote-matching__arrow" aria-hidden="true"
                       >arrow_forward</mat-icon
                     >
                     <span
                       class="vote-matching__right markdown-body"
-                      [innerHTML]="renderMarkdown(sel.right || '–', 4)"
+                      [innerHTML]="renderMarkdown(getMatchingRightTextById(sel.rightId), 4)"
                     ></span>
+                    <span class="structured-result__status">
+                      <mat-icon aria-hidden="true">{{
+                        pairCorrect ? 'check_circle' : 'cancel'
+                      }}</mat-icon>
+                      <span>{{ structuredAnswerStatusLabel(pairCorrect) }}</span>
+                    </span>
+                    @if (!pairCorrect) {
+                      <span class="structured-result__correction">
+                        <span i18n="@@sessionVote.correctAssignment">Richtige Zuordnung:</span>
+                        <span
+                          class="markdown-body"
+                          [innerHTML]="renderMarkdown(getMatchingRightTextById(correctRightId), 4)"
+                        ></span>
+                      </span>
+                    }
                   </div>
                 }
               </div>
@@ -1588,31 +1641,18 @@
                 </p>
               </div>
               <div class="vote-categorization__list">
-                @for (sel of categorizationSelectionsState(); track sel.text) {
-                  <div
-                    class="vote-categorization__item"
-                    [class.vote-categorization__item--done]="!!sel.categoryId"
-                  >
-                    <div
-                      class="vote-categorization__item-text markdown-body"
-                      [innerHTML]="renderMarkdown(sel.text, 4)"
-                    ></div>
-                    <mat-form-field appearance="outline" class="vote-categorization__select-field">
-                      <mat-label i18n="@@sessionVote.categorizationSelectLabel"
-                        >Kategorie wählen</mat-label
-                      >
-                      <mat-select
-                        [value]="sel.categoryId"
-                        [attr.aria-label]="categorizationSelectAriaLabel(sel.text)"
-                        (selectionChange)="setCategorizationSelection(sel.text, $event.value)"
-                        [disabled]="voteInteractionLocked()"
-                      >
-                        @for (cat of getCategoriesForCurrentQuestion(); track cat.id) {
-                          <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
+                @for (sel of categorizationSelectionsState(); track sel.itemId) {
+                  <app-item-selection-row
+                    [attr.data-incomplete]="!sel.categoryId ? 'true' : null"
+                    [itemText]="sel.itemText"
+                    [options]="getCategorySelectionOptions()"
+                    [selectedId]="sel.categoryId"
+                    selectLabel="Kategorie wählen"
+                    i18n-selectLabel="@@sessionVote.categorizationSelectLabel"
+                    [selectAriaLabel]="categorizationSelectAriaLabel(sel.itemText)"
+                    [disabled]="voteInteractionLocked()"
+                    (selectedIdChange)="setCategorizationSelection(sel.itemId, $event)"
+                  />
                 }
               </div>
             </div>
@@ -1625,15 +1665,33 @@
                 Deine Kategorisierungen
               </p>
               <div class="vote-categorization__list">
-                @for (sel of categorizationSelectionsState(); track sel.text) {
-                  <div class="vote-categorization__item vote-categorization__item--readonly">
+                @for (sel of categorizationSelectionsState(); track sel.itemId) {
+                  @let correctCategoryId = getCorrectCategorizationCategoryId(sel.itemId);
+                  @let categoryCorrect = sel.categoryId === correctCategoryId;
+                  <div
+                    class="vote-categorization__item vote-categorization__item--readonly"
+                    [class.structured-result--correct]="categoryCorrect"
+                    [class.structured-result--wrong]="!categoryCorrect"
+                  >
                     <span
                       class="vote-categorization__item-text markdown-body"
-                      [innerHTML]="renderMarkdown(sel.text, 4)"
+                      [innerHTML]="renderMarkdown(sel.itemText, 4)"
                     ></span>
                     <span class="vote-categorization__badge">{{
                       getCategoryNameById(sel.categoryId)
                     }}</span>
+                    <span class="structured-result__status">
+                      <mat-icon aria-hidden="true">{{
+                        categoryCorrect ? 'check_circle' : 'cancel'
+                      }}</mat-icon>
+                      <span>{{ structuredAnswerStatusLabel(categoryCorrect) }}</span>
+                    </span>
+                    @if (!categoryCorrect) {
+                      <span class="structured-result__correction">
+                        <span i18n="@@sessionVote.correctCategory">Richtige Kategorie:</span>
+                        {{ getCategoryNameById(correctCategoryId) }}
+                      </span>
+                    }
                   </div>
                 }
               </div>

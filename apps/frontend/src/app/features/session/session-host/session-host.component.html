@@ -2248,8 +2248,11 @@
                               </p>
                               @let voteCount = hostVoteCount(q);
                               @if (voteCount > 0) {
-                                <p class="session-host__ordering-vote-count">
-                                  {{ formatCount(voteCount) }} Sortierungen eingegangen
+                                <p
+                                  class="session-host__ordering-vote-count"
+                                  i18n="@@sessionHost.orderingVoteCount"
+                                >
+                                  Eingegangene Sortierungen: {{ formatCount(voteCount) }}
                                 </p>
                               }
                             } @else if (effectiveStatus() === 'RESULTS') {
@@ -2292,6 +2295,20 @@
                                     </li>
                                   }
                                 </ol>
+                                @if ($any(q).orderingStats; as orderingStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Positionsverteilung"
+                                    i18n-title="@@sessionHost.orderingPositionMatrixTitle"
+                                    description="Zeigt pro Element, wie oft es an jeder Position abgegeben wurde. Umrandete Zellen markieren die Soll-Position."
+                                    i18n-description="
+                                      @@sessionHost.orderingPositionMatrixDescription"
+                                    [rows]="hostOrderingMatrixRows(q)"
+                                    [columns]="hostOrderingMatrixColumns(q)"
+                                    [cells]="hostOrderingMatrixCells(q)"
+                                    [totalVotes]="orderingStats.totalVotes"
+                                    [correctColumnByRow]="hostOrderingCorrectColumns(q)"
+                                  />
+                                }
                                 @if ($any(q).orderingStats?.commonSwaps?.length) {
                                   <h4
                                     class="session-host__ordering-subtitle"
@@ -2329,8 +2346,11 @@
                               </p>
                               @let voteCount = hostVoteCount(q);
                               @if (voteCount > 0) {
-                                <p class="session-host__matching-vote-count">
-                                  {{ formatCount(voteCount) }} Zuordnungen eingegangen
+                                <p
+                                  class="session-host__matching-vote-count"
+                                  i18n="@@sessionHost.matchingVoteCount"
+                                >
+                                  Eingegangene Zuordnungen: {{ formatCount(voteCount) }}
                                 </p>
                               }
                             } @else if (effectiveStatus() === 'RESULTS') {
@@ -2357,7 +2377,7 @@
                                   Korrekte Paare
                                 </h3>
                                 <div class="session-host__matching-grid">
-                                  @for (pair of $any(q).matchingPairs || []; track $index) {
+                                  @for (pair of $any(q).matchingPairs || []; track pair.leftId) {
                                     <div class="session-host__matching-pair">
                                       <span
                                         class="session-host__matching-left markdown-body"
@@ -2375,6 +2395,19 @@
                                     </div>
                                   }
                                 </div>
+                                @if ($any(q).matchingStats; as matchingStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Zuordnungsmatrix"
+                                    i18n-title="@@sessionHost.matchingMatrixTitle"
+                                    description="Zeigt für jeden linken Begriff alle gewählten rechten Begriffe. Umrandete Zellen markieren die Musterlösung."
+                                    i18n-description="@@sessionHost.matchingMatrixDescription"
+                                    [rows]="hostMatchingMatrixRows(q)"
+                                    [columns]="hostMatchingMatrixColumns(q)"
+                                    [cells]="hostMatchingMatrixCells(q)"
+                                    [totalVotes]="matchingStats.totalVotes"
+                                    [correctColumnByRow]="hostMatchingCorrectColumns(q)"
+                                  />
+                                }
                                 @if ($any(q).matchingStats?.pairHitRates?.length) {
                                   <h4
                                     class="session-host__matching-subtitle"
@@ -2385,7 +2418,7 @@
                                   <ul class="session-host__hit-rates">
                                     @for (
                                       pair of $any(q).matchingStats.pairHitRates;
-                                      track pair.left
+                                      track pair.leftId
                                     ) {
                                       <li class="session-host__hit-rate">
                                         <div class="session-host__hit-rate-copy">
@@ -2419,7 +2452,7 @@
                                   <ul class="session-host__structured-chips">
                                     @for (
                                       confusion of $any(q).matchingStats.commonConfusions;
-                                      track confusion.left + confusion.wrongRight
+                                      track confusion.leftId + confusion.wrongRightId
                                     ) {
                                       <li class="session-host__structured-chip">
                                         <span class="session-host__structured-chip-label"
@@ -2446,8 +2479,11 @@
                               </p>
                               @let voteCount = hostVoteCount(q);
                               @if (voteCount > 0) {
-                                <p class="session-host__categorization-vote-count">
-                                  {{ formatCount(voteCount) }} Kategorisierungen eingegangen
+                                <p
+                                  class="session-host__categorization-vote-count"
+                                  i18n="@@sessionHost.categorizationVoteCount"
+                                >
+                                  Eingegangene Kategorisierungen: {{ formatCount(voteCount) }}
                                 </p>
                               }
                             } @else if (effectiveStatus() === 'RESULTS') {
@@ -2480,7 +2516,7 @@
                                       <ul class="session-host__category-items">
                                         @for (
                                           item of getHostCategorizationItemsForCategory(q, cat.id);
-                                          track $index
+                                          track item.id
                                         ) {
                                           <li
                                             class="session-host__category-item markdown-body"
@@ -2491,6 +2527,19 @@
                                     </div>
                                   }
                                 </div>
+                                @if ($any(q).categorizationStats; as categorizationStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Kategorienmatrix"
+                                    i18n-title="@@sessionHost.categorizationMatrixTitle"
+                                    description="Zeigt für jedes Element die Verteilung auf alle Kategorien. Umrandete Zellen markieren die Zielkategorie."
+                                    i18n-description="@@sessionHost.categorizationMatrixDescription"
+                                    [rows]="hostCategorizationMatrixRows(q)"
+                                    [columns]="hostCategorizationMatrixColumns(q)"
+                                    [cells]="hostCategorizationMatrixCells(q)"
+                                    [totalVotes]="categorizationStats.totalVotes"
+                                    [correctColumnByRow]="hostCategorizationCorrectColumns(q)"
+                                  />
+                                }
                                 @if (
                                   $any(q).categorizationStats?.commonMisclassifications?.length
                                 ) {
@@ -2503,7 +2552,7 @@
                                   <ul class="session-host__structured-chips">
                                     @for (
                                       miss of $any(q).categorizationStats.commonMisclassifications;
-                                      track miss.itemText + miss.wrongCategoryId
+                                      track miss.itemId + miss.wrongCategoryId
                                     ) {
                                       <li class="session-host__structured-chip">
                                         <span class="session-host__structured-chip-label"

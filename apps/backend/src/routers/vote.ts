@@ -34,6 +34,10 @@ import {
   type ShortAnswerEvaluationMode,
   type ShortTextEvaluationKind,
   type ToleranceLevel,
+  type MatchingPairInput,
+  type OrderingItemInput,
+  type CategorizationCategoryInput,
+  type CategorizationItemInput,
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
@@ -465,8 +469,7 @@ export const voteRouter = router({
           break;
         }
         case 'MATCHING': {
-          const pairs =
-            (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [];
+          const pairs = (question.matchingPairs as MatchingPairInput[] | null) ?? [];
           const selections = input.matchingSelections ?? [];
           if (selections.length !== pairs.length || pairs.length < 2) {
             throw new TRPCError({
@@ -474,39 +477,37 @@ export const voteRouter = router({
               message: 'Für Zuordnungsfragen ist eine vollständige Zuordnung erforderlich.',
             });
           }
-          const leftSet = new Set(pairs.map((pair) => pair.left.trim()));
-          const rightSet = new Set(pairs.map((pair) => pair.right.trim()));
+          const leftSet = new Set(pairs.map((pair) => pair.leftId));
+          const rightSet = new Set(pairs.map((pair) => pair.rightId));
           const usedLefts = new Set<string>();
           const usedRights = new Set<string>();
           for (const selection of selections) {
-            const left = selection.left.trim();
-            const right = selection.right.trim();
-            if (!leftSet.has(left) || !rightSet.has(right)) {
+            const { leftId, rightId } = selection;
+            if (!leftSet.has(leftId) || !rightSet.has(rightId)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Zuordnung enthält ungültige Begriffe.',
               });
             }
-            if (usedLefts.has(left)) {
+            if (usedLefts.has(leftId)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Jeder linke Begriff darf nur einmal zugeordnet werden.',
               });
             }
-            if (usedRights.has(right)) {
+            if (usedRights.has(rightId)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Jeder rechte Begriff darf nur einmal zugeordnet werden.',
               });
             }
-            usedLefts.add(left);
-            usedRights.add(right);
+            usedLefts.add(leftId);
+            usedRights.add(rightId);
           }
           break;
         }
         case 'ORDERING': {
-          const items =
-            (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [];
+          const items = (question.orderingItems as OrderingItemInput[] | null) ?? [];
           const sequence = input.orderingSequence ?? [];
           if (sequence.length !== items.length || items.length < 3) {
             throw new TRPCError({
@@ -528,13 +529,8 @@ export const voteRouter = router({
           break;
         }
         case 'CATEGORIZATION': {
-          const categories =
-            (question.categories as Array<{ id: string; name: string }> | null) ?? [];
-          const items =
-            (question.categorizationItems as Array<{
-              text: string;
-              correctCategoryId: string;
-            }> | null) ?? [];
+          const categories = (question.categories as CategorizationCategoryInput[] | null) ?? [];
+          const items = (question.categorizationItems as CategorizationItemInput[] | null) ?? [];
           const selections = input.categorizationSelections ?? [];
           if (selections.length !== items.length || items.length < 4 || categories.length < 2) {
             throw new TRPCError({
@@ -543,21 +539,20 @@ export const voteRouter = router({
             });
           }
           const categoryIds = new Set(categories.map((category) => category.id));
-          const itemTexts = new Set(items.map((item) => item.text.trim()));
-          const seenTexts = new Set<string>();
+          const itemIds = new Set(items.map((item) => item.id));
+          const seenItemIds = new Set<string>();
           for (const selection of selections) {
-            const text = selection.text.trim();
             if (
-              !itemTexts.has(text) ||
+              !itemIds.has(selection.itemId) ||
               !categoryIds.has(selection.categoryId) ||
-              seenTexts.has(text)
+              seenItemIds.has(selection.itemId)
             ) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Kategorisierung enthält ungültige Elemente oder Kategorien.',
               });
             }
-            seenTexts.add(text);
+            seenItemIds.add(selection.itemId);
           }
           break;
         }
@@ -647,21 +642,16 @@ export const voteRouter = router({
       } else if (questionType === 'MATCHING') {
         numericIsCorrectOverride = evaluateMatchingAnswer(
           input.matchingSelections ?? [],
-          (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+          (question.matchingPairs as MatchingPairInput[] | null) ?? [],
         );
       } else if (questionType === 'ORDERING') {
         const correctSeq =
-          (question.orderingItems as Array<{ id: string; text: string }> | null)?.map(
-            (i) => i.id,
-          ) ?? [];
+          (question.orderingItems as OrderingItemInput[] | null)?.map((i) => i.id) ?? [];
         numericIsCorrectOverride = evaluateOrderingAnswer(input.orderingSequence ?? [], correctSeq);
       } else if (questionType === 'CATEGORIZATION') {
         numericIsCorrectOverride = evaluateCategorizationAnswer(
           input.categorizationSelections ?? [],
-          (question.categorizationItems as Array<{
-            text: string;
-            correctCategoryId: string;
-          }> | null) ?? [],
+          (question.categorizationItems as CategorizationItemInput[] | null) ?? [],
         );
       }
 

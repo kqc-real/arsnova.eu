@@ -999,6 +999,13 @@
           <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.matchingPairsHint">
             2 bis 6 Paare; linke und rechte Begriffe müssen jeweils eindeutig sein.
           </p>
+          <mat-checkbox
+            formControlName="matchingShuffleRight"
+            (change)="onLivePreviewInput()"
+            i18n="@@quizEdit.matchingShuffleRight"
+          >
+            Rechte Begriffe für jede teilnehmende Person mischen
+          </mat-checkbox>
           <div formArrayName="matchingPairs" class="quiz-edit-answers l-stack l-stack--md">
             @for (pair of matchingPairsArray.controls; track $index; let i = $index) {
               <div class="quiz-edit-answer" [formGroupName]="i">
@@ -1026,7 +1033,7 @@
                   class="quiz-edit-answer__remove"
                   [disabled]="matchingPairsArray.length <= 2"
                   (click)="removeMatchingPair(i)"
-                  [attr.aria-label]="'Paar ' + (i + 1) + ' entfernen'"
+                  [attr.aria-label]="matchingRemoveLabel(i + 1)"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -1051,6 +1058,9 @@
           <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.orderingItemsHint">
             3 bis 8 Elemente in der korrekten Reihenfolge (oben nach unten).
           </p>
+          <p class="sr-only" aria-live="polite" aria-atomic="true">
+            {{ orderingSolutionAnnouncement() }}
+          </p>
           <div formArrayName="orderingItems" class="quiz-edit-answers l-stack l-stack--md">
             @for (
               item of orderingItemsArray.controls;
@@ -1068,13 +1078,55 @@
                     (input)="onLivePreviewInput()"
                   />
                 </mat-form-field>
+                <div
+                  class="quiz-edit-answer__reorder-actions"
+                  role="group"
+                  [attr.aria-label]="orderingActionsLabel(item.controls.text.value, i + 1)"
+                >
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === 0"
+                    (click)="moveOrderingSolutionItem(i, 'start')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'start')"
+                  >
+                    <mat-icon>first_page</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === 0"
+                    (click)="moveOrderingSolutionItem(i, 'up')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'up')"
+                  >
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === orderingItemsArray.length - 1"
+                    (click)="moveOrderingSolutionItem(i, 'down')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'down')"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === orderingItemsArray.length - 1"
+                    (click)="moveOrderingSolutionItem(i, 'end')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'end')"
+                  >
+                    <mat-icon>last_page</mat-icon>
+                  </button>
+                </div>
                 <button
                   mat-icon-button
                   type="button"
                   class="quiz-edit-answer__remove"
                   [disabled]="orderingItemsArray.length <= 3"
                   (click)="removeOrderingItem(i)"
-                  [attr.aria-label]="'Element ' + (i + 1) + ' entfernen'"
+                  [attr.aria-label]="orderingRemoveLabel(item.controls.text.value, i + 1)"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -1121,7 +1173,7 @@
                   class="quiz-edit-answer__remove"
                   [disabled]="categoriesArray.length <= 2"
                   (click)="removeCategory(i)"
-                  [attr.aria-label]="'Kategorie ' + (i + 1) + ' entfernen'"
+                  [attr.aria-label]="categoryRemoveLabel(i + 1)"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -1144,8 +1196,19 @@
           <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.categorizationItemsHint">
             4 bis 12 Elemente mit Zielkategorie.
           </p>
+          <mat-checkbox
+            formControlName="categorizationShuffleItems"
+            (change)="onLivePreviewInput()"
+            i18n="@@quizEdit.categorizationShuffleItems"
+          >
+            Elemente für jede teilnehmende Person mischen
+          </mat-checkbox>
           <div formArrayName="categorizationItems" class="quiz-edit-answers l-stack l-stack--md">
-            @for (item of categorizationItemsArray.controls; track $index; let i = $index) {
+            @for (
+              item of categorizationItemsArray.controls;
+              track item.controls.id.value;
+              let i = $index
+            ) {
               <div class="quiz-edit-answer" [formGroupName]="i">
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.categorizationItemLabel">Element</mat-label>
@@ -1178,7 +1241,7 @@
                   class="quiz-edit-answer__remove"
                   [disabled]="categorizationItemsArray.length <= 4"
                   (click)="removeCategorizationItem(i)"
-                  [attr.aria-label]="'Element ' + (i + 1) + ' entfernen'"
+                  [attr.aria-label]="categorizationRemoveLabel(item.controls.text.value, i + 1)"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>

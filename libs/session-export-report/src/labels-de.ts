@@ -217,6 +217,12 @@ export interface SessionResultsReportLabels {
   structuredSolutionOrderingTitle: string;
   structuredSolutionMatchingTitle: string;
   structuredSolutionCategorizationTitle: string;
+  structuredOrderingMatrixTitle: string;
+  structuredMatchingMatrixTitle: string;
+  structuredCategorizationMatrixTitle: string;
+  structuredMatrixItemHeader: string;
+  structuredMatrixCorrectCell: string;
+  structuredMatrixCellTemplate: string;
   structuredFullyCorrect: string;
   structuredCommonSwaps: string;
   structuredCommonConfusions: string;
@@ -597,6 +603,12 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     structuredSolutionOrderingTitle: 'Soll-Reihenfolge (Musterlösung)',
     structuredSolutionMatchingTitle: 'Korrekte Paare (Musterlösung)',
     structuredSolutionCategorizationTitle: 'Soll-Kategorien (Musterlösung)',
+    structuredOrderingMatrixTitle: 'Gewählte Positionen',
+    structuredMatchingMatrixTitle: 'Gewählte Zuordnungen',
+    structuredCategorizationMatrixTitle: 'Gewählte Kategorien',
+    structuredMatrixItemHeader: 'Element',
+    structuredMatrixCorrectCell: 'Musterlösung',
+    structuredMatrixCellTemplate: '{0} ({1}\u202f%)',
     structuredFullyCorrect: 'Vollständig korrekt',
     structuredCommonSwaps: 'Häufige Vertauschungen',
     structuredCommonConfusions: 'Häufige Fehlzuordnungen',

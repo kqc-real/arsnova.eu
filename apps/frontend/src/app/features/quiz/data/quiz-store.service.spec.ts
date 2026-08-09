@@ -124,6 +124,58 @@ describe('QuizStoreService', () => {
     expect(service.getQuizById('6b442f6f-2f8a-4bad-95da-69f5e9cd2649')?.questions.length).toBe(1);
   });
 
+  it('migriert alte Matching-Paare einmalig auf opake IDs und persistiert sie', () => {
+    const quizId = '6b442f6f-2f8a-4bad-95da-69f5e9cd2649';
+    const questionId = '9eff562e-51f8-4f72-98a3-2f421ef2b411';
+    localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: quizId,
+          name: 'Legacy Matching',
+          description: null,
+          motifImageUrl: null,
+          createdAt: '2026-03-08T12:00:00.000Z',
+          updatedAt: '2026-03-08T12:00:00.000Z',
+          settings: defaultSettings,
+          questions: [
+            {
+              id: questionId,
+              text: 'Ordne zu',
+              type: 'MATCHING',
+              difficulty: 'MEDIUM',
+              order: 0,
+              enabled: true,
+              timer: null,
+              answers: [],
+              matchingPairs: [
+                { left: 'A', right: '1' },
+                { left: 'B', right: '2' },
+              ],
+            },
+          ],
+        },
+      ]),
+    );
+
+    const service = TestBed.inject(QuizStoreService);
+    const pairs = service.getQuizById(quizId)?.questions[0]?.matchingPairs ?? [];
+    const persisted = JSON.parse(localStorage.getItem(QUIZ_STORAGE_KEY) ?? '[]') as Array<{
+      id: string;
+      questions: Array<{ matchingPairs: Array<{ leftId: string; rightId: string }> }>;
+    }>;
+    const persistedPairs = persisted.find((entry) => entry.id === quizId)?.questions[0]
+      ?.matchingPairs;
+
+    expect(pairs).toHaveLength(2);
+    expect(pairs.every((pair) => /^[0-9a-f-]{36}$/i.test(pair.leftId))).toBe(true);
+    expect(pairs.every((pair) => /^[0-9a-f-]{36}$/i.test(pair.rightId))).toBe(true);
+    expect(new Set(pairs.flatMap((pair) => [pair.leftId, pair.rightId])).size).toBe(4);
+    expect(persistedPairs).toEqual(
+      pairs.map(({ leftId, rightId }) => expect.objectContaining({ leftId, rightId })),
+    );
+  });
+
   it('fügt eine SINGLE_CHOICE-Frage hinzu', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({ name: 'Test-Quiz' });

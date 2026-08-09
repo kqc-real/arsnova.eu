@@ -2178,4 +2178,72 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(answerStrong).not.toBeNull();
     expect(answerStrong?.textContent).toContain('Korrekte');
   });
+
+  it('ordnet die Musterlösung einer Sortierfrage samt stabiler IDs neu', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('ORDERING');
+    component.onTypeChanged();
+    const ids = component.orderingItemsArray.controls.map((item) => item.controls.id.value);
+    component.orderingItemsArray.controls.forEach((item, index) => {
+      item.controls.text.setValue(`Schritt ${index + 1}`);
+    });
+
+    component.moveOrderingSolutionItem(2, 'start');
+
+    expect(component.orderingItemsArray.controls.map((item) => item.controls.id.value)).toEqual([
+      ids[2],
+      ids[0],
+      ids[1],
+    ]);
+    expect(component.orderingItemsArray.controls.map((item) => item.controls.text.value)).toEqual([
+      'Schritt 3',
+      'Schritt 1',
+      'Schritt 2',
+    ]);
+    expect(component.orderingSolutionAnnouncement()).toContain('Position 1 von 3');
+    expect(component.orderingItemsArray.dirty).toBe(true);
+  });
+
+  it('speichert Matching-Paare mit stabilen IDs und konfigurierbarer Mischung', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('MATCHING');
+    component.onTypeChanged();
+    component.form.controls.text.setValue('Ordne die Begriffe zu.');
+    component.form.controls.matchingShuffleRight.setValue(false);
+    component.matchingPairsArray.at(0).controls.left.setValue('A');
+    component.matchingPairsArray.at(0).controls.right.setValue('1');
+    component.matchingPairsArray.at(1).controls.left.setValue('B');
+    component.matchingPairsArray.at(1).controls.right.setValue('2');
+    const stableIds = component.matchingPairsArray.controls.flatMap((pair) => [
+      pair.controls.leftId.value,
+      pair.controls.rightId.value,
+    ]);
+
+    component.saveAll();
+
+    expect(new Set(stableIds).size).toBe(4);
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        type: 'MATCHING',
+        matchingShuffleRight: false,
+        matchingPairs: [
+          {
+            leftId: stableIds[0],
+            left: 'A',
+            rightId: stableIds[1],
+            right: '1',
+          },
+          {
+            leftId: stableIds[2],
+            left: 'B',
+            rightId: stableIds[3],
+            right: '2',
+          },
+        ],
+      }),
+    );
+  });
 });

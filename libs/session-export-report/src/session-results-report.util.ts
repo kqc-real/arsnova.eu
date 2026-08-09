@@ -596,6 +596,22 @@ function renderStructuredSolutionHtml(
 ): string {
   let html = '';
 
+  const matrixCell = (count: number, total: number, correct: boolean): string => {
+    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+    const copy = labels.structuredMatrixCellTemplate
+      .replace('{0}', formatLocaleCount(count, localeId))
+      .replace('{1}', formatLocaleCount(percent, localeId));
+    return `<td${correct ? ' class="report-structured-matrix-cell--correct"' : ''}>${escapeHtml(
+      copy,
+    )}${
+      correct
+        ? `<span class="report-structured-matrix-correct-label">✓ ${escapeHtml(
+            labels.structuredMatrixCorrectCell,
+          )}</span>`
+        : ''
+    }</td>`;
+  };
+
   if (q.type === 'ORDERING' && q.orderingItems?.length) {
     const steps = q.orderingItems
       .map(
@@ -616,6 +632,40 @@ function renderStructuredSolutionHtml(
       </header>
       <ol class="report-structured-steps">${steps}</ol>
     </section>`;
+    if (q.orderingStats) {
+      const total = q.orderingStats.totalVotes;
+      const positions = q.orderingItems.map((_, index) => index);
+      const counts = new Map(
+        q.orderingStats.positionCounts.map((entry) => [
+          `${entry.itemId}\u0000${entry.position}`,
+          entry.count,
+        ]),
+      );
+      html += `<section class="report-structured-matrix">
+        <table class="report-table">
+          <caption>${escapeHtml(labels.structuredOrderingMatrixTitle)}</caption>
+          <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${positions
+            .map((position) => `<th scope="col">${position + 1}</th>`)
+            .join('')}</tr></thead>
+          <tbody>${q.orderingItems
+            .map(
+              (item, correctPosition) =>
+                `<tr><th scope="row">${escapeHtml(
+                  stripMarkdownToPlainText(item.text),
+                )}</th>${positions
+                  .map((position) =>
+                    matrixCell(
+                      counts.get(`${item.id}\u0000${position}`) ?? 0,
+                      total,
+                      correctPosition === position,
+                    ),
+                  )
+                  .join('')}</tr>`,
+            )
+            .join('')}</tbody>
+        </table>
+      </section>`;
+    }
     if (q.orderingStats?.commonSwaps?.length) {
       html += `<aside class="report-structured-insights">
         <h4>${escapeHtml(labels.structuredCommonSwaps)}</h4>
@@ -658,6 +708,39 @@ function renderStructuredSolutionHtml(
       </header>
       <ul class="report-structured-pairs">${pairs}</ul>
     </section>`;
+    if (q.matchingStats) {
+      const total = q.matchingStats.totalVotes;
+      const counts = new Map(
+        q.matchingStats.selectionCounts.map((entry) => [
+          `${entry.leftId}\u0000${entry.rightId}`,
+          entry.count,
+        ]),
+      );
+      html += `<section class="report-structured-matrix">
+        <table class="report-table">
+          <caption>${escapeHtml(labels.structuredMatchingMatrixTitle)}</caption>
+          <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${q.matchingPairs
+            .map(
+              (pair) => `<th scope="col">${escapeHtml(stripMarkdownToPlainText(pair.right))}</th>`,
+            )
+            .join('')}</tr></thead>
+          <tbody>${q.matchingPairs
+            .map(
+              (pair) =>
+                `<tr><th scope="row">${escapeHtml(stripMarkdownToPlainText(pair.left))}</th>${q
+                  .matchingPairs!.map((rightPair) =>
+                    matrixCell(
+                      counts.get(`${pair.leftId}\u0000${rightPair.rightId}`) ?? 0,
+                      total,
+                      pair.rightId === rightPair.rightId,
+                    ),
+                  )
+                  .join('')}</tr>`,
+            )
+            .join('')}</tbody>
+        </table>
+      </section>`;
+    }
     if (q.matchingStats?.pairHitRates?.length) {
       html += `<aside class="report-structured-insights">
         <h4>${escapeHtml(labels.structuredPairHitRates)}</h4>
@@ -726,6 +809,40 @@ function renderStructuredSolutionHtml(
       </header>
       <div class="report-structured-category-grid">${cards}</div>
     </section>`;
+    if (q.categorizationStats) {
+      const total = q.categorizationStats.totalVotes;
+      const counts = new Map(
+        q.categorizationStats.itemCategoryCounts.map((entry) => [
+          `${entry.itemId}\u0000${entry.categoryId}`,
+          entry.count,
+        ]),
+      );
+      html += `<section class="report-structured-matrix">
+        <table class="report-table">
+          <caption>${escapeHtml(labels.structuredCategorizationMatrixTitle)}</caption>
+          <thead><tr><th scope="col">${escapeHtml(labels.structuredMatrixItemHeader)}</th>${q.categories
+            .map(
+              (category) =>
+                `<th scope="col">${escapeHtml(stripMarkdownToPlainText(category.name))}</th>`,
+            )
+            .join('')}</tr></thead>
+          <tbody>${q.categorizationItems
+            .map(
+              (item) =>
+                `<tr><th scope="row">${escapeHtml(stripMarkdownToPlainText(item.text))}</th>${q
+                  .categories!.map((category) =>
+                    matrixCell(
+                      counts.get(`${item.id}\u0000${category.id}`) ?? 0,
+                      total,
+                      item.correctCategoryId === category.id,
+                    ),
+                  )
+                  .join('')}</tr>`,
+            )
+            .join('')}</tbody>
+        </table>
+      </section>`;
+    }
     if (q.categorizationStats?.commonMisclassifications?.length) {
       html += `<aside class="report-structured-insights report-structured-insights--warn">
         <h4>${escapeHtml(labels.structuredCommonMisclassifications)}</h4>

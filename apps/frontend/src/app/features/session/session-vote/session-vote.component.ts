@@ -112,6 +112,7 @@ import {
 } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
+import { ItemSelectionRowComponent } from '../../../shared/item-selection-row/item-selection-row.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -153,9 +154,9 @@ type StoredVoteResponse = {
   numericValue?: number;
   confidenceValue?: number;
   orderingSequence?: string[];
-  matchingSelections?: { left: string; right: string }[];
-  categorizationSelections?: { text: string; categoryId: string }[];
-  sent: true;
+  matchingSelections?: { leftId: string; rightId: string }[];
+  categorizationSelections?: { itemId: string; categoryId: string }[];
+  sent: boolean;
   updatedAt: string;
 };
 
@@ -403,6 +404,7 @@ export function getNumericEstimateMotivation(input: {
     FeedbackVoteComponent,
     MarkdownImageLightboxDirective,
     AnswerOptionBadgeComponent,
+    ItemSelectionRowComponent,
   ],
   templateUrl: './session-vote.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],
@@ -1277,10 +1279,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   readonly orderingSequenceState = signal<string[]>([]);
   readonly orderingItemsState = signal<Array<{ id: string; text: string }>>([]);
-  readonly matchingSelectionsState = signal<{ left: string; right: string }[]>([]);
-  readonly matchingRightOptionsState = signal<string[]>([]);
-  readonly categorizationSelectionsState = signal<{ text: string; categoryId: string }[]>([]);
+  readonly matchingSelectionsState = signal<
+    Array<{ leftId: string; leftText: string; rightId: string }>
+  >([]);
+  readonly matchingRightOptionsState = signal<Array<{ id: string; text: string }>>([]);
+  readonly categorizationSelectionsState = signal<
+    Array<{ itemId: string; itemText: string; categoryId: string }>
+  >([]);
   readonly categoriesState = signal<Array<{ id: string; name: string }>>([]);
+  readonly orderingAnnouncement = signal('');
 
   readonly isConfidenceEnabled = computed(() => {
     const q = this.currentQuestion();
@@ -1303,12 +1310,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return this.numericValidationError() === null && this.numericParsedValue() !== null;
     }
     if (this.isOrdering()) {
-      return this.orderingItemsState().length > 0;
+      return this.hasCompleteOrderingAnswer();
     }
     if (this.isMatching()) {
       return (
         this.matchingSelectionsState().length > 0 &&
-        this.matchingSelectionsState().every((s) => Boolean(s.right))
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId))
       );
     }
     if (this.isCategorization()) {
@@ -1672,7 +1679,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private hasLocalVoteState(): boolean {
     const hasStructuredDraft =
-      this.matchingSelectionsState().some((selection) => Boolean(selection.right)) ||
+      this.matchingSelectionsState().some((selection) => Boolean(selection.rightId)) ||
       this.categorizationSelectionsState().some((selection) => Boolean(selection.categoryId));
     return (
       this.selectedAnswerIds().size > 0 ||
@@ -1707,17 +1714,45 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.numericInputValue.set(String(parsed.numericValue));
       }
       if (Array.isArray(parsed.matchingSelections)) {
-        this.matchingSelectionsState.set(parsed.matchingSelections);
+        const validRightIds = new Set(this.matchingRightOptionsState().map((option) => option.id));
+        const restoredByLeftId = new Map(
+          parsed.matchingSelections.map((selection) => [selection.leftId, selection.rightId]),
+        );
+        const usedRightIds = new Set<string>();
+        this.matchingSelectionsState.update((current) =>
+          current.map((selection) => {
+            const rightId = restoredByLeftId.get(selection.leftId) ?? '';
+            if (!validRightIds.has(rightId) || usedRightIds.has(rightId)) return selection;
+            usedRightIds.add(rightId);
+            return { ...selection, rightId };
+          }),
+        );
       }
       if (Array.isArray(parsed.categorizationSelections)) {
-        this.categorizationSelectionsState.set(parsed.categorizationSelections);
+        const validCategoryIds = new Set(this.categoriesState().map((category) => category.id));
+        const restoredByItemId = new Map(
+          parsed.categorizationSelections.map((selection) => [
+            selection.itemId,
+            selection.categoryId,
+          ]),
+        );
+        this.categorizationSelectionsState.update((current) =>
+          current.map((selection) => {
+            const categoryId = restoredByItemId.get(selection.itemId) ?? '';
+            return validCategoryIds.has(categoryId) ? { ...selection, categoryId } : selection;
+          }),
+        );
       }
       if (Array.isArray(parsed.orderingSequence) && parsed.orderingSequence.length > 0) {
         const byId = new Map(this.orderingItemsState().map((item) => [item.id, item]));
         const restored = parsed.orderingSequence
           .map((id) => byId.get(id))
           .filter((item): item is { id: string; text: string } => Boolean(item));
-        if (restored.length === parsed.orderingSequence.length) {
+        if (
+          restored.length === byId.size &&
+          parsed.orderingSequence.length === byId.size &&
+          new Set(parsed.orderingSequence).size === byId.size
+        ) {
           this.orderingItemsState.set(restored);
           this.orderingSequenceState.set(parsed.orderingSequence);
         }
@@ -1735,6 +1770,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     ratingValue: number | undefined,
     numericValue?: number,
     confidenceValue?: number,
+    sent = true,
   ): void {
     const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
     if (!key || typeof localStorage === 'undefined') {
@@ -1749,10 +1785,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       confidenceValue,
       orderingSequence:
         question.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined,
-      matchingSelections: question.type === 'MATCHING' ? this.matchingSelectionsState() : undefined,
+      matchingSelections:
+        question.type === 'MATCHING'
+          ? this.matchingSelectionsState().map(({ leftId, rightId }) => ({ leftId, rightId }))
+          : undefined,
       categorizationSelections:
-        question.type === 'CATEGORIZATION' ? this.categorizationSelectionsState() : undefined,
-      sent: true,
+        question.type === 'CATEGORIZATION'
+          ? this.categorizationSelectionsState().map(({ itemId, categoryId }) => ({
+              itemId,
+              categoryId,
+            }))
+          : undefined,
+      sent,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1761,6 +1805,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     } catch {
       /* noop */
     }
+  }
+
+  private storeStructuredVoteDraft(): void {
+    const question = this.currentQuestion();
+    if (!question || !this.isActive() || this.voteSent()) return;
+    this.storeVoteResponse(
+      question,
+      [...this.selectedAnswerIds()],
+      this.freeTextValue().trim() || undefined,
+      this.ratingValue() ?? undefined,
+      this.numericParsedValue() ?? undefined,
+      this.confidenceValue() ?? undefined,
+      false,
+    );
   }
 
   readonly showVoteSubmitAction = computed(() => {
@@ -1796,11 +1854,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     } else if (this.isNumericEstimate()) {
       answerReady = this.numericValidationError() === null && this.numericParsedValue() !== null;
     } else if (this.isOrdering()) {
-      answerReady = this.orderingItemsState().length > 0;
+      answerReady = this.hasCompleteOrderingAnswer();
     } else if (this.isMatching()) {
       answerReady =
         this.matchingSelectionsState().length > 0 &&
-        this.matchingSelectionsState().every((s) => Boolean(s.right));
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId));
     } else if (this.isCategorization()) {
       answerReady =
         this.categorizationSelectionsState().length > 0 &&
@@ -1808,6 +1866,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (!answerReady) {
+      if (this.isMatching() || this.isCategorization()) {
+        return false;
+      }
       return true;
     }
     if (this.isConfidenceEnabled() && this.confidenceValue() === null) {
@@ -4004,7 +4065,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.startCountdown(q);
       }
 
-      if (q && this.isResults()) {
+      if (q && (this.isActive() || this.isResults())) {
         this.restoreStoredVoteResponse(q);
       }
 
@@ -4212,50 +4273,98 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   moveOrderingItemUp(index: number): void {
-    if (index <= 0) return;
-    const items = [...this.orderingItemsState()];
-    const temp = items[index - 1];
-    items[index - 1] = items[index]!;
-    items[index] = temp!;
-    this.orderingItemsState.set(items);
-    this.orderingSequenceState.set(items.map((item) => item.id));
+    this.moveOrderingItem(index, 'up');
   }
 
   moveOrderingItemDown(index: number): void {
+    this.moveOrderingItem(index, 'down');
+  }
+
+  private hasCompleteOrderingAnswer(): boolean {
+    const question = this.currentQuestion();
+    if (!question || !('orderingItems' in question) || !Array.isArray(question.orderingItems)) {
+      return false;
+    }
+    const expectedIds = new Set(question.orderingItems.map((item) => item.id));
+    const currentIds = this.orderingItemsState().map((item) => item.id);
+    return (
+      expectedIds.size >= 3 &&
+      expectedIds.size === question.orderingItems.length &&
+      currentIds.length === expectedIds.size &&
+      new Set(currentIds).size === expectedIds.size &&
+      currentIds.every((itemId) => expectedIds.has(itemId))
+    );
+  }
+
+  moveOrderingItem(index: number, target: 'start' | 'up' | 'down' | 'end'): void {
     const items = [...this.orderingItemsState()];
-    if (index >= items.length - 1) return;
-    const temp = items[index + 1];
-    items[index + 1] = items[index]!;
-    items[index] = temp!;
+    if (index < 0 || index >= items.length || items.length < 2) return;
+    const nextIndex =
+      target === 'start'
+        ? 0
+        : target === 'end'
+          ? items.length - 1
+          : target === 'up'
+            ? Math.max(0, index - 1)
+            : Math.min(items.length - 1, index + 1);
+    if (nextIndex === index) return;
+    const [item] = items.splice(index, 1);
+    if (!item) return;
+    items.splice(nextIndex, 0, item);
     this.orderingItemsState.set(items);
     this.orderingSequenceState.set(items.map((item) => item.id));
+    this.orderingAnnouncement.set(
+      $localize`:@@sessionVote.orderingMovedAnnouncement:${item.text}:item: steht jetzt an Position ${
+        nextIndex + 1
+      }:position: von ${items.length}:total:.`,
+    );
+    this.storeStructuredVoteDraft();
   }
 
-  setMatchingSelection(left: string, right: string): void {
+  orderingMoveAriaLabel(itemText: string, target: 'start' | 'up' | 'down' | 'end'): string {
+    if (target === 'start') {
+      return $localize`:@@sessionVote.orderingMoveStartAria:${itemText}:item: an den Anfang verschieben`;
+    }
+    if (target === 'end') {
+      return $localize`:@@sessionVote.orderingMoveEndAria:${itemText}:item: ans Ende verschieben`;
+    }
+    if (target === 'up') {
+      return $localize`:@@sessionVote.orderingMoveUpAria:${itemText}:item: nach oben verschieben`;
+    }
+    return $localize`:@@sessionVote.orderingMoveDownAria:${itemText}:item: nach unten verschieben`;
+  }
+
+  orderingActionsAriaLabel(itemText: string): string {
+    return $localize`:@@sessionVote.orderingActionsAria:Position von ${itemText}:item: ändern`;
+  }
+
+  setMatchingSelection(leftId: string, rightId: string): void {
     const selections = this.matchingSelectionsState().map((s) =>
-      s.left === left ? { ...s, right } : s,
+      s.leftId === leftId ? { ...s, rightId } : s,
     );
     this.matchingSelectionsState.set(selections);
+    this.voteError.set(null);
+    this.storeStructuredVoteDraft();
   }
 
-  getMatchingRightOptionsForLeft(left: string): string[] {
+  getMatchingRightOptionsForLeft(leftId: string): Array<{ id: string; text: string }> {
     const current = this.matchingSelectionsState().find(
-      (selection) => selection.left === left,
-    )?.right;
+      (selection) => selection.leftId === leftId,
+    )?.rightId;
     const usedByOthers = new Set(
       this.matchingSelectionsState()
-        .filter((selection) => selection.left !== left && selection.right)
-        .map((selection) => selection.right),
+        .filter((selection) => selection.leftId !== leftId && selection.rightId)
+        .map((selection) => selection.rightId),
     );
     return this.matchingRightOptionsState().filter(
-      (option) => option === current || !usedByOthers.has(option),
+      (option) => option.id === current || !usedByOthers.has(option.id),
     );
   }
 
   matchingProgressLabel(): string {
     const total = this.matchingSelectionsState().length;
     const done = this.matchingSelectionsState().filter((selection) =>
-      Boolean(selection.right),
+      Boolean(selection.rightId),
     ).length;
     return $localize`:@@sessionVote.matchingProgress:${done}:done: von ${total}:total: zugeordnet`;
   }
@@ -4276,21 +4385,72 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionVote.categorizationSelectAria:Kategorie für „${itemText}:item:“`;
   }
 
-  setCategorizationSelection(text: string, categoryId: string): void {
+  setCategorizationSelection(itemId: string, categoryId: string): void {
     const selections = this.categorizationSelectionsState().map((s) =>
-      s.text === text ? { ...s, categoryId } : s,
+      s.itemId === itemId ? { ...s, categoryId } : s,
     );
     this.categorizationSelectionsState.set(selections);
+    this.voteError.set(null);
+    this.storeStructuredVoteDraft();
+  }
+
+  private focusFirstIncompleteStructuredSelection(): void {
+    queueMicrotask(() => {
+      const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        'app-item-selection-row[data-incomplete="true"] mat-select',
+      );
+      target?.focus();
+    });
   }
 
   getCategoriesForCurrentQuestion(): { id: string; name: string }[] {
     return this.categoriesState();
   }
 
+  getCategorySelectionOptions(): Array<{ id: string; text: string }> {
+    return this.categoriesState().map((category) => ({ id: category.id, text: category.name }));
+  }
+
   getCategoryNameById(catId: string): string {
     const cats = this.getCategoriesForCurrentQuestion();
     const found = cats.find((c) => c.id === catId);
     return found?.name ?? catId;
+  }
+
+  getMatchingRightTextById(rightId: string): string {
+    return this.matchingRightOptionsState().find((option) => option.id === rightId)?.text ?? '–';
+  }
+
+  getCorrectMatchingRightId(leftId: string): string {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'MATCHING' || !('matchingPairs' in question)) return '';
+    return question.matchingPairs?.find((pair) => pair.leftId === leftId)?.rightId ?? '';
+  }
+
+  getCorrectCategorizationCategoryId(itemId: string): string {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'CATEGORIZATION' || !('categorizationItems' in question))
+      return '';
+    const item = question.categorizationItems?.find((candidate) => candidate.id === itemId) as
+      { correctCategoryId?: string } | undefined;
+    return item?.correctCategoryId ?? '';
+  }
+
+  orderingCorrectPosition(itemId: string): number {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'ORDERING' || !('orderingItems' in question)) return 0;
+    const index = question.orderingItems?.findIndex((item) => item.id === itemId) ?? -1;
+    return index >= 0 ? index + 1 : 0;
+  }
+
+  orderingPositionIsCorrect(itemId: string, index: number): boolean {
+    return this.orderingCorrectPosition(itemId) === index + 1;
+  }
+
+  structuredAnswerStatusLabel(correct: boolean): string {
+    return correct
+      ? $localize`:@@sessionVote.structuredCorrect:Richtig`
+      : $localize`:@@sessionVote.structuredWrong:Falsch`;
   }
 
   private questionHasStructuredVotePayload(question: CurrentQuestion | null): boolean {
@@ -4304,9 +4464,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     if (question.type === 'MATCHING') {
       return (
-        'matchingLeftOptions' in question &&
-        Array.isArray(question.matchingLeftOptions) &&
-        question.matchingLeftOptions.length > 0
+        ('matchingLeftOptions' in question &&
+          Array.isArray(question.matchingLeftOptions) &&
+          question.matchingLeftOptions.length > 0) ||
+        ('matchingPairs' in question &&
+          Array.isArray(question.matchingPairs) &&
+          question.matchingPairs.length > 0)
       );
     }
     if (question.type === 'CATEGORIZATION') {
@@ -4368,16 +4531,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (question.type === 'MATCHING') {
-      const lefts =
+      let lefts =
         'matchingLeftOptions' in question && Array.isArray(question.matchingLeftOptions)
           ? question.matchingLeftOptions
           : [];
-      const rights =
+      let rights =
         'matchingRightOptions' in question && Array.isArray(question.matchingRightOptions)
           ? question.matchingRightOptions
           : [];
+      if (
+        lefts.length === 0 &&
+        'matchingPairs' in question &&
+        Array.isArray(question.matchingPairs)
+      ) {
+        lefts = question.matchingPairs.map((pair) => ({ id: pair.leftId, text: pair.left }));
+        rights = question.matchingPairs.map((pair) => ({ id: pair.rightId, text: pair.right }));
+      }
       this.matchingRightOptionsState.set(rights);
-      this.matchingSelectionsState.set(lefts.map((left) => ({ left, right: '' })));
+      this.matchingSelectionsState.set(
+        lefts.map((left) => ({ leftId: left.id, leftText: left.text, rightId: '' })),
+      );
     } else {
       this.matchingRightOptionsState.set([]);
       this.matchingSelectionsState.set([]);
@@ -4392,7 +4565,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           : [];
       this.categoriesState.set(categories);
       this.categorizationSelectionsState.set(
-        items.map((item) => ({ text: item.text, categoryId: '' })),
+        items.map((item) => ({ itemId: item.id, itemText: item.text, categoryId: '' })),
       );
     } else {
       this.categoriesState.set([]);
@@ -4520,6 +4693,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     }
 
+    if (
+      q.type === 'MATCHING' &&
+      (this.matchingSelectionsState().length === 0 ||
+        this.matchingSelectionsState().some((selection) => !selection.rightId))
+    ) {
+      this.voteError.set(
+        $localize`:@@sessionVote.matchingIncomplete:Ordne jedem linken Begriff genau einen rechten Begriff zu.`,
+      );
+      this.focusFirstIncompleteStructuredSelection();
+      return;
+    }
+
+    if (
+      q.type === 'CATEGORIZATION' &&
+      (this.categorizationSelectionsState().length === 0 ||
+        this.categorizationSelectionsState().some((selection) => !selection.categoryId))
+    ) {
+      this.voteError.set(
+        $localize`:@@sessionVote.categorizationIncomplete:Ordne jedes Element einer Kategorie zu.`,
+      );
+      this.focusFirstIncompleteStructuredSelection();
+      return;
+    }
+
     if (this.isConfidenceEnabled() && confidence === undefined) {
       this.voteError.set(
         $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`,
@@ -4538,9 +4735,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     try {
       const orderingSeq =
         q.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined;
-      const matchingSel = q.type === 'MATCHING' ? this.matchingSelectionsState() : undefined;
+      const matchingSel =
+        q.type === 'MATCHING'
+          ? this.matchingSelectionsState().map(({ leftId, rightId }) => ({ leftId, rightId }))
+          : undefined;
       const categorizationSel =
-        q.type === 'CATEGORIZATION' ? this.categorizationSelectionsState() : undefined;
+        q.type === 'CATEGORIZATION'
+          ? this.categorizationSelectionsState().map(({ itemId, categoryId }) => ({
+              itemId,
+              categoryId,
+            }))
+          : undefined;
 
       await trpc.vote.submit.mutate({
         sessionId: this.sessionId(),

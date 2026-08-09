@@ -1,0 +1,39 @@
+<div class="distribution-matrix" role="region" [attr.aria-label]="title" tabindex="0">
+  <table>
+    <caption>
+      <span class="distribution-matrix__title">{{ title }}</span>
+      @if (description) {
+        <span class="distribution-matrix__description">{{ description }}</span>
+      }
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="distribution-matrix__corner" i18n="@@matrix.itemColumn">Element</th>
+        @for (column of columns; track column.id) {
+          <th scope="col">
+            <span class="markdown-body" [innerHTML]="renderMarkdown(column.label)"></span>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.id) {
+        <tr>
+          <th scope="row">
+            <span class="markdown-body" [innerHTML]="renderMarkdown(row.label)"></span>
+          </th>
+          @for (column of columns; track column.id) {
+            @let cellCount = count(row.id, column.id);
+            <td [class.distribution-matrix__cell--correct]="isCorrectCell(row.id, column.id)">
+              <span class="distribution-matrix__count">{{ cellCount }}</span>
+              <span class="distribution-matrix__percent">{{ percent(cellCount) | number }} %</span>
+              @if (isCorrectCell(row.id, column.id)) {
+                <span class="sr-only" i18n="@@matrix.correctCell">Musterlösung</span>
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

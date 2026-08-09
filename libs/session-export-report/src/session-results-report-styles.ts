@@ -1497,6 +1497,38 @@ p { margin: 0 0 0.65rem; }
   font-weight: 600;
 }
 
+.report-structured-matrix {
+  margin: 0.7rem 0 0.9rem;
+  break-inside: avoid;
+}
+
+.report-structured-matrix .report-table {
+  table-layout: fixed;
+}
+
+.report-structured-matrix .report-table th:first-child {
+  width: 30%;
+}
+
+.report-structured-matrix .report-table th:not(:first-child),
+.report-structured-matrix .report-table td {
+  text-align: center;
+}
+
+.report-structured-matrix-cell--correct {
+  background: color-mix(in srgb, var(--report-success) 14%, #fff);
+  box-shadow: inset 0 0 0 1px var(--report-success);
+  font-weight: 650;
+}
+
+.report-structured-matrix-correct-label {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 7.5pt;
+  line-height: 1.15;
+  color: var(--report-success);
+}
+
 .report-confidence-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

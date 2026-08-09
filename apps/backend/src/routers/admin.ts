@@ -1064,9 +1064,11 @@ export const adminRouter = router({
                   numericRequireUnit: true,
                   numericAcceptEquivalentUnits: true,
                   matchingPairs: true,
+                  matchingShuffleRight: true,
                   orderingItems: true,
                   categories: true,
                   categorizationItems: true,
+                  categorizationShuffleItems: true,
                   answers: {
                     orderBy: { id: 'asc' },
                     select: { text: true, isCorrect: true },
@@ -1158,7 +1160,13 @@ export const adminRouter = router({
             ...(question.type === 'MATCHING'
               ? {
                   matchingPairs:
-                    (question.matchingPairs as Array<{ left: string; right: string }> | null) ?? [],
+                    (question.matchingPairs as Array<{
+                      leftId: string;
+                      left: string;
+                      rightId: string;
+                      right: string;
+                    }> | null) ?? [],
+                  matchingShuffleRight: question.matchingShuffleRight,
                 }
               : {}),
             ...(question.type === 'ORDERING'
@@ -1173,9 +1181,11 @@ export const adminRouter = router({
                     (question.categories as Array<{ id: string; name: string }> | null) ?? [],
                   categorizationItems:
                     (question.categorizationItems as Array<{
+                      id: string;
                       text: string;
                       correctCategoryId: string;
                     }> | null) ?? [],
+                  categorizationShuffleItems: question.categorizationShuffleItems,
                 }
               : {}),
             enabled: true,

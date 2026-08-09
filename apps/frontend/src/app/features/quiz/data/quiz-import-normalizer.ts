@@ -59,11 +59,70 @@ export interface NormalizedQuizImportPayload {
 }
 
 export function normalizeQuizImportPayload(payload: unknown): NormalizedQuizImportPayload {
-  if (!isRecord(payload) || !looksLikeArsnovaClickExport(payload)) {
+  if (!isRecord(payload)) {
     return { payload, warnings: [] };
+  }
+  if (!looksLikeArsnovaClickExport(payload)) {
+    return { payload: normalizeNativeStructuredQuestionIds(payload), warnings: [] };
   }
 
   return convertArsnovaClickExport(payload);
+}
+
+function normalizeNativeStructuredQuestionIds(payload: JsonRecord): JsonRecord {
+  const quiz = isRecord(payload['quiz']) ? payload['quiz'] : null;
+  const questions = Array.isArray(quiz?.['questions']) ? quiz['questions'] : null;
+  if (!quiz || !questions) return payload;
+
+  return {
+    ...payload,
+    quiz: {
+      ...quiz,
+      questions: questions.map((entry) => {
+        if (!isRecord(entry)) return entry;
+        const type = entry['type'];
+        if (type === 'MATCHING' && Array.isArray(entry['matchingPairs'])) {
+          return {
+            ...entry,
+            matchingShuffleRight: readBoolean(entry['matchingShuffleRight']) ?? true,
+            matchingPairs: entry['matchingPairs'].map((pair) => {
+              if (!isRecord(pair)) return pair;
+              return {
+                ...pair,
+                leftId: readOptionalString(pair['leftId']) ?? createOpaqueStructuredId(),
+                rightId: readOptionalString(pair['rightId']) ?? createOpaqueStructuredId(),
+              };
+            }),
+          };
+        }
+        if (type === 'CATEGORIZATION' && Array.isArray(entry['categorizationItems'])) {
+          return {
+            ...entry,
+            categorizationShuffleItems: readBoolean(entry['categorizationShuffleItems']) ?? true,
+            categorizationItems: entry['categorizationItems'].map((item) => {
+              if (!isRecord(item)) return item;
+              return {
+                ...item,
+                id: readOptionalString(item['id']) ?? createOpaqueStructuredId(),
+              };
+            }),
+          };
+        }
+        return entry;
+      }),
+    },
+  };
+}
+
+function createOpaqueStructuredId(): string {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
 }
 
 function looksLikeArsnovaClickExport(value: JsonRecord): boolean {

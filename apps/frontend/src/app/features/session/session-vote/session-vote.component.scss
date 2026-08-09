@@ -3501,9 +3501,44 @@
 
 .vote-ordering__actions {
   display: inline-flex;
+  flex-wrap: wrap;
   flex: 0 0 auto;
   align-items: center;
   gap: 0.1rem;
+}
+
+.structured-result--correct {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 65%, var(--mat-sys-outline-variant));
+}
+
+.structured-result--wrong {
+  border-color: color-mix(in srgb, var(--mat-sys-error) 65%, var(--mat-sys-outline-variant));
+}
+
+.structured-result__status {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.3rem;
+  font: var(--mat-sys-label-large);
+  font-weight: 650;
+}
+
+.structured-result--correct .structured-result__status {
+  color: var(--mat-sys-primary);
+}
+
+.structured-result--wrong .structured-result__status {
+  color: var(--mat-sys-error);
+}
+
+.structured-result__correction {
+  display: inline-flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
 }
 
 .vote-ordering__move {

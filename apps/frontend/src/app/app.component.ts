@@ -144,7 +144,7 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('footerMoreTrigger') private footerMoreTrigger?: MatMenuTrigger;
   @ViewChild('footerMoreButton', { read: ElementRef })
   private footerMoreButton?: ElementRef<HTMLButtonElement>;
-  private footerMoreFocusGraceTimers: number[] = [];
+  private footerMoreFocusGraceTimer: number | null = null;
   /** Escape hat das Footer-Mehr-Menü geschlossen → Fokus muss auf den Auslöser. */
   private footerMoreClosedByEscape = false;
   private readonly footerMoreEscapeCapture = (event: KeyboardEvent): void => {
@@ -858,18 +858,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.clearFooterMoreFocusGraceTimers();
     const run = (): void => this.ensureFooterMoreFocusAfterEscape();
     queueMicrotask(run);
-    this.footerMoreFocusGraceTimers.push(
-      window.setTimeout(run, 0),
-      window.setTimeout(run, 50),
-      window.setTimeout(run, 150),
-    );
+    this.footerMoreFocusGraceTimer = window.setTimeout(run, 0);
   }
 
   private clearFooterMoreFocusGraceTimers(): void {
-    for (const id of this.footerMoreFocusGraceTimers) {
-      window.clearTimeout(id);
+    if (this.footerMoreFocusGraceTimer !== null) {
+      window.clearTimeout(this.footerMoreFocusGraceTimer);
+      this.footerMoreFocusGraceTimer = null;
     }
-    this.footerMoreFocusGraceTimers = [];
   }
 
   private ensureFooterMoreFocusAfterEscape(): void {
@@ -880,12 +876,18 @@ export class AppComponent implements OnInit, OnDestroy {
       document.querySelector<HTMLButtonElement>('button[data-footer-focus="footer-more"]');
     if (!more?.isConnected) return;
     if (document.activeElement === more) return;
-    // Dialog/Navigation nach Menüauswahl: nicht gegen konkurrierenden Fokus kämpfen.
     const active = document.activeElement;
-    if (
-      active instanceof Element &&
-      active.closest('.mat-mdc-dialog-panel, .app-status-help-dialog-panel')
-    ) {
+    // Nur einen im schließenden Overlay verlorenen Fokus reparieren. Sobald eine Person
+    // bereits ein anderes, verbundenes Ziel fokussiert hat, darf der Grace-Callback diesen
+    // Fokus nicht wieder zum Footer zurückholen.
+    const activeIsTransient =
+      active === null ||
+      active === document.body ||
+      active === document.documentElement ||
+      (active instanceof Element &&
+        (!active.isConnected ||
+          Boolean(active.closest('.mat-mdc-menu-panel, .mat-mdc-menu-content'))));
+    if (!activeIsTransient) {
       return;
     }
     try {

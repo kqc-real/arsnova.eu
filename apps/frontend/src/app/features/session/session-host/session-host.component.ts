@@ -156,6 +156,11 @@ import {
   type FoyerEntranceChip,
 } from './foyer-entrance-layer.component';
 import { buildFoyerChipLabel } from './foyer-chip-label.util';
+import {
+  PresenterDistributionMatrixComponent,
+  type DistributionMatrixAxisEntry,
+  type DistributionMatrixCell,
+} from '../../../shared/presenter-distribution-matrix/presenter-distribution-matrix.component';
 
 type NumericStatsDisplayItem = {
   id: string;
@@ -414,6 +419,7 @@ function musicTracksForPhase(
     AnswerOptionBadgeComponent,
     CdkTrapFocus,
     InfoLandingLinkComponent,
+    PresenterDistributionMatrixComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
@@ -513,9 +519,81 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   getHostCategorizationItemsForCategory(
     question: HostCurrentQuestionDTO | null | undefined,
     categoryId: string,
-  ): Array<{ text: string; correctCategoryId: string }> {
+  ): Array<{ id: string; text: string; correctCategoryId: string }> {
     return (question?.categorizationItems || []).filter(
       (item) => item.correctCategoryId === categoryId,
+    );
+  }
+
+  hostMatchingMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.matchingPairs ?? []).map((pair) => ({ id: pair.leftId, label: pair.left }));
+  }
+
+  hostMatchingMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.matchingPairs ?? []).map((pair) => ({ id: pair.rightId, label: pair.right }));
+  }
+
+  hostMatchingMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.matchingStats?.selectionCounts ?? []).map((entry) => ({
+      rowId: entry.leftId,
+      columnId: entry.rightId,
+      count: entry.count,
+    }));
+  }
+
+  hostMatchingCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.matchingPairs ?? []).map((pair) => [pair.leftId, pair.rightId]),
+    );
+  }
+
+  hostOrderingMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.orderingItems ?? []).map((item) => ({ id: item.id, label: item.text }));
+  }
+
+  hostOrderingMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.orderingItems ?? []).map((_, index) => ({
+      id: String(index),
+      label: $localize`:@@sessionHost.positionColumn:Position ${index + 1}:position:`,
+    }));
+  }
+
+  hostOrderingMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.orderingStats?.positionCounts ?? []).map((entry) => ({
+      rowId: entry.itemId,
+      columnId: String(entry.position),
+      count: entry.count,
+    }));
+  }
+
+  hostOrderingCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.orderingItems ?? []).map((item, index) => [item.id, String(index)]),
+    );
+  }
+
+  hostCategorizationMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.categorizationItems ?? []).map((item) => ({ id: item.id, label: item.text }));
+  }
+
+  hostCategorizationMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.categories ?? []).map((category) => ({
+      id: category.id,
+      label: category.name,
+    }));
+  }
+
+  hostCategorizationMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.categorizationStats?.itemCategoryCounts ?? []).map((entry) => ({
+      rowId: entry.itemId,
+      columnId: entry.categoryId,
+      count: entry.count,
+    }));
+  }
+
+  hostCategorizationCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.categorizationItems ?? []).map((item) => [item.id, item.correctCategoryId]),
     );
   }
 

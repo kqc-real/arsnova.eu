@@ -67,11 +67,11 @@ describe('DTO security (Story 2.4)', () => {
       order: 1,
       answers: [],
       categories: [{ id: 'cat1', name: 'Kategorie 1' }],
-      categorizationItems: [{ text: 'Element A' }],
+      categorizationItems: [{ id: 'item-1', text: 'Element A' }],
     };
 
     const parsed = QuestionStudentDTOSchema.parse(categorizationStudentPayload);
-    expect(parsed.categorizationItems?.[0]).toEqual({ text: 'Element A' });
+    expect(parsed.categorizationItems?.[0]).toEqual({ id: 'item-1', text: 'Element A' });
     expect(
       Object.prototype.hasOwnProperty.call(
         parsed.categorizationItems?.[0] ?? {},
@@ -89,13 +89,13 @@ describe('DTO security (Story 2.4)', () => {
       difficulty: 'MEDIUM' as const,
       order: 1,
       answers: [],
-      matchingLeftOptions: ['HTTP 200'],
-      matchingRightOptions: ['OK'],
+      matchingLeftOptions: [{ id: 'status-200', text: 'HTTP 200' }],
+      matchingRightOptions: [{ id: 'meaning-ok', text: 'OK' }],
     };
 
     const parsed = QuestionStudentDTOSchema.parse(matchingStudentPayload);
-    expect(parsed.matchingLeftOptions).toEqual(['HTTP 200']);
-    expect(parsed.matchingRightOptions).toEqual(['OK']);
+    expect(parsed.matchingLeftOptions).toEqual([{ id: 'status-200', text: 'HTTP 200' }]);
+    expect(parsed.matchingRightOptions).toEqual([{ id: 'meaning-ok', text: 'OK' }]);
     expect((parsed as Record<string, unknown>)['matchingPairs']).toBeUndefined();
   });
 });
