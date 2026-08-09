@@ -116,9 +116,21 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsFr().nextStepsReinforceLowConfidenceTemplate).toContain(
       'faible degré de confiance',
     );
+    expect(getSessionResultsReportLabelsFr().questionTypeOrdering).toBe(
+      'Question de mise en ordre',
+    );
     expect(getSessionResultsReportLabelsEs().tocActionPlan).toBe('Plan para la puesta en común');
+    expect(getSessionResultsReportLabelsEs().participantCount).toBe('Participantes');
+    expect(getSessionResultsReportLabelsEs().questionParticipants).toBe('Participantes');
+    expect(getSessionResultsReportLabelsEs().aggregationRound1).toBe('Ronda 1');
     expect(getSessionResultsReportLabelsIt().tocActionPlan).toBe(
       'Piano per la discussione dei risultati',
+    );
+    expect(getSessionResultsReportLabelsIt().participantCount).toBe('Partecipanti');
+    expect(getSessionResultsReportLabelsIt().questionParticipants).toBe('Partecipanti');
+    expect(getSessionResultsReportLabelsIt().aggregationRound1).toBe('Turno 1');
+    expect(getSessionResultsReportLabelsIt().confidenceDisabledForQuestion).toBe(
+      'L’autovalutazione del grado di sicurezza era disattivata per questa domanda.',
     );
     expect(getSessionResultsReportLabelsIt().confidenceFragile).toBe(
       'Conoscenze non ancora consolidate',

@@ -3080,7 +3080,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionTypeOrdering" datatype="html">
         <source>Reihenfolgefrage</source>
-        <target>Question de séquence</target>
+        <target>Question de mise en ordre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">315</context>

@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { format } from 'prettier';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
@@ -823,7 +824,7 @@ _Assign each item to one of the three literary movements._
     ],
   },
   fr: {
-    name: 'Showcase pédagogique : démo en équipe',
+    name: 'Démonstration pédagogique : quiz en équipe',
     teamNames: ['Équipe 🍎', 'Équipe 🍐'],
     confidenceLabelLow: 'Très incertain·e',
     confidenceLabelHigh: 'Très sûr·e',
@@ -832,9 +833,9 @@ _Assign each item to one of the three literary movements._
 
 Réponds en **un mot**. Les réponses seront affichées sous forme de nuage de mots.
     `,
-    description: md`![Showcase pédagogique](${PI_IMAGE_URL})
+    description: md`![Démonstration pédagogique](${PI_IMAGE_URL})
 
-# Showcase pédagogique
+# Démonstration pédagogique
 
 Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.
 
@@ -1079,7 +1080,7 @@ _Associe chaque élément à l’un des trois mouvements littéraires._
     ],
   },
   es: {
-    name: 'Showcase docente: demo por equipos',
+    name: 'Demostración didáctica: cuestionario por equipos',
     teamNames: ['Equipo 🍎', 'Equipo 🍐'],
     confidenceLabelLow: 'Muy inseguro/a',
     confidenceLabelHigh: 'Muy seguro/a',
@@ -1088,9 +1089,9 @@ _Associe chaque élément à l’un des trois mouvements littéraires._
 
 Responde con **una palabra**. Las respuestas se mostrarán como una nube de palabras.
     `,
-    description: md`![Showcase docente](${PI_IMAGE_URL})
+    description: md`![Demostración didáctica](${PI_IMAGE_URL})
 
-# Showcase docente
+# Demostración didáctica
 
 Estas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
 
@@ -1335,7 +1336,7 @@ _Asigna cada elemento a uno de los tres movimientos literarios._
     ],
   },
   it: {
-    name: 'Showcase didattico: demo a squadre',
+    name: 'Dimostrazione didattica: quiz a squadre',
     teamNames: ['Squadra 🍎', 'Squadra 🍐'],
     confidenceLabelLow: 'Per niente sicuro/a',
     confidenceLabelHigh: 'Molto sicuro/a',
@@ -1344,9 +1345,9 @@ _Asigna cada elemento a uno de los tres movimientos literarios._
 
 Rispondi con **una sola parola**. Le risposte saranno visualizzate sotto forma di nuvola di parole.
     `,
-    description: md`![Showcase didattico](${PI_IMAGE_URL})
+    description: md`![Dimostrazione didattica](${PI_IMAGE_URL})
 
-# Showcase didattico
+# Dimostrazione didattica
 
 Queste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
 
@@ -1594,7 +1595,8 @@ _Assegna ciascun elemento a uno dei tre movimenti letterari._
 
 for (const [locale, data] of Object.entries(LOCALES)) {
   const outPath = path.join(demoDir, `quiz-demo-showcase.${locale}.json`);
-  fs.writeFileSync(outPath, `${JSON.stringify(buildPayload(data), null, 2)}\n`, 'utf8');
+  const json = await format(JSON.stringify(buildPayload(data)), { filepath: outPath });
+  fs.writeFileSync(outPath, json, 'utf8');
 }
 
 console.log('Wrote quiz-demo-showcase.{de,en,fr,es,it}.json');

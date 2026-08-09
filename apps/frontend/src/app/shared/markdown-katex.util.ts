@@ -71,8 +71,8 @@ export function normalizeEmphasisWhitespace(raw: string): string {
         return part;
       }
       return part
-        .replace(/\*\*([^\s*\n](?:[^\n*]*?[^\s*\n])?)\s+\*\*/g, '**$1** ')
-        .replace(/__([^\s_\n](?:[^\n_]*?[^\s_\n])?)\s+__/g, '__$1__ ');
+        .replace(/(^|[\s([{>])\*\*([^\s*\n](?:[^\n*]*?[^\s*\n])?)\s+\*\*/gm, '$1**$2** ')
+        .replace(/(^|[\s([{>])__([^\s_\n](?:[^\n_]*?[^\s_\n])?)\s+__/gm, '$1__$2__ ');
     })
     .join('');
 }

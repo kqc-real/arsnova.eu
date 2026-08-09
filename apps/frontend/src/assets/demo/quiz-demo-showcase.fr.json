@@ -2,8 +2,8 @@
   "exportVersion": 29,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Showcase pédagogique : démo en équipe",
-    "description": "![Showcase pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres en un mot et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
+    "name": "Démonstration pédagogique : quiz en équipe",
+    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres en un mot et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -30,22 +30,10 @@
         "difficulty": "EASY",
         "order": 0,
         "answers": [
-          {
-            "text": ":smile: Prêt·e à s’y mettre",
-            "isCorrect": false
-          },
-          {
-            "text": ":cry: Un peu dépassé·e",
-            "isCorrect": false
-          },
-          {
-            "text": ":rage: Frustré·e",
-            "isCorrect": false
-          },
-          {
-            "text": ":neutral_face: Ça va",
-            "isCorrect": false
-          }
+          { "text": ":smile: Prêt·e à s’y mettre", "isCorrect": false },
+          { "text": ":cry: Un peu dépassé·e", "isCorrect": false },
+          { "text": ":rage: Frustré·e", "isCorrect": false },
+          { "text": ":neutral_face: Ça va", "isCorrect": false }
         ]
       },
       {
@@ -87,14 +75,8 @@
         "difficulty": "EASY",
         "order": 3,
         "answers": [
-          {
-            "text": "Image générée par IA",
-            "isCorrect": false
-          },
-          {
-            "text": "Photo réelle",
-            "isCorrect": true
-          }
+          { "text": "Image générée par IA", "isCorrect": false },
+          { "text": "Photo réelle", "isCorrect": true }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Très incertain·e",
@@ -136,22 +118,10 @@
         "difficulty": "HARD",
         "order": 5,
         "answers": [
-          {
-            "text": "28",
-            "isCorrect": false
-          },
-          {
-            "text": "26",
-            "isCorrect": true
-          },
-          {
-            "text": "24",
-            "isCorrect": false
-          },
-          {
-            "text": "22",
-            "isCorrect": false
-          }
+          { "text": "28", "isCorrect": false },
+          { "text": "26", "isCorrect": true },
+          { "text": "24", "isCorrect": false },
+          { "text": "22", "isCorrect": false }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Très incertain·e",
@@ -164,22 +134,10 @@
         "difficulty": "MEDIUM",
         "order": 6,
         "answers": [
-          {
-            "text": "Groovy",
-            "isCorrect": false
-          },
-          {
-            "text": "Python",
-            "isCorrect": false
-          },
-          {
-            "text": "Processing",
-            "isCorrect": true
-          },
-          {
-            "text": "Scala",
-            "isCorrect": false
-          }
+          { "text": "Groovy", "isCorrect": false },
+          { "text": "Python", "isCorrect": false },
+          { "text": "Processing", "isCorrect": true },
+          { "text": "Scala", "isCorrect": false }
         ]
       },
       {
@@ -189,22 +147,10 @@
         "difficulty": "HARD",
         "order": 7,
         "answers": [
-          {
-            "text": "Peer Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "Peer-Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "méthode Mazur",
-            "isCorrect": true
-          },
-          {
-            "text": "méthode de Mazur",
-            "isCorrect": true
-          }
+          { "text": "Peer Instruction", "isCorrect": true },
+          { "text": "Peer-Instruction", "isCorrect": true },
+          { "text": "méthode Mazur", "isCorrect": true },
+          { "text": "méthode de Mazur", "isCorrect": true }
         ],
         "shortTextMaxLength": 32,
         "shortTextCaseSensitive": false,
@@ -336,14 +282,8 @@
             "id": "cat_aufklaerung",
             "name": "Lumières / Aufklärung (v. 1720–1785)"
           },
-          {
-            "id": "cat_sturm",
-            "name": "Sturm und Drang (v. 1765–1785)"
-          },
-          {
-            "id": "cat_romantik",
-            "name": "Romantisme (v. 1795–1835)"
-          }
+          { "id": "cat_sturm", "name": "Sturm und Drang (v. 1765–1785)" },
+          { "id": "cat_romantik", "name": "Romantisme (v. 1795–1835)" }
         ],
         "categorizationItems": [
           {

@@ -30,22 +30,10 @@
         "difficulty": "EASY",
         "order": 0,
         "answers": [
-          {
-            "text": ":smile: Bereit loszulegen",
-            "isCorrect": false
-          },
-          {
-            "text": ":cry: Gerade etwas überfordert",
-            "isCorrect": false
-          },
-          {
-            "text": ":rage: Genervt",
-            "isCorrect": false
-          },
-          {
-            "text": ":neutral_face: Ganz okay",
-            "isCorrect": false
-          }
+          { "text": ":smile: Bereit loszulegen", "isCorrect": false },
+          { "text": ":cry: Gerade etwas überfordert", "isCorrect": false },
+          { "text": ":rage: Genervt", "isCorrect": false },
+          { "text": ":neutral_face: Ganz okay", "isCorrect": false }
         ]
       },
       {
@@ -87,14 +75,8 @@
         "difficulty": "EASY",
         "order": 3,
         "answers": [
-          {
-            "text": "KI-generiertes Bild",
-            "isCorrect": false
-          },
-          {
-            "text": "Echtes Foto",
-            "isCorrect": true
-          }
+          { "text": "KI-generiertes Bild", "isCorrect": false },
+          { "text": "Echtes Foto", "isCorrect": true }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Sehr unsicher",
@@ -136,22 +118,10 @@
         "difficulty": "HARD",
         "order": 5,
         "answers": [
-          {
-            "text": "28",
-            "isCorrect": false
-          },
-          {
-            "text": "26",
-            "isCorrect": true
-          },
-          {
-            "text": "24",
-            "isCorrect": false
-          },
-          {
-            "text": "22",
-            "isCorrect": false
-          }
+          { "text": "28", "isCorrect": false },
+          { "text": "26", "isCorrect": true },
+          { "text": "24", "isCorrect": false },
+          { "text": "22", "isCorrect": false }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Sehr unsicher",
@@ -164,22 +134,10 @@
         "difficulty": "MEDIUM",
         "order": 6,
         "answers": [
-          {
-            "text": "Groovy",
-            "isCorrect": false
-          },
-          {
-            "text": "Python",
-            "isCorrect": false
-          },
-          {
-            "text": "Processing",
-            "isCorrect": true
-          },
-          {
-            "text": "Scala",
-            "isCorrect": false
-          }
+          { "text": "Groovy", "isCorrect": false },
+          { "text": "Python", "isCorrect": false },
+          { "text": "Processing", "isCorrect": true },
+          { "text": "Scala", "isCorrect": false }
         ]
       },
       {
@@ -189,22 +147,10 @@
         "difficulty": "HARD",
         "order": 7,
         "answers": [
-          {
-            "text": "Peer Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "Peer-Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "Mazur-Methode",
-            "isCorrect": true
-          },
-          {
-            "text": "Mazur Methode",
-            "isCorrect": true
-          }
+          { "text": "Peer Instruction", "isCorrect": true },
+          { "text": "Peer-Instruction", "isCorrect": true },
+          { "text": "Mazur-Methode", "isCorrect": true },
+          { "text": "Mazur Methode", "isCorrect": true }
         ],
         "shortTextMaxLength": 32,
         "shortTextCaseSensitive": false,
@@ -332,18 +278,9 @@
         "order": 11,
         "answers": [],
         "categories": [
-          {
-            "id": "cat_aufklaerung",
-            "name": "Aufklärung (ca. 1720–1785)"
-          },
-          {
-            "id": "cat_sturm",
-            "name": "Sturm und Drang (ca. 1765–1785)"
-          },
-          {
-            "id": "cat_romantik",
-            "name": "Romantik (ca. 1795–1835)"
-          }
+          { "id": "cat_aufklaerung", "name": "Aufklärung (ca. 1720–1785)" },
+          { "id": "cat_sturm", "name": "Sturm und Drang (ca. 1765–1785)" },
+          { "id": "cat_romantik", "name": "Romantik (ca. 1795–1835)" }
         ],
         "categorizationItems": [
           {

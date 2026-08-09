@@ -43,11 +43,11 @@ PDF_PROFILE=pdfua DEMO_PDF_LOCALES=de,en,fr,es,it \
 
 | Locale | Datei                                  | Seiten | veraPDF PDF/UA-1 |
 | ------ | -------------------------------------- | ------ | ---------------- |
-| de     | `demo-session-results-30.de-pdfua.pdf` | 25     | PASS             |
-| en     | `demo-session-results-30.en-pdfua.pdf` | 24     | PASS             |
-| fr     | `demo-session-results-30.fr-pdfua.pdf` | 25     | PASS             |
-| es     | `demo-session-results-30.es-pdfua.pdf` | 24     | PASS             |
-| it     | `demo-session-results-30.it-pdfua.pdf` | 24     | PASS             |
+| de     | `demo-session-results-30.de-pdfua.pdf` | 22     | PASS             |
+| en     | `demo-session-results-30.en-pdfua.pdf` | 22     | PASS             |
+| fr     | `demo-session-results-30.fr-pdfua.pdf` | 22     | PASS             |
+| es     | `demo-session-results-30.es-pdfua.pdf` | 22     | PASS             |
+| it     | `demo-session-results-30.it-pdfua.pdf` | 22     | PASS             |
 
 Zusätzlicher Poppler-Nachweis für alle fünf Dateien:
 

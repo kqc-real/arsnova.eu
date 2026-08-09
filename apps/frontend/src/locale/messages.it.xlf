@@ -620,7 +620,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.participantCount" datatype="html">
         <source>Teilnehmende</source>
-        <target>Partecipante</target>
+        <target>Partecipanti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">12</context>
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceDisabledForQuestion" datatype="html">
         <source>Selbsteinschätzung von dir in diesem Quiz deaktiviert.</source>
-        <target>Autovalutazione disattivata da te in questo quiz.</target>
+        <target>L’autovalutazione del grado di sicurezza era disattivata per questa domanda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">50</context>
@@ -1124,7 +1124,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipants" datatype="html">
         <source>Teilnehmende</source>
-        <target>Partecipante</target>
+        <target>Partecipanti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">75</context>
@@ -1380,7 +1380,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.aggregationRound1" datatype="html">
         <source>Runde 1</source>
-        <target>1</target>
+        <target>Turno 1</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">107</context>
@@ -1388,7 +1388,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.aggregationRound2" datatype="html">
         <source>Runde 2 (Peer Instruction)</source>
-        <target>2 (Istruzione tra pari)</target>
+        <target>Turno 2 (Istruzione tra pari)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">108</context>
@@ -2096,7 +2096,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.coverSummaryParticipants" datatype="html">
         <source>Teilnehmende</source>
-        <target>Partecipante</target>
+        <target>Partecipanti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">192</context>

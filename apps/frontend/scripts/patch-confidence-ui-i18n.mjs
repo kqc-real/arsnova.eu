@@ -406,7 +406,7 @@ const REPORT_TARGETS = {
     'sessionReport.confidenceNotSupportedForQuestion':
       'L’autovalutazione non è offerta per il tipo di domanda «{0}».',
     'sessionReport.confidenceDisabledForQuestion':
-      'L’autovalutazione era disattivata per questa domanda in questo quiz.',
+      'L’autovalutazione del grado di sicurezza era disattivata per questa domanda.',
     'sessionReport.confidenceTopSignal': '⚠ Spunto per il debriefing',
     'sessionReport.confidenceTopSignalTemplate':
       '{1} partecipanti hanno scelto «{0}» in modo errato e con alta sicurezza.',

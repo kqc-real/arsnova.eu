@@ -444,6 +444,27 @@ describe('getDemoQuizSeedFingerprint', () => {
     expect(deDescription).toContain('Antwortsicherheit');
   });
 
+  it('verwendet idiomatische Demo-Titel statt „Showcase“ in FR, ES und IT', () => {
+    const expected = {
+      fr: 'Démonstration pédagogique',
+      es: 'Demostración didáctica',
+      it: 'Dimostrazione didattica',
+    } as const;
+
+    for (const [locale, title] of Object.entries(expected) as Array<
+      [keyof typeof expected, string]
+    >) {
+      const quiz = (
+        getDemoQuizPayload(locale) as {
+          quiz?: { name?: string; description?: string };
+        }
+      ).quiz;
+      expect(quiz?.name).toContain(title);
+      expect(quiz?.description).toContain(`# ${title}`);
+      expect(`${quiz?.name ?? ''}\n${quiz?.description ?? ''}`).not.toMatch(/showcase/i);
+    }
+  });
+
   it('enthält keine Schallgeschwindigkeits-Frage mehr', () => {
     for (const locale of ['de', 'en', 'es', 'fr', 'it'] as const) {
       const payload = getDemoQuizPayload(locale) as {

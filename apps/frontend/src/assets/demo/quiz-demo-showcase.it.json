@@ -2,8 +2,8 @@
   "exportVersion": 29,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Showcase didattico: demo a squadre",
-    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQueste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte di una sola parola e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
+    "name": "Dimostrazione didattica: quiz a squadre",
+    "description": "![Dimostrazione didattica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Dimostrazione didattica\n\nQueste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte di una sola parola e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -30,22 +30,10 @@
         "difficulty": "EASY",
         "order": 0,
         "answers": [
-          {
-            "text": ":smile: Pronto/a a partire",
-            "isCorrect": false
-          },
-          {
-            "text": ":cry: Un po’ sopraffatto/a",
-            "isCorrect": false
-          },
-          {
-            "text": ":rage: Frustrato/a",
-            "isCorrect": false
-          },
-          {
-            "text": ":neutral_face: Tutto sommato bene",
-            "isCorrect": false
-          }
+          { "text": ":smile: Pronto/a a partire", "isCorrect": false },
+          { "text": ":cry: Un po’ sopraffatto/a", "isCorrect": false },
+          { "text": ":rage: Frustrato/a", "isCorrect": false },
+          { "text": ":neutral_face: Tutto sommato bene", "isCorrect": false }
         ]
       },
       {
@@ -87,14 +75,8 @@
         "difficulty": "EASY",
         "order": 3,
         "answers": [
-          {
-            "text": "Immagine generata dall’IA",
-            "isCorrect": false
-          },
-          {
-            "text": "Foto reale",
-            "isCorrect": true
-          }
+          { "text": "Immagine generata dall’IA", "isCorrect": false },
+          { "text": "Foto reale", "isCorrect": true }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Per niente sicuro/a",
@@ -136,22 +118,10 @@
         "difficulty": "HARD",
         "order": 5,
         "answers": [
-          {
-            "text": "28",
-            "isCorrect": false
-          },
-          {
-            "text": "26",
-            "isCorrect": true
-          },
-          {
-            "text": "24",
-            "isCorrect": false
-          },
-          {
-            "text": "22",
-            "isCorrect": false
-          }
+          { "text": "28", "isCorrect": false },
+          { "text": "26", "isCorrect": true },
+          { "text": "24", "isCorrect": false },
+          { "text": "22", "isCorrect": false }
         ],
         "confidenceEnabled": true,
         "confidenceLabelLow": "Per niente sicuro/a",
@@ -164,22 +134,10 @@
         "difficulty": "MEDIUM",
         "order": 6,
         "answers": [
-          {
-            "text": "Groovy",
-            "isCorrect": false
-          },
-          {
-            "text": "Python",
-            "isCorrect": false
-          },
-          {
-            "text": "Processing",
-            "isCorrect": true
-          },
-          {
-            "text": "Scala",
-            "isCorrect": false
-          }
+          { "text": "Groovy", "isCorrect": false },
+          { "text": "Python", "isCorrect": false },
+          { "text": "Processing", "isCorrect": true },
+          { "text": "Scala", "isCorrect": false }
         ]
       },
       {
@@ -189,22 +147,10 @@
         "difficulty": "HARD",
         "order": 7,
         "answers": [
-          {
-            "text": "Peer Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "istruzione tra pari",
-            "isCorrect": true
-          },
-          {
-            "text": "metodo Mazur",
-            "isCorrect": true
-          },
-          {
-            "text": "metodo di Mazur",
-            "isCorrect": true
-          }
+          { "text": "Peer Instruction", "isCorrect": true },
+          { "text": "istruzione tra pari", "isCorrect": true },
+          { "text": "metodo Mazur", "isCorrect": true },
+          { "text": "metodo di Mazur", "isCorrect": true }
         ],
         "shortTextMaxLength": 32,
         "shortTextCaseSensitive": false,
@@ -336,14 +282,8 @@
             "id": "cat_aufklaerung",
             "name": "Illuminismo / Aufklärung (c. 1720–1785)"
           },
-          {
-            "id": "cat_sturm",
-            "name": "Sturm und Drang (c. 1765–1785)"
-          },
-          {
-            "id": "cat_romantik",
-            "name": "Romanticismo (c. 1795–1835)"
-          }
+          { "id": "cat_sturm", "name": "Sturm und Drang (c. 1765–1785)" },
+          { "id": "cat_romantik", "name": "Romanticismo (c. 1795–1835)" }
         ],
         "categorizationItems": [
           {

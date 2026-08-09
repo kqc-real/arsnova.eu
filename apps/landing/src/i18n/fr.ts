@@ -329,7 +329,7 @@ const fr: Messages = {
         id: 'ordering',
         title: 'Ordonner',
         description:
-          'Remettre dans le bon ordre des étapes, des événements ou les phases d’un processus. Les résultats montrent les positions qui ont suscité des hésitations.',
+          'Remettre dans le bon ordre des étapes, des événements ou des phases d’un processus. Les résultats montrent les positions qui ont suscité des hésitations.',
         interaction:
           'Tous les éléments forment une suite linéaire complète grâce aux commandes de déplacement visibles et au clavier, sans glisser-déposer obligatoire.',
         example: 'Ordonner les étapes d’un processus biologique.',

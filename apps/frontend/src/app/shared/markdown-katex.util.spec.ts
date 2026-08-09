@@ -22,6 +22,18 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('<strong>Freue</strong>');
   });
 
+  it('verwechselt benachbarte, durch Satzzeichen getrennte Hervorhebungen nicht', () => {
+    const source =
+      'Du kannst **Schritte sortieren**, **Begriffe zuordnen**, **Beispiele kategorisieren** und Ergebnisse besprechen.';
+
+    expect(normalizeEmphasisWhitespace(source)).toBe(source);
+
+    const result = renderMarkdownWithKatex(source);
+    expect(result.html.match(/<strong>/g)).toHaveLength(3);
+    expect(result.html).toContain('<strong>Begriffe zuordnen</strong>');
+    expect(result.html).not.toContain('**');
+  });
+
   it('belässt wörtlichen Code in Inline-Spans und Codeblöcken unverändert', () => {
     const codeSpan = 'Code `**foo **` bleibt wörtlich';
     expect(normalizeEmphasisWhitespace(codeSpan)).toBe('Code `**foo **` bleibt wörtlich');
