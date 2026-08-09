@@ -1288,6 +1288,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   >([]);
   readonly categoriesState = signal<Array<{ id: string; name: string }>>([]);
   readonly orderingAnnouncement = signal('');
+  readonly matchingAnnouncement = signal('');
 
   readonly isConfidenceEnabled = computed(() => {
     const q = this.currentQuestion();
@@ -4339,20 +4340,40 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   setMatchingSelection(leftId: string, rightId: string): void {
-    const selections = this.matchingSelectionsState().map((s) =>
-      s.leftId === leftId ? { ...s, rightId } : s,
+    const currentSelections = this.matchingSelectionsState();
+    const currentSelection = currentSelections.find((selection) => selection.leftId === leftId);
+    const conflictingSelection = currentSelections.find(
+      (selection) => selection.leftId !== leftId && selection.rightId === rightId,
     );
+    const selections = currentSelections.map((selection) => {
+      if (selection.leftId === leftId) {
+        return { ...selection, rightId };
+      }
+      if (conflictingSelection && selection.leftId === conflictingSelection.leftId) {
+        return { ...selection, rightId: currentSelection?.rightId ?? '' };
+      }
+      return selection;
+    });
     this.matchingSelectionsState.set(selections);
+    if (currentSelection?.rightId && conflictingSelection) {
+      this.matchingAnnouncement.set(
+        $localize`:@@sessionVote.matchingSwappedAnnouncement:Die Zuordnungen für „${currentSelection.leftText}:firstItem:“ und „${conflictingSelection.leftText}:secondItem:“ wurden getauscht.`,
+      );
+    } else {
+      this.matchingAnnouncement.set('');
+    }
     this.voteError.set(null);
     this.storeStructuredVoteDraft();
   }
 
   getMatchingRightOptionsForLeft(leftId: string): Array<{ id: string; text: string }> {
-    const current = this.matchingSelectionsState().find(
-      (selection) => selection.leftId === leftId,
-    )?.rightId;
+    const selections = this.matchingSelectionsState();
+    if (selections.length > 0 && selections.every((selection) => Boolean(selection.rightId))) {
+      return this.matchingRightOptionsState();
+    }
+    const current = selections.find((selection) => selection.leftId === leftId)?.rightId;
     const usedByOthers = new Set(
-      this.matchingSelectionsState()
+      selections
         .filter((selection) => selection.leftId !== leftId && selection.rightId)
         .map((selection) => selection.rightId),
     );
@@ -4513,6 +4534,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.orderingSequenceState.set([]);
       this.matchingSelectionsState.set([]);
       this.matchingRightOptionsState.set([]);
+      this.matchingAnnouncement.set('');
       this.categorizationSelectionsState.set([]);
       this.categoriesState.set([]);
       return;
@@ -4551,9 +4573,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.matchingSelectionsState.set(
         lefts.map((left) => ({ leftId: left.id, leftText: left.text, rightId: '' })),
       );
+      this.matchingAnnouncement.set('');
     } else {
       this.matchingRightOptionsState.set([]);
       this.matchingSelectionsState.set([]);
+      this.matchingAnnouncement.set('');
     }
 
     if (question.type === 'CATEGORIZATION') {

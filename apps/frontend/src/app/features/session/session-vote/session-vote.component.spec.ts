@@ -5019,7 +5019,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('sendet Matching ausschließlich über stabile IDs und sperrt bereits verwendete Ziele', async () => {
+  it('sendet Matching über stabile IDs und tauscht vollständig belegte Zuordnungen', async () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
     component.status.set('ACTIVE');
@@ -5054,7 +5054,16 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(component.getMatchingRightOptionsForLeft('left-a').map((option) => option.id)).toEqual([
       'right-1',
+      'right-2',
     ]);
+
+    component.setMatchingSelection('left-a', 'right-2');
+
+    expect(component.matchingSelectionsState()).toEqual([
+      { leftId: 'left-a', leftText: 'Gleicher Text', rightId: 'right-2' },
+      { leftId: 'left-b', leftText: 'Gleicher Text', rightId: 'right-1' },
+    ]);
+    expect(component.matchingAnnouncement()).toContain('wurden getauscht');
 
     await component.submitVote();
 
@@ -5062,8 +5071,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       expect.objectContaining({
         questionId: 'matching-structured-question',
         matchingSelections: [
-          { leftId: 'left-a', rightId: 'right-1' },
-          { leftId: 'left-b', rightId: 'right-2' },
+          { leftId: 'left-a', rightId: 'right-2' },
+          { leftId: 'left-b', rightId: 'right-1' },
         ],
       }),
     );

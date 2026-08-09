@@ -1569,6 +1569,9 @@
                 <p class="vote-matching__progress" aria-live="polite">
                   {{ matchingProgressLabel() }}
                 </p>
+                <p class="sr-only" aria-live="polite" aria-atomic="true">
+                  {{ matchingAnnouncement() }}
+                </p>
               </div>
               <div class="vote-matching__list">
                 @for (sel of matchingSelectionsState(); track sel.leftId) {
