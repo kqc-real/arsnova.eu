@@ -48,4 +48,19 @@ describe('buildMotdArchiveItemDisplay', () => {
     });
     expect(r.title).toBe('FB');
   });
+
+  it('rendert das führende Feature-Emoji im wiederholten Titel dekorativ', () => {
+    const it: MotdArchiveItemDTO = {
+      id: 'feature',
+      markdown: '# 🧩 Neu: Zuordnen. Sortieren. Kategorisieren.\n\nText.',
+      startsAt: '2026-08-09T00:00:00.000Z',
+      endsAt: '2027-03-31T23:59:59.999Z',
+    };
+    const r = buildMotdArchiveItemDisplay(it, mockSanitizer, 'Fallback', {
+      repeatTitleInMarkdownBody: true,
+    });
+
+    expect(r.title).toBe('🧩 Neu: Zuordnen. Sortieren. Kategorisieren.');
+    expect(String(r.html)).toContain('<span aria-hidden="true">🧩</span>');
+  });
 });

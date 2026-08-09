@@ -12,6 +12,9 @@ const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, lo
         groupBy: vi.fn(),
         update: vi.fn(),
       },
+      vote: {
+        findMany: vi.fn(),
+      },
       $executeRaw: vi.fn(),
       $transaction: vi.fn(),
     },
@@ -72,6 +75,7 @@ describe('session.nextQuestion (Story 2.3)', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.vote.findMany.mockResolvedValue([]);
   });
 
   trpcDodIt(
@@ -582,6 +586,7 @@ describe('session.prevQuestion', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.vote.findMany.mockResolvedValue([]);
   });
 
   trpcDodIt(
@@ -658,6 +663,7 @@ describe('session peer-instruction steering gates', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.vote.findMany.mockResolvedValue([]);
   });
 
   it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
@@ -699,6 +705,11 @@ describe('session peer-instruction steering gates', () => {
         fn(prismaMock),
       );
       prismaMock.participant.groupBy.mockResolvedValue([]);
+      prismaMock.vote.findMany.mockResolvedValue([
+        { isCorrect: true },
+        { isCorrect: false },
+        { isCorrect: false },
+      ]);
 
       await expect(caller.startDiscussion({ code: CODE })).resolves.toMatchObject({
         status: 'DISCUSSION',
@@ -708,6 +719,45 @@ describe('session peer-instruction steering gates', () => {
         status: 'ACTIVE',
         currentRound: 2,
       });
+    },
+  );
+
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'lehnt die Diskussionsphase für %s bei 100 % vollständig richtigen Antworten ab',
+    async (type) => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({
+          id: SESSION_ID,
+          status: 'ACTIVE',
+          currentQuestion: 0,
+          currentRound: 1,
+          activeQuestionStartedAt: new Date('2026-08-09T10:00:00.000Z'),
+          quiz: {
+            defaultTimer: null,
+            timerScaleByDifficulty: true,
+            questions: [
+              {
+                id: '33333333-3333-4333-8333-333333333333',
+                type,
+                timer: null,
+                difficulty: 'MEDIUM',
+              },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({ status: 'ACTIVE', currentRound: 1 });
+      prismaMock.vote.findMany.mockResolvedValue([{ isCorrect: true }]);
+      prismaMock.$executeRaw.mockResolvedValue(1);
+      prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+        fn(prismaMock),
+      );
+
+      await expect(caller.startDiscussion({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message:
+          'Diskussionsphase nur bei einem Anteil vollständig korrekter Antworten zwischen einem Drittel und zwei Dritteln.',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
     },
   );
 

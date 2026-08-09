@@ -62,6 +62,18 @@ async function dismissOptionalOverlay(page, waitForMotd = false) {
   }
 }
 
+async function dismissOptionalInstallSnackbar(page) {
+  const closeButton = page.locator('.app-install-snackbar__close').first();
+  const visible = await closeButton
+    .waitFor({ state: 'visible', timeout: 750 })
+    .then(() => true)
+    .catch(() => false);
+  if (visible) {
+    await closeButton.click();
+    await page.locator('.app-install-snackbar').waitFor({ state: 'hidden', timeout: 2_000 });
+  }
+}
+
 async function inspectTargetSizes(page) {
   return page.evaluate((minimum) => {
     const selectors = [
@@ -153,8 +165,21 @@ async function inspectKeyboardFocus(page) {
         };
       }
 
-      const centerX = rect.left + Math.min(rect.width, 24) / 2;
-      const centerY = rect.top + Math.min(rect.height, 24) / 2;
+      // Mehrzeilige Inline-Links haben ein umschließendes Bounding-Rect mit leeren Flächen,
+      // in denen ein vorangestelltes Geschwister liegen kann. Für den Hit-Test ein reales
+      // sichtbares Zeilenfragment verwenden, sonst entstehen falsche „Fokus verdeckt“-Befunde.
+      const hitRect =
+        Array.from(active.getClientRects()).find(
+          (fragment) =>
+            fragment.width > 0 &&
+            fragment.height > 0 &&
+            fragment.bottom > 0 &&
+            fragment.right > 0 &&
+            fragment.top < window.innerHeight &&
+            fragment.left < window.innerWidth,
+        ) ?? rect;
+      const centerX = hitRect.left + Math.min(hitRect.width, 24) / 2;
+      const centerY = hitRect.top + Math.min(hitRect.height, 24) / 2;
       const topEl = document.elementFromPoint(centerX, centerY);
       const interactiveSurface = active.closest(
         'mat-form-field, .mat-mdc-form-field, mat-button-toggle, .mat-mdc-button-base',
@@ -480,6 +505,73 @@ async function inspectMobileJoinEntry(page) {
     );
 }
 
+const STRUCTURED_QUESTION_MOTD = {
+  de: {
+    title: 'Neu: Zuordnen. Sortieren. Kategorisieren.',
+    cta: 'Erstelle eine Frage und probiere es jetzt aus!',
+  },
+  en: {
+    title: 'New: Match. Order. Categorize.',
+    cta: 'Create a question and try it now!',
+  },
+  fr: {
+    title: 'Nouveau : associer, ordonner, classer.',
+    cta: 'Crée une question et essaie-les dès maintenant !',
+  },
+  es: {
+    title: 'Novedad: relaciona, ordena y clasifica.',
+    cta: '¡Crea una pregunta y pruébalos ahora!',
+  },
+  it: {
+    title: 'Novità: abbina, ordina, classifica.',
+    cta: 'Crea una domanda e provali subito!',
+  },
+};
+
+async function inspectStructuredQuestionMotd(page, locale) {
+  const issues = [];
+  const copy = STRUCTURED_QUESTION_MOTD[locale];
+  const entry = page.locator('#motd-archive-c0444444-c444-4c44-8c44-c04444444444');
+  const present = await entry
+    .waitFor({ state: 'visible', timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!present) {
+    return [`Neue Fragetyp-MOTD fehlt im ${locale}-Archiv`];
+  }
+
+  if ((await entry.getByRole('link', { name: copy.title, exact: true }).count()) !== 1) {
+    issues.push(`MOTD-Titel oder dekorative Emoji-Semantik ist für ${locale} falsch`);
+  }
+  if ((await entry.getByText(copy.cta, { exact: true }).count()) !== 1) {
+    issues.push(`MOTD-CTA fehlt für ${locale}`);
+  }
+
+  const layout = await entry.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const cta = element.querySelector('strong:last-child') ?? element.querySelector('strong');
+    const ctaRect = cta?.getBoundingClientRect();
+    const ctaStyle = cta ? getComputedStyle(cta) : null;
+    return {
+      entryWithinViewport: rect.left >= -1 && rect.right <= window.innerWidth + 1,
+      entryHasNoOverflow: element.scrollWidth <= element.clientWidth + 1,
+      ctaRendered:
+        !!ctaRect &&
+        ctaRect.width > 0 &&
+        ctaRect.height > 0 &&
+        ctaStyle?.display !== 'none' &&
+        ctaStyle?.visibility !== 'hidden',
+    };
+  });
+  if (!layout.entryWithinViewport || !layout.entryHasNoOverflow) {
+    issues.push(`MOTD läuft im ${locale}-Archiv bei 320px horizontal über`);
+  }
+  if (!layout.ctaRendered) {
+    issues.push(`MOTD-CTA ist im ${locale}-Archiv nicht sichtbar gerendert`);
+  }
+  return issues;
+}
+
 async function main() {
   console.log(`Warte auf ${BASE_URL}/de/…`);
   const ready = await waitForServer(`${BASE_URL}/de/`);
@@ -518,6 +610,11 @@ async function main() {
     '/it/help',
     '/de/legal/privacy',
     '/de/legal/accessibility',
+    '/de/news-archive',
+    '/en/news-archive',
+    '/fr/news-archive',
+    '/es/news-archive',
+    '/it/news-archive',
     '/de/admin',
   ];
   let failed = 0;
@@ -575,10 +672,17 @@ async function main() {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle').catch(() => {});
     await dismissOptionalOverlay(page, /^\/(?:de|en|fr|es|it)\/$/.test(path));
+    await dismissOptionalInstallSnackbar(page);
 
     const initialJoinFocus = path === '/de/join' ? await inspectMobileJoinEntry(page) : [];
-    const keyboardNavigation =
-      path === '/de/' ? await inspectHomeKeyboardNavigation(page) : initialJoinFocus;
+    const locale = path.split('/')[1];
+    const motdChecks = path.endsWith('/news-archive')
+      ? await inspectStructuredQuestionMotd(page, locale)
+      : [];
+    const keyboardNavigation = [
+      ...(path === '/de/' ? await inspectHomeKeyboardNavigation(page) : initialJoinFocus),
+      ...motdChecks,
+    ];
     await checkPage(page, path, { keyboardNavigation });
     await page.close();
   }

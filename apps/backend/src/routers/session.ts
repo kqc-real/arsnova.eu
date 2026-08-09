@@ -1205,6 +1205,27 @@ async function getVoteSummaryCached(
         };
       }
 
+      if (
+        questionType === 'MATCHING' ||
+        questionType === 'ORDERING' ||
+        questionType === 'CATEGORIZATION'
+      ) {
+        const votes = await prisma.vote.findMany({
+          where: { sessionId, questionId, round },
+          select: { isCorrect: true },
+        });
+        const correctVoteCount = votes.filter((vote) => vote.isCorrect === true).length;
+        return {
+          totalVotes: votes.length,
+          answerVoteCounts: {},
+          freeTextResponses: [],
+          incorrectFreeTextResponses: [],
+          correctVoteCount,
+          incorrectVoteCount: votes.length - correctVoteCount,
+          numericValues: [],
+        };
+      }
+
       const votes = await prisma.vote.findMany({
         where: { sessionId, questionId, round },
         select: { selectedAnswers: { select: { answerOptionId: true } } },
@@ -1293,7 +1314,7 @@ export function recordVoteCachesForCode(
       }
     }
     if (
-      (payload.questionType === 'SINGLE_CHOICE' || payload.questionType === 'MULTIPLE_CHOICE') &&
+      usesPeerInstructionCorrectnessWindow(payload.questionType) &&
       payload.isCorrect !== undefined
     ) {
       if (payload.isCorrect) {
@@ -2970,9 +2991,16 @@ function resolvePreferredLiveChannel(
   return defaultPreferredLiveChannel(channels);
 }
 
-/** Anteil vollstaendig korrekter Stimmen (SC/MC, Runde 1): Empfehlung nur in diesem Fenster. */
-const PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO = 0.35;
-const PEER_INSTRUCTION_MAX_CORRECTNESS_RATIO = 0.7;
+/** Bewertete Fragetypen, bei denen Runde 2 vom Peer-Instruction-Fenster abhaengt. */
+function usesPeerInstructionCorrectnessWindow(questionType: QuestionType): boolean {
+  return (
+    questionType === 'SINGLE_CHOICE' ||
+    questionType === 'MULTIPLE_CHOICE' ||
+    questionType === 'MATCHING' ||
+    questionType === 'ORDERING' ||
+    questionType === 'CATEGORIZATION'
+  );
+}
 
 function buildPeerInstructionSuggestion(
   questionType: QuestionType,
@@ -2984,7 +3012,7 @@ function buildPeerInstructionSuggestion(
     return undefined;
   }
 
-  if (questionType !== 'SINGLE_CHOICE' && questionType !== 'MULTIPLE_CHOICE') {
+  if (!usesPeerInstructionCorrectnessWindow(questionType)) {
     return undefined;
   }
 
@@ -2992,11 +3020,8 @@ function buildPeerInstructionSuggestion(
     return undefined;
   }
 
-  const correctnessRatio = correctVoterCount / totalVotes;
-  if (
-    correctnessRatio < PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO ||
-    correctnessRatio > PEER_INSTRUCTION_MAX_CORRECTNESS_RATIO
-  ) {
+  // Exakte inklusive Grenzen ohne Rundungs- oder Prozentdarstellungsfehler.
+  if (correctVoterCount * 3 < totalVotes || correctVoterCount * 3 > totalVotes * 2) {
     return undefined;
   }
 
@@ -3701,8 +3726,25 @@ async function buildHostCurrentQuestionDto(
       question.type === 'CATEGORIZATION'
     ) {
       if (session.status === 'ACTIVE') {
-        const totalVotes = await prisma.vote.count({ where: voteWhere });
-        return { ...base, totalVotes };
+        const voteSummary = await getVoteSummaryCached(
+          session.code,
+          session.id,
+          question.id,
+          currentRound,
+          question.type as QuestionType,
+        );
+        return {
+          ...base,
+          totalVotes: voteSummary.totalVotes,
+          correctVoterCount: voteSummary.correctVoteCount,
+          incorrectVoterCount: voteSummary.incorrectVoteCount,
+          peerInstructionSuggestion: buildPeerInstructionSuggestion(
+            question.type as QuestionType,
+            currentRound,
+            voteSummary.correctVoteCount,
+            voteSummary.totalVotes,
+          ),
+        };
       }
 
       const structuredVotes = await prisma.vote.findMany({
@@ -4193,6 +4235,32 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
       round,
       questionType,
       { answers: question.answers },
+    );
+    return {
+      ...base,
+      totalVotes: voteSummary.totalVotes,
+      correctVoterCount: voteSummary.correctVoteCount,
+      incorrectVoterCount: voteSummary.incorrectVoteCount,
+      peerInstructionSuggestion: buildPeerInstructionSuggestion(
+        questionType,
+        round,
+        voteSummary.correctVoteCount,
+        voteSummary.totalVotes,
+      ),
+    };
+  }
+
+  if (
+    questionType === 'MATCHING' ||
+    questionType === 'ORDERING' ||
+    questionType === 'CATEGORIZATION'
+  ) {
+    const voteSummary = await getVoteSummaryCached(
+      session.code,
+      session.id,
+      question.id,
+      round,
+      questionType,
     );
     return {
       ...base,
@@ -5823,6 +5891,32 @@ export const sessionRouter = router({
               code: 'BAD_REQUEST',
               message: 'Diskussionsphase nur aus Status ACTIVE.',
             });
+          }
+          const questionType = question.type as QuestionType;
+          if (usesPeerInstructionCorrectnessWindow(questionType)) {
+            const votes = await tx.vote.findMany({
+              where: {
+                sessionId: session.id,
+                questionId: question.id,
+                round: session.currentRound,
+              },
+              select: { isCorrect: true },
+            });
+            const correctVoterCount = votes.filter((vote) => vote.isCorrect === true).length;
+            if (
+              !buildPeerInstructionSuggestion(
+                questionType,
+                session.currentRound,
+                correctVoterCount,
+                votes.length,
+              )
+            ) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message:
+                  'Diskussionsphase nur bei einem Anteil vollständig korrekter Antworten zwischen einem Drittel und zwei Dritteln.',
+              });
+            }
           }
           await assertPersonalTimerGate(
             {

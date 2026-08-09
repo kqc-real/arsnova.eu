@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { MatSelect } from '@angular/material/select';
+import { By } from '@angular/platform-browser';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemSelectionRowComponent } from './item-selection-row.component';
 
@@ -38,5 +40,41 @@ describe('ItemSelectionRowComponent', () => {
 
     expect(listener).toHaveBeenCalledWith('stable-option-id');
     expect(listener).not.toHaveBeenCalledWith('Sichtbarer Text');
+  });
+
+  it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {
+    const fixture = TestBed.createComponent(ItemSelectionRowComponent);
+    fixture.componentRef.setInput('itemText', 'Element');
+    fixture.componentRef.setInput('options', [{ id: 'one', text: 'Erste Option' }]);
+    fixture.componentRef.setInput('selectedId', '');
+    fixture.componentRef.setInput('selectLabel', 'Auswahl');
+    fixture.componentRef.setInput('selectAriaLabel', 'Auswahl für Element');
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const openSpy = vi.spyOn(select, 'open').mockImplementation(() => undefined);
+
+    (fixture.nativeElement as HTMLElement).querySelector('mat-form-field')?.click();
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('überlässt einen Klick auf das Select ausschließlich dem nativen Select-Handler', () => {
+    const fixture = TestBed.createComponent(ItemSelectionRowComponent);
+    fixture.componentRef.setInput('itemText', 'Element');
+    fixture.componentRef.setInput('options', [{ id: 'one', text: 'Erste Option' }]);
+    fixture.componentRef.setInput('selectedId', '');
+    fixture.componentRef.setInput('selectLabel', 'Auswahl');
+    fixture.componentRef.setInput('selectAriaLabel', 'Auswahl für Element');
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const openSpy = vi.spyOn(select, 'open').mockImplementation(() => undefined);
+
+    (fixture.nativeElement as HTMLElement).querySelector('mat-select')?.click();
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { renderMarkdownWithKatex } from '../markdown-katex.util';
 
 export interface ItemSelectionOption {
@@ -35,5 +35,13 @@ export class ItemSelectionRowComponent {
     return this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(value, { headingStartLevel: 4, escapeListMarkers: true }).html,
     );
+  }
+
+  openSelectionFromField(event: MouseEvent, select: MatSelect): void {
+    const target = event.target;
+    if (this.disabled || (target instanceof Element && target.closest('mat-select') !== null)) {
+      return;
+    }
+    select.open();
   }
 }

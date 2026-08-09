@@ -39,6 +39,7 @@ import {
   CdkDragPlaceholder,
   CdkDropList,
 } from '@angular/cdk/drag-drop';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -358,6 +359,7 @@ type QuizMetadataComparable = {
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
+    CdkTextareaAutosize,
     MarkdownImageLightboxDirective,
     MarkdownKatexEditorComponent,
     AnswerOptionBadgeComponent,

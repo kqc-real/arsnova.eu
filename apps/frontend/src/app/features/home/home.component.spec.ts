@@ -915,6 +915,28 @@ describe('HomeComponent', () => {
       }
     });
 
+    it('markiert das Puzzle-Emoji einer Feature-MOTD als dekorativ', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'c0444444-c444-4c44-8c44-c04444444444',
+          contentVersion: 1,
+          markdown: '### 🧩 Neu: Zuordnen. Sortieren. Kategorisieren.\n\nText.',
+          endsAt: '2027-03-31T23:59:59.999Z',
+        },
+      });
+      const fixture = createHomeFixture();
+
+      await fixture.componentInstance['loadMotdOverlay']();
+
+      const safeHtml = fixture.componentInstance.motdBodyHtml() as unknown as {
+        changingThisBreaksApplicationSecurity?: string;
+      } | null;
+      expect(safeHtml?.changingThisBreaksApplicationSecurity).toContain(
+        '<span aria-hidden="true">🧩</span>',
+      );
+    });
+
     it('sperrt den Hintergrund und hält den Tastaturfokus im MOTD-Dialog', () => {
       const fixture = createHomeFixture();
       fixture.componentInstance.motd.set({

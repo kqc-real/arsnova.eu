@@ -132,10 +132,16 @@
 }
 
 .motd-archive__panel-title {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
   min-width: 0;
   font: var(--mat-sys-title-medium);
   font-weight: 600;
+}
+
+.motd-archive__decorative-emoji {
+  flex: 0 0 auto;
 }
 
 /* Eigenes span: Zweizeiliges Ellipsis in Flex-Zeilen des Expansion-Headers */

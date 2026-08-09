@@ -612,6 +612,49 @@ async function submitWrongShadowVote(
   return true;
 }
 
+async function submitCorrectShadowVote(
+  publicTrpc,
+  shadow,
+  code,
+  questionMeta,
+  hardFailures,
+  label,
+  round = 1,
+) {
+  const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
+  if (!question?.id || question.type !== questionMeta.type) {
+    hardFailures.push(`Correct shadow vote: unexpected ACTIVE question for ${label}.`);
+    logStep(false, `Correct shadow vote for ${label}`);
+    return false;
+  }
+
+  const payload = {
+    sessionId: shadow.id,
+    participantId: shadow.participantId,
+    questionId: question.id,
+    confidenceValue: HIGH_CONFIDENCE,
+    round,
+  };
+
+  if (questionMeta.type === 'ORDERING') {
+    payload.orderingSequence = questionMeta.orderingItems.map((item) => item.id);
+  } else if (questionMeta.type === 'MATCHING') {
+    payload.matchingSelections = questionMeta.matchingPairs.map((pair) => ({
+      leftId: pair.leftId,
+      rightId: pair.rightId,
+    }));
+  } else if (questionMeta.type === 'CATEGORIZATION') {
+    payload.categorizationSelections = questionMeta.categorizationItems.map((item) => ({
+      itemId: item.id,
+      categoryId: item.correctCategoryId,
+    }));
+  }
+
+  await publicTrpc.vote.submit.mutate(payload);
+  logStep(true, `Correct shadow vote for ${label}`);
+  return true;
+}
+
 async function submitWrongShadowVotes(
   publicTrpc,
   shadows,
@@ -634,6 +677,75 @@ async function submitWrongShadowVotes(
     if (!ok) return false;
   }
   return true;
+}
+
+async function submitCorrectShadowVotes(
+  publicTrpc,
+  shadows,
+  code,
+  questionMeta,
+  hardFailures,
+  label,
+) {
+  for (const shadow of shadows) {
+    if (
+      !(await submitCorrectShadowVote(publicTrpc, shadow, code, questionMeta, hardFailures, label))
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+async function submitPeerInstructionWindowShadowVotes(
+  host,
+  publicTrpc,
+  shadows,
+  code,
+  questionMeta,
+  hardFailures,
+  label,
+) {
+  const wrongShadows = shadows.slice(0, 2);
+  const correctShadows = shadows.slice(2);
+  if (
+    !(await submitWrongShadowVotes(
+      publicTrpc,
+      wrongShadows,
+      code,
+      questionMeta,
+      hardFailures,
+      `${label} außerhalb des Fensters`,
+    ))
+  ) {
+    return false;
+  }
+  const twoVotesVisible = await waitForText(host, /2 von 5|2 of 5/i, 8_000);
+  if (!twoVotesVisible) {
+    hardFailures.push(`${label}: host did not receive the first two shadow votes.`);
+    logStep(false, `${label} receives votes outside one-third-to-two-thirds window`);
+    return false;
+  }
+  if (
+    await host
+      .getByRole('button', { name: DISCUSSION_PHASE_RE })
+      .isVisible()
+      .catch(() => false)
+  ) {
+    hardFailures.push(`${label}: discussion offered with 0 of 2 fully correct votes.`);
+    logStep(false, `${label} discussion outside one-third-to-two-thirds window`);
+    return false;
+  }
+  logStep(true, `${label} discussion outside one-third-to-two-thirds window hidden`);
+
+  return submitCorrectShadowVotes(
+    publicTrpc,
+    correctShadows,
+    code,
+    questionMeta,
+    hardFailures,
+    `${label} im Peer-Instruction-Fenster`,
+  );
 }
 
 async function revealAndAssertHostResults(
@@ -761,7 +873,8 @@ async function runOrderingFlow(
   }
 
   if (
-    !(await submitWrongShadowVotes(
+    !(await submitPeerInstructionWindowShadowVotes(
+      host,
       publicTrpc,
       shadows,
       code,
@@ -900,7 +1013,7 @@ async function runOrderingFlow(
 }
 
 async function selectMatOption(page, formFieldLocator, optionText) {
-  await formFieldLocator.click();
+  await formFieldLocator.locator('mat-select').click();
   const needle = String(optionText || '').trim();
   const option = page
     .getByRole('option', {
@@ -912,7 +1025,7 @@ async function selectMatOption(page, formFieldLocator, optionText) {
     .first();
   await option.waitFor({ state: 'visible', timeout: 8_000 });
   await option.click();
-  await page.waitForTimeout(200);
+  await page.locator('.mat-mdc-select-panel').waitFor({ state: 'hidden', timeout: 8_000 });
 }
 
 async function runMatchingFlow(
@@ -996,7 +1109,8 @@ async function runMatchingFlow(
   }
 
   if (
-    !(await submitWrongShadowVotes(
+    !(await submitPeerInstructionWindowShadowVotes(
+      host,
       publicTrpc,
       shadows,
       code,
@@ -1141,7 +1255,8 @@ async function runCategorizationFlow(
   }
 
   if (
-    !(await submitWrongShadowVotes(
+    !(await submitPeerInstructionWindowShadowVotes(
+      host,
       publicTrpc,
       shadows,
       code,

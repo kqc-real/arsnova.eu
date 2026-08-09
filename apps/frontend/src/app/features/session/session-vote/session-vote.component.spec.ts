@@ -4,6 +4,8 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   flushComponentAfterStable,
@@ -5292,6 +5294,18 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(blocks[1]?.textContent).toContain('Kanonisch zuerst');
     expect(fixture.nativeElement.querySelector('.structured-result-summary')).toBeNull();
     fixture.destroy();
+  });
+
+  it('rendert für die Abwärtsbewegung ein im lokalen Icon-Font vorhandenes Symbol', () => {
+    const template = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.html'),
+      'utf8',
+    );
+
+    expect(template).toContain('<mat-icon>keyboard_arrow_up</mat-icon>');
+    expect(template).toContain('<mat-icon>keyboard_arrow_down</mat-icon>');
+    expect(template).not.toContain('<mat-icon>arrow_upward</mat-icon>');
+    expect(template).not.toContain('<mat-icon>arrow_downward</mat-icon>');
   });
 
   it('sendet Matching über stabile IDs und tauscht vollständig belegte Zuordnungen', async () => {

@@ -2205,6 +2205,39 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.orderingItemsArray.dirty).toBe(true);
   });
 
+  it('nutzt im Ordering-Editor das verfügbare Abwärtssymbol und das breite Zeilenraster', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('ORDERING');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector(
+      '.quiz-edit-answer--ordering',
+    ) as HTMLElement | null;
+    const buttons = row?.querySelectorAll('.quiz-edit-answer__reorder-actions button');
+    const upIcon = buttons?.item(1).querySelector('mat-icon');
+    const downIcon = buttons?.item(2).querySelector('mat-icon');
+    const orderingField = row?.querySelector('textarea[cdktextareaautosize]');
+
+    expect(row).not.toBeNull();
+    expect(upIcon?.textContent?.trim()).toBe('keyboard_arrow_up');
+    expect(downIcon?.textContent?.trim()).toBe('keyboard_arrow_down');
+    expect(orderingField).not.toBeNull();
+  });
+
+  it('markiert Kategorienzeilen für ein Raster mit vollständig nutzbarer Feldbreite', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('CATEGORIZATION');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const rows = fixture.nativeElement.querySelectorAll('.quiz-edit-answer--category');
+    expect(rows.length).toBe(component.categoriesArray.length);
+    expect(rows.item(0).querySelector('.quiz-edit-form__grow')).not.toBeNull();
+  });
+
   it('weist doppelte sichtbare Ordering-Elemente und Kategorienamen auch im Editor zurück', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

@@ -6,6 +6,7 @@ import {
   appendMotdContentVersionToAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from './markdown-katex.util';
+import { hideMotdDecorativeEmojiInHeadingHtml } from './motd-decorative-emoji.util';
 
 export type BuildMotdArchiveItemDisplayOptions = {
   /**
@@ -41,7 +42,7 @@ export function buildMotdArchiveItemDisplay(
       mdForBody = bodyOnly ? bodyOnly : '\n';
     }
   }
-  let rendered = renderMarkdownWithoutKatex(mdForBody);
+  let rendered = hideMotdDecorativeEmojiInHeadingHtml(renderMarkdownWithoutKatex(mdForBody));
   const origin = options?.assetOrigin?.trim();
   if (origin) {
     rendered = absolutizeMarkdownHtmlRootAssetImgSrc(rendered, origin);

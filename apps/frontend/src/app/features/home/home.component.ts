@@ -73,6 +73,7 @@ import {
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { hideMotdDecorativeEmojiInHeadingHtml } from '../../shared/motd-decorative-emoji.util';
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
@@ -837,12 +838,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         ? activeElement
         : null;
     this.motd.set(motd);
-    const html = appendMotdContentVersionToAssetImgSrc(
-      absolutizeMarkdownHtmlRootAssetImgSrc(
-        renderMarkdownWithoutKatex(motd.markdown),
-        resolveMotdAssetOrigin(),
+    const html = hideMotdDecorativeEmojiInHeadingHtml(
+      appendMotdContentVersionToAssetImgSrc(
+        absolutizeMarkdownHtmlRootAssetImgSrc(
+          renderMarkdownWithoutKatex(motd.markdown),
+          resolveMotdAssetOrigin(),
+        ),
+        motd.contentVersion,
       ),
-      motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
     afterNextRender(

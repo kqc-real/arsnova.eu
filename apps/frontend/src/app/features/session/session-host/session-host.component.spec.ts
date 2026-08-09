@@ -3339,7 +3339,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     const text = el.textContent ?? '';
     expect(text).toContain('Peer Instruction empfohlen');
-    expect(text).toMatch(/35\s*[–-]\s*70/);
+    expect(text).toContain('Zwischen einem Drittel und zwei Dritteln vollständig korrekt');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
       (button.textContent ?? '').replace(/^groups/, '').trim(),
@@ -4321,9 +4321,72 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
-    'bietet für %s in Runde 1 den produktiven Diskussionspfad an',
+    'bietet für %s den Diskussionspfad nur mit ausgewertetem Ein-Drittel-bis-Zwei-Drittel-Signal an',
     async (type) => {
-      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        participantCount: 3,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 3,
+        participants: [],
+      });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: 1,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 3,
+        correctVoterCount: 1,
+        incorrectVoterCount: 2,
+        peerInstructionSuggestion: {
+          suggested: true,
+          reason: 'CORRECTNESS_WINDOW' as const,
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const exitAnchor = fixture.nativeElement.querySelector(
+        '.session-host__exit-anchor',
+      ) as HTMLElement;
+      const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').replace(/^groups/, '').trim(),
+      );
+
+      expect(buttonTexts).toContain('Diskussionsphase');
+      expect(buttonTexts).toContain('Ergebnis trotzdem zeigen');
+      fixture.destroy();
+    },
+  );
+
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'bietet für %s bei 100 % vollständig richtigen Antworten keine Diskussionsphase an',
+    async (type) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        participantCount: 1,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [],
+      });
       onStatusChangedSubscribeMock.mockImplementation(
         (_input: unknown, opts: { onData: (d: unknown) => void }) => {
           opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
@@ -4341,6 +4404,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         activeAt: null,
         answers: [],
         totalVotes: 1,
+        correctVoterCount: 1,
+        incorrectVoterCount: 0,
       });
 
       const fixture = setup();
@@ -4355,7 +4420,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         (button.textContent ?? '').replace(/^groups/, '').trim(),
       );
 
-      expect(buttonTexts).toContain('Diskussionsphase');
+      expect(buttonTexts).not.toContain('Diskussionsphase');
       expect(buttonTexts).toContain('Ergebnis zeigen');
       fixture.destroy();
     },

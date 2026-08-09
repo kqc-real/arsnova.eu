@@ -2962,7 +2962,8 @@ export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 
 /**
  * DTO: Didaktische Empfehlung fuer eine zweite Abstimmungsrunde nach Peer Instruction.
- * Server: nur wenn Anteil vollstaendig korrekter Stimmen (Runde 1, SC/MC) zwischen 35 % und 70 % liegt.
+ * Server: nur wenn der Anteil vollstaendig korrekter Stimmen in Runde 1 bei einem
+ * bewerteten Peer-Instruction-Fragetyp zwischen einem Drittel und zwei Dritteln liegt.
  */
 export const PeerInstructionSuggestionDTOSchema = z.object({
   suggested: z.boolean(),

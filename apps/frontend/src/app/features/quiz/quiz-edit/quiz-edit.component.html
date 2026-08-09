@@ -1008,24 +1008,30 @@
           </mat-checkbox>
           <div formArrayName="matchingPairs" class="quiz-edit-answers l-stack l-stack--md">
             @for (pair of matchingPairsArray.controls; track $index; let i = $index) {
-              <div class="quiz-edit-answer" [formGroupName]="i">
+              <div class="quiz-edit-answer quiz-edit-answer--matching" [formGroupName]="i">
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.matchingLeftLabel">Links</mat-label>
-                  <input
+                  <textarea
                     matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
                     formControlName="left"
                     maxlength="500"
                     (input)="onLivePreviewInput()"
-                  />
+                  ></textarea>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.matchingRightLabel">Rechts</mat-label>
-                  <input
+                  <textarea
                     matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
                     formControlName="right"
                     maxlength="500"
                     (input)="onLivePreviewInput()"
-                  />
+                  ></textarea>
                 </mat-form-field>
                 <button
                   mat-icon-button
@@ -1067,16 +1073,19 @@
               track item.controls.id.value;
               let i = $index
             ) {
-              <div class="quiz-edit-answer" [formGroupName]="i">
+              <div class="quiz-edit-answer quiz-edit-answer--ordering" [formGroupName]="i">
                 <span class="quiz-edit-answer__survey-hint" aria-hidden="true">{{ i + 1 }}.</span>
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.orderingItemLabel">Element</mat-label>
-                  <input
+                  <textarea
                     matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
                     formControlName="text"
                     maxlength="500"
                     (input)="onLivePreviewInput()"
-                  />
+                  ></textarea>
                 </mat-form-field>
                 <div
                   class="quiz-edit-answer__reorder-actions"
@@ -1099,7 +1108,7 @@
                     (click)="moveOrderingSolutionItem(i, 'up')"
                     [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'up')"
                   >
-                    <mat-icon>arrow_upward</mat-icon>
+                    <mat-icon>keyboard_arrow_up</mat-icon>
                   </button>
                   <button
                     mat-icon-button
@@ -1108,7 +1117,7 @@
                     (click)="moveOrderingSolutionItem(i, 'down')"
                     [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'down')"
                   >
-                    <mat-icon>arrow_downward</mat-icon>
+                    <mat-icon>keyboard_arrow_down</mat-icon>
                   </button>
                   <button
                     mat-icon-button
@@ -1157,15 +1166,18 @@
               track category.controls.id.value;
               let i = $index
             ) {
-              <div class="quiz-edit-answer" [formGroupName]="i">
+              <div class="quiz-edit-answer quiz-edit-answer--category" [formGroupName]="i">
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.categoryNameLabel">Kategorie</mat-label>
-                  <input
+                  <textarea
                     matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
                     formControlName="name"
                     maxlength="200"
                     (input)="onLivePreviewInput()"
-                  />
+                  ></textarea>
                 </mat-form-field>
                 <button
                   mat-icon-button
@@ -1209,15 +1221,21 @@
               track item.controls.id.value;
               let i = $index
             ) {
-              <div class="quiz-edit-answer" [formGroupName]="i">
+              <div
+                class="quiz-edit-answer quiz-edit-answer--categorization-item"
+                [formGroupName]="i"
+              >
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.categorizationItemLabel">Element</mat-label>
-                  <input
+                  <textarea
                     matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
                     formControlName="text"
                     maxlength="500"
                     (input)="onLivePreviewInput()"
-                  />
+                  ></textarea>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.categorizationTargetLabel">Zielkategorie</mat-label>
@@ -1764,7 +1782,7 @@
                     [attr.aria-label]="moveQuestionUpLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, -1)"
                   >
-                    <mat-icon aria-hidden="true">arrow_upward</mat-icon>
+                    <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
                   </button>
                   <button
                     cdkDragHandle
@@ -1785,7 +1803,7 @@
                     [attr.aria-label]="moveQuestionDownLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, 1)"
                   >
-                    <mat-icon aria-hidden="true">arrow_downward</mat-icon>
+                    <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
                   </button>
                 </div>
                 <div class="quiz-edit-question__body">

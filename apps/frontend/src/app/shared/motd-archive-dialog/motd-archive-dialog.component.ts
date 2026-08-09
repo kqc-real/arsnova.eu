@@ -31,6 +31,7 @@ import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-displa
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
 import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
+import { splitMotdDecorativeEmoji, type MotdTitleDisplay } from '../motd-decorative-emoji.util';
 import { sortMotdArchiveItemsNewFirst } from '../motd-archive-sort.util';
 
 export type MotdArchiveDialogData = { locale: AppLocale };
@@ -99,6 +100,10 @@ export class MotdArchiveDialogComponent implements OnInit {
   /** Stabiler Template-Zugriff für strictTemplates (Record-Index). */
   archiveItemTitle(id: string): string {
     return this.titleById()[id] ?? this.archiveItemFallbackTitle;
+  }
+
+  archiveItemTitleDisplay(id: string): MotdTitleDisplay {
+    return splitMotdDecorativeEmoji(this.archiveItemTitle(id));
   }
 
   private buildArchiveRender(it: MotdArchiveItemDTO): { title: string; html: SafeHtml } {

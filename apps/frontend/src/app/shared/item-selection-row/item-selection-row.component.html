@@ -1,8 +1,13 @@
 <div class="item-selection-row" [class.item-selection-row--done]="!!selectedId">
   <div class="item-selection-row__item markdown-body" [innerHTML]="renderMarkdown(itemText)"></div>
-  <mat-form-field appearance="outline" class="item-selection-row__field">
+  <mat-form-field
+    appearance="outline"
+    class="item-selection-row__field"
+    (click)="openSelectionFromField($event, selectionControl)"
+  >
     <mat-label>{{ selectLabel }}</mat-label>
     <mat-select
+      #selectionControl
       [value]="selectedId"
       [aria-label]="selectAriaLabel"
       [disabled]="disabled"
