@@ -2,6 +2,7 @@
  * Session-Router (Story 2.1a, 3.1, 4.1, 4.2, 4.6, 4.7, 0.5).
  */
 import { EventEmitter } from 'node:events';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
@@ -237,7 +238,6 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   buildAnswerDisplayOrderForQuiz,
   orderAnswersByDisplayMap,
