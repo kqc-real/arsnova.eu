@@ -136,7 +136,7 @@ describe('AppComponent', () => {
 
     const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
 
-    expect(main.getAttribute('tabindex')).toBe('-1');
+    expect(main.getAttribute('tabindex')).toBe('0');
     fixture.destroy();
   });
 

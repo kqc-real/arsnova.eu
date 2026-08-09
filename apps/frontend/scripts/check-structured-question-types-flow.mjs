@@ -665,9 +665,12 @@ async function runMatchingFlow(
   }
 
   const wrongPairs = wrongMatchingSelections(pairs);
-  const fields = participant.locator('.vote-matching__select-field');
+  const rightLabels = Object.fromEntries(pairs.map((pair) => [pair.rightId, pair.right]));
+  const fields = participant.locator(
+    '.vote-matching__list app-item-selection-row .item-selection-row__field',
+  );
   for (let index = 0; index < wrongPairs.length; index += 1) {
-    await selectMatOption(participant, fields.nth(index), wrongPairs[index].right);
+    await selectMatOption(participant, fields.nth(index), rightLabels[wrongPairs[index].rightId]);
   }
 
   const progressDone = await waitForText(
@@ -682,7 +685,9 @@ async function runMatchingFlow(
     logStep(true, 'Participant MATCHING progress complete');
   }
 
-  const doneCount = await participant.locator('.vote-matching__pair--done').count();
+  const doneCount = await participant
+    .locator('.vote-matching__list .item-selection-row--done')
+    .count();
   if (doneCount !== pairCount) {
     hardFailures.push(`Expected ${pairCount} done matching pairs, got ${doneCount}.`);
     logStep(false, 'Participant MATCHING done state');
@@ -761,7 +766,9 @@ async function runCategorizationFlow(
   const categories = Object.fromEntries(
     questionMeta.categories.map((category) => [category.id, category.name]),
   );
-  const fields = participant.locator('.vote-categorization__select-field');
+  const fields = participant.locator(
+    '.vote-categorization__list app-item-selection-row .item-selection-row__field',
+  );
   for (let index = 0; index < wrongSelections.length; index += 1) {
     await selectMatOption(
       participant,
