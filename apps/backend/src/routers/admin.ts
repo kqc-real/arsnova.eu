@@ -1063,6 +1063,12 @@ export const adminRouter = router({
                   numericUnitFamily: true,
                   numericRequireUnit: true,
                   numericAcceptEquivalentUnits: true,
+                  matchingPairs: true,
+                  matchingShuffleRight: true,
+                  orderingItems: true,
+                  categories: true,
+                  categorizationItems: true,
+                  categorizationShuffleItems: true,
                   answers: {
                     orderBy: { id: 'asc' },
                     select: { text: true, isCorrect: true },
@@ -1149,6 +1155,37 @@ export const adminRouter = router({
                   numericUnitFamily: question.numericUnitFamily ?? 'none',
                   numericRequireUnit: question.numericRequireUnit ?? false,
                   numericAcceptEquivalentUnits: question.numericAcceptEquivalentUnits ?? true,
+                }
+              : {}),
+            ...(question.type === 'MATCHING'
+              ? {
+                  matchingPairs:
+                    (question.matchingPairs as Array<{
+                      leftId: string;
+                      left: string;
+                      rightId: string;
+                      right: string;
+                    }> | null) ?? [],
+                  matchingShuffleRight: question.matchingShuffleRight,
+                }
+              : {}),
+            ...(question.type === 'ORDERING'
+              ? {
+                  orderingItems:
+                    (question.orderingItems as Array<{ id: string; text: string }> | null) ?? [],
+                }
+              : {}),
+            ...(question.type === 'CATEGORIZATION'
+              ? {
+                  categories:
+                    (question.categories as Array<{ id: string; name: string }> | null) ?? [],
+                  categorizationItems:
+                    (question.categorizationItems as Array<{
+                      id: string;
+                      text: string;
+                      correctCategoryId: string;
+                    }> | null) ?? [],
+                  categorizationShuffleItems: question.categorizationShuffleItems,
                 }
               : {}),
             enabled: true,

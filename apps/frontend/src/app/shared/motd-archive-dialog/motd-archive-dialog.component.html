@@ -54,14 +54,18 @@
         <mat-accordion class="motd-archive__accordion" [multi]="true">
           @for (it of items(); track it.id) {
             @let archiveMeta = formatArchiveDate(it.startsAt);
+            @let titleDisplay = archiveItemTitleDisplay(it.id);
             <mat-expansion-panel #archivePanel class="motd-archive__panel">
               <mat-expansion-panel-header>
                 <mat-panel-title class="motd-archive__panel-title">
-                  <span
-                    class="motd-archive__panel-title-text"
-                    [attr.title]="archiveItemTitle(it.id)"
-                    >{{ archiveItemTitle(it.id) }}</span
-                  >
+                  @if (titleDisplay.decorativeEmoji) {
+                    <span class="motd-archive__decorative-emoji" aria-hidden="true">{{
+                      titleDisplay.decorativeEmoji
+                    }}</span>
+                  }
+                  <span class="motd-archive__panel-title-text" [attr.title]="titleDisplay.title">{{
+                    titleDisplay.title
+                  }}</span>
                 </mat-panel-title>
                 @if (archiveMeta) {
                   <mat-panel-description class="motd-archive__panel-meta">

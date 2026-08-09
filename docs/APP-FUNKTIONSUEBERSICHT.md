@@ -313,6 +313,9 @@ Unterstützt werden dabei:
 - Fortschrittsanzeige, wie viele schon abgestimmt haben
 - Anzeige, ob alle abgestimmt haben
 - Readiness-Signal in der Lesephase
+- die strukturierten Fragentypen Zuordnung, Reihenfolge und Kategorisierung einschließlich
+  Musterlösung, barrierefreier Teilnehmerinteraktion und vollständiger Ergebnismatrizen; Details:
+  [`docs/features/structured-question-types.md`](features/structured-question-types.md)
 
 #### Live-Daten in der Host-Ansicht
 
@@ -328,6 +331,8 @@ Der Host sieht zusätzlich:
 - Rangliste
 - Team-Rangliste
 - aggregiertes Session-Feedback
+- Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
+  Ergebnisfreigabe
 
 #### Kanalsteuerung
 

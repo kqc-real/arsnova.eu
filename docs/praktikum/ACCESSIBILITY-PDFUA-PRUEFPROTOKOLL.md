@@ -3,7 +3,7 @@
 # PDF/UA-1-Prüfprotokoll · Session-Ergebnisbericht
 
 **Projekt:** arsnova.eu
-**Datum:** 2026-07-27
+**Datum:** 2026-08-09 (maschineller Wiederholungslauf; Bedienprüfung 2026-07-27)
 **Prüfgegenstand:** barrierefreies Profil des Session-Ergebnisberichts
 **Normprofil:** PDF/UA-1, ISO 14289-1:2014
 **Validator:** veraPDF 1.30.2, Container `verapdf/cli:v1.30.2`
@@ -12,9 +12,9 @@
 ## 1. Zweck und Abgrenzung
 
 Dieses Protokoll dokumentiert den maschinellen PDF/UA-1-Nachweis, eine
-repräsentative visuelle sowie strukturelle Prüfung und die am 2026-07-27
-bestandene Bedienprüfung der Session-Ergebnisberichte mit PDF-Reader und
-Screenreader.
+repräsentative visuelle sowie strukturelle Prüfung, den am 2026-08-09
+bestandenen maschinellen Wiederholungslauf und die am 2026-07-27 bestandene
+Bedienprüfung der Session-Ergebnisberichte mit PDF-Reader und Screenreader.
 
 Geprüft wurde das Profil „Barrierefrei (PDF/UA-1)“. Das visuell aufwendigere
 Standardprofil erhebt bewusst keinen PDF/UA-Anspruch.
@@ -43,11 +43,11 @@ PDF_PROFILE=pdfua DEMO_PDF_LOCALES=de,en,fr,es,it \
 
 | Locale | Datei                                  | Seiten | veraPDF PDF/UA-1 |
 | ------ | -------------------------------------- | ------ | ---------------- |
-| de     | `demo-session-results-30.de-pdfua.pdf` | 19     | PASS             |
-| en     | `demo-session-results-30.en-pdfua.pdf` | 19     | PASS             |
-| fr     | `demo-session-results-30.fr-pdfua.pdf` | 20     | PASS             |
-| es     | `demo-session-results-30.es-pdfua.pdf` | 19     | PASS             |
-| it     | `demo-session-results-30.it-pdfua.pdf` | 19     | PASS             |
+| de     | `demo-session-results-30.de-pdfua.pdf` | 22     | PASS             |
+| en     | `demo-session-results-30.en-pdfua.pdf` | 22     | PASS             |
+| fr     | `demo-session-results-30.fr-pdfua.pdf` | 22     | PASS             |
+| es     | `demo-session-results-30.es-pdfua.pdf` | 22     | PASS             |
+| it     | `demo-session-results-30.it-pdfua.pdf` | 22     | PASS             |
 
 Zusätzlicher Poppler-Nachweis für alle fünf Dateien:
 

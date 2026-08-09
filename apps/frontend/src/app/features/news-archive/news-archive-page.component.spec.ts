@@ -69,6 +69,7 @@ describe('NewsArchivePageComponent', () => {
       TestBed.createComponent(NewsArchivePageComponent);
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.getAttribute('ngSkipHydration')).toBe('true');
     expect(fixture.componentInstance.items().length).toBe(0);
 
     await fixture.whenStable();

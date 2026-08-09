@@ -156,6 +156,11 @@ import {
   type FoyerEntranceChip,
 } from './foyer-entrance-layer.component';
 import { buildFoyerChipLabel } from './foyer-chip-label.util';
+import {
+  PresenterDistributionMatrixComponent,
+  type DistributionMatrixAxisEntry,
+  type DistributionMatrixCell,
+} from '../../../shared/presenter-distribution-matrix/presenter-distribution-matrix.component';
 
 type NumericStatsDisplayItem = {
   id: string;
@@ -278,7 +283,10 @@ function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | unde
     type === 'SINGLE_CHOICE' ||
     type === 'MULTIPLE_CHOICE' ||
     type === 'SHORT_TEXT' ||
-    type === 'NUMERIC_ESTIMATE'
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
   );
 }
 
@@ -411,6 +419,7 @@ function musicTracksForPhase(
     AnswerOptionBadgeComponent,
     CdkTrapFocus,
     InfoLandingLinkComponent,
+    PresenterDistributionMatrixComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
@@ -507,6 +516,158 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly wordCloudFrozen = signal(false);
   readonly frozenWordCloudResponses = signal<string[] | null>(null);
+  getHostCategorizationItemsForCategory(
+    question: HostCurrentQuestionDTO | null | undefined,
+    categoryId: string,
+  ): Array<{ id: string; text: string; correctCategoryId: string }> {
+    return (question?.categorizationItems || []).filter(
+      (item) => item.correctCategoryId === categoryId,
+    );
+  }
+
+  hostNeutralOrderingItems(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    const canonical = [...(question?.orderingItems ?? [])];
+    const neutral = [...canonical].sort((a, b) => a.id.localeCompare(b.id));
+    if (neutral.length > 1 && neutral.every((item, index) => item.id === canonical[index]?.id)) {
+      neutral.push(neutral.shift()!);
+    }
+    return neutral;
+  }
+
+  hostNeutralMatchingLeftOptions(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    return [...(question?.matchingPairs ?? [])]
+      .sort((a, b) => a.leftId.localeCompare(b.leftId))
+      .map((pair) => ({ id: pair.leftId, text: pair.left }));
+  }
+
+  hostNeutralMatchingRightOptions(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    const displayedLeft = this.hostNeutralMatchingLeftOptions(question);
+    const rightByLeft = new Map(
+      (question?.matchingPairs ?? []).map((pair) => [
+        pair.leftId,
+        { id: pair.rightId, text: pair.right },
+      ]),
+    );
+    const neutral = displayedLeft.flatMap((left) => {
+      const right = rightByLeft.get(left.id);
+      return right ? [right] : [];
+    });
+    if (neutral.length > 1) {
+      neutral.push(neutral.shift()!);
+    }
+    return neutral;
+  }
+
+  hostNeutralCategories(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; name: string }> {
+    return [...(question?.categories ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  hostNeutralCategorizationItems(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ id: string; text: string }> {
+    return [...(question?.categorizationItems ?? [])]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map(({ id, text }) => ({ id, text }));
+  }
+
+  hostMatchingMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.matchingPairs ?? []).map((pair) => ({ id: pair.leftId, label: pair.left }));
+  }
+
+  hostMatchingMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.matchingPairs ?? []).map((pair) => ({ id: pair.rightId, label: pair.right }));
+  }
+
+  hostMatchingMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.matchingStats?.selectionCounts ?? []).map((entry) => ({
+      rowId: entry.leftId,
+      columnId: entry.rightId,
+      count: entry.count,
+    }));
+  }
+
+  hostMatchingCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.matchingPairs ?? []).map((pair) => [pair.leftId, pair.rightId]),
+    );
+  }
+
+  hostOrderingMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.orderingItems ?? []).map((item) => ({ id: item.id, label: item.text }));
+  }
+
+  hostOrderingMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.orderingItems ?? []).map((_, index) => ({
+      id: String(index),
+      label: $localize`:@@sessionHost.positionColumn:Position ${index + 1}:position:`,
+    }));
+  }
+
+  hostOrderingMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.orderingStats?.positionCounts ?? []).map((entry) => ({
+      rowId: entry.itemId,
+      columnId: String(entry.position),
+      count: entry.count,
+    }));
+  }
+
+  hostOrderingCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.orderingItems ?? []).map((item, index) => [item.id, String(index)]),
+    );
+  }
+
+  hostCategorizationMatrixRows(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.categorizationItems ?? []).map((item) => ({ id: item.id, label: item.text }));
+  }
+
+  hostCategorizationMatrixColumns(question: HostCurrentQuestionDTO): DistributionMatrixAxisEntry[] {
+    return (question.categories ?? []).map((category) => ({
+      id: category.id,
+      label: category.name,
+    }));
+  }
+
+  hostCategorizationMatrixCells(question: HostCurrentQuestionDTO): DistributionMatrixCell[] {
+    return (question.categorizationStats?.itemCategoryCounts ?? []).map((entry) => ({
+      rowId: entry.itemId,
+      columnId: entry.categoryId,
+      count: entry.count,
+    }));
+  }
+
+  hostCategorizationCorrectColumns(question: HostCurrentQuestionDTO): Record<string, string> {
+    return Object.fromEntries(
+      (question.categorizationItems ?? []).map((item) => [item.id, item.correctCategoryId]),
+    );
+  }
+
+  hostStructuredCorrectSummary(
+    fullyCorrectCount: number | undefined,
+    totalVotes: number | undefined,
+  ): string {
+    const correct = fullyCorrectCount ?? 0;
+    const total = totalVotes ?? 0;
+    if (total <= 0) {
+      return $localize`:@@sessionHost.structuredNoVotes:Noch keine Antworten`;
+    }
+    const percent = Math.round((correct / total) * 100);
+    return $localize`:@@sessionHost.structuredCorrectSummary:${correct}:correct: von ${total}:total: vollständig korrekt (${percent}:percent: %)`;
+  }
+
+  hostHitRateBarWidth(percent: number | undefined): string {
+    const value = Math.max(0, Math.min(100, percent ?? 0));
+    return `${value}%`;
+  }
+
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
   readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
@@ -1281,6 +1442,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.hostPeerInstructionSuggestion(q)?.suggested === true &&
       (this.allHaveVoted() || this.countdownEnded())
     );
+  }
+
+  shouldOfferDiscussionPhase(q: HostCurrentQuestionDTO | null): boolean {
+    return this.shouldShowPeerInstructionSuggestion(q);
   }
 
   private previousStatus: string | null = null;
@@ -3998,7 +4163,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cacheKey = `${headingStartLevel}\u0000escape\u0000${value}`;
     const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -4008,11 +4173,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
+          escapeListMarkers: headingStartLevel >= 4,
         }).html,
       ),
     );
     this.markdownCache.set(cacheKey, rendered);
     return rendered;
+  }
+
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    return this.renderMarkdown(value, 4);
   }
 
   hostQuestionTypeLabel(type: HostCurrentQuestionDTO['type']): string {

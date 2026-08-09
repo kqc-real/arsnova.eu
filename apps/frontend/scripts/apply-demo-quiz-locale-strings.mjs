@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { format } from 'prettier';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
@@ -13,7 +14,7 @@ function md(strings, ...values) {
   return String.raw({ raw: strings.raw }, ...values).trim();
 }
 
-const EXPORT_VERSION = 26;
+const EXPORT_VERSION = 29;
 const EXPORTED_AT = '2026-05-24T10:00:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -21,6 +22,41 @@ const EMOTION_IMAGE_URL =
 const PI_IMAGE_URL = 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif';
 const ROOFTOP_SCENE_IMAGE_URL = '/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png';
 const CODE_FENCE = '```';
+const ORDERING_ITEM_IDS = [
+  '5f46d99e-2bf7-4ef8-bfb3-5c90353e798d',
+  '5cdfcfe2-c879-476b-b2f1-76c783571830',
+  '77ac6f31-b8ce-483c-8af5-d0abdf15e88c',
+  '89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23',
+  '1d6fb5a5-dc43-4313-9f53-48b2ff903fa4',
+  'fd2f863c-6c7b-4592-b537-9f15b51ee9ec',
+];
+const MATCHING_LEFT_IDS = [
+  '95d15b08-c999-403d-adb0-cfc18a4249ad',
+  '984ef5dc-fd8c-47e9-9c57-8d6e6e799835',
+  'be54805d-8643-48b0-9034-d90567bc2b12',
+  '023134ad-42c5-4474-b865-1cf3142291e2',
+  '10e6b6b2-9ef3-4a52-855b-592e1eb69678',
+  '9e8bd516-2844-4f20-9222-6c5817327907',
+];
+const MATCHING_RIGHT_IDS = [
+  '30b3ddd5-65c0-46c3-9184-116c6d60ec80',
+  '65399907-87d5-491b-aea8-18e76093e3a4',
+  'd130f8c6-42a6-423b-bc45-7382bbfce72d',
+  'bc1f2b60-a2d1-45a8-bb91-9931858f0745',
+  '9342f709-78d4-488b-bffb-b781b168f5c1',
+  'f97e1e9a-c0fa-423d-be92-35802101930d',
+];
+const CATEGORIZATION_ITEM_IDS = [
+  'cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b',
+  'a42a3285-7b06-4a76-a89c-127d99a85a80',
+  '66528b34-d7b3-43f6-8704-f0cddeccdf4f',
+  '2855285d-df2a-451e-9b90-bbd8cbdc249d',
+  'f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0',
+  '94c4b1ae-1ef0-4a22-b641-f3463b983d41',
+  'd9d952ae-d363-4871-945d-b480df58b3fb',
+  '6e89535f-1fc5-44f0-bfd8-2ee31bb9608f',
+  'ffb67168-962f-43f1-af15-d5d1d45858bd',
+];
 
 const PROCESSING_SKETCH = [
   'float angle = 0;',
@@ -53,6 +89,13 @@ const PROCESSING_SKETCH = [
 ].join('\n');
 
 function buildPayload(locale) {
+  const questionText = (index) =>
+    locale.questions[index].text
+      .replace(
+        /^> \*\*(?:Piste pédagogique :|Teaching move:|Unterrichtsidee:|Uso didattico:|Uso didáctico:)\*\*[^\n]*(?:\n+|$)/gmu,
+        '',
+      )
+      .trim();
   return {
     exportVersion: EXPORT_VERSION,
     exportedAt: EXPORTED_AT,
@@ -79,7 +122,7 @@ function buildPayload(locale) {
       readingPhaseEnabled: true,
       questions: [
         {
-          text: locale.questions[0].text,
+          text: questionText(0),
           type: 'SURVEY',
           timer: null,
           difficulty: 'EASY',
@@ -87,53 +130,85 @@ function buildPayload(locale) {
           answers: locale.questions[0].answers,
         },
         {
-          text: locale.questions[1].text,
+          text: locale.freeTextQuestion,
           type: 'FREETEXT',
           timer: null,
-          difficulty: 'MEDIUM',
+          difficulty: 'EASY',
           order: 1,
           skipReadingPhase: true,
           answers: [],
+          confidenceEnabled: false,
         },
         {
-          text: locale.questions[2].text,
+          text: questionText(1),
+          type: 'NUMERIC_ESTIMATE',
+          timer: null,
+          difficulty: 'MEDIUM',
+          order: 2,
+          skipReadingPhase: true,
+          answers: [],
+          numericToleranceMode: 'ABSOLUTE_INTERVAL',
+          numericReferenceValue: 3.14,
+          numericTolerancePercent: null,
+          numericIntervalLeft: 3.135,
+          numericIntervalRight: 3.145,
+          numericInputType: 'DECIMAL',
+          numericDecimalPlaces: 2,
+          numericMin: 3,
+          numericMax: 3.5,
+          numericTwoRounds: false,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
+        },
+        {
+          text: questionText(2),
           type: 'SINGLE_CHOICE',
           timer: null,
           difficulty: 'EASY',
-          order: 2,
+          order: 3,
           answers: locale.questions[2].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[3].text,
+          text: questionText(3),
           type: 'MULTIPLE_CHOICE',
           timer: null,
           difficulty: 'MEDIUM',
-          order: 3,
+          order: 4,
           skipReadingPhase: true,
           answers: locale.questions[3].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[4].text,
+          text: questionText(4),
           type: 'SINGLE_CHOICE',
           timer: null,
           difficulty: 'HARD',
-          order: 4,
+          order: 5,
           answers: locale.questions[4].answers,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[5].text,
+          text: questionText(5),
           type: 'SINGLE_CHOICE',
           timer: null,
           difficulty: 'MEDIUM',
-          order: 5,
+          order: 6,
           answers: locale.questions[5].answers,
         },
         {
-          text: locale.questions[6].text,
+          text: questionText(6),
           type: 'SHORT_TEXT',
           timer: null,
           difficulty: 'HARD',
-          order: 6,
+          order: 7,
           answers: locale.questions[6].answers,
           shortTextMaxLength: 32,
           shortTextCaseSensitive: false,
@@ -142,48 +217,85 @@ function buildPayload(locale) {
           shortTextAllowPartialCredit: true,
           shortTextTrimWhitespace: true,
           shortTextNormalizeWhitespace: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[7].text,
+          text: questionText(7),
           type: 'NUMERIC_ESTIMATE',
           timer: null,
           difficulty: 'MEDIUM',
-          order: 7,
+          order: 8,
           answers: [],
           numericToleranceMode: 'ABSOLUTE_INTERVAL',
           numericReferenceValue: 1789,
+          numericTolerancePercent: null,
           numericIntervalLeft: 1788.5,
           numericIntervalRight: 1789.5,
           numericInputType: 'INTEGER',
-          numericMin: 1700,
-          numericMax: 1900,
+          numericMin: 1500,
+          numericMax: 2000,
           numericTwoRounds: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[9].text,
-          type: 'SHORT_TEXT',
+          text: questionText(9),
+          type: 'ORDERING',
           timer: null,
           difficulty: 'HARD',
-          order: 8,
-          answers: locale.questions[9].answers,
-          shortTextMaxLength: 24,
-          shortTextCaseSensitive: false,
-          shortTextEvaluationKind: 'numeric_unit',
-          numericInputKind: 'decimal',
-          numericToleranceMode: 'relative',
-          numericRelativeTolerancePercent: 2,
-          numericUnitFamily: 'time',
-          numericRequireUnit: true,
-          numericAcceptEquivalentUnits: true,
-          shortTextTrimWhitespace: true,
-          shortTextNormalizeWhitespace: true,
+          order: 9,
+          answers: [],
+          orderingItems: locale.questions[9].orderingItems.map((item, index) => ({
+            ...item,
+            id: ORDERING_ITEM_IDS[index],
+          })),
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
         },
         {
-          text: locale.questions[8].text,
+          text: questionText(10),
+          type: 'MATCHING',
+          timer: null,
+          difficulty: 'MEDIUM',
+          order: 10,
+          answers: [],
+          matchingPairs: locale.questions[10].matchingPairs.map((pair, index) => ({
+            leftId: MATCHING_LEFT_IDS[index],
+            ...pair,
+            rightId: MATCHING_RIGHT_IDS[index],
+          })),
+          matchingShuffleRight: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
+        },
+        {
+          text: questionText(11),
+          type: 'CATEGORIZATION',
+          timer: null,
+          difficulty: 'MEDIUM',
+          order: 11,
+          answers: [],
+          categories: locale.questions[11].categories,
+          categorizationItems: locale.questions[11].categorizationItems.map((item, index) => ({
+            id: CATEGORIZATION_ITEM_IDS[index],
+            ...item,
+          })),
+          categorizationShuffleItems: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: locale.confidenceLabelLow,
+          confidenceLabelHigh: locale.confidenceLabelHigh,
+        },
+        {
+          text: questionText(8),
           type: 'RATING',
           timer: null,
           difficulty: 'EASY',
-          order: 9,
+          order: 12,
           answers: [],
           ratingMin: 1,
           ratingMax: 5,
@@ -199,29 +311,22 @@ const LOCALES = {
   de: {
     name: 'Praxis-Showcase: Team-Quiz',
     teamNames: ['Team 🍎', 'Team 🍐'],
+    confidenceLabelLow: 'Sehr unsicher',
+    confidenceLabelHigh: 'Sehr sicher',
+    freeTextQuestion: md`
+### Was hilft dir beim Lernen?
+
+Antworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.
+    `,
     description: md`![Praxis-Showcase](${PI_IMAGE_URL})
 
 # Praxis-Showcase für den Unterricht
 
-Diese Demo ist für den **echten Unterrichtseinsatz** gedacht. Sie will kein perfekt durchkomponiertes Fachquiz von Anfang bis Ende sein. Ihr Zweck ist ein anderer: Sie soll Lehrkräften, Dozierenden und Trainer:innen zeigen, wie arsnova.eu eine Live-Session abwechslungsreicher, visueller und spielerischer machen kann.
+Die 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.
 
-Nutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu zeigen, wie du:
-- mit einem kurzen emotionalen oder sozialen Check-in startest
-- Bilder statt reiner Textfragen einsetzt
-- Formeln und wissenschaftliche Notation in MINT-Fächern einbindest
-- numerische Schätzfragen mit Referenzwert, Toleranzband und zwei Runden ausprobierst
-- kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden
-- Multiple-Choice- und Rating-Fragen sinnvoll einsetzt
-- mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust
-- Codebeispiele im Informatik- oder Technikunterricht einsetzt
+Die Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Ein-Wort-Frage Begriffe aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.
 
-Die Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.
-
-**Tipp für die Demo:** Tritt der Session auf einem zweiten Gerät bei, am besten per QR-Code auf dem Smartphone. So kannst du den Wechsel zwischen Host-Ansicht und Teilnehmenden-Perspektive realistisch durchspielen.
-
-**Noch ein Tipp:** Öffne danach den Bearbeitungsmodus des Quiz und schau dir an, wie die Fragen mit Markdown und KaTeX umgesetzt sind.
-
-**Und noch etwas:** Weitere Frageformate oder Features kannst du gern anfragen. Die Kontaktdaten findest du im Impressum.`,
+Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.`,
     questions: [
       {
         text: md`### Wie ist die Stimmung im Raum gerade?
@@ -275,16 +380,19 @@ _Mehrere Antworten möglich._
         answers: [
           { text: 'Vorwissen zu Beginn einer Stunde aktivieren', isCorrect: true },
           { text: 'Missverständnisse mitten in der Stunde sichtbar machen', isCorrect: true },
-          { text: 'Vor einer Prüfung das Sicherheitsgefühl anonym abfragen', isCorrect: true },
           {
-            text: 'Nur benotete Abschlusstests am Ende einer Einheit durchführen',
+            text: 'Individuelle Prüfungsnoten ohne Identitätsnachweis vergeben',
+            isCorrect: false,
+          },
+          {
+            text: 'Komplexe Lernziele anhand einer einzigen Abstimmung abschließend bewerten',
             isCorrect: false,
           },
         ],
       },
       {
         text: md`
-### Wie viele sichtbare Teile hat der klassische Zauberwürfel?
+### Aus wie vielen von außen sichtbaren Einzelwürfeln (Cubies) besteht ein klassischer 3×3-Zauberwürfel?
 
 > **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.
 
@@ -300,7 +408,7 @@ Optionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https
         ],
       },
       {
-        text: md`### In welcher Sprache ist dieser Code geschrieben?
+        text: md`### Für welche Creative-Coding-Umgebung wurde dieses Sketch geschrieben?
 
 > **Unterrichtsidee:** Nutze das als schnellen Erkennungsimpuls für Informatik, Maker-Projekte oder technische Einführungen.
 
@@ -344,38 +452,140 @@ Gesucht ist das Jahr, das historisch üblicherweise als Beginn der Französische
 
 > **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.
         `,
-        ratingLabelMin: 'Eher noch nicht',
-        ratingLabelMax: 'Ich probiere es aus',
+        ratingLabelMin: 'Sehr unwahrscheinlich',
+        ratingLabelMax: 'Sehr wahrscheinlich',
+      },
+      {
+        text: md`
+### Ordne die Schritte der Genexpression in einer eukaryotischen Zelle.
+
+> **Unterrichtsidee:** Nutze Sortierfragen in Biologie, Chemie oder Physik, um komplexere mehrstufige Reaktionsketten vor dem Abitur prüfungssicher einzuüben.
+
+Bringe die sechs Schritte in die korrekte Abfolge.
+        `,
+        orderingItems: [
+          {
+            id: 'step1',
+            text: 'Transkription',
+          },
+          {
+            id: 'step2',
+            text: 'RNA-Prozessierung',
+          },
+          {
+            id: 'step3',
+            text: 'Export der reifen mRNA',
+          },
+          {
+            id: 'step4',
+            text: 'Initiation der Translation',
+          },
+          {
+            id: 'step5',
+            text: 'Elongation der Polypeptidkette',
+          },
+          {
+            id: 'step6',
+            text: 'Termination und Freisetzung der Polypeptidkette',
+          },
+        ],
+      },
+      {
+        text: md`
+### Ordne den historischen Daten der Weimarer Republik das passende Ereignis zu.
+
+> **Unterrichtsidee:** Nutze Zuordnungsfragen in Geschichte, SOWI oder Geografie, um Schlüsseldaten, Verträge oder Verfassungsorgane 1:1 barrierefrei abzufragen.
+
+_Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
+        `,
+        matchingPairs: [
+          {
+            left: '9. November 1918',
+            right: 'Ausrufung der Republik durch Philipp Scheidemann',
+          },
+          {
+            left: '28. Juni 1919',
+            right: 'Unterzeichnung des Versailler Vertrags',
+          },
+          {
+            left: '11. August 1919',
+            right: 'Unterzeichnung der Weimarer Reichsverfassung durch Friedrich Ebert',
+          },
+          {
+            left: '15. November 1923',
+            right: 'Einführung der Rentenmark',
+          },
+          {
+            left: '29. Oktober 1929',
+            right: 'Massiver Kurseinbruch an der Wall Street („Black Tuesday“)',
+          },
+          {
+            left: '30. Januar 1933',
+            right: 'Ernennung Adolf Hitlers zum Reichskanzler',
+          },
+        ],
+      },
+      {
+        text: md`
+### Ordne die folgenden sechs Werke der richtigen Literaturepoche zu.
+
+> **Unterrichtsidee:** Nutze Kategorisierungsfragen im Deutsch- oder Fremdsprachenunterricht, um mehrere Texte, Schlüsselbegriffe oder Autoren Epochen und Stilrichtungen zuzuordnen.
+
+_Ordne jedes Element einer der drei Literaturepochen zu._
+        `,
+        categories: [
+          { id: 'cat_aufklaerung', name: 'Aufklärung (ca. 1720–1785)' },
+          { id: 'cat_sturm', name: 'Sturm und Drang (ca. 1765–1785)' },
+          { id: 'cat_romantik', name: 'Romantik (ca. 1795–1835)' },
+        ],
+        categorizationItems: [
+          {
+            text: 'Nathan der Weise',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Emilia Galotti',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Die Leiden des jungen Werther',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Die Räuber',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Der Sandmann',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Mondnacht',
+            correctCategoryId: 'cat_romantik',
+          },
+        ],
       },
     ],
   },
   en: {
     name: 'Teaching Showcase: Live Team Demo',
     teamNames: ['Team 🍎', 'Team 🍐'],
+    confidenceLabelLow: 'Very unsure',
+    confidenceLabelHigh: 'Very confident',
+    freeTextQuestion: md`
+### What helps you learn?
+
+Answer in **one word**. The responses will be displayed as a word cloud.
+    `,
     description: md`![Teaching showcase](${PI_IMAGE_URL})
 
 # Teaching Practice Showcase
 
-This demo is built for **real classroom use**. It is not trying to be the perfect subject quiz from start to finish. Its job is different: it shows teachers, trainers, and facilitators how arsnova.eu can make a live session feel more varied, more visual, and more game-like.
+These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.
 
-Use it as a short, **Kahoot-style team demo for live teaching** to show how you can:
-- open with a quick emotional or social check-in
-- use images instead of text-only prompts
-- bring in formulas and scientific notation in STEM
-- try numeric estimate questions with a reference value, tolerance band, and two rounds
-- collect short free-text answers from the room that later reappear as a word cloud
-- use multiple-answer and quick rating prompts well
-- ask for **answer confidence** (1–5) after graded answers and spot **incorrect answers with high confidence**
-- add energy with timers, teams, a leaderboard, and bonus codes
-- show code snippets in computer science or technical courses
+The showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect one-word responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
 
-The questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.
-
-**Demo tip:** Join the session on a second device, ideally by scanning the QR code with your phone. That lets you rehearse the back-and-forth between the host view and the participant experience realistically.
-
-**Another tip:** Then open the quiz in edit mode to see how the questions are built with Markdown and KaTeX.
-
-**One more thing:** If you would like additional question types or features, feel free to ask. You can find the contact details in the legal notice.`,
+Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
     questions: [
       {
         text: md`### How is the room feeling right now?
@@ -429,13 +639,16 @@ _Select all that apply._
         answers: [
           { text: 'Activate prior knowledge at the start of class', isCorrect: true },
           { text: 'Surface misconceptions halfway through a lesson', isCorrect: true },
-          { text: 'Gauge confidence anonymously before exam prep', isCorrect: true },
-          { text: 'Use it only for graded tests at the end of a unit', isCorrect: false },
+          { text: 'Award individual exam grades without verified identities', isCorrect: false },
+          {
+            text: 'Make a final judgement on complex learning goals from one poll',
+            isCorrect: false,
+          },
         ],
       },
       {
         text: md`
-### How many visible pieces does the classic Rubik’s Cube have?
+### How many externally visible cubies make up a classic 3×3 Rubik’s Cube?
 
 > **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.
 
@@ -451,7 +664,7 @@ Optional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience 
         ],
       },
       {
-        text: md`### Which language is this code written in?
+        text: md`### Which creative-coding environment was this sketch written for?
 
 > **Teaching move:** Use this as a quick recognition prompt in computer science, maker, or STEM classes.
 
@@ -495,38 +708,140 @@ Expected answer: the year commonly used as the beginning of the French Revolutio
 
 > **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.
         `,
-        ratingLabelMin: 'Not yet',
-        ratingLabelMax: 'Ready to try it',
+        ratingLabelMin: 'Very unlikely',
+        ratingLabelMax: 'Very likely',
+      },
+      {
+        text: md`
+### Put the steps of gene expression in a eukaryotic cell into the correct order.
+
+> **Teaching move:** Use ordering prompts in biology, chemistry, or physics to practice multi-step reaction chains before exams.
+
+Arrange the six steps in the correct sequence.
+        `,
+        orderingItems: [
+          {
+            id: 'step1',
+            text: 'Transcription',
+          },
+          {
+            id: 'step2',
+            text: 'RNA processing',
+          },
+          {
+            id: 'step3',
+            text: 'Export of mature mRNA',
+          },
+          {
+            id: 'step4',
+            text: 'Initiation of translation',
+          },
+          {
+            id: 'step5',
+            text: 'Elongation of the polypeptide chain',
+          },
+          {
+            id: 'step6',
+            text: 'Termination and release of the polypeptide chain',
+          },
+        ],
+      },
+      {
+        text: md`
+### Match the historical dates of the Weimar Republic to the corresponding event.
+
+> **Teaching move:** Use matching prompts in history, social studies, or geography to check key dates, treaties, or constitutional organs 1:1.
+
+_Match each date on the left to its historical milestone on the right._
+        `,
+        matchingPairs: [
+          {
+            left: '9 November 1918',
+            right: 'Proclamation of the Republic by Philipp Scheidemann',
+          },
+          {
+            left: '28 June 1919',
+            right: 'Signing of the Treaty of Versailles',
+          },
+          {
+            left: '11 August 1919',
+            right: 'Signing of the Weimar Constitution by Friedrich Ebert',
+          },
+          {
+            left: '15 November 1923',
+            right: 'Introduction of the Rentenmark',
+          },
+          {
+            left: '29 October 1929',
+            right: 'Massive Wall Street price collapse ("Black Tuesday")',
+          },
+          {
+            left: '30 January 1933',
+            right: 'Appointment of Adolf Hitler as Chancellor',
+          },
+        ],
+      },
+      {
+        text: md`
+### Categorise the following six works by literary period.
+
+> **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.
+
+_Assign each item to one of the three literary movements._
+        `,
+        categories: [
+          { id: 'cat_aufklaerung', name: 'Enlightenment (c. 1720–1785)' },
+          { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
+          { id: 'cat_romantik', name: 'Romanticism (c. 1795–1835)' },
+        ],
+        categorizationItems: [
+          {
+            text: 'Nathan the Wise',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Emilia Galotti',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'The Sorrows of Young Werther',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'The Robbers',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'The Sandman',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Moonlit Night',
+            correctCategoryId: 'cat_romantik',
+          },
+        ],
       },
     ],
   },
   fr: {
-    name: 'Showcase pédagogique : démo en équipe',
+    name: 'Démonstration pédagogique : quiz en équipe',
     teamNames: ['Équipe 🍎', 'Équipe 🍐'],
-    description: md`![Showcase pédagogique](${PI_IMAGE_URL})
+    confidenceLabelLow: 'Très incertain·e',
+    confidenceLabelHigh: 'Très sûr·e',
+    freeTextQuestion: md`
+### Qu’est-ce qui t’aide à apprendre ?
 
-# Showcase pédagogique
+Réponds en **un mot**. Les réponses seront affichées sous forme de nuage de mots.
+    `,
+    description: md`![Démonstration pédagogique](${PI_IMAGE_URL})
 
-Cette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.
+# Démonstration pédagogique
 
-Utilisez-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment vous pouvez :
-- démarrer avec un rapide tour d’humeur ou un check-in social
-- utiliser des images plutôt que des consignes purement textuelles
-- intégrer des formules et de la notation scientifique en STEM
-- tester des questions d’estimation numérique avec valeur de référence, bande de tolérance et deux tours
-- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots
-- utiliser à bon escient les choix multiples et les échelles d’évaluation
-- demander le **degré de confiance** (1–5) après les réponses notées et repérer les réponses **incorrectes avec un degré de confiance élevé** dans la vue hôte
-- ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus
-- afficher des extraits de code en informatique ou dans des cours techniques
+Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.
 
-Les questions sont volontairement variées. L’idée est de vous donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.
+La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres en un mot et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
 
-**Conseil pour la démo :** Rejoignez la session sur un deuxième appareil, idéalement en scannant le QR code avec votre téléphone. Vous pourrez ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.
-
-**Autre conseil :** Ouvrez ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.
-
-**Et encore une chose :** Si vous souhaitez d’autres formats de questions ou fonctionnalités, n’hésitez pas à les demander. Les coordonnées figurent dans les mentions légales.`,
+Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
     questions: [
       {
         text: md`### Comment se sent le groupe en ce moment ?
@@ -544,7 +859,7 @@ Les questions sont volontairement variées. L’idée est de vous donner des pis
         ],
       },
       {
-        text: md`### Arrondissez $\pi$ à deux décimales.
+        text: md`### Arrondis $\pi$ à deux décimales.
 
 > **Piste pédagogique :** utilisez cette question comme brève activité d’estimation en STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.
 
@@ -580,16 +895,19 @@ _Plusieurs réponses possibles._
         answers: [
           { text: 'Activer les connaissances préalables au début du cours', isCorrect: true },
           { text: 'Faire émerger des idées fausses au milieu d’une séance', isCorrect: true },
-          { text: 'Sonder anonymement le niveau de confiance avant une révision', isCorrect: true },
           {
-            text: 'L’utiliser uniquement pour des évaluations notées en fin de séquence',
+            text: 'Attribuer des notes individuelles sans vérifier les identités',
+            isCorrect: false,
+          },
+          {
+            text: 'Évaluer définitivement des objectifs complexes à partir d’un seul vote',
             isCorrect: false,
           },
         ],
       },
       {
         text: md`
-### Combien de pièces visibles possède le Rubik’s Cube classique ?
+### Combien de petits cubes visibles de l’extérieur composent un Rubik’s Cube 3×3 classique ?
 
 > **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
 
@@ -605,7 +923,7 @@ Ressource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérien
         ],
       },
       {
-        text: md`### Dans quel langage ce code est-il écrit ?
+        text: md`### Pour quel environnement de creative coding ce sketch a-t-il été écrit ?
 
 > **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.
 
@@ -645,41 +963,141 @@ On cherche l’année généralement retenue comme début de la Révolution fran
       },
       {
         text: md`
-### Quelle est la probabilité que vous utilisiez bientôt un quiz en direct comme celui-ci dans l’un de vos cours ?
+### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?
 
 > **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.
         `,
-        ratingLabelMin: 'Pas pour l’instant',
-        ratingLabelMax: 'Je vais l’essayer',
+        ratingLabelMin: 'Très peu probable',
+        ratingLabelMax: 'Très probable',
+      },
+      {
+        text: md`
+### Mets dans l’ordre les étapes de l’expression des gènes dans une cellule eucaryote.
+
+> **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.
+
+Mets les six étapes dans la bonne séquence.
+        `,
+        orderingItems: [
+          {
+            id: 'step1',
+            text: 'Transcription',
+          },
+          {
+            id: 'step2',
+            text: 'Maturation de l’ARN',
+          },
+          {
+            id: 'step3',
+            text: 'Export de l’ARNm mature',
+          },
+          {
+            id: 'step4',
+            text: 'Initiation de la traduction',
+          },
+          {
+            id: 'step5',
+            text: 'Élongation de la chaîne polypeptidique',
+          },
+          {
+            id: 'step6',
+            text: 'Terminaison et libération de la chaîne polypeptidique',
+          },
+        ],
+      },
+      {
+        text: md`
+### Associe chaque date de la République de Weimar à l’événement correspondant.
+
+> **Piste pédagogique :** utilisez des questions d'association en histoire ou géographie pour vérifier des dates clés ou traités de manière 1:1.
+
+_Associe chaque date à gauche à l’événement historique correspondant à droite._
+        `,
+        matchingPairs: [
+          {
+            left: '9 novembre 1918',
+            right: 'Proclamation de la République par Philipp Scheidemann',
+          },
+          { left: '28 juin 1919', right: 'Signature du traité de Versailles' },
+          {
+            left: '11 août 1919',
+            right: 'Signature de la Constitution de Weimar par Friedrich Ebert',
+          },
+          {
+            left: '15 novembre 1923',
+            right: 'Introduction du Rentenmark',
+          },
+          {
+            left: '29 octobre 1929',
+            right: 'Effondrement massif des cours à Wall Street (« Black Tuesday »)',
+          },
+          {
+            left: '30 janvier 1933',
+            right: 'Nomination d’Adolf Hitler comme chancelier',
+          },
+        ],
+      },
+      {
+        text: md`
+### Classe les six œuvres suivantes dans leur période littéraire.
+
+> **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.
+
+_Associe chaque élément à l’un des trois mouvements littéraires._
+        `,
+        categories: [
+          { id: 'cat_aufklaerung', name: 'Lumières / Aufklärung (v. 1720–1785)' },
+          { id: 'cat_sturm', name: 'Sturm und Drang (v. 1765–1785)' },
+          { id: 'cat_romantik', name: 'Romantisme (v. 1795–1835)' },
+        ],
+        categorizationItems: [
+          {
+            text: 'Nathan le Sage',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Emilia Galotti',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Les Souffrances du jeune Werther',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Les Brigands',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'L’Homme au sable',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Nuit de lune',
+            correctCategoryId: 'cat_romantik',
+          },
+        ],
       },
     ],
   },
   es: {
-    name: 'Showcase docente: demo por equipos',
+    name: 'Demostración didáctica: cuestionario por equipos',
     teamNames: ['Equipo 🍎', 'Equipo 🍐'],
-    description: md`![Showcase docente](${PI_IMAGE_URL})
+    confidenceLabelLow: 'Muy inseguro/a',
+    confidenceLabelHigh: 'Muy seguro/a',
+    freeTextQuestion: md`
+### ¿Qué te ayuda a aprender?
 
-# Showcase docente
+Responde con **una palabra**. Las respuestas se mostrarán como una nube de palabras.
+    `,
+    description: md`![Demostración didáctica](${PI_IMAGE_URL})
 
-Esta demo está pensada para el **uso real en el aula**. No pretende ser el quiz perfecto de principio a fin. Su objetivo es otro: mostrar a docentes, formadores y facilitadores cómo arsnova.eu puede hacer que una sesión en vivo sea más variada, más visual y más lúdica.
+# Demostración didáctica
 
-Úsala como una **demo breve por equipos, al estilo Kahoot, para clases en vivo** para mostrar cómo puedes:
-- arrancar con un check-in emocional o social
-- usar imágenes en lugar de preguntas solo de texto
-- incorporar fórmulas y notación científica en STEM
-- probar preguntas de estimación numérica con valor de referencia, banda de tolerancia y dos rondas
-- recoger respuestas breves en texto libre que después reaparecen como nube de palabras
-- usar bien preguntas de respuesta múltiple y escalas de valoración
-- añadir energía con temporizadores, equipos, clasificación y códigos de bonificación
-- mostrar fragmentos de código en informática o en materias técnicas
+Estas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
 
-Las preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.
+La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas de una sola palabra y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
 
-**Consejo para la demo:** Únete también a la sesión desde un segundo dispositivo, idealmente escaneando el código QR con el móvil. Así podrás ensayar de forma realista el cambio entre la vista del anfitrión y la experiencia del participante.
-
-**Otro consejo:** Después abre el cuestionario en modo de edición para ver cómo están hechas las preguntas con Markdown y KaTeX.
-
-**Y una cosa más:** Si echas en falta otros tipos de pregunta o funciones, puedes pedirlos sin problema. Encontrarás los datos de contacto en el aviso legal.`,
+Los temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.`,
     questions: [
       {
         text: md`### ¿Cómo está el grupo ahora mismo?
@@ -734,15 +1152,18 @@ _Puede haber varias respuestas correctas._
           { text: 'Activar conocimientos previos al inicio de la clase', isCorrect: true },
           { text: 'Detectar malentendidos a mitad de la sesión', isCorrect: true },
           {
-            text: 'Medir de forma anónima la confianza antes de repasar para un examen',
-            isCorrect: true,
+            text: 'Asignar notas individuales sin comprobar la identidad',
+            isCorrect: false,
           },
-          { text: 'Usarlo solo para pruebas calificadas al final de una unidad', isCorrect: false },
+          {
+            text: 'Evaluar definitivamente objetivos complejos a partir de una sola votación',
+            isCorrect: false,
+          },
         ],
       },
       {
         text: md`
-### ¿Cuántas piezas visibles tiene el cubo de Rubik clásico?
+### ¿Cuántos cubitos visibles desde el exterior forman un cubo de Rubik 3×3 clásico?
 
 > **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.
 
@@ -758,7 +1179,7 @@ Sugerencia opcional: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en 
         ],
       },
       {
-        text: md`### ¿En qué lenguaje está escrito este código?
+        text: md`### ¿Para qué entorno de programación creativa se escribió este sketch?
 
 > **Uso didáctico:** Úsalo como reconocimiento rápido en informática, maker o asignaturas STEM.
 
@@ -798,41 +1219,141 @@ Buscamos el año que se suele tomar como inicio de la Revolución francesa.
       },
       {
         text: md`
-### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?
+### ¿Qué probabilidad hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?
 
 > **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.
         `,
-        ratingLabelMin: 'Todavía no',
-        ratingLabelMax: 'Lo voy a probar',
+        ratingLabelMin: 'Muy improbable',
+        ratingLabelMax: 'Muy probable',
+      },
+      {
+        text: md`
+### Ordena los pasos de la expresión génica en una célula eucariota.
+
+> **Uso didáctico:** Úsalo como pregunta de ordenación en biología o química para ensayar cadenas de reacción complejas antes de los exámenes.
+
+Coloca los seis pasos en la secuencia correcta.
+        `,
+        orderingItems: [
+          {
+            id: 'step1',
+            text: 'Transcripción',
+          },
+          {
+            id: 'step2',
+            text: 'Procesamiento del ARN',
+          },
+          {
+            id: 'step3',
+            text: 'Exportación del ARNm maduro',
+          },
+          {
+            id: 'step4',
+            text: 'Inicio de la traducción',
+          },
+          {
+            id: 'step5',
+            text: 'Elongación de la cadena polipeptídica',
+          },
+          {
+            id: 'step6',
+            text: 'Terminación y liberación de la cadena polipeptídica',
+          },
+        ],
+      },
+      {
+        text: md`
+### Relaciona cada fecha de la República de Weimar con el acontecimiento correspondiente.
+
+> **Uso didáctico:** Úsalo como pregunta de emparejamiento en historia o ciencias sociales para comprobar fechas clave o tratados 1:1.
+
+_Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
+        `,
+        matchingPairs: [
+          {
+            left: '9 de noviembre de 1918',
+            right: 'Proclamación de la República por Philipp Scheidemann',
+          },
+          { left: '28 de junio de 1919', right: 'Firma del Tratado de Versalles' },
+          {
+            left: '11 de agosto de 1919',
+            right: 'Firma de la Constitución de Weimar por Friedrich Ebert',
+          },
+          {
+            left: '15 de noviembre de 1923',
+            right: 'Introducción del Rentenmark',
+          },
+          {
+            left: '29 de octubre de 1929',
+            right: 'Desplome masivo de las cotizaciones en Wall Street («Black Tuesday»)',
+          },
+          {
+            left: '30 de enero de 1933',
+            right: 'Nombramiento de Adolf Hitler como canciller',
+          },
+        ],
+      },
+      {
+        text: md`
+### Clasifica las seis obras siguientes por época literaria.
+
+> **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.
+
+_Asigna cada elemento a uno de los tres movimientos literarios._
+        `,
+        categories: [
+          { id: 'cat_aufklaerung', name: 'Ilustración / Aufklärung (c. 1720–1785)' },
+          { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
+          { id: 'cat_romantik', name: 'Romanticismo (c. 1795–1835)' },
+        ],
+        categorizationItems: [
+          {
+            text: 'Natán el Sabio',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Emilia Galotti',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Las penas del joven Werther',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'Los bandidos',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'El hombre de la arena',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Noche de luna',
+            correctCategoryId: 'cat_romantik',
+          },
+        ],
       },
     ],
   },
   it: {
-    name: 'Showcase didattico: demo a squadre',
+    name: 'Dimostrazione didattica: quiz a squadre',
     teamNames: ['Squadra 🍎', 'Squadra 🍐'],
-    description: md`![Showcase didattico](${PI_IMAGE_URL})
+    confidenceLabelLow: 'Per niente sicuro/a',
+    confidenceLabelHigh: 'Molto sicuro/a',
+    freeTextQuestion: md`
+### Che cosa ti aiuta a imparare?
 
-# Showcase didattico
+Rispondi con **una sola parola**. Le risposte saranno visualizzate sotto forma di nuvola di parole.
+    `,
+    description: md`![Dimostrazione didattica](${PI_IMAGE_URL})
 
-Questa demo è pensata per un **uso reale in classe**. Non vuole essere il quiz disciplinare perfetto dall’inizio alla fine. Il suo obiettivo è un altro: mostrare a docenti, formatori e facilitatori come arsnova.eu possa rendere una sessione dal vivo più varia, più visiva e più coinvolgente.
+# Dimostrazione didattica
 
-Usala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** per mostrare come puoi:
-- iniziare con un check-in emotivo o sociale
-- usare immagini invece di sole domande testuali
-- inserire formule e notazione scientifica nelle materie STEM
-- provare domande di stima numerica con valore di riferimento, fascia di tolleranza e due turni
-- raccogliere risposte brevi in testo libero che poi riappaiono come nuvola di parole
-- usare bene domande a scelta multipla e scale di valutazione rapide
-- aggiungere energia con timer, squadre, classifica e codici bonus
-- mostrare frammenti di codice in informatica o in corsi tecnici
+Queste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
 
-Le domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.
+La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte di una sola parola e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.
 
-**Suggerimento per la demo:** Entra nella sessione anche da un secondo dispositivo, idealmente scansionando il QR code con il telefono. Così puoi provare in modo realistico il passaggio tra la vista host e l’esperienza del partecipante.
-
-**Un altro suggerimento:** Poi apri il quiz in modalità modifica per vedere come le domande sono realizzate con Markdown e KaTeX.
-
-**E ancora una cosa:** Se ti servono altri tipi di domanda o funzionalità, puoi richiederli senza problemi. Trovi i contatti nelle note legali.`,
+Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.`,
     questions: [
       {
         text: md`### Che clima c’è nel gruppo in questo momento?
@@ -877,7 +1398,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Quali di questi usi si prestano bene a un rapido check dal vivo?
+### Quali di questi usi sono adatti a una breve verifica in diretta?
 
 > **Uso didattico:** Usalo per mostrare una domanda a scelta multipla con più risposte corrette.
 
@@ -887,15 +1408,18 @@ _Sono possibili più risposte corrette._
           { text: 'Attivare le conoscenze pregresse all’inizio della lezione', isCorrect: true },
           { text: 'Far emergere i fraintendimenti a metà attività', isCorrect: true },
           {
-            text: 'Rilevare in modo anonimo il livello di sicurezza prima del ripasso',
-            isCorrect: true,
+            text: 'Assegnare voti individuali senza verificare l’identità',
+            isCorrect: false,
           },
-          { text: 'Usarlo solo per verifiche valutate alla fine di un’unità', isCorrect: false },
+          {
+            text: 'Valutare definitivamente obiettivi complessi con una sola votazione',
+            isCorrect: false,
+          },
         ],
       },
       {
         text: md`
-### Quanti pezzi visibili ha il classico Cubo di Rubik?
+### Da quanti cubetti visibili dall’esterno è composto un classico Cubo di Rubik 3×3?
 
 > **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.
 
@@ -911,7 +1435,7 @@ Spunto facoltativo: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in t
         ],
       },
       {
-        text: md`### In quale linguaggio è scritto questo codice?
+        text: md`### Per quale ambiente di programmazione creativa è stato scritto questo sketch?
 
 > **Uso didattico:** Usalo come rapido prompt di riconoscimento in informatica, nelle attività maker o nelle materie STEM.
 
@@ -951,12 +1475,119 @@ Cerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.
       },
       {
         text: md`
-### Quanto è probabile che tu provi presto un quiz live come questo in una tua lezione?
+### Quanto è probabile che tu provi presto un quiz in diretta come questo in una tua lezione?
 
 > **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.
         `,
-        ratingLabelMin: 'Non ancora',
-        ratingLabelMax: 'Lo provo',
+        ratingLabelMin: 'Molto improbabile',
+        ratingLabelMax: 'Molto probabile',
+      },
+      {
+        text: md`
+### Metti in ordine le fasi dell’espressione genica in una cellula eucariotica.
+
+> **Uso didattico:** Usalo come domanda di ordinamento in biologia o chimica per esercitarsi su catene di reazioni complesse prima degli esami.
+
+Disponi i sei passaggi nella sequenza corretta.
+        `,
+        orderingItems: [
+          {
+            id: 'step1',
+            text: 'Trascrizione',
+          },
+          {
+            id: 'step2',
+            text: 'Maturazione dell’RNA',
+          },
+          {
+            id: 'step3',
+            text: 'Esportazione dell’mRNA maturo',
+          },
+          {
+            id: 'step4',
+            text: 'Inizio della traduzione',
+          },
+          {
+            id: 'step5',
+            text: 'Allungamento della catena polipeptidica',
+          },
+          {
+            id: 'step6',
+            text: 'Terminazione e rilascio della catena polipeptidica',
+          },
+        ],
+      },
+      {
+        text: md`
+### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.
+
+> **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.
+
+_Collega ciascuna data a sinistra con il relativo evento storico a destra._
+        `,
+        matchingPairs: [
+          {
+            left: '9 novembre 1918',
+            right: 'Proclamazione della Repubblica da parte di Philipp Scheidemann',
+          },
+          { left: '28 giugno 1919', right: 'Firma del Trattato di Versailles' },
+          {
+            left: '11 agosto 1919',
+            right: 'Firma della Costituzione di Weimar da parte di Friedrich Ebert',
+          },
+          {
+            left: '15 novembre 1923',
+            right: 'Introduzione del Rentenmark',
+          },
+          {
+            left: '29 ottobre 1929',
+            right: 'Crollo massiccio delle quotazioni a Wall Street («Black Tuesday»)',
+          },
+          {
+            left: '30 gennaio 1933',
+            right: 'Nomina di Adolf Hitler a cancelliere',
+          },
+        ],
+      },
+      {
+        text: md`
+### Classifica le sei opere seguenti per epoca letteraria.
+
+> **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.
+
+_Assegna ciascun elemento a uno dei tre movimenti letterari._
+        `,
+        categories: [
+          { id: 'cat_aufklaerung', name: 'Illuminismo / Aufklärung (c. 1720–1785)' },
+          { id: 'cat_sturm', name: 'Sturm und Drang (c. 1765–1785)' },
+          { id: 'cat_romantik', name: 'Romanticismo (c. 1795–1835)' },
+        ],
+        categorizationItems: [
+          {
+            text: 'Nathan il saggio',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'Emilia Galotti',
+            correctCategoryId: 'cat_aufklaerung',
+          },
+          {
+            text: 'I dolori del giovane Werther',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'I masnadieri',
+            correctCategoryId: 'cat_sturm',
+          },
+          {
+            text: 'L’uomo della sabbia',
+            correctCategoryId: 'cat_romantik',
+          },
+          {
+            text: 'Notte di luna',
+            correctCategoryId: 'cat_romantik',
+          },
+        ],
       },
     ],
   },
@@ -964,7 +1595,8 @@ Cerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.
 
 for (const [locale, data] of Object.entries(LOCALES)) {
   const outPath = path.join(demoDir, `quiz-demo-showcase.${locale}.json`);
-  fs.writeFileSync(outPath, `${JSON.stringify(buildPayload(data), null, 2)}\n`, 'utf8');
+  const json = await format(JSON.stringify(buildPayload(data)), { filepath: outPath });
+  fs.writeFileSync(outPath, json, 'utf8');
 }
 
 console.log('Wrote quiz-demo-showcase.{de,en,fr,es,it}.json');

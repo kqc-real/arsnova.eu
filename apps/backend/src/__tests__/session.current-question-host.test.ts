@@ -262,6 +262,62 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result!.correctVoterCount).toBeUndefined();
   });
 
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'wertet aktive %s-Stimmen am unteren Ein-Drittel-Grenzwert für Peer Instruction aus',
+    async (type) => {
+      const questionId = 'cccccccc-3333-4333-8333-333333333333';
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: CODE,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+        answerDisplayOrder: null,
+        quiz: {
+          defaultTimer: null,
+          preset: 'SERIOUS',
+          questions: [
+            {
+              id: questionId,
+              order: 0,
+              text: 'Strukturierte Frage',
+              type,
+              difficulty: 'MEDIUM',
+              timer: null,
+              answers: [],
+            },
+          ],
+        },
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        { isCorrect: true },
+        { isCorrect: false },
+        { isCorrect: false },
+      ]);
+
+      const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+      expect(result).toMatchObject({
+        type,
+        totalVotes: 3,
+        correctVoterCount: 1,
+        incorrectVoterCount: 2,
+        peerInstructionSuggestion: {
+          suggested: true,
+          reason: 'CORRECTNESS_WINDOW',
+        },
+      });
+      expect(prismaMock.vote.findMany).toHaveBeenCalledWith({
+        where: {
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          questionId,
+          round: 1,
+        },
+        select: { isCorrect: true },
+      });
+    },
+  );
+
   it('zaehlt aktive NUMERIC_ESTIMATE-Stimmen ohne Werte fuer Histogramme zu laden', async () => {
     const questionId = 'cccccccc-3333-4333-8333-333333333333';
     prismaMock.session.findUnique.mockResolvedValue({
@@ -451,6 +507,47 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
       totalVotes: 4,
       correctVoterCount: 2,
       incorrectVoterCount: 2,
+      peerInstructionSuggestion: {
+        suggested: true,
+        reason: 'CORRECTNESS_WINDOW',
+      },
+    });
+  });
+
+  it('liefert strukturierten Fortschritt am oberen Zwei-Drittel-Grenzwert mit Peer-Instruction-Signal', async () => {
+    const questionId = 'cccccccc-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: CODE,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            order: 0,
+            type: 'ORDERING',
+            answers: [],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { isCorrect: true },
+      { isCorrect: true },
+      { isCorrect: false },
+    ]);
+
+    const result = await caller.getHostVoteProgress({ code: CODE });
+
+    expect(result).toEqual({
+      questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      correctVoterCount: 2,
+      incorrectVoterCount: 1,
       peerInstructionSuggestion: {
         suggested: true,
         reason: 'CORRECTNESS_WINDOW',
@@ -688,7 +785,7 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     });
   });
 
-  it('liefert keine Peer-Instruction-Empfehlung wenn Anteil vollstaendig korrekter Stimmen unter 35 %', async () => {
+  it('liefert keine Peer-Instruction-Empfehlung unterhalb von einem Drittel vollständig korrekter Stimmen', async () => {
     const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
     const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';
     prismaMock.session.findUnique.mockResolvedValue({

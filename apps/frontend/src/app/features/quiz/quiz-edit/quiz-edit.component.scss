@@ -766,6 +766,50 @@
   margin-top: 0.4rem;
 }
 
+.quiz-edit-answer__reorder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.25rem;
+}
+
+/* Strukturierte Fragetypen haben andere Kindzahlen als klassische Antwortzeilen. Explizite
+   Raster geben den Textfeldern den verfügbaren Platz, statt das erste Feld auf Inhaltsbreite zu
+   begrenzen. Bei Ordering liegen die Bewegungsaktionen in einer eigenen Zeile. */
+.quiz-edit-answer--matching,
+.quiz-edit-answer--categorization-item {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.quiz-edit-answer--ordering {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+
+  .quiz-edit-answer__reorder-actions {
+    grid-column: 2 / -1;
+    justify-content: flex-end;
+    margin-top: 0;
+  }
+
+  .quiz-edit-answer__remove {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+.quiz-edit-answer--category {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.quiz-edit-answer--matching,
+.quiz-edit-answer--ordering,
+.quiz-edit-answer--category,
+.quiz-edit-answer--categorization-item {
+  .quiz-edit-form__grow {
+    min-width: 0;
+  }
+}
+
 /* Schmale Viewports: Löschen-Icon nicht neben dem Editor — Zeile 1 (Auswahl + Löschen), Zeile 2 Editor in voller Breite */
 @media (max-width: 599px) {
   .quiz-edit-answer {
@@ -788,9 +832,57 @@
     align-self: center;
   }
 
+  .quiz-edit-answer__reorder-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
   .quiz-edit-answer__field {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+
+  .quiz-edit-answer--matching,
+  .quiz-edit-answer--categorization-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .quiz-edit-form__grow {
+      grid-column: 1 / -1;
+    }
+
+    .quiz-edit-form__grow:first-child {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .quiz-edit-form__grow:nth-child(2) {
+      grid-row: 2;
+    }
+
+    .quiz-edit-answer__remove {
+      grid-row: 1;
+      justify-self: end;
+    }
+  }
+
+  .quiz-edit-answer--ordering {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+
+    .quiz-edit-answer__reorder-actions {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-content: flex-end;
+    }
+
+    .quiz-edit-answer__remove {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  .quiz-edit-answer--category {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 

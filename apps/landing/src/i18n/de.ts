@@ -4,7 +4,7 @@ const de: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand',
     homeDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     siteNameInfo: 'arsnova.eu – Informationen',
     ogLocale: 'de_DE',
   },
@@ -206,7 +206,7 @@ const de: Messages = {
         number: '01',
         title: 'Quiz vorbereiten',
         description:
-          'Fragen direkt erstellen oder vorhandene Inhalte importieren. Markdown, KaTeX, Kurzantwort und numerische Schätzfragen sind direkt eingebaut.',
+          'Fragen direkt erstellen oder vorhandene Inhalte importieren. Markdown, KaTeX, Kurzantwort, Schätzfragen sowie Zuordnen, Sortieren und Kategorisieren sind direkt eingebaut.',
       },
       {
         number: '02',
@@ -260,7 +260,7 @@ const de: Messages = {
       {
         title: 'Mehr als ein Standard-Quiz',
         description:
-          'MC/SC, Kurzantwort, Bewertungsskala, Lesephase, Peer Instruction und Presenter-Modus unterstützen Lernen, Training und Live-Moderation.',
+          'MC/SC, Kurzantwort, Bewertungsskala, Zuordnen, Sortieren, Kategorisieren, Lesephase, Peer Instruction und Presenter-Modus unterstützen Lernen, Training und Live-Moderation.',
         icon: 'toggle',
       },
       {
@@ -298,6 +298,53 @@ const de: Messages = {
         description:
           'Docker, Postgres, Redis und Admin-Protokollierung machen die Plattform auch für Bereitstellung, Betrieb und Nachvollziehbarkeit verlässlich.',
         icon: 'server',
+      },
+    ],
+  },
+  structuredQuestionTypes: {
+    eyebrow: 'Strukturierte Fragetypen',
+    title: 'Zuordnen, sortieren und kategorisieren — vollständig und auswertbar',
+    lead: 'Drei Formate machen Beziehungen, Abläufe und Begriffsgrenzen interaktiv. Während der Abstimmung bleibt die Lösung verborgen; nach der Freigabe werden Musterlösung und typische Fehlmuster verständlich sichtbar.',
+    interactionLabel: 'Interaktion',
+    exampleLabel: 'Einsatzbeispiel',
+    resultLabel: 'Auswertung',
+    scoringNote:
+      'Alle drei Typen sind bewertbar. Eine Antwort erhält aktuell volle oder keine Punkte; Teilpunkte sind nicht vorgesehen.',
+    revealNote:
+      'In aktiven Runden bleiben Paarung, Soll-Reihenfolge und Zielkategorien verborgen. Erst nach der Auflösung erscheinen richtige Lösung und vertiefende Verteilungen.',
+    items: [
+      {
+        id: 'matching',
+        title: 'Zuordnen',
+        description:
+          'Begriffe, Definitionen oder Beispiele werden eindeutig miteinander verknüpft. Die Auswertung macht typische Verwechslungen sichtbar.',
+        interaction:
+          'Jeder linke Begriff erhält genau ein Ziel; jedes Ziel wird einmal verwendet und alle Zuordnungen müssen ausgefüllt sein.',
+        example: 'Historische Daten passenden Ereignissen zuordnen.',
+        result: 'Korrekte Paare, Trefferquoten und häufige Verwechslungen.',
+        symbol: 'A↔B',
+      },
+      {
+        id: 'ordering',
+        title: 'Sortieren',
+        description:
+          'Schritte, Ereignisse oder Prozessphasen werden in die richtige Reihenfolge gebracht. Die Auswertung zeigt, an welchen Positionen Unsicherheiten bestehen.',
+        interaction:
+          'Alle Elemente bilden eine vollständige lineare Folge; sichtbare Verschiebeaktionen und Tastatursteuerung funktionieren ohne notwendiges Drag-and-drop.',
+        example: 'Phasen eines biologischen Prozesses ordnen.',
+        result: 'Musterfolge, Positionsverteilung und häufige Vertauschungen.',
+        symbol: '1→3',
+      },
+      {
+        id: 'categorisation',
+        title: 'Kategorisieren',
+        description:
+          'Begriffe oder Beispiele werden passenden Kategorien zugeordnet. Die Auswertung zeigt sichere Abgrenzungen und häufige Fehlzuordnungen.',
+        interaction:
+          'Jedes Element erhält genau eine Kategorie und alle Elemente müssen zugeordnet sein.',
+        example: 'Literarische Werke ihren Epochen zuordnen.',
+        result: 'Mustergruppierung, Kategorienverteilung und typische Fehlzuordnungen.',
+        symbol: '▦',
       },
     ],
   },
@@ -384,7 +431,7 @@ const de: Messages = {
       {
         title: 'Mehr Interaktionsformate',
         description:
-          'Neben Quiz auch numerische Schätzfragen, Lesephase, Peer Instruction, Blitzlicht, Q&A-Fragenwand und gewichtete Wortwolke in derselben Plattform statt nur Folien-Abstimmungen.',
+          'Neben Quiz auch Zuordnen, Sortieren, Kategorisieren, numerische Schätzfragen, Lesephase, Peer Instruction, Blitzlicht, Q&A-Fragenwand und gewichtete Wortwolke in derselben Plattform statt nur Folien-Abstimmungen.',
       },
       {
         title: 'Mehr Kontrolle über Daten und Zugang',
@@ -460,7 +507,7 @@ const de: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',
     webAppDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     featureList: [
       'Live-Quiz und Abstimmungen',
       'Selbsteinschätzung bei bewertbaren Fragen',
@@ -468,7 +515,7 @@ const de: Messages = {
       'Numerische Schätzfragen mit zwei Runden und Statistik',
       'Q&A-Fragenwand mit Moderation, Zustimmungs- und Ablehnungsstimmen',
       'Warteraum, Presenter, QR/Code',
-      'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Bewertungsskala/Schätzfrage',
+      'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Bewertungsskala/Schätzfrage/Zuordnung/Sortierung/Kategorisierung',
       'Markdown und KaTeX',
       'Lesephase und Peer Instruction',
       'Q&A- und Freitext-Wortwolke mit Phrasen und Gewichtung',

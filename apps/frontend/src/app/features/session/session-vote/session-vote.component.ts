@@ -19,8 +19,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
@@ -110,6 +112,7 @@ import {
 } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
+import { ItemSelectionRowComponent } from '../../../shared/item-selection-row/item-selection-row.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -124,6 +127,8 @@ const TIMER_ACCOMMODATION_MODES = [
 const VOTE_RESPONSE_STORAGE_KEY = 'arsnova-vote-response';
 const VOTE_FALLBACK_POLL_MS = 2000;
 const VOTE_FALLBACK_POLL_JITTER_MS = 800;
+const STRUCTURED_ROUND_REFRESH_RETRY_BASE_MS = 500;
+const STRUCTURED_ROUND_REFRESH_RETRY_MAX_MS = 5000;
 const VOTE_ANCHOR_TOP = 'vote-top';
 const VOTE_ANCHOR_QUESTION = 'vote-question-anchor';
 const VOTE_ANCHOR_OPTIONS_START = 'vote-options-start';
@@ -150,7 +155,10 @@ type StoredVoteResponse = {
   ratingValue?: number;
   numericValue?: number;
   confidenceValue?: number;
-  sent: true;
+  orderingSequence?: string[];
+  matchingSelections?: { leftId: string; rightId: string }[];
+  categorizationSelections?: { itemId: string; categoryId: string }[];
+  sent: boolean;
   updatedAt: string;
 };
 
@@ -225,7 +233,10 @@ function isScoredQuestionType(type: CurrentQuestion['type'] | null | undefined):
     type === 'SINGLE_CHOICE' ||
     type === 'MULTIPLE_CHOICE' ||
     type === 'SHORT_TEXT' ||
-    type === 'NUMERIC_ESTIMATE'
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
   );
 }
 
@@ -385,14 +396,17 @@ export function getNumericEstimateMotivation(input: {
     MatButton,
     MatButtonToggle,
     MatButtonToggleGroup,
+    MatFormFieldModule,
     MatIcon,
     MatProgressSpinner,
+    MatSelectModule,
     CountdownFingersComponent,
     DecimalPipe,
     NgTemplateOutlet,
     FeedbackVoteComponent,
     MarkdownImageLightboxDirective,
     AnswerOptionBadgeComponent,
+    ItemSelectionRowComponent,
   ],
   templateUrl: './session-vote.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],
@@ -459,6 +473,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly voteClosed = signal(false);
   readonly voteError = signal<string | null>(null);
   readonly voteSending = signal(false);
+  readonly structuredRoundTransitionPending = signal(false);
   readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
@@ -491,6 +506,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   private lateSubmitCloseTimeout: ReturnType<typeof setTimeout> | null = null;
   private lobbyArrivalTimeout: ReturnType<typeof setTimeout> | null = null;
+  private structuredRoundRefreshRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private structuredRoundRefreshRetryAttempt = 0;
   private pendingJoinArrival = false;
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
@@ -1165,7 +1182,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return s !== null && s <= 0;
   });
   readonly voteInteractionLocked = computed(
-    () => this.voteSent() || this.voteSending() || this.timerExpired() || this.voteClosed(),
+    () =>
+      this.voteSent() ||
+      this.voteSending() ||
+      this.timerExpired() ||
+      this.voteClosed() ||
+      this.structuredRoundTransitionPending(),
   );
   readonly voteSubmissionLocked = computed(() => this.voteSent() || this.voteClosed());
 
@@ -1252,6 +1274,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'RATING';
   });
+  readonly isOrdering = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'ORDERING';
+  });
+  readonly isMatching = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'MATCHING';
+  });
+  readonly isCategorization = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'CATEGORIZATION';
+  });
+
+  readonly orderingSequenceState = signal<string[]>([]);
+  readonly orderingItemsState = signal<Array<{ id: string; text: string }>>([]);
+  readonly matchingSelectionsState = signal<
+    Array<{ leftId: string; leftText: string; rightId: string }>
+  >([]);
+  readonly matchingRightOptionsState = signal<Array<{ id: string; text: string }>>([]);
+  readonly categorizationSelectionsState = signal<
+    Array<{ itemId: string; itemText: string; categoryId: string }>
+  >([]);
+  readonly categoriesState = signal<Array<{ id: string; name: string }>>([]);
+  readonly orderingAnnouncement = signal('');
+  readonly matchingAnnouncement = signal('');
+
   readonly isConfidenceEnabled = computed(() => {
     const q = this.currentQuestion();
     if (!q || !('type' in q) || !questionSupportsConfidence(q.type)) {
@@ -1271,6 +1319,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     if (this.isNumericEstimate()) {
       return this.numericValidationError() === null && this.numericParsedValue() !== null;
+    }
+    if (this.isOrdering()) {
+      return this.hasCompleteOrderingAnswer();
+    }
+    if (this.isMatching()) {
+      return (
+        this.matchingSelectionsState().length > 0 &&
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId))
+      );
+    }
+    if (this.isCategorization()) {
+      return (
+        this.categorizationSelectionsState().length > 0 &&
+        this.categorizationSelectionsState().every((s) => Boolean(s.categoryId))
+      );
     }
     return false;
   });
@@ -1626,12 +1689,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private hasLocalVoteState(): boolean {
+    const hasStructuredDraft =
+      this.matchingSelectionsState().some((selection) => Boolean(selection.rightId)) ||
+      this.categorizationSelectionsState().some((selection) => Boolean(selection.categoryId));
     return (
       this.selectedAnswerIds().size > 0 ||
       this.freeTextValue().trim().length > 0 ||
       this.ratingValue() !== null ||
       this.confidenceValue() !== null ||
-      this.numericInputValue().trim().length > 0
+      this.numericInputValue().trim().length > 0 ||
+      hasStructuredDraft
     );
   }
 
@@ -1657,9 +1724,67 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (typeof parsed.numericValue === 'number') {
         this.numericInputValue.set(String(parsed.numericValue));
       }
+      this.restoreStructuredVoteState(question, parsed);
       this.voteSent.set(parsed.sent === true);
     } catch {
       /* noop */
+    }
+  }
+
+  private restoreStructuredVoteState(
+    question: CurrentQuestion,
+    response: Pick<
+      StoredVoteResponse,
+      'matchingSelections' | 'orderingSequence' | 'categorizationSelections'
+    >,
+  ): void {
+    if (question.type === 'MATCHING' && Array.isArray(response.matchingSelections)) {
+      const validRightIds = new Set(this.matchingRightOptionsState().map((option) => option.id));
+      const restoredByLeftId = new Map(
+        response.matchingSelections.map((selection) => [selection.leftId, selection.rightId]),
+      );
+      const usedRightIds = new Set<string>();
+      this.matchingSelectionsState.update((current) =>
+        current.map((selection) => {
+          const rightId = restoredByLeftId.get(selection.leftId) ?? '';
+          if (!validRightIds.has(rightId) || usedRightIds.has(rightId)) return selection;
+          usedRightIds.add(rightId);
+          return { ...selection, rightId };
+        }),
+      );
+    }
+    if (question.type === 'CATEGORIZATION' && Array.isArray(response.categorizationSelections)) {
+      const validCategoryIds = new Set(this.categoriesState().map((category) => category.id));
+      const restoredByItemId = new Map(
+        response.categorizationSelections.map((selection) => [
+          selection.itemId,
+          selection.categoryId,
+        ]),
+      );
+      this.categorizationSelectionsState.update((current) =>
+        current.map((selection) => {
+          const categoryId = restoredByItemId.get(selection.itemId) ?? '';
+          return validCategoryIds.has(categoryId) ? { ...selection, categoryId } : selection;
+        }),
+      );
+    }
+    if (
+      question.type === 'ORDERING' &&
+      Array.isArray(response.orderingSequence) &&
+      response.orderingSequence.length > 0
+    ) {
+      const byId = new Map(this.orderingItemsState().map((item) => [item.id, item]));
+      const restored = response.orderingSequence
+        .map((id) => byId.get(id))
+        .filter((item): item is { id: string; text: string } => Boolean(item));
+      if (
+        restored.length === byId.size &&
+        response.orderingSequence.length === byId.size &&
+        new Set(response.orderingSequence).size === byId.size
+      ) {
+        this.orderingItemsState.set(restored);
+        this.orderingSequenceState.set(response.orderingSequence);
+      }
     }
   }
 
@@ -1670,6 +1795,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     ratingValue: number | undefined,
     numericValue?: number,
     confidenceValue?: number,
+    sent = true,
   ): void {
     const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
     if (!key || typeof localStorage === 'undefined') {
@@ -1682,7 +1808,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       ratingValue,
       numericValue,
       confidenceValue,
-      sent: true,
+      orderingSequence:
+        question.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined,
+      matchingSelections:
+        question.type === 'MATCHING'
+          ? this.matchingSelectionsState().map(({ leftId, rightId }) => ({ leftId, rightId }))
+          : undefined,
+      categorizationSelections:
+        question.type === 'CATEGORIZATION'
+          ? this.categorizationSelectionsState().map(({ itemId, categoryId }) => ({
+              itemId,
+              categoryId,
+            }))
+          : undefined,
+      sent,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1693,6 +1832,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  private storeStructuredVoteDraft(): void {
+    const question = this.currentQuestion();
+    if (!question || !this.isActive() || this.voteSent()) return;
+    this.storeVoteResponse(
+      question,
+      [...this.selectedAnswerIds()],
+      this.freeTextValue().trim() || undefined,
+      this.ratingValue() ?? undefined,
+      this.numericParsedValue() ?? undefined,
+      this.confidenceValue() ?? undefined,
+      false,
+    );
+  }
+
   readonly showVoteSubmitAction = computed(() => {
     if (this.showSessionEndGate() || this.isFinished()) return false;
     if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
@@ -1701,12 +1854,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.isFreetext() ||
       this.isShortText() ||
       this.isRating() ||
-      this.isNumericEstimate()
+      this.isNumericEstimate() ||
+      this.isOrdering() ||
+      this.isMatching() ||
+      this.isCategorization()
     );
   });
   readonly voteSubmitDisabled = computed(() => {
     if (!this.showVoteSubmitAction()) return true;
-    if (this.voteSending() || this.debounced() || this.voteClosed() || this.timerExpired()) {
+    if (
+      this.voteSending() ||
+      this.debounced() ||
+      this.voteClosed() ||
+      this.timerExpired() ||
+      this.structuredRoundTransitionPending()
+    ) {
       return true;
     }
 
@@ -1722,9 +1884,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       answerReady = this.ratingValue() !== null;
     } else if (this.isNumericEstimate()) {
       answerReady = this.numericValidationError() === null && this.numericParsedValue() !== null;
+    } else if (this.isOrdering()) {
+      answerReady = this.hasCompleteOrderingAnswer();
+    } else if (this.isMatching()) {
+      answerReady =
+        this.matchingSelectionsState().length > 0 &&
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId));
+    } else if (this.isCategorization()) {
+      answerReady =
+        this.categorizationSelectionsState().length > 0 &&
+        this.categorizationSelectionsState().every((s) => Boolean(s.categoryId));
     }
 
     if (!answerReady) {
+      if (this.isMatching() || this.isCategorization()) {
+        return false;
+      }
       return true;
     }
     if (this.isConfidenceEnabled() && this.confidenceValue() === null) {
@@ -2665,7 +2840,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const cacheKey = `${headingStartLevel}\u0000${value}`;
+    const cacheKey = `${headingStartLevel}\u0000escape\u0000${value}`;
     const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -2675,11 +2850,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
+          // Kurzlabels (Antworten/Ordering/Matching): „2. Schritt“ nicht als <ol>→„1.“.
+          escapeListMarkers: headingStartLevel >= 4,
         }).html,
       ),
     );
     this.markdownCache.set(cacheKey, rendered);
     return rendered;
+  }
+
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    return this.renderMarkdown(value, 4);
   }
 
   renderQuestionMarkdown(value: string): SafeHtml {
@@ -2698,6 +2880,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private handleSessionFinished(): void {
     this.stopCountdown();
     this.stopFallbackPolling();
+    this.clearStructuredRoundRefreshRetry();
     this.statusSub?.unsubscribe();
     this.statusSub = null;
     this.qaSub?.unsubscribe();
@@ -3027,6 +3210,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private resetForSecondRoundStart(): void {
+    const question = this.currentQuestion();
+    this.clearStructuredRoundRefreshRetry();
+    this.structuredRoundTransitionPending.set(
+      question?.type === 'MATCHING' ||
+        question?.type === 'ORDERING' ||
+        question?.type === 'CATEGORIZATION',
+    );
     this.clearLateSubmitCloseTimeout();
     this.voteSent.set(false);
     this.voteClosed.set(false);
@@ -3041,6 +3231,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.showRewardEffect.set(false);
     this.scorecard.set(null);
     this.scorecardQuestionIndex = -1;
+  }
+
+  private clearStructuredRoundRefreshRetry(): void {
+    if (this.structuredRoundRefreshRetryTimer) {
+      clearTimeout(this.structuredRoundRefreshRetryTimer);
+      this.structuredRoundRefreshRetryTimer = null;
+    }
+    this.structuredRoundRefreshRetryAttempt = 0;
+  }
+
+  private scheduleStructuredRoundRefreshRetry(): void {
+    if (!this.structuredRoundTransitionPending() || this.structuredRoundRefreshRetryTimer) {
+      return;
+    }
+    const delay = Math.min(
+      STRUCTURED_ROUND_REFRESH_RETRY_BASE_MS * 2 ** this.structuredRoundRefreshRetryAttempt,
+      STRUCTURED_ROUND_REFRESH_RETRY_MAX_MS,
+    );
+    this.structuredRoundRefreshRetryAttempt += 1;
+    this.structuredRoundRefreshRetryTimer = setTimeout(() => {
+      this.structuredRoundRefreshRetryTimer = null;
+      void this.refreshQuestion();
+    }, delay);
   }
 
   private async refreshSessionInfoFallback(): Promise<void> {
@@ -3105,6 +3318,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.stopFallbackPolling();
+    this.clearStructuredRoundRefreshRetry();
     if (this.lobbyArrivalTimeout) {
       clearTimeout(this.lobbyArrivalTimeout);
       this.lobbyArrivalTimeout = null;
@@ -3883,6 +4097,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSentEmoji.set('');
         this.currentRound.set(qRound);
       }
+      const reinitStructuredForSecondRound =
+        this.structuredRoundTransitionPending() &&
+        qRound === 2 &&
+        this.questionHasStructuredVotePayload(q);
 
       if (newId !== prevId) {
         this.clearLateSubmitCloseTimeout();
@@ -3902,7 +4120,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.scorecardQuestionIndex = -1;
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
+        this.initStructuredQuestionState(q);
+        this.structuredRoundTransitionPending.set(false);
+        this.clearStructuredRoundRefreshRetry();
         this.startCountdown(q);
+      } else if (
+        reinitStructuredForSecondRound ||
+        this.shouldReinitStructuredQuestionState(prev, q)
+      ) {
+        // QUESTION_OPEN liefert Preview ohne Structured-Optionen; bei ACTIVE nachziehen.
+        this.initStructuredQuestionState(q);
+        if (reinitStructuredForSecondRound) {
+          this.structuredRoundTransitionPending.set(false);
+          this.clearStructuredRoundRefreshRetry();
+        }
       } else if (prevHadTimer && !newHasTimer) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
@@ -3910,7 +4141,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.startCountdown(q);
       }
 
-      if (q && this.isResults()) {
+      if (q && (this.isActive() || this.isResults())) {
         this.restoreStoredVoteResponse(q);
       }
 
@@ -3920,12 +4151,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const isScored = isScoredQuestionType(qType);
 
         if (isScored) {
-          let answeredCorrectly = false;
+          let answeredCorrectly: boolean | null = null;
 
           if ('type' in q && q.type === 'SHORT_TEXT') {
             answeredCorrectly = this.isShortTextResponseCorrectForQuestion(q);
           } else if ('type' in q && q.type === 'NUMERIC_ESTIMATE') {
             answeredCorrectly = this.isNumericEstimateResponseCorrectForQuestion(q);
+          } else if (
+            'type' in q &&
+            (q.type === 'MATCHING' || q.type === 'ORDERING' || q.type === 'CATEGORIZATION')
+          ) {
+            // Stored server correctness (scorecard); avoid false "wrong" from empty answers[].
+            answeredCorrectly = this.scorecard()?.wasCorrect ?? null;
           } else if ('answers' in q) {
             const selected = this.selectedAnswerIds();
             const revealed = (q as QuestionRevealedDTO).answers;
@@ -3937,24 +4174,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
               [...selected].every((id) => correctIds.has(id));
           }
 
-          if (answeredCorrectly && settings.enableRewardEffects) {
-            this.showRewardEffect.set(true);
-          }
-          if (settings.enableMotivationMessages) {
-            const playful = this.isPlayfulPreset();
-            this.motivationMessage.set(
-              'type' in q && q.type === 'NUMERIC_ESTIMATE'
-                ? this.numericEstimateMotivationMessage(q)
-                : pickRandom(
-                    answeredCorrectly
-                      ? playful
-                        ? MESSAGES_CORRECT_PLAYFUL
-                        : MESSAGES_CORRECT_SERIOUS
-                      : playful
-                        ? MESSAGES_WRONG_PLAYFUL
-                        : MESSAGES_WRONG_SERIOUS,
-                  ),
-            );
+          if (answeredCorrectly !== null) {
+            if (answeredCorrectly && settings.enableRewardEffects) {
+              this.showRewardEffect.set(true);
+            }
+            if (settings.enableMotivationMessages) {
+              const playful = this.isPlayfulPreset();
+              this.motivationMessage.set(
+                'type' in q && q.type === 'NUMERIC_ESTIMATE'
+                  ? this.numericEstimateMotivationMessage(q)
+                  : pickRandom(
+                      answeredCorrectly
+                        ? playful
+                          ? MESSAGES_CORRECT_PLAYFUL
+                          : MESSAGES_CORRECT_SERIOUS
+                        : playful
+                          ? MESSAGES_WRONG_PLAYFUL
+                          : MESSAGES_WRONG_SERIOUS,
+                    ),
+              );
+            }
           }
         }
       }
@@ -3967,7 +4206,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const qOrder = (q as { order: number }).order;
         if (qOrder !== this.scorecardQuestionIndex) {
           this.scorecardQuestionIndex = qOrder;
-          void this.loadScorecard(qOrder, 'type' in q ? q.type : null);
+          await this.loadScorecard(qOrder, 'type' in q ? q.type : null, q);
         }
       }
 
@@ -4026,8 +4265,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.questionIdsWithRound2QuestionScroll.add(newId);
         }
       }
+      if (this.structuredRoundTransitionPending()) {
+        this.scheduleStructuredRoundRefreshRetry();
+      }
     } catch {
-      /* noop */
+      this.scheduleStructuredRoundRefreshRetry();
     }
   }
 
@@ -4107,6 +4349,404 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       },
       { injector: this.injector },
     );
+  }
+
+  moveOrderingItemUp(index: number): void {
+    this.moveOrderingItem(index, 'up');
+  }
+
+  moveOrderingItemDown(index: number): void {
+    this.moveOrderingItem(index, 'down');
+  }
+
+  private hasCompleteOrderingAnswer(): boolean {
+    const question = this.currentQuestion();
+    if (!question || !('orderingItems' in question) || !Array.isArray(question.orderingItems)) {
+      return false;
+    }
+    const expectedIds = new Set(question.orderingItems.map((item) => item.id));
+    const currentIds = this.orderingItemsState().map((item) => item.id);
+    return (
+      expectedIds.size >= 3 &&
+      expectedIds.size === question.orderingItems.length &&
+      currentIds.length === expectedIds.size &&
+      new Set(currentIds).size === expectedIds.size &&
+      currentIds.every((itemId) => expectedIds.has(itemId))
+    );
+  }
+
+  moveOrderingItem(index: number, target: 'start' | 'up' | 'down' | 'end'): void {
+    const items = [...this.orderingItemsState()];
+    if (index < 0 || index >= items.length || items.length < 2) return;
+    const nextIndex =
+      target === 'start'
+        ? 0
+        : target === 'end'
+          ? items.length - 1
+          : target === 'up'
+            ? Math.max(0, index - 1)
+            : Math.min(items.length - 1, index + 1);
+    if (nextIndex === index) return;
+    const [item] = items.splice(index, 1);
+    if (!item) return;
+    items.splice(nextIndex, 0, item);
+    this.orderingItemsState.set(items);
+    this.orderingSequenceState.set(items.map((item) => item.id));
+    this.orderingAnnouncement.set(
+      $localize`:@@sessionVote.orderingMovedAnnouncement:${item.text}:item: steht jetzt an Position ${
+        nextIndex + 1
+      }:position: von ${items.length}:total:.`,
+    );
+    this.storeStructuredVoteDraft();
+  }
+
+  orderingMoveAriaLabel(itemText: string, target: 'start' | 'up' | 'down' | 'end'): string {
+    if (target === 'start') {
+      return $localize`:@@sessionVote.orderingMoveStartAria:${itemText}:item: an den Anfang verschieben`;
+    }
+    if (target === 'end') {
+      return $localize`:@@sessionVote.orderingMoveEndAria:${itemText}:item: ans Ende verschieben`;
+    }
+    if (target === 'up') {
+      return $localize`:@@sessionVote.orderingMoveUpAria:${itemText}:item: nach oben verschieben`;
+    }
+    return $localize`:@@sessionVote.orderingMoveDownAria:${itemText}:item: nach unten verschieben`;
+  }
+
+  orderingActionsAriaLabel(itemText: string): string {
+    return $localize`:@@sessionVote.orderingActionsAria:Position von ${itemText}:item: ändern`;
+  }
+
+  setMatchingSelection(leftId: string, rightId: string): void {
+    const currentSelections = this.matchingSelectionsState();
+    const currentSelection = currentSelections.find((selection) => selection.leftId === leftId);
+    const conflictingSelection = currentSelections.find(
+      (selection) => selection.leftId !== leftId && selection.rightId === rightId,
+    );
+    const selections = currentSelections.map((selection) => {
+      if (selection.leftId === leftId) {
+        return { ...selection, rightId };
+      }
+      if (conflictingSelection && selection.leftId === conflictingSelection.leftId) {
+        return { ...selection, rightId: currentSelection?.rightId ?? '' };
+      }
+      return selection;
+    });
+    this.matchingSelectionsState.set(selections);
+    if (currentSelection?.rightId && conflictingSelection) {
+      this.matchingAnnouncement.set(
+        $localize`:@@sessionVote.matchingSwappedAnnouncement:Die Zuordnungen für „${currentSelection.leftText}:firstItem:“ und „${conflictingSelection.leftText}:secondItem:“ wurden getauscht.`,
+      );
+    } else {
+      this.matchingAnnouncement.set('');
+    }
+    this.voteError.set(null);
+    this.storeStructuredVoteDraft();
+  }
+
+  getMatchingRightOptionsForLeft(leftId: string): Array<{ id: string; text: string }> {
+    const selections = this.matchingSelectionsState();
+    if (selections.length > 0 && selections.every((selection) => Boolean(selection.rightId))) {
+      return this.matchingRightOptionsState();
+    }
+    const current = selections.find((selection) => selection.leftId === leftId)?.rightId;
+    const usedByOthers = new Set(
+      selections
+        .filter((selection) => selection.leftId !== leftId && selection.rightId)
+        .map((selection) => selection.rightId),
+    );
+    return this.matchingRightOptionsState().filter(
+      (option) => option.id === current || !usedByOthers.has(option.id),
+    );
+  }
+
+  matchingProgressLabel(): string {
+    const total = this.matchingSelectionsState().length;
+    const done = this.matchingSelectionsState().filter((selection) =>
+      Boolean(selection.rightId),
+    ).length;
+    return $localize`:@@sessionVote.matchingProgress:${done}:done: von ${total}:total: zugeordnet`;
+  }
+
+  matchingSelectAriaLabel(left: string): string {
+    return $localize`:@@sessionVote.matchingSelectAria:Zuordnung für „${left}:item:“`;
+  }
+
+  categorizationProgressLabel(): string {
+    const total = this.categorizationSelectionsState().length;
+    const done = this.categorizationSelectionsState().filter((selection) =>
+      Boolean(selection.categoryId),
+    ).length;
+    return $localize`:@@sessionVote.categorizationProgress:${done}:done: von ${total}:total: eingeordnet`;
+  }
+
+  categorizationSelectAriaLabel(itemText: string): string {
+    return $localize`:@@sessionVote.categorizationSelectAria:Kategorie für „${itemText}:item:“`;
+  }
+
+  setCategorizationSelection(itemId: string, categoryId: string): void {
+    const selections = this.categorizationSelectionsState().map((s) =>
+      s.itemId === itemId ? { ...s, categoryId } : s,
+    );
+    this.categorizationSelectionsState.set(selections);
+    this.voteError.set(null);
+    this.storeStructuredVoteDraft();
+  }
+
+  private focusFirstIncompleteStructuredSelection(): void {
+    queueMicrotask(() => {
+      const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        'app-item-selection-row[data-incomplete="true"] mat-select',
+      );
+      target?.focus();
+    });
+  }
+
+  getCategoriesForCurrentQuestion(): { id: string; name: string }[] {
+    return this.categoriesState();
+  }
+
+  getCategorySelectionOptions(): Array<{ id: string; text: string }> {
+    return this.categoriesState().map((category) => ({ id: category.id, text: category.name }));
+  }
+
+  getCategoryNameById(catId: string): string {
+    const cats = this.getCategoriesForCurrentQuestion();
+    const found = cats.find((c) => c.id === catId);
+    return found?.name ?? catId;
+  }
+
+  getMatchingRightTextById(rightId: string): string {
+    return this.matchingRightOptionsState().find((option) => option.id === rightId)?.text ?? '–';
+  }
+
+  getCorrectMatchingRightId(leftId: string): string {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'MATCHING' || !('matchingPairs' in question)) return '';
+    return question.matchingPairs?.find((pair) => pair.leftId === leftId)?.rightId ?? '';
+  }
+
+  getCorrectCategorizationCategoryId(itemId: string): string {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'CATEGORIZATION' || !('categorizationItems' in question))
+      return '';
+    const item = question.categorizationItems?.find((candidate) => candidate.id === itemId) as
+      { correctCategoryId?: string } | undefined;
+    return item?.correctCategoryId ?? '';
+  }
+
+  orderingCorrectPosition(itemId: string): number {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'ORDERING' || !('orderingItems' in question)) return 0;
+    const index = question.orderingItems?.findIndex((item) => item.id === itemId) ?? -1;
+    return index >= 0 ? index + 1 : 0;
+  }
+
+  orderingPositionIsCorrect(itemId: string, index: number): boolean {
+    return this.orderingCorrectPosition(itemId) === index + 1;
+  }
+
+  structuredAnswerStatusLabel(correct: boolean): string {
+    return correct
+      ? $localize`:@@sessionVote.structuredCorrect:Richtig`
+      : $localize`:@@sessionVote.structuredWrong:Falsch`;
+  }
+
+  structuredResultSummary(question: CurrentQuestion): {
+    correct: number;
+    total: number;
+    fullyCorrect: boolean;
+    label: string;
+  } | null {
+    if (!this.hasStructuredParticipantAnswer(question)) return null;
+    let correct: number;
+    let total: number;
+
+    if (question.type === 'ORDERING' && 'orderingItems' in question) {
+      total = question.orderingItems?.length ?? 0;
+      correct = this.orderingItemsState().filter((item, index) =>
+        this.orderingPositionIsCorrect(item.id, index),
+      ).length;
+    } else if (question.type === 'MATCHING' && 'matchingPairs' in question) {
+      total = question.matchingPairs?.length ?? 0;
+      correct = this.matchingSelectionsState().filter(
+        (selection) => selection.rightId === this.getCorrectMatchingRightId(selection.leftId),
+      ).length;
+    } else if (question.type === 'CATEGORIZATION' && 'categorizationItems' in question) {
+      total = question.categorizationItems?.length ?? 0;
+      correct = this.categorizationSelectionsState().filter(
+        (selection) =>
+          selection.categoryId === this.getCorrectCategorizationCategoryId(selection.itemId),
+      ).length;
+    } else {
+      return null;
+    }
+
+    const fullyCorrect = total > 0 && correct === total;
+    const label = fullyCorrect
+      ? $localize`:@@sessionVote.structuredSummaryFullyCorrect:${correct}:correct: von ${total}:total: richtig – vollständig korrekt`
+      : $localize`:@@sessionVote.structuredSummary:${correct}:correct: von ${total}:total: richtig`;
+    return { correct, total, fullyCorrect, label };
+  }
+
+  hasStructuredParticipantAnswer(question: CurrentQuestion): boolean {
+    if (!this.voteSent()) return false;
+    if (question.type === 'ORDERING' && 'orderingItems' in question) {
+      const total = question.orderingItems?.length ?? 0;
+      return total > 0 && this.orderingItemsState().length === total;
+    }
+    if (question.type === 'MATCHING' && 'matchingPairs' in question) {
+      const total = question.matchingPairs?.length ?? 0;
+      return (
+        total > 0 &&
+        this.matchingSelectionsState().length === total &&
+        this.matchingSelectionsState().every((selection) => Boolean(selection.rightId))
+      );
+    }
+    if (question.type === 'CATEGORIZATION' && 'categorizationItems' in question) {
+      const total = question.categorizationItems?.length ?? 0;
+      return (
+        total > 0 &&
+        this.categorizationSelectionsState().length === total &&
+        this.categorizationSelectionsState().every((selection) => Boolean(selection.categoryId))
+      );
+    }
+    return false;
+  }
+
+  getCorrectCategorizationItemsForCategory(
+    categoryId: string,
+  ): Array<{ id: string; text: string }> {
+    const question = this.currentQuestion();
+    if (!question || question.type !== 'CATEGORIZATION' || !('categorizationItems' in question)) {
+      return [];
+    }
+    return (question.categorizationItems ?? [])
+      .filter((item) => (item as { correctCategoryId?: string }).correctCategoryId === categoryId)
+      .map(({ id, text }) => ({ id, text }));
+  }
+
+  private questionHasStructuredVotePayload(question: CurrentQuestion | null): boolean {
+    if (!question || !('type' in question)) return false;
+    if (question.type === 'ORDERING') {
+      return (
+        'orderingItems' in question &&
+        Array.isArray(question.orderingItems) &&
+        question.orderingItems.length > 0
+      );
+    }
+    if (question.type === 'MATCHING') {
+      return (
+        ('matchingLeftOptions' in question &&
+          Array.isArray(question.matchingLeftOptions) &&
+          question.matchingLeftOptions.length > 0) ||
+        ('matchingPairs' in question &&
+          Array.isArray(question.matchingPairs) &&
+          question.matchingPairs.length > 0)
+      );
+    }
+    if (question.type === 'CATEGORIZATION') {
+      return (
+        'categorizationItems' in question &&
+        Array.isArray(question.categorizationItems) &&
+        question.categorizationItems.length > 0
+      );
+    }
+    return false;
+  }
+
+  private structuredVoteStateIsEmpty(question: CurrentQuestion): boolean {
+    if (!('type' in question)) return true;
+    if (question.type === 'ORDERING') return this.orderingItemsState().length === 0;
+    if (question.type === 'MATCHING') return this.matchingSelectionsState().length === 0;
+    if (question.type === 'CATEGORIZATION') {
+      return this.categorizationSelectionsState().length === 0;
+    }
+    return true;
+  }
+
+  private shouldReinitStructuredQuestionState(
+    prev: CurrentQuestion | null,
+    next: CurrentQuestion | null,
+  ): boolean {
+    if (!next || !('type' in next)) return false;
+    if (next.type !== 'ORDERING' && next.type !== 'MATCHING' && next.type !== 'CATEGORIZATION') {
+      return false;
+    }
+    if (!this.questionHasStructuredVotePayload(next)) return false;
+    if (this.structuredVoteStateIsEmpty(next)) return true;
+    return (
+      this.questionHasStructuredVotePayload(next) && !this.questionHasStructuredVotePayload(prev)
+    );
+  }
+
+  private initStructuredQuestionState(question: CurrentQuestion | null): void {
+    if (!question || !('type' in question)) {
+      this.orderingItemsState.set([]);
+      this.orderingSequenceState.set([]);
+      this.matchingSelectionsState.set([]);
+      this.matchingRightOptionsState.set([]);
+      this.matchingAnnouncement.set('');
+      this.categorizationSelectionsState.set([]);
+      this.categoriesState.set([]);
+      return;
+    }
+
+    if (question.type === 'ORDERING') {
+      const items =
+        'orderingItems' in question && Array.isArray(question.orderingItems)
+          ? question.orderingItems
+          : [];
+      this.orderingItemsState.set(items.map((item) => ({ id: item.id, text: item.text })));
+      this.orderingSequenceState.set(items.map((item) => item.id));
+    } else {
+      this.orderingItemsState.set([]);
+      this.orderingSequenceState.set([]);
+    }
+
+    if (question.type === 'MATCHING') {
+      let lefts =
+        'matchingLeftOptions' in question && Array.isArray(question.matchingLeftOptions)
+          ? question.matchingLeftOptions
+          : [];
+      let rights =
+        'matchingRightOptions' in question && Array.isArray(question.matchingRightOptions)
+          ? question.matchingRightOptions
+          : [];
+      if (
+        lefts.length === 0 &&
+        'matchingPairs' in question &&
+        Array.isArray(question.matchingPairs)
+      ) {
+        lefts = question.matchingPairs.map((pair) => ({ id: pair.leftId, text: pair.left }));
+        rights = question.matchingPairs.map((pair) => ({ id: pair.rightId, text: pair.right }));
+      }
+      this.matchingRightOptionsState.set(rights);
+      this.matchingSelectionsState.set(
+        lefts.map((left) => ({ leftId: left.id, leftText: left.text, rightId: '' })),
+      );
+      this.matchingAnnouncement.set('');
+    } else {
+      this.matchingRightOptionsState.set([]);
+      this.matchingSelectionsState.set([]);
+      this.matchingAnnouncement.set('');
+    }
+
+    if (question.type === 'CATEGORIZATION') {
+      const categories =
+        'categories' in question && Array.isArray(question.categories) ? question.categories : [];
+      const items =
+        'categorizationItems' in question && Array.isArray(question.categorizationItems)
+          ? question.categorizationItems
+          : [];
+      this.categoriesState.set(categories);
+      this.categorizationSelectionsState.set(
+        items.map((item) => ({ itemId: item.id, itemText: item.text, categoryId: '' })),
+      );
+    } else {
+      this.categoriesState.set([]);
+      this.categorizationSelectionsState.set([]);
+    }
   }
 
   private voteScrollBehavior(): ScrollBehavior {
@@ -4229,6 +4869,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     }
 
+    if (
+      q.type === 'MATCHING' &&
+      (this.matchingSelectionsState().length === 0 ||
+        this.matchingSelectionsState().some((selection) => !selection.rightId))
+    ) {
+      this.voteError.set(
+        $localize`:@@sessionVote.matchingIncomplete:Ordne jedem linken Begriff genau einen rechten Begriff zu.`,
+      );
+      this.focusFirstIncompleteStructuredSelection();
+      return;
+    }
+
+    if (
+      q.type === 'CATEGORIZATION' &&
+      (this.categorizationSelectionsState().length === 0 ||
+        this.categorizationSelectionsState().some((selection) => !selection.categoryId))
+    ) {
+      this.voteError.set(
+        $localize`:@@sessionVote.categorizationIncomplete:Ordne jedes Element einer Kategorie zu.`,
+      );
+      this.focusFirstIncompleteStructuredSelection();
+      return;
+    }
+
     if (this.isConfidenceEnabled() && confidence === undefined) {
       this.voteError.set(
         $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`,
@@ -4245,6 +4909,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
+      const orderingSeq =
+        q.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined;
+      const matchingSel =
+        q.type === 'MATCHING'
+          ? this.matchingSelectionsState().map(({ leftId, rightId }) => ({ leftId, rightId }))
+          : undefined;
+      const categorizationSel =
+        q.type === 'CATEGORIZATION'
+          ? this.categorizationSelectionsState().map(({ itemId, categoryId }) => ({
+              itemId,
+              categoryId,
+            }))
+          : undefined;
+
       await trpc.vote.submit.mutate({
         sessionId: this.sessionId(),
         participantId: this.participantId(),
@@ -4254,6 +4932,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ratingValue: rating,
         numericValue,
         confidenceValue: confidence,
+        orderingSequence: orderingSeq,
+        matchingSelections: matchingSel,
+        categorizationSelections: categorizationSel,
         round: this.currentRound(),
       });
       this.voteSent.set(true);
@@ -4348,17 +5029,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   async loadScorecard(
     questionIndex: number,
     questionType: CurrentQuestion['type'] | null | undefined = this.currentQuestion()?.type,
+    question: CurrentQuestion | null = this.currentQuestion(),
   ): Promise<void> {
     const pid = this.participantId();
     if (!this.code || !pid || !isScoredQuestionType(questionType)) return;
+    const requestedRound = this.currentRound();
+    const requestedQuestionId = question?.id ?? null;
+    const currentQuestionIdAtRequest = this.currentQuestion()?.id ?? null;
     try {
       const sc = await trpc.session.getPersonalScorecard.query({
         code: this.code,
         participantId: pid,
         questionIndex,
-        round: this.currentRound(),
+        round: requestedRound,
       });
+      const currentQuestionId = this.currentQuestion()?.id ?? null;
+      if (
+        this.currentRound() !== requestedRound ||
+        (currentQuestionId !== currentQuestionIdAtRequest &&
+          currentQuestionId !== requestedQuestionId)
+      ) {
+        return;
+      }
       this.scorecard.set(sc);
+      if (question && requestedQuestionId === question.id) {
+        this.restoreStructuredVoteState(question, sc);
+      }
       if (sc.wasCorrect !== null) {
         this.voteSent.set(true);
         this.timeoutMessage.set(null);
@@ -4369,12 +5065,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const totalParticipants = settings.participantCount ?? 1;
         this.motivationMessage.set(
           questionType === 'NUMERIC_ESTIMATE'
-            ? this.numericEstimateMotivationMessage()
+            ? this.numericEstimateMotivationMessage(question)
             : getContextMotivation(sc, totalParticipants, this.isPlayfulPreset()),
         );
       }
     } catch {
-      /* noop */
+      if (this.currentRound() === requestedRound && this.scorecardQuestionIndex === questionIndex) {
+        this.scorecardQuestionIndex = -1;
+      }
     }
   }
 

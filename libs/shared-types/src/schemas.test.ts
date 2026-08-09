@@ -12,8 +12,16 @@ import {
   QuestionRevealedDTOSchema,
   QuestionStudentDTOSchema,
   resolvePersonalTimerSeconds,
+  serializeQuizHistoryAccessMaterial,
   SetTimerAccommodationInputSchema,
   SubmitVoteInputSchema,
+  evaluateMatchingAnswer,
+  evaluateOrderingAnswer,
+  evaluateCategorizationAnswer,
+  stableShuffleWithContext,
+  buildMatchingStats,
+  buildOrderingStats,
+  buildCategorizationStats,
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
 } from './schemas.js';
@@ -98,6 +106,139 @@ describe('öffentliche Contract-Schemas', () => {
     expect(payloadBytes).toBeGreaterThan(QUIZ_UPLOAD_MAX_PAYLOAD_BYTES);
     expect(payloadBytes).toBeLessThan(2 * 1024 * 1024);
     expect(QuizUploadInputSchema.safeParse(payload).success).toBe(false);
+  });
+
+  it('bindet alle strukturierten Lösungen und Shuffle-Optionen in den Historiennachweis ein', () => {
+    const serializeQuestion = (question: Record<string, unknown>) =>
+      serializeQuizHistoryAccessMaterial({
+        ...quizUploadBase,
+        questions: [
+          {
+            text: 'Strukturfrage',
+            difficulty: 'MEDIUM',
+            order: 0,
+            answers: [],
+            ...question,
+          },
+        ],
+      } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+
+    const matching = {
+      type: 'MATCHING',
+      matchingPairs: [
+        { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+        { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+      ],
+      matchingShuffleRight: true,
+    };
+    expect(
+      serializeQuestion({
+        ...matching,
+        matchingPairs: matching.matchingPairs.map((pair, index) =>
+          index === 0 ? { ...pair, right: 'geändert' } : pair,
+        ),
+      }),
+    ).not.toBe(serializeQuestion(matching));
+    expect(serializeQuestion({ ...matching, matchingShuffleRight: false })).not.toBe(
+      serializeQuestion(matching),
+    );
+
+    const ordering = {
+      type: 'ORDERING',
+      orderingItems: [
+        { id: 'step-a', text: 'A' },
+        { id: 'step-b', text: 'B' },
+        { id: 'step-c', text: 'C' },
+      ],
+    };
+    expect(
+      serializeQuestion({ ...ordering, orderingItems: [...ordering.orderingItems].reverse() }),
+    ).not.toBe(serializeQuestion(ordering));
+
+    const categorization = {
+      type: 'CATEGORIZATION',
+      categories: [
+        { id: 'category-a', name: 'A' },
+        { id: 'category-b', name: 'B' },
+      ],
+      categorizationItems: [
+        { id: 'item-a', text: 'A1', correctCategoryId: 'category-a' },
+        { id: 'item-b', text: 'A2', correctCategoryId: 'category-a' },
+        { id: 'item-c', text: 'B1', correctCategoryId: 'category-b' },
+        { id: 'item-d', text: 'B2', correctCategoryId: 'category-b' },
+      ],
+      categorizationShuffleItems: true,
+    };
+    expect(
+      serializeQuestion({
+        ...categorization,
+        categorizationItems: categorization.categorizationItems.map((item, index) =>
+          index === 0 ? { ...item, correctCategoryId: 'category-b' } : item,
+        ),
+      }),
+    ).not.toBe(serializeQuestion(categorization));
+    expect(serializeQuestion({ ...categorization, categorizationShuffleItems: false })).not.toBe(
+      serializeQuestion(categorization),
+    );
+  });
+
+  it('weist getrimmt doppelte sichtbare Ordering-Elemente und Kategorienamen zurück', () => {
+    const ordering = QuizUploadInputSchema.safeParse({
+      ...quizUploadBase,
+      questions: [
+        {
+          text: 'Sortiere',
+          type: 'ORDERING',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [],
+          orderingItems: [
+            { id: 'step-a', text: 'Start' },
+            { id: 'step-b', text: ' Start ' },
+            { id: 'step-c', text: 'Ende' },
+          ],
+        },
+      ],
+    });
+    expect(ordering.success).toBe(false);
+    if (!ordering.success) {
+      expect(ordering.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['questions', 0, 'orderingItems', 1, 'text'] }),
+        ]),
+      );
+    }
+
+    const categorization = QuizUploadInputSchema.safeParse({
+      ...quizUploadBase,
+      questions: [
+        {
+          text: 'Ordne zu',
+          type: 'CATEGORIZATION',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [],
+          categories: [
+            { id: 'category-a', name: 'Literatur' },
+            { id: 'category-b', name: ' Literatur ' },
+          ],
+          categorizationItems: [
+            { id: 'item-a', text: 'A', correctCategoryId: 'category-a' },
+            { id: 'item-b', text: 'B', correctCategoryId: 'category-a' },
+            { id: 'item-c', text: 'C', correctCategoryId: 'category-b' },
+            { id: 'item-d', text: 'D', correctCategoryId: 'category-b' },
+          ],
+        },
+      ],
+    });
+    expect(categorization.success).toBe(false);
+    if (!categorization.success) {
+      expect(categorization.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['questions', 0, 'categories', 1, 'name'] }),
+        ]),
+      );
+    }
   });
 
   it('weist Lösungsdaten in studentischen Antwortoptionen strikt zurück', () => {
@@ -313,5 +454,209 @@ describe('tRPC-WebSocket-Participant-Binding', () => {
         participantId: 'not-a-uuid',
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
+  it('deterministisches stableShuffleWithContext ist stabil pro Participant & Question', () => {
+    const items = ['A', 'B', 'C', 'D', 'E'];
+    const p1_q1_run1 = stableShuffleWithContext(items, 'participant-1', 'question-100');
+    const p1_q1_run2 = stableShuffleWithContext(items, 'participant-1', 'question-100');
+    const p2_q1_run1 = stableShuffleWithContext(items, 'participant-2', 'question-100');
+
+    expect(p1_q1_run1).toEqual(p1_q1_run2);
+    expect(p1_q1_run1).not.toEqual(items); // Shuffled
+    expect(p1_q1_run1).not.toEqual(p2_q1_run1); // Differing seed for different participant
+    for (let seed = 0; seed < 2_000; seed += 1) {
+      expect(stableShuffleWithContext(items, `participant-${seed}`, 'question')).toHaveLength(
+        items.length,
+      );
+      expect(stableShuffleWithContext(items, `participant-${seed}`, 'question').sort()).toEqual(
+        [...items].sort(),
+      );
+    }
+  });
+
+  it('wertet MATCHING-Antworten korrekt aus (100% Treffer nötig)', () => {
+    const pairs = [
+      { leftId: 'http-200', left: 'HTTP 200', rightId: 'ok', right: 'OK' },
+      { leftId: 'http-404', left: 'HTTP 404', rightId: 'not-found', right: 'Not Found' },
+    ];
+    const correct = [
+      { leftId: 'http-200', rightId: 'ok' },
+      { leftId: 'http-404', rightId: 'not-found' },
+    ];
+    const wrong = [
+      { leftId: 'http-200', rightId: 'not-found' },
+      { leftId: 'http-404', rightId: 'ok' },
+    ];
+
+    expect(evaluateMatchingAnswer(correct, pairs)).toBe(true);
+    expect(evaluateMatchingAnswer(wrong, pairs)).toBe(false);
+    expect(
+      evaluateMatchingAnswer(
+        [
+          { leftId: 'http-200', rightId: 'ok' },
+          { leftId: 'http-200', rightId: 'ok' },
+        ],
+        pairs,
+      ),
+    ).toBe(false);
+  });
+
+  it('wertet ORDERING-Antworten korrekt aus', () => {
+    const correctSeq = ['id-1', 'id-2', 'id-3'];
+    expect(evaluateOrderingAnswer(['id-1', 'id-2', 'id-3'], correctSeq)).toBe(true);
+    expect(evaluateOrderingAnswer(['id-2', 'id-1', 'id-3'], correctSeq)).toBe(false);
+  });
+
+  it('wertet CATEGORIZATION-Antworten korrekt aus', () => {
+    const model = [
+      { id: 'angular', text: 'Angular', correctCategoryId: 'fe' },
+      { id: 'node', text: 'Node', correctCategoryId: 'be' },
+    ];
+    const correctSel = [
+      { itemId: 'angular', categoryId: 'fe' },
+      { itemId: 'node', categoryId: 'be' },
+    ];
+    const wrongSel = [
+      { itemId: 'angular', categoryId: 'be' },
+      { itemId: 'node', categoryId: 'fe' },
+    ];
+
+    expect(evaluateCategorizationAnswer(correctSel, model)).toBe(true);
+    expect(evaluateCategorizationAnswer(wrongSel, model)).toBe(false);
+    expect(
+      evaluateCategorizationAnswer(
+        [
+          { itemId: 'angular', categoryId: 'fe' },
+          { itemId: 'angular', categoryId: 'fe' },
+        ],
+        model,
+      ),
+    ).toBe(false);
+  });
+
+  it('validiert SubmitVoteInput für MATCHING, ORDERING und CATEGORIZATION', () => {
+    const baseVote = { sessionId, participantId, questionId };
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        matchingSelections: [
+          { leftId: 'http-200', rightId: 'ok' },
+          { leftId: 'http-404', rightId: 'not-found' },
+        ],
+      }).success,
+    ).toBe(true);
+
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        orderingSequence: ['Step 1', 'Step 2', 'Step 3'],
+      }).success,
+    ).toBe(true);
+
+    expect(
+      SubmitVoteInputSchema.safeParse({
+        ...baseVote,
+        categorizationSelections: [
+          { itemId: 'angular', categoryId: 'fe' },
+          { itemId: 'node', categoryId: 'be' },
+          { itemId: 'react', categoryId: 'fe' },
+          { itemId: 'express', categoryId: 'be' },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('aggregiert Matching- und Ordering-Statistiken', () => {
+    const matchingStats = buildMatchingStats(
+      [
+        {
+          selections: [
+            { leftId: 'a', rightId: '1' },
+            { leftId: 'b', rightId: '2' },
+          ],
+        },
+        {
+          selections: [
+            { leftId: 'a', rightId: '2' },
+            { leftId: 'b', rightId: '1' },
+          ],
+        },
+      ],
+      [
+        { leftId: 'a', left: 'A', rightId: '1', right: '1' },
+        { leftId: 'b', left: 'B', rightId: '2', right: '2' },
+      ],
+    );
+    expect(matchingStats.fullyCorrectCount).toBe(1);
+    expect(matchingStats.pairHitRates[0]?.hitRatePercent).toBe(50);
+    expect(matchingStats.commonConfusions[0]?.wrongRight).toBe('2');
+    expect(matchingStats.selectionCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ leftId: 'a', rightId: '1', count: 1 }),
+        expect.objectContaining({ leftId: 'a', rightId: '2', count: 1 }),
+      ]),
+    );
+
+    const orderingStats = buildOrderingStats(
+      [{ sequence: ['a', 'b', 'c'] }, { sequence: ['b', 'a', 'c'] }],
+      [
+        { id: 'a', text: 'A' },
+        { id: 'b', text: 'B' },
+        { id: 'c', text: 'C' },
+      ],
+    );
+    expect(orderingStats.fullyCorrectCount).toBe(1);
+    expect(orderingStats.commonSwaps.length).toBeGreaterThan(0);
+    // One adjacent transposition (a↔b) must count once per vote, not twice.
+    expect(orderingStats.commonSwaps[0]?.count).toBe(1);
+
+    const shiftedOrderingStats = buildOrderingStats(
+      [{ sequence: ['b', 'c', 'a'] }],
+      [
+        { id: 'a', text: 'A' },
+        { id: 'b', text: 'B' },
+        { id: 'c', text: 'C' },
+      ],
+    );
+    expect(shiftedOrderingStats.commonSwaps).toEqual([]);
+  });
+
+  it('aggregiert die vollständige Kategorisierungsmatrix über stabile IDs', () => {
+    const stats = buildCategorizationStats(
+      [
+        {
+          selections: [
+            { itemId: 'angular', categoryId: 'fe' },
+            { itemId: 'node', categoryId: 'be' },
+          ],
+        },
+        {
+          selections: [
+            { itemId: 'angular', categoryId: 'be' },
+            { itemId: 'node', categoryId: 'be' },
+          ],
+        },
+      ],
+      [
+        { id: 'angular', text: 'Angular', correctCategoryId: 'fe' },
+        { id: 'node', text: 'Node', correctCategoryId: 'be' },
+      ],
+      [
+        { id: 'fe', name: 'Frontend' },
+        { id: 'be', name: 'Backend' },
+      ],
+    );
+
+    expect(stats.fullyCorrectCount).toBe(1);
+    expect(stats.itemCategoryCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ itemId: 'angular', categoryId: 'fe', count: 1 }),
+        expect.objectContaining({ itemId: 'angular', categoryId: 'be', count: 1 }),
+        expect.objectContaining({ itemId: 'node', categoryId: 'be', count: 2 }),
+      ]),
+    );
   });
 });

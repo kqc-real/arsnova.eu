@@ -142,6 +142,16 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
   @ViewChild('footerMoreTrigger') private footerMoreTrigger?: MatMenuTrigger;
+  @ViewChild('footerMoreButton', { read: ElementRef })
+  private footerMoreButton?: ElementRef<HTMLButtonElement>;
+  private footerMoreFocusGraceTimer: number | null = null;
+  /** Escape hat das Footer-Mehr-Menü geschlossen → Fokus muss auf den Auslöser. */
+  private footerMoreClosedByEscape = false;
+  private readonly footerMoreEscapeCapture = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && this.footerMoreTrigger?.menuOpen) {
+      this.footerMoreClosedByEscape = true;
+    }
+  };
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -248,6 +258,8 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       // Vor Router-Events: kein veralteter Footer-Fokus nach Reload/Locale-Redirect.
       clearStaleContentPageFocusReturn();
+      // Capture: Flag setzen bevor Material das Menü schließt (HostListener wäre zu spät).
+      document.addEventListener('keydown', this.footerMoreEscapeCapture, true);
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
@@ -470,7 +482,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.connectionBannerRef?.destroy();
     this.connectionBannerRef = null;
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
+    this.clearFooterMoreFocusGraceTimers();
     if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('keydown', this.footerMoreEscapeCapture, true);
       document.removeEventListener('visibilitychange', this.onDocumentVisibilityForPwaUpdate);
       document.removeEventListener(
         'visibilitychange',
@@ -832,6 +846,57 @@ export class AppComponent implements OnInit, OnDestroy {
     this.apiRetrying.set(false);
   }
 
+  /**
+   * Nach Escape-Schließen des Footer-Mehr-Menüs Fokus auf den Auslöser sichern.
+   * Material-restoreFocus kann gegen Skip-Link-/MOTD-Fokus verlieren (a11y:layout /de/).
+   */
+  onFooterMoreMenuClosed(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const closedByEscape = this.footerMoreClosedByEscape;
+    this.footerMoreClosedByEscape = false;
+    if (!closedByEscape) return;
+    this.clearFooterMoreFocusGraceTimers();
+    const run = (): void => this.ensureFooterMoreFocusAfterEscape();
+    queueMicrotask(run);
+    this.footerMoreFocusGraceTimer = window.setTimeout(run, 0);
+  }
+
+  private clearFooterMoreFocusGraceTimers(): void {
+    if (this.footerMoreFocusGraceTimer !== null) {
+      window.clearTimeout(this.footerMoreFocusGraceTimer);
+      this.footerMoreFocusGraceTimer = null;
+    }
+  }
+
+  private ensureFooterMoreFocusAfterEscape(): void {
+    if (typeof document === 'undefined') return;
+    if (this.footerMoreTrigger?.menuOpen) return;
+    const more =
+      this.footerMoreButton?.nativeElement ??
+      document.querySelector<HTMLButtonElement>('button[data-footer-focus="footer-more"]');
+    if (!more?.isConnected) return;
+    if (document.activeElement === more) return;
+    const active = document.activeElement;
+    // Nur einen im schließenden Overlay verlorenen Fokus reparieren. Sobald eine Person
+    // bereits ein anderes, verbundenes Ziel fokussiert hat, darf der Grace-Callback diesen
+    // Fokus nicht wieder zum Footer zurückholen.
+    const activeIsTransient =
+      active === null ||
+      active === document.body ||
+      active === document.documentElement ||
+      (active instanceof Element &&
+        (!active.isConnected ||
+          Boolean(active.closest('.mat-mdc-menu-panel, .mat-mdc-menu-content'))));
+    if (!activeIsTransient) {
+      return;
+    }
+    try {
+      more.focus({ preventScroll: true });
+    } catch {
+      more.focus();
+    }
+  }
+
   /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */
   openServerStatusFromMore(): void {
     this.footerMoreTrigger?.closeMenu();
@@ -963,6 +1028,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapePressed(): void {
+    if (this.footerMoreTrigger?.menuOpen) {
+      this.footerMoreClosedByEscape = true;
+    }
     if (this.presetToastVisible()) {
       this.closePresetToast();
     }

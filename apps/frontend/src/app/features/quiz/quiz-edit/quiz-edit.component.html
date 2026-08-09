@@ -992,6 +992,291 @@
           </mat-form-field>
         }
 
+        @if (hasMatchingConfig()) {
+          <div class="quiz-edit-form__section-label" i18n="@@quizEdit.matchingPairsSection">
+            Zuordnungspaare
+          </div>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.matchingPairsHint">
+            2 bis 6 Paare; linke und rechte Begriffe müssen jeweils eindeutig sein.
+          </p>
+          <mat-checkbox
+            formControlName="matchingShuffleRight"
+            (change)="onLivePreviewInput()"
+            i18n="@@quizEdit.matchingShuffleRight"
+          >
+            Rechte Begriffe für jede teilnehmende Person mischen
+          </mat-checkbox>
+          <div formArrayName="matchingPairs" class="quiz-edit-answers l-stack l-stack--md">
+            @for (pair of matchingPairsArray.controls; track $index; let i = $index) {
+              <div class="quiz-edit-answer quiz-edit-answer--matching" [formGroupName]="i">
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.matchingLeftLabel">Links</mat-label>
+                  <textarea
+                    matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
+                    formControlName="left"
+                    maxlength="500"
+                    (input)="onLivePreviewInput()"
+                  ></textarea>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.matchingRightLabel">Rechts</mat-label>
+                  <textarea
+                    matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
+                    formControlName="right"
+                    maxlength="500"
+                    (input)="onLivePreviewInput()"
+                  ></textarea>
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="quiz-edit-answer__remove"
+                  [disabled]="matchingPairsArray.length <= 2"
+                  (click)="removeMatchingPair(i)"
+                  [attr.aria-label]="matchingRemoveLabel(i + 1)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button
+            mat-button
+            type="button"
+            (click)="addMatchingPair()"
+            [disabled]="matchingPairsArray.length >= 6"
+          >
+            <mat-icon aria-hidden="true">add</mat-icon>
+            <span i18n="@@quizEdit.addMatchingPair">Paar hinzufügen</span>
+          </button>
+        }
+
+        @if (hasOrderingConfig()) {
+          <div class="quiz-edit-form__section-label" i18n="@@quizEdit.orderingItemsSection">
+            Reihenfolge-Elemente
+          </div>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.orderingItemsHint">
+            3 bis 8 Elemente in der korrekten Reihenfolge (oben nach unten).
+          </p>
+          <p class="sr-only" aria-live="polite" aria-atomic="true">
+            {{ orderingSolutionAnnouncement() }}
+          </p>
+          <div formArrayName="orderingItems" class="quiz-edit-answers l-stack l-stack--md">
+            @for (
+              item of orderingItemsArray.controls;
+              track item.controls.id.value;
+              let i = $index
+            ) {
+              <div class="quiz-edit-answer quiz-edit-answer--ordering" [formGroupName]="i">
+                <span class="quiz-edit-answer__survey-hint" aria-hidden="true">{{ i + 1 }}.</span>
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.orderingItemLabel">Element</mat-label>
+                  <textarea
+                    matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
+                    formControlName="text"
+                    maxlength="500"
+                    (input)="onLivePreviewInput()"
+                  ></textarea>
+                </mat-form-field>
+                <div
+                  class="quiz-edit-answer__reorder-actions"
+                  role="group"
+                  [attr.aria-label]="orderingActionsLabel(item.controls.text.value, i + 1)"
+                >
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === 0"
+                    (click)="moveOrderingSolutionItem(i, 'start')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'start')"
+                  >
+                    <mat-icon>first_page</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === 0"
+                    (click)="moveOrderingSolutionItem(i, 'up')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'up')"
+                  >
+                    <mat-icon>keyboard_arrow_up</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === orderingItemsArray.length - 1"
+                    (click)="moveOrderingSolutionItem(i, 'down')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'down')"
+                  >
+                    <mat-icon>keyboard_arrow_down</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="i === orderingItemsArray.length - 1"
+                    (click)="moveOrderingSolutionItem(i, 'end')"
+                    [attr.aria-label]="orderingMoveLabel(item.controls.text.value, i + 1, 'end')"
+                  >
+                    <mat-icon>last_page</mat-icon>
+                  </button>
+                </div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="quiz-edit-answer__remove"
+                  [disabled]="orderingItemsArray.length <= 3"
+                  (click)="removeOrderingItem(i)"
+                  [attr.aria-label]="orderingRemoveLabel(item.controls.text.value, i + 1)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button
+            mat-button
+            type="button"
+            (click)="addOrderingItem()"
+            [disabled]="orderingItemsArray.length >= 8"
+          >
+            <mat-icon aria-hidden="true">add</mat-icon>
+            <span i18n="@@quizEdit.addOrderingItem">Element hinzufügen</span>
+          </button>
+        }
+
+        @if (hasCategorizationConfig()) {
+          <div class="quiz-edit-form__section-label" i18n="@@quizEdit.categoriesSection">
+            Kategorien
+          </div>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.categoriesHint">
+            2 bis 4 Kategorien.
+          </p>
+          <div formArrayName="categories" class="quiz-edit-answers l-stack l-stack--md">
+            @for (
+              category of categoriesArray.controls;
+              track category.controls.id.value;
+              let i = $index
+            ) {
+              <div class="quiz-edit-answer quiz-edit-answer--category" [formGroupName]="i">
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.categoryNameLabel">Kategorie</mat-label>
+                  <textarea
+                    matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
+                    formControlName="name"
+                    maxlength="200"
+                    (input)="onLivePreviewInput()"
+                  ></textarea>
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="quiz-edit-answer__remove"
+                  [disabled]="categoriesArray.length <= 2"
+                  (click)="removeCategory(i)"
+                  [attr.aria-label]="categoryRemoveLabel(i + 1)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button
+            mat-button
+            type="button"
+            (click)="addCategory()"
+            [disabled]="categoriesArray.length >= 4"
+          >
+            <mat-icon aria-hidden="true">add</mat-icon>
+            <span i18n="@@quizEdit.addCategory">Kategorie hinzufügen</span>
+          </button>
+
+          <div class="quiz-edit-form__section-label" i18n="@@quizEdit.categorizationItemsSection">
+            Zuordnungselemente
+          </div>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.categorizationItemsHint">
+            4 bis 12 Elemente mit Zielkategorie.
+          </p>
+          <mat-checkbox
+            formControlName="categorizationShuffleItems"
+            (change)="onLivePreviewInput()"
+            i18n="@@quizEdit.categorizationShuffleItems"
+          >
+            Elemente für jede teilnehmende Person mischen
+          </mat-checkbox>
+          <div formArrayName="categorizationItems" class="quiz-edit-answers l-stack l-stack--md">
+            @for (
+              item of categorizationItemsArray.controls;
+              track item.controls.id.value;
+              let i = $index
+            ) {
+              <div
+                class="quiz-edit-answer quiz-edit-answer--categorization-item"
+                [formGroupName]="i"
+              >
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.categorizationItemLabel">Element</mat-label>
+                  <textarea
+                    matInput
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cdkAutosizeMaxRows="3"
+                    formControlName="text"
+                    maxlength="500"
+                    (input)="onLivePreviewInput()"
+                  ></textarea>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="quiz-edit-form__grow">
+                  <mat-label i18n="@@quizEdit.categorizationTargetLabel">Zielkategorie</mat-label>
+                  <mat-select
+                    formControlName="correctCategoryId"
+                    (selectionChange)="onLivePreviewInput()"
+                  >
+                    @for (category of categoriesArray.controls; track category.controls.id.value) {
+                      <mat-option [value]="category.controls.id.value">
+                        {{
+                          category.controls.name.value ||
+                            categoryNameForId(category.controls.id.value)
+                        }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="quiz-edit-answer__remove"
+                  [disabled]="categorizationItemsArray.length <= 4"
+                  (click)="removeCategorizationItem(i)"
+                  [attr.aria-label]="categorizationRemoveLabel(item.controls.text.value, i + 1)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button
+            mat-button
+            type="button"
+            (click)="addCategorizationItem()"
+            [disabled]="categorizationItemsArray.length >= 12"
+          >
+            <mat-icon aria-hidden="true">add</mat-icon>
+            <span i18n="@@quizEdit.addCategorizationItem">Element hinzufügen</span>
+          </button>
+        }
+
         @if (hasShortTextConfig()) {
           <fieldset class="quiz-edit-form__fieldset">
             <legend class="quiz-edit-form__legend" i18n="@@quizEdit.shortTextConfigLegend">
@@ -1497,7 +1782,7 @@
                     [attr.aria-label]="moveQuestionUpLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, -1)"
                   >
-                    <mat-icon aria-hidden="true">arrow_upward</mat-icon>
+                    <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
                   </button>
                   <button
                     cdkDragHandle
@@ -1518,7 +1803,7 @@
                     [attr.aria-label]="moveQuestionDownLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, 1)"
                   >
-                    <mat-icon aria-hidden="true">arrow_downward</mat-icon>
+                    <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
                   </button>
                 </div>
                 <div class="quiz-edit-question__body">
@@ -1690,6 +1975,46 @@
                           </div>
                         }
                       </div>
+                    } @else if (question.type === 'MATCHING') {
+                      <p class="quiz-edit-form__fieldset-hint">
+                        {{ matchingConfigSummary(question) }}
+                      </p>
+                      <ul class="quiz-edit-question__answers">
+                        @for (pair of question.matchingPairs ?? []; track $index) {
+                          <li>
+                            <span class="quiz-edit-question__answer-text"
+                              >{{ pair.left }} → {{ pair.right }}</span
+                            >
+                          </li>
+                        }
+                      </ul>
+                    } @else if (question.type === 'ORDERING') {
+                      <p class="quiz-edit-form__fieldset-hint">
+                        {{ orderingConfigSummary(question) }}
+                      </p>
+                      <ol class="quiz-edit-question__answers">
+                        @for (item of question.orderingItems ?? []; track item.id) {
+                          <li>
+                            <span class="quiz-edit-question__answer-text">{{ item.text }}</span>
+                          </li>
+                        }
+                      </ol>
+                    } @else if (question.type === 'CATEGORIZATION') {
+                      <p class="quiz-edit-form__fieldset-hint">
+                        {{ categorizationConfigSummary(question) }}
+                      </p>
+                      <ul class="quiz-edit-question__answers">
+                        @for (item of question.categorizationItems ?? []; track $index) {
+                          <li>
+                            <span class="quiz-edit-question__answer-text">
+                              {{ item.text }} →
+                              {{
+                                categoryNameForId(item.correctCategoryId, question.categories ?? [])
+                              }}
+                            </span>
+                          </li>
+                        }
+                      </ul>
                     } @else {
                       <ul class="quiz-edit-question__answers">
                         @for (answer of question.answers; track answer.id) {

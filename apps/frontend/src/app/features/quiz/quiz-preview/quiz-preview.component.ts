@@ -665,6 +665,12 @@ export class QuizPreviewComponent implements OnDestroy {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
   }
 
+  getCategorizationItemsForCategory(question: QuizQuestion, categoryId: string) {
+    return (question.categorizationItems || []).filter(
+      (item) => item.correctCategoryId === categoryId,
+    );
+  }
+
   shortTextConfigSummary(
     question: Pick<
       QuizQuestion,
@@ -822,11 +828,17 @@ export class QuizPreviewComponent implements OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'allow-relative-and-https',
           headingStartLevel: 4,
+          escapeListMarkers: true,
         }).html,
       ),
     );
     this.answerMarkdownCache.set(value, rendered);
     return rendered;
+  }
+
+  /** Ordering-Item-Text inkl. führender Zahlen (z. B. „9. November“); escapeListMarkers verhindert <ol>. */
+  renderOrderingItemMarkdown(value: string): SafeHtml {
+    return this.renderAnswerMarkdown(value);
   }
 
   ratingScaleValues(min: number | null, max: number | null): number[] {

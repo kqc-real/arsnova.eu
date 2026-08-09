@@ -178,6 +178,9 @@ export interface SessionResultsReportLabels {
   questionTypeSurvey: string;
   questionTypeRating: string;
   questionTypeNumericEstimate: string;
+  questionTypeMatching: string;
+  questionTypeOrdering: string;
+  questionTypeCategorization: string;
   tableOfContentsTitle: string;
   tocFeedback: string;
   tocConfidence: string;
@@ -211,6 +214,24 @@ export interface SessionResultsReportLabels {
   piComparisonTitle: string;
   freetextMoreTemplate: string;
   shortTextExpectedSolutions: string;
+  structuredSolutionOrderingTitle: string;
+  structuredSolutionMatchingTitle: string;
+  structuredSolutionCategorizationTitle: string;
+  structuredOrderingMatrixTitle: string;
+  structuredMatchingMatrixTitle: string;
+  structuredCategorizationMatrixTitle: string;
+  structuredMatrixItemHeader: string;
+  structuredMatrixCorrectCell: string;
+  structuredMatrixCellTemplate: string;
+  structuredFullyCorrect: string;
+  structuredCommonSwaps: string;
+  structuredCommonConfusions: string;
+  structuredCommonMisclassifications: string;
+  structuredPairHitRates: string;
+  structuredHitRateItemTemplate: string;
+  structuredSwapItemTemplate: string;
+  structuredConfusionItemTemplate: string;
+  structuredMisclassificationItemTemplate: string;
   ratingStdDev: string;
   ratingAverageTemplate: string;
   ratingAverageWithSigmaTemplate: string;
@@ -317,6 +338,12 @@ export function questionTypeLabelForReport(
       return labels.questionTypeRating;
     case 'NUMERIC_ESTIMATE':
       return labels.questionTypeNumericEstimate;
+    case 'MATCHING':
+      return labels.questionTypeMatching;
+    case 'ORDERING':
+      return labels.questionTypeOrdering;
+    case 'CATEGORIZATION':
+      return labels.questionTypeCategorization;
     default: {
       const _exhaustive: never = type;
       return String(_exhaustive);
@@ -534,6 +561,9 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     questionTypeSurvey: 'Umfrage',
     questionTypeRating: 'Bewertung',
     questionTypeNumericEstimate: 'Numerische Schätzfrage',
+    questionTypeMatching: 'Zuordnungsfrage',
+    questionTypeOrdering: 'Reihenfolgefrage',
+    questionTypeCategorization: 'Kategorisierungsfrage',
     tableOfContentsTitle: 'Inhalt',
     tocFeedback: 'Feedback der Teilnehmenden',
     tocConfidence: 'Lernstand und Selbsteinschätzung',
@@ -570,6 +600,24 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     piComparisonTitle: 'Peer Instruction — Runde 1 vs. Runde 2',
     freetextMoreTemplate: '+ {0} weitere Antworten',
     shortTextExpectedSolutions: 'Akzeptierte Lösungen',
+    structuredSolutionOrderingTitle: 'Soll-Reihenfolge (Musterlösung)',
+    structuredSolutionMatchingTitle: 'Korrekte Paare (Musterlösung)',
+    structuredSolutionCategorizationTitle: 'Soll-Kategorien (Musterlösung)',
+    structuredOrderingMatrixTitle: 'Gewählte Positionen',
+    structuredMatchingMatrixTitle: 'Gewählte Zuordnungen',
+    structuredCategorizationMatrixTitle: 'Gewählte Kategorien',
+    structuredMatrixItemHeader: 'Element',
+    structuredMatrixCorrectCell: 'Musterlösung',
+    structuredMatrixCellTemplate: '{0} ({1}\u202f%)',
+    structuredFullyCorrect: 'Vollständig korrekt',
+    structuredCommonSwaps: 'Häufige Vertauschungen',
+    structuredCommonConfusions: 'Häufige Fehlzuordnungen',
+    structuredCommonMisclassifications: 'Häufige Fehlkategorisierungen',
+    structuredPairHitRates: 'Trefferquote pro Paar',
+    structuredHitRateItemTemplate: '{0} → {1}: {2}\u202f%',
+    structuredSwapItemTemplate: '„{0}“ ↔ „{1}“ ({2})',
+    structuredConfusionItemTemplate: '{0} → {1} ({2})',
+    structuredMisclassificationItemTemplate: '{0} → {1} ({2})',
     ratingStdDev: 'Standardabweichung',
     ratingAverageTemplate: 'Ø {0} von 5 ★',
     ratingAverageWithSigmaTemplate: 'Ø {0} von 5 ★ · σ {1}',

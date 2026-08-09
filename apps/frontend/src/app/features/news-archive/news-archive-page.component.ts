@@ -25,6 +25,10 @@ import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
+import {
+  splitMotdDecorativeEmoji,
+  type MotdTitleDisplay,
+} from '../../shared/motd-decorative-emoji.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
 import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
@@ -63,6 +67,10 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
 @Component({
   selector: 'app-news-archive-page',
   standalone: true,
+  // Archiv-Markdown erzeugt beliebige verschachtelte DOM-Strukturen in `[innerHTML]`.
+  // Der Prerender bleibt für Crawler erhalten; der Browser baut nur diese Komponente
+  // aus dem TransferState neu auf, bevor der aktuelle API-Stand geladen wird.
+  host: { ngSkipHydration: 'true' },
   imports: [
     MatButton,
     MatIcon,
@@ -157,6 +165,10 @@ export class NewsArchivePageComponent {
 
   archiveItemTitle(id: string): string {
     return this.titleById()[id] ?? this.archiveItemFallbackTitle;
+  }
+
+  archiveItemTitleDisplay(id: string): MotdTitleDisplay {
+    return splitMotdDecorativeEmoji(this.archiveItemTitle(id));
   }
 
   /**

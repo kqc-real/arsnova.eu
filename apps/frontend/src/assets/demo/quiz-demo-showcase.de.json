@@ -1,9 +1,9 @@
 {
-  "exportVersion": 27,
-  "exportedAt": "2026-07-13T13:00:00.000Z",
+  "exportVersion": 29,
+  "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Team-Quiz",
-    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDiese Demo ist für den **echten Unterrichtseinsatz** gedacht. Sie will kein perfekt durchkomponiertes Fachquiz von Anfang bis Ende sein. Ihr Zweck ist ein anderer: Sie soll Lehrkräften, Dozierenden und Trainer:innen zeigen, wie arsnova.eu eine Live-Session abwechslungsreicher, visueller und spielerischer machen kann.\n\nNutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu zeigen, wie du:\n- mit einem kurzen emotionalen oder sozialen Check-in startest\n- Bilder statt reiner Textfragen einsetzt\n- Formeln und wissenschaftliche Notation in MINT-Fächern einbindest\n- numerische Schätzfragen mit Referenzwert, Toleranzband und zwei Runden ausprobierst\n- kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden\n- Multiple-Choice- und Rating-Fragen sinnvoll einsetzt\n- nach bewertbaren Antworten die **Selbsteinschätzung** (1–5) abfragen und **selbstsicher falsche** Antworten in der Host-Auswertung erkennen\n- mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust\n- Codebeispiele im Informatik- oder Technikunterricht einsetzt\n\nDie Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.\n\n**Tipp für die Demo:** Tritt der Session auf einem zweiten Gerät bei, am besten per QR-Code auf dem Smartphone. So kannst du den Wechsel zwischen Host-Ansicht und Teilnehmenden-Perspektive realistisch durchspielen.\n\n**Noch ein Tipp:** Öffne danach den Bearbeitungsmodus des Quiz und schau dir an, wie die Fragen mit Markdown und KaTeX umgesetzt sind.\n\n**Und noch etwas:** Weitere Frageformate oder Features kannst du gern anfragen. Die Kontaktdaten findest du im Impressum.",
+    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDie 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.\n\nDie Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Ein-Wort-Frage Begriffe aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.\n\nTimer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,78 +24,70 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Wie ist die Stimmung im Raum gerade?\n\n> **Unterrichtsidee:** Nutze das als kurzen Check-in zu Beginn, vor Feedback oder nach einer anspruchsvollen Phase.\n\n![Emotionen im Überblick](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
+        "text": "### Wie ist die Stimmung im Raum gerade?\n\n![Emotionen im Überblick](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Für die Vollansicht anklicken.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
         "order": 0,
         "answers": [
-          {
-            "text": ":smile: Bereit loszulegen",
-            "isCorrect": false
-          },
-          {
-            "text": ":cry: Gerade etwas überfordert",
-            "isCorrect": false
-          },
-          {
-            "text": ":rage: Genervt",
-            "isCorrect": false
-          },
-          {
-            "text": ":neutral_face: Ganz okay",
-            "isCorrect": false
-          }
+          { "text": ":smile: Bereit loszulegen", "isCorrect": false },
+          { "text": ":cry: Gerade etwas überfordert", "isCorrect": false },
+          { "text": ":rage: Genervt", "isCorrect": false },
+          { "text": ":neutral_face: Ganz okay", "isCorrect": false }
         ]
       },
       {
-        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n> **Unterrichtsidee:** Nutze das als kurze MINT-Schätzfrage mit Referenzwert, absolutem Toleranzband von 3,1 bis 3,2 und Plausibilitätsbereich von 3,0 bis 3,5.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Was hilft dir beim Lernen?\n\nAntworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 1,
+        "skipReadingPhase": true,
+        "answers": [],
+        "confidenceEnabled": false
+      },
+      {
+        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 1,
+        "order": 2,
         "skipReadingPhase": true,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
         "numericTolerancePercent": null,
-        "numericIntervalLeft": 3.1,
-        "numericIntervalRight": 3.2,
+        "numericIntervalLeft": 3.135,
+        "numericIntervalRight": 3.145,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
         "numericMin": 3,
         "numericMax": 3.5,
         "numericTwoRounds": false,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### KI-Bild oder echtes Foto?\n\n> **Unterrichtsidee:** Nutze das als visuellen Einstieg, als Aufmerksamkeitssignal oder als niedrigschwelligen Gesprächseinstieg.\n\n![Dachszene](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
+        "text": "### KI-Bild oder echtes Foto?\n\n![Dachszene](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "EASY",
-        "order": 2,
+        "order": 3,
         "answers": [
-          {
-            "text": "KI-generiertes Bild",
-            "isCorrect": false
-          },
-          {
-            "text": "Echtes Foto",
-            "isCorrect": true
-          }
+          { "text": "KI-generiertes Bild", "isCorrect": false },
+          { "text": "Echtes Foto", "isCorrect": true }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Welche dieser Einsätze eignen sich gut für einen kurzen Live-Check?\n\n> **Unterrichtsidee:** Nutze das, um Multiple Choice mit mehreren richtigen Antworten zu zeigen.\n\n_Mehrere Antworten möglich._",
+        "text": "### Welche dieser Einsätze eignen sich gut für einen kurzen Live-Check?\n\n_Mehrere Antworten möglich._",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 3,
+        "order": 4,
         "skipReadingPhase": true,
         "answers": [
           {
@@ -107,94 +99,58 @@
             "isCorrect": true
           },
           {
-            "text": "Vor einer Prüfung das Sicherheitsgefühl anonym abfragen",
-            "isCorrect": true
+            "text": "Individuelle Prüfungsnoten ohne Identitätsnachweis vergeben",
+            "isCorrect": false
           },
           {
-            "text": "Nur benotete Abschlusstests am Ende einer Einheit durchführen",
+            "text": "Komplexe Lernziele anhand einer einzigen Abstimmung abschließend bewerten",
             "isCorrect": false
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Wie viele sichtbare Teile hat der klassische Zauberwürfel?\n\n> **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### Aus wie vielen von außen sichtbaren Einzelwürfeln (Cubies) besteht ein klassischer 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 4,
+        "order": 5,
         "answers": [
-          {
-            "text": "28",
-            "isCorrect": false
-          },
-          {
-            "text": "26",
-            "isCorrect": true
-          },
-          {
-            "text": "24",
-            "isCorrect": false
-          },
-          {
-            "text": "22",
-            "isCorrect": false
-          }
+          { "text": "28", "isCorrect": false },
+          { "text": "26", "isCorrect": true },
+          { "text": "24", "isCorrect": false },
+          { "text": "22", "isCorrect": false }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### In welcher Sprache ist dieser Code geschrieben?\n\n> **Unterrichtsidee:** Nutze das als schnellen Erkennungsimpuls für Informatik, Maker-Projekte oder technische Einführungen.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Für welche Creative-Coding-Umgebung wurde dieses Sketch geschrieben?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 5,
+        "order": 6,
         "answers": [
-          {
-            "text": "Groovy",
-            "isCorrect": false
-          },
-          {
-            "text": "Python",
-            "isCorrect": false
-          },
-          {
-            "text": "Processing",
-            "isCorrect": true
-          },
-          {
-            "text": "Scala",
-            "isCorrect": false
-          }
+          { "text": "Groovy", "isCorrect": false },
+          { "text": "Python", "isCorrect": false },
+          { "text": "Processing", "isCorrect": true },
+          { "text": "Scala", "isCorrect": false }
         ]
       },
       {
-        "text": "### Wie heißt die Methode, bei der Lernende erst individuell abstimmen, dann kurz diskutieren und anschließend erneut abstimmen?\n\n> **Unterrichtsidee:** Nutze das als anspruchsvolle Fachbegriffsfrage, um explizite Varianten, kleine Buchstabendreher und transparente Kurzantwort-Bewertung mit Teilpunkten zu demonstrieren.\n\nGesucht ist der etablierte didaktische Begriff für diesen Ablauf.",
+        "text": "### Wie heißt die Methode, bei der Lernende erst individuell abstimmen, dann kurz diskutieren und anschließend erneut abstimmen?\n\nGesucht ist der etablierte didaktische Begriff für diesen Ablauf.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
-        "order": 6,
+        "order": 7,
         "answers": [
-          {
-            "text": "Peer Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "Peer-Instruction",
-            "isCorrect": true
-          },
-          {
-            "text": "Mazur-Methode",
-            "isCorrect": true
-          },
-          {
-            "text": "Mazur Methode",
-            "isCorrect": true
-          }
+          { "text": "Peer Instruction", "isCorrect": true },
+          { "text": "Peer-Instruction", "isCorrect": true },
+          { "text": "Mazur-Methode", "isCorrect": true },
+          { "text": "Mazur Methode", "isCorrect": true }
         ],
         "shortTextMaxLength": 32,
         "shortTextCaseSensitive": false,
@@ -204,39 +160,176 @@
         "shortTextTrimWhitespace": true,
         "shortTextNormalizeWhitespace": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### In welchem Jahr begann die Französische Revolution?\n\n> **Unterrichtsidee:** Nutze das als Schätzfrage mit zwei Runden: erst spontan schätzen, dann kurz diskutieren und die zweite Runde mit Referenzwert, Toleranzband und Score vergleichen.\n\nGesucht ist das Jahr, das historisch üblicherweise als Beginn der Französischen Revolution gilt.",
+        "text": "### In welchem Jahr begann die Französische Revolution?\n\nGesucht ist das Jahr, das historisch üblicherweise als Beginn der Französischen Revolution gilt.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 7,
+        "order": 8,
         "answers": [],
         "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 1789,
-        "numericIntervalLeft": 1700,
-        "numericIntervalRight": 1900,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 1788.5,
+        "numericIntervalRight": 1789.5,
         "numericInputType": "INTEGER",
         "numericMin": 1500,
         "numericMax": 2000,
         "numericTwoRounds": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Geraten",
+        "confidenceLabelLow": "Sehr unsicher",
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?\n\n> **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.",
+        "text": "### Ordne die Schritte der Genexpression in einer eukaryotischen Zelle.\n\nBringe die sechs Schritte in die korrekte Abfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 9,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "5f46d99e-2bf7-4ef8-bfb3-5c90353e798d",
+            "text": "Transkription"
+          },
+          {
+            "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
+            "text": "RNA-Prozessierung"
+          },
+          {
+            "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
+            "text": "Export der reifen mRNA"
+          },
+          {
+            "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
+            "text": "Initiation der Translation"
+          },
+          {
+            "id": "1d6fb5a5-dc43-4313-9f53-48b2ff903fa4",
+            "text": "Elongation der Polypeptidkette"
+          },
+          {
+            "id": "fd2f863c-6c7b-4592-b537-9f15b51ee9ec",
+            "text": "Termination und Freisetzung der Polypeptidkette"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne den historischen Daten der Weimarer Republik das passende Ereignis zu.\n\n_Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 10,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "95d15b08-c999-403d-adb0-cfc18a4249ad",
+            "left": "9. November 1918",
+            "right": "Ausrufung der Republik durch Philipp Scheidemann",
+            "rightId": "30b3ddd5-65c0-46c3-9184-116c6d60ec80"
+          },
+          {
+            "leftId": "984ef5dc-fd8c-47e9-9c57-8d6e6e799835",
+            "left": "28. Juni 1919",
+            "right": "Unterzeichnung des Versailler Vertrags",
+            "rightId": "65399907-87d5-491b-aea8-18e76093e3a4"
+          },
+          {
+            "leftId": "be54805d-8643-48b0-9034-d90567bc2b12",
+            "left": "11. August 1919",
+            "right": "Unterzeichnung der Weimarer Reichsverfassung durch Friedrich Ebert",
+            "rightId": "d130f8c6-42a6-423b-bc45-7382bbfce72d"
+          },
+          {
+            "leftId": "023134ad-42c5-4474-b865-1cf3142291e2",
+            "left": "15. November 1923",
+            "right": "Einführung der Rentenmark",
+            "rightId": "bc1f2b60-a2d1-45a8-bb91-9931858f0745"
+          },
+          {
+            "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
+            "left": "29. Oktober 1929",
+            "right": "Massiver Kurseinbruch an der Wall Street („Black Tuesday“)",
+            "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
+          },
+          {
+            "leftId": "9e8bd516-2844-4f20-9222-6c5817327907",
+            "left": "30. Januar 1933",
+            "right": "Ernennung Adolf Hitlers zum Reichskanzler",
+            "rightId": "f97e1e9a-c0fa-423d-be92-35802101930d"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne die folgenden sechs Werke der richtigen Literaturepoche zu.\n\n_Ordne jedes Element einer der drei Literaturepochen zu._",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 11,
+        "answers": [],
+        "categories": [
+          { "id": "cat_aufklaerung", "name": "Aufklärung (ca. 1720–1785)" },
+          { "id": "cat_sturm", "name": "Sturm und Drang (ca. 1765–1785)" },
+          { "id": "cat_romantik", "name": "Romantik (ca. 1795–1835)" }
+        ],
+        "categorizationItems": [
+          {
+            "id": "cf0c3966-a4e5-4b0e-9ad4-aa09f9ec069b",
+            "text": "Nathan der Weise",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "id": "a42a3285-7b06-4a76-a89c-127d99a85a80",
+            "text": "Emilia Galotti",
+            "correctCategoryId": "cat_aufklaerung"
+          },
+          {
+            "id": "66528b34-d7b3-43f6-8704-f0cddeccdf4f",
+            "text": "Die Leiden des jungen Werther",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "id": "2855285d-df2a-451e-9b90-bbd8cbdc249d",
+            "text": "Die Räuber",
+            "correctCategoryId": "cat_sturm"
+          },
+          {
+            "id": "f3dcafbe-0a1d-45f3-984e-0dfb1a4843a0",
+            "text": "Der Sandmann",
+            "correctCategoryId": "cat_romantik"
+          },
+          {
+            "id": "94c4b1ae-1ef0-4a22-b641-f3463b983d41",
+            "text": "Mondnacht",
+            "correctCategoryId": "cat_romantik"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 8,
+        "order": 12,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,
-        "ratingLabelMin": "Eher noch nicht",
-        "ratingLabelMax": "Ich probiere es aus"
+        "ratingLabelMin": "Sehr unwahrscheinlich",
+        "ratingLabelMax": "Sehr wahrscheinlich"
       }
     ]
   }

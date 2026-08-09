@@ -39,6 +39,7 @@ import {
   CdkDragPlaceholder,
   CdkDropList,
 } from '@angular/cdk/drag-drop';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -130,6 +131,29 @@ type AnswerFormGroup = FormGroup<{
   isCorrect: FormControl<boolean>;
 }>;
 
+type MatchingPairFormGroup = FormGroup<{
+  leftId: FormControl<string>;
+  left: FormControl<string>;
+  rightId: FormControl<string>;
+  right: FormControl<string>;
+}>;
+
+type OrderingItemFormGroup = FormGroup<{
+  id: FormControl<string>;
+  text: FormControl<string>;
+}>;
+
+type CategorizationCategoryFormGroup = FormGroup<{
+  id: FormControl<string>;
+  name: FormControl<string>;
+}>;
+
+type CategorizationItemFormGroup = FormGroup<{
+  id: FormControl<string>;
+  text: FormControl<string>;
+  correctCategoryId: FormControl<string>;
+}>;
+
 type QuestionFormGroup = FormGroup<{
   text: FormControl<string>;
   type: FormControl<SupportedQuestionType>;
@@ -169,6 +193,12 @@ type QuestionFormGroup = FormGroup<{
   confidenceEnabled: FormControl<boolean>;
   confidenceLabelLow: FormControl<string>;
   confidenceLabelHigh: FormControl<string>;
+  matchingPairs: FormArray<MatchingPairFormGroup>;
+  matchingShuffleRight: FormControl<boolean>;
+  orderingItems: FormArray<OrderingItemFormGroup>;
+  categories: FormArray<CategorizationCategoryFormGroup>;
+  categorizationItems: FormArray<CategorizationItemFormGroup>;
+  categorizationShuffleItems: FormControl<boolean>;
 }>;
 
 type ShortTextPreviewExample = {
@@ -329,6 +359,7 @@ type QuizMetadataComparable = {
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
+    CdkTextareaAutosize,
     MarkdownImageLightboxDirective,
     MarkdownKatexEditorComponent,
     AnswerOptionBadgeComponent,
@@ -392,6 +423,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly answerPreviewHtml = signal<SafeHtml[]>([]);
   readonly previewKatexError = signal<string | null>(null);
   readonly questionAddedFeedback = signal(false);
+  readonly orderingSolutionAnnouncement = signal('');
   private previewTimer: ReturnType<typeof setTimeout> | null = null;
   private feedbackTimer: ReturnType<typeof setTimeout> | null = null;
   private lastQuestionTypeForConfidence: SupportedQuestionType = 'SINGLE_CHOICE';
@@ -410,6 +442,18 @@ export class QuizEditComponent implements OnDestroy {
     { value: 'SHORT_TEXT', label: $localize`:@@quizPreview.typeShortText:Kurzantwort` },
     { value: 'SURVEY', label: $localize`Umfrage` },
     { value: 'RATING', label: $localize`Bewertung (1–5 / 1–10)` },
+    {
+      value: 'MATCHING',
+      label: $localize`:@@quizPreview.typeMatching:Zuordnung`,
+    },
+    {
+      value: 'ORDERING',
+      label: $localize`:@@quizPreview.typeOrdering:Reihenfolge`,
+    },
+    {
+      value: 'CATEGORIZATION',
+      label: $localize`:@@quizPreview.typeCategorization:Kategorisierung`,
+    },
   ];
 
   readonly presetOptions: Array<{ value: QuizPreset; label: string; icon: string }> = [
@@ -633,6 +677,12 @@ export class QuizEditComponent implements OnDestroy {
     confidenceLabelHigh: this.formBuilder.control(confidenceDefaultLabelHigh(), {
       validators: [Validators.maxLength(50)],
     }),
+    matchingPairs: this.formBuilder.array<MatchingPairFormGroup>([]),
+    matchingShuffleRight: this.formBuilder.control(true),
+    orderingItems: this.formBuilder.array<OrderingItemFormGroup>([]),
+    categories: this.formBuilder.array<CategorizationCategoryFormGroup>([]),
+    categorizationItems: this.formBuilder.array<CategorizationItemFormGroup>([]),
+    categorizationShuffleItems: this.formBuilder.control(true),
   });
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
@@ -730,6 +780,22 @@ export class QuizEditComponent implements OnDestroy {
 
   get answersArray(): FormArray<AnswerFormGroup> {
     return this.form.controls.answers;
+  }
+
+  get matchingPairsArray(): FormArray<MatchingPairFormGroup> {
+    return this.form.controls.matchingPairs;
+  }
+
+  get orderingItemsArray(): FormArray<OrderingItemFormGroup> {
+    return this.form.controls.orderingItems;
+  }
+
+  get categoriesArray(): FormArray<CategorizationCategoryFormGroup> {
+    return this.form.controls.categories;
+  }
+
+  get categorizationItemsArray(): FormArray<CategorizationItemFormGroup> {
+    return this.form.controls.categorizationItems;
   }
 
   get shortTextMaxLengthControl(): FormControl<number | null> {
@@ -898,7 +964,14 @@ export class QuizEditComponent implements OnDestroy {
 
   hasAnswerOptions(): boolean {
     const t = this.typeControl.value;
-    return t !== 'FREETEXT' && t !== 'RATING' && t !== 'NUMERIC_ESTIMATE';
+    return (
+      t !== 'FREETEXT' &&
+      t !== 'RATING' &&
+      t !== 'NUMERIC_ESTIMATE' &&
+      t !== 'MATCHING' &&
+      t !== 'ORDERING' &&
+      t !== 'CATEGORIZATION'
+    );
   }
 
   isNumericEstimateType(): boolean {
@@ -929,8 +1002,32 @@ export class QuizEditComponent implements OnDestroy {
     return this.typeControl.value === 'RATING';
   }
 
+  isMatchingType(): boolean {
+    return this.typeControl.value === 'MATCHING';
+  }
+
+  isOrderingType(): boolean {
+    return this.typeControl.value === 'ORDERING';
+  }
+
+  isCategorizationType(): boolean {
+    return this.typeControl.value === 'CATEGORIZATION';
+  }
+
   hasRatingConfig(): boolean {
     return this.isRatingType();
+  }
+
+  hasMatchingConfig(): boolean {
+    return this.isMatchingType();
+  }
+
+  hasOrderingConfig(): boolean {
+    return this.isOrderingType();
+  }
+
+  hasCategorizationConfig(): boolean {
+    return this.isCategorizationType();
   }
 
   hasConfidenceConfig(): boolean {
@@ -1946,6 +2043,160 @@ export class QuizEditComponent implements OnDestroy {
     this.scheduleLivePreview();
   }
 
+  addMatchingPair(): void {
+    if (this.matchingPairsArray.length >= 6) return;
+    this.matchingPairsArray.push(this.createMatchingPairGroup());
+    this.onLivePreviewInput();
+  }
+
+  removeMatchingPair(index: number): void {
+    if (this.matchingPairsArray.length <= 2) return;
+    this.matchingPairsArray.removeAt(index);
+    this.onLivePreviewInput();
+  }
+
+  addOrderingItem(): void {
+    if (this.orderingItemsArray.length >= 8) return;
+    this.orderingItemsArray.push(this.createOrderingItemGroup());
+    this.onLivePreviewInput();
+  }
+
+  removeOrderingItem(index: number): void {
+    if (this.orderingItemsArray.length <= 3) return;
+    this.orderingItemsArray.removeAt(index);
+    this.onLivePreviewInput();
+  }
+
+  moveOrderingSolutionItem(index: number, target: 'start' | 'up' | 'down' | 'end'): void {
+    const length = this.orderingItemsArray.length;
+    if (index < 0 || index >= length || length < 2) return;
+    const nextIndex =
+      target === 'start'
+        ? 0
+        : target === 'end'
+          ? length - 1
+          : target === 'up'
+            ? Math.max(0, index - 1)
+            : Math.min(length - 1, index + 1);
+    if (nextIndex === index) return;
+
+    const item = this.orderingItemsArray.at(index);
+    this.orderingItemsArray.removeAt(index, { emitEvent: false });
+    this.orderingItemsArray.insert(nextIndex, item, { emitEvent: false });
+    this.orderingItemsArray.markAsDirty();
+    this.orderingItemsArray.updateValueAndValidity();
+    this.onLivePreviewInput();
+
+    const label = item.controls.text.value.trim() || $localize`Element`;
+    this.orderingSolutionAnnouncement.set(
+      $localize`:@@quizEdit.orderingMovedAnnouncement:${label}:item: steht jetzt an Position ${
+        nextIndex + 1
+      }:position: von ${length}:total:.`,
+    );
+  }
+
+  orderingMoveLabel(
+    itemText: string,
+    position: number,
+    target: 'start' | 'up' | 'down' | 'end',
+  ): string {
+    const label = itemText.trim() || $localize`Element ${position}:position:`;
+    if (target === 'start') {
+      return $localize`:@@quizEdit.orderingMoveStart:${label}:item: an den Anfang verschieben`;
+    }
+    if (target === 'end') {
+      return $localize`:@@quizEdit.orderingMoveEnd:${label}:item: ans Ende verschieben`;
+    }
+    if (target === 'up') {
+      return $localize`:@@quizEdit.orderingMoveUp:${label}:item: nach oben verschieben`;
+    }
+    return $localize`:@@quizEdit.orderingMoveDown:${label}:item: nach unten verschieben`;
+  }
+
+  orderingActionsLabel(itemText: string, position: number): string {
+    const label = itemText.trim() || $localize`Element ${position}:position:`;
+    return $localize`:@@quizEdit.orderingActionsLabel:Position von ${label}:item: ändern`;
+  }
+
+  matchingRemoveLabel(position: number): string {
+    return $localize`:@@quizEdit.removeMatchingPair:Paar ${position}:position: entfernen`;
+  }
+
+  orderingRemoveLabel(itemText: string, position: number): string {
+    const label = itemText.trim() || $localize`Element ${position}:position:`;
+    return $localize`:@@quizEdit.removeOrderingItem:${label}:item: entfernen`;
+  }
+
+  categoryRemoveLabel(position: number): string {
+    return $localize`:@@quizEdit.removeCategory:Kategorie ${position}:position: entfernen`;
+  }
+
+  categorizationRemoveLabel(itemText: string, position: number): string {
+    const label = itemText.trim() || $localize`Element ${position}:position:`;
+    return $localize`:@@quizEdit.removeCategorizationItem:${label}:item: entfernen`;
+  }
+
+  addCategory(): void {
+    if (this.categoriesArray.length >= 4) return;
+    this.categoriesArray.push(this.createCategoryGroup());
+    this.onLivePreviewInput();
+  }
+
+  removeCategory(index: number): void {
+    if (this.categoriesArray.length <= 2) return;
+    const removedId = this.categoriesArray.at(index).controls.id.value;
+    this.categoriesArray.removeAt(index);
+    const fallbackId = this.categoriesArray.at(0)?.controls.id.value ?? '';
+    this.categorizationItemsArray.controls.forEach((item) => {
+      if (item.controls.correctCategoryId.value === removedId) {
+        item.controls.correctCategoryId.setValue(fallbackId);
+      }
+    });
+    this.onLivePreviewInput();
+  }
+
+  addCategorizationItem(): void {
+    if (this.categorizationItemsArray.length >= 12) return;
+    const fallbackId = this.categoriesArray.at(0)?.controls.id.value ?? '';
+    this.categorizationItemsArray.push(this.createCategorizationItemGroup(fallbackId));
+    this.onLivePreviewInput();
+  }
+
+  removeCategorizationItem(index: number): void {
+    if (this.categorizationItemsArray.length <= 4) return;
+    this.categorizationItemsArray.removeAt(index);
+    this.onLivePreviewInput();
+  }
+
+  categoryNameForId(
+    categoryId: string,
+    categories: Array<{ id: string; name: string }> = this.categoriesArray.controls.map(
+      (category) => ({
+        id: category.controls.id.value,
+        name: category.controls.name.value,
+      }),
+    ),
+  ): string {
+    const category = categories.find((entry) => entry.id === categoryId);
+    return category?.name?.trim() || $localize`:@@quizEdit.unnamedCategory:Unbenannte Kategorie`;
+  }
+
+  matchingConfigSummary(question: QuizQuestion): string {
+    const count = question.matchingPairs?.length ?? 0;
+    return $localize`:@@quizEdit.matchingSummary:${count}:count: Zuordnungspaare`;
+  }
+
+  orderingConfigSummary(question: QuizQuestion): string {
+    const count = question.orderingItems?.length ?? 0;
+    return $localize`:@@quizEdit.orderingSummary:${count}:count: Elemente in Reihenfolge`;
+  }
+
+  categorizationConfigSummary(question: QuizQuestion): string {
+    const categoryCount = question.categories?.length ?? 0;
+    const itemCount = question.categorizationItems?.length ?? 0;
+    return $localize`:@@quizEdit.categorizationSummary:${categoryCount}:categoryCount: Kategorien, ${itemCount}:itemCount: Elemente`;
+  }
+
   canAddAnswer(): boolean {
     return this.hasAnswerOptions() && this.answersArray.length < 10;
   }
@@ -1975,6 +2226,7 @@ export class QuizEditComponent implements OnDestroy {
       this.applyConfidenceLabelDefaultsIfEmpty();
     }
     this.lastQuestionTypeForConfidence = this.typeControl.value;
+    this.resetStructuredFieldsForType(this.typeControl.value);
     this.ensureAnswerArrayForType();
     this.normalizeCorrectSelectionForType();
     this.scheduleLivePreview();
@@ -2420,6 +2672,173 @@ export class QuizEditComponent implements OnDestroy {
       }),
       isCorrect: this.formBuilder.control(isCorrect),
     });
+  }
+
+  private createMatchingPairGroup(
+    leftId = newQuestionItemId(),
+    left = '',
+    rightId = newQuestionItemId(),
+    right = '',
+  ): MatchingPairFormGroup {
+    return this.formBuilder.group({
+      leftId: this.formBuilder.control(leftId, { validators: [Validators.required] }),
+      left: this.formBuilder.control(left, {
+        validators: [Validators.required, Validators.maxLength(500)],
+      }),
+      rightId: this.formBuilder.control(rightId, { validators: [Validators.required] }),
+      right: this.formBuilder.control(right, {
+        validators: [Validators.required, Validators.maxLength(500)],
+      }),
+    });
+  }
+
+  private createMatchingPairArray(
+    pairs: Array<{ leftId: string; left: string; rightId: string; right: string }>,
+  ): FormArray<MatchingPairFormGroup> {
+    return this.formBuilder.array<MatchingPairFormGroup>(
+      pairs.map((pair) =>
+        this.createMatchingPairGroup(pair.leftId, pair.left, pair.rightId, pair.right),
+      ),
+    );
+  }
+
+  private createOrderingItemGroup(id = newQuestionItemId(), text = ''): OrderingItemFormGroup {
+    return this.formBuilder.group({
+      id: this.formBuilder.control(id, { validators: [Validators.required] }),
+      text: this.formBuilder.control(text, {
+        validators: [Validators.required, Validators.maxLength(500)],
+      }),
+    });
+  }
+
+  private createOrderingItemArray(
+    items: Array<{ id: string; text: string }>,
+  ): FormArray<OrderingItemFormGroup> {
+    return this.formBuilder.array<OrderingItemFormGroup>(
+      items.map((item) => this.createOrderingItemGroup(item.id, item.text)),
+    );
+  }
+
+  private createCategoryGroup(
+    id = newQuestionItemId(),
+    name = '',
+  ): CategorizationCategoryFormGroup {
+    return this.formBuilder.group({
+      id: this.formBuilder.control(id, { validators: [Validators.required] }),
+      name: this.formBuilder.control(name, {
+        validators: [Validators.required, Validators.maxLength(200)],
+      }),
+    });
+  }
+
+  private createCategoryArray(
+    categories: Array<{ id: string; name: string }>,
+  ): FormArray<CategorizationCategoryFormGroup> {
+    return this.formBuilder.array<CategorizationCategoryFormGroup>(
+      categories.map((category) => this.createCategoryGroup(category.id, category.name)),
+    );
+  }
+
+  private createCategorizationItemGroup(
+    correctCategoryId = '',
+    text = '',
+    id = newQuestionItemId(),
+  ): CategorizationItemFormGroup {
+    return this.formBuilder.group({
+      id: this.formBuilder.control(id, { validators: [Validators.required] }),
+      text: this.formBuilder.control(text, {
+        validators: [Validators.required, Validators.maxLength(500)],
+      }),
+      correctCategoryId: this.formBuilder.control(correctCategoryId, {
+        validators: [Validators.required],
+      }),
+    });
+  }
+
+  private createCategorizationItemArray(
+    items: Array<{ id: string; text: string; correctCategoryId: string }>,
+  ): FormArray<CategorizationItemFormGroup> {
+    return this.formBuilder.array<CategorizationItemFormGroup>(
+      items.map((item) =>
+        this.createCategorizationItemGroup(item.correctCategoryId, item.text, item.id),
+      ),
+    );
+  }
+
+  private defaultMatchingPairs(): Array<{
+    leftId: string;
+    left: string;
+    rightId: string;
+    right: string;
+  }> {
+    return [
+      { leftId: newQuestionItemId(), left: '', rightId: newQuestionItemId(), right: '' },
+      { leftId: newQuestionItemId(), left: '', rightId: newQuestionItemId(), right: '' },
+    ];
+  }
+
+  private defaultOrderingItems(): Array<{ id: string; text: string }> {
+    return Array.from({ length: 3 }, () => ({ id: newQuestionItemId(), text: '' }));
+  }
+
+  private defaultCategorizationConfig(): {
+    categories: Array<{ id: string; name: string }>;
+    categorizationItems: Array<{ id: string; text: string; correctCategoryId: string }>;
+  } {
+    const firstCategoryId = newQuestionItemId();
+    const secondCategoryId = newQuestionItemId();
+    return {
+      categories: [
+        { id: firstCategoryId, name: '' },
+        { id: secondCategoryId, name: '' },
+      ],
+      categorizationItems: Array.from({ length: 4 }, () => ({
+        id: newQuestionItemId(),
+        text: '',
+        correctCategoryId: firstCategoryId,
+      })),
+    };
+  }
+
+  private resetStructuredFieldsForType(type: SupportedQuestionType): void {
+    if (type === 'MATCHING') {
+      this.form.setControl(
+        'matchingPairs',
+        this.createMatchingPairArray(this.defaultMatchingPairs()),
+      );
+      this.form.setControl('orderingItems', this.createOrderingItemArray([]));
+      this.form.setControl('categories', this.createCategoryArray([]));
+      this.form.setControl('categorizationItems', this.createCategorizationItemArray([]));
+      return;
+    }
+
+    if (type === 'ORDERING') {
+      this.form.setControl('matchingPairs', this.createMatchingPairArray([]));
+      this.form.setControl(
+        'orderingItems',
+        this.createOrderingItemArray(this.defaultOrderingItems()),
+      );
+      this.form.setControl('categories', this.createCategoryArray([]));
+      this.form.setControl('categorizationItems', this.createCategorizationItemArray([]));
+      return;
+    }
+
+    if (type === 'CATEGORIZATION') {
+      const defaults = this.defaultCategorizationConfig();
+      this.form.setControl('matchingPairs', this.createMatchingPairArray([]));
+      this.form.setControl('orderingItems', this.createOrderingItemArray([]));
+      this.form.setControl('categories', this.createCategoryArray(defaults.categories));
+      this.form.setControl(
+        'categorizationItems',
+        this.createCategorizationItemArray(defaults.categorizationItems),
+      );
+      return;
+    }
+
+    this.form.setControl('matchingPairs', this.createMatchingPairArray([]));
+    this.form.setControl('orderingItems', this.createOrderingItemArray([]));
+    this.form.setControl('categories', this.createCategoryArray([]));
+    this.form.setControl('categorizationItems', this.createCategorizationItemArray([]));
   }
 
   private patchSettingsForm(settings: QuizSettings): void {
@@ -2975,6 +3394,39 @@ export class QuizEditComponent implements OnDestroy {
               : {}),
           }
         : {}),
+      ...(this.isMatchingType()
+        ? {
+            matchingPairs: this.matchingPairsArray.controls.map((pair) => ({
+              leftId: pair.controls.leftId.value,
+              left: pair.controls.left.value,
+              rightId: pair.controls.rightId.value,
+              right: pair.controls.right.value,
+            })),
+            matchingShuffleRight: this.form.controls.matchingShuffleRight.value,
+          }
+        : {}),
+      ...(this.isOrderingType()
+        ? {
+            orderingItems: this.orderingItemsArray.controls.map((item) => ({
+              id: item.controls.id.value,
+              text: item.controls.text.value,
+            })),
+          }
+        : {}),
+      ...(this.isCategorizationType()
+        ? {
+            categories: this.categoriesArray.controls.map((category) => ({
+              id: category.controls.id.value,
+              name: category.controls.name.value,
+            })),
+            categorizationItems: this.categorizationItemsArray.controls.map((item) => ({
+              id: item.controls.id.value,
+              text: item.controls.text.value,
+              correctCategoryId: item.controls.correctCategoryId.value,
+            })),
+            categorizationShuffleItems: this.form.controls.categorizationShuffleItems.value,
+          }
+        : {}),
     };
   }
 
@@ -3019,6 +3471,21 @@ export class QuizEditComponent implements OnDestroy {
           confidenceEnabled?: boolean | null;
           confidenceLabelLow?: string | null;
           confidenceLabelHigh?: string | null;
+          matchingPairs?: Array<{
+            leftId: string;
+            left: string;
+            rightId: string;
+            right: string;
+          }>;
+          matchingShuffleRight?: boolean;
+          orderingItems?: Array<{ id: string; text: string }>;
+          categories?: Array<{ id: string; name: string }>;
+          categorizationItems?: Array<{
+            id: string;
+            text: string;
+            correctCategoryId: string;
+          }>;
+          categorizationShuffleItems?: boolean;
         },
   ): AddQuizQuestionInput {
     const shortTextSettings = this.resolveShortTextQuestionSettings(question);
@@ -3061,6 +3528,24 @@ export class QuizEditComponent implements OnDestroy {
             numericTwoRounds: question.numericTwoRounds ?? false,
           }
         : {}),
+      ...(question.type === 'MATCHING'
+        ? {
+            matchingPairs: question.matchingPairs ?? [],
+            matchingShuffleRight: question.matchingShuffleRight ?? true,
+          }
+        : {}),
+      ...(question.type === 'ORDERING'
+        ? {
+            orderingItems: question.orderingItems ?? [],
+          }
+        : {}),
+      ...(question.type === 'CATEGORIZATION'
+        ? {
+            categories: question.categories ?? [],
+            categorizationItems: question.categorizationItems ?? [],
+            categorizationShuffleItems: question.categorizationShuffleItems ?? true,
+          }
+        : {}),
       ...(questionSupportsConfidence(question.type)
         ? {
             confidenceEnabled: question.confidenceEnabled ?? false,
@@ -3076,6 +3561,23 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.type.setValue(question.type);
     this.form.controls.difficulty.setValue(question.difficulty);
     this.form.setControl('answers', this.createAnswerArrayForType(question.type, question.answers));
+    this.form.setControl(
+      'matchingPairs',
+      this.createMatchingPairArray(question.matchingPairs ?? []),
+    );
+    this.form.controls.matchingShuffleRight.setValue(question.matchingShuffleRight ?? true);
+    this.form.setControl(
+      'orderingItems',
+      this.createOrderingItemArray(question.orderingItems ?? []),
+    );
+    this.form.setControl('categories', this.createCategoryArray(question.categories ?? []));
+    this.form.setControl(
+      'categorizationItems',
+      this.createCategorizationItemArray(question.categorizationItems ?? []),
+    );
+    this.form.controls.categorizationShuffleItems.setValue(
+      question.categorizationShuffleItems ?? true,
+    );
     this.form.controls.ratingMin.setValue(question.ratingMin ?? 1);
     this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
     this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
@@ -3205,6 +3707,15 @@ export class QuizEditComponent implements OnDestroy {
         questionSupportsConfidence(draft.type) && (draft.confidenceEnabled ?? false)
           ? (normalizeNullableText(draft.confidenceLabelHigh) ?? null)
           : null,
+      matchingPairs: draft.type === 'MATCHING' ? (draft.matchingPairs ?? undefined) : undefined,
+      matchingShuffleRight:
+        draft.type === 'MATCHING' ? (draft.matchingShuffleRight ?? true) : undefined,
+      orderingItems: draft.type === 'ORDERING' ? (draft.orderingItems ?? undefined) : undefined,
+      categories: draft.type === 'CATEGORIZATION' ? (draft.categories ?? undefined) : undefined,
+      categorizationItems:
+        draft.type === 'CATEGORIZATION' ? (draft.categorizationItems ?? undefined) : undefined,
+      categorizationShuffleItems:
+        draft.type === 'CATEGORIZATION' ? (draft.categorizationShuffleItems ?? true) : undefined,
     };
   }
 
@@ -3215,6 +3726,9 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.questionTimer.reset(null);
     this.form.controls.questionSkipReadingPhase.reset(false);
     this.form.setControl('answers', this.createAnswerArrayForType(type));
+    this.resetStructuredFieldsForType(type);
+    this.form.controls.matchingShuffleRight.reset(true);
+    this.form.controls.categorizationShuffleItems.reset(true);
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);
     this.form.controls.ratingLabelMin.reset('');
@@ -3302,6 +3816,78 @@ export class QuizEditComponent implements OnDestroy {
       return question.answers.length === 0;
     }
 
+    if (question.type === 'MATCHING') {
+      if (question.answers.length > 0) return false;
+      const pairs = question.matchingPairs ?? [];
+      if (pairs.length < 2 || pairs.length > 6) return false;
+      const lefts = new Set<string>();
+      const rights = new Set<string>();
+      const leftIds = new Set<string>();
+      const rightIds = new Set<string>();
+      for (const pair of pairs) {
+        const left = pair.left.trim();
+        const right = pair.right.trim();
+        if (!left || left.length > 500 || !right || right.length > 500) return false;
+        if (!pair.leftId || !pair.rightId) return false;
+        if (
+          lefts.has(left) ||
+          rights.has(right) ||
+          leftIds.has(pair.leftId) ||
+          rightIds.has(pair.rightId)
+        )
+          return false;
+        lefts.add(left);
+        rights.add(right);
+        leftIds.add(pair.leftId);
+        rightIds.add(pair.rightId);
+      }
+      return true;
+    }
+
+    if (question.type === 'ORDERING') {
+      if (question.answers.length > 0) return false;
+      const items = question.orderingItems ?? [];
+      if (items.length < 3 || items.length > 8) return false;
+      const ids = new Set<string>();
+      const texts = new Set<string>();
+      for (const item of items) {
+        const text = item.text.trim();
+        if (!item.id.trim() || !text || text.length > 500) return false;
+        if (ids.has(item.id) || texts.has(text)) return false;
+        ids.add(item.id);
+        texts.add(text);
+      }
+      return true;
+    }
+
+    if (question.type === 'CATEGORIZATION') {
+      if (question.answers.length > 0) return false;
+      const categories = question.categories ?? [];
+      const categorizationItems = question.categorizationItems ?? [];
+      if (categories.length < 2 || categories.length > 4) return false;
+      if (categorizationItems.length < 4 || categorizationItems.length > 12) return false;
+      const categoryIds = new Set(categories.map((category) => category.id));
+      const categoryNames = new Set<string>();
+      if (categoryIds.size !== categories.length) return false;
+      for (const category of categories) {
+        const name = category.name.trim();
+        if (!category.id.trim() || !name || name.length > 200) return false;
+        if (categoryNames.has(name)) return false;
+        categoryNames.add(name);
+      }
+      const itemTexts = new Set<string>();
+      const itemIds = new Set<string>();
+      for (const item of categorizationItems) {
+        const text = item.text.trim();
+        if (!text || text.length > 500) return false;
+        if (!item.id || itemTexts.has(text) || itemIds.has(item.id)) return false;
+        if (!categoryIds.has(item.correctCategoryId)) return false;
+        itemTexts.add(text);
+        itemIds.add(item.id);
+      }
+      return true;
+    }
+
     if (question.type === 'SHORT_TEXT') {
       if (question.answers.length < 1 || question.answers.length > 10) {
         return false;
@@ -3369,7 +3955,14 @@ export class QuizEditComponent implements OnDestroy {
     type: SupportedQuestionType,
     existingAnswers: AddQuizQuestionInput['answers'] = [],
   ): FormArray<AnswerFormGroup> {
-    if (type === 'FREETEXT' || type === 'RATING' || type === 'NUMERIC_ESTIMATE') {
+    if (
+      type === 'FREETEXT' ||
+      type === 'RATING' ||
+      type === 'NUMERIC_ESTIMATE' ||
+      type === 'MATCHING' ||
+      type === 'ORDERING' ||
+      type === 'CATEGORIZATION'
+    ) {
       return this.formBuilder.array<AnswerFormGroup>([]);
     }
 
@@ -3519,6 +4112,10 @@ function normalizeNullableText(value: string | null | undefined): string | null 
 
 function normalizeTeamNamesForCompare(value: readonly string[] | null | undefined): string[] {
   return parseTeamNamesText((value ?? []).join('\n'));
+}
+
+function newQuestionItemId(): string {
+  return globalThis.crypto.randomUUID();
 }
 
 function buildEffectiveTeamNames(value: string, teamCount: number | null | undefined): string[] {

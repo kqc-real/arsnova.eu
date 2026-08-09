@@ -3339,7 +3339,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     const text = el.textContent ?? '';
     expect(text).toContain('Peer Instruction empfohlen');
-    expect(text).toMatch(/35\s*[–-]\s*70/);
+    expect(text).toContain('Zwischen einem Drittel und zwei Dritteln vollständig korrekt');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
       (button.textContent ?? '').replace(/^groups/, '').trim(),
@@ -4319,6 +4319,342 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
     fixture.destroy();
   });
+
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'bietet für %s den Diskussionspfad nur mit ausgewertetem Ein-Drittel-bis-Zwei-Drittel-Signal an',
+    async (type) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        participantCount: 3,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 3,
+        participants: [],
+      });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: 1,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 3,
+        correctVoterCount: 1,
+        incorrectVoterCount: 2,
+        peerInstructionSuggestion: {
+          suggested: true,
+          reason: 'CORRECTNESS_WINDOW' as const,
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const exitAnchor = fixture.nativeElement.querySelector(
+        '.session-host__exit-anchor',
+      ) as HTMLElement;
+      const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').replace(/^groups/, '').trim(),
+      );
+
+      expect(buttonTexts).toContain('Diskussionsphase');
+      expect(buttonTexts).toContain('Ergebnis trotzdem zeigen');
+      fixture.destroy();
+    },
+  );
+
+  it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
+    'bietet für %s bei 100 % vollständig richtigen Antworten keine Diskussionsphase an',
+    async (type) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        participantCount: 1,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [],
+      });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: 1,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 1,
+        correctVoterCount: 1,
+        incorrectVoterCount: 0,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const exitAnchor = fixture.nativeElement.querySelector(
+        '.session-host__exit-anchor',
+      ) as HTMLElement;
+      const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').replace(/^groups/, '').trim(),
+      );
+
+      expect(buttonTexts).not.toContain('Diskussionsphase');
+      expect(buttonTexts).toContain('Ergebnis zeigen');
+      fixture.destroy();
+    },
+  );
+
+  it.each([
+    ['ACTIVE', 1],
+    ['DISCUSSION', 1],
+    ['ACTIVE', 2],
+  ] as const)(
+    'zeigt in %s Runde %s alle strukturierten Optionsräume neutral und ohne Lösungshinweise',
+    async (status, round) => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status, currentRound: round });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status, currentQuestion: 0, currentRound: round });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type: 'MATCHING',
+        currentRound: round,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 1,
+        matchingPairs: [
+          { leftId: 'left-b', left: 'Beta', rightId: 'right-b', right: 'Zwei' },
+          { leftId: 'left-a', left: 'Alpha', rightId: 'right-a', right: 'Eins' },
+        ],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const neutral = fixture.nativeElement.querySelector(
+        '.session-host__neutral-space',
+      ) as HTMLElement | null;
+      const text = neutral?.textContent ?? '';
+      expect(text).toContain('Begriffe und Gegenstücke');
+      expect(text).toContain('Alpha');
+      expect(text).toContain('Beta');
+      expect(text).toContain('Eins');
+      expect(text).toContain('Zwei');
+      expect(text).not.toContain('Korrekte Paare');
+      expect(text).not.toContain('Vollständig korrekt');
+
+      const columns = neutral?.querySelectorAll('section > .session-host__neutral-list');
+      expect(columns).toHaveLength(2);
+      const leftIds = Array.from(columns?.[0]?.children ?? [], (element) =>
+        element.textContent?.trim(),
+      );
+      const rightIds = Array.from(columns?.[1]?.children ?? [], (element) =>
+        element.textContent?.trim(),
+      );
+      expect(leftIds).toEqual(['Alpha', 'Beta']);
+      expect(rightIds).toEqual(['Zwei', 'Eins']);
+      fixture.destroy();
+    },
+  );
+
+  it.each(
+    (
+      [
+        {
+          type: 'ORDERING',
+          fields: {
+            orderingItems: [
+              { id: 'b', text: 'Zweitens' },
+              { id: 'a', text: 'Erstens' },
+            ],
+          },
+          expected: ['Erstens', 'Zweitens'],
+          forbidden: 'Soll-Reihenfolge',
+        },
+        {
+          type: 'CATEGORIZATION',
+          fields: {
+            categories: [
+              { id: 'cat-a', name: 'Kategorie A' },
+              { id: 'cat-b', name: 'Kategorie B' },
+            ],
+            categorizationItems: [
+              { id: 'item-a', text: 'Element A', correctCategoryId: 'cat-a' },
+              { id: 'item-b', text: 'Element B', correctCategoryId: 'cat-b' },
+            ],
+          },
+          expected: ['Kategorie A', 'Kategorie B', 'Element A', 'Element B'],
+          forbidden: 'Soll-Kategorien',
+        },
+      ] as const
+    ).flatMap((scenario) =>
+      (
+        [
+          ['ACTIVE', 1],
+          ['DISCUSSION', 1],
+          ['ACTIVE', 2],
+        ] as const
+      ).map(([status, round]) => ({ ...scenario, status, round })),
+    ),
+  )(
+    'behält den neutralen $type-Optionsraum in $status Runde $round sichtbar',
+    async ({ type, fields, expected, forbidden, status, round }) => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status, currentRound: round });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status, currentQuestion: 0, currentRound: round });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: round,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 1,
+        ...fields,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const neutral = fixture.nativeElement.querySelector(
+        '.session-host__neutral-space',
+      ) as HTMLElement;
+      const text = neutral.textContent ?? '';
+      for (const term of expected) expect(text).toContain(term);
+      expect(text).not.toContain(forbidden);
+      expect(text).not.toContain('Vollständig korrekt');
+      if (type === 'CATEGORIZATION') {
+        expect(text).not.toContain('Element A → Kategorie A');
+        expect(
+          neutral.querySelectorAll(':scope > .session-host__neutral-columns > section'),
+        ).toHaveLength(2);
+      }
+      fixture.destroy();
+    },
+  );
+
+  it.each([
+    {
+      type: 'ORDERING',
+      fields: {
+        orderingItems: [
+          { id: 'item-a', text: 'Erstens' },
+          { id: 'item-b', text: 'Zweitens' },
+        ],
+        orderingStats: { fullyCorrectCount: 1, totalVotes: 2, positionCounts: [] },
+      },
+      solutionTitle: 'Soll-Reihenfolge',
+    },
+    {
+      type: 'MATCHING',
+      fields: {
+        matchingPairs: [
+          { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+          { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+        ],
+        matchingStats: { fullyCorrectCount: 1, totalVotes: 2, selectionCounts: [] },
+      },
+      solutionTitle: 'Korrekte Paare',
+    },
+    {
+      type: 'CATEGORIZATION',
+      fields: {
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'Element B', correctCategoryId: 'cat-b' },
+        ],
+        categorizationStats: {
+          fullyCorrectCount: 1,
+          totalVotes: 2,
+          itemCategoryCounts: [],
+        },
+      },
+      solutionTitle: 'Soll-Kategorien',
+    },
+  ] as const)(
+    'zeigt bei $type im Host-Ergebnis zuerst die Lösung und danach Zusammenfassung und Statistik',
+    async ({ type, fields, solutionTitle }) => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+      onStatusChangedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          opts.onData({ status: 'RESULTS', currentQuestion: 0, currentRound: 1 });
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 3,
+        text: 'Strukturierte Frage',
+        type,
+        currentRound: 1,
+        timer: null,
+        activeAt: null,
+        answers: [],
+        totalVotes: 2,
+        ...fields,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const result = fixture.nativeElement.querySelector(
+        `.session-host__${type.toLowerCase()}-results`,
+      ) as HTMLElement;
+      const text = result.textContent ?? '';
+      expect(text).toContain(solutionTitle);
+      expect(text).toContain('Vollständig korrekt');
+      expect(text.indexOf(solutionTitle)).toBeLessThan(text.indexOf('Vollständig korrekt'));
+      expect(result.querySelector('app-presenter-distribution-matrix')).not.toBeNull();
+      fixture.destroy();
+    },
+  );
 
   it('zeigt "komplett richtig" nicht bei Single-Choice-Ergebnisfragen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });

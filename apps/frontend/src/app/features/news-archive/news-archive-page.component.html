@@ -77,13 +77,20 @@
             <div class="news-archive-page__entries">
               @for (it of items(); track it.id) {
                 @let archiveMeta = formatArchiveDate(it.startsAt);
+                @let titleDisplay = archiveItemTitleDisplay(it.id);
                 <section class="news-archive-page__entry" [attr.id]="'motd-archive-' + it.id">
                   <h2 class="news-archive-page__entry-title">
                     <a
                       class="news-archive-page__entry-title-link"
                       [attr.href]="'#motd-archive-' + it.id"
                       (click)="onArchiveTitleLinkClick($event, it.id)"
-                      >{{ archiveItemTitle(it.id) }}</a
+                    >
+                      @if (titleDisplay.decorativeEmoji) {
+                        <span class="news-archive-page__decorative-emoji" aria-hidden="true">{{
+                          titleDisplay.decorativeEmoji
+                        }}</span>
+                      }
+                      <span>{{ titleDisplay.title }}</span></a
                     >
                   </h2>
                   @if (archiveMeta) {

@@ -84,6 +84,12 @@ model Question {
   confidenceEnabled     Boolean  @default(false) // Story 1.2i: Sicherheitsgrad abfragen
   confidenceLabelLow    String?  // Story 1.2i: Label für niedrige Sicherheit (z. B. „geraten“)
   confidenceLabelHigh   String?  // Story 1.2i: Label für hohe Sicherheit (z. B. „sehr sicher“)
+  matchingPairs         Json?    // Story 1.2g: Array aus { leftId, left, rightId, right }
+  matchingShuffleRight  Boolean  @default(true) // Rechte Seite pro Teilnehmer:in mischen
+  orderingItems         Json?    // Story 1.2h: Array aus { id, text }
+  categories            Json?    // Story 1.2j: Array aus { id, name }
+  categorizationItems   Json?    // Story 1.2j: Array aus { id, text, correctCategoryId }
+  categorizationShuffleItems Boolean @default(true) // Elemente pro Teilnehmer:in mischen
   quizId     String
   quiz       Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers    AnswerOption[]
@@ -223,6 +229,9 @@ model Vote {
   streakBonus    Float        @default(1.0) // Story 5.5: Angewandter Streak-Multiplikator
   round          Int          @default(1) // Story 2.7: Peer Instruction – Runde (1 oder 2)
   confidenceValue Int?        // Story 1.2i: Selbstberichteter Sicherheitsgrad (1–5)
+  matchingSelections Json?    // Story 1.2g: Array aus { leftId, rightId }
+  orderingSequence String[]   @default([]) // Story 1.2h: Reihung von Item-IDs/Texten
+  categorizationSelections Json? // Story 1.2j: Array aus { itemId, categoryId }
   votedAt        DateTime     @default(now())
 
   @@unique([sessionId, participantId, questionId, round]) // Nur eine Stimme pro Frage pro Runde
@@ -251,6 +260,9 @@ enum QuestionType {
   SURVEY
   RATING           // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
   NUMERIC_ESTIMATE // Story 1.2d: Numerische Schätzfrage mit Toleranzintervall
+  MATCHING         // Story 1.2g: Zuordnungsfrage
+  ORDERING         // Story 1.2h: Reihenfolgefrage
+  CATEGORIZATION   // Story 1.2j: Gruppierungs-/Kategorisierungsfrage
 }
 
 enum Difficulty {

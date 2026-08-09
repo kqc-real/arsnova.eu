@@ -2178,4 +2178,150 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(answerStrong).not.toBeNull();
     expect(answerStrong?.textContent).toContain('Korrekte');
   });
+
+  it('ordnet die Musterlösung einer Sortierfrage samt stabiler IDs neu', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('ORDERING');
+    component.onTypeChanged();
+    const ids = component.orderingItemsArray.controls.map((item) => item.controls.id.value);
+    component.orderingItemsArray.controls.forEach((item, index) => {
+      item.controls.text.setValue(`Schritt ${index + 1}`);
+    });
+
+    component.moveOrderingSolutionItem(2, 'start');
+
+    expect(component.orderingItemsArray.controls.map((item) => item.controls.id.value)).toEqual([
+      ids[2],
+      ids[0],
+      ids[1],
+    ]);
+    expect(component.orderingItemsArray.controls.map((item) => item.controls.text.value)).toEqual([
+      'Schritt 3',
+      'Schritt 1',
+      'Schritt 2',
+    ]);
+    expect(component.orderingSolutionAnnouncement()).toContain('Position 1 von 3');
+    expect(component.orderingItemsArray.dirty).toBe(true);
+  });
+
+  it('nutzt im Ordering-Editor das verfügbare Abwärtssymbol und das breite Zeilenraster', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('ORDERING');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector(
+      '.quiz-edit-answer--ordering',
+    ) as HTMLElement | null;
+    const buttons = row?.querySelectorAll('.quiz-edit-answer__reorder-actions button');
+    const upIcon = buttons?.item(1).querySelector('mat-icon');
+    const downIcon = buttons?.item(2).querySelector('mat-icon');
+    const orderingField = row?.querySelector('textarea[cdktextareaautosize]');
+
+    expect(row).not.toBeNull();
+    expect(upIcon?.textContent?.trim()).toBe('keyboard_arrow_up');
+    expect(downIcon?.textContent?.trim()).toBe('keyboard_arrow_down');
+    expect(orderingField).not.toBeNull();
+  });
+
+  it('markiert Kategorienzeilen für ein Raster mit vollständig nutzbarer Feldbreite', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('CATEGORIZATION');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const rows = fixture.nativeElement.querySelectorAll('.quiz-edit-answer--category');
+    expect(rows.length).toBe(component.categoriesArray.length);
+    expect(rows.item(0).querySelector('.quiz-edit-form__grow')).not.toBeNull();
+  });
+
+  it('weist doppelte sichtbare Ordering-Elemente und Kategorienamen auch im Editor zurück', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    const validate = (
+      component as unknown as {
+        isQuestionInputValid: (question: unknown) => boolean;
+      }
+    ).isQuestionInputValid.bind(component);
+
+    expect(
+      validate({
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        timer: null,
+        answers: [],
+        orderingItems: [
+          { id: 'item-a', text: 'Alpha' },
+          { id: 'item-b', text: ' Alpha ' },
+          { id: 'item-c', text: 'Beta' },
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      validate({
+        text: 'Kategorisiere',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        timer: null,
+        answers: [],
+        categories: [
+          { id: 'cat-a', name: 'Kategorie' },
+          { id: 'cat-b', name: ' Kategorie ' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'B', correctCategoryId: 'cat-a' },
+          { id: 'item-c', text: 'C', correctCategoryId: 'cat-b' },
+          { id: 'item-d', text: 'D', correctCategoryId: 'cat-b' },
+        ],
+      }),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('speichert Matching-Paare mit stabilen IDs und konfigurierbarer Mischung', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.form.controls.type.setValue('MATCHING');
+    component.onTypeChanged();
+    component.form.controls.text.setValue('Ordne die Begriffe zu.');
+    component.form.controls.matchingShuffleRight.setValue(false);
+    component.matchingPairsArray.at(0).controls.left.setValue('A');
+    component.matchingPairsArray.at(0).controls.right.setValue('1');
+    component.matchingPairsArray.at(1).controls.left.setValue('B');
+    component.matchingPairsArray.at(1).controls.right.setValue('2');
+    const stableIds = component.matchingPairsArray.controls.flatMap((pair) => [
+      pair.controls.leftId.value,
+      pair.controls.rightId.value,
+    ]);
+
+    component.saveAll();
+
+    expect(new Set(stableIds).size).toBe(4);
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        type: 'MATCHING',
+        matchingShuffleRight: false,
+        matchingPairs: [
+          {
+            leftId: stableIds[0],
+            left: 'A',
+            rightId: stableIds[1],
+            right: '1',
+          },
+          {
+            leftId: stableIds[2],
+            left: 'B',
+            rightId: stableIds[3],
+            right: '2',
+          },
+        ],
+      }),
+    );
+  });
 });

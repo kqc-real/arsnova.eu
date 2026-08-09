@@ -124,6 +124,58 @@ describe('QuizStoreService', () => {
     expect(service.getQuizById('6b442f6f-2f8a-4bad-95da-69f5e9cd2649')?.questions.length).toBe(1);
   });
 
+  it('migriert alte Matching-Paare einmalig auf opake IDs und persistiert sie', () => {
+    const quizId = '6b442f6f-2f8a-4bad-95da-69f5e9cd2649';
+    const questionId = '9eff562e-51f8-4f72-98a3-2f421ef2b411';
+    localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: quizId,
+          name: 'Legacy Matching',
+          description: null,
+          motifImageUrl: null,
+          createdAt: '2026-03-08T12:00:00.000Z',
+          updatedAt: '2026-03-08T12:00:00.000Z',
+          settings: defaultSettings,
+          questions: [
+            {
+              id: questionId,
+              text: 'Ordne zu',
+              type: 'MATCHING',
+              difficulty: 'MEDIUM',
+              order: 0,
+              enabled: true,
+              timer: null,
+              answers: [],
+              matchingPairs: [
+                { left: 'A', right: '1' },
+                { left: 'B', right: '2' },
+              ],
+            },
+          ],
+        },
+      ]),
+    );
+
+    const service = TestBed.inject(QuizStoreService);
+    const pairs = service.getQuizById(quizId)?.questions[0]?.matchingPairs ?? [];
+    const persisted = JSON.parse(localStorage.getItem(QUIZ_STORAGE_KEY) ?? '[]') as Array<{
+      id: string;
+      questions: Array<{ matchingPairs: Array<{ leftId: string; rightId: string }> }>;
+    }>;
+    const persistedPairs = persisted.find((entry) => entry.id === quizId)?.questions[0]
+      ?.matchingPairs;
+
+    expect(pairs).toHaveLength(2);
+    expect(pairs.every((pair) => /^[0-9a-f-]{36}$/i.test(pair.leftId))).toBe(true);
+    expect(pairs.every((pair) => /^[0-9a-f-]{36}$/i.test(pair.rightId))).toBe(true);
+    expect(new Set(pairs.flatMap((pair) => [pair.leftId, pair.rightId])).size).toBe(4);
+    expect(persistedPairs).toEqual(
+      pairs.map(({ leftId, rightId }) => expect.objectContaining({ leftId, rightId })),
+    );
+  });
+
   it('fügt eine SINGLE_CHOICE-Frage hinzu', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({ name: 'Test-Quiz' });
@@ -514,6 +566,46 @@ describe('QuizStoreService', () => {
     ).toThrowError();
 
     expect(service.getQuizById(created.id)?.questions.length).toBe(0);
+  });
+
+  it('validiert eindeutige sichtbare Ordering-Elemente und Kategorienamen', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Strukturierte Eindeutigkeit' });
+
+    expect(() =>
+      service.addQuestion(created.id, {
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        answers: [],
+        orderingItems: [
+          { id: 'step-a', text: 'Start' },
+          { id: 'step-b', text: ' Start ' },
+          { id: 'step-c', text: 'Ende' },
+        ],
+      }),
+    ).toThrowError(/Elemente müssen eindeutig sein/);
+
+    expect(() =>
+      service.addQuestion(created.id, {
+        text: 'Ordne zu',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        answers: [],
+        categories: [
+          { id: 'category-a', name: 'Literatur' },
+          { id: 'category-b', name: ' Literatur ' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', correctCategoryId: 'category-a' },
+          { id: 'item-b', text: 'B', correctCategoryId: 'category-a' },
+          { id: 'item-c', text: 'C', correctCategoryId: 'category-b' },
+          { id: 'item-d', text: 'D', correctCategoryId: 'category-b' },
+        ],
+      }),
+    ).toThrowError(/Kategorienamen müssen eindeutig sein/);
+
+    expect(service.getQuizById(created.id)?.questions).toHaveLength(0);
   });
 
   it('ignoriert ungültige gespeicherte Einträge', () => {
@@ -1772,15 +1864,15 @@ describe('QuizStoreService', () => {
         question.type === 'NUMERIC_ESTIMATE' && question.text.includes('Französische Revolution'),
     );
 
-    expect(demo?.questions).toHaveLength(9);
+    expect(demo?.questions).toHaveLength(13);
     expect(piQuestion).toEqual(
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
         numericTolerancePercent: null,
-        numericIntervalLeft: 3.1,
-        numericIntervalRight: 3.2,
+        numericIntervalLeft: 3.135,
+        numericIntervalRight: 3.145,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
         numericMin: 3,
@@ -1792,8 +1884,8 @@ describe('QuizStoreService', () => {
       expect.objectContaining({
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 1789,
-        numericIntervalLeft: 1700,
-        numericIntervalRight: 1900,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
         numericInputType: 'INTEGER',
         numericMin: 1500,
         numericMax: 2000,
@@ -1805,8 +1897,8 @@ describe('QuizStoreService', () => {
         type: 'NUMERIC_ESTIMATE',
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
-        numericIntervalLeft: 3.1,
-        numericIntervalRight: 3.2,
+        numericIntervalLeft: 3.135,
+        numericIntervalRight: 3.145,
         numericMin: 3,
         numericMax: 3.5,
       }),
@@ -1815,8 +1907,8 @@ describe('QuizStoreService', () => {
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
         numericReferenceValue: 1789,
-        numericIntervalLeft: 1700,
-        numericIntervalRight: 1900,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
       }),
     );
   });
@@ -1868,9 +1960,10 @@ describe('QuizStoreService', () => {
     const service = TestBed.inject(QuizStoreService);
     const demo = service.getQuizById(DEMO_QUIZ_ID);
 
-    expect(demo?.questions).toHaveLength(9);
+    expect(demo?.questions).toHaveLength(13);
     expect(demo?.questions.map((question) => question.type)).toEqual([
       'SURVEY',
+      'FREETEXT',
       'NUMERIC_ESTIMATE',
       'SINGLE_CHOICE',
       'MULTIPLE_CHOICE',
@@ -1878,6 +1971,9 @@ describe('QuizStoreService', () => {
       'SINGLE_CHOICE',
       'SHORT_TEXT',
       'NUMERIC_ESTIMATE',
+      'ORDERING',
+      'MATCHING',
+      'CATEGORIZATION',
       'RATING',
     ]);
   });

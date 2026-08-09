@@ -17,6 +17,9 @@ export const QuestionTypeEnum = z.enum([
   'SURVEY',
   'RATING',
   'NUMERIC_ESTIMATE',
+  'MATCHING',
+  'ORDERING',
+  'CATEGORIZATION',
 ]);
 export type QuestionType = z.infer<typeof QuestionTypeEnum>;
 
@@ -1323,6 +1326,441 @@ export const AnswerOptionInputSchema = z.object({
 });
 export type AnswerOptionInput = z.infer<typeof AnswerOptionInputSchema>;
 
+/** Matching-Paar für den Editor & Import/Export (Story 1.2g) */
+export const MatchingPairInputSchema = z.object({
+  leftId: z.string().min(1).max(100),
+  left: z.string().min(1, { error: 'Linker Begriff darf nicht leer sein' }).max(500),
+  rightId: z.string().min(1).max(100),
+  right: z.string().min(1, { error: 'Rechter Begriff darf nicht leer sein' }).max(500),
+});
+export type MatchingPairInput = z.infer<typeof MatchingPairInputSchema>;
+
+/** Ordering-Element für den Editor & Import/Export (Story 1.2h) */
+export const OrderingItemInputSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z.string().min(1, { error: 'Element-Text darf nicht leer sein' }).max(500),
+});
+export type OrderingItemInput = z.infer<typeof OrderingItemInputSchema>;
+
+/** Categorization-Kategorie für den Editor & Import/Export (Story 1.2j) */
+export const CategorizationCategoryInputSchema = z.object({
+  id: z.string().min(1).max(100),
+  name: z.string().min(1, { error: 'Kategoriename darf nicht leer sein' }).max(200),
+});
+export type CategorizationCategoryInput = z.infer<typeof CategorizationCategoryInputSchema>;
+
+/** Categorization-Element für den Editor & Import/Export (Story 1.2j) */
+export const CategorizationItemInputSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z.string().min(1, { error: 'Element-Text darf nicht leer sein' }).max(500),
+  correctCategoryId: z.string().min(1).max(100),
+});
+export type CategorizationItemInput = z.infer<typeof CategorizationItemInputSchema>;
+
+/** Categorization-Element DTO für Studenten (ohne correctCategoryId) */
+export const CategorizationItemStudentDTOSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z.string().min(1).max(500),
+});
+export type CategorizationItemStudentDTO = z.infer<typeof CategorizationItemStudentDTOSchema>;
+
+/** Einzelne, lösungsfreie Auswahloption mit stabiler ID. */
+export const StructuredOptionStudentDTOSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z.string().min(1).max(500),
+});
+export type StructuredOptionStudentDTO = z.infer<typeof StructuredOptionStudentDTOSchema>;
+
+/**
+ * Deterministischer Shuffle über FNV-1a Hash aus Seed.
+ * Caller sollte einen serverseitig gesalzenen Seed übergeben (nicht nur öffentliche IDs).
+ */
+export function stableShuffleWithContext<T>(
+  items: ReadonlyArray<T>,
+  seedPartA: string,
+  seedPartB: string,
+): T[] {
+  const result = [...items];
+  if (result.length <= 1) return result;
+
+  let h = 2166136261;
+  const str = `${seedPartA}:${seedPartB}`;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+
+  for (let i = result.length - 1; i > 0; i--) {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    // Unsigned normalization is always in [0, 1). Math.abs(INT32_MIN) divided by
+    // INT32_MAX can exceed 1 and would occasionally address result[i + 1].
+    const rnd = (h >>> 0) / 0x1_0000_0000;
+    const j = Math.floor(rnd * (i + 1));
+    const temp = result[i]!;
+    result[i] = result[j]!;
+    result[j] = temp;
+  }
+  return result;
+}
+
+export function evaluateMatchingAnswer(
+  studentSelections: ReadonlyArray<{ leftId: string; rightId: string }>,
+  correctPairs: ReadonlyArray<{ leftId: string; rightId: string }>,
+): boolean {
+  if (!studentSelections || !correctPairs || studentSelections.length !== correctPairs.length) {
+    return false;
+  }
+  const expectedLeftIds = new Set(correctPairs.map((pair) => pair.leftId));
+  const expectedRightIds = new Set(correctPairs.map((pair) => pair.rightId));
+  const selectedLeftIds = new Set(studentSelections.map((selection) => selection.leftId));
+  const selectedRightIds = new Set(studentSelections.map((selection) => selection.rightId));
+  if (
+    expectedLeftIds.size !== correctPairs.length ||
+    expectedRightIds.size !== correctPairs.length ||
+    selectedLeftIds.size !== studentSelections.length ||
+    selectedRightIds.size !== studentSelections.length
+  ) {
+    return false;
+  }
+  const pairMap = new Map(correctPairs.map((p) => [p.leftId, p.rightId]));
+  return studentSelections.every(
+    (selection) =>
+      pairMap.has(selection.leftId) && pairMap.get(selection.leftId) === selection.rightId,
+  );
+}
+
+export function evaluateOrderingAnswer(
+  studentSequence: ReadonlyArray<string>,
+  correctSequence: ReadonlyArray<string>,
+): boolean {
+  if (!studentSequence || !correctSequence || studentSequence.length !== correctSequence.length) {
+    return false;
+  }
+  return studentSequence.every((item, idx) => item.trim() === correctSequence[idx]?.trim());
+}
+
+export function evaluateCategorizationAnswer(
+  studentSelections: ReadonlyArray<{ itemId: string; categoryId: string }>,
+  correctItems: ReadonlyArray<{ id: string; correctCategoryId: string }>,
+): boolean {
+  if (!studentSelections || !correctItems || studentSelections.length !== correctItems.length) {
+    return false;
+  }
+  const expectedItemIds = new Set(correctItems.map((item) => item.id));
+  const selectedItemIds = new Set(studentSelections.map((selection) => selection.itemId));
+  if (
+    expectedItemIds.size !== correctItems.length ||
+    selectedItemIds.size !== studentSelections.length
+  ) {
+    return false;
+  }
+  const itemMap = new Map(correctItems.map((item) => [item.id, item.correctCategoryId]));
+  return studentSelections.every(
+    (selection) =>
+      itemMap.has(selection.itemId) && itemMap.get(selection.itemId) === selection.categoryId,
+  );
+}
+
+export const MatchingStatsDTOSchema = z.object({
+  totalVotes: z.number().int().min(0),
+  fullyCorrectCount: z.number().int().min(0),
+  pairHitRates: z.array(
+    z.object({
+      leftId: z.string(),
+      left: z.string(),
+      rightId: z.string(),
+      right: z.string(),
+      correctCount: z.number().int().min(0),
+      hitRatePercent: z.number().int().min(0).max(100),
+    }),
+  ),
+  commonConfusions: z.array(
+    z.object({
+      leftId: z.string(),
+      left: z.string(),
+      wrongRightId: z.string(),
+      wrongRight: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  selectionCounts: z.array(
+    z.object({
+      leftId: z.string(),
+      left: z.string(),
+      rightId: z.string(),
+      right: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+});
+export type MatchingStatsDTO = z.infer<typeof MatchingStatsDTOSchema>;
+
+export const OrderingStatsDTOSchema = z.object({
+  totalVotes: z.number().int().min(0),
+  fullyCorrectCount: z.number().int().min(0),
+  positionCounts: z.array(
+    z.object({
+      position: z.number().int().min(0),
+      itemId: z.string(),
+      itemText: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  commonSwaps: z.array(
+    z.object({
+      itemAId: z.string(),
+      itemAText: z.string(),
+      itemBId: z.string(),
+      itemBText: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+});
+export type OrderingStatsDTO = z.infer<typeof OrderingStatsDTOSchema>;
+
+export const CategorizationStatsDTOSchema = z.object({
+  totalVotes: z.number().int().min(0),
+  fullyCorrectCount: z.number().int().min(0),
+  itemCategoryCounts: z.array(
+    z.object({
+      itemId: z.string(),
+      itemText: z.string(),
+      categoryId: z.string(),
+      categoryName: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  commonMisclassifications: z.array(
+    z.object({
+      itemId: z.string(),
+      itemText: z.string(),
+      wrongCategoryId: z.string(),
+      wrongCategoryName: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+});
+export type CategorizationStatsDTO = z.infer<typeof CategorizationStatsDTOSchema>;
+
+function percentRate(count: number, total: number): number {
+  if (total <= 0) return 0;
+  return Math.round((count / total) * 100);
+}
+
+export function buildMatchingStats(
+  votes: ReadonlyArray<{ selections: ReadonlyArray<{ leftId: string; rightId: string }> }>,
+  correctPairs: ReadonlyArray<{
+    leftId: string;
+    left: string;
+    rightId: string;
+    right: string;
+  }>,
+): MatchingStatsDTO {
+  const totalVotes = votes.length;
+  let fullyCorrectCount = 0;
+  const pairCorrectCounts = new Map<string, number>();
+  const confusionCounts = new Map<string, number>();
+  const selectionCounts = new Map<string, number>();
+  const pairByLeftId = new Map(correctPairs.map((pair) => [pair.leftId, pair]));
+  const rightTextById = new Map(correctPairs.map((pair) => [pair.rightId, pair.right]));
+
+  for (const pair of correctPairs) {
+    pairCorrectCounts.set(pair.leftId, 0);
+  }
+
+  for (const vote of votes) {
+    if (evaluateMatchingAnswer(vote.selections, correctPairs)) {
+      fullyCorrectCount += 1;
+    }
+    for (const selection of vote.selections) {
+      const { leftId, rightId } = selection;
+      const expected = pairByLeftId.get(leftId)?.rightId;
+      if (expected === undefined) continue;
+      const selectionKey = `${leftId}\u0000${rightId}`;
+      selectionCounts.set(selectionKey, (selectionCounts.get(selectionKey) ?? 0) + 1);
+      if (expected === rightId) {
+        pairCorrectCounts.set(leftId, (pairCorrectCounts.get(leftId) ?? 0) + 1);
+      } else {
+        const key = `${leftId}\u0000${rightId}`;
+        confusionCounts.set(key, (confusionCounts.get(key) ?? 0) + 1);
+      }
+    }
+  }
+
+  return {
+    totalVotes,
+    fullyCorrectCount,
+    pairHitRates: correctPairs.map((pair) => {
+      const correctCount = pairCorrectCounts.get(pair.leftId) ?? 0;
+      return {
+        leftId: pair.leftId,
+        left: pair.left,
+        rightId: pair.rightId,
+        right: pair.right,
+        correctCount,
+        hitRatePercent: percentRate(correctCount, totalVotes),
+      };
+    }),
+    commonConfusions: [...confusionCounts.entries()]
+      .map(([key, count]) => {
+        const [leftId = '', wrongRightId = ''] = key.split('\u0000');
+        return {
+          leftId,
+          left: pairByLeftId.get(leftId)?.left ?? leftId,
+          wrongRightId,
+          wrongRight: rightTextById.get(wrongRightId) ?? wrongRightId,
+          count,
+        };
+      })
+      .filter((entry) => entry.leftId && entry.wrongRightId)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8),
+    selectionCounts: [...selectionCounts.entries()]
+      .map(([key, count]) => {
+        const [leftId = '', rightId = ''] = key.split('\u0000');
+        return {
+          leftId,
+          left: pairByLeftId.get(leftId)?.left ?? leftId,
+          rightId,
+          right: rightTextById.get(rightId) ?? rightId,
+          count,
+        };
+      })
+      .filter((entry) => entry.leftId && entry.rightId)
+      .sort((a, b) => a.left.localeCompare(b.left) || b.count - a.count),
+  };
+}
+
+export function buildOrderingStats(
+  votes: ReadonlyArray<{ sequence: ReadonlyArray<string> }>,
+  correctItems: ReadonlyArray<{ id: string; text: string }>,
+): OrderingStatsDTO {
+  const totalVotes = votes.length;
+  const correctSequence = correctItems.map((item) => item.id);
+  const itemById = new Map(correctItems.map((item) => [item.id, item]));
+  let fullyCorrectCount = 0;
+  const positionCounts = new Map<string, number>();
+  const swapCounts = new Map<string, number>();
+
+  for (const vote of votes) {
+    if (evaluateOrderingAnswer(vote.sequence, correctSequence)) {
+      fullyCorrectCount += 1;
+    }
+    vote.sequence.forEach((itemId, position) => {
+      const key = `${position}\u0000${itemId}`;
+      positionCounts.set(key, (positionCounts.get(key) ?? 0) + 1);
+    });
+    // Count only actual reciprocal transpositions A↔B, not arbitrary cycles or shifts.
+    const seenSwapsInVote = new Set<string>();
+    for (let i = 0; i < correctSequence.length; i++) {
+      const expected = correctSequence[i];
+      const actual = vote.sequence[i];
+      if (!expected || !actual || expected === actual) continue;
+      const expectedPos = vote.sequence.indexOf(expected);
+      if (expectedPos < 0 || correctSequence[expectedPos] !== actual) continue;
+      const a = expected < actual ? expected : actual;
+      const b = expected < actual ? actual : expected;
+      const swapKey = `${a}\u0000${b}`;
+      if (seenSwapsInVote.has(swapKey)) continue;
+      seenSwapsInVote.add(swapKey);
+      swapCounts.set(swapKey, (swapCounts.get(swapKey) ?? 0) + 1);
+    }
+  }
+
+  return {
+    totalVotes,
+    fullyCorrectCount,
+    positionCounts: [...positionCounts.entries()]
+      .map(([key, count]) => {
+        const [positionRaw, itemId = ''] = key.split('\u0000');
+        const item = itemById.get(itemId);
+        return {
+          position: Number(positionRaw),
+          itemId,
+          itemText: item?.text ?? itemId,
+          count,
+        };
+      })
+      .sort((a, b) => a.position - b.position || b.count - a.count),
+    commonSwaps: [...swapCounts.entries()]
+      .map(([key, count]) => {
+        const [itemAId = '', itemBId = ''] = key.split('\u0000');
+        return {
+          itemAId,
+          itemAText: itemById.get(itemAId)?.text ?? itemAId,
+          itemBId,
+          itemBText: itemById.get(itemBId)?.text ?? itemBId,
+          count,
+        };
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8),
+  };
+}
+
+export function buildCategorizationStats(
+  votes: ReadonlyArray<{ selections: ReadonlyArray<{ itemId: string; categoryId: string }> }>,
+  correctItems: ReadonlyArray<{ id: string; text: string; correctCategoryId: string }>,
+  categories: ReadonlyArray<{ id: string; name: string }>,
+): CategorizationStatsDTO {
+  const totalVotes = votes.length;
+  const categoryNameById = new Map(categories.map((category) => [category.id, category.name]));
+  const itemById = new Map(correctItems.map((item) => [item.id, item]));
+  const correctById = new Map(correctItems.map((item) => [item.id, item.correctCategoryId]));
+  let fullyCorrectCount = 0;
+  const itemCategoryCounts = new Map<string, number>();
+  const misclassificationCounts = new Map<string, number>();
+
+  for (const vote of votes) {
+    if (evaluateCategorizationAnswer(vote.selections, correctItems)) {
+      fullyCorrectCount += 1;
+    }
+    for (const selection of vote.selections) {
+      const itemId = selection.itemId;
+      const categoryId = selection.categoryId;
+      if (!itemById.has(itemId) || !categoryNameById.has(categoryId)) continue;
+      const countKey = `${itemId}\u0000${categoryId}`;
+      itemCategoryCounts.set(countKey, (itemCategoryCounts.get(countKey) ?? 0) + 1);
+      const expected = correctById.get(itemId);
+      if (expected && expected !== categoryId) {
+        misclassificationCounts.set(countKey, (misclassificationCounts.get(countKey) ?? 0) + 1);
+      }
+    }
+  }
+
+  return {
+    totalVotes,
+    fullyCorrectCount,
+    itemCategoryCounts: [...itemCategoryCounts.entries()]
+      .map(([key, count]) => {
+        const [itemId = '', categoryId = ''] = key.split('\u0000');
+        return {
+          itemId,
+          itemText: itemById.get(itemId)?.text ?? itemId,
+          categoryId,
+          categoryName: categoryNameById.get(categoryId) ?? categoryId,
+          count,
+        };
+      })
+      .sort((a, b) => a.itemText.localeCompare(b.itemText) || b.count - a.count),
+    commonMisclassifications: [...misclassificationCounts.entries()]
+      .map(([key, count]) => {
+        const [itemId = '', wrongCategoryId = ''] = key.split('\u0000');
+        return {
+          itemId,
+          itemText: itemById.get(itemId)?.text ?? itemId,
+          wrongCategoryId,
+          wrongCategoryName: categoryNameById.get(wrongCategoryId) ?? wrongCategoryId,
+          count,
+        };
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8),
+  };
+}
+
 /** Schema für das Hinzufügen/Bearbeiten einer Frage (Story 1.2a, 1.2b, 1.3) */
 export const AddQuestionInputSchema = z
   .object({
@@ -1367,6 +1805,15 @@ export const AddQuestionInputSchema = z
     confidenceEnabled: z.boolean().optional(),
     confidenceLabelLow: z.string().max(50).optional(),
     confidenceLabelHigh: z.string().max(50).optional(),
+    // Story 1.2g: Matching
+    matchingPairs: z.array(MatchingPairInputSchema).min(2).max(6).optional(),
+    matchingShuffleRight: z.boolean().optional(),
+    // Story 1.2h: Ordering
+    orderingItems: z.array(OrderingItemInputSchema).min(3).max(8).optional(),
+    // Story 1.2j: Categorization
+    categories: z.array(CategorizationCategoryInputSchema).min(2).max(4).optional(),
+    categorizationItems: z.array(CategorizationItemInputSchema).min(4).max(12).optional(),
+    categorizationShuffleItems: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     const hasConfidenceConfig =
@@ -1501,6 +1948,251 @@ export const AddQuestionInputSchema = z
       }
 
       return;
+    }
+
+    const hasMatchingConfig =
+      value.matchingPairs !== undefined || value.matchingShuffleRight !== undefined;
+    const hasOrderingConfig = value.orderingItems !== undefined;
+    const hasCategorizationConfig =
+      value.categories !== undefined ||
+      value.categorizationItems !== undefined ||
+      value.categorizationShuffleItems !== undefined;
+
+    if (value.type === 'MATCHING') {
+      if (
+        hasOrderingConfig ||
+        hasCategorizationConfig ||
+        hasShortTextConfig ||
+        hasShortTextNumericConfig ||
+        hasNumericEstimateConfig ||
+        hasNumericToleranceMode
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['matchingPairs'],
+          message: 'Zuordnungsfragen erlauben nur Matching-Konfiguration.',
+        });
+      }
+      if (value.answers.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers'],
+          message: 'Zuordnungsfragen verwenden keine Antwortoptionen.',
+        });
+      }
+      if (
+        !value.matchingPairs ||
+        value.matchingPairs.length < 2 ||
+        value.matchingPairs.length > 6
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['matchingPairs'],
+          message: 'Zuordnungsfragen benötigen 2 bis 6 Paare.',
+        });
+      } else {
+        const lefts = new Set<string>();
+        const rights = new Set<string>();
+        const leftIds = new Set<string>();
+        const rightIds = new Set<string>();
+        value.matchingPairs.forEach((pair, index) => {
+          const left = pair.left.trim();
+          const right = pair.right.trim();
+          if (lefts.has(left)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'left'],
+              message: 'Linke Begriffe müssen eindeutig sein.',
+            });
+          }
+          if (rights.has(right)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'right'],
+              message: 'Rechte Begriffe müssen eindeutig sein.',
+            });
+          }
+          if (leftIds.has(pair.leftId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'leftId'],
+              message: 'Linke IDs müssen eindeutig sein.',
+            });
+          }
+          if (rightIds.has(pair.rightId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['matchingPairs', index, 'rightId'],
+              message: 'Rechte IDs müssen eindeutig sein.',
+            });
+          }
+          lefts.add(left);
+          rights.add(right);
+          leftIds.add(pair.leftId);
+          rightIds.add(pair.rightId);
+        });
+      }
+      return;
+    }
+
+    if (value.type === 'ORDERING') {
+      if (
+        hasMatchingConfig ||
+        hasCategorizationConfig ||
+        hasShortTextConfig ||
+        hasShortTextNumericConfig ||
+        hasNumericEstimateConfig ||
+        hasNumericToleranceMode
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['orderingItems'],
+          message: 'Reihenfolgefragen erlauben nur Ordering-Konfiguration.',
+        });
+      }
+      if (value.answers.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers'],
+          message: 'Reihenfolgefragen verwenden keine Antwortoptionen.',
+        });
+      }
+      if (
+        !value.orderingItems ||
+        value.orderingItems.length < 3 ||
+        value.orderingItems.length > 8
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['orderingItems'],
+          message: 'Reihenfolgefragen benötigen 3 bis 8 Elemente.',
+        });
+      } else {
+        const ids = new Set<string>();
+        const texts = new Set<string>();
+        value.orderingItems.forEach((item, index) => {
+          const text = item.text.trim();
+          if (texts.has(text)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['orderingItems', index, 'text'],
+              message: 'Elemente müssen eindeutig sein.',
+            });
+          }
+          if (ids.has(item.id)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['orderingItems', index, 'id'],
+              message: 'Element-IDs müssen eindeutig sein.',
+            });
+          }
+          texts.add(text);
+          ids.add(item.id);
+        });
+      }
+      return;
+    }
+
+    if (value.type === 'CATEGORIZATION') {
+      if (
+        hasMatchingConfig ||
+        hasOrderingConfig ||
+        hasShortTextConfig ||
+        hasShortTextNumericConfig ||
+        hasNumericEstimateConfig ||
+        hasNumericToleranceMode
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories'],
+          message: 'Kategorisierungsfragen erlauben nur Kategorisierungs-Konfiguration.',
+        });
+      }
+      if (value.answers.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers'],
+          message: 'Kategorisierungsfragen verwenden keine Antwortoptionen.',
+        });
+      }
+      if (!value.categories || value.categories.length < 2 || value.categories.length > 4) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories'],
+          message: 'Kategorisierungsfragen benötigen 2 bis 4 Kategorien.',
+        });
+      }
+      if (
+        !value.categorizationItems ||
+        value.categorizationItems.length < 4 ||
+        value.categorizationItems.length > 12
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categorizationItems'],
+          message: 'Kategorisierungsfragen benötigen 4 bis 12 Elemente.',
+        });
+      }
+      if (value.categories && value.categorizationItems) {
+        const categoryIds = new Set(value.categories.map((category) => category.id));
+        const categoryNames = new Set<string>();
+        if (categoryIds.size !== value.categories.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['categories'],
+            message: 'Kategorie-IDs müssen eindeutig sein.',
+          });
+        }
+        value.categories.forEach((category, index) => {
+          const name = category.name.trim();
+          if (categoryNames.has(name)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categories', index, 'name'],
+              message: 'Kategorienamen müssen eindeutig sein.',
+            });
+          }
+          categoryNames.add(name);
+        });
+        const itemTexts = new Set<string>();
+        const itemIds = new Set<string>();
+        value.categorizationItems.forEach((item, index) => {
+          const text = item.text.trim();
+          if (itemTexts.has(text)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categorizationItems', index, 'text'],
+              message: 'Elemente müssen eindeutig sein.',
+            });
+          }
+          itemTexts.add(text);
+          if (itemIds.has(item.id)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categorizationItems', index, 'id'],
+              message: 'Element-IDs müssen eindeutig sein.',
+            });
+          }
+          itemIds.add(item.id);
+          if (!categoryIds.has(item.correctCategoryId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['categorizationItems', index, 'correctCategoryId'],
+              message: 'Zielkategorie muss existieren.',
+            });
+          }
+        });
+      }
+      return;
+    }
+
+    if (hasMatchingConfig || hasOrderingConfig || hasCategorizationConfig) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['type'],
+        message:
+          'Matching-/Ordering-/Kategorisierungs-Konfiguration ist für diesen Fragetyp nicht erlaubt.',
+      });
     }
 
     if (value.type !== 'SHORT_TEXT') {
@@ -1854,6 +2546,12 @@ type QuizHistoryAccessMaterial = {
     confidenceEnabled: boolean;
     confidenceLabelLow: string | null;
     confidenceLabelHigh: string | null;
+    matchingPairs: MatchingPairInput[] | null;
+    matchingShuffleRight: boolean;
+    orderingItems: OrderingItemInput[] | null;
+    categories: CategorizationCategoryInput[] | null;
+    categorizationItems: CategorizationItemInput[] | null;
+    categorizationShuffleItems: boolean;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -1980,6 +2678,28 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
           questionSupportsConfidence(question.type) && (question.confidenceEnabled ?? false)
             ? (question.confidenceLabelHigh ?? null)
             : null,
+        matchingPairs:
+          question.type === 'MATCHING'
+            ? (question.matchingPairs ?? []).map((pair) => ({ ...pair }))
+            : null,
+        matchingShuffleRight:
+          question.type === 'MATCHING' ? (question.matchingShuffleRight ?? true) : false,
+        orderingItems:
+          question.type === 'ORDERING'
+            ? (question.orderingItems ?? []).map((item) => ({ ...item }))
+            : null,
+        categories:
+          question.type === 'CATEGORIZATION'
+            ? (question.categories ?? []).map((category) => ({ ...category }))
+            : null,
+        categorizationItems:
+          question.type === 'CATEGORIZATION'
+            ? (question.categorizationItems ?? []).map((item) => ({ ...item }))
+            : null,
+        categorizationShuffleItems:
+          question.type === 'CATEGORIZATION'
+            ? (question.categorizationShuffleItems ?? true)
+            : false,
         answers: [...question.answers]
           .map((answer) => ({ text: answer.text, isCorrect: answer.isCorrect }))
           .sort(
@@ -2242,7 +2962,8 @@ export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 
 /**
  * DTO: Didaktische Empfehlung fuer eine zweite Abstimmungsrunde nach Peer Instruction.
- * Server: nur wenn Anteil vollstaendig korrekter Stimmen (Runde 1, SC/MC) zwischen 35 % und 70 % liegt.
+ * Server: nur wenn der Anteil vollstaendig korrekter Stimmen in Runde 1 bei einem
+ * bewerteten Peer-Instruction-Fragetyp zwischen einem Drittel und zwei Dritteln liegt.
  */
 export const PeerInstructionSuggestionDTOSchema = z.object({
   suggested: z.boolean(),
@@ -2456,6 +3177,16 @@ export const HostCurrentQuestionDTOSchema = z.object({
   numericStats: NumericStatsDTOSchema.optional(),
   numericRoundComparison: NumericRoundComparisonDTOSchema.optional(),
   confidenceResult: ConfidenceResultDTOSchema.optional(),
+  // Stories 1.2g / 1.2h / 1.2j
+  matchingPairs: z.array(MatchingPairInputSchema).nullable().optional(),
+  matchingShuffleRight: z.boolean().optional(),
+  orderingItems: z.array(OrderingItemInputSchema).nullable().optional(),
+  categories: z.array(CategorizationCategoryInputSchema).nullable().optional(),
+  categorizationItems: z.array(CategorizationItemInputSchema).nullable().optional(),
+  categorizationShuffleItems: z.boolean().optional(),
+  matchingStats: MatchingStatsDTOSchema.optional(),
+  orderingStats: OrderingStatsDTOSchema.optional(),
+  categorizationStats: CategorizationStatsDTOSchema.optional(),
 });
 export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
 
@@ -2494,6 +3225,21 @@ export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 // Vote-Schemas (Story 3.3)
 // ---------------------------------------------------------------------------
 
+export const MatchingSelectionInputSchema = z.object({
+  leftId: z.string().min(1).max(100),
+  rightId: z.string().min(1).max(100),
+});
+export type MatchingSelectionInput = z.infer<typeof MatchingSelectionInputSchema>;
+
+export const OrderingSequenceInputSchema = z.array(z.string().min(1)).min(3).max(8);
+export type OrderingSequenceInput = z.infer<typeof OrderingSequenceInputSchema>;
+
+export const CategorizationSelectionInputSchema = z.object({
+  itemId: z.string().min(1).max(100),
+  categoryId: z.string().min(1).max(100),
+});
+export type CategorizationSelectionInput = z.infer<typeof CategorizationSelectionInputSchema>;
+
 /** Input: Abstimmung abgeben */
 export const SubmitVoteInputSchema = z.object({
   sessionId: z.uuid(),
@@ -2506,6 +3252,9 @@ export const SubmitVoteInputSchema = z.object({
   responseTimeMs: z.number().int().min(0).optional(), // Antwortzeit in ms
   round: z.number().int().min(1).max(2).optional().default(1), // Story 2.7: Peer Instruction Runde
   confidenceValue: z.number().int().min(CONFIDENCE_SCALE_MIN).max(CONFIDENCE_SCALE_MAX).optional(), // Story 1.2i
+  matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(), // Story 1.2g
+  orderingSequence: OrderingSequenceInputSchema.optional(), // Story 1.2h (Item-IDs)
+  categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(), // Story 1.2j
 });
 export type SubmitVoteInput = z.infer<typeof SubmitVoteInputSchema>;
 
@@ -2597,6 +3346,16 @@ export const QuestionRevealedDTOSchema = z.object({
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
   confidenceResult: ConfidenceResultDTOSchema.optional(),
+  // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen
+  matchingPairs: z.array(MatchingPairInputSchema).nullable().optional(),
+  matchingShuffleRight: z.boolean().optional(),
+  orderingItems: z.array(OrderingItemInputSchema).nullable().optional(),
+  categories: z.array(CategorizationCategoryInputSchema).nullable().optional(),
+  categorizationItems: z.array(CategorizationItemInputSchema).nullable().optional(),
+  categorizationShuffleItems: z.boolean().optional(),
+  matchingStats: MatchingStatsDTOSchema.optional(),
+  orderingStats: OrderingStatsDTOSchema.optional(),
+  categorizationStats: CategorizationStatsDTOSchema.optional(),
 });
 export type QuestionRevealedDTO = z.infer<typeof QuestionRevealedDTOSchema>;
 
@@ -2655,6 +3414,12 @@ export const QuestionStudentDTOSchema = z.object({
   confidenceEnabled: z.boolean().optional(),
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
+  // Story 1.2g, 1.2h, 1.2j: Data-Stripped Student DTOs
+  matchingLeftOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  matchingRightOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  orderingItems: z.array(OrderingItemInputSchema).optional(),
+  categories: z.array(CategorizationCategoryInputSchema).optional(),
+  categorizationItems: z.array(CategorizationItemStudentDTOSchema).optional(),
 });
 export type QuestionStudentDTO = z.infer<typeof QuestionStudentDTOSchema>;
 
@@ -2706,6 +3471,16 @@ export const QuestionPreviewDTOSchema = z.object({
   confidenceEnabled: z.boolean().optional(),
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
+  /**
+   * Lösungsfreie Optionsräume für die Diskussionsphase. In QUESTION_OPEN werden
+   * diese Felder bewusst nicht gesetzt; korrekte Paare/Reihenfolgen/Kategorien
+   * bleiben bis RESULTS ausschließlich im Revealed-DTO.
+   */
+  matchingLeftOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  matchingRightOptions: z.array(StructuredOptionStudentDTOSchema).optional(),
+  orderingItems: z.array(OrderingItemInputSchema).optional(),
+  categories: z.array(CategorizationCategoryInputSchema).optional(),
+  categorizationItems: z.array(CategorizationItemStudentDTOSchema).optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
@@ -2990,6 +3765,10 @@ export const PersonalScorecardDTOSchema = z.object({
   rankChange: z.number(), // Differenz (positiv = aufgestiegen)
   totalScore: z.number(), // Gesamtpunktzahl bisher
   bonusToken: z.string().nullable().optional(), // Story 4.6: Token-Code (nur für Top-X, sonst null)
+  /** Eigene persistierte strukturierte Antwort; nur nach Freigabe über die persönliche Scorecard. */
+  matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(),
+  orderingSequence: OrderingSequenceInputSchema.optional(),
+  categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(),
 });
 export type PersonalScorecardDTO = z.infer<typeof PersonalScorecardDTOSchema>;
 
@@ -3302,6 +4081,13 @@ const ExportedQuestionSchema = z.object({
   confidenceEnabled: z.boolean().optional(),
   confidenceLabelLow: z.string().nullable().optional(),
   confidenceLabelHigh: z.string().nullable().optional(),
+  // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen in Export/Import
+  matchingPairs: z.array(MatchingPairInputSchema).optional(),
+  matchingShuffleRight: z.boolean().optional(),
+  orderingItems: z.array(OrderingItemInputSchema).optional(),
+  categories: z.array(CategorizationCategoryInputSchema).optional(),
+  categorizationItems: z.array(CategorizationItemInputSchema).optional(),
+  categorizationShuffleItems: z.boolean().optional(),
   /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
   enabled: z.boolean().optional().default(true),
 });
@@ -3552,6 +4338,16 @@ export const QuestionExportEntrySchema = z.object({
   freetextAggregates: z.array(FreetextAggregateEntrySchema).optional(), // FREETEXT
   shortTextSolutions: z.array(z.string()).optional(), // SHORT_TEXT
   shortTextIncorrectAggregates: z.array(FreetextAggregateEntrySchema).optional(), // SHORT_TEXT
+  /** Story 1.2g: korrekte Zuordnungspaare für Musterlösung im Report. */
+  matchingPairs: z.array(MatchingPairInputSchema).optional(),
+  matchingStats: MatchingStatsDTOSchema.optional(),
+  /** Story 1.2h: korrekte Reihenfolge für Musterlösung im Report. */
+  orderingItems: z.array(OrderingItemInputSchema).optional(),
+  orderingStats: OrderingStatsDTOSchema.optional(),
+  /** Story 1.2j: Kategorien und Soll-Zuweisungen für Musterlösung im Report. */
+  categories: z.array(CategorizationCategoryInputSchema).optional(),
+  categorizationItems: z.array(CategorizationItemInputSchema).optional(),
+  categorizationStats: CategorizationStatsDTOSchema.optional(),
   /** Empirische Anzahl korrekter Votes (Effective-Vote-Regel). Alias-Semantik: correctVoterCount. */
   correctCount: z.number().optional(),
   /** Empirische Anzahl inkorrekter Votes (Effective-Vote-Regel). Alias-Semantik: incorrectVoterCount. */

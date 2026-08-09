@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hero from '../../components/Hero.astro';
 import Workflow from '../../components/Workflow.astro';
 import Features from '../../components/Features.astro';
+import StructuredQuestionTypes from '../../components/StructuredQuestionTypes.astro';
 import EstimateSpotlight from '../../components/EstimateSpotlight.astro';
 import ConfidenceSpotlight from '../../components/ConfidenceSpotlight.astro';
 import QaWallSpotlight from '../../components/QaWallSpotlight.astro';
@@ -29,6 +30,7 @@ const t = getMessages(locale);
   <Hero locale={locale} t={t} />
   <Workflow locale={locale} t={t} />
   <Features locale={locale} t={t} />
+  <StructuredQuestionTypes locale={locale} t={t} />
   <EstimateSpotlight locale={locale} t={t} />
   <ConfidenceSpotlight locale={locale} t={t} />
   <QaWallSpotlight locale={locale} t={t} />

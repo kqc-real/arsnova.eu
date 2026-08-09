@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { QuestionTypeEnum } from '@arsnova/shared-types';
 import { getDemoQuizPayload, getDemoQuizSeedFingerprint } from './demo-quiz-payload';
 
 describe('getDemoQuizSeedFingerprint', () => {
   it('ändert sich mit exportVersion, Motiv-URL und komplettem Payload (Demo-Reseed)', () => {
     const de = getDemoQuizSeedFingerprint('de');
-    expect(de).toMatch(/^de\|27\|/);
+    expect(de).toMatch(/^de\|29\|/);
     expect(de).toContain(
       'https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg',
     );
@@ -15,13 +16,14 @@ describe('getDemoQuizSeedFingerprint', () => {
     expect(getDemoQuizSeedFingerprint('de')).not.toBe(getDemoQuizSeedFingerprint('en'));
   });
 
-  it('markiert Frage 2 und 4 im Showcase explizit ohne Lesephase', () => {
+  it('markiert Freitext, Pi und Multiple Choice explizit ohne Lesephase', () => {
     const payload = getDemoQuizPayload('de') as {
       quiz?: { questions?: Array<{ skipReadingPhase?: boolean }> };
     };
 
     expect(payload.quiz?.questions?.[1]?.skipReadingPhase).toBe(true);
-    expect(payload.quiz?.questions?.[3]?.skipReadingPhase).toBe(true);
+    expect(payload.quiz?.questions?.[2]?.skipReadingPhase).toBe(true);
+    expect(payload.quiz?.questions?.[4]?.skipReadingPhase).toBe(true);
   });
 
   it('enthält eine zweirundige Schätzfrage zur Französischen Revolution in allen Locales', () => {
@@ -60,16 +62,16 @@ describe('getDemoQuizSeedFingerprint', () => {
         (question) => question.type === 'NUMERIC_ESTIMATE' && question.text?.includes(headline),
       );
 
-      expect(payload.exportVersion).toBe(27);
-      expect(payload.quiz?.questions).toHaveLength(9);
+      expect(payload.exportVersion).toBe(29);
+      expect(payload.quiz?.questions).toHaveLength(13);
       expect(estimateQuestion?.text).toContain(headline);
       expect(estimateQuestion).toMatchObject({
-        order: 7,
+        order: 8,
         answers: [],
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 1789,
-        numericIntervalLeft: 1700,
-        numericIntervalRight: 1900,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
         numericInputType: 'INTEGER',
         numericMin: 1500,
         numericMax: 2000,
@@ -83,7 +85,7 @@ describe('getDemoQuizSeedFingerprint', () => {
       de: 'Runde $\\pi$ auf zwei Dezimalstellen.',
       en: 'Round $\\pi$ to two decimal places.',
       es: 'Redondea $\\pi$ a dos decimales.',
-      fr: 'Arrondissez $\\pi$ à deux décimales.',
+      fr: 'Arrondis $\\pi$ à deux décimales.',
       it: 'Arrotonda $\\pi$ a due cifre decimali.',
     } as const;
 
@@ -115,20 +117,228 @@ describe('getDemoQuizSeedFingerprint', () => {
       );
 
       expect(piQuestion).toMatchObject({
-        order: 1,
+        order: 2,
         skipReadingPhase: true,
         answers: [],
         numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
         numericTolerancePercent: null,
-        numericIntervalLeft: 3.1,
-        numericIntervalRight: 3.2,
+        numericIntervalLeft: 3.135,
+        numericIntervalRight: 3.145,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
         numericMin: 3,
         numericMax: 3.5,
         numericTwoRounds: false,
       });
+    }
+  });
+
+  it('zeigt 13 Fragen, alle zehn Typen und genau eine unbewertete Wortwolkenfrage', () => {
+    const localeEvidence = {
+      de: ['Schritte sortierst', 'zuordnest', 'kategorisierst', 'Wortwolke', 'einem Wort'],
+      en: ['order steps', 'match terms', 'categorise examples', 'word cloud', 'one word'],
+      fr: [
+        'ordonner des étapes',
+        'associer des termes',
+        'classer des exemples',
+        'nuage de mots',
+        'un mot',
+      ],
+      es: [
+        'ordenar pasos',
+        'relacionar términos',
+        'clasificar ejemplos',
+        'nube de palabras',
+        'una palabra',
+      ],
+      it: [
+        'ordinare passaggi',
+        'abbinare termini',
+        'classificare esempi',
+        'nuvola di parole',
+        'una sola parola',
+      ],
+    } as const;
+    const confidenceLabels = {
+      de: ['Sehr unsicher', 'Sehr sicher'],
+      en: ['Very unsure', 'Very confident'],
+      fr: ['Très incertain·e', 'Très sûr·e'],
+      es: ['Muy inseguro/a', 'Muy seguro/a'],
+      it: ['Per niente sicuro/a', 'Molto sicuro/a'],
+    } as const;
+
+    for (const locale of ['de', 'en', 'fr', 'es', 'it'] as const) {
+      const payload = getDemoQuizPayload(locale) as {
+        quiz?: {
+          description?: string;
+          questions?: Array<{
+            text?: string;
+            type?: string;
+            order?: number;
+            answers?: Array<{ isCorrect?: boolean }>;
+            confidenceEnabled?: boolean;
+            confidenceLabelLow?: string;
+            confidenceLabelHigh?: string;
+          }>;
+        };
+      };
+      const questions = payload.quiz?.questions ?? [];
+      const freeTextQuestions = questions.filter((question) => question.type === 'FREETEXT');
+
+      expect(questions).toHaveLength(13);
+      expect(new Set(questions.map((question) => question.type))).toEqual(
+        new Set(QuestionTypeEnum.options),
+      );
+      expect(freeTextQuestions).toHaveLength(1);
+      expect(freeTextQuestions[0]).toMatchObject({
+        order: 1,
+        answers: [],
+        confidenceEnabled: false,
+      });
+      expect(freeTextQuestions[0]?.answers?.some((answer) => answer.isCorrect)).toBe(false);
+      expect(questions.some((question) => /> \*\*/u.test(question.text ?? ''))).toBe(false);
+      for (const phrase of localeEvidence[locale]) {
+        expect(`${payload.quiz?.description ?? ''}\n${freeTextQuestions[0]?.text ?? ''}`).toContain(
+          phrase,
+        );
+      }
+      for (const question of questions.filter((entry) => entry.confidenceEnabled)) {
+        expect([question.confidenceLabelLow, question.confidenceLabelHigh]).toEqual(
+          confidenceLabels[locale],
+        );
+      }
+    }
+  });
+
+  it('kalibriert Wissensfragen, Live-Check und Rating fachlich konsistent', () => {
+    const ratingLabels = {
+      de: ['Sehr unwahrscheinlich', 'Sehr wahrscheinlich'],
+      en: ['Very unlikely', 'Very likely'],
+      fr: ['Très peu probable', 'Très probable'],
+      es: ['Muy improbable', 'Muy probable'],
+      it: ['Molto improbabile', 'Molto probabile'],
+    } as const;
+
+    for (const locale of ['de', 'en', 'fr', 'es', 'it'] as const) {
+      const payload = getDemoQuizPayload(locale) as {
+        quiz?: {
+          questions?: Array<{
+            text?: string;
+            type?: string;
+            answers?: Array<{ text?: string; isCorrect?: boolean }>;
+            numericReferenceValue?: number;
+            numericIntervalLeft?: number;
+            numericIntervalRight?: number;
+            ratingLabelMin?: string;
+            ratingLabelMax?: string;
+          }>;
+        };
+      };
+      const questions = payload.quiz?.questions ?? [];
+      const pi = questions.find(
+        (question) =>
+          question.type === 'NUMERIC_ESTIMATE' && question.numericReferenceValue === 3.14,
+      );
+      const revolution = questions.find(
+        (question) =>
+          question.type === 'NUMERIC_ESTIMATE' && question.numericReferenceValue === 1789,
+      );
+      const isInInterval = (question: typeof pi, value: number) =>
+        value >= (question?.numericIntervalLeft ?? Number.POSITIVE_INFINITY) &&
+        value <= (question?.numericIntervalRight ?? Number.NEGATIVE_INFINITY);
+      const multipleChoice = questions.find((question) => question.type === 'MULTIPLE_CHOICE');
+      const cube = questions.find(
+        (question) =>
+          question.type === 'SINGLE_CHOICE' &&
+          question.answers?.some((answer) => answer.text === '26' && answer.isCorrect),
+      );
+      const processing = questions.find((question) =>
+        question.answers?.some((answer) => answer.text === 'Processing' && answer.isCorrect),
+      );
+      const rating = questions.find((question) => question.type === 'RATING');
+
+      expect(isInInterval(pi, 3.14)).toBe(true);
+      expect(isInInterval(pi, 3.13)).toBe(false);
+      expect(isInInterval(pi, 3.15)).toBe(false);
+      expect(isInInterval(revolution, 1789)).toBe(true);
+      expect(isInInterval(revolution, 1788)).toBe(false);
+      expect(isInInterval(revolution, 1790)).toBe(false);
+      expect(multipleChoice?.answers?.filter((answer) => answer.isCorrect)).toHaveLength(2);
+      expect(multipleChoice?.answers?.filter((answer) => !answer.isCorrect)).toHaveLength(2);
+      expect(cube?.text).toMatch(/3×3/u);
+      expect(processing?.text?.toLowerCase()).toMatch(
+        /environment|umgebung|environnement|entorno|ambiente/u,
+      );
+      expect([rating?.ratingLabelMin, rating?.ratingLabelMax]).toEqual(ratingLabels[locale]);
+    }
+  });
+
+  it('hält strukturierte Lösungen, IDs und Bewertungsparameter über alle Locales synchron', () => {
+    const payloads = (['de', 'en', 'fr', 'es', 'it'] as const).map((locale) => ({
+      locale,
+      questions:
+        (
+          getDemoQuizPayload(locale) as {
+            quiz?: {
+              questions?: Array<{
+                type?: string;
+                order?: number;
+                orderingItems?: Array<{ id?: string; text?: string }>;
+                matchingPairs?: Array<{
+                  leftId?: string;
+                  left?: string;
+                  rightId?: string;
+                  right?: string;
+                }>;
+                categories?: Array<{ id?: string }>;
+                categorizationItems?: Array<{
+                  id?: string;
+                  text?: string;
+                  correctCategoryId?: string;
+                }>;
+              }>;
+            };
+          }
+        ).quiz?.questions ?? [],
+    }));
+    const structuralSignature = (questions: (typeof payloads)[number]['questions']) =>
+      questions.map((question) => ({
+        type: question.type,
+        order: question.order,
+        orderingIds: question.orderingItems?.map((item) => item.id),
+        matchingIds: question.matchingPairs?.map((pair) => [pair.leftId, pair.rightId]),
+        categoryIds: question.categories?.map((category) => category.id),
+        categorizationIds: question.categorizationItems?.map((item) => [
+          item.id,
+          item.correctCategoryId,
+        ]),
+      }));
+    const expectedSignature = structuralSignature(payloads[0].questions);
+
+    for (const { questions } of payloads) {
+      expect(structuralSignature(questions)).toEqual(expectedSignature);
+      expect(
+        questions.find((question) => question.type === 'ORDERING')?.orderingItems,
+      ).toHaveLength(6);
+      const matching = questions.find((question) => question.type === 'MATCHING');
+      expect(matching?.matchingPairs?.map((pair) => pair.left)).toEqual(
+        expect.arrayContaining([expect.stringMatching(/11/u), expect.stringMatching(/29/u)]),
+      );
+      const categorization = questions.find((question) => question.type === 'CATEGORIZATION');
+      expect(categorization?.categorizationItems).toHaveLength(6);
+      expect(
+        Object.values(
+          (categorization?.categorizationItems ?? []).reduce<Record<string, number>>(
+            (counts, item) => {
+              const categoryId = item.correctCategoryId ?? '';
+              counts[categoryId] = (counts[categoryId] ?? 0) + 1;
+              return counts;
+            },
+            {},
+          ),
+        ),
+      ).toEqual([2, 2, 2]);
     }
   });
 
@@ -155,7 +365,7 @@ describe('getDemoQuizSeedFingerprint', () => {
     }
   });
 
-  it('enthält eine 1.2ea-taugliche SHORT_TEXT-Frage mit Varianten und Buchstabendrehern', () => {
+  it('enthält eine 1.2ea-taugliche SHORT_TEXT-Frage mit Varianten und Tippfehlertoleranz', () => {
     const payload = getDemoQuizPayload('de') as {
       quiz?: {
         questions?: Array<{
@@ -178,7 +388,7 @@ describe('getDemoQuizSeedFingerprint', () => {
     );
 
     expect(shortTextQuestion?.text).toContain('individuell abstimmen');
-    expect(shortTextQuestion?.text).toContain('Buchstabendreher');
+    expect(shortTextQuestion?.text).not.toContain('Unterrichtsidee');
     expect(shortTextQuestion?.difficulty).toBe('HARD');
     expect(shortTextQuestion?.shortTextMaxLength).toBe(32);
     expect(shortTextQuestion?.shortTextEvaluationMode).toBe('auto');
@@ -197,7 +407,7 @@ describe('getDemoQuizSeedFingerprint', () => {
   });
 
   it('aktiviert den Sicherheitsgrad an ausgewählten bewertbaren Showcase-Fragen', () => {
-    const confidenceOrders = new Set([1, 2, 3, 4, 6, 7]);
+    const confidenceOrders = new Set([2, 3, 4, 5, 7, 8, 9, 10, 11]);
 
     for (const locale of ['de', 'en', 'es', 'fr', 'it'] as const) {
       const payload = getDemoQuizPayload(locale) as {
@@ -231,7 +441,28 @@ describe('getDemoQuizSeedFingerprint', () => {
     const deDescription = (getDemoQuizPayload('de') as { quiz?: { description?: string } }).quiz
       ?.description;
     expect(deDescription).toContain('Selbsteinschätzung');
-    expect(deDescription).toContain('selbstsicher falsche');
+    expect(deDescription).toContain('Antwortsicherheit');
+  });
+
+  it('verwendet idiomatische Demo-Titel statt „Showcase“ in FR, ES und IT', () => {
+    const expected = {
+      fr: 'Démonstration pédagogique',
+      es: 'Demostración didáctica',
+      it: 'Dimostrazione didattica',
+    } as const;
+
+    for (const [locale, title] of Object.entries(expected) as Array<
+      [keyof typeof expected, string]
+    >) {
+      const quiz = (
+        getDemoQuizPayload(locale) as {
+          quiz?: { name?: string; description?: string };
+        }
+      ).quiz;
+      expect(quiz?.name).toContain(title);
+      expect(quiz?.description).toContain(`# ${title}`);
+      expect(`${quiz?.name ?? ''}\n${quiz?.description ?? ''}`).not.toMatch(/showcase/i);
+    }
   });
 
   it('enthält keine Schallgeschwindigkeits-Frage mehr', () => {
@@ -246,7 +477,7 @@ describe('getDemoQuizSeedFingerprint', () => {
         };
       };
 
-      expect(payload.quiz?.questions).toHaveLength(9);
+      expect(payload.quiz?.questions).toHaveLength(13);
       expect(payload.quiz?.questions?.some((question) => question.text?.includes('58 cm'))).toBe(
         false,
       );

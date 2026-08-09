@@ -5,6 +5,7 @@ import {
   normalizeEmphasisWhitespace,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
+  stripLeadingOrderedListLabel,
 } from './markdown-katex.util';
 
 describe('renderMarkdownWithKatex', () => {
@@ -21,6 +22,18 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('<strong>Freue</strong>');
   });
 
+  it('verwechselt benachbarte, durch Satzzeichen getrennte Hervorhebungen nicht', () => {
+    const source =
+      'Du kannst **Schritte sortieren**, **Begriffe zuordnen**, **Beispiele kategorisieren** und Ergebnisse besprechen.';
+
+    expect(normalizeEmphasisWhitespace(source)).toBe(source);
+
+    const result = renderMarkdownWithKatex(source);
+    expect(result.html.match(/<strong>/g)).toHaveLength(3);
+    expect(result.html).toContain('<strong>Begriffe zuordnen</strong>');
+    expect(result.html).not.toContain('**');
+  });
+
   it('belässt wörtlichen Code in Inline-Spans und Codeblöcken unverändert', () => {
     const codeSpan = 'Code `**foo **` bleibt wörtlich';
     expect(normalizeEmphasisWhitespace(codeSpan)).toBe('Code `**foo **` bleibt wörtlich');
@@ -33,6 +46,23 @@ describe('renderMarkdownWithKatex', () => {
 
     const indentedBlock = '\n\n    **indented **';
     expect(normalizeEmphasisWhitespace(indentedBlock)).toBe('\n\n    **indented **');
+  });
+
+  it('escapet führende Listenmarker in Kurzlabels, damit „2. Schritt“ nicht als „1.“ erscheint', () => {
+    const withoutEscape = renderMarkdownWithKatex('2. Transkription: Ablesen');
+    expect(withoutEscape.html).toMatch(/<ol\b/i);
+
+    const withEscape = renderMarkdownWithKatex('2. Transkription: Ablesen', {
+      escapeListMarkers: true,
+    });
+    expect(withEscape.html).not.toMatch(/<ol\b/i);
+    expect(withEscape.html).toContain('2. Transkription');
+  });
+
+  it('bewahrt führende Zahlen in Ordering-/Kurzlabels (kein Strip von „9. November“)', () => {
+    expect(stripLeadingOrderedListLabel('1. Entwindung: DNA')).toBe('1. Entwindung: DNA');
+    expect(stripLeadingOrderedListLabel('12. Kernexport')).toBe('12. Kernexport');
+    expect(stripLeadingOrderedListLabel('9. November 1918')).toBe('9. November 1918');
   });
 
   it('staffelt Markdown-Überschriften relativ zum Einbettungskontext', () => {

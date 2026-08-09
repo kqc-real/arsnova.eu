@@ -2237,6 +2237,477 @@
                               }
                             }
                           </div>
+                        } @else if (q.type === 'ORDERING') {
+                          <div class="session-host__ordering">
+                            @if (effectiveStatus() !== 'RESULTS') {
+                              <section
+                                class="session-host__neutral-space"
+                                aria-labelledby="host-ordering-options-heading"
+                              >
+                                <h3
+                                  class="session-host__neutral-title"
+                                  id="host-ordering-options-heading"
+                                  i18n="@@sessionHost.orderingNeutralOptions"
+                                >
+                                  Elemente in neutraler Reihenfolge
+                                </h3>
+                                <ol class="session-host__neutral-list" role="list">
+                                  @for (
+                                    item of hostNeutralOrderingItems(q);
+                                    track item.id;
+                                    let idx = $index
+                                  ) {
+                                    <li class="session-host__neutral-item">
+                                      <span
+                                        class="session-host__neutral-number"
+                                        aria-hidden="true"
+                                        >{{ idx + 1 }}</span
+                                      >
+                                      <span
+                                        class="session-host__neutral-text markdown-body"
+                                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                                      ></span>
+                                    </li>
+                                  }
+                                </ol>
+                              </section>
+                              <p
+                                class="session-host__ordering-waiting"
+                                i18n="@@sessionHost.orderingWaiting"
+                              >
+                                Warte auf Sortierungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p
+                                  class="session-host__ordering-vote-count"
+                                  i18n="@@sessionHost.orderingVoteCount"
+                                >
+                                  Eingegangene Sortierungen: {{ formatCount(voteCount) }}
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__ordering-results">
+                                <h3
+                                  class="session-host__ordering-title"
+                                  i18n="@@sessionHost.orderingCorrectSequence"
+                                >
+                                  Soll-Reihenfolge
+                                </h3>
+                                <ol class="session-host__ordering-solution-list">
+                                  @for (
+                                    item of $any(q).orderingItems || [];
+                                    track item.id || $index;
+                                    let idx = $index
+                                  ) {
+                                    <li class="session-host__ordering-solution-item">
+                                      <span class="session-host__ordering-num" aria-hidden="true">{{
+                                        idx + 1
+                                      }}</span>
+                                      <span
+                                        class="session-host__ordering-text markdown-body"
+                                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                                      ></span>
+                                    </li>
+                                  }
+                                </ol>
+                                @if ($any(q).orderingStats; as orderingStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        orderingStats.fullyCorrectCount,
+                                        orderingStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                @if ($any(q).orderingStats; as orderingStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Positionsverteilung"
+                                    i18n-title="@@sessionHost.orderingPositionMatrixTitle"
+                                    description="Zeigt pro Element, wie oft es an jeder Position abgegeben wurde. Umrandete Zellen markieren die Soll-Position."
+                                    i18n-description="
+                                      @@sessionHost.orderingPositionMatrixDescription"
+                                    [rows]="hostOrderingMatrixRows(q)"
+                                    [columns]="hostOrderingMatrixColumns(q)"
+                                    [cells]="hostOrderingMatrixCells(q)"
+                                    [totalVotes]="orderingStats.totalVotes"
+                                    [correctColumnByRow]="hostOrderingCorrectColumns(q)"
+                                  />
+                                }
+                                @if ($any(q).orderingStats?.commonSwaps?.length) {
+                                  <h4
+                                    class="session-host__ordering-subtitle"
+                                    i18n="@@sessionHost.orderingCommonSwaps"
+                                  >
+                                    Häufige Vertauschungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      swap of $any(q).orderingStats.commonSwaps;
+                                      track swap.itemAId + swap.itemBId
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >„{{ swap.itemAText }}“ ↔ „{{ swap.itemBText }}“</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(swap.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
+                        } @else if (q.type === 'MATCHING') {
+                          <div class="session-host__matching">
+                            @if (effectiveStatus() !== 'RESULTS') {
+                              <section
+                                class="session-host__neutral-space"
+                                aria-labelledby="host-matching-options-heading"
+                              >
+                                <h3
+                                  class="session-host__neutral-title"
+                                  id="host-matching-options-heading"
+                                  i18n="@@sessionHost.matchingNeutralOptions"
+                                >
+                                  Begriffe und Gegenstücke
+                                </h3>
+                                <div class="session-host__neutral-columns">
+                                  <section aria-labelledby="host-matching-left-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-matching-left-heading"
+                                      i18n="@@sessionHost.matchingLeftOptions"
+                                    >
+                                      Begriffe
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        option of hostNeutralMatchingLeftOptions(q);
+                                        track option.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                          [innerHTML]="renderMarkdown(option.text, 4)"
+                                        ></li>
+                                      }
+                                    </ul>
+                                  </section>
+                                  <section aria-labelledby="host-matching-right-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-matching-right-heading"
+                                      i18n="@@sessionHost.matchingRightOptions"
+                                    >
+                                      Gegenstücke
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        option of hostNeutralMatchingRightOptions(q);
+                                        track option.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                          [innerHTML]="renderMarkdown(option.text, 4)"
+                                        ></li>
+                                      }
+                                    </ul>
+                                  </section>
+                                </div>
+                              </section>
+                              <p
+                                class="session-host__matching-waiting"
+                                i18n="@@sessionHost.matchingWaiting"
+                              >
+                                Warte auf Zuordnungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p
+                                  class="session-host__matching-vote-count"
+                                  i18n="@@sessionHost.matchingVoteCount"
+                                >
+                                  Eingegangene Zuordnungen: {{ formatCount(voteCount) }}
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__matching-results">
+                                <h3
+                                  class="session-host__matching-title"
+                                  i18n="@@sessionHost.matchingCorrectPairs"
+                                >
+                                  Korrekte Paare
+                                </h3>
+                                <div class="session-host__matching-grid">
+                                  @for (pair of $any(q).matchingPairs || []; track pair.leftId) {
+                                    <div class="session-host__matching-pair">
+                                      <span
+                                        class="session-host__matching-left markdown-body"
+                                        [innerHTML]="renderMarkdown(pair.left, 4)"
+                                      ></span>
+                                      <mat-icon
+                                        class="session-host__matching-arrow"
+                                        aria-hidden="true"
+                                        >arrow_forward</mat-icon
+                                      >
+                                      <span
+                                        class="session-host__matching-right markdown-body"
+                                        [innerHTML]="renderMarkdown(pair.right, 4)"
+                                      ></span>
+                                    </div>
+                                  }
+                                </div>
+                                @if ($any(q).matchingStats; as matchingStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        matchingStats.fullyCorrectCount,
+                                        matchingStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                @if ($any(q).matchingStats; as matchingStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Zuordnungsmatrix"
+                                    i18n-title="@@sessionHost.matchingMatrixTitle"
+                                    description="Zeigt für jeden linken Begriff alle gewählten rechten Begriffe. Umrandete Zellen markieren die Musterlösung."
+                                    i18n-description="@@sessionHost.matchingMatrixDescription"
+                                    [rows]="hostMatchingMatrixRows(q)"
+                                    [columns]="hostMatchingMatrixColumns(q)"
+                                    [cells]="hostMatchingMatrixCells(q)"
+                                    [totalVotes]="matchingStats.totalVotes"
+                                    [correctColumnByRow]="hostMatchingCorrectColumns(q)"
+                                  />
+                                }
+                                @if ($any(q).matchingStats?.pairHitRates?.length) {
+                                  <h4
+                                    class="session-host__matching-subtitle"
+                                    i18n="@@sessionHost.matchingHitRates"
+                                  >
+                                    Trefferquote pro Paar
+                                  </h4>
+                                  <ul class="session-host__hit-rates">
+                                    @for (
+                                      pair of $any(q).matchingStats.pairHitRates;
+                                      track pair.leftId
+                                    ) {
+                                      <li class="session-host__hit-rate">
+                                        <div class="session-host__hit-rate-copy">
+                                          <span class="session-host__hit-rate-label"
+                                            >{{ pair.left }} → {{ pair.right }}</span
+                                          >
+                                          <span class="session-host__hit-rate-value"
+                                            >{{ pair.hitRatePercent }} %</span
+                                          >
+                                        </div>
+                                        <div
+                                          class="session-host__hit-rate-track"
+                                          role="presentation"
+                                        >
+                                          <div
+                                            class="session-host__hit-rate-fill"
+                                            [style.width]="hostHitRateBarWidth(pair.hitRatePercent)"
+                                          ></div>
+                                        </div>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                                @if ($any(q).matchingStats?.commonConfusions?.length) {
+                                  <h4
+                                    class="session-host__matching-subtitle"
+                                    i18n="@@sessionHost.matchingConfusions"
+                                  >
+                                    Häufige Fehlzuordnungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      confusion of $any(q).matchingStats.commonConfusions;
+                                      track confusion.leftId + confusion.wrongRightId
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >{{ confusion.left }} → {{ confusion.wrongRight }}</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(confusion.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
+                        } @else if (q.type === 'CATEGORIZATION') {
+                          <div class="session-host__categorization">
+                            @if (effectiveStatus() !== 'RESULTS') {
+                              <section
+                                class="session-host__neutral-space"
+                                aria-labelledby="host-categorization-options-heading"
+                              >
+                                <h3
+                                  class="session-host__neutral-title"
+                                  id="host-categorization-options-heading"
+                                  i18n="@@sessionHost.categorizationNeutralOptions"
+                                >
+                                  Kategorien und Elemente
+                                </h3>
+                                <div class="session-host__neutral-columns">
+                                  <section aria-labelledby="host-categories-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-categories-heading"
+                                      i18n="@@sessionHost.categoriesLabel"
+                                    >
+                                      Kategorien
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        category of hostNeutralCategories(q);
+                                        track category.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain"
+                                        >
+                                          {{ category.name }}
+                                        </li>
+                                      }
+                                    </ul>
+                                  </section>
+                                  <section aria-labelledby="host-category-items-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-category-items-heading"
+                                      i18n="@@sessionHost.categorizationItemsLabel"
+                                    >
+                                      Elemente
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        item of hostNeutralCategorizationItems(q);
+                                        track item.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                          [innerHTML]="renderMarkdown(item.text, 4)"
+                                        ></li>
+                                      }
+                                    </ul>
+                                  </section>
+                                </div>
+                              </section>
+                              <p
+                                class="session-host__categorization-waiting"
+                                i18n="@@sessionHost.categorizationWaiting"
+                              >
+                                Warte auf Kategorisierungen der Teilnehmenden…
+                              </p>
+                              @let voteCount = hostVoteCount(q);
+                              @if (voteCount > 0) {
+                                <p
+                                  class="session-host__categorization-vote-count"
+                                  i18n="@@sessionHost.categorizationVoteCount"
+                                >
+                                  Eingegangene Kategorisierungen: {{ formatCount(voteCount) }}
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              <div class="session-host__categorization-results">
+                                <h3
+                                  class="session-host__categorization-title"
+                                  i18n="@@sessionHost.categorizationOverview"
+                                >
+                                  Soll-Kategorien
+                                </h3>
+                                <div class="session-host__categorization-grid">
+                                  @for (cat of $any(q).categories || []; track cat.id) {
+                                    <div class="session-host__categorization-card">
+                                      <h4 class="session-host__category-name">{{ cat.name }}</h4>
+                                      <ul class="session-host__category-items">
+                                        @for (
+                                          item of getHostCategorizationItemsForCategory(q, cat.id);
+                                          track item.id
+                                        ) {
+                                          <li
+                                            class="session-host__category-item markdown-body"
+                                            [innerHTML]="renderMarkdown(item.text, 4)"
+                                          ></li>
+                                        }
+                                      </ul>
+                                    </div>
+                                  }
+                                </div>
+                                @if ($any(q).categorizationStats; as categorizationStats) {
+                                  <div class="session-host__structured-insight" role="status">
+                                    <span
+                                      class="session-host__structured-insight-kicker"
+                                      i18n="@@sessionHost.structuredCorrectKicker"
+                                      >Vollständig korrekt</span
+                                    >
+                                    <strong class="session-host__structured-insight-value">{{
+                                      hostStructuredCorrectSummary(
+                                        categorizationStats.fullyCorrectCount,
+                                        categorizationStats.totalVotes
+                                      )
+                                    }}</strong>
+                                  </div>
+                                }
+                                @if ($any(q).categorizationStats; as categorizationStats) {
+                                  <app-presenter-distribution-matrix
+                                    title="Kategorienmatrix"
+                                    i18n-title="@@sessionHost.categorizationMatrixTitle"
+                                    description="Zeigt für jedes Element die Verteilung auf alle Kategorien. Umrandete Zellen markieren die Zielkategorie."
+                                    i18n-description="@@sessionHost.categorizationMatrixDescription"
+                                    [rows]="hostCategorizationMatrixRows(q)"
+                                    [columns]="hostCategorizationMatrixColumns(q)"
+                                    [cells]="hostCategorizationMatrixCells(q)"
+                                    [totalVotes]="categorizationStats.totalVotes"
+                                    [correctColumnByRow]="hostCategorizationCorrectColumns(q)"
+                                  />
+                                }
+                                @if (
+                                  $any(q).categorizationStats?.commonMisclassifications?.length
+                                ) {
+                                  <h4
+                                    class="session-host__categorization-subtitle"
+                                    i18n="@@sessionHost.categorizationMisclassifications"
+                                  >
+                                    Häufige Fehlkategorisierungen
+                                  </h4>
+                                  <ul class="session-host__structured-chips">
+                                    @for (
+                                      miss of $any(q).categorizationStats.commonMisclassifications;
+                                      track miss.itemId + miss.wrongCategoryId
+                                    ) {
+                                      <li class="session-host__structured-chip">
+                                        <span class="session-host__structured-chip-label"
+                                          >{{ miss.itemText }} → {{ miss.wrongCategoryName }}</span
+                                        >
+                                        <span class="session-host__structured-chip-count">{{
+                                          formatCount(miss.count)
+                                        }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
+                              </div>
+                            }
+                          </div>
                         } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
                           <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
                           <div
@@ -2538,7 +3009,8 @@
                                 class="session-host__peer-suggestion-lead"
                                 i18n="@@sessionHost.peerSuggestionLead"
                               >
-                                35–70 % vollständig korrekt — zweite Runde passt.
+                                Zwischen einem Drittel und zwei Dritteln vollständig korrekt —
+                                zweite Runde passt.
                               </p>
                               <p
                                 id="session-host-peer-suggestion-sub"
@@ -3267,7 +3739,7 @@
                     aria-label="Neue Fragen anzeigen"
                   >
                     <mat-icon class="session-qa-new-banner__icon" aria-hidden="true"
-                      >arrow_upward</mat-icon
+                      >keyboard_arrow_up</mat-icon
                     >
                     <span i18n="@@sessionQa.newQuestionsLabel"
                       >{{ formatCount(qaUnseenCount()) }} neue Fragen</span
@@ -3546,7 +4018,7 @@
               }}</span>
             </p>
           }
-          @if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
+          @if (shouldOfferDiscussionPhase(displayedCurrentQuestionForHost())) {
             <button
               mat-flat-button
               color="primary"
@@ -3579,10 +4051,12 @@
             >
               @if (canForceClosePersonalTimers()) {
                 <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
-              } @else {
+              } @else if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
                 <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
                   >Ergebnis trotzdem zeigen</span
                 >
+              } @else {
+                <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
               }
             </button>
           } @else {

@@ -4,6 +4,8 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   flushComponentAfterStable,
@@ -145,6 +147,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     vi.useRealTimers();
     localStorage.removeItem('arsnova-live-score-preview');
     localStorage.removeItem('arsnova-timer-accommodation');
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('arsnova-vote-response-')) {
+        localStorage.removeItem(key);
+      }
+    }
   });
 
   it('liefert phasenabhängige Einsprung-Anker mit korrekten Fallbacks', () => {
@@ -380,10 +388,16 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await flushComponentAfterStable(fixture, 50);
-    fixture.detectChanges();
-
     const component = fixture.componentInstance;
+    for (
+      let attempt = 0;
+      attempt < 10 && !component.showTimerAccommodationControls();
+      attempt += 1
+    ) {
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+    }
+
     expect(component.showTimerAccommodationControls()).toBe(true);
     expect(component.sessionTimerSeconds()).toBe(30);
 
@@ -4971,4 +4985,875 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(message).toMatch(/Frage|question|pregunta|domanda/i);
     fixture.destroy();
   });
+
+  it('blockiert unvollständige Kategorisierungen und führt zum ersten offenen Auswahlfeld', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.sessionId.set('session-structured');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.currentQuestion.set({
+      id: 'categorization-incomplete-question',
+      text: 'Sortiere ein',
+      type: 'CATEGORIZATION',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      categories: [{ id: 'cat-a', name: 'A' }],
+      categorizationItems: [{ id: 'item-a', text: 'Element A' }],
+    } as never);
+    component.categorizationSelectionsState.set([
+      { itemId: 'item-a', itemText: 'Element A', categoryId: '' },
+    ]);
+    const focusSpy = vi.spyOn(
+      component as unknown as { focusFirstIncompleteStructuredSelection: () => void },
+      'focusFirstIncompleteStructuredSelection',
+    );
+
+    expect(component.voteSubmitDisabled()).toBe(false);
+    await component.submitVote();
+
+    expect(voteSubmitMutateMock).not.toHaveBeenCalled();
+    expect(component.voteError()).toContain('jedes Element');
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it.each([
+    {
+      type: 'ORDERING',
+      fields: {
+        orderingItems: [
+          { id: 'item-b', text: 'Zweitens' },
+          { id: 'item-a', text: 'Erstens' },
+        ],
+      },
+      expected: ['Erstens', 'Zweitens'],
+    },
+    {
+      type: 'MATCHING',
+      fields: {
+        matchingLeftOptions: [
+          { id: 'left-a', text: 'Alpha' },
+          { id: 'left-b', text: 'Beta' },
+        ],
+        matchingRightOptions: [
+          { id: 'right-b', text: 'Zwei' },
+          { id: 'right-a', text: 'Eins' },
+        ],
+      },
+      expected: ['Alpha', 'Beta', 'Eins', 'Zwei'],
+    },
+    {
+      type: 'CATEGORIZATION',
+      fields: {
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A' },
+          { id: 'item-b', text: 'Element B' },
+        ],
+      },
+      expected: ['Kategorie A', 'Kategorie B', 'Element A', 'Element B'],
+    },
+  ] as const)(
+    'zeigt im Vote-Diskussionszustand für $type alle Optionen schreibgeschützt und ohne Lösung',
+    async ({ type, fields, expected }) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'DISCUSSION',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: 'structured-discussion-question',
+        text: 'Diskutiert diese Frage',
+        type,
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        ...fields,
+      });
+
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      for (
+        let attempt = 0;
+        attempt < 10 && !fixture.nativeElement.querySelector('.vote-structured-preview');
+        attempt += 1
+      ) {
+        await flushComponentAfterStable(fixture, 50);
+        fixture.detectChanges();
+      }
+
+      const preview = fixture.nativeElement.querySelector(
+        '.vote-structured-preview',
+      ) as HTMLElement;
+      const text = preview.textContent ?? '';
+      for (const term of expected) expect(text).toContain(term);
+      expect(preview.querySelector('button, input, select, mat-select')).toBeNull();
+      expect(text).not.toMatch(/Richtige Lösung|Richtig|Falsch/);
+      fixture.destroy();
+    },
+  );
+
+  it.each([
+    {
+      type: 'ORDERING',
+      question: {
+        orderingItems: [
+          { id: 'item-a', text: 'Richtig zuerst' },
+          { id: 'item-b', text: 'Richtig danach' },
+        ],
+      },
+      response: { orderingSequence: ['item-b', 'item-a'] },
+      solutionTerms: ['Richtig zuerst', 'Richtig danach'],
+    },
+    {
+      type: 'MATCHING',
+      question: {
+        matchingPairs: [
+          { leftId: 'left-a', left: 'Alpha', rightId: 'right-a', right: 'Eins' },
+          { leftId: 'left-b', left: 'Beta', rightId: 'right-b', right: 'Zwei' },
+        ],
+      },
+      response: {
+        matchingSelections: [
+          { leftId: 'left-a', rightId: 'right-b' },
+          { leftId: 'left-b', rightId: 'right-a' },
+        ],
+      },
+      solutionTerms: ['Alpha', 'Beta', 'Eins', 'Zwei'],
+    },
+    {
+      type: 'CATEGORIZATION',
+      question: {
+        categories: [
+          { id: 'cat-a', name: 'Kategorie A' },
+          { id: 'cat-b', name: 'Kategorie B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'Element A', correctCategoryId: 'cat-a' },
+          { id: 'item-b', text: 'Element B', correctCategoryId: 'cat-b' },
+        ],
+      },
+      response: {
+        categorizationSelections: [
+          { itemId: 'item-a', categoryId: 'cat-b' },
+          { itemId: 'item-b', categoryId: 'cat-a' },
+        ],
+      },
+      solutionTerms: ['Kategorie A', 'Kategorie B', 'Element A', 'Element B'],
+    },
+  ] as const)(
+    'trennt im Vote-Ergebnis für $type die falsche eigene Antwort von der vollständigen Lösung',
+    async ({ type, question, response, solutionTerms }) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'RESULTS',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: 'structured-result-question',
+        text: 'Strukturierte Ergebnisfrage',
+        type,
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        ...question,
+      });
+      getPersonalScorecardQueryMock.mockResolvedValue({
+        questionOrder: 1,
+        totalQuestions: 1,
+        wasCorrect: false,
+        questionScore: 0,
+        baseScore: 0,
+        streakCount: 0,
+        streakMultiplier: 1,
+        currentRank: 1,
+        previousRank: null,
+        rankChange: 0,
+        totalScore: 0,
+        ...response,
+      });
+
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      for (
+        let attempt = 0;
+        attempt < 10 &&
+        fixture.nativeElement.querySelectorAll('.structured-result-block').length < 2;
+        attempt += 1
+      ) {
+        await flushComponentAfterStable(fixture, 50);
+        fixture.detectChanges();
+      }
+
+      const summary = fixture.nativeElement.querySelector(
+        '.structured-result-summary',
+      ) as HTMLElement;
+      const blocks = Array.from(
+        fixture.nativeElement.querySelectorAll('.structured-result-block'),
+      ) as HTMLElement[];
+      expect(summary.textContent).toContain('0 von 2 richtig');
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0]?.querySelector('h2')?.textContent).toContain('Deine Antwort');
+      expect(blocks[0]?.textContent).toContain('Falsch');
+      expect(blocks[0]?.querySelector('mat-icon')).not.toBeNull();
+      expect(blocks[1]?.querySelector('h2')?.textContent).toContain('Richtige Lösung');
+      for (const term of solutionTerms) expect(blocks[1]?.textContent).toContain(term);
+      fixture.destroy();
+    },
+  );
+
+  it('zeigt bei einem nicht abgegebenen strukturierten Vote niemals die kanonische Lösung als eigene Antwort', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'ordering-no-vote-result',
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      totalVotes: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'Kanonisch zuerst' },
+        { id: 'item-b', text: 'Kanonisch danach' },
+      ],
+    });
+    getPersonalScorecardQueryMock.mockResolvedValue({
+      questionOrder: 1,
+      totalQuestions: 1,
+      wasCorrect: null,
+      questionScore: 0,
+      baseScore: 0,
+      streakCount: 0,
+      streakMultiplier: 1,
+      currentRank: 0,
+      previousRank: null,
+      rankChange: 0,
+      totalScore: 0,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    for (
+      let attempt = 0;
+      attempt < 10 && fixture.nativeElement.querySelectorAll('.structured-result-block').length < 2;
+      attempt += 1
+    ) {
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+    }
+
+    const blocks = fixture.nativeElement.querySelectorAll('.structured-result-block');
+    expect(blocks[0]?.textContent).toContain('Keine Antwort abgegeben');
+    expect(blocks[0]?.textContent).not.toContain('Kanonisch zuerst');
+    expect(blocks[1]?.textContent).toContain('Kanonisch zuerst');
+    expect(fixture.nativeElement.querySelector('.structured-result-summary')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('rendert für die Abwärtsbewegung ein im lokalen Icon-Font vorhandenes Symbol', () => {
+    const template = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.html'),
+      'utf8',
+    );
+
+    expect(template).toContain('<mat-icon>keyboard_arrow_up</mat-icon>');
+    expect(template).toContain('<mat-icon>keyboard_arrow_down</mat-icon>');
+    expect(template).not.toContain('<mat-icon>arrow_upward</mat-icon>');
+    expect(template).not.toContain('<mat-icon>arrow_downward</mat-icon>');
+  });
+
+  it('sendet Matching über stabile IDs und tauscht vollständig belegte Zuordnungen', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.sessionId.set('session-structured');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.currentQuestion.set({
+      id: 'matching-structured-question',
+      text: 'Ordne zu',
+      type: 'MATCHING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      matchingLeftOptions: [
+        { id: 'left-a', text: 'Gleicher Text' },
+        { id: 'left-b', text: 'Gleicher Text' },
+      ],
+      matchingRightOptions: [
+        { id: 'right-1', text: 'Ziel' },
+        { id: 'right-2', text: 'Ziel' },
+      ],
+    } as never);
+    component.matchingRightOptionsState.set([
+      { id: 'right-1', text: 'Ziel' },
+      { id: 'right-2', text: 'Ziel' },
+    ]);
+    component.matchingSelectionsState.set([
+      { leftId: 'left-a', leftText: 'Gleicher Text', rightId: 'right-1' },
+      { leftId: 'left-b', leftText: 'Gleicher Text', rightId: 'right-2' },
+    ]);
+
+    expect(component.getMatchingRightOptionsForLeft('left-a').map((option) => option.id)).toEqual([
+      'right-1',
+      'right-2',
+    ]);
+
+    component.setMatchingSelection('left-a', 'right-2');
+
+    expect(component.matchingSelectionsState()).toEqual([
+      { leftId: 'left-a', leftText: 'Gleicher Text', rightId: 'right-2' },
+      { leftId: 'left-b', leftText: 'Gleicher Text', rightId: 'right-1' },
+    ]);
+    expect(component.matchingAnnouncement()).toContain('wurden getauscht');
+
+    await component.submitVote();
+
+    expect(voteSubmitMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        questionId: 'matching-structured-question',
+        matchingSelections: [
+          { leftId: 'left-a', rightId: 'right-2' },
+          { leftId: 'left-b', rightId: 'right-1' },
+        ],
+      }),
+    );
+    const payload = voteSubmitMutateMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+    expect(JSON.stringify(payload)).not.toContain('Gleicher Text');
+    fixture.destroy();
+  });
+
+  it('stellt einen strukturierten Entwurf nach Reload ID-basiert wieder her', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const question = {
+      id: 'categorization-draft-question',
+      text: 'Sortiere ein',
+      type: 'CATEGORIZATION',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      categories: [
+        { id: 'cat-a', name: 'A' },
+        { id: 'cat-b', name: 'B' },
+      ],
+      categorizationItems: [
+        { id: 'item-a', text: 'Doppelt', correctCategoryId: 'cat-a' },
+        { id: 'item-b', text: 'Doppelt', correctCategoryId: 'cat-b' },
+      ],
+    } as never;
+    component.participantId.set(participantId);
+    component.currentQuestion.set(question);
+    component.categoriesState.set([
+      { id: 'cat-a', name: 'A' },
+      { id: 'cat-b', name: 'B' },
+    ]);
+    component.categorizationSelectionsState.set([
+      { itemId: 'item-a', itemText: 'Doppelt', categoryId: '' },
+      { itemId: 'item-b', itemText: 'Doppelt', categoryId: '' },
+    ]);
+    localStorage.setItem(
+      `arsnova-vote-response-ABC123-${participantId}-categorization-draft-question-1`,
+      JSON.stringify({
+        categorizationSelections: [
+          { itemId: 'item-a', categoryId: 'cat-b' },
+          { itemId: 'item-b', categoryId: 'cat-a' },
+        ],
+        sent: false,
+      }),
+    );
+
+    (
+      component as unknown as {
+        restoreStoredVoteResponse: (current: typeof question) => void;
+      }
+    ).restoreStoredVoteResponse(question);
+
+    expect(component.categorizationSelectionsState()).toEqual([
+      { itemId: 'item-a', itemText: 'Doppelt', categoryId: 'cat-b' },
+      { itemId: 'item-b', itemText: 'Doppelt', categoryId: 'cat-a' },
+    ]);
+    expect(component.voteSent()).toBe(false);
+    localStorage.removeItem(
+      `arsnova-vote-response-ABC123-${participantId}-categorization-draft-question-1`,
+    );
+    fixture.destroy();
+  });
+
+  it('ignoriert unvollständige oder doppelte Ordering-Entwürfe aus lokalem Speicher', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const question = {
+      id: 'ordering-draft-question',
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+        { id: 'item-c', text: 'C' },
+      ],
+    } as never;
+    const initialItems = [
+      { id: 'item-c', text: 'C' },
+      { id: 'item-a', text: 'A' },
+      { id: 'item-b', text: 'B' },
+    ];
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentQuestion.set(question);
+    component.orderingItemsState.set(initialItems);
+    component.orderingSequenceState.set(initialItems.map((item) => item.id));
+    localStorage.setItem(
+      `arsnova-vote-response-ABC123-${participantId}-ordering-draft-question-1`,
+      JSON.stringify({ orderingSequence: ['item-a', 'item-a'], sent: false }),
+    );
+
+    (
+      component as unknown as {
+        restoreStoredVoteResponse: (current: typeof question) => void;
+      }
+    ).restoreStoredVoteResponse(question);
+
+    expect(component.orderingItemsState()).toEqual(initialItems);
+    expect(component.voteAnswerReady()).toBe(true);
+    component.orderingItemsState.set([{ id: 'item-a', text: 'A' }]);
+    expect(component.voteAnswerReady()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('initialisiert Ordering in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'ordering-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+        { id: 'item-c', text: 'C' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      orderingSequence: ['item-c', 'item-b', 'item-a'],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.orderingItemsState.set([
+      { id: 'item-c', text: 'C' },
+      { id: 'item-b', text: 'B' },
+      { id: 'item-a', text: 'A' },
+    ]);
+    component.orderingSequenceState.set(['item-c', 'item-b', 'item-a']);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.orderingSequenceState()).toEqual(['item-a', 'item-b', 'item-c']);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.moveOrderingItemDown(0);
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').orderingSequence).toEqual([
+      'item-b',
+      'item-a',
+      'item-c',
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
+
+  it('initialisiert Matching in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'matching-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Ordne zu',
+      type: 'MATCHING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      matchingLeftOptions: [
+        { id: 'left-a', text: 'A' },
+        { id: 'left-b', text: 'B' },
+      ],
+      matchingRightOptions: [
+        { id: 'right-1', text: '1' },
+        { id: 'right-2', text: '2' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      matchingSelections: [
+        { leftId: 'left-a', rightId: 'right-2' },
+        { leftId: 'left-b', rightId: 'right-1' },
+      ],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.matchingRightOptionsState.set(round1Question.matchingRightOptions);
+    component.matchingSelectionsState.set([
+      { leftId: 'left-a', leftText: 'A', rightId: 'right-2' },
+      { leftId: 'left-b', leftText: 'B', rightId: 'right-1' },
+    ]);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.matchingSelectionsState()).toEqual([
+      { leftId: 'left-a', leftText: 'A', rightId: '' },
+      { leftId: 'left-b', leftText: 'B', rightId: '' },
+    ]);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.setMatchingSelection('left-a', 'right-1');
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').matchingSelections).toEqual([
+      { leftId: 'left-a', rightId: 'right-1' },
+      { leftId: 'left-b', rightId: '' },
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
+
+  it('initialisiert Categorization in Runde 2 neu und verwendet einen separaten Draft-Key', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const questionId = 'categorization-round-transition';
+    const round1Question = {
+      id: questionId,
+      text: 'Kategorisiere',
+      type: 'CATEGORIZATION',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      categories: [
+        { id: 'cat-a', name: 'A' },
+        { id: 'cat-b', name: 'B' },
+      ],
+      categorizationItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
+    const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
+    const round1Draft = JSON.stringify({
+      categorizationSelections: [
+        { itemId: 'item-a', categoryId: 'cat-b' },
+        { itemId: 'item-b', categoryId: 'cat-a' },
+      ],
+      sent: false,
+    });
+    localStorage.setItem(round1Key, round1Draft);
+    currentQuestionQueryMock.mockResolvedValue(round2Question);
+    component.status.set('ACTIVE');
+    component.participantId.set(participantId);
+    component.currentRound.set(1);
+    component.currentQuestion.set(round1Question);
+    component.categoriesState.set(round1Question.categories);
+    component.categorizationSelectionsState.set([
+      { itemId: 'item-a', itemText: 'A', categoryId: 'cat-b' },
+      { itemId: 'item-b', itemText: 'B', categoryId: 'cat-a' },
+    ]);
+
+    await (component as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+
+    expect(component.currentRound()).toBe(2);
+    expect(component.categorizationSelectionsState()).toEqual([
+      { itemId: 'item-a', itemText: 'A', categoryId: '' },
+      { itemId: 'item-b', itemText: 'B', categoryId: '' },
+    ]);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(localStorage.getItem(round2Key)).toBeNull();
+
+    component.setCategorizationSelection('item-a', 'cat-a');
+
+    expect(JSON.parse(localStorage.getItem(round2Key) ?? '{}').categorizationSelections).toEqual([
+      { itemId: 'item-a', categoryId: 'cat-a' },
+      { itemId: 'item-b', categoryId: '' },
+    ]);
+    expect(localStorage.getItem(round1Key)).toBe(round1Draft);
+    fixture.destroy();
+  });
+
+  it('wiederholt den strukturierten Rundenwechsel nach einem vorübergehenden Abruffehler', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const round1Question = {
+      id: 'ordering-round-retry',
+      text: 'Sortiere',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      orderingItems: [
+        { id: 'item-a', text: 'A' },
+        { id: 'item-b', text: 'B' },
+        { id: 'item-c', text: 'C' },
+      ],
+    } as never;
+    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    component.status.set('ACTIVE');
+    component.currentRound.set(2);
+    component.currentQuestion.set(round1Question);
+    component.orderingItemsState.set([
+      { id: 'item-c', text: 'C' },
+      { id: 'item-b', text: 'B' },
+      { id: 'item-a', text: 'A' },
+    ]);
+    (
+      component as unknown as {
+        resetForSecondRoundStart: () => void;
+      }
+    ).resetForSecondRoundStart();
+    currentQuestionQueryMock
+      .mockRejectedValueOnce(new Error('temporary network error'))
+      .mockResolvedValueOnce(round2Question);
+
+    await (
+      component as unknown as {
+        refreshQuestion: () => Promise<void>;
+      }
+    ).refreshQuestion();
+
+    expect(component.structuredRoundTransitionPending()).toBe(true);
+    expect(currentQuestionQueryMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(currentQuestionQueryMock).toHaveBeenCalledTimes(2);
+    expect(component.structuredRoundTransitionPending()).toBe(false);
+    expect(component.orderingSequenceState()).toEqual(['item-a', 'item-b', 'item-c']);
+    fixture.destroy();
+  });
+
+  it.each([
+    {
+      label: 'Matching',
+      question: {
+        id: 'matching-results-reload',
+        text: 'Ordne zu',
+        type: 'MATCHING',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        matchingPairs: [
+          { leftId: 'left-a', left: 'A', rightId: 'right-a', right: '1' },
+          { leftId: 'left-b', left: 'B', rightId: 'right-b', right: '2' },
+        ],
+      },
+      response: {
+        matchingSelections: [
+          { leftId: 'left-a', rightId: 'right-b' },
+          { leftId: 'left-b', rightId: 'right-a' },
+        ],
+      },
+      expected: [
+        { leftId: 'left-a', leftText: 'A', rightId: 'right-b' },
+        { leftId: 'left-b', leftText: 'B', rightId: 'right-a' },
+      ],
+    },
+    {
+      label: 'Ordering',
+      question: {
+        id: 'ordering-results-reload',
+        text: 'Sortiere',
+        type: 'ORDERING',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        orderingItems: [
+          { id: 'item-a', text: 'A' },
+          { id: 'item-b', text: 'B' },
+          { id: 'item-c', text: 'C' },
+        ],
+      },
+      response: { orderingSequence: ['item-c', 'item-a', 'item-b'] },
+      expected: ['item-c', 'item-a', 'item-b'],
+    },
+    {
+      label: 'Categorization',
+      question: {
+        id: 'categorization-results-reload',
+        text: 'Kategorisiere',
+        type: 'CATEGORIZATION',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+        currentRound: 1,
+        totalVotes: 1,
+        categories: [
+          { id: 'cat-a', name: 'A' },
+          { id: 'cat-b', name: 'B' },
+        ],
+        categorizationItems: [
+          { id: 'item-a', text: 'A', categoryId: 'cat-a' },
+          { id: 'item-b', text: 'B', categoryId: 'cat-a' },
+          { id: 'item-c', text: 'C', categoryId: 'cat-b' },
+          { id: 'item-d', text: 'D', categoryId: 'cat-b' },
+        ],
+      },
+      response: {
+        categorizationSelections: [
+          { itemId: 'item-a', categoryId: 'cat-b' },
+          { itemId: 'item-b', categoryId: 'cat-a' },
+          { itemId: 'item-c', categoryId: 'cat-a' },
+          { itemId: 'item-d', categoryId: 'cat-b' },
+        ],
+      },
+      expected: [
+        { itemId: 'item-a', itemText: 'A', categoryId: 'cat-b' },
+        { itemId: 'item-b', itemText: 'B', categoryId: 'cat-a' },
+        { itemId: 'item-c', itemText: 'C', categoryId: 'cat-a' },
+        { itemId: 'item-d', itemText: 'D', categoryId: 'cat-b' },
+      ],
+    },
+  ])(
+    'stellt die persistierte $label-Antwort beim Ergebnis-Neuladen ohne LocalStorage wieder her',
+    async ({ question, response, expected }) => {
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      const component = fixture.componentInstance;
+      component.status.set('RESULTS');
+      component.participantId.set('11111111-1111-4111-8111-111111111111');
+      component.currentQuestion.set({
+        id: 'previous-question',
+        text: 'Vorherige Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        totalQuestions: 1,
+        answers: [],
+      } as never);
+      currentQuestionQueryMock.mockResolvedValueOnce(question);
+      getPersonalScorecardQueryMock.mockResolvedValueOnce({
+        questionOrder: 1,
+        totalQuestions: 1,
+        wasCorrect: false,
+        questionScore: 0,
+        baseScore: 0,
+        streakCount: 0,
+        streakMultiplier: 1,
+        currentRank: 1,
+        previousRank: null,
+        rankChange: 0,
+        totalScore: 0,
+        ...response,
+      });
+
+      await (
+        component as unknown as {
+          refreshQuestion: () => Promise<void>;
+        }
+      ).refreshQuestion();
+
+      expect(component.voteSent()).toBe(true);
+      if (question.type === 'MATCHING') {
+        expect(component.matchingSelectionsState()).toEqual(expected);
+      } else if (question.type === 'ORDERING') {
+        expect(component.orderingSequenceState()).toEqual(expected);
+      } else {
+        expect(component.categorizationSelectionsState()).toEqual(expected);
+      }
+      fixture.destroy();
+    },
+  );
 });
