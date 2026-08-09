@@ -668,6 +668,13 @@ async function main() {
 
   for (const path of paths) {
     const page = await context.newPage();
+    const angularRuntimeErrors = [];
+    page.on('console', (message) => {
+      const text = message.text();
+      if (message.type() === 'error' && /\bERROR (?:TypeError|RuntimeError)\b/.test(text)) {
+        angularRuntimeErrors.push(text.split('\n', 1)[0]);
+      }
+    });
     const url = `${BASE_URL}${path}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -677,7 +684,12 @@ async function main() {
     const initialJoinFocus = path === '/de/join' ? await inspectMobileJoinEntry(page) : [];
     const locale = path.split('/')[1];
     const motdChecks = path.endsWith('/news-archive')
-      ? await inspectStructuredQuestionMotd(page, locale)
+      ? [
+          ...(await inspectStructuredQuestionMotd(page, locale)),
+          ...angularRuntimeErrors.map(
+            (error) => `Angular-Laufzeitfehler im ${locale}-Archiv: ${error}`,
+          ),
+        ]
       : [];
     const keyboardNavigation = [
       ...(path === '/de/' ? await inspectHomeKeyboardNavigation(page) : initialJoinFocus),

@@ -18,6 +18,41 @@ export type NewsArchiveInitialModel = {
 };
 
 /**
+ * JSON-serialisierbarer Teil des Resolver-Modells für Angulars Hydration.
+ * `SafeHtml` wird im Browser erneut aufgebaut und darf nicht im TransferState landen.
+ */
+export type NewsArchiveTransferState = Omit<NewsArchiveInitialModel, 'titleById' | 'htmlById'>;
+
+export function toNewsArchiveTransferState(
+  model: NewsArchiveInitialModel,
+): NewsArchiveTransferState {
+  return {
+    items: model.items,
+    nextCursor: model.nextCursor,
+    archiveMaxEndsAtIso: model.archiveMaxEndsAtIso,
+    archiveUnreadCount: model.archiveUnreadCount,
+    errorMessage: model.errorMessage,
+  };
+}
+
+export function fromNewsArchiveTransferState(
+  data: NewsArchiveTransferState,
+  sanitizer: DomSanitizer,
+  fallbackTitle: string,
+): NewsArchiveInitialModel {
+  const titleById: Record<string, string> = {};
+  const htmlById: Record<string, SafeHtml> = {};
+  for (const it of data.items) {
+    const { title, html } = buildMotdArchiveItemDisplay(it, sanitizer, fallbackTitle, {
+      assetOrigin: resolveMotdAssetOrigin(),
+    });
+    titleById[it.id] = title;
+    htmlById[it.id] = html;
+  }
+  return { ...data, titleById, htmlById };
+}
+
+/**
  * Erste Archiv-Seite + Header-State (Resolver + SSR/Prerender: blockiert bis die Daten da sind).
  */
 export async function loadNewsArchivePageModel(
@@ -52,20 +87,10 @@ export async function loadNewsArchivePageModel(
   let items: MotdArchiveItemDTO[] = [];
   let nextCursor: string | null = null;
   let errorMessage: string | null = null;
-  const titleById: Record<string, string> = {};
-  const htmlById: Record<string, SafeHtml> = {};
-
   if (listResult.status === 'fulfilled') {
     const first = listResult.value;
     items = sortMotdArchiveItemsNewFirst(first.items);
     nextCursor = first.nextCursor;
-    for (const it of items) {
-      const { title, html } = buildMotdArchiveItemDisplay(it, sanitizer, fallbackTitle, {
-        assetOrigin: resolveMotdAssetOrigin(),
-      });
-      titleById[it.id] = title;
-      htmlById[it.id] = html;
-    }
   } else {
     const e = listResult.reason;
     errorMessage = localizeKnownServerError(e, loadErrorMessage);
@@ -91,13 +116,15 @@ export async function loadNewsArchivePageModel(
     }
   }
 
-  return {
-    items,
-    nextCursor,
-    archiveMaxEndsAtIso,
-    archiveUnreadCount,
-    errorMessage,
-    titleById,
-    htmlById,
-  };
+  return fromNewsArchiveTransferState(
+    {
+      items,
+      nextCursor,
+      archiveMaxEndsAtIso,
+      archiveUnreadCount,
+      errorMessage,
+    },
+    sanitizer,
+    fallbackTitle,
+  );
 }
