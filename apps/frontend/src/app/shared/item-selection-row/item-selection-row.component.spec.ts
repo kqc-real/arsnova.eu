@@ -1,8 +1,41 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatSelect } from '@angular/material/select';
 import { By } from '@angular/platform-browser';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemSelectionRowComponent } from './item-selection-row.component';
+
+@Component({
+  standalone: true,
+  imports: [ItemSelectionRowComponent],
+  template: `
+    <app-item-selection-row
+      itemText="Erstes Element"
+      [options]="options"
+      [selectedId]="firstSelectedId"
+      selectLabel="Erste Auswahl"
+      selectAriaLabel="Auswahl für das erste Element"
+      (selectedIdChange)="firstSelectedId = $event"
+    />
+    <app-item-selection-row
+      itemText="Zweites Element"
+      [options]="options"
+      [selectedId]="secondSelectedId"
+      selectLabel="Zweite Auswahl"
+      selectAriaLabel="Auswahl für das zweite Element"
+      (selectedIdChange)="secondSelectedId = $event"
+    />
+  `,
+})
+class ItemSelectionRowTestHostComponent {
+  readonly options = [
+    { id: 'stable-option-id', text: 'Sichtbarer Text' },
+    { id: 'other-option-id', text: 'Andere Option' },
+  ];
+  firstSelectedId = '';
+  secondSelectedId = '';
+}
 
 describe('ItemSelectionRowComponent', () => {
   it('rendert Markdown und KaTeX in Element, Auswahl und Optionen', () => {
@@ -42,29 +75,35 @@ describe('ItemSelectionRowComponent', () => {
     expect(listener).not.toHaveBeenCalledWith('Sichtbarer Text');
   });
 
-  it('schließt das Auswahlmenü nach einer bestätigten Auswahl explizit', async () => {
-    const fixture = TestBed.createComponent(ItemSelectionRowComponent);
-    fixture.componentRef.setInput('itemText', 'Element');
-    fixture.componentRef.setInput('options', [{ id: 'stable-option-id', text: 'Sichtbarer Text' }]);
-    fixture.componentRef.setInput('selectedId', '');
-    fixture.componentRef.setInput('selectLabel', 'Auswahl');
-    fixture.componentRef.setInput('selectAriaLabel', 'Auswahl für Element');
+  it('schließt das echte Overlay und öffnet die nächste Auswahl mit der ersten Interaktion', async () => {
+    TestBed.configureTestingModule({ imports: [NoopAnimationsModule] });
+    const fixture = TestBed.createComponent(ItemSelectionRowTestHostComponent);
     fixture.detectChanges();
 
-    const select = fixture.debugElement.query(By.directive(MatSelect))
-      .componentInstance as MatSelect;
-    const closeSpy = vi.spyOn(select, 'close').mockImplementation(() => undefined);
-    const listener = vi.fn();
-    fixture.componentInstance.selectedIdChange.subscribe(listener);
+    const selects = fixture.debugElement
+      .queryAll(By.directive(MatSelect))
+      .map((element) => element.componentInstance as MatSelect);
+    const selectElements = (fixture.nativeElement as HTMLElement).querySelectorAll('mat-select');
 
-    fixture.componentInstance.confirmSelection('stable-option-id', select);
+    (selectElements[0] as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(selects[0].panelOpen).toBe(true);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeTruthy();
 
-    expect(listener).toHaveBeenCalledWith('stable-option-id');
-    expect(closeSpy).not.toHaveBeenCalled();
+    (document.querySelector('mat-option') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
 
-    await Promise.resolve();
+    expect(fixture.componentInstance.firstSelectedId).toBe('stable-option-id');
+    expect(selects[0].panelOpen).toBe(false);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeNull();
 
-    expect(closeSpy).toHaveBeenCalledTimes(1);
+    (selectElements[1] as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(selects[1].panelOpen).toBe(true);
   });
 
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {
