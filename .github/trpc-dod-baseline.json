@@ -504,7 +504,7 @@
     },
     "session.nextQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:c8005da5ca9ea577e4a275f76e110b8f5a9a8782a1c45c78fb442222728f9656",
+      "fingerprint": "sha256:8106b7bb5bc134975f9c1d85d05281f5ca91e1ee543407c3b2bfb33734137716",
       "missing": []
     },
     "session.onCurrentQuestionForHostChanged": {
@@ -529,7 +529,7 @@
     },
     "session.prevQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:c6c648a48b8d589c4b660e4565fdb94323dba089ec2ccea78267800b320e4c88",
+      "fingerprint": "sha256:9de46f82f3f5a5415e4c48ebc11e7e2095405bcfc8ed14915a7fce569b7fc9c3",
       "missing": []
     },
     "session.react": {
@@ -554,7 +554,7 @@
     },
     "session.revealResults": {
       "kind": "mutation",
-      "fingerprint": "sha256:e15d54872f8389ef4df2b4085444870c8c79a48da3859b97ded1de0ac93f934a",
+      "fingerprint": "sha256:c2a68916a817426a071405c577705a2cff2f32a99373539af44c63aac3ce808c",
       "missing": []
     },
     "session.setPreferredLiveChannel": {
@@ -574,17 +574,17 @@
     },
     "session.startDiscussion": {
       "kind": "mutation",
-      "fingerprint": "sha256:e09a36f14b1639a53e45a9b2de02dbfb65e79a9827b3c5d51fdd4b117c5886d5",
+      "fingerprint": "sha256:a6e5f669840716b3237a8dd058b815fdd7219bc959228f4353954c466571b1b4",
       "missing": []
     },
     "session.startQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:dec102a3c5390c9e6d89ae30779fe149e9d8f59d2d38480dc6e770057771a833",
+      "fingerprint": "sha256:ac5b6888463ab9b9c70fc6aa6d49d62cc16f295e86cf200cf35c46f476a17ec8",
       "missing": []
     },
     "session.startSecondRound": {
       "kind": "mutation",
-      "fingerprint": "sha256:cddd94b32c860b99f7b7803005d9f6f3d892435e487f0318daa9ac4edfb524db",
+      "fingerprint": "sha256:dae929c1658060a33029ebd51ceb3545cb5a06e55e4ae501156b38b945725b25",
       "missing": []
     },
     "session.submitSessionFeedback": {

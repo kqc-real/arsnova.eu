@@ -382,6 +382,25 @@ describe('session.nextQuestion (Story 2.3)', () => {
       message: 'skipCurrentResultQuestion ist nur aus Status RESULTS oder DISCUSSION erlaubt.',
     });
   });
+
+  it('öffnet eine unter der Sperre bereits beendete Session nicht mit der nächsten Frage erneut', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({
+      id: SESSION_ID,
+      status: 'FINISHED',
+      currentQuestion: null,
+      quiz: { readingPhaseEnabled: false, questions: [{ id: 'q1' }] },
+      participants: [],
+      bonusTokens: [],
+    });
+
+    await expect(caller.nextQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: /Nächste Frage nur aus Status/,
+    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+    expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
+  });
 });
 
 describe('session.skipQuestion', () => {
@@ -859,6 +878,27 @@ describe('session.revealResults (Story 2.3)', () => {
     );
   });
 
+  it('öffnet eine fragefreie Session nach parallelem Abschluss nicht als RESULTS erneut', async () => {
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: null,
+        currentRound: 1,
+        activeQuestionStartedAt: null,
+        questionProgress: null,
+        quiz: null,
+      })
+      .mockResolvedValueOnce({ status: 'FINISHED', currentQuestion: null });
+
+    await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Ergebnis anzeigen nur im Status ACTIVE.',
+    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
   trpcDodIt(
     {
       procedure: 'session.revealResults',
@@ -890,6 +930,10 @@ describe('session.prevQuestion', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.vote.findMany.mockResolvedValue([]);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   trpcDodIt(
@@ -961,6 +1005,29 @@ describe('session.prevQuestion', () => {
       message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
     });
   });
+
+  it('öffnet eine unter der Sperre bereits beendete Session nicht rückwärts erneut', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({
+      id: SESSION_ID,
+      status: 'FINISHED',
+      currentQuestion: null,
+      questionProgress: null,
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          { id: 'q1', order: 0 },
+          { id: 'q2', order: 1 },
+        ],
+      },
+    });
+
+    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
+    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
 });
 
 describe('session peer-instruction steering gates', () => {
@@ -970,6 +1037,10 @@ describe('session peer-instruction steering gates', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.vote.findMany.mockResolvedValue([]);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
@@ -999,6 +1070,12 @@ describe('session peer-instruction steering gates', () => {
           status: 'ACTIVE',
           currentQuestion: 0,
           currentRound: 1,
+        })
+        .mockResolvedValueOnce({
+          id: SESSION_ID,
+          status: 'DISCUSSION',
+          currentQuestion: 0,
+          quiz: { questions: [{ type }] },
         })
         .mockResolvedValueOnce({
           id: SESSION_ID,
@@ -1200,6 +1277,22 @@ describe('session peer-instruction steering gates', () => {
       expect(loadSignalMocks.markCountdownSessionActive).toHaveBeenCalledWith(SESSION_ID);
     },
   );
+
+  it('öffnet eine unter der Sperre bereits beendete Session nicht für Runde 2 erneut', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({
+      id: SESSION_ID,
+      status: 'FINISHED',
+      currentQuestion: null,
+      quiz: { questions: [{ type: 'SINGLE_CHOICE', numericTwoRounds: false }] },
+    });
+
+    await expect(caller.startSecondRound({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Zweite Runde nur aus Status DISCUSSION.',
+    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
 
   trpcDodIt(
     {
