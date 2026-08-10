@@ -37,6 +37,14 @@ export class ItemSelectionRowComponent {
     );
   }
 
+  confirmSelection(selectedId: string, select: MatSelect): void {
+    this.selectedIdChange.emit(selectedId);
+
+    // Run after Material's option handlers and the parent input update. This keeps the
+    // single-select overlay closed on touch devices even if that update reopens the panel.
+    queueMicrotask(() => select.close());
+  }
+
   openSelectionFromField(event: MouseEvent, select: MatSelect): void {
     const target = event.target;
     if (this.disabled || (target instanceof Element && target.closest('mat-select') !== null)) {
