@@ -23,6 +23,7 @@
     "e2e:confidence-summary-demo": "node scripts/check-confidence-summary-demo-flow.mjs",
     "generate:session-pdf-demo": "npx tsx scripts/generate-session-results-pdf-demo.ts",
     "smoke:quiz-sync": "node scripts/check-quiz-sync-flow.mjs",
+    "smoke:session-question-progress": "node scripts/check-session-question-progress-flow.mjs",
     "smoke:unified-session": "node scripts/check-unified-session-flow.mjs",
     "lighthouse:a11y": "node scripts/lighthouse-a11y.mjs",
     "a11y:axe:static": "node scripts/check-a11y-static.mjs",

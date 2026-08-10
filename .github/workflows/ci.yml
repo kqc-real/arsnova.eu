@@ -1079,6 +1079,7 @@ jobs:
           npm run smoke:short-text -w @arsnova/frontend
           npm run smoke:numeric-estimate -w @arsnova/frontend
           npm run smoke:quiz-sync -w @arsnova/frontend
+          npm run smoke:session-question-progress -w @arsnova/frontend
           npm run smoke:unified-session -w @arsnova/frontend
 
       - name: Upload E2E logs

@@ -1434,12 +1434,14 @@ export function buildSessionResultsReportHtml(
   const footerMeta = labels.exportFooterMeta
     .replace('{0}', formatReportDateTime(generatedAt, localeId))
     .replace('{1}', data.sessionCode);
-  const sessionScope = labels.sessionScopeTemplate
-    .replace('{0}', formatLocaleCount(data.conductedQuestionCount, localeId))
-    .replace('{1}', formatLocaleCount(data.totalQuestionCount, localeId))
-    .replace('{2}', formatLocaleCount(data.skippedQuestionCount, localeId));
+  const sessionScope = data.questionProgressAvailable
+    ? labels.sessionScopeTemplate
+        .replace('{0}', formatLocaleCount(data.conductedQuestionCount, localeId))
+        .replace('{1}', formatLocaleCount(data.totalQuestionCount, localeId))
+        .replace('{2}', formatLocaleCount(data.skippedQuestionCount, localeId))
+    : null;
   const sessionStart =
-    data.startQuestionOrder && data.startQuestionOrder > 1
+    data.questionProgressAvailable && data.startQuestionOrder && data.startQuestionOrder > 1
       ? labels.sessionStartTemplate.replace(
           '{0}',
           formatLocaleCount(data.startQuestionOrder, localeId),
@@ -1536,7 +1538,7 @@ export function buildSessionResultsReportHtml(
         <div><dt>${escapeHtml(labels.sessionCode)}</dt><dd>${escapeHtml(data.sessionCode)}</dd></div>
         <div><dt>${escapeHtml(labels.finishedAt)}</dt><dd>${escapeHtml(finishedAt)}</dd></div>
         <div><dt>${escapeHtml(labels.participantCount)}</dt><dd>${formatLocaleCount(data.participantCount, localeId)}</dd></div>
-        <div><dt>${escapeHtml(labels.sessionScope)}</dt><dd>${escapeHtml(sessionScope)}${sessionStart ? ` · ${escapeHtml(sessionStart)}` : ''}</dd></div>
+        ${sessionScope ? `<div><dt>${escapeHtml(labels.sessionScope)}</dt><dd>${escapeHtml(sessionScope)}${sessionStart ? ` · ${escapeHtml(sessionStart)}` : ''}</dd></div>` : ''}
         <div><dt>${escapeHtml(labels.reportLanguage)}</dt><dd>${escapeHtml(reportLanguage)}</dd></div>
         ${quizContentLanguage ? `<div><dt>${escapeHtml(labels.quizContentLanguage)}</dt><dd>${escapeHtml(quizContentLanguage)}</dd></div>` : ''}
       </dl>
