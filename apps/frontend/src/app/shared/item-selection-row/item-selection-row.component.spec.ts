@@ -1,8 +1,41 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatSelect } from '@angular/material/select';
 import { By } from '@angular/platform-browser';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemSelectionRowComponent } from './item-selection-row.component';
+
+@Component({
+  standalone: true,
+  imports: [ItemSelectionRowComponent],
+  template: `
+    <app-item-selection-row
+      itemText="Erstes Element"
+      [options]="options"
+      [selectedId]="firstSelectedId"
+      selectLabel="Erste Auswahl"
+      selectAriaLabel="Auswahl für das erste Element"
+      (selectedIdChange)="firstSelectedId = $event"
+    />
+    <app-item-selection-row
+      itemText="Zweites Element"
+      [options]="options"
+      [selectedId]="secondSelectedId"
+      selectLabel="Zweite Auswahl"
+      selectAriaLabel="Auswahl für das zweite Element"
+      (selectedIdChange)="secondSelectedId = $event"
+    />
+  `,
+})
+class ItemSelectionRowTestHostComponent {
+  readonly options = [
+    { id: 'stable-option-id', text: 'Sichtbarer Text' },
+    { id: 'other-option-id', text: 'Andere Option' },
+  ];
+  firstSelectedId = '';
+  secondSelectedId = '';
+}
 
 describe('ItemSelectionRowComponent', () => {
   it('rendert Markdown und KaTeX in Element, Auswahl und Optionen', () => {
@@ -40,6 +73,37 @@ describe('ItemSelectionRowComponent', () => {
 
     expect(listener).toHaveBeenCalledWith('stable-option-id');
     expect(listener).not.toHaveBeenCalledWith('Sichtbarer Text');
+  });
+
+  it('schließt das echte Overlay und öffnet die nächste Auswahl mit der ersten Interaktion', async () => {
+    TestBed.configureTestingModule({ imports: [NoopAnimationsModule] });
+    const fixture = TestBed.createComponent(ItemSelectionRowTestHostComponent);
+    fixture.detectChanges();
+
+    const selects = fixture.debugElement
+      .queryAll(By.directive(MatSelect))
+      .map((element) => element.componentInstance as MatSelect);
+    const selectElements = (fixture.nativeElement as HTMLElement).querySelectorAll('mat-select');
+
+    (selectElements[0] as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(selects[0].panelOpen).toBe(true);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeTruthy();
+
+    (document.querySelector('mat-option') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.firstSelectedId).toBe('stable-option-id');
+    expect(selects[0].panelOpen).toBe(false);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeNull();
+
+    (selectElements[1] as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(selects[1].panelOpen).toBe(true);
   });
 
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {

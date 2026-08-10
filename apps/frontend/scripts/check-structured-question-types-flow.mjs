@@ -1012,8 +1012,17 @@ async function runOrderingFlow(
   }
 }
 
-async function selectMatOption(page, formFieldLocator, optionText) {
-  await formFieldLocator.locator('mat-select').click();
+async function selectMatOption(
+  page,
+  formFieldLocator,
+  optionText,
+  nextFormFieldLocator = null,
+  selectionAlreadyOpen = false,
+) {
+  const select = formFieldLocator.locator('mat-select');
+  if (!selectionAlreadyOpen) {
+    await select.click();
+  }
   const needle = String(optionText || '').trim();
   const option = page
     .getByRole('option', {
@@ -1026,6 +1035,13 @@ async function selectMatOption(page, formFieldLocator, optionText) {
   await option.waitFor({ state: 'visible', timeout: 8_000 });
   await option.click();
   await page.locator('.mat-mdc-select-panel').waitFor({ state: 'hidden', timeout: 8_000 });
+  await page.locator('.cdk-overlay-backdrop').waitFor({ state: 'hidden', timeout: 8_000 });
+
+  if (nextFormFieldLocator) {
+    const nextSelect = nextFormFieldLocator.locator('mat-select');
+    await nextSelect.click({ timeout: 2_000 });
+    await page.locator('.mat-mdc-select-panel').waitFor({ state: 'visible', timeout: 2_000 });
+  }
 }
 
 async function runMatchingFlow(
@@ -1083,7 +1099,13 @@ async function runMatchingFlow(
     '.vote-matching__list app-item-selection-row .item-selection-row__field',
   );
   for (let index = 0; index < wrongPairs.length; index += 1) {
-    await selectMatOption(participant, fields.nth(index), rightLabels[wrongPairs[index].rightId]);
+    await selectMatOption(
+      participant,
+      fields.nth(index),
+      rightLabels[wrongPairs[index].rightId],
+      index === 0 ? fields.nth(1) : null,
+      index === 1,
+    );
   }
 
   const progressDone = await waitForText(
@@ -1239,6 +1261,8 @@ async function runCategorizationFlow(
       participant,
       fields.nth(index),
       categories[wrongSelections[index].categoryId],
+      index === 0 ? fields.nth(1) : null,
+      index === 1,
     );
   }
 

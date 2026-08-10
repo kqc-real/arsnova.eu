@@ -11,7 +11,7 @@
       [value]="selectedId"
       [aria-label]="selectAriaLabel"
       [disabled]="disabled"
-      (selectionChange)="selectedIdChange.emit($event.value)"
+      (selectionChange)="confirmSelection($event.value, selectionControl)"
     >
       <mat-select-trigger>
         <span class="markdown-body" [innerHTML]="renderMarkdown(selectedText())"></span>
