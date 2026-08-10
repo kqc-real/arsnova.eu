@@ -464,6 +464,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly currentQuestion = signal<CurrentQuestion | null>(null);
+  readonly questionSkippedAnnouncement = signal<string | null>(null);
+  private lastHandledQuestionSkipKey: string | null = null;
   readonly currentQuestionIsScored = computed(() =>
     isScoredQuestionType(this.currentQuestion()?.type),
   );
@@ -3138,6 +3140,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           channels?: SessionChannelsDTO;
           preferredChannel?: SessionLiveChannel;
           serverTime?: string;
+          skippedQuestionId?: string;
+          questionSkippedAt?: string;
         }) => {
           this.deactivateSessionFallback();
           if (data.serverTime) {
@@ -3146,6 +3150,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          this.handleQuestionSkippedTransition(data);
           let channelStateChanged = false;
           if (data.channels) {
             this.patchSessionChannels(data.channels);
@@ -3279,6 +3284,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings.set(session);
       this.applyPreferredChannelIfChanged(session.preferredChannel);
       this.status.set(nextStatus);
+      this.handleQuestionSkippedTransition(session);
       if (nextStatus === 'FINISHED') {
         this.handleSessionFinished();
         return;
@@ -3304,6 +3310,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     } catch {
       // best-effort fallback, WebSocket bleibt primärer Kanal
     }
+  }
+
+  private handleQuestionSkippedTransition(data: {
+    status: string;
+    skippedQuestionId?: string;
+    questionSkippedAt?: string;
+  }): void {
+    if (!data.questionSkippedAt) {
+      return;
+    }
+    const eventKey = `${data.skippedQuestionId ?? ''}:${data.questionSkippedAt}`;
+    if (eventKey === this.lastHandledQuestionSkipKey) return;
+    this.lastHandledQuestionSkipKey = eventKey;
+    const message =
+      data.status === 'FINISHED'
+        ? $localize`:@@sessionVote.questionSkippedFinished:Die Frage wurde ausgelassen. Die Session ist beendet.`
+        : $localize`:@@sessionVote.questionSkippedNext:Die Frage wurde ausgelassen. Die nächste Frage startet.`;
+    this.questionSkippedAnnouncement.set(null);
+    queueMicrotask(() => this.questionSkippedAnnouncement.set(message));
+    this.snackBar.open(message, '', { duration: 5000 });
   }
 
   ngOnDestroy(): void {

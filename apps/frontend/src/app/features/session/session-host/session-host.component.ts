@@ -106,6 +106,7 @@ import type {
   SessionParticipantsPayload,
   TeamAssignment,
   SessionResultsPdfProfile,
+  SessionStatus,
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
@@ -453,6 +454,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
   readonly qaScrolledDown = signal(false);
   @ViewChild('hostQuestionCard') hostQuestionCardRef?: ElementRef<HTMLElement>;
+  @ViewChild('sessionFinishedHeading') sessionFinishedHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('hostResultsSection') hostResultsSectionRef?: ElementRef<HTMLElement>;
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
@@ -491,6 +493,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ? FOYER_CHIP_DEV_LIFETIME_MS
     : FOYER_CHIP_LIFETIME_MS;
   private readonly document = inject(DOCUMENT);
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private unloadWarningEnabled = !this.isLocalDevSession();
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -2624,6 +2627,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
       body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.`,
       retry,
+    });
+    setTimeout(() => {
+      const target = this.hostElement.nativeElement.querySelector<HTMLButtonElement>(
+        '[data-testid="host-steering-retry"]',
+      );
+      if (this.hostSteeringCallout() && target?.isConnected) {
+        target.focus({ preventScroll: true });
+      }
     });
   }
 
@@ -5749,6 +5760,91 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.controlPending.set(false);
     }
+  }
+
+  async skipQuestion(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    const question = this.displayedCurrentQuestionForHost();
+    const status = this.effectiveStatus();
+    if (!question || (status !== 'QUESTION_OPEN' && status !== 'ACTIVE')) return;
+    const questionId = question.questionId;
+    if (!questionId) return;
+    const trigger =
+      typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    const voteCount = this.hostVoteCount(question);
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@sessionHost.skipQuestionDialogTitle:Frage auslassen?`,
+        message: $localize`:@@sessionHost.skipQuestionDialogMessage:Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.`,
+        consequences:
+          voteCount > 0
+            ? [
+                $localize`:@@sessionHost.skipQuestionDialogVotes:Bereits abgegebene Antworten werden nicht ausgewertet.`,
+              ]
+            : [],
+        confirmLabel: $localize`:@@sessionHost.skipQuestionConfirm:Frage auslassen`,
+        cancelLabel: $localize`:@@sessionHost.skipQuestionCancel:Frage behalten`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+      restoreFocus: false,
+    });
+    if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      return;
+    }
+    await this.executeSkipQuestion(questionId);
+  }
+
+  private async executeSkipQuestion(questionId: string): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      this.clearEmojiNewBadge();
+      this.stopCountdown();
+      this.countdownSeconds.set(null);
+      const result = await trpc.session.skipQuestion.mutate({
+        code: this.code.toUpperCase(),
+        questionId,
+      });
+      this.statusUpdate.set(result);
+      this.steppedBackToPreviousResult.set(false);
+      this.skipCurrentResultQuestionOnNext.set(false);
+      this.syncCountdownFromStatusUpdate(result);
+      this.dismissHostSteeringCallout();
+      await this.refreshCurrentQuestionForHost();
+      this.focusAfterQuestionSkip(result.status);
+      if (result.status !== 'FINISHED') {
+        this.snackBar.open(
+          $localize`:@@sessionHost.skipQuestionSuccess:Frage ausgelassen. Die nächste Frage wurde gestartet.`,
+          '',
+          { duration: 4000 },
+        );
+      }
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.executeSkipQuestion(questionId),
+      );
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  private focusAfterQuestionSkip(status: SessionStatus): void {
+    afterNextRender(
+      () => {
+        const target =
+          status === 'FINISHED'
+            ? this.sessionFinishedHeadingRef?.nativeElement
+            : this.hostQuestionCardRef?.nativeElement;
+        if (target?.isConnected) target.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   async prevQuestion(): Promise<void> {

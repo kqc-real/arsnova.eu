@@ -8,6 +8,9 @@ export interface SessionResultsReportLabels {
   sessionCode: string;
   finishedAt: string;
   participantCount: string;
+  sessionScope: string;
+  sessionScopeTemplate: string;
+  sessionStartTemplate: string;
   privacyNotice: string;
   feedbackTitle: string;
   feedbackOverall: string;
@@ -72,6 +75,7 @@ export interface SessionResultsReportLabels {
   pageNumberFooter: string;
   questionType: string;
   questionParticipants: string;
+  noAnswers: string;
   aggregationRound: string;
   averageScore: string;
   optionDistribution: string;
@@ -360,6 +364,9 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     sessionCode: 'Session-Code',
     finishedAt: 'Beendet am',
     participantCount: 'Teilnehmende',
+    sessionScope: 'Durchführung',
+    sessionScopeTemplate: '{0} von {1} Fragen durchgeführt · {2} ausgelassen',
+    sessionStartTemplate: 'Start bei Frage {0}',
     privacyNotice:
       'Datenschutz: Der Bericht enthält ausschließlich aggregierte Ergebnisse. Klarnamen, IP-Adressen und Einzelstimmen werden nicht exportiert. Pseudonyme Nicknames erscheinen nur bei Bonus-Codes.',
     feedbackTitle: 'Feedback der Teilnehmenden',
@@ -436,6 +443,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     pageNumberFooter: 'Seite {0} / {1}',
     questionType: 'Format',
     questionParticipants: 'Teilnehmende',
+    noAnswers: 'Keine Antworten',
     aggregationRound: 'Aggregationsrunde',
     averageScore: 'Ø Punkte',
     optionDistribution: 'Antwortverteilung',

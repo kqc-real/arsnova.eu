@@ -293,20 +293,21 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)   | Zweck                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| `a11y:axe:static`             | axe für statische Kernrouten/-zustände                                  |
-| `a11y:layout`                 | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure |
-| `check:viewport`              | Alias/älterer 320px-Reflow-Smoke                                        |
-| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                                                 |
-| `smoke:host-music`            | Host-Musik-/Sound-Smoke                                                 |
-| `smoke:short-text`            | Kurzantwort-Flow inklusive axe                                          |
-| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke                                       |
-| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss                                 |
-| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                                                   |
-| `smoke:unified-session`       | Unified-Session-Flow inklusive axe                                      |
-| `lighthouse:a11y`             | Score und A11y-Einzelaudits (lokal)                                     |
-| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen                                     |
+| Befehl (Frontend-Workspace)       | Zweck                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `a11y:axe:static`                 | axe für statische Kernrouten/-zustände                                  |
+| `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure |
+| `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                        |
+| `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                 |
+| `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                 |
+| `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                          |
+| `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                       |
+| `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung    |
+| `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                 |
+| `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                   |
+| `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                      |
+| `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                     |
+| `benchmark:word-cloud`            | Wortwolken-Benchmark / Regressionen                                     |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
@@ -318,11 +319,13 @@ Es benötigt Docker und validiert die committed PDF/UA-Demos mit veraPDF 1.30.2
 gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 [`praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md).
 
-`a11y:axe:static`, `a11y:layout`, `smoke:short-text` und
-`smoke:unified-session` sind Bestandteile des CI-Jobs `e2e`. Die beiden
-dynamischen Smokes schreiben bei gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich
-axe-JSON-Berichte. Mit `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal
-deaktivieren; CI setzt diese Ausnahme nicht.
+`a11y:axe:static`, `a11y:layout`, `smoke:short-text`,
+`smoke:session-question-progress` und `smoke:unified-session` sind Bestandteile
+des CI-Jobs `e2e`. `smoke:short-text` und `smoke:unified-session` schreiben bei
+gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
+Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
+`A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese
+Ausnahme nicht.
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
@@ -379,6 +382,7 @@ Diese Skripte erwarten ebenfalls eine laufende lokale App mit Backend und Fronte
 BASE_URL=http://localhost:4200 npm run smoke:short-text -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:numeric-estimate -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:session-question-progress -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run e2e:confidence-summary-demo -w @arsnova/frontend
 ```

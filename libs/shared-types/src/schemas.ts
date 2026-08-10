@@ -44,6 +44,35 @@ export const SessionStatusEnum = z.enum([
 ]);
 export type SessionStatus = z.infer<typeof SessionStatusEnum>;
 
+/**
+ * Persistenter Verlauf einer einzelnen Quizfrage innerhalb einer konkreten Session.
+ * Fehlende Einträge bedeuten, dass die Frage in dieser Session nie geöffnet wurde.
+ */
+export const SessionQuestionProgressEntrySchema = z.discriminatedUnion('state', [
+  z.object({
+    state: z.literal('OPENED'),
+    openedAt: z.string().datetime(),
+  }),
+  z.object({
+    state: z.literal('COMPLETED'),
+    openedAt: z.string().datetime(),
+    completedAt: z.string().datetime(),
+  }),
+  z.object({
+    state: z.literal('SKIPPED'),
+    openedAt: z.string().datetime(),
+    skippedAt: z.string().datetime(),
+  }),
+]);
+export type SessionQuestionProgressEntry = z.infer<typeof SessionQuestionProgressEntrySchema>;
+
+/** Stabile Frage-ID → sessionspezifischer Fortschritt. */
+export const SessionQuestionProgressMapSchema = z.record(
+  z.string().uuid(),
+  SessionQuestionProgressEntrySchema,
+);
+export type SessionQuestionProgressMap = z.infer<typeof SessionQuestionProgressMapSchema>;
+
 export const DifficultyEnum = z.enum(['EASY', 'MEDIUM', 'HARD']);
 export type Difficulty = z.infer<typeof DifficultyEnum>;
 
@@ -2849,6 +2878,12 @@ export const NextQuestionInputSchema = GetSessionInfoInputSchema.extend({
 });
 export type NextQuestionInput = z.infer<typeof NextQuestionInputSchema>;
 
+/** Host-Aktion: genau die erwartete aktuell geöffnete Frage auslassen. */
+export const SkipQuestionInputSchema = GetSessionInfoInputSchema.extend({
+  questionId: z.string().uuid(),
+});
+export type SkipQuestionInput = z.infer<typeof SkipQuestionInputSchema>;
+
 /** Input: Aktuelle Frage für Teilnehmende inkl. optionalem Presence-/Ready-Kontext. */
 export const GetCurrentQuestionForStudentInputSchema = GetSessionInfoInputSchema.extend({
   participantId: z.uuid().optional(),
@@ -2895,8 +2930,18 @@ export const SessionStatusUpdateSchema = z.object({
   /** Kanalzustand für Live-Umschaltung auf Vote-Clients. */
   channels: z.lazy(() => SessionChannelsDTOSchema).optional(),
   preferredChannel: SessionLiveChannelSchema.optional(),
+  /** Nur beim atomaren Übergang nach „Frage auslassen“ gesetzt. */
+  skippedQuestionId: z.string().uuid().optional(),
+  /** ISO-8601-Zeitpunkt des Auslassens; dient Clients als idempotenter Ereignisschlüssel. */
+  questionSkippedAt: z.string().datetime().optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+export const SkipQuestionOutputSchema = SessionStatusUpdateSchema.extend({
+  skippedQuestionId: z.string().uuid(),
+  questionSkippedAt: z.string().datetime(),
+});
+export type SkipQuestionOutput = z.infer<typeof SkipQuestionOutputSchema>;
 
 /** Fortschritt der Bereitschaftsbestätigungen in der Lesephase. */
 export const ReadingReadyStatusDTOSchema = z.object({
@@ -3518,6 +3563,9 @@ export const SessionInfoDTOSchema = z.object({
   currentQuestion: z.number().int().min(0).nullable().optional(),
   /** Aktuelle Abstimmungsrunde, falls der Quiz-Kanal bereits läuft. */
   currentRound: z.number().int().min(1).max(2).optional(),
+  /** Letzter Skip-Übergang, solange er der aktuelle Sessionübergang ist. */
+  skippedQuestionId: z.string().uuid().optional(),
+  questionSkippedAt: z.string().datetime().optional(),
   /** ISO-8601-Serverzeit bei dieser Antwort (Client-Uhrenoffset für Countdown-Sync). */
   serverTime: z.string(),
   quizName: z.string().nullable(),
@@ -4449,6 +4497,16 @@ export const SessionExportDTOSchema = z.object({
   finishedAt: z.string(), // ISO-8601
   participantCount: z.number(),
   teamMode: z.boolean(),
+  /** Ob ein autoritativer sessionspezifischer Fragenverlauf vorliegt. */
+  questionProgressAvailable: z.boolean(),
+  /** Umfang der unveränderten Quizvorlage. */
+  totalQuestionCount: z.number().int().min(0),
+  /** Geöffnete und nicht ausdrücklich ausgelassene Fragen. */
+  conductedQuestionCount: z.number().int().min(0),
+  /** Vom Host ausdrücklich ausgelassene Fragen. */
+  skippedQuestionCount: z.number().int().min(0),
+  /** Ursprüngliche 1-basierte Nummer der ersten durchgeführten Frage. */
+  startQuestionOrder: z.number().int().min(1).optional(),
   questions: z.array(QuestionExportEntrySchema),
   confidenceSummary: SessionConfidenceSummaryDTOSchema.optional(),
   feedbackSummary: SessionFeedbackSummarySchema.optional(),

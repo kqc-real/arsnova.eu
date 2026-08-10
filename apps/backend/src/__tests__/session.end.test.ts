@@ -107,7 +107,10 @@ describe('session.end', () => {
         quiz: {
           name: 'Quiz',
           bonusTokenCount: 3,
-          questions: [{ type: 'SINGLE_CHOICE' }, { type: 'SINGLE_CHOICE' }],
+          questions: [
+            { id: 'q1', order: 0, type: 'SINGLE_CHOICE' },
+            { id: 'q2', order: 1, type: 'SINGLE_CHOICE' },
+          ],
         },
         participants: [{ id: 'p1', nickname: 'Ada' }],
         bonusTokens: [],

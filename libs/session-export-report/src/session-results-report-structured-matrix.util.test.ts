@@ -19,6 +19,10 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
       finishedAt: '2026-08-09T10:00:00.000Z',
       participantCount: 2,
       teamMode: false,
+      questionProgressAvailable: true,
+      totalQuestionCount: 3,
+      conductedQuestionCount: 3,
+      skippedQuestionCount: 0,
       questions: [
         {
           questionOrder: 0,
@@ -148,6 +152,10 @@ describe('strukturierte Ergebnismatrizen im Session-Bericht', () => {
       finishedAt: '2026-08-09T10:00:00.000Z',
       participantCount: 2,
       teamMode: false,
+      questionProgressAvailable: true,
+      totalQuestionCount: 1,
+      conductedQuestionCount: 1,
+      skippedQuestionCount: 0,
       questions: [
         {
           questionOrder: 0,

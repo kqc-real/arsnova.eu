@@ -96,6 +96,8 @@ function finishedSessionFixture() {
     type: 'QUIZ',
     endedAt: new Date('2026-03-10T12:00:00.000Z'),
     answerDisplayOrder: null,
+    questionProgress: null,
+    questionProgressComplete: false,
     quiz: {
       name: 'Chemie',
       teamMode: false,
@@ -167,6 +169,72 @@ describe('session.getLastSessionExportForQuiz', () => {
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     },
   );
+
+  it('exportiert bei Direkteinstieg nur geöffnete Fragen und hält eine Frage ohne Votes sichtbar', async () => {
+    const firstQuestionId = '33333333-3333-4333-8333-333333333333';
+    const openedQuestionId = '44444444-4444-4444-8444-444444444444';
+    const skippedQuestionId = '55555555-5555-4555-8555-555555555555';
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    const question = (id: string, order: number, text: string) => ({
+      id,
+      order,
+      text,
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      timer: null,
+      confidenceEnabled: false,
+      answers: [
+        {
+          id: `${order + 6}6666666-6666-4666-8666-666666666666`.slice(0, 36),
+          text: 'Antwort',
+          isCorrect: true,
+        },
+      ],
+    });
+    prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...finishedSessionFixture(),
+      questionProgressComplete: true,
+      questionProgress: {
+        [openedQuestionId]: {
+          state: 'OPENED',
+          openedAt: '2026-08-10T12:00:00.000Z',
+        },
+        [skippedQuestionId]: {
+          state: 'SKIPPED',
+          openedAt: '2026-08-10T12:05:00.000Z',
+          skippedAt: '2026-08-10T12:06:00.000Z',
+        },
+      },
+      quiz: {
+        ...finishedSessionFixture().quiz,
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+        questions: [
+          question(firstQuestionId, 0, 'Nie geöffnet'),
+          question(openedQuestionId, 1, 'Geöffnet ohne Antworten'),
+          question(skippedQuestionId, 2, 'Ausgelassen'),
+        ],
+      },
+    });
+
+    const result = await caller.getLastSessionExportDataForQuiz({ quizId: QUIZ_ID, accessProof });
+
+    expect(result).toMatchObject({
+      questionProgressAvailable: true,
+      totalQuestionCount: 3,
+      conductedQuestionCount: 1,
+      skippedQuestionCount: 1,
+      startQuestionOrder: 2,
+      questions: [
+        {
+          questionOrder: 1,
+          questionTextShort: 'Geöffnet ohne Antworten',
+          participantCount: 0,
+        },
+      ],
+    });
+  });
 
   trpcDodIt(
     {

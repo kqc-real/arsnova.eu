@@ -139,6 +139,9 @@ describe('session remaining DoD procedure evidence', () => {
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         status: 'FINISHED',
+        questionProgress: null,
+        questionProgressComplete: false,
+        quiz: { questions: [{ id: QUESTION_ID, order: 0 }] },
         participants: [{ id: PARTICIPANT_ID }, { id: OTHER_PARTICIPANT_ID }],
       });
       prismaMock.vote.findMany.mockResolvedValue([
@@ -165,7 +168,12 @@ describe('session remaining DoD procedure evidence', () => {
       });
 
       expect(prismaMock.vote.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { sessionId: SESSION_ID, round: { in: [1, 2] } } }),
+        expect.objectContaining({
+          where: expect.objectContaining({
+            sessionId: SESSION_ID,
+            round: { in: [1, 2] },
+          }),
+        }),
       );
       expect(result).toEqual({ totalScore: 42, rank: 1, bonusToken: 'BNS-TEST-1234' });
     },

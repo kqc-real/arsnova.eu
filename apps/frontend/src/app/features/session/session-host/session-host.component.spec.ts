@@ -34,6 +34,7 @@ const {
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
+  skipQuestionMutateMock,
   revealAnswersMutateMock,
   revealResultsMutateMock,
   startSecondRoundMutateMock,
@@ -75,6 +76,7 @@ const {
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
+  skipQuestionMutateMock: vi.fn(),
   revealAnswersMutateMock: vi.fn(),
   revealResultsMutateMock: vi.fn(),
   startSecondRoundMutateMock: vi.fn(),
@@ -118,6 +120,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      skipQuestion: { mutate: skipQuestionMutateMock },
       revealAnswers: { mutate: revealAnswersMutateMock },
       revealResults: { mutate: revealResultsMutateMock },
       startSecondRound: { mutate: startSecondRoundMutateMock },
@@ -443,6 +446,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       currentRound: 1,
       activeAt: null,
     });
+    skipQuestionMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+      skippedQuestionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionSkippedAt: '2026-08-10T12:01:00.000Z',
+    });
     revealAnswersMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: 0,
@@ -473,6 +483,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       finishedAt: '2026-03-24T12:30:00.000Z',
       participantCount: 0,
       teamMode: false,
+      questionProgressAvailable: true,
+      totalQuestionCount: 0,
+      conductedQuestionCount: 0,
+      skippedQuestionCount: 0,
       questions: [],
       teamLeaderboard: [],
       bonusTokens: [],
@@ -3346,6 +3360,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
+      'skip_nextFrage auslassen',
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
       'Session beenden',
@@ -3688,7 +3703,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       (button.textContent ?? '').trim(),
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['Antwortoptionen freigeben', 'Session beenden']);
+    expect(buttonTexts).toEqual([
+      'skip_nextFrage auslassen',
+      'Antwortoptionen freigeben',
+      'Session beenden',
+    ]);
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
   });
@@ -3744,6 +3763,97 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       'Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
     );
 
+    fixture.destroy();
+  });
+
+  it('setzt den Fokus nach Abbruch, Erfolg und fehlgeschlagenem Skip deterministisch', async () => {
+    const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockImplementation(async () =>
+      skipQuestionMutateMock.mock.calls.length > 0
+        ? {
+            questionId: 'cccccccc-3333-4333-8333-333333333333',
+            order: 1,
+            totalQuestions: 2,
+            text: 'Folgefrage',
+            type: 'SINGLE_CHOICE',
+            answers: [],
+            totalVotes: 0,
+          }
+        : {
+            questionId,
+            order: 0,
+            totalQuestions: 2,
+            text: 'Aktuelle Frage',
+            type: 'SINGLE_CHOICE',
+            answers: [
+              {
+                id: 'aaaaaaaa-1111-4111-8111-111111111111',
+                text: 'A',
+                isCorrect: true,
+              },
+            ],
+            totalVotes: 2,
+          },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const skipButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      'button[aria-label="Aktuelle Frage auslassen"]',
+    );
+    expect(skipButton).not.toBeNull();
+
+    skipButton?.focus();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
+    await fixture.componentInstance.skipQuestion();
+    expect(document.activeElement).toBe(skipButton);
+    expect(skipQuestionMutateMock).not.toHaveBeenCalled();
+
+    await fixture.componentInstance.skipQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 20);
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        restoreFocus: false,
+        data: expect.objectContaining({
+          message:
+            'Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.',
+          consequences: ['Bereits abgegebene Antworten werden nicht ausgewertet.'],
+        }),
+      }),
+    );
+    expect(skipQuestionMutateMock).toHaveBeenCalledWith({ code: 'ABC123', questionId });
+    const questionCard = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__question-card',
+    );
+    expect(questionCard?.getAttribute('tabindex')).toBe('-1');
+
+    skipQuestionMutateMock.mockRejectedValueOnce(new Error('offline'));
+    await fixture.componentInstance.skipQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 20);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.controlPending()).toBe(false);
+    expect(fixture.componentInstance.hostSteeringCallout()?.retry).toEqual(expect.any(Function));
+    const retryButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-testid="host-steering-retry"]',
+    );
+    expect(retryButton?.textContent).toContain('Nochmal probieren');
+    expect(document.activeElement).toBe(retryButton);
     fixture.destroy();
   });
 
@@ -4013,7 +4123,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
+    expect(buttonTexts).toEqual(['skip_nextFrage auslassen', 'Ergebnis zeigen', 'Session beenden']);
     fixture.componentInstance.hostVoteProgress.set({
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       questionOrder: 0,
@@ -4316,7 +4426,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
 
     expect(text).not.toContain('Peer Instruction empfohlen');
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
+    expect(buttonTexts).toEqual(['skip_nextFrage auslassen', 'Ergebnis zeigen', 'Session beenden']);
     fixture.destroy();
   });
 

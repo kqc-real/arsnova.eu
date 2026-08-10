@@ -17,6 +17,8 @@ import {
   PublicSessionCodeLookupInputSchema,
   HostSteeringWithTimerOverrideInputSchema,
   NextQuestionInputSchema,
+  SkipQuestionInputSchema,
+  SkipQuestionOutputSchema,
   GetLiveFreetextInputSchema,
   GetActiveQuizIdsInputSchema,
   JoinSessionInputSchema,
@@ -168,6 +170,17 @@ import {
   getReadingReadyParticipantIds,
   markParticipantReadingReady,
 } from '../lib/readingReady';
+import {
+  findNextUnskippedQuestionIndex,
+  findPreviousIncludedQuestionIndex,
+  getIncludedSessionQuestionIds,
+  getSessionQuestionProgressSummary,
+  markSessionQuestionCompleted,
+  markSessionQuestionOpened,
+  markSessionQuestionSkipped,
+  parseSessionQuestionProgress,
+  serializeSessionQuestionProgress,
+} from '../lib/sessionQuestionProgress';
 
 /**
  * In-Memory-Store für Emoji-Reaktionen (Story 5.8).
@@ -294,6 +307,8 @@ type StatusSnapshotPayload = {
   currentRound?: number;
   channels?: z.infer<typeof SessionChannelsDTOSchema>;
   preferredChannel?: z.infer<typeof SessionLiveChannelSchema>;
+  skippedQuestionId?: string;
+  questionSkippedAt?: string;
 };
 
 type VoteSummary = {
@@ -751,6 +766,8 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           currentRound: true,
           statusChangedAt: true,
           activeQuestionStartedAt: true,
+          lastSkippedQuestionId: true,
+          lastQuestionSkippedAt: true,
           quiz: {
             select: {
               defaultTimer: true,
@@ -784,6 +801,11 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
         currentRound: session.currentRound,
         channels,
         preferredChannel: resolvePreferredLiveChannel(code, channels),
+        ...(session.lastSkippedQuestionId &&
+          session.lastQuestionSkippedAt && {
+            skippedQuestionId: session.lastSkippedQuestionId,
+            questionSkippedAt: session.lastQuestionSkippedAt.toISOString(),
+          }),
         ...(isActive && {
           activeAt: (session.activeQuestionStartedAt ?? session.statusChangedAt).toISOString(),
           timer: currentTimer,
@@ -1684,7 +1706,15 @@ async function loadSessionConfidenceSummaryByCode(
   if (session.status !== 'FINISHED' || session.type !== 'QUIZ' || !session.quiz) {
     return null;
   }
-  return buildConfidenceSummaryForSession(session.quiz.questions, session.votes);
+  const includedQuestionIds = getIncludedSessionQuestionIds(
+    session.quiz.questions,
+    parseSessionQuestionProgress(session.questionProgress),
+    session.questionProgressComplete,
+  );
+  return buildConfidenceSummaryForSession(
+    session.quiz.questions.filter((question) => includedQuestionIds.has(question.id)),
+    session.votes.filter((vote) => includedQuestionIds.has(vote.questionId)),
+  );
 }
 
 function buildMcScOptionDistribution(
@@ -1763,11 +1793,23 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
   }
 
   const quizName = session.quiz.name;
-  const questions = session.quiz.questions;
+  const allQuestions = session.quiz.questions;
+  const progress = parseSessionQuestionProgress(session.questionProgress);
+  const progressSummary = getSessionQuestionProgressSummary(
+    allQuestions,
+    progress,
+    session.questionProgressComplete,
+  );
+  const questions = allQuestions.filter((question) =>
+    progressSummary.includedQuestionIds.has(question.id),
+  );
+  const includedVotes = session.votes.filter((vote) =>
+    progressSummary.includedQuestionIds.has(vote.questionId),
+  );
   const quizDefaultTimer = session.quiz.defaultTimer ?? null;
   const quizTimerScaleByDifficulty = session.quiz.timerScaleByDifficulty ?? true;
   const votesByQuestion = new Map<string, typeof session.votes>();
-  for (const vote of session.votes) {
+  for (const vote of includedVotes) {
     const list = votesByQuestion.get(vote.questionId) ?? [];
     list.push(vote);
     votesByQuestion.set(vote.questionId, list);
@@ -2131,7 +2173,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       };
     },
   );
-  const confidenceSummary = buildConfidenceSummaryForSession(questions, session.votes);
+  const confidenceSummary = buildConfidenceSummaryForSession(questions, includedVotes);
   const feedbackRows = buildSessionFeedbackSummaryFromRows(session.sessionFeedbacks ?? []);
   const feedbackSummary = feedbackRows.totalResponses > 0 ? feedbackRows : undefined;
 
@@ -2222,6 +2264,11 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     finishedAt: session.endedAt?.toISOString() ?? new Date().toISOString(),
     participantCount: session.participants.length,
     teamMode: session.quiz.teamMode === true,
+    questionProgressAvailable: session.questionProgressComplete === true,
+    totalQuestionCount: progressSummary.totalQuestionCount,
+    conductedQuestionCount: progressSummary.conductedQuestionCount,
+    skippedQuestionCount: progressSummary.skippedQuestionCount,
+    startQuestionOrder: progressSummary.startQuestionOrder,
     questions: questionEntries,
     confidenceSummary: confidenceSummary ?? undefined,
     feedbackSummary,
@@ -2818,21 +2865,44 @@ async function buildSessionTeamLeaderboard(
   configuredTeamNames?: string[] | null,
 ): Promise<TeamLeaderboardEntryDTO[]> {
   const teams = await ensureSessionTeams(sessionId, requestedTeamCount, configuredTeamNames);
-  const participants = await prisma.participant.findMany({
-    where: { sessionId },
-    select: { id: true, teamId: true },
-  });
-  const votes = selectEffectiveCompetitionVotes(
-    await prisma.vote.findMany({
-      where: { sessionId, round: { in: [1, 2] } },
+  const [participants, progressSession] = await Promise.all([
+    prisma.participant.findMany({
+      where: { sessionId },
+      select: { id: true, teamId: true },
+    }),
+    prisma.session.findUnique({
+      where: { id: sessionId },
       select: {
-        participantId: true,
-        questionId: true,
-        round: true,
-        score: true,
-        responseTimeMs: true,
+        questionProgress: true,
+        questionProgressComplete: true,
+        quiz: {
+          select: {
+            questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+          },
+        },
       },
     }),
+  ]);
+  const includedQuestionIds = progressSession?.quiz
+    ? getIncludedSessionQuestionIds(
+        progressSession.quiz.questions,
+        parseSessionQuestionProgress(progressSession.questionProgress),
+        progressSession.questionProgressComplete,
+      )
+    : null;
+  const votes = selectEffectiveCompetitionVotes(
+    (
+      await prisma.vote.findMany({
+        where: { sessionId, round: { in: [1, 2] } },
+        select: {
+          participantId: true,
+          questionId: true,
+          round: true,
+          score: true,
+          responseTimeMs: true,
+        },
+      })
+    ).filter((vote) => !includedQuestionIds || includedQuestionIds.has(vote.questionId)),
   );
 
   const teamStats = new Map<
@@ -3115,17 +3185,39 @@ async function generateBonusTokens(session: {
     return;
   }
 
-  const votes = selectEffectiveCompetitionVotes(
-    await prisma.vote.findMany({
-      where: { sessionId: session.id, round: { in: [1, 2] } },
-      select: {
-        participantId: true,
-        questionId: true,
-        round: true,
-        score: true,
-        responseTimeMs: true,
+  const progressSession = await prisma.session.findUnique({
+    where: { id: session.id },
+    select: {
+      questionProgress: true,
+      questionProgressComplete: true,
+      quiz: {
+        select: {
+          questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+        },
       },
-    }),
+    },
+  });
+  const includedQuestionIds = progressSession?.quiz
+    ? getIncludedSessionQuestionIds(
+        progressSession.quiz.questions,
+        parseSessionQuestionProgress(progressSession.questionProgress),
+        progressSession.questionProgressComplete,
+      )
+    : null;
+
+  const votes = selectEffectiveCompetitionVotes(
+    (
+      await prisma.vote.findMany({
+        where: { sessionId: session.id, round: { in: [1, 2] } },
+        select: {
+          participantId: true,
+          questionId: true,
+          round: true,
+          score: true,
+          responseTimeMs: true,
+        },
+      })
+    ).filter((vote) => !includedQuestionIds || includedQuestionIds.has(vote.questionId)),
   );
 
   const stats = new Map<string, { totalScore: number; totalResponseTimeMs: number }>();
@@ -4361,6 +4453,11 @@ async function resolvePublicSessionInfo(
         status: session.status,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
+        ...(session.lastSkippedQuestionId &&
+          session.lastQuestionSkippedAt && {
+            skippedQuestionId: session.lastSkippedQuestionId,
+            questionSkippedAt: session.lastQuestionSkippedAt.toISOString(),
+          }),
         quizName: q?.name ?? null,
         quizMotifImageUrl: q?.motifImageUrl ?? null,
         title: session.title ?? null,
@@ -4490,6 +4587,8 @@ export const sessionRouter = router({
           status: 'LOBBY',
           currentQuestion: initialCurrentQuestion,
           quizStarted: false,
+          questionProgress: {},
+          questionProgressComplete: true,
         },
       });
       if (onboardingProfile.teamMode) {
@@ -5519,11 +5618,25 @@ export const sessionRouter = router({
       }
 
       const currentIdx = session.currentQuestion ?? -1;
-      const nextIdx = currentIdx + (skipCurrentResultQuestion ? 2 : 1);
+      const progress = parseSessionQuestionProgress(session.questionProgress);
+      const legacyNavigationStart =
+        skipCurrentResultQuestion && !session.questionProgressComplete
+          ? currentIdx + 1
+          : currentIdx;
+      const nextIdx = findNextUnskippedQuestionIndex(
+        session.quiz.questions.map((question, order) => ({ id: question.id, order })),
+        progress,
+        legacyNavigationStart,
+        skipCurrentResultQuestion && session.questionProgressComplete ? 1 : 0,
+      );
       const currentQuestionId =
         currentIdx >= 0 ? (session.quiz.questions[currentIdx]?.id ?? null) : null;
+      const progressAfterCurrent =
+        currentQuestionId && ['RESULTS', 'DISCUSSION'].includes(session.status)
+          ? markSessionQuestionCompleted(progress, currentQuestionId, new Date())
+          : progress;
 
-      if (nextIdx >= questionCount) {
+      if (nextIdx === null) {
         const now = new Date();
         await prisma.session.update({
           where: { id: session.id },
@@ -5534,6 +5647,9 @@ export const sessionRouter = router({
             activeQuestionStartedAt: null,
             statusChangedAt: now,
             endedAt: now,
+            questionProgress: serializeSessionQuestionProgress(progressAfterCurrent),
+            lastSkippedQuestionId: null,
+            lastQuestionSkippedAt: null,
           },
         });
         if (currentQuestionId) {
@@ -5565,7 +5681,7 @@ export const sessionRouter = router({
           : null;
 
       let answerDisplayOrderPayload: ReturnType<typeof buildAnswerDisplayOrderForQuiz> | undefined;
-      if (nextIdx === 0 && (session.answerDisplayOrder ?? null) === null) {
+      if ((session.answerDisplayOrder ?? null) === null) {
         const built = buildAnswerDisplayOrderForQuiz(session.quiz.questions);
         if (Object.keys(built).length > 0) {
           answerDisplayOrderPayload = built;
@@ -5573,6 +5689,7 @@ export const sessionRouter = router({
       }
 
       const now = new Date();
+      const nextProgress = markSessionQuestionOpened(progressAfterCurrent, nextQuestion.id, now);
       await prisma.session.update({
         where: { id: session.id },
         data: {
@@ -5582,6 +5699,9 @@ export const sessionRouter = router({
           quizStarted: true,
           statusChangedAt: now,
           activeQuestionStartedAt: newStatus === 'ACTIVE' ? now : null,
+          questionProgress: serializeSessionQuestionProgress(nextProgress),
+          lastSkippedQuestionId: null,
+          lastQuestionSkippedAt: null,
           ...(answerDisplayOrderPayload && { answerDisplayOrder: answerDisplayOrderPayload }),
         },
       });
@@ -5613,6 +5733,13 @@ export const sessionRouter = router({
           id: true,
           status: true,
           currentQuestion: true,
+          questionProgress: true,
+          questionProgressComplete: true,
+          quiz: {
+            select: {
+              questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+            },
+          },
         },
       });
       if (!session) {
@@ -5625,13 +5752,22 @@ export const sessionRouter = router({
           message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
         });
       }
-      if (session.currentQuestion === null || session.currentQuestion <= 0) {
+      const progress = parseSessionQuestionProgress(session.questionProgress);
+      const prevIdx =
+        session.currentQuestion === null || !session.quiz
+          ? null
+          : findPreviousIncludedQuestionIndex(
+              session.quiz.questions,
+              progress,
+              session.questionProgressComplete,
+              session.currentQuestion,
+            );
+      if (prevIdx === null) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
         });
       }
-      const prevIdx = session.currentQuestion - 1;
       await prisma.session.update({
         where: { id: session.id },
         data: {
@@ -5639,6 +5775,8 @@ export const sessionRouter = router({
           currentQuestion: prevIdx,
           currentRound: 1,
           statusChangedAt: new Date(),
+          lastSkippedQuestionId: null,
+          lastQuestionSkippedAt: null,
         },
       });
       invalidateSessionStatusCachesForCode(code);
@@ -5685,9 +5823,32 @@ export const sessionRouter = router({
         });
       }
       const now = new Date();
-      await prisma.session.update({
-        where: { id: session.id },
-        data: { status: 'ACTIVE', statusChangedAt: now, activeQuestionStartedAt: now },
+      await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, session.id);
+        const locked = await tx.session.findUnique({
+          where: { id: session.id },
+          select: { status: true, currentQuestion: true },
+        });
+        if (
+          !locked ||
+          locked.status !== 'QUESTION_OPEN' ||
+          locked.currentQuestion !== session.currentQuestion
+        ) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Antworten freigeben nur für die weiterhin aktuelle Lesephase.',
+          });
+        }
+        await tx.session.update({
+          where: { id: session.id },
+          data: {
+            status: 'ACTIVE',
+            statusChangedAt: now,
+            activeQuestionStartedAt: now,
+            lastSkippedQuestionId: null,
+            lastQuestionSkippedAt: null,
+          },
+        });
       });
       const questionId =
         session.currentQuestion === null || session.currentQuestion === undefined
@@ -5721,6 +5882,213 @@ export const sessionRouter = router({
       };
     }),
 
+  /** Aktuelle Frage atomar auslassen und die nächste nicht ausgelassene Frage öffnen. */
+  skipQuestion: hostProcedure
+    .input(SkipQuestionInputSchema)
+    .output(SkipQuestionOutputSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const outcome = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          include: {
+            quiz: {
+              select: {
+                name: true,
+                readingPhaseEnabled: true,
+                defaultTimer: true,
+                timerScaleByDifficulty: true,
+                bonusTokenCount: true,
+                questions: {
+                  orderBy: { order: 'asc' },
+                  select: {
+                    id: true,
+                    order: true,
+                    type: true,
+                    skipReadingPhase: true,
+                    timer: true,
+                    difficulty: true,
+                    answers: { select: { id: true } },
+                  },
+                },
+              },
+            },
+            participants: { select: { id: true, nickname: true } },
+            bonusTokens: { select: { id: true }, take: 1 },
+          },
+        });
+        if (!session?.quiz) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
+        }
+
+        const progress = parseSessionQuestionProgress(session.questionProgress);
+        const priorSkip = progress[input.questionId];
+        const currentIndex = session.currentQuestion;
+        const currentQuestion =
+          currentIndex === null ? null : (session.quiz.questions[currentIndex] ?? null);
+
+        if (currentIndex === null || !currentQuestion || currentQuestion.id !== input.questionId) {
+          if (priorSkip?.state === 'SKIPPED') {
+            return {
+              transitioned: false as const,
+              finished: session.status === 'FINISHED',
+              sessionId: session.id,
+              skippedQuestionId: input.questionId,
+              questionSkippedAt: priorSkip.skippedAt,
+              currentQuestionIdToClear: null,
+              update: {
+                status: session.status,
+                currentQuestion: session.currentQuestion,
+                currentRound: session.currentRound,
+                skippedQuestionId: input.questionId,
+                questionSkippedAt: priorSkip.skippedAt,
+              },
+              bonusSession: null,
+            };
+          }
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Die erwartete Frage ist nicht mehr aktuell.',
+          });
+        }
+        if (session.status !== 'QUESTION_OPEN' && session.status !== 'ACTIVE') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Eine Frage kann nur während Lese- oder Abstimmungsphase ausgelassen werden.',
+          });
+        }
+
+        const now = new Date();
+        const skippedProgress = markSessionQuestionSkipped(progress, currentQuestion.id, now);
+        const nextIndex = findNextUnskippedQuestionIndex(
+          session.quiz.questions,
+          skippedProgress,
+          currentIndex,
+        );
+
+        if (nextIndex === null) {
+          await tx.session.update({
+            where: { id: session.id },
+            data: {
+              status: 'FINISHED',
+              currentQuestion: null,
+              currentRound: 1,
+              activeQuestionStartedAt: null,
+              statusChangedAt: now,
+              endedAt: now,
+              questionProgress: serializeSessionQuestionProgress(skippedProgress),
+              lastSkippedQuestionId: currentQuestion.id,
+              lastQuestionSkippedAt: now,
+            },
+          });
+          return {
+            transitioned: true as const,
+            finished: true,
+            sessionId: session.id,
+            skippedQuestionId: currentQuestion.id,
+            questionSkippedAt: now.toISOString(),
+            currentQuestionIdToClear: currentQuestion.id,
+            update: {
+              status: 'FINISHED' as const,
+              currentQuestion: null,
+              currentRound: 1,
+              skippedQuestionId: currentQuestion.id,
+              questionSkippedAt: now.toISOString(),
+            },
+            bonusSession: session,
+          };
+        }
+
+        const nextQuestion = session.quiz.questions[nextIndex];
+        if (!nextQuestion) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Folgefrage fehlt.' });
+        }
+        const skipsReadingPhase = nextQuestion.type === 'SURVEY' || nextQuestion.type === 'RATING';
+        const readingPhase =
+          session.quiz.readingPhaseEnabled &&
+          !skipsReadingPhase &&
+          nextQuestion.skipReadingPhase !== true;
+        const nextStatus = readingPhase ? ('QUESTION_OPEN' as const) : ('ACTIVE' as const);
+        const effectiveTimer =
+          nextStatus === 'ACTIVE'
+            ? resolveEffectiveQuestionTimer(
+                nextQuestion.timer,
+                session.quiz.defaultTimer,
+                nextQuestion.difficulty ?? 'MEDIUM',
+                session.quiz.timerScaleByDifficulty ?? true,
+              )
+            : null;
+        const nextProgress = markSessionQuestionOpened(skippedProgress, nextQuestion.id, now);
+
+        let answerDisplayOrderPayload:
+          ReturnType<typeof buildAnswerDisplayOrderForQuiz> | undefined;
+        if ((session.answerDisplayOrder ?? null) === null) {
+          const built = buildAnswerDisplayOrderForQuiz(session.quiz.questions);
+          if (Object.keys(built).length > 0) answerDisplayOrderPayload = built;
+        }
+
+        await tx.session.update({
+          where: { id: session.id },
+          data: {
+            status: nextStatus,
+            currentQuestion: nextIndex,
+            currentRound: 1,
+            quizStarted: true,
+            statusChangedAt: now,
+            activeQuestionStartedAt: nextStatus === 'ACTIVE' ? now : null,
+            questionProgress: serializeSessionQuestionProgress(nextProgress),
+            lastSkippedQuestionId: currentQuestion.id,
+            lastQuestionSkippedAt: now,
+            ...(answerDisplayOrderPayload && { answerDisplayOrder: answerDisplayOrderPayload }),
+          },
+        });
+        return {
+          transitioned: true as const,
+          finished: false,
+          sessionId: session.id,
+          skippedQuestionId: currentQuestion.id,
+          questionSkippedAt: now.toISOString(),
+          currentQuestionIdToClear: currentQuestion.id,
+          update: {
+            status: nextStatus,
+            currentQuestion: nextIndex,
+            currentRound: 1,
+            skippedQuestionId: currentQuestion.id,
+            questionSkippedAt: now.toISOString(),
+            ...(nextStatus === 'ACTIVE' && {
+              activeAt: now.toISOString(),
+              timer: effectiveTimer,
+            }),
+          },
+          bonusSession: null,
+        };
+      });
+
+      if (outcome.currentQuestionIdToClear) {
+        await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
+      }
+      if (outcome.transitioned) {
+        invalidateSessionStatusCachesForCode(code);
+        void recordSessionTransitionActivity();
+        if (outcome.finished) {
+          await incrementCompletedSessionsTotal();
+          if (outcome.bonusSession) await generateBonusTokens(outcome.bonusSession);
+        } else {
+          void markCountdownSessionActive(outcome.sessionId);
+        }
+      }
+      return outcome.update;
+    }),
+
   /** Ergebnis anzeigen (Story 2.3). Nur bei ACTIVE. */
   revealResults: hostProcedure
     .input(HostSteeringWithTimerOverrideInputSchema)
@@ -5735,6 +6103,7 @@ export const sessionRouter = router({
           currentQuestion: true,
           currentRound: true,
           activeQuestionStartedAt: true,
+          questionProgress: true,
           quiz: {
             select: {
               defaultTimer: true,
@@ -5777,9 +6146,13 @@ export const sessionRouter = router({
           await lockSessionRow(tx, session.id);
           const locked = await tx.session.findUnique({
             where: { id: session.id },
-            select: { status: true },
+            select: { status: true, currentQuestion: true, questionProgress: true },
           });
-          if (!locked || locked.status !== 'ACTIVE') {
+          if (
+            !locked ||
+            locked.status !== 'ACTIVE' ||
+            locked.currentQuestion !== session.currentQuestion
+          ) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Ergebnis anzeigen nur im Status ACTIVE.',
@@ -5801,13 +6174,30 @@ export const sessionRouter = router({
           );
           await tx.session.update({
             where: { id: session.id },
-            data: { status: 'RESULTS', statusChangedAt: new Date() },
+            data: {
+              status: 'RESULTS',
+              statusChangedAt: new Date(),
+              questionProgress: serializeSessionQuestionProgress(
+                markSessionQuestionCompleted(
+                  parseSessionQuestionProgress(locked.questionProgress),
+                  question.id,
+                  new Date(),
+                ),
+              ),
+              lastSkippedQuestionId: null,
+              lastQuestionSkippedAt: null,
+            },
           });
         });
       } else {
         await prisma.session.update({
           where: { id: session.id },
-          data: { status: 'RESULTS', statusChangedAt: new Date() },
+          data: {
+            status: 'RESULTS',
+            statusChangedAt: new Date(),
+            lastSkippedQuestionId: null,
+            lastQuestionSkippedAt: null,
+          },
         });
       }
       invalidateSessionStatusCachesForCode(code);
@@ -5884,9 +6274,14 @@ export const sessionRouter = router({
           await lockSessionRow(tx, session.id);
           const locked = await tx.session.findUnique({
             where: { id: session.id },
-            select: { status: true, currentRound: true },
+            select: { status: true, currentQuestion: true, currentRound: true },
           });
-          if (!locked || locked.status !== 'ACTIVE' || locked.currentRound !== 1) {
+          if (
+            !locked ||
+            locked.status !== 'ACTIVE' ||
+            locked.currentQuestion !== session.currentQuestion ||
+            locked.currentRound !== 1
+          ) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Diskussionsphase nur aus Status ACTIVE.',
@@ -5934,13 +6329,23 @@ export const sessionRouter = router({
           );
           await tx.session.update({
             where: { id: session.id },
-            data: { status: 'DISCUSSION', statusChangedAt: new Date() },
+            data: {
+              status: 'DISCUSSION',
+              statusChangedAt: new Date(),
+              lastSkippedQuestionId: null,
+              lastQuestionSkippedAt: null,
+            },
           });
         });
       } else {
         await prisma.session.update({
           where: { id: session.id },
-          data: { status: 'DISCUSSION', statusChangedAt: new Date() },
+          data: {
+            status: 'DISCUSSION',
+            statusChangedAt: new Date(),
+            lastSkippedQuestionId: null,
+            lastQuestionSkippedAt: null,
+          },
         });
       }
       invalidateSessionStatusCachesForCode(code);
@@ -6001,6 +6406,8 @@ export const sessionRouter = router({
           currentRound: 2,
           statusChangedAt: now,
           activeQuestionStartedAt: now,
+          lastSkippedQuestionId: null,
+          lastQuestionSkippedAt: null,
         },
       });
       invalidateSessionStatusCachesForCode(code);
@@ -6677,7 +7084,16 @@ export const sessionRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
 
-      const freetextQuestions = session.quiz?.questions ?? [];
+      const includedQuestionIds = session.quiz
+        ? getIncludedSessionQuestionIds(
+            session.quiz.questions,
+            parseSessionQuestionProgress(session.questionProgress),
+            session.questionProgressComplete,
+          )
+        : new Set<string>();
+      const freetextQuestions = (session.quiz?.questions ?? []).filter((question) =>
+        includedQuestionIds.has(question.id),
+      );
       if (freetextQuestions.length === 0) {
         return {
           sessionId: session.id,
@@ -6904,7 +7320,10 @@ export const sessionRouter = router({
           quiz: {
             select: {
               showLeaderboard: true,
-              questions: { select: { type: true } },
+              questions: {
+                orderBy: { order: 'asc' },
+                select: { id: true, order: true, type: true },
+              },
             },
           },
           participants: {
@@ -6927,13 +7346,24 @@ export const sessionRouter = router({
         return [];
       }
 
-      const totalScoredQuestions = session.quiz.questions.filter((q) =>
-        questionCountsTowardsTotalQuestions(q.type as QuestionType),
+      const includedQuestionIds = getIncludedSessionQuestionIds(
+        session.quiz.questions,
+        parseSessionQuestionProgress(session.questionProgress),
+        session.questionProgressComplete,
+      );
+      const totalScoredQuestions = session.quiz.questions.filter(
+        (q) =>
+          includedQuestionIds.has(q.id) &&
+          questionCountsTowardsTotalQuestions(q.type as QuestionType),
       ).length;
 
       const votes = selectEffectiveCompetitionVotes(
         await prisma.vote.findMany({
-          where: { sessionId: session.id, round: { in: [1, 2] } },
+          where: {
+            sessionId: session.id,
+            round: { in: [1, 2] },
+            questionId: { in: [...includedQuestionIds] },
+          },
           select: {
             participantId: true,
             questionId: true,
@@ -7354,10 +7784,18 @@ export const sessionRouter = router({
       }
 
       const feedbackSummary = buildSessionFeedbackSummaryFromRows(session.sessionFeedbacks);
+      const includedQuestionIds = getIncludedSessionQuestionIds(
+        session.quiz.questions,
+        parseSessionQuestionProgress(session.questionProgress),
+        session.questionProgressComplete,
+      );
       return {
         endedAt: session.endedAt?.toISOString() ?? null,
         participantCount: session._count.participants,
-        confidenceSummary: buildConfidenceSummaryForSession(session.quiz.questions, session.votes),
+        confidenceSummary: buildConfidenceSummaryForSession(
+          session.quiz.questions.filter((question) => includedQuestionIds.has(question.id)),
+          session.votes.filter((vote) => includedQuestionIds.has(vote.questionId)),
+        ),
         feedbackSummary: feedbackSummary.totalResponses > 0 ? feedbackSummary : null,
       };
     }),
@@ -7436,6 +7874,17 @@ export const sessionRouter = router({
       if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
+      const includedQuestionIds = getIncludedSessionQuestionIds(
+        session.quiz.questions,
+        parseSessionQuestionProgress(session.questionProgress),
+        session.questionProgressComplete,
+      );
+      if (!includedQuestionIds.has(question.id)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Diese Frage gehört nicht zur fachlichen Durchführung der Session.',
+        });
+      }
 
       const questionType = question.type as QuestionType;
       const isScored = questionAffectsStreak(questionType);
@@ -7494,6 +7943,7 @@ export const sessionRouter = router({
       // Alle Votes bis einschließlich dieser Frage (für Ranking)
       const questionsUpToNow = session.quiz.questions
         .slice(0, input.questionIndex + 1)
+        .filter((q) => includedQuestionIds.has(q.id))
         .map((q) => q.id);
       const allVotes = selectEffectiveCompetitionVotes(
         await prisma.vote.findMany({
@@ -7542,6 +7992,7 @@ export const sessionRouter = router({
       if (input.questionIndex > 0) {
         const prevQuestionIds = session.quiz.questions
           .slice(0, input.questionIndex)
+          .filter((q) => includedQuestionIds.has(q.id))
           .map((q) => q.id);
         const prevVotes = selectEffectiveCompetitionVotes(
           await prisma.vote.findMany({
@@ -7643,6 +8094,13 @@ export const sessionRouter = router({
         select: {
           id: true,
           status: true,
+          questionProgress: true,
+          questionProgressComplete: true,
+          quiz: {
+            select: {
+              questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+            },
+          },
           participants: { select: { id: true } },
         },
       });
@@ -7656,9 +8114,21 @@ export const sessionRouter = router({
         });
       }
 
+      const includedQuestionIds = session.quiz
+        ? getIncludedSessionQuestionIds(
+            session.quiz.questions,
+            parseSessionQuestionProgress(session.questionProgress),
+            session.questionProgressComplete,
+          )
+        : new Set<string>();
+
       const votes = selectEffectiveCompetitionVotes(
         await prisma.vote.findMany({
-          where: { sessionId: session.id, round: { in: [1, 2] } },
+          where: {
+            sessionId: session.id,
+            round: { in: [1, 2] },
+            questionId: { in: [...includedQuestionIds] },
+          },
           select: {
             participantId: true,
             questionId: true,

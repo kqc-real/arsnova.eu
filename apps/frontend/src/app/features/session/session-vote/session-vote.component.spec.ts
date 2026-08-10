@@ -4638,6 +4638,59 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('kündigt eine ausgelassene Frage visuell und über die höfliche Live-Region an', async () => {
+    let statusListener: ((data: unknown) => void) | null = null;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        statusListener = opts.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Testquiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    snackBarOpenMock.mockClear();
+
+    statusListener?.({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+      skippedQuestionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      questionSkippedAt: '2026-08-10T12:01:00.000Z',
+      serverTime: MOCK_SERVER_TIME,
+    });
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    const message = 'Die Frage wurde ausgelassen. Die nächste Frage startet.';
+    expect(snackBarOpenMock).toHaveBeenCalledWith(message, '', { duration: 5000 });
+    const liveRegion = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="question-skipped-announcement"]',
+    );
+    expect(liveRegion?.textContent).toContain(message);
+    expect(liveRegion?.getAttribute('aria-live')).toBe('polite');
+    expect(liveRegion?.getAttribute('aria-atomic')).toBe('true');
+    fixture.destroy();
+  });
+
   it('räumt Live-Kanal-Subscriptions beim FINISHED-Statussignal ab', async () => {
     const statusUnsubscribe = vi.fn();
     const qaUnsubscribe = vi.fn();

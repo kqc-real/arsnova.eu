@@ -607,6 +607,14 @@ Der Ablauf ist jeweils:
 - Vergleich der Ergebnisse
 - effektive Rundenwertung für Score, Leaderboard, Bonuscodes und Exporte
 
+Während Lese- und Abstimmungsphase kann der Host eine Frage über die sichtbare Aktion
+**Frage auslassen** aus dem laufenden Durchlauf entfernen. Eine Bestätigung weist darauf
+hin, dass die Frage und bereits abgegebene Antworten nicht ausgewertet werden. Danach
+startet atomar die nächste Frage; bei der letzten Frage endet die Session regulär.
+Ausgelassene und nie geöffnete Fragen zählen nicht für Score, Ranglisten,
+Selbsteinschätzung, Bonuscodes, Nachbesprechung, PDF oder CSV. Geöffnete Fragen ohne
+Antworten bleiben als durchgeführte Fragen erhalten.
+
 ### 7.4 Belohnungs- und Motivationssystem
 
 Je nach Quiz-Preset, lokalem UI-Preset und Quizkonfiguration sind verfügbar:

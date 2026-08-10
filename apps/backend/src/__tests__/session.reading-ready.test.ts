@@ -3,6 +3,8 @@ import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks, presenceMocks, readingReadyMocks } = vi.hoisted(() => ({
   prismaMock: {
+    $executeRaw: vi.fn(),
+    $transaction: vi.fn(),
     session: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -83,6 +85,8 @@ describe('session reading-ready flow', () => {
     presenceMocks.getActiveParticipantCountForSession.mockResolvedValue(0);
     presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set());
     readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set());
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
     prismaMock.session.update.mockResolvedValue(undefined);
     prismaMock.vote.count.mockResolvedValue(0);
     prismaMock.vote.findMany.mockResolvedValue([]);

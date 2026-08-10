@@ -346,18 +346,208 @@ describe('session.nextQuestion (Story 2.3)', () => {
   });
 });
 
+describe('session.skipQuestion', () => {
+  const QUESTION_ID_1 = '11111111-1111-4111-8111-111111111111';
+  const QUESTION_ID_2 = '22222222-2222-4222-8222-222222222222';
+
+  function activeSession(overrides: Record<string, unknown> = {}) {
+    return {
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      questionProgress: {
+        [QUESTION_ID_1]: {
+          state: 'OPENED',
+          openedAt: '2026-08-10T12:00:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      answerDisplayOrder: {},
+      quiz: {
+        name: 'Testquiz',
+        readingPhaseEnabled: true,
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+        bonusTokenCount: null,
+        questions: [
+          {
+            id: QUESTION_ID_1,
+            order: 0,
+            type: 'SINGLE_CHOICE',
+            skipReadingPhase: false,
+            timer: null,
+            difficulty: 'MEDIUM',
+            answers: [],
+          },
+          {
+            id: QUESTION_ID_2,
+            order: 1,
+            type: 'SINGLE_CHOICE',
+            skipReadingPhase: false,
+            timer: null,
+            difficulty: 'MEDIUM',
+            answers: [],
+          },
+        ],
+      },
+      participants: [],
+      bonusTokens: [],
+      ...overrides,
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
+    prismaMock.session.update.mockResolvedValue({ id: SESSION_ID });
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.skipQuestion',
+      case: 'happy',
+      mode: 'direct',
+      title: 'lässt die aktive Frage atomar aus und öffnet die Folgefrage',
+    },
+    async () => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
+        .mockResolvedValueOnce(activeSession());
+
+      const result = await caller.skipQuestion({ code: CODE, questionId: QUESTION_ID_1 });
+
+      expect(result).toMatchObject({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 1,
+        currentRound: 1,
+        skippedQuestionId: QUESTION_ID_1,
+      });
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({
+            status: 'QUESTION_OPEN',
+            currentQuestion: 1,
+            questionProgress: expect.objectContaining({
+              [QUESTION_ID_1]: expect.objectContaining({ state: 'SKIPPED' }),
+              [QUESTION_ID_2]: expect.objectContaining({ state: 'OPENED' }),
+            }),
+          }),
+        }),
+      );
+      expect(readingReadyMocks.clearReadingReady).toHaveBeenCalledWith(SESSION_ID, QUESTION_ID_1);
+    },
+  );
+
+  it('beendet die Session regulär, wenn die letzte Frage ausgelassen wird', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce(
+      activeSession({
+        currentQuestion: 1,
+        questionProgress: {
+          [QUESTION_ID_1]: {
+            state: 'COMPLETED',
+            openedAt: '2026-08-10T11:00:00.000Z',
+            completedAt: '2026-08-10T11:01:00.000Z',
+          },
+          [QUESTION_ID_2]: {
+            state: 'OPENED',
+            openedAt: '2026-08-10T12:00:00.000Z',
+          },
+        },
+      }),
+    );
+
+    await expect(
+      caller.skipQuestion({ code: CODE, questionId: QUESTION_ID_2 }),
+    ).resolves.toMatchObject({
+      status: 'FINISHED',
+      currentQuestion: null,
+      skippedQuestionId: QUESTION_ID_2,
+    });
+    expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledOnce();
+  });
+
+  it('behandelt eine Wiederholung desselben Skip-Requests idempotent', async () => {
+    const skippedAt = '2026-08-10T12:01:00.000Z';
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce(
+      activeSession({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 1,
+        questionProgress: {
+          [QUESTION_ID_1]: {
+            state: 'SKIPPED',
+            openedAt: '2026-08-10T12:00:00.000Z',
+            skippedAt,
+          },
+          [QUESTION_ID_2]: {
+            state: 'OPENED',
+            openedAt: skippedAt,
+          },
+        },
+      }),
+    );
+
+    await expect(
+      caller.skipQuestion({ code: CODE, questionId: QUESTION_ID_1 }),
+    ).resolves.toMatchObject({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      skippedQuestionId: QUESTION_ID_1,
+      questionSkippedAt: skippedAt,
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+    expect(loadSignalMocks.recordSessionTransitionActivity).not.toHaveBeenCalled();
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.skipQuestion',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt das Auslassen außerhalb der Lese- und Abstimmungsphase ab',
+    },
+    async () => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
+        .mockResolvedValueOnce(activeSession({ status: 'RESULTS' }));
+
+      await expect(
+        caller.skipQuestion({ code: CODE, questionId: QUESTION_ID_1 }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
+});
+
 describe('session.revealAnswers (Story 2.3)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   it('wechselt von QUESTION_OPEN zu ACTIVE', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      status: 'QUESTION_OPEN',
-      currentQuestion: 0,
-      currentRound: 1,
-    });
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({
+        id: SESSION_ID,
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        currentRound: 1,
+      })
+      .mockResolvedValueOnce({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+      });
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
       status: 'ACTIVE',
@@ -601,6 +791,9 @@ describe('session.prevQuestion', () => {
         id: SESSION_ID,
         status: 'RESULTS',
         currentQuestion: 2,
+        questionProgress: null,
+        questionProgressComplete: false,
+        quiz: { questions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }] },
       });
       prismaMock.session.update.mockResolvedValue({
         id: SESSION_ID,
@@ -691,6 +884,7 @@ describe('session peer-instruction steering gates', () => {
         })
         .mockResolvedValueOnce({
           status: 'ACTIVE',
+          currentQuestion: 0,
           currentRound: 1,
         })
         .mockResolvedValueOnce({
@@ -745,7 +939,7 @@ describe('session peer-instruction steering gates', () => {
             ],
           },
         })
-        .mockResolvedValueOnce({ status: 'ACTIVE', currentRound: 1 });
+        .mockResolvedValueOnce({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
       prismaMock.vote.findMany.mockResolvedValue([{ isCorrect: true }]);
       prismaMock.$executeRaw.mockResolvedValue(1);
       prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
@@ -760,6 +954,40 @@ describe('session peer-instruction steering gates', () => {
       expect(prismaMock.session.update).not.toHaveBeenCalled();
     },
   );
+
+  it('verwirft eine überholte Diskussionsaktion, wenn ein paralleler Skip bereits weitergeschaltet hat', async () => {
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({
+        id: SESSION_ID,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        currentRound: 1,
+        activeQuestionStartedAt: new Date('2026-08-09T10:00:00.000Z'),
+        quiz: {
+          defaultTimer: null,
+          timerScaleByDifficulty: true,
+          questions: [
+            {
+              id: '33333333-3333-4333-8333-333333333333',
+              type: 'MATCHING',
+              timer: null,
+              difficulty: 'MEDIUM',
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({ status: 'ACTIVE', currentQuestion: 1, currentRound: 1 });
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
+
+    await expect(caller.startDiscussion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
 
   trpcDodIt(
     {

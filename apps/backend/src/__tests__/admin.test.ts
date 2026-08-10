@@ -370,7 +370,7 @@ describe('admin router (Epic 9)', () => {
       procedure: 'admin.exportForAuthorities',
       case: 'happy',
       mode: 'direct',
-      title: 'exportiert Behördenauszug als JSON und schreibt Audit-Log',
+      title: 'exportiert nur durchgeführte Fragen als JSON und schreibt Audit-Log',
     },
     async () => {
       const caller = adminRouter.createCaller({ req: {} as never });
@@ -384,6 +384,19 @@ describe('admin router (Epic 9)', () => {
         endedAt: new Date('2026-03-14T09:00:00.000Z'),
         legalHoldUntil: null,
         legalHoldReason: null,
+        questionProgressComplete: true,
+        questionProgress: {
+          '22222222-2222-4222-8222-222222222222': {
+            state: 'COMPLETED',
+            openedAt: '2026-03-14T08:15:00.000Z',
+            completedAt: '2026-03-14T08:16:00.000Z',
+          },
+          '33333333-3333-4333-8333-333333333333': {
+            state: 'SKIPPED',
+            openedAt: '2026-03-14T08:17:00.000Z',
+            skippedAt: '2026-03-14T08:18:00.000Z',
+          },
+        },
         quiz: {
           name: 'Behördenquiz',
           questions: [
@@ -397,9 +410,29 @@ describe('admin router (Epic 9)', () => {
                 { id: 'a2', text: 'B', isCorrect: false },
               ],
             },
+            {
+              id: '33333333-3333-4333-8333-333333333333',
+              order: 1,
+              text: 'Ausgelassene Frage',
+              type: 'SINGLE_CHOICE',
+              answers: [{ id: 'a3', text: 'C', isCorrect: true }],
+            },
           ],
         },
-        votes: [],
+        votes: [
+          {
+            questionId: '22222222-2222-4222-8222-222222222222',
+            ratingValue: null,
+            freeText: null,
+            selectedAnswers: [{ answerOptionId: 'a1' }],
+          },
+          {
+            questionId: '33333333-3333-4333-8333-333333333333',
+            ratingValue: null,
+            freeText: null,
+            selectedAnswers: [{ answerOptionId: 'a3' }],
+          },
+        ],
         _count: { participants: 4 },
       });
       prismaMock.adminAuditLog.create.mockResolvedValue({});
@@ -414,6 +447,10 @@ describe('admin router (Epic 9)', () => {
       expect(result.mimeType).toBe('application/json');
       expect(result.fileName.endsWith('.json')).toBe(true);
       expect(result.contentBase64.length).toBeGreaterThan(10);
+      const payload = JSON.parse(Buffer.from(result.contentBase64, 'base64').toString('utf8'));
+      expect(payload.quiz.questions).toHaveLength(1);
+      expect(payload.quiz.questions[0]).toMatchObject({ order: 0, text: 'Frage 1' });
+      expect(payload.aggregates).toHaveLength(1);
       expect(prismaMock.adminAuditLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({

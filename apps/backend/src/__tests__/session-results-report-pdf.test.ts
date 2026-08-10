@@ -64,6 +64,10 @@ const sampleExport: SessionExportDTO = {
   finishedAt: '2026-03-24T12:30:00.000Z',
   participantCount: 30,
   teamMode: false,
+  questionProgressAvailable: true,
+  totalQuestionCount: 1,
+  conductedQuestionCount: 1,
+  skippedQuestionCount: 0,
   questions: [
     {
       questionOrder: 0,

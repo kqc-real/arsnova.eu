@@ -15,6 +15,9 @@ const EN_LABELS: SessionResultsReportLabels = {
   sessionCode: 'Session code',
   finishedAt: 'Ended at',
   participantCount: 'Participants',
+  sessionScope: 'Session coverage',
+  sessionScopeTemplate: '{0} of {1} questions completed · {2} skipped',
+  sessionStartTemplate: 'Started at question {0}',
   privacyNotice:
     'Privacy: This report contains aggregated results only. Real names, IP addresses, and individual votes are not exported. Pseudonymous nicknames appear only with bonus codes.',
   feedbackTitle: 'Participant feedback',
@@ -90,6 +93,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   pageNumberFooter: 'Page {0} / {1}',
   questionType: 'Format',
   questionParticipants: 'Participants',
+  noAnswers: 'No answers',
   aggregationRound: 'Aggregation round',
   averageScore: 'Avg. points',
   optionDistribution: 'Answer distribution',
