@@ -3766,7 +3766,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('stellt nach Abbruch den Fokus wieder her und nach Bestätigung das Folgefrage-Fokusziel bereit', async () => {
+  it('setzt den Fokus nach Abbruch, Erfolg und fehlgeschlagenem Skip deterministisch', async () => {
     const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -3840,6 +3840,20 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__question-card',
     );
     expect(questionCard?.getAttribute('tabindex')).toBe('-1');
+
+    skipQuestionMutateMock.mockRejectedValueOnce(new Error('offline'));
+    await fixture.componentInstance.skipQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 20);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.controlPending()).toBe(false);
+    expect(fixture.componentInstance.hostSteeringCallout()?.retry).toEqual(expect.any(Function));
+    const retryButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-testid="host-steering-retry"]',
+    );
+    expect(retryButton?.textContent).toContain('Nochmal probieren');
+    expect(document.activeElement).toBe(retryButton);
     fixture.destroy();
   });
 

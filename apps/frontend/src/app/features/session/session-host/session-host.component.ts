@@ -493,6 +493,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ? FOYER_CHIP_DEV_LIFETIME_MS
     : FOYER_CHIP_LIFETIME_MS;
   private readonly document = inject(DOCUMENT);
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private unloadWarningEnabled = !this.isLocalDevSession();
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -2626,6 +2627,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
       body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.`,
       retry,
+    });
+    setTimeout(() => {
+      const target = this.hostElement.nativeElement.querySelector<HTMLButtonElement>(
+        '[data-testid="host-steering-retry"]',
+      );
+      if (this.hostSteeringCallout() && target?.isConnected) {
+        target.focus({ preventScroll: true });
+      }
     });
   }
 
