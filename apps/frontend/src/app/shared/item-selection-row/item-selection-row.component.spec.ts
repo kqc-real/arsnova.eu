@@ -42,6 +42,31 @@ describe('ItemSelectionRowComponent', () => {
     expect(listener).not.toHaveBeenCalledWith('Sichtbarer Text');
   });
 
+  it('schließt das Auswahlmenü nach einer bestätigten Auswahl explizit', async () => {
+    const fixture = TestBed.createComponent(ItemSelectionRowComponent);
+    fixture.componentRef.setInput('itemText', 'Element');
+    fixture.componentRef.setInput('options', [{ id: 'stable-option-id', text: 'Sichtbarer Text' }]);
+    fixture.componentRef.setInput('selectedId', '');
+    fixture.componentRef.setInput('selectLabel', 'Auswahl');
+    fixture.componentRef.setInput('selectAriaLabel', 'Auswahl für Element');
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const closeSpy = vi.spyOn(select, 'close').mockImplementation(() => undefined);
+    const listener = vi.fn();
+    fixture.componentInstance.selectedIdChange.subscribe(listener);
+
+    fixture.componentInstance.confirmSelection('stable-option-id', select);
+
+    expect(listener).toHaveBeenCalledWith('stable-option-id');
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    await Promise.resolve();
+
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {
     const fixture = TestBed.createComponent(ItemSelectionRowComponent);
     fixture.componentRef.setInput('itemText', 'Element');
