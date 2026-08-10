@@ -90,6 +90,11 @@ const statements = [
   `ALTER TYPE "SessionStatus" ADD VALUE IF NOT EXISTS 'DISCUSSION' AFTER 'RESULTS'`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "currentRound" INTEGER NOT NULL DEFAULT 1`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "activeQuestionStartedAt" TIMESTAMP(3)`,
+  // Issue #254: sessionspezifischer Fragenverlauf; NULL bleibt der Legacy-Kompatibilitätspfad.
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "questionProgress" JSONB`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "questionProgressComplete" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "lastSkippedQuestionId" TEXT`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "lastQuestionSkippedAt" TIMESTAMP(3)`,
   `ALTER TABLE "Vote" ADD COLUMN IF NOT EXISTS "round" INTEGER NOT NULL DEFAULT 1`,
   `ALTER TABLE "Vote" ADD COLUMN IF NOT EXISTS "isCorrect" BOOLEAN`,
   `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "preset" TEXT NOT NULL DEFAULT 'PLAYFUL'`,

@@ -220,6 +220,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'Pour les questions {0}, revenez sur les notions sous-jacentes.',
   nextStepsReteachListTemplate: 'Pour les questions {0}, revenez sur les notions sous-jacentes',
   nextStepsReteachTemplate: 'Pour la question {0}, revenez sur les notions sous-jacentes',
+  noAnswers: 'Aucune réponse',
   numericChangeTemplate:
     'Évolution : {0} plus proches de la référence · {1} plus éloignées · {2} inchangées',
   numericComparisonAnswers: 'Réponses',
@@ -336,6 +337,9 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   scoreExplanation:
     'Les points servent au classement et tiennent compte de la justesse des réponses, de la difficulté des questions, du temps de réponse lorsqu’un minuteur est actif et des bonus de série. La confiance dans la réponse n’a aucune incidence sur les points. Comme le score maximal dépend de la configuration et du déroulement du quiz, les scores ne sont pas des pourcentages et ne doivent pas être comparés entre plusieurs séances.',
   sessionCode: 'Code de séance',
+  sessionScope: 'Déroulement',
+  sessionScopeTemplate: '{0} questions traitées sur {1} · {2} ignorées',
+  sessionStartTemplate: 'Début à la question {0}',
   shortTextCorrect: 'Réponses correctes',
   shortTextExpectedSolutions: 'Solutions acceptées',
   shortTextIncorrect: 'Réponses incorrectes',
@@ -597,6 +601,7 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'Para las preguntas {0}, repita los términos técnicos subyacentes.',
   nextStepsReteachListTemplate: 'Explique las preguntas {0} nuevamente',
   nextStepsReteachTemplate: 'Explique la pregunta {0} nuevamente',
+  noAnswers: 'Sin respuestas',
   numericChangeTemplate: 'Cambio: {0} más cerca de la referencia · {1} más lejos · {2} sin cambios',
   numericComparisonAnswers: 'Respuestas',
   numericComparisonInBand: 'Dentro de la tolerancia',
@@ -713,6 +718,9 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   scoreExplanation:
     'Los puntos son un valor de clasificación basado en la corrección, la dificultad, el tiempo de respuesta cuando hay un temporizador activo y las bonificaciones por racha. La autoevaluación no influye en los puntos. Como el valor alcanzable depende del desarrollo del quiz, las puntuaciones no son porcentajes ni se pueden comparar entre sesiones.',
   sessionCode: 'código de sesión',
+  sessionScope: 'Desarrollo',
+  sessionScopeTemplate: '{0} de {1} preguntas realizadas · {2} omitidas',
+  sessionStartTemplate: 'Inicio en la pregunta {0}',
   shortTextCorrect: 'Respondidas correctamente',
   shortTextExpectedSolutions: 'Soluciones aceptadas',
   shortTextIncorrect: 'Respondidas incorrectamente',
@@ -972,6 +980,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   nextStepsReteachConcreteTemplate: 'Per le domande {0}, ripetere i termini tecnici sottostanti.',
   nextStepsReteachListTemplate: 'Spiega di nuovo le domande {0}',
   nextStepsReteachTemplate: 'Spiega di nuovo la domanda {0}',
+  noAnswers: 'Nessuna risposta',
   numericChangeTemplate:
     'Cambiamento: {0} più vicine al riferimento · {1} più lontane · {2} invariate',
   numericComparisonAnswers: 'Risposte',
@@ -1088,6 +1097,9 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   scoreExplanation:
     'I punti sono un valore di classifica basato su correttezza, difficoltà, tempo di risposta quando è attivo un timer e bonus serie. Il grado di sicurezza autovalutato non influisce sui punti. Poiché il valore raggiungibile dipende dallo svolgimento del quiz, i punteggi non sono percentuali e non sono confrontabili tra sessioni.',
   sessionCode: 'Codice sessione',
+  sessionScope: 'Svolgimento',
+  sessionScopeTemplate: '{0} domande svolte su {1} · {2} saltate',
+  sessionStartTemplate: 'Inizio dalla domanda {0}',
   shortTextCorrect: 'Risposte correttamente',
   shortTextExpectedSolutions: 'Soluzioni accettate',
   shortTextIncorrect: 'Risposte in modo errato',

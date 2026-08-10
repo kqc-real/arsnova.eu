@@ -22670,6 +22670,20 @@
           <context context-type="linenumber">181</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionReport.sessionScope" datatype="html"><source>Durchführung</source><target>Session coverage</target></trans-unit>
+      <trans-unit id="sessionReport.sessionScopeTemplate" datatype="html"><source>{0} von {1} Fragen durchgeführt · {2} ausgelassen</source><target>{0} of {1} questions completed · {2} skipped</target></trans-unit>
+      <trans-unit id="sessionReport.sessionStartTemplate" datatype="html"><source>Start bei Frage {0}</source><target>Started at question {0}</target></trans-unit>
+      <trans-unit id="sessionReport.noAnswers" datatype="html"><source>Keine Antworten</source><target>No answers</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionAria" datatype="html"><source>Aktuelle Frage auslassen</source><target>Skip current question</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestion" datatype="html"><source>Frage auslassen</source><target>Skip question</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionDialogTitle" datatype="html"><source>Frage auslassen?</source><target>Skip question?</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionDialogMessage" datatype="html"><source>Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.</source><target>This question will be excluded from the current session and the debrief.</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionDialogVotes" datatype="html"><source>Bereits abgegebene Antworten werden nicht ausgewertet.</source><target>Answers already submitted will not be evaluated.</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionConfirm" datatype="html"><source>Frage auslassen</source><target>Skip question</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionCancel" datatype="html"><source>Frage behalten</source><target>Keep question</target></trans-unit>
+      <trans-unit id="sessionHost.skipQuestionSuccess" datatype="html"><source>Frage ausgelassen. Die nächste Frage wurde gestartet.</source><target>Question skipped. The next question has started.</target></trans-unit>
+      <trans-unit id="sessionVote.questionSkippedFinished" datatype="html"><source>Die Frage wurde ausgelassen. Die Session ist beendet.</source><target>The question was skipped. The session has ended.</target></trans-unit>
+      <trans-unit id="sessionVote.questionSkippedNext" datatype="html"><source>Die Frage wurde ausgelassen. Die nächste Frage startet.</source><target>The question was skipped. The next question is starting.</target></trans-unit>
     </body>
   </file>
 </xliff>

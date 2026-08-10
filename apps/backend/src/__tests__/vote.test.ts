@@ -12,11 +12,16 @@ const { prismaMock, checkVoteRateMock } = vi.hoisted(() => ({
     quiz: {
       findUnique: vi.fn(),
     },
+    session: {
+      findUnique: vi.fn(),
+    },
     vote: {
       create: vi.fn(),
       findUnique: vi.fn(),
       findFirst: vi.fn(),
     },
+    $executeRaw: vi.fn(),
+    $transaction: vi.fn(),
   },
   checkVoteRateMock: vi.fn(),
 }));
@@ -45,7 +50,20 @@ describe('vote.submit', () => {
     prismaMock.participant.findFirst.mockResolvedValue({
       id: 'participant-1',
       sessionId: 'session-1',
-      session: { status: 'ACTIVE', quizId: 'quiz-1' },
+      session: { status: 'ACTIVE', quizId: 'quiz-1', questionProgress: null },
+    });
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
+    prismaMock.session.findUnique.mockImplementation(async () => {
+      const question = await prismaMock.question.findFirst.mock.results.at(-1)?.value;
+      const participant = await prismaMock.participant.findFirst.mock.results.at(-1)?.value;
+      return {
+        status: participant?.session?.status ?? 'ACTIVE',
+        currentQuestion: question?.order,
+        currentRound: participant?.session?.currentRound ?? 1,
+      };
     });
     prismaMock.quiz.findUnique.mockResolvedValue({ defaultTimer: null });
     prismaMock.vote.findUnique.mockResolvedValue(null);
@@ -155,6 +173,10 @@ describe('vote.submit', () => {
             streakBonus: 1.0,
           }),
         }),
+      );
+      expect(prismaMock.$executeRaw).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.stringContaining('FOR SHARE')]),
+        '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       );
     },
   );
@@ -1269,6 +1291,40 @@ describe('vote.submit', () => {
         freeText: 'Ada Lovelace',
       }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
+  it('verwirft einen Vote, wenn die Frage nach dem Session-Lock bereits ausgelassen wurde', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      order: 0,
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      confidenceEnabled: false,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [{ id: ANSWER_ID_1, text: '4', isCorrect: true }],
+    });
+    prismaMock.session.findUnique.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Die Frage ist nicht mehr aktiv.',
+    });
+    expect(prismaMock.vote.create).not.toHaveBeenCalled();
   });
 
   describe('Sicherheitsgrad (Story 1.2i)', () => {

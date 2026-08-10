@@ -38,6 +38,10 @@ describe('buildSessionResultsPdf SSRF', { timeout: 60_000 }, () => {
       finishedAt: '2026-07-24T10:00:00.000Z',
       participantCount: 1,
       teamMode: false,
+      questionProgressAvailable: true,
+      totalQuestionCount: 1,
+      conductedQuestionCount: 1,
+      skippedQuestionCount: 0,
       questions: [
         {
           questionOrder: 0,

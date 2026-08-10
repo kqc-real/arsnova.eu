@@ -39,6 +39,7 @@ describe('sloTelemetry', () => {
   it('klassifiziert nur relevante Live-Prozeduren als getrackt', () => {
     expect(isTrackedLiveProcedure('vote.submit')).toBe(true);
     expect(isTrackedLiveProcedure('session.join')).toBe(true);
+    expect(isTrackedLiveProcedure('session.skipQuestion')).toBe(true);
     expect(isTrackedLiveProcedure('health.stats')).toBe(false);
     expect(isTrackedLiveProcedure('session.onStatusChanged')).toBe(false);
   });

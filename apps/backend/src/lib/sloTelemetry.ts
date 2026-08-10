@@ -26,6 +26,7 @@ export function isTrackedLiveProcedure(path: string): boolean {
     path === 'session.join' ||
     path === 'session.startQa' ||
     path === 'session.nextQuestion' ||
+    path === 'session.skipQuestion' ||
     path === 'session.revealAnswers' ||
     path === 'session.revealResults' ||
     path === 'session.startDiscussion' ||

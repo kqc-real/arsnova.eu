@@ -44,6 +44,10 @@ import { logAdminLoginFailure, recordAdminLoginFailure } from '../lib/abuseTelem
 import { prisma } from '../db';
 import { adminMotdRouter } from './adminMotd';
 import { fetchSecurityStats } from './health';
+import {
+  getIncludedSessionQuestionIds,
+  parseSessionQuestionProgress,
+} from '../lib/sessionQuestionProgress';
 
 const DEFAULT_LEGAL_HOLD_DAYS = 30;
 const MIN_LEGAL_HOLD_DAYS = 1;
@@ -928,6 +932,14 @@ export const adminRouter = router({
 
       const exportId = randomUUID();
       const generatedAt = new Date().toISOString();
+      const allQuestions = session.quiz?.questions ?? [];
+      const includedQuestionIds = getIncludedSessionQuestionIds(
+        allQuestions,
+        parseSessionQuestionProgress(session.questionProgress),
+        session.questionProgressComplete,
+      );
+      const questions = allQuestions.filter((question) => includedQuestionIds.has(question.id));
+      const votes = session.votes.filter((vote) => includedQuestionIds.has(vote.questionId));
       const payload: AuthorityExportPayload = {
         schemaVersion: ADMIN_EXPORT_SCHEMA_VERSION,
         exportId,
@@ -945,7 +957,7 @@ export const adminRouter = router({
         },
         quiz: {
           name: renderMarkdownKatexToPlainText(session.quiz?.name) || null,
-          questions: (session.quiz?.questions ?? []).map((question) => ({
+          questions: questions.map((question) => ({
             order: question.order,
             text: renderMarkdownKatexToPlainText(question.text),
             textRaw: question.text,
@@ -957,7 +969,7 @@ export const adminRouter = router({
             })),
           })),
         },
-        aggregates: buildAuthorityAggregates(session.quiz?.questions ?? [], session.votes),
+        aggregates: buildAuthorityAggregates(questions, votes),
         legalHold: {
           until: session.legalHoldUntil?.toISOString() ?? null,
           reason: session.legalHoldReason ?? null,

@@ -18,6 +18,25 @@ Phase 2 ergänzt:
 - `questionTextFull` — vollständiger Fragentext als Markdown (KaTeX, Bilder, Code, Lehrer-Tipps)
 - `feedbackSummary` — aggregierte Session-Bewertung (Sterne)
 
+### Fachlicher Session-Verlauf
+
+Neue Quiz-Sessions protokollieren pro stabiler Frage-ID, ob eine Frage geöffnet,
+abgeschlossen oder ausgelassen wurde. PDF, CSV, Lernstand, Ranglisten und Bonuscodes
+verwenden dieselbe serverseitige Auswahl:
+
+- nie geöffnete Fragen, etwa vor einem Direkteinstieg, werden nicht ausgewertet;
+- geöffnete Fragen bleiben auch ohne Antworten sichtbar und erscheinen im Bericht als
+  **„Keine Antworten“**;
+- ausgelassene Fragen werden einschließlich bereits abgegebener Antworten aus allen
+  fachlichen Auswertungen entfernt;
+- die sichtbare Nummerierung bleibt die ursprüngliche Quiznummer. Das Deckblatt nennt
+  durchgeführte, insgesamt vorhandene und ausgelassene Fragen sowie gegebenenfalls die
+  Startfrage.
+
+Für Sessions ohne vollständiges Verlaufsprotokoll bleibt der frühere
+Vollvorlagen-Fallback erhalten. Ein Verlauf wird dabei ausdrücklich nicht aus Votes
+rekonstruiert.
+
 ## UI
 
 ### Host-Abschlussansicht (`FINISHED`)

@@ -241,7 +241,12 @@ describe('session team mode (Story 7.1)', () => {
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
-        quiz: { teamMode: true, teamCount: 2, teamNames: [] },
+        quiz: {
+          teamMode: true,
+          teamCount: 2,
+          teamNames: [],
+          questions: [{ id: 'q1', order: 0 }],
+        },
       });
       prismaMock.team.findMany.mockResolvedValue([
         { id: TEAM_A_ID, name: 'Team A', color: '#1E88E5', _count: { participants: 2 } },
@@ -284,7 +289,15 @@ describe('session team mode (Story 7.1)', () => {
   it('nutzt Antwortzeiten nur von beitragenden Team-Votes als Gleichstand-Tiebreaker', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
-      quiz: { teamMode: true, teamCount: 2, teamNames: [] },
+      quiz: {
+        teamMode: true,
+        teamCount: 2,
+        teamNames: [],
+        questions: [
+          { id: 'q1', order: 0 },
+          { id: 'q2', order: 1 },
+        ],
+      },
     });
     prismaMock.team.findMany.mockResolvedValue([
       { id: TEAM_A_ID, name: 'Zeta', color: '#1E88E5', _count: { participants: 1 } },
@@ -325,7 +338,15 @@ describe('session team mode (Story 7.1)', () => {
   it('wertet Runde 2 im Team-Leaderboard ohne Antwortzeit-Tiebreaker', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
-      quiz: { teamMode: true, teamCount: 2, teamNames: [] },
+      quiz: {
+        teamMode: true,
+        teamCount: 2,
+        teamNames: [],
+        questions: [
+          { id: 'q1', order: 0 },
+          { id: 'q2', order: 1 },
+        ],
+      },
     });
     prismaMock.team.findMany.mockResolvedValue([
       { id: TEAM_A_ID, name: 'Zeta', color: '#1E88E5', _count: { participants: 1 } },
@@ -378,7 +399,15 @@ describe('session team mode (Story 7.1)', () => {
         teamMode: true,
         teamCount: 2,
         teamNames: ['Rot', 'Blau'],
-        questions: [],
+        questions: [
+          {
+            id: 'q1',
+            order: 0,
+            text: 'Teamfrage',
+            type: 'SINGLE_CHOICE',
+            answers: [],
+          },
+        ],
       },
       votes: [],
       bonusTokens: [],
