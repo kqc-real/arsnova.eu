@@ -5802,6 +5802,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async executeSkipQuestion(questionId: string): Promise<void> {
     if (this.controlPending() || !this.code) return;
+    const countdownDeadline =
+      this.effectiveStatus() === 'ACTIVE' && this.countdownSeconds() !== null
+        ? Date.now() + Math.max(0, this.countdownSeconds() ?? 0) * 1000
+        : null;
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
@@ -5826,12 +5830,45 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         );
       }
     } catch {
+      this.restoreCountdownAfterFailedSkip(questionId, countdownDeadline);
       this.openHostSteeringCalloutForSteeringFailure(
         () => void this.executeSkipQuestion(questionId),
       );
     } finally {
       this.controlPending.set(false);
     }
+  }
+
+  private restoreCountdownAfterFailedSkip(
+    questionId: string,
+    countdownDeadline: number | null,
+  ): void {
+    if (
+      this.effectiveStatus() !== 'ACTIVE' ||
+      this.displayedCurrentQuestionForHost()?.questionId !== questionId
+    ) {
+      return;
+    }
+
+    const latestStatus = this.statusUpdate();
+    if (
+      latestStatus?.status === 'ACTIVE' &&
+      latestStatus.activeAt &&
+      latestStatus.timer !== undefined
+    ) {
+      this.syncCountdownFromStatusUpdate(latestStatus);
+      return;
+    }
+
+    if (countdownDeadline === null) return;
+    const remaining = remainingCountdownSeconds(countdownDeadline);
+    if (remaining > 0) {
+      this.startCountdown(remaining);
+      return;
+    }
+    this.stopCountdown();
+    this.countdownSeconds.set(0);
+    this.countdownEnded.set(true);
   }
 
   private focusAfterQuestionSkip(status: SessionStatus): void {

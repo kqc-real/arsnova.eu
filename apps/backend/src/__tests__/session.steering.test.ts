@@ -15,6 +15,9 @@ const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, lo
       vote: {
         findMany: vi.fn(),
       },
+      bonusToken: {
+        createMany: vi.fn(),
+      },
       $executeRaw: vi.fn(),
       $transaction: vi.fn(),
     },
@@ -76,6 +79,10 @@ describe('session.nextQuestion (Story 2.3)', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.vote.findMany.mockResolvedValue([]);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   trpcDodIt(
@@ -199,20 +206,42 @@ describe('session.nextQuestion (Story 2.3)', () => {
   });
 
   it('setzt FINISHED wenn nach letzter Frage', async () => {
+    const questionId = '33333333-3333-4333-8333-333333333333';
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       status: 'RESULTS',
       currentQuestion: 0,
-      quiz: {
-        readingPhaseEnabled: true,
-        questions: [{ id: 'q1' }],
+      questionProgress: {
+        [questionId]: {
+          state: 'OPENED',
+          openedAt: '2026-08-10T12:00:00.000Z',
+        },
       },
+      questionProgressComplete: true,
+      quiz: {
+        name: 'Testquiz',
+        readingPhaseEnabled: true,
+        bonusTokenCount: 1,
+        questions: [{ id: questionId, order: 0, type: 'SINGLE_CHOICE' }],
+      },
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+      bonusTokens: [],
     });
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
       status: 'FINISHED',
       currentQuestion: null,
     });
+    prismaMock.vote.findMany.mockResolvedValue([
+      {
+        participantId: 'p1',
+        questionId,
+        round: 1,
+        score: 2000,
+        responseTimeMs: 900,
+      },
+    ]);
+    prismaMock.bonusToken.createMany.mockResolvedValue({ count: 1 });
 
     const result = await caller.nextQuestion({ code: CODE });
 
@@ -225,6 +254,15 @@ describe('session.nextQuestion (Story 2.3)', () => {
       }),
     );
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.bonusToken.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [expect.objectContaining({ participantId: 'p1', totalScore: 2000, rank: 1 })],
+      }),
+    );
+    expect(prismaMock.bonusToken.createMany.mock.invocationCallOrder[0]).toBeLessThan(
+      platformStatisticMocks.incrementCompletedSessionsTotal.mock.invocationCallOrder[0]!,
+    );
   });
 
   trpcDodIt(
@@ -472,6 +510,81 @@ describe('session.skipQuestion', () => {
       skippedQuestionId: QUESTION_ID_2,
     });
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledOnce();
+  });
+
+  it('erzeugt Bonus-Tokens beim letzten Skip vor den Abschluss-Nebenwirkungen', async () => {
+    const completedAt = '2026-08-10T11:01:00.000Z';
+    const openedAt = '2026-08-10T12:00:00.000Z';
+    const session = activeSession({
+      currentQuestion: 1,
+      questionProgress: {
+        [QUESTION_ID_1]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-10T11:00:00.000Z',
+          completedAt,
+        },
+        [QUESTION_ID_2]: { state: 'OPENED', openedAt },
+      },
+      quiz: {
+        ...activeSession().quiz,
+        bonusTokenCount: 1,
+      },
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+    });
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(session)
+      .mockResolvedValueOnce({
+        questionProgress: {
+          [QUESTION_ID_1]: {
+            state: 'COMPLETED',
+            openedAt: '2026-08-10T11:00:00.000Z',
+            completedAt,
+          },
+          [QUESTION_ID_2]: {
+            state: 'SKIPPED',
+            openedAt,
+            skippedAt: '2026-08-10T12:01:00.000Z',
+          },
+        },
+        questionProgressComplete: true,
+        quiz: {
+          questions: [
+            { id: QUESTION_ID_1, order: 0 },
+            { id: QUESTION_ID_2, order: 1 },
+          ],
+        },
+      });
+    prismaMock.vote.findMany.mockResolvedValue([
+      {
+        participantId: 'p1',
+        questionId: QUESTION_ID_1,
+        round: 1,
+        score: 2000,
+        responseTimeMs: 900,
+      },
+    ]);
+    prismaMock.bonusToken.createMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      caller.skipQuestion({ code: CODE, questionId: QUESTION_ID_2 }),
+    ).resolves.toMatchObject({ status: 'FINISHED' });
+
+    expect(prismaMock.bonusToken.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [
+          expect.objectContaining({
+            sessionId: SESSION_ID,
+            participantId: 'p1',
+            totalScore: 2000,
+            rank: 1,
+          }),
+        ],
+      }),
+    );
+    expect(prismaMock.bonusToken.createMany.mock.invocationCallOrder[0]).toBeLessThan(
+      platformStatisticMocks.incrementCompletedSessionsTotal.mock.invocationCallOrder[0]!,
+    );
   });
 
   it('behandelt eine Wiederholung desselben Skip-Requests idempotent', async () => {

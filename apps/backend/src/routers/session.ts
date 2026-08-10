@@ -3166,13 +3166,18 @@ function generateBonusCode(): string {
  * Generiert Bonus-Tokens für die Top X Teilnehmer (Story 4.6).
  * Nur wenn bonusTokenCount konfiguriert und noch keine Tokens existieren.
  */
-async function generateBonusTokens(session: {
-  id: string;
-  currentQuestion: number | null;
-  quiz: { name: string; bonusTokenCount: number | null; questions: { type: string }[] } | null;
-  participants: { id: string; nickname: string }[];
-  bonusTokens: { id: string }[];
-}): Promise<void> {
+type BonusTokenDbClient = Pick<Prisma.TransactionClient, 'session' | 'vote' | 'bonusToken'>;
+
+async function generateBonusTokens(
+  session: {
+    id: string;
+    currentQuestion: number | null;
+    quiz: { name: string; bonusTokenCount: number | null; questions: { type: string }[] } | null;
+    participants: { id: string; nickname: string }[];
+    bonusTokens: { id: string }[];
+  },
+  db: BonusTokenDbClient = prisma,
+): Promise<void> {
   const topX = session.quiz?.bonusTokenCount;
   if (!topX || topX <= 0 || !session.quiz) return;
   if (session.bonusTokens.length > 0) return;
@@ -3185,7 +3190,7 @@ async function generateBonusTokens(session: {
     return;
   }
 
-  const progressSession = await prisma.session.findUnique({
+  const progressSession = await db.session.findUnique({
     where: { id: session.id },
     select: {
       questionProgress: true,
@@ -3207,7 +3212,7 @@ async function generateBonusTokens(session: {
 
   const votes = selectEffectiveCompetitionVotes(
     (
-      await prisma.vote.findMany({
+      await db.vote.findMany({
         where: { sessionId: session.id, round: { in: [1, 2] } },
         select: {
           participantId: true,
@@ -3251,7 +3256,7 @@ async function generateBonusTokens(session: {
     rank: i + 1,
   }));
 
-  await prisma.bonusToken.createMany({ data: tokenData });
+  await db.bonusToken.createMany({ data: tokenData });
 }
 
 type HostCurrentQuestionSession = {
@@ -5637,28 +5642,102 @@ export const sessionRouter = router({
           : progress;
 
       if (nextIdx === null) {
-        const now = new Date();
-        await prisma.session.update({
-          where: { id: session.id },
-          data: {
-            status: 'FINISHED',
-            currentQuestion: null,
-            currentRound: 1,
-            activeQuestionStartedAt: null,
-            statusChangedAt: now,
-            endedAt: now,
-            questionProgress: serializeSessionQuestionProgress(progressAfterCurrent),
-            lastSkippedQuestionId: null,
-            lastQuestionSkippedAt: null,
-          },
+        const completedQuestionId = await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, session.id);
+          const lockedSession = await tx.session.findUnique({
+            where: { id: session.id },
+            include: {
+              quiz: {
+                select: {
+                  name: true,
+                  readingPhaseEnabled: true,
+                  defaultTimer: true,
+                  timerScaleByDifficulty: true,
+                  bonusTokenCount: true,
+                  questions: {
+                    orderBy: { order: 'asc' },
+                    select: {
+                      id: true,
+                      type: true,
+                      skipReadingPhase: true,
+                      timer: true,
+                      difficulty: true,
+                      answers: { select: { id: true } },
+                    },
+                  },
+                },
+              },
+              participants: { select: { id: true, nickname: true } },
+              bonusTokens: { select: { id: true }, take: 1 },
+            },
+          });
+          if (!lockedSession?.quiz) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Session oder Quiz nicht gefunden.',
+            });
+          }
+          if (
+            lockedSession.status !== session.status ||
+            lockedSession.currentQuestion !== session.currentQuestion
+          ) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die erwartete Frage ist nicht mehr aktuell.',
+            });
+          }
+
+          const lockedCurrentIdx = lockedSession.currentQuestion ?? -1;
+          const lockedProgress = parseSessionQuestionProgress(lockedSession.questionProgress);
+          const lockedNavigationStart =
+            skipCurrentResultQuestion && !lockedSession.questionProgressComplete
+              ? lockedCurrentIdx + 1
+              : lockedCurrentIdx;
+          const lockedNextIdx = findNextUnskippedQuestionIndex(
+            lockedSession.quiz.questions.map((question, order) => ({ id: question.id, order })),
+            lockedProgress,
+            lockedNavigationStart,
+            skipCurrentResultQuestion && lockedSession.questionProgressComplete ? 1 : 0,
+          );
+          if (lockedNextIdx !== null) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die erwartete Frage ist nicht mehr aktuell.',
+            });
+          }
+
+          const lockedCurrentQuestionId =
+            lockedCurrentIdx >= 0
+              ? (lockedSession.quiz.questions[lockedCurrentIdx]?.id ?? null)
+              : null;
+          const lockedProgressAfterCurrent =
+            lockedCurrentQuestionId && ['RESULTS', 'DISCUSSION'].includes(lockedSession.status)
+              ? markSessionQuestionCompleted(lockedProgress, lockedCurrentQuestionId, new Date())
+              : lockedProgress;
+          const now = new Date();
+          await tx.session.update({
+            where: { id: lockedSession.id },
+            data: {
+              status: 'FINISHED',
+              currentQuestion: null,
+              currentRound: 1,
+              activeQuestionStartedAt: null,
+              statusChangedAt: now,
+              endedAt: now,
+              questionProgress: serializeSessionQuestionProgress(lockedProgressAfterCurrent),
+              lastSkippedQuestionId: null,
+              lastQuestionSkippedAt: null,
+            },
+          });
+          await generateBonusTokens(lockedSession, tx);
+          return lockedCurrentQuestionId;
         });
-        if (currentQuestionId) {
-          await clearReadingReady(session.id, currentQuestionId);
+        if (completedQuestionId) {
+          await clearReadingReady(session.id, completedQuestionId);
         }
-        invalidateSessionStatusCachesForCode(code);
         await incrementCompletedSessionsTotal();
+        invalidateSessionStatusCachesForCode(code);
         void recordSessionTransitionActivity();
-        await generateBonusTokens(session);
         return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
       }
 
@@ -5952,7 +6031,6 @@ export const sessionRouter = router({
                 skippedQuestionId: input.questionId,
                 questionSkippedAt: priorSkip.skippedAt,
               },
-              bonusSession: null,
             };
           }
           throw new TRPCError({
@@ -5990,6 +6068,7 @@ export const sessionRouter = router({
               lastQuestionSkippedAt: now,
             },
           });
+          await generateBonusTokens(session, tx);
           return {
             transitioned: true as const,
             finished: true,
@@ -6004,7 +6083,6 @@ export const sessionRouter = router({
               skippedQuestionId: currentQuestion.id,
               questionSkippedAt: now.toISOString(),
             },
-            bonusSession: session,
           };
         }
 
@@ -6069,7 +6147,6 @@ export const sessionRouter = router({
               timer: effectiveTimer,
             }),
           },
-          bonusSession: null,
         };
       });
 
@@ -6077,14 +6154,13 @@ export const sessionRouter = router({
         await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
       }
       if (outcome.transitioned) {
-        invalidateSessionStatusCachesForCode(code);
-        void recordSessionTransitionActivity();
         if (outcome.finished) {
           await incrementCompletedSessionsTotal();
-          if (outcome.bonusSession) await generateBonusTokens(outcome.bonusSession);
         } else {
           void markCountdownSessionActive(outcome.sessionId);
         }
+        invalidateSessionStatusCachesForCode(code);
+        void recordSessionTransitionActivity();
       }
       return outcome.update;
     }),
@@ -7498,47 +7574,57 @@ export const sessionRouter = router({
     .output(SessionStatusUpdateSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code },
-        select: {
-          id: true,
-          status: true,
-          currentQuestion: true,
-          quizId: true,
-          quiz: {
-            select: {
-              name: true,
-              bonusTokenCount: true,
-              questions: { select: { type: true } },
-            },
-          },
-          participants: { select: { id: true, nickname: true } },
-          bonusTokens: { select: { id: true }, take: 1 },
-        },
+        select: { id: true },
       });
-      if (!session) {
+      if (!identity) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (session.status === 'FINISHED') {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Session ist bereits beendet.' });
-      }
-      const now = new Date();
-      await prisma.session.update({
-        where: { id: session.id },
-        data: {
-          status: 'FINISHED',
-          currentQuestion: null,
-          currentRound: 1,
-          activeQuestionStartedAt: null,
-          statusChangedAt: now,
-          endedAt: now,
-        },
-      });
-      invalidateSessionStatusCachesForCode(code);
-      await incrementCompletedSessionsTotal();
-      void recordSessionTransitionActivity();
 
-      await generateBonusTokens(session);
+      await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          include: {
+            quiz: {
+              select: {
+                name: true,
+                bonusTokenCount: true,
+                questions: { select: { type: true } },
+              },
+            },
+            participants: { select: { id: true, nickname: true } },
+            bonusTokens: { select: { id: true }, take: 1 },
+          },
+        });
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        if (session.status === 'FINISHED') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Session ist bereits beendet.' });
+        }
+
+        const now = new Date();
+        await tx.session.update({
+          where: { id: session.id },
+          data: {
+            status: 'FINISHED',
+            currentQuestion: null,
+            currentRound: 1,
+            activeQuestionStartedAt: null,
+            statusChangedAt: now,
+            endedAt: now,
+            lastSkippedQuestionId: null,
+            lastQuestionSkippedAt: null,
+          },
+        });
+        await generateBonusTokens(session, tx);
+      });
+
+      await incrementCompletedSessionsTotal();
+      invalidateSessionStatusCachesForCode(code);
+      void recordSessionTransitionActivity();
 
       return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
     }),
