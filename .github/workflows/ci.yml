@@ -1085,6 +1085,7 @@ jobs:
           npm run smoke:host-music -w @arsnova/frontend
           npm run smoke:short-text -w @arsnova/frontend
           npm run smoke:numeric-estimate -w @arsnova/frontend
+          npm run smoke:structured-question-types -w @arsnova/frontend
           npm run smoke:quiz-sync -w @arsnova/frontend
           npm run smoke:session-question-progress -w @arsnova/frontend
           npm run smoke:unified-session -w @arsnova/frontend

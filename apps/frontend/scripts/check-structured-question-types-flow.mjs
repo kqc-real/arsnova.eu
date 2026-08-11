@@ -1018,7 +1018,9 @@ async function selectMatOption(
   optionText,
   nextFormFieldLocator = null,
   selectionAlreadyOpen = false,
+  exerciseSameRowReopenRace = false,
 ) {
+  const select = formFieldLocator.locator('mat-select');
   if (!selectionAlreadyOpen) {
     await formFieldLocator.tap();
   }
@@ -1033,6 +1035,11 @@ async function selectMatOption(
     .first();
   await option.waitFor({ state: 'visible', timeout: 8_000 });
   await option.tap();
+  if (exerciseSameRowReopenRace) {
+    // Reproduce the delayed synthetic click that touch browsers can deliver to the
+    // original control while Material is still detaching its overlay.
+    await select.dispatchEvent('click');
+  }
   await page.locator('.mat-mdc-select-panel').waitFor({ state: 'hidden', timeout: 8_000 });
   await page.locator('.cdk-overlay-backdrop').waitFor({ state: 'hidden', timeout: 8_000 });
 
@@ -1103,6 +1110,7 @@ async function runMatchingFlow(
       rightLabels[wrongPairs[index].rightId],
       index === 0 ? fields.nth(1) : null,
       index === 1,
+      index === 0,
     );
   }
 
@@ -1261,6 +1269,7 @@ async function runCategorizationFlow(
       categories[wrongSelections[index].categoryId],
       index === 0 ? fields.nth(1) : null,
       index === 1,
+      index === 0,
     );
   }
 
