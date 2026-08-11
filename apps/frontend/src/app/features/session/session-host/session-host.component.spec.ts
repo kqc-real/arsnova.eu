@@ -3857,6 +3857,51 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('stellt den laufenden Countdown nach einem fehlgeschlagenen Skip wieder her', async () => {
+    const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    const activeAt = new Date(Date.now() - 3000).toISOString();
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          status: 'ACTIVE',
+          currentQuestion: 0,
+          currentRound: 1,
+          activeAt,
+          timer: 30,
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 0,
+      totalQuestions: 2,
+      text: 'Aktuelle Frage',
+      type: 'SINGLE_CHOICE',
+      timer: 30,
+      answers: [],
+      totalVotes: 0,
+    });
+    skipQuestionMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const beforeSkip = fixture.componentInstance.countdownSeconds();
+    expect(beforeSkip).not.toBeNull();
+    expect(beforeSkip).toBeGreaterThan(0);
+
+    await fixture.componentInstance.skipQuestion();
+
+    expect(fixture.componentInstance.controlPending()).toBe(false);
+    expect(fixture.componentInstance.countdownSeconds()).not.toBeNull();
+    expect(fixture.componentInstance.countdownSeconds()).toBeGreaterThan(0);
+    expect(fixture.componentInstance.countdownSeconds()).toBeLessThanOrEqual(beforeSkip ?? 30);
+    fixture.destroy();
+  });
+
   it('unterscheidet in QUESTION_OPEN zwischen verbundenen und insgesamt teilnehmenden Personen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     getParticipantsQueryMock.mockResolvedValue({

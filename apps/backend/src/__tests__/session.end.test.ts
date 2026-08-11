@@ -13,6 +13,8 @@ const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = v
     bonusToken: {
       createMany: vi.fn(),
     },
+    $executeRaw: vi.fn(),
+    $transaction: vi.fn(),
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -62,6 +64,10 @@ describe('session.end', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
     prismaMock.session.update.mockResolvedValue({
       id: 'sess-1',
       status: 'FINISHED',
@@ -89,6 +95,14 @@ describe('session.end', () => {
 
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
     expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          lastSkippedQuestionId: null,
+          lastQuestionSkippedAt: null,
+        }),
+      }),
+    );
   });
 
   trpcDodIt(
@@ -136,8 +150,36 @@ describe('session.end', () => {
           ],
         }),
       );
+      expect(prismaMock.bonusToken.createMany.mock.invocationCallOrder[0]).toBeLessThan(
+        platformStatisticMocks.incrementCompletedSessionsTotal.mock.invocationCallOrder[0]!,
+      );
     },
   );
+
+  it('führt nach verlorenem End-/Skip-Race keine Abschluss-Nebenwirkungen erneut aus', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: 'sess-1' }).mockResolvedValueOnce({
+      id: 'sess-1',
+      status: 'FINISHED',
+      currentQuestion: null,
+      quiz: null,
+      participants: [],
+      bonusTokens: [],
+    });
+
+    await expect(caller.end({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Session ist bereits beendet.',
+    });
+
+    expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
+    expect(prismaMock.$executeRaw.mock.invocationCallOrder[0]!).toBeLessThan(
+      prismaMock.session.findUnique.mock.invocationCallOrder[1]!,
+    );
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+    expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
+    expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
+    expect(loadSignalMocks.recordSessionTransitionActivity).not.toHaveBeenCalled();
+  });
 });
 
 trpcDodIt(

@@ -330,6 +330,13 @@ jobs:
           RUN_PG_CLEANUP_TESTS: '1'
         run: npx vitest run src/__tests__/sessionCleanup.orphan-scope.pg.test.ts
 
+      - name: Session finalization PostgreSQL race regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_PG_SESSION_RACE_TESTS: '1'
+        run: npx vitest run src/__tests__/session.finalization-race.pg.test.ts
+
   # ─── Build & Validate ────────────────────────────────────────────────────────
   build:
     name: Build & Validate (Node ${{ matrix.node-version }})
