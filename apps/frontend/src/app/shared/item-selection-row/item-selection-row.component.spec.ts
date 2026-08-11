@@ -2,7 +2,10 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatSelect } from '@angular/material/select';
 import { By } from '@angular/platform-browser';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {
+  BrowserAnimationsModule,
+  NoopAnimationsModule,
+} from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemSelectionRowComponent } from './item-selection-row.component';
 
@@ -104,6 +107,43 @@ describe('ItemSelectionRowComponent', () => {
     await fixture.whenStable();
 
     expect(selects[1].panelOpen).toBe(true);
+  });
+
+  it('schließt dieselbe Auswahl erneut, wenn ein Folgeklick die Ausblendphase unterbricht', async () => {
+    TestBed.configureTestingModule({ imports: [BrowserAnimationsModule] });
+    const fixture = TestBed.createComponent(ItemSelectionRowTestHostComponent);
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const selectElement = (fixture.nativeElement as HTMLElement).querySelector(
+      'mat-select',
+    ) as HTMLElement;
+
+    selectElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(select.panelOpen).toBe(true);
+
+    (document.querySelector('mat-option') as HTMLElement).click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(select.panelOpen).toBe(false);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeTruthy();
+
+    selectElement.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(select.panelOpen).toBe(false);
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(document.querySelector('.cdk-overlay-backdrop')).toBeNull();
+      },
+      { timeout: 1_000 },
+    );
   });
 
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {

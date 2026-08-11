@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, Output, inject } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
@@ -9,6 +9,8 @@ export interface ItemSelectionOption {
   text: string;
 }
 
+const SELECT_CLOSE_GUARD_MS = 250;
+
 @Component({
   selector: 'app-item-selection-row',
   standalone: true,
@@ -18,6 +20,9 @@ export interface ItemSelectionOption {
 })
 export class ItemSelectionRowComponent {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly destroyRef = inject(DestroyRef);
+  private selectionCloseGuardActive = false;
+  private selectionCloseGuardTimer: ReturnType<typeof setTimeout> | null = null;
 
   @Input({ required: true }) itemText = '';
   @Input({ required: true }) options: ItemSelectionOption[] = [];
@@ -26,6 +31,14 @@ export class ItemSelectionRowComponent {
   @Input({ required: true }) selectAriaLabel = '';
   @Input() disabled = false;
   @Output() readonly selectedIdChange = new EventEmitter<string>();
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.selectionCloseGuardTimer) {
+        clearTimeout(this.selectionCloseGuardTimer);
+      }
+    });
+  }
 
   selectedText(): string {
     return this.options.find((option) => option.id === this.selectedId)?.text ?? '';
@@ -39,17 +52,40 @@ export class ItemSelectionRowComponent {
 
   confirmSelection(selectedId: string, select: MatSelect): void {
     this.selectedIdChange.emit(selectedId);
+    this.closeSelectionWithReopenGuard(select);
+  }
 
-    // Run after Material's option handlers and the parent input update. This keeps the
-    // single-select overlay closed on touch devices even if that update reopens the panel.
-    queueMicrotask(() => select.close());
+  handleSelectionOpenedChange(opened: boolean, select: MatSelect): void {
+    if (opened && this.selectionCloseGuardActive) {
+      this.closeSelectionWithReopenGuard(select);
+    }
   }
 
   openSelectionFromField(event: MouseEvent, select: MatSelect): void {
     const target = event.target;
-    if (this.disabled || (target instanceof Element && target.closest('mat-select') !== null)) {
+    if (
+      this.disabled ||
+      this.selectionCloseGuardActive ||
+      (target instanceof Element && target.closest('mat-select') !== null)
+    ) {
       return;
     }
     select.open();
+  }
+
+  private closeSelectionWithReopenGuard(select: MatSelect): void {
+    this.selectionCloseGuardActive = true;
+    if (this.selectionCloseGuardTimer) {
+      clearTimeout(this.selectionCloseGuardTimer);
+    }
+
+    // Material detaches a closing select overlay asynchronously. A second touch-generated
+    // click during that window can reopen the same overlay and cancel its detach fallback.
+    // Keep closing only this row until the overlay's fallback window has elapsed.
+    queueMicrotask(() => select.close());
+    this.selectionCloseGuardTimer = setTimeout(() => {
+      this.selectionCloseGuardActive = false;
+      this.selectionCloseGuardTimer = null;
+    }, SELECT_CLOSE_GUARD_MS);
   }
 }

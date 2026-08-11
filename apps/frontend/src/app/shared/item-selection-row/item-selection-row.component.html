@@ -12,6 +12,7 @@
       [aria-label]="selectAriaLabel"
       [disabled]="disabled"
       (selectionChange)="confirmSelection($event.value, selectionControl)"
+      (openedChange)="handleSelectionOpenedChange($event, selectionControl)"
     >
       <mat-select-trigger>
         <span class="markdown-body" [innerHTML]="renderMarkdown(selectedText())"></span>
