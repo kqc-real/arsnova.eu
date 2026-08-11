@@ -1019,9 +1019,8 @@ async function selectMatOption(
   nextFormFieldLocator = null,
   selectionAlreadyOpen = false,
 ) {
-  const select = formFieldLocator.locator('mat-select');
   if (!selectionAlreadyOpen) {
-    await select.click();
+    await formFieldLocator.tap();
   }
   const needle = String(optionText || '').trim();
   const option = page
@@ -1033,13 +1032,12 @@ async function selectMatOption(
     })
     .first();
   await option.waitFor({ state: 'visible', timeout: 8_000 });
-  await option.click();
+  await option.tap();
   await page.locator('.mat-mdc-select-panel').waitFor({ state: 'hidden', timeout: 8_000 });
   await page.locator('.cdk-overlay-backdrop').waitFor({ state: 'hidden', timeout: 8_000 });
 
   if (nextFormFieldLocator) {
-    const nextSelect = nextFormFieldLocator.locator('mat-select');
-    await nextSelect.click({ timeout: 2_000 });
+    await nextFormFieldLocator.tap({ timeout: 2_000 });
     await page.locator('.mat-mdc-select-panel').waitFor({ state: 'visible', timeout: 2_000 });
   }
 }
@@ -1510,7 +1508,11 @@ async function main() {
       { sessionCode: code, token: hostToken, prefix: HOST_TOKEN_STORAGE_PREFIX },
     );
 
-    const participantContext = await browser.newContext({ viewport: MOBILE });
+    const participantContext = await browser.newContext({
+      viewport: MOBILE,
+      hasTouch: true,
+      isMobile: true,
+    });
     const host = await hostContext.newPage();
     const participant = await participantContext.newPage();
 

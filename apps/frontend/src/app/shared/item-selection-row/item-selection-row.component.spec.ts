@@ -106,6 +106,37 @@ describe('ItemSelectionRowComponent', () => {
     expect(selects[1].panelOpen).toBe(true);
   });
 
+  it('schließt dieselbe Auswahl erneut, wenn ein Folgeklick die Ausblendphase unterbricht', async () => {
+    TestBed.configureTestingModule({ imports: [NoopAnimationsModule] });
+    const fixture = TestBed.createComponent(ItemSelectionRowTestHostComponent);
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const selectElement = (fixture.nativeElement as HTMLElement).querySelector(
+      'mat-select',
+    ) as HTMLElement;
+
+    selectElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(select.panelOpen).toBe(true);
+
+    (document.querySelector('mat-option') as HTMLElement).click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(select.panelOpen).toBe(false);
+
+    selectElement.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(select.panelOpen).toBe(false);
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeNull();
+  });
+
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {
     const fixture = TestBed.createComponent(ItemSelectionRowComponent);
     fixture.componentRef.setInput('itemText', 'Element');
