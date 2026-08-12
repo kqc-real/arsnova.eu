@@ -13386,6 +13386,14 @@
           <context context-type="linenumber">783</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizPreview.saveError" datatype="html">
+        <source>Änderungen konnten nicht gespeichert werden.</source>
+        <target>Changes could not be saved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">893</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizPreview.saveConfirmation" datatype="html">
         <source>Gespeichert. Deine Änderungen sind jetzt in der Vorschau und im Live-Quiz übernommen.</source>
         <target>Saved. Your changes are now applied in the preview and live quiz.</target>
@@ -21192,6 +21200,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/confirm-leave-dialog/confirm-unsaved-changes.ts</context>
           <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.unsavedChanges.saveAll" datatype="html">
+        <source>Alle Änderungen speichern</source>
+        <target>Save all changes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/confirm-leave-dialog/confirm-unsaved-changes.ts</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="connectionBanner.reconnecting" datatype="html">

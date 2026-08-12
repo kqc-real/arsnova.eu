@@ -2554,7 +2554,9 @@ export class QuizEditComponent implements OnDestroy {
   private async confirmDiscardPendingChangesIfNeeded(): Promise<boolean> {
     if (!this.hasPendingChanges()) return true;
     if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
-    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog, () =>
+      this.saveAll(),
+    ).finally(() => {
       this.confirmDiscardInFlight = null;
     });
     return this.confirmDiscardInFlight;

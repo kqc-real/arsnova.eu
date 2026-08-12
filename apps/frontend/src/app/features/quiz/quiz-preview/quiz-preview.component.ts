@@ -30,6 +30,7 @@ import {
   DEFAULT_TIMER_SECONDS,
   SHORT_TEXT_DEFAULT_EVALUATION_MODE,
   SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+  questionSupportsConfidence,
   resolveShortTextMaxLength,
   resolveEffectiveQuestionTimer,
   type CreateSessionOutput,
@@ -491,9 +492,12 @@ export class QuizPreviewComponent implements OnDestroy {
     this.focusEditActionAfterInlineClose();
   }
 
-  finishInlineEditMode(): void {
-    this.commitInlineEdits();
-    this.focusEditActionAfterInlineClose();
+  finishInlineEditMode(): boolean {
+    const saved = this.commitInlineEdits();
+    if (saved) {
+      this.focusEditActionAfterInlineClose();
+    }
+    return saved;
   }
 
   /**
@@ -503,14 +507,18 @@ export class QuizPreviewComponent implements OnDestroy {
   private async prepareLeaveInlineEdit(): Promise<boolean> {
     if (!this.inlineEditMode()) return true;
     if (!(await this.confirmDiscardUnsavedIfNeeded())) return false;
-    this.cancelInlineEditMode();
+    if (this.inlineEditMode()) {
+      this.cancelInlineEditMode();
+    }
     return true;
   }
 
   private async confirmDiscardUnsavedIfNeeded(): Promise<boolean> {
     if (!this.inlineEditHasChanges()) return true;
     if (this.confirmDiscardInFlight) return this.confirmDiscardInFlight;
-    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog).finally(() => {
+    this.confirmDiscardInFlight = confirmDiscardUnsavedChanges(this.dialog, () =>
+      this.finishInlineEditMode(),
+    ).finally(() => {
       this.confirmDiscardInFlight = null;
     });
     return this.confirmDiscardInFlight;
@@ -864,29 +872,41 @@ export class QuizPreviewComponent implements OnDestroy {
     }));
 
     this.quizStore.updateQuestion(this.id, question.id, {
+      ...this.toQuestionInput(question),
       text: this.questionDraftText(),
-      type: question.type,
-      difficulty: question.difficulty,
       timer: this.inlineQuestionTimerDraft(),
       answers,
       skipReadingPhase: this.inlineSkipReadingPhaseDraft(),
-      ratingMin: question.ratingMin,
-      ratingMax: question.ratingMax,
-      ratingLabelMin: question.ratingLabelMin,
-      ratingLabelMax: question.ratingLabelMax,
     });
   }
 
-  private commitInlineEdits(): void {
-    if (!this.inlineEditMode()) return;
+  private commitInlineEdits(): boolean {
+    if (!this.inlineEditMode()) return true;
     const shouldShowSaveConfirmation = this.inlineEditHasChanges();
     if (shouldShowSaveConfirmation) {
-      this.persistInlineEditsNow();
+      try {
+        this.persistInlineEditsNow();
+      } catch (error) {
+        this.snackBar.open(
+          localizeKnownServerError(
+            error,
+            $localize`:@@quizPreview.saveError:Änderungen konnten nicht gespeichert werden.`,
+          ),
+          '',
+          {
+            duration: 8000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          },
+        );
+        return false;
+      }
     }
     this.resetInlineEditState();
     if (shouldShowSaveConfirmation) {
       this.showSaveConfirmation();
     }
+    return true;
   }
 
   private showSaveConfirmation(): void {
@@ -974,11 +994,73 @@ export class QuizPreviewComponent implements OnDestroy {
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
-      skipReadingPhase: question.skipReadingPhase,
-      ratingMin: question.ratingMin,
-      ratingMax: question.ratingMax,
-      ratingLabelMin: question.ratingLabelMin,
-      ratingLabelMax: question.ratingLabelMax,
+      skipReadingPhase: question.skipReadingPhase ?? false,
+      ...(question.type === 'RATING'
+        ? {
+            ratingMin: question.ratingMin ?? 1,
+            ratingMax: question.ratingMax ?? 5,
+            ratingLabelMin: question.ratingLabelMin ?? '',
+            ratingLabelMax: question.ratingLabelMax ?? '',
+          }
+        : {}),
+      ...(question.type === 'SHORT_TEXT'
+        ? {
+            shortTextEvaluationKind: question.shortTextEvaluationKind,
+            shortTextMaxLength: question.shortTextMaxLength,
+            shortTextCaseSensitive: question.shortTextCaseSensitive,
+            shortTextEvaluationMode: question.shortTextEvaluationMode,
+            shortTextToleranceLevel: question.shortTextToleranceLevel,
+            shortTextAllowPartialCredit: question.shortTextAllowPartialCredit,
+            shortTextTrimWhitespace: question.shortTextTrimWhitespace,
+            shortTextNormalizeWhitespace: question.shortTextNormalizeWhitespace,
+            numericInputKind: question.numericInputKind,
+            numericToleranceMode: question.numericToleranceMode,
+            numericAbsoluteTolerance: question.numericAbsoluteTolerance,
+            numericRelativeTolerancePercent: question.numericRelativeTolerancePercent,
+            numericUnitFamily: question.numericUnitFamily,
+            numericRequireUnit: question.numericRequireUnit,
+            numericAcceptEquivalentUnits: question.numericAcceptEquivalentUnits,
+          }
+        : {}),
+      ...(question.type === 'NUMERIC_ESTIMATE'
+        ? {
+            numericToleranceMode: question.numericToleranceMode,
+            numericReferenceValue: question.numericReferenceValue,
+            numericTolerancePercent: question.numericTolerancePercent,
+            numericIntervalLeft: question.numericIntervalLeft,
+            numericIntervalRight: question.numericIntervalRight,
+            numericInputType: question.numericInputType,
+            numericDecimalPlaces: question.numericDecimalPlaces,
+            numericMin: question.numericMin,
+            numericMax: question.numericMax,
+            numericTwoRounds: question.numericTwoRounds,
+          }
+        : {}),
+      ...(question.type === 'MATCHING'
+        ? {
+            matchingPairs: question.matchingPairs?.map((pair) => ({ ...pair })) ?? [],
+            matchingShuffleRight: question.matchingShuffleRight ?? true,
+          }
+        : {}),
+      ...(question.type === 'ORDERING'
+        ? {
+            orderingItems: question.orderingItems?.map((item) => ({ ...item })) ?? [],
+          }
+        : {}),
+      ...(question.type === 'CATEGORIZATION'
+        ? {
+            categories: question.categories?.map((category) => ({ ...category })) ?? [],
+            categorizationItems: question.categorizationItems?.map((item) => ({ ...item })) ?? [],
+            categorizationShuffleItems: question.categorizationShuffleItems ?? true,
+          }
+        : {}),
+      ...(questionSupportsConfidence(question.type)
+        ? {
+            confidenceEnabled: question.confidenceEnabled ?? false,
+            confidenceLabelLow: question.confidenceLabelLow ?? null,
+            confidenceLabelHigh: question.confidenceLabelHigh ?? null,
+          }
+        : {}),
     };
   }
 

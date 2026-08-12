@@ -12,6 +12,18 @@
   line-height: 1.7;
 }
 
+.confirm-leave__actions--with-save {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding-inline: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+
+  .mat-mdc-button-base {
+    width: 100%;
+  }
+}
+
 @media (max-width: 28rem) {
   mat-dialog-actions {
     flex-direction: column-reverse;
