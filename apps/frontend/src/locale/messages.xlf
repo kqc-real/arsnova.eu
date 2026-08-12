@@ -13437,6 +13437,13 @@
           <context context-type="linenumber">4025</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.revealAnswerOptionsAria" datatype="html">
+        <source>Antwortoptionen freigeben</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4067</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptionsCompact" datatype="html">
         <source>Antwortoptionen</source>
         <context-group purpose="location">

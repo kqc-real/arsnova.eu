@@ -371,7 +371,7 @@ describe('HomeComponent', () => {
       expect(scss).not.toContain('mat-button-toggle:focus-within');
     });
 
-    it('stapelt die Preset-Buttons bei 320 px, ohne ihre Labels umzubrechen', async () => {
+    it('lässt die Preset-Buttons abhängig von ihrer Inhaltsbreite umbrechen', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
@@ -379,12 +379,9 @@ describe('HomeComponent', () => {
       const scss = readFileSync(scssPath, 'utf8');
 
       expect(scss).toMatch(/home-preset-option\s*\{[\s\S]*?white-space:\s*nowrap/);
-      expect(scss).toMatch(
-        /@media \(max-width: 359px\)\s*\{[\s\S]*?home-hero-preset-toggle\s*\{\s*flex-direction:\s*column/,
-      );
-      expect(scss).toMatch(
-        /home-hero-preset-toggle__btn \+ \.home-hero-preset-toggle__btn\s*\{[\s\S]*?border-top:[\s\S]*?border-left:\s*0/,
-      );
+      expect(scss).toMatch(/\.home-hero-preset-toggle\s*\{[^}]*flex-wrap:\s*wrap/);
+      expect(scss).toMatch(/\.home-hero-preset-toggle__btn\s*\{[^}]*flex:\s*1 0 max-content/);
+      expect(scss).not.toContain('@media (max-width: 359px)');
     });
   });
 

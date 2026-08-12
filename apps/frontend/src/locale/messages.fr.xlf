@@ -15123,6 +15123,14 @@
           <context context-type="linenumber">3998</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.revealAnswerOptionsAria" datatype="html">
+        <source>Antwortoptionen freigeben</source>
+        <target>Afficher les options de réponse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4067</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptionsCompact" datatype="html">
         <source>Antwortoptionen</source>
         <target>Réponses</target>
@@ -15225,7 +15233,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.prevQuestionAnchorCompact" datatype="html">
         <source>Letztes Ergebnis</source>
-        <target>Résultat</target>
+        <target>Précédent</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4018</context>

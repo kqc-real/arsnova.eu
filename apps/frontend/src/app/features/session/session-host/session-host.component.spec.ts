@@ -3366,11 +3366,16 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(buttonTexts).toEqual([
       'Session beenden',
       'skip_nextFrage auslassen',
-      'Ergebnis trotzdem zeigen',
       'Diskussionsphase',
+      'Ergebnis trotzdem zeigen',
     ]);
-    const buttons = Array.from(exitAnchor.querySelectorAll('button'));
-    expect(buttons.at(-1)?.className).toContain('session-host__exit-anchor-button--primary');
+    const actionPairButtons = Array.from(
+      exitAnchor.querySelectorAll('.session-host__exit-anchor-action-pair button'),
+    );
+    expect(actionPairButtons[0]?.className).toContain('session-host__exit-anchor-button--primary');
+    expect(actionPairButtons[1]?.className).toContain(
+      'session-host__exit-anchor-button--paired-secondary',
+    );
     fixture.destroy();
   });
 
@@ -3718,6 +3723,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       exitAnchor.querySelector('.session-host__exit-anchor-label--reveal-options-compact')
         ?.textContent,
     ).toBe('Antwortoptionen');
+    expect(
+      exitAnchor
+        .querySelector('.session-host__exit-anchor-button--reveal-options')
+        ?.getAttribute('aria-label'),
+    ).toBe('Antwortoptionen freigeben');
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
   });
@@ -6295,17 +6305,17 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('hält die kompakten Portrait-Labels in allen Übersetzungen kurz und einzeilig', async () => {
+  it('hält die kompakten Portrait-Labels kurz, semantisch und bei Vergrößerung umbrechbar', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const { dirname, join } = await import('node:path');
     const componentDir = dirname(fileURLToPath(import.meta.url));
     const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
     const translations = new Map([
-      ['messages.en.xlf', 'Last result'],
-      ['messages.fr.xlf', 'Résultat'],
-      ['messages.es.xlf', 'Resultado'],
-      ['messages.it.xlf', 'Risultato'],
+      ['messages.en.xlf', 'Previous'],
+      ['messages.fr.xlf', 'Précédent'],
+      ['messages.es.xlf', 'Anterior'],
+      ['messages.it.xlf', 'Precedente'],
     ]);
     const revealTranslations = new Map([
       ['messages.en.xlf', 'Options'],
@@ -6313,9 +6323,21 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       ['messages.es.xlf', 'Opciones'],
       ['messages.it.xlf', 'Opzioni'],
     ]);
+    const revealAriaTranslations = new Map([
+      ['messages.en.xlf', 'Reveal answer options'],
+      ['messages.fr.xlf', 'Afficher les options de réponse'],
+      ['messages.es.xlf', 'Mostrar opciones de respuesta'],
+      ['messages.it.xlf', 'Mostra opzioni di risposta'],
+    ]);
 
     expect(styles).toMatch(
-      /session-host__exit-anchor-label--previous-compact,\s*\.session-host__exit-anchor-label--reveal-options-compact\s*\{[\s\S]*?white-space:\s*nowrap/,
+      /@media \(max-width: 599px\) and \(orientation: portrait\)[\s\S]*?session-host__exit-anchor-label--previous-compact,\s*\.session-host__exit-anchor-label--reveal-options-compact\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere[^}]*hyphens:\s*auto/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--paired-secondary\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*1/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--primary\s*\{[^}]*grid-column:\s*2[^}]*grid-row:\s*1/,
     );
 
     for (const [fileName, expectedLabel] of translations) {
@@ -6338,6 +6360,16 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(unitStart).toBeGreaterThanOrEqual(0);
       expect(unit).toContain(`<target>${expectedLabel}</target>`);
       expect(expectedLabel.length).toBeLessThanOrEqual(8);
+    }
+
+    for (const [fileName, expectedLabel] of revealAriaTranslations) {
+      const catalog = readFileSync(join(componentDir, '../../../../locale', fileName), 'utf8');
+      const unitStart = catalog.indexOf('<trans-unit id="sessionHost.revealAnswerOptionsAria"');
+      const unitEnd = catalog.indexOf('</trans-unit>', unitStart);
+      const unit = catalog.slice(unitStart, unitEnd);
+
+      expect(unitStart).toBeGreaterThanOrEqual(0);
+      expect(unit).toContain(`<target>${expectedLabel}</target>`);
     }
   });
 
@@ -6451,11 +6483,16 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
       'Session beenden',
-      'Zur nächsten Frage ohne zweite Abstimmung',
       'Zweite Abstimmung',
+      'Zur nächsten Frage ohne zweite Abstimmung',
     ]);
-    const buttons = Array.from(exitAnchor.querySelectorAll('button'));
-    expect(buttons.at(-1)?.className).toContain('session-host__exit-anchor-button--primary');
+    const actionPairButtons = Array.from(
+      exitAnchor.querySelectorAll('.session-host__exit-anchor-action-pair button'),
+    );
+    expect(actionPairButtons[0]?.className).toContain('session-host__exit-anchor-button--primary');
+    expect(actionPairButtons[1]?.className).toContain(
+      'session-host__exit-anchor-button--paired-secondary',
+    );
     fixture.destroy();
   });
 

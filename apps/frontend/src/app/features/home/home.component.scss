@@ -214,6 +214,7 @@
 
 .home-hero-preset-toggle {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   max-width: 20rem;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -222,7 +223,7 @@
 }
 
 .home-hero-preset-toggle__btn {
-  flex: 1;
+  flex: 1 0 max-content;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -259,22 +260,6 @@
   align-items: center;
   gap: 0.5rem;
   white-space: nowrap;
-}
-
-@media (max-width: 359px) {
-  .home-hero-preset-toggle {
-    flex-direction: column;
-  }
-
-  .home-hero-preset-toggle__btn {
-    flex: 0 0 auto;
-    width: 100%;
-  }
-
-  .home-hero-preset-toggle__btn + .home-hero-preset-toggle__btn {
-    border-top: 1px solid var(--mat-sys-outline-variant);
-    border-left: 0;
-  }
 }
 
 /* Hero + USP + Preset (mobil): eine Grid-Zeile, damit Layout und Preset-Bühne steuerbar bleiben */
