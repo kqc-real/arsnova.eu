@@ -20961,9 +20961,9 @@
           <context context-type="linenumber">4417</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionVote.matchingSwappedAnnouncement" datatype="html">
-        <source>Die Zuordnungen für „<x id="firstItem" equiv-text="currentSelection.leftText"/>“ und „<x id="secondItem" equiv-text="conflictingSelection.leftText"/>“ wurden getauscht.</source>
-        <target>Les affectations de « <x id="firstItem" equiv-text="currentSelection.leftText"/> » et « <x id="secondItem" equiv-text="conflictingSelection.leftText"/> » ont été permutées.</target>
+      <trans-unit id="sessionVote.matchingConflictClearedAnnouncement" datatype="html">
+        <source>Die bisherige Zuordnung für „<x id="previousItem" equiv-text="conflictingSelection.leftText"/>“ wurde entfernt.</source>
+        <target>L’affectation précédente de « <x id="previousItem" equiv-text="conflictingSelection.leftText"/> » a été supprimée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">4438</context>

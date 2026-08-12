@@ -1147,15 +1147,54 @@ async function runMatchingFlow(
   await selectMatOption(participant, fields.nth(1), rightLabels[wrongPairs[1].rightId], null, true);
   logStep(true, 'Participant MATCHING completed-answer reselection stays responsive');
 
-  for (let index = 0; index < pairs.length; index += 1) {
+  await selectMatOption(
+    participant,
+    fields.nth(0),
+    rightLabels[pairs[0].rightId],
+    fields.nth(1),
+    false,
+    true,
+  );
+  const doneAfterConflict = await participant
+    .locator('.vote-matching__list .item-selection-row--done')
+    .count();
+  const progressAfterConflict = await waitForText(
+    participant,
+    new RegExp(
+      `${pairCount - 1} von ${pairCount} zugeordnet|${pairCount - 1} of ${pairCount}`,
+      'i',
+    ),
+    5_000,
+  );
+  if (doneAfterConflict !== pairCount - 1 || !progressAfterConflict) {
+    hardFailures.push(
+      `MATCHING reassignment did not clear the previous owner: ${doneAfterConflict}/${pairCount} rows remain assigned.`,
+    );
+    logStep(false, 'Participant MATCHING reassignment clears previous owner');
+  } else {
+    logStep(true, 'Participant MATCHING reassignment clears previous owner');
+  }
+
+  for (let index = 1; index < pairs.length; index += 1) {
     await selectMatOption(
       participant,
       fields.nth(index),
       rightLabels[pairs[index].rightId],
       index < pairs.length - 1 ? fields.nth(index + 1) : null,
-      index > 0,
+      index === 1,
       true,
     );
+  }
+  const doneAfterAllChanges = await participant
+    .locator('.vote-matching__list .item-selection-row--done')
+    .count();
+  if (doneAfterAllChanges !== pairCount) {
+    hardFailures.push(
+      `MATCHING did not return to a complete one-to-one assignment: ${doneAfterAllChanges}/${pairCount}.`,
+    );
+    logStep(false, 'Participant MATCHING all changed assignments complete');
+  } else {
+    logStep(true, 'Participant MATCHING all changed assignments complete');
   }
   logStep(true, 'Participant MATCHING changes every completed assignment responsively');
 
