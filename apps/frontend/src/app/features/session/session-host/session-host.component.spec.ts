@@ -13,6 +13,7 @@ import {
 import { SessionHostComponent } from './session-host.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
+import { resetServerClockSkew } from '../session-server-clock';
 
 const unsubscribeMock = vi.fn();
 
@@ -286,6 +287,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    resetServerClockSkew();
     vi.stubGlobal('crypto', {
       randomUUID: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
       subtle: {
@@ -3859,8 +3861,19 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
   it('stellt den laufenden Countdown nach einem fehlgeschlagenen Skip wieder her', async () => {
     const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
-    const activeAt = new Date(Date.now() - 3000).toISOString();
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    const serverTime = new Date().toISOString();
+    const activeAt = new Date(Date.parse(serverTime) - 3000).toISOString();
+    healthCheckQueryMock.mockResolvedValue({
+      status: 'ok',
+      timestamp: serverTime,
+      version: '0.1.0',
+      redis: 'ok',
+    });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      serverTime,
+    });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         opts.onData({
