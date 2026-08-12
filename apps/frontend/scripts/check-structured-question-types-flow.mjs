@@ -1136,6 +1136,29 @@ async function runMatchingFlow(
     logStep(true, 'Participant MATCHING done state');
   }
 
+  await selectMatOption(
+    participant,
+    fields.nth(0),
+    rightLabels[wrongPairs[0].rightId],
+    fields.nth(1),
+    false,
+    true,
+  );
+  await selectMatOption(participant, fields.nth(1), rightLabels[wrongPairs[1].rightId], null, true);
+  logStep(true, 'Participant MATCHING completed-answer reselection stays responsive');
+
+  for (let index = 0; index < pairs.length; index += 1) {
+    await selectMatOption(
+      participant,
+      fields.nth(index),
+      rightLabels[pairs[index].rightId],
+      index < pairs.length - 1 ? fields.nth(index + 1) : null,
+      index > 0,
+      true,
+    );
+  }
+  logStep(true, 'Participant MATCHING changes every completed assignment responsively');
+
   if (
     !(await submitPeerInstructionWindowShadowVotes(
       host,
@@ -1284,6 +1307,35 @@ async function runCategorizationFlow(
   } else {
     logStep(true, 'Participant CATEGORIZATION progress complete');
   }
+
+  await selectMatOption(
+    participant,
+    fields.nth(0),
+    categories[wrongSelections[0].categoryId],
+    fields.nth(1),
+    false,
+    true,
+  );
+  await selectMatOption(
+    participant,
+    fields.nth(1),
+    categories[wrongSelections[1].categoryId],
+    null,
+    true,
+  );
+  logStep(true, 'Participant CATEGORIZATION completed-answer reselection stays responsive');
+
+  for (let index = 0; index < questionMeta.categorizationItems.length; index += 1) {
+    await selectMatOption(
+      participant,
+      fields.nth(index),
+      categories[questionMeta.categorizationItems[index].correctCategoryId],
+      index < questionMeta.categorizationItems.length - 1 ? fields.nth(index + 1) : null,
+      index > 0,
+      true,
+    );
+  }
+  logStep(true, 'Participant CATEGORIZATION changes every completed assignment responsively');
 
   if (
     !(await submitPeerInstructionWindowShadowVotes(
