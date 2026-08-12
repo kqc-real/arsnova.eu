@@ -261,6 +261,22 @@
   white-space: nowrap;
 }
 
+@media (max-width: 359px) {
+  .home-hero-preset-toggle {
+    flex-direction: column;
+  }
+
+  .home-hero-preset-toggle__btn {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .home-hero-preset-toggle__btn + .home-hero-preset-toggle__btn {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    border-left: 0;
+  }
+}
+
 /* Hero + USP + Preset (mobil): eine Grid-Zeile, damit Layout und Preset-Bühne steuerbar bleiben */
 .home-hero-band {
   display: flex;

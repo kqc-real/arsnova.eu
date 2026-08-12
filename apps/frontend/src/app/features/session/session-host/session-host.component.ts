@@ -2675,6 +2675,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   onExitAnchorWheel(event: WheelEvent): void {
+    if (event.ctrlKey) {
+      return;
+    }
+
     const scrollContainer = this.document.getElementById('main-content');
     if (!scrollContainer || event.deltaY === 0) {
       return;

@@ -4060,11 +4060,20 @@
             mat-flat-button
             color="primary"
             type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary session-host__exit-anchor-button--reveal-options"
             [disabled]="controlPending()"
             (click)="revealAnswers()"
           >
-            <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
+            <span
+              class="session-host__exit-anchor-label session-host__exit-anchor-label--reveal-options-full"
+              i18n="@@sessionHost.revealAnswerOptions"
+              >Antwortoptionen freigeben</span
+            >
+            <span
+              class="session-host__exit-anchor-label session-host__exit-anchor-label--reveal-options-compact"
+              i18n="@@sessionHost.revealAnswerOptionsCompact"
+              >Antwortoptionen</span
+            >
           </button>
         }
         @if (
@@ -4087,46 +4096,50 @@
             </p>
           }
           @if (shouldOfferDiscussionPhase(displayedCurrentQuestionForHost())) {
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
-              [disabled]="controlPending() || personalTimerBlocksReveal()"
-              [attr.aria-describedby]="
-                pendingTimerAccommodationCount() > 0
-                  ? 'session-host-timer-accommodation-status'
-                  : null
-              "
-              (click)="startDiscussion()"
-              i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-              aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-            >
-              <mat-icon aria-hidden="true">groups</mat-icon>
-              <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-            </button>
-            <button
-              matButton="tonal"
-              type="button"
-              class="session-host__exit-anchor-button"
-              [disabled]="controlPending() || personalTimerBlocksReveal()"
-              [attr.aria-describedby]="
-                pendingTimerAccommodationCount() > 0
-                  ? 'session-host-timer-accommodation-status'
-                  : null
-              "
-              (click)="revealResults()"
-            >
-              @if (canForceClosePersonalTimers()) {
-                <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
-              } @else if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
-                <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
-                  >Ergebnis trotzdem zeigen</span
-                >
-              } @else {
-                <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
-              }
-            </button>
+            <div class="session-host__exit-anchor-action-pair">
+              <button
+                matButton="tonal"
+                type="button"
+                class="session-host__exit-anchor-button"
+                [disabled]="controlPending() || personalTimerBlocksReveal()"
+                [attr.aria-describedby]="
+                  pendingTimerAccommodationCount() > 0
+                    ? 'session-host-timer-accommodation-status'
+                    : null
+                "
+                (click)="revealResults()"
+              >
+                @if (canForceClosePersonalTimers()) {
+                  <span i18n="@@sessionHost.revealResultsForceClose">Trotzdem freigeben</span>
+                } @else if (
+                  shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())
+                ) {
+                  <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
+                    >Ergebnis trotzdem zeigen</span
+                  >
+                } @else {
+                  <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
+                }
+              </button>
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+                [disabled]="controlPending() || personalTimerBlocksReveal()"
+                [attr.aria-describedby]="
+                  pendingTimerAccommodationCount() > 0
+                    ? 'session-host-timer-accommodation-status'
+                    : null
+                "
+                (click)="startDiscussion()"
+                i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+                aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+              >
+                <mat-icon aria-hidden="true">groups</mat-icon>
+                <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+              </button>
+            </div>
           } @else {
             <button
               mat-flat-button
@@ -4165,30 +4178,32 @@
           </button>
         }
         @if (effectiveStatus() === 'DISCUSSION') {
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
-            [disabled]="controlPending()"
-            (click)="startSecondRound()"
-          >
-            <mat-icon aria-hidden="true">replay</mat-icon>
-            <span i18n>Zweite Abstimmung</span>
-          </button>
-          <button
-            matButton="tonal"
-            type="button"
-            class="session-host__exit-anchor-button"
-            [disabled]="controlPending()"
-            (click)="nextQuestion()"
-            i18n-aria-label="@@sessionHost.skipDiscussionNextQuestionAria"
-            aria-label="Zur nächsten Frage ohne zweite Abstimmung"
-          >
-            <span i18n="@@sessionHost.skipDiscussionNextQuestion"
-              >Zur nächsten Frage ohne zweite Abstimmung</span
+          <div class="session-host__exit-anchor-action-pair">
+            <button
+              matButton="tonal"
+              type="button"
+              class="session-host__exit-anchor-button"
+              [disabled]="controlPending()"
+              (click)="nextQuestion()"
+              i18n-aria-label="@@sessionHost.skipDiscussionNextQuestionAria"
+              aria-label="Zur nächsten Frage ohne zweite Abstimmung"
             >
-          </button>
+              <span i18n="@@sessionHost.skipDiscussionNextQuestion"
+                >Zur nächsten Frage ohne zweite Abstimmung</span
+              >
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+              [disabled]="controlPending()"
+              (click)="startSecondRound()"
+            >
+              <mat-icon aria-hidden="true">replay</mat-icon>
+              <span i18n>Zweite Abstimmung</span>
+            </button>
+          </div>
         }
       </div>
     }
