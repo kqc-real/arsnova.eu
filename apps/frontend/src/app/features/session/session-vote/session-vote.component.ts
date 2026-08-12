@@ -4445,7 +4445,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   setMatchingSelection(leftId: string, rightId: string): void {
     const currentSelections = this.matchingSelectionsState();
-    const currentSelection = currentSelections.find((selection) => selection.leftId === leftId);
     const conflictingSelection = currentSelections.find(
       (selection) => selection.leftId !== leftId && selection.rightId === rightId,
     );
@@ -4454,14 +4453,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return { ...selection, rightId };
       }
       if (conflictingSelection && selection.leftId === conflictingSelection.leftId) {
-        return { ...selection, rightId: currentSelection?.rightId ?? '' };
+        return { ...selection, rightId: '' };
       }
       return selection;
     });
     this.matchingSelectionsState.set(selections);
-    if (currentSelection?.rightId && conflictingSelection) {
+    if (conflictingSelection) {
       this.matchingAnnouncement.set(
-        $localize`:@@sessionVote.matchingSwappedAnnouncement:Die Zuordnungen für „${currentSelection.leftText}:firstItem:“ und „${conflictingSelection.leftText}:secondItem:“ wurden getauscht.`,
+        $localize`:@@sessionVote.matchingConflictClearedAnnouncement:Die bisherige Zuordnung für „${conflictingSelection.leftText}:previousItem:“ wurde entfernt.`,
       );
     } else {
       this.matchingAnnouncement.set('');

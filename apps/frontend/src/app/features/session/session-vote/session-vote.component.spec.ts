@@ -5361,7 +5361,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(template).not.toContain('<mat-icon>arrow_downward</mat-icon>');
   });
 
-  it('sendet Matching über stabile IDs und tauscht vollständig belegte Zuordnungen', async () => {
+  it('entfernt bei einer neuen Matching-Zuordnung die bereits belegte Stelle', async () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
     component.status.set('ACTIVE');
@@ -5403,9 +5403,24 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(component.matchingSelectionsState()).toEqual([
       { leftId: 'left-a', leftText: 'Gleicher Text', rightId: 'right-2' },
-      { leftId: 'left-b', leftText: 'Gleicher Text', rightId: 'right-1' },
+      { leftId: 'left-b', leftText: 'Gleicher Text', rightId: '' },
     ]);
-    expect(component.matchingAnnouncement()).toContain('wurden getauscht');
+    expect(component.matchingAnnouncement()).toContain('wurde entfernt');
+    expect(component.getMatchingRightOptionsForLeft('left-b').map((option) => option.id)).toEqual([
+      'right-1',
+    ]);
+
+    await component.submitVote();
+
+    expect(voteSubmitMutateMock).not.toHaveBeenCalled();
+    expect(component.voteError()).toContain('genau einen rechten Begriff');
+
+    component.setMatchingSelection('left-b', 'right-1');
+    (
+      component as unknown as {
+        lastVoteSubmitAt: number;
+      }
+    ).lastVoteSubmitAt = 0;
 
     await component.submitVote();
 
