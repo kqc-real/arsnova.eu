@@ -3981,7 +3981,48 @@
             !isQaSession() &&
             hasCurrentQuizQuestionForHost())
         "
+        (wheel)="onExitAnchorWheel($event)"
+        (touchstart)="onExitAnchorTouchStart($event)"
+        (touchmove)="onExitAnchorTouchMove($event)"
+        (touchend)="onExitAnchorTouchEnd()"
+        (touchcancel)="onExitAnchorTouchEnd()"
       >
+        <button
+          matButton="tonal"
+          type="button"
+          class="session-host__exit-anchor-button session-host__exit-anchor-button--end"
+          (click)="onSessionEndAnchorClick()"
+          i18n="@@sessionHost.endSessionAnchor"
+        >
+          Session beenden
+        </button>
+        @if (
+          (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&
+          !isFirstQuestion() &&
+          !steppedBackToPreviousResult()
+        ) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--previous"
+            [disabled]="controlPending()"
+            (click)="prevQuestion()"
+            i18n-matTooltip="@@sessionHost.prevQuestionTooltip"
+            matTooltip="Zeigt die letzte Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung)."
+            matTooltipTouchGestures="off"
+          >
+            <span
+              class="session-host__exit-anchor-label session-host__exit-anchor-label--previous-full"
+              i18n="@@sessionHost.prevQuestionAnchor"
+              >Letztes Ergebnis erneut anzeigen</span
+            >
+            <span
+              class="session-host__exit-anchor-label session-host__exit-anchor-label--previous-compact"
+              i18n="@@sessionHost.prevQuestionAnchorCompact"
+              >Letztes Ergebnis</span
+            >
+          </button>
+        }
         @if (showQuickFeedbackAnchorAction()) {
           <button
             mat-flat-button
@@ -4149,34 +4190,6 @@
             >
           </button>
         }
-        @if (
-          (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&
-          !isFirstQuestion() &&
-          !steppedBackToPreviousResult()
-        ) {
-          <button
-            matButton="tonal"
-            type="button"
-            class="session-host__exit-anchor-button"
-            [disabled]="controlPending()"
-            (click)="prevQuestion()"
-            i18n="@@sessionHost.prevQuestionAnchor"
-            i18n-matTooltip="@@sessionHost.prevQuestionTooltip"
-            matTooltip="Zeigt die letzte Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung)."
-            matTooltipTouchGestures="on"
-          >
-            Letztes Ergebnis erneut anzeigen
-          </button>
-        }
-        <button
-          matButton="tonal"
-          type="button"
-          class="session-host__exit-anchor-button"
-          (click)="onSessionEndAnchorClick()"
-          i18n="@@sessionHost.endSessionAnchor"
-        >
-          Session beenden
-        </button>
       </div>
     }
   } @else {

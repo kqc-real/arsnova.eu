@@ -258,6 +258,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
 }
 
 /* Hero + USP + Preset (mobil): eine Grid-Zeile, damit Layout und Preset-Bühne steuerbar bleiben */

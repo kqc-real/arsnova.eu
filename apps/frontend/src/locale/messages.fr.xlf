@@ -15215,6 +15215,14 @@
           <context context-type="linenumber">4139,4141</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.prevQuestionAnchorCompact" datatype="html">
+        <source>Letztes Ergebnis</source>
+        <target>Résultat précédent</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4018</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.endSessionAnchor" datatype="html">
         <source> Session beenden</source>
         <target>Terminer la session</target>
