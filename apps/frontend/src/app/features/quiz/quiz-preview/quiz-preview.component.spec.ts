@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { QuizPreviewComponent } from './quiz-preview.component';
-import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
+import { QuizStoreService, type QuizDocument, type QuizQuestion } from '../data/quiz-store.service';
 
 const { quizUploadMutationMock, sessionCreateMutationMock } = vi.hoisted(() => ({
   quizUploadMutationMock: vi.fn(),
@@ -178,7 +178,7 @@ describe('QuizPreviewComponent', () => {
   };
   const matDialogMock = {
     open: vi.fn(() => ({
-      afterClosed: () => of(true),
+      afterClosed: () => of<boolean | 'save'>(true),
     })),
   };
 
@@ -187,7 +187,7 @@ describe('QuizPreviewComponent', () => {
     quizUploadMutationMock.mockResolvedValue({ quizId: 'server-quiz-id' });
     matDialogMock.open.mockReset();
     matDialogMock.open.mockImplementation(() => ({
-      afterClosed: () => of(true),
+      afterClosed: () => of<boolean | 'save'>(true),
     }));
     TestBed.configureTestingModule({
       imports: [QuizPreviewComponent],
@@ -357,6 +357,225 @@ describe('QuizPreviewComponent', () => {
     );
   });
 
+  it('speichert per Klick auf die Preview-Actionbar ohne unpassende Rating-Felder', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.currentIndex.set(1);
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Per Actionbar gespeichert');
+    fixture.detectChanges();
+
+    const saveButton = Array.from<HTMLButtonElement>(
+      fixture.nativeElement.querySelectorAll('.quiz-preview-editor__actions button'),
+    ).find((button) => button.textContent?.includes('Speichern'));
+    expect(saveButton?.disabled).toBe(false);
+
+    saveButton?.click();
+
+    expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      'ef2d6b11-6389-4f2d-b9d7-9a6ad86ee91f',
+      expect.objectContaining({
+        text: 'Per Actionbar gespeichert',
+        type: 'SINGLE_CHOICE',
+      }),
+    );
+    const savedInput = mockStore.updateQuestion.mock.calls[0]?.[2] as Record<string, unknown>;
+    expect(savedInput).not.toHaveProperty('ratingMin');
+    expect(savedInput).not.toHaveProperty('ratingMax');
+    expect(component.inlineEditMode()).toBe(false);
+  });
+
+  it('bewahrt beim Preview-Speichern alle typabhaengigen Fragenfelder', () => {
+    const originalQuestion = quiz.questions[0]!;
+    const baseQuestion = (overrides: Partial<QuizQuestion>): QuizQuestion => ({
+      id: 'special-question',
+      text: 'Spezialfrage',
+      type: 'ORDERING',
+      difficulty: 'MEDIUM',
+      order: 0,
+      enabled: true,
+      timer: null,
+      answers: [],
+      ratingMin: null,
+      ratingMax: null,
+      ratingLabelMin: null,
+      ratingLabelMax: null,
+      ...overrides,
+    });
+    const cases: Array<{ question: QuizQuestion; expected: Record<string, unknown> }> = [
+      {
+        question: baseQuestion({
+          type: 'ORDERING',
+          orderingItems: [
+            { id: 'o1', text: 'Erstens' },
+            { id: 'o2', text: 'Zweitens' },
+            { id: 'o3', text: 'Drittens' },
+          ],
+        }),
+        expected: {
+          orderingItems: [
+            { id: 'o1', text: 'Erstens' },
+            { id: 'o2', text: 'Zweitens' },
+            { id: 'o3', text: 'Drittens' },
+          ],
+        },
+      },
+      {
+        question: baseQuestion({
+          type: 'MATCHING',
+          matchingPairs: [
+            { leftId: 'l1', left: 'A', rightId: 'r1', right: '1' },
+            { leftId: 'l2', left: 'B', rightId: 'r2', right: '2' },
+          ],
+          matchingShuffleRight: false,
+        }),
+        expected: {
+          matchingPairs: [
+            { leftId: 'l1', left: 'A', rightId: 'r1', right: '1' },
+            { leftId: 'l2', left: 'B', rightId: 'r2', right: '2' },
+          ],
+          matchingShuffleRight: false,
+        },
+      },
+      {
+        question: baseQuestion({
+          type: 'CATEGORIZATION',
+          categories: [
+            { id: 'c1', name: 'Links' },
+            { id: 'c2', name: 'Rechts' },
+          ],
+          categorizationItems: [
+            { id: 'i1', text: 'A', correctCategoryId: 'c1' },
+            { id: 'i2', text: 'B', correctCategoryId: 'c1' },
+            { id: 'i3', text: 'C', correctCategoryId: 'c2' },
+            { id: 'i4', text: 'D', correctCategoryId: 'c2' },
+          ],
+          categorizationShuffleItems: false,
+        }),
+        expected: {
+          categories: [
+            { id: 'c1', name: 'Links' },
+            { id: 'c2', name: 'Rechts' },
+          ],
+          categorizationItems: [
+            { id: 'i1', text: 'A', correctCategoryId: 'c1' },
+            { id: 'i2', text: 'B', correctCategoryId: 'c1' },
+            { id: 'i3', text: 'C', correctCategoryId: 'c2' },
+            { id: 'i4', text: 'D', correctCategoryId: 'c2' },
+          ],
+          categorizationShuffleItems: false,
+        },
+      },
+      {
+        question: baseQuestion({
+          type: 'SHORT_TEXT',
+          answers: [{ id: 'solution', text: '42 kg', isCorrect: true }],
+          shortTextEvaluationKind: 'numeric_unit',
+          shortTextMaxLength: 80,
+          numericInputKind: 'decimal',
+          numericToleranceMode: 'absolute',
+          numericAbsoluteTolerance: 0.5,
+          numericUnitFamily: 'mass',
+          numericRequireUnit: true,
+          numericAcceptEquivalentUnits: true,
+        }),
+        expected: {
+          shortTextEvaluationKind: 'numeric_unit',
+          shortTextMaxLength: 80,
+          numericInputKind: 'decimal',
+          numericToleranceMode: 'absolute',
+          numericAbsoluteTolerance: 0.5,
+          numericUnitFamily: 'mass',
+          numericRequireUnit: true,
+          numericAcceptEquivalentUnits: true,
+        },
+      },
+      {
+        question: baseQuestion({
+          type: 'NUMERIC_ESTIMATE',
+          numericToleranceMode: 'ABSOLUTE_INTERVAL',
+          numericReferenceValue: 42,
+          numericIntervalLeft: 40,
+          numericIntervalRight: 44,
+          numericInputType: 'DECIMAL',
+          numericDecimalPlaces: 1,
+          numericMin: 0,
+          numericMax: 100,
+          numericTwoRounds: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: 'Unsicher',
+          confidenceLabelHigh: 'Sicher',
+        }),
+        expected: {
+          numericToleranceMode: 'ABSOLUTE_INTERVAL',
+          numericReferenceValue: 42,
+          numericIntervalLeft: 40,
+          numericIntervalRight: 44,
+          numericInputType: 'DECIMAL',
+          numericDecimalPlaces: 1,
+          numericMin: 0,
+          numericMax: 100,
+          numericTwoRounds: true,
+          confidenceEnabled: true,
+          confidenceLabelLow: 'Unsicher',
+          confidenceLabelHigh: 'Sicher',
+        },
+      },
+    ];
+
+    try {
+      for (const testCase of cases) {
+        quiz.questions[0] = testCase.question;
+        mockStore.updateQuestion.mockClear();
+        const fixture = TestBed.createComponent(QuizPreviewComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.enterInlineEditMode();
+        component.onInlineQuestionTimerSecondsChange(90);
+        fixture.detectChanges();
+        const saveButton = Array.from<HTMLButtonElement>(
+          fixture.nativeElement.querySelectorAll('.quiz-preview-editor__actions button'),
+        ).find((button) => button.textContent?.includes('Speichern'));
+        saveButton?.click();
+
+        expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+          QUIZ_ID,
+          'special-question',
+          expect.objectContaining({ timer: 90, ...testCase.expected }),
+        );
+        expect(component.inlineEditMode()).toBe(false);
+        fixture.destroy();
+      }
+    } finally {
+      quiz.questions[0] = originalQuestion;
+    }
+  });
+
+  it('bleibt bei einem Preview-Speicherfehler im Editor und meldet den Fehler', () => {
+    mockStore.updateQuestion.mockImplementationOnce(() => {
+      throw new Error('Speichern abgelehnt.');
+    });
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Noch nicht gespeichert');
+
+    expect(component.finishInlineEditMode()).toBe(false);
+    expect(component.inlineEditMode()).toBe(true);
+    expect(component.inlineEditHasChanges()).toBe(true);
+    expect(snackBarMock.open).toHaveBeenCalledWith(
+      'Speichern abgelehnt.',
+      '',
+      expect.objectContaining({ duration: 8000 }),
+    );
+  });
+
   it('verwirft Inline-Aenderungen ohne Persistieren', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
@@ -508,6 +727,31 @@ describe('QuizPreviewComponent', () => {
     expect(component.inlineEditMode()).toBe(true);
     expect(component.inlineEditHasChanges()).toBe(true);
     expect(component.questionDraftText()).toBe('Neue Frage');
+  });
+
+  it('speichert alle Inline-Aenderungen aus dem Leave-Dialog vor der Navigation', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of<boolean | 'save'>('save'),
+    }));
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Gespeicherte Frage');
+    component.onInlineGlobalTimerEnabledChange(true);
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+
+    expect(matDialogMock.open.mock.calls[0]?.[1]?.data.saveLabel).toBe('Alle Änderungen speichern');
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(QUIZ_ID, { defaultTimer: 60 });
+    expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
+      expect.objectContaining({ text: 'Gespeicherte Frage' }),
+    );
+    expect(component.inlineEditMode()).toBe(false);
+    expect(component.inlineEditHasChanges()).toBe(false);
   });
 
   it('unterdrueckt beforeunload nach bestaetigtem Locale-Unload', () => {

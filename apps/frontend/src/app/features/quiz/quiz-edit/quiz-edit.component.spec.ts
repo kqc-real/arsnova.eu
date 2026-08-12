@@ -46,7 +46,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
   const matDialogMock = {
     open: vi.fn(() => ({
-      afterClosed: () => of(true),
+      afterClosed: () => of<boolean | 'save'>(true),
     })),
   };
   const snackBarMock = {
@@ -93,7 +93,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     mockStore.getQuizById.mockImplementation((id: string) => (id === QUIZ_ID ? quiz : null));
     matDialogMock.open.mockReset();
     matDialogMock.open.mockImplementation(() => ({
-      afterClosed: () => of(true),
+      afterClosed: () => of<boolean | 'save'>(true),
     }));
     snackBarMock.open.mockReset();
     TestBed.configureTestingModule({
@@ -484,6 +484,48 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     component.metadataForm.markAsDirty();
 
     await expect(component.canDeactivate()).resolves.toBe(false);
+  });
+
+  it('speichert alle Editor-Aenderungen aus dem Leave-Dialog vor der Navigation', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of<boolean | 'save'>('save'),
+    }));
+    mockStore.updateQuizMetadata.mockImplementation((_id, metadata) => {
+      Object.assign(quiz, metadata);
+      return quiz;
+    });
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('Gespeicherter Titel');
+
+    await expect(component.canDeactivate()).resolves.toBe(true);
+
+    expect(matDialogMock.open.mock.calls[0]?.[1]?.data.saveLabel).toBe('Alle Änderungen speichern');
+    expect(mockStore.updateQuizMetadata).toHaveBeenCalledWith(QUIZ_ID, {
+      name: 'Gespeicherter Titel',
+      description: 'Beschreibung',
+      motifImageUrl: null,
+    });
+    expect(component.hasPendingChanges()).toBe(false);
+  });
+
+  it('blockiert die Navigation wenn Speichern im Leave-Dialog an Validierung scheitert', async () => {
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of<boolean | 'save'>('save'),
+    }));
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.controls.name.setValue('');
+
+    await expect(component.canDeactivate()).resolves.toBe(false);
+
+    expect(mockStore.updateQuizMetadata).not.toHaveBeenCalled();
+    expect(component.metadataForm.controls.name.touched).toBe(true);
+    expect(component.hasPendingChanges()).toBe(true);
   });
 
   it('erkennt Metadatenänderungen auch ohne Angular-dirty-Status', () => {
