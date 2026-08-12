@@ -56,7 +56,9 @@ export class ItemSelectionRowComponent {
   }
 
   handleSelectionOpenedChange(opened: boolean, select: MatSelect): void {
-    if (opened && this.selectionCloseGuardActive) {
+    if (!opened) {
+      this.activateSelectionCloseGuard();
+    } else if (this.selectionCloseGuardActive) {
       this.closeSelectionWithReopenGuard(select);
     }
   }
@@ -74,6 +76,11 @@ export class ItemSelectionRowComponent {
   }
 
   private closeSelectionWithReopenGuard(select: MatSelect): void {
+    this.activateSelectionCloseGuard();
+    queueMicrotask(() => select.close());
+  }
+
+  private activateSelectionCloseGuard(): void {
     this.selectionCloseGuardActive = true;
     if (this.selectionCloseGuardTimer) {
       clearTimeout(this.selectionCloseGuardTimer);
@@ -81,8 +88,8 @@ export class ItemSelectionRowComponent {
 
     // Material detaches a closing select overlay asynchronously. A second touch-generated
     // click during that window can reopen the same overlay and cancel its detach fallback.
-    // Keep closing only this row until the overlay's fallback window has elapsed.
-    queueMicrotask(() => select.close());
+    // Arm the guard for every close, including reselecting the current option. Material
+    // closes in that case without emitting selectionChange.
     this.selectionCloseGuardTimer = setTimeout(() => {
       this.selectionCloseGuardActive = false;
       this.selectionCloseGuardTimer = null;

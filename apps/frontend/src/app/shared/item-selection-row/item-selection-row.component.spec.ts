@@ -146,6 +146,51 @@ describe('ItemSelectionRowComponent', () => {
     );
   });
 
+  it('schließt nach erneuter Wahl der bereits gewählten Option trotz Folgeklick vollständig', async () => {
+    TestBed.configureTestingModule({ imports: [BrowserAnimationsModule] });
+    const fixture = TestBed.createComponent(ItemSelectionRowTestHostComponent);
+    fixture.componentInstance.firstSelectedId = 'stable-option-id';
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const row = fixture.debugElement.query(By.directive(ItemSelectionRowComponent))
+      .componentInstance as ItemSelectionRowComponent;
+    const selectionChangeListener = vi.fn();
+    row.selectedIdChange.subscribe(selectionChangeListener);
+    const selectElement = (fixture.nativeElement as HTMLElement).querySelector(
+      'mat-select',
+    ) as HTMLElement;
+    expect(select.value).toBe('stable-option-id');
+
+    selectElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(select.panelOpen).toBe(true);
+
+    (document.querySelector('mat-option') as HTMLElement).click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(select.panelOpen).toBe(false);
+    expect(selectionChangeListener).not.toHaveBeenCalled();
+    expect(document.querySelector('.cdk-overlay-backdrop')).toBeTruthy();
+
+    selectElement.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(select.panelOpen).toBe(false);
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(document.querySelector('.cdk-overlay-backdrop')).toBeNull();
+      },
+      { timeout: 1_000 },
+    );
+  });
+
   it('öffnet die Auswahl mit dem ersten Klick auf den sichtbaren Formularrahmen', () => {
     const fixture = TestBed.createComponent(ItemSelectionRowComponent);
     fixture.componentRef.setInput('itemText', 'Element');
