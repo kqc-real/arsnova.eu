@@ -214,6 +214,7 @@
 
 .home-hero-preset-toggle {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   max-width: 20rem;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -222,7 +223,7 @@
 }
 
 .home-hero-preset-toggle__btn {
-  flex: 1;
+  flex: 1 0 max-content;
   display: inline-flex;
   align-items: center;
   justify-content: center;

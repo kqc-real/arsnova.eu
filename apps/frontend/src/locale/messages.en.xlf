@@ -15180,6 +15180,22 @@
           <context context-type="linenumber">3998</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.revealAnswerOptionsAria" datatype="html">
+        <source>Antwortoptionen freigeben</source>
+        <target>Reveal answer options</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4067</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.revealAnswerOptionsCompact" datatype="html">
+        <source>Antwortoptionen</source>
+        <target>Options</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4075</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.startDiscussionPhaseAria" datatype="html">
         <source>Diskussionsphase starten – Austausch vor zweiter Abstimmung</source>
         <target>Start discussion phase—talk it over before round 2</target>
@@ -15274,7 +15290,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.prevQuestionAnchorCompact" datatype="html">
         <source>Letztes Ergebnis</source>
-        <target>Previous result</target>
+        <target>Previous</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4018</context>

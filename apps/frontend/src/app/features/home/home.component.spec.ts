@@ -370,6 +370,19 @@ describe('HomeComponent', () => {
       expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
       expect(scss).not.toContain('mat-button-toggle:focus-within');
     });
+
+    it('lässt die Preset-Buttons abhängig von ihrer Inhaltsbreite umbrechen', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+
+      expect(scss).toMatch(/home-preset-option\s*\{[\s\S]*?white-space:\s*nowrap/);
+      expect(scss).toMatch(/\.home-hero-preset-toggle\s*\{[^}]*flex-wrap:\s*wrap/);
+      expect(scss).toMatch(/\.home-hero-preset-toggle__btn\s*\{[^}]*flex:\s*1 0 max-content/);
+      expect(scss).not.toContain('@media (max-width: 359px)');
+    });
   });
 
   describe('isValidSessionCode', () => {

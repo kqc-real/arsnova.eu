@@ -3369,6 +3369,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
     ]);
+    const actionPairButtons = Array.from(
+      exitAnchor.querySelectorAll('.session-host__exit-anchor-action-pair button'),
+    );
+    expect(actionPairButtons[0]?.className).toContain('session-host__exit-anchor-button--primary');
+    expect(actionPairButtons[1]?.className).toContain(
+      'session-host__exit-anchor-button--paired-secondary',
+    );
     fixture.destroy();
   });
 
@@ -3710,8 +3717,17 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(buttonTexts).toEqual([
       'Session beenden',
       'skip_nextFrage auslassen',
-      'Antwortoptionen freigeben',
+      'Antwortoptionen freigebenAntwortoptionen',
     ]);
+    expect(
+      exitAnchor.querySelector('.session-host__exit-anchor-label--reveal-options-compact')
+        ?.textContent,
+    ).toBe('Antwortoptionen');
+    expect(
+      exitAnchor
+        .querySelector('.session-host__exit-anchor-button--reveal-options')
+        ?.getAttribute('aria-label'),
+    ).toBe('Antwortoptionen freigeben');
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
   });
@@ -6289,6 +6305,74 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält die kompakten Portrait-Labels kurz, semantisch und bei Vergrößerung umbrechbar', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
+    const translations = new Map([
+      ['messages.en.xlf', 'Previous'],
+      ['messages.fr.xlf', 'Précédent'],
+      ['messages.es.xlf', 'Anterior'],
+      ['messages.it.xlf', 'Precedente'],
+    ]);
+    const revealTranslations = new Map([
+      ['messages.en.xlf', 'Options'],
+      ['messages.fr.xlf', 'Réponses'],
+      ['messages.es.xlf', 'Opciones'],
+      ['messages.it.xlf', 'Opzioni'],
+    ]);
+    const revealAriaTranslations = new Map([
+      ['messages.en.xlf', 'Reveal answer options'],
+      ['messages.fr.xlf', 'Afficher les options de réponse'],
+      ['messages.es.xlf', 'Mostrar opciones de respuesta'],
+      ['messages.it.xlf', 'Mostra opzioni di risposta'],
+    ]);
+
+    expect(styles).toMatch(
+      /@media \(max-width: 599px\) and \(orientation: portrait\)[\s\S]*?session-host__exit-anchor-label--previous-compact,\s*\.session-host__exit-anchor-label--reveal-options-compact\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere[^}]*hyphens:\s*auto/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--paired-secondary\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*1/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--primary\s*\{[^}]*grid-column:\s*2[^}]*grid-row:\s*1/,
+    );
+
+    for (const [fileName, expectedLabel] of translations) {
+      const catalog = readFileSync(join(componentDir, '../../../../locale', fileName), 'utf8');
+      const unitStart = catalog.indexOf('<trans-unit id="sessionHost.prevQuestionAnchorCompact"');
+      const unitEnd = catalog.indexOf('</trans-unit>', unitStart);
+      const unit = catalog.slice(unitStart, unitEnd);
+
+      expect(unitStart).toBeGreaterThanOrEqual(0);
+      expect(unit).toContain(`<target>${expectedLabel}</target>`);
+      expect(expectedLabel.length).toBeLessThanOrEqual(11);
+    }
+
+    for (const [fileName, expectedLabel] of revealTranslations) {
+      const catalog = readFileSync(join(componentDir, '../../../../locale', fileName), 'utf8');
+      const unitStart = catalog.indexOf('<trans-unit id="sessionHost.revealAnswerOptionsCompact"');
+      const unitEnd = catalog.indexOf('</trans-unit>', unitStart);
+      const unit = catalog.slice(unitStart, unitEnd);
+
+      expect(unitStart).toBeGreaterThanOrEqual(0);
+      expect(unit).toContain(`<target>${expectedLabel}</target>`);
+      expect(expectedLabel.length).toBeLessThanOrEqual(8);
+    }
+
+    for (const [fileName, expectedLabel] of revealAriaTranslations) {
+      const catalog = readFileSync(join(componentDir, '../../../../locale', fileName), 'utf8');
+      const unitStart = catalog.indexOf('<trans-unit id="sessionHost.revealAnswerOptionsAria"');
+      const unitEnd = catalog.indexOf('</trans-unit>', unitStart);
+      const unit = catalog.slice(unitStart, unitEnd);
+
+      expect(unitStart).toBeGreaterThanOrEqual(0);
+      expect(unit).toContain(`<target>${expectedLabel}</target>`);
+    }
+  });
+
   it('leitet Wheel- und Touch-Scrollen über den Exit-Buttons an den Hauptinhalt weiter', () => {
     const fixture = setup();
     const main = document.createElement('main');
@@ -6297,6 +6381,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     document.body.append(main);
 
     const wheelPreventDefault = vi.fn();
+    const zoomPreventDefault = vi.fn();
     const shortTouchPreventDefault = vi.fn();
     const scrollTouchPreventDefault = vi.fn();
 
@@ -6306,6 +6391,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         deltaMode: 1,
         cancelable: true,
         preventDefault: wheelPreventDefault,
+      } as unknown as WheelEvent);
+
+      fixture.componentInstance.onExitAnchorWheel({
+        ctrlKey: true,
+        deltaY: 100,
+        deltaMode: 0,
+        cancelable: true,
+        preventDefault: zoomPreventDefault,
       } as unknown as WheelEvent);
 
       fixture.componentInstance.onExitAnchorTouchStart({
@@ -6325,6 +6418,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
       expect(main.scrollTop).toBe(152);
       expect(wheelPreventDefault).toHaveBeenCalledOnce();
+      expect(zoomPreventDefault).not.toHaveBeenCalled();
       expect(shortTouchPreventDefault).not.toHaveBeenCalled();
       expect(scrollTouchPreventDefault).toHaveBeenCalledOnce();
     } finally {
@@ -6392,6 +6486,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       'Zweite Abstimmung',
       'Zur nächsten Frage ohne zweite Abstimmung',
     ]);
+    const actionPairButtons = Array.from(
+      exitAnchor.querySelectorAll('.session-host__exit-anchor-action-pair button'),
+    );
+    expect(actionPairButtons[0]?.className).toContain('session-host__exit-anchor-button--primary');
+    expect(actionPairButtons[1]?.className).toContain(
+      'session-host__exit-anchor-button--paired-secondary',
+    );
     fixture.destroy();
   });
 
