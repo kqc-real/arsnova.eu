@@ -189,6 +189,7 @@ const FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
 const TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD = 100;
 const TEAM_FOYER_SUPPRESSION_BURST_THRESHOLD = 24;
 const SESSION_NOT_FOUND_MESSAGE = 'Session nicht gefunden.';
+const EXIT_ANCHOR_TOUCH_SCROLL_THRESHOLD_PX = 6;
 
 type FoyerArrivalMotionProfile = {
   stepMs: number;
@@ -487,6 +488,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly foyerTeamPulseClearTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly hiddenLobbyParticipantTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly landedTeamEchoTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private exitAnchorTouchStartY: number | null = null;
+  private exitAnchorTouchLastY: number | null = null;
+  private exitAnchorTouchScrolling = false;
   readonly landedTeamEchoSequences = signal<Record<string, number>>({});
   readonly foyerTeamPulseSequences = signal<Record<string, number>>({});
   private readonly foyerChipLifetimeMs = isDevMode()
@@ -2668,6 +2672,68 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       /* Hinweis bleibt, bis Retry klappt oder die Person schließt. */
     }
+  }
+
+  onExitAnchorWheel(event: WheelEvent): void {
+    const scrollContainer = this.document.getElementById('main-content');
+    if (!scrollContainer || event.deltaY === 0) {
+      return;
+    }
+    const deltaScale =
+      event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scrollContainer.clientHeight : 1;
+    scrollContainer.scrollTop += event.deltaY * deltaScale;
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
+  onExitAnchorTouchStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (event.touches.length !== 1 || !touch) {
+      this.resetExitAnchorTouchScroll();
+      return;
+    }
+    this.exitAnchorTouchStartY = touch.clientY;
+    this.exitAnchorTouchLastY = touch.clientY;
+    this.exitAnchorTouchScrolling = false;
+  }
+
+  onExitAnchorTouchMove(event: TouchEvent): void {
+    const touch = event.touches[0];
+    const scrollContainer = this.document.getElementById('main-content');
+    if (
+      event.touches.length !== 1 ||
+      !touch ||
+      !scrollContainer ||
+      this.exitAnchorTouchStartY === null ||
+      this.exitAnchorTouchLastY === null
+    ) {
+      return;
+    }
+
+    if (
+      !this.exitAnchorTouchScrolling &&
+      Math.abs(touch.clientY - this.exitAnchorTouchStartY) < EXIT_ANCHOR_TOUCH_SCROLL_THRESHOLD_PX
+    ) {
+      return;
+    }
+
+    this.exitAnchorTouchScrolling = true;
+    scrollContainer.scrollTop += this.exitAnchorTouchLastY - touch.clientY;
+    this.exitAnchorTouchLastY = touch.clientY;
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
+  onExitAnchorTouchEnd(): void {
+    this.resetExitAnchorTouchScroll();
+  }
+
+  private resetExitAnchorTouchScroll(): void {
+    this.exitAnchorTouchStartY = null;
+    this.exitAnchorTouchLastY = null;
+    this.exitAnchorTouchScrolling = false;
   }
 
   /**

@@ -4,6 +4,8 @@ import { LOCALE_ID, type Provider, signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltip } from '@angular/material/tooltip';
+import { By } from '@angular/platform-browser';
 import { NEVER, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -3362,10 +3364,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
+      'Session beenden',
       'skip_nextFrage auslassen',
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
-      'Session beenden',
     ]);
     fixture.destroy();
   });
@@ -3706,9 +3708,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
+      'Session beenden',
       'skip_nextFrage auslassen',
       'Antwortoptionen freigeben',
-      'Session beenden',
     ]);
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
@@ -4181,7 +4183,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['skip_nextFrage auslassen', 'Ergebnis zeigen', 'Session beenden']);
+    expect(buttonTexts).toEqual(['Session beenden', 'skip_nextFrage auslassen', 'Ergebnis zeigen']);
     fixture.componentInstance.hostVoteProgress.set({
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       questionOrder: 0,
@@ -4484,7 +4486,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
 
     expect(text).not.toContain('Peer Instruction empfohlen');
-    expect(buttonTexts).toEqual(['skip_nextFrage auslassen', 'Ergebnis zeigen', 'Session beenden']);
+    expect(buttonTexts).toEqual(['Session beenden', 'skip_nextFrage auslassen', 'Ergebnis zeigen']);
     fixture.destroy();
   });
 
@@ -6214,17 +6216,17 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt bei Ergebnisstand die Aktion "Nächste Frage" im unteren Exit-Anker neben "Session beenden"', async () => {
+  it('ordnet bei Ergebnisstand Ausstieg und Rückblick vor der Aktion "Nächste Frage" an', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
-        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        opts.onData({ status: 'RESULTS', currentQuestion: 1 });
         return { unsubscribe: unsubscribeMock };
       },
     );
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
-      order: 0,
+      order: 1,
       totalQuestions: 3,
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
@@ -6264,9 +6266,71 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       (button.textContent ?? '').trim(),
     );
 
+    const previousButton = exitAnchor.querySelector('.session-host__exit-anchor-button--previous');
+    const previousFullLabel = previousButton?.querySelector(
+      '.session-host__exit-anchor-label--previous-full',
+    );
+    const previousTooltip = fixture.debugElement
+      .query(By.css('.session-host__exit-anchor-button--previous'))
+      .injector.get(MatTooltip);
+
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['Nächste Frage', 'Session beenden']);
+    expect(buttonTexts).toEqual([
+      'Session beenden',
+      'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
+      'Nächste Frage',
+    ]);
+    expect(previousFullLabel?.textContent).toBe('Letztes Ergebnis erneut anzeigen');
+    expect(previousTooltip.touchGestures).toBe('off');
+    expect(
+      previousButton?.querySelector('.session-host__exit-anchor-label--previous-compact')
+        ?.textContent,
+    ).toBe('Letztes Ergebnis');
     fixture.destroy();
+  });
+
+  it('leitet Wheel- und Touch-Scrollen über den Exit-Buttons an den Hauptinhalt weiter', () => {
+    const fixture = setup();
+    const main = document.createElement('main');
+    main.id = 'main-content';
+    main.scrollTop = 100;
+    document.body.append(main);
+
+    const wheelPreventDefault = vi.fn();
+    const shortTouchPreventDefault = vi.fn();
+    const scrollTouchPreventDefault = vi.fn();
+
+    try {
+      fixture.componentInstance.onExitAnchorWheel({
+        deltaY: 2,
+        deltaMode: 1,
+        cancelable: true,
+        preventDefault: wheelPreventDefault,
+      } as unknown as WheelEvent);
+
+      fixture.componentInstance.onExitAnchorTouchStart({
+        touches: [{ clientY: 300 }],
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onExitAnchorTouchMove({
+        touches: [{ clientY: 296 }],
+        cancelable: true,
+        preventDefault: shortTouchPreventDefault,
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onExitAnchorTouchMove({
+        touches: [{ clientY: 280 }],
+        cancelable: true,
+        preventDefault: scrollTouchPreventDefault,
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onExitAnchorTouchEnd();
+
+      expect(main.scrollTop).toBe(152);
+      expect(wheelPreventDefault).toHaveBeenCalledOnce();
+      expect(shortTouchPreventDefault).not.toHaveBeenCalled();
+      expect(scrollTouchPreventDefault).toHaveBeenCalledOnce();
+    } finally {
+      main.remove();
+      fixture.destroy();
+    }
   });
 
   it('zeigt in der Diskussionsphase die Aktionen "Zweite Abstimmung" und den klaren Weiter-Button im unteren Exit-Anker', async () => {
@@ -6324,9 +6388,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
+      'Session beenden',
       'Zweite Abstimmung',
       'Zur nächsten Frage ohne zweite Abstimmung',
-      'Session beenden',
     ]);
     fixture.destroy();
   });
@@ -6363,9 +6427,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['Stopp', 'Session beenden']);
+    expect(buttonTexts).toEqual(['Session beenden', 'Stopp']);
 
-    (buttons[0] as HTMLButtonElement | undefined)?.click();
+    (buttons[1] as HTMLButtonElement | undefined)?.click();
     await fixture.whenStable();
 
     expect(quickFeedbackToggleLockMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
