@@ -154,7 +154,7 @@
     },
     "motd.getHeaderState": {
       "kind": "query",
-      "fingerprint": "sha256:5db0ba8b6ec24037313eaceb63ad33ffcade42ae657004281931825cdbccedb6",
+      "fingerprint": "sha256:43fc15cf2f5cda58c96d60c9e5f7fabaa9e3a69d948d0f9957f5214e8b8ed51c",
       "missing": []
     },
     "motd.listArchive": {
