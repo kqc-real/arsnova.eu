@@ -41,7 +41,31 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260719071500_motd_session_results_pdf_locale_links/migration.sql',
       'prisma/migrations/20260722070000_motd_accessibility_wcag/migration.sql',
       'prisma/migrations/20260809174500_motd_structured_question_types/migration.sql',
+      'prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
     ]);
+  });
+
+  it('liefert die Vision-MOTD mit funktionsfähigen Backlog-Links in allen fünf Sprachen aus', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
+      ),
+      'utf8',
+    );
+    const localeBlocks = [...sql.matchAll(/\$(md(?:de|en|fr|it|es))\$([\s\S]*?)\$\1\$/g)].map(
+      ([, , markdown]) => markdown ?? '',
+    );
+
+    expect(localeBlocks).toHaveLength(5);
+    const backlogUrl = 'https://github.com/kqc-real/arsnova.eu/blob/main/Backlog.md';
+    for (const markdown of localeBlocks) {
+      expect(markdown).toMatch(/^### ✨ /);
+      expect(markdown).toContain(backlogUrl);
+      expect(markdown.split(backlogUrl)).toHaveLength(3);
+      expect(markdown).not.toContain('[[');
+      expect(markdown).toMatch(/\n\n> \*\*arsnova\.eu /);
+    }
   });
 
   it('liefert die neue Fragetyp-MOTD strukturgleich in allen fünf Sprachen aus', () => {

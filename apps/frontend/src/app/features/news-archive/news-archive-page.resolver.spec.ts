@@ -47,7 +47,11 @@ describe('newsArchivePageResolver hydration', () => {
         },
       ],
       nextCursor: null,
-      archiveMaxEndsAtIso: '2027-03-31T23:59:59.999Z',
+      archiveMaxCursor: {
+        startsAtIso: '2026-07-22T00:00:00.000Z',
+        motdId: 'c0333333-c333-4c33-8c33-c03333333333',
+        contentVersion: 1,
+      },
       archiveUnreadCount: 1,
       errorMessage: null,
     });
@@ -90,6 +94,11 @@ describe('newsArchivePageResolver hydration', () => {
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: true,
       hasArchiveEntries: true,
+      archiveMaxCursor: {
+        startsAtIso: '2026-08-09T00:00:00.000Z',
+        motdId: 'c0444444-c444-4c44-8c44-c04444444444',
+        contentVersion: 1,
+      },
       archiveMaxEndsAtIso: '2027-03-31T23:59:59.999Z',
       archiveUnreadCount: 1,
     });

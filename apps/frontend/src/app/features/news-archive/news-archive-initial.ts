@@ -1,16 +1,20 @@
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
+import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
-import { getMotdArchiveSeenUpToEndsAtIso, motdDismissedPairsForApi } from '../../core/motd-storage';
+import { getMotdArchiveSeenUpToCursor, motdDismissedPairsForApi } from '../../core/motd-storage';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
-import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
+import {
+  isMotdArchiveItemNewerThanCursor,
+  newestMotdArchiveReadCursor,
+  sortMotdArchiveItemsNewFirst,
+} from '../../shared/motd-archive-sort.util';
 
 export type NewsArchiveInitialModel = {
   items: MotdArchiveItemDTO[];
   nextCursor: string | null;
-  archiveMaxEndsAtIso: string | null;
+  archiveMaxCursor: MotdArchiveReadCursor | null;
   archiveUnreadCount: number;
   errorMessage: string | null;
   titleById: Record<string, string>;
@@ -29,7 +33,7 @@ export function toNewsArchiveTransferState(
   return {
     items: model.items,
     nextCursor: model.nextCursor,
-    archiveMaxEndsAtIso: model.archiveMaxEndsAtIso,
+    archiveMaxCursor: model.archiveMaxCursor,
     archiveUnreadCount: model.archiveUnreadCount,
     errorMessage: model.errorMessage,
   };
@@ -61,11 +65,11 @@ export async function loadNewsArchivePageModel(
   fallbackTitle: string,
   loadErrorMessage: string,
 ): Promise<NewsArchiveInitialModel> {
-  const seen = getMotdArchiveSeenUpToEndsAtIso();
+  const seen = getMotdArchiveSeenUpToCursor();
   const dismissed = motdDismissedPairsForApi();
   const headerInput = {
     locale,
-    ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+    ...(seen ? { archiveSeenUpToCursor: seen } : {}),
     ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
   };
 
@@ -74,13 +78,13 @@ export async function loadNewsArchivePageModel(
     trpc.motd.listArchive.query({ locale, pageSize: 30 }),
   ]);
 
-  let archiveMaxEndsAtIso: string | null = null;
+  let archiveMaxCursor: MotdArchiveReadCursor | null = null;
   let archiveUnreadCount = 0;
   const headerOk = stateResult.status === 'fulfilled';
 
   if (headerOk) {
     const s = stateResult.value;
-    archiveMaxEndsAtIso = s.archiveMaxEndsAtIso;
+    archiveMaxCursor = s.archiveMaxCursor ?? null;
     archiveUnreadCount = s.archiveUnreadCount;
   }
 
@@ -97,19 +101,16 @@ export async function loadNewsArchivePageModel(
   }
 
   /* Wie Dialog `reconcileArchiveReadSignals`: fehlendes Server-Maximum aus geladener Seite. */
-  const maxFromPage =
-    items.length === 0
-      ? null
-      : items.reduce((best, it) => (it.endsAt > best ? it.endsAt : best), items[0]!.endsAt);
-  if (!archiveMaxEndsAtIso && maxFromPage) {
-    archiveMaxEndsAtIso = maxFromPage;
+  const maxFromPage = newestMotdArchiveReadCursor(items);
+  if (!archiveMaxCursor && maxFromPage) {
+    archiveMaxCursor = maxFromPage;
   }
 
   if (!headerOk) {
     if (items.length > 0) {
-      const seenAgain = getMotdArchiveSeenUpToEndsAtIso();
+      const seenAgain = getMotdArchiveSeenUpToCursor();
       archiveUnreadCount = seenAgain
-        ? items.filter((it) => it.endsAt > seenAgain).length
+        ? items.filter((it) => isMotdArchiveItemNewerThanCursor(it, seenAgain)).length
         : items.length;
     } else {
       archiveUnreadCount = 0;
@@ -120,7 +121,7 @@ export async function loadNewsArchivePageModel(
     {
       items,
       nextCursor,
-      archiveMaxEndsAtIso,
+      archiveMaxCursor,
       archiveUnreadCount,
       errorMessage,
     },

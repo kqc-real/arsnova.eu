@@ -4,14 +4,14 @@ import {
   MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY,
   clearMotdThumbInteractionKeys,
   consumeMotdOverlayReloadSuppress,
-  getMotdArchiveSeenUpToEndsAtIso,
+  getMotdArchiveSeenUpToCursor,
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
   markMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   motdDismissedPairsForApi,
-  setMotdArchiveSeenUpToEndsAtIso,
+  setMotdArchiveSeenUpToCursor,
 } from './motd-storage';
 
 describe('motd-storage', () => {
@@ -39,11 +39,44 @@ describe('motd-storage', () => {
     ]);
   });
 
-  it('Archiv-Wasserzeichen wird gelesen und geschrieben', () => {
-    expect(getMotdArchiveSeenUpToEndsAtIso()).toBeUndefined();
-    setMotdArchiveSeenUpToEndsAtIso('2026-05-01T00:00:00.000Z');
-    expect(getMotdArchiveSeenUpToEndsAtIso()).toBe('2026-05-01T00:00:00.000Z');
-    expect(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)).toContain('archiveSeenUpToEndsAtIso');
+  it('Archiv-Lesecursor wird gelesen und geschrieben', () => {
+    const cursor = {
+      startsAtIso: '2026-05-01T00:00:00.000Z',
+      motdId: '00000000-0000-4000-8000-000000000004',
+      contentVersion: 2,
+    };
+    expect(getMotdArchiveSeenUpToCursor()).toBeUndefined();
+    setMotdArchiveSeenUpToCursor(cursor);
+    expect(getMotdArchiveSeenUpToCursor()).toEqual(cursor);
+    expect(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)).toContain('archiveSeenUpToCursor');
+  });
+
+  it('ignoriert das alte endsAt-Wasserzeichen, damit neue Publikationen wieder auffallen', () => {
+    localStorage.setItem(
+      MOTD_LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        dismissed: {},
+        interactions: {},
+        archiveSeenUpToEndsAtIso: '2099-12-31T23:59:59.999Z',
+      }),
+    );
+    expect(getMotdArchiveSeenUpToCursor()).toBeUndefined();
+  });
+
+  it('ignoriert einen beschädigten Archiv-Lesecursor', () => {
+    localStorage.setItem(
+      MOTD_LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        dismissed: {},
+        interactions: {},
+        archiveSeenUpToCursor: {
+          startsAtIso: 'kein Datum',
+          motdId: 'keine UUID',
+          contentVersion: 0,
+        },
+      }),
+    );
+    expect(getMotdArchiveSeenUpToCursor()).toBeUndefined();
   });
 
   it('Interaktionen werden pro MOTD+Version+Kind getrennt', () => {

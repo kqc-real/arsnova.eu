@@ -64,7 +64,10 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - Speicherung, dass die aktuelle MOTD-Version **bereits angezeigt** bzw. **weggeklickt** wurde: gebunden an **`id` + `contentVersion`**.
 - Separater Schlüssel oder Objektfelder für **„Zur Kenntnis genommen“** und **Feedback (Daumen)** falls rein lokal begrenzt.
-- **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v1`**).
+- **Archiv-Lesestatus:** publikationsbasierter Cursor aus `startsAt`, `motdId` und
+  `contentVersion`; dadurch kann eine dauerhafte Meldung mit spätem `endsAt` später
+  veröffentlichte Meldungen nicht versehentlich als bereits gelesen markieren.
+- **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).
 
 ### 3.7 Nutzerinteraktionen (getrennte Dimensionen)
 
@@ -92,7 +95,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - `motd.getCurrent` — Input: `locale`, optional `overlayDismissedUpTo` (vom Client gemerkte Dismiss-Versionen pro `motdId`, damit die nächstpriore MOTD gewählt wird); Output: aktive MOTD oder leer.
 - `motd.listArchive` — Input: `locale`, Pagination; Output: nur freigegebene, vergangene/außerhalb Fenster.
-- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToEndsAtIso`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren (Toolbar-Icon).
+- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
 - `motd.recordInteraction` — Input: `motdId`, `contentVersion`, `kind` (`ACK` | `THUMB_UP` | `THUMB_DOWN` | `DISMISS_CLOSE` | `DISMISS_SWIPE`); streng rate-limited; Zähler in DB.
 - **Rendering:** Endnutzer- und Admin-Vorschau nutzen **`renderMarkdownWithoutKatex`** + **DomSanitizer** (`bypassSecurityTrustHtml` nur auf dieser Pipeline), analog zu anderen sicheren Markdown-Ansichten — kein rohes HTML aus dem MOTD-Text.
 - `admin.motd.*` — CRUD MOTD, Templates, Publish/Schedule, Archiv-Flag, Priorität.
@@ -134,7 +137,7 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 ## 9. Betrieb: zweite MOTD sichtbar, Migrationen
 
 - **Reihenfolge im Overlay:** Es gilt nur **eine** aktive Karte. Eine zweite (z. B. „Making of“ mit niedrigerer Priorität) erscheint **erst**, nachdem die erste (z. B. Willkommen) mit **„Alles klar!“**, **Schließen** oder **Swipe** bestätigt wurde. Technisch: Client sendet `overlayDismissedUpTo` an `motd.getCurrent` / `getHeaderState`. Nach einem **Sprachwechsel auf der Startseite** (Vollreload) wird das Overlay **einmalig unterdrückt**, damit nicht sofort die nächstpriore MOTD erscheint; Sprachwechsel auf Unterseiten setzen diesen Marker nicht. Ebenso wird das Overlay **einmalig unterdrückt**, wenn Hilfe, Legal oder News-Archiv **von der Startseite aus** geschlossen werden (Escape/Zurück/Backdrop) und die Navigation wieder zur Startseite führt; Fokus geht zurück auf den auslösenden Footer-Trigger (Hilfe-Link bzw. **Mehr** nach Legal-Seiten; nicht beim Direktaufruf ohne History, dort greift die normale Home-Fokuslogik). Rückkehr zu anderen Routen (z. B. Quiz) setzt den Marker nicht. Solange der Fokus in der App-Toolbar oder einem zugehörigen CDK-Overlay (Menü/Dialog) liegt, wird das MOTD-Overlay noch nicht gerendert (Aufschub bis Fokus in den normalen Startseiten-Inhalt wechselt). Ein späterer normaler Seitenaufruf kann die Kette weiterhin fortsetzen.
-- **Datenbank:** Produktiv per **`prisma migrate deploy`**. Lokal: **`npm run dev`** wendet nach `ensure-schema` zusätzlich die SQL-Dateien der kuratierten MOTDs an (`prisma db execute`), damit Meldungsketten auch ohne manuelles Migrate existieren. Manuell: **`npm run seed:motd-making-of`**, **`npm run seed:motd-tempo-feedback`**, **`npm run seed:motd-numeric-estimate`**, **`npm run seed:motd-ai-quiz-generation`**, **`npm run seed:motd-confidence-slider`**, **`npm run seed:motd-session-results-pdf`** und **`npm run seed:motd-accessibility-wcag`**.
+- **Datenbank:** Produktiv per **`prisma migrate deploy`**. Lokal: **`npm run dev`** wendet nach `ensure-schema` zusätzlich die SQL-Dateien der kuratierten MOTDs an (`prisma db execute`), damit Meldungsketten auch ohne manuelles Migrate existieren. Manuell: **`npm run seed:motd-making-of`**, **`npm run seed:motd-tempo-feedback`**, **`npm run seed:motd-numeric-estimate`**, **`npm run seed:motd-ai-quiz-generation`**, **`npm run seed:motd-confidence-slider`**, **`npm run seed:motd-session-results-pdf`**, **`npm run seed:motd-accessibility-wcag`** und **`npm run seed:motd-shared-insight-vision`**.
 - **News-Archiv / Prerender:** `deploy.sh` baut das Image **vor** `prisma migrate deploy`. Der Angular-Prerender von `/news-archive` liest dabei die öffentliche Prod-API und kann neue Data-Migrationen in der SSG-HTML noch fehlen. Browser laden die erste Archiv-Seite nach Hydration live nach; für frische Crawler-HTML reicht ein Redeploy, sobald die Migration in Prod ist.
 - **Zeitfenster:** `startsAt` / `endsAt` sind **UTC**. Liegt `startsAt` in der Zukunft, liefert die API die MOTD nicht (Filter in `motd.ts`). Mehrere aktive MOTDs müssen sich zeitlich mit der Willkommens-MOTD **überlappen**, wenn sie nacheinander nach Dismiss kommen sollen (gleiches frühes `startsAt` wie die erste Meldung).
 
@@ -151,3 +154,5 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-06-17 | Abschnitt 9: lokale Seed-Kette um aktuelle Feature-MOTD **Numerische Schätzfrage** ergänzt.                                                                                                                                        |
 | 2026-06-24 | Abschnitt 9: lokale Seed-Kette um aktuelle Feature-MOTD **KI-Quizgenerierung** ergänzt.                                                                                                                                            |
 | 2026-07-22 | Abschnitt 9: lokale Seed-Kette um Feature-MOTDs **PDF-Auswertungsreport** und **Barrierefreiheit (WCAG 2.2 AA)** ergänzt.                                                                                                          |
+| 2026-08-13 | Abschnitt 9: lokale Seed-Kette um die Vision-MOTD **„Aus vielen Stimmen wird gemeinsame Erkenntnis“** ergänzt.                                                                                                                     |
+| 2026-08-13 | Abschnitte 3.6/4.1: Archiv-Lesestatus auf einen publikationsbasierten Cursor umgestellt; Legacy-`endsAt`-Felder bleiben API-kompatibel.                                                                                            |

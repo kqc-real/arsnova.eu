@@ -8,7 +8,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 import type { AppLocale } from '@arsnova/shared-types';
 import { trpc } from './trpc.client';
 import { getEffectiveLocale, localeIdToSupported } from './locale-from-path';
-import { getMotdArchiveSeenUpToEndsAtIso, motdDismissedPairsForApi } from './motd-storage';
+import { getMotdArchiveSeenUpToCursor, motdDismissedPairsForApi } from './motd-storage';
 import { MotdHeaderRefreshService } from './motd-header-refresh.service';
 
 /**
@@ -72,11 +72,11 @@ export class MotdHeaderStateService {
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     this.inFlight = (async () => {
       try {
-        const seen = getMotdArchiveSeenUpToEndsAtIso();
+        const seen = getMotdArchiveSeenUpToCursor();
         const dismissed = motdDismissedPairsForApi();
         const s = await trpc.motd.getHeaderState.query({
           locale,
-          ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+          ...(seen ? { archiveSeenUpToCursor: seen } : {}),
           ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
         });
         this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);

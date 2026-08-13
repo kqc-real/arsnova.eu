@@ -27,7 +27,7 @@
     } @else if (error(); as err) {
       <p class="motd-archive__error" role="alert">{{ err }}</p>
     } @else {
-      @if (archiveMaxEndsAtIso()) {
+      @if (archiveMaxCursor()) {
         <div class="motd-archive__actions">
           <span
             class="motd-archive__mark-all-wrap"
