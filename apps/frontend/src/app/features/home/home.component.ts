@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { CdkTrapFocus, FocusMonitor } from '@angular/cdk/a11y';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
@@ -76,6 +76,8 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
 import { hideMotdDecorativeEmojiInHeadingHtml } from '../../shared/motd-decorative-emoji.util';
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
+
+type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
 
 @Component({
   selector: 'app-home',
@@ -184,6 +186,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
+  private readonly focusMonitor = inject(FocusMonitor);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
@@ -378,7 +381,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.motd()) return;
     if (e.key !== 'Escape') return;
     e.preventDefault();
-    void this.dismissMotdOverlay('DISMISS_CLOSE');
+    void this.dismissMotdOverlay('DISMISS_CLOSE', e);
   }
 
   /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
@@ -831,12 +834,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
     this.clearToolbarMotdDefer();
-    this.motdFocusReturn =
+    const focusReturnCandidate =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&
       activeElement !== document.documentElement
         ? activeElement
         : null;
+    // Die MOTD öffnet automatisch: Ein zuvor aktives Codefeld ist daher kein
+    // Dialog-Öffner. Nach dem Schließen dient der sichtbare CTA als Rücksprungziel.
+    this.motdFocusReturn =
+      focusReturnCandidate === this.sessionCodeInput?.nativeElement ? null : focusReturnCandidate;
     this.motd.set(motd);
     const html = hideMotdDecorativeEmojiInHeadingHtml(
       appendMotdContentVersionToAssetImgSrc(
@@ -982,44 +989,53 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animationFrameIds.clear();
   }
 
-  private clearMotdOverlay(): void {
+  private clearMotdOverlay(returnFocusOrigin: MotdReturnFocusOrigin = 'program'): void {
     const focusReturn = this.motdFocusReturn;
     this.motdFocusReturn = null;
     const activeBefore = document.activeElement;
-    const activeWasInMotd =
-      activeBefore instanceof HTMLElement &&
-      !!activeBefore.closest('.home-motd-layer, .home-motd-sheet');
+    const activeNeedsReturn =
+      activeBefore === document.body ||
+      activeBefore === document.documentElement ||
+      (activeBefore instanceof HTMLElement &&
+        !!activeBefore.closest('.home-motd-layer, .home-motd-sheet, [inert]'));
     this.motd.set(null);
     this.motdBodyHtml.set(null);
-    queueMicrotask(() => {
-      if (focusReturn?.isConnected === true) {
-        focusReturn.focus({ preventScroll: true });
-        return;
-      }
-      const active = document.activeElement;
-      if (
-        !activeWasInMotd &&
-        active instanceof HTMLElement &&
-        active.isConnected &&
-        active !== document.body &&
-        active !== document.documentElement
-      ) {
-        // Nutzer:in hat bereits woanders Fokus — nicht verschieben.
-        return;
-      }
-      // Nach Entfernen des MOTD-Dialogs bleibt der Sequential-Focus-Start oft hinter
-      // dem Dialog → nächstes Tab landet im Footer. Skip-Link setzt den Start zurück.
-      const skip = document.querySelector<HTMLElement>('a.app-skip-link');
-      if (skip) {
-        skip.focus({ preventScroll: true });
-        return;
-      }
-      this.sessionCodeInput?.nativeElement?.focus({ preventScroll: true });
-    });
+    afterNextRender(
+      () => {
+        if (focusReturn?.isConnected === true) {
+          this.focusMonitor.focusVia(focusReturn, returnFocusOrigin, { preventScroll: true });
+          return;
+        }
+        const active = document.activeElement;
+        if (
+          !activeNeedsReturn &&
+          active instanceof HTMLElement &&
+          active.isConnected &&
+          active !== document.body &&
+          active !== document.documentElement
+        ) {
+          // Nutzer:in hat bereits woanders Fokus — nicht verschieben.
+          return;
+        }
+        // Erst nach dem Render ist der Dialog-Fokus-Trap entfernt und der
+        // Hintergrund nicht mehr inert. Ohne Öffner erhält dann der sichtbare
+        // primäre Einstieg den Fokus, nie der Skip-Link.
+        const primaryAction = this.codeEnterBtn?.nativeElement;
+        if (primaryAction?.isConnected && !primaryAction.disabled) {
+          this.focusMonitor.focusVia(primaryAction, returnFocusOrigin, { preventScroll: true });
+          return;
+        }
+        const input = this.sessionCodeInput?.nativeElement;
+        if (input) {
+          this.focusMonitor.focusVia(input, returnFocusOrigin, { preventScroll: true });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
-  onMotdBackdropClick(): void {
-    void this.dismissMotdOverlay('DISMISS_CLOSE');
+  onMotdBackdropClick(event: MouseEvent): void {
+    void this.dismissMotdOverlay('DISMISS_CLOSE', event);
   }
 
   onMotdTouchStart(event: TouchEvent): void {
@@ -1044,30 +1060,52 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!t) return;
     const dy = t.clientY - this.motdTouchStartY;
     if (dy > 88) {
-      void this.dismissMotdOverlay('DISMISS_SWIPE');
+      void this.dismissMotdOverlay('DISMISS_SWIPE', event);
     }
   }
 
   async dismissMotdOverlay(
     kind: Extract<MotdInteractionKind, 'DISMISS_CLOSE' | 'DISMISS_SWIPE'>,
+    activationEvent?: MouseEvent | KeyboardEvent | TouchEvent,
   ): Promise<void> {
     const m = this.motd();
     if (!m) return;
     // Overlay sofort schließen — recordInteraction darf die UI nicht blockieren
     // (sonst flake in a11y:layout bei langsamem CI / >1s API).
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay();
+    this.clearMotdOverlay(this.resolveMotdReturnFocusOrigin(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, kind);
   }
 
-  async ackMotd(): Promise<void> {
+  async ackMotd(activationEvent?: MouseEvent): Promise<void> {
     const m = this.motd();
     if (!m) return;
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay();
+    this.clearMotdOverlay(this.resolveMotdReturnFocusOrigin(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, 'ACK');
+  }
+
+  private resolveMotdReturnFocusOrigin(
+    event?: MouseEvent | KeyboardEvent | TouchEvent,
+  ): MotdReturnFocusOrigin {
+    if (!event) {
+      return 'program';
+    }
+    // Desktop-Safari kann TouchEvent als globalen Konstruktor auslassen.
+    // Event-Typen funktionieren ohne instanceof außerdem über Realm-Grenzen hinweg.
+    const eventType = event.type;
+    if (
+      eventType.startsWith('key') ||
+      (eventType === 'click' && 'detail' in event && event.detail === 0)
+    ) {
+      return 'keyboard';
+    }
+    if (eventType.startsWith('touch')) {
+      return 'touch';
+    }
+    return 'mouse';
   }
 
   async thumbMotd(up: boolean): Promise<void> {

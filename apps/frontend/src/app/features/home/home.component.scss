@@ -299,6 +299,21 @@
   font-weight: 600;
 }
 
+// CDK bewahrt den Tastatur-Ursprung beim Fokus-Rücksprung aus der MOTD.
+// Der explizite MD3-Strong-Focus-Ring bleibt auch sichtbar, wenn der Browser
+// einen nachträglich gesetzten Fokus nicht mehr als :focus-visible einstuft.
+.home-hero-code-enter.cdk-keyboard-focused {
+  outline: 3px solid var(--mat-sys-secondary);
+  outline-offset: 3px;
+}
+
+// Der initial fokussierte MOTD-Schließen-Button kann :focus-visible bei einem
+// Mausklick behalten. Beim Pointer-Rücksprung darf dieser Browserzustand nicht
+// als Material-Strong-Focus-Ring auf den Hero-CTA vererbt werden.
+.home-hero-code-enter:is(.cdk-mouse-focused, .cdk-touch-focused) {
+  --mat-focus-indicator-display: none;
+}
+
 .home-hero-serious-tagline {
   grid-column: 1 / -1;
   margin: 0.35rem 0 0.5rem;

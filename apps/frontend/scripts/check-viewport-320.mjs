@@ -31,7 +31,7 @@ async function waitForServer(url, maxAttempts = 30) {
   return false;
 }
 
-async function dismissOptionalOverlay(page, waitForMotd = false) {
+async function dismissOptionalOverlay(page, waitForMotd = false, activation = 'pointer') {
   if (waitForMotd) {
     await page
       .waitForFunction(
@@ -57,9 +57,16 @@ async function dismissOptionalOverlay(page, waitForMotd = false) {
     )
     .first();
   if (await closeButton.isVisible().catch(() => false)) {
-    await closeButton.click();
+    if (activation === 'keyboard') {
+      await closeButton.focus();
+      await page.keyboard.press('Enter');
+    } else {
+      await closeButton.click();
+    }
     await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 5_000 });
+    return true;
   }
+  return false;
 }
 
 async function dismissOptionalInstallSnackbar(page) {
@@ -219,7 +226,59 @@ async function inspectKeyboardFocus(page) {
 async function inspectHomeKeyboardNavigation(page) {
   const issues = [];
   // Idle-MOTD kann nach dem ersten Dismiss noch nachziehen und Fokus stehlen.
-  await dismissOptionalOverlay(page, true);
+  const motdDismissedWithKeyboard = await dismissOptionalOverlay(page, true, 'keyboard');
+  if (
+    motdDismissedWithKeyboard &&
+    !(await page
+      .locator('.home-hero-code-enter')
+      .evaluate((element) => element === document.activeElement))
+  ) {
+    issues.push('MOTD-Return-Fokus landet nicht auf dem sichtbaren Hero-CTA');
+  }
+  if (
+    motdDismissedWithKeyboard &&
+    !(await page.locator('.home-hero-code-enter').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return (
+        element.classList.contains('cdk-keyboard-focused') &&
+        style.outlineStyle !== 'none' &&
+        Number.parseFloat(style.outlineWidth) >= 3
+      );
+    }))
+  ) {
+    issues.push('MOTD-Return-Fokus hat keinen sichtbaren Tastatur-Fokusrahmen');
+  }
+
+  // Der initial fokussierte Schließen-Button behält in Chromium bei einem
+  // Mausklick teils :focus-visible. Nach Reload denselben Pfad als Pointer
+  // prüfen: Material darf diesen Zustand nicht als Fokusring weitertragen.
+  await page.evaluate(() => localStorage.removeItem('arsnova-motd-v2'));
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+  await page.waitForLoadState('networkidle').catch(() => {});
+  const motdDismissedWithPointer = await dismissOptionalOverlay(page, true, 'pointer');
+  if (motdDismissedWithPointer) {
+    await page
+      .waitForFunction(
+        () => document.querySelector('.home-hero-code-enter') === document.activeElement,
+        undefined,
+        { timeout: 1_000 },
+      )
+      .catch(() => undefined);
+    const pointerFocus = await page.locator('.home-hero-code-enter').evaluate((element) => {
+      const indicator = element.querySelector('.mat-focus-indicator');
+      const indicatorStyle = indicator ? getComputedStyle(indicator, '::before') : null;
+      return {
+        active: element === document.activeElement,
+        keyboard: element.classList.contains('cdk-keyboard-focused'),
+        indicatorDisplay: indicatorStyle?.display ?? null,
+      };
+    });
+    if (!pointerFocus.active || pointerFocus.keyboard || pointerFocus.indicatorDisplay !== 'none') {
+      issues.push(
+        `MOTD-Pointer-Rücksprung zeigt einen Tastatur-Fokusrahmen (${JSON.stringify(pointerFocus)})`,
+      );
+    }
+  }
   // Footer-Mehr zuerst: Skip-Link/#main-content und Mobile-Menü dürfen Material-
   // restoreFocus für den Footer-Auslöser nicht als vorherigen Fokus „vergiften“.
   issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
@@ -678,7 +737,11 @@ async function main() {
     const url = `${BASE_URL}${path}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle').catch(() => {});
-    await dismissOptionalOverlay(page, /^\/(?:de|en|fr|es|it)\/$/.test(path));
+    // Auf /de/ prüft inspectHomeKeyboardNavigation den echten MOTD-Dismiss
+    // mit Return. Ein vorheriger Pointer-Dismiss würde die Regression verdecken.
+    if (path !== '/de/') {
+      await dismissOptionalOverlay(page, /^\/(?:en|fr|es|it)\/$/.test(path));
+    }
     await dismissOptionalInstallSnackbar(page);
 
     const initialJoinFocus = path === '/de/join' ? await inspectMobileJoinEntry(page) : [];

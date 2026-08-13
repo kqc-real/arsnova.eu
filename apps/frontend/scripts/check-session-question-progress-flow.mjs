@@ -28,6 +28,7 @@ const ARTIFACT_DIR =
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const DESKTOP = { width: 1440, height: 1000 };
 const MOBILE = { width: 430, height: 932 };
+const VOTE_RATE_LIMIT_HEADROOM_MS = 1_100;
 const START_QUESTION_RE = /erste frage starten|start first question/i;
 const RELEASE_ANSWERS_RE = /antwortoptionen freigeben|release answer options/i;
 const REVEAL_RESULTS_RE = /ergebnis(?: trotzdem)? zeigen|show results/i;
@@ -40,6 +41,8 @@ const QUESTIONS = {
   skipped: 'Smoke-Verlauf: Diese beantwortete Frage wird ausgelassen',
   conducted: 'Smoke-Verlauf: Nur diese Frage gehört in die Nachbesprechung',
 };
+
+let lastVoteRequestStartedAt = 0;
 
 const QUIZ_PAYLOAD = {
   name: `Session Question Progress Smoke ${Date.now()}`,
@@ -225,12 +228,25 @@ async function assertCurrentQuestion(page, selector, expected, excluded = []) {
 }
 
 async function submitFirstAnswer(participant) {
+  const remainingRateLimitWindow =
+    lastVoteRequestStartedAt + VOTE_RATE_LIMIT_HEADROOM_MS - Date.now();
+  if (remainingRateLimitWindow > 0) {
+    await participant.waitForTimeout(remainingRateLimitWindow);
+  }
+
   const answer = participant.locator('.vote-answer').first();
   await answer.waitFor({ state: 'visible', timeout: 20_000 });
   await answer.click();
   const submit = participant.locator('#vote-submit').first();
   await submit.waitFor({ state: 'visible', timeout: 10_000 });
+  const voteResponse = participant.waitForResponse(
+    (response) => response.request().method() === 'POST' && response.url().includes('/vote.submit'),
+    { timeout: 20_000 },
+  );
+  lastVoteRequestStartedAt = Date.now();
   await submit.click();
+  const response = await voteResponse;
+  ensure(response.ok(), `Vote-Submit wurde mit HTTP ${response.status()} abgewiesen.`);
   await participant.waitForFunction(
     () =>
       !document.querySelector('#vote-submit') ||
