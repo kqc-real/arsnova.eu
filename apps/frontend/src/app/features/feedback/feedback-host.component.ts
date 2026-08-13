@@ -49,6 +49,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 
 type StarAverageIcon = 'star' | 'star_half' | 'star_border';
 type TempoViewMode = 'details' | 'trend';
+const BOTTOM_ACTIONS_TOUCH_SCROLL_THRESHOLD_PX = 6;
 
 interface StarAverageSummary {
   scoreLabel: string;
@@ -105,6 +106,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly feedbackJoinPopoverOpen = signal(false);
   private feedbackJoinFocusReturn: HTMLElement | null = null;
   private tempoHelpFocusReturn: HTMLElement | null = null;
+  private bottomActionsTouchStartY: number | null = null;
+  private bottomActionsTouchLastY: number | null = null;
+  private bottomActionsTouchScrolling = false;
   readonly showEmbeddedEmptyState = computed(
     () => this.embeddedInSession() && this.result() === null,
   );
@@ -447,6 +451,73 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       default:
         return this.locked() ? 'play_arrow' : 'stop';
     }
+  }
+
+  onBottomActionsWheel(event: WheelEvent): void {
+    if (event.ctrlKey) {
+      return;
+    }
+
+    const scrollContainer = this.document.getElementById('main-content');
+    if (!scrollContainer || event.deltaY === 0) {
+      return;
+    }
+    const deltaScale =
+      event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scrollContainer.clientHeight : 1;
+    scrollContainer.scrollTop += event.deltaY * deltaScale;
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
+  onBottomActionsTouchStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (event.touches.length !== 1 || !touch) {
+      this.resetBottomActionsTouchScroll();
+      return;
+    }
+    this.bottomActionsTouchStartY = touch.clientY;
+    this.bottomActionsTouchLastY = touch.clientY;
+    this.bottomActionsTouchScrolling = false;
+  }
+
+  onBottomActionsTouchMove(event: TouchEvent): void {
+    const touch = event.touches[0];
+    const scrollContainer = this.document.getElementById('main-content');
+    if (
+      event.touches.length !== 1 ||
+      !touch ||
+      !scrollContainer ||
+      this.bottomActionsTouchStartY === null ||
+      this.bottomActionsTouchLastY === null
+    ) {
+      return;
+    }
+
+    if (
+      !this.bottomActionsTouchScrolling &&
+      Math.abs(touch.clientY - this.bottomActionsTouchStartY) <
+        BOTTOM_ACTIONS_TOUCH_SCROLL_THRESHOLD_PX
+    ) {
+      return;
+    }
+
+    this.bottomActionsTouchScrolling = true;
+    scrollContainer.scrollTop += this.bottomActionsTouchLastY - touch.clientY;
+    this.bottomActionsTouchLastY = touch.clientY;
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
+  onBottomActionsTouchEnd(): void {
+    this.resetBottomActionsTouchScroll();
+  }
+
+  private resetBottomActionsTouchScroll(): void {
+    this.bottomActionsTouchStartY = null;
+    this.bottomActionsTouchLastY = null;
+    this.bottomActionsTouchScrolling = false;
   }
 
   async runStandalonePrimaryAction(): Promise<void> {
