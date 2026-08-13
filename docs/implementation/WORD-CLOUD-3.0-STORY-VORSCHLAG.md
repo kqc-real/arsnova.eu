@@ -2,10 +2,14 @@
 
 # Word Cloud 3.0 - Host-first-Themenmodus fuer Q&A
 
-**Arbeitstitel:** `Word Cloud 3.0`  
-**Folgt auf:** `Story 1.14`, `Story 1.14a`, `Word Cloud 2.1/2.2/2.3/2.4`  
-**Status:** konzeptioneller Zielpfad; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`
-**Architekturbezug:** `ADR-0012`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`
+**Arbeitstitel:** `Word Cloud 3.0`
+
+**Folgt auf:** `Story 1.14`, `Story 1.14a`, `Word Cloud 2.1/2.2/2.3/2.4`
+
+**Status:** kanonisches Zielbild fuer Story `1.14c`; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`
+
+**Architekturbezug:** `ADR-0012`, `ADR-0013`, `ADR-0025`, `ADR-0026`, `ADR-0032`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`
+
 **Abgrenzung:** spaCy als optionale sprachliche Glaettung ist separat in `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md` beschrieben und ist nicht identisch mit diesem semantischen `3.0`-Themenpfad.
 
 ---
@@ -39,14 +43,15 @@ Der lokale Host-first-Pfad ist inzwischen produktseitig vorhanden, aber nicht al
 - gemeinsamer Renderer fuer gelieferte Analyse-Entries in `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
 - erklaerbare Tooltips, CSV-Ausgabe und Quellenlisten
 
-Nicht umgesetzt als Teil dieses Standes sind weiterhin:
+Nicht umgesetzt als Teil dieses Standes und deshalb Gegenstand von Story `1.14c` sind weiterhin:
 
 - ein echter, sichtbar beschrifteter semantischer Themenmodus
 - Confidence-Filter fuer den lokalen Document-Frequency-Pfad
 - Presenter-Q&A-Rollout als eigener Produktpfad
 - semantischer Quiz-Freitext-Rollout
-- LLM- oder Embedding-basierte Labelbildung im Livepfad
-- eigenes Timeout-/Budget-Management fuer einen spaeteren semantischen Pfad
+- mehrsprachige Embeddings, deterministisches semantisches Clustering und die optionale quellengebundene Labelbildung durch ein Open-Weight-LLM
+- der getrennte, private Inferenzserver mit Queue, Timeout, Ressourcen-, Sicherheits- und Kostenbudget
+- die Mess-, FinOps-, Lizenz- und Degradationsnachweise fuer eine spaetere Produktivfreigabe
 
 ---
 
@@ -63,7 +68,7 @@ Dieser Zuschnitt ist fuer das bestehende Repo der realistischste erste `3.0`-Sch
 - den groessten didaktischen Mehrwert im Host-Kontext liefert
 - die bestehende `2.x`-Wolke nicht destabilisiert
 - den semantischen Layer von der eigentlichen d3-Visualisierung trennt
-- ohne LLM im Livepfad auskommt
+- Embedding- und optionale LLM-Inferenz vollstaendig aus dem synchronen Live-Hotpath heraushaelt
 - die sprachliche Qualitaet sichtbar anhebt, ohne sofort ein Vollprogramm fuer alle Kanaele und Locales zu versprechen
 
 Nicht jede spaetere `3.x`-Faehigkeit muss in diese erste Story hinein.
@@ -72,7 +77,7 @@ Nicht jede spaetere `3.x`-Faehigkeit muss in diese erste Story hinein.
 
 ## Nicht-Ziele
 
-- **kein** LLM im Live-Hotpath
+- **kein** LLM im Participant- oder synchronen Live-Hotpath; eine optionale, host-ausgeloeste und quellengebundene Labelbildung auf dem getrennten Inferenzserver gehoert dagegen zum Vergleichs- und Zielumfang
 - **kein** Ersetzen der heutigen lexikalischen Wolke als Fallback
 - **kein** semantischer Presenter-Rollout in derselben Story
 - **kein** semantischer Ausbau fuer Quiz-Freitext in derselben Story
@@ -93,6 +98,8 @@ Nicht jede spaetere `3.x`-Faehigkeit muss in diese erste Story hinein.
 7. **Fallback ohne UI-Bruch:** Wenn der Themenpfad keine belastbaren Themenanker findet oder kein brauchbares Ergebnis liefert, faellt die UI automatisch auf den lokalen Termpfad zurueck, ohne leere oder kaputte Karte. Der Backend-Fallback liefert dabei tokenisierte Begriffe, keine kompletten Fragesaetze.
 8. **Sprachgrenze bewusst:** `de` und `en` sind fuer den Themenmodus in dieser Story Pflicht; andere Locales fallen kontrolliert auf den lokalen Termpfad zurueck.
 9. **Scope-Grenze bleibt stabil:** Presenter-Q&A und Quiz-Freitext verhalten sich nach dieser Story weiterhin wie heute.
+10. **Getrennte Inferenzrolle:** Embedding-Modell und optionales Open-Weight-LLM laufen produktionsnah auf einem eigenen, nicht oeffentlich erreichbaren Inferenzserver; der heutige App-/PostgreSQL-/Redis-Single-Host bleibt die belegte Baseline.
+11. **Mess- und Kostenentscheid:** Qualitaet, Latenz, Ressourcen, Ausfallverhalten und Unit Costs werden fuer lexikalische, spaCy-, Encoder-/Clustering- und optionale LLM-Varianten reproduzierbar verglichen; eine Produktivaktivierung braucht ein separates Freigabegate.
 
 ---
 
@@ -111,7 +118,7 @@ Wichtig ist dabei:
 
 - `app-word-cloud` bleibt primaer eine **Rendering- und Interaktionskomponente**
 - der Themenmodus wird als **eigener Analysevertrag** eingefuehrt, nicht als schwer wartbarer Sonderfall mitten im Renderer
-- semantische Qualitaet soll aus **Kandidatenextraktion + erklaerbarer Clusterbildung** kommen, nicht aus frei formulierten KI-Labels
+- semantische Mitgliedschaft entsteht aus **mehrsprachigen Embeddings + deterministischem, erklaerbarem Clustering**; ein optionales Open-Weight-LLM darf nur quellengebundene Labels oder Kurzfassungen formulieren und keine Mitglieder erfinden
 - die Host-Theme-Analyse startet nur fuer geoeffnete Q&A-Wortwolken, damit der Livebetrieb keine verdeckten Backend-Analysen fuer ungenutzte Dialoge ausloest
 
 ---
@@ -178,23 +185,27 @@ Die bestehende Logik in `word-cloud-term.service.ts` und `word-cloud.util.ts` bl
 
 Das ist keine Uebergangsnotloesung, sondern eine bewusste Resilienzgrenze.
 
-### 4. Erklaerbare Kandidaten statt reine Embedding-Magie
+### 4. Erklaerbare Kaskade statt LLM-Monolith
 
-Die technische Linie fuer diese Story ist inzwischen:
+Die technische Linie fuer Story `1.14c` ist:
 
-1. **Keyphrase-Kandidaten** extrahieren
-2. Kandidaten normalisieren
-3. nur dann zusammenfuehren, wenn Aehnlichkeit und Labelwahl erklaerbar sind
-4. Cluster als lesbare Labels plus Mitgliedsliste ausgeben
+1. lexikalischen `2.x`-Pfad als sofortigen Fallback liefern
+2. optional die sprachliche Glaettung aus Story `1.14b` anwenden
+3. sichtbare Q&A-Fragen mit einem versionierten mehrsprachigen Encoder einbetten
+4. Mitgliedschaften deterministisch clustern und Unsicherheit ausweisen
+5. optional ein Open-Weight-LLM ausschliesslich fuer lesbare, quellengebundene Labels oder Kurzfassungen verwenden
+6. Cluster als Label, Konfidenz, Mitgliedsliste, Analyseversion und Erzeugungszeitpunkt ausgeben
 
-Der aktuelle Analyzer macht das bewusst deterministisch und ohne Modellabhaengigkeit:
+Der aktuelle lokale Analyzer bleibt eine wichtige deterministische Baseline:
 
 - locale-spezifische Stopwortfilter fuer `de` / `en`
 - normalisierte Kern-Tokens plus angrenzende 2er-Phrasen als Kandidaten
 - regelbasierte Gruppierung fuer haeufige deutsche und englische Flexionsfaelle
 - Anchor-Auswahl ueber Wiederholung, Phrase-vs.-Token und numerische Evidenz
 - Confidence-Wert fuer die erklaerbare Einordnung `hoch` / `mittel` / `vorsichtig`
-- kein frei generiertes LLM-Label in dieser Story
+- kein frei generiertes LLM-Label und keine opake Mitgliedschaft
+
+Die neue Inferenzkaskade ersetzt diese Baseline nicht. Jede Stufe besitzt Early-Exit, Timeout und Fallback. Das LLM erhaelt nur die bereits gebildeten Cluster samt Mitgliedsfragen; schemawidrige, quellenlose oder widerspruechliche Antworten werden verworfen.
 
 ### 5. Zeitbudget und Fallback sind Produktanforderungen
 
@@ -216,6 +227,12 @@ Dadurch bleibt die UI fachlich klar:
 
 - eine Achse beantwortet: **Welche Fragen wiegen stark?**
 - die andere Achse beantwortet: **Wie werden Begriffe bzw. Themen gebildet?**
+
+### 7. Inferenzserver und Live-App bleiben getrennte Serverrollen
+
+Der heutige belegte Produktionspfad bleibt ein Single Host fuer App, PostgreSQL und Redis. Story `1.14c` fuehrt fuer Encoder und optionales Open-Weight-LLM einen eigenen, privat erreichbaren Inferenzserver ein. Browser und Teilnehmende greifen nie direkt darauf zu. Queue, Cache, Modellversion, Ressourcenlimits, Telemetrie, Service-Credential beziehungsweise mTLS und Kill-Switch gehoeren zum Serververtrag.
+
+Die separate Serverrolle darf spaeter auch den eigenstaendigen Klassifikationsauftrag aus Story `8.9b` oder den Zusammenfassungsauftrag aus `8.9c` ausfuehren. Deren Schemas, Ausloeser, Queues, Caches und Lebenszyklen bleiben jedoch getrennt: `8.9b` klassifiziert einzelne persistierte Fragen, waehrend `1.14c` nur host-ausgeloeste unveraenderliche Snapshots clustert.
 
 ---
 
@@ -259,21 +276,22 @@ Ergebnis:
 
 - kein Fachgewinn, aber die technische Einhaengestelle fuer `3.0` steht
 
-### Phase 2: Themenanalyse als separaten Backend-Pfad einziehen
+### Phase 2: Inferenzserver und Analysevertrag als getrennten Pfad einziehen
 
 Ziel: Der neue Themenmodus wird nicht im Renderer versteckt, sondern als eigener Analysepfad geliefert.
 
 Aufgaben:
 
-- neuen tRPC-Router fuer Themenanalyse einfuehren
+- schema-first tRPC-/Worker-Vertrag fuer host-ausgeloeste Snapshot-Analyse einfuehren
 - Input aus sichtbaren Q&A-Fragen, Gewichten, Locale, Metrik und `sessionCode` bilden
-- Kandidatenextraktion fuer `de`/`en` implementieren
-- Clusterbildung mit nachvollziehbarer Mitgliedsliste liefern
+- versionierte Embedding-Erzeugung auf dem privaten Inferenzserver anbinden
+- deterministische Clusterbildung mit nachvollziehbarer Mitgliedsliste liefern
+- optionale, quellengebundene Open-Weight-LLM-Labelbildung hinter eigenem Early-Exit und Budget anbinden
 - leeres oder unsicheres Ergebnis sauber signalisieren statt schlechte Cluster zu erzwingen
 
 Ergebnis:
 
-- Host kann eine erklaerbare Themenliste anfordern; der aktuelle Backend-Pfad nutzt deterministische Kandidaten- und Phrasenbildung fuer `de`/`en` und faellt kontrolliert lexikalisch zurueck, wenn keine belastbaren Themenanker entstehen
+- Host kann eine erklaerbare Themenliste anfordern; Modell-, Queue- oder Schemafehler fallen kontrolliert auf die lokale Analyse zurueck, wenn keine belastbaren Themen entstehen
 
 ### Phase 3: Host-Integration mit automatischem Fallback
 
@@ -288,7 +306,7 @@ Aufgaben:
 
 Ergebnis:
 
-- Der Host-Vollbilddialog ist fuer zwei lokale Ansichten nutzbar: `Einzelwoerter` sowie `Begriffe & Phrasen`. Analysierte semantische Entries bleiben eine spaetere Ausbaustufe; der gemeinsame Renderer kann solche Entries weiterhin darstellen.
+- Der Host-Vollbilddialog bietet `Einzelwoerter`, `Begriffe & Phrasen` und `Semantische Themen`; der gemeinsame Renderer zeigt semantische Entries samt Konfidenz, Mitgliedern und Analyseversion, ohne Rohtexte selbst zu analysieren.
 
 ### Phase 4: Tests, Fixtures und Performance-Grenzen absichern
 
@@ -297,14 +315,16 @@ Ziel: `3.0` bleibt ueber Zeit wartbar und erklaerbar.
 Pflichtchecks:
 
 - `de`-/`en`-Fixtures mit echten Paraphrasen
+- Vergleich von lexikalischer, spaCy-, Embedding-/Clustering- und optionaler LLM-Variante
 - keine Regression im lokalen Termpfad
-- Theme-Fallback bei Fehler/Timeout
+- Theme-Fallback bei Fehler, Timeout, Ueberlastung und ungueltiger Modellantwort
 - Tooltip- und CSV-Integritaet
-- keine deutliche Verlangsamung der Host-Karte im normalen Livebetrieb
+- unveraenderte Join-, Vote-, Q&A-Submit-, WebSocket-/Reconnect- und lexikalische Baselines bei langsamem oder ausgefallenem Inferenzserver
+- Ressourcen-, Energie- und Unit-Cost-Bericht mit Umgebung, Modellversion und Geltungsgrenze
 
-### Phase 5: Folgestories sauber abspalten
+### Phase 5: Kursnachweise und spaetere Produktpfade sauber trennen
 
-Nicht mehr Teil dieser ersten Story, aber direkte Anschlusskandidaten:
+Im Cloud-Computing-Kurs werden Deployment, Messung, Resilienz, Privacy/Security und Wirtschaftlichkeit des Zwei-Server-Pfads demonstriert und schrittweise umgesetzt. Die Produktivaktivierung bleibt eine gesonderte Entscheidung. Nicht Teil von `1.14c`, aber direkte Anschlusskandidaten sind:
 
 - Presenter-Q&A bekommt spaeter denselben Themenmodus auf Cache-Basis
 - Quiz-Freitext bekommt spaeter einen eigenen `3.x`-Pfad
@@ -321,6 +341,8 @@ Nicht mehr Teil dieser ersten Story, aber direkte Anschlusskandidaten:
 - erklaerbare Labels statt Zufallsstrings absichern
 - unsichere Cluster duerfen verworfen werden
 - Router-Antworten fuer Fehler-/Leerzustand explizit testen
+- getrennte Contract-Tests fuer Snapshot-Zustaende von `1.14c` und per-Frage-Klassifikation von `8.9b`
+- manipulierte, quellenlose und schemawidrige Modellantworten verwerfen
 
 ### Frontend
 
@@ -352,6 +374,8 @@ Ein zweiter sinnvoller Kalibrierfall fuer den aktuellen Analyzer ist:
 - Themenmodus liefert fuer `de` und `en` sichtbar nuetzlichere Cluster als `2.x`
 - jede Themenkarte bleibt ueber Tooltip/Export erklaerbar
 - Fehler und Timeouts kippen kontrolliert auf den lokalen Termpfad
+- Inferenzserver ist getrennt, privat, versioniert, ressourcenbegrenzt und per Kill-Switch deaktivierbar
+- reproduzierbare Qualitaets-, Last-, Ressourcen-, Resilienz- und FinOps-Nachweise liegen vor
 - relevante Backend- und Frontend-Tests sind gruen
 
 ---
@@ -360,6 +384,8 @@ Ein zweiter sinnvoller Kalibrierfall fuer den aktuellen Analyzer ist:
 
 - weitere Fixture-Sets fuer reale Q&A-Daten zur Confidence-Kalibrierung
 - moegliche Heuristik-Schaerfung gegen generische Tragerwoerter in weiteren Domainen
+- Festlegung und Messung geeigneter Encoder-, Clustering-, Quantisierungs- und optionaler LLM-Varianten
+- Kursartefakte fuer Zwei-Server-IaC, Datenfluss, Bedrohungsmodell, Last/Ressourcen und TCO/FinOps
 - spaetere Entscheidung, ob Presenter-Q&A einen gecachten Themenmodus erhalten soll
 - spaetere Entscheidung, ob andere Locales aktiv gehaertet oder bewusst lexikalisch belassen werden
 
@@ -367,13 +393,13 @@ Ein zweiter sinnvoller Kalibrierfall fuer den aktuellen Analyzer ist:
 
 ## Kurzempfehlung
 
-Der erste sinnvolle `3.0`-Schritt fuer arsnova.eu ist **kein Vollumbau der Wortwolke**, sondern ein **erklaerbarer Themenmodus fuer Host-Q&A**.
+Der erste sinnvolle `3.0`-Schritt fuer arsnova.eu ist **kein Vollumbau der Wortwolke**, sondern ein **erklaerbarer Themenmodus fuer Host-Q&A mit getrenntem Open-Weight-Inferenzserver**.
 
 Damit wird der groesste inhaltliche Mehrwert erschlossen, ohne die bestehende `2.x`-Staerke zu verlieren:
 
 - livefaehig
 - nachvollziehbar
 - moderationsnah
-- iterativ ausbaubar
+- messbar und iterativ ausbaubar
 
-Alles, was darueber hinausgeht, sollte als spaetere `3.x`-Folgestory geschnitten werden und nicht in die erste semantische Ausbaustufe gepresst werden.
+Embeddings, deterministisches Clustering und die optionale quellengebundene LLM-Labelbildung gehoeren zu Story `1.14c`. Presenter-/Quiz-Freitext-Rollout und weitere Locales bleiben dagegen spaetere `3.x`-Folgestorys.

@@ -2,7 +2,7 @@
 
 # Cloud Computing an der IU: Kurslandkarte und Konzeptstand
 
-**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-07-29
+**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-08-13
 
 ## 1. Geltungsbereich
 
@@ -79,6 +79,23 @@ Verbindliche Evidenzquellen:
 - [formale Sicherheits- und Lasttest-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
 - [Monitoring-Abnahme W3.7](../implementation/W3.7-MONITORING-ALARMS-ABNAHME.md)
 
+### 3.3 Semesterbegleitendes Studienobjekt: Word Cloud 3.0
+
+[Backlog-Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin) ist das verbindende Studienobjekt für die Übungen: ein host-ausgelöster semantischer Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die heutige lexikalische Wortwolke bleibt dabei der jederzeit verfügbare Fallback.
+
+Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline. Die Studierenden demonstrieren und implementieren schrittweise einen davon getrennten, privat erreichbaren Inferenzserver. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
+
+Das Studienobjekt wird nicht auf eine Modell-Demo reduziert. Verbindliche Untersuchungsachsen sind:
+
+- reproduzierbares Zwei-Server-Deployment, Netzwerk-/Rechtegrenzen und automatischer Cleanup;
+- Qualitätsvergleich von lexikalischer, spaCy-, Encoder-/Clustering- und optionaler LLM-Variante;
+- Latenz, Durchsatz, Queue, Cache, CPU, RAM, GPU/VRAM, Netzwerk, Energie und Degradation;
+- Live-Regressionsschutz bei langsamem, ueberlastetem oder ausgefallenem Inferenzserver;
+- Datenschutz, Bedrohungsmodell, Modell-/Lizenzmanifest und Supply-Chain-Risiken;
+- TCO, FinOps, Unit Costs, Auslastung/Leerlauf, Build/Buy, Sensitivität, Lock-in und Exit.
+
+Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Decision Record in das formative Agentic Cloud Engineering Dossier ein und bilden eine mögliche fachliche Basis für das Referat. Die Übungsimplementierung ist weder eine automatische Produktivfreigabe noch ein Kapazitätsversprechen.
+
 ## 4. Dokumentationsarchitektur
 
 ### Für die Kursdurchführung
@@ -103,6 +120,7 @@ Verbindliche Evidenzquellen:
 | Welche Migration ist plausibel?                   | [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)                                                                                                     |
 | Welche Betriebsmodelle sind vergleichbar?         | [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [OpenStack/Kubernetes](../implementation/CLOUD-COMPUTING-OPENSTACK-UND-ALTERNATIVEN.md) |
 | Wie kann eine Hetzner-Variante kalkuliert werden? | [Stückliste](../implementation/CLOUD-COMPUTING-HETZNER-STUECKLISTE.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)               |
+| Welches Studienobjekt verbindet die Übungen?      | [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)    |
 
 Die Kostenunterlagen sind **volatile Rechenbeispiele**, keine Beschaffungsfreigabe und kein Kapazitätsnachweis. Vor jeder Verwendung müssen Preise, Produktverfügbarkeit, Architekturannahmen und Lastdaten neu geprüft werden.
 
