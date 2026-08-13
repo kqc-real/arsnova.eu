@@ -146,7 +146,7 @@
     {
       "context": "Playwright Smoke E2E",
       "ruleset": "CI-CD",
-      "purpose": "End-to-End-, axe-, Reflow- und Fokus-Smokes.",
+      "purpose": "Chromium-Axe-/Reflow-Smokes und WebKit-MOTD-/Fokus-Regressionen.",
       "source": {
         "type": "workflow",
         "producers": [{ "workflow": ".github/workflows/ci.yml", "job": "e2e" }]

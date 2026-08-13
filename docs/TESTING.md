@@ -147,7 +147,9 @@ Auslöser: **Push** und **Pull Request** auf `main`.
 | **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
 | **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                      |
 | **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
-| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                               |
+| **e2e-chromium**                       | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                 |
+| **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-, Fokus- und Tab-Regressionen                                                                                                                                                   |
+| **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert                                                                                                                                              |
 | **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
 | **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
 | **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; nach Quality-Gates inkl. `publish-image`; übergibt `DEPLOY_IMAGE`/`DEPLOY_SHA`, checkt `DEPLOY_SHA` per SSH vor `scripts/deploy.sh` aus, dann Digest-Pull (kein Server-Build) |
@@ -167,7 +169,8 @@ Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifa
 | `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                             | 7 Tage    |
 | `verapdf-ua1-report`      | `pdfua`            | veraPDF-Textbericht für die PDF/UA-1-Demos aller fünf Locales                                         | 30 Tage   |
 | `lighthouse-reports`      | `lighthouse`       | Performance- und A11y-Ausgabe aus `.lighthouseci` und `.lighthouseci-a11y`                            | 7 Tage    |
-| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                      | 7 Tage    |
+| `e2e-service-logs`        | `e2e-chromium`     | `backend.log` und `frontend.log`                                                                      | 7 Tage    |
+| `webkit-e2e-service-logs` | `webkit-e2e`       | Backend-/Frontend-Logs und WebKit-Screenshots bei Browserfehlern                                      | 7 Tage    |
 | `classroom-smoke-reports` | `classroom-smokes` | Standardisiertes JSON + JUnit XML für sechs Szenarien (inkl. `channel-ws-fanout`) sowie `backend.log` | 7 Tage    |
 | `artillery-500-reports`   | `artillery-500`    | Artillery-Rohreport, JSON/JUnit für Unified, Vote, Yjs, Freitext und Soak sowie `backend.log`         | 30 Tage   |
 | `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                       | 7 Tage    |
@@ -304,6 +307,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                       |
 | `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung    |
 | `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                 |
+| `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe   |
 | `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                   |
 | `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                      |
 | `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                     |
@@ -321,11 +325,45 @@ gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 
 `a11y:axe:static`, `a11y:layout`, `smoke:short-text`,
 `smoke:session-question-progress` und `smoke:unified-session` sind Bestandteile
-des CI-Jobs `e2e`. `smoke:short-text` und `smoke:unified-session` schreiben bei
+des Chromium-Jobs `e2e-chromium`. Der Job `webkit-e2e` startet dieselben echten
+Backend-/Frontend-Services, wählt WebKit explizit und führt `e2e:motd-focus`
+aus. Der Required-Check `e2e` wird nur grün, wenn beide
+Browser-Jobs erfolgreich sind. `smoke:short-text` und `smoke:unified-session` schreiben bei
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese
 Ausnahme nicht.
+
+Lokal lassen sich dieselben browserabhängigen Prüfungen gezielt ausführen:
+
+```bash
+BASE_URL=http://localhost:4200 PLAYWRIGHT_BROWSER=chromium npm run a11y:layout -w @arsnova/frontend
+BASE_URL=http://localhost:4200 PLAYWRIGHT_BROWSER=webkit npm run e2e:motd-focus -w @arsnova/frontend
+```
+
+Playwright WebKit prüft die WebKit-Engine reproduzierbar, ist aber nicht die
+Safari-App und übernimmt weder deren Browseroberfläche noch die macOS-Einstellung
+für vollständige Tastaturnavigation. Vor Releases mit Änderungen an Dialogen,
+Fokus oder Tab-Reihenfolge daher zusätzlich Safari auf macOS manuell prüfen:
+
+1. In Safari unter **Einstellungen → Erweitert** die Option zum Hervorheben aller
+   Webseitenobjekte per Tabulator einmal aus- und einmal einschalten; zusätzlich
+   die macOS-Tastaturnavigation einmal aus- und einmal einschalten. Je nach
+   Einstellung mit `Tab` beziehungsweise `⌥ Tab` durch die Seite navigieren.
+2. MOTD per Tastatur über **Schließen** und **Alles klar** beenden: Danach muss
+   **Code eingeben** den sichtbaren Tastatur-Fokusrahmen erhalten; der nächste
+   Navigationstastendruck führt zu **Quiz erstellen**, nicht zum Skip-Link.
+3. MOTD jeweils per Maus über **Schließen** und **Alles klar** beenden, während
+   der Fokus noch auf dem Schließen-Button liegt: Beide Klicks müssen reagieren;
+   **Code eingeben** ist danach das Fokusziel, aber ohne Tastatur-Fokusrahmen.
+4. Vor dem verzögerten MOTD-Öffnen das Codefeld fokussieren und dann per Maus
+   schließen: Nach dem Schließen liegt der Fokus auf **Code eingeben**, nicht im
+   Codefeld oder im entfernten Dialog.
+
+Siehe auch Apples Dokumentation zu
+[Safari-Tastaturkurzbefehlen](https://support.apple.com/de-de/guide/safari/cpsh003/mac)
+und zur
+[macOS-Tastaturnavigation](https://support.apple.com/de-de/guide/mac-help/mchlc06d1059/mac).
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 

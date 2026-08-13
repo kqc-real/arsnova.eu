@@ -21,6 +21,7 @@
     "smoke:numeric-estimate": "node scripts/check-numeric-estimate-flow.mjs",
     "smoke:structured-question-types": "node scripts/check-structured-question-types-flow.mjs",
     "e2e:confidence-summary-demo": "node scripts/check-confidence-summary-demo-flow.mjs",
+    "e2e:motd-focus": "node scripts/check-motd-focus-flow.mjs",
     "generate:session-pdf-demo": "npx tsx scripts/generate-session-results-pdf-demo.ts",
     "smoke:quiz-sync": "node scripts/check-quiz-sync-flow.mjs",
     "smoke:session-question-progress": "node scripts/check-session-question-progress-flow.mjs",

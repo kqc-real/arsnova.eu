@@ -19,7 +19,7 @@ Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
 1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review`, `actionlint`, `format` und `migration` frühe PR-, Workflow-, Format- und Datenbankschemarisiken.
 2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz). `lint` umfasst Angular-Template-A11y; `landing-build` prüft Astro 7 mit `astro check`, baut die Landing und führt danach axe aus.
-3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `classroom-smokes`, `lighthouse`, `pdfua`).
+3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, Chromium-/WebKit-`e2e`, `classroom-smokes`, `lighthouse`, `pdfua`).
 4. **Sicherheit:** `audit`, Dependency Review und Trivy blockieren ab High; CodeQL prüft SAST, die CI erzeugt ein CycloneDX-SBOM.
 5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
@@ -78,7 +78,10 @@ flowchart TD
   D --> H[lint]
   D --> I[test:coverage]
   D --> J[lighthouse]
-  D --> K[e2e smoke]
+  D --> KC[Chromium e2e smoke]
+  D --> KW[WebKit MOTD + Fokus]
+  KC --> K[e2e Aggregator]
+  KW --> K
   D --> K2[classroom smokes]
   D --> L[docker build<br/>ein Image + Artefakt]
   L --> M[trivy-image<br/>load/scan, read-only]
@@ -225,19 +228,35 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
   Performance 0,79–0,80 und LCP 3,705–3,829 s; siehe
   [QA-Nachlauf](implementation/LOCAL-QA-RECHECK-2026-07-11.md).
 
-### 4.9 e2e
+### 4.9 e2e-chromium und e2e
 
-- **Was?** Sechs Playwright-Smokes mit echten Services (Postgres + Redis),
+- **Was?** `e2e-chromium` führt Playwright-Smokes mit echten Services (Postgres + Redis),
   produktionsnahen Migrationen und Backend-/Frontend-Start: Host-/Presenter-Auth,
   Host-Musik, `SHORT_TEXT`, `NUMERIC_ESTIMATE`, Quiz-Sync und Unified Session.
   Vor den Flows laufen axe auf statischen Kernrouten sowie Reflow-, Fokus- und
   Zielgrößenprüfungen. `SHORT_TEXT` und Unified Session führen axe zusätzlich
-  in aktiven, Ergebnis-, Q&A-, Blitzlicht- und Session-Ende-Zuständen aus.
+  in aktiven, Ergebnis-, Q&A-, Blitzlicht- und Session-Ende-Zuständen aus. Der
+  stabile Required-Check `e2e` aggregiert `e2e-chromium` und `webkit-e2e` und
+  wird nur bei zwei erfolgreichen Browser-Jobs grün.
 - **Wo?** Job und Skriptinventar in [../.github/workflows/ci.yml](../.github/workflows/ci.yml)
   und [../apps/frontend/package.json](../apps/frontend/package.json).
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Testet den Nutzerfluss und Accessibility-Regressionen systemnah
   (nicht nur isolierte Unit-Tests).
+
+### 4.9a webkit-e2e
+
+- **Was?** Installiert WebKit explizit und führt einen Desktop-MOTD-Smoke aus.
+  Der Smoke prüft Tastatur- und Pointer-Rücksprung, die anschließende Tab-Reihe und bildet
+  Safaris fehlenden Pointer-Buttonfokus sowie ein fehlendes globales
+  `TouchEvent` nach.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
+  Browserwahl und Fokus-Smoke in
+  [../apps/frontend/scripts/check-motd-focus-flow.mjs](../apps/frontend/scripts/check-motd-focus-flow.mjs).
+- **Wann?** Parallel zu `e2e-chromium` nach `build`, außer bei `schedule`.
+- **Warum?** Verhindert, dass WebKit nur als nie genutzter Chromium-Fallback
+  existiert. Playwright WebKit ersetzt dennoch keinen manuellen Safari-Smoke,
+  weil Safari- und macOS-Tastatureinstellungen außerhalb der Engine liegen.
 
 ### 4.10 classroom-smokes
 
@@ -407,7 +426,7 @@ Vor dem eigentlichen Deploy müssen erfolgreich sein:
 8. docker
 9. typecheck
 10. lighthouse
-11. e2e einschließlich axe und Reflow/Fokus/Zielgrößen
+11. e2e-Aggregator mit Chromium (inklusive axe und Reflow/Fokus/Zielgrößen) und WebKit (MOTD-/Fokus-Smokes)
 12. classroom-smokes
 13. audit
 14. trivy-fs
@@ -467,16 +486,17 @@ In GitHub findest du Artefakte so:
 3. Gewünschten CI-Run öffnen
 4. Unten im Bereich Artifacts die Downloads auswählen
 
-| Artefaktname             | Erzeugender Job | Inhalt                                                        | Fundstelle im Runner                                                | Retention |
-| ------------------------ | --------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
-| `frontend-dist-browser`  | `build`         | Lokalisierter Frontend-Produktionsbuild                       | `apps/frontend/dist/browser`                                        | 1 Tag     |
-| `coverage-reports`       | `test`          | Backend- und Frontend-Coverage (HTML + Textsummary-Dateien)   | `apps/backend/coverage`, `apps/frontend/coverage`                   | 7 Tage    |
-| `verapdf-ua1-report`     | `pdfua`         | veraPDF-Textbericht der fünf PDF/UA-1-Locale-Demos            | `tmp/pdfua-validation/verapdf-ua1.txt`                              | 30 Tage   |
-| `lighthouse-reports`     | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`, `.lighthouseci-a11y`                               | 7 Tage    |
-| `e2e-service-logs`       | `e2e`           | Laufzeitlogs von Backend und Frontend während des Smoke-Tests | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log` | 7 Tage    |
-| `trivy-fs-report`        | `trivy-fs`      | Trivy Filesystem Security Report (SARIF)                      | `trivy-fs.sarif`                                                    | 7 Tage    |
-| `production-image-<sha>` | `docker`        | Komprimiertes Produktionsimage + Integritätsmeta              | `arsnova-eu-production.tar.gz`, `arsnova-eu-production.meta.json`   | 1 Tag     |
-| `trivy-image-report`     | `trivy-image`   | Trivy Container Image Security Report (SARIF)                 | `trivy-image.sarif`                                                 | 7 Tage    |
+| Artefaktname              | Erzeugender Job | Inhalt                                                        | Fundstelle im Runner                                                                                            | Retention |
+| ------------------------- | --------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------- |
+| `frontend-dist-browser`   | `build`         | Lokalisierter Frontend-Produktionsbuild                       | `apps/frontend/dist/browser`                                                                                    | 1 Tag     |
+| `coverage-reports`        | `test`          | Backend- und Frontend-Coverage (HTML + Textsummary-Dateien)   | `apps/backend/coverage`, `apps/frontend/coverage`                                                               | 7 Tage    |
+| `verapdf-ua1-report`      | `pdfua`         | veraPDF-Textbericht der fünf PDF/UA-1-Locale-Demos            | `tmp/pdfua-validation/verapdf-ua1.txt`                                                                          | 30 Tage   |
+| `lighthouse-reports`      | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`, `.lighthouseci-a11y`                                                                           | 7 Tage    |
+| `e2e-service-logs`        | `e2e-chromium`  | Laufzeitlogs von Backend und Frontend während des Smoke-Tests | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log`                                             | 7 Tage    |
+| `webkit-e2e-service-logs` | `webkit-e2e`    | WebKit-Laufzeitlogs und Screenshots bei Browserfehlern        | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log`, `${{ runner.temp }}/webkit-browser-smokes` | 7 Tage    |
+| `trivy-fs-report`         | `trivy-fs`      | Trivy Filesystem Security Report (SARIF)                      | `trivy-fs.sarif`                                                                                                | 7 Tage    |
+| `production-image-<sha>`  | `docker`        | Komprimiertes Produktionsimage + Integritätsmeta              | `arsnova-eu-production.tar.gz`, `arsnova-eu-production.meta.json`                                               | 1 Tag     |
+| `trivy-image-report`      | `trivy-image`   | Trivy Container Image Security Report (SARIF)                 | `trivy-image.sarif`                                                                                             | 7 Tage    |
 
 Hinweise:
 
@@ -555,7 +575,7 @@ Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.j
 | lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                           | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
 | Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                      | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
 | PDF/UA-1 Validation            | CI-CD          | workflow: .github/workflows/ci.yml#pdfua                          | PDF/UA-1-Konformität der lokalisierten Handouts.                          |
-| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                            | End-to-End-, axe-, Reflow- und Fokus-Smokes.                              |
+| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                            | Chromium-Axe-/Reflow-Smokes und WebKit-MOTD-/Fokus-Regressionen.          |
 | PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
 | Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                          | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
 | Tests                          | CI-CD          | workflow: .github/workflows/ci.yml#test                           | Workspace-Tests mit absoluten Coverage-Gates.                             |
