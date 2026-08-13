@@ -3,7 +3,7 @@
  */
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@prisma/client';
-import type { AppLocale, MotdPublicDTO } from '@arsnova/shared-types';
+import type { AppLocale, MotdArchiveReadCursor, MotdPublicDTO } from '@arsnova/shared-types';
 import {
   MotdGetCurrentInputSchema,
   MotdGetCurrentOutputSchema,
@@ -180,7 +180,32 @@ function mapArchiveRowsForLocale(rows: ArchiveLocalizedRow[], locale: AppLocale)
     .filter((x): x is NonNullable<typeof x> => x !== null);
 }
 
-async function fetchArchiveHeaderStats(locale: AppLocale, now: Date, seen: Date | null) {
+function archiveReadCursorForItem(item: {
+  id: string;
+  contentVersion: number;
+  startsAt: string;
+}): MotdArchiveReadCursor {
+  return {
+    startsAtIso: item.startsAt,
+    motdId: item.id,
+    contentVersion: item.contentVersion,
+  };
+}
+
+/** Positiv, wenn `a` in der Archivsortierung neuer als `b` ist. */
+function compareArchiveReadCursors(a: MotdArchiveReadCursor, b: MotdArchiveReadCursor): number {
+  const startsAtDifference = Date.parse(a.startsAtIso) - Date.parse(b.startsAtIso);
+  if (startsAtDifference !== 0) return startsAtDifference;
+  if (a.motdId !== b.motdId) return a.motdId > b.motdId ? 1 : -1;
+  return a.contentVersion - b.contentVersion;
+}
+
+async function fetchArchiveHeaderStats(
+  locale: AppLocale,
+  now: Date,
+  seenCursor: MotdArchiveReadCursor | null,
+  legacySeenEndsAt: Date | null,
+) {
   const rows = await prisma.motd.findMany({
     where: motdArchiveListWhere(now),
     select: {
@@ -190,17 +215,34 @@ async function fetchArchiveHeaderStats(locale: AppLocale, now: Date, seen: Date 
       endsAt: true,
       locales: true,
     },
-    orderBy: [{ endsAt: 'desc' }, { id: 'desc' }],
+    orderBy: [{ startsAt: 'desc' }, { id: 'desc' }],
   });
   const visible = mapArchiveRowsForLocale(rows, locale);
   const archiveCount = visible.length;
-  const archiveMaxEndsAtIso = visible[0]?.endsAt ?? null;
-  const archiveUnreadCount =
-    seen === null
-      ? archiveCount
-      : visible.reduce((count, item) => count + (new Date(item.endsAt) > seen ? 1 : 0), 0);
+  const archiveMaxCursor = visible.reduce<MotdArchiveReadCursor | null>((newest, item) => {
+    const cursor = archiveReadCursorForItem(item);
+    return newest === null || compareArchiveReadCursors(cursor, newest) > 0 ? cursor : newest;
+  }, null);
+  const archiveMaxEndsAtIso = visible.reduce<string | null>(
+    (latest, item) => (latest === null || item.endsAt > latest ? item.endsAt : latest),
+    null,
+  );
+  const archiveUnreadCount = seenCursor
+    ? visible.reduce(
+        (count, item) =>
+          count +
+          (compareArchiveReadCursors(archiveReadCursorForItem(item), seenCursor) > 0 ? 1 : 0),
+        0,
+      )
+    : legacySeenEndsAt
+      ? visible.reduce(
+          (count, item) => count + (new Date(item.endsAt) > legacySeenEndsAt ? 1 : 0),
+          0,
+        )
+      : archiveCount;
   return {
     archiveCount,
+    archiveMaxCursor,
     archiveMaxEndsAtIso,
     archiveUnreadCount,
   };
@@ -293,7 +335,8 @@ export const motdRouter = router({
     }),
 
   /**
-   * Toolbar/Header: aktives Overlay?, Archiv-Anzahl, `archiveMaxEndsAtIso`, ungelesen relativ zu `archiveSeenUpToEndsAtIso`.
+   * Toolbar/Header: aktives Overlay?, Archiv-Anzahl und ungelesene Meldungen relativ zum
+   * publikationsbasierten Archiv-Lesecursor (mit Legacy-`endsAt`-Kompatibilität).
    */
   getHeaderState: publicProcedure
     .input(MotdHeaderStateInputSchema)
@@ -313,21 +356,27 @@ export const motdRouter = router({
       }
       const now = new Date();
       const locale = resolveMotdLocale(input.locale, ctx);
+      const cursorRaw = input.archiveSeenUpToCursor;
+      const seenCursor =
+        cursorRaw && !Number.isNaN(Date.parse(cursorRaw.startsAtIso)) ? cursorRaw : null;
       const seenRaw = input.archiveSeenUpToEndsAtIso;
-      const seen = seenRaw && !Number.isNaN(new Date(seenRaw).getTime()) ? new Date(seenRaw) : null;
+      const legacySeenEndsAt =
+        seenRaw && !Number.isNaN(new Date(seenRaw).getTime()) ? new Date(seenRaw) : null;
 
       const dismissed = input.overlayDismissedUpTo;
       const [motd, archiveStats] = await Promise.all([
         fetchCurrentMotdDto(locale, now, dismissed),
-        fetchArchiveHeaderStats(locale, now, seen),
+        fetchArchiveHeaderStats(locale, now, seenCursor, legacySeenEndsAt),
       ]);
 
-      const { archiveCount, archiveMaxEndsAtIso, archiveUnreadCount } = archiveStats;
+      const { archiveCount, archiveMaxCursor, archiveMaxEndsAtIso, archiveUnreadCount } =
+        archiveStats;
 
       return {
         hasActiveOverlay: motd !== null,
         hasArchiveEntries: archiveCount > 0,
         archiveCount,
+        archiveMaxCursor,
         archiveMaxEndsAtIso,
         archiveUnreadCount,
       };

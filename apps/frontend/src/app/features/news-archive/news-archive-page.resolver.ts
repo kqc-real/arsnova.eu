@@ -48,7 +48,7 @@ export const newsArchivePageResolver: ResolveFn<NewsArchiveInitialModel> = async
     const transferred = transferState.get(stateKey, {
       items: [],
       nextCursor: null,
-      archiveMaxEndsAtIso: null,
+      archiveMaxCursor: null,
       archiveUnreadCount: 0,
       errorMessage: null,
     });

@@ -58,12 +58,11 @@ describe('ensure-schema MOTD runtime seeding', () => {
     );
 
     expect(localeBlocks).toHaveLength(5);
+    const backlogUrl = 'https://github.com/kqc-real/arsnova.eu/blob/main/Backlog.md';
     for (const markdown of localeBlocks) {
       expect(markdown).toMatch(/^### ✨ /);
-      expect(markdown).toContain('https://github.com/kqc-real/arsnova.eu/blob/main/Backlog.md');
-      expect(
-        markdown.match(/https:\/\/github\.com\/kqc-real\/arsnova\.eu\/blob\/main\/Backlog\.md/g),
-      ).toHaveLength(2);
+      expect(markdown).toContain(backlogUrl);
+      expect(markdown.split(backlogUrl)).toHaveLength(3);
       expect(markdown).not.toContain('[[');
       expect(markdown).toMatch(/\n\n> \*\*arsnova\.eu /);
     }

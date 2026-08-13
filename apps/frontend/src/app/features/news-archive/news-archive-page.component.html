@@ -48,7 +48,7 @@
         @if (error(); as err) {
           <p class="news-archive-page__error" role="alert">{{ err }}</p>
         } @else {
-          @if (archiveMaxEndsAtIso()) {
+          @if (archiveMaxCursor()) {
             <div class="news-archive-page__actions">
               <span
                 class="news-archive-page__mark-all-wrap"

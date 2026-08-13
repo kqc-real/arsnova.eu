@@ -18,13 +18,13 @@ import {
 } from '@angular/material/expansion';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
+import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
 import {
-  getMotdArchiveSeenUpToEndsAtIso,
+  getMotdArchiveSeenUpToCursor,
   motdDismissedPairsForApi,
-  setMotdArchiveSeenUpToEndsAtIso,
+  setMotdArchiveSeenUpToCursor,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
@@ -32,7 +32,12 @@ import { localizeKnownServerError } from '../../core/localize-known-server-messa
 import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
 import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
 import { splitMotdDecorativeEmoji, type MotdTitleDisplay } from '../motd-decorative-emoji.util';
-import { sortMotdArchiveItemsNewFirst } from '../motd-archive-sort.util';
+import {
+  compareMotdArchiveReadCursors,
+  isMotdArchiveItemNewerThanCursor,
+  newestMotdArchiveReadCursor,
+  sortMotdArchiveItemsNewFirst,
+} from '../motd-archive-sort.util';
 
 export type MotdArchiveDialogData = { locale: AppLocale };
 
@@ -80,8 +85,8 @@ export class MotdArchiveDialogComponent implements OnInit {
   readonly items = signal<MotdArchiveItemDTO[]>([]);
   /** Nächste Seite für `listArchive` oder `null`. */
   readonly nextCursor = signal<string | null>(null);
-  /** Spätestes Archiv-Ende (ISO); null wenn leer oder Header-Anfrage fehlgeschlagen. */
-  readonly archiveMaxEndsAtIso = signal<string | null>(null);
+  /** Neuester Publikationscursor; null wenn leer oder Header-Anfrage fehlgeschlagen. */
+  readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   /** Ungelesen relativ zum Client-Wasserzeichen. */
   readonly archiveUnreadCount = signal(0);
 
@@ -114,11 +119,11 @@ export class MotdArchiveDialogComponent implements OnInit {
   }
 
   markArchiveAllRead(): void {
-    const max = this.effectiveArchiveMaxEndsAtIso();
+    const max = this.effectiveArchiveMaxCursor();
     if (!max) {
       return;
     }
-    setMotdArchiveSeenUpToEndsAtIso(max);
+    setMotdArchiveSeenUpToCursor(max);
     this.archiveUnreadCount.set(0);
     this.snackBar.open(
       $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
@@ -131,11 +136,11 @@ export class MotdArchiveDialogComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
-    const seen = getMotdArchiveSeenUpToEndsAtIso();
+    const seen = getMotdArchiveSeenUpToCursor();
     const dismissed = motdDismissedPairsForApi();
     const headerInput = {
       locale: this.data.locale,
-      ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+      ...(seen ? { archiveSeenUpToCursor: seen } : {}),
       ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
     };
     const [stateResult, listResult] = await Promise.allSettled([
@@ -145,7 +150,7 @@ export class MotdArchiveDialogComponent implements OnInit {
 
     if (stateResult.status === 'fulfilled') {
       const s = stateResult.value;
-      this.archiveMaxEndsAtIso.set(s.archiveMaxEndsAtIso);
+      this.archiveMaxCursor.set(s.archiveMaxCursor ?? null);
       this.archiveUnreadCount.set(s.archiveUnreadCount);
     }
 
@@ -222,37 +227,32 @@ export class MotdArchiveDialogComponent implements OnInit {
 
   /**
    * Ohne gültigen Header-State (Rate-Limit, alter Server) trotzdem Button/Counts aus der ersten
-   * listArchive-Seite ableiten. `archiveMaxEndsAtIso` vom Server bleibt bevorzugt (gesamtes Archiv).
+   * listArchive-Seite ableiten. `archiveMaxCursor` vom Server bleibt bevorzugt (gesamtes Archiv).
    */
   private reconcileArchiveReadSignals(headerOk: boolean): void {
     const items = this.items();
-    const maxFromPage =
-      items.length === 0
-        ? null
-        : items.reduce((best, it) => (it.endsAt > best ? it.endsAt : best), items[0]!.endsAt);
+    const maxFromPage = newestMotdArchiveReadCursor(items);
 
-    if (!this.archiveMaxEndsAtIso() && maxFromPage) {
-      this.archiveMaxEndsAtIso.set(maxFromPage);
+    if (!this.archiveMaxCursor() && maxFromPage) {
+      this.archiveMaxCursor.set(maxFromPage);
     }
 
     if (!headerOk && items.length > 0) {
-      const seen = getMotdArchiveSeenUpToEndsAtIso();
+      const seen = getMotdArchiveSeenUpToCursor();
       this.archiveUnreadCount.set(
-        seen ? items.filter((it) => it.endsAt > seen).length : items.length,
+        seen
+          ? items.filter((it) => isMotdArchiveItemNewerThanCursor(it, seen)).length
+          : items.length,
       );
     }
   }
 
-  /** Effektives Ende für „Alles gelesen“: Server-Maximum oder Maximum der geladenen Seite. */
-  private effectiveArchiveMaxEndsAtIso(): string | null {
-    const fromServer = this.archiveMaxEndsAtIso();
-    const items = this.items();
-    const fromPage =
-      items.length === 0
-        ? null
-        : items.reduce((best, it) => (it.endsAt > best ? it.endsAt : best), items[0]!.endsAt);
+  /** Effektiver Cursor für „Alles gelesen“: Server-Maximum oder Maximum der geladenen Seite. */
+  private effectiveArchiveMaxCursor(): MotdArchiveReadCursor | null {
+    const fromServer = this.archiveMaxCursor();
+    const fromPage = newestMotdArchiveReadCursor(this.items());
     if (fromServer && fromPage) {
-      return fromServer >= fromPage ? fromServer : fromPage;
+      return compareMotdArchiveReadCursors(fromServer, fromPage) >= 0 ? fromServer : fromPage;
     }
     return fromServer ?? fromPage;
   }

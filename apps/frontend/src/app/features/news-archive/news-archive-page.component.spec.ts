@@ -24,7 +24,7 @@ vi.mock('../../core/trpc.client', () => ({
 const emptyResolved: NewsArchiveInitialModel = {
   items: [],
   nextCursor: null,
-  archiveMaxEndsAtIso: null,
+  archiveMaxCursor: null,
   archiveUnreadCount: 0,
   errorMessage: null,
   titleById: {},
@@ -40,6 +40,7 @@ describe('NewsArchivePageComponent', () => {
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: false,
       hasArchiveEntries: false,
+      archiveMaxCursor: null,
       archiveMaxEndsAtIso: null,
       archiveUnreadCount: 0,
     });
@@ -303,7 +304,11 @@ describe('NewsArchivePageComponent', () => {
         'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb': 'Zweite Meldung',
       },
       htmlById: {},
-      archiveMaxEndsAtIso: '2026-01-16T18:00:00.000Z',
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-12T10:00:00.000Z',
+        motdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        contentVersion: 1,
+      },
       archiveUnreadCount: 2,
     };
 

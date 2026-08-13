@@ -17,10 +17,10 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { MatDialog } from '@angular/material/dialog';
-import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
+import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
-import { setMotdArchiveSeenUpToEndsAtIso } from '../../core/motd-storage';
+import { setMotdArchiveSeenUpToCursor } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
@@ -30,7 +30,11 @@ import {
   type MotdTitleDisplay,
 } from '../../shared/motd-decorative-emoji.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
-import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
+import {
+  compareMotdArchiveReadCursors,
+  newestMotdArchiveReadCursor,
+  sortMotdArchiveItemsNewFirst,
+} from '../../shared/motd-archive-sort.util';
 import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
 import { loadNewsArchivePageModel, type NewsArchiveInitialModel } from './news-archive-initial';
 
@@ -106,7 +110,7 @@ export class NewsArchivePageComponent {
   readonly error = signal<string | null>(null);
   readonly items = signal<MotdArchiveItemDTO[]>([]);
   readonly nextCursor = signal<string | null>(null);
-  readonly archiveMaxEndsAtIso = signal<string | null>(null);
+  readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   readonly archiveUnreadCount = signal(0);
   readonly titleById = signal<Record<string, string>>({});
   readonly htmlById = signal<Record<string, SafeHtml>>({});
@@ -129,7 +133,7 @@ export class NewsArchivePageComponent {
   private applyModel(data: NewsArchiveInitialModel): void {
     this.items.set(sortMotdArchiveItemsNewFirst(data.items));
     this.nextCursor.set(data.nextCursor);
-    this.archiveMaxEndsAtIso.set(data.archiveMaxEndsAtIso);
+    this.archiveMaxCursor.set(data.archiveMaxCursor);
     this.archiveUnreadCount.set(data.archiveUnreadCount);
     this.titleById.set(data.titleById);
     this.htmlById.set(data.htmlById);
@@ -210,11 +214,11 @@ export class NewsArchivePageComponent {
   }
 
   markArchiveAllRead(): void {
-    const max = this.effectiveArchiveMaxEndsAtIso();
+    const max = this.effectiveArchiveMaxCursor();
     if (!max) {
       return;
     }
-    setMotdArchiveSeenUpToEndsAtIso(max);
+    setMotdArchiveSeenUpToCursor(max);
     this.archiveUnreadCount.set(0);
     this.snackBar.open(
       $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
@@ -268,15 +272,11 @@ export class NewsArchivePageComponent {
     }
   }
 
-  private effectiveArchiveMaxEndsAtIso(): string | null {
-    const fromServer = this.archiveMaxEndsAtIso();
-    const items = this.items();
-    const fromPage =
-      items.length === 0
-        ? null
-        : items.reduce((best, it) => (it.endsAt > best ? it.endsAt : best), items[0]!.endsAt);
+  private effectiveArchiveMaxCursor(): MotdArchiveReadCursor | null {
+    const fromServer = this.archiveMaxCursor();
+    const fromPage = newestMotdArchiveReadCursor(this.items());
     if (fromServer && fromPage) {
-      return fromServer >= fromPage ? fromServer : fromPage;
+      return compareMotdArchiveReadCursors(fromServer, fromPage) >= 0 ? fromServer : fromPage;
     }
     return fromServer ?? fromPage;
   }

@@ -68,6 +68,8 @@ import { motdRouter } from '../routers/motd';
 
 const M1 = '11111111-1111-4111-8111-111111111111';
 const M2 = '22222222-2222-4222-8222-222222222222';
+const M3 = '33333333-3333-4333-8333-333333333333';
+const M4 = '44444444-4444-4444-8444-444444444444';
 
 describe('motd router', () => {
   beforeEach(() => {
@@ -383,6 +385,11 @@ describe('motd router', () => {
     expect(result.hasArchiveEntries).toBe(true);
     expect(result.archiveCount).toBe(1);
     expect(result.archiveUnreadCount).toBe(1);
+    expect(result.archiveMaxCursor).toEqual({
+      startsAtIso: '2026-06-02T00:00:00.000Z',
+      motdId: M2,
+      contentVersion: 1,
+    });
     expect(result.archiveMaxEndsAtIso).toBe('2026-06-11T00:00:00.000Z');
   });
 
@@ -524,28 +531,28 @@ describe('motd router', () => {
         ])
         .mockResolvedValueOnce([
           {
-            id: 'a',
+            id: M1,
             contentVersion: 1,
             startsAt: new Date('2026-06-01T00:00:00.000Z'),
             endsAt: new Date('2026-12-31T23:59:59.000Z'),
             locales: [{ locale: 'de', markdown: 'A' }],
           },
           {
-            id: 'b',
+            id: M2,
             contentVersion: 1,
             startsAt: new Date('2026-05-01T00:00:00.000Z'),
             endsAt: new Date('2026-11-30T23:59:59.000Z'),
             locales: [{ locale: 'en', markdown: 'B' }],
           },
           {
-            id: 'c',
+            id: M3,
             contentVersion: 1,
             startsAt: new Date('2026-04-01T00:00:00.000Z'),
             endsAt: new Date('2026-10-31T23:59:59.000Z'),
             locales: [{ locale: 'de', markdown: 'C' }],
           },
           {
-            id: 'd',
+            id: M4,
             contentVersion: 1,
             startsAt: new Date('2026-03-01T00:00:00.000Z'),
             endsAt: new Date('2026-09-30T23:59:59.000Z'),
@@ -557,6 +564,11 @@ describe('motd router', () => {
       expect(r.hasActiveOverlay).toBe(true);
       expect(r.hasArchiveEntries).toBe(true);
       expect(r.archiveCount).toBe(4);
+      expect(r.archiveMaxCursor).toEqual({
+        startsAtIso: '2026-06-01T00:00:00.000Z',
+        motdId: M1,
+        contentVersion: 1,
+      });
       expect(r.archiveMaxEndsAtIso).toBe('2026-12-31T23:59:59.000Z');
       expect(r.archiveUnreadCount).toBe(4);
     },
@@ -565,7 +577,7 @@ describe('motd router', () => {
   it('getHeaderState setzt archiveUnreadCount anhand archiveSeenUpToEndsAtIso', async () => {
     prismaMock.motd.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce(
       Array.from({ length: 10 }, (_, index) => ({
-        id: `archive-${index + 1}`,
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
         contentVersion: 1,
         startsAt: new Date('2026-05-01T00:00:00.000Z'),
         endsAt: new Date(`2026-06-${String(index + 1).padStart(2, '0')}T00:00:00.000Z`),
@@ -580,6 +592,44 @@ describe('motd router', () => {
     expect(r.hasActiveOverlay).toBe(false);
     expect(r.archiveCount).toBe(10);
     expect(r.archiveUnreadCount).toBe(3);
+  });
+
+  it('getHeaderState zählt eine spätere Publikation trotz früherem Ende als ungelesen', async () => {
+    const welcomeId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    prismaMock.motd.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: welcomeId,
+        contentVersion: 1,
+        startsAt: new Date('2025-01-01T00:00:00.000Z'),
+        endsAt: new Date('2099-12-31T23:59:59.999Z'),
+        locales: [{ locale: 'de', markdown: 'Willkommen' }],
+      },
+      {
+        id: M1,
+        contentVersion: 1,
+        startsAt: new Date('2026-06-10T00:00:00.000Z'),
+        endsAt: new Date('2027-03-31T23:59:59.999Z'),
+        locales: [{ locale: 'de', markdown: 'Neue Vision' }],
+      },
+    ]);
+
+    const caller = motdRouter.createCaller(ctx);
+    const r = await caller.getHeaderState({
+      locale: 'de',
+      archiveSeenUpToCursor: {
+        startsAtIso: '2025-01-01T00:00:00.000Z',
+        motdId: welcomeId,
+        contentVersion: 1,
+      },
+    });
+
+    expect(r.archiveUnreadCount).toBe(1);
+    expect(r.archiveMaxCursor).toEqual({
+      startsAtIso: '2026-06-10T00:00:00.000Z',
+      motdId: M1,
+      contentVersion: 1,
+    });
+    expect(r.archiveMaxEndsAtIso).toBe('2099-12-31T23:59:59.999Z');
   });
 
   it('recordInteraction wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {

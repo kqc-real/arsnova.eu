@@ -12,6 +12,13 @@ describe('MOTD-Dekorations-Emoji', () => {
     });
   });
 
+  it('trennt das führende Funkeln-Emoji vom zugänglichen Titel', () => {
+    expect(splitMotdDecorativeEmoji('✨ Unsere zentrale Vision')).toEqual({
+      decorativeEmoji: '✨',
+      title: 'Unsere zentrale Vision',
+    });
+  });
+
   it('lässt Titel ohne bekanntes Dekorations-Emoji unverändert', () => {
     expect(splitMotdDecorativeEmoji('Aktuelle Meldung')).toEqual({
       decorativeEmoji: null,
@@ -22,6 +29,12 @@ describe('MOTD-Dekorations-Emoji', () => {
   it('verbirgt das Puzzle-Emoji in gerenderten Markdown-Überschriften vor Screenreadern', () => {
     expect(hideMotdDecorativeEmojiInHeadingHtml('<h3>🧩 New: Match. Order. Categorize.</h3>')).toBe(
       '<h3><span aria-hidden="true">🧩</span> New: Match. Order. Categorize.</h3>',
+    );
+  });
+
+  it('verbirgt das Funkeln-Emoji in gerenderten Markdown-Überschriften vor Screenreadern', () => {
+    expect(hideMotdDecorativeEmojiInHeadingHtml('<h3>✨ Our central vision</h3>')).toBe(
+      '<h3><span aria-hidden="true">✨</span> Our central vision</h3>',
     );
   });
 });

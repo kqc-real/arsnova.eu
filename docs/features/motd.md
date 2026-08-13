@@ -64,7 +64,10 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - Speicherung, dass die aktuelle MOTD-Version **bereits angezeigt** bzw. **weggeklickt** wurde: gebunden an **`id` + `contentVersion`**.
 - Separater Schlüssel oder Objektfelder für **„Zur Kenntnis genommen“** und **Feedback (Daumen)** falls rein lokal begrenzt.
-- **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v1`**).
+- **Archiv-Lesestatus:** publikationsbasierter Cursor aus `startsAt`, `motdId` und
+  `contentVersion`; dadurch kann eine dauerhafte Meldung mit spätem `endsAt` später
+  veröffentlichte Meldungen nicht versehentlich als bereits gelesen markieren.
+- **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).
 
 ### 3.7 Nutzerinteraktionen (getrennte Dimensionen)
 
@@ -92,7 +95,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - `motd.getCurrent` — Input: `locale`, optional `overlayDismissedUpTo` (vom Client gemerkte Dismiss-Versionen pro `motdId`, damit die nächstpriore MOTD gewählt wird); Output: aktive MOTD oder leer.
 - `motd.listArchive` — Input: `locale`, Pagination; Output: nur freigegebene, vergangene/außerhalb Fenster.
-- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToEndsAtIso`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren (Toolbar-Icon).
+- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
 - `motd.recordInteraction` — Input: `motdId`, `contentVersion`, `kind` (`ACK` | `THUMB_UP` | `THUMB_DOWN` | `DISMISS_CLOSE` | `DISMISS_SWIPE`); streng rate-limited; Zähler in DB.
 - **Rendering:** Endnutzer- und Admin-Vorschau nutzen **`renderMarkdownWithoutKatex`** + **DomSanitizer** (`bypassSecurityTrustHtml` nur auf dieser Pipeline), analog zu anderen sicheren Markdown-Ansichten — kein rohes HTML aus dem MOTD-Text.
 - `admin.motd.*` — CRUD MOTD, Templates, Publish/Schedule, Archiv-Flag, Priorität.
@@ -152,3 +155,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-06-24 | Abschnitt 9: lokale Seed-Kette um aktuelle Feature-MOTD **KI-Quizgenerierung** ergänzt.                                                                                                                                            |
 | 2026-07-22 | Abschnitt 9: lokale Seed-Kette um Feature-MOTDs **PDF-Auswertungsreport** und **Barrierefreiheit (WCAG 2.2 AA)** ergänzt.                                                                                                          |
 | 2026-08-13 | Abschnitt 9: lokale Seed-Kette um die Vision-MOTD **„Aus vielen Stimmen wird gemeinsame Erkenntnis“** ergänzt.                                                                                                                     |
+| 2026-08-13 | Abschnitte 3.6/4.1: Archiv-Lesestatus auf einen publikationsbasierten Cursor umgestellt; Legacy-`endsAt`-Felder bleiben API-kompatibel.                                                                                            |

@@ -22,6 +22,7 @@ const defaultHeaderState = {
   hasActiveOverlay: false,
   hasArchiveEntries: false,
   archiveCount: 0,
+  archiveMaxCursor: null,
   archiveMaxEndsAtIso: null as string | null,
   archiveUnreadCount: 0,
 };
@@ -76,7 +77,11 @@ describe('MotdArchiveDialogComponent', () => {
       ...defaultHeaderState,
       hasArchiveEntries: true,
       archiveCount: 1,
-      archiveMaxEndsAtIso: '2026-01-20T00:00:00.000Z',
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 1,
+      },
       archiveUnreadCount: 1,
     });
     listArchiveQuery.mockResolvedValue({
@@ -136,7 +141,11 @@ describe('MotdArchiveDialogComponent', () => {
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
     fixture.detectChanges();
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
-    expect(fixture.componentInstance.archiveMaxEndsAtIso()).toBe('2026-04-01T12:00:00.000Z');
+    expect(fixture.componentInstance.archiveMaxCursor()).toEqual({
+      startsAtIso: '2026-03-15T12:00:00.000Z',
+      motdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      contentVersion: 1,
+    });
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(2);
   });
 
@@ -146,7 +155,11 @@ describe('MotdArchiveDialogComponent', () => {
     getHeaderStateQuery.mockResolvedValue({
       ...defaultHeaderState,
       hasArchiveEntries: true,
-      archiveMaxEndsAtIso: '2026-02-01T00:00:00.000Z',
+      archiveMaxCursor: {
+        startsAtIso: '2025-12-15T00:00:00.000Z',
+        motdId: id1,
+        contentVersion: 1,
+      },
       archiveUnreadCount: 0,
     });
     listArchiveQuery
@@ -195,7 +208,11 @@ describe('MotdArchiveDialogComponent', () => {
       ...defaultHeaderState,
       hasArchiveEntries: true,
       archiveCount: 2,
-      archiveMaxEndsAtIso: '2026-06-01T12:00:00.000Z',
+      archiveMaxCursor: {
+        startsAtIso: '2026-05-15T12:00:00.000Z',
+        motdId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+        contentVersion: 3,
+      },
       archiveUnreadCount: 2,
     });
     configureDialog();
@@ -207,7 +224,11 @@ describe('MotdArchiveDialogComponent', () => {
     fixture.componentInstance.markArchiveAllRead();
     const raw = localStorage.getItem(MOTD_LOCAL_STORAGE_KEY);
     expect(raw).toBeTruthy();
-    expect(JSON.parse(raw!).archiveSeenUpToEndsAtIso).toBe('2026-06-01T12:00:00.000Z');
+    expect(JSON.parse(raw!).archiveSeenUpToCursor).toEqual({
+      startsAtIso: '2026-05-15T12:00:00.000Z',
+      motdId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      contentVersion: 3,
+    });
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(0);
     expect(snackSpy).toHaveBeenCalled();
     expect(notifySpy).toHaveBeenCalled();
@@ -218,7 +239,11 @@ describe('MotdArchiveDialogComponent', () => {
       ...defaultHeaderState,
       hasArchiveEntries: true,
       archiveCount: 1,
-      archiveMaxEndsAtIso: '2026-01-20T00:00:00.000Z',
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 1,
+      },
       archiveUnreadCount: 1,
     });
     listArchiveQuery.mockResolvedValue({

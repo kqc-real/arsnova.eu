@@ -5189,10 +5189,24 @@ export const MotdListArchiveOutputSchema = z.object({
 });
 export type MotdListArchiveOutput = z.infer<typeof MotdListArchiveOutputSchema>;
 
+/**
+ * Publikationsbasierter Lesecursor für das MOTD-Archiv.
+ * `startsAt` + `motdId` entsprechen der stabilen Archivsortierung; `contentVersion`
+ * unterscheidet Revisionen an derselben Cursorposition.
+ */
+export const MotdArchiveReadCursorSchema = z.object({
+  startsAtIso: z.string(),
+  motdId: z.uuid(),
+  contentVersion: z.number().int().min(1),
+});
+export type MotdArchiveReadCursor = z.infer<typeof MotdArchiveReadCursorSchema>;
+
 /** Header: ob Nachrichten-Icon sinnvoll ist */
 const MotdHeaderStateInputPayloadSchema = z.object({
   locale: AppLocaleEnum.optional(),
-  /** Client-Wasserzeichen: MOTDs mit späterem `endsAt` gelten als ungelesen (globales Archiv). */
+  /** Client-Lesecursor in der stabilen Archivsortierung (`startsAt`, `id`, `contentVersion`). */
+  archiveSeenUpToCursor: MotdArchiveReadCursorSchema.optional(),
+  /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveSeenUpToEndsAtIso: z.string().optional(),
   overlayDismissedUpTo: z.array(MotdOverlayDismissedPairSchema).max(32).optional(),
 });
@@ -5208,9 +5222,11 @@ export const MotdHeaderStateOutputSchema = z.object({
   hasArchiveEntries: z.boolean(),
   /** Anzahl MOTDs, die ins Nutzer-Archiv zählen (gleiche Filterlogik wie listArchive, ohne leere Markdown-Fallbacks). */
   archiveCount: z.number().int().min(0),
-  /** Spätestes Archiv-Ende (ISO); null wenn kein Eintrag. Für „Alles als gelesen“ auf dem Client. */
+  /** Neuester publikationsbasierter Lesecursor; null wenn kein sichtbarer Archiveintrag. */
+  archiveMaxCursor: MotdArchiveReadCursorSchema.nullable(),
+  /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveMaxEndsAtIso: z.string().nullable(),
-  /** Ungelesen relativ zu `archiveSeenUpToEndsAtIso`; ohne gültiges Wasserzeichen = `archiveCount`. */
+  /** Ungelesen relativ zum Cursor; ohne gültigen Cursor bzw. Legacy-Wasserzeichen = `archiveCount`. */
   archiveUnreadCount: z.number().int().min(0),
 });
 export type MotdHeaderStateOutput = z.infer<typeof MotdHeaderStateOutputSchema>;

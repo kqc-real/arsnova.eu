@@ -1,6 +1,8 @@
 /**
  * Browser-Persistenz für MOTD (Epic 10): Dismiss-Versionen und einmalige Interaktionen pro Build.
  */
+import type { MotdArchiveReadCursor } from '@arsnova/shared-types';
+
 export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
 
 /**
@@ -14,14 +16,28 @@ export type MotdClientStorageV1 = {
   dismissed: Record<string, number>;
   /** Schlüssel `${motdId}:${contentVersion}:${kind}` */
   interactions: Record<string, true>;
-  /**
-   * Globales Archiv-Wasserzeichen: MOTDs mit `endsAt` später als dieser ISO-Zeitpunkt
-   * gelten in der Toolbar als ungelesen (Epic 10).
-   */
-  archiveSeenUpToEndsAtIso?: string;
+  /** Globaler Lesecursor in der publikationsbasierten Archivsortierung (Epic 10). */
+  archiveSeenUpToCursor?: MotdArchiveReadCursor;
 };
 
 const empty = (): MotdClientStorageV1 => ({ dismissed: {}, interactions: {} });
+
+const MOTD_UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isMotdArchiveReadCursor(value: unknown): value is MotdArchiveReadCursor {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const cursor = value as Record<string, unknown>;
+  return (
+    typeof cursor.startsAtIso === 'string' &&
+    Number.isFinite(Date.parse(cursor.startsAtIso)) &&
+    typeof cursor.motdId === 'string' &&
+    MOTD_UUID_PATTERN.test(cursor.motdId) &&
+    typeof cursor.contentVersion === 'number' &&
+    Number.isInteger(cursor.contentVersion) &&
+    cursor.contentVersion >= 1
+  );
+}
 
 export function readMotdClientStorage(): MotdClientStorageV1 {
   if (typeof localStorage === 'undefined') return empty();
@@ -39,14 +55,12 @@ export function readMotdClientStorage(): MotdClientStorageV1 {
       o.interactions && typeof o.interactions === 'object' && !Array.isArray(o.interactions)
         ? (o.interactions as Record<string, true>)
         : {};
-    const archiveSeenUpToEndsAtIso =
-      typeof o.archiveSeenUpToEndsAtIso === 'string' && o.archiveSeenUpToEndsAtIso.length > 0
-        ? o.archiveSeenUpToEndsAtIso
-        : undefined;
+    const cursorRaw = o.archiveSeenUpToCursor;
+    const archiveSeenUpToCursor = isMotdArchiveReadCursor(cursorRaw) ? cursorRaw : undefined;
     return {
       dismissed,
       interactions,
-      ...(archiveSeenUpToEndsAtIso ? { archiveSeenUpToEndsAtIso } : {}),
+      ...(archiveSeenUpToCursor ? { archiveSeenUpToCursor } : {}),
     };
   } catch {
     return empty();
@@ -142,13 +156,12 @@ export function clearMotdThumbInteractionKeys(motdId: string, contentVersion: nu
   writeMotdClientStorage(cur);
 }
 
-export function getMotdArchiveSeenUpToEndsAtIso(): string | undefined {
-  const v = readMotdClientStorage().archiveSeenUpToEndsAtIso;
-  return typeof v === 'string' && v.length > 0 ? v : undefined;
+export function getMotdArchiveSeenUpToCursor(): MotdArchiveReadCursor | undefined {
+  return readMotdClientStorage().archiveSeenUpToCursor;
 }
 
-export function setMotdArchiveSeenUpToEndsAtIso(iso: string): void {
+export function setMotdArchiveSeenUpToCursor(cursor: MotdArchiveReadCursor): void {
   const cur = readMotdClientStorage();
-  cur.archiveSeenUpToEndsAtIso = iso;
+  cur.archiveSeenUpToCursor = cursor;
   writeMotdClientStorage(cur);
 }
