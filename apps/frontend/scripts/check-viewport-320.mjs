@@ -31,7 +31,7 @@ async function waitForServer(url, maxAttempts = 30) {
   return false;
 }
 
-async function dismissOptionalOverlay(page, waitForMotd = false) {
+async function dismissOptionalOverlay(page, waitForMotd = false, activation = 'pointer') {
   if (waitForMotd) {
     await page
       .waitForFunction(
@@ -57,9 +57,16 @@ async function dismissOptionalOverlay(page, waitForMotd = false) {
     )
     .first();
   if (await closeButton.isVisible().catch(() => false)) {
-    await closeButton.click();
+    if (activation === 'keyboard') {
+      await closeButton.focus();
+      await page.keyboard.press('Enter');
+    } else {
+      await closeButton.click();
+    }
     await page.locator('.home-motd-sheet').waitFor({ state: 'hidden', timeout: 5_000 });
+    return true;
   }
+  return false;
 }
 
 async function dismissOptionalInstallSnackbar(page) {
@@ -219,7 +226,28 @@ async function inspectKeyboardFocus(page) {
 async function inspectHomeKeyboardNavigation(page) {
   const issues = [];
   // Idle-MOTD kann nach dem ersten Dismiss noch nachziehen und Fokus stehlen.
-  await dismissOptionalOverlay(page, true);
+  const motdDismissedWithKeyboard = await dismissOptionalOverlay(page, true, 'keyboard');
+  if (
+    motdDismissedWithKeyboard &&
+    !(await page
+      .locator('.home-hero-code-enter')
+      .evaluate((element) => element === document.activeElement))
+  ) {
+    issues.push('MOTD-Return-Fokus landet nicht auf dem sichtbaren Hero-CTA');
+  }
+  if (
+    motdDismissedWithKeyboard &&
+    !(await page.locator('.home-hero-code-enter').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return (
+        element.classList.contains('cdk-keyboard-focused') &&
+        style.outlineStyle !== 'none' &&
+        Number.parseFloat(style.outlineWidth) >= 3
+      );
+    }))
+  ) {
+    issues.push('MOTD-Return-Fokus hat keinen sichtbaren Tastatur-Fokusrahmen');
+  }
   // Footer-Mehr zuerst: Skip-Link/#main-content und Mobile-Menü dürfen Material-
   // restoreFocus für den Footer-Auslöser nicht als vorherigen Fokus „vergiften“.
   issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));
@@ -678,7 +706,11 @@ async function main() {
     const url = `${BASE_URL}${path}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForLoadState('networkidle').catch(() => {});
-    await dismissOptionalOverlay(page, /^\/(?:de|en|fr|es|it)\/$/.test(path));
+    // Auf /de/ prüft inspectHomeKeyboardNavigation den echten MOTD-Dismiss
+    // mit Return. Ein vorheriger Pointer-Dismiss würde die Regression verdecken.
+    if (path !== '/de/') {
+      await dismissOptionalOverlay(page, /^\/(?:en|fr|es|it)\/$/.test(path));
+    }
     await dismissOptionalInstallSnackbar(page);
 
     const initialJoinFocus = path === '/de/join' ? await inspectMobileJoinEntry(page) : [];

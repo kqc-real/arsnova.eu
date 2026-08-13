@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { CdkTrapFocus, FocusMonitor } from '@angular/cdk/a11y';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
@@ -184,6 +184,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
+  private readonly focusMonitor = inject(FocusMonitor);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
@@ -378,7 +379,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.motd()) return;
     if (e.key !== 'Escape') return;
     e.preventDefault();
-    void this.dismissMotdOverlay('DISMISS_CLOSE');
+    void this.dismissMotdOverlay('DISMISS_CLOSE', e);
   }
 
   /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
@@ -982,7 +983,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animationFrameIds.clear();
   }
 
-  private clearMotdOverlay(): void {
+  private clearMotdOverlay(returnFocusViaKeyboard = false): void {
     const focusReturn = this.motdFocusReturn;
     this.motdFocusReturn = null;
     const activeBefore = document.activeElement;
@@ -991,35 +992,52 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       !!activeBefore.closest('.home-motd-layer, .home-motd-sheet');
     this.motd.set(null);
     this.motdBodyHtml.set(null);
-    queueMicrotask(() => {
-      if (focusReturn?.isConnected === true) {
-        focusReturn.focus({ preventScroll: true });
-        return;
-      }
-      const active = document.activeElement;
-      if (
-        !activeWasInMotd &&
-        active instanceof HTMLElement &&
-        active.isConnected &&
-        active !== document.body &&
-        active !== document.documentElement
-      ) {
-        // Nutzer:in hat bereits woanders Fokus — nicht verschieben.
-        return;
-      }
-      // Nach Entfernen des MOTD-Dialogs bleibt der Sequential-Focus-Start oft hinter
-      // dem Dialog → nächstes Tab landet im Footer. Skip-Link setzt den Start zurück.
-      const skip = document.querySelector<HTMLElement>('a.app-skip-link');
-      if (skip) {
-        skip.focus({ preventScroll: true });
-        return;
-      }
-      this.sessionCodeInput?.nativeElement?.focus({ preventScroll: true });
-    });
+    afterNextRender(
+      () => {
+        if (focusReturn?.isConnected === true) {
+          if (returnFocusViaKeyboard) {
+            this.focusMonitor.focusVia(focusReturn, 'keyboard', { preventScroll: true });
+          } else {
+            focusReturn.focus({ preventScroll: true });
+          }
+          return;
+        }
+        const active = document.activeElement;
+        if (
+          !activeWasInMotd &&
+          active instanceof HTMLElement &&
+          active.isConnected &&
+          active !== document.body &&
+          active !== document.documentElement
+        ) {
+          // Nutzer:in hat bereits woanders Fokus — nicht verschieben.
+          return;
+        }
+        // Erst nach dem Render ist der Dialog-Fokus-Trap entfernt und der
+        // Hintergrund nicht mehr inert. Ohne Öffner erhält dann der sichtbare
+        // primäre Einstieg den Fokus, nie der Skip-Link.
+        const primaryAction = this.codeEnterBtn?.nativeElement;
+        if (primaryAction?.isConnected && !primaryAction.disabled) {
+          if (returnFocusViaKeyboard) {
+            this.focusMonitor.focusVia(primaryAction, 'keyboard', { preventScroll: true });
+          } else {
+            primaryAction.focus({ preventScroll: true });
+          }
+          return;
+        }
+        const input = this.sessionCodeInput?.nativeElement;
+        if (input && returnFocusViaKeyboard) {
+          this.focusMonitor.focusVia(input, 'keyboard', { preventScroll: true });
+        } else {
+          input?.focus({ preventScroll: true });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
-  onMotdBackdropClick(): void {
-    void this.dismissMotdOverlay('DISMISS_CLOSE');
+  onMotdBackdropClick(event: MouseEvent): void {
+    void this.dismissMotdOverlay('DISMISS_CLOSE', event);
   }
 
   onMotdTouchStart(event: TouchEvent): void {
@@ -1050,24 +1068,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async dismissMotdOverlay(
     kind: Extract<MotdInteractionKind, 'DISMISS_CLOSE' | 'DISMISS_SWIPE'>,
+    activationEvent?: MouseEvent | KeyboardEvent,
   ): Promise<void> {
     const m = this.motd();
     if (!m) return;
     // Overlay sofort schließen — recordInteraction darf die UI nicht blockieren
     // (sonst flake in a11y:layout bei langsamem CI / >1s API).
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay();
+    this.clearMotdOverlay(this.isKeyboardActivation(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, kind);
   }
 
-  async ackMotd(): Promise<void> {
+  async ackMotd(activationEvent?: MouseEvent): Promise<void> {
     const m = this.motd();
     if (!m) return;
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay();
+    this.clearMotdOverlay(this.isKeyboardActivation(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, 'ACK');
+  }
+
+  private isKeyboardActivation(event?: MouseEvent | KeyboardEvent): boolean {
+    return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0);
   }
 
   async thumbMotd(up: boolean): Promise<void> {

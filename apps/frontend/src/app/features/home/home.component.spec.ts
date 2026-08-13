@@ -1246,6 +1246,7 @@ describe('HomeComponent', () => {
       });
       other.focus();
       fixture.componentInstance['clearMotdOverlay']();
+      fixture.detectChanges();
       await Promise.resolve();
 
       expect(document.activeElement).toBe(other);
@@ -1253,7 +1254,7 @@ describe('HomeComponent', () => {
       other.remove();
     });
 
-    it('setzt nach MOTD-Dismiss den Fokus auf den Skip-Link wenn kein Rücksprungziel existiert', async () => {
+    it('setzt nach MOTD-Dismiss per Tastatur sichtbaren Fokus auf den Primaer-CTA', async () => {
       const skip = document.createElement('a');
       skip.href = '#main';
       skip.className = 'app-skip-link';
@@ -1270,6 +1271,9 @@ describe('HomeComponent', () => {
       });
       fixture.detectChanges();
 
+      const primaryAction = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
       const closeInMotd = fixture.nativeElement.querySelector(
         '.home-motd-sheet button',
       ) as HTMLButtonElement | null;
@@ -1277,12 +1281,48 @@ describe('HomeComponent', () => {
       closeInMotd?.focus();
       expect(document.activeElement).toBe(closeInMotd);
 
-      fixture.componentInstance['clearMotdOverlay']();
+      fixture.componentInstance['clearMotdOverlay'](true);
       fixture.detectChanges();
       await Promise.resolve();
 
-      expect(document.activeElement).toBe(skip);
+      expect(document.activeElement).toBe(primaryAction);
+      expect(document.activeElement).not.toBe(skip);
+      expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(true);
       skip.remove();
+    });
+
+    it('zeigt nach Pointer-Dismiss keinen Tastatur-Fokusrahmen', async () => {
+      const fixture = createHomeFixture();
+      fixture.componentInstance['motdFocusReturn'] = null;
+      fixture.componentInstance.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      fixture.detectChanges();
+
+      const primaryAction = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
+      fixture.componentInstance['clearMotdOverlay'](false);
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      expect(document.activeElement).toBe(primaryAction);
+      expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(false);
+    });
+
+    it('definiert für den MOTD-Tastatur-Rücksprung einen sichtbaren Fokusrahmen', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+
+      expect(scss).toMatch(
+        /\.home-hero-code-enter\.cdk-keyboard-focused\s*\{[^}]*outline:\s*3px solid var\(--mat-sys-secondary\)/,
+      );
     });
 
     it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {

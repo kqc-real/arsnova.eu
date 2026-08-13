@@ -546,7 +546,7 @@
         class="home-motd-backdrop"
         aria-hidden="true"
         tabindex="-1"
-        (click)="onMotdBackdropClick()"
+        (click)="onMotdBackdropClick($event)"
       ></button>
       <dialog
         class="home-motd-sheet"
@@ -580,7 +580,7 @@
             type="button"
             matIconButton
             cdkFocusInitial
-            (click)="dismissMotdOverlay('DISMISS_CLOSE')"
+            (click)="dismissMotdOverlay('DISMISS_CLOSE', $event)"
             i18n-aria-label="@@motd.overlayCloseAria"
             aria-label="Meldung schließen"
           >
@@ -596,7 +596,7 @@
           ></div>
         }
         <div class="home-motd-sheet__actions">
-          <button mat-flat-button type="button" (click)="ackMotd()" i18n="@@motd.ack">
+          <button mat-flat-button type="button" (click)="ackMotd($event)" i18n="@@motd.ack">
             Alles klar!
           </button>
           <div

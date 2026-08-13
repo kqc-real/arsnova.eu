@@ -299,6 +299,14 @@
   font-weight: 600;
 }
 
+// CDK bewahrt den Tastatur-Ursprung beim Fokus-Rücksprung aus der MOTD.
+// Der explizite MD3-Strong-Focus-Ring bleibt auch sichtbar, wenn der Browser
+// einen nachträglich gesetzten Fokus nicht mehr als :focus-visible einstuft.
+.home-hero-code-enter.cdk-keyboard-focused {
+  outline: 3px solid var(--mat-sys-secondary);
+  outline-offset: 3px;
+}
+
 .home-hero-serious-tagline {
   grid-column: 1 / -1;
   margin: 0.35rem 0 0.5rem;
