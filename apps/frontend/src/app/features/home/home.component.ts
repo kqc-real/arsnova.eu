@@ -77,6 +77,8 @@ import { hideMotdDecorativeEmojiInHeadingHtml } from '../../shared/motd-decorati
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
+type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
+
 @Component({
   selector: 'app-home',
   host: { class: 'route-home' },
@@ -983,7 +985,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animationFrameIds.clear();
   }
 
-  private clearMotdOverlay(returnFocusViaKeyboard = false): void {
+  private clearMotdOverlay(returnFocusOrigin: MotdReturnFocusOrigin = 'program'): void {
     const focusReturn = this.motdFocusReturn;
     this.motdFocusReturn = null;
     const activeBefore = document.activeElement;
@@ -995,11 +997,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     afterNextRender(
       () => {
         if (focusReturn?.isConnected === true) {
-          if (returnFocusViaKeyboard) {
-            this.focusMonitor.focusVia(focusReturn, 'keyboard', { preventScroll: true });
-          } else {
-            focusReturn.focus({ preventScroll: true });
-          }
+          this.focusMonitor.focusVia(focusReturn, returnFocusOrigin, { preventScroll: true });
           return;
         }
         const active = document.activeElement;
@@ -1018,18 +1016,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         // primäre Einstieg den Fokus, nie der Skip-Link.
         const primaryAction = this.codeEnterBtn?.nativeElement;
         if (primaryAction?.isConnected && !primaryAction.disabled) {
-          if (returnFocusViaKeyboard) {
-            this.focusMonitor.focusVia(primaryAction, 'keyboard', { preventScroll: true });
-          } else {
-            primaryAction.focus({ preventScroll: true });
-          }
+          this.focusMonitor.focusVia(primaryAction, returnFocusOrigin, { preventScroll: true });
           return;
         }
         const input = this.sessionCodeInput?.nativeElement;
-        if (input && returnFocusViaKeyboard) {
-          this.focusMonitor.focusVia(input, 'keyboard', { preventScroll: true });
-        } else {
-          input?.focus({ preventScroll: true });
+        if (input) {
+          this.focusMonitor.focusVia(input, returnFocusOrigin, { preventScroll: true });
         }
       },
       { injector: this.injector },
@@ -1062,20 +1054,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!t) return;
     const dy = t.clientY - this.motdTouchStartY;
     if (dy > 88) {
-      void this.dismissMotdOverlay('DISMISS_SWIPE');
+      void this.dismissMotdOverlay('DISMISS_SWIPE', event);
     }
   }
 
   async dismissMotdOverlay(
     kind: Extract<MotdInteractionKind, 'DISMISS_CLOSE' | 'DISMISS_SWIPE'>,
-    activationEvent?: MouseEvent | KeyboardEvent,
+    activationEvent?: MouseEvent | KeyboardEvent | TouchEvent,
   ): Promise<void> {
     const m = this.motd();
     if (!m) return;
     // Overlay sofort schließen — recordInteraction darf die UI nicht blockieren
     // (sonst flake in a11y:layout bei langsamem CI / >1s API).
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay(this.isKeyboardActivation(activationEvent));
+    this.clearMotdOverlay(this.resolveMotdReturnFocusOrigin(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, kind);
   }
@@ -1084,13 +1076,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const m = this.motd();
     if (!m) return;
     markMotdDismissed(m.id, m.contentVersion);
-    this.clearMotdOverlay(this.isKeyboardActivation(activationEvent));
+    this.clearMotdOverlay(this.resolveMotdReturnFocusOrigin(activationEvent));
     this.motdCurrent.invalidate();
     await this.tryRecordMotdInteractionFor(m.id, m.contentVersion, 'ACK');
   }
 
-  private isKeyboardActivation(event?: MouseEvent | KeyboardEvent): boolean {
-    return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0);
+  private resolveMotdReturnFocusOrigin(
+    event?: MouseEvent | KeyboardEvent | TouchEvent,
+  ): MotdReturnFocusOrigin {
+    if (event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0)) {
+      return 'keyboard';
+    }
+    if (event instanceof TouchEvent) {
+      return 'touch';
+    }
+    if (event instanceof MouseEvent) {
+      return 'mouse';
+    }
+    return 'program';
   }
 
   async thumbMotd(up: boolean): Promise<void> {

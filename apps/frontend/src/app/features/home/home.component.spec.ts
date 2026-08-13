@@ -1281,7 +1281,7 @@ describe('HomeComponent', () => {
       closeInMotd?.focus();
       expect(document.activeElement).toBe(closeInMotd);
 
-      fixture.componentInstance['clearMotdOverlay'](true);
+      fixture.componentInstance['clearMotdOverlay']('keyboard');
       fixture.detectChanges();
       await Promise.resolve();
 
@@ -1305,12 +1305,13 @@ describe('HomeComponent', () => {
       const primaryAction = fixture.nativeElement.querySelector(
         '.home-hero-code-enter',
       ) as HTMLButtonElement;
-      fixture.componentInstance['clearMotdOverlay'](false);
+      fixture.componentInstance['clearMotdOverlay']('mouse');
       fixture.detectChanges();
       await Promise.resolve();
 
       expect(document.activeElement).toBe(primaryAction);
       expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(false);
+      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
     });
 
     it('definiert für den MOTD-Tastatur-Rücksprung einen sichtbaren Fokusrahmen', async () => {
@@ -1322,6 +1323,9 @@ describe('HomeComponent', () => {
 
       expect(scss).toMatch(
         /\.home-hero-code-enter\.cdk-keyboard-focused\s*\{[^}]*outline:\s*3px solid var\(--mat-sys-secondary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-hero-code-enter:is\(\.cdk-mouse-focused, \.cdk-touch-focused\)\s*\{[^}]*--mat-focus-indicator-display:\s*none/,
       );
     });
 

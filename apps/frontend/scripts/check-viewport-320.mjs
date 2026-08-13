@@ -248,6 +248,37 @@ async function inspectHomeKeyboardNavigation(page) {
   ) {
     issues.push('MOTD-Return-Fokus hat keinen sichtbaren Tastatur-Fokusrahmen');
   }
+
+  // Der initial fokussierte Schließen-Button behält in Chromium bei einem
+  // Mausklick teils :focus-visible. Nach Reload denselben Pfad als Pointer
+  // prüfen: Material darf diesen Zustand nicht als Fokusring weitertragen.
+  await page.evaluate(() => localStorage.removeItem('arsnova-motd-v2'));
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+  await page.waitForLoadState('networkidle').catch(() => {});
+  const motdDismissedWithPointer = await dismissOptionalOverlay(page, true, 'pointer');
+  if (motdDismissedWithPointer) {
+    await page
+      .waitForFunction(
+        () => document.querySelector('.home-hero-code-enter') === document.activeElement,
+        undefined,
+        { timeout: 1_000 },
+      )
+      .catch(() => undefined);
+    const pointerFocus = await page.locator('.home-hero-code-enter').evaluate((element) => {
+      const indicator = element.querySelector('.mat-focus-indicator');
+      const indicatorStyle = indicator ? getComputedStyle(indicator, '::before') : null;
+      return {
+        active: element === document.activeElement,
+        keyboard: element.classList.contains('cdk-keyboard-focused'),
+        indicatorDisplay: indicatorStyle?.display ?? null,
+      };
+    });
+    if (!pointerFocus.active || pointerFocus.keyboard || pointerFocus.indicatorDisplay !== 'none') {
+      issues.push(
+        `MOTD-Pointer-Rücksprung zeigt einen Tastatur-Fokusrahmen (${JSON.stringify(pointerFocus)})`,
+      );
+    }
+  }
   // Footer-Mehr zuerst: Skip-Link/#main-content und Mobile-Menü dürfen Material-
   // restoreFocus für den Footer-Auslöser nicht als vorherigen Fokus „vergiften“.
   issues.push(...(await inspectFooterMoreKeyboardNavigation(page)));

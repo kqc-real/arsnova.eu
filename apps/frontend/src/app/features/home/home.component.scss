@@ -307,6 +307,13 @@
   outline-offset: 3px;
 }
 
+// Der initial fokussierte MOTD-Schließen-Button kann :focus-visible bei einem
+// Mausklick behalten. Beim Pointer-Rücksprung darf dieser Browserzustand nicht
+// als Material-Strong-Focus-Ring auf den Hero-CTA vererbt werden.
+.home-hero-code-enter:is(.cdk-mouse-focused, .cdk-touch-focused) {
+  --mat-focus-indicator-display: none;
+}
+
 .home-hero-serious-tagline {
   grid-column: 1 / -1;
   margin: 0.35rem 0 0.5rem;
