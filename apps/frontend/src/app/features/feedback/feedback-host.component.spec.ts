@@ -423,6 +423,72 @@ describe('FeedbackHostComponent', () => {
     expect(bottomActions?.textContent).toContain('Session beenden');
   });
 
+  it('leitet Wheel- und Touch-Scrollen über den Standalone-Aktionen an den Hauptinhalt weiter', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    const main = document.createElement('main');
+    main.id = 'main-content';
+    main.scrollTop = 100;
+    document.body.append(main);
+
+    const wheelPreventDefault = vi.fn();
+    const zoomPreventDefault = vi.fn();
+    const shortTouchPreventDefault = vi.fn();
+    const scrollTouchPreventDefault = vi.fn();
+
+    try {
+      fixture.componentInstance.onBottomActionsWheel({
+        deltaY: 2,
+        deltaMode: 1,
+        cancelable: true,
+        preventDefault: wheelPreventDefault,
+      } as unknown as WheelEvent);
+
+      fixture.componentInstance.onBottomActionsWheel({
+        ctrlKey: true,
+        deltaY: 100,
+        deltaMode: 0,
+        cancelable: true,
+        preventDefault: zoomPreventDefault,
+      } as unknown as WheelEvent);
+
+      fixture.componentInstance.onBottomActionsTouchStart({
+        touches: [{ clientY: 300 }],
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onBottomActionsTouchMove({
+        touches: [{ clientY: 296 }],
+        cancelable: true,
+        preventDefault: shortTouchPreventDefault,
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onBottomActionsTouchMove({
+        touches: [{ clientY: 280 }],
+        cancelable: true,
+        preventDefault: scrollTouchPreventDefault,
+      } as unknown as TouchEvent);
+      fixture.componentInstance.onBottomActionsTouchEnd();
+
+      expect(main.scrollTop).toBe(152);
+      expect(wheelPreventDefault).toHaveBeenCalledOnce();
+      expect(zoomPreventDefault).not.toHaveBeenCalled();
+      expect(shortTouchPreventDefault).not.toHaveBeenCalled();
+      expect(scrollTouchPreventDefault).toHaveBeenCalledOnce();
+    } finally {
+      main.remove();
+      fixture.destroy();
+    }
+  });
+
+  it('priorisiert die destruktiven MD3-Farben vor nachgeladenen Tonal-Button-Stilen', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'feedback-host.component.scss'), 'utf8');
+
+    expect(styles).toMatch(
+      /\.feedback-host__bottom-action-secondary\.mat-tonal-button:not\(:disabled\)\s*\{[^}]*background:[^}]*--mat-sys-error-container[^}]*color:\s*var\(--mat-sys-on-error-container\)/,
+    );
+  });
+
   it('rendert im eingebetteten Session-Host keine eigene Bottom-Leiste mit "Session beenden"', () => {
     window.history.replaceState({}, '', '/session/ABC123/host');
     const fixture = TestBed.createComponent(FeedbackHostComponent);

@@ -831,9 +831,16 @@
       </section>
     </div>
     @if (showStandaloneBottomActionBar()) {
-      <div class="feedback-host__bottom-actions">
+      <div
+        class="feedback-host__bottom-actions"
+        (wheel)="onBottomActionsWheel($event)"
+        (touchstart)="onBottomActionsTouchStart($event)"
+        (touchmove)="onBottomActionsTouchMove($event)"
+        (touchend)="onBottomActionsTouchEnd()"
+        (touchcancel)="onBottomActionsTouchEnd()"
+      >
         <button
-          mat-button
+          matButton="tonal"
           type="button"
           class="feedback-host__bottom-action-secondary"
           (click)="endSession()"
