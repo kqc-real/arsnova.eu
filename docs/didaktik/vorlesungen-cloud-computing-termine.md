@@ -2,7 +2,7 @@
 
 # Ablaufpläne: Cloud Computing (12 Termine × 3 UE)
 
-**Modul:** `DSCC0127` / `DSCC012701` · **Lehrkonzept:** [36-UE-Konzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Modalitäten:** [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Stand:** 2026-07-29
+**Modul:** `DSCC0127` / `DSCC012701` · **Lehrkonzept:** [36-UE-Konzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Modalitäten:** [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Stand:** 2026-08-13
 
 Ein Termin umfasst 3 UE beziehungsweise 135 Netto-Minuten. Der Plan bildet die Workload-Vorgabe exakt ab:
 
@@ -190,31 +190,31 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 ## Termin 6: Datenwissenschaft und maschinelles Lernen in der Cloud
 
-**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 5 · **Leitfrage:** Welche Cloud-Fähigkeit empfiehlt ein Daten-/ML-Agent und besteht sie die Privacy- und Wirtschaftlichkeitsgates?
+**Typ:** Präsenz/synchron · **Modulhandbuch:** Inhaltsblock 5 · **Leitfrage:** Wie wird Word Cloud 3.0 als erklärbare, datensparsame und messbare Cloud-ML-Kaskade entworfen?
 
-**MC-Test (30 Fragen):** Themen: Datenwissenschaft und maschinelles Lernen in der Cloud, Datenpipeline, Managed ML, Datenschutz und Wirtschaftlichkeit · Keywords: Batch, Streaming, ETL, ELT, Data Lake, Data Warehouse, Notebook, Pipeline, Training, Inferenz, MLOps, Managed ML, Datenqualität, Reproduzierbarkeit, Datenminimierung, Zweckbindung, Datenresidenz, Aufbewahrung, Löschung, Modell-/Datenexport, synthetische Daten, Egress
+**MC-Test (30 Fragen):** Themen: Datenwissenschaft und maschinelles Lernen in der Cloud, Word Cloud 3.0, Datenpipeline, Managed ML, Datenschutz und Wirtschaftlichkeit · Keywords: Batch, Streaming, ETL, ELT, Notebook, Pipeline, Embedding, Clustering, Open-Weight-LLM, Inferenzserver, MLOps, Datenqualität, Reproduzierbarkeit, Datenminimierung, Zweckbindung, Datenresidenz, Aufbewahrung, Löschung, Modell-/Datenexport, synthetische Daten, Egress
 
-**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; freigegebener Datenfluss und Privacy-/FinOps-Artefakte des Kurslaufs; offizielle Produkt-, Datenverarbeitungs-, Regionen-, Export- und Preisunterlagen zu Vertex AI, Amazon SageMaker und Azure Machine Learning mit Abrufdatum
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md), freigegebener Datenfluss und Privacy-/FinOps-Artefakte des Kurslaufs; offizielle Produkt-, Datenverarbeitungs-, Regionen-, Export- und Preisunterlagen zu Vertex AI, Amazon SageMaker und Azure Machine Learning mit Abrufdatum
 
 ### UE 1 (0–45)
 
-- Daten-/ML-Agent modelliert Aufnahme, Speicherung, Transformation, Analyse, Training, Inferenz und Monitoring
+- Daten-/ML-Agent modelliert für Word Cloud 3.0 Aufnahme, Snapshot, Embedding, deterministisches Clustering, optionale quellengebundene LLM-Labelbildung, Fallback und Monitoring
 - Agent vergleicht Batch/Streaming sowie Notebook, Warehouse, Pipeline und Managed ML
 - Studierende prüfen Datenqualität, Reproduzierbarkeit, Kosten und Verantwortungsgrenze
 
 ### UE 2 (45–90)
 
-- Agent vergleicht GCP-, AWS- und Azure-Angebote nach denselben Pipeline-Fähigkeiten
+- Agent entwirft den getrennten privaten Inferenzserver neben der bestehenden App-/PostgreSQL-/Redis-Single-Host-Baseline und vergleicht GCP-, AWS- und Azure-Angebote nach denselben Pipeline-Fähigkeiten
 - Privacy-Agent erstellt Dateninventar, Zweck-/Rollenmatrix und Datenfluss und prüft Minimierung, Residenz, Löschung und Modell-/Datenexport
 - Economics-Agent ergänzt Betrieb, Modellkosten, Egress und Lock-in
 
 ### UE 3 (90–135)
 
-- Agent analysiert als Fall eine aggregierte, datensparsame Veranstaltungsanalyse ausschließlich mit synthetischen Daten
+- Agent implementiert einen reproduzierbaren Offlinevergleich von lexikalischer, spaCy-, Encoder-/Clustering- und optionaler LLM-Variante ausschließlich mit synthetischen oder ausdrücklich freigegebenen Q&A-Daten
 - Review-Agent verwirft personenbezogene, zweckfremde oder nicht freigegebene Datenpfade
-- Lernprodukt: DS-/ML-Service-Mapping mit Datenfluss, Zweck, Region, Verantwortungsgrenze, Datenschutzrisiko und Kostenband
+- Lernprodukt: Word-Cloud-3.0-Datenfluss, Seed-Set, Modell-/Lizenzmanifest und DS-/ML-Service-Mapping mit Zweck, Region, Verantwortungsgrenze, Datenschutzrisiko und Kostenband
 
-**Selbststudium:** Daten-, Privacy- und FinOps-Agenten dieselbe Plattformoption prüfen lassen; Widersprüche und offene Rechtsfragen menschlich dokumentieren.
+**Selbststudium:** Encoder-, Clustering- und optionale LLM-Varianten auf demselben Seed-Set vergleichen; Daten-, Privacy- und FinOps-Agenten dieselbe Plattformoption prüfen lassen und Widersprüche menschlich dokumentieren.
 
 ## Termin 7: Daten, Speicher, Backup und Recovery
 
@@ -246,32 +246,36 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 ## Termin 8: Skalierung und Performance Engineering
 
-**Typ:** Tutorium · **Modulhandbuch:** Fallvertiefung zu Nutzen/Risiken und technischer Grundlage · **Leitfrage:** Welche agentisch ausgeführte Messung kann eine Skalierungs- oder Wirtschaftlichkeitsannahme widerlegen?
+**Typ:** Tutorium · **Modulhandbuch:** Fallvertiefung zu Nutzen/Risiken und technischer Grundlage · **Leitfrage:** Welche Messung an Word Cloud 3.0 kann eine Qualitäts-, Skalierungs- oder Wirtschaftlichkeitsannahme widerlegen?
 
-**MC-Test (30 Fragen):** Themen: Skalierung, Elastizität, Last- und Performance Engineering, Resilienz und Unit Costs · Keywords: vertikale Skalierung, horizontale Skalierung, Elastizität, Load Balancing, Queueing, Backpressure, p50, p95, p99, Durchsatz, Fehlerrate, Sättigung, SLI, SLO, Lasttest, Baseline, WebSocket, Yjs, Scale-out, Hotspot, Abbruchkriterium, Unit Cost
+**MC-Test (30 Fragen):** Themen: Skalierung, Elastizität, Word-Cloud-Inferenz, Last- und Performance Engineering, Resilienz und Unit Costs · Keywords: vertikale Skalierung, horizontale Skalierung, Queueing, Backpressure, Early Exit, Cache, p50, p95, p99, Durchsatz, Fehlerrate, Fallback-Rate, CPU, RAM, GPU, VRAM, Energie, SLI, SLO, Lasttest, Baseline, WebSocket, Yjs, Inferenzserver, Abbruchkriterium, Unit Cost
 
-**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Produktions-Join](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) und [§6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md) am im Manifest genannten `arsnova.eu`-Commit; freigegebene Lastreports des Kurslaufs mit Umgebung und Messdatum
+**MC-Test-Materialbasis:** freigegebene Folien-/Skriptversion des Termins; [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin), [Produktions-Join](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) und [§6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md) am im Manifest genannten `arsnova.eu`-Commit; freigegebene Qualitäts-, Ressourcen- und Lastreports des Kurslaufs mit Umgebung, Modellversion und Messdatum
 
 ### UE 1 (0–45)
 
 - Performance-Agent formuliert Hypothesen zu vertikaler/horizontaler Skalierung, Elastizität, Queueing und Backpressure
 - Agent definiert p50/p95/p99, Durchsatz, Fehlerrate und Sättigung als maschinenprüfbare Messgrößen
+- Quality-Agent definiert Clustermetrik, Fallback-/Uncertain-Rate und eine menschliche Rubrik für Labeltreue, Lesbarkeit und Quellenbindung
 - Workload-Agent trennt viele kleine Sessions von einem einzelnen Fan-out-Hotspot
 
 ### UE 2 (45–90)
 
 - Agent vergleicht historische Produktions-Joins, lokale 500er-Baselines und offene §6.5-Abnahme ohne Evidenzstufen zu vermischen
+- lexikalische, spaCy-, Encoder-/Clustering- und optionale LLM-Variante mit identischem Q&A-Seed-Set und identischer Messgrenze vergleichen
 - `100 × 50` und `1 × 5.000` getrennt modellieren und nur auf der isolierten, budgetierten Zielumgebung skaliert ausführen
 - prozesslokale Signale, WebSocket/Yjs-Routing und globale Limits als Scale-out-Hürden prüfen
 
 ### UE 3 (90–135)
 
 - menschliches Last-, Kosten- und Sicherheitsgate; Agent führt Test aus, sammelt Report und wiederholt mindestens eine Messung
+- Inferenzserver deaktivieren, verlangsamen, überlasten und ausfallen lassen; Q&A-Submit, Join, Vote, WebSocket/Reconnect und lexikalische Wortwolke dürfen nicht warten oder ausfallen
+- Queue-/Ende-zu-Ende-Latenz, Cache, Early Exit, CPU, RAM, GPU/VRAM, Netzwerk und Energie soweit messbar erfassen
 - Economics-Agent berechnet Kosten pro definierter Last-/SLO-Einheit
-- Lernprodukt: reproduzierbarer Lastreport mit Workload, Umgebung, Gate, Abbruch, Rohdaten, Gültigkeitsgrenze und Unit Costs
+- Lernprodukt: reproduzierbarer Qualitäts-, Last-, Ressourcen- und Degradationsreport mit Workload, Umgebung, Modellversion, Gate, Abbruch, Rohdaten, Gültigkeitsgrenze und Unit Costs
 - Anker: [Produktions-Join](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md), [lokale Baseline](../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md), [§6.5-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
 
-**Selbststudium:** Performance-Agent eine Gegenhypothese testen lassen; Messrauschen, Kosten und Gültigkeitsgrenze dokumentieren.
+**Selbststudium:** Performance-Agent eine Gegenhypothese testen lassen; Qualitäts-/Latenz-/Kosten-Trade-off, Messrauschen und Gültigkeitsgrenze dokumentieren.
 
 ## Termin 9: Security, Observability und Resilienz
 
@@ -285,12 +289,14 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 - Security-Agent modelliert IAM, Least Privilege, Secrets, Netzwerkgrenzen, Supply Chain und Tenant-/Session-Isolation
 - Privacy-Agent prüft Verschlüsselung, Datenminimierung, Speicherorte, Aufbewahrung, Löschung und Modell-/Tool-Datenabfluss
+- für den Word-Cloud-Inferenzserver Service-Identität, privaten Modellport, Q&A-Snapshot, Prompt-/Model-Injection, Modelllizenz und Image-/Modell-Hash prüfen
 - Studierende genehmigen Scan- und Änderungsumfang; fremde und produktive Systeme bleiben ausgeschlossen
 
 ### UE 2 (45–90)
 
 - Blue-Agent scannt Konfiguration, Abhängigkeiten, Container/IaC und exponierte Dienste
 - Remediation-Agent priorisiert und implementiert freigegebene Maßnahmen
+- Inferenzserver, App-Host und optionale PostgreSQL-Drei-Server-Variante gegen unzulässige Netzpfade und Datenabfluss testen
 - Observability-Agent prüft Logs, Metriken, Traces, SLI/SLO, Alarm, Runbook, Redundanz und Graceful Degradation
 
 ### UE 3 (90–135)
@@ -319,13 +325,14 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ### UE 2 (45–90)
 
 - Self-managed IaaS, IaaS mit Managed Data und Managed Application Platform mit denselben Performance-/Security-/Privacydaten vergleichen
+- für Word Cloud 3.0 mindestens getrennten Self-hosted-Open-Weight-Inferenzserver, kleinere Encoder-/CPU-Lösung und geeignete Managed-/SaaS-Marktalternative auf derselben Systemgrenze vergleichen
 - Agent modelliert Infrastruktur, Personal, Support, Observability, Backup, Security/Compliance, Egress, Migration und Exit
-- Best-/Base-/Worst-Case und Sensitivitätsanalyse mit Region, Währung, Steuerbasis, Abrufdatum und Primärquelle erzeugen
+- Kosten pro Analyse, Session und 1.000 Fragen sowie Best-/Base-/Worst-Case und Sensitivitätsanalyse mit Auslastung/Leerlauf, Region, Währung, Steuerbasis, Abrufdatum und Primärquelle erzeugen
 
 ### UE 3 (90–135)
 
 - gemischte Informatik-/Wirtschaftsinformatikrollen führen technischen und wirtschaftlichen Review-Agenten gegeneinander
-- Lernprodukt: ADR mit Betriebsmodell, 6R-Zuordnung, TCO, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit-Kriterium
+- Lernprodukt: Word-Cloud-3.0-ADR mit Zwei-/Drei-Server-Betriebsmodell, stärkster verworfener Alternative, 6R-Zuordnung, TCO, Unit Economics, Sensitivität, Risiko, Build/Buy und Exit-Kriterium
 - Anker: [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md), [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)
 
 **Selbststudium:** Decision-Agent die stärkste verworfene Alternative vertreten lassen; Annahmen, Sensitivität und menschliche Schlussentscheidung überarbeiten.
@@ -349,6 +356,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ### UE 2 (45–90)
 
 - Review-Agent prüft das Agentic Cloud Engineering Dossier auf Auftrag, Diffs, Tests, Scans, Messungen, Kosten, Cleanup und Restunsicherheit
+- für Word Cloud 3.0 Qualitäts-, Last-, Ressourcen-, Resilienz- und Kostenmessungen in eine fachlich prüfbare These überführen
 - alle Literatur-, Preis-, Mess- und Systembehauptungen am Original beziehungsweise in der Zielumgebung verifizieren
 - Agenten, Modelle, wesentliche Aufträge, übernommene Beiträge und individuelle Entscheidung transparent kennzeichnen
 - Handout mit höchstens 5 DIN-A4-Seiten beziehungsweise einseitiges Poster ab DIN A3 planen
@@ -359,6 +367,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ### UE 3 (90–135)
 
 - Feedback-Agent erzeugt kritische Fach-, Security-, Privacy-, Performance- und Wirtschaftsfragen; Menschen prüfen und priorisieren sie
+- mindestens eine Probeverteidigung stellt die technische Messung der semantischen Pipeline der TCO-/FinOps-Entscheidung und der stärksten verworfenen Alternative gegenüber
 - Kurz-Pitches und Peer-Feedback in gemischten Informatik-/Wirtschaftsinformatikrollen
 - Feedback anhand der offiziellen Kriterien und der Gewichte 30 % Einreichung, 30 % Vortrag, 40 % Diskussion
 - Lernprodukt: Einreichungs- und Vortragsskizze mit Quellen, Zeitplan und offener Unsicherheit
@@ -369,7 +378,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Deckt die individuelle Leistung das Modulziel ab und hält sie einer dialogischen Befragung stand?
 
-**MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Zeitmanagement, Diskussion, akademische Integrität
+**MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Word Cloud 3.0, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Inferenzserver, Embedding, Open-Weight-LLM, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Diskussion, akademische Integrität
 
 **MC-Test-Materialbasis:** vollständige freigegebene Folien-/Skriptversion des Kurslaufs; die im Manifest festgeschriebenen Materialbasen der Termine 1 bis 10; [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) und [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) am genannten `arsnova.eu`-Commit; gültiger Prüfungsauftrag und Bewertungsbogen
 
@@ -384,6 +393,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - 15-minütige Probeprüfungen je Person mit Vortrag und anschließender Befragung/Diskussion
 - individuelle Zeit und individuelle Beiträge auch bei Gruppenformat sichern
 - Befragungsagent erzeugt Fragen zu Agentenfehlern, Rechten, Härtung, Datenschutz, Performance, TCO, Sensitivität und Restrisiko
+- bei Word-Cloud-3.0-Themen technische Messwerte, Fallback/Degradation, Modell-/Lizenzwahl und wirtschaftliche Schlussentscheidung gegeneinander prüfen
 - Lehrperson verantwortet Auswahl, Durchführung und Peer-Feedback anhand des offiziellen Bewertungsbogens
 
 ### UE 3 (90–135)

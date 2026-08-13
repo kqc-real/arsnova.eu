@@ -2,7 +2,7 @@
 
 # Agentic Cloud Engineering: Lehrlabor und Arbeitsmodell
 
-**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Verbindliches agent-first-Arbeitsmodell für Lehrende und Studierende · **Lehrkonzept:** [Cloud Computing 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-07-29
+**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Verbindliches agent-first-Arbeitsmodell für Lehrende und Studierende · **Lehrkonzept:** [Cloud Computing 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-08-13
 
 ## 1. Grundentscheidung: ausschließlich agent-first
 
@@ -137,6 +137,21 @@ Ein Economics-/FinOps-Agent verbindet die technischen Messwerte mit wirtschaftli
 
 Studierende der Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Technische Entscheidungen ohne Kosten-/Risikofolge und Wirtschaftlichkeitsrechnungen ohne Architektur-/Messbasis gelten gleichermaßen als unvollständig.
 
+### 5.6 Durchgängiger Fall: Word Cloud 3.0
+
+Story `1.14c` verbindet die Pflicht-Workstreams an einem konkreten Zwei-Server-System: Der bestehende App-/Datenbank-Single-Host bleibt die Baseline; Embedding-Modell und optionales Open-Weight-LLM laufen auf einem getrennten privaten Inferenzserver. Eine Drei-Server-Variante mit zusätzlich physisch getrenntem PostgreSQL darf als Vergleich untersucht werden.
+
+Die Agentenarbeit wird über den Kurs verteilt:
+
+- Provisioning-Agenten erzeugen versionierte IaC-/Deploymentartefakte, private Netzgrenzen, Service-Identität, Quotas und Cleanup;
+- Daten-/ML-Agenten implementieren und vergleichen lexikalische, spaCy-, Encoder-/Clustering- und optionale LLM-Stufen auf synthetischen oder freigegebenen Q&A-Daten;
+- Performance-Agenten messen Qualität, Queue-/Ende-zu-Ende-Latenz, Durchsatz, Cache, Ressourcen, Energie und Live-Regressionsfreiheit;
+- Security-/Privacy-Agenten prüfen Datenminimierung, Prompt-/Model-Injection, Supply Chain, Lizenzen, unzulässigen Netzwerkzugriff und Datenabfluss;
+- Economics-/FinOps-Agenten berechnen Kosten pro Analyse, Session und 1.000 Fragen sowie Best-/Base-/Worst-Case, Sensitivität, Build/Buy, Lock-in und Exit;
+- Review-Agenten prüfen Fallback und Degradation bei deaktiviertem, langsamem, überlastetem oder ausgefallenem Inferenzserver.
+
+Die Implementierung verwendet keine Produktionsdaten oder Produktionszugänge. Eine attraktive Demo genügt nicht als Nachweis; maßgeblich sind reproduzierbare Messungen, Gültigkeitsgrenzen und eine menschlich verantwortete Architektur- und Wirtschaftsentscheidung. Der genaue Produktvertrag steht in [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin) und im [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
+
 ## 6. Rollen auf beiden Seiten
 
 ### Lehrendenseite
@@ -192,6 +207,7 @@ Das formative Cloud-Readiness-Dossier wird zum **Agentic Cloud Engineering Dossi
 - TCO-/FinOps-Modell mit Sensitivität;
 - Architektur- und Providerentscheidung;
 - Agentenevidenz und individuelle kritische Reflexion.
+- für Word Cloud 3.0: Zwei-Server-IaC, Modell-/Lizenzmanifest, Qualitäts-/Ressourcen-/Resilienzbericht, TCO-/FinOps-Modell und Architecture Decision Record.
 
 Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
 
@@ -204,13 +220,13 @@ Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlic
 |      3 | Server bereitstellen, Anwendung installieren und härten        | reproduzierbarer Build, Scan und Rollback         |
 |      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren | Eignungs- und Gegenbeleg                          |
 |      5 | GCP, AWS und Azure evidenzbasiert vergleichen                  | Capability-/Verantwortungs-/Kostenmatrix          |
-|      6 | Daten-/ML-Pipeline mit Privacy-Gates bewerten                  | Datenfluss, Zweck, Region und Modellrisiko        |
+|      6 | Word-Cloud-3.0-Inferenzkaskade mit Privacy-Gates entwerfen     | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
 |      7 | Backup, Restore und Fehlerfälle ausführen                      | agentisch geprüfter Recovery-Nachweis             |
-|      8 | Performance- und Resilienzexperiment durchführen               | reproduzierbarer Lastreport mit Gültigkeitsgrenze |
-|      9 | Security-, Privacy- und Observability-Befunde beheben          | Befund-Maßnahme-Verifikation-Restrisiko           |
-|     10 | technische und wirtschaftliche Optionen entscheiden            | TCO, Unit Economics, Sensitivität und ADR         |
-|     11 | Agentenevidenz in Einreichung und Vortrag überführen           | belegte Argumentations- und Visualisierungsskizze |
-|     12 | Resultate gegen kritische Rückfragen verteidigen               | Probeprüfung mit Quellen- und Agentenoffenlegung  |
+|      8 | Inferenzpfade und Live-Degradation messen                      | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
+|      9 | Inferenzserver sicher und beobachtbar härten                   | Befund-Maßnahme-Verifikation-Restrisiko           |
+|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden       | TCO, Unit Economics, Sensitivität und ADR         |
+|     11 | Word-Cloud-Evidenz in Einreichung und Vortrag überführen       | belegte Argumentations- und Visualisierungsskizze |
+|     12 | Messung und Wirtschaftsentscheidung verteidigen                | Probeprüfung mit Quellen- und Agentenoffenlegung  |
 
 ## 10. Präsenz und Zoom
 
@@ -240,6 +256,7 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Modell-, Cloud- und Ressourcenbudgets mit automatischem Stopp/Cleanup gesetzt
 - [ ] Agentenvertrag und Evidenzvorlagen veröffentlicht
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
+- [ ] Word Cloud 3.0 auf festgeschriebenem Repo-, Seed-, Modell- und Zwei-Server-Laborstand mit Degradations- und Cleanup-Nachweis vorbereitet
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
 - [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
