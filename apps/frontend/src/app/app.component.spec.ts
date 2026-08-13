@@ -153,6 +153,17 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet den Skip-Link nur für sichtbaren Tastaturfokus ein', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'app.component.scss'), 'utf8');
+
+    expect(styles).toContain('.app-skip-link:focus-visible');
+    expect(styles).not.toMatch(/\.app-skip-link:focus(?:\s|,|\{)/);
+  });
+
   it('führt den Fokus beim Öffnen der mobilen Einstellungen in das Panel', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
