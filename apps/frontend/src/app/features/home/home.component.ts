@@ -834,12 +834,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
     this.clearToolbarMotdDefer();
-    this.motdFocusReturn =
+    const focusReturnCandidate =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&
       activeElement !== document.documentElement
         ? activeElement
         : null;
+    // Die MOTD öffnet automatisch: Ein zuvor aktives Codefeld ist daher kein
+    // Dialog-Öffner. Nach dem Schließen dient der sichtbare CTA als Rücksprungziel.
+    this.motdFocusReturn =
+      focusReturnCandidate === this.sessionCodeInput?.nativeElement ? null : focusReturnCandidate;
     this.motd.set(motd);
     const html = hideMotdDecorativeEmojiInHeadingHtml(
       appendMotdContentVersionToAssetImgSrc(
@@ -989,9 +993,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const focusReturn = this.motdFocusReturn;
     this.motdFocusReturn = null;
     const activeBefore = document.activeElement;
-    const activeWasInMotd =
-      activeBefore instanceof HTMLElement &&
-      !!activeBefore.closest('.home-motd-layer, .home-motd-sheet');
+    const activeNeedsReturn =
+      activeBefore === document.body ||
+      activeBefore === document.documentElement ||
+      (activeBefore instanceof HTMLElement &&
+        !!activeBefore.closest('.home-motd-layer, .home-motd-sheet, [inert]'));
     this.motd.set(null);
     this.motdBodyHtml.set(null);
     afterNextRender(
@@ -1002,7 +1008,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         const active = document.activeElement;
         if (
-          !activeWasInMotd &&
+          !activeNeedsReturn &&
           active instanceof HTMLElement &&
           active.isConnected &&
           active !== document.body &&
@@ -1084,16 +1090,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private resolveMotdReturnFocusOrigin(
     event?: MouseEvent | KeyboardEvent | TouchEvent,
   ): MotdReturnFocusOrigin {
-    if (event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0)) {
+    if (!event) {
+      return 'program';
+    }
+    // Desktop-Safari kann TouchEvent als globalen Konstruktor auslassen.
+    // Event-Typen funktionieren ohne instanceof außerdem über Realm-Grenzen hinweg.
+    const eventType = event.type;
+    if (
+      eventType.startsWith('key') ||
+      (eventType === 'click' && 'detail' in event && event.detail === 0)
+    ) {
       return 'keyboard';
     }
-    if (event instanceof TouchEvent) {
+    if (eventType.startsWith('touch')) {
       return 'touch';
     }
-    if (event instanceof MouseEvent) {
-      return 'mouse';
-    }
-    return 'program';
+    return 'mouse';
   }
 
   async thumbMotd(up: boolean): Promise<void> {

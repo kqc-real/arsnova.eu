@@ -1291,6 +1291,41 @@ describe('HomeComponent', () => {
       skip.remove();
     });
 
+    it('kehrt vom automatisch überlagerten Code-Eingabefeld zum sichtbaren Primaer-CTA zurück', async () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const comp = fixture.componentInstance;
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      input.focus();
+      expect(document.activeElement).toBe(input);
+
+      comp['openMotdOverlay'](
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+        input,
+      );
+      fixture.detectChanges();
+      document.body.setAttribute('tabindex', '-1');
+      document.body.focus();
+      document.body.removeAttribute('tabindex');
+      expect(document.activeElement).toBe(document.body);
+      comp['clearMotdOverlay']('mouse');
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      const primaryAction = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
+      expect(document.activeElement).toBe(primaryAction);
+      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+    });
+
     it('zeigt nach Pointer-Dismiss keinen Tastatur-Fokusrahmen', async () => {
       const fixture = createHomeFixture();
       fixture.componentInstance['motdFocusReturn'] = null;
@@ -1311,6 +1346,36 @@ describe('HomeComponent', () => {
 
       expect(document.activeElement).toBe(primaryAction);
       expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(false);
+      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+    });
+
+    it('schließt per Mausklick auch wenn Desktop-Safari keinen TouchEvent-Konstruktor anbietet', async () => {
+      vi.stubGlobal('TouchEvent', undefined);
+      const fixture = createHomeFixture();
+      const comp = fixture.componentInstance;
+      comp.motd.set({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 7,
+        markdown: 'Meldung',
+        endsAt: '2099-12-31T12:00:00.000Z',
+      });
+      fixture.detectChanges();
+
+      const ackButton = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.home-motd-sheet button'),
+      ).find((button) => button.textContent?.includes('Alles klar'));
+      expect(ackButton).toBeDefined();
+
+      ackButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      expect(comp.motd()).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-motd-sheet')).toBeNull();
+      const primaryAction = fixture.nativeElement.querySelector(
+        '.home-hero-code-enter',
+      ) as HTMLButtonElement;
+      expect(document.activeElement).toBe(primaryAction);
       expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
     });
 
