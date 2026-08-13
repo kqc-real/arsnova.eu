@@ -80,7 +80,8 @@
 }
 
 /*
- * Skip-Link: visuell aus dem Viewport, bei Fokus sofort sichtbar.
+ * Skip-Link: visuell aus dem Viewport, bei sichtbarem Tastaturfokus sofort sichtbar.
+ * Programmgesteuerter Fokus nach Touch-/Pointer-Aktionen darf ihn nicht einblenden.
  * Kein clip/clip-path (Tab-Reihenfolge) und keine Transform-Transition
  * (a11y:layout misst den fokussierten Zustand synchron).
  */
@@ -100,7 +101,6 @@
   transform: translateY(calc(-100% - 1rem));
 }
 
-.app-skip-link:focus,
 .app-skip-link:focus-visible {
   transform: none;
   outline: 2px solid var(--mat-sys-on-primary);
