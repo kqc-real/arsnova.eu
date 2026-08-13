@@ -137,20 +137,20 @@ Ein Economics-/FinOps-Agent verbindet die technischen Messwerte mit wirtschaftli
 
 Studierende der Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Technische Entscheidungen ohne Kosten-/Risikofolge und Wirtschaftlichkeitsrechnungen ohne Architektur-/Messbasis gelten gleichermaßen als unvollständig.
 
-### 5.6 Durchgängiger Fall: Word Cloud 3.0
+### 5.6 Durchgängiger Fall: von der Begriffswolke zum Moderationskompass
 
-Story `1.14c` verbindet die Pflicht-Workstreams an einem konkreten Zwei-Server-System: Der bestehende App-/Datenbank-Single-Host bleibt die Baseline; Embedding-Modell und optionales Open-Weight-LLM laufen auf einem getrennten privaten Inferenzserver. Eine Drei-Server-Variante mit zusätzlich physisch getrenntem PostgreSQL darf als Vergleich untersucht werden.
+Die Storys `1.14a–1.14c` und `8.9a–8.9c` verbinden die Pflicht-Workstreams zu einem nachvollziehbaren Gesamtsystem. Die produktive Word Cloud 2.1 bis 2.5 aus 1.14a bleibt die lexikalische Baseline. Der begrenzte spaCy-Sidecar aus 1.14b läuft optional auf dem bestehenden App-/Datenbank-Single-Host. Embedding-Modell und optionales Open-Weight-LLM aus 1.14c laufen auf einem getrennten privaten Inferenzserver. 8.9a bleibt eine deterministische Fallback-Basis ohne Inferenz; 8.9b und 8.9c dürfen dieselbe abgesicherte Inferenzserver-Rolle nutzen, aber nur über getrennte Aufträge, Schemas, Queues, Caches und Lebenszyklen. Eine Drei-Server-Variante mit zusätzlich physisch getrenntem PostgreSQL darf als Vergleich untersucht werden.
 
 Die Agentenarbeit wird über den Kurs verteilt:
 
 - Provisioning-Agenten erzeugen versionierte IaC-/Deploymentartefakte, private Netzgrenzen, Service-Identität, Quotas und Cleanup;
-- Daten-/ML-Agenten implementieren und vergleichen lexikalische, spaCy-, Encoder-/Clustering- und optionale LLM-Stufen auf synthetischen oder freigegebenen Q&A-Daten;
+- Daten-/ML-Agenten implementieren und vergleichen lexikalische, spaCy-, Encoder-/Clustering- und optionale LLM-Stufen auf synthetischen oder freigegebenen Q&A-Daten und trennen Themenclustering, per-Frage-Klassifikation und quellengebundene Zusammenfassung fachlich;
 - Performance-Agenten messen Qualität, Queue-/Ende-zu-Ende-Latenz, Durchsatz, Cache, Ressourcen, Energie und Live-Regressionsfreiheit;
 - Security-/Privacy-Agenten prüfen Datenminimierung, Prompt-/Model-Injection, Supply Chain, Lizenzen, unzulässigen Netzwerkzugriff und Datenabfluss;
 - Economics-/FinOps-Agenten berechnen Kosten pro Analyse, Session und 1.000 Fragen sowie Best-/Base-/Worst-Case, Sensitivität, Build/Buy, Lock-in und Exit;
 - Review-Agenten prüfen Fallback und Degradation bei deaktiviertem, langsamem, überlastetem oder ausgefallenem Inferenzserver.
 
-Die Implementierung verwendet keine Produktionsdaten oder Produktionszugänge. Eine attraktive Demo genügt nicht als Nachweis; maßgeblich sind reproduzierbare Messungen, Gültigkeitsgrenzen und eine menschlich verantwortete Architektur- und Wirtschaftsentscheidung. Der genaue Produktvertrag steht in [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin) und im [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
+Die Implementierung verwendet keine Produktionsdaten oder Produktionszugänge. Eine attraktive Demo genügt nicht als Nachweis; maßgeblich sind reproduzierbare Messungen, Gültigkeitsgrenzen und eine menschlich verantwortete Architektur- und Wirtschaftsentscheidung. Die genauen Produktverträge stehen in den [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md); das semantische Zielbild konkretisiert der [Word-Cloud-3.0-Vorschlag](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
 
 ## 6. Rollen auf beiden Seiten
 
@@ -207,26 +207,26 @@ Das formative Cloud-Readiness-Dossier wird zum **Agentic Cloud Engineering Dossi
 - TCO-/FinOps-Modell mit Sensitivität;
 - Architektur- und Providerentscheidung;
 - Agentenevidenz und individuelle kritische Reflexion.
-- für Word Cloud 3.0: Zwei-Server-IaC, Modell-/Lizenzmanifest, Qualitäts-/Ressourcen-/Resilienzbericht, TCO-/FinOps-Modell und Architecture Decision Record.
+- für den Pfad von der Begriffswolke zum Moderationskompass: Single-Host-spaCy-Nachweis, Zwei-Server-IaC, getrennte Inferenzverträge, Modell-/Lizenzmanifest, Qualitäts-/Ressourcen-/Resilienzbericht, TCO-/FinOps-Modell und Architecture Decision Record.
 
-Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
+Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) vergeben und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
 
 ## 9. Zuordnung zu den zwölf Terminen
 
-| Termin | Führender Agentenauftrag                                       | Zentraler Nachweis                                |
-| -----: | -------------------------------------------------------------- | ------------------------------------------------- |
-|      1 | Cloud-Fall klassifizieren und Agentenvertrag erstellen         | Auftrag, Grenzen, Risiken und Kostenbudget        |
-|      2 | Zielserver und technologische Basis als Code entwerfen         | Provisioning-Plan und IaC-Entwurf                 |
-|      3 | Server bereitstellen, Anwendung installieren und härten        | reproduzierbarer Build, Scan und Rollback         |
-|      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren | Eignungs- und Gegenbeleg                          |
-|      5 | GCP, AWS und Azure evidenzbasiert vergleichen                  | Capability-/Verantwortungs-/Kostenmatrix          |
-|      6 | Word-Cloud-3.0-Inferenzkaskade mit Privacy-Gates entwerfen     | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
-|      7 | Backup, Restore und Fehlerfälle ausführen                      | agentisch geprüfter Recovery-Nachweis             |
-|      8 | Inferenzpfade und Live-Degradation messen                      | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
-|      9 | Inferenzserver sicher und beobachtbar härten                   | Befund-Maßnahme-Verifikation-Restrisiko           |
-|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden       | TCO, Unit Economics, Sensitivität und ADR         |
-|     11 | Word-Cloud-Evidenz in Einreichung und Vortrag überführen       | belegte Argumentations- und Visualisierungsskizze |
-|     12 | Messung und Wirtschaftsentscheidung verteidigen                | Probeprüfung mit Quellen- und Agentenoffenlegung  |
+| Termin | Führender Agentenauftrag                                              | Zentraler Nachweis                                |
+| -----: | --------------------------------------------------------------------- | ------------------------------------------------- |
+|      1 | Cloud-Fall klassifizieren und Agentenvertrag erstellen                | Auftrag, Grenzen, Risiken und Kostenbudget        |
+|      2 | Zielserver und technologische Basis als Code entwerfen                | Provisioning-Plan und IaC-Entwurf                 |
+|      3 | Server bereitstellen, Anwendung installieren und härten               | reproduzierbarer Build, Scan und Rollback         |
+|      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren        | Eignungs- und Gegenbeleg                          |
+|      5 | GCP, AWS und Azure evidenzbasiert vergleichen                         | Capability-/Verantwortungs-/Kostenmatrix          |
+|      6 | Begriffs-, Themen- und Moderationskaskade mit Privacy-Gates entwerfen | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
+|      7 | Backup, Restore und Fehlerfälle ausführen                             | agentisch geprüfter Recovery-Nachweis             |
+|      8 | Inferenzpfade und Live-Degradation messen                             | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
+|      9 | Inferenzserver sicher und beobachtbar härten                          | Befund-Maßnahme-Verifikation-Restrisiko           |
+|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden              | TCO, Unit Economics, Sensitivität und ADR         |
+|     11 | Themenbezogene Evidenz in Einreichung und Vortrag überführen          | belegte Argumentations- und Visualisierungsskizze |
+|     12 | Messung und Wirtschaftsentscheidung verteidigen                       | Probeprüfung mit Quellen- und Agentenoffenlegung  |
 
 ## 10. Präsenz und Zoom
 
@@ -256,7 +256,8 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Modell-, Cloud- und Ressourcenbudgets mit automatischem Stopp/Cleanup gesetzt
 - [ ] Agentenvertrag und Evidenzvorlagen veröffentlicht
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
-- [ ] Word Cloud 3.0 auf festgeschriebenem Repo-, Seed-, Modell- und Zwei-Server-Laborstand mit Degradations- und Cleanup-Nachweis vorbereitet
+- [ ] Storys 1.14a–1.14c und 8.9a–8.9c auf festgeschriebenem Repo-, Seed-, Modell- und Laborstand mit getrennten Single-/Two-Server-Grenzen, Degradations- und Cleanup-Nachweis vorbereitet
+- [ ] Themen aus dem kanonischen Referatsthemenkatalog ausgewählt und mit individueller These, Evidenzauftrag und Gegenalternative veröffentlicht
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
 - [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
