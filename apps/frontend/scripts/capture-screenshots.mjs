@@ -3,7 +3,8 @@
  * Erzeugt Screenshots der aktuellen Startseite für die PWA-Manifest.
  *
  * Voraussetzung: Die App wird unter der angegebenen URL ausgeliefert (nicht nur eine Verzeichnisliste).
- * - Dev:  ng serve (EN: development-en)  →  SCREENSHOT_URL nicht nötig (Default: http://localhost:4200/en/)
+ * - Dev:  ng serve (DE, Root)  →  SCREENSHOT_URL nicht nötig (Default: http://localhost:4200/)
+ * - Dev EN: ng serve --configuration=development-en  →  SCREENSHOT_URL=http://localhost:4200/en/
  * - Prod: npm run start:prod  →  SCREENSHOT_URL=http://localhost:3000 npm run screenshots
  * - Oder: Nach Build index.csr.html nach index.html kopieren, dann  npx serve dist/browser -p 4210 -s
  *        und  SCREENSHOT_URL=http://localhost:4210 npm run screenshots
@@ -18,7 +19,7 @@ import { copyFileSync, existsSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const iconsDir = join(__dirname, '..', 'src', 'assets', 'icons');
 const distBrowser = join(__dirname, '..', 'dist', 'browser');
-const BASE_URL = process.env.SCREENSHOT_URL || 'http://localhost:4200/en/';
+const BASE_URL = process.env.SCREENSHOT_URL || 'http://localhost:4200/';
 
 async function waitForServer(url, maxAttempts = 30) {
   for (let i = 0; i < maxAttempts; i++) {
@@ -46,7 +47,7 @@ async function main() {
   const ready = await waitForServer(BASE_URL);
   if (!ready) {
     console.error(
-      'App nicht erreichbar. Starte z. B.: npm run dev:frontend (DE, Root) oder npm run dev:frontend:en (/en/), oder npm run start:prod (dann SCREENSHOT_URL=http://localhost:3000).',
+      'App nicht erreichbar. Starte z. B.: npm run dev:frontend (DE, Root) oder npm run start:prod (dann SCREENSHOT_URL=http://localhost:3000).',
     );
     process.exit(1);
   }
@@ -61,14 +62,43 @@ async function main() {
     viewport: null,
     userAgent: 'Mozilla/5.0 (compatible; ScreenshotBot/1.0)',
   });
+  // MOTD-Overlay unterdrücken: PWA-Screenshots sollen die Startseite zeigen, nicht die aktuelle Meldung.
+  await context.addInitScript(() => {
+    try {
+      sessionStorage.setItem('arsnova-motd-suppress-overlay-once', '1');
+    } catch {
+      // private mode / quota
+    }
+  });
 
   const page = await context.newPage();
 
   // Warten bis die echte Home-Ansicht da ist (nicht nur LCP-Shell / Verzeichnisliste)
   const waitForHome = async () => {
     await page.waitForSelector('app-home', { state: 'attached', timeout: 25_000 });
-    await page.waitForSelector('.top-toolbar', { state: 'visible', timeout: 10_000 }).catch(() => {});
+    await page
+      .waitForSelector('.top-toolbar', { state: 'visible', timeout: 10_000 })
+      .catch(() => {});
     await page.waitForTimeout(800);
+  };
+
+  const dismissMotdIfPresent = async () => {
+    const layer = page.locator('.home-motd-layer');
+    if ((await layer.count()) === 0) return;
+    const closeBtn = page.locator('.home-motd-sheet button[aria-label]').first();
+    if (await closeBtn.count()) {
+      await closeBtn.click({ timeout: 3_000 }).catch(() => {});
+    }
+    await layer.waitFor({ state: 'detached', timeout: 5_000 }).catch(() => {});
+  };
+
+  const hideEnvironmentChrome = async () => {
+    await page.addStyleTag({
+      content: `
+        .top-toolbar__motd-btn { display: none !important; }
+        .home-motd-layer { display: none !important; }
+      `,
+    });
   };
 
   // Dark Mode + Spielerisch-Preset für Screenshots (nach Load setzen)
@@ -81,21 +111,26 @@ async function main() {
   // Desktop: 1280x720
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-  const isDirListing = await page.evaluate(() =>
-    document.title?.includes('Index of') || document.body?.innerText?.includes('Index of') || false
+  const isDirListing = await page.evaluate(
+    () =>
+      document.title?.includes('Index of') ||
+      document.body?.innerText?.includes('Index of') ||
+      false,
   );
   if (isDirListing) {
     await browser.close();
     console.error(
       'Die URL liefert eine Verzeichnisliste statt der App. ' +
         'Nutze den Backend-Server (npm run start:prod, dann SCREENSHOT_URL=http://localhost:3000) ' +
-        'oder nach Build index.csr.html nach dist/browser/index.html kopieren und serve neu starten.'
+        'oder nach Build index.csr.html nach dist/browser/index.html kopieren und serve neu starten.',
     );
     process.exit(1);
   }
   await waitForHome();
   await page.waitForTimeout(600); // Lazy-Chunks / Icons nachladen
+  await dismissMotdIfPresent();
   await applyScreenshotTheme();
+  await hideEnvironmentChrome();
   await page.waitForTimeout(400);
   await page.screenshot({
     path: join(iconsDir, 'screenshot-wide.png'),
@@ -108,7 +143,9 @@ async function main() {
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
   await waitForHome();
   await page.waitForTimeout(600);
+  await dismissMotdIfPresent();
   await applyScreenshotTheme();
+  await hideEnvironmentChrome();
   await page.waitForTimeout(400);
   await page.screenshot({
     path: join(iconsDir, 'screenshot-narrow.png'),

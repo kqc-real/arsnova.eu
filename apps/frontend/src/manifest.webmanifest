@@ -69,14 +69,14 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/icons/screenshot-wide.png?v=4",
+      "src": "/assets/icons/screenshot-wide.png?v=5",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "arsnova.eu – Desktop Ansicht"
     },
     {
-      "src": "/assets/icons/screenshot-narrow.png?v=4",
+      "src": "/assets/icons/screenshot-narrow.png?v=5",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
