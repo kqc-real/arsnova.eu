@@ -29,7 +29,7 @@ nicht.
 Damit Google ein **neues** WebAPK mit aktueller targetSdkVersion erzeugt, wird das Manifest bewusst geändert, sobald das Problem auftritt:
 
 - **`start_url`:** Zusätzlicher Query-Parameter. Aktueller Repo-Stand: `/?homescreen=1`. Die App funktioniert unverändert; der Parameter dient nur der Unterscheidung und zwingt den Minting-Server zu einem neuen Build.
-- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=6` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
+- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=7` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
 - **`theme_color`:** Ggf. minimale Änderung (aktuell `#6750a5`), um das Manifest bei Bedarf zusätzlich zu invalideren.
 
 Nach dem Deploy sollten Nutzer die PWA erneut „Zum Startbildschirm hinzufügen“ anstoßen; Chrome lädt dann ein frisches WebAPK.
@@ -39,7 +39,20 @@ Nach dem Deploy sollten Nutzer die PWA erneut „Zum Startbildschirm hinzufügen
 - **„Trotzdem installieren“:** Unter „Weitere Details“ in der Android-Warnung gibt es oft die Option „Trotzdem installieren“. Für unsere vertrauenswürdige Web-App unkritisch.
 - **Chrome aktualisieren:** Play Store → Chrome auf neueste Version; ggf. Browser-Cache für arsnova.eu leeren und Installation erneut versuchen.
 
+## Manifest-Screenshots
+
+`screenshots` im Web-App-Manifest ist ein Array. Chrome zeigt passende Einträge in der erweiterten Installations-UI als Karussell: Desktop nur `form_factor: "wide"` (höchstens acht), Android nur `narrow` (höchstens fünf). Alle Shots desselben Formfaktors müssen dasselbe Seitenverhältnis haben (hier 1280×720 bzw. 390×844).
+
+Aktueller Satz (je drei Wide/Narrow):
+
+1. Startseite
+2. Live-Quiz aus dem Praxis-Showcase-Demo (Host-Beamer / Teilnehmenden-Abstimmung)
+3. Wortwolke bzw. Freitext aus demselben Demo-Quiz
+
+Erzeugen: Frontend und API müssen laufen, dann `npm run screenshots -w @arsnova/frontend`. Nur Startseite: `HOME_ONLY=1`. Labels werden beim lokalisierten Build in `patch-pwa-manifest-per-locale.mjs` übersetzt.
+
 ## Referenz
 
 - Manifest: `apps/frontend/src/manifest.webmanifest`
+- Capture: `apps/frontend/scripts/capture-screenshots.mjs`
 - Kein Fehler in unserer Architektur; bekanntes Verhalten im Google-WebAPK-Ökosystem.

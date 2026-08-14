@@ -112,6 +112,32 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt die Presenter-Frage als Klartext statt Roh-Markdown', async () => {
+    liveQueryMock.mockResolvedValue({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText:
+        '### Was hilft dir beim Lernen?\n\nAntworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.',
+      responses: ['Praxis', 'Beispiele'],
+      updatedAt: '2026-03-08T12:00:00.000Z',
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Frage 2: Was hilft dir beim Lernen?');
+    expect(text).toContain('Antworte mit einem Wort.');
+    expect(text).not.toContain('###');
+    expect(text).not.toContain('**einem Wort**');
+    fixture.destroy();
+  });
+
   it('leitet die Beamer-Ansicht bei FINISHED zur Startseite um', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

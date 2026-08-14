@@ -69,18 +69,46 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/icons/screenshot-wide.png?v=6",
+      "src": "/assets/icons/screenshot-wide.png?v=7",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "arsnova.eu – Desktop Ansicht"
+      "label": "arsnova.eu – Startseite"
     },
     {
-      "src": "/assets/icons/screenshot-narrow.png?v=6",
+      "src": "/assets/icons/screenshot-wide-quiz.png?v=7",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "arsnova.eu – Live-Quiz aus dem Demo"
+    },
+    {
+      "src": "/assets/icons/screenshot-wide-cloud.png?v=7",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "arsnova.eu – Wortwolke aus dem Demo-Quiz"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow.png?v=7",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "arsnova.eu – Mobile Ansicht"
+      "label": "arsnova.eu – Startseite am Handy"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-quiz.png?v=7",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "arsnova.eu – Abstimmung im Demo-Quiz"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-cloud.png?v=7",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "arsnova.eu – Freitext im Demo-Quiz"
     }
   ]
 }
