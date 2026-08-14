@@ -13,7 +13,7 @@
       </h1>
       <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
       <p class="home-hero-usp home-hero-usp--secondary" i18n="@@homeHero.uspTrust">
-        Kostenlos. Open Source.
+        Kostenlos. Open Source. Ohne Anmeldung.
       </p>
 
       <div
@@ -95,67 +95,14 @@
       </div>
     </div>
 
-    @if (isPlayfulPreset()) {
-      <div class="home-stage-rotator" aria-hidden="true">
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate1">
-          Live-Quizze ohne Anmeldung.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate2">
-          Anonymes Q&amp;A aus dem Publikum.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate3">
-          Spontane Blitzlichter im Workshop.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate4">
-          Peer Instruction leicht gemacht.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate5">
-          Echtzeit-Feedback für deine Sessions.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate6">
-          Alles an einem Ort: Quiz, Q&amp;A und Feedback.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate7">
-          Umfragen mit 100 % Fokus auf Datenschutz.
-        </p>
-      </div>
-      <section
-        class="home-step-trail"
-        i18n-aria-label="@@home.stepTrailAria"
-        aria-label="So geht's: Code eingeben, live dabei."
-      >
-        <span class="home-step-chip" aria-hidden="true" i18n="@@home.step1">Code eingeben</span>
-        <span class="home-step-trail__arrow" aria-hidden="true">→</span>
-        <span class="home-step-chip" aria-hidden="true" i18n="@@home.step3">Live dabei</span>
-      </section>
-    } @else {
-      <p class="home-hero-serious-tagline" i18n="@@home.seriousTagline">
-        Klar strukturiert für Unterricht, Meetings und Events – Teilnehmende brauchen nur den
-        Session-Code aus dem Raum.
-      </p>
-    }
-
     <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
       <mat-card-header>
         <mat-card-subtitle>
           <span class="home-card__icon-wrap">
             <mat-icon class="home-card__icon">group_add</mat-icon>
           </span>
-          <span i18n>Mitmachen</span>
         </mat-card-subtitle>
-        <h2 mat-card-title class="home-card__title" i18n>Dabei sein</h2>
-        @if (isPlayfulPreset()) {
-          <span class="home-card__brand-repeat" aria-hidden="true">
-            <img
-              class="home-card__brand-repeat-icon"
-              src="assets/icons/favicon.svg"
-              alt=""
-              width="32"
-              height="32"
-            />
-            <span class="home-card__brand-repeat-wordmark">arsnova.eu</span>
-          </span>
-        }
+        <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">Mitmachen</h2>
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">

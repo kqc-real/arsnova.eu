@@ -1,5 +1,11 @@
 # Preset-Toggle auf Mobile (Recherche)
 
+## Aktueller Stand
+
+- **Startseite (Mobile):** Preset-Toggle im Hero (`home-hero-preset-mobile`), ohne Menü-Klick.
+- **Hamburger-Menü:** nur Theme und Sprache. Kein Preset-Umschalter.
+- **Desktop-Toolbar:** Preset, Theme und Sprache in der Header-Zeile.
+
 ## Wann wurde der sichtbare Preset-Toggle auf Mobile entfernt?
 
 **Commit:** `24890a1`  

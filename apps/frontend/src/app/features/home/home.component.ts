@@ -64,6 +64,7 @@ import {
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { MotdCurrentService } from '../../core/motd-current.service';
@@ -810,6 +811,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     if (consumeMotdOverlayReloadSuppress()) {
+      return;
+    }
+    if (shouldSuppressMotdOverlayOnMobileFirstHomeVisit()) {
       return;
     }
     if (

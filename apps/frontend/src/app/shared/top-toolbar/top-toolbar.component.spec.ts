@@ -129,11 +129,31 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
-  it('schließt das mobile Menü nach Preset-Wechsel und gibt Fokus zurück', async () => {
+  it('zeigt im mobilen Menü nur Theme und Sprache, keine Presets', async () => {
+    const fixture = createToolbar();
+    const trigger = fixture.nativeElement.querySelector(
+      '.top-toolbar__menu-btn',
+    ) as HTMLButtonElement;
+
+    trigger.click();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const mobile = fixture.nativeElement.querySelector('#top-toolbar-mobile') as HTMLElement;
+    expect(mobile.classList.contains('l-stack')).toBe(false);
+    expect(mobile.querySelector('.top-toolbar__toggles--preset')).toBeNull();
+    expect(mobile.querySelector('[aria-label="Theme"]')).toBeTruthy();
+    expect(mobile.querySelector('.top-toolbar__lang-btn')?.getAttribute('aria-label')).toBe(
+      'Sprache',
+    );
+    expect(mobile.textContent).not.toContain('Spielerisch');
+    expect(mobile.textContent).not.toContain('Seriös');
+    fixture.destroy();
+  });
+
+  it('schließt das mobile Menü nach Theme-Wechsel und gibt Fokus zurück', async () => {
     const fixture = createToolbar();
     const toolbar = fixture.componentInstance;
-    const themePreset = TestBed.inject(ThemePresetService);
-    themePreset.setPreset('spielerisch', { silent: true });
     const trigger = fixture.nativeElement.querySelector(
       '.top-toolbar__menu-btn',
     ) as HTMLButtonElement;
@@ -144,11 +164,10 @@ describe('TopToolbarComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(toolbar.controlsMenuOpen()).toBe(true);
 
-    toolbar.onPresetChange('serious');
+    toolbar.onThemeChange('dark');
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(themePreset.preset()).toBe('serious');
     expect(toolbar.controlsMenuOpen()).toBe(false);
     expect(triggerFocusSpy).toHaveBeenCalledWith({ preventScroll: true });
     fixture.destroy();
@@ -164,5 +183,7 @@ describe('TopToolbarComponent', () => {
     expect(scss).toMatch(/&:focus-visible\s*\{/);
     expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
     expect(scss).not.toContain('mat-button-toggle:focus-within');
+    expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*flex-direction:\s*row/);
+    expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*justify-content:\s*space-evenly/);
   });
 });

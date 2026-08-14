@@ -11,6 +11,13 @@ export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
  */
 export const MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY = 'arsnova-motd-suppress-overlay-once';
 
+/**
+ * Erster Besuch der Startseite auf einem Handy/Tablet: Overlay erst ab dem
+ * nächsten Besuch. Reload in derselben Sitzung bleibt unterdrückt.
+ */
+export const MOTD_MOBILE_HOME_SEEN_KEY = 'arsnova-motd-mobile-home-seen';
+export const MOTD_MOBILE_FIRST_HOME_SESSION_KEY = 'arsnova-motd-mobile-first-home-session';
+
 export type MotdClientStorageV1 = {
   /** motdId → zuletzt bestätigte contentVersion (Overlay nicht mehr zeigen) */
   dismissed: Record<string, number>;
@@ -107,6 +114,40 @@ export function consumeMotdOverlayReloadSuppress(): boolean {
     }
     sessionStorage.removeItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY);
     return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Handy-Layout oder grober Primärzeiger: typischer Teilnehmer-Einstieg. */
+export function isMobileHomeMotdContext(): boolean {
+  if (typeof matchMedia !== 'function') return false;
+  try {
+    return matchMedia('(max-width: 599px)').matches || matchMedia('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Unterdrückt das Startseiten-Overlay beim ersten mobilen Besuch (und Reloads
+ * derselben Sitzung). Desktop bleibt unverändert. Das Archiv-Icon in der Toolbar
+ * ist nicht betroffen.
+ */
+export function shouldSuppressMotdOverlayOnMobileFirstHomeVisit(): boolean {
+  if (typeof localStorage === 'undefined' || typeof sessionStorage === 'undefined') {
+    return false;
+  }
+  if (!isMobileHomeMotdContext()) return false;
+  try {
+    const seen = localStorage.getItem(MOTD_MOBILE_HOME_SEEN_KEY) === '1';
+    const firstSession = sessionStorage.getItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY) === '1';
+    if (!seen) {
+      localStorage.setItem(MOTD_MOBILE_HOME_SEEN_KEY, '1');
+      sessionStorage.setItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY, '1');
+      return true;
+    }
+    return firstSession;
   } catch {
     return false;
   }

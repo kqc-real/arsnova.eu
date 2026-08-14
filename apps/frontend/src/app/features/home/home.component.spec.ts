@@ -113,6 +113,7 @@ function setRouteData(data: Record<string, unknown>) {
 describe('HomeComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     vi.useFakeTimers();
     TestBed.configureTestingModule({
       imports: [HomeComponent],
@@ -143,6 +144,7 @@ describe('HomeComponent', () => {
     vi.unstubAllGlobals();
     TestBed.resetTestingModule();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   describe('Accessibility', () => {
@@ -291,7 +293,7 @@ describe('HomeComponent', () => {
       expect(hero.textContent).toMatch(/Quiz/);
       expect(cardTitles).toEqual(
         expect.arrayContaining([
-          'Dabei sein',
+          'Mitmachen',
           'Live mit einem Klick',
           'Quiz vorbereiten oder starten',
         ]),
@@ -311,16 +313,40 @@ describe('HomeComponent', () => {
       expect(comp.isPlayfulPreset()).toBe(false);
     });
 
-    it('zeigt die Brand-Wiederholung im Mitmachen-Panel nur im spielerischen Preset', () => {
+    it('zeigt keine dekorative Schritt-Pills oder Bühnen-Rotation unter dem Hero', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
-      const brand = fixture.nativeElement.querySelector(
-        '#participant-entry .home-card__brand-repeat',
+      expect(fixture.nativeElement.querySelector('.home-step-trail')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-step-chip')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-stage-rotator')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-hero-serious-tagline')).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('.home-hero-usp--secondary')?.textContent,
+      ).toContain('Ohne Anmeldung');
+      const codeEnterButtons = Array.from(fixture.nativeElement.querySelectorAll('button')).filter(
+        (button) => button.textContent?.includes('Code eingeben'),
+      );
+      expect(codeEnterButtons).toHaveLength(1);
+
+      fixture.componentInstance.themePreset.setPreset('serious');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.home-hero-serious-tagline')).toBeNull();
+    });
+
+    it('zeigt die Mitmachen-Karte mit einem Titel ohne Logo-Wiederholung', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const joinCard = fixture.nativeElement.querySelector(
+        '#participant-entry',
       ) as HTMLElement | null;
-      expect(brand?.getAttribute('aria-hidden')).toBe('true');
-      expect(brand?.textContent).toContain('arsnova.eu');
-      expect(brand?.querySelector('img')?.getAttribute('src')).toBe('assets/icons/favicon.svg');
+      expect(joinCard).not.toBeNull();
+      expect(joinCard?.querySelector('.home-card__brand-repeat')).toBeNull();
+      expect(joinCard?.querySelector('.home-card__title')?.textContent?.trim()).toBe('Mitmachen');
+      expect(joinCard?.textContent).not.toContain('Dabei sein');
+      expect(joinCard?.textContent).toContain('Session-Code');
+      expect(joinCard?.textContent).toContain("Los geht's");
 
       fixture.componentInstance.themePreset.setPreset('serious');
       fixture.detectChanges();
@@ -328,6 +354,11 @@ describe('HomeComponent', () => {
       expect(
         fixture.nativeElement.querySelector('#participant-entry .home-card__brand-repeat'),
       ).toBeNull();
+      expect(
+        fixture.nativeElement
+          .querySelector('#participant-entry .home-card__title')
+          ?.textContent?.trim(),
+      ).toBe('Mitmachen');
     });
 
     it('wendet Hero-Preset-Wechsel per Tastatur-aktivierbarem Button an', () => {
@@ -820,6 +851,37 @@ describe('HomeComponent', () => {
   });
 
   describe('MOTD overlay', () => {
+    it('unterdrückt MOTD auf Mobilgeräten beim ersten Startseiten-Besuch inklusive Reload', async () => {
+      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+      const { trpc } = await import('../../core/trpc.client');
+      const fixture = createHomeFixture();
+
+      await fixture.componentInstance['loadMotdOverlay']();
+      await fixture.componentInstance['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.motd()).toBeNull();
+    });
+
+    it('zeigt MOTD auf Mobilgeräten nach einem späteren Besuch', async () => {
+      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+      localStorage.setItem('arsnova-motd-mobile-home-seen', '1');
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: 'Hallo',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+      const fixture = createHomeFixture();
+
+      await fixture.componentInstance['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).toHaveBeenCalled();
+    });
+
     it('unterdrückt die MOTD am dedizierten Join-Einstieg', async () => {
       setRouteData({ focusSessionCode: true });
       const { trpc } = await import('../../core/trpc.client');
