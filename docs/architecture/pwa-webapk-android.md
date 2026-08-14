@@ -29,7 +29,7 @@ nicht.
 Damit Google ein **neues** WebAPK mit aktueller targetSdkVersion erzeugt, wird das Manifest bewusst geändert, sobald das Problem auftritt:
 
 - **`start_url`:** Zusätzlicher Query-Parameter. Aktueller Repo-Stand: `/?homescreen=1`. Die App funktioniert unverändert; der Parameter dient nur der Unterscheidung und zwingt den Minting-Server zu einem neuen Build.
-- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=4` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
+- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=5` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
 - **`theme_color`:** Ggf. minimale Änderung (aktuell `#6750a5`), um das Manifest bei Bedarf zusätzlich zu invalideren.
 
 Nach dem Deploy sollten Nutzer die PWA erneut „Zum Startbildschirm hinzufügen“ anstoßen; Chrome lädt dann ein frisches WebAPK.
