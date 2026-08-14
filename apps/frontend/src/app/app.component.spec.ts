@@ -346,6 +346,24 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('beschreibt die Vorteile der beiden Gestaltungen in der Preset-Snackbar', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const themePreset = TestBed.inject(ThemePresetService);
+
+    themePreset.setPreset('spielerisch', { silent: true });
+    expect(fixture.componentInstance.presetSnackbarLabel()).toBe(
+      'Spielerisch gewählt – lebendig, motivierend und mit mehr Tempo.',
+    );
+
+    themePreset.setPreset('serious', { silent: true });
+    expect(fixture.componentInstance.presetSnackbarLabel()).toBe(
+      'Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.',
+    );
+
+    fixture.destroy();
+  });
+
   it('unterdrueckt den eigenen Installationshinweis in Samsung Internet', async () => {
     localStorage.removeItem('pwa-install-dismissed');
     const userAgentSpy = vi
