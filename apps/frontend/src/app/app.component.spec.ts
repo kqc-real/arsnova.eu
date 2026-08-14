@@ -346,6 +346,64 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
+  it('unterdrueckt den eigenen Installationshinweis in Samsung Internet', async () => {
+    localStorage.removeItem('pwa-install-dismissed');
+    const userAgentSpy = vi
+      .spyOn(window.navigator, 'userAgent', 'get')
+      .mockReturnValue(
+        'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 SamsungBrowser/28.0 Chrome/130.0 Mobile Safari/537.36',
+      );
+    const prompt = vi.fn().mockResolvedValue(undefined);
+    const installEvent = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+      prompt,
+      userChoice: Promise.resolve({ outcome: 'accepted' as const }),
+    });
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+
+    try {
+      fixture.detectChanges();
+      window.dispatchEvent(installEvent);
+      fixture.detectChanges();
+
+      expect(installEvent.defaultPrevented).toBe(true);
+      expect(fixture.nativeElement.querySelector('.app-install-snackbar')).toBeNull();
+
+      await fixture.componentInstance.triggerInstall();
+      expect(prompt).not.toHaveBeenCalled();
+    } finally {
+      fixture.destroy();
+      userAgentSpy.mockRestore();
+    }
+  });
+
+  it('zeigt den eigenen Installationshinweis weiterhin in unterstuetztem Chromium', () => {
+    localStorage.removeItem('pwa-install-dismissed');
+    const userAgentSpy = vi
+      .spyOn(window.navigator, 'userAgent', 'get')
+      .mockReturnValue(
+        'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36',
+      );
+    const installEvent = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: 'dismissed' as const }),
+    });
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+
+    try {
+      fixture.detectChanges();
+      window.dispatchEvent(installEvent);
+      fixture.detectChanges();
+
+      expect(installEvent.defaultPrevented).toBe(true);
+      expect(fixture.nativeElement.querySelector('.app-install-snackbar')).toBeTruthy();
+    } finally {
+      fixture.destroy();
+      userAgentSpy.mockRestore();
+    }
+  });
+
   it('rendert den Update-Banner als auffaelliges Callout mit primaerer CTA', async () => {
     TestBed.configureTestingModule({
       imports: [AppComponent],
