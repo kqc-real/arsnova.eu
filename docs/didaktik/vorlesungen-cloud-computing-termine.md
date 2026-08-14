@@ -351,6 +351,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - zulässige Agentennutzung, Offenlegung und individuelle Verantwortlichkeit aus Prüfungsauftrag/myCampus klären
 - mindestens vier Wochen zwischen Themenfeststellung und Abgabe prüfen
 - Thema aus dem [kanonischen Katalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) mit verbindlicher Story-/Commitbasis, individueller These, Messauftrag, Gegenalternative und Entscheidungsfolge übernehmen
+- Thema anhand der Katalogzuordnung auf das ausgewiesene offizielle Qualifikationsziel ausrichten
 - bei mehrfach vergebenem Katalogthema unterschiedliche Fallvariante, These, Evidenz und individuellen Beitrag nachweisen
 - bei Gruppenarbeit individuelle Beiträge in Einreichung und Vortrag eindeutig zuordnen
 
@@ -387,7 +388,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 - Einreichung gegen Umfang, Namen/Matrikelnummern, Literatur, Abbildungen und individuelle Kennzeichnung prüfen
 - fachliche Checkliste: Grundlagen, technologische Voraussetzung, Serverless, Plattform oder DS/ML
-- Themenvertrag gegen Katalog prüfen: Leitfrage, These, Story-/Commitbasis, Evidenz, Gegenalternative, Entscheidung und Gültigkeitsgrenze vollständig
+- Themenvertrag gegen Katalog prüfen: offizieller Qualifikationsbezug, Leitfrage, These, Story-/Commitbasis, Evidenz, Gegenalternative, Entscheidung und Gültigkeitsgrenze vollständig
 - Agentenoffenlegung, Quellen, Abrufdaten, Fakten-/Annahmen-Trennung und Visualisierungen prüfen
 
 ### UE 2 (45–90)
@@ -395,7 +396,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - 15-minütige Probeprüfungen je Person mit Vortrag und anschließender Befragung/Diskussion
 - individuelle Zeit und individuelle Beiträge auch bei Gruppenformat sichern
 - Befragungsagent erzeugt Fragen zu Agentenfehlern, Rechten, Härtung, Datenschutz, Performance, TCO, Sensitivität und Restrisiko
-- bei Themen aus 1.14a–1.14c und 8.9a–8.9c technische Messwerte, Fallback/Degradation, Vertrags- und Infrastrukturgrenzen, Modell-/Lizenzwahl sowie wirtschaftliche oder verantwortungsbezogene Schlussentscheidung gegeneinander prüfen
+- bei Themen aus 1.14a–1.14c und 8.9a–8.9c technische Messwerte, Fallback/Degradation, Vertrags- und Infrastrukturgrenzen, Modell-/Lizenzwahl sowie wirtschaftliche, betriebliche oder verantwortungsbezogene Schlussentscheidung gegeneinander prüfen
 - Lehrperson verantwortet Auswahl, Durchführung und Peer-Feedback anhand des offiziellen Bewertungsbogens
 
 ### UE 3 (90–135)

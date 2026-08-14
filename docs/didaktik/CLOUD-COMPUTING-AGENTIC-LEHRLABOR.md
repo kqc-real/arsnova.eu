@@ -139,7 +139,7 @@ Studierende der Informatik und Wirtschaftsinformatik arbeiten in gemischten Roll
 
 ### 5.6 Durchgängiger Fall: von der Begriffswolke zum Moderationskompass
 
-Die Storys `1.14a–1.14c` und `8.9a–8.9c` verbinden die Pflicht-Workstreams zu einem nachvollziehbaren Gesamtsystem. Die produktive Word Cloud 2.1 bis 2.5 aus 1.14a bleibt die lexikalische Baseline. Der begrenzte spaCy-Sidecar aus 1.14b läuft optional auf dem bestehenden App-/Datenbank-Single-Host. Embedding-Modell und optionales Open-Weight-LLM aus 1.14c laufen auf einem getrennten privaten Inferenzserver. 8.9a bleibt eine deterministische Fallback-Basis ohne Inferenz; 8.9b und 8.9c dürfen dieselbe abgesicherte Inferenzserver-Rolle nutzen, aber nur über getrennte Aufträge, Schemas, Queues, Caches und Lebenszyklen. Eine Drei-Server-Variante mit zusätzlich physisch getrenntem PostgreSQL darf als Vergleich untersucht werden.
+Die Storys `1.14a–1.14c` und `8.9a–8.9c` verbinden die Pflicht-Workstreams zu einem nachvollziehbaren Gesamtsystem. Die produktive Word Cloud 2.1 bis 2.5 aus 1.14a bleibt die lexikalische Baseline. Der begrenzte spaCy-Sidecar aus 1.14b läuft optional auf dem bestehenden App-/Datenbank-Single-Host. Embedding-Modell und optionales Open-Weight-LLM aus 1.14c laufen auf einem getrennten privaten Inferenzserver. 8.9a bleibt eine deterministische Fallback-Basis ohne Inferenz. 1.14c und 8.9b dürfen dieselbe abgesicherte Inferenzserver-Rolle nutzen, behalten aber getrennte Aufträge, Schemas, Queues, Caches und Modelllebenszyklen. 8.9c verwendet diese Serverrolle über einen getrennten schema- und quellengebundenen Zusammenfassungsvertrag mit eigenem Anfrage-/Ergebnislebenszyklus; Betrieb, Modelllebenszyklus und Servergrenze bleiben bei 1.14c. Eine Drei-Server-Variante mit zusätzlich physisch getrenntem PostgreSQL darf als Vergleich untersucht werden.
 
 Die Agentenarbeit wird über den Kurs verteilt:
 
@@ -209,24 +209,24 @@ Das formative Cloud-Readiness-Dossier wird zum **Agentic Cloud Engineering Dossi
 - Agentenevidenz und individuelle kritische Reflexion.
 - für den Pfad von der Begriffswolke zum Moderationskompass: Single-Host-spaCy-Nachweis, Zwei-Server-IaC, getrennte Inferenzverträge, Modell-/Lizenzmanifest, Qualitäts-/Ressourcen-/Resilienzbericht, TCO-/FinOps-Modell und Architecture Decision Record.
 
-Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) vergeben und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
+Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) vergeben, übernimmt den dort ausgewiesenen offiziellen Qualifikationsbezug und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
 
 ## 9. Zuordnung zu den zwölf Terminen
 
-| Termin | Führender Agentenauftrag                                              | Zentraler Nachweis                                |
-| -----: | --------------------------------------------------------------------- | ------------------------------------------------- |
-|      1 | Cloud-Fall klassifizieren und Agentenvertrag erstellen                | Auftrag, Grenzen, Risiken und Kostenbudget        |
-|      2 | Zielserver und technologische Basis als Code entwerfen                | Provisioning-Plan und IaC-Entwurf                 |
-|      3 | Server bereitstellen, Anwendung installieren und härten               | reproduzierbarer Build, Scan und Rollback         |
-|      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren        | Eignungs- und Gegenbeleg                          |
-|      5 | GCP, AWS und Azure evidenzbasiert vergleichen                         | Capability-/Verantwortungs-/Kostenmatrix          |
-|      6 | Begriffs-, Themen- und Moderationskaskade mit Privacy-Gates entwerfen | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
-|      7 | Backup, Restore und Fehlerfälle ausführen                             | agentisch geprüfter Recovery-Nachweis             |
-|      8 | Inferenzpfade und Live-Degradation messen                             | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
-|      9 | Inferenzserver sicher und beobachtbar härten                          | Befund-Maßnahme-Verifikation-Restrisiko           |
-|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden              | TCO, Unit Economics, Sensitivität und ADR         |
-|     11 | Themenbezogene Evidenz in Einreichung und Vortrag überführen          | belegte Argumentations- und Visualisierungsskizze |
-|     12 | Messung und Wirtschaftsentscheidung verteidigen                       | Probeprüfung mit Quellen- und Agentenoffenlegung  |
+| Termin | Führender Agentenauftrag                                                                       | Zentraler Nachweis                                |
+| -----: | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+|      1 | Cloud-Fall klassifizieren und Agentenvertrag erstellen                                         | Auftrag, Grenzen, Risiken und Kostenbudget        |
+|      2 | Zielserver und technologische Basis als Code entwerfen                                         | Provisioning-Plan und IaC-Entwurf                 |
+|      3 | Server bereitstellen, Anwendung installieren und härten                                        | reproduzierbarer Build, Scan und Rollback         |
+|      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren                                 | Eignungs- und Gegenbeleg                          |
+|      5 | GCP, AWS und Azure evidenzbasiert vergleichen                                                  | Capability-/Verantwortungs-/Kostenmatrix          |
+|      6 | Begriffs-, Themen- und Moderationskaskade mit Privacy-Gates entwerfen                          | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
+|      7 | Backup, Restore und Fehlerfälle ausführen                                                      | agentisch geprüfter Recovery-Nachweis             |
+|      8 | Inferenzpfade und Live-Degradation messen                                                      | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
+|      9 | Inferenzserver sicher und beobachtbar härten                                                   | Befund-Maßnahme-Verifikation-Restrisiko           |
+|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden                                       | TCO, Unit Economics, Sensitivität und ADR         |
+|     11 | Themenbezogene Evidenz in Einreichung und Vortrag überführen                                   | belegte Argumentations- und Visualisierungsskizze |
+|     12 | Messung und wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung verteidigen | Probeprüfung mit Quellen- und Agentenoffenlegung  |
 
 ## 10. Präsenz und Zoom
 
@@ -257,7 +257,7 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Agentenvertrag und Evidenzvorlagen veröffentlicht
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
 - [ ] Storys 1.14a–1.14c und 8.9a–8.9c auf festgeschriebenem Repo-, Seed-, Modell- und Laborstand mit getrennten Single-/Two-Server-Grenzen, Degradations- und Cleanup-Nachweis vorbereitet
-- [ ] Themen aus dem kanonischen Referatsthemenkatalog ausgewählt und mit individueller These, Evidenzauftrag und Gegenalternative veröffentlicht
+- [ ] Themen aus dem kanonischen Referatsthemenkatalog ausgewählt und mit dem ausgewiesenen offiziellen Qualifikationsbezug, individueller These, Evidenzauftrag und Gegenalternative veröffentlicht
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
 - [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
