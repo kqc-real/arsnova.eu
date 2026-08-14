@@ -537,6 +537,37 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 15%, transparent);
 }
 
+@media (max-width: 48rem) {
+  .app-preset-snackbar {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    width: calc(100vw - 1rem);
+    box-sizing: border-box;
+    gap: 0.5rem 0.75rem;
+    border-radius: var(--mat-sys-corner-large);
+    white-space: normal;
+  }
+
+  .app-preset-snackbar__icon-wrap,
+  .app-preset-snackbar__close {
+    align-self: start;
+  }
+
+  .app-preset-snackbar__text {
+    min-width: 0;
+  }
+
+  .app-preset-snackbar__action {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .app-preset-snackbar__close {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .app-preset-snackbar {
     animation: app-preset-snackbar-in 0.6s cubic-bezier(0.2, 0, 0, 1);

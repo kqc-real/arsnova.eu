@@ -210,28 +210,20 @@
           <context context-type="linenumber">281</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7981911571029514989" datatype="html">
-        <source>Jetzt noch schneller und flüssiger!</source>
-        <target>¡Ahora aún más rápido y fluido!</target>
+      <trans-unit id="app.snackbar.presetSerious" datatype="html">
+        <source>Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.</source>
+        <target>Modo profesional activado – tranquilo, claro y centrado en el contenido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1136696335453039978" datatype="html">
-        <source>Preset: Seriös</source>
-        <target>Ajuste: Profesional</target>
+      <trans-unit id="app.snackbar.presetPlayful" datatype="html">
+        <source>Spielerisch gewählt – lebendig, motivierend und mit mehr Tempo.</source>
+        <target>Modo lúdico activado – dinámico, motivador y con más ritmo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">218</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6151253518820826531" datatype="html">
-        <source>Preset: Spielerisch</source>
-        <target>Ajuste: Lúdico</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2911090466936872230" datatype="html">
