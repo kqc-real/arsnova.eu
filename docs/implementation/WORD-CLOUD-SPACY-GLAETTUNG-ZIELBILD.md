@@ -254,6 +254,17 @@ Wenn spaCy kommt, dann als **optionaler Sidecar-Service** hinter dem Backend:
 - nicht im Node-App-Container selbst
 - nicht als Pflicht fuer jede lokale Entwicklungsumgebung
 
+### Modelllizenzen
+
+arsnova.eu bleibt MIT. Die offiziellen spaCy-Kernmodelle sind Drittwerk und werden nicht zu MIT. Es gibt keine App-Lizenz, unter der alle fuenf Locales als ein Open-Source-Paket mitgeliefert werden duerften. Lizenzhinweise gehoeren in `NOTICE` beziehungsweise eine Drittlizenzseite, nicht ins Impressum oder in die Datenschutzerklaerung.
+
+- `de`/`en` (MIT): Standard-Sidecar
+- `fr` (LGPL-LR): erlaubt mit Namensnennung, Lizenztext und Ersetzbarkeit
+- `es` (GPL-3.0): erlaubt als gekennzeichnetes GPL-Drittteil; Image nicht als reines MIT ausweisen
+- `it` (`it_core_news_sm`, CC BY-NC-SA 3.0): nicht im MIT-Default; lexikalischer Fallback fuer verteilte Installationen; optional nur als klar getrenntes Extra fuer den eigenen altruistischen Betrieb
+
+Die erste Qualitaetsstufe bleibt `de`/`en`. `fr`/`es` folgen erst nach Fixtures und Lizenzartefakten.
+
 ---
 
 ## Cache-Zielbild
@@ -331,6 +342,7 @@ Sie aendert nur, **wie sprachlich aehnliche Begriffe zusammengefuehrt werden**.
 7. Geschuetzte technische Begriffe bleiben unveraendert erhalten.
 8. Q&A- und Freitext-Wolke profitieren ueber dieselbe Normalisierungsachse.
 9. Die Render-Komponente analysiert weiterhin keine Rohtexte selbst.
+10. Mitgelieferte Modelle folgen der MIT-Auslieferungsgrenze: `de`/`en` im Default, `fr`/`es` mit NOTICE/GPL-Kennzeichnung, `it_core_news_sm` nicht im MIT-Default.
 
 ---
 
