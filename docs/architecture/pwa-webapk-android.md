@@ -1,12 +1,28 @@
 # PWA & Android WebAPK (Chrome „Add to Home Screen“)
 
-**Stand:** 2026-05-31
+**Stand:** 2026-08-14
 
 ## Hintergrund: WebAPK und Target SDK
 
 Unter Android erzeugt Chrome beim „App installieren“ (Add to Home Screen) kein einfaches Lesezeichen, sondern fordert bei Googles **WebAPK Minting Server** eine generierte APK an. Deren `targetSdkVersion` muss aktuell sein, sonst blockiert Android 14+ bzw. Play Protect die Installation mit einer Warnung („für ältere Android-Version entwickelt“).
 
 Ursachen können sein: veraltete Chrome-Version beim Nutzer oder **gecachte alte WebAPKs** auf Googles Servern.
+
+## Temporärer Schutz für Samsung Internet
+
+Für Samsung Internet ist seit April 2026 ein noch offener Fehlerbericht bekannt,
+nach dem der Browser auf Android 14+ ein WebAPK mit veraltetem Target SDK erzeugen
+kann. Android blockiert die Installation dann als unsicher, während dieselbe PWA
+über Chrome installierbar bleibt:
+[`SamsungInternet/support#123`](https://github.com/SamsungInternet/support/issues/123).
+
+arsnova.eu unterdrückt deshalb vorübergehend nur seinen eigenen
+Installationshinweis, wenn das `beforeinstallprompt`-Event aus einem User-Agent mit
+dem von Samsung dokumentierten Token `SamsungBrowser/` stammt. Die
+browser-eigenen Menüfunktionen bleiben davon unberührt. Firefox und allgemeine
+In-App-Browser werden nicht per User-Agent gesperrt: Ohne unterstütztes
+`beforeinstallprompt`-Event erscheint der eigene Installationshinweis ohnehin
+nicht.
 
 ## Was wir tun: Manifest-Cache-Busting
 
