@@ -33,6 +33,7 @@ import {
   localeIdToSupported,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
+import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getWordCloudWeightFromUpvotes } from './word-cloud.util';
@@ -373,17 +374,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (data.questionType === 'FREETEXT') {
         this.presenterFreetextActive.set(true);
         this.currentQuestionLabel.set(
-          data.questionOrder !== null
-            ? $localize`Frage ${data.questionOrder + 1}:questionNumber:: ${data.questionText ?? ''}:questionText:`
-            : null,
+          this.presenterQuestionLabel(data.questionOrder, data.questionText),
         );
         this.presenterInfo.set($localize`Live-Freitext wird aktualisiert.`);
       } else if (data.questionType) {
         this.presenterFreetextActive.set(false);
         this.currentQuestionLabel.set(
-          data.questionOrder !== null
-            ? $localize`Frage ${data.questionOrder + 1}:questionNumber:: ${data.questionText ?? ''}:questionText:`
-            : null,
+          this.presenterQuestionLabel(data.questionOrder, data.questionText),
         );
         this.presenterInfo.set($localize`Aktuelle Frage ist keine Freitext-Frage.`);
       } else {
@@ -437,5 +434,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     } catch {
       this.quickFeedbackResult.set(null);
     }
+  }
+
+  private presenterQuestionLabel(
+    questionOrder: number | null | undefined,
+    questionText: string | null | undefined,
+  ): string | null {
+    if (questionOrder === null || questionOrder === undefined) {
+      return null;
+    }
+    const plainText = stripMarkdownToPlainText(questionText ?? '');
+    return $localize`Frage ${questionOrder + 1}:questionNumber:: ${plainText}:questionText:`;
   }
 }
