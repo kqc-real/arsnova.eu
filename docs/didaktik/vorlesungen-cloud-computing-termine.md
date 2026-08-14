@@ -350,13 +350,14 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - Prüfungsauftrag, Einzel-/Gruppenformat, Handout-/Posterformat, Hilfsmittel und gemeinsame E-Mail-Frist klären
 - zulässige Agentennutzung, Offenlegung und individuelle Verantwortlichkeit aus Prüfungsauftrag/myCampus klären
 - mindestens vier Wochen zwischen Themenfeststellung und Abgabe prüfen
-- Thema auf ein offizielles Qualifikationsziel und eine Leitfrage zuschneiden
+- Thema aus dem [kanonischen Katalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) mit verbindlicher Story-/Commitbasis, individueller These, Messauftrag, Gegenalternative und Entscheidungsfolge übernehmen
+- bei mehrfach vergebenem Katalogthema unterschiedliche Fallvariante, These, Evidenz und individuellen Beitrag nachweisen
 - bei Gruppenarbeit individuelle Beiträge in Einreichung und Vortrag eindeutig zuordnen
 
 ### UE 2 (45–90)
 
 - Review-Agent prüft das Agentic Cloud Engineering Dossier auf Auftrag, Diffs, Tests, Scans, Messungen, Kosten, Cleanup und Restunsicherheit
-- für Word Cloud 3.0 Qualitäts-, Last-, Ressourcen-, Resilienz- und Kostenmessungen in eine fachlich prüfbare These überführen
+- die themenspezifischen Qualitäts-, Last-, Ressourcen-, Resilienz-, Security-, Privacy- oder Kostenmessungen in eine fachlich prüfbare These überführen
 - alle Literatur-, Preis-, Mess- und Systembehauptungen am Original beziehungsweise in der Zielumgebung verifizieren
 - Agenten, Modelle, wesentliche Aufträge, übernommene Beiträge und individuelle Entscheidung transparent kennzeichnen
 - Handout mit höchstens 5 DIN-A4-Seiten beziehungsweise einseitiges Poster ab DIN A3 planen
@@ -367,7 +368,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 ### UE 3 (90–135)
 
 - Feedback-Agent erzeugt kritische Fach-, Security-, Privacy-, Performance- und Wirtschaftsfragen; Menschen prüfen und priorisieren sie
-- mindestens eine Probeverteidigung stellt die technische Messung der semantischen Pipeline der TCO-/FinOps-Entscheidung und der stärksten verworfenen Alternative gegenüber
+- mindestens eine Probeverteidigung stellt die technische Evidenz der wirtschaftlichen, betrieblichen oder verantwortungsbezogenen Entscheidung und der stärksten verworfenen Alternative gegenüber
 - Kurz-Pitches und Peer-Feedback in gemischten Informatik-/Wirtschaftsinformatikrollen
 - Feedback anhand der offiziellen Kriterien und der Gewichte 30 % Einreichung, 30 % Vortrag, 40 % Diskussion
 - Lernprodukt: Einreichungs- und Vortragsskizze mit Quellen, Zeitplan und offener Unsicherheit
@@ -378,7 +379,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 **Typ:** Tutorium · **Prüfungsbezug:** Referat, 15 Minuten je Prüfling · **Leitfrage:** Deckt die individuelle Leistung das Modulziel ab und hält sie einer dialogischen Befragung stand?
 
-**MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Word Cloud 3.0, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Inferenzserver, Embedding, Open-Weight-LLM, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Diskussion, akademische Integrität
+**MC-Test (30 Fragen):** Themen: kumulative Cloud-Computing-Synthese, Begriffswolke und Moderationskompass, Referatsverteidigung, Agentenkritik und Grenzen der Evidenz · Keywords: Cloud-Merkmale, Service-Modell, technologische Voraussetzung, Serverless, Google Cloud, AWS, Azure, Datenwissenschaft, maschinelles Lernen, Single-Host-Sidecar, Inferenzserver, Embedding, Clustering, Open-Weight-LLM, Moderationskompass, getrennte Inferenzverträge, Security, Datenschutz, Performance, Resilienz, FinOps, Evidenzstufe, Gültigkeitsgrenze, Restrisiko, Sensitivität, Agentenfehler, Quellenprüfung, Diskussion, akademische Integrität
 
 **MC-Test-Materialbasis:** vollständige freigegebene Folien-/Skriptversion des Kurslaufs; die im Manifest festgeschriebenen Materialbasen der Termine 1 bis 10; [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) und [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) am genannten `arsnova.eu`-Commit; gültiger Prüfungsauftrag und Bewertungsbogen
 
@@ -386,6 +387,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 
 - Einreichung gegen Umfang, Namen/Matrikelnummern, Literatur, Abbildungen und individuelle Kennzeichnung prüfen
 - fachliche Checkliste: Grundlagen, technologische Voraussetzung, Serverless, Plattform oder DS/ML
+- Themenvertrag gegen Katalog prüfen: Leitfrage, These, Story-/Commitbasis, Evidenz, Gegenalternative, Entscheidung und Gültigkeitsgrenze vollständig
 - Agentenoffenlegung, Quellen, Abrufdaten, Fakten-/Annahmen-Trennung und Visualisierungen prüfen
 
 ### UE 2 (45–90)
@@ -393,7 +395,7 @@ Das Agentic Cloud Engineering Dossier ist eine formative Arbeitsgrundlage für d
 - 15-minütige Probeprüfungen je Person mit Vortrag und anschließender Befragung/Diskussion
 - individuelle Zeit und individuelle Beiträge auch bei Gruppenformat sichern
 - Befragungsagent erzeugt Fragen zu Agentenfehlern, Rechten, Härtung, Datenschutz, Performance, TCO, Sensitivität und Restrisiko
-- bei Word-Cloud-3.0-Themen technische Messwerte, Fallback/Degradation, Modell-/Lizenzwahl und wirtschaftliche Schlussentscheidung gegeneinander prüfen
+- bei Themen aus 1.14a–1.14c und 8.9a–8.9c technische Messwerte, Fallback/Degradation, Vertrags- und Infrastrukturgrenzen, Modell-/Lizenzwahl sowie wirtschaftliche oder verantwortungsbezogene Schlussentscheidung gegeneinander prüfen
 - Lehrperson verantwortet Auswahl, Durchführung und Peer-Feedback anhand des offiziellen Bewertungsbogens
 
 ### UE 3 (90–135)

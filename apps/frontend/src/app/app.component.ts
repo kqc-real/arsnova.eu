@@ -628,6 +628,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private onBeforeInstallPrompt(e: BeforeInstallPromptEvent): void {
     e.preventDefault();
+    // Samsung Internet erzeugt derzeit auf Android 14+ teils veraltete WebAPKs.
+    // Nur unseren Custom-Prompt unterdruecken; Details: docs/architecture/pwa-webapk-android.md.
+    if (/\bSamsungBrowser\//i.test(navigator.userAgent)) {
+      this.deferredInstallPrompt = null;
+      this.installSnackbarVisible.set(false);
+      return;
+    }
     this.deferredInstallPrompt = e;
     this.installSnackbarVisible.set(true);
   }
