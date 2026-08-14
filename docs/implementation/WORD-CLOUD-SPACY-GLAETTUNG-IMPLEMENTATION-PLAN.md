@@ -60,13 +60,26 @@ Der erste belastbare Umsetzungszuschnitt ist:
 
 ### Sprache
 
-Die erste technische Stufe sollte bewusst auf `de` und `en` begrenzt werden.
+Die erste technische Qualitaetsstufe bleibt bewusst auf `de` und `en` begrenzt.
 
 Begruendung:
 
 - dafuer ist der bisherige Backend-Analysepfad ohnehin schon ausgelegt
-- die spaCy-Modell- und Lizenzlage ist fuer `de/en` am saubersten
-- `fr/it/es` koennen kontrolliert auf `NONE` zurueckfallen
+- Fixtures und linguistische Qualitaet sind zuerst fuer `de/en` zu belegen
+- `fr` und `es` fallen bis zu eigenen Fixtures lexikalisch zurueck
+- `it` faellt im verteilten MIT-Default lexikalisch zurueck, solange nur `it_core_news_sm` (CC BY-NC-SA 3.0) verfuegbar ist
+
+### Modelllizenzen und Auslieferung
+
+arsnova.eu bleibt MIT. Die spaCy-Modelle sind Drittwerk; es gibt keine App-Lizenz, die alle fuenf offiziellen Kernmodelle zu einem Open-Source-Paket vereinigt. Hinweise gehoeren in `NOTICE` beziehungsweise eine Drittlizenzseite, nicht ins Impressum oder in die Datenschutzerklaerung.
+
+| Locale | Offizielles Modell | Lizenz          | MIT-Default (Compose/Standard-Image)                                                     |
+| ------ | ------------------ | --------------- | ---------------------------------------------------------------------------------------- |
+| `de`   | `de_core_news_sm`  | MIT             | ja                                                                                       |
+| `en`   | `en_core_web_sm`   | MIT             | ja                                                                                       |
+| `fr`   | `fr_core_news_sm`  | LGPL-LR         | ja, mit Namensnennung, Lizenztext und Ersetzbarkeit                                      |
+| `es`   | `es_core_news_sm`  | GPL-3.0         | ja, als GPL-Drittteil gekennzeichnet; Image nicht als reines MIT ausweisen               |
+| `it`   | `it_core_news_sm`  | CC BY-NC-SA 3.0 | **nein**; optional nur als klar getrenntes Extra fuer den eigenen altruistischen Betrieb |
 
 ### Betriebsmodell
 
@@ -207,8 +220,8 @@ stale: boolean;
 
 Die heutige `WordCloudAnalysisLocaleEnum` ist backendseitig auf `de/en` begrenzt. Fuer diese Story sind zwei Stufen sinnvoll:
 
-1. **MVP:** `de/en` fuer spaCy-Glaettung, andere Locales bleiben lokal bzw. fallen auf `NONE` zurueck
-2. **spaeter:** Vertrag auf alle 5 Locales erweitern, aber nur dort glatten, wo ein belastbares Modell und ein rechtlich sauberer Betriebspfad vorliegen
+1. **MVP:** `de/en` fuer spaCy-Glaettung; `fr`/`es`/`it` bleiben lokal bzw. fallen auf `NONE` zurueck
+2. **spaeter:** Vertrag fuer `fr`/`es` erweitern, sobald Fixtures und NOTICE-/GPL-Artefakte vorliegen; `it` nur mit lizenzkompatiblem Alternativmodell, nicht mit `it_core_news_sm` im MIT-Default
 
 ---
 
@@ -228,12 +241,12 @@ Ziel: Shared contract und Betriebsgrenzen sauber festziehen.
 
 ### Aufgaben
 
-| #   | Task                                | Beschreibung                                                                                   | Datei                              |
-| --- | ----------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------- |
-| 1.1 | **Normalisierungs-Enum einfuehren** | `NONE` / `LEMMA` in `shared-types` definieren.                                                 | `libs/shared-types/src/schemas.ts` |
-| 1.2 | **Analyse-DTO erweitern**           | `normalization`, `normalizationApplied`, ggf. `stale` und `fallbackLocale` aufnehmen.          | `libs/shared-types/src/schemas.ts` |
-| 1.3 | **MVP-Sprachgrenze fixieren**       | `de/en` als erste spaCy-Sprachen dokumentieren; andere Locales fallen hart auf `NONE` zurueck. | Doku + Runtime-Guard               |
-| 1.4 | **Feature Flag einfuehren**         | `NLP_ENABLED`, `NLP_URL`, `NLP_TIMEOUT_MS` definieren.                                         | Backend Config                     |
+| #   | Task                                      | Beschreibung                                                                                                       | Datei                              |
+| --- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
+| 1.1 | **Normalisierungs-Enum einfuehren**       | `NONE` / `LEMMA` in `shared-types` definieren.                                                                     | `libs/shared-types/src/schemas.ts` |
+| 1.2 | **Analyse-DTO erweitern**                 | `normalization`, `normalizationApplied`, ggf. `stale` und `fallbackLocale` aufnehmen.                              | `libs/shared-types/src/schemas.ts` |
+| 1.3 | **MVP-Sprach- und Lizenzgrenze fixieren** | `de/en` als erste spaCy-Sprachen; `fr`/`es` lexikalischer Fallback bis Fixtures/NOTICE; `it` nicht im MIT-Default. | Doku + Runtime-Guard               |
+| 1.4 | **Feature Flag einfuehren**               | `NLP_ENABLED`, `NLP_URL`, `NLP_TIMEOUT_MS` definieren.                                                             | Backend Config                     |
 
 ### Ergebnis
 
@@ -269,12 +282,12 @@ Ziel: optionalen NLP-Service betriebsfaehig machen, ohne den App-Container aufzu
 
 ### Aufgaben
 
-| #   | Task                           | Beschreibung                                                           | Datei                 |
-| --- | ------------------------------ | ---------------------------------------------------------------------- | --------------------- |
-| 3.1 | **Sidecar minimal definieren** | Service mit kleinem HTTP-API fuer Lemma/POS-Ausgabe aufsetzen.         | neuer Service-Ordner  |
-| 3.2 | **Nur noetige Daten ausgeben** | Token, Lemma, POS, optional Entity-Typ; keine semantischen Labels.     | Sidecar               |
-| 3.3 | **Compose optional erweitern** | `spacy`-Service in Dev und Prod nur als optionaler Zusatz.             | `docker-compose*.yml` |
-| 3.4 | **Modelle bewusst begrenzen**  | MVP nur `de/en`; keine stillschweigende Vollabdeckung aller 5 Locales. | Sidecar + Doku        |
+| #   | Task                           | Beschreibung                                                                                                    | Datei                     |
+| --- | ------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 3.1 | **Sidecar minimal definieren** | Service mit kleinem HTTP-API fuer Lemma/POS-Ausgabe aufsetzen.                                                  | neuer Service-Ordner      |
+| 3.2 | **Nur noetige Daten ausgeben** | Token, Lemma, POS, optional Entity-Typ; keine semantischen Labels.                                              | Sidecar                   |
+| 3.3 | **Compose optional erweitern** | `spacy`-Service in Dev und Prod nur als optionaler Zusatz.                                                      | `docker-compose*.yml`     |
+| 3.4 | **Modelle bewusst begrenzen**  | Standard-Image `de/en`; `fr`/`es` nur mit NOTICE/GPL-Kennzeichnung; `it_core_news_sm` nicht im Default-Compose. | Sidecar + Doku + `NOTICE` |
 
 ### Ergebnis
 
@@ -375,7 +388,7 @@ Ziel: die Funktion ohne Regression freigeben.
 4. Neue Daten fuehren nur zu einem stale marker, nicht zu automatischer Neuanalyse.
 5. Sichtbare Labels bleiben lesbar und muessen nicht die rohe Lemmaform zeigen.
 6. Geschuetzte technische Begriffe bleiben unveraendert erhalten.
-7. `de/en` funktionieren im MVP; andere Locales fallen kontrolliert auf `NONE` zurueck.
+7. `de/en` funktionieren im MVP; `fr`/`es` fallen bis zur Freigabe auf `NONE` zurueck; `it` faellt im verteilten Default auf `NONE` zurueck.
 8. Die Visualisierung bekommt weiterhin gewichtete Terme und analysiert keine Rohtexte selbst.
 
 ---
@@ -387,7 +400,8 @@ Ziel: die Funktion ohne Regression freigeben.
 Gegenmassnahme:
 
 - MVP bewusst auf `de/en`
-- keine implizite Vollabdeckung fuer `fr/it/es`
+- `fr`/`es` nur mit NOTICE-/GPL-Artefakten und Fixtures
+- `it_core_news_sm` nicht im MIT-Default; kein Relizenzieren von arsnova.eu, um NC/GPL zu „schlucken“
 
 ### 2. Host-UI wird technisch statt produktnah
 
@@ -418,7 +432,7 @@ Gegenmassnahme:
 1. **Q&A-MVP fuer `de/en`**
 2. **Freitext-MVP fuer `de/en`**
 3. **Cache und Telemetrie haerten**
-4. **erst danach** pruefen, ob weitere Locales oder POS-basierte Feinregeln sinnvoll sind
+4. **erst danach** pruefen, ob `fr`/`es` mit Fixtures und NOTICE-/GPL-Artefakten folgen; `it` nur mit lizenzkompatiblem Alternativmodell
 
 ---
 
