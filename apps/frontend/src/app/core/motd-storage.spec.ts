@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   MOTD_LOCAL_STORAGE_KEY,
+  MOTD_MOBILE_FIRST_HOME_SESSION_KEY,
+  MOTD_MOBILE_HOME_SEEN_KEY,
   MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY,
   clearMotdThumbInteractionKeys,
   consumeMotdOverlayReloadSuppress,
@@ -12,7 +14,20 @@ import {
   hasMotdInteractionRecorded,
   motdDismissedPairsForApi,
   setMotdArchiveSeenUpToCursor,
+  shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
 } from './motd-storage';
+
+function stubMatchMedia(matches: boolean): void {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    })),
+  );
+}
 
 describe('motd-storage', () => {
   beforeEach(() => {
@@ -22,6 +37,7 @@ describe('motd-storage', () => {
   afterEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    vi.unstubAllGlobals();
   });
 
   it('markMotdDismissed speichert mindestens die angegebene Version', () => {
@@ -103,5 +119,26 @@ describe('motd-storage', () => {
     expect(consumeMotdOverlayReloadSuppress()).toBe(true);
     expect(consumeMotdOverlayReloadSuppress()).toBe(false);
     expect(sessionStorage.getItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY)).toBeNull();
+  });
+
+  it('unterdrückt MOTD auf dem Desktop nicht und schreibt keine Handy-Marker', () => {
+    stubMatchMedia(false);
+    expect(shouldSuppressMotdOverlayOnMobileFirstHomeVisit()).toBe(false);
+    expect(localStorage.getItem(MOTD_MOBILE_HOME_SEEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY)).toBeNull();
+  });
+
+  it('unterdrückt MOTD beim ersten Handy-Besuch und bei Reloads derselben Sitzung', () => {
+    stubMatchMedia(true);
+    expect(shouldSuppressMotdOverlayOnMobileFirstHomeVisit()).toBe(true);
+    expect(localStorage.getItem(MOTD_MOBILE_HOME_SEEN_KEY)).toBe('1');
+    expect(sessionStorage.getItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY)).toBe('1');
+    expect(shouldSuppressMotdOverlayOnMobileFirstHomeVisit()).toBe(true);
+  });
+
+  it('lässt MOTD auf dem Handy ab dem nächsten Besuch zu', () => {
+    stubMatchMedia(true);
+    localStorage.setItem(MOTD_MOBILE_HOME_SEEN_KEY, '1');
+    expect(shouldSuppressMotdOverlayOnMobileFirstHomeVisit()).toBe(false);
   });
 });

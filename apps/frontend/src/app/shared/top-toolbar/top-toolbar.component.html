@@ -179,46 +179,12 @@
   </div>
 
   @if (controlsMenuOpen()) {
-    <div #mobileControls id="top-toolbar-mobile" class="top-toolbar__mobile l-stack l-stack--sm">
-      <div
-        role="group"
-        i18n-aria-label="@@topToolbar.choosePresetAria"
-        aria-label="Preset auswählen"
-        class="top-toolbar__toggles top-toolbar__toggles--full top-toolbar__toggles--preset"
-      >
-        <button
-          type="button"
-          class="top-toolbar__toggle"
-          [class.top-toolbar__toggle--active]="themePreset.preset() === 'spielerisch'"
-          [attr.aria-pressed]="themePreset.preset() === 'spielerisch'"
-          (click)="onPresetChange('spielerisch')"
-        >
-          <span class="top-toolbar__preset-option">
-            <mat-icon class="top-toolbar__preset-icon-playful" aria-hidden="true"
-              >celebration</mat-icon
-            >
-            <span i18n>Spielerisch</span>
-          </span>
-        </button>
-        <button
-          type="button"
-          class="top-toolbar__toggle"
-          [class.top-toolbar__toggle--active]="themePreset.preset() === 'serious'"
-          [attr.aria-pressed]="themePreset.preset() === 'serious'"
-          (click)="onPresetChange('serious')"
-        >
-          <span class="top-toolbar__preset-option">
-            <mat-icon aria-hidden="true">work</mat-icon>
-            <span i18n>Seriös</span>
-          </span>
-        </button>
-      </div>
-
+    <div #mobileControls id="top-toolbar-mobile" class="top-toolbar__mobile">
       <div
         role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
         aria-label="Theme"
-        class="top-toolbar__toggles top-toolbar__toggles--full"
+        class="top-toolbar__toggles"
       >
         <button
           type="button"

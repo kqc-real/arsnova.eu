@@ -107,14 +107,18 @@ export const FEEDBACK_OPTIONS: Record<QuickFeedbackType, readonly FeedbackOption
   TEMPO: TEMPO_OPTIONS,
 };
 
-export const QUICK_FEEDBACK_TEMPO_SPOTLIGHT: FeedbackSpotlightTemplate = {
+export const QUICK_FEEDBACK_TEMPO_CHIP: FeedbackPresetChip = {
   type: 'TEMPO',
+  label: $localize`:@@feedback.titleTempo:Tempo`,
+  icons: [{ value: '🙂' }, { value: '🐇' }, { value: '🐢' }, { value: '🙈' }],
+};
+
+export const QUICK_FEEDBACK_TEMPO_SPOTLIGHT: FeedbackSpotlightTemplate = {
+  ...QUICK_FEEDBACK_TEMPO_CHIP,
   eyebrow: $localize`:@@feedback.tempoSpotlightEyebrow:Tempo-Blitzlicht`,
   title: $localize`:@@feedback.tempoSpotlightTitle:Vortrags\u00adtempo im Blick behalten`,
   description: $localize`:@@feedback.tempoSpotlightDescription:Mit vier Icons zeigt deine Gruppe, ob sie folgen kann.`,
   actionLabel: $localize`:@@feedback.tempoSpotlightAction:Tempo-Feedback`,
-  label: $localize`:@@feedback.titleTempo:Tempo`,
-  icons: [{ value: '🙂' }, { value: '🐇' }, { value: '🐢' }, { value: '🙈' }],
 };
 
 export const QUICK_FEEDBACK_PRESET_CHIPS: readonly FeedbackPresetChip[] = [
@@ -159,6 +163,11 @@ export const QUICK_FEEDBACK_PRESET_CHIPS: readonly FeedbackPresetChip[] = [
     icons: [{ value: 'A' }, { value: 'B' }, { value: 'C' }, { value: 'D' }],
     showLabel: false,
   },
+];
+
+export const QUICK_FEEDBACK_HOME_CHIPS: readonly FeedbackPresetChip[] = [
+  QUICK_FEEDBACK_TEMPO_CHIP,
+  ...QUICK_FEEDBACK_PRESET_CHIPS,
 ];
 
 export function feedbackOptions(type: QuickFeedbackType): readonly FeedbackOption[] {
