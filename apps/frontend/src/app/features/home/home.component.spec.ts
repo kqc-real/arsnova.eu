@@ -668,7 +668,7 @@ describe('HomeComponent', () => {
       expect(comp.quickFeedbackError()).toBeNull();
     });
 
-    it('startet das Tempo-Spotlight als Standalone-Blitzlicht', async () => {
+    it('startet Tempo als Standalone-Blitzlicht über denselben Chip wie die anderen Formate', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.quickFeedback.create.mutate).mockResolvedValueOnce({
         feedbackId: 'qf:TMP123',
@@ -681,12 +681,16 @@ describe('HomeComponent', () => {
       const comp = fixture.componentInstance;
       const router = TestBed.inject(Router);
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const tempoChip = fixture.nativeElement.querySelector(
+        '#host-quick-feedback .home-feedback-chip[aria-label="Tempo"]',
+      ) as HTMLButtonElement | null;
 
-      expect(fixture.nativeElement.textContent).toContain('Tempo-Blitzlicht');
-      expect(fixture.nativeElement.textContent).toContain('Tempo-Feedback');
+      expect(tempoChip).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-feedback-tempo-spotlight')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Tempo-Blitzlicht');
       expect(fixture.nativeElement.textContent).not.toContain('Tempo starten');
 
-      await comp.startQuickFeedback(comp.quickFeedbackTempoSpotlight.type);
+      await comp.startQuickFeedback('TEMPO');
 
       expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
         type: 'TEMPO',

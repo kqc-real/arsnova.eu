@@ -236,44 +236,6 @@
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">
-        <button
-          type="button"
-          class="home-feedback-tempo-spotlight"
-          (click)="startQuickFeedback(quickFeedbackTempoSpotlight.type)"
-          [disabled]="!!quickFeedbackStarting()"
-          [attr.aria-busy]="
-            quickFeedbackStarting() === quickFeedbackTempoSpotlight.type ? true : null
-          "
-          i18n-aria-label="@@feedback.tempoSpotlightAction"
-          aria-label="Tempo-Feedback"
-        >
-          <span class="home-feedback-tempo-spotlight__copy">
-            <span class="home-feedback-tempo-spotlight__eyebrow">{{
-              quickFeedbackTempoSpotlight.eyebrow
-            }}</span>
-            <span class="home-feedback-tempo-spotlight__title">{{
-              quickFeedbackTempoSpotlight.title
-            }}</span>
-            <span class="home-feedback-tempo-spotlight__text">{{
-              quickFeedbackTempoSpotlight.description
-            }}</span>
-          </span>
-          <span class="home-feedback-tempo-spotlight__icons" aria-hidden="true">
-            @for (icon of quickFeedbackTempoSpotlight.icons; track icon.value) {
-              <span>{{ icon.value }}</span>
-            }
-          </span>
-          <span class="home-feedback-tempo-spotlight__action">
-            <mat-icon aria-hidden="true">
-              @if (quickFeedbackStarting() === quickFeedbackTempoSpotlight.type) {
-                sync
-              } @else {
-                speed
-              }
-            </mat-icon>
-            <span>{{ quickFeedbackTempoSpotlight.actionLabel }}</span>
-          </span>
-        </button>
         <div class="home-feedback-chip-grid">
           @for (chip of quickFeedbackPresetChips; track chip.type) {
             <button

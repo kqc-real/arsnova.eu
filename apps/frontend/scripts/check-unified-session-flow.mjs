@@ -598,7 +598,7 @@ async function endSessionAndScan(host, participant, hardFailures) {
   );
 
   // Nach Session-Ende erfolgt oft ein schneller Redirect nach Home. Axe darf
-  // nicht mitten in der Navigation laufen: der Tempo-Spotlight-Button existiert
+  // nicht mitten in der Navigation laufen: die Blitzlicht-Chips existieren
   // dann schon als leere Shell ohne Text/aria-label (button-name).
   // Nur #vote-session-end-anchor zählt als settled Gate — #finished-heading
   // erscheint schon im transienten FINISHED-Zustand, bevor runSessionEndRedirect
@@ -608,10 +608,10 @@ async function endSessionAndScan(host, participant, hardFailures) {
       (homePathSource) => {
         const homePath = new RegExp(homePathSource);
         if (!homePath.test(window.location.pathname)) return false;
-        const btn = document.querySelector('.home-feedback-tempo-spotlight');
-        if (!(btn instanceof HTMLElement)) return false;
-        const label = (btn.getAttribute('aria-label') || '').trim();
-        const text = (btn.innerText || '').trim();
+        const chip = document.querySelector('#host-quick-feedback .home-feedback-chip');
+        if (!(chip instanceof HTMLElement)) return false;
+        const label = (chip.getAttribute('aria-label') || '').trim();
+        const text = (chip.innerText || '').trim();
         return label.length > 0 || text.length > 0;
       },
       homePathRe.source,
@@ -630,10 +630,10 @@ async function endSessionAndScan(host, participant, hardFailures) {
     const ready = await participant
       .waitForFunction(
         () => {
-          const btn = document.querySelector('.home-feedback-tempo-spotlight');
-          if (!(btn instanceof HTMLElement)) return false;
-          const label = (btn.getAttribute('aria-label') || '').trim();
-          const text = (btn.innerText || '').trim();
+          const chip = document.querySelector('#host-quick-feedback .home-feedback-chip');
+          if (!(chip instanceof HTMLElement)) return false;
+          const label = (chip.getAttribute('aria-label') || '').trim();
+          const text = (chip.innerText || '').trim();
           return label.length > 0 || text.length > 0;
         },
         undefined,
@@ -643,7 +643,7 @@ async function endSessionAndScan(host, participant, hardFailures) {
       .catch(() => false);
     if (!ready) {
       hardFailures.push(
-        'Home after session end did not expose a named tempo-spotlight button before axe.',
+        'Home after session end did not expose a named Blitzlicht chip before axe.',
       );
       return;
     }
@@ -654,10 +654,10 @@ async function endSessionAndScan(host, participant, hardFailures) {
         (homePathSource) => {
           const homePath = new RegExp(homePathSource);
           if (!homePath.test(window.location.pathname)) return false;
-          const btn = document.querySelector('.home-feedback-tempo-spotlight');
-          if (!(btn instanceof HTMLElement)) return false;
-          const label = (btn.getAttribute('aria-label') || '').trim();
-          const text = (btn.innerText || '').trim();
+          const chip = document.querySelector('#host-quick-feedback .home-feedback-chip');
+          if (!(chip instanceof HTMLElement)) return false;
+          const label = (chip.getAttribute('aria-label') || '').trim();
+          const text = (chip.innerText || '').trim();
           return label.length > 0 || text.length > 0;
         },
         homePathRe.source,
