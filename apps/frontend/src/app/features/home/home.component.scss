@@ -663,13 +663,26 @@
 .home-card__header-with-action {
   display: flex;
   align-items: flex-start;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  width: 100%;
   margin-left: 0;
 }
 .home-card__header-text {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
   margin-left: 0;
+}
+.home-card__sync-btn {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  align-self: flex-start;
+}
+
+.home-card__sync-btn:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
 }
 .home-card__header-with-action .mat-mdc-card-title {
   margin-bottom: 0;
@@ -748,14 +761,6 @@ mat-card-actions.l-stack {
   width: 100%;
   margin-top: 0.35rem;
   margin-bottom: 0.9rem;
-}
-
-.home-card__tertiary-link {
-  align-self: center;
-  padding-inline: 0.75rem;
-  padding-block: 0.35rem;
-  min-width: 0;
-  --mdc-text-button-container-height: 2rem;
 }
 
 .home-card__info-landing {

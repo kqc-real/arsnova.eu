@@ -222,7 +222,7 @@ Tokenbasierte Card-Flaeche:
 
 ## Startseite: Buttons, Snackbar und Toast
 
-- **Button-Hierarchie:** Auf der Veranstalten-Karte erscheint der gefuellte CTA **„Letztes Quiz starten“** nur, wenn mindestens ein **eigenes** Quiz existiert (Demo zaehlt nicht); sonst fuehrt der Einstieg ueber **„Deine Quiz-Sammlung“** (tonal, inkl. „Neues Quiz erstellen“). Hilfe als Text-Button ohne Umrandung.
+- **Button-Hierarchie:** Auf der Veranstalten-Karte erscheint der gefuellte CTA **„Letztes Quiz starten“** nur, wenn mindestens ein **eigenes** Quiz existiert (Demo zaehlt nicht); sonst fuehrt der Einstieg ueber **„Deine Quiz-Sammlung“** (tonal, inkl. „Neues Quiz erstellen“). Hilfe als Text-Button ohne Umrandung. **Sammlung syncen:** Icon-Button `devices` **rechts außen** im Kartenkopf (`@@homeHostCard.syncPanelCta`), nicht als Text-CTA unter den Buttons.
 - **Preset-Wechsel (Snackbar):** Klick auf Serioes/Spielerisch wendet das Preset sofort an und zeigt eine **Snackbar** (fixed bottom, `inverse-surface`-Farben, 5 s Auto-Dismiss). Die Snackbar enthaelt Icon, Label und einen "Anpassen"-Link, der das Detail-Modal oeffnet.
 - **Toast (Preset-Detail-Konfiguration):** Oeffnet sich nur bei Klick auf "Anpassen" in der Snackbar. Zentriertes Modal mit Close-Button; alle Optionen als **toggelbare Chips** nach Kategorien (Gamification, Teilnahme, Ablauf, Team, Audio). Abhaengige Chips (z. B. "Teams zuweisen") werden nur angezeigt wenn der Eltern-Chip aktiv ist. Speichern uebernimmt, Zuruecksetzen setzt Preset-Defaults. Einstellungen in **localStorage**; Sync ueber Yjs geplant (Story 1.6b).
 - **Abstaende:** Einheitlicher Button-/Link-Abstand auf Karten ueber `l-stack--sm` (0,5 rem).

@@ -113,6 +113,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('codeEnterBtn', { read: ElementRef })
   private readonly codeEnterBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('syncToggleBtn', { read: ElementRef })
+  private readonly syncToggleBtn?: ElementRef<HTMLButtonElement>;
 
   sessionCode = signal('');
   codeInputFocused = signal(false);
@@ -633,6 +635,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.syncLinkError.set(null);
     if (!nextVisible) {
       this.syncLinkValue.set('');
+      this.scheduleTimeout(
+        () => this.syncToggleBtn?.nativeElement.focus({ preventScroll: true }),
+        0,
+      );
       return;
     }
     this.scheduleTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);

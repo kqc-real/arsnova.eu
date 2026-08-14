@@ -1557,6 +1557,27 @@ describe('HomeComponent', () => {
   });
 
   describe('openSyncLink', () => {
+    it('zeigt Sync als Icon rechts im Veranstalten-Kopf statt als Text-CTA', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const header = fixture.nativeElement.querySelector(
+        '.home-card--create .home-card__header-with-action',
+      ) as HTMLElement;
+      const btn = header.querySelector('.home-card__sync-btn') as HTMLButtonElement | null;
+
+      expect(btn).not.toBeNull();
+      expect(btn?.getAttribute('aria-label')).toBe('Zwischen Geräten wechseln');
+      expect(header.lastElementChild).toBe(btn);
+      expect(fixture.nativeElement.querySelector('.home-card__tertiary-link')).toBeNull();
+
+      btn?.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.syncLinkVisible()).toBe(true);
+      expect(fixture.nativeElement.querySelector('#home-sync-entry')).not.toBeNull();
+    });
+
     it('ordnet Teilen- und Oeffnen-Hinweis je zum passenden Widget', () => {
       const fixture = createHomeFixture();
       const comp = fixture.componentInstance;
