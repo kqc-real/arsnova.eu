@@ -34,16 +34,17 @@ serena memories check
 
 `mem:core` ist der Einstiegspunkt. Von dort verzweigen die fokussierten Memories:
 
-| Memory                   | Inhalt                                                      |
-| ------------------------ | ----------------------------------------------------------- |
-| `mem:frontend/core`      | Angular-App, Routing, i18n, Proxy, UI- und Testkonventionen |
-| `mem:backend/core`       | tRPC-Router, Auth-Grenzen, Prisma/Redis, Backend-Tests      |
-| `mem:shared-types/core`  | gemeinsame Zod-Schemas und API-Verträge                     |
-| `mem:landing/core`       | Astro-Landing-App                                           |
-| `mem:tech_stack`         | Runtime, Frameworks, Versionen, Workspaces                  |
-| `mem:suggested_commands` | lokale Dev-, Build-, Test- und Smoke-Befehle                |
-| `mem:conventions`        | projektweite Coding- und Review-Regeln                      |
-| `mem:task_completion`    | Abschlusschecks nach Änderungstyp                           |
+| Memory                         | Inhalt                                                      |
+| ------------------------------ | ----------------------------------------------------------- |
+| `mem:frontend/core`            | Angular-App, Routing, i18n, Proxy, UI- und Testkonventionen |
+| `mem:backend/core`             | tRPC-Router, Auth-Grenzen, Prisma/Redis, Backend-Tests      |
+| `mem:shared-types/core`        | gemeinsame Zod-Schemas und API-Verträge                     |
+| `mem:landing/core`             | Astro-Landing-App                                           |
+| `mem:tech_stack`               | Runtime, Frameworks, Versionen, Workspaces                  |
+| `mem:suggested_commands`       | lokale Dev-, Build-, Test- und Smoke-Befehle                |
+| `mem:conventions`              | projektweite Coding- und Review-Regeln                      |
+| `mem:task_completion`          | Abschlusschecks nach Änderungstyp                           |
+| `mem:session/word-cloud-spacy` | optionale spaCy-Glättung der Wortwolke (Story 1.14b)        |
 
 ## Wann Serena nutzen
 

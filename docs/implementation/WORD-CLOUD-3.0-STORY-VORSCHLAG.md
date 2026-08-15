@@ -4,13 +4,13 @@
 
 **Arbeitstitel:** `Word Cloud 3.0`
 
-**Folgt auf:** `Story 1.14`, `Story 1.14a`, `Word Cloud 2.1/2.2/2.3/2.4`
+**Folgt auf:** `Story 1.14`, `Story 1.14a`, `Story 1.14b`, `Word Cloud 2.1/2.2/2.3/2.4/2.5/2.6`
 
-**Status:** kanonisches Zielbild fuer Story `1.14c`; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`
+**Status:** kanonisches Zielbild fuer Story `1.14c`; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`. Die optionale spaCy-Glaettung aus Story `1.14b` ist umgesetzt (`docs/features/word-cloud-spacy.md`).
 
 **Architekturbezug:** `ADR-0012`, `ADR-0013`, `ADR-0025`, `ADR-0026`, `ADR-0032`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`
 
-**Abgrenzung:** spaCy als optionale sprachliche Glaettung ist separat in `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md` beschrieben und ist nicht identisch mit diesem semantischen `3.0`-Themenpfad.
+**Abgrenzung:** spaCy als optionale sprachliche Glaettung ist in Story `1.14b` umgesetzt (`docs/features/word-cloud-spacy.md`) und ist nicht identisch mit diesem semantischen `3.0`-Themenpfad.
 
 ---
 

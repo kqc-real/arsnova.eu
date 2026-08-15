@@ -226,7 +226,7 @@ Docker-Daemon-/Host-Neustarts sauber wieder her.
 Entscheidung, verworfene In-Container-Sandbox und Rollback:
 [W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 
-Der optionale spaCy-Sidecar (Story 1.14b) folgt demselben Unix-Socket-Muster in
+Der optionale spaCy-Sidecar (Story 1.14b, umgesetzt) folgt demselben Unix-Socket-Muster in
 einem eigenen Python-Image (`docker/spacy/`), nicht im Node-App-Container. Er
 hat keinen TCP-Port (`network_mode: none`), läuft non-root (UID 1000, passend
 zum `node`-User), capability-frei, read-only mit begrenztem `/tmp` und ist auf
@@ -234,6 +234,7 @@ zum `node`-User), capability-frei, read-only mit begrenztem `/tmp` und ist auf
 `nlp`; `deploy.sh` lässt ihn aus. Der Kill-Switch `NLP_ENABLED` bleibt Default
 `false`. Das Default-Image enthält nur die MIT-Modelle `de_core_news_sm` und
 `en_core_web_sm`; `fr`/`es`/`it` gehören nicht dazu ([NOTICE](../NOTICE)).
+Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
 
 W3.1 hält externe PDF-Bilder nutzbar, ohne Chromium direkten Netzwerkzugriff zu
 geben: Die App ruft ausschließlich öffentliche, DNS-/IP-gebundene

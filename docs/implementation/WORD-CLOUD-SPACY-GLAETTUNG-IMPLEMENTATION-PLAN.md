@@ -2,8 +2,9 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–7 umgesetzt
+**Status:** Story 1.14b abgeschlossen (Phasen 1–7 plus Host-UX-Nachschärfung)
 **Stand:** August 2026
+**Kanonische Produktdoku:** `docs/features/word-cloud-spacy.md`
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
 
@@ -11,7 +12,7 @@
 
 ## Ziel
 
-`arsnova.eu` soll spaeter fuer Wortwolken eine **optionale sprachliche Glaettung** anbieten, ohne die heutige `Word Cloud 2.5`-Linie zu destabilisieren.
+`arsnova.eu` bietet fuer Wortwolken eine **optionale sprachliche Glaettung**, ohne die `Word Cloud 2.5`-Linie zu destabilisieren.
 
 Der erste belastbare Umsetzungszuschnitt ist:
 
@@ -105,7 +106,7 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 | **Shared Types**   | `normalization` `NONE`/`LEMMA`, `maxNgramLength` 1–3, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                         |
 | **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma bei `LEXICAL` fuer `NOUN`/`VERB`/`ADJ`/`ADV`, Namen als Oberflaeche; harter Identity-Fallback; Redis-Text- und Snapshot-Cache |
 | **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                                 |
-| **UI**             | Q&A- und Freitext-Dialog mit Sekundaeraktion `Sprachformen glaetten`, stale marker, kein Auto-Recompute                                                                                          |
+| **UI**             | Q&A-Dialog und Freitext (kompakt plus In-Place-Maximize) mit Sekundaeraktion `Sprachformen glaetten`; neue Daten stale; Ansichts-/Sortwechsel bei aktiver Glaettung analysiert neu               |
 
 ---
 
@@ -183,8 +184,7 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 - `apps/frontend/src/app/features/session/session-host/session-host.component.ts`
 - `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.ts`
 - `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.html`
-- `apps/frontend/src/app/features/session/session-host/freetext-word-cloud-dialog.component.ts`
-- `apps/frontend/src/app/features/session/session-host/freetext-word-cloud-dialog.component.html`
+- `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts` (Freitext-Maximize in-place)
 - `apps/frontend/src/app/features/session/session-present/word-cloud-term.service.ts`
 - `apps/frontend/src/app/features/session/session-present/word-cloud.util.ts`
 
@@ -339,19 +339,19 @@ Ziel: denselben Glaettungsmechanismus fuer Freitext nutzbar machen.
 
 ### Aufgaben
 
-| #   | Task                                     | Beschreibung                                                                                    | Datei                                    |
-| --- | ---------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| 5.1 | **Freitext-Dialog erweitern**            | dieselbe Sekundaeraktion auch im Freitext-Dialog anbieten.                                      | `freetext-word-cloud-dialog.component.*` |
-| 5.2 | **Backend-Analyse fuer Freitext nutzen** | bei `normalization = LEMMA` denselben Backend-Pfad statt der rein lokalen Extraktion verwenden. | `session-host.component.ts`              |
-| 5.3 | **Heutigen lokalen Standard behalten**   | ohne Glaettung bleibt Freitext lokal und schnell wie heute.                                     | `session-host.component.ts`              |
-| 5.4 | **Erklaerbarkeit sichern**               | Tooltip, CSV und Filter weiter mit lesbaren Labels und `members` betreiben.                     | bestehende Renderer                      |
+| #   | Task                                     | Beschreibung                                                                                    | Datei                                                |
+| --- | ---------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 5.1 | **Freitext-Host erweitern**              | dieselbe Sekundaeraktion in der kompakten Host-Ansicht und im In-Place-Maximize anbieten.       | `session-host.component.*`, `word-cloud.component.*` |
+| 5.2 | **Backend-Analyse fuer Freitext nutzen** | bei `normalization = LEMMA` denselben Backend-Pfad statt der rein lokalen Extraktion verwenden. | `session-host.component.ts`                          |
+| 5.3 | **Heutigen lokalen Standard behalten**   | ohne Glaettung bleibt Freitext lokal und schnell wie heute.                                     | `session-host.component.ts`                          |
+| 5.4 | **Erklaerbarkeit sichern**               | Tooltip, CSV und Filter weiter mit lesbaren Labels und `members` betreiben.                     | bestehende Renderer                                  |
 
 ### Ergebnis
 
 - beide Wortwolken profitieren
 - lokaler `2.x`-Pfad bleibt unangetastet der Standard
 
-**Stand August 2026:** Phase 5 ist umgesetzt. Die Freitext-Wortwolke bietet dieselbe Sekundaeraktion `Sprachformen glaetten` in der kompakten Host-Ansicht und im Vollbild-Dialog. Ohne Klick bleibt die lokale Extraktion unveraendert. Ein Klick sendet `LEXICAL` + `LEMMA` + `maxNgramLength` passend zur Ansicht (`1` fuer `Einzelwoerter`, `3` fuer `Woerter & Phrasen`) an `wordCloud.analyze`. Umschalten der Ansicht bei aktiver Glättung startet eine neue Analyse desselben Snapshots mit der anderen N-Gramm-Länge (Backend-Cache bleibt wirksam). Dieselbe adaptive `minDf` wie im lokalen `2.x`-Pfad (1 unter 15 Antworten, 2 unter 50, sonst 3) gilt fuer Unigramme und Phrasen, damit Einmal-Woerter die geglaettete Wolke nicht fuellen. Funktionswoerter (`nicht`, `sonst`, `dann`, …) kommen aus derselben `stopword`-Liste wie die lokale Wolke; Inhaltswoerter wie `Beispiel` bleiben ueber die Allowlist sichtbar. Lemma gilt fuer Nomen, Verben und Adjektive (`macht` → `machen`, `kurze` → `kurz`); sichtbar sind nach der Glättung aber nur nominale Unigramme (`NOUN`/`PROPN`/`NUM`/`X`) plus Nominalphrasen mit optionalem Adjektiv (`lineare Regression`). Verben, Adjektive und Komparative erscheinen nicht als Einzelwoerter. Substantivierte Infinitive wie `Lernen` bleiben sichtbar, auch wenn spaCy sie als `VERB` taggt. Eigennamen bleiben die Oberflaechenform. Der Stopwortfilter gilt fuer Lemma **und** gebeugte Oberflaeche. Eine leere Unigramm-Liste faellt nicht auf die lokale ungeglaettete Aggregation zurueck. Neue Antworten markieren den Snapshot als veraltet (`Neue Antworten seit letzter Glaettung`), rechnen aber nicht automatisch neu. Cache und Telemetrie folgen in Phase 6.
+**Stand August 2026:** Phase 5 ist umgesetzt. Die Freitext-Wortwolke bietet dieselbe Sekundaeraktion `Sprachformen glaetten` in der kompakten Host-Ansicht und im In-Place-Maximize derselben `app-word-cloud`-Instanz. Ohne Klick bleibt die lokale Extraktion unveraendert. Ein Klick sendet `LEXICAL` + `LEMMA` + `maxNgramLength` passend zur Ansicht (`1` fuer `Einzelwoerter`, `3` fuer `Woerter & Phrasen`) an `wordCloud.analyze`. Umschalten der Ansicht bei aktiver Glättung startet eine neue Analyse desselben Snapshots mit der anderen N-Gramm-Länge (Backend-Cache bleibt wirksam). Dieselbe adaptive `minDf` wie im lokalen `2.x`-Pfad (1 unter 15 Antworten, 2 unter 50, sonst 3) gilt fuer Unigramme und Phrasen, damit Einmal-Woerter die geglaettete Wolke nicht fuellen. Funktionswoerter (`nicht`, `sonst`, `dann`, …) kommen aus derselben `stopword`-Liste wie die lokale Wolke; Inhaltswoerter wie `Beispiel` bleiben ueber die Allowlist sichtbar. Lemma gilt fuer Nomen, Verben und Adjektive (`macht` → `machen`, `kurze` → `kurz`); sichtbar sind nach der Glättung aber nur nominale Unigramme (`NOUN`/`PROPN`/`NUM`/`X`) plus Nominalphrasen mit optionalem Adjektiv (`lineare Regression`). Verben, Adjektive und Komparative erscheinen nicht als Einzelwoerter. Substantivierte Infinitive wie `Lernen` bleiben sichtbar, auch wenn spaCy sie als `VERB` taggt. Eigennamen bleiben die Oberflaechenform. Der Stopwortfilter gilt fuer Lemma **und** gebeugte Oberflaeche. Eine leere Unigramm-Liste faellt nicht auf die lokale ungeglaettete Aggregation zurueck. Neue Antworten markieren den Snapshot als veraltet (`Neue Antworten seit letzter Glaettung`), rechnen aber nicht automatisch neu. Cache und Telemetrie folgen in Phase 6.
 
 ---
 
@@ -408,7 +408,7 @@ Ziel: die Funktion ohne Regression freigeben.
 1. Host kann in Q&A- und Freitext-Wortwolken `Sprachformen glaetten` explizit ausloesen.
 2. Die heutige Wortwolke bleibt der Standard und der sichere Fallback.
 3. Die Glaettung laeuft nur auf dem aktuellen Snapshot.
-4. Neue Daten fuehren nur zu einem stale marker, nicht zu automatischer Neuanalyse.
+4. Neue Daten fuehren nur zu einem stale marker, nicht zu automatischer Neuanalyse. Host-Wechsel der Freitext-Ansicht oder der Q&A-Sortierung bei aktiver Glaettung analysieren denselben Stand neu.
 5. Sichtbare Labels bleiben lesbar und muessen nicht die rohe Lemmaform zeigen.
 6. Geschuetzte technische Begriffe bleiben unveraendert erhalten.
 7. `de/en` funktionieren im MVP; `fr`/`es` fallen bis zur Freigabe auf `NONE` zurueck; `it` faellt im verteilten Default auf `NONE` zurueck.
@@ -464,3 +464,16 @@ Gegenmassnahme:
 Die spaCy-Einfuehrung fuer `arsnova.eu` wird nur dann umgesetzt, wenn sie als **kleiner, host-ausgeloester, fallback-faehiger Qualitaetslayer** auf die bestehende Wortwolke aufgesetzt werden kann.
 
 Sobald spaCy semantische Erwartungen, Live-Latenz oder einen breiten Modell-/Lizenzscope in den Produktkern hineinzieht, verlaesst die Umsetzung bewusst diesen Plan.
+
+---
+
+## Abschluss (August 2026)
+
+Story 1.14b ist abgeschlossen. Phasen 1–7 sind im Repo, inklusive Host-UX-Nachschaerfung:
+
+- Freitext-Maximize in-place (kein zweiter Dialog)
+- Freitext-Ansichtswechsel bei aktiver Glaettung analysiert denselben Snapshot mit passender `maxNgramLength` neu
+- Q&A-Sortwechsel bei `LEXICAL` + aktiver Glaettung analysiert mit der neuen Metrik neu
+- `THEME + LEMMA` bleibt ununterstuetzt
+
+Kanonische Produktdoku: `docs/features/word-cloud-spacy.md`. Semantische Themen bleiben Story 1.14c.

@@ -13,6 +13,7 @@
   locales. Commands and scope are canonical in `docs/TESTING.md`.
 - Additional frontend smokes include host/present auth, host music, short text,
   quiz sync, unified session, and the word-cloud benchmark.
+- spaCy sidecar checks (Story 1.14b): `npm run test:spacy-sidecar` and `npm run test:spacy-compose`; see `mem:session/word-cloud-spacy`.
 - Markdown-only changes: `npx prettier --check <touched-docs>` and `git diff --check -- <touched-docs>`.
 
 ## Verwandte Memories:
@@ -24,3 +25,4 @@
 - `mem:modules/frontend`
 - `mem:security/dto-stripping`
 - `mem:deployment/core`
+- `mem:session/word-cloud-spacy`

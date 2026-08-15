@@ -1,6 +1,6 @@
 # Backlog-Design-Compliance-Check
 
-**Stand:** 2026-07-19
+**Stand:** 2026-08-15
 
 **Basis:** [Backlog.md](../../Backlog.md), [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md), ADR-0005 und ADR-0008. Der frühere Auditstand vom 2026-02-25 ist damit ersetzt.
 
@@ -37,13 +37,13 @@
 
 ## 3. Designrelevante Story-Stände
 
-| Bereich                         | Aktueller Stand                                                                                     |
-| ------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Startseite / Presets**        | umgesetzt; Presets, Theme, Sprachwahl, Join, Quiz-Sammlung, Server-Status und Legal-Links sichtbar. |
-| **Vote / Abstimmung (3.3b)**    | umgesetzt; nicht mehr als offene UI-Lücke führen.                                                   |
-| **Presenter / Beamer (2.5)**    | umgesetzt; Vollbild- und Präsentationsregeln siehe `STYLEGUIDE.md`.                                 |
-| **Ergebnis-Visualisierung 4.4** | umgesetzt; Farb- und Statusausnahmen in `TOKENS.md` dokumentieren.                                  |
-| **Word Cloud 2.0 (1.14a)**      | weiterhin offener Ausbaupfad; bei UI-Arbeit Performance- und Layout-Regeln aus ADR-0012 beachten.   |
+| Bereich                              | Aktueller Stand                                                                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Startseite / Presets**             | umgesetzt; Presets, Theme, Sprachwahl, Join, Quiz-Sammlung, Server-Status und Legal-Links sichtbar.                                                |
+| **Vote / Abstimmung (3.3b)**         | umgesetzt; nicht mehr als offene UI-Lücke führen.                                                                                                  |
+| **Presenter / Beamer (2.5)**         | umgesetzt; Vollbild- und Präsentationsregeln siehe `STYLEGUIDE.md`.                                                                                |
+| **Ergebnis-Visualisierung 4.4**      | umgesetzt; Farb- und Statusausnahmen in `TOKENS.md` dokumentieren.                                                                                 |
+| **Word Cloud 2.0/2.6 (1.14a/1.14b)** | umgesetzt; semantischer Themenmodus 1.14c bleibt offen. Layout-Regeln: ADR-0012, Glättung: [word-cloud-spacy.md](../features/word-cloud-spacy.md). |
 
 ---
 

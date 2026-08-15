@@ -6,7 +6,7 @@
 **Datum:** 2026-03-17  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-05-31
+**Letzter Repo-Abgleich:** 2026-08-15
 
 > Hinweis: Der Kontext dieser ADR beschreibt bewusst die Ausgangslage zum Entscheidungszeitpunkt im Maerz 2026. Der aktuelle Produktstand ist weiter unten unter **Umsetzungsstand (Mai 2026)** dokumentiert.
 
@@ -126,6 +126,7 @@ Die Entscheidung ist inzwischen umgesetzt. Der aktuelle Produktstand ist:
 - Der CSV-Export liefert fuer den aktuellen Termpfad Label, Score, Document-Frequency, Typ, Varianten und Quellen; alte Rohaggregationen bleiben kompatibel.
 - Der PNG-Export bleibt bewusst ein geordneter Zeilenexport nach Wortgroesse. Er bildet nicht den exakten d3-Livezustand ab, weil diese Variante fuer Doku, Versand und Moderationsunterlagen stabiler und lesbarer ist als ein fragiler WYSIWYG-Snapshot.
 - Repo-Abgleich 2026-05-31: `d3-cloud` ist als Frontend-Dev-Dependency vorhanden, `WordCloudComponent` nutzt die gemeinsame Layout-Engine fuer Freitext- und Q&A-Wortwolken, und `WordCloudTermService` kapselt die fachliche Term-Extraktion getrennt vom Layout.
+- Repo-Abgleich 2026-08-15: Story 1.14b fuegt eine optionale, host-ausgeloeste spaCy-Glaettung **vor** dieser Aggregation hinzu. Layout-Owner bleibt `app-word-cloud`. Freitext-Maximize erfolgt in-place. Produktdoku: [word-cloud-spacy.md](../../features/word-cloud-spacy.md).
 
 ## Konsequenzen
 

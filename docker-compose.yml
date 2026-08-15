@@ -73,7 +73,7 @@ services:
       start_period: 15s
       retries: 3
 
-  # Optionaler spaCy-Sidecar (Story 1.14b). Start: docker compose --profile nlp up -d
+  # Optionaler spaCy-Sidecar (Story 1.14b, umgesetzt). Start: docker compose --profile nlp up -d
   spacy:
     profiles: ['nlp']
     build:

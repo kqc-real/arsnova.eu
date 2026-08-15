@@ -2,7 +2,7 @@
 
 # Glossar: arsnova.eu
 
-**Stand:** 2026-07-15
+**Stand:** 2026-08-15
 
 **Zweck:** Einheitliche **produktnahe Begriffe** (Workflows, UI, Rollen) plus eine **kurze Brücke** zu Prisma-Modellnamen. Vollständiges Schema nur in `schema.prisma` / Handbuch — hier keine Spalten- oder Enum-Listen.
 
@@ -24,7 +24,7 @@
 - **Emoji-Reaktionen:** Kleine Reaktionssymbole als spielerisches Feedback in der Live-Session. Vertiefung: Story 5.8.
 - **Ergebnisphase:** Auflösung mit Lösungen und Punkten (`RESULTS`). Vorkommen: Quiz, Beamer. Vertiefung: Story 2.4.
 - **Foyer-Einflug:** Animierte Einflug-Phase für Teilnehmenden-Chips im Preset **Spielerisch**; macht den Lobby-Moment sichtbarer und ist ein bewusstes UX-Muster, kein eigener Session-Kanal. Vertiefung: Story 5.4a.
-- **Freitext / `FREETEXT`:** Offene, unbewertete Textfrage; sammelt freie Antworten und speist die Wortwolke. Zählt nicht für Streak, Scorecard, Leaderboards oder Bonus-Codes. Vertiefung: ADR-0012, Story 1.14.
+- **Freitext / `FREETEXT`:** Offene, unbewertete Textfrage; sammelt freie Antworten und speist die Wortwolke. Zählt nicht für Streak, Scorecard, Leaderboards oder Bonus-Codes. Vertiefung: ADR-0012, Story 1.14 / 1.14a / 1.14b, [word-cloud-spacy](features/word-cloud-spacy.md).
 - **Host:** Rolle/Ansicht: Dozent steuert Ablauf, Kanäle, Fragen. Vorkommen: Route `session/.../host`. Vertiefung: ADR-0006.
 - **Host-Token:** Besitznachweis für Host-/Present-Zugriffe und host-only Session-Aktionen; pro Session-Code in `sessionStorage`. Vorkommen: Session-Host, Present. Vertiefung: ADR-0019.
 - **Join:** Beitritt mit Code und Nickname (ggf. Teamwahl). Vorkommen: Route `join/...`. Vertiefung: Story 3.1, Team-Doku.
@@ -56,6 +56,7 @@
 - **Session-Tagesrekord / Daily Highscore:** Größte einzelne Session pro UTC-Tag, als 30-Tage-Verlauf im Server-Status-Hilfedialog. Prisma-Modell: `DailyStatistic`. Vertiefung: ADR-0024.
 - **Selbsteinschätzung:** Optionale Zusatzabfrage bei bewertbaren Fragen (`SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT`, `NUMERIC_ESTIMATE`): Teilnehmende geben nach ihrer Antwort an, wie sicher sie bei dieser Antwort sind (Skala 1–5). Beeinflusst **keine** Punkte; Host sieht nach Ergebnisfreigabe Verteilung, Kreuztabelle Korrektheit × Antwortsicherheit und Hervorhebung **selbstsicher falsch**. Editor-Feldlabels: **Niedrige/Hohe Antwortsicherheit**. Vorkommen: Quiz-Editor, Vote, Host, Export. Technische Feldnamen: `confidence*`. Vertiefung: Story 1.2i, [confidence-slider](features/confidence-slider.md).
 - **Server-Status:** Footer- und Hilfe-Status für Plattformzustand, Last und Kennzahlen. Der Footer lädt gebündelt über `health.footerBundle`; Detailwerte und Verlauf kommen aus `health.stats`. Vorkommen: App-Footer, Hilfe-Dialog. Vertiefung: ADR-0021, ADR-0024, [server-status-widget](features/server-status-widget.md).
+- **Sprachformen glätten / Glättung:** Optionale Host-Aktion in Freitext- und Q&A-Wortwolke; führt Flexionsformen zusammen, ohne Semantik. Vorkommen: Host-Wortwolke. Vertiefung: Story 1.14b, [word-cloud-spacy](features/word-cloud-spacy.md).
 - **Sync-Link / Sync-Code:** Zugang zum gleichen Quiz-Dokument auf anderem Gerät des Dozenten. Vorkommen: Quiz-Sync. Vertiefung: Story 1.6a.
 - **Team-Modus:** Teilnehmende in 2–8 Teams; Auto- oder Manual-Zuweisung beim Join. Teamwertung und Team-Leaderboard folgen derselben Scoring- und Effective-Vote-Regel wie die Einzelwertung. Vorkommen: Quiz-Settings, Join, Ergebnis. Vertiefung: [team-mode](features/team-mode.md), ADR-0028.
 - **Tempo-Blitzlicht / Tempo-Feedback:** Vordefiniertes Blitzlicht-Template mit vier Reaktionen (`SPEED_UP`, `FOLLOWING`, `SLOW_DOWN`, `LOST`), mutablem aktuellem Zustand pro teilnehmender Person und aggregierter Host-Tendenz. Es ist kein eigener Session-Kanal und kein personenbezogener Verlauf. Vertiefung: ADR-0029, Story 8.8.
@@ -63,6 +64,7 @@
 - **Vergleichsrunde:** Zweite Blitzlicht-Abstimmung nach eingefrorener erster Runde; **UI-Wort** (nicht „Diskussionsrunde“). Vorkommen: Blitzlicht-Host. Vertiefung: ADR-0010.
 - **Vote / Teilnehmer-Ansicht:** Rolle/Ansicht: Mitmachen, abstimmen, Q&A, Blitzlicht. Vorkommen: Route `session/.../vote`. Vertiefung: ADR-0006.
 - **Wilson-Score:** Statistischer Score für die Sortierung nach „Beste Fragen“ im Q&A-Kanal; bevorzugt Fragen mit stabiler positiver Zustimmung. Vertiefung: Story 8.7, [controversy-score](features/controversy-score.md).
+- **Wortwolke / Word Cloud:** Live-Visualisierung häufiger Begriffe aus Freitext-Antworten und Q&A-Fragen; lexikalisch mit optionaler Sprachformen-Glättung. Vorkommen: Host, Presenter. Vertiefung: ADR-0012, Story 1.14 / 1.14a / 1.14b, [word-cloud-spacy](features/word-cloud-spacy.md).
 - **Zwei-Runden-Flow:** Schätzfrage mit Runde 1, optionaler Diskussionsphase und Runde 2; die zweite Runde kann die erste ersetzen und wird getrennt ausgewertet. Vertiefung: Story 1.2d, Story 2.7, `docs/features/numeric-estimate.md`.
 
 ---
@@ -82,7 +84,7 @@ Diese Kürzel tauchen in Doku, Tickets, Reviews, Commits und im technischen Gesp
 | **i18n**   | Internationalization                     | Mehrsprachigkeit der App-Struktur, Message-IDs, Locale-Routing                                    |
 | **l10n**   | Localization                             | Konkrete Übersetzung und Lokalisierung pro Sprache (`de`, `en`, `fr`, `it`, `es`)                 |
 | **MOTD**   | Message of the Day                       | Plattform-/News-Overlay und Archiv; siehe [features/motd.md](features/motd.md)                    |
-| **NLP**    | Natural Language Processing              | Freitext-Auswertung, Wortwolke, semantische Bündelung                                             |
+| **NLP**    | Natural Language Processing              | Optionale Wortwolken-Glättung (1.14b); semantische Bündelung bleibt 1.14c / 8.9                   |
 | **PWA**    | Progressive Web App                      | Installierbare Web-App mit Service Worker und Offline-/Update-Mechanik                            |
 | **Prisma** | Prisma ORM / Schema-Tooling              | Datenmodell und Datenbankzugriff; Quelle: [`prisma/schema.prisma`](../prisma/schema.prisma)       |
 | **QR**     | Quick Response Code                      | Session-Beitritt, Join-Link, Einstieg per Kamera-Scan                                             |

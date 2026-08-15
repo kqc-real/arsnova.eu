@@ -4,7 +4,7 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-08-06 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-08-15 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
@@ -21,6 +21,7 @@
 | `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                    |
 | `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                           |
 | `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                   |
+| `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                         |
 | `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                 |
 | `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                         |
 | `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                              |
@@ -220,6 +221,20 @@ assertiert und deckt auch Host-/Daemon-Neustarts ab. Der Unit-Test mit einem nie
 auflösenden Renderer prüft zusätzlich worker-interne Deadline, 504, fatalen
 Healthstatus und Exit-Callback. Produktion darf nicht auf lokales Chromium
 zurückfallen.
+
+### Optionaler spaCy-Sidecar (Story 1.14b)
+
+Story 1.14b ist umgesetzt; der Sidecar bleibt Default aus. Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
+
+```bash
+npm run test -w @arsnova/shared-types -- src/word-cloud-normalization.test.ts
+npm test -w @arsnova/backend -- --run src/__tests__/wordCloud.analyze.test.ts src/lib/wordCloudNormalizer.test.ts src/lib/spacyClient.test.ts src/lib/wordCloudAnalysisCache.test.ts src/lib/wordCloudLemmaFixtures.test.ts
+npm run test -w @arsnova/frontend -- src/app/features/session/session-host/session-host.component.spec.ts
+npm run test:spacy-sidecar
+npm run test:spacy-compose
+```
+
+Lokal den Sidecar nur bewusst starten: `npm run docker:up:nlp`. Produktion: Image selbst bauen, Compose-Profil `nlp`, `NLP_ENABLED=true`; Rollback `NLP_ENABLED=false` und `stop spacy`. `deploy.sh` startet den Sidecar nicht.
 
 Für W2.4a zusätzlich:
 

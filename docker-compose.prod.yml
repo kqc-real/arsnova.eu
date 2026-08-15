@@ -76,7 +76,7 @@ services:
       retries: 5
     stop_grace_period: 15s
 
-  # Optionaler spaCy-Sidecar. Nicht Teil von deploy.sh.
+  # Optionaler spaCy-Sidecar (Story 1.14b, umgesetzt). Nicht Teil von deploy.sh.
   # Start: COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy
   spacy:
     profiles: ['nlp']

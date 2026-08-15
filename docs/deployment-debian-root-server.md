@@ -559,7 +559,7 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   konsistent mit dem App-Service ab.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Der Worker-Healthcheck prüft ausschließlich `/health` auf dem Unix-Socket.
-- Der optionale spaCy-Sidecar (Story 1.14b) ist ein eigenes Python-Image ohne
+- Der optionale spaCy-Sidecar (Story 1.14b, umgesetzt) ist ein eigenes Python-Image ohne
   TCP-Port, Compose-Profil `nlp`. `deploy.sh` startet ihn nicht. Die App mountet
   `spacy_socket` read-only; `NLP_ENABLED` kommt aus `.env.production` und bleibt
   Default `false`. Standard-Modelle sind MIT `de`/`en` ([NOTICE](../NOTICE)).
@@ -679,7 +679,8 @@ optionale spaCy-Sidecar bewusst eingeschaltet wird (Compose-Profil `nlp` plus
 Produktion: Image selbst bauen (`docker build -t arsnova-spacy:3.8.15 docker/spacy`),
 optional unter einem eigenen GHCR-Namen taggen (nicht `ARSNOVA_IMAGE`), dann
 `COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy`
-und `NLP_ENABLED=true`. Rollback über Kill-Switch und `stop spacy`.
+und `NLP_ENABLED=true`. Rollback über Kill-Switch und `stop spacy`. Produktdoku:
+[word-cloud-spacy.md](features/word-cloud-spacy.md).
 
 W2.4b wird bewusst zweistufig ausgerollt:
 

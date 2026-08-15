@@ -1,6 +1,6 @@
 # Finaler Design- & DoD-Audit
 
-**Stand:** 2026-07-19
+**Stand:** 2026-08-15
 
 **Basis:** [Backlog.md](../../Backlog.md), ADR-0005, ADR-0008, [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), [BACKLOG-DESIGN-COMPLIANCE.md](BACKLOG-DESIGN-COMPLIANCE.md). Der frühere Stand vom 2026-02-25 ist fachlich überholt.
 
@@ -63,4 +63,4 @@
 
 ## 5. Zusammenfassung
 
-Die Angular-Frontend-UI ist nach aktuellem Stand konform zur Material-3-/Token-Strategie. Offene Punkte sind keine überholten Basislücken mehr, sondern fortlaufende Qualitätsaufgaben: Barrierefreiheitsaudit (6.5), Thinking-Aloud-Testreihe (6.6), Word-Cloud-Ausbau (1.14a) und Review-Nachweise pro PR.
+Die Angular-Frontend-UI ist nach aktuellem Stand konform zur Material-3-/Token-Strategie. Offene Punkte sind keine überholten Basislücken mehr, sondern fortlaufende Qualitätsaufgaben: Barrierefreiheitsaudit (6.5), Review-Nachweise pro PR und der semantische Wortwolken-Pfad (1.14c). Word Cloud 2.0 (1.14a) und die optionale spaCy-Glättung (1.14b) sind abgeschlossen.

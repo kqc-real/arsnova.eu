@@ -2,10 +2,13 @@
 
 # Word Cloud - Zielbild fuer spaCy als optionale Glaettung
 
-**Status:** Zielbild, nicht umgesetzt  
-**Stand:** Mai 2026  
-**Bezug:** `Word Cloud 2.5`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`  
+**Status:** umgesetzt (Story 1.14b, Analyseversion `1.14b.7`, August 2026)
+**Stand:** August 2026
+**Kanonische Produktdoku:** `docs/features/word-cloud-spacy.md`
+**Bezug:** `Word Cloud 2.5`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`
 **Implementierungsplan:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-IMPLEMENTATION-PLAN.md`
+
+Die HTML-Datei `WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.html` ist ein VS-Code-Preview-Dump und kein kanonischer Stand.
 
 ---
 
@@ -79,6 +82,8 @@ Die Glaettung arbeitet auf einem **konkreten Snapshot** der aktuell sichtbaren D
 - kommen neue Fragen/Antworten hinzu, wird der Stand nur als **veraltet** markiert
 - erst ein erneuter Host-Trigger berechnet neu
 
+Host-Wechsel der Freitext-Ansicht oder der Q&A-Sortierung bei aktiver Glaettung sind ebenfalls Host-Trigger: dieselbe Datenmenge wird mit neuer N-Gramm-Laenge bzw. Metrik neu analysiert. Neue eingehende Daten bleiben stale.
+
 ### 4. Die lexikalische Wortwolke bleibt der sichere Standard
 
 Wenn spaCy nicht verfuegbar ist oder kein belastbares Ergebnis liefert:
@@ -110,7 +115,7 @@ Nicht empfohlen:
 
 Die Aktion gehoert als **sekundaere Host-Aktion** neben Einfrieren, nicht als dritter grosser Modusblock:
 
-- Freitext: kompakte Host-Wortwolke und Vollbild-Dialog
+- Freitext: kompakte Host-Wortwolke und In-Place-Maximize derselben Instanz
 - Q&A: Wortwolken-Dialog (dort gibt es keine kompakte Wolke)
 
 ### Sichtbare Zustandslogik
@@ -345,7 +350,7 @@ Sie aendert nur, **wie sprachlich aehnliche Begriffe zusammengefuehrt werden**.
 1. Host kann in Freitext- und Q&A-Wortwolken explizit `Sprachformen glaetten` ausloesen.
 2. Die bestehende lexikalische Wolke bleibt voll funktionsfaehig und ist der Standard.
 3. Die Glaettung laeuft nur auf Host-Anforderung und nur auf dem aktuellen Snapshot.
-4. Neue Daten markieren das Ergebnis als veraltet, starten aber keine automatische Neuberechnung.
+4. Neue Daten markieren das Ergebnis als veraltet, starten aber keine automatische Neuberechnung. Host-Wechsel von Freitext-Ansicht oder Q&A-Sortierung bei aktiver Glaettung analysieren denselben Stand neu.
 5. Bei Fehler oder Nichtverfuegbarkeit bleibt die bisherige Wolke sichtbar.
 6. Sichtbare Labels bleiben lesbar; Lemmaformen muessen nicht 1:1 angezeigt werden.
 7. Geschuetzte technische Begriffe bleiben unveraendert erhalten.

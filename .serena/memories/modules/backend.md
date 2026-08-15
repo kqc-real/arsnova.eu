@@ -9,7 +9,7 @@
   - `src/db.ts`, `src/redis.ts`, `src/load-env.ts`: infrastructure.
 - Source layout:
   - `src/routers/`: `admin`, `adminMotd`, `health`, `motd`, `qa`, `quickFeedback`, `quiz`, `session`, `vote`, `wordCloud`.
-  - `src/lib/`: auth, rate limit, presence, cleanup, join admission, scoring, answer order, word-cloud analysis, MOTD markdown, SLO/load telemetry.
+  - `src/lib/`: auth, rate limit, presence, cleanup, join admission, scoring, answer order, word-cloud analysis plus optional spaCy normalizer/client/cache (`mem:session/word-cloud-spacy`), MOTD markdown, SLO/load telemetry.
   - `src/__tests__/`: backend Vitest coverage.
 - Scripts: `dev` = `tsx watch src/index.ts`; `build` = `tsc`; `typecheck` = `tsc --noEmit`; `test` = `vitest run`.
 - Backend must not expose raw Prisma models to clients; return DTOs validated/typed through shared contracts.
@@ -23,3 +23,4 @@
 - `mem:security/auth`
 - `mem:security/dto-stripping`
 - `mem:testing/core`
+- `mem:session/word-cloud-spacy`
