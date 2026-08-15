@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AnalyzeWordCloudInput } from '@arsnova/shared-types';
 import {
   buildWordCloudSnapshotHash,
+  hashWordCloudText,
   resolveWordCloudNormalizationMeta,
 } from './wordCloudNormalization';
 
@@ -39,6 +40,12 @@ describe('wordCloudNormalization', () => {
     expect(buildWordCloudSnapshotHash(lemmaRequested)).not.toBe(
       buildWordCloudSnapshotHash(baseInput),
     );
+  });
+
+  it('hasht Rohtexte stabil und ohne Klartext im Digest', () => {
+    expect(hashWordCloudText('Häuser')).toMatch(/^[a-f0-9]{64}$/);
+    expect(hashWordCloudText('Häuser')).toBe(hashWordCloudText('Häuser'));
+    expect(hashWordCloudText('Häuser')).not.toBe(hashWordCloudText('Haus'));
   });
 
   it('wendet ohne bestaetigten Sidecar kein Lemma an, auch wenn NLP_ENABLED gesetzt ist', () => {

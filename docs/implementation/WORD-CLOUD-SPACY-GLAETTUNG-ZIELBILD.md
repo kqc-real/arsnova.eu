@@ -244,7 +244,8 @@ Empfohlene neue Bausteine:
 
 - `wordCloudNormalizer.ts`
 - `spacyClient.ts`
-- optional `wordCloudAnalysisCache.ts`
+- `wordCloudAnalysisCache.ts`
+- `wordCloudNlpTelemetry.ts`
 
 #### Betriebsmodell
 

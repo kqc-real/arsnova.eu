@@ -6,6 +6,9 @@ import {
 } from './confidence';
 import {
   WORD_CLOUD_DEFAULT_NORMALIZATION,
+  WORD_CLOUD_MAX_ANALYZE_ITEMS,
+  WORD_CLOUD_MAX_ITEM_ID_CHARS,
+  WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
   WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS,
   WORD_CLOUD_NORMALIZATION_VALUES,
 } from './word-cloud-normalization';
@@ -3671,8 +3674,8 @@ export type WordCloudWeightMetric = z.infer<typeof WordCloudWeightMetricEnum>;
 
 /** Einzelne Quelldaten für eine Word-Cloud-Analyse. */
 export const WordCloudAnalysisSourceItemSchema = z.object({
-  id: z.string().trim().min(1),
-  text: z.string().trim().min(1),
+  id: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_ID_CHARS),
+  text: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_TEXT_CHARS),
   weight: z.number().min(0),
 });
 export type WordCloudAnalysisSourceItem = z.infer<typeof WordCloudAnalysisSourceItemSchema>;
@@ -3684,15 +3687,15 @@ export const AnalyzeWordCloudInputSchema = z.object({
   locale: WordCloudAnalysisLocaleEnum,
   metric: WordCloudWeightMetricEnum,
   normalization: WordCloudNormalizationEnum.default(WORD_CLOUD_DEFAULT_NORMALIZATION),
-  items: z.array(WordCloudAnalysisSourceItemSchema).max(500),
+  items: z.array(WordCloudAnalysisSourceItemSchema).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   maxEntries: z.number().int().min(1).max(100).optional(),
 });
 export type AnalyzeWordCloudInput = z.infer<typeof AnalyzeWordCloudInputSchema>;
 
 /** Mitglied eines erklärbaren Themenclusters oder lexikalischen Buckets. */
 export const WordCloudAnalysisMemberDTOSchema = z.object({
-  sourceId: z.string().trim().min(1),
-  text: z.string().trim().min(1),
+  sourceId: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_ID_CHARS),
+  text: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_TEXT_CHARS),
   weight: z.number().min(0),
 });
 export type WordCloudAnalysisMemberDTO = z.infer<typeof WordCloudAnalysisMemberDTOSchema>;

@@ -11,11 +11,11 @@
  */
 import { request as httpRequest } from 'node:http';
 import { z } from 'zod';
-import { wordCloudLemmaModelId } from '@arsnova/shared-types';
+import { WORD_CLOUD_MAX_ITEM_TEXT_CHARS, wordCloudLemmaModelId } from '@arsnova/shared-types';
 import { resolveNlpSidecarConfig, type NlpSidecarConfig } from './nlpSidecarConfig';
 
 export const SPACY_MAX_IN_FLIGHT = 2;
-export const SPACY_MAX_TEXT_CHARS = 4_000;
+export const SPACY_MAX_TEXT_CHARS = WORD_CLOUD_MAX_ITEM_TEXT_CHARS;
 export const SPACY_MAX_REQUEST_BYTES = 1_048_576;
 export const SPACY_MAX_RESPONSE_BYTES = 1_048_576;
 export const SPACY_MAX_TOKENS_PER_TEXT = 2_000;

@@ -22,7 +22,7 @@ async function createSocketPath(): Promise<string> {
 }
 
 function nlpConfig(socketPath: string, timeoutMs = 1_000): NlpSidecarConfig {
-  return { enabled: true, socketPath, timeoutMs };
+  return { enabled: true, socketPath, timeoutMs, cacheTtlSeconds: 1800 };
 }
 
 async function startMockSidecar(

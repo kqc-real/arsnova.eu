@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isTransientWordCloudNormalizationFallback,
   isWordCloudLemmaLocale,
   resolveWordCloudLemmaApplication,
   WORD_CLOUD_DEFAULT_NORMALIZATION,
   WORD_CLOUD_LEMMA_EXCLUDED_MODELS,
   WORD_CLOUD_LEMMA_MODELS,
+  WORD_CLOUD_MAX_ANALYZE_ITEMS,
+  WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
   WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
   WORD_CLOUD_SPACY_RUNTIME_VERSION,
   createWordCloudLemmaFallback,
@@ -29,6 +32,17 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
     expect(WORD_CLOUD_SPACY_RUNTIME_VERSION).toBe('3.8.15');
     expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.1');
     expect(WORD_CLOUD_DEFAULT_NORMALIZATION).toBe('NONE');
+    expect(WORD_CLOUD_MAX_ITEM_TEXT_CHARS).toBe(4000);
+    expect(WORD_CLOUD_MAX_ANALYZE_ITEMS).toBe(500);
+  });
+
+  it('markiert nur transiente Sidecar-Fehler als nicht cachebar', () => {
+    expect(isTransientWordCloudNormalizationFallback('TIMEOUT')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('SIDECAR_UNAVAILABLE')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('INVALID_RESPONSE')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('NLP_DISABLED')).toBe(false);
+    expect(isTransientWordCloudNormalizationFallback('MODE_UNSUPPORTED')).toBe(false);
+    expect(isTransientWordCloudNormalizationFallback(null)).toBe(false);
   });
 
   it('laesst NONE unveraendert und ohne Fallback', () => {

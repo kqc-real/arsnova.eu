@@ -13,6 +13,22 @@ export const WORD_CLOUD_DEFAULT_NORMALIZATION: WordCloudNormalization = 'NONE';
 /** Vertragsversion der Normalisierungsachse; Cache- und Snapshot-Schlüssel müssen sie enthalten. */
 export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.1';
 
+/** Hartes Textbudget je Analyse-Item; identisch zum Sidecar-Client. */
+export const WORD_CLOUD_MAX_ITEM_TEXT_CHARS = 4_000;
+
+/** Obere Grenze für stabile Item-IDs (UUIDs oder `response-${index}`). */
+export const WORD_CLOUD_MAX_ITEM_ID_CHARS = 128;
+
+/** Snapshot-Größe; deckt Hörsaal-Q&A und Freitext ab. */
+export const WORD_CLOUD_MAX_ANALYZE_ITEMS = 500;
+
+/** Transiente Sidecar-Fehler: nicht cachen, damit ein Retry den Dienst erneut versucht. */
+export const WORD_CLOUD_TRANSIENT_NORMALIZATION_FALLBACK_REASONS = [
+  'TIMEOUT',
+  'SIDECAR_UNAVAILABLE',
+  'INVALID_RESPONSE',
+] as const;
+
 /** Gepinnte spaCy-Runtime für das Sidecar (Phase 3). Patch-Updates bleiben in 3.8.x. */
 export const WORD_CLOUD_SPACY_RUNTIME_VERSION = '3.8.15';
 
@@ -58,6 +74,12 @@ type WordCloudNormalizationFallbackReason =
 
 export function isWordCloudLemmaLocale(locale: string): locale is WordCloudLemmaLocale {
   return locale === 'de' || locale === 'en';
+}
+
+export function isTransientWordCloudNormalizationFallback(
+  reason: WordCloudNormalizationFallbackReason | null | undefined,
+): boolean {
+  return reason === 'TIMEOUT' || reason === 'SIDECAR_UNAVAILABLE' || reason === 'INVALID_RESPONSE';
 }
 
 export function wordCloudLemmaModelId(locale: string): string | null {

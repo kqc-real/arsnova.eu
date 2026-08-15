@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–5 umgesetzt; Cache/Telemetrie folgt
+**Status:** Phase 1–6 umgesetzt; Tests/Rollout folgt
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -98,14 +98,14 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 
 ## Ist-Stand
 
-| Bereich            | Status                                                                                                                                 |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                   |
-| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                  |
-| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`         |
-| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma nur bei `LEXICAL` und hartem Identity-Fallback; kein Snapshot-Cache |
-| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`       |
-| **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots                               |
+| Bereich            | Status                                                                                                                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                                                                      |
+| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                                                                     |
+| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                                        |
+| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma nur bei `LEXICAL` und hartem Identity-Fallback; Redis-Text- und Snapshot-Cache (fail-open, transiente Fehler uncached) |
+| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                          |
+| **UI**             | Q&A- und Freitext-Dialog mit Sekundaeraktion `Sprachformen glaetten`, stale marker, kein Auto-Recompute                                                                                   |
 
 ---
 
@@ -155,6 +155,7 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 - `NLP_ENABLED` (nur `true` schaltet den Sidecar-Pfad ein; Default aus)
 - `NLP_SOCKET_PATH` (interner Unix-Socket, analog PDF-Worker; kein oeffentlicher Port)
 - `NLP_TIMEOUT_MS`
+- `NLP_CACHE_TTL_SECONDS` (Redis-TTL fuer Text- und Snapshot-Cache; Default 1800 s)
 - sauberer Fallback auf die heutige Wortwolke
 
 ---
@@ -174,7 +175,8 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 - **neu:** `apps/backend/src/lib/wordCloudNormalization.ts`
 - **neu (Phase 2):** `apps/backend/src/lib/wordCloudNormalizer.ts`
 - **neu:** `apps/backend/src/lib/spacyClient.ts`
-- **neu optional:** `apps/backend/src/lib/wordCloudAnalysisCache.ts`
+- **neu:** `apps/backend/src/lib/wordCloudAnalysisCache.ts`
+- **neu:** `apps/backend/src/lib/wordCloudNlpTelemetry.ts`
 
 ### Frontend
 
@@ -370,6 +372,8 @@ Ziel: wiederholte Host-Analysen billig und beobachtbar machen.
 
 - wiederholte Host-Klicks bleiben billig
 - der Sidecar wird nicht zum stillen Performance-Risiko
+
+**Stand August 2026:** Phase 6 ist umgesetzt. Wiederholte `wordCloud.analyze`-Aufrufe mit identischem Host-Snapshot kommen aus dem Redis-Cache (`nlp:wc:snap:…`, plus Text-Cache `nlp:wc:text:{locale}:{version}:{sha256}`). Transiente Sidecar-Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) werden nicht persistiert. `NLP_CACHE_TTL_SECONDS` default 1800 (60–28800). Telemetrie loggt Dauer, Fallback, Sidecar-Nutzung und Cache-Hits ohne Rohtexte und ohne Socketpfad. Tests nutzen einen Noop-Cache; Produktionspfad ist fail-open gegen Redis.
 
 ---
 

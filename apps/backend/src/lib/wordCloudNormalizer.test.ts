@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AnalyzeWordCloudInput } from '@arsnova/shared-types';
 import { SpacyClientError } from './spacyClient';
+import { createMemoryWordCloudAnalysisCache } from './wordCloudAnalysisCache';
+import { hashWordCloudText } from './wordCloudNormalization';
 import {
   IdentityNormalizer,
   LemmaNormalizer,
@@ -65,6 +67,7 @@ describe('wordCloudNormalizer', () => {
     });
 
     expect(sidecar).toHaveBeenCalledOnce();
+    expect(result.cache).toEqual({ textHits: 0, textMisses: 2, sidecarCalled: true });
     expect(result.meta.normalizationApplied).toBe('LEMMA');
     expect(result.meta.modelId).toBe('de_core_news_sm@3.8.0');
     expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
@@ -116,7 +119,70 @@ describe('wordCloudNormalizer', () => {
       enabled: true,
       socketPath: '/run/spacy/nlp.sock',
       timeoutMs: 1000,
+      cacheTtlSeconds: 1800,
     }).normalize([{ id: 'a', text: 'cats', weight: 1 }]);
     expect(tokens.get('a')).toEqual([{ display: 'cat', lookup: 'cat' }]);
+  });
+
+  it('ruft den Sidecar beim zweiten gleichen Text nicht erneut an', async () => {
+    const cache = createMemoryWordCloudAnalysisCache();
+    const sidecar = vi.fn(async () => ({
+      locale: 'de' as const,
+      modelId: 'de_core_news_sm@3.8.0',
+      items: [
+        { id: 'item-1', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
+        { id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
+      ],
+    }));
+    const options = { env: { NLP_ENABLED: 'true' }, sidecar, cache };
+
+    await normalizeWordCloudItems(lemmaInput, options);
+    const second = await normalizeWordCloudItems(lemmaInput, options);
+
+    expect(sidecar).toHaveBeenCalledOnce();
+    expect(second.cache).toEqual({ textHits: 2, textMisses: 0, sidecarCalled: false });
+    expect(second.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+  });
+
+  it('sendet bei gemischtem Cache nur die fehlenden Texte an den Sidecar', async () => {
+    const cache = createMemoryWordCloudAnalysisCache();
+    await cache.setText('de', hashWordCloudText('Häuser'), [{ display: 'Haus', lookup: 'haus' }]);
+    const sidecar = vi.fn(async () => ({
+      locale: 'de' as const,
+      modelId: 'de_core_news_sm@3.8.0',
+      items: [{ id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] }],
+    }));
+
+    const result = await normalizeWordCloudItems(lemmaInput, {
+      env: { NLP_ENABLED: 'true' },
+      sidecar,
+      cache,
+    });
+
+    expect(sidecar).toHaveBeenCalledOnce();
+    expect(sidecar).toHaveBeenCalledWith(
+      'de',
+      [{ id: 'item-2', text: 'Haus' }],
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(result.cache).toEqual({ textHits: 1, textMisses: 1, sidecarCalled: true });
+    expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+    expect(result.tokensByItemId.get('item-2')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+  });
+
+  it('cacht Sidecar-Fehler nicht und faellt vollstaendig auf Identity zurueck', async () => {
+    const cache = createMemoryWordCloudAnalysisCache();
+    const result = await normalizeWordCloudItems(lemmaInput, {
+      env: { NLP_ENABLED: 'true' },
+      cache,
+      sidecar: async () => {
+        throw new SpacyClientError('TIMEOUT');
+      },
+    });
+
+    expect(result.meta.normalizationFallbackReason).toBe('TIMEOUT');
+    expect(result.cache.sidecarCalled).toBe(true);
+    expect(await cache.getText('de', hashWordCloudText('Häuser'))).toBeNull();
+    expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Häuser', lookup: 'häuser' }]);
   });
 });

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   isNlpSidecarEnabled,
+  NLP_CACHE_TTL_DEFAULT_SECONDS,
+  NLP_CACHE_TTL_MAX_SECONDS,
+  NLP_CACHE_TTL_MIN_SECONDS,
   NLP_DEFAULT_SOCKET_PATH,
   NLP_TIMEOUT_DEFAULT_MS,
   NLP_TIMEOUT_MAX_MS,
   NLP_TIMEOUT_MIN_MS,
+  resolveNlpCacheTtlSeconds,
   resolveNlpSidecarConfig,
   resolveNlpSocketPath,
   resolveNlpTimeoutMs,
@@ -37,11 +41,25 @@ describe('nlpSidecarConfig', () => {
         NLP_ENABLED: 'true',
         NLP_SOCKET_PATH: '/run/custom/nlp.sock',
         NLP_TIMEOUT_MS: '8000',
+        NLP_CACHE_TTL_SECONDS: '900',
       }),
     ).toEqual({
       enabled: true,
       socketPath: '/run/custom/nlp.sock',
       timeoutMs: 8000,
+      cacheTtlSeconds: 900,
     });
+  });
+
+  it('begrenzt den Cache-TTL hart', () => {
+    expect(resolveNlpCacheTtlSeconds(undefined)).toBe(NLP_CACHE_TTL_DEFAULT_SECONDS);
+    expect(resolveNlpCacheTtlSeconds(String(NLP_CACHE_TTL_MIN_SECONDS))).toBe(
+      NLP_CACHE_TTL_MIN_SECONDS,
+    );
+    expect(resolveNlpCacheTtlSeconds(String(NLP_CACHE_TTL_MAX_SECONDS))).toBe(
+      NLP_CACHE_TTL_MAX_SECONDS,
+    );
+    expect(() => resolveNlpCacheTtlSeconds('abc')).toThrow(/ganze Zahl/);
+    expect(() => resolveNlpCacheTtlSeconds('10')).toThrow(/zwischen/);
   });
 });

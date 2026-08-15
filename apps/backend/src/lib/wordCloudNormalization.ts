@@ -37,6 +37,10 @@ export function buildWordCloudSnapshotHash(
   return createHash('sha256').update(canonical, 'utf8').digest('hex');
 }
 
+export function hashWordCloudText(text: string): string {
+  return createHash('sha256').update(text, 'utf8').digest('hex');
+}
+
 export function toWordCloudNormalizationMeta(
   input: AnalyzeWordCloudInput,
   decision: WordCloudLemmaApplication,

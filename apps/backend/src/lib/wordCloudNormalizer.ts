@@ -14,7 +14,9 @@ import {
   toWordCloudLookupToken,
   type WordCloudRawToken,
 } from './wordCloudAnalysis';
+import { getWordCloudAnalysisCache, type WordCloudAnalysisCache } from './wordCloudAnalysisCache';
 import {
+  hashWordCloudText,
   toWordCloudNormalizationMeta,
   type WordCloudNormalizationMeta,
 } from './wordCloudNormalization';
@@ -61,15 +63,29 @@ export class LemmaNormalizer implements WordCloudNormalizer {
   }
 }
 
+export interface WordCloudNormalizationCacheStats {
+  readonly textHits: number;
+  readonly textMisses: number;
+  readonly sidecarCalled: boolean;
+}
+
 export interface NormalizeWordCloudResult {
   readonly tokensByItemId: ReadonlyMap<string, readonly WordCloudRawToken[]>;
   readonly meta: WordCloudNormalizationMeta;
+  readonly cache: WordCloudNormalizationCacheStats;
 }
 
 export interface NormalizeWordCloudOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly sidecar?: typeof spacyClient.normalizeWithSpacySidecar;
+  readonly cache?: WordCloudAnalysisCache;
 }
+
+const NO_TEXT_CACHE_STATS: WordCloudNormalizationCacheStats = {
+  textHits: 0,
+  textMisses: 0,
+  sidecarCalled: false,
+};
 
 /**
  * Wählt Identity- oder Lemma-Normalisierung. spaCy wird nur bei LEXICAL + LEMMA
@@ -95,6 +111,36 @@ export async function normalizeWordCloudItems(
     return {
       tokensByItemId: identityTokens,
       meta: toWordCloudNormalizationMeta(input, planned),
+      cache: NO_TEXT_CACHE_STATS,
+    };
+  }
+
+  const cache = options.cache ?? getWordCloudAnalysisCache();
+  const groups = groupItemsByTextHash(input.items);
+  const tokensByHash = new Map<string, readonly WordCloudRawToken[]>();
+  const missItems: WordCloudAnalysisSourceItem[] = [];
+  const hashByMissId = new Map<string, string>();
+  let textHits = 0;
+  let textMisses = 0;
+
+  for (const group of groups.values()) {
+    const cached = await cache.getText(input.locale, group.hash);
+    if (cached) {
+      tokensByHash.set(group.hash, cached);
+      textHits += 1;
+      continue;
+    }
+    textMisses += 1;
+    const representative = group.items[0]!;
+    missItems.push(representative);
+    hashByMissId.set(representative.id, group.hash);
+  }
+
+  if (missItems.length === 0) {
+    return {
+      tokensByItemId: tokensByItemIdFromHashes(input.items, tokensByHash),
+      meta: toWordCloudNormalizationMeta(input, planned),
+      cache: { textHits, textMisses, sidecarCalled: false },
     };
   }
 
@@ -104,14 +150,26 @@ export async function normalizeWordCloudItems(
       options.sidecar ?? spacyClient.normalizeWithSpacySidecar,
       nlp,
     );
+    const missTokens = await lemma.normalize(missItems);
+    for (const item of missItems) {
+      const tokens = missTokens.get(item.id);
+      if (!tokens) {
+        throw new SpacyClientError('INVALID_RESPONSE');
+      }
+      const hash = hashByMissId.get(item.id)!;
+      tokensByHash.set(hash, tokens);
+      await cache.setText(input.locale, hash, tokens);
+    }
     return {
-      tokensByItemId: await lemma.normalize(input.items),
+      tokensByItemId: tokensByItemIdFromHashes(input.items, tokensByHash),
       meta: toWordCloudNormalizationMeta(input, planned),
+      cache: { textHits, textMisses, sidecarCalled: true },
     };
   } catch (error) {
     return {
       tokensByItemId: identityTokens,
       meta: toWordCloudNormalizationMeta(input, fallbackFromSidecarError(input, planned, error)),
+      cache: { textHits, textMisses, sidecarCalled: true },
     };
   }
 }
@@ -148,6 +206,31 @@ function fallbackFromSidecarError(
     planned.requested,
     input.locale,
     reasonFromSidecarError(error),
+  );
+}
+
+function groupItemsByTextHash(
+  items: readonly WordCloudAnalysisSourceItem[],
+): Map<string, { hash: string; items: WordCloudAnalysisSourceItem[] }> {
+  const groups = new Map<string, { hash: string; items: WordCloudAnalysisSourceItem[] }>();
+  for (const item of items) {
+    const hash = hashWordCloudText(item.text);
+    const existing = groups.get(hash);
+    if (existing) {
+      existing.items.push(item);
+      continue;
+    }
+    groups.set(hash, { hash, items: [item] });
+  }
+  return groups;
+}
+
+function tokensByItemIdFromHashes(
+  items: readonly WordCloudAnalysisSourceItem[],
+  tokensByHash: ReadonlyMap<string, readonly WordCloudRawToken[]>,
+): ReadonlyMap<string, readonly WordCloudRawToken[]> {
+  return new Map(
+    items.map((item) => [item.id, tokensByHash.get(hashWordCloudText(item.text)) ?? []]),
   );
 }
 

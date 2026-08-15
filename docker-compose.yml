@@ -58,6 +58,7 @@ services:
       NLP_ENABLED: 'false'
       NLP_SOCKET_PATH: /run/spacy/nlp.sock
       NLP_TIMEOUT_MS: '5000'
+      NLP_CACHE_TTL_SECONDS: '1800'
     volumes:
       - spacy_socket:/run/spacy:ro
     depends_on:

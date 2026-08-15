@@ -140,6 +140,7 @@ services:
       PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
       NLP_SOCKET_PATH: /run/spacy/nlp.sock
       NLP_TIMEOUT_MS: '5000'
+      NLP_CACHE_TTL_SECONDS: '1800'
       # NLP_ENABLED kommt aus `.env.production` (Default false).
       # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
     depends_on:
