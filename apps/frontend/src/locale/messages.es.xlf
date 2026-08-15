@@ -15475,6 +15475,34 @@
           <context context-type="linenumber">1187</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
+        <source>Sprachformen glätten</source>
+        <target>Unificar formas de palabras</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothPending" datatype="html">
+        <source>Analyse läuft</source>
+        <target>Análisis en curso</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
+        <source>Glättung aktiv</source>
+        <target>Unificación activa</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
+        <source>Neu analysieren</source>
+        <target>Volver a analizar</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
+        <source>Neue Fragen seit letzter Glättung</source>
+        <target>Hay preguntas nuevas desde la última unificación</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
+        <source>Glättung nicht verfügbar</source>
+        <target>Unificación no disponible</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
+        <source>Glättung fehlgeschlagen</source>
+        <target>No se pudo unificar</target>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <target>Muestra primero preguntas con mucho apoyo y suficientes votos. Las preguntas fijadas quedan marcadas, pero no se adelantan.</target>

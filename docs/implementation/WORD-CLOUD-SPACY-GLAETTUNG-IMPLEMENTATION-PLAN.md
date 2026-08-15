@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–3 umgesetzt; Host-UI folgt
+**Status:** Phase 1–4 umgesetzt; Freitext-Host-UI folgt
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -326,6 +326,8 @@ Ziel: Glaettung zuerst dort anbieten, wo der bestehende Host-Analysepfad schon e
 
 - erster produktiver Host-Pfad
 - sauberer Nachweis, dass Glaettung ohne Live-Regressions laeuft
+
+**Stand August 2026:** Phase 4 ist umgesetzt. Im Q&A-Wortwolken-Dialog gibt es die Sekundaeraktion `Sprachformen glaetten`. Ein Klick sendet `LEXICAL` + `LEMMA` an `wordCloud.analyze`; Dialog-Open und Theme-Refresh bleiben bei `NONE`. Neue sichtbare Fragen markieren den Snapshot als veraltet (`Neu analysieren`), rechnen aber nicht automatisch neu. `fr`/`es`/`it` zeigen `Glaettung nicht verfuegbar`. Freitext folgt in Phase 5.
 
 ---
 

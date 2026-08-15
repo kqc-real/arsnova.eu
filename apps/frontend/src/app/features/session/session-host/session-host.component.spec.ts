@@ -2719,6 +2719,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
     expect(fixture.componentInstance.qaWordCloudTerms().length).toBeGreaterThan(0);
+    expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe('Glättung nicht verfügbar');
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
 
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
@@ -3050,6 +3054,506 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.themeFallbackHint()).toBeNull();
     expect(data.terms().length).toBeGreaterThan(0);
+    fixture.destroy();
+  });
+
+  function wordCloudAnalyzeResult(overrides: Record<string, unknown> = {}) {
+    return {
+      mode: 'THEME',
+      locale: 'de',
+      metric: 'BEST',
+      generatedAt: '2026-03-24T12:00:00.000Z',
+      fallbackUsed: false,
+      normalization: 'NONE',
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: false,
+      normalizationFallbackReason: null,
+      fallbackLocale: 'de',
+      analysisVersion: '1.14b.1',
+      modelId: null,
+      snapshotHash: 'a'.repeat(64),
+      entries: [],
+      ...overrides,
+    };
+  }
+
+  function lemmaAnalyzeCalls(): unknown[] {
+    return wordCloudAnalyzeQueryMock.mock.calls.filter(
+      (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
+    );
+  }
+
+  it('sendet Sprachformen-Glaettung nur nach explizitem Klick als LEXICAL+LEMMA', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { mode?: string; normalization?: string }) => {
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: 'klausur',
+                label: 'Klausur',
+                count: 4,
+                basisLabel: 'Klausur',
+                members: [
+                  {
+                    sourceId: '11111111-1111-4111-8111-111111111111',
+                    text: 'Kommt Kapitel 4 in der Klausur vor?',
+                    weight: 4,
+                  },
+                ],
+                variants: ['Klausur', 'Klausuren'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          metric: 'BEST',
+          entries: [
+            {
+              key: 'kapitel-4',
+              label: 'Kapitel 4',
+              count: 7,
+              basisLabel: 'Kapitel 4',
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Kommt Kapitel 4 in der Klausur vor?',
+                  weight: 4,
+                },
+              ],
+              variants: ['Kapitel 4'],
+              confidence: 0.88,
+            },
+          ],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(0);
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'THEME',
+        normalization: 'NONE',
+      }),
+    );
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('LEXICAL');
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(lemmaAnalyzeCalls()[0]).toEqual([
+      expect.objectContaining({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: fixture.componentInstance.qaWordCloudAnalysisLocale(),
+        metric: 'BEST',
+        normalization: 'LEMMA',
+        maxEntries: 80,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 4,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 3,
+          },
+        ],
+      }),
+    ]);
+    expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Glättung aktiv');
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
+      { label: 'Klausur' },
+    ]);
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()?.length).toBeGreaterThan(0);
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('markiert geglaettete Q&A-Snapshots bei neuen Fragen als veraltet ohne automatisch neu zu rechnen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(async (input: { normalization?: string }) => {
+      if (input.normalization === 'LEMMA') {
+        return wordCloudAnalyzeResult({
+          mode: 'LEXICAL',
+          normalization: 'LEMMA',
+          normalizationApplied: 'LEMMA',
+          modelId: 'de_core_news_sm@3.8.0',
+          entries: [
+            {
+              key: 'klausur',
+              label: 'Klausur',
+              count: 4,
+              basisLabel: 'Klausur',
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Kommt Kapitel 4 in der Klausur vor?',
+                  weight: 4,
+                },
+              ],
+              variants: ['Klausur'],
+              confidence: 0.9,
+            },
+          ],
+        });
+      }
+
+      return wordCloudAnalyzeResult({
+        entries: [
+          {
+            key: 'kapitel-4',
+            label: 'Kapitel 4',
+            count: 4,
+            basisLabel: 'Kapitel 4',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 4,
+              },
+            ],
+            variants: ['Kapitel 4'],
+            confidence: 0.88,
+          },
+        ],
+      });
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+
+    fixture.componentInstance.qaQuestions.update((questions) => [
+      ...questions,
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: 'Gibt es Klausuraufgaben zu Kapitel 5?',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:05:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('stale');
+    expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Neu analysieren');
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe(
+      'Neue Fragen seit letzter Glättung',
+    );
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
+      { label: 'Klausur' },
+    ]);
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(2);
+    expect(lemmaAnalyzeCalls()[1]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        normalization: 'LEMMA',
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            id: '33333333-3333-4333-8333-333333333333',
+          }),
+        ]),
+      }),
+    ]);
+    fixture.destroy();
+  });
+
+  it('laesst den Themenmodus bei NONE, wenn die Glaettung fehlschlaegt oder abgeschaltet ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(async (input: { normalization?: string }) => {
+      if (input.normalization === 'LEMMA') {
+        return wordCloudAnalyzeResult({
+          mode: 'LEXICAL',
+          normalization: 'LEMMA',
+          normalizationApplied: 'NONE',
+          normalizationFallbackUsed: true,
+          normalizationFallbackReason: 'NLP_DISABLED',
+          entries: [
+            {
+              key: 'klausur',
+              label: 'klausur',
+              count: 4,
+              basisLabel: null,
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Kommt Kapitel 4 in der Klausur vor?',
+                  weight: 4,
+                },
+              ],
+              variants: ['klausur'],
+              confidence: null,
+            },
+          ],
+        });
+      }
+
+      return wordCloudAnalyzeResult({
+        entries: [
+          {
+            key: 'kapitel-4',
+            label: 'Kapitel 4',
+            count: 4,
+            basisLabel: 'Kapitel 4',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 4,
+              },
+            ],
+            variants: ['Kapitel 4'],
+            confidence: 0.88,
+          },
+        ],
+      });
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(
+      () => fixture.componentInstance.qaWordCloudSmoothingHint() === 'Glättung nicht verfügbar',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(false);
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()?.length).toBeGreaterThan(0);
+
+    fixture.componentInstance.setQaWordCloudAnalysisVariant('THEME');
+    await vi.waitUntil(
+      () =>
+        wordCloudAnalyzeQueryMock.mock.calls.some(
+          (call) =>
+            (call[0] as { mode?: string; normalization?: string }).mode === 'THEME' &&
+            (call[0] as { normalization?: string }).normalization === 'NONE',
+        ),
+      { timeout: 5000, interval: 25 },
+    );
+    const themeCalls = wordCloudAnalyzeQueryMock.mock.calls.filter(
+      (call) => (call[0] as { mode?: string }).mode === 'THEME',
+    );
+    expect(themeCalls.length).toBeGreaterThan(0);
+    expect(
+      themeCalls.every((call) => (call[0] as { normalization?: string }).normalization === 'NONE'),
+    ).toBe(true);
+    fixture.destroy();
+  });
+
+  it('zeigt einen Fehlerhinweis, wenn die Glaettung per Timeout fehlschlaegt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(async (input: { normalization?: string }) => {
+      if (input.normalization === 'LEMMA') {
+        throw new Error('sidecar timeout');
+      }
+
+      return wordCloudAnalyzeResult({
+        entries: [
+          {
+            key: 'kapitel-4',
+            label: 'Kapitel 4',
+            count: 4,
+            basisLabel: 'Kapitel 4',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 4,
+              },
+            ],
+            variants: ['Kapitel 4'],
+            confidence: 0.88,
+          },
+        ],
+      });
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(
+      () => fixture.componentInstance.qaWordCloudSmoothingHint() === 'Glättung fehlgeschlagen',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(false);
     fixture.destroy();
   });
 

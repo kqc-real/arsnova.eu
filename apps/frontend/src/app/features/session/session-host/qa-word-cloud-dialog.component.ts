@@ -12,10 +12,12 @@ import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
 import type { WeightedWordSource } from '../session-present/word-cloud.util';
 
+export type QaWordCloudSmoothingStatus = 'idle' | 'pending' | 'active' | 'stale';
+
 export type QaWordCloudDialogData = {
   responses: () => string[];
   weightedResponses: () => WeightedWordSource[];
-  terms: () => WordCloudTerm[];
+  terms: () => WordCloudTerm[] | null;
   analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
   title: () => string;
   eyebrow: string | null;
@@ -31,6 +33,11 @@ export type QaWordCloudDialogData = {
   frozen: () => boolean;
   freezeLabel: () => string;
   toggleFreeze: () => void | Promise<void>;
+  smoothingStatus: () => QaWordCloudSmoothingStatus;
+  smoothingLabel: () => string;
+  smoothingHint: () => string | null;
+  smoothingDisabled: () => boolean;
+  toggleSmoothing: () => void | Promise<void>;
   itemLabelSingular: string;
   itemLabelPlural: string;
 };
@@ -66,6 +73,27 @@ export class QaWordCloudDialogComponent {
   readonly sortMode = computed(() => this.data.sortMode());
   readonly frozen = computed(() => this.data.frozen());
   readonly freezeLabel = computed(() => this.data.freezeLabel());
+  readonly smoothingStatus = computed(() => this.data.smoothingStatus());
+  readonly smoothingLabel = computed(() => this.data.smoothingLabel());
+  readonly smoothingHint = computed(() => this.data.smoothingHint());
+  readonly smoothingDisabled = computed(() => this.data.smoothingDisabled());
+  readonly smoothingBusy = computed(() => this.smoothingStatus() === 'pending');
+  readonly smoothingPressed = computed(() => {
+    const status = this.smoothingStatus();
+    return status === 'active' || status === 'stale';
+  });
+  readonly smoothingIcon = computed(() => {
+    switch (this.smoothingStatus()) {
+      case 'pending':
+        return 'hourglass_top';
+      case 'active':
+        return 'check';
+      case 'stale':
+        return 'refresh';
+      default:
+        return 'auto_fix_high';
+    }
+  });
 
   setSortMode(mode: QaQuestionSortMode): void {
     if (mode === this.sortMode()) {
@@ -85,5 +113,13 @@ export class QaWordCloudDialogComponent {
 
   toggleFreeze(): void {
     void this.data.toggleFreeze();
+  }
+
+  toggleSmoothing(): void {
+    if (this.smoothingDisabled()) {
+      return;
+    }
+
+    void this.data.toggleSmoothing();
   }
 }

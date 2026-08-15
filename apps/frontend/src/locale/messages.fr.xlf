@@ -15475,6 +15475,34 @@
           <context context-type="linenumber">1187</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
+        <source>Sprachformen glätten</source>
+        <target>Lisser les formes de mots</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothPending" datatype="html">
+        <source>Analyse läuft</source>
+        <target>Analyse en cours</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
+        <source>Glättung aktiv</source>
+        <target>Lissage actif</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
+        <source>Neu analysieren</source>
+        <target>Analyser à nouveau</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
+        <source>Neue Fragen seit letzter Glättung</source>
+        <target>Nouvelles questions depuis le dernier lissage</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
+        <source>Glättung nicht verfügbar</source>
+        <target>Lissage indisponible</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
+        <source>Glättung fehlgeschlagen</source>
+        <target>Échec du lissage</target>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions épinglées restent signalées, sans être remontées.</target>
