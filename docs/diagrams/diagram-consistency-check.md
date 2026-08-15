@@ -12,7 +12,7 @@
 
 ### 1.1 Backend-Komponenten
 
-- **Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, **admin** (Epic 9), **motd** (Epic 10) – untereinander konsistent; adminRouter mit PG/Cleanup; motdRouter mit PG/Rate-Limit; wordCloudRouter mit deterministischer Analyse ohne eigene Persistenz; Verbindungen zu Services, DTO, Validation und PG/Redis/WebSocket/y-websocket stimmig.
+- **Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, **admin** (Epic 9), **motd** (Epic 10) – untereinander konsistent; adminRouter mit PG/Cleanup; motdRouter mit PG/Rate-Limit; wordCloudRouter mit deterministischer Analyse ohne eigene Persistenz plus optionaler host-ausgelöster spaCy-Glättung (Story 1.14b, Unix-Socket-Sidecar); Verbindungen zu Services, DTO, Validation und PG/Redis/WebSocket/y-websocket stimmig.
 - **DTO-Layer:** QuestionStudentDTO (kein isCorrect), QuestionRevealedDTO (mit isCorrect), SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO und NumericEstimate-DTOs für Histogramm/Stats/Rundenvergleich – stimmt mit shared-types Zod-Schemas überein.
 - **Validation:** SubmitVoteInputSchema, CreateSessionInputSchema, QuizUploadInputSchema im Diagramm – alle drei existieren identisch in `libs/shared-types/src/schemas.ts`. ✓
 - **Header:** Epic 0 umgesetzt; healthRouter (check, stats, ping), sessionRouter (mit Rate-Limit), voteRouter (mit Rate-Limit), Yjs- und WebSocket-Server implementiert. ✓

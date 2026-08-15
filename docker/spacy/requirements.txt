@@ -1,0 +1,5 @@
+# spaCy sidecar for Story 1.14b. Models are MIT-licensed de/en small pipelines.
+# fr/es/it are intentionally absent from this default image.
+spacy==3.8.15
+de-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl

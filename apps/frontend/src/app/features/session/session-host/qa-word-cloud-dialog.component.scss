@@ -59,7 +59,8 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
-.qa-word-cloud-dialog__freeze {
+.qa-word-cloud-dialog__freeze,
+.qa-word-cloud-dialog__smooth {
   min-height: 2.7rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
@@ -68,7 +69,8 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
-.qa-word-cloud-dialog__freeze--active {
+.qa-word-cloud-dialog__freeze--active,
+.qa-word-cloud-dialog__smooth--active {
   border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
   background: color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface));
   color: var(--mat-sys-on-primary-container);
@@ -117,7 +119,8 @@
 
   .qa-word-cloud-dialog__sort-toggle,
   .qa-word-cloud-dialog__analysis-toggle,
-  .qa-word-cloud-dialog__freeze {
+  .qa-word-cloud-dialog__freeze,
+  .qa-word-cloud-dialog__smooth {
     width: 100%;
   }
 }
@@ -140,7 +143,8 @@
     max-width: min(100%, 26rem);
   }
 
-  .qa-word-cloud-dialog__freeze {
+  .qa-word-cloud-dialog__freeze,
+  .qa-word-cloud-dialog__smooth {
     min-height: 2.35rem;
   }
 

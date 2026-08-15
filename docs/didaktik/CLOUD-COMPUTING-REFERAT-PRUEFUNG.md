@@ -69,7 +69,7 @@ Der Prüfungsauftrag muss den verbindlichen Themenstichtag, das gewählte Format
 
 ### 4.1 Kanonischer Themenkatalog für die Fallstudie arsnova.eu
 
-Der folgende Katalog bildet den aktuellen Projektstand der [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) ab. Story 1.14a ist die produktive lexikalische Baseline. Story 1.14b ergänzt optional die spaCy-Glättung auf dem bestehenden Single Host. Story 1.14c untersucht einen davon getrennten Open-Weight-Inferenzserver für semantische Q&A-Themen. Die Storys 8.9a–8.9c führen vom deterministischen Moderationskompass über optionale Q&A-Klassifikation bis zur quellengebundenen generativen Zusammenfassung.
+Der folgende Katalog bildet den aktuellen Projektstand der [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) ab. Story 1.14a ist die produktive lexikalische Baseline. Story 1.14b liefert die optionale spaCy-Glättung auf dem bestehenden Single Host (umgesetzt, Sidecar Default aus). Story 1.14c untersucht einen davon getrennten Open-Weight-Inferenzserver für semantische Q&A-Themen. Die Storys 8.9a–8.9c führen vom deterministischen Moderationskompass über optionale Q&A-Klassifikation bis zur quellengebundenen generativen Zusammenfassung.
 
 Ein Referat fasst **keine ganze Story** und keinen Produktkatalog zusammen. Es vertritt zu genau einem abgegrenzten Thema eine überprüfbare These. Mindestens ein eigener technischer Nachweis und eine daraus abgeleitete wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung müssen erkennbar sein. Attraktive Modellantworten oder Architekturdiagramme ohne Messung, Gegenprobe und Gültigkeitsgrenze reichen nicht aus.
 

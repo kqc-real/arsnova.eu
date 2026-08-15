@@ -84,6 +84,8 @@ import {
   selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
+  WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+  WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
 } from '@arsnova/shared-types';
 import type {
   AnalyzeWordCloudInput,
@@ -112,6 +114,7 @@ import type {
   TeamLeaderboardEntryDTO,
   WordCloudAnalysisLocale,
   WordCloudAnalysisVariant,
+  WordCloudNormalizationFallbackReason,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import {
@@ -174,6 +177,7 @@ const HOST_AUX_POLL_MS = 3000;
 const HOST_CLOCK_POLL_MS = 15000;
 const HOST_REALTIME_RESUBSCRIBE_MS = 5000;
 const QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS = 180;
+const WORD_CLOUD_LEMMA_MAX_ENTRIES = 80;
 const FOYER_MAX_ACTIVE_CHIPS = 6;
 const FOYER_CHIP_LIFETIME_MS = 1100;
 const FOYER_CHIP_DEV_LIFETIME_MS = 3500;
@@ -201,6 +205,56 @@ type FoyerArrivalMotionProfile = {
   pulseDelayMs: number;
 };
 type FreetextWordCloudMode = 'WORDS' | 'PHRASES';
+
+function isWordCloudUnigramEntryKey(key: string): boolean {
+  return !key.includes(' ');
+}
+
+function selectFreetextLemmaDisplayEntries(
+  entries: AnalyzeWordCloudOutput['entries'],
+  mode: FreetextWordCloudMode,
+  maxEntries: number,
+): AnalyzeWordCloudOutput['entries'] {
+  const visible =
+    mode === 'WORDS' ? entries.filter((entry) => isWordCloudUnigramEntryKey(entry.key)) : entries;
+  return [...visible]
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+    .slice(0, maxEntries);
+}
+
+function freetextLemmaMaxNgramLength(
+  mode: FreetextWordCloudMode,
+): typeof WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH | typeof WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH {
+  return mode === 'WORDS'
+    ? WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH
+    : WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH;
+}
+
+function resolveFreetextWordCloudMode(value: unknown): FreetextWordCloudMode | null {
+  if (value === 'WORDS' || value === 'PHRASES') {
+    return value;
+  }
+
+  if (value !== null && typeof value === 'object' && 'value' in value) {
+    return resolveFreetextWordCloudMode((value as { value: unknown }).value);
+  }
+
+  return null;
+}
+
+function freetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null): number | null {
+  if (!snapshotKey) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(snapshotKey) as { maxNgramLength?: unknown };
+    return typeof parsed.maxNgramLength === 'number' ? parsed.maxNgramLength : null;
+  } catch {
+    return null;
+  }
+}
+
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 type SessionChannelTempoTone = 'neutral' | 'good' | 'caution' | 'alert';
 type SessionChannelTempoIndicator = {
@@ -686,7 +740,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeAnalysisPending = signal(false);
   readonly qaWordCloudThemeFallbackActive = signal(false);
   readonly qaWordCloudThemeAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly qaWordCloudLemmaPending = signal(false);
+  readonly qaWordCloudLemmaResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly qaWordCloudLemmaSnapshotKey = signal<string | null>(null);
+  readonly qaWordCloudLemmaFallbackReason = signal<WordCloudNormalizationFallbackReason | null>(
+    null,
+  );
+  readonly freetextWordCloudLemmaPending = signal(false);
+  readonly freetextWordCloudLemmaResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly freetextWordCloudLemmaSnapshotKey = signal<string | null>(null);
+  readonly freetextWordCloudLemmaFallbackReason =
+    signal<WordCloudNormalizationFallbackReason | null>(null);
+  readonly freetextWordCloudMaximized = signal(false);
   private qaWordCloudThemeAnalysisRunId = 0;
+  private qaWordCloudLemmaAnalysisRunId = 0;
+  private freetextWordCloudLemmaAnalysisRunId = 0;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private qaWordCloudThemeAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   readonly currentQuestionLabel = signal<string | null>(null);
@@ -845,10 +913,150 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       {
         locale: this.wordCloudTermLocale(),
         maxEntries: 80,
-        maxNgramLength: this.freetextWordCloudMode() === 'WORDS' ? 1 : 3,
+        maxNgramLength: freetextLemmaMaxNgramLength(this.freetextWordCloudMode()),
       },
     ),
   );
+  readonly freetextWordCloudLemmaFingerprint = computed(() => {
+    const items = this.buildFreetextWordCloudLemmaItems();
+    if (items.length === 0) {
+      return null;
+    }
+
+    return JSON.stringify({
+      texts: items.map((item) => item.text),
+      maxNgramLength: freetextLemmaMaxNgramLength(this.freetextWordCloudMode()),
+    });
+  });
+  readonly freetextWordCloudLemmaSnapshotVisible = computed(() => {
+    if (this.buildFreetextWordCloudLemmaItems().length === 0) {
+      return false;
+    }
+
+    if (this.freetextWordCloudLemmaResult()?.normalizationApplied !== 'LEMMA') {
+      return false;
+    }
+
+    if (this.freetextWordCloudMode() !== 'PHRASES') {
+      return true;
+    }
+
+    const snapshotNgram = freetextLemmaSnapshotMaxNgramLength(
+      this.freetextWordCloudLemmaSnapshotKey(),
+    );
+    return snapshotNgram !== null && snapshotNgram > WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH;
+  });
+  readonly displayedFreetextVisibleTerms = computed<WordCloudTerm[] | null>(() =>
+    this.freetextWordCloudLemmaSnapshotVisible() ? null : this.displayedFreetextWordCloudTerms(),
+  );
+  readonly displayedFreetextAnalysisEntries = computed(() => {
+    if (!this.freetextWordCloudLemmaSnapshotVisible()) {
+      return null;
+    }
+
+    const entries = this.freetextWordCloudLemmaResult()?.entries;
+    if (!entries) {
+      return null;
+    }
+
+    return selectFreetextLemmaDisplayEntries(
+      entries,
+      this.freetextWordCloudMode(),
+      WORD_CLOUD_LEMMA_MAX_ENTRIES,
+    );
+  });
+  readonly freetextWordCloudLemmaStale = computed(() => {
+    const snapshotKey = this.freetextWordCloudLemmaSnapshotKey();
+    if (this.freetextWordCloudLemmaResult()?.normalizationApplied !== 'LEMMA' || !snapshotKey) {
+      return false;
+    }
+
+    return this.freetextWordCloudLemmaFingerprint() !== snapshotKey;
+  });
+  readonly freetextWordCloudSmoothingStatus = computed<'idle' | 'pending' | 'active' | 'stale'>(
+    () => {
+      if (this.freetextWordCloudLemmaPending()) {
+        return 'pending';
+      }
+
+      if (this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA') {
+        return this.freetextWordCloudLemmaStale() ? 'stale' : 'active';
+      }
+
+      return 'idle';
+    },
+  );
+  readonly freetextWordCloudSmoothingDisabled = computed(() => {
+    if (this.freetextWordCloudLemmaPending()) {
+      return true;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale()) {
+      return true;
+    }
+
+    return this.buildFreetextWordCloudLemmaItems().length === 0;
+  });
+  readonly freetextWordCloudSmoothingLabel = computed(() => {
+    switch (this.freetextWordCloudSmoothingStatus()) {
+      case 'pending':
+        return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
+      case 'active':
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Glättung aktiv`;
+      case 'stale':
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Neu analysieren`;
+      default:
+        return $localize`:@@sessionQa.wordCloudSmooth:Sprachformen glätten`;
+    }
+  });
+  readonly freetextWordCloudSmoothingHint = computed(() => {
+    if (this.freetextWordCloudLemmaPending()) {
+      return null;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale()) {
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+    }
+
+    if (this.freetextWordCloudSmoothingStatus() === 'stale') {
+      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten seit letzter Glättung`;
+    }
+
+    const reason = this.freetextWordCloudLemmaFallbackReason();
+    if (reason === 'TIMEOUT' || reason === 'INVALID_RESPONSE') {
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Glättung fehlgeschlagen`;
+    }
+
+    if (
+      reason === 'NLP_DISABLED' ||
+      reason === 'SIDECAR_UNAVAILABLE' ||
+      reason === 'LOCALE_UNSUPPORTED' ||
+      reason === 'MODE_UNSUPPORTED'
+    ) {
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+    }
+
+    return null;
+  });
+  readonly freetextWordCloudSmoothingBusy = computed(
+    () => this.freetextWordCloudSmoothingStatus() === 'pending',
+  );
+  readonly freetextWordCloudSmoothingPressed = computed(() => {
+    const status = this.freetextWordCloudSmoothingStatus();
+    return status === 'active' || status === 'stale';
+  });
+  readonly freetextWordCloudSmoothingIcon = computed(() => {
+    switch (this.freetextWordCloudSmoothingStatus()) {
+      case 'pending':
+        return 'hourglass_top';
+      case 'active':
+        return 'check';
+      case 'stale':
+        return 'refresh';
+      default:
+        return 'auto_fix_high';
+    }
+  });
   readonly displayedWordCloudInfo = computed(() =>
     this.wordCloudFrozen()
       ? $localize`:@@sessionHost.wordCloudFrozenInfo:Wortwolke eingefroren.`
@@ -1168,15 +1376,119 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       maxNgramLength: this.qaWordCloudEffectiveAnalysisVariant() === 'THEME' ? 3 : 1,
     }),
   );
+  readonly qaWordCloudLemmaFingerprint = computed(() => {
+    const questions = this.qaWordCloudQuestions();
+    if (questions.length === 0) {
+      return null;
+    }
+
+    const items = questions
+      .map((question) => ({
+        id: question.id,
+        text: question.text,
+        weight: this.qaWordCloudQuestionWeight(question),
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id));
+    return JSON.stringify({ metric: this.qaSortMode(), items });
+  });
+  readonly qaWordCloudLemmaSnapshotVisible = computed(() => {
+    if (this.qaWordCloudEffectiveAnalysisVariant() !== 'LEXICAL') {
+      return false;
+    }
+
+    if (this.qaWordCloudQuestions().length === 0) {
+      return false;
+    }
+
+    return this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA';
+  });
+  readonly qaWordCloudVisibleTerms = computed<WordCloudTerm[] | null>(() =>
+    this.qaWordCloudLemmaSnapshotVisible() ? null : this.qaWordCloudTerms(),
+  );
   readonly qaWordCloudAnalysisRequest = computed<AnalyzeWordCloudInput | null>(() =>
     this.buildQaWordCloudAnalysisRequest(),
   );
   readonly qaWordCloudAnalysisEntries = computed(() => {
+    if (this.qaWordCloudLemmaSnapshotVisible()) {
+      return this.qaWordCloudLemmaResult()?.entries ?? null;
+    }
+
     if (this.qaWordCloudEffectiveAnalysisVariant() !== 'THEME') {
       return null;
     }
 
     return this.qaWordCloudThemeAnalysisResult()?.entries ?? null;
+  });
+  readonly qaWordCloudLemmaStale = computed(() => {
+    const snapshotKey = this.qaWordCloudLemmaSnapshotKey();
+    if (this.qaWordCloudLemmaResult()?.normalizationApplied !== 'LEMMA' || !snapshotKey) {
+      return false;
+    }
+
+    return this.qaWordCloudLemmaFingerprint() !== snapshotKey;
+  });
+  readonly qaWordCloudSmoothingStatus = computed<'idle' | 'pending' | 'active' | 'stale'>(() => {
+    if (this.qaWordCloudLemmaPending()) {
+      return 'pending';
+    }
+
+    if (this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA') {
+      return this.qaWordCloudLemmaStale() ? 'stale' : 'active';
+    }
+
+    return 'idle';
+  });
+  readonly qaWordCloudSmoothingDisabled = computed(() => {
+    if (this.qaWordCloudLemmaPending()) {
+      return true;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale()) {
+      return true;
+    }
+
+    return this.qaWordCloudQuestions().length === 0;
+  });
+  readonly qaWordCloudSmoothingLabel = computed(() => {
+    switch (this.qaWordCloudSmoothingStatus()) {
+      case 'pending':
+        return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
+      case 'active':
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Glättung aktiv`;
+      case 'stale':
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Neu analysieren`;
+      default:
+        return $localize`:@@sessionQa.wordCloudSmooth:Sprachformen glätten`;
+    }
+  });
+  readonly qaWordCloudSmoothingHint = computed(() => {
+    if (this.qaWordCloudLemmaPending()) {
+      return null;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale()) {
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+    }
+
+    if (this.qaWordCloudSmoothingStatus() === 'stale') {
+      return $localize`:@@sessionQa.wordCloudSmoothStale:Neue Fragen seit letzter Glättung`;
+    }
+
+    const reason = this.qaWordCloudLemmaFallbackReason();
+    if (reason === 'TIMEOUT' || reason === 'INVALID_RESPONSE') {
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Glättung fehlgeschlagen`;
+    }
+
+    if (
+      reason === 'NLP_DISABLED' ||
+      reason === 'SIDECAR_UNAVAILABLE' ||
+      reason === 'LOCALE_UNSUPPORTED' ||
+      reason === 'MODE_UNSUPPORTED'
+    ) {
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+    }
+
+    return null;
   });
   readonly qaWordCloudThemeFallbackHint = computed(() => {
     if (this.qaWordCloudTerms().length > 0) {
@@ -1245,7 +1557,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         data: {
           responses: () => this.qaWordCloudResponses(),
           weightedResponses: () => this.qaWordCloudWeightedResponses(),
-          terms: () => this.qaWordCloudTerms(),
+          terms: () => this.qaWordCloudVisibleTerms(),
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
           title: () => this.qaWordCloudTitle(),
           eyebrow: this.qaWordCloudEyebrow,
@@ -1262,6 +1574,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           frozen: () => this.qaWordCloudFrozen(),
           freezeLabel: () => this.qaWordCloudFreezeLabel(),
           toggleFreeze: () => this.toggleQaWordCloudFreeze(),
+          smoothingStatus: () => this.qaWordCloudSmoothingStatus(),
+          smoothingLabel: () => this.qaWordCloudSmoothingLabel(),
+          smoothingHint: () => this.qaWordCloudSmoothingHint(),
+          smoothingDisabled: () => this.qaWordCloudSmoothingDisabled(),
+          toggleSmoothing: () => this.toggleQaWordCloudSmoothing(),
           itemLabelSingular: 'Frage',
           itemLabelPlural: 'Fragen',
         },
@@ -1737,45 +2054,66 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudFrozen.set(true);
   }
 
-  setFreetextWordCloudMode(mode: FreetextWordCloudMode): void {
-    if (mode === this.freetextWordCloudMode()) {
+  async setFreetextWordCloudMode(mode: FreetextWordCloudMode | unknown): Promise<void> {
+    const nextMode = resolveFreetextWordCloudMode(mode);
+    if (!nextMode) {
       return;
     }
 
-    this.freetextWordCloudMode.set(mode);
+    if (nextMode === this.freetextWordCloudMode()) {
+      return;
+    }
+
+    this.freetextWordCloudMode.set(nextMode);
+    const shouldRefreshLemmaSmoothing = untracked(
+      () =>
+        this.freetextWordCloudLemmaPending() ||
+        this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA',
+    );
+    if (!shouldRefreshLemmaSmoothing) {
+      return;
+    }
+
+    await this.requestFreetextWordCloudLemmaSmoothing();
   }
 
-  readonly openFreetextWordCloudDialog = async (): Promise<void> => {
-    this.tryEnterWordCloudFullscreenFromUserGesture();
+  async toggleFreetextWordCloudSmoothing(): Promise<void> {
+    if (this.freetextWordCloudLemmaPending()) {
+      return;
+    }
 
-    const { FreetextWordCloudDialogComponent } =
-      await import('./freetext-word-cloud-dialog.component');
-    this.dialog.open(FreetextWordCloudDialogComponent, {
-      data: {
-        responses: () => this.displayedFreetextResponses(),
-        terms: () => this.displayedFreetextWordCloudTerms(),
-        selectionScopeKey: () => this.displayedCurrentQuestionForHost()?.questionId ?? null,
-        eyebrow: this.freetextWordCloudEyebrow,
-        description: this.freetextWordCloudDescription,
-        analysisVariant: () => this.freetextWordCloudMode(),
-        setAnalysisVariant: (variant: FreetextWordCloudMode) =>
-          this.setFreetextWordCloudMode(variant),
-        frozen: () => this.wordCloudFrozen(),
-        freezeLabel: () => this.wordCloudFreezeLabel(),
-        toggleFreeze: () => this.toggleWordCloudFreeze(),
-      },
-      autoFocus: false,
-      restoreFocus: true,
-      enterAnimationDuration: 180,
-      exitAnimationDuration: 140,
-      width: '100vw',
-      maxWidth: '100vw',
-      height: '100dvh',
-      maxHeight: '100dvh',
-      panelClass: 'word-cloud-dialog-panel',
-      backdropClass: 'word-cloud-dialog-backdrop',
-    });
+    if (this.freetextWordCloudSmoothingStatus() === 'active') {
+      this.clearFreetextWordCloudLemmaSmoothing();
+      return;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale() || this.buildFreetextWordCloudLemmaItems().length === 0) {
+      return;
+    }
+
+    await this.requestFreetextWordCloudLemmaSmoothing();
+  }
+
+  readonly maximizeFreetextWordCloud = (): void => {
+    this.tryEnterWordCloudFullscreenFromUserGesture();
+    this.wordCloudExpanded.set(true);
+    this.freetextWordCloudMaximized.set(true);
   };
+
+  closeFreetextWordCloudMaximize(): void {
+    this.freetextWordCloudMaximized.set(false);
+  }
+
+  onFreetextWordCloudDetailsToggle(target: HTMLDetailsElement): void {
+    if (this.freetextWordCloudMaximized()) {
+      if (!target.open) {
+        target.open = true;
+      }
+      return;
+    }
+
+    this.wordCloudExpanded.set(target.open);
+  }
 
   ratingBarRange(q: HostCurrentQuestionDTO): number[] {
     const min = q.ratingMin ?? 1;
@@ -2119,6 +2457,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownCloseJoinPopover(ev: KeyboardEvent): void {
     if (ev.key !== 'Escape') {
+      return;
+    }
+    if (this.freetextWordCloudMaximized()) {
+      this.closeFreetextWordCloudMaximize();
+      ev.preventDefault();
       return;
     }
     if (this.joinInfoPopoverOpen()) {
@@ -2471,6 +2814,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSub = null;
     this.qaSubscriptionKey = null;
     this.clearQaWordCloudThemeAnalysisTimer();
+    this.qaWordCloudLemmaAnalysisRunId += 1;
+    this.freetextWordCloudLemmaAnalysisRunId += 1;
     this.clearHostQuestionDetailsRetry();
     this.clearHostRealtimeSubscriptionRetry();
     this.stopHostPolling();
@@ -5396,6 +5741,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureQaSubscription();
     await this.refreshQaQuestions();
     this.scrollQaListToTop();
+
+    const shouldRefreshLemmaSmoothing = untracked(
+      () =>
+        this.qaWordCloudAnalysisVariant() === 'LEXICAL' &&
+        (this.qaWordCloudLemmaPending() ||
+          this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA'),
+    );
+    if (!shouldRefreshLemmaSmoothing) {
+      return;
+    }
+
+    await this.requestQaWordCloudLemmaSmoothing();
   }
 
   setQaWordCloudAnalysisVariant(variant: WordCloudAnalysisVariant): void {
@@ -5407,6 +5764,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     this.qaWordCloudAnalysisVariant.set(nextVariant);
+  }
+
+  async toggleQaWordCloudSmoothing(): Promise<void> {
+    if (this.qaWordCloudLemmaPending()) {
+      return;
+    }
+
+    if (this.qaWordCloudSmoothingStatus() === 'active') {
+      this.clearQaWordCloudLemmaSmoothing();
+      return;
+    }
+
+    if (!this.qaWordCloudAnalysisLocale() || this.qaWordCloudQuestions().length === 0) {
+      return;
+    }
+
+    await this.requestQaWordCloudLemmaSmoothing();
   }
 
   async selectChannel(channel: string): Promise<void> {
@@ -6077,6 +6451,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       mode: 'THEME',
       locale,
       metric: this.qaSortMode(),
+      normalization: 'NONE',
       items,
       maxEntries: 40,
     };
@@ -6128,6 +6503,172 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       if (runId === this.qaWordCloudThemeAnalysisRunId) {
         this.qaWordCloudThemeAnalysisPending.set(false);
+      }
+    }
+  }
+
+  private buildQaWordCloudLemmaAnalysisRequest(): AnalyzeWordCloudInput | null {
+    const locale = this.qaWordCloudAnalysisLocale();
+    if (!locale) {
+      return null;
+    }
+
+    const items = this.qaWordCloudQuestions().map((question) => ({
+      id: question.id,
+      text: question.text,
+      weight: this.qaWordCloudQuestionWeight(question),
+    }));
+    if (items.length === 0) {
+      return null;
+    }
+
+    return {
+      sessionCode: this.code.toUpperCase(),
+      mode: 'LEXICAL',
+      locale,
+      metric: this.qaSortMode(),
+      normalization: 'LEMMA',
+      items,
+      maxEntries: WORD_CLOUD_LEMMA_MAX_ENTRIES,
+    };
+  }
+
+  private clearQaWordCloudLemmaSmoothing(): void {
+    this.qaWordCloudLemmaAnalysisRunId += 1;
+    this.qaWordCloudLemmaPending.set(false);
+    this.qaWordCloudLemmaResult.set(null);
+    this.qaWordCloudLemmaSnapshotKey.set(null);
+    this.qaWordCloudLemmaFallbackReason.set(null);
+  }
+
+  private async requestQaWordCloudLemmaSmoothing(): Promise<void> {
+    if (this.qaWordCloudAnalysisVariant() !== 'LEXICAL') {
+      this.setQaWordCloudAnalysisVariant('LEXICAL');
+    }
+
+    const request = this.buildQaWordCloudLemmaAnalysisRequest();
+    const fingerprint = this.qaWordCloudLemmaFingerprint();
+    if (!request || !fingerprint) {
+      return;
+    }
+
+    const runId = ++this.qaWordCloudLemmaAnalysisRunId;
+    this.qaWordCloudLemmaPending.set(true);
+
+    try {
+      const result = await trpc.wordCloud.analyze.mutate(request);
+      if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
+        return;
+      }
+
+      if (result.normalizationApplied === 'LEMMA') {
+        this.qaWordCloudLemmaResult.set(result);
+        this.qaWordCloudLemmaSnapshotKey.set(fingerprint);
+        this.qaWordCloudLemmaFallbackReason.set(null);
+        return;
+      }
+
+      this.qaWordCloudLemmaResult.set(null);
+      this.qaWordCloudLemmaSnapshotKey.set(null);
+      this.qaWordCloudLemmaFallbackReason.set(result.normalizationFallbackReason);
+    } catch {
+      if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
+        return;
+      }
+
+      this.qaWordCloudLemmaResult.set(null);
+      this.qaWordCloudLemmaSnapshotKey.set(null);
+      this.qaWordCloudLemmaFallbackReason.set('TIMEOUT');
+    } finally {
+      if (runId === this.qaWordCloudLemmaAnalysisRunId) {
+        this.qaWordCloudLemmaPending.set(false);
+      }
+    }
+  }
+
+  private buildFreetextWordCloudLemmaItems(): Array<{
+    id: string;
+    text: string;
+    weight: number;
+  }> {
+    return this.displayedFreetextResponses()
+      .map((response) => response.trim())
+      .filter((response) => response.length > 0)
+      .map((text, index) => ({
+        id: `response-${index}`,
+        text,
+        weight: 1,
+      }));
+  }
+
+  private buildFreetextWordCloudLemmaAnalysisRequest(): AnalyzeWordCloudInput | null {
+    const locale = this.qaWordCloudAnalysisLocale();
+    if (!locale) {
+      return null;
+    }
+
+    const items = this.buildFreetextWordCloudLemmaItems();
+    if (items.length === 0) {
+      return null;
+    }
+
+    return {
+      sessionCode: this.code.toUpperCase(),
+      mode: 'LEXICAL',
+      locale,
+      metric: 'TOP',
+      normalization: 'LEMMA',
+      items,
+      maxEntries: WORD_CLOUD_LEMMA_MAX_ENTRIES,
+      maxNgramLength: freetextLemmaMaxNgramLength(this.freetextWordCloudMode()),
+    };
+  }
+
+  private clearFreetextWordCloudLemmaSmoothing(): void {
+    this.freetextWordCloudLemmaAnalysisRunId += 1;
+    this.freetextWordCloudLemmaPending.set(false);
+    this.freetextWordCloudLemmaResult.set(null);
+    this.freetextWordCloudLemmaSnapshotKey.set(null);
+    this.freetextWordCloudLemmaFallbackReason.set(null);
+  }
+
+  private async requestFreetextWordCloudLemmaSmoothing(): Promise<void> {
+    const request = this.buildFreetextWordCloudLemmaAnalysisRequest();
+    const fingerprint = this.freetextWordCloudLemmaFingerprint();
+    if (!request || !fingerprint) {
+      return;
+    }
+
+    const runId = ++this.freetextWordCloudLemmaAnalysisRunId;
+    this.freetextWordCloudLemmaPending.set(true);
+
+    try {
+      const result = await trpc.wordCloud.analyze.mutate(request);
+      if (runId !== this.freetextWordCloudLemmaAnalysisRunId) {
+        return;
+      }
+
+      if (result.normalizationApplied === 'LEMMA') {
+        this.freetextWordCloudLemmaResult.set(result);
+        this.freetextWordCloudLemmaSnapshotKey.set(fingerprint);
+        this.freetextWordCloudLemmaFallbackReason.set(null);
+        return;
+      }
+
+      this.freetextWordCloudLemmaResult.set(null);
+      this.freetextWordCloudLemmaSnapshotKey.set(null);
+      this.freetextWordCloudLemmaFallbackReason.set(result.normalizationFallbackReason);
+    } catch {
+      if (runId !== this.freetextWordCloudLemmaAnalysisRunId) {
+        return;
+      }
+
+      this.freetextWordCloudLemmaResult.set(null);
+      this.freetextWordCloudLemmaSnapshotKey.set(null);
+      this.freetextWordCloudLemmaFallbackReason.set('TIMEOUT');
+    } finally {
+      if (runId === this.freetextWordCloudLemmaAnalysisRunId) {
+        this.freetextWordCloudLemmaPending.set(false);
       }
     }
   }

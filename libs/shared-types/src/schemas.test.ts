@@ -24,6 +24,8 @@ import {
   buildCategorizationStats,
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
+  AnalyzeWordCloudInputSchema,
+  WordCloudAnalysisResultDTOSchema,
 } from './schemas.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
@@ -658,5 +660,133 @@ describe('Neue Fragentypen (MATCHING, ORDERING, CATEGORIZATION)', () => {
         expect.objectContaining({ itemId: 'node', categoryId: 'be', count: 2 }),
       ]),
     );
+  });
+});
+
+describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
+  const sourceItem = {
+    id: '11111111-1111-4111-8111-111111111111',
+    text: 'Kapitel 4',
+    weight: 1,
+  };
+
+  it('setzt fehlende normalization auf NONE', () => {
+    const parsed = AnalyzeWordCloudInputSchema.parse({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'TOP',
+      items: [sourceItem],
+    });
+    expect(parsed.normalization).toBe('NONE');
+    expect(parsed.maxNgramLength).toBeUndefined();
+  });
+
+  it('akzeptiert maxNgramLength 1–3 und lehnt andere Längen ab', () => {
+    expect(
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [sourceItem],
+        maxNgramLength: 3,
+      }).maxNgramLength,
+    ).toBe(3);
+
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [sourceItem],
+        maxNgramLength: 4,
+      }),
+    ).toThrow();
+  });
+
+  it('akzeptiert LEMMA und verlangt die neuen Ergebnisachsen', () => {
+    const parsed = AnalyzeWordCloudInputSchema.parse({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'en',
+      metric: 'TOP',
+      normalization: 'LEMMA',
+      items: [sourceItem],
+    });
+    expect(parsed.normalization).toBe('LEMMA');
+
+    const result = WordCloudAnalysisResultDTOSchema.safeParse({
+      mode: 'LEXICAL',
+      locale: 'en',
+      metric: 'TOP',
+      generatedAt: '2026-08-15T09:00:00.000Z',
+      fallbackUsed: false,
+      entries: [
+        {
+          key: 'chapter',
+          label: 'chapter',
+          count: 1,
+          basisLabel: null,
+          members: [{ sourceId: sourceItem.id, text: sourceItem.text, weight: 1 }],
+          variants: ['chapter'],
+          confidence: null,
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+
+    const complete = WordCloudAnalysisResultDTOSchema.parse({
+      mode: 'LEXICAL',
+      locale: 'en',
+      metric: 'TOP',
+      generatedAt: '2026-08-15T09:00:00.000Z',
+      fallbackUsed: false,
+      normalization: 'LEMMA',
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: true,
+      normalizationFallbackReason: 'NLP_DISABLED',
+      fallbackLocale: 'en',
+      analysisVersion: '1.14b.7',
+      modelId: null,
+      snapshotHash: 'a'.repeat(64),
+      entries: [
+        {
+          key: 'chapter',
+          label: 'chapter',
+          count: 1,
+          basisLabel: null,
+          members: [{ sourceId: sourceItem.id, text: sourceItem.text, weight: 1 }],
+          variants: ['chapter'],
+          confidence: null,
+        },
+      ],
+    });
+    expect(complete.normalizationApplied).toBe('NONE');
+  });
+
+  it('lehnt Analyse-Locales ausser de/en ab', () => {
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'fr',
+        metric: 'TOP',
+        items: [sourceItem],
+      }),
+    ).toThrow();
+  });
+
+  it('begrenzt Item-Textlaenge hart', () => {
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [{ ...sourceItem, text: 'a'.repeat(4001) }],
+      }),
+    ).toThrow();
   });
 });

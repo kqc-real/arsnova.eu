@@ -503,14 +503,14 @@
       <li><code>Semantik</code></li>
     </ul>
     <h3 id="platzierung">Platzierung</h3>
-    <p>Die Aktion gehoert als <strong>sekundaere Host-Aktion</strong> in den Wortwolken-Dialog:</p>
-    <ul>
-      <li>Freitext-Dialog</li>
-      <li>Q&amp;A-Dialog</li>
-    </ul>
     <p>
-      Sie sollte nicht als dritter grosser Modusblock neben Sortierung und Analyseart erscheinen.
+      Die Aktion gehoert als <strong>sekundaere Host-Aktion</strong> neben Einfrieren, nicht als
+      dritter grosser Modusblock:
     </p>
+    <ul>
+      <li>Freitext: kompakte Host-Wortwolke und Vollbild-Dialog</li>
+      <li>Q&amp;A: Wortwolken-Dialog (dort gibt es keine kompakte Wolke)</li>
+    </ul>
     <h3 id="sichtbare-zustandslogik">Sichtbare Zustandslogik</h3>
     <ol>
       <li><code>Sprachformen glaetten</code></li>
@@ -584,6 +584,13 @@
       <li>bestehende DF-Gewichtung, Phrasenbevorzugung und Filterlogik anwenden</li>
       <li>gewichtete Terme an die bestehende Visualisierung liefern</li>
     </ol>
+    <p>
+      Freitext-Glaettung analysiert <code>Einzelwoerter</code> und
+      <code>Woerter &amp; Phrasen</code> getrennt (<code>maxNgramLength</code> 1 bzw. 3). Ein
+      Wechsel der Ansicht bei aktiver Glaettung startet eine neue Analyse desselben Antwortstands.
+      Q&amp;A-Glaettung bleibt lexikalische Einzelwoerter; <code>THEME + LEMMA</code> bleibt
+      ununterstuetzt.
+    </p>
     <h3 id="was-spacy-liefern-darf">Was spaCy liefern darf</h3>
     <p>spaCy soll fuer diesen Pfad nur linguistische Hilfsdaten liefern:</p>
     <ul>
@@ -596,17 +603,39 @@
     <h3 id="empfohlene-filterbasis">Empfohlene Filterbasis</h3>
     <p>Die erste sinnvolle spaCy-Variante fuer <code>arsnova.eu</code> ist:</p>
     <ul>
-      <li><code>NOUN</code></li>
-      <li><code>PROPN</code></li>
-      <li>geschuetzte technische Begriffe</li>
+      <li>Lemma fuer <code>NOUN</code>, <code>VERB</code>, <code>ADJ</code>/<code>ADV</code></li>
+      <li>
+        sichtbare Unigramme nur <code>NOUN</code>, <code>PROPN</code>, <code>NUM</code> und
+        technische <code>X</code>
+      </li>
+      <li><code>PROPN</code> bleibt Oberflaechenform</li>
+      <li>
+        Adjektive nur in Nominalphrasen (<code>lineare Regression</code>), nicht als Einzelwort
+      </li>
+      <li>Verben, Auxiliare, Adverbien und Komparative als Einzelwoerter unterdruecken</li>
+      <li>
+        substantivierte Infinitive (<code>beim Lernen</code>, Antwort <code>Lernen</code>) bleiben
+        sichtbar, auch wenn spaCy sie als <code>VERB</code> taggt
+      </li>
+      <li>geschuetzte technische Begriffe und Namen</li>
     </ul>
+    <p>
+      Freitext-<code>LEXICAL + LEMMA</code> bildet in <code>Woerter &amp; Phrasen</code> angrenzende
+      N-Gramme (bis Trigramme) aus nominalen Einheiten, analog zur lokalen Ansicht.
+      <code>Einzelwoerter</code> analysiert denselben Stand mit <code>maxNgramLength</code> 1 und
+      faellt nicht auf die lokale ungeglaettete Wolke zurueck. Verb- und Adjektivflexion
+      (<code>macht</code>/<code>machen</code>, <code>kurze</code>/<code>kurz</code>) laeuft intern
+      zusammen, erscheint in der Wolke aber nicht als Verb- oder Adjektiv-Unigramm. Funktionsverben
+      wie <code>brauchen</code>, <code>helfen</code> und <code>bleiben</code> bleiben Stopwoerter,
+      auch nach dem Lemma.
+    </p>
     <p>Optional spaeter:</p>
     <ul>
-      <li>selektive Phrasenbildung ueber angrenzende nominale Einheiten</li>
+      <li><code>THEME + LEMMA</code></li>
     </ul>
     <p>Nicht Ziel der ersten Stufe:</p>
     <ul>
-      <li>freie Verb-/Adjektivwolke</li>
+      <li>semantische Verb-/Adjektivwolke ohne Stopwortfilter</li>
       <li>vollstaendige NER-gesteuerte Themenbildung</li>
     </ul>
     <hr />
@@ -684,12 +713,22 @@
     <ul>
       <li>derselbe Host-Stand wird nicht doppelt analysiert</li>
       <li>kleine UI-Interaktionen loesen keine neue NLP-Runde aus</li>
+      <li>
+        der Host-Wechsel zwischen <code>Einzelwoerter</code> und
+        <code>Woerter &amp; Phrasen</code> bei aktiver Glaettung analysiert denselben Stand mit
+        passender N-Gramm-Laenge neu
+      </li>
       <li>Presenter kann spaeter denselben Snapshot verwenden</li>
     </ul>
     <hr />
     <h2 id="kanalbezug">Kanalbezug</h2>
     <h3 id="freitext">Freitext</h3>
-    <p>Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen.</p>
+    <p>
+      Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen. Die
+      Glaettung gilt in <code>Einzelwoerter</code> und <code>Woerter &amp; Phrasen</code>; ein
+      Wechsel der Ansicht bei aktiver Glaettung analysiert denselben Stand mit der passenden
+      N-Gramm-Laenge neu.
+    </p>
     <h3 id="qa">Q&amp;A</h3>
     <p>
       Q&amp;A profitiert, weil laengere Fragen oft dieselben Kerne in verschiedenen Sprachformen und

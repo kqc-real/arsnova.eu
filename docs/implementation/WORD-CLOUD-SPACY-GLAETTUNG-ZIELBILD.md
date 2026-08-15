@@ -2,10 +2,13 @@
 
 # Word Cloud - Zielbild fuer spaCy als optionale Glaettung
 
-**Status:** Zielbild, nicht umgesetzt  
-**Stand:** Mai 2026  
-**Bezug:** `Word Cloud 2.5`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`  
+**Status:** umgesetzt (Story 1.14b, Analyseversion `1.14b.7`, August 2026)
+**Stand:** August 2026
+**Kanonische Produktdoku:** `docs/features/word-cloud-spacy.md`
+**Bezug:** `Word Cloud 2.5`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`
 **Implementierungsplan:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-IMPLEMENTATION-PLAN.md`
+
+Die HTML-Datei `WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.html` ist ein VS-Code-Preview-Dump und kein kanonischer Stand.
 
 ---
 
@@ -79,6 +82,8 @@ Die Glaettung arbeitet auf einem **konkreten Snapshot** der aktuell sichtbaren D
 - kommen neue Fragen/Antworten hinzu, wird der Stand nur als **veraltet** markiert
 - erst ein erneuter Host-Trigger berechnet neu
 
+Host-Wechsel der Freitext-Ansicht oder der Q&A-Sortierung bei aktiver Glaettung sind ebenfalls Host-Trigger: dieselbe Datenmenge wird mit neuer N-Gramm-Laenge bzw. Metrik neu analysiert. Neue eingehende Daten bleiben stale.
+
 ### 4. Die lexikalische Wortwolke bleibt der sichere Standard
 
 Wenn spaCy nicht verfuegbar ist oder kein belastbares Ergebnis liefert:
@@ -108,12 +113,10 @@ Nicht empfohlen:
 
 ### Platzierung
 
-Die Aktion gehoert als **sekundaere Host-Aktion** in den Wortwolken-Dialog:
+Die Aktion gehoert als **sekundaere Host-Aktion** neben Einfrieren, nicht als dritter grosser Modusblock:
 
-- Freitext-Dialog
-- Q&A-Dialog
-
-Sie sollte nicht als dritter grosser Modusblock neben Sortierung und Analyseart erscheinen.
+- Freitext: kompakte Host-Wortwolke und In-Place-Maximize derselben Instanz
+- Q&A: Wortwolken-Dialog (dort gibt es keine kompakte Wolke)
 
 ### Sichtbare Zustandslogik
 
@@ -180,6 +183,8 @@ spaCy sitzt dabei **vor** der heutigen Aggregation, nicht daneben und nicht im R
 6. bestehende DF-Gewichtung, Phrasenbevorzugung und Filterlogik anwenden
 7. gewichtete Terme an die bestehende Visualisierung liefern
 
+Freitext-Glaettung analysiert `Einzelwoerter` und `Woerter & Phrasen` getrennt (`maxNgramLength` 1 bzw. 3). Ein Wechsel der Ansicht bei aktiver Glaettung startet eine neue Analyse desselben Antwortstands. Q&A-Glaettung bleibt lexikalische Einzelwoerter; `THEME + LEMMA` bleibt ununterstuetzt.
+
 ### Was spaCy liefern darf
 
 spaCy soll fuer diesen Pfad nur linguistische Hilfsdaten liefern:
@@ -195,17 +200,23 @@ Mehr wird fuer die erste Glaettungsstufe nicht benoetigt.
 
 Die erste sinnvolle spaCy-Variante fuer `arsnova.eu` ist:
 
-- `NOUN`
-- `PROPN`
-- geschuetzte technische Begriffe
+- Lemma fuer `NOUN`, `VERB`, `ADJ`/`ADV` (Formen zusammenfuehren)
+- sichtbare Unigramme nur `NOUN`, `PROPN`, `NUM` und technische `X`
+- `PROPN` bleibt Oberflaechenform
+- Adjektive nur in Nominalphrasen (`lineare Regression`), nicht als Einzelwort
+- Verben, Auxiliare, Adverbien und Komparative als Einzelwoerter unterdruecken
+- substantivierte Infinitive (`beim Lernen`, Antwort `Lernen`) bleiben sichtbar, auch wenn spaCy sie als `VERB` taggt
+- geschuetzte technische Begriffe und Namen
+
+Freitext-`LEXICAL + LEMMA` bildet in `Woerter & Phrasen` angrenzende N-Gramme (bis Trigramme) aus nominalen Einheiten, analog zur lokalen Ansicht. `Einzelwoerter` analysiert denselben Stand mit `maxNgramLength` 1 und faellt nicht auf die lokale ungeglaettete Wolke zurueck. Verb- und Adjektivflexion (`macht`/`machen`, `kurze`/`kurz`) laeuft intern zusammen, erscheint in der Wolke aber nicht als Verb- oder Adjektiv-Unigramm. Funktionsverben wie `brauchen`, `helfen` und `bleiben` bleiben Stopwoerter, auch nach dem Lemma.
 
 Optional spaeter:
 
-- selektive Phrasenbildung ueber angrenzende nominale Einheiten
+- `THEME + LEMMA`
 
 Nicht Ziel der ersten Stufe:
 
-- freie Verb-/Adjektivwolke
+- semantische Verb-/Adjektivwolke ohne Stopwortfilter
 - vollstaendige NER-gesteuerte Themenbildung
 
 ---
@@ -244,7 +255,8 @@ Empfohlene neue Bausteine:
 
 - `wordCloudNormalizer.ts`
 - `spacyClient.ts`
-- optional `wordCloudAnalysisCache.ts`
+- `wordCloudAnalysisCache.ts`
+- `wordCloudNlpTelemetry.ts`
 
 #### Betriebsmodell
 
@@ -253,6 +265,7 @@ Wenn spaCy kommt, dann als **optionaler Sidecar-Service** hinter dem Backend:
 - nicht im Angular-Frontend
 - nicht im Node-App-Container selbst
 - nicht als Pflicht fuer jede lokale Entwicklungsumgebung
+- intern ueber Unix-Socket (`NLP_SOCKET_PATH`), nicht ueber einen oeffentlichen Port
 
 ### Modelllizenzen
 
@@ -293,6 +306,7 @@ Damit gilt:
 
 - derselbe Host-Stand wird nicht doppelt analysiert
 - kleine UI-Interaktionen loesen keine neue NLP-Runde aus
+- der Host-Wechsel zwischen `Einzelwoerter` und `Woerter & Phrasen` bei aktiver Glaettung analysiert denselben Stand mit passender N-Gramm-Laenge neu
 - Presenter kann spaeter denselben Snapshot verwenden
 
 ---
@@ -301,7 +315,7 @@ Damit gilt:
 
 ### Freitext
 
-Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen.
+Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen. Die Glaettung gilt in `Einzelwoerter` und `Woerter & Phrasen`; ein Wechsel der Ansicht bei aktiver Glaettung analysiert denselben Stand mit der passenden N-Gramm-Laenge neu.
 
 ### Q&A
 
@@ -336,7 +350,7 @@ Sie aendert nur, **wie sprachlich aehnliche Begriffe zusammengefuehrt werden**.
 1. Host kann in Freitext- und Q&A-Wortwolken explizit `Sprachformen glaetten` ausloesen.
 2. Die bestehende lexikalische Wolke bleibt voll funktionsfaehig und ist der Standard.
 3. Die Glaettung laeuft nur auf Host-Anforderung und nur auf dem aktuellen Snapshot.
-4. Neue Daten markieren das Ergebnis als veraltet, starten aber keine automatische Neuberechnung.
+4. Neue Daten markieren das Ergebnis als veraltet, starten aber keine automatische Neuberechnung. Host-Wechsel von Freitext-Ansicht oder Q&A-Sortierung bei aktiver Glaettung analysieren denselben Stand neu.
 5. Bei Fehler oder Nichtverfuegbarkeit bleibt die bisherige Wolke sichtbar.
 6. Sichtbare Labels bleiben lesbar; Lemmaformen muessen nicht 1:1 angezeigt werden.
 7. Geschuetzte technische Begriffe bleiben unveraendert erhalten.

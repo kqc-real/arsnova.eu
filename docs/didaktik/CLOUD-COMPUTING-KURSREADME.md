@@ -2,7 +2,7 @@
 
 # Cloud Computing an der IU: Kurslandkarte und Konzeptstand
 
-**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-08-13
+**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-08-15
 
 ## 1. Geltungsbereich
 
@@ -81,7 +81,7 @@ Verbindliche Evidenzquellen:
 
 ### 3.3 Semesterbegleitendes Studien- und Prüfungsobjekt: von der Begriffswolke zum Moderationskompass
 
-Die [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) bilden gemeinsam das verbindende Studienobjekt für Übungen und Referate. Story 1.14a liefert mit Word Cloud 2.1 bis 2.5 die produktive lexikalische Baseline. Story 1.14b untersucht die optionale spaCy-Glättung als internen Sidecar auf dem bestehenden Single Host. Story 1.14c ergänzt einen host-ausgelösten semantischen Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die Storys 8.9a–8.9c führen diese Signale in einen zunächst deterministischen und später optional KI-gestützten Moderationskompass über.
+Die [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) bilden gemeinsam das verbindende Studienobjekt für Übungen und Referate. Story 1.14a liefert mit Word Cloud 2.1 bis 2.5 die produktive lexikalische Baseline. Story 1.14b liefert die optionale spaCy-Glättung als internen Sidecar auf dem bestehenden Single Host (umgesetzt August 2026, Default aus; Last-, Lizenz- und Fallbackmessungen bleiben Referatsthema). Story 1.14c ergänzt einen host-ausgelösten semantischen Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die Storys 8.9a–8.9c führen diese Signale in einen zunächst deterministischen und später optional KI-gestützten Moderationskompass über.
 
 Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline und bleibt auch der vorgesehene Betriebsort für den begrenzten spaCy-Sidecar aus 1.14b. Der verteilte Sidecar-Default liefert die MIT-Modelle `de`/`en`; `fr`/`es` nur mit NOTICE- beziehungsweise GPL-Kennzeichnung; das italienische `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht in den MIT-Default. Die Studierenden demonstrieren und implementieren für 1.14c sowie optional 8.9b/8.9c schrittweise einen davon getrennten, privat erreichbaren Inferenzserver. 1.14c und 8.9b dürfen dieselbe abgesicherte Serverrolle nutzen, behalten aber getrennte Schemas, Queues, Caches und Modelllebenszyklen. 8.9c verwendet diese Serverrolle über einen getrennten schema- und quellengebundenen Zusammenfassungsvertrag mit eigenem Anfrage-/Ergebnislebenszyklus; Betrieb, Modelllebenszyklus und Servergrenze bleiben bei 1.14c. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
 
@@ -111,17 +111,17 @@ Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Dec
 
 ### Für die Fallstudie
 
-| Frage                                             | Maßgebliches Dokument                                                                                                                                                   |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Was läuft heute?                                  | [Deployment](../deployment-debian-root-server.md), [Produktions-Compose](../../docker-compose.prod.yml), [Architektur-Handbuch](../architecture/handbook.md)            |
-| Was ist gemessen?                                 | Produktions-Join, lokale Baseline und §6.5-Abnahme aus Abschnitt 3.2                                                                                                    |
-| Warum ist das Cloud Computing?                    | [betriebliche Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)                                                                                  |
-| Wie wird wissenschaftlich argumentiert?           | [akademische Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md)                                                                                    |
-| Welche Migration ist plausibel?                   | [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)                                                                                                     |
-| Welche Betriebsmodelle sind vergleichbar?         | [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [OpenStack/Kubernetes](../implementation/CLOUD-COMPUTING-OPENSTACK-UND-ALTERNATIVEN.md) |
-| Wie kann eine Hetzner-Variante kalkuliert werden? | [Stückliste](../implementation/CLOUD-COMPUTING-HETZNER-STUECKLISTE.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)               |
-| Welches Studienobjekt verbindet die Übungen?      | [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)                                    |
-| Welche Referatsthemen werden vergeben?            | [Kanonischer Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu)                                            |
+| Frage                                             | Maßgebliches Dokument                                                                                                                                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Was läuft heute?                                  | [Deployment](../deployment-debian-root-server.md), [Produktions-Compose](../../docker-compose.prod.yml), [Architektur-Handbuch](../architecture/handbook.md)                                  |
+| Was ist gemessen?                                 | Produktions-Join, lokale Baseline und §6.5-Abnahme aus Abschnitt 3.2                                                                                                                          |
+| Warum ist das Cloud Computing?                    | [betriebliche Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md)                                                                                                        |
+| Wie wird wissenschaftlich argumentiert?           | [akademische Einordnung](../implementation/CLOUD-COMPUTING-EINORDNUNG-AKADEMISCH.md)                                                                                                          |
+| Welche Migration ist plausibel?                   | [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)                                                                                                                           |
+| Welche Betriebsmodelle sind vergleichbar?         | [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [OpenStack/Kubernetes](../implementation/CLOUD-COMPUTING-OPENSTACK-UND-ALTERNATIVEN.md)                       |
+| Wie kann eine Hetzner-Variante kalkuliert werden? | [Stückliste](../implementation/CLOUD-COMPUTING-HETZNER-STUECKLISTE.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)                                     |
+| Welches Studienobjekt verbindet die Übungen?      | [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md), [spaCy-Glättung 1.14b](../features/word-cloud-spacy.md), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md) |
+| Welche Referatsthemen werden vergeben?            | [Kanonischer Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu)                                                                  |
 
 Die Kostenunterlagen sind **volatile Rechenbeispiele**, keine Beschaffungsfreigabe und kein Kapazitätsnachweis. Vor jeder Verwendung müssen Preise, Produktverfügbarkeit, Architekturannahmen und Lastdaten neu geprüft werden.
 

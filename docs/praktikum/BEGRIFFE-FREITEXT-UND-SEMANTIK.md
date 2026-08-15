@@ -4,7 +4,7 @@
 
 Dieses Dokument ist **didaktisch** geschrieben: Du brauchst **keine** Vorlesung „Einführung in die Linguistik“ absolviert zu haben. Ziel ist, dass du **Begriffe wie Syntax, Semantik, Lexik, Stemming** sicher einordnen kannst — und verstehst, **warum** eine einfache, rein lexikalische Wortwolke, Embedding-basierte Bündelung und eine optionale LLM-Zusammenfassung **unterschiedliche Probleme** lösen.
 
-**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt (heute stark **lexikalisch**: Wörter zählen). Eure Aufgabe denkt **semantisch** und **lexikalisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — zuerst über erklärbare Baselines und optional über die asynchrone NLP-Kaskade aus [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md). Generative LLMs sind nur eine spätere Komfortschicht, nicht der Pflichtweg.
+**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt. Die produktive Baseline ist **lexikalisch** (Story 1.14a). Optional kann der Host **Sprachformen glätten** (Story 1.14b, spaCy-Lemmata auf einem Snapshot; siehe [word-cloud-spacy.md](../features/word-cloud-spacy.md)). Eure Aufgabe denkt **semantisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — zuerst über erklärbare Baselines und optional über die asynchrone NLP-Kaskade aus [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md). Generative LLMs sind nur eine spätere Komfortschicht, nicht der Pflichtweg.
 
 ---
 

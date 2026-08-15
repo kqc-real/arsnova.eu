@@ -344,6 +344,7 @@ async function analyzeModes(hostTrpc, code, responses, iteration) {
           mode,
           locale: 'de',
           metric: 'TOP',
+          normalization: 'NONE',
           items,
           maxEntries: 50,
         });

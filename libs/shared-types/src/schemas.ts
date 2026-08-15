@@ -4,6 +4,15 @@ import {
   CONFIDENCE_SCALE_MIN,
   questionSupportsConfidence,
 } from './confidence';
+import {
+  WORD_CLOUD_DEFAULT_NORMALIZATION,
+  WORD_CLOUD_MAX_ANALYZE_ITEMS,
+  WORD_CLOUD_MAX_ITEM_ID_CHARS,
+  WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
+  WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES,
+  WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS,
+  WORD_CLOUD_NORMALIZATION_VALUES,
+} from './word-cloud-normalization';
 
 // ---------------------------------------------------------------------------
 // Enums – müssen mit Prisma-Schema synchron bleiben
@@ -3644,6 +3653,18 @@ export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
 export const WordCloudAnalysisVariantEnum = z.enum(['LEXICAL', 'THEME']);
 export type WordCloudAnalysisVariant = z.infer<typeof WordCloudAnalysisVariantEnum>;
 
+/** Optionale sprachliche Glättung (Story 1.14b); orthogonal zu LEXICAL/THEME. */
+export const WordCloudNormalizationEnum = z.enum(WORD_CLOUD_NORMALIZATION_VALUES);
+export type WordCloudNormalization = z.infer<typeof WordCloudNormalizationEnum>;
+
+/** Warum eine angeforderte Lemma-Glättung nicht angewandt wurde. */
+export const WordCloudNormalizationFallbackReasonEnum = z.enum(
+  WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS,
+);
+export type WordCloudNormalizationFallbackReason = z.infer<
+  typeof WordCloudNormalizationFallbackReasonEnum
+>;
+
 /** Erste 3.0-Stufe: erklärbarer Themenmodus ist für `de` und `en` Pflichtscope. */
 export const WordCloudAnalysisLocaleEnum = z.enum(['de', 'en']);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
@@ -3654,27 +3675,35 @@ export type WordCloudWeightMetric = z.infer<typeof WordCloudWeightMetricEnum>;
 
 /** Einzelne Quelldaten für eine Word-Cloud-Analyse. */
 export const WordCloudAnalysisSourceItemSchema = z.object({
-  id: z.string().trim().min(1),
-  text: z.string().trim().min(1),
+  id: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_ID_CHARS),
+  text: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_TEXT_CHARS),
   weight: z.number().min(0),
 });
 export type WordCloudAnalysisSourceItem = z.infer<typeof WordCloudAnalysisSourceItemSchema>;
 
-/** Input: Analyseauftrag für Word Cloud 3.0. */
+/** Input: Analyseauftrag für Word Cloud 3.0 inklusive optionaler Glättung (1.14b). */
 export const AnalyzeWordCloudInputSchema = z.object({
   sessionCode: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   mode: WordCloudAnalysisVariantEnum,
   locale: WordCloudAnalysisLocaleEnum,
   metric: WordCloudWeightMetricEnum,
-  items: z.array(WordCloudAnalysisSourceItemSchema).max(500),
+  normalization: WordCloudNormalizationEnum.default(WORD_CLOUD_DEFAULT_NORMALIZATION),
+  items: z.array(WordCloudAnalysisSourceItemSchema).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   maxEntries: z.number().int().min(1).max(100).optional(),
+  maxNgramLength: z
+    .union([
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[0]),
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[1]),
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[2]),
+    ])
+    .optional(),
 });
 export type AnalyzeWordCloudInput = z.infer<typeof AnalyzeWordCloudInputSchema>;
 
 /** Mitglied eines erklärbaren Themenclusters oder lexikalischen Buckets. */
 export const WordCloudAnalysisMemberDTOSchema = z.object({
-  sourceId: z.string().trim().min(1),
-  text: z.string().trim().min(1),
+  sourceId: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_ID_CHARS),
+  text: z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_TEXT_CHARS),
   weight: z.number().min(0),
 });
 export type WordCloudAnalysisMemberDTO = z.infer<typeof WordCloudAnalysisMemberDTOSchema>;
@@ -3698,6 +3727,14 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   metric: WordCloudWeightMetricEnum,
   generatedAt: z.string(), // ISO-8601
   fallbackUsed: z.boolean(),
+  normalization: WordCloudNormalizationEnum,
+  normalizationApplied: WordCloudNormalizationEnum,
+  normalizationFallbackUsed: z.boolean(),
+  normalizationFallbackReason: WordCloudNormalizationFallbackReasonEnum.nullable(),
+  fallbackLocale: WordCloudAnalysisLocaleEnum,
+  analysisVersion: z.string().min(1).max(64),
+  modelId: z.string().min(1).max(128).nullable(),
+  snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
 });
 export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultDTOSchema>;

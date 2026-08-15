@@ -3480,8 +3480,9 @@
               @if (displayedCurrentQuestionForHost()?.type === 'FREETEXT') {
                 <details
                   class="session-host__extra session-host__extra--freetext session-host__extra--no-divider"
-                  [attr.open]="wordCloudExpanded() ? true : null"
-                  (toggle)="wordCloudExpanded.set($any($event.target).open)"
+                  [class.session-host__extra--maximized]="freetextWordCloudMaximized()"
+                  [attr.open]="wordCloudExpanded() || freetextWordCloudMaximized() ? true : null"
+                  (toggle)="onFreetextWordCloudDetailsToggle($any($event.target))"
                 >
                   <summary class="session-host__extra-summary">
                     <span class="session-host__extra-summary-main">
@@ -3495,19 +3496,36 @@
                     </span>
                   </summary>
                   <div class="session-host__extra-content">
+                    @if (freetextWordCloudMaximized()) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="session-host__extra-close-maximize"
+                        (click)="closeFreetextWordCloudMaximize()"
+                        i18n-aria-label="@@wordCloud.dialogCloseAria"
+                        aria-label="Wortwolke schließen"
+                      >
+                        <mat-icon aria-hidden="true">close</mat-icon>
+                      </button>
+                    }
                     <div class="session-host__extra-actions">
                       <mat-button-toggle-group
                         class="session-host__extra-analysis-toggle"
+                        name="freetext-word-cloud-host-mode"
                         [value]="freetextWordCloudMode()"
-                        (valueChange)="setFreetextWordCloudMode($any($event))"
+                        (change)="setFreetextWordCloudMode($event.value)"
                         i18n-aria-label="@@sessionHost.wordCloudAnalysisAria"
                         aria-label="Wortwolken-Ansicht"
                       >
-                        <mat-button-toggle value="WORDS" i18n="@@sessionHost.wordCloudAnalysisWords"
+                        <mat-button-toggle
+                          value="WORDS"
+                          (click)="setFreetextWordCloudMode('WORDS')"
+                          i18n="@@sessionHost.wordCloudAnalysisWords"
                           >Einzelwörter</mat-button-toggle
                         >
                         <mat-button-toggle
                           value="PHRASES"
+                          (click)="setFreetextWordCloudMode('PHRASES')"
                           i18n="@@sessionHost.wordCloudAnalysisPhrases"
                           >Wörter &amp; Phrasen</mat-button-toggle
                         >
@@ -3523,17 +3541,43 @@
                         }}</mat-icon>
                         <span>{{ wordCloudFreezeLabel() }}</span>
                       </button>
+                      <button
+                        mat-button
+                        type="button"
+                        class="session-host__extra-action session-host__extra-action--smooth"
+                        [class.session-host__extra-action--smooth-active]="
+                          freetextWordCloudSmoothingPressed()
+                        "
+                        [disabled]="freetextWordCloudSmoothingDisabled()"
+                        [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
+                        [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
+                        (click)="toggleFreetextWordCloudSmoothing()"
+                      >
+                        <mat-icon aria-hidden="true">{{
+                          freetextWordCloudSmoothingIcon()
+                        }}</mat-icon>
+                        <span>{{ freetextWordCloudSmoothingLabel() }}</span>
+                      </button>
                     </div>
+                    @if (freetextWordCloudSmoothingHint()) {
+                      <p class="session-host__extra-note" role="status" aria-live="polite">
+                        {{ freetextWordCloudSmoothingHint() }}
+                      </p>
+                    }
                     @if (exportStatus()) {
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }
                     <app-word-cloud
                       [responses]="displayedFreetextResponses()"
-                      [terms]="displayedFreetextWordCloudTerms()"
+                      [terms]="displayedFreetextVisibleTerms()"
+                      [analysisEntries]="displayedFreetextAnalysisEntries()"
                       [selectionScopeKey]="displayedCurrentQuestionForHost()?.questionId ?? null"
                       [eyebrow]="freetextWordCloudEyebrow"
                       [description]="freetextWordCloudDescription"
-                      [maximizeActionHandler]="openFreetextWordCloudDialog"
+                      [presentationMode]="freetextWordCloudMaximized()"
+                      [showMaximizeAction]="!freetextWordCloudMaximized()"
+                      [showResponsesPanel]="!freetextWordCloudMaximized()"
+                      [maximizeActionHandler]="maximizeFreetextWordCloud"
                       [showReleaseNote]="false"
                     />
                   </div>

@@ -55,6 +55,12 @@ services:
       NODE_ENV: 'production'
       PUBLIC_FRONTEND_URL: 'http://127.0.0.1:3000'
       PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: '/usr/bin/chromium'
+      NLP_ENABLED: 'false'
+      NLP_SOCKET_PATH: /run/spacy/nlp.sock
+      NLP_TIMEOUT_MS: '5000'
+      NLP_CACHE_TTL_SECONDS: '1800'
+    volumes:
+      - spacy_socket:/run/spacy:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,6 +73,39 @@ services:
       start_period: 15s
       retries: 3
 
+  # Optionaler spaCy-Sidecar (Story 1.14b, umgesetzt). Start: docker compose --profile nlp up -d
+  spacy:
+    profiles: ['nlp']
+    build:
+      context: ./docker/spacy
+      dockerfile: Dockerfile
+    container_name: arsnova-v3-spacy
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+    volumes:
+      - spacy_socket:/run/spacy
+    environment:
+      HOME: /tmp
+      NLP_SOCKET_PATH: /run/spacy/nlp.sock
+    healthcheck:
+      test: ['CMD', 'python', '/app/healthcheck.py']
+      interval: 15s
+      timeout: 3s
+      start_period: 45s
+      retries: 5
+
 volumes:
   postgres_data:
   redis_data:
+  spacy_socket:

@@ -2,9 +2,9 @@
 
 Dieser Ordner enthält kuratierte Screenshots zu Wortwolken, Stopwörtern und zum Zielbild der semantischen Begriffwolke für Kurs 3. Die Sammlung soll nicht nur den aktuellen Stand dokumentieren, sondern auch die Leselogik hinter den Bildern erklären.
 
-## Produktstand (Mai 2026)
+## Produktstand (August 2026)
 
-- Die aktuelle Freitext-Wortwolke nutzt in Host und Presenter ein echtes `d3-cloud`-Layout; die fachliche Termliste kommt aus einer Document-Frequency-Gewichtung pro Antwort (`Word Cloud 2.5`).
+- Die aktuelle Freitext-Wortwolke nutzt in Host und Presenter ein echtes `d3-cloud`-Layout; die fachliche Termliste kommt aus einer Document-Frequency-Gewichtung pro Antwort (`Word Cloud 2.5`). Die optionale Host-Aktion **Sprachformen glätten** (Story 1.14b) verdichtet Flexionen über spaCy; ohne Klick und ohne Sidecar bleibt die lexikalische 2.5-Wolke der Standard. Siehe [word-cloud-spacy.md](../features/word-cloud-spacy.md).
 - Die Q&A-Wortwolke nutzt dieselbe Term-Pipeline, aber mit Q&A-Gewichten aus dem aktiven Sortiermodus: `Meist unterstuetzt`, `Beste Fragen` oder `Umstritten`. Begriffe zaehlen pro Frage maximal einmal, Phrasen werden staerker gewichtet, technische Begriffe bleiben geschuetzt.
 - Die Presenter-Ansichten fuer Freitext und Q&A zeigen die Wortwolke oeffentlich als reine Buehnenansicht ohne Export-, Antwort- oder Maximieren-UI.
 - Stopwörter werden im Produkt standardmäßig ausgeblendet. Die Dateien mit `Eingeblendet` sind deshalb Vergleichs- und Erklärbilder, kein aktueller Laufzeit-Umschalter in der UI.

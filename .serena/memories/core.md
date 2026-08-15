@@ -16,6 +16,7 @@
   - Participant DTO stripping and solution-data rules: `mem:security/dto-stripping`.
   - Session phases and live DTO lifecycle: `mem:session/lifecycle`.
 - Feature/story-specific memories:
+  - Word-cloud spaCy smoothing (1.14b done): `mem:session/word-cloud-spacy`.
   - Numeric estimate story requirements and two-round/privacy rules: `mem:session/numeric-estimate-story-1-2d`.
   - Numeric estimate PR #25 implementation/review state: `mem:session/numeric-estimate-pr25-state`.
   - Numeric estimate UX/statistics/performance guidelines: `mem:quality/numeric-estimate-ux-performance-guidelines`.
@@ -43,6 +44,7 @@
 - `mem:security/auth`
 - `mem:security/dto-stripping`
 - `mem:session/lifecycle`
+- `mem:session/word-cloud-spacy`
 - `mem:session/numeric-estimate-story-1-2d`
 - `mem:session/numeric-estimate-pr25-state`
 - `mem:quality/numeric-estimate-ux-performance-guidelines`

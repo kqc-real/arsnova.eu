@@ -1,0 +1,16 @@
+Third-Party Notices
+===================
+
+This image is the optional arsnova.eu spaCy sidecar (Story 1.14b).
+arsnova.eu itself remains MIT-licensed. The bundled model packages are
+third-party works.
+
+Included MIT packages
+---------------------
+
+- spaCy 3.8.15 (MIT) — https://github.com/explosion/spaCy
+- de_core_news_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
+- en_core_web_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
+
+This default image does not include fr_core_news_sm (LGPL-LR),
+es_core_news_sm (GPL-3.0), or it_core_news_sm (CC BY-NC-SA 3.0).

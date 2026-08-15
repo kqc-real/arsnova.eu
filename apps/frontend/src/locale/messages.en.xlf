@@ -15424,6 +15424,10 @@
           <context context-type="linenumber">847</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
+        <source>Neue Antworten seit letzter Glättung</source>
+        <target>New answers since last smoothing</target>
+      </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
         <source>Lobby</source>
         <target>Lobby</target>
@@ -15531,6 +15535,34 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1187</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
+        <source>Sprachformen glätten</source>
+        <target>Smooth word forms</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothPending" datatype="html">
+        <source>Analyse läuft</source>
+        <target>Analysis running</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
+        <source>Glättung aktiv</source>
+        <target>Smoothing on</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
+        <source>Neu analysieren</source>
+        <target>Analyze again</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
+        <source>Neue Fragen seit letzter Glättung</source>
+        <target>New questions since last smoothing</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
+        <source>Glättung nicht verfügbar</source>
+        <target>Smoothing unavailable</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
+        <source>Glättung fehlgeschlagen</source>
+        <target>Smoothing failed</target>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>

@@ -151,6 +151,8 @@ jobs:
           node --test scripts/ci/*.test.mjs scripts/deploy/*.test.mjs
           python3 -m py_compile scripts/monitoring/arsnova_monitor.py
           python3 -m unittest discover -s scripts/monitoring/tests -p 'test_*.py'
+          python3 -m py_compile docker/spacy/server.py docker/spacy/healthcheck.py
+          python3 -m unittest discover -s docker/spacy/tests -p 'test_*.py'
           docker run --rm \
             -e ARSNOVA_BACKUP_TEST_CONTAINER=1 \
             -v "$PWD:/repo:ro" \

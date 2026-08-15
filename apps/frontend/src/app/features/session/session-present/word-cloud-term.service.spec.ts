@@ -72,6 +72,20 @@ describe('WordCloudTermExtractorService', () => {
     expect(terms.find((term) => term.key === 'http 404')?.label).toBe('HTTP 404');
   });
 
+  it('haengt Satzpunkte nicht an Einzelwoerter', () => {
+    const terms = service.extractTerms(
+      [
+        { id: 'r1', body: 'dann bleibt der Stoff hängen.' },
+        { id: 'r2', body: 'Ohne das bleibt nur der Eindruck.' },
+        { id: 'r3', body: 'Der Stoff bleibt hängen!' },
+      ],
+      { locale: 'de', maxEntries: 20, maxNgramLength: 1 },
+    );
+
+    expect(terms.some((term) => term.label.includes('.') || term.key.includes('.'))).toBe(false);
+    expect(terms.some((term) => term.label === 'hängen' || term.key === 'haengen')).toBe(true);
+  });
+
   it('extrahiert Bigramme und Trigramme und gewichtet Phrasen staerker als Einzelwoerter', () => {
     const terms = service.extractTerms(
       [

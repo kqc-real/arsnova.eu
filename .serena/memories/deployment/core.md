@@ -6,6 +6,7 @@
 - Localized production frontend validation: backend dev server + `npm run build:localize -w @arsnova/frontend` + `npm run serve:localize:api -w @arsnova/frontend`.
 - Behind exactly one Nginx/reverse proxy, `TRUST_PROXY_HOPS=1` is production-relevant so rate limits see real client IPs.
 - Docker local dev services are Postgres and Redis; production deploy must include migration/generate/health sequencing as documented.
+- Optional spaCy sidecar (Story 1.14b, done): Compose profile `nlp`, `NLP_ENABLED` default false, `deploy.sh` does not start it. Canonical: `docs/features/word-cloud-spacy.md` and `mem:session/word-cloud-spacy`.
 - Do not store production secrets or real `.env.production` values in repo docs, prompts, memories, or commits.
 
 ## Verwandte Memories:
@@ -14,5 +15,6 @@
 - `mem:modules/data-runtime`
 - `mem:security/auth`
 - `mem:testing/core`
+- `mem:session/word-cloud-spacy`
 - `mem:quality/dod`
 - `mem:quality/workflow`

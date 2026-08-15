@@ -104,8 +104,8 @@ COPY scripts/container-runtime-smoke.mjs /app/scripts/
 COPY scripts/pdf-worker-healthcheck.mjs /app/scripts/
 COPY scripts/pdf-worker-runtime-smoke.mjs /app/scripts/
 RUN chmod +x /app/scripts/docker-entrypoint.sh \
-    && mkdir -p /run/pdf-worker \
-    && chown node:node /run/pdf-worker
+    && mkdir -p /run/pdf-worker /run/spacy \
+    && chown node:node /run/pdf-worker /run/spacy
 
 # App, Prisma-Migrationen und Chromium benötigen keine Root-Rechte.
 USER node

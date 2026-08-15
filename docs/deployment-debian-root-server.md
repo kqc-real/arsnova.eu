@@ -559,6 +559,10 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   konsistent mit dem App-Service ab.
 - Der App-Healthcheck prüft `http://localhost:3000/trpc/health.check`.
 - Der Worker-Healthcheck prüft ausschließlich `/health` auf dem Unix-Socket.
+- Der optionale spaCy-Sidecar (Story 1.14b, umgesetzt) ist ein eigenes Python-Image ohne
+  TCP-Port, Compose-Profil `nlp`. `deploy.sh` startet ihn nicht. Die App mountet
+  `spacy_socket` read-only; `NLP_ENABLED` kommt aus `.env.production` und bleibt
+  Default `false`. Standard-Modelle sind MIT `de`/`en` ([NOTICE](../NOTICE)).
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `WS_HOST`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
 - Der tRPC-WebSocket-Server begrenzt global aktive Verbindungen und Upgrades
   sowie Nachrichten je Verbindung/global. Die 1.200-/3.000-Defaults tragen
@@ -668,7 +672,15 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
 `ADMIN_SECRET` und `ADMIN_DIAGNOSTIC_SECRET` jeweils separat mit
 `openssl rand -base64 48` erzeugen. Die beiden Admin-Secrets dürfen nie
 identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
-das Backend 8 Stunden.
+das Backend 8 Stunden. `NLP_ENABLED` bleibt in Produktion `false`, bis der
+optionale spaCy-Sidecar bewusst eingeschaltet wird (Compose-Profil `nlp` plus
+`NLP_ENABLED=true`). `deploy.sh` startet den Sidecar nicht; siehe
+[ENVIRONMENT.md](ENVIRONMENT.md) und [NOTICE](../NOTICE). Lokal: `npm run docker:up:nlp`.
+Produktion: Image selbst bauen (`docker build -t arsnova-spacy:3.8.15 docker/spacy`),
+optional unter einem eigenen GHCR-Namen taggen (nicht `ARSNOVA_IMAGE`), dann
+`COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy`
+und `NLP_ENABLED=true`. Rollback über Kill-Switch und `stop spacy`. Produktdoku:
+[word-cloud-spacy.md](features/word-cloud-spacy.md).
 
 W2.4b wird bewusst zweistufig ausgerollt:
 

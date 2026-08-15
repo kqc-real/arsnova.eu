@@ -133,10 +133,10 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.2 actionlint
 
-- **Was?** Linting/Validierung der GitHub-Workflow-Dateien.
-- **Wo?** Action `raven-actions/actionlint` in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Was?** Linting/Validierung der GitHub-Workflow-Dateien plus operative Shell-/Python-Checks (Backup, Monitoring, spaCy-Sidecar-Unittests ohne Modell-Download).
+- **Wo?** Action `raven-actions/actionlint` und Folgeschritte in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Bei allen Events außer `schedule`.
-- **Warum?** Verhindert CI-Fehler durch fehlerhafte YAML-/Workflow-Logik.
+- **Warum?** Verhindert CI-Fehler durch fehlerhafte YAML-/Workflow-Logik und hält Sidecar-Vertrag/Operationsskripte grün.
 
 ### 4.3 build (Node-Matrix: 22 und 24)
 

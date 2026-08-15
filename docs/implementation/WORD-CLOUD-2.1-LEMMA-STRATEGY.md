@@ -6,7 +6,7 @@
 **Bezug:** Freitext- und Q&A-Wortwolke in `apps/frontend/src/app/features/session/session-present/word-cloud-term.service.ts`, `apps/frontend/src/app/features/session/session-present/word-cloud.util.ts` und `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
 **Ergaenzung zu:** `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
 **Einordnung einer aelteren frag.jetzt-Arbeit:** `docs/implementation/WORD-CLOUD-THESIS-REVIEW-2026-05.md`
-**Zielbild spaeterer spaCy-Glaettung:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
+**Zielbild spaCy-Glaettung:** `docs/features/word-cloud-spacy.md` (Story 1.14b, umgesetzt August 2026); historisches Zielbild `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Weiterfuehrung:** `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`
 
 ---
@@ -69,7 +69,8 @@ Sie macht bewusst **noch nicht**:
 - keine semantische Synonym- oder Themen-Clusterung
 - keine Embeddings
 - kein LLM im Livepfad
-- keine serverseitige Modellabhaengigkeit pro Render
+
+Die optionale serverseitige spaCy-Glaettung (Story 1.14b) sitzt **vor** dieser Aggregation und bleibt host-ausgeloest. Ohne Host-Klick und ohne Sidecar bleibt Freitext lokal und schnell wie in 2.5.
 
 Folge: Die Wolke ist produktiv deutlich robuster als eine rohe Tokenliste, bleibt aber fachlich weiterhin **lexikalisch statt semantisch**.
 
@@ -415,4 +416,4 @@ Der aktuelle technische Weg ist:
 
 `Dokumente -> technische Terme schuetzen -> tokenisieren -> Group-Key/Phrasen -> Document-Frequency-Gewichtung -> beste Anzeigeform zeigen`
 
-Damit verbessert sich die sprachliche Verdichtung deutlich, ohne die Live-Performance oder die Lesbarkeit der Wolke zu opfern. Der naechste echte Sprung ist kein weiteres Stemming, sondern ein spaeterer semantischer `3.x`-Layer.
+Damit verbessert sich die sprachliche Verdichtung deutlich, ohne die Live-Performance oder die Lesbarkeit der Wolke zu opfern. Die optionale spaCy-Glaettung (Story 1.14b) verdichtet Flexionsformen zusaetzlich auf Host-Anforderung. Der naechste echte Sprung bleibt ein semantischer `3.x`-Layer (Story 1.14c).

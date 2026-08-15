@@ -1,6 +1,6 @@
 # Startseite - Backlog-Funktionalitäts-Check
 
-**Stand:** 2026-06-04
+**Stand:** 2026-08-15
 
 **Basis:** [Backlog.md](../../Backlog.md), aktuelle Startseiten-/Toolbar-Funktion, i18n- und Server-Status-Doku. Der frühere Stand vom 2026-03-20 ist ersetzt.
 
@@ -31,7 +31,7 @@
 - **6.5 Barrierefreiheit:** fortlaufender Audit- und Nachweispunkt.
 - **6.6 Thinking Aloud:** qualitative UX-Testreihe und Umsetzung der Befunde offen.
 - **8.5 Delegierbare Q&A-Moderation:** keine eigene Moderator-Route / kein Moderator-Token im Ist-Stand.
-- **1.14a Word Cloud 2.0:** weiterer UI-/Layout-Ausbau offen.
+- **1.14c Word Cloud 3.0:** semantischer Q&A-Themenmodus bleibt offen; 1.14a/1.14b sind abgeschlossen.
 
 ---
 

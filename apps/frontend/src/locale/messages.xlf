@@ -13654,6 +13654,13 @@
           <context context-type="linenumber">849</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
+        <source>Neue Antworten seit letzter Glättung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">951</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
         <source>Lobby</source>
         <context-group purpose="location">
@@ -13746,7 +13753,56 @@
         <source>Es werden Einzelwörter gezeigt, bis Wortgruppen und Phrasen belastbar sind.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1189</context>
+          <context context-type="linenumber">1307</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
+        <source>Sprachformen glätten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1262</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothPending" datatype="html">
+        <source>Analyse läuft</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1256</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
+        <source>Glättung aktiv</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1258</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
+        <source>Neu analysieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1260</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
+        <source>Neue Fragen seit letzter Glättung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1275</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
+        <source>Glättung nicht verfügbar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1271</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
+        <source>Glättung fehlgeschlagen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1280</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">

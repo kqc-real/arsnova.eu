@@ -3,12 +3,12 @@
 # Didaktische Reihenfolge: Offene User Stories
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen bzw. laufenden Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft inzwischen u. a. **5.4a**, **8.6**, **8.7**, **1.2g–1.2h**, **1.2j**, **1.7a** und **1.7b**, die im Backlog als **✅ Fertig** geführt werden. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. **Epic 11** ist ein noch nicht beauftragter Angebots-/Produktpfad und gehört nicht zur Standardstrecke. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
+**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen bzw. laufenden Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft inzwischen u. a. **5.4a**, **8.6**, **8.7**, **1.2g–1.2h**, **1.2j**, **1.7a**, **1.7b**, **1.14a** und **1.14b**, die im Backlog als **✅ Fertig** geführt werden. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. **Epic 11** ist ein noch nicht beauftragter Angebots-/Produktpfad und gehört nicht zur Standardstrecke. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
 
 **Verbindlicher Rahmen:** Jede studierende Person bearbeitet die **gesamte Ticketstrecke** in der hier empfohlenen Reihenfolge. Der frühere Regelfall **„Pflichtkern + Vertiefungspfad“** gilt für dieses Dokument nicht mehr.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
-**Stand dieser Empfehlung:** 2026-08-09 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+**Stand dieser Empfehlung:** 2026-08-15 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
 
 ## Kurz gesagt
 
@@ -63,21 +63,21 @@ Die folgende Struktur listet die **offenen oder laufenden, für dich relevanten 
 
 ### 3.1 Verbindliche Ticketstrecke
 
-| Nr. | Story     | Titel (Kurz)                                 | Didaktischer Schwerpunkt                  | Warum genau hier?                                                                                                                                     |
-| --- | --------- | -------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **1.14a** | Word Cloud 2.0                               | Layout, UX, Performance                   | **Einstieg über bestehende Fläche:** sichtbar, produktnah und gut gegen ADR-0012, Styleguide und bestehende Word-Cloud-Tests prüfbar.                 |
-| 2   | **8.5**   | Delegierbare Q&A-Moderation                  | Rollen, Tokens, Rechte, UI                | **Domänenvertiefung:** baut auf dem fertigen Q&A-Kern und den fertigen Sortierungen 8.6/8.7 auf, verschiebt den Fokus aber auf Rechte und Moderation. |
-| 3   | **1.2ec** | Kurzantwort: Schlüsselwort-Basis             | Bewertungsmodell, Teilpunkte, Erklärtexte | **Aufbau auf fertiger Kurzantwort:** erweitert vorhandene Bewertung, ohne sofort einen komplett neuen Fragentyp zu erzwingen.                         |
-| 4   | **1.2ed** | Kurzantwort: Token-/Mehrwortlogik            | Deterministische Textbewertung, UX        | **Vertiefung nach 1.2ec:** stabilisiert dieselbe Fachfläche und trainiert Tests für Grenzfälle.                                                       |
-| 5   | **1.2d**  | Numerische Schätzfrage                       | Voller Fragentyp End-to-End               | **Erster neuer Fragentyp:** Shared Types, Backend, Session-Flow, Ergebnislogik und UI; darum erst nach Erweiterungen an bestehender Bewertungslogik.  |
-| 6   | **2.9**   | Asynchrone Quiz-Modi und Feedback-Strategien | Produktmodell, Dashboard, Datenschutz     | **Große Produktfläche:** greift tief in Session-Status, Fortschritt und Feedback ein; braucht vorher Routine in Fragentypen und Live-Flows.           |
-| 7   | **0.7**   | Last- & Performance-Tests mit E2E-Szenarien  | Tooling, Messung, CI, Metriken            | **Qualitätsschicht:** erst sinnvoll, wenn mehrere reale Kernflows verstanden und technisch nachvollzogen wurden.                                      |
-| 8   | **6.6**   | UX Thinking Aloud & Umsetzung                | Methode, Findings, iterative Verbesserung | **Methodischer Perspektivwechsel:** nach mehreren Produktflächen ist genug Material da, um Beobachtungen systematisch in Änderungen zu übersetzen.    |
-| 9   | **6.5**   | Barrierefreiheit (Prüfung Projektende)       | Querschnitt, Audit, A11y                  | **Später Querschnitt:** sinnvoll, wenn die relevanten UI-Flächen bereits stehen und nicht mehr im Stundenrhythmus umgebaut werden.                    |
+| Nr. | Story     | Titel (Kurz)                                 | Didaktischer Schwerpunkt                  | Warum genau hier?                                                                                                                                         |
+| --- | --------- | -------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **1.14c** | Word Cloud 3.0                               | Semantik, Inferenzserver, Messung         | **Einstieg über bestehende Fläche:** 1.14a/1.14b sind fertig; der offene semantische Pfad bleibt sichtbar, produktnah und gegen das 3.0-Zielbild prüfbar. |
+| 2   | **8.5**   | Delegierbare Q&A-Moderation                  | Rollen, Tokens, Rechte, UI                | **Domänenvertiefung:** baut auf dem fertigen Q&A-Kern und den fertigen Sortierungen 8.6/8.7 auf, verschiebt den Fokus aber auf Rechte und Moderation.     |
+| 3   | **1.2ec** | Kurzantwort: Schlüsselwort-Basis             | Bewertungsmodell, Teilpunkte, Erklärtexte | **Aufbau auf fertiger Kurzantwort:** erweitert vorhandene Bewertung, ohne sofort einen komplett neuen Fragentyp zu erzwingen.                             |
+| 4   | **1.2ed** | Kurzantwort: Token-/Mehrwortlogik            | Deterministische Textbewertung, UX        | **Vertiefung nach 1.2ec:** stabilisiert dieselbe Fachfläche und trainiert Tests für Grenzfälle.                                                           |
+| 5   | **1.2d**  | Numerische Schätzfrage                       | Voller Fragentyp End-to-End               | **Erster neuer Fragentyp:** Shared Types, Backend, Session-Flow, Ergebnislogik und UI; darum erst nach Erweiterungen an bestehender Bewertungslogik.      |
+| 6   | **2.9**   | Asynchrone Quiz-Modi und Feedback-Strategien | Produktmodell, Dashboard, Datenschutz     | **Große Produktfläche:** greift tief in Session-Status, Fortschritt und Feedback ein; braucht vorher Routine in Fragentypen und Live-Flows.               |
+| 7   | **0.7**   | Last- & Performance-Tests mit E2E-Szenarien  | Tooling, Messung, CI, Metriken            | **Qualitätsschicht:** erst sinnvoll, wenn mehrere reale Kernflows verstanden und technisch nachvollzogen wurden.                                          |
+| 8   | **6.6**   | UX Thinking Aloud & Umsetzung                | Methode, Findings, iterative Verbesserung | **Methodischer Perspektivwechsel:** nach mehreren Produktflächen ist genug Material da, um Beobachtungen systematisch in Änderungen zu übersetzen.        |
+| 9   | **6.5**   | Barrierefreiheit (Prüfung Projektende)       | Querschnitt, Audit, A11y                  | **Später Querschnitt:** sinnvoll, wenn die relevanten UI-Flächen bereits stehen und nicht mehr im Stundenrhythmus umgebaut werden.                        |
 
 ### 3.2 Greenfield-Referenz: 1.7a
 
-Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeline, Lightbox, i18n und Tests relevant. Als **umgesetzte Story** gehört sie aber **nicht** mehr in die studentische Ticketstrecke. Gleiches gilt für **5.4a**, **8.6**, **8.7**, **1.7b** und **1.2i**: Diese Stories können für Review-Übungen dienen, sind aber keine aktuellen Umsetzungstickets. **Geschlossen (nicht umgesetzt)** und ebenfalls nicht Teil der Strecke: **1.2f** (Hotspot, A11y), **0.8** (McCabe-Refactor) und **1.6d** (keine Optimierung ohne nachgewiesenes Performanceproblem). **1.6c** ist technisch umgesetzt und verbleibt nur als automatischer betrieblicher Cutover-Termin am **1. Oktober 2026**.
+Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeline, Lightbox, i18n und Tests relevant. Als **umgesetzte Story** gehört sie aber **nicht** mehr in die studentische Ticketstrecke. Gleiches gilt für **5.4a**, **8.6**, **8.7**, **1.7b**, **1.2i**, **1.14a** und **1.14b**: Diese Stories können für Review-Übungen dienen, sind aber keine aktuellen Umsetzungstickets. **Geschlossen (nicht umgesetzt)** und ebenfalls nicht Teil der Strecke: **1.2f** (Hotspot, A11y), **0.8** (McCabe-Refactor) und **1.6d** (keine Optimierung ohne nachgewiesenes Performanceproblem). **1.6c** ist technisch umgesetzt und verbleibt nur als automatischer betrieblicher Cutover-Termin am **1. Oktober 2026**.
 
 ---
 

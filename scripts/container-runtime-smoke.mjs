@@ -51,19 +51,18 @@ async function assertProcessRestrictions() {
   assert(/^CapEff:\s+0+$/m.test(status), 'Effektive Linux-Capabilities sind nicht leer');
 }
 
-async function assertWorkerSocketMountReadOnly() {
-  const probe = '/run/pdf-worker/app-must-not-write';
+async function assertSocketMountReadOnly(probe, label) {
   try {
     await writeFile(probe, 'must not be writable');
   } catch (error) {
     assert(
       error && typeof error === 'object' && ['EACCES', 'EROFS'].includes(error.code),
-      `Unerwarteter Socket-Mount-Probe-Fehler: ${String(error)}`,
+      `Unerwarteter ${label}-Socket-Mount-Probe-Fehler: ${String(error)}`,
     );
     return;
   }
   await rm(probe, { force: true });
-  throw new Error('App kann in das PDF-Worker-Socket-Volume schreiben');
+  throw new Error(`App kann in das ${label}-Socket-Volume schreiben`);
 }
 
 async function assertPdfRuntime() {
@@ -100,7 +99,8 @@ async function assertPdfRuntime() {
 await assertProcessRestrictions();
 await assertReadOnlyRootFilesystem();
 await assertWritableTmp();
-await assertWorkerSocketMountReadOnly();
+await assertSocketMountReadOnly('/run/pdf-worker/app-must-not-write', 'PDF-Worker');
+await assertSocketMountReadOnly('/run/spacy/app-must-not-write', 'spaCy');
 await assertPdfRuntime();
 
 console.log('Container-Härtung und Chromium-PDF-Smoke erfolgreich.');

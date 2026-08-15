@@ -1,0 +1,153 @@
+import { describe, expect, it } from 'vitest';
+import {
+  isTransientWordCloudNormalizationFallback,
+  isWordCloudLemmaLocale,
+  resolveWordCloudLemmaApplication,
+  WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+  WORD_CLOUD_DEFAULT_NORMALIZATION,
+  WORD_CLOUD_LEMMA_EXCLUDED_MODELS,
+  WORD_CLOUD_LEMMA_MODELS,
+  WORD_CLOUD_MAX_ANALYZE_ITEMS,
+  WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
+  WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES,
+  WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
+  WORD_CLOUD_SPACY_RUNTIME_VERSION,
+  createWordCloudLemmaFallback,
+  wordCloudLemmaModelId,
+} from './word-cloud-normalization.js';
+
+describe('word-cloud-normalization (Story 1.14b)', () => {
+  it('begrenzt die erste Lemma-Stufe auf MIT-Modelle de/en', () => {
+    expect(isWordCloudLemmaLocale('de')).toBe(true);
+    expect(isWordCloudLemmaLocale('en')).toBe(true);
+    expect(isWordCloudLemmaLocale('fr')).toBe(false);
+    expect(isWordCloudLemmaLocale('es')).toBe(false);
+    expect(isWordCloudLemmaLocale('it')).toBe(false);
+    expect(WORD_CLOUD_LEMMA_MODELS.de.license).toBe('MIT');
+    expect(WORD_CLOUD_LEMMA_MODELS.en.license).toBe('MIT');
+    expect(WORD_CLOUD_LEMMA_EXCLUDED_MODELS.it.license).toBe('CC BY-NC-SA 3.0');
+    expect(wordCloudLemmaModelId('de')).toBe('de_core_news_sm@3.8.0');
+    expect(wordCloudLemmaModelId('it')).toBeNull();
+  });
+
+  it('pinnt Runtime und Vertragsversion für Cache-Schlüssel', () => {
+    expect(WORD_CLOUD_SPACY_RUNTIME_VERSION).toBe('3.8.15');
+    expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.7');
+    expect(WORD_CLOUD_DEFAULT_NORMALIZATION).toBe('NONE');
+    expect(WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH).toBe(1);
+    expect(WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH).toBe(3);
+    expect(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES).toEqual([1, 2, 3]);
+    expect(WORD_CLOUD_MAX_ITEM_TEXT_CHARS).toBe(4000);
+    expect(WORD_CLOUD_MAX_ANALYZE_ITEMS).toBe(500);
+  });
+
+  it('markiert nur transiente Sidecar-Fehler als nicht cachebar', () => {
+    expect(isTransientWordCloudNormalizationFallback('TIMEOUT')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('SIDECAR_UNAVAILABLE')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('INVALID_RESPONSE')).toBe(true);
+    expect(isTransientWordCloudNormalizationFallback('NLP_DISABLED')).toBe(false);
+    expect(isTransientWordCloudNormalizationFallback('MODE_UNSUPPORTED')).toBe(false);
+    expect(isTransientWordCloudNormalizationFallback(null)).toBe(false);
+  });
+
+  it('laesst NONE unveraendert und ohne Fallback', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'NONE',
+        mode: 'LEXICAL',
+        locale: 'de',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }),
+    ).toEqual({
+      requested: 'NONE',
+      applied: 'NONE',
+      fallbackUsed: false,
+      reason: null,
+      fallbackLocale: 'de',
+      modelId: null,
+    });
+  });
+
+  it('wendet LEMMA nur im lexikalischen Pfad mit aktivem Sidecar an', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'LEXICAL',
+        locale: 'en',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }),
+    ).toEqual({
+      requested: 'LEMMA',
+      applied: 'LEMMA',
+      fallbackUsed: false,
+      reason: null,
+      fallbackLocale: 'en',
+      modelId: 'en_core_web_sm@3.8.0',
+    });
+  });
+
+  it('lehnt THEME + LEMMA als Mode-Fallback ab', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'THEME',
+        locale: 'de',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }).reason,
+    ).toBe('MODE_UNSUPPORTED');
+  });
+
+  it('faellt bei deaktiviertem NLP und fehlendem Sidecar lexikalisch zurueck', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'LEXICAL',
+        locale: 'de',
+        nlpEnabled: false,
+        sidecarAvailable: false,
+      }).reason,
+    ).toBe('NLP_DISABLED');
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'LEXICAL',
+        locale: 'de',
+        nlpEnabled: true,
+        sidecarAvailable: false,
+      }).reason,
+    ).toBe('SIDECAR_UNAVAILABLE');
+  });
+
+  it('bildet Laufzeit-Fallbacks fuer Timeout und ungueltige Sidecar-Antworten', () => {
+    expect(createWordCloudLemmaFallback('LEMMA', 'de', 'TIMEOUT')).toMatchObject({
+      requested: 'LEMMA',
+      applied: 'NONE',
+      reason: 'TIMEOUT',
+      modelId: null,
+    });
+    expect(createWordCloudLemmaFallback('LEMMA', 'en', 'INVALID_RESPONSE').reason).toBe(
+      'INVALID_RESPONSE',
+    );
+  });
+
+  it('haelt fr/es/it ausserhalb der ersten Lemma-Stufe', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'LEXICAL',
+        locale: 'fr',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }),
+    ).toMatchObject({
+      applied: 'NONE',
+      reason: 'LOCALE_UNSUPPORTED',
+      fallbackLocale: 'de',
+      modelId: null,
+    });
+  });
+});

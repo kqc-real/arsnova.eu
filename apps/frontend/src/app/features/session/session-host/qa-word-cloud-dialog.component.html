@@ -54,10 +54,26 @@
       <mat-icon aria-hidden="true">{{ frozen() ? 'play_arrow' : 'pause' }}</mat-icon>
       <span>{{ freezeLabel() }}</span>
     </button>
+    <button
+      mat-button
+      type="button"
+      class="qa-word-cloud-dialog__smooth"
+      [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+      [disabled]="smoothingDisabled()"
+      [attr.aria-pressed]="smoothingPressed()"
+      [attr.aria-busy]="smoothingBusy() ? true : null"
+      (click)="toggleSmoothing()"
+    >
+      <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+      <span>{{ smoothingLabel() }}</span>
+    </button>
   </div>
 
   @if (themeFallbackHint()) {
     <p class="qa-word-cloud-dialog__mode-note">{{ themeFallbackHint() }}</p>
+  }
+  @if (smoothingHint()) {
+    <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
   }
 
   <app-word-cloud

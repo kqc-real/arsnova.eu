@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
+import { SpacyClientError } from '../lib/spacyClient';
+import * as spacyClient from '../lib/spacyClient';
 
 const { extractHostTokenFromContextMock, isHostSessionTokenValidMock } = vi.hoisted(() => ({
   extractHostTokenFromContextMock: vi.fn(),
@@ -11,7 +13,13 @@ vi.mock('../lib/hostAuth', () => ({
   isHostSessionTokenValid: isHostSessionTokenValidMock,
 }));
 
-import { wordCloudRouter } from '../routers/wordCloud';
+import { wordCloudRouter, analyzeWordCloudSnapshot } from '../routers/wordCloud';
+import { createMemoryWordCloudAnalysisCache } from '../lib/wordCloudAnalysisCache';
+import {
+  resetWordCloudNlpTelemetryForTests,
+  snapshotWordCloudNlpTelemetry,
+} from '../lib/wordCloudNlpTelemetry';
+import { logger } from '../lib/logger';
 
 const hostCaller = wordCloudRouter.createCaller({ req: {} as never });
 
@@ -63,6 +71,12 @@ describe('wordCloud.analyze', () => {
       expect(result.mode).toBe('THEME');
       expect(result.metric).toBe('BEST');
       expect(result.fallbackUsed).toBe(false);
+      expect(result.normalization).toBe('NONE');
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackUsed).toBe(false);
+      expect(result.normalizationFallbackReason).toBeNull();
+      expect(result.analysisVersion).toBe('1.14b.7');
+      expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
         key: 'kapitel 4',
@@ -339,7 +353,7 @@ describe('wordCloud.analyze', () => {
         },
         {
           id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
-          text: 'Welche Frage bleibt offen?',
+          text: 'Welche Frage bleibt zur Regression?',
           weight: 1,
         },
       ],
@@ -355,12 +369,490 @@ describe('wordCloud.analyze', () => {
         variants: ['gewinnt'],
       },
       {
-        key: 'offen',
-        label: 'offen',
+        key: 'regression',
+        label: 'Regression',
         count: 1,
-        variants: ['offen'],
+        variants: ['Regression'],
       },
     ]);
+  });
+
+  it('faellt bei angeforderter Lemma-Glaettung ohne NLP auf NONE zurueck', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'TOP',
+      normalization: 'LEMMA',
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Fragen zur Validierung',
+          weight: 2,
+        },
+      ],
+    });
+
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.normalization).toBe('LEMMA');
+    expect(result.normalizationApplied).toBe('NONE');
+    expect(result.normalizationFallbackUsed).toBe(true);
+    expect(result.normalizationFallbackReason).toBe('NLP_DISABLED');
+    expect(result.modelId).toBeNull();
+    expect(result.entries.length).toBeGreaterThan(0);
+  });
+
+  it('wendet THEME + LEMMA nicht an und laesst den Themenpfad unangetastet', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'THEME',
+      locale: 'de',
+      metric: 'BEST',
+      normalization: 'LEMMA',
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 8,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+          weight: 5,
+        },
+      ],
+    });
+
+    expect(result.mode).toBe('THEME');
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.normalization).toBe('LEMMA');
+    expect(result.normalizationApplied).toBe('NONE');
+    expect(result.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+    expect(result.entries[0]).toMatchObject({
+      key: 'kapitel 4',
+      label: 'Kapitel 4',
+    });
+  });
+
+  it('cacht Themenanalysen ohne Sidecar-Aufruf', async () => {
+    const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
+    const cache = createMemoryWordCloudAnalysisCache();
+    const input = {
+      sessionCode: 'ABC123',
+      mode: 'THEME' as const,
+      locale: 'de' as const,
+      metric: 'BEST' as const,
+      normalization: 'NONE' as const,
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 8,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+          weight: 5,
+        },
+      ],
+    };
+
+    const first = await analyzeWordCloudSnapshot(input, { cache });
+    const second = await analyzeWordCloudSnapshot(input, { cache });
+
+    expect(sidecar).not.toHaveBeenCalled();
+    expect(first.fallbackUsed).toBe(false);
+    expect(second.generatedAt).toBe(first.generatedAt);
+    expect(second.entries[0]).toMatchObject({ key: 'kapitel 4', label: 'Kapitel 4' });
+    sidecar.mockRestore();
+  });
+
+  describe('LEXICAL + LEMMA', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.restoreAllMocks();
+    });
+
+    it('faellt ohne erreichbaren Sidecar hart auf Identity zurueck', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.stubEnv('NLP_SOCKET_PATH', '/tmp/arsnova-missing-nlp.sock');
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Haus',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('SIDECAR_UNAVAILABLE');
+      expect(result.entries.map((entry) => entry.key).sort()).toEqual(['haeuser', 'haus']);
+    });
+
+    it('buendelt Nomenformen, wenn der Sidecar Lemma-Tokens liefert', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }],
+          },
+        ],
+      });
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Haus',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('LEMMA');
+      expect(result.normalizationFallbackUsed).toBe(false);
+      expect(result.modelId).toBe('de_core_news_sm@3.8.0');
+      expect(result.entries).toMatchObject([
+        {
+          key: 'haus',
+          label: 'Haus',
+          count: 3,
+          variants: ['Haus'],
+        },
+      ]);
+    });
+
+    it('nimmt geglaettete Bigramme auf, wenn maxNgramLength Phrasen erlaubt', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [
+              { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
+              { text: 'Regression', lemma: 'Regression', pos: 'NOUN' },
+            ],
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            tokens: [
+              { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
+              { text: 'Regressionen', lemma: 'Regression', pos: 'NOUN' },
+            ],
+          },
+        ],
+      });
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        maxNgramLength: 3,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'lineare Regression',
+            weight: 1,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'lineare Regressionen',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('LEMMA');
+      expect(result.entries).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'regression',
+            label: 'Regression',
+            count: 2,
+          }),
+          expect.objectContaining({
+            key: 'linear regression',
+            label: 'linear Regression',
+            count: 2,
+          }),
+        ]),
+      );
+    });
+
+    it('meldet Sidecar-Timeout als Normalisierungs-Fallback', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockRejectedValue(
+        new SpacyClientError('TIMEOUT'),
+      );
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('TIMEOUT');
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.entries[0]?.key).toBe('haeuser');
+    });
+
+    it('meldet ungueltige Sidecar-Antworten als Normalisierungs-Fallback', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockRejectedValue(
+        new SpacyClientError('INVALID_RESPONSE'),
+      );
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('INVALID_RESPONSE');
+      expect(result.entries[0]?.key).toBe('haeuser');
+    });
+
+    it('liefert fuer leere Snapshots keine Eintraege', async () => {
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [],
+      });
+
+      expect(result.entries).toEqual([]);
+      expect(result.fallbackUsed).toBe(false);
+    });
+
+    it('ruft den Sidecar bei THEME + LEMMA nicht an', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'THEME',
+        locale: 'de',
+        metric: 'BEST',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 8,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 5,
+          },
+        ],
+      });
+
+      expect(sidecar).not.toHaveBeenCalled();
+      expect(result.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+      expect(result.entries[0]).toMatchObject({
+        key: 'kapitel 4',
+        label: 'Kapitel 4',
+      });
+    });
+
+    it('liefert denselben Snapshot beim zweiten Aufruf aus dem Cache', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
+          },
+        ],
+      });
+      const cache = createMemoryWordCloudAnalysisCache();
+      const input = {
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL' as const,
+        locale: 'de' as const,
+        metric: 'TOP' as const,
+        normalization: 'LEMMA' as const,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      };
+
+      resetWordCloudNlpTelemetryForTests();
+      const first = await analyzeWordCloudSnapshot(input, { cache });
+      const second = await analyzeWordCloudSnapshot(input, { cache });
+
+      expect(sidecar).toHaveBeenCalledOnce();
+      expect(second.generatedAt).toBe(first.generatedAt);
+      expect(second.normalizationApplied).toBe('LEMMA');
+      expect(snapshotWordCloudNlpTelemetry()).toMatchObject({
+        snapshotHits: 1,
+        snapshotMisses: 1,
+        sidecarCalls: 1,
+      });
+    });
+
+    it('nutzt den Text-Cache ueber Sessiongrenzen und cacht Timeouts nicht', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
+          },
+        ],
+      });
+      const cache = createMemoryWordCloudAnalysisCache();
+      const base = {
+        mode: 'LEXICAL' as const,
+        locale: 'de' as const,
+        metric: 'TOP' as const,
+        normalization: 'LEMMA' as const,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      };
+
+      resetWordCloudNlpTelemetryForTests();
+      await analyzeWordCloudSnapshot({ ...base, sessionCode: 'ABC123' }, { cache });
+      await analyzeWordCloudSnapshot({ ...base, sessionCode: 'XYZ789' }, { cache });
+      expect(sidecar).toHaveBeenCalledOnce();
+      expect(snapshotWordCloudNlpTelemetry()).toMatchObject({
+        snapshotHits: 0,
+        snapshotMisses: 2,
+        sidecarCalls: 1,
+        textHits: 1,
+        textMisses: 1,
+      });
+
+      sidecar.mockRejectedValue(new SpacyClientError('TIMEOUT'));
+      const timeoutInput = {
+        ...base,
+        sessionCode: 'TMO001',
+        items: [
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Fragen',
+            weight: 1,
+          },
+        ],
+      };
+      const firstTimeout = await analyzeWordCloudSnapshot(timeoutInput, { cache });
+      expect(firstTimeout.normalizationFallbackReason).toBe('TIMEOUT');
+      expect(await cache.getSnapshot(timeoutInput)).toBeNull();
+      await analyzeWordCloudSnapshot(timeoutInput, { cache });
+      expect(sidecar).toHaveBeenCalledTimes(3);
+    });
+
+    it('loggt Analyse-Telemetrie ohne Rohtexte und Socketpfad', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.stubEnv('NLP_SOCKET_PATH', '/run/spacy/nlp.sock');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
+          },
+        ],
+      });
+      const info = vi.spyOn(logger, 'info');
+      await analyzeWordCloudSnapshot(
+        {
+          sessionCode: 'ABC123',
+          mode: 'LEXICAL',
+          locale: 'de',
+          metric: 'TOP',
+          normalization: 'LEMMA',
+          items: [
+            {
+              id: '11111111-1111-4111-8111-111111111111',
+              text: 'Häuser',
+              weight: 2,
+            },
+          ],
+        },
+        { cache: createMemoryWordCloudAnalysisCache() },
+      );
+
+      const payload = info.mock.calls.find((call) => call[0] === 'wordcloud:analyze')?.[1];
+      expect(payload).toMatchObject({
+        sessionCode: 'ABC123',
+        snapshotCache: 'miss',
+        sidecarCalled: true,
+      });
+      expect(JSON.stringify(payload)).not.toContain('Häuser');
+      expect(JSON.stringify(payload)).not.toContain('/run/spacy/nlp.sock');
+    });
   });
 
   trpcDodIt(
