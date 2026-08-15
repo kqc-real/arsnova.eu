@@ -29,14 +29,43 @@ describe('wordCloudNormalizer', () => {
     expect(tokens.get('item-2')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
   });
 
-  it('nutzt bei Nomen das Lemma und laesst Namen unangetastet', () => {
+  it('nutzt bei Nomen, Verben und Adjektiven das Lemma und laesst Namen unangetastet', () => {
     expect(mapSpacyTokenToWordCloud({ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' })).toEqual({
       display: 'Haus',
       lookup: 'haus',
+      pos: 'NOUN',
+      surfaceLookup: 'häuser',
+    });
+    expect(mapSpacyTokenToWordCloud({ text: 'macht', lemma: 'machen', pos: 'VERB' })).toEqual({
+      display: 'machen',
+      lookup: 'machen',
+      pos: 'VERB',
+      surfaceLookup: 'macht',
+    });
+    expect(mapSpacyTokenToWordCloud({ text: 'brauche', lemma: 'brauchen', pos: 'VERB' })).toEqual({
+      display: 'brauchen',
+      lookup: 'brauchen',
+      pos: 'VERB',
+      surfaceLookup: 'brauche',
+    });
+    expect(mapSpacyTokenToWordCloud({ text: 'verliere', lemma: 'verlieren', pos: 'VERB' })).toEqual(
+      {
+        display: 'verlieren',
+        lookup: 'verlieren',
+        pos: 'VERB',
+        surfaceLookup: 'verliere',
+      },
+    );
+    expect(mapSpacyTokenToWordCloud({ text: 'kurze', lemma: 'kurz', pos: 'ADJ' })).toEqual({
+      display: 'kurz',
+      lookup: 'kurz',
+      pos: 'ADJ',
+      surfaceLookup: 'kurze',
     });
     expect(mapSpacyTokenToWordCloud({ text: 'Berlins', lemma: 'Berlin', pos: 'PROPN' })).toEqual({
       display: 'Berlins',
       lookup: 'berlins',
+      pos: 'PROPN',
     });
     expect(
       mapSpacyTokenToWordCloud({
@@ -45,10 +74,30 @@ describe('wordCloudNormalizer', () => {
         pos: 'NOUN',
         entType: 'GPE',
       }),
-    ).toEqual({ display: 'Berlin', lookup: 'berlin' });
+    ).toEqual({ display: 'Berlin', lookup: 'berlin', pos: 'NOUN' });
     expect(
       mapSpacyTokenToWordCloud({ text: 'validiert', lemma: 'validieren', pos: 'VERB' }),
-    ).toEqual({ display: 'validiert', lookup: 'validiert' });
+    ).toEqual({
+      display: 'validieren',
+      lookup: 'validieren',
+      pos: 'VERB',
+      surfaceLookup: 'validiert',
+    });
+    expect(mapSpacyTokenToWordCloud({ text: 'Lernen', lemma: 'lernen', pos: 'VERB' })).toEqual({
+      display: 'Lernen',
+      lookup: 'lernen',
+      pos: 'NOUN',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Machen', lemma: 'machen', pos: 'VERB' },
+        { next: { text: 'wir', lemma: 'wir', pos: 'PRON' } },
+      ),
+    ).toEqual({
+      display: 'machen',
+      lookup: 'machen',
+      pos: 'VERB',
+    });
   });
 
   it('wendet Lemma nur an, wenn der Sidecar Tokens liefert', async () => {
@@ -70,8 +119,12 @@ describe('wordCloudNormalizer', () => {
     expect(result.cache).toEqual({ textHits: 0, textMisses: 2, sidecarCalled: true });
     expect(result.meta.normalizationApplied).toBe('LEMMA');
     expect(result.meta.modelId).toBe('de_core_news_sm@3.8.0');
-    expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
-    expect(result.tokensByItemId.get('item-2')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+    expect(result.tokensByItemId.get('item-1')).toEqual([
+      { display: 'Haus', lookup: 'haus', pos: 'NOUN', surfaceLookup: 'häuser' },
+    ]);
+    expect(result.tokensByItemId.get('item-2')).toEqual([
+      { display: 'Haus', lookup: 'haus', pos: 'NOUN' },
+    ]);
   });
 
   it('faellt bei Timeout und ungueltiger Antwort auf Identity zurueck', async () => {
@@ -121,7 +174,9 @@ describe('wordCloudNormalizer', () => {
       timeoutMs: 1000,
       cacheTtlSeconds: 1800,
     }).normalize([{ id: 'a', text: 'cats', weight: 1 }]);
-    expect(tokens.get('a')).toEqual([{ display: 'cat', lookup: 'cat' }]);
+    expect(tokens.get('a')).toEqual([
+      { display: 'cat', lookup: 'cat', pos: 'NOUN', surfaceLookup: 'cats' },
+    ]);
   });
 
   it('ruft den Sidecar beim zweiten gleichen Text nicht erneut an', async () => {
@@ -141,7 +196,9 @@ describe('wordCloudNormalizer', () => {
 
     expect(sidecar).toHaveBeenCalledOnce();
     expect(second.cache).toEqual({ textHits: 2, textMisses: 0, sidecarCalled: false });
-    expect(second.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+    expect(second.tokensByItemId.get('item-1')).toEqual([
+      { display: 'Haus', lookup: 'haus', pos: 'NOUN', surfaceLookup: 'häuser' },
+    ]);
   });
 
   it('sendet bei gemischtem Cache nur die fehlenden Texte an den Sidecar', async () => {
@@ -167,7 +224,9 @@ describe('wordCloudNormalizer', () => {
     );
     expect(result.cache).toEqual({ textHits: 1, textMisses: 1, sidecarCalled: true });
     expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
-    expect(result.tokensByItemId.get('item-2')).toEqual([{ display: 'Haus', lookup: 'haus' }]);
+    expect(result.tokensByItemId.get('item-2')).toEqual([
+      { display: 'Haus', lookup: 'haus', pos: 'NOUN' },
+    ]);
   });
 
   it('cacht Sidecar-Fehler nicht und faellt vollstaendig auf Identity zurueck', async () => {

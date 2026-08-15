@@ -3523,7 +3523,29 @@
                         }}</mat-icon>
                         <span>{{ wordCloudFreezeLabel() }}</span>
                       </button>
+                      <button
+                        mat-button
+                        type="button"
+                        class="session-host__extra-action session-host__extra-action--smooth"
+                        [class.session-host__extra-action--smooth-active]="
+                          freetextWordCloudSmoothingPressed()
+                        "
+                        [disabled]="freetextWordCloudSmoothingDisabled()"
+                        [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
+                        [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
+                        (click)="toggleFreetextWordCloudSmoothing()"
+                      >
+                        <mat-icon aria-hidden="true">{{
+                          freetextWordCloudSmoothingIcon()
+                        }}</mat-icon>
+                        <span>{{ freetextWordCloudSmoothingLabel() }}</span>
+                      </button>
                     </div>
+                    @if (freetextWordCloudSmoothingHint()) {
+                      <p class="session-host__extra-note" role="status" aria-live="polite">
+                        {{ freetextWordCloudSmoothingHint() }}
+                      </p>
+                    }
                     @if (exportStatus()) {
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }

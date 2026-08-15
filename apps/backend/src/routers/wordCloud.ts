@@ -58,6 +58,7 @@ function analyzeFromNormalized(
           input.locale,
           input.maxEntries,
           normalized.tokensByItemId,
+          1,
         ),
         true,
         normalized.meta,
@@ -73,6 +74,7 @@ function analyzeFromNormalized(
       input.locale,
       input.maxEntries,
       normalized.tokensByItemId,
+      input.maxNgramLength ?? 1,
     ),
     false,
     normalized.meta,
@@ -138,6 +140,8 @@ export async function analyzeWordCloudSnapshot(
  * Word-Cloud-Analysepfad für den Host.
  * THEME bleibt der deterministische Phrasen-/Anchor-Pfad ohne spaCy.
  * LEXICAL + LEMMA glättet über den Sidecar und fällt hart auf Identity zurück.
+ * Freitext-Phrasen kommen über `maxNgramLength` 2/3 in denselben LEXICAL-Snapshot;
+ * Q&A-Einzelwörter bleiben bei Default 1. THEME-Fallback bleibt unigram-only.
  */
 export const wordCloudRouter = router({
   analyze: hostProcedure

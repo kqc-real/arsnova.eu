@@ -3,6 +3,7 @@ import type {
   AnalyzeWordCloudOutput,
   WordCloudAnalysisSourceItem,
 } from '@arsnova/shared-types';
+import { deu, eng } from 'stopword';
 
 type WordCloudAnalysisEntry = AnalyzeWordCloudOutput['entries'][number];
 type SupportedLocale = AnalyzeWordCloudInput['locale'];
@@ -11,6 +12,10 @@ type GroupingKind = 'token' | 'phrase';
 export interface WordCloudRawToken {
   readonly display: string;
   readonly lookup: string;
+  /** Ungeglättete Oberfläche; Stopwortfilter prüft sie zusätzlich zum Lemma. */
+  readonly surfaceLookup?: string;
+  /** Universal-POS aus spaCy; ohne POS bleibt der Identity-Pfad ungefiltert. */
+  readonly pos?: string;
 }
 
 interface Candidate {
@@ -18,6 +23,7 @@ interface Candidate {
   readonly label: string;
   readonly kind: GroupingKind;
   readonly containsNumeric: boolean;
+  readonly pos?: string;
 }
 
 interface CandidateStats {
@@ -32,8 +38,18 @@ interface CandidateStats {
 interface PreparedItem {
   readonly item: WordCloudAnalysisSourceItem;
   readonly exactKey: string;
+  readonly tokens: Candidate[];
   readonly candidates: Candidate[];
 }
+
+interface LexicalBucket {
+  key: string;
+  count: number;
+  labels: Map<string, number>;
+  members: WordCloudAnalysisEntry['members'];
+}
+
+type WordCloudMaxNgramLength = NonNullable<AnalyzeWordCloudInput['maxNgramLength']>;
 
 interface ThemeBucket {
   readonly key: string;
@@ -57,6 +73,8 @@ interface GroupingRule {
 }
 
 const MIN_TOKEN_LENGTH = 2;
+const LEMMA_UNIGRAM_POS_TYPES = new Set(['NOUN', 'PROPN', 'NUM', 'X']);
+const LEMMA_PHRASE_POS_TYPES = new Set(['NOUN', 'PROPN', 'NUM', 'X', 'ADJ']);
 const TOKEN_PATTERN = /-?\d+(?:[.,]\d+)*|[\p{L}\p{N}-]+/gu;
 const NUMBER_TOKEN_PATTERN = /^-?\d+(?:[.,]\d+)*$/;
 const WHITESPACE_PATTERN = /\s+/gu;
@@ -129,8 +147,81 @@ const GROUPING_RULES_BY_LOCALE: Record<SupportedLocale, readonly GroupingRule[]>
   en: ENGLISH_GROUPING_RULES,
 };
 
+/**
+ * Inhaltswörter, die in der Upstream-Stopliste `stopword` stehen, in der Produktwolke
+ * aber sichtbar bleiben sollen — analog `STOPWORD_ALLOWLIST_BY_LOCALE` im Frontend.
+ */
+const STOPWORD_ALLOWLIST_BY_LOCALE: Record<SupportedLocale, readonly string[]> = {
+  de: [
+    'beispiel',
+    'beispiele',
+    'machen',
+    'macht',
+    'machte',
+    'gemacht',
+    'besser',
+    'wirklich',
+    'heute',
+    'morgen',
+    'jetzt',
+  ],
+  en: ['make', 'makes', 'made', 'making', 'now'],
+};
+
+function foldWordCloudStopword(token: string, locale: SupportedLocale): string {
+  const normalized = token.trim().toLocaleLowerCase();
+  if (!normalized) {
+    return '';
+  }
+
+  const comparable =
+    locale === 'de'
+      ? normalized
+          .replaceAll('ä', 'ae')
+          .replaceAll('ö', 'oe')
+          .replaceAll('ü', 'ue')
+          .replaceAll('ß', 'ss')
+      : normalized;
+  return comparable.normalize('NFKD').replace(COMBINING_MARK_PATTERN, '');
+}
+
+function createWordCloudStopwordLookup(
+  locale: SupportedLocale,
+  upstream: readonly string[],
+  extras: readonly string[],
+): ReadonlySet<string> {
+  const allowlist = new Set<string>();
+  for (const word of STOPWORD_ALLOWLIST_BY_LOCALE[locale]) {
+    const normalized = word.trim().toLocaleLowerCase();
+    const folded = foldWordCloudStopword(normalized, locale);
+    if (normalized) {
+      allowlist.add(normalized);
+    }
+    if (folded) {
+      allowlist.add(folded);
+    }
+  }
+
+  const lookup = new Set<string>();
+  for (const word of [...upstream, ...extras]) {
+    const normalized = word.trim().toLocaleLowerCase();
+    if (!normalized) {
+      continue;
+    }
+    const folded = foldWordCloudStopword(normalized, locale);
+    if (allowlist.has(normalized) || (folded && allowlist.has(folded))) {
+      continue;
+    }
+    lookup.add(normalized);
+    if (folded) {
+      lookup.add(folded);
+    }
+  }
+  return lookup;
+}
+
 const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
-  de: new Set([
+  de: createWordCloudStopwordLookup('de', deu, [
     'aber',
     'als',
     'am',
@@ -184,6 +275,10 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
     'haben',
     'heute',
     'hilft',
+    'helfen',
+    'helfe',
+    'hilfst',
+    'geholfen',
     'ich',
     'im',
     'in',
@@ -243,8 +338,20 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
     'zur',
     'über',
     'bleibt',
+    'bleiben',
+    'bleibe',
+    'bleibst',
+    'geblieben',
+    'kurz',
+    'kurze',
+    'kurzer',
+    'kurzes',
+    'kurzem',
+    'kurzen',
+    'antwort',
+    'antworten',
   ]),
-  en: new Set([
+  en: createWordCloudStopwordLookup('en', eng, [
     'a',
     'about',
     'again',
@@ -304,66 +411,43 @@ export function buildLexicalWordCloudEntries(
   locale: SupportedLocale,
   limit?: number,
   tokensByItemId?: ReadonlyMap<string, readonly WordCloudRawToken[]>,
+  maxNgramLength: WordCloudMaxNgramLength = 1,
 ): WordCloudAnalysisEntry[] {
-  const buckets = new Map<
-    string,
-    {
-      key: string;
-      count: number;
-      labels: Map<string, number>;
-      members: WordCloudAnalysisEntry['members'];
-    }
-  >();
+  const tokenBuckets = new Map<string, LexicalBucket>();
+  const phraseBuckets = new Map<string, LexicalBucket>();
 
   for (const item of items) {
     const prepared = prepareItem(item, locale, tokensByItemId?.get(item.id));
-    for (const candidate of prepared.candidates.filter((entry) => entry.kind === 'token')) {
-      const existing = buckets.get(candidate.key);
-      if (existing) {
-        existing.count += item.weight;
-        existing.labels.set(
-          candidate.label,
-          (existing.labels.get(candidate.label) ?? 0) + item.weight,
-        );
-        existing.members.push({
-          sourceId: item.id,
-          text: item.text,
-          weight: item.weight,
-        });
+    const seenKeys = new Set<string>();
+    const unigramTokens = prepared.tokens.filter(isLemmaUnigramCandidate);
+    const phraseTokens = prepared.tokens.filter(isLemmaPhraseCandidate);
+
+    for (const candidate of [
+      ...unigramTokens,
+      ...buildLexicalNgramCandidates(phraseTokens, maxNgramLength),
+    ]) {
+      if (seenKeys.has(candidate.key)) {
         continue;
       }
-
-      buckets.set(candidate.key, {
-        key: candidate.key,
-        count: item.weight,
-        labels: new Map([[candidate.label, item.weight]]),
-        members: [
-          {
-            sourceId: item.id,
-            text: item.text,
-            weight: item.weight,
-          },
-        ],
-      });
+      seenKeys.add(candidate.key);
+      addLexicalCandidate(
+        candidate.kind === 'phrase' ? phraseBuckets : tokenBuckets,
+        candidate,
+        item,
+      );
     }
   }
 
-  const entries = [...buckets.values()].map((bucket) => {
-    const variants = sortVariantEntries(bucket.labels, locale).map(([variant]) => variant);
-    return {
-      key: bucket.key,
-      label: variants[0] ?? bucket.key,
-      count: bucket.count,
-      basisLabel: null,
-      members: bucket.members.sort(
-        (left, right) => right.weight - left.weight || left.text.localeCompare(right.text),
-      ),
-      variants,
-      confidence: null,
-    };
-  });
+  const minDf = resolveLexicalMinDocumentFrequency(items.length);
+  const isFrequentEnough = (bucket: LexicalBucket): boolean =>
+    uniqueSourceCount(bucket.members) >= minDf;
+  const tokenEntries = lexicalBucketsToEntries(tokenBuckets, locale, isFrequentEnough);
+  if (maxNgramLength <= 1) {
+    return sortEntries(tokenEntries, limit);
+  }
 
-  return sortEntries(entries, limit);
+  const phraseEntries = lexicalBucketsToEntries(phraseBuckets, locale, isFrequentEnough);
+  return [...sortEntries(tokenEntries, limit), ...sortEntries(phraseEntries, limit)];
 }
 
 /**
@@ -422,7 +506,7 @@ function prepareItem(
   const candidates = new Map<string, Candidate>();
   const tokens = (rawTokens ?? tokenizeWordCloudText(item.text))
     .filter((token) => isNumericToken(token.lookup) || token.lookup.length >= MIN_TOKEN_LENGTH)
-    .filter((token) => !isStopwordToken(token.lookup, locale))
+    .filter((token) => !isStopwordRawToken(token, locale))
     .map((token) => getTokenCandidate(token, locale));
 
   for (const token of tokens) {
@@ -448,8 +532,110 @@ function prepareItem(
   return {
     item,
     exactKey: normalizeExactTextKey(item.text),
+    tokens,
     candidates: [...candidates.values()],
   };
+}
+
+function buildLexicalNgramCandidates(
+  tokens: readonly Candidate[],
+  maxNgramLength: WordCloudMaxNgramLength,
+): Candidate[] {
+  if (maxNgramLength <= 1 || tokens.length < 2) {
+    return [];
+  }
+
+  const phrases: Candidate[] = [];
+  for (let size = 2; size <= maxNgramLength; size += 1) {
+    for (let index = 0; index <= tokens.length - size; index += 1) {
+      const slice = tokens.slice(index, index + size);
+      if (new Set(slice.map((token) => token.key)).size !== slice.length) {
+        continue;
+      }
+      if (!sliceHasLemmaNominalHead(slice)) {
+        continue;
+      }
+
+      phrases.push({
+        key: slice.map((token) => token.key).join(' '),
+        label: slice.map((token) => token.label).join(' '),
+        kind: 'phrase',
+        containsNumeric: slice.some((token) => token.containsNumeric),
+      });
+    }
+  }
+
+  return phrases;
+}
+
+function addLexicalCandidate(
+  buckets: Map<string, LexicalBucket>,
+  candidate: Candidate,
+  item: WordCloudAnalysisSourceItem,
+): void {
+  const existing = buckets.get(candidate.key);
+  if (existing) {
+    existing.count += item.weight;
+    existing.labels.set(candidate.label, (existing.labels.get(candidate.label) ?? 0) + item.weight);
+    existing.members.push({
+      sourceId: item.id,
+      text: item.text,
+      weight: item.weight,
+    });
+    return;
+  }
+
+  buckets.set(candidate.key, {
+    key: candidate.key,
+    count: item.weight,
+    labels: new Map([[candidate.label, item.weight]]),
+    members: [
+      {
+        sourceId: item.id,
+        text: item.text,
+        weight: item.weight,
+      },
+    ],
+  });
+}
+
+function lexicalBucketsToEntries(
+  buckets: Map<string, LexicalBucket>,
+  locale: SupportedLocale,
+  isEligible: (bucket: LexicalBucket) => boolean = () => true,
+): WordCloudAnalysisEntry[] {
+  return [...buckets.values()].filter(isEligible).map((bucket) => {
+    const variants = sortVariantEntries(bucket.labels, locale).map(([variant]) => variant);
+    return {
+      key: bucket.key,
+      label: variants[0] ?? bucket.key,
+      count: bucket.count,
+      basisLabel: null,
+      members: bucket.members.sort(
+        (left, right) => right.weight - left.weight || left.text.localeCompare(right.text),
+      ),
+      variants,
+      confidence: null,
+    };
+  });
+}
+
+/**
+ * Entspricht `WordCloudTermExtractorService.resolveMinDocumentFrequency`:
+ * Einmal-Tokens sollen in großen Hörsälen nicht die geglättete Wolke füllen.
+ */
+function resolveLexicalMinDocumentFrequency(totalItems: number): number {
+  if (totalItems < 15) {
+    return 1;
+  }
+  if (totalItems < 50) {
+    return 2;
+  }
+  return 3;
+}
+
+function uniqueSourceCount(members: WordCloudAnalysisEntry['members']): number {
+  return new Set(members.map((member) => member.sourceId)).size;
 }
 
 function collectCandidateStats(preparedItems: PreparedItem[]): Map<string, CandidateStats> {
@@ -627,28 +813,32 @@ export function toWordCloudLookupToken(value: string): string {
 }
 
 function getTokenCandidate(token: WordCloudRawToken, locale: SupportedLocale): Candidate {
+  const pos = token.pos?.toUpperCase();
   if (isNumericToken(token.lookup)) {
     return {
       key: token.lookup,
       label: token.display,
       kind: 'token',
       containsNumeric: true,
+      ...(pos ? { pos } : {}),
     };
   }
 
   const comparableToken = normalizeTokenForGrouping(token.lookup, locale);
-  for (const rule of GROUPING_RULES_BY_LOCALE[locale]) {
-    const match = rule.pattern.exec(comparableToken);
-    if (!match) {
-      continue;
-    }
+  if (!pos) {
+    for (const rule of GROUPING_RULES_BY_LOCALE[locale]) {
+      const match = rule.pattern.exec(comparableToken);
+      if (!match) {
+        continue;
+      }
 
-    return {
-      key: rule.toGroupKey(match),
-      label: rule.toDisplay?.(match) ?? token.display,
-      kind: 'token',
-      containsNumeric: false,
-    };
+      return {
+        key: rule.toGroupKey(match),
+        label: rule.toDisplay?.(match) ?? token.display,
+        kind: 'token',
+        containsNumeric: false,
+      };
+    }
   }
 
   return {
@@ -656,6 +846,7 @@ function getTokenCandidate(token: WordCloudRawToken, locale: SupportedLocale): C
     label: token.display,
     kind: 'token',
     containsNumeric: false,
+    ...(pos ? { pos } : {}),
   };
 }
 
@@ -678,12 +869,42 @@ function shouldCreatePhrase(left: Candidate, right: Candidate): boolean {
   return left.label.length >= 4 && right.label.length >= 4;
 }
 
+function isStopwordRawToken(token: WordCloudRawToken, locale: SupportedLocale): boolean {
+  if (isStopwordToken(token.lookup, locale)) {
+    return true;
+  }
+
+  return Boolean(token.surfaceLookup && isStopwordToken(token.surfaceLookup, locale));
+}
+
+function isLemmaUnigramCandidate(token: Candidate): boolean {
+  return !token.pos || LEMMA_UNIGRAM_POS_TYPES.has(token.pos);
+}
+
+function isLemmaPhraseCandidate(token: Candidate): boolean {
+  return !token.pos || LEMMA_PHRASE_POS_TYPES.has(token.pos);
+}
+
+function sliceHasLemmaNominalHead(tokens: readonly Candidate[]): boolean {
+  if (tokens.every((token) => !token.pos)) {
+    return true;
+  }
+
+  return tokens.some((token) => !token.pos || LEMMA_UNIGRAM_POS_TYPES.has(token.pos));
+}
+
 function isStopwordToken(token: string, locale: SupportedLocale): boolean {
   if (!token) {
     return true;
   }
 
-  return STOPWORDS_BY_LOCALE[locale].has(token);
+  const lookup = STOPWORDS_BY_LOCALE[locale];
+  if (lookup.has(token)) {
+    return true;
+  }
+
+  const folded = foldWordCloudStopword(token, locale);
+  return folded !== '' && lookup.has(folded);
 }
 
 function normalizeExactTextKey(value: string): string {

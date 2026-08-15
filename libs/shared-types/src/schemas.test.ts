@@ -679,6 +679,31 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       items: [sourceItem],
     });
     expect(parsed.normalization).toBe('NONE');
+    expect(parsed.maxNgramLength).toBeUndefined();
+  });
+
+  it('akzeptiert maxNgramLength 1–3 und lehnt andere Längen ab', () => {
+    expect(
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [sourceItem],
+        maxNgramLength: 3,
+      }).maxNgramLength,
+    ).toBe(3);
+
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [sourceItem],
+        maxNgramLength: 4,
+      }),
+    ).toThrow();
   });
 
   it('akzeptiert LEMMA und verlangt die neuen Ergebnisachsen', () => {
@@ -723,7 +748,7 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       normalizationFallbackUsed: true,
       normalizationFallbackReason: 'NLP_DISABLED',
       fallbackLocale: 'en',
-      analysisVersion: '1.14b.1',
+      analysisVersion: '1.14b.7',
       modelId: null,
       snapshotHash: 'a'.repeat(64),
       entries: [

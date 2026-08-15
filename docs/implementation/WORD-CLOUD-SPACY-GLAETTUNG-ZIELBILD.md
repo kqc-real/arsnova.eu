@@ -108,12 +108,10 @@ Nicht empfohlen:
 
 ### Platzierung
 
-Die Aktion gehoert als **sekundaere Host-Aktion** in den Wortwolken-Dialog:
+Die Aktion gehoert als **sekundaere Host-Aktion** neben Einfrieren, nicht als dritter grosser Modusblock:
 
-- Freitext-Dialog
-- Q&A-Dialog
-
-Sie sollte nicht als dritter grosser Modusblock neben Sortierung und Analyseart erscheinen.
+- Freitext: kompakte Host-Wortwolke und Vollbild-Dialog
+- Q&A: Wortwolken-Dialog (dort gibt es keine kompakte Wolke)
 
 ### Sichtbare Zustandslogik
 
@@ -180,6 +178,8 @@ spaCy sitzt dabei **vor** der heutigen Aggregation, nicht daneben und nicht im R
 6. bestehende DF-Gewichtung, Phrasenbevorzugung und Filterlogik anwenden
 7. gewichtete Terme an die bestehende Visualisierung liefern
 
+Freitext-Glaettung analysiert `Einzelwoerter` und `Woerter & Phrasen` getrennt (`maxNgramLength` 1 bzw. 3). Ein Wechsel der Ansicht bei aktiver Glaettung startet eine neue Analyse desselben Antwortstands. Q&A-Glaettung bleibt lexikalische Einzelwoerter; `THEME + LEMMA` bleibt ununterstuetzt.
+
 ### Was spaCy liefern darf
 
 spaCy soll fuer diesen Pfad nur linguistische Hilfsdaten liefern:
@@ -195,17 +195,23 @@ Mehr wird fuer die erste Glaettungsstufe nicht benoetigt.
 
 Die erste sinnvolle spaCy-Variante fuer `arsnova.eu` ist:
 
-- `NOUN`
-- `PROPN`
-- geschuetzte technische Begriffe
+- Lemma fuer `NOUN`, `VERB`, `ADJ`/`ADV` (Formen zusammenfuehren)
+- sichtbare Unigramme nur `NOUN`, `PROPN`, `NUM` und technische `X`
+- `PROPN` bleibt Oberflaechenform
+- Adjektive nur in Nominalphrasen (`lineare Regression`), nicht als Einzelwort
+- Verben, Auxiliare, Adverbien und Komparative als Einzelwoerter unterdruecken
+- substantivierte Infinitive (`beim Lernen`, Antwort `Lernen`) bleiben sichtbar, auch wenn spaCy sie als `VERB` taggt
+- geschuetzte technische Begriffe und Namen
+
+Freitext-`LEXICAL + LEMMA` bildet in `Woerter & Phrasen` angrenzende N-Gramme (bis Trigramme) aus nominalen Einheiten, analog zur lokalen Ansicht. `Einzelwoerter` analysiert denselben Stand mit `maxNgramLength` 1 und faellt nicht auf die lokale ungeglaettete Wolke zurueck. Verb- und Adjektivflexion (`macht`/`machen`, `kurze`/`kurz`) laeuft intern zusammen, erscheint in der Wolke aber nicht als Verb- oder Adjektiv-Unigramm. Funktionsverben wie `brauchen`, `helfen` und `bleiben` bleiben Stopwoerter, auch nach dem Lemma.
 
 Optional spaeter:
 
-- selektive Phrasenbildung ueber angrenzende nominale Einheiten
+- `THEME + LEMMA`
 
 Nicht Ziel der ersten Stufe:
 
-- freie Verb-/Adjektivwolke
+- semantische Verb-/Adjektivwolke ohne Stopwortfilter
 - vollstaendige NER-gesteuerte Themenbildung
 
 ---
@@ -295,6 +301,7 @@ Damit gilt:
 
 - derselbe Host-Stand wird nicht doppelt analysiert
 - kleine UI-Interaktionen loesen keine neue NLP-Runde aus
+- der Host-Wechsel zwischen `Einzelwoerter` und `Woerter & Phrasen` bei aktiver Glaettung analysiert denselben Stand mit passender N-Gramm-Laenge neu
 - Presenter kann spaeter denselben Snapshot verwenden
 
 ---
@@ -303,7 +310,7 @@ Damit gilt:
 
 ### Freitext
 
-Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen.
+Freitext profitiert stark, weil kurze Antworten oft an Flexionsformen zerbrechen. Die Glaettung gilt in `Einzelwoerter` und `Woerter & Phrasen`; ein Wechsel der Ansicht bei aktiver Glaettung analysiert denselben Stand mit der passenden N-Gramm-Laenge neu.
 
 ### Q&A
 

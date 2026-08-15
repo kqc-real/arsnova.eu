@@ -75,7 +75,7 @@ describe('wordCloud.analyze', () => {
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
       expect(result.normalizationFallbackReason).toBeNull();
-      expect(result.analysisVersion).toBe('1.14b.1');
+      expect(result.analysisVersion).toBe('1.14b.7');
       expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
@@ -353,7 +353,7 @@ describe('wordCloud.analyze', () => {
         },
         {
           id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
-          text: 'Welche Frage bleibt offen?',
+          text: 'Welche Frage bleibt zur Regression?',
           weight: 1,
         },
       ],
@@ -369,10 +369,10 @@ describe('wordCloud.analyze', () => {
         variants: ['gewinnt'],
       },
       {
-        key: 'offen',
-        label: 'offen',
+        key: 'regression',
+        label: 'Regression',
         count: 1,
-        variants: ['offen'],
+        variants: ['Regression'],
       },
     ]);
   });
@@ -551,6 +551,67 @@ describe('wordCloud.analyze', () => {
           variants: ['Haus'],
         },
       ]);
+    });
+
+    it('nimmt geglaettete Bigramme auf, wenn maxNgramLength Phrasen erlaubt', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [
+              { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
+              { text: 'Regression', lemma: 'Regression', pos: 'NOUN' },
+            ],
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            tokens: [
+              { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
+              { text: 'Regressionen', lemma: 'Regression', pos: 'NOUN' },
+            ],
+          },
+        ],
+      });
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        maxNgramLength: 3,
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'lineare Regression',
+            weight: 1,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'lineare Regressionen',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('LEMMA');
+      expect(result.entries).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'regression',
+            label: 'Regression',
+            count: 2,
+          }),
+          expect.objectContaining({
+            key: 'linear regression',
+            label: 'linear Regression',
+            count: 2,
+          }),
+        ]),
+      );
     });
 
     it('meldet Sidecar-Timeout als Normalisierungs-Fallback', async () => {

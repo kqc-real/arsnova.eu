@@ -40,6 +40,18 @@ describe('wordCloudNormalization', () => {
     expect(buildWordCloudSnapshotHash(lemmaRequested)).not.toBe(
       buildWordCloudSnapshotHash(baseInput),
     );
+    expect(
+      buildWordCloudSnapshotHash({
+        ...baseInput,
+        maxNgramLength: 3,
+      }),
+    ).not.toBe(buildWordCloudSnapshotHash(baseInput));
+    expect(
+      buildWordCloudSnapshotHash({
+        ...baseInput,
+        maxNgramLength: 1,
+      }),
+    ).toBe(buildWordCloudSnapshotHash(baseInput));
   });
 
   it('hasht Rohtexte stabil und ohne Klartext im Digest', () => {
@@ -63,7 +75,7 @@ describe('wordCloudNormalization', () => {
       normalizationFallbackUsed: true,
       normalizationFallbackReason: 'SIDECAR_UNAVAILABLE',
       fallbackLocale: 'de',
-      analysisVersion: '1.14b.1',
+      analysisVersion: '1.14b.7',
       modelId: null,
     });
     expect(

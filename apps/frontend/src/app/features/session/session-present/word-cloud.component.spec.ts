@@ -37,6 +37,28 @@ describe('WordCloudComponent', () => {
     expect(component.filteredResponses().length).toBe(2);
   });
 
+  it('faellt bei leerer geglaetteter Analyse nicht auf ungeglättete Antworten zurueck', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', [
+      'Struktur hilft',
+      'Ruhe bleibt wichtig',
+      'kurze Pausen',
+      'verliere den Faden',
+      'Struktur hilft sehr',
+      'Ruhe bleibt zentral',
+    ]);
+    fixture.componentRef.setInput('terms', null);
+    fixture.componentRef.setInput('analysisEntries', []);
+    fixture.detectChanges();
+
+    const words = fixture.componentInstance.words().map((entry) => entry.word.toLocaleLowerCase());
+    expect(words).toEqual([]);
+    expect(words).not.toContain('hilft');
+    expect(words).not.toContain('bleibt');
+    expect(words).not.toContain('kurze');
+    expect(words).not.toContain('verliere');
+  });
+
   it('zaehlt Wiederholungen innerhalb derselben Antwort nur einmal pro Wortgruppe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [

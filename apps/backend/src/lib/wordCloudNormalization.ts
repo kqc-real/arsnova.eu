@@ -22,7 +22,10 @@ export interface WordCloudNormalizationMeta {
 }
 
 export function buildWordCloudSnapshotHash(
-  input: Pick<AnalyzeWordCloudInput, 'mode' | 'locale' | 'metric' | 'normalization' | 'items'>,
+  input: Pick<
+    AnalyzeWordCloudInput,
+    'mode' | 'locale' | 'metric' | 'normalization' | 'items' | 'maxNgramLength'
+  >,
 ): string {
   const canonical = JSON.stringify({
     analysisVersion: WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
@@ -30,6 +33,7 @@ export function buildWordCloudSnapshotHash(
     locale: input.locale,
     metric: input.metric,
     normalization: input.normalization,
+    maxNgramLength: input.maxNgramLength ?? 1,
     items: [...input.items]
       .map((item) => ({ id: item.id, text: item.text, weight: item.weight }))
       .sort((left, right) => left.id.localeCompare(right.id)),

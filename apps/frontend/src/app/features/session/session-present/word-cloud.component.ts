@@ -437,7 +437,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }));
     }
 
-    if (providedEntries && providedEntries.length > 0) {
+    if (providedEntries !== null) {
+      if (providedEntries.length === 0) {
+        return [];
+      }
+
       const maxCount = Math.max(1, ...providedEntries.map((entry) => entry.count));
       const { min: minFontSize, max: maxFontSize } = fontSizeRange;
 

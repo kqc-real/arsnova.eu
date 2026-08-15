@@ -4393,6 +4393,19 @@ button.session-host__btn-discussion {
   font-weight: 600;
 }
 
+.session-host__extra-action--smooth-active {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface));
+  color: var(--mat-sys-on-primary-container);
+}
+
+.session-host__extra-note {
+  margin: 0 0 0.5rem;
+  text-align: right;
+  font: var(--mat-sys-label-medium);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 84%, white 16%);
+}
+
 @media (max-width: 700px) {
   .session-host__extra-summary {
     flex-direction: column;
@@ -4405,6 +4418,10 @@ button.session-host__btn-discussion {
 
   .session-host__extra-actions {
     justify-content: flex-start;
+  }
+
+  .session-host__extra-note {
+    text-align: left;
   }
 
   .session-host__extra-analysis-toggle {

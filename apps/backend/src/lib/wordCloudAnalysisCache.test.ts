@@ -47,7 +47,7 @@ const output = {
   normalizationFallbackUsed: false,
   normalizationFallbackReason: null,
   fallbackLocale: 'de',
-  analysisVersion: '1.14b.1',
+  analysisVersion: '1.14b.7',
   modelId: 'de_core_news_sm@3.8.0',
   snapshotHash: 'a'.repeat(64),
   entries: [
@@ -71,7 +71,7 @@ describe('wordCloudAnalysisCache', () => {
   it('bildet Text-Schluessel ohne Rohtext und mit Analyseversion', () => {
     const textHash = hashWordCloudText('Häuser');
     const key = buildWordCloudTextCacheKey('de', textHash);
-    expect(key).toContain('nlp:wc:text:de:1.14b.1:');
+    expect(key).toContain('nlp:wc:text:de:1.14b.7:');
     expect(key).toContain(textHash);
     expect(key).not.toContain('Häuser');
   });
@@ -81,6 +81,7 @@ describe('wordCloudAnalysisCache', () => {
     expect(key.startsWith('nlp:wc:snap:ABC123:LEXICAL:TOP:LEMMA:')).toBe(true);
     expect(key).not.toContain('Häuser');
     expect(buildWordCloudSnapshotCacheKey({ ...input, maxEntries: 40 })).not.toBe(key);
+    expect(buildWordCloudSnapshotCacheKey({ ...input, maxNgramLength: 3 })).not.toBe(key);
     expect(buildWordCloudSnapshotCacheKey({ ...input, sessionCode: 'XYZ789' })).not.toBe(key);
   });
 

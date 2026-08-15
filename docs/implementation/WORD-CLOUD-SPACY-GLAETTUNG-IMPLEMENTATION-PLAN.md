@@ -98,14 +98,14 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 
 ## Ist-Stand
 
-| Bereich            | Status                                                                                                                                                                                    |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                                                                      |
-| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                                                                     |
-| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                                        |
-| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma nur bei `LEXICAL` und hartem Identity-Fallback; Redis-Text- und Snapshot-Cache (fail-open, transiente Fehler uncached) |
-| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                          |
-| **UI**             | Q&A- und Freitext-Dialog mit Sekundaeraktion `Sprachformen glaetten`, stale marker, kein Auto-Recompute                                                                                   |
+| Bereich            | Status                                                                                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                                                                             |
+| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                                                                            |
+| **Shared Types**   | `normalization` `NONE`/`LEMMA`, `maxNgramLength` 1–3, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                         |
+| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma bei `LEXICAL` fuer `NOUN`/`VERB`/`ADJ`/`ADV`, Namen als Oberflaeche; harter Identity-Fallback; Redis-Text- und Snapshot-Cache |
+| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                                 |
+| **UI**             | Q&A- und Freitext-Dialog mit Sekundaeraktion `Sprachformen glaetten`, stale marker, kein Auto-Recompute                                                                                          |
 
 ---
 
@@ -126,9 +126,9 @@ wird ergaenzt um:
 Wichtig:
 
 - `LEXICAL + NONE` = heutiger Standard
-- `LEXICAL + LEMMA` = neue spaCy-Glaettung
+- `LEXICAL + LEMMA` = spaCy-Glaettung; Freitext sendet `maxNgramLength` passend zur Ansicht (`1` Einzelwoerter, `3` Woerter & Phrasen)
 - `THEME + NONE` = bestehender Themenpfad
-- `THEME + LEMMA` = nicht Teil der ersten Story
+- `THEME + LEMMA` = nicht Teil der ersten Story (`MODE_UNSUPPORTED`)
 
 ### 2. spaCy sitzt vor der Aggregation, nicht im Renderer
 
@@ -351,7 +351,7 @@ Ziel: denselben Glaettungsmechanismus fuer Freitext nutzbar machen.
 - beide Wortwolken profitieren
 - lokaler `2.x`-Pfad bleibt unangetastet der Standard
 
-**Stand August 2026:** Phase 5 ist umgesetzt. Die Freitext-Wortwolke bietet dieselbe Sekundaeraktion `Sprachformen glaetten`. Ohne Klick bleibt die lokale Extraktion unveraendert. Ein Klick sendet `LEXICAL` + `LEMMA` an `wordCloud.analyze` und zeigt Backend-Entries mit Labels/`members`. Neue Antworten markieren den Snapshot als veraltet (`Neue Antworten seit letzter Glaettung`), rechnen aber nicht automatisch neu. Cache und Telemetrie folgen in Phase 6.
+**Stand August 2026:** Phase 5 ist umgesetzt. Die Freitext-Wortwolke bietet dieselbe Sekundaeraktion `Sprachformen glaetten` in der kompakten Host-Ansicht und im Vollbild-Dialog. Ohne Klick bleibt die lokale Extraktion unveraendert. Ein Klick sendet `LEXICAL` + `LEMMA` + `maxNgramLength` passend zur Ansicht (`1` fuer `Einzelwoerter`, `3` fuer `Woerter & Phrasen`) an `wordCloud.analyze`. Umschalten der Ansicht bei aktiver Glättung startet eine neue Analyse desselben Snapshots mit der anderen N-Gramm-Länge (Backend-Cache bleibt wirksam). Dieselbe adaptive `minDf` wie im lokalen `2.x`-Pfad (1 unter 15 Antworten, 2 unter 50, sonst 3) gilt fuer Unigramme und Phrasen, damit Einmal-Woerter die geglaettete Wolke nicht fuellen. Funktionswoerter (`nicht`, `sonst`, `dann`, …) kommen aus derselben `stopword`-Liste wie die lokale Wolke; Inhaltswoerter wie `Beispiel` bleiben ueber die Allowlist sichtbar. Lemma gilt fuer Nomen, Verben und Adjektive (`macht` → `machen`, `kurze` → `kurz`); sichtbar sind nach der Glättung aber nur nominale Unigramme (`NOUN`/`PROPN`/`NUM`/`X`) plus Nominalphrasen mit optionalem Adjektiv (`lineare Regression`). Verben, Adjektive und Komparative erscheinen nicht als Einzelwoerter. Substantivierte Infinitive wie `Lernen` bleiben sichtbar, auch wenn spaCy sie als `VERB` taggt. Eigennamen bleiben die Oberflaechenform. Der Stopwortfilter gilt fuer Lemma **und** gebeugte Oberflaeche. Eine leere Unigramm-Liste faellt nicht auf die lokale ungeglaettete Aggregation zurueck. Neue Antworten markieren den Snapshot als veraltet (`Neue Antworten seit letzter Glaettung`), rechnen aber nicht automatisch neu. Cache und Telemetrie folgen in Phase 6.
 
 ---
 
@@ -361,12 +361,12 @@ Ziel: wiederholte Host-Analysen billig und beobachtbar machen.
 
 ### Aufgaben
 
-| #   | Task                         | Beschreibung                                                                                       | Datei             |
-| --- | ---------------------------- | -------------------------------------------------------------------------------------------------- | ----------------- |
-| 6.1 | **Text-Cache einziehen**     | normalisierte Einzelttexte nach `locale + hash + version` puffern.                                 | neuer Cache-Layer |
-| 6.2 | **Snapshot-Cache einziehen** | komplette Analyseergebnisse nach `session + mode + metric + normalization + snapshotHash` puffern. | neuer Cache-Layer |
-| 6.3 | **Timing messen**            | Dauer, Timeout, Fallback und Cache-Hit-Rate loggen.                                                | Backend           |
-| 6.4 | **Betriebsbudget festlegen** | z. B. harte Timeouts und Request-Groessen begrenzen.                                               | Backend Config    |
+| #   | Task                         | Beschreibung                                                                                                        | Datei             |
+| --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 6.1 | **Text-Cache einziehen**     | normalisierte Einzelttexte nach `locale + hash + version` puffern.                                                  | neuer Cache-Layer |
+| 6.2 | **Snapshot-Cache einziehen** | komplette Analyseergebnisse nach `session + mode + metric + normalization + maxNgramLength + snapshotHash` puffern. | neuer Cache-Layer |
+| 6.3 | **Timing messen**            | Dauer, Timeout, Fallback und Cache-Hit-Rate loggen.                                                                 | Backend           |
+| 6.4 | **Betriebsbudget festlegen** | z. B. harte Timeouts und Request-Groessen begrenzen.                                                                | Backend Config    |
 
 ### Ergebnis
 

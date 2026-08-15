@@ -11,7 +11,7 @@ type WordCloudNormalization = (typeof WORD_CLOUD_NORMALIZATION_VALUES)[number];
 export const WORD_CLOUD_DEFAULT_NORMALIZATION: WordCloudNormalization = 'NONE';
 
 /** Vertragsversion der Normalisierungsachse; Cache- und Snapshot-Schlüssel müssen sie enthalten. */
-export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.1';
+export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.7';
 
 /** Hartes Textbudget je Analyse-Item; identisch zum Sidecar-Client. */
 export const WORD_CLOUD_MAX_ITEM_TEXT_CHARS = 4_000;
@@ -21,6 +21,16 @@ export const WORD_CLOUD_MAX_ITEM_ID_CHARS = 128;
 
 /** Snapshot-Größe; deckt Hörsaal-Q&A und Freitext ab. */
 export const WORD_CLOUD_MAX_ANALYZE_ITEMS = 500;
+
+/**
+ * N-Gramm-Länge der lexikalischen Aggregation.
+ * `1` = nur Unigramme (Q&A-Einzelwörter, Default).
+ * `2`/`3` = zusätzlich Bigramme bzw. Trigramme für Freitext „Wörter & Phrasen“.
+ */
+export const WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES = [1, 2, 3] as const;
+export type WordCloudMaxNgramLength = (typeof WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES)[number];
+export const WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH: WordCloudMaxNgramLength = 1;
+export const WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH: WordCloudMaxNgramLength = 3;
 
 /** Transiente Sidecar-Fehler: nicht cachen, damit ein Retry den Dienst erneut versucht. */
 export const WORD_CLOUD_TRANSIENT_NORMALIZATION_FALLBACK_REASONS = [

@@ -1798,6 +1798,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Häufige Wörter aus den Antworten.');
     expect(text).toContain('Wortwolke einfrieren');
+    expect(text).toContain('Sprachformen glätten');
+    const extraSmoothButton = wordCloudDetails?.querySelector(
+      '.session-host__extra-action--smooth',
+    ) as HTMLButtonElement | null;
+    expect(extraSmoothButton).not.toBeNull();
+    expect(extraSmoothButton?.getAttribute('aria-pressed')).toBe('false');
     fixture.destroy();
   });
 
@@ -1993,6 +1999,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('sendet Freitext-Glaettung nur nach explizitem Klick als LEXICAL+LEMMA', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
       order: 5,
@@ -2009,36 +2016,94 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       questionText: 'Warum bleibt ein Satellit im Orbit?',
       responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
     });
-    wordCloudAnalyzeQueryMock.mockResolvedValue(
-      wordCloudAnalyzeResult({
-        mode: 'LEXICAL',
-        metric: 'TOP',
-        normalization: 'LEMMA',
-        normalizationApplied: 'LEMMA',
-        modelId: 'de_core_news_sm@3.8.0',
-        entries: [
-          {
-            key: 'regression',
-            label: 'Regression',
-            count: 2,
-            basisLabel: 'Regression',
-            members: [
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { maxNgramLength?: number; normalization?: string }) => {
+        if (input.normalization !== 'LEMMA') {
+          return wordCloudAnalyzeResult();
+        }
+
+        if (input.maxNgramLength === 1) {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            metric: 'TOP',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
               {
-                sourceId: 'response-0',
-                text: 'Lineare Regression im Projekt',
-                weight: 1,
-              },
-              {
-                sourceId: 'response-1',
-                text: 'Lineare Regression hilft',
-                weight: 1,
+                key: 'lernen',
+                label: 'Lernen',
+                count: 2,
+                basisLabel: 'Lernen',
+                members: [
+                  {
+                    sourceId: 'response-0',
+                    text: 'Lineare Regression im Projekt',
+                    weight: 1,
+                  },
+                  {
+                    sourceId: 'response-1',
+                    text: 'Lineare Regression hilft',
+                    weight: 1,
+                  },
+                ],
+                variants: ['Lernen'],
+                confidence: 0.9,
               },
             ],
-            variants: ['Regression', 'Regressionen'],
-            confidence: 0.9,
-          },
-        ],
-      }),
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          mode: 'LEXICAL',
+          metric: 'TOP',
+          normalization: 'LEMMA',
+          normalizationApplied: 'LEMMA',
+          modelId: 'de_core_news_sm@3.8.0',
+          entries: [
+            {
+              key: 'regression',
+              label: 'Regression',
+              count: 2,
+              basisLabel: 'Regression',
+              members: [
+                {
+                  sourceId: 'response-0',
+                  text: 'Lineare Regression im Projekt',
+                  weight: 1,
+                },
+                {
+                  sourceId: 'response-1',
+                  text: 'Lineare Regression hilft',
+                  weight: 1,
+                },
+              ],
+              variants: ['Regression', 'Regressionen'],
+              confidence: 0.9,
+            },
+            {
+              key: 'lineare regression',
+              label: 'Lineare Regression',
+              count: 2,
+              basisLabel: 'Lineare Regression',
+              members: [
+                {
+                  sourceId: 'response-0',
+                  text: 'Lineare Regression im Projekt',
+                  weight: 1,
+                },
+                {
+                  sourceId: 'response-1',
+                  text: 'Lineare Regression hilft',
+                  weight: 1,
+                },
+              ],
+              variants: ['Lineare Regression'],
+              confidence: 0.9,
+            },
+          ],
+        });
+      },
     );
 
     const fixture = setup();
@@ -2048,6 +2113,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       timeout: 5000,
       interval: 25,
     });
+    fixture.detectChanges();
 
     const component = fixture.componentInstance;
     expect(component.freetextWordCloudMode()).toBe('PHRASES');
@@ -2056,13 +2122,34 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
 
-    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext .session-host__extra-action--smooth',
+        ) !== null,
+      { timeout: 5000, interval: 25 },
+    );
+
+    const extraSmoothButton = fixture.nativeElement.querySelector(
+      '.session-host__extra--freetext .session-host__extra-action--smooth',
+    ) as HTMLButtonElement | null;
+    expect(extraSmoothButton).not.toBeNull();
+    expect(extraSmoothButton?.textContent).toContain('Sprachformen glätten');
+    extraSmoothButton?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
     await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
       timeout: 5000,
       interval: 25,
     });
+    fixture.detectChanges();
 
-    expect(component.freetextWordCloudMode()).toBe('WORDS');
+    const activeSmoothButton = fixture.nativeElement.querySelector(
+      '.session-host__extra--freetext .session-host__extra-action--smooth',
+    ) as HTMLButtonElement | null;
+    expect(activeSmoothButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(activeSmoothButton?.textContent).toContain('Glättung aktiv');
+    expect(component.freetextWordCloudMode()).toBe('PHRASES');
     expect(lemmaAnalyzeCalls()).toHaveLength(1);
     expect(lemmaAnalyzeCalls()[0]).toEqual([
       expect.objectContaining({
@@ -2072,6 +2159,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         metric: 'TOP',
         normalization: 'LEMMA',
         maxEntries: 80,
+        maxNgramLength: 3,
         items: [
           { id: 'response-0', text: 'Lineare Regression im Projekt', weight: 1 },
           { id: 'response-1', text: 'Lineare Regression hilft', weight: 1 },
@@ -2079,11 +2167,68 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       }),
     ]);
     expect(component.displayedFreetextVisibleTerms()).toBeNull();
-    expect(component.displayedFreetextAnalysisEntries()).toMatchObject([{ label: 'Regression' }]);
+    expect(component.displayedFreetextAnalysisEntries()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Regression' }),
+        expect.objectContaining({ label: 'Lineare Regression' }),
+      ]),
+    );
     expect(component.displayedFreetextWordCloudTerms().length).toBeGreaterThan(0);
 
+    await component.setFreetextWordCloudMode('WORDS');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () =>
+        component.freetextWordCloudSmoothingStatus() === 'active' &&
+        lemmaAnalyzeCalls().some(
+          (call) => (call[0] as { maxNgramLength?: number }).maxNgramLength === 1,
+        ),
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    expect(lemmaAnalyzeCalls()[1]).toEqual([
+      expect.objectContaining({
+        normalization: 'LEMMA',
+        maxNgramLength: 1,
+      }),
+    ]);
+    expect(component.freetextWordCloudSmoothingStatus()).toBe('active');
+    expect(component.displayedFreetextAnalysisEntries()).toEqual([
+      expect.objectContaining({ label: 'Lernen' }),
+    ]);
+    expect(
+      component.displayedFreetextAnalysisEntries()?.some((entry) => entry.key.includes(' ')),
+    ).toBe(false);
+
+    await component.setFreetextWordCloudMode('PHRASES');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () =>
+        component.freetextWordCloudSmoothingStatus() === 'active' &&
+        lemmaAnalyzeCalls().filter(
+          (call) => (call[0] as { maxNgramLength?: number }).maxNgramLength === 3,
+        ).length === 2,
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    expect(lemmaAnalyzeCalls()[2]).toEqual([
+      expect.objectContaining({
+        normalization: 'LEMMA',
+        maxNgramLength: 3,
+      }),
+    ]);
+    expect(
+      component.displayedFreetextAnalysisEntries()?.some((entry) => entry.key.includes(' ')),
+    ).toBe(true);
+
     await component.toggleFreetextWordCloudSmoothing();
-    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(lemmaAnalyzeCalls()).toHaveLength(3);
     expect(component.freetextWordCloudSmoothingStatus()).toBe('idle');
     expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
     expect(component.displayedFreetextAnalysisEntries()).toBeNull();
@@ -3331,7 +3476,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       normalizationFallbackUsed: false,
       normalizationFallbackReason: null,
       fallbackLocale: 'de',
-      analysisVersion: '1.14b.1',
+      analysisVersion: '1.14b.7',
       modelId: null,
       snapshotHash: 'a'.repeat(64),
       entries: [],
@@ -3480,6 +3625,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         ],
       }),
     ]);
+    expect(
+      (lemmaAnalyzeCalls()[0] as [{ maxNgramLength?: number }])[0]?.maxNgramLength,
+    ).toBeUndefined();
     expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Glättung aktiv');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([

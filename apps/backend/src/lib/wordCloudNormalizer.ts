@@ -22,6 +22,7 @@ import {
 } from './wordCloudNormalization';
 
 const NAME_ENTITY_TYPES = new Set(['PERSON', 'GPE', 'ORG', 'LOC']);
+const LEMMA_POS_TYPES = new Set(['NOUN', 'VERB', 'ADJ', 'ADV', 'AUX']);
 
 export interface WordCloudNormalizer {
   readonly kind: 'identity' | 'lemma';
@@ -180,21 +181,76 @@ export function identityNormalizeWordCloudItems(
   return new Map(items.map((item) => [item.id, tokenizeWordCloudText(item.text)]));
 }
 
-export function mapSpacyTokenToWordCloud(token: SpacyNormalizeToken): WordCloudRawToken {
+export function mapSpacyTokenToWordCloud(
+  token: SpacyNormalizeToken,
+  neighbors: { readonly next?: SpacyNormalizeToken } = {},
+): WordCloudRawToken {
   const pos = token.pos.toUpperCase();
   const entType = token.entType?.trim().toUpperCase() ?? '';
-  const keepSurface = pos === 'PROPN' || NAME_ENTITY_TYPES.has(entType) || pos !== 'NOUN';
-  const surfaceOrLemma = keepSurface ? token.text : token.lemma;
+  const nominalizedInfinitive = isNominalizedInfinitive(token, neighbors.next);
+  const effectivePos = nominalizedInfinitive ? 'NOUN' : pos;
+  const keepSurface =
+    effectivePos === 'PROPN' ||
+    NAME_ENTITY_TYPES.has(entType) ||
+    !LEMMA_POS_TYPES.has(effectivePos) ||
+    nominalizedInfinitive;
+  const lemma = token.lemma.trim();
+  const surfaceOrLemma = keepSurface || lemma.length === 0 ? token.text : lemma;
+  const lookup = toWordCloudLookupToken(surfaceOrLemma);
+  const surfaceLookup = toWordCloudLookupToken(token.text);
   return {
     display: surfaceOrLemma,
-    lookup: toWordCloudLookupToken(surfaceOrLemma),
+    lookup,
+    pos: effectivePos,
+    ...(surfaceLookup !== lookup ? { surfaceLookup } : {}),
   };
 }
 
 function mapSidecarTokens(
   items: ReadonlyArray<{ readonly id: string; readonly tokens: readonly SpacyNormalizeToken[] }>,
 ): ReadonlyMap<string, readonly WordCloudRawToken[]> {
-  return new Map(items.map((item) => [item.id, item.tokens.map(mapSpacyTokenToWordCloud)]));
+  return new Map(
+    items.map((item) => [
+      item.id,
+      item.tokens.map((token, index) =>
+        mapSpacyTokenToWordCloud(token, {
+          next: item.tokens[index + 1],
+        }),
+      ),
+    ]),
+  );
+}
+
+function isNominalizedInfinitive(token: SpacyNormalizeToken, next?: SpacyNormalizeToken): boolean {
+  if (token.pos.toUpperCase() !== 'VERB') {
+    return false;
+  }
+
+  const text = token.text.trim();
+  if (!hasNounCapitalization(text)) {
+    return false;
+  }
+
+  const lemma = token.lemma.trim();
+  if (!lemma || toWordCloudLookupToken(lemma) !== toWordCloudLookupToken(text)) {
+    return false;
+  }
+
+  const nextPos = next?.pos.toUpperCase();
+  return nextPos !== 'PRON' && nextPos !== 'AUX';
+}
+
+function hasNounCapitalization(text: string): boolean {
+  const first = [...text][0];
+  if (!first || !/\p{L}/u.test(first)) {
+    return false;
+  }
+
+  if (first !== first.toLocaleUpperCase() || first === first.toLocaleLowerCase()) {
+    return false;
+  }
+
+  return text !== text.toLocaleUpperCase() || text.length > 4;
 }
 
 function fallbackFromSidecarError(

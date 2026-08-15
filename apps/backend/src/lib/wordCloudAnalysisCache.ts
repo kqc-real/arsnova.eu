@@ -47,6 +47,7 @@ export function buildWordCloudSnapshotCacheKey(input: AnalyzeWordCloudInput): st
     input.metric,
     input.normalization,
     String(input.maxEntries ?? 'default'),
+    String(input.maxNgramLength ?? 1),
     snapshotHash,
   ].join(':');
 }
@@ -201,6 +202,8 @@ function isWordCloudRawToken(value: unknown): value is WordCloudRawToken {
     typeof value === 'object' &&
     value !== null &&
     typeof (value as WordCloudRawToken).display === 'string' &&
-    typeof (value as WordCloudRawToken).lookup === 'string'
+    typeof (value as WordCloudRawToken).lookup === 'string' &&
+    ((value as WordCloudRawToken).pos === undefined ||
+      typeof (value as WordCloudRawToken).pos === 'string')
   );
 }

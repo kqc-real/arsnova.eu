@@ -9,6 +9,7 @@ import {
   WORD_CLOUD_MAX_ANALYZE_ITEMS,
   WORD_CLOUD_MAX_ITEM_ID_CHARS,
   WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
+  WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES,
   WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS,
   WORD_CLOUD_NORMALIZATION_VALUES,
 } from './word-cloud-normalization';
@@ -3689,6 +3690,13 @@ export const AnalyzeWordCloudInputSchema = z.object({
   normalization: WordCloudNormalizationEnum.default(WORD_CLOUD_DEFAULT_NORMALIZATION),
   items: z.array(WordCloudAnalysisSourceItemSchema).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   maxEntries: z.number().int().min(1).max(100).optional(),
+  maxNgramLength: z
+    .union([
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[0]),
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[1]),
+      z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[2]),
+    ])
+    .optional(),
 });
 export type AnalyzeWordCloudInput = z.infer<typeof AnalyzeWordCloudInputSchema>;
 
