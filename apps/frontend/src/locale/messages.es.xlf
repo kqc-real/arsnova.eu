@@ -15367,6 +15367,10 @@
           <context context-type="linenumber">847</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
+        <source>Neue Antworten seit letzter Glättung</source>
+        <target>Hay respuestas nuevas desde la última unificación</target>
+      </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
         <source>Lobby</source>
         <target>Lobby</target>

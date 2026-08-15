@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–4 umgesetzt; Freitext-Host-UI folgt
+**Status:** Phase 1–5 umgesetzt; Cache/Telemetrie folgt
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -348,6 +348,8 @@ Ziel: denselben Glaettungsmechanismus fuer Freitext nutzbar machen.
 
 - beide Wortwolken profitieren
 - lokaler `2.x`-Pfad bleibt unangetastet der Standard
+
+**Stand August 2026:** Phase 5 ist umgesetzt. Die Freitext-Wortwolke bietet dieselbe Sekundaeraktion `Sprachformen glaetten`. Ohne Klick bleibt die lokale Extraktion unveraendert. Ein Klick sendet `LEXICAL` + `LEMMA` an `wordCloud.analyze` und zeigt Backend-Entries mit Labels/`members`. Neue Antworten markieren den Snapshot als veraltet (`Neue Antworten seit letzter Glaettung`), rechnen aber nicht automatisch neu. Cache und Telemetrie folgen in Phase 6.
 
 ---
 

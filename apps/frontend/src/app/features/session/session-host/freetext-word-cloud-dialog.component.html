@@ -36,12 +36,30 @@
       <mat-icon aria-hidden="true">{{ frozen() ? 'play_arrow' : 'pause' }}</mat-icon>
       <span>{{ freezeLabel() }}</span>
     </button>
+    <button
+      mat-button
+      type="button"
+      class="freetext-word-cloud-dialog__smooth"
+      [class.freetext-word-cloud-dialog__smooth--active]="smoothingPressed()"
+      [disabled]="smoothingDisabled()"
+      [attr.aria-pressed]="smoothingPressed()"
+      [attr.aria-busy]="smoothingBusy() ? true : null"
+      (click)="toggleSmoothing()"
+    >
+      <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+      <span>{{ smoothingLabel() }}</span>
+    </button>
   </div>
+
+  @if (smoothingHint()) {
+    <p class="freetext-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
+  }
 
   <app-word-cloud
     class="freetext-word-cloud-dialog__cloud"
     [responses]="responses()"
     [terms]="terms()"
+    [analysisEntries]="analysisEntries()"
     [selectionScopeKey]="selectionScopeKey()"
     [eyebrow]="data.eyebrow"
     [description]="data.description"

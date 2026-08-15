@@ -1972,11 +1972,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(data.analysisVariant()).toBe('WORDS');
       expect(data.frozen()).toBe(true);
       expect(data.freezeLabel()).toBe('Live fortsetzen');
-      expect(data.terms().every((term) => !term.key.includes(' '))).toBe(true);
+      expect(data.terms()?.every((term) => !term.key.includes(' '))).toBe(true);
+      expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
 
       data.setAnalysisVariant('PHRASES');
       expect(component.freetextWordCloudMode()).toBe('PHRASES');
-      expect(data.terms().some((term) => term.key.includes(' '))).toBe(true);
+      expect(data.terms()?.some((term) => term.key.includes(' '))).toBe(true);
+      expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
 
       await data.toggleFreeze();
       expect(component.wordCloudFrozen()).toBe(false);
@@ -1987,6 +1989,226 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         delete (documentRef.documentElement as Partial<HTMLElement>).requestFullscreen;
       }
     }
+    fixture.destroy();
+  });
+
+  it('sendet Freitext-Glaettung nur nach explizitem Klick als LEXICAL+LEMMA', async () => {
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'de_core_news_sm@3.8.0',
+        entries: [
+          {
+            key: 'regression',
+            label: 'Regression',
+            count: 2,
+            basisLabel: 'Regression',
+            members: [
+              {
+                sourceId: 'response-0',
+                text: 'Lineare Regression im Projekt',
+                weight: 1,
+              },
+              {
+                sourceId: 'response-1',
+                text: 'Lineare Regression hilft',
+                weight: 1,
+              },
+            ],
+            variants: ['Regression', 'Regressionen'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    expect(component.freetextWordCloudMode()).toBe('PHRASES');
+    expect(component.displayedFreetextVisibleTerms()?.some((term) => term.key.includes(' '))).toBe(
+      true,
+    );
+    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
+
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    expect(component.freetextWordCloudMode()).toBe('WORDS');
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(lemmaAnalyzeCalls()[0]).toEqual([
+      expect.objectContaining({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: component.qaWordCloudAnalysisLocale(),
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        maxEntries: 80,
+        items: [
+          { id: 'response-0', text: 'Lineare Regression im Projekt', weight: 1 },
+          { id: 'response-1', text: 'Lineare Regression hilft', weight: 1 },
+        ],
+      }),
+    ]);
+    expect(component.displayedFreetextVisibleTerms()).toBeNull();
+    expect(component.displayedFreetextAnalysisEntries()).toMatchObject([{ label: 'Regression' }]);
+    expect(component.displayedFreetextWordCloudTerms().length).toBeGreaterThan(0);
+
+    await component.toggleFreetextWordCloudSmoothing();
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(component.freetextWordCloudSmoothingStatus()).toBe('idle');
+    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('markiert geglaettete Freitext-Snapshots bei neuen Antworten als veraltet ohne automatisch neu zu rechnen', async () => {
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'de_core_news_sm@3.8.0',
+        entries: [
+          {
+            key: 'regression',
+            label: 'Regression',
+            count: 1,
+            basisLabel: 'Regression',
+            members: [
+              {
+                sourceId: 'response-0',
+                text: 'Lineare Regression im Projekt',
+                weight: 1,
+              },
+            ],
+            variants: ['Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+
+    component.freetextResponses.update((responses) => [...responses, 'Orbit bleibt stabil']);
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(component.freetextWordCloudSmoothingStatus()).toBe('stale');
+    expect(component.freetextWordCloudSmoothingLabel()).toBe('Neu analysieren');
+    expect(component.freetextWordCloudSmoothingHint()).toBe('Neue Antworten seit letzter Glättung');
+    expect(component.displayedFreetextAnalysisEntries()).toMatchObject([{ label: 'Regression' }]);
+
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(2);
+    expect(lemmaAnalyzeCalls()[1]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        normalization: 'LEMMA',
+        items: expect.arrayContaining([expect.objectContaining({ text: 'Orbit bleibt stabil' })]),
+      }),
+    ]);
+    fixture.destroy();
+  });
+
+  it('laesst Freitext lokal, wenn die Glaettung nicht verfuegbar ist', async () => {
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Pourquoi un satellite reste-t-il en orbite?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Pourquoi un satellite reste-t-il en orbite?',
+      responses: ['regression lineaire', 'orbite stable'],
+    });
+
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'fr' }]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
+    expect(component.freetextWordCloudSmoothingHint()).toBe('Glättung nicht verfügbar');
+    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    await component.toggleFreetextWordCloudSmoothing();
+    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
+    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
     fixture.destroy();
   });
 

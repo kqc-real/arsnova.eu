@@ -3529,7 +3529,8 @@
                     }
                     <app-word-cloud
                       [responses]="displayedFreetextResponses()"
-                      [terms]="displayedFreetextWordCloudTerms()"
+                      [terms]="displayedFreetextVisibleTerms()"
+                      [analysisEntries]="displayedFreetextAnalysisEntries()"
                       [selectionScopeKey]="displayedCurrentQuestionForHost()?.questionId ?? null"
                       [eyebrow]="freetextWordCloudEyebrow"
                       [description]="freetextWordCloudDescription"
