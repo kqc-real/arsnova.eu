@@ -5741,6 +5741,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureQaSubscription();
     await this.refreshQaQuestions();
     this.scrollQaListToTop();
+
+    const shouldRefreshLemmaSmoothing = untracked(
+      () =>
+        this.qaWordCloudAnalysisVariant() === 'LEXICAL' &&
+        (this.qaWordCloudLemmaPending() ||
+          this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA'),
+    );
+    if (!shouldRefreshLemmaSmoothing) {
+      return;
+    }
+
+    await this.requestQaWordCloudLemmaSmoothing();
   }
 
   setQaWordCloudAnalysisVariant(variant: WordCloudAnalysisVariant): void {

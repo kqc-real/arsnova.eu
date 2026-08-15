@@ -3776,6 +3776,132 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('glaettet die Q&A-Wolke beim Sortierungswechsel direkt neu, wenn Glättung aktiv ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { metric?: string; normalization?: string }) => {
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            metric: input.metric ?? 'BEST',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: input.metric === 'CONTROVERSIAL' ? 'pruefung' : 'klausur',
+                label: input.metric === 'CONTROVERSIAL' ? 'Prüfung' : 'Klausur',
+                count: 4,
+                basisLabel: input.metric === 'CONTROVERSIAL' ? 'Prüfung' : 'Klausur',
+                members: [
+                  {
+                    sourceId: '11111111-1111-4111-8111-111111111111',
+                    text: 'Kommt Kapitel 4 in der Klausur vor?',
+                    weight: 4,
+                  },
+                ],
+                variants: [input.metric === 'CONTROVERSIAL' ? 'Prüfung' : 'Klausur'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          metric: input.metric ?? 'BEST',
+          entries: [],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toHaveLength(1);
+    expect(lemmaAnalyzeCalls()[0]).toEqual([expect.objectContaining({ metric: 'BEST' })]);
+
+    await fixture.componentInstance.setQaSortMode('CONTROVERSIAL');
+    await vi.waitUntil(
+      () =>
+        fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active' &&
+        lemmaAnalyzeCalls().some(
+          (call) => (call[0] as { metric?: string }).metric === 'CONTROVERSIAL',
+        ),
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(lemmaAnalyzeCalls()).toHaveLength(2);
+    expect(lemmaAnalyzeCalls()[1]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        metric: 'CONTROVERSIAL',
+        normalization: 'LEMMA',
+      }),
+    ]);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('active');
+    expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Glättung aktiv');
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
+      { label: 'Prüfung' },
+    ]);
+
+    await fixture.componentInstance.setQaSortMode('TOP');
+    await vi.waitUntil(
+      () =>
+        lemmaAnalyzeCalls().filter((call) => (call[0] as { metric?: string }).metric === 'TOP')
+          .length === 1,
+      { timeout: 5000, interval: 25 },
+    );
+    expect(lemmaAnalyzeCalls()).toHaveLength(3);
+    expect(lemmaAnalyzeCalls()[2]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+      }),
+    ]);
+    fixture.destroy();
+  });
+
   it('laesst die lexikalische Wolke waehrend der Glaettung sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
