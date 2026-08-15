@@ -59,6 +59,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   auf den Schließen-Button und Rückgabe beim Dismiss — Fallback auf die Session-Code-Eingabe nur,
   wenn sonst kein sinnvolles Fokusziel aktiv ist. Der Preset-Snackbar-Timer refokussiert die
   Session-Code-Eingabe nicht, solange MOTD oder ein Overlay den Fokus hält.
+- **Erster Handy-Besuch:** Auf schmalen Viewports (`max-width: 599px`) oder Geräten mit grobem Primärzeiger erscheint das Overlay **nicht beim ersten Startseiten-Besuch** und nicht bei Reloads derselben Browsersitzung. Teilnehmende treten in der Regel per Handy bei; der Join soll zuerst frei bleiben. Ab dem nächsten Besuch (neue Sitzung nach dem ersten Handy-Home) kann das Overlay erscheinen. **Desktop** bleibt unverändert. Das Archiv-Icon in der Toolbar ist nicht betroffen.
 
 ### 3.6 Clientzustand (localStorage)
 
@@ -68,6 +69,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   `contentVersion`; dadurch kann eine dauerhafte Meldung mit spätem `endsAt` später
   veröffentlichte Meldungen nicht versehentlich als bereits gelesen markieren.
 - **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).
+- Zusätzlich steuern **`arsnova-motd-mobile-home-seen`** (localStorage) und **`arsnova-motd-mobile-first-home-session`** (sessionStorage) die Unterdrückung beim ersten mobilen Startseiten-Besuch.
 
 ### 3.7 Nutzerinteraktionen (getrennte Dimensionen)
 
@@ -156,3 +158,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-07-22 | Abschnitt 9: lokale Seed-Kette um Feature-MOTDs **PDF-Auswertungsreport** und **Barrierefreiheit (WCAG 2.2 AA)** ergänzt.                                                                                                          |
 | 2026-08-13 | Abschnitt 9: lokale Seed-Kette um die Vision-MOTD **„Aus vielen Stimmen wird gemeinsame Erkenntnis“** ergänzt.                                                                                                                     |
 | 2026-08-13 | Abschnitte 3.6/4.1: Archiv-Lesestatus auf einen publikationsbasierten Cursor umgestellt; Legacy-`endsAt`-Felder bleiben API-kompatibel.                                                                                            |
+| 2026-08-14 | Abschnitte 3.5/3.6: Overlay auf Handy erst nach dem ersten Startseiten-Besuch (Reload derselben Sitzung bleibt unterdrückt; Desktop und Toolbar-Archiv unverändert).                                                               |

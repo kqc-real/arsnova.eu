@@ -20,7 +20,7 @@ Sie konkretisiert ADR `docs/architecture/decisions/0010-blitzlicht-as-core-live-
 
 - Verwende in der UI `Blitzlicht`, nicht `Blitz-Feedback`.
 - Verwende `Q&A`, nicht `Fragen`, wenn der Kanalname gemeint ist.
-- Fuer Tempo verwende als Start-CTA `Tempo-Feedback`, nicht `Tempo starten`.
+- Fuer Tempo verwende als Host-CTA `Tempo-Feedback`, nicht `Tempo starten`. Auf der Startseite lautet der Chip `Tempo`.
 - Fuer die Tempo-Spotlight-Ueberschrift verwende `Vortragstempo im Blick behalten`.
 - Fuer die Tempo-Spotlight-Beschreibung ist die kanonische Aussage: `Mit vier Icons zeigt deine Gruppe, ob sie folgen kann.`
 - Verwende beim Tempo-Host `Rueckmeldungen` statt `Signale` oder `Stimmen`.
@@ -70,13 +70,11 @@ Sie konkretisiert ADR `docs/architecture/decisions/0010-blitzlicht-as-core-live-
 - Der Einstieg benoetigt kein zusaetzliches Konfigurationsmodal fuer Standardfaelle.
 - Waehlt der Nutzer ein Format, landet er direkt in einer nutzbaren Host-Ansicht.
 
-### Tempo-Spotlight auf der Startseite
+### Tempo auf der Startseite
 
-- Tempo ist ein Spotlight-Einstieg fuer Standalone-Blitzlicht, nicht der vierte gleichrangige Hero-Chip.
-- Die vier Tempo-Icons muessen optisch gross genug sein und auf Mobile horizontal zentriert bleiben.
-- Wenn Text links und Icons rechts stehen, muessen die Icons vertikal mit dem Textblock ausgerichtet sein.
-- Der CTA lautet `Tempo-Feedback` und muss horizontal mittig wirken, wenn er allein in der Spotlight-Flaeche steht.
-- `Vortragstempo` darf nicht als `Vortrag-stempo` umbrechen; bei Bedarf weiches Trennzeichen oder responsive Textbreite nutzen.
+- Tempo ist ein gleichrangiger Format-Chip in der Blitzlicht-Karte, keine eigene Spotlight-Kachel.
+- Der Chip zeigt die vier Tempo-Icons und das Label `Tempo`.
+- Spotlight-Kachel und CTA `Tempo-Feedback` bleiben der Blitzlicht-Host-Auswahl vorbehalten.
 
 ## Live-Ansicht: Host
 

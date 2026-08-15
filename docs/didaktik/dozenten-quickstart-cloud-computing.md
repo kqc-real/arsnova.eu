@@ -86,7 +86,7 @@ Providerpreise, SKU-Stücklisten und OpenStack-/Kubernetes-Optionen sind Vertief
 - [ ] Prüfungsform in myCampus geprüft; Abweichung Referat/Workbook gegebenenfalls schriftlich geklärt
 - [ ] Agenteneinsatz und Offenlegung in der formalen Prüfungsabgabe ausdrücklich geklärt
 - [ ] Einzel-/Gruppenreferat und Präsentation mit Handout/Poster festgelegt
-- [ ] Thema, mindestens vier Wochen Bearbeitungszeit, gemeinsamer PDF-E-Mail-Termin und Prüfungstermine veröffentlicht
+- [ ] Themen aus dem [kanonischen Katalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) mit dem ausgewiesenen offiziellen Qualifikationsbezug, Story-/Commitbasis, individueller These, Evidenzauftrag und Gegenalternative zugeordnet; mindestens vier Wochen Bearbeitungszeit, gemeinsamer PDF-E-Mail-Termin und Prüfungstermine veröffentlicht
 - [ ] offizieller Bewertungsbogen mit 30/30/40-Gewichtung und Hilfsmittel übernommen
 - [ ] 18 UE Präsenz/synchron und 18 UE Tutorium im Stundenplan ausgewiesen
 - [ ] 123 Stunden Selbststudium ohne Doppelzählung geplant

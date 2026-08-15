@@ -210,7 +210,7 @@ Aktueller Stand:
 - `SessionLiveChannelSchema` bleibt bei `quiz`, `qa`, `quickFeedback`; es gibt keinen vierten `tempo`-Kanal.
 - `quickFeedback.vote` verzweigt fuer `TEMPO` auf einen atomaren Redis-Lua-Hotpath: Wechsel, Re-Tap-Entfernen, Verteilung, `qf:choices:*` und `qf:tempo:buckets:*` werden ohne PostgreSQL-Schreibpfad pro Tap fortgeschrieben.
 - Die Tendenzlogik liegt in `apps/backend/src/lib/quickFeedbackTempo.ts` mit 15-Sekunden-Buckets, 60-Sekunden-Fenster, Mindestquote und Hysterese.
-- Die Startseite und die Blitzlicht-Host-Auswahl enthalten eine Tempo-Spotlight-Kachel; der Startseiten-CTA lautet `Tempo-Feedback`.
+- Die Blitzlicht-Host-Auswahl enthaelt eine Tempo-Spotlight-Kachel; der Host-CTA lautet `Tempo-Feedback`. Auf der Startseite ist Tempo ein gleichrangiger Format-Chip (`Tempo`) in der Blitzlicht-Karte.
 - Die Host-UI bietet Detail- und Tendenzmodus mit den Kennzahlen `Online` und `Rueckmeldungen`; Teilnehmende starten bei `🙂 Ich folge`, koennen Abweichungen wechseln, per Re-Tap zuruecksetzen und im Vote-Client per Backdrop auf den Default zurueck.
 - Die 500-Teilnehmenden-Abnahme wurde mit parallel abgegebenen Tempo-Zustaenden validiert.
 

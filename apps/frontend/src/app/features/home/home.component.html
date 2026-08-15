@@ -13,7 +13,7 @@
       </h1>
       <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
       <p class="home-hero-usp home-hero-usp--secondary" i18n="@@homeHero.uspTrust">
-        Kostenlos. Open Source.
+        Kostenlos. Open Source. Ohne Anmeldung.
       </p>
 
       <div
@@ -95,67 +95,14 @@
       </div>
     </div>
 
-    @if (isPlayfulPreset()) {
-      <div class="home-stage-rotator" aria-hidden="true">
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate1">
-          Live-Quizze ohne Anmeldung.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate2">
-          Anonymes Q&amp;A aus dem Publikum.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate3">
-          Spontane Blitzlichter im Workshop.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate4">
-          Peer Instruction leicht gemacht.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate5">
-          Echtzeit-Feedback für deine Sessions.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate6">
-          Alles an einem Ort: Quiz, Q&amp;A und Feedback.
-        </p>
-        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate7">
-          Umfragen mit 100 % Fokus auf Datenschutz.
-        </p>
-      </div>
-      <section
-        class="home-step-trail"
-        i18n-aria-label="@@home.stepTrailAria"
-        aria-label="So geht's: Code eingeben, live dabei."
-      >
-        <span class="home-step-chip" aria-hidden="true" i18n="@@home.step1">Code eingeben</span>
-        <span class="home-step-trail__arrow" aria-hidden="true">→</span>
-        <span class="home-step-chip" aria-hidden="true" i18n="@@home.step3">Live dabei</span>
-      </section>
-    } @else {
-      <p class="home-hero-serious-tagline" i18n="@@home.seriousTagline">
-        Klar strukturiert für Unterricht, Meetings und Events – Teilnehmende brauchen nur den
-        Session-Code aus dem Raum.
-      </p>
-    }
-
     <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
       <mat-card-header>
         <mat-card-subtitle>
           <span class="home-card__icon-wrap">
             <mat-icon class="home-card__icon">group_add</mat-icon>
           </span>
-          <span i18n>Mitmachen</span>
         </mat-card-subtitle>
-        <h2 mat-card-title class="home-card__title" i18n>Dabei sein</h2>
-        @if (isPlayfulPreset()) {
-          <span class="home-card__brand-repeat" aria-hidden="true">
-            <img
-              class="home-card__brand-repeat-icon"
-              src="assets/icons/favicon.svg"
-              alt=""
-              width="32"
-              height="32"
-            />
-            <span class="home-card__brand-repeat-wordmark">arsnova.eu</span>
-          </span>
-        }
+        <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">Mitmachen</h2>
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">
@@ -289,44 +236,6 @@
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">
-        <button
-          type="button"
-          class="home-feedback-tempo-spotlight"
-          (click)="startQuickFeedback(quickFeedbackTempoSpotlight.type)"
-          [disabled]="!!quickFeedbackStarting()"
-          [attr.aria-busy]="
-            quickFeedbackStarting() === quickFeedbackTempoSpotlight.type ? true : null
-          "
-          i18n-aria-label="@@feedback.tempoSpotlightAction"
-          aria-label="Tempo-Feedback"
-        >
-          <span class="home-feedback-tempo-spotlight__copy">
-            <span class="home-feedback-tempo-spotlight__eyebrow">{{
-              quickFeedbackTempoSpotlight.eyebrow
-            }}</span>
-            <span class="home-feedback-tempo-spotlight__title">{{
-              quickFeedbackTempoSpotlight.title
-            }}</span>
-            <span class="home-feedback-tempo-spotlight__text">{{
-              quickFeedbackTempoSpotlight.description
-            }}</span>
-          </span>
-          <span class="home-feedback-tempo-spotlight__icons" aria-hidden="true">
-            @for (icon of quickFeedbackTempoSpotlight.icons; track icon.value) {
-              <span>{{ icon.value }}</span>
-            }
-          </span>
-          <span class="home-feedback-tempo-spotlight__action">
-            <mat-icon aria-hidden="true">
-              @if (quickFeedbackStarting() === quickFeedbackTempoSpotlight.type) {
-                sync
-              } @else {
-                speed
-              }
-            </mat-icon>
-            <span>{{ quickFeedbackTempoSpotlight.actionLabel }}</span>
-          </span>
-        </button>
         <div class="home-feedback-chip-grid">
           @for (chip of quickFeedbackPresetChips; track chip.type) {
             <button
@@ -390,6 +299,21 @@
             Quiz vorbereiten oder starten
           </h2>
         </div>
+        <button
+          #syncToggleBtn
+          type="button"
+          matIconButton
+          class="home-card__sync-btn"
+          (click)="toggleSyncLinkEntry()"
+          [attr.aria-expanded]="syncLinkVisible()"
+          [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
+          i18n-aria-label="@@homeHostCard.syncPanelCta"
+          aria-label="Zwischen Geräten wechseln"
+          i18n-matTooltip="@@homeHostCard.syncPanelCta"
+          matTooltip="Zwischen Geräten wechseln"
+        >
+          <mat-icon aria-hidden="true">devices</mat-icon>
+        </button>
       </mat-card-header>
 
       <mat-card-actions class="l-stack l-stack--sm">
@@ -428,18 +352,6 @@
           </a>
         </div>
         <div class="home-card__tertiary">
-          <button
-            mat-button
-            type="button"
-            class="home-card__tertiary-link"
-            (click)="toggleSyncLinkEntry()"
-            [attr.aria-expanded]="syncLinkVisible()"
-            i18n-aria-label="@@homeHostCard.syncPanelCta"
-            aria-label="Zwischen Geräten wechseln"
-          >
-            <mat-icon class="home-cta__icon">devices</mat-icon>
-            <span i18n="@@homeHostCard.syncPanelCta">Zwischen Geräten wechseln</span>
-          </button>
           <app-info-landing-link
             class="home-card__info-landing"
             [anchor]="infoLandingWorkflowAnchor"
@@ -448,7 +360,7 @@
           />
         </div>
         @if (syncLinkVisible()) {
-          <div class="home-sync-entry">
+          <div id="home-sync-entry" class="home-sync-entry">
             <div class="home-sync-entry__block">
               <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncShareHint">
                 Mit anderen teilen oder auf einem zweiten Gerät dieselbe Sammlung nutzen:

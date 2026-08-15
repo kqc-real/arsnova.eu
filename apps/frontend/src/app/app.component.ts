@@ -127,8 +127,6 @@ export class AppComponent implements OnInit, OnDestroy {
   apiRetrying = signal(false);
   presetSnackbarVisible = signal(false);
   presetToastVisible = signal(false);
-  /** Einmalig beim ersten Wechsel auf Spielerisch: Snackbar-Text „Jetzt noch schneller und flüssiger!“ */
-  firstTimePlayfulMessage = signal(false);
   /** PWA installierbar (beforeinstallprompt) – Snackbar-Hinweis v. a. für Mobile sichtbar. */
   installSnackbarVisible = signal(false);
   @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
@@ -211,12 +209,12 @@ export class AppComponent implements OnInit, OnDestroy {
     this.themePreset.preset() === 'serious' ? 'work' : 'celebration',
   );
   presetSnackbarLabel = computed(() => {
-    if (this.firstTimePlayfulMessage() && this.themePreset.preset() === 'spielerisch') {
-      return $localize`:@@7981911571029514989:Jetzt noch schneller und flüssiger!`;
-    }
+    // Nutzen statt einzelner Optionen benennen: Diese können anschließend angepasst werden,
+    // die grundlegende Ausrichtung der beiden Gestaltungen bleibt aber verständlich.
+
     return this.themePreset.preset() === 'serious'
-      ? $localize`Preset: Seriös`
-      : $localize`Preset: Spielerisch`;
+      ? $localize`:@@app.snackbar.presetSerious:Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.`
+      : $localize`:@@app.snackbar.presetPlayful:Spielerisch gewählt – lebendig, motivierend und mit mehr Tempo.`;
   });
   footerRetryLabel = computed(() =>
     this.apiRetrying() ? $localize`Verbinde…` : $localize`Nochmal versuchen`,
@@ -630,6 +628,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private onBeforeInstallPrompt(e: BeforeInstallPromptEvent): void {
     e.preventDefault();
+    // Samsung Internet erzeugt derzeit auf Android 14+ teils veraltete WebAPKs.
+    // Nur unseren Custom-Prompt unterdruecken; Details: docs/architecture/pwa-webapk-android.md.
+    if (/\bSamsungBrowser\//i.test(navigator.userAgent)) {
+      this.deferredInstallPrompt = null;
+      this.installSnackbarVisible.set(false);
+      return;
+    }
     this.deferredInstallPrompt = e;
     this.installSnackbarVisible.set(true);
   }
@@ -964,7 +969,6 @@ export class AppComponent implements OnInit, OnDestroy {
       isPlatformBrowser(this.platformId) &&
       isPlayful &&
       !localStorage.getItem(STORAGE_PLAYFUL_WELCOMED);
-    this.firstTimePlayfulMessage.set(firstTime);
     if (firstTime && isPlatformBrowser(this.platformId)) {
       localStorage.setItem(STORAGE_PLAYFUL_WELCOMED, '1');
     }
@@ -973,14 +977,12 @@ export class AppComponent implements OnInit, OnDestroy {
     const duration = firstTime ? 6000 : 5000;
     this.snackbarTimer = setTimeout(() => {
       this.presetSnackbarVisible.set(false);
-      this.firstTimePlayfulMessage.set(false);
       this.focusService.refocusInput();
     }, duration);
   }
 
   dismissPresetSnackbar(refocus = true): void {
     this.presetSnackbarVisible.set(false);
-    this.firstTimePlayfulMessage.set(false);
     if (this.snackbarTimer) {
       clearTimeout(this.snackbarTimer);
       this.snackbarTimer = null;

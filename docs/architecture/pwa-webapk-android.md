@@ -1,6 +1,6 @@
 # PWA & Android WebAPK (Chrome „Add to Home Screen“)
 
-**Stand:** 2026-05-31
+**Stand:** 2026-08-14
 
 ## Hintergrund: WebAPK und Target SDK
 
@@ -8,12 +8,28 @@ Unter Android erzeugt Chrome beim „App installieren“ (Add to Home Screen) ke
 
 Ursachen können sein: veraltete Chrome-Version beim Nutzer oder **gecachte alte WebAPKs** auf Googles Servern.
 
+## Temporärer Schutz für Samsung Internet
+
+Für Samsung Internet ist seit April 2026 ein noch offener Fehlerbericht bekannt,
+nach dem der Browser auf Android 14+ ein WebAPK mit veraltetem Target SDK erzeugen
+kann. Android blockiert die Installation dann als unsicher, während dieselbe PWA
+über Chrome installierbar bleibt:
+[`SamsungInternet/support#123`](https://github.com/SamsungInternet/support/issues/123).
+
+arsnova.eu unterdrückt deshalb vorübergehend nur seinen eigenen
+Installationshinweis, wenn das `beforeinstallprompt`-Event aus einem User-Agent mit
+dem von Samsung dokumentierten Token `SamsungBrowser/` stammt. Die
+browser-eigenen Menüfunktionen bleiben davon unberührt. Firefox und allgemeine
+In-App-Browser werden nicht per User-Agent gesperrt: Ohne unterstütztes
+`beforeinstallprompt`-Event erscheint der eigene Installationshinweis ohnehin
+nicht.
+
 ## Was wir tun: Manifest-Cache-Busting
 
 Damit Google ein **neues** WebAPK mit aktueller targetSdkVersion erzeugt, wird das Manifest bewusst geändert, sobald das Problem auftritt:
 
 - **`start_url`:** Zusätzlicher Query-Parameter. Aktueller Repo-Stand: `/?homescreen=1`. Die App funktioniert unverändert; der Parameter dient nur der Unterscheidung und zwingt den Minting-Server zu einem neuen Build.
-- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=4` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
+- **Icon- und Screenshot-URLs:** Manifest-Assets tragen explizite Cache-Buster (`?v=2` bei Icons, `?v=7` bei Screenshots), damit Chrome und der WebAPK-Minting-Server neue Artefakte zuverlässig erkennen.
 - **`theme_color`:** Ggf. minimale Änderung (aktuell `#6750a5`), um das Manifest bei Bedarf zusätzlich zu invalideren.
 
 Nach dem Deploy sollten Nutzer die PWA erneut „Zum Startbildschirm hinzufügen“ anstoßen; Chrome lädt dann ein frisches WebAPK.
@@ -23,7 +39,20 @@ Nach dem Deploy sollten Nutzer die PWA erneut „Zum Startbildschirm hinzufügen
 - **„Trotzdem installieren“:** Unter „Weitere Details“ in der Android-Warnung gibt es oft die Option „Trotzdem installieren“. Für unsere vertrauenswürdige Web-App unkritisch.
 - **Chrome aktualisieren:** Play Store → Chrome auf neueste Version; ggf. Browser-Cache für arsnova.eu leeren und Installation erneut versuchen.
 
+## Manifest-Screenshots
+
+`screenshots` im Web-App-Manifest ist ein Array. Chrome zeigt passende Einträge in der erweiterten Installations-UI als Karussell: Desktop nur `form_factor: "wide"` (höchstens acht), Android nur `narrow` (höchstens fünf). Alle Shots desselben Formfaktors müssen dasselbe Seitenverhältnis haben (hier 1280×720 bzw. 390×844).
+
+Aktueller Satz (je drei Wide/Narrow):
+
+1. Startseite
+2. Live-Quiz aus dem Praxis-Showcase-Demo (Host-Beamer / Teilnehmenden-Abstimmung)
+3. Wortwolke bzw. Freitext aus demselben Demo-Quiz
+
+Erzeugen: Frontend und API müssen laufen, dann `npm run screenshots -w @arsnova/frontend`. Nur Startseite: `HOME_ONLY=1`. Labels werden beim lokalisierten Build in `patch-pwa-manifest-per-locale.mjs` übersetzt.
+
 ## Referenz
 
 - Manifest: `apps/frontend/src/manifest.webmanifest`
+- Capture: `apps/frontend/scripts/capture-screenshots.mjs`
 - Kein Fehler in unserer Architektur; bekanntes Verhalten im Google-WebAPK-Ökosystem.

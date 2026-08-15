@@ -79,11 +79,11 @@ Verbindliche Evidenzquellen:
 - [formale Sicherheits- und Lasttest-Abnahme](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md)
 - [Monitoring-Abnahme W3.7](../implementation/W3.7-MONITORING-ALARMS-ABNAHME.md)
 
-### 3.3 Semesterbegleitendes Studienobjekt: Word Cloud 3.0
+### 3.3 Semesterbegleitendes Studien- und Prüfungsobjekt: von der Begriffswolke zum Moderationskompass
 
-[Backlog-Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin) ist das verbindende Studienobjekt für die Übungen: ein host-ausgelöster semantischer Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die heutige lexikalische Wortwolke bleibt dabei der jederzeit verfügbare Fallback.
+Die [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) bilden gemeinsam das verbindende Studienobjekt für Übungen und Referate. Story 1.14a liefert mit Word Cloud 2.1 bis 2.5 die produktive lexikalische Baseline. Story 1.14b untersucht die optionale spaCy-Glättung als internen Sidecar auf dem bestehenden Single Host. Story 1.14c ergänzt einen host-ausgelösten semantischen Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die Storys 8.9a–8.9c führen diese Signale in einen zunächst deterministischen und später optional KI-gestützten Moderationskompass über.
 
-Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline. Die Studierenden demonstrieren und implementieren schrittweise einen davon getrennten, privat erreichbaren Inferenzserver. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
+Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline und bleibt auch der vorgesehene Betriebsort für den begrenzten spaCy-Sidecar aus 1.14b. Der verteilte Sidecar-Default liefert die MIT-Modelle `de`/`en`; `fr`/`es` nur mit NOTICE- beziehungsweise GPL-Kennzeichnung; das italienische `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht in den MIT-Default. Die Studierenden demonstrieren und implementieren für 1.14c sowie optional 8.9b/8.9c schrittweise einen davon getrennten, privat erreichbaren Inferenzserver. 1.14c und 8.9b dürfen dieselbe abgesicherte Serverrolle nutzen, behalten aber getrennte Schemas, Queues, Caches und Modelllebenszyklen. 8.9c verwendet diese Serverrolle über einen getrennten schema- und quellengebundenen Zusammenfassungsvertrag mit eigenem Anfrage-/Ergebnislebenszyklus; Betrieb, Modelllebenszyklus und Servergrenze bleiben bei 1.14c. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
 
 Das Studienobjekt wird nicht auf eine Modell-Demo reduziert. Verbindliche Untersuchungsachsen sind:
 
@@ -94,7 +94,7 @@ Das Studienobjekt wird nicht auf eine Modell-Demo reduziert. Verbindliche Unters
 - Datenschutz, Bedrohungsmodell, Modell-/Lizenzmanifest und Supply-Chain-Risiken;
 - TCO, FinOps, Unit Costs, Auslastung/Leerlauf, Build/Buy, Sensitivität, Lock-in und Exit.
 
-Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Decision Record in das formative Agentic Cloud Engineering Dossier ein und bilden eine mögliche fachliche Basis für das Referat. Die Übungsimplementierung ist weder eine automatische Produktivfreigabe noch ein Kapazitätsversprechen.
+Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Decision Record in das formative Agentic Cloud Engineering Dossier ein. Der [kanonische Referatsthemenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) schneidet diese Gesamtvision in zwölf prüfbare Leitfragen mit verpflichtender Evidenz und Entscheidung. Die Übungsimplementierung ist weder eine automatische Produktivfreigabe noch ein Kapazitätsversprechen.
 
 ## 4. Dokumentationsarchitektur
 
@@ -120,14 +120,15 @@ Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Dec
 | Welche Migration ist plausibel?                   | [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)                                                                                                     |
 | Welche Betriebsmodelle sind vergleichbar?         | [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [OpenStack/Kubernetes](../implementation/CLOUD-COMPUTING-OPENSTACK-UND-ALTERNATIVEN.md) |
 | Wie kann eine Hetzner-Variante kalkuliert werden? | [Stückliste](../implementation/CLOUD-COMPUTING-HETZNER-STUECKLISTE.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)               |
-| Welches Studienobjekt verbindet die Übungen?      | [Story 1.14c](../../Backlog.md#epic-1-quiz-verwaltung-rolle-lehrperson--erstellerin), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)    |
+| Welches Studienobjekt verbindet die Übungen?      | [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)                                    |
+| Welche Referatsthemen werden vergeben?            | [Kanonischer Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu)                                            |
 
 Die Kostenunterlagen sind **volatile Rechenbeispiele**, keine Beschaffungsfreigabe und kein Kapazitätsnachweis. Vor jeder Verwendung müssen Preise, Produktverfügbarkeit, Architekturannahmen und Lastdaten neu geprüft werden.
 
 ## 5. Noch zu klären
 
 - Prüfungsform des konkreten Kurslaufs in myCampus: Referat gemäß Modulhandbuch oder abweichend Workbook
-- bei Referat: Einzel- oder Gruppenformat, Präsentation mit Handout oder Posterpräsentation, Thema, Hilfsmittel und Terminierung
+- bei Referat: Einzel- oder Gruppenformat, Präsentation mit Handout oder Posterpräsentation, Auswahl und individuelle Zuordnung aus dem kanonischen Themenkatalog, Hilfsmittel und Terminierung
 - bei einer bestätigten Workbook-Abweichung: kursspezifische Aufgabe und zentraler Bewertungsbogen
 - institutionell freigegebene Agenten, Modelle, Datenverarbeitung und Offenlegung in der Prüfung
 - Zugangsmodell für identische isolierte Zielserver, Agentenkontrollumgebung und kurzlebige Credentials

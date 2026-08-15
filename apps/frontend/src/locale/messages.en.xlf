@@ -210,28 +210,20 @@
           <context context-type="linenumber">281</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7981911571029514989" datatype="html">
-        <source>Jetzt noch schneller und flüssiger!</source>
-        <target>Now even faster and smoother!</target>
+      <trans-unit id="app.snackbar.presetSerious" datatype="html">
+        <source>Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.</source>
+        <target>Business mode selected – calm, clear, and focused on content.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1136696335453039978" datatype="html">
-        <source>Preset: Seriös</source>
-        <target>Preset: Business</target>
+      <trans-unit id="app.snackbar.presetPlayful" datatype="html">
+        <source>Spielerisch gewählt – lebendig, motivierend und mit mehr Tempo.</source>
+        <target>Gamification mode selected – lively, engaging, and fast-paced.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">218</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6151253518820826531" datatype="html">
-        <source>Preset: Spielerisch</source>
-        <target>Preset: Gamification</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2911090466936872230" datatype="html">
@@ -6845,8 +6837,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.uspTrust" datatype="html">
-        <source> Kostenlos. Open Source.</source>
-        <target>Free. Open source.</target>
+        <source> Kostenlos. Open Source. Ohne Anmeldung.</source>
+        <target>Free. Open source. No account needed.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">15,17</context>
@@ -6955,10 +6947,6 @@
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">67</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">127</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="home.heroChip.quizStart" datatype="html">
         <source>Quiz erstellen</source>
@@ -6984,100 +6972,12 @@
           <context context-type="linenumber">92,94</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeStage.rotate1" datatype="html">
-        <source> Live-Quizze ohne Anmeldung.</source>
-        <target>Live quizzes. No account required.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">100,102</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate2" datatype="html">
-        <source> Anonymes Q&amp;A aus dem Publikum.</source>
-        <target>Anonymous Q&amp;A from the audience.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">103,105</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate3" datatype="html">
-        <source> Spontane Blitzlichter im Workshop.</source>
-        <target>Instant Pulse Checks for your workshops.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">106,108</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate4" datatype="html">
-        <source> Peer Instruction leicht gemacht.</source>
-        <target>Peer Instruction made easy.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">109,111</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate5" datatype="html">
-        <source> Echtzeit-Feedback für deine Sessions.</source>
-        <target>Real-time feedback for your sessions.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">112,114</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate6" datatype="html">
-        <source> Alles an einem Ort: Quiz, Q&amp;A und Feedback.</source>
-        <target>All in one place: Quizzes, Q&amp;As, and Feedback.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">115,117</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeStage.rotate7" datatype="html">
-        <source> Umfragen mit 100 % Fokus auf Datenschutz.</source>
-        <target>100% privacy-focused polling.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">118,120</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.stepTrailAria" datatype="html">
-        <source>So geht&apos;s: Code eingeben, live dabei.</source>
-        <target>Here&apos;s how it works: enter the code and join live.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">125</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.step3" datatype="html">
-        <source>Live dabei</source>
-        <target>See it live</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">129</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.seriousTagline" datatype="html">
-        <source> Klar strukturiert für Unterricht, Meetings und Events – Teilnehmende brauchen nur den Session-Code aus dem Raum.</source>
-        <target>Clearly structured for lessons, meetings, and events – participants only need the session code shown in the room.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">132,135</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="64331070139954298" datatype="html">
+      <trans-unit id="homeJoinCard.title" datatype="html">
         <source>Mitmachen</source>
         <target>Participate</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">144</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8867796569409673283" datatype="html">
-        <source>Dabei sein</source>
-        <target>Join session</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6442998532427943414" datatype="html">

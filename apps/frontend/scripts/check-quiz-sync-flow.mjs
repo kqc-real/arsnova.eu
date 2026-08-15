@@ -112,7 +112,7 @@ async function importSharedLibrary(page, syncUrl) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.waitForTimeout(1_000);
   await dismissMotdIfPresent(page);
-  await page.locator('button.home-card__tertiary-link').click();
+  await page.locator('button.home-card__sync-btn').click();
   await page.waitForTimeout(400);
   await page.locator('.home-sync-entry__input').fill(syncUrl);
   await page.locator('button.home-sync-entry__submit').click();

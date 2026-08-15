@@ -232,7 +232,7 @@ Dadurch bleibt die UI fachlich klar:
 
 Der heutige belegte Produktionspfad bleibt ein Single Host fuer App, PostgreSQL und Redis. Story `1.14c` fuehrt fuer Encoder und optionales Open-Weight-LLM einen eigenen, privat erreichbaren Inferenzserver ein. Browser und Teilnehmende greifen nie direkt darauf zu. Queue, Cache, Modellversion, Ressourcenlimits, Telemetrie, Service-Credential beziehungsweise mTLS und Kill-Switch gehoeren zum Serververtrag.
 
-Die separate Serverrolle darf spaeter auch den eigenstaendigen Klassifikationsauftrag aus Story `8.9b` oder den Zusammenfassungsauftrag aus `8.9c` ausfuehren. Deren Schemas, Ausloeser, Queues, Caches und Lebenszyklen bleiben jedoch getrennt: `8.9b` klassifiziert einzelne persistierte Fragen, waehrend `1.14c` nur host-ausgeloeste unveraenderliche Snapshots clustert.
+Die separate Serverrolle darf spaeter auch den eigenstaendigen Klassifikationsauftrag aus Story `8.9b` oder den Zusammenfassungsauftrag aus `8.9c` ausfuehren. `1.14c` und `8.9b` behalten getrennte Schemas, Ausloeser, Queues, Caches und Modelllebenszyklen: `8.9b` klassifiziert einzelne persistierte Fragen, waehrend `1.14c` nur host-ausgeloeste unveraenderliche Snapshots clustert. `8.9c` verwendet dagegen einen getrennten schema- und quellengebundenen Zusammenfassungsvertrag mit eigenem Anfrage-/Ergebnislebenszyklus; Betrieb, Modelllebenszyklus und Servergrenze bleiben bei `1.14c`.
 
 ---
 

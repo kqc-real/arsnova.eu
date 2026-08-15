@@ -47,10 +47,7 @@ import { navigateToHostSession } from '../../core/session-host-navigation';
 import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { formatLocaleCount } from '../../core/locale-number.util';
-import {
-  QUICK_FEEDBACK_PRESET_CHIPS,
-  QUICK_FEEDBACK_TEMPO_SPOTLIGHT,
-} from '../feedback/feedback.config';
+import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
 import type {
   MotdInteractionKind,
   MotdPublicDTO,
@@ -64,6 +61,7 @@ import {
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { MotdCurrentService } from '../../core/motd-current.service';
@@ -115,6 +113,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('codeEnterBtn', { read: ElementRef })
   private readonly codeEnterBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('syncToggleBtn', { read: ElementRef })
+  private readonly syncToggleBtn?: ElementRef<HTMLButtonElement>;
 
   sessionCode = signal('');
   codeInputFocused = signal(false);
@@ -216,8 +216,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
-  readonly quickFeedbackPresetChips = QUICK_FEEDBACK_PRESET_CHIPS;
-  readonly quickFeedbackTempoSpotlight = QUICK_FEEDBACK_TEMPO_SPOTLIGHT;
+  readonly quickFeedbackPresetChips = QUICK_FEEDBACK_HOME_CHIPS;
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
   private spaceHandledInKeydown = false;
@@ -636,6 +635,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.syncLinkError.set(null);
     if (!nextVisible) {
       this.syncLinkValue.set('');
+      this.scheduleTimeout(
+        () => this.syncToggleBtn?.nativeElement.focus({ preventScroll: true }),
+        0,
+      );
       return;
     }
     this.scheduleTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
@@ -810,6 +813,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     if (consumeMotdOverlayReloadSuppress()) {
+      return;
+    }
+    if (shouldSuppressMotdOverlayOnMobileFirstHomeVisit()) {
       return;
     }
     if (
