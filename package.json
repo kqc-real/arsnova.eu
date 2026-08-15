@@ -27,6 +27,7 @@
     "typecheck": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
     "test": "npm run test -w @arsnova/shared-types && npm run test -w @arsnova/session-export-report && npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
     "test:spacy-sidecar": "python3 -m unittest discover -s docker/spacy/tests -p 'test_*.py'",
+    "test:spacy-compose": "node --test scripts/ci/spacy-compose-smoke.test.mjs",
     "test:coverage": "npm run build:libs && npm run test:coverage -w @arsnova/shared-types && npm run test -w @arsnova/session-export-report && npm run test:coverage -w @arsnova/backend && npm run test:coverage -w @arsnova/frontend",
     "clean:generated": "node scripts/clean-generated.mjs",
     "lint": "eslint libs/ apps/ --no-warn-ignored && npm run lint:scripts",

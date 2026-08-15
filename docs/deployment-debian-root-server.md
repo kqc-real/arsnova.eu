@@ -675,7 +675,11 @@ identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
 das Backend 8 Stunden. `NLP_ENABLED` bleibt in Produktion `false`, bis der
 optionale spaCy-Sidecar bewusst eingeschaltet wird (Compose-Profil `nlp` plus
 `NLP_ENABLED=true`). `deploy.sh` startet den Sidecar nicht; siehe
-[ENVIRONMENT.md](ENVIRONMENT.md) und [NOTICE](../NOTICE).
+[ENVIRONMENT.md](ENVIRONMENT.md) und [NOTICE](../NOTICE). Lokal: `npm run docker:up:nlp`.
+Produktion: Image selbst bauen (`docker build -t arsnova-spacy:3.8.15 docker/spacy`),
+optional unter einem eigenen GHCR-Namen taggen (nicht `ARSNOVA_IMAGE`), dann
+`COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy`
+und `NLP_ENABLED=true`. Rollback über Kill-Switch und `stop spacy`.
 
 W2.4b wird bewusst zweistufig ausgerollt:
 

@@ -20,6 +20,7 @@
 | `npm run lint:scripts:test`                   | Negativ-, Profil- und Mutationstests für Inventur, Changed-Script- und Voll-Gate                                          |
 | `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                    |
 | `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                           |
+| `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                   |
 | `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                 |
 | `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                         |
 | `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                              |

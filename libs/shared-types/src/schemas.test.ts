@@ -740,4 +740,28 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     });
     expect(complete.normalizationApplied).toBe('NONE');
   });
+
+  it('lehnt Analyse-Locales ausser de/en ab', () => {
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'fr',
+        metric: 'TOP',
+        items: [sourceItem],
+      }),
+    ).toThrow();
+  });
+
+  it('begrenzt Item-Textlaenge hart', () => {
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [{ ...sourceItem, text: 'a'.repeat(4001) }],
+      }),
+    ).toThrow();
+  });
 });

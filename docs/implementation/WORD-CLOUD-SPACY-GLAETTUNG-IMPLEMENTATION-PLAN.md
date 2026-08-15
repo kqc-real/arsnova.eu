@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–6 umgesetzt; Tests/Rollout folgt
+**Status:** Phase 1–7 umgesetzt
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -398,6 +398,8 @@ Ziel: die Funktion ohne Regression freigeben.
 4. Freitext-Wortwolke mit Glaettung bleibt lesbar und erklaerbar
 5. Neue Daten markieren den Stand als veraltet, aber rechnen nicht automatisch neu
 6. Ausfall des Sidecars fuehrt nicht zu leerer oder kaputter Wortwolke
+
+**Stand August 2026:** Phase 7 haertet den Slice. Kuratierte `de`/`en`-Fixtures belegen Flexion, Eigennamen, Verb-/Nominalfamilie, Komposita/Tippfehler, technische Begriffe, Sprachmischung und bewusste Nicht-Zusammenfuehrung. Frontend-Tests decken Ausloesen, Pending (lexikalische Wolke bleibt), stale/`Neu analysieren`, Locale-Sperre und Fehlerhinweis in Q&A und Freitext. Compose-Smoke (`npm run test:spacy-compose`) prueft Profil `nlp`, `network_mode: none` und getrennte `SPACY_IMAGE`. Sidecar-Unittests laufen ohne Modell-Download. Produktiv bleibt der Sidecar aus, bis Betreiber Image, Profil und `NLP_ENABLED=true` bewusst setzen; `deploy.sh` startet ihn nicht.
 
 ---
 

@@ -580,6 +580,45 @@ describe('wordCloud.analyze', () => {
       expect(result.entries[0]?.key).toBe('haeuser');
     });
 
+    it('meldet ungueltige Sidecar-Antworten als Normalisierungs-Fallback', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockRejectedValue(
+        new SpacyClientError('INVALID_RESPONSE'),
+      );
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('INVALID_RESPONSE');
+      expect(result.entries[0]?.key).toBe('haeuser');
+    });
+
+    it('liefert fuer leere Snapshots keine Eintraege', async () => {
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        items: [],
+      });
+
+      expect(result.entries).toEqual([]);
+      expect(result.fallbackUsed).toBe(false);
+    });
+
     it('ruft den Sidecar bei THEME + LEMMA nicht an', async () => {
       vi.stubEnv('NLP_ENABLED', 'true');
       const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');

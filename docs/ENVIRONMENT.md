@@ -270,6 +270,19 @@ Für einen öffentlichen Betrieb müssen mindestens diese Werte bewusst gesetzt 
 | Rate-Limits            | Produktionsprofil aus `.env.production.example` übernehmen und nach realem NAT-/Proxy-Umfeld anpassen                                                                    |
 | Nicht in Env steuerbar | Session-Retention, BonusToken-Retention und SessionFeedback-Retention sind aktuell Code-Konstanten                                                                       |
 
+### Optionaler spaCy-Sidecar (Story 1.14b)
+
+`deploy.sh` startet den Sidecar nicht. Standard bleibt `NLP_ENABLED=false`. Bewusst einschalten nur mit eigenem Image und Compose-Profil `nlp`:
+
+```bash
+docker build -t arsnova-spacy:3.8.15 docker/spacy
+# optional eigenes Registry-Tag, nicht ARSNOVA_IMAGE:
+# docker tag arsnova-spacy:3.8.15 ghcr.io/<org>/arsnova-spacy:3.8.15
+COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy
+```
+
+Danach in `.env.production` `NLP_ENABLED=true` setzen und die App neu starten. Rollback: `NLP_ENABLED=false` und `./scripts/prod-compose.sh stop spacy`. Modelle und Lizenzen: [NOTICE](../NOTICE).
+
 ### Empfohlenes Profil: hochfrequentierter Betrieb
 
 Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schulen/Hochschulen/Business) enthält `.env.production.example` bewusst ein großzügigeres Startprofil:
