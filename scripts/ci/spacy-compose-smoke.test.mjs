@@ -17,7 +17,7 @@ function extractServiceBlock(composeText, serviceName) {
   const afterHeading = start + marker.length;
   const nextMatch = composeText
     .slice(afterHeading)
-    .match(/\n  [A-Za-z0-9._-]+:\n|\n[A-Za-z0-9._-]+:\n/);
+    .match(/\n {2}[A-Za-z0-9._-]+:\n|\n[A-Za-z0-9._-]+:\n/);
   const end = nextMatch ? afterHeading + (nextMatch.index ?? 0) : composeText.length;
   return composeText.slice(start + 1, end);
 }
