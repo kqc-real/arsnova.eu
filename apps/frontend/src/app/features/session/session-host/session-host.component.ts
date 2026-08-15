@@ -6077,6 +6077,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       mode: 'THEME',
       locale,
       metric: this.qaSortMode(),
+      normalization: 'NONE',
       items,
       maxEntries: 40,
     };

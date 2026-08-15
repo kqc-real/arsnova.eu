@@ -8,19 +8,28 @@ import {
   buildLexicalWordCloudEntries,
   buildThemeWordCloudAnalysis,
 } from '../lib/wordCloudAnalysis';
+import { resolveWordCloudNormalizationMeta } from '../lib/wordCloudNormalization';
 import { hostProcedure, router } from '../trpc';
 
-function buildFallbackAnalysisResult(input: AnalyzeWordCloudInput): AnalyzeWordCloudOutput {
-  const entries = buildLexicalWordCloudEntries(input.items, input.locale, input.maxEntries);
-
+function buildAnalysisOutput(
+  input: AnalyzeWordCloudInput,
+  entries: AnalyzeWordCloudOutput['entries'],
+  themeFallbackUsed: boolean,
+): AnalyzeWordCloudOutput {
   return AnalyzeWordCloudOutputSchema.parse({
     mode: input.mode,
     locale: input.locale,
     metric: input.metric,
     generatedAt: new Date().toISOString(),
-    fallbackUsed: input.mode === 'THEME',
+    fallbackUsed: themeFallbackUsed,
     entries,
+    ...resolveWordCloudNormalizationMeta(input),
   });
+}
+
+function buildFallbackAnalysisResult(input: AnalyzeWordCloudInput): AnalyzeWordCloudOutput {
+  const entries = buildLexicalWordCloudEntries(input.items, input.locale, input.maxEntries);
+  return buildAnalysisOutput(input, entries, input.mode === 'THEME');
 }
 
 function buildThemeAnalysisResult(input: AnalyzeWordCloudInput): AnalyzeWordCloudOutput {
@@ -29,19 +38,13 @@ function buildThemeAnalysisResult(input: AnalyzeWordCloudInput): AnalyzeWordClou
     return buildFallbackAnalysisResult(input);
   }
 
-  return AnalyzeWordCloudOutputSchema.parse({
-    mode: input.mode,
-    locale: input.locale,
-    metric: input.metric,
-    generatedAt: new Date().toISOString(),
-    fallbackUsed: false,
-    entries: analysis.entries,
-  });
+  return buildAnalysisOutput(input, analysis.entries, false);
 }
 
 /**
- * Word-Cloud-Analysepfad für 3.0.
- * Themenmodus nutzt einen deterministischen, erklärbaren Backend-Analyzer.
+ * Word-Cloud-Analysepfad für den Host.
+ * THEME bleibt der deterministische Phrasen-/Anchor-Pfad.
+ * normalization ist die orthogonale 1.14b-Achse; Lemma wird erst mit Sidecar angewandt.
  */
 export const wordCloudRouter = router({
   analyze: hostProcedure

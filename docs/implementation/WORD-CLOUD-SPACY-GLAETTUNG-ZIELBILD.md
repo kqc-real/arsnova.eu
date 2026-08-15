@@ -253,6 +253,7 @@ Wenn spaCy kommt, dann als **optionaler Sidecar-Service** hinter dem Backend:
 - nicht im Angular-Frontend
 - nicht im Node-App-Container selbst
 - nicht als Pflicht fuer jede lokale Entwicklungsumgebung
+- intern ueber Unix-Socket (`NLP_SOCKET_PATH`), nicht ueber einen oeffentlichen Port
 
 ### Modelllizenzen
 

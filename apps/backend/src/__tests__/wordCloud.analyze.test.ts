@@ -63,6 +63,12 @@ describe('wordCloud.analyze', () => {
       expect(result.mode).toBe('THEME');
       expect(result.metric).toBe('BEST');
       expect(result.fallbackUsed).toBe(false);
+      expect(result.normalization).toBe('NONE');
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackUsed).toBe(false);
+      expect(result.normalizationFallbackReason).toBeNull();
+      expect(result.analysisVersion).toBe('1.14b.1');
+      expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
         key: 'kapitel 4',
@@ -361,6 +367,63 @@ describe('wordCloud.analyze', () => {
         variants: ['offen'],
       },
     ]);
+  });
+
+  it('faellt bei angeforderter Lemma-Glaettung in Phase 1 auf NONE zurueck', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'TOP',
+      normalization: 'LEMMA',
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Fragen zur Validierung',
+          weight: 2,
+        },
+      ],
+    });
+
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.normalization).toBe('LEMMA');
+    expect(result.normalizationApplied).toBe('NONE');
+    expect(result.normalizationFallbackUsed).toBe(true);
+    expect(result.normalizationFallbackReason).toBe('NLP_DISABLED');
+    expect(result.modelId).toBeNull();
+    expect(result.entries.length).toBeGreaterThan(0);
+  });
+
+  it('wendet THEME + LEMMA nicht an und laesst den Themenpfad unangetastet', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'THEME',
+      locale: 'de',
+      metric: 'BEST',
+      normalization: 'LEMMA',
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 8,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+          weight: 5,
+        },
+      ],
+    });
+
+    expect(result.mode).toBe('THEME');
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.normalization).toBe('LEMMA');
+    expect(result.normalizationApplied).toBe('NONE');
+    expect(result.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+    expect(result.entries[0]).toMatchObject({
+      key: 'kapitel 4',
+      label: 'Kapitel 4',
+    });
   });
 
   trpcDodIt(

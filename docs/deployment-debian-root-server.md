@@ -668,7 +668,8 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32`,
 `ADMIN_SECRET` und `ADMIN_DIAGNOSTIC_SECRET` jeweils separat mit
 `openssl rand -base64 48` erzeugen. Die beiden Admin-Secrets dürfen nie
 identisch sein. `HOST_SESSION_TTL_SECONDS` ist optional; fehlt der Wert, nutzt
-das Backend 8 Stunden.
+das Backend 8 Stunden. `NLP_ENABLED` bleibt in Produktion `false`, bis Story
+1.14b den spaCy-Sidecar einführt; siehe [ENVIRONMENT.md](ENVIRONMENT.md).
 
 W2.4b wird bewusst zweistufig ausgerollt:
 

@@ -2828,6 +2828,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       mode: 'THEME',
       locale: fixture.componentInstance.qaWordCloudAnalysisLocale(),
       metric: 'BEST',
+      normalization: 'NONE',
       maxEntries: 40,
       items: [
         {

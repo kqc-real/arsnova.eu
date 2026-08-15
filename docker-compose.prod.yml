@@ -105,6 +105,10 @@ services:
       NODE_ENV: 'production'
       PDF_RENDER_MODE: worker
       PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
+      # Story 1.14b: Kill-Switch bleibt hart aus, bis der spaCy-Sidecar existiert.
+      NLP_ENABLED: 'false'
+      NLP_SOCKET_PATH: /run/spacy/nlp.sock
+      NLP_TIMEOUT_MS: '5000'
     depends_on:
       pdf-worker:
         condition: service_healthy

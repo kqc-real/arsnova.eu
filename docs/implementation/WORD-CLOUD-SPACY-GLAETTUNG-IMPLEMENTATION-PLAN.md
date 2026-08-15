@@ -2,9 +2,9 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Planungsdokument / vor Implementierung  
-**Stand:** Mai 2026  
-**Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`  
+**Status:** Phase 1 (Vertrag, Scope, Feature Flag) umgesetzt; Sidecar und Host-UI folgen
+**Stand:** August 2026
+**Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
 
 ---
@@ -98,14 +98,14 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 
 ## Ist-Stand vor Umsetzung
 
-| Bereich            | Status                                                                                                               |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik |
-| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                |
-| **Shared Types**   | kennen Analysemodus `LEXICAL` / `THEME`, aber noch keine Normalisierungsachse                                        |
-| **Backend**        | hat keinen spaCy-Adapter, keinen Normalisierungs-Layer und keinen Snapshot-Cache fuer NLP                            |
-| **Compose**        | kennt keinen spaCy-/NLP-Sidecar                                                                                      |
-| **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots             |
+| Bereich            | Status                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik           |
+| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                          |
+| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en` |
+| **Backend**        | Kill-Switch `NLP_ENABLED` plus Unix-Socket/`NLP_TIMEOUT_MS`; noch kein spaCy-Adapter und kein Snapshot-Cache                   |
+| **Compose**        | Produktion setzt `NLP_ENABLED=false`; Sidecar-Service folgt in Phase 3                                                         |
+| **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots                       |
 
 ---
 
@@ -152,9 +152,9 @@ Neue Daten starten keine automatische spaCy-Runde. Stattdessen:
 
 Die Einfuehrung braucht einen harten Betriebs-Schutz:
 
-- `NLP_ENABLED`
-- `NLP_URL`
-- Timeout
+- `NLP_ENABLED` (nur `true` schaltet den Sidecar-Pfad ein; Default aus)
+- `NLP_SOCKET_PATH` (interner Unix-Socket, analog PDF-Worker; kein oeffentlicher Port)
+- `NLP_TIMEOUT_MS`
 - sauberer Fallback auf die heutige Wortwolke
 
 ---
@@ -164,12 +164,15 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 ### Shared Types
 
 - `libs/shared-types/src/schemas.ts`
+- **neu:** `libs/shared-types/src/word-cloud-normalization.ts`
 
 ### Backend
 
 - `apps/backend/src/routers/wordCloud.ts`
 - `apps/backend/src/lib/wordCloudAnalysis.ts`
-- **neu:** `apps/backend/src/lib/wordCloudNormalizer.ts`
+- **neu:** `apps/backend/src/lib/nlpSidecarConfig.ts`
+- **neu:** `apps/backend/src/lib/wordCloudNormalization.ts`
+- **neu (Phase 2):** `apps/backend/src/lib/wordCloudNormalizer.ts`
 - **neu:** `apps/backend/src/lib/spacyClient.ts`
 - **neu optional:** `apps/backend/src/lib/wordCloudAnalysisCache.ts`
 
@@ -246,13 +249,13 @@ Ziel: Shared contract und Betriebsgrenzen sauber festziehen.
 | 1.1 | **Normalisierungs-Enum einfuehren**       | `NONE` / `LEMMA` in `shared-types` definieren.                                                                     | `libs/shared-types/src/schemas.ts` |
 | 1.2 | **Analyse-DTO erweitern**                 | `normalization`, `normalizationApplied`, ggf. `stale` und `fallbackLocale` aufnehmen.                              | `libs/shared-types/src/schemas.ts` |
 | 1.3 | **MVP-Sprach- und Lizenzgrenze fixieren** | `de/en` als erste spaCy-Sprachen; `fr`/`es` lexikalischer Fallback bis Fixtures/NOTICE; `it` nicht im MIT-Default. | Doku + Runtime-Guard               |
-| 1.4 | **Feature Flag einfuehren**               | `NLP_ENABLED`, `NLP_URL`, `NLP_TIMEOUT_MS` definieren.                                                             | Backend Config                     |
+| 1.4 | **Feature Flag einfuehren**               | `NLP_ENABLED`, `NLP_SOCKET_PATH`, `NLP_TIMEOUT_MS` definieren.                                                     | Backend Config                     |
 
 ### Ergebnis
 
-- klarer Vertrag
-- klarer Betriebs-Schutz
-- keine implizite spaCy-Abhaengigkeit
+- klarer Vertrag (`NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, Snapshot-Hash)
+- klarer Betriebs-Schutz (`NLP_ENABLED`, Unix-Socket, Timeout)
+- keine implizite spaCy-Abhaengigkeit; Lemma wird in Phase 1 nie angewandt
 
 ---
 

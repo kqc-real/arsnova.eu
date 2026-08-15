@@ -7,3 +7,4 @@
 export * from './schemas';
 export * from './confidence';
 export * from './session-export-insights';
+export * from './word-cloud-normalization';
