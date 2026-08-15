@@ -573,9 +573,11 @@ Für den parallelen 600er-Burst setzt der Smoke einen eigenen Undici-Dispatcher 
 `0` gesetzt, damit der Burst maximalen Karenz-Rest auf dem lokalen Runner erhält.
 `undici` ist als Root-`devDependency` deklariert, damit `npm ci` den Import nicht nur über
 transitives Hoisting auflöst. In CI bleiben die Latenzgates bei
-`VOTE_P95_LIMIT_MS=3000` / `VOTE_P99_LIMIT_MS=3000`. Der erfolgreiche CI-Lauf belegt die
-Gesamtkonfiguration; ein verbleibendes Runner-/Backend-Timing-Flake-Risiko im engen
-2‑Sekunden-Karenzfenster bleibt bestehen.
+`VOTE_P95_LIMIT_MS=4000` / `VOTE_P99_LIMIT_MS=4000`. Der Nightly vom 2026-08-15 akzeptierte
+fachlich 600/600 Karenz-Votes, verfehlte aber das vorherige 3000-ms-Gate (p95 3046 ms,
+p99 3095 ms; Vortag p95 2828 ms). Die 4000-ms-Gates halten die funktionale Prüfung und
+geben GitHub-Runnern Abstand zur gemessenen Burst-Latenz. Ein verbleibendes
+Runner-/Backend-Timing-Risiko im engen 2‑Sekunden-Karenzfenster bleibt bestehen.
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
