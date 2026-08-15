@@ -50,6 +50,8 @@ export const WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS = [
   'LOCALE_UNSUPPORTED',
   'MODE_UNSUPPORTED',
   'SIDECAR_UNAVAILABLE',
+  'TIMEOUT',
+  'INVALID_RESPONSE',
 ] as const;
 type WordCloudNormalizationFallbackReason =
   (typeof WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS)[number];
@@ -87,7 +89,7 @@ export interface WordCloudLemmaApplication {
  * Entscheidet, ob eine angeforderte Lemma-Glättung tatsächlich laufen darf.
  *
  * THEME + LEMMA ist in Story 1.14b bewusst kein Produktpfad.
- * Ohne Sidecar (Phase 1–2) bleibt applied immer NONE.
+ * Ohne erreichbaren Sidecar bleibt applied immer NONE.
  */
 export function resolveWordCloudLemmaApplication(
   input: ResolveWordCloudLemmaApplicationInput,
@@ -106,16 +108,16 @@ export function resolveWordCloudLemmaApplication(
   }
 
   if (input.mode !== 'LEXICAL') {
-    return deny(input.requested, fallbackLocale, 'MODE_UNSUPPORTED');
+    return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'MODE_UNSUPPORTED');
   }
   if (!isWordCloudLemmaLocale(input.locale)) {
-    return deny(input.requested, fallbackLocale, 'LOCALE_UNSUPPORTED');
+    return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'LOCALE_UNSUPPORTED');
   }
   if (!input.nlpEnabled) {
-    return deny(input.requested, fallbackLocale, 'NLP_DISABLED');
+    return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'NLP_DISABLED');
   }
   if (!input.sidecarAvailable) {
-    return deny(input.requested, fallbackLocale, 'SIDECAR_UNAVAILABLE');
+    return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'SIDECAR_UNAVAILABLE');
   }
 
   return {
@@ -128,7 +130,7 @@ export function resolveWordCloudLemmaApplication(
   };
 }
 
-function deny(
+export function createWordCloudLemmaFallback(
   requested: WordCloudNormalization,
   fallbackLocale: string,
   reason: WordCloudNormalizationFallbackReason,

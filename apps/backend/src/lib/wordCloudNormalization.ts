@@ -1,5 +1,9 @@
 import { createHash } from 'node:crypto';
-import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
+import type {
+  AnalyzeWordCloudInput,
+  AnalyzeWordCloudOutput,
+  WordCloudLemmaApplication,
+} from '@arsnova/shared-types';
 import {
   resolveWordCloudLemmaApplication,
   WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
@@ -15,14 +19,6 @@ export interface WordCloudNormalizationMeta {
   readonly analysisVersion: string;
   readonly modelId: string | null;
   readonly snapshotHash: string;
-}
-
-/**
- * Phase 1 hat noch keinen spaCy-Client. Der Sidecar gilt deshalb nie als erreichbar;
- * NLP_ENABLED steuert nur, ob später überhaupt ein Connect versucht würde.
- */
-export function isWordCloudLemmaSidecarAvailable(): boolean {
-  return false;
 }
 
 export function buildWordCloudSnapshotHash(
@@ -41,19 +37,10 @@ export function buildWordCloudSnapshotHash(
   return createHash('sha256').update(canonical, 'utf8').digest('hex');
 }
 
-export function resolveWordCloudNormalizationMeta(
+export function toWordCloudNormalizationMeta(
   input: AnalyzeWordCloudInput,
-  env: NodeJS.ProcessEnv = process.env,
+  decision: WordCloudLemmaApplication,
 ): WordCloudNormalizationMeta {
-  const nlp = resolveNlpSidecarConfig(env);
-  const decision = resolveWordCloudLemmaApplication({
-    requested: input.normalization,
-    mode: input.mode,
-    locale: input.locale,
-    nlpEnabled: nlp.enabled,
-    sidecarAvailable: isWordCloudLemmaSidecarAvailable(),
-  });
-
   return {
     normalization: decision.requested,
     normalizationApplied: decision.applied,
@@ -64,4 +51,26 @@ export function resolveWordCloudNormalizationMeta(
     modelId: decision.modelId,
     snapshotHash: buildWordCloudSnapshotHash(input),
   };
+}
+
+/**
+ * Synchroner Meta-Resolver ohne Sidecar-Versuch.
+ * `sidecarAvailable` bleibt bewusst false, solange der Aufrufer den Connect nicht bestätigt.
+ */
+export function resolveWordCloudNormalizationMeta(
+  input: AnalyzeWordCloudInput,
+  env: NodeJS.ProcessEnv = process.env,
+  sidecarAvailable = false,
+): WordCloudNormalizationMeta {
+  const nlp = resolveNlpSidecarConfig(env);
+  return toWordCloudNormalizationMeta(
+    input,
+    resolveWordCloudLemmaApplication({
+      requested: input.normalization,
+      mode: input.mode,
+      locale: input.locale,
+      nlpEnabled: nlp.enabled,
+      sidecarAvailable,
+    }),
+  );
 }

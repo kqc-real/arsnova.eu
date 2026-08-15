@@ -41,7 +41,7 @@ describe('wordCloudNormalization', () => {
     );
   });
 
-  it('wendet in Phase 1 kein Lemma an, auch wenn NLP_ENABLED gesetzt ist', () => {
+  it('wendet ohne bestaetigten Sidecar kein Lemma an, auch wenn NLP_ENABLED gesetzt ist', () => {
     const lemmaInput: AnalyzeWordCloudInput = {
       ...baseInput,
       normalization: 'LEMMA',

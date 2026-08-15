@@ -8,7 +8,7 @@ type WordCloudAnalysisEntry = AnalyzeWordCloudOutput['entries'][number];
 type SupportedLocale = AnalyzeWordCloudInput['locale'];
 type GroupingKind = 'token' | 'phrase';
 
-interface RawToken {
+export interface WordCloudRawToken {
   readonly display: string;
   readonly lookup: string;
 }
@@ -303,6 +303,7 @@ export function buildLexicalWordCloudEntries(
   items: WordCloudAnalysisSourceItem[],
   locale: SupportedLocale,
   limit?: number,
+  tokensByItemId?: ReadonlyMap<string, readonly WordCloudRawToken[]>,
 ): WordCloudAnalysisEntry[] {
   const buckets = new Map<
     string,
@@ -315,7 +316,7 @@ export function buildLexicalWordCloudEntries(
   >();
 
   for (const item of items) {
-    const prepared = prepareItem(item, locale);
+    const prepared = prepareItem(item, locale, tokensByItemId?.get(item.id));
     for (const candidate of prepared.candidates.filter((entry) => entry.kind === 'token')) {
       const existing = buckets.get(candidate.key);
       if (existing) {
@@ -365,6 +366,9 @@ export function buildLexicalWordCloudEntries(
   return sortEntries(entries, limit);
 }
 
+/**
+ * THEME bleibt ohne spaCy: immer interne Tokenisierung, nie Lemma-Overrides.
+ */
 export function buildThemeWordCloudAnalysis(
   input: AnalyzeWordCloudInput,
 ): ThemeWordCloudAnalysisResult {
@@ -410,9 +414,13 @@ export function buildThemeWordCloudAnalysis(
   };
 }
 
-function prepareItem(item: WordCloudAnalysisSourceItem, locale: SupportedLocale): PreparedItem {
+function prepareItem(
+  item: WordCloudAnalysisSourceItem,
+  locale: SupportedLocale,
+  rawTokens?: readonly WordCloudRawToken[],
+): PreparedItem {
   const candidates = new Map<string, Candidate>();
-  const tokens = tokenizeText(item.text)
+  const tokens = (rawTokens ?? tokenizeWordCloudText(item.text))
     .filter((token) => isNumericToken(token.lookup) || token.lookup.length >= MIN_TOKEN_LENGTH)
     .filter((token) => !isStopwordToken(token.lookup, locale))
     .map((token) => getTokenCandidate(token, locale));
@@ -603,18 +611,22 @@ function sortEntries(entries: WordCloudAnalysisEntry[], limit?: number): WordClo
   return sorted.slice(0, limit);
 }
 
-function tokenizeText(value: string): RawToken[] {
+export function tokenizeWordCloudText(value: string): WordCloudRawToken[] {
   const collapsed = collapseNumericSeparatorSpacing(value.trim());
   return Array.from(collapsed.matchAll(TOKEN_PATTERN), (match) => {
     const raw = match[0] ?? '';
     return {
       display: isNumericToken(raw) ? normalizeToken(raw) : raw,
-      lookup: normalizeLookupToken(raw),
+      lookup: toWordCloudLookupToken(raw),
     };
   });
 }
 
-function getTokenCandidate(token: RawToken, locale: SupportedLocale): Candidate {
+export function toWordCloudLookupToken(value: string): string {
+  return normalizeLookupToken(value);
+}
+
+function getTokenCandidate(token: WordCloudRawToken, locale: SupportedLocale): Candidate {
   if (isNumericToken(token.lookup)) {
     return {
       key: token.lookup,

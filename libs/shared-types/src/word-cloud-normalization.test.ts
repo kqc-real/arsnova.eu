@@ -7,6 +7,7 @@ import {
   WORD_CLOUD_LEMMA_MODELS,
   WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
   WORD_CLOUD_SPACY_RUNTIME_VERSION,
+  createWordCloudLemmaFallback,
   wordCloudLemmaModelId,
 } from './word-cloud-normalization.js';
 
@@ -99,6 +100,18 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
         sidecarAvailable: false,
       }).reason,
     ).toBe('SIDECAR_UNAVAILABLE');
+  });
+
+  it('bildet Laufzeit-Fallbacks fuer Timeout und ungueltige Sidecar-Antworten', () => {
+    expect(createWordCloudLemmaFallback('LEMMA', 'de', 'TIMEOUT')).toMatchObject({
+      requested: 'LEMMA',
+      applied: 'NONE',
+      reason: 'TIMEOUT',
+      modelId: null,
+    });
+    expect(createWordCloudLemmaFallback('LEMMA', 'en', 'INVALID_RESPONSE').reason).toBe(
+      'INVALID_RESPONSE',
+    );
   });
 
   it('haelt fr/es/it ausserhalb der ersten Lemma-Stufe', () => {

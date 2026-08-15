@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1 (Vertrag, Scope, Feature Flag) umgesetzt; Sidecar und Host-UI folgen
+**Status:** Phase 1–2 umgesetzt; Sidecar-Image und Host-UI folgen
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -96,16 +96,16 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 
 ---
 
-## Ist-Stand vor Umsetzung
+## Ist-Stand
 
-| Bereich            | Status                                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik           |
-| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                          |
-| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en` |
-| **Backend**        | Kill-Switch `NLP_ENABLED` plus Unix-Socket/`NLP_TIMEOUT_MS`; noch kein spaCy-Adapter und kein Snapshot-Cache                   |
-| **Compose**        | Produktion setzt `NLP_ENABLED=false`; Sidecar-Service folgt in Phase 3                                                         |
-| **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots                       |
+| Bereich            | Status                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                   |
+| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                  |
+| **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`         |
+| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma nur bei `LEXICAL` und hartem Identity-Fallback; kein Snapshot-Cache |
+| **Compose**        | Produktion setzt `NLP_ENABLED=false`; Sidecar-Service folgt in Phase 3                                                                 |
+| **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots                               |
 
 ---
 
@@ -270,12 +270,19 @@ Ziel: spaCy sauber von der bisherigen Aggregation trennen.
 | 2.1 | **Normalizer-Interface einfuehren** | `IdentityNormalizer` und `LemmaNormalizer` mit einheitlichem Output.                                         | `apps/backend/src/lib/wordCloudNormalizer.ts` |
 | 2.2 | **spaCy-Client kapseln**            | HTTP-Adapter fuer Sidecar mit Timeout, Fehlerbehandlung und Gesundheitspruefung.                             | `apps/backend/src/lib/spacyClient.ts`         |
 | 2.3 | **Analysepfad vorbereiten**         | `wordCloudAnalysis.ts` so umbauen, dass Normalisierung vor der bisherigen Kandidatenbildung einhaengbar ist. | `apps/backend/src/lib/wordCloudAnalysis.ts`   |
-| 2.4 | **Fallback sicherstellen**          | Bei Fehler, Timeout oder unsupported locale wird `IdentityNormalizer` verwendet.                             | `apps/backend/src/lib/wordCloudAnalysis.ts`   |
+| 2.4 | **Fallback sicherstellen**          | Bei Fehler, Timeout oder unsupported locale wird `IdentityNormalizer` verwendet.                             | `apps/backend/src/lib/wordCloudNormalizer.ts` |
 
 ### Ergebnis
 
 - spaCy ist austauschbar
 - der bestehende Pfad bleibt der technische Fallback
+
+**Stand August 2026:** Phase 2 ist umgesetzt. Der Sidecar-Client spricht ausschließlich über `NLP_SOCKET_PATH`:
+
+- `GET /health` → `200` oder `204`
+- `POST /normalize` mit `{ locale, texts: [{ id, text }] }` → `{ locale, modelId, items: [{ id, tokens: [{ text, lemma, pos, entType? }] }] }`
+
+Ohne lauschenden Sidecar bleibt `normalizationApplied` `NONE` (`SIDECAR_UNAVAILABLE`, `TIMEOUT` oder `INVALID_RESPONSE`). Das Sidecar-Image folgt in Phase 3.
 
 ---
 

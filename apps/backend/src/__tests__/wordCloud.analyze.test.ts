@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
+import { SpacyClientError } from '../lib/spacyClient';
+import * as spacyClient from '../lib/spacyClient';
 
 const { extractHostTokenFromContextMock, isHostSessionTokenValidMock } = vi.hoisted(() => ({
   extractHostTokenFromContextMock: vi.fn(),
@@ -369,7 +371,7 @@ describe('wordCloud.analyze', () => {
     ]);
   });
 
-  it('faellt bei angeforderter Lemma-Glaettung in Phase 1 auf NONE zurueck', async () => {
+  it('faellt bei angeforderter Lemma-Glaettung ohne NLP auf NONE zurueck', async () => {
     const result = await hostCaller.analyze({
       sessionCode: 'ABC123',
       mode: 'LEXICAL',
@@ -423,6 +425,152 @@ describe('wordCloud.analyze', () => {
     expect(result.entries[0]).toMatchObject({
       key: 'kapitel 4',
       label: 'Kapitel 4',
+    });
+  });
+
+  describe('LEXICAL + LEMMA', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.restoreAllMocks();
+    });
+
+    it('faellt ohne erreichbaren Sidecar hart auf Identity zurueck', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.stubEnv('NLP_SOCKET_PATH', '/tmp/arsnova-missing-nlp.sock');
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Haus',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('SIDECAR_UNAVAILABLE');
+      expect(result.entries.map((entry) => entry.key).sort()).toEqual(['haeuser', 'haus']);
+    });
+
+    it('buendelt Nomenformen, wenn der Sidecar Lemma-Tokens liefert', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
+        locale: 'de',
+        modelId: 'de_core_news_sm@3.8.0',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }],
+          },
+        ],
+      });
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Haus',
+            weight: 1,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('LEMMA');
+      expect(result.normalizationFallbackUsed).toBe(false);
+      expect(result.modelId).toBe('de_core_news_sm@3.8.0');
+      expect(result.entries).toMatchObject([
+        {
+          key: 'haus',
+          label: 'Haus',
+          count: 3,
+          variants: ['Haus'],
+        },
+      ]);
+    });
+
+    it('meldet Sidecar-Timeout als Normalisierungs-Fallback', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockRejectedValue(
+        new SpacyClientError('TIMEOUT'),
+      );
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'de',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Häuser',
+            weight: 2,
+          },
+        ],
+      });
+
+      expect(result.normalizationApplied).toBe('NONE');
+      expect(result.normalizationFallbackReason).toBe('TIMEOUT');
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.entries[0]?.key).toBe('haeuser');
+    });
+
+    it('ruft den Sidecar bei THEME + LEMMA nicht an', async () => {
+      vi.stubEnv('NLP_ENABLED', 'true');
+      const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
+
+      const result = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'THEME',
+        locale: 'de',
+        metric: 'BEST',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 8,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 5,
+          },
+        ],
+      });
+
+      expect(sidecar).not.toHaveBeenCalled();
+      expect(result.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+      expect(result.entries[0]).toMatchObject({
+        key: 'kapitel 4',
+        label: 'Kapitel 4',
+      });
     });
   });
 
