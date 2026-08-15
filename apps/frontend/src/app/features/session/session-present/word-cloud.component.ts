@@ -147,6 +147,9 @@ interface RoundedRectStyle {
   ],
   templateUrl: './word-cloud.component.html',
   styleUrl: './word-cloud.component.scss',
+  host: {
+    '[class.word-cloud-host--presentation]': 'presentationMode()',
+  },
 })
 export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
@@ -234,12 +237,21 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       (!this.outputOnly() && (this.showResponsesPanel() || this.showReleaseNote())),
   );
 
+  private static readonly COLLAPSED_PRESENTATION_FRAME_HEIGHT_PX = 80;
+
   private readonly stageWidth = signal(0);
   private readonly availableVisualFrameHeight = signal(0);
+  private readonly usableVisualFrameHeight = computed(() => {
+    const availableHeight = this.availableVisualFrameHeight();
+    return availableHeight < WordCloudComponent.COLLAPSED_PRESENTATION_FRAME_HEIGHT_PX
+      ? 0
+      : availableHeight;
+  });
   private readonly renderedCloudStageWidth = signal(0);
   private readonly renderedCloudStageHeight = signal(0);
   private readonly layoutFontFamily = signal('system-ui');
   private readonly activeLayoutSignature = signal('');
+  private readonly activeLayoutContentSignature = signal('');
   private readonly stopwordContext = computed<WordCloudStopwordContext>(() =>
     createWordCloudStopwordContext(this.stopwords, this.activeLocale, this.analysisMode()),
   );
@@ -501,7 +513,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return preferredHeight;
     }
 
-    const availableHeight = this.availableVisualFrameHeight();
+    const availableHeight = this.usableVisualFrameHeight();
     const minimumHeight = this.minimumPresentationStageHeight(width, availableHeight);
     if (availableHeight <= 0) {
       if (width < MOBILE_WORD_CLOUD_BREAKPOINT) {
@@ -527,7 +539,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return true;
     }
 
-    const availableHeight = this.availableVisualFrameHeight();
+    const availableHeight = this.usableVisualFrameHeight();
     if (availableHeight <= 0) {
       return false;
     }
@@ -535,22 +547,31 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return this.shouldAllowPresentationFrameScroll(this.stageWidth(), availableHeight);
   });
 
+  readonly layoutContentSignature = computed(() =>
+    this.displayWords()
+      .map((entry) => `${entry.groupKey}:${entry.word}:${entry.count}`)
+      .join('|'),
+  );
+
   readonly layoutInputSignature = computed(() => {
     const width = Math.round(this.stageWidth());
     const height = Math.round(this.cloudStageHeightPx());
-    return [
-      width,
-      height,
-      this.layoutFontFamily(),
-      ...this.displayWords().map((entry) => `${entry.groupKey}:${entry.word}:${entry.count}`),
-    ].join('|');
+    return [width, height, this.layoutFontFamily(), this.layoutContentSignature()].join('|');
   });
 
-  readonly cloudLayoutActive = computed(
-    () =>
-      this.positionedWords().length > 0 &&
-      (this.activeLayoutSignature() === this.layoutInputSignature() || this.layoutPending()),
-  );
+  readonly cloudLayoutActive = computed(() => {
+    if (this.positionedWords().length === 0) {
+      return false;
+    }
+
+    if (this.activeLayoutSignature() === this.layoutInputSignature()) {
+      return true;
+    }
+
+    return (
+      this.layoutPending() && this.activeLayoutContentSignature() === this.layoutContentSignature()
+    );
+  });
 
   readonly renderedCloudStageHeightPx = computed(() =>
     this.cloudLayoutActive()
@@ -679,7 +700,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly stageMinHeight = computed(() => {
     const wordCount = this.displayWords().length;
     if (this.presentationMode()) {
-      const availableHeight = this.availableVisualFrameHeight();
+      const availableHeight = this.usableVisualFrameHeight();
       if (this.disableCloudLayout()) {
         if (availableHeight > 0) {
           return `${availableHeight}px`;
@@ -793,11 +814,22 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }
 
       this.clearScheduledLayout();
+      this.stopCloudLayout();
       this.layoutPending.set(true);
       const runId = ++this.layoutRunId;
       const layoutWords = this.createLayoutWords(words);
+      const contentSignature = this.layoutContentSignature();
       this.layoutTimer = setTimeout(
-        () => void this.runCloudLayout(layoutWords, width, height, fontFamily, signature, runId),
+        () =>
+          void this.runCloudLayout(
+            layoutWords,
+            width,
+            height,
+            fontFamily,
+            signature,
+            contentSignature,
+            runId,
+          ),
         CLOUD_LAYOUT_DEBOUNCE_MS,
       );
     });
@@ -1172,7 +1204,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private updateStageMetrics(stage: HTMLElement): void {
     const width = Math.max(0, Math.round(stage.clientWidth));
-    if (width !== this.stageWidth()) {
+    if (this.shouldCommitObservedSize(this.stageWidth(), width)) {
       this.stageWidth.set(width);
     }
 
@@ -1191,9 +1223,21 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       Math.round(frame.clientHeight - paddingTop - paddingBottom),
     );
 
-    if (availableHeight !== this.availableVisualFrameHeight()) {
+    if (this.shouldCommitObservedSize(this.availableVisualFrameHeight(), availableHeight)) {
       this.availableVisualFrameHeight.set(availableHeight);
     }
+  }
+
+  private shouldCommitObservedSize(current: number, next: number): boolean {
+    if (next === current) {
+      return false;
+    }
+
+    if (current === 0 || next === 0) {
+      return true;
+    }
+
+    return Math.abs(next - current) >= 2;
   }
 
   private arrangeWrappedPresentationWords(entries: CloudWord[]): CloudWord[] {
@@ -1231,7 +1275,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     if (!this.disableCloudLayout()) {
       const stageWidth = this.stageWidth();
-      const availableHeight = this.availableVisualFrameHeight();
+      const availableHeight = this.usableVisualFrameHeight();
       if (availableHeight > 0 && availableHeight < 260) {
         if (wordCount >= 24) {
           return { min: 9, max: 18 };
@@ -1281,7 +1325,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return { min: 16, max: 56 };
     }
 
-    const availableHeight = this.availableVisualFrameHeight();
+    const availableHeight = this.usableVisualFrameHeight();
     if (availableHeight > 0 && (availableHeight < 420 || wordCount >= 32)) {
       return { min: 13, max: 30 };
     }
@@ -1326,6 +1370,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.stopCloudLayout();
     this.layoutPending.set(false);
     this.activeLayoutSignature.set('');
+    this.activeLayoutContentSignature.set('');
     this.positionedWords.set([]);
     this.renderedCloudStageWidth.set(0);
     this.renderedCloudStageHeight.set(0);
@@ -1348,6 +1393,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     stageHeight: number,
     fontFamily: string,
     signature: string,
+    contentSignature: string,
     runId: number,
   ): Promise<void> {
     this.layoutTimer = null;
@@ -1397,6 +1443,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(positioned.length > 0 ? signature : '');
+        this.activeLayoutContentSignature.set(positioned.length > 0 ? contentSignature : '');
       });
       layout.start();
     } catch {
@@ -1410,6 +1457,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.renderedCloudStageWidth.set(0);
       this.renderedCloudStageHeight.set(0);
       this.activeLayoutSignature.set('');
+      this.activeLayoutContentSignature.set('');
     }
   }
 

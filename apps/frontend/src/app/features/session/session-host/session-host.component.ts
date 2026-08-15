@@ -230,6 +230,31 @@ function freetextLemmaMaxNgramLength(
     : WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH;
 }
 
+function resolveFreetextWordCloudMode(value: unknown): FreetextWordCloudMode | null {
+  if (value === 'WORDS' || value === 'PHRASES') {
+    return value;
+  }
+
+  if (value !== null && typeof value === 'object' && 'value' in value) {
+    return resolveFreetextWordCloudMode((value as { value: unknown }).value);
+  }
+
+  return null;
+}
+
+function freetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null): number | null {
+  if (!snapshotKey) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(snapshotKey) as { maxNgramLength?: unknown };
+    return typeof parsed.maxNgramLength === 'number' ? parsed.maxNgramLength : null;
+  } catch {
+    return null;
+  }
+}
+
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 type SessionChannelTempoTone = 'neutral' | 'good' | 'caution' | 'alert';
 type SessionChannelTempoIndicator = {
@@ -726,6 +751,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudLemmaSnapshotKey = signal<string | null>(null);
   readonly freetextWordCloudLemmaFallbackReason =
     signal<WordCloudNormalizationFallbackReason | null>(null);
+  readonly freetextWordCloudMaximized = signal(false);
   private qaWordCloudThemeAnalysisRunId = 0;
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
@@ -907,7 +933,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    return this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA';
+    if (this.freetextWordCloudLemmaResult()?.normalizationApplied !== 'LEMMA') {
+      return false;
+    }
+
+    if (this.freetextWordCloudMode() !== 'PHRASES') {
+      return true;
+    }
+
+    const snapshotNgram = freetextLemmaSnapshotMaxNgramLength(
+      this.freetextWordCloudLemmaSnapshotKey(),
+    );
+    return snapshotNgram !== null && snapshotNgram > WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH;
   });
   readonly displayedFreetextVisibleTerms = computed<WordCloudTerm[] | null>(() =>
     this.freetextWordCloudLemmaSnapshotVisible() ? null : this.displayedFreetextWordCloudTerms(),
@@ -2017,16 +2054,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudFrozen.set(true);
   }
 
-  async setFreetextWordCloudMode(mode: FreetextWordCloudMode): Promise<void> {
-    if (mode !== 'WORDS' && mode !== 'PHRASES') {
+  async setFreetextWordCloudMode(mode: FreetextWordCloudMode | unknown): Promise<void> {
+    const nextMode = resolveFreetextWordCloudMode(mode);
+    if (!nextMode) {
       return;
     }
 
-    if (mode === this.freetextWordCloudMode()) {
+    if (nextMode === this.freetextWordCloudMode()) {
       return;
     }
 
-    this.freetextWordCloudMode.set(mode);
+    this.freetextWordCloudMode.set(nextMode);
     const shouldRefreshLemmaSmoothing = untracked(
       () =>
         this.freetextWordCloudLemmaPending() ||
@@ -2056,43 +2094,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.requestFreetextWordCloudLemmaSmoothing();
   }
 
-  readonly openFreetextWordCloudDialog = async (): Promise<void> => {
+  readonly maximizeFreetextWordCloud = (): void => {
     this.tryEnterWordCloudFullscreenFromUserGesture();
-
-    const { FreetextWordCloudDialogComponent } =
-      await import('./freetext-word-cloud-dialog.component');
-    this.dialog.open(FreetextWordCloudDialogComponent, {
-      data: {
-        responses: () => this.displayedFreetextResponses(),
-        terms: () => this.displayedFreetextVisibleTerms(),
-        analysisEntries: () => this.displayedFreetextAnalysisEntries(),
-        selectionScopeKey: () => this.displayedCurrentQuestionForHost()?.questionId ?? null,
-        eyebrow: this.freetextWordCloudEyebrow,
-        description: this.freetextWordCloudDescription,
-        analysisVariant: () => this.freetextWordCloudMode(),
-        setAnalysisVariant: (variant: FreetextWordCloudMode) =>
-          this.setFreetextWordCloudMode(variant),
-        frozen: () => this.wordCloudFrozen(),
-        freezeLabel: () => this.wordCloudFreezeLabel(),
-        toggleFreeze: () => this.toggleWordCloudFreeze(),
-        smoothingStatus: () => this.freetextWordCloudSmoothingStatus(),
-        smoothingLabel: () => this.freetextWordCloudSmoothingLabel(),
-        smoothingHint: () => this.freetextWordCloudSmoothingHint(),
-        smoothingDisabled: () => this.freetextWordCloudSmoothingDisabled(),
-        toggleSmoothing: () => this.toggleFreetextWordCloudSmoothing(),
-      },
-      autoFocus: false,
-      restoreFocus: true,
-      enterAnimationDuration: 180,
-      exitAnimationDuration: 140,
-      width: '100vw',
-      maxWidth: '100vw',
-      height: '100dvh',
-      maxHeight: '100dvh',
-      panelClass: 'word-cloud-dialog-panel',
-      backdropClass: 'word-cloud-dialog-backdrop',
-    });
+    this.wordCloudExpanded.set(true);
+    this.freetextWordCloudMaximized.set(true);
   };
+
+  closeFreetextWordCloudMaximize(): void {
+    this.freetextWordCloudMaximized.set(false);
+  }
+
+  onFreetextWordCloudDetailsToggle(target: HTMLDetailsElement): void {
+    if (this.freetextWordCloudMaximized()) {
+      if (!target.open) {
+        target.open = true;
+      }
+      return;
+    }
+
+    this.wordCloudExpanded.set(target.open);
+  }
 
   ratingBarRange(q: HostCurrentQuestionDTO): number[] {
     const min = q.ratingMin ?? 1;
@@ -2436,6 +2457,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownCloseJoinPopover(ev: KeyboardEvent): void {
     if (ev.key !== 'Escape') {
+      return;
+    }
+    if (this.freetextWordCloudMaximized()) {
+      this.closeFreetextWordCloudMaximize();
+      ev.preventDefault();
       return;
     }
     if (this.joinInfoPopoverOpen()) {

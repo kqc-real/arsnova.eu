@@ -4,6 +4,7 @@ import { DOCUMENT } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WordCloudComponent } from './word-cloud.component';
+import { getWordCloudLayoutHeight } from './word-cloud-layout';
 
 describe('WordCloudComponent', () => {
   beforeEach(() => {
@@ -246,6 +247,20 @@ describe('WordCloudComponent', () => {
     expect(fixture.nativeElement.querySelector('.word-cloud__supporting')).toBeNull();
   });
 
+  it('fuellt im Presentation-Modus die verfuegbare Host-Hoehe', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('word-cloud-host--presentation')).toBe(true);
+    const frame = fixture.nativeElement.querySelector(
+      '.word-cloud__visual-frame',
+    ) as HTMLElement | null;
+    expect(frame).not.toBeNull();
+    expect(getComputedStyle(frame!).minHeight).not.toBe('0px');
+  });
+
   it('nutzt im Q&A-Profil leichte Themenphrasen fuer Fragenwolken', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('analysisMode', 'qa');
@@ -436,6 +451,38 @@ describe('WordCloudComponent', () => {
 
     expect(visualFrame.classList.contains('word-cloud__visual-frame--scrollable')).toBe(false);
     expect(component.cloudStageHeightPx()).toBe(540);
+  });
+
+  it('ignoriert eine kollabierte Rahmenhoehe im Vollbild und nutzt die bevorzugte Buehnenhoehe', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('responses', [
+      'lineare Regression',
+      'Konfidenzintervall',
+      'Standardabweichung',
+      'p-Wert',
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as unknown as {
+      stageWidth: { set(value: number): void };
+      availableVisualFrameHeight: { set(value: number): void };
+      cloudStageHeightPx: () => number;
+      displayWords: () => Array<{ word: string }>;
+    };
+
+    component.stageWidth.set(1280);
+    component.availableVisualFrameHeight.set(24);
+    fixture.detectChanges();
+
+    const visualFrame = fixture.nativeElement.querySelector(
+      '.word-cloud__visual-frame',
+    ) as HTMLElement;
+
+    expect(visualFrame.classList.contains('word-cloud__visual-frame--scrollable')).toBe(false);
+    expect(component.cloudStageHeightPx()).toBe(
+      getWordCloudLayoutHeight(1280, component.displayWords().length, true),
+    );
   });
 
   it('verkleinert die D3-Begriffe im mobilen Vollbild gegenueber Desktop-Praesentation', () => {
@@ -1204,5 +1251,108 @@ describe('WordCloudComponent', () => {
     fixture.componentInstance.handleMaximize();
 
     expect(maximizeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('ersetzt die Vollbild-Wolke sofort wenn sich die Woerter aendern', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('terms', [
+      {
+        key: 'lineare regression',
+        label: 'lineare Regression',
+        score: 12,
+        documentFrequency: 12,
+        sourceCount: 12,
+        variants: ['lineare Regression'],
+        kind: 'trigram',
+        basisLabel: 'lineare Regression',
+        confidence: null,
+        members: [],
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as unknown as {
+      stageWidth: { set(value: number): void };
+      positionedWords: {
+        set(
+          value: Array<{
+            word: string;
+            count: number;
+            sourceCount: number;
+            groupKey: string;
+            variants: string[];
+            basisLabel: string | null;
+            confidence: number | null;
+            size: number;
+            rank: number;
+            x: number;
+            y: number;
+            x0: number;
+            x1: number;
+            y0: number;
+            y1: number;
+            rotate: number;
+          }>,
+        ): void;
+      };
+      layoutPending: { set(value: boolean): void };
+      activeLayoutSignature: { set(value: string): void };
+      activeLayoutContentSignature: { set(value: string): void };
+      layoutInputSignature: () => string;
+      layoutContentSignature: () => string;
+      cloudLayoutActive: () => boolean;
+      displayWords: () => Array<{ word: string }>;
+    };
+
+    component.stageWidth.set(960);
+    fixture.detectChanges();
+
+    const phraseSignature = component.layoutInputSignature();
+    const phraseContentSignature = component.layoutContentSignature();
+    component.positionedWords.set([
+      {
+        word: 'lineare Regression',
+        count: 12,
+        sourceCount: 12,
+        groupKey: 'lineare regression',
+        variants: ['lineare Regression'],
+        basisLabel: 'lineare Regression',
+        confidence: null,
+        size: 40,
+        rank: 0,
+        x: 0,
+        y: 0,
+        x0: 0,
+        x1: 0,
+        y0: 0,
+        y1: 0,
+        rotate: 0,
+      },
+    ]);
+    component.activeLayoutSignature.set(phraseSignature);
+    component.activeLayoutContentSignature.set(phraseContentSignature);
+    component.layoutPending.set(false);
+    expect(component.cloudLayoutActive()).toBe(true);
+
+    fixture.componentRef.setInput('terms', [
+      {
+        key: 'regression',
+        label: 'Regression',
+        score: 12,
+        documentFrequency: 12,
+        sourceCount: 12,
+        variants: ['Regression'],
+        kind: 'unigram',
+        basisLabel: 'Regression',
+        confidence: null,
+        members: [],
+      },
+    ]);
+    fixture.detectChanges();
+    component.layoutPending.set(true);
+
+    expect(component.displayWords().map((entry) => entry.word)).toEqual(['Regression']);
+    expect(component.cloudLayoutActive()).toBe(false);
   });
 });

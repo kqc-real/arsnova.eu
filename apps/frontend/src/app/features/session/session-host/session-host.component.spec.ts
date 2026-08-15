@@ -13,6 +13,7 @@ import {
   flushMacroTask,
 } from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
+import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import { resetServerClockSkew } from '../session-server-clock';
@@ -1918,6 +1919,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('oeffnet die Freitext-Wortwolke im Vollbild mit Analyse-Toggle und Freeze-Steuerung', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
       order: 5,
@@ -1946,6 +1948,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const component = fixture.componentInstance;
     component.setFreetextWordCloudMode('WORDS');
     await component.toggleWordCloudFreeze();
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext .session-host__extra-analysis-toggle',
+        ) !== null,
+      { timeout: 5000, interval: 25 },
+    );
 
     const documentRef = TestBed.inject(DOCUMENT);
     const requestFullscreenSpy = vi.fn().mockResolvedValue(undefined);
@@ -1960,34 +1969,72 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     dialogOpenMock.mockClear();
     try {
-      await component.openFreetextWordCloudDialog();
+      component.maximizeFreetextWordCloud();
+      fixture.detectChanges();
 
       expect(requestFullscreenSpy).toHaveBeenCalledWith({ navigationUI: 'hide' });
-      expect(dialogOpenMock).toHaveBeenCalledTimes(1);
-      const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
-      expect(config['panelClass']).toBe('word-cloud-dialog-panel');
-      expect(config['height']).toBe('100dvh');
-      const data = config['data'] as {
-        analysisVariant: () => string;
-        setAnalysisVariant: (variant: 'WORDS' | 'PHRASES') => void;
-        frozen: () => boolean;
-        freezeLabel: () => string;
-        toggleFreeze: () => Promise<void>;
-        terms: () => Array<{ key: string }>;
-      };
-      expect(data.analysisVariant()).toBe('WORDS');
-      expect(data.frozen()).toBe(true);
-      expect(data.freezeLabel()).toBe('Live fortsetzen');
-      expect(data.terms()?.every((term) => !term.key.includes(' '))).toBe(true);
+      expect(dialogOpenMock).not.toHaveBeenCalled();
+      expect(component.freetextWordCloudMaximized()).toBe(true);
+      expect(component.wordCloudExpanded()).toBe(true);
+      expect(component.freetextWordCloudMode()).toBe('WORDS');
+      expect(component.wordCloudFrozen()).toBe(true);
+      expect(component.wordCloudFreezeLabel()).toBe('Live fortsetzen');
+      expect(
+        component.displayedFreetextVisibleTerms()?.every((term) => !term.key.includes(' ')),
+      ).toBe(true);
       expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
+      expect(
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext.session-host__extra--maximized',
+        ),
+      ).not.toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('.session-host__extra--freetext app-word-cloud'),
+      ).not.toBeNull();
+      expect(
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext .session-host__extra-analysis-toggle',
+        ),
+      ).not.toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('.session-host__extra-close-maximize'),
+      ).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.word-cloud-host--presentation')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Maximieren');
 
-      data.setAnalysisVariant('PHRASES');
+      const phrasesToggle = fixture.nativeElement.querySelector(
+        '.session-host__extra--maximized mat-button-toggle[value="PHRASES"] button',
+      ) as HTMLButtonElement | null;
+      expect(phrasesToggle).not.toBeNull();
+      phrasesToggle?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
       expect(component.freetextWordCloudMode()).toBe('PHRASES');
-      expect(data.terms()?.some((term) => term.key.includes(' '))).toBe(true);
+      expect(
+        component.displayedFreetextVisibleTerms()?.some((term) => term.key.includes(' ')),
+      ).toBe(true);
       expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
+      const maximizedCloud = fixture.debugElement.query(By.directive(WordCloudComponent))
+        ?.componentInstance as WordCloudComponent | undefined;
+      expect(maximizedCloud?.words().some((entry) => entry.groupKey.includes(' '))).toBe(true);
 
-      await data.toggleFreeze();
+      await component.toggleWordCloudFreeze();
       expect(component.wordCloudFrozen()).toBe(false);
+
+      component.closeFreetextWordCloudMaximize();
+      fixture.detectChanges();
+      expect(component.freetextWordCloudMaximized()).toBe(false);
+      expect(fixture.nativeElement.textContent).toContain('Maximieren');
+
+      component.maximizeFreetextWordCloud();
+      fixture.detectChanges();
+      component.onDocumentKeydownCloseJoinPopover(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+      );
+      fixture.detectChanges();
+      expect(component.freetextWordCloudMaximized()).toBe(false);
     } finally {
       if (previousDescriptor) {
         Object.defineProperty(documentRef.documentElement, 'requestFullscreen', previousDescriptor);
@@ -1995,6 +2042,93 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         delete (documentRef.documentElement as Partial<HTMLElement>).requestFullscreen;
       }
     }
+    fixture.destroy();
+  });
+
+  it('zeigt Phrasen sofort wenn die geglaettete Einzelwort-Wolke umgeschaltet wird', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'de_core_news_sm@3.8.0',
+        entries: [
+          {
+            key: 'regression',
+            label: 'Regression',
+            count: 2,
+            basisLabel: 'Regression',
+            members: [],
+            variants: ['Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    await component.setFreetextWordCloudMode('WORDS');
+    await component.toggleFreetextWordCloudSmoothing();
+    fixture.detectChanges();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(
+      component.displayedFreetextAnalysisEntries()?.some((entry) => entry.key.includes(' ')),
+    ).toBe(false);
+
+    wordCloudAnalyzeQueryMock.mockImplementation(() => new Promise(() => undefined));
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext mat-button-toggle[value="PHRASES"] button',
+        ) !== null,
+      { timeout: 5000, interval: 25 },
+    );
+
+    const phrasesToggle = fixture.nativeElement.querySelector(
+      '.session-host__extra--freetext mat-button-toggle[value="PHRASES"] button',
+    ) as HTMLButtonElement;
+    phrasesToggle.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(component.freetextWordCloudMode()).toBe('PHRASES');
+    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
+    expect(component.displayedFreetextVisibleTerms()?.some((term) => term.key.includes(' '))).toBe(
+      true,
+    );
+    const cloud = fixture.debugElement.query(By.directive(WordCloudComponent))
+      ?.componentInstance as WordCloudComponent | undefined;
+    expect(cloud?.words().some((entry) => entry.groupKey.includes(' '))).toBe(true);
     fixture.destroy();
   });
 
