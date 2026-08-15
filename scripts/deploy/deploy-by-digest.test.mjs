@@ -633,6 +633,11 @@ test('compose requires ARSNOVA_IMAGE and binds app/pdf-worker to the same ref', 
   assert.equal(cfg.services.app.image, VALID_DIGEST);
   assert.equal(cfg.services['pdf-worker'].image, VALID_DIGEST);
   assert.equal(cfg.services.app.build, undefined);
+  assert.equal(
+    cfg.services.spacy,
+    undefined,
+    'spaCy-Sidecar darf ohne Compose-Profil nlp nicht starten',
+  );
 });
 
 function writeMinimalProdEnv(projectDir) {

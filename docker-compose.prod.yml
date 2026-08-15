@@ -76,6 +76,38 @@ services:
       retries: 5
     stop_grace_period: 15s
 
+  # Optionaler spaCy-Sidecar. Nicht Teil von deploy.sh.
+  # Start: COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy
+  spacy:
+    profiles: ['nlp']
+    image: ${SPACY_IMAGE:-arsnova-spacy:3.8.15}
+    container_name: arsnova-v3-spacy
+    restart: always
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+    volumes:
+      - spacy_socket:/run/spacy
+    environment:
+      HOME: /tmp
+      NLP_SOCKET_PATH: /run/spacy/nlp.sock
+    healthcheck:
+      test: ['CMD', 'python', '/app/healthcheck.py']
+      interval: 15s
+      timeout: 3s
+      start_period: 45s
+      retries: 5
+    stop_grace_period: 10s
+
   app:
     image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
     container_name: arsnova-v3-app
@@ -89,6 +121,7 @@ services:
       - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
     volumes:
       - pdf_worker_socket:/run/pdf-worker:ro
+      - spacy_socket:/run/spacy:ro
     env_file:
       - .env.production
     ports:
@@ -105,10 +138,10 @@ services:
       NODE_ENV: 'production'
       PDF_RENDER_MODE: worker
       PDF_WORKER_SOCKET_PATH: /run/pdf-worker/render.sock
-      # Story 1.14b: Kill-Switch bleibt hart aus, bis der spaCy-Sidecar existiert.
-      NLP_ENABLED: 'false'
       NLP_SOCKET_PATH: /run/spacy/nlp.sock
       NLP_TIMEOUT_MS: '5000'
+      # NLP_ENABLED kommt aus `.env.production` (Default false).
+      # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
     depends_on:
       pdf-worker:
         condition: service_healthy
@@ -133,3 +166,4 @@ volumes:
   postgres_data:
   redis_data:
   pdf_worker_socket:
+  spacy_socket:

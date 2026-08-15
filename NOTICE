@@ -1,0 +1,29 @@
+Third-Party Notices
+===================
+
+arsnova.eu is licensed under the MIT License (see LICENSE). The optional
+spaCy sidecar image ships separate third-party model packages. Those packages
+remain third-party works; they are not relicensed as part of arsnova.eu.
+
+Default MIT sidecar image (docker/spacy)
+----------------------------------------
+
+The default image contains only the following official small pipelines:
+
+| Package            | Version | License | Source                                                      |
+| ------------------ | ------- | ------- | ----------------------------------------------------------- |
+| spaCy              | 3.8.15  | MIT     | https://github.com/explosion/spaCy                          |
+| de_core_news_sm    | 3.8.0   | MIT     | https://github.com/explosion/spacy-models                   |
+| en_core_web_sm     | 3.8.0   | MIT     | https://github.com/explosion/spacy-models                   |
+
+Not included in the MIT default image
+-------------------------------------
+
+| Package            | License           | Reason                                      |
+| ------------------ | ----------------- | ------------------------------------------- |
+| fr_core_news_sm    | LGPL-LR           | only with NOTICE/license text if added later |
+| es_core_news_sm    | GPL-3.0           | GPL third-party; must not be unlabeled MIT  |
+| it_core_news_sm    | CC BY-NC-SA 3.0   | incompatible with the MIT default image     |
+
+Italian lemma support in the distributed default requires a license-compatible
+alternative model, not `it_core_news_sm`.

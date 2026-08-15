@@ -2,7 +2,7 @@
 
 # Word Cloud - Implementierungsplan fuer spaCy als optionale Glaettung
 
-**Status:** Phase 1–2 umgesetzt; Sidecar-Image und Host-UI folgen
+**Status:** Phase 1–3 umgesetzt; Host-UI folgt
 **Stand:** August 2026
 **Zielbild:** `docs/implementation/WORD-CLOUD-SPACY-GLAETTUNG-ZIELBILD.md`
 **Architekturbezug:** `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`, `docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`
@@ -104,7 +104,7 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 | **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                  |
 | **Shared Types**   | `normalization` `NONE`/`LEMMA`, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`         |
 | **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma nur bei `LEXICAL` und hartem Identity-Fallback; kein Snapshot-Cache |
-| **Compose**        | Produktion setzt `NLP_ENABLED=false`; Sidecar-Service folgt in Phase 3                                                                 |
+| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`       |
 | **UI**             | kennt noch keinen Host-Trigger `Sprachformen glaetten` und keinen stale state fuer geglaettete Snapshots                               |
 
 ---
@@ -190,7 +190,8 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 
 - `docker-compose.yml`
 - `docker-compose.prod.yml`
-- **neu optional:** `docker/spacy/` oder separater Service-Ordner
+- `docker/spacy/` (Dockerfile, Server, MIT-NOTICE, Unittests)
+- `NOTICE` (Drittmodelle `de`/`en`; `fr`/`es`/`it` nicht im Default)
 
 ### Tests
 
@@ -303,6 +304,8 @@ Ziel: optionalen NLP-Service betriebsfaehig machen, ohne den App-Container aufzu
 
 - separater NLP-Dienst
 - keine Vermischung mit dem Node-App-Image
+
+**Stand August 2026:** Phase 3 ist umgesetzt. Image und API liegen unter `docker/spacy/`. Das Default-Image enthält nur `de_core_news_sm` und `en_core_web_sm` (MIT). `fr`/`es`/`it` sind nicht enthalten; Hinweise stehen in `NOTICE`. Start lokal mit `npm run docker:up:nlp`. Produktion bleibt aus, bis Compose-Profil `nlp` und `NLP_ENABLED=true` bewusst gesetzt werden.
 
 ---
 
