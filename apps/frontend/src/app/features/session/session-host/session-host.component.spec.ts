@@ -2369,6 +2369,74 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('faellt nach Freitext-Ansichtswechsel auf die lexikalische Wolke zurueck, wenn die Glaettung fehlschlaegt', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'de_core_news_sm@3.8.0',
+        entries: [
+          {
+            key: 'regression',
+            label: 'Regression',
+            count: 2,
+            basisLabel: 'Regression',
+            members: [],
+            variants: ['Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(component.displayedFreetextAnalysisEntries()?.length).toBeGreaterThan(0);
+
+    wordCloudAnalyzeQueryMock.mockRejectedValue(new Error('sidecar timeout'));
+    await component.setFreetextWordCloudMode('WORDS');
+    await vi.waitUntil(
+      () => component.freetextWordCloudSmoothingHint() === 'Glättung fehlgeschlagen',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(component.freetextWordCloudSmoothingStatus()).toBe('idle');
+    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
+    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    fixture.destroy();
+  });
+
   it('markiert geglaettete Freitext-Snapshots bei neuen Antworten als veraltet ohne automatisch neu zu rechnen', async () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -3899,6 +3967,110 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         normalization: 'LEMMA',
       }),
     ]);
+    fixture.destroy();
+  });
+
+  it('faellt nach Sortierungswechsel auf die lexikalische Wolke zurueck, wenn die Glaettung fehlschlaegt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { metric?: string; normalization?: string }) => {
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            metric: input.metric ?? 'BEST',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: 'klausur',
+                label: 'Klausur',
+                count: 4,
+                basisLabel: 'Klausur',
+                members: [
+                  {
+                    sourceId: '11111111-1111-4111-8111-111111111111',
+                    text: 'Kommt Kapitel 4 in der Klausur vor?',
+                    weight: 4,
+                  },
+                ],
+                variants: ['Klausur'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          metric: input.metric ?? 'BEST',
+          entries: [],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+
+    wordCloudAnalyzeQueryMock.mockImplementation(async (input: { normalization?: string }) => {
+      if (input.normalization === 'LEMMA') {
+        throw new Error('sidecar timeout');
+      }
+
+      return wordCloudAnalyzeResult({ metric: 'CONTROVERSIAL', entries: [] });
+    });
+
+    await fixture.componentInstance.setQaSortMode('CONTROVERSIAL');
+    await vi.waitUntil(
+      () => fixture.componentInstance.qaWordCloudSmoothingHint() === 'Glättung fehlgeschlagen',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(false);
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()?.length).toBeGreaterThan(0);
     fixture.destroy();
   });
 

@@ -6568,12 +6568,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.qaWordCloudLemmaResult.set(null);
+      this.qaWordCloudLemmaSnapshotKey.set(null);
       this.qaWordCloudLemmaFallbackReason.set(result.normalizationFallbackReason);
     } catch {
       if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
         return;
       }
 
+      this.qaWordCloudLemmaResult.set(null);
+      this.qaWordCloudLemmaSnapshotKey.set(null);
       this.qaWordCloudLemmaFallbackReason.set('TIMEOUT');
     } finally {
       if (runId === this.qaWordCloudLemmaAnalysisRunId) {
@@ -6651,12 +6655,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.freetextWordCloudLemmaResult.set(null);
+      this.freetextWordCloudLemmaSnapshotKey.set(null);
       this.freetextWordCloudLemmaFallbackReason.set(result.normalizationFallbackReason);
     } catch {
       if (runId !== this.freetextWordCloudLemmaAnalysisRunId) {
         return;
       }
 
+      this.freetextWordCloudLemmaResult.set(null);
+      this.freetextWordCloudLemmaSnapshotKey.set(null);
       this.freetextWordCloudLemmaFallbackReason.set('TIMEOUT');
     } finally {
       if (runId === this.freetextWordCloudLemmaAnalysisRunId) {
