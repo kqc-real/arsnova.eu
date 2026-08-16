@@ -119,7 +119,7 @@ describe('SessionPresentComponent', () => {
       questionOrder: 1,
       questionType: 'FREETEXT',
       questionText:
-        '### Was hilft dir beim Lernen?\n\nAntworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.',
+        '### Was hilft dir beim Lernen?\n\nDie Antworten werden als **Wortwolke** dargestellt.',
       responses: ['Praxis', 'Beispiele'],
       updatedAt: '2026-03-08T12:00:00.000Z',
     });
@@ -132,9 +132,9 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Frage 2: Was hilft dir beim Lernen?');
-    expect(text).toContain('Antworte mit einem Wort.');
+    expect(text).toContain('Die Antworten werden als Wortwolke dargestellt.');
     expect(text).not.toContain('###');
-    expect(text).not.toContain('**einem Wort**');
+    expect(text).not.toContain('**Wortwolke**');
     fixture.destroy();
   });
 
