@@ -3,7 +3,7 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Demostración didáctica: cuestionario por equipos",
-    "description": "![Demostración didáctica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Demostración didáctica\n\nEstas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.\n\nLa demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas de una sola palabra y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.\n\nLos temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.",
+    "description": "![Demostración didáctica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Demostración didáctica\n\nEstas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.\n\nLa demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.\n\nLos temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "text": "### ¿Qué te ayuda a aprender?\n\nResponde con **una palabra**. Las respuestas se mostrarán como una nube de palabras.",
+        "text": "### ¿Qué te ayuda a aprender?\n\nLas respuestas se mostrarán como una nube de palabras.",
         "type": "FREETEXT",
         "timer": null,
         "difficulty": "EASY",

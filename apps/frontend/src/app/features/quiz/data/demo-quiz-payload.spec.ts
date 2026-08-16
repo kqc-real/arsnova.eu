@@ -136,29 +136,36 @@ describe('getDemoQuizSeedFingerprint', () => {
 
   it('zeigt 13 Fragen, alle zehn Typen und genau eine unbewertete Wortwolkenfrage', () => {
     const localeEvidence = {
-      de: ['Schritte sortierst', 'zuordnest', 'kategorisierst', 'Wortwolke', 'einem Wort'],
-      en: ['order steps', 'match terms', 'categorise examples', 'word cloud', 'one word'],
+      de: ['Schritte sortierst', 'zuordnest', 'kategorisierst', 'Wortwolke', 'Freitextfrage'],
+      en: ['order steps', 'match terms', 'categorise examples', 'word cloud', 'free-text'],
       fr: [
         'ordonner des étapes',
         'associer des termes',
         'classer des exemples',
         'nuage de mots',
-        'un mot',
+        'réponses libres',
       ],
       es: [
         'ordenar pasos',
         'relacionar términos',
         'clasificar ejemplos',
         'nube de palabras',
-        'una palabra',
+        'respuestas abiertas',
       ],
       it: [
         'ordinare passaggi',
         'abbinare termini',
         'classificare esempi',
         'nuvola di parole',
-        'una sola parola',
+        'risposte aperte',
       ],
+    } as const;
+    const oneWordConstraint = {
+      de: ['einem Wort', 'Ein-Wort'],
+      en: ['one word', 'one-word'],
+      fr: ['un mot'],
+      es: ['una palabra', 'una sola palabra'],
+      it: ['una sola parola'],
     } as const;
     const confidenceLabels = {
       de: ['Sehr unsicher', 'Sehr sicher'],
@@ -198,10 +205,12 @@ describe('getDemoQuizSeedFingerprint', () => {
       });
       expect(freeTextQuestions[0]?.answers?.some((answer) => answer.isCorrect)).toBe(false);
       expect(questions.some((question) => /> \*\*/u.test(question.text ?? ''))).toBe(false);
+      const localizedCopy = `${payload.quiz?.description ?? ''}\n${freeTextQuestions[0]?.text ?? ''}`;
       for (const phrase of localeEvidence[locale]) {
-        expect(`${payload.quiz?.description ?? ''}\n${freeTextQuestions[0]?.text ?? ''}`).toContain(
-          phrase,
-        );
+        expect(localizedCopy).toContain(phrase);
+      }
+      for (const phrase of oneWordConstraint[locale]) {
+        expect(localizedCopy).not.toContain(phrase);
       }
       for (const question of questions.filter((entry) => entry.confidenceEnabled)) {
         expect([question.confidenceLabelLow, question.confidenceLabelHigh]).toEqual(
