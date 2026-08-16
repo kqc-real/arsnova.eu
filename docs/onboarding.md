@@ -206,6 +206,7 @@ belegt die Korrekturen der damals roten Gates.
 | Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                |
 | Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                              |
 | Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev` |
+| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:push` (der macOS-Helfer macht das jetzt selbst)                     |
 | „Wähle die Sprache der Antworten“ in it | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                         | Am Glätten-Button DE/EN/FR/ES wählen                                                |
 | `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                             |
 

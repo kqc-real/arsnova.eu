@@ -76,7 +76,7 @@ Ablauf:
   1. Aufräumen: free-dev-ports, npm run clean:generated, spaCy-Container,
      lokale arsnova-/spaCy-Images, baumelnde Docker-Images (Postgres/Redis
      und ihre Volumes bleiben).
-  2. docker:up:dev (Postgres/Redis), Host-Sidecar auf /tmp/arsnova-nlp.sock
+  2. docker:up:dev (Postgres/Redis), prisma:push, Host-Sidecar auf /tmp/arsnova-nlp.sock
   3. npm run build:prod (shared-types, Backend, Frontend de/en/fr/es/it)
   4. NLP_ENABLED in .env, npm run start:prod
   5. serve:localize:api auf Port 4200 (lokalisierter Dist + API-Proxy)
@@ -220,11 +220,42 @@ clean_workspace() {
 ensure_postgres_redis() {
   if port_in_use 5432 && port_in_use 6379; then
     info "Postgres (5432) und Redis (6379) laufen bereits."
+  else
+    docker_available || fail "Postgres/Redis sind nicht erreichbar und Docker fehlt. Bitte npm run docker:up:dev."
+    info "Starte Postgres und Redis …"
+    npm run docker:up:dev
+  fi
+  wait_for_postgres
+}
+
+postgres_accepts_connections() {
+  if docker exec arsnova-v3-postgres pg_isready -U arsnova_user -d arsnova_v3_dev >/dev/null 2>&1; then
     return 0
   fi
-  docker_available || fail "Postgres/Redis sind nicht erreichbar und Docker fehlt. Bitte npm run docker:up:dev."
-  info "Starte Postgres und Redis …"
-  npm run docker:up:dev
+  if command -v pg_isready >/dev/null 2>&1 \
+    && pg_isready -h 127.0.0.1 -p 5432 -d arsnova_v3_dev >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+wait_for_postgres() {
+  local i=0
+  while [[ "$i" -lt 30 ]]; do
+    if postgres_accepts_connections; then
+      return 0
+    fi
+    sleep 1
+    i=$((i + 1))
+  done
+  fail "Postgres auf Port 5432 ist nicht bereit (pg_isready)."
+}
+
+ensure_schema() {
+  [[ -f "$ROOT/.env" ]] || fail "Lokale .env fehlt. Bitte .env.example nach .env kopieren."
+  info "Synchronisiere Datenbankschema (prisma:push) …"
+  npm run prisma:push
+  npm run prisma:generate
 }
 
 sidecar_healthy() {
@@ -588,6 +619,7 @@ else
 fi
 
 ensure_postgres_redis
+ensure_schema
 ensure_python
 info "Python: $PYTHON_BIN"
 start_sidecar "$PYTHON_BIN"

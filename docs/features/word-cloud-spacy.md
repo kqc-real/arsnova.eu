@@ -102,7 +102,7 @@ Für den Einstieg (Setup plus dieser Befehl): [onboarding.md](../onboarding.md#v
 | Schritt       | Wirkung                                                                                                                                   |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Aufräumen     | `free-dev-ports` (3000/3001/3002/4200), `clean:generated`, spaCy-Container, lokale arsnova-/spaCy-Images. Postgres/Redis-Volumes bleiben. |
-| Infrastruktur | `docker:up:dev` falls 5432/6379 fehlen; Host-Sidecar `docker/spacy/server.py` auf `/tmp/arsnova-nlp.sock`                                 |
+| Infrastruktur | `docker:up:dev` falls 5432/6379 fehlen; `prisma:push` (sonst fehlt `public.Quiz`); Host-Sidecar auf `/tmp/arsnova-nlp.sock`               |
 | Env           | lokale `.env`: `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock`, `NLP_TIMEOUT_MS=15000`                                        |
 | Build         | `npm run build:prod` (`de`/`en`/`fr`/`es`/`it`)                                                                                           |
 | Prozesse      | `start:prod` auf **3000**; `serve:localize:api` auf **4200** (Dist plus Proxy `/trpc`, `/trpc-ws`, `/yjs-ws`)                             |
