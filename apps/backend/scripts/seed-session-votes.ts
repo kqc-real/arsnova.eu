@@ -1,14 +1,20 @@
 #!/usr/bin/env tsx
 /**
- * Befuellt eine bestehende Quiz-Session mit synthetischen Antworten fuer eine gezielte Frage.
+ * Befüllt eine bestehende Quiz-Session mit synthetischen Antworten für eine gezielte Frage.
+ *
+ * Für lokale spaCy-UI-Tests der Freitext-Wortwolke: ohne --code wird der Session-Code
+ * interaktiv abgefragt. Default zielt auf die FREETEXT-Frage und 500 lemma-/phrasenreiche
+ * Antworten (Analyse-Cap der Wortwolke).
  *
  * Beispiele:
- *   SESSION_CODE=4XW4HX npm run seed:session-votes -w @arsnova/backend
- *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX --question-number 2 --count 100
- *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX --question-id abc --count 40 --dry-run
- *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX --freetext-file ../../tmp/pi-responses.txt
+ *   npm run seed:session-votes -w @arsnova/backend
+ *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX
+ *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX --question-number 2 --dry-run
+ *   npm run seed:session-votes -w @arsnova/backend -- --freetext-file ../../tmp/pi-responses.txt
+ *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext + Q&A): npm run spacy:macos-dev
  *
- * Das Skript arbeitet direkt gegen Prisma und eignet sich fuer lokale Review-, Demo- und Lasttest-Sessions.
+ * Das Skript arbeitet direkt gegen Prisma. Es ist für lokale Review-Sessions gedacht,
+ * nicht für Produktivdaten.
  */
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,6 +26,11 @@ import {
   type Difficulty,
   type QuestionType,
 } from '@arsnova/shared-types';
+import { resolveSessionCode } from './lib/prompt-session-code';
+import {
+  buildSpacyFreetextResponses,
+  SPACY_WORDCLOUD_SEED_ITEM_COUNT,
+} from './lib/spacy-wordcloud-seed-corpus';
 
 type CliOptions = {
   code: string;
@@ -67,36 +78,37 @@ type PlannedVote = {
   responseTimeMs: number | null;
 };
 
-const DEFAULT_VOTE_COUNT = 100;
+const DEFAULT_VOTE_COUNT = SPACY_WORDCLOUD_SEED_ITEM_COUNT;
 const MAX_VOTE_COUNT = 2_000;
 const DEFAULT_PARTICIPANT_PREFIX = 'Seed';
 const DEFAULT_CORRECT_RATE = 0.72;
 
 function printUsage(): void {
   log(`
-Bestehende Quiz-Session fuer eine Frage befuellen
+Bestehende Quiz-Session für eine Frage befüllen (lokaler spaCy-UI-Test)
 
 Usage:
+  npm run seed:session-votes -w @arsnova/backend
   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX [Optionen]
   SESSION_CODE=4XW4HX npm run seed:session-votes -w @arsnova/backend
 
 Optionen:
-  --code <CODE>              Session-Code, alternativ SESSION_CODE oder erstes Argument
-  --count <N>                Anzahl neuer Teilnehmender/Votes, Default ${DEFAULT_VOTE_COUNT}, max ${MAX_VOTE_COUNT}
-  --question-id <ID>         Ziel-Frage per ID waehlen
-  --question-order <N>       Ziel-Frage per 0-basierter order waehlen
-  --question-number <N>      Ziel-Frage per 1-basiger Nummer waehlen
+  --code <CODE>              Session-Code; ohne Angabe und im TTY wird er abgefragt
+  --count <N>                Anzahl neuer Teilnehmender/Votes, Default ${DEFAULT_VOTE_COUNT} (Wortwolken-Cap), max ${MAX_VOTE_COUNT}
+  --question-id <ID>         Ziel-Frage per ID wählen
+  --question-order <N>       Ziel-Frage per 0-basierter order wählen
+  --question-number <N>      Ziel-Frage per 1-basiger Nummer wählen
   --round <N>                Runde, Default aktuelle Session-Runde
-  --participant-prefix <T>   Prefix fuer erzeugte Nicknames, Default ${DEFAULT_PARTICIPANT_PREFIX}
-  --correct-rate <0..1>      Anteil korrekter Antworten fuer Choice-Fragen, Default ${DEFAULT_CORRECT_RATE}
-  --freetext-file <PATH>     Optional: Datei mit einer Antwort pro Zeile fuer FREETEXT-Fragen
-  --dry-run                  Nur pruefen und geplante Mengen/Verteilungen ausgeben
+  --participant-prefix <T>   Prefix für erzeugte Nicknames, Default ${DEFAULT_PARTICIPANT_PREFIX}
+  --correct-rate <0..1>      Anteil korrekter Antworten für Choice-Fragen, Default ${DEFAULT_CORRECT_RATE}
+  --freetext-file <PATH>     Optional: Datei mit einer Antwort pro Zeile statt spaCy-Korpus
+  --dry-run                  Nur prüfen und geplante Mengen/Verteilungen ausgeben
   --help                     Hilfe anzeigen
 
 Hinweise:
-  - Ohne explizite Frage wird die aktuelle Session-Frage verwendet.
-  - Das Skript fuegt Daten direkt in die DB ein und umgeht die Vote-API bewusst.
-  - Bereits aufgewaermte In-Memory-Caches im laufenden Backend koennen oeffentliche Zaehler kurzzeitig nachziehen.
+  - Ohne explizite Frage wird die FREETEXT-Frage genommen, sonst die aktuelle Session-Frage.
+  - Das Default-Korpus mischt Flexionsformen, 2–3-Wort-Phrasen, Eigennamen und Stopwort-Rauschen.
+  - Das Skript fügt Daten direkt in die DB ein und umgeht die Vote-API bewusst.
 `);
 }
 
@@ -204,65 +216,34 @@ function readRate(value: string | undefined): number {
 function assertOptions(options: CliOptions): void {
   if (options.help) return;
   if (!/^[A-Z0-9]{6}$/.test(options.code)) {
-    throw new Error('Bitte einen gueltigen 6-stelligen Session-Code angeben.');
+    throw new Error('Bitte einen gültigen 6-stelligen Session-Code angeben.');
   }
   const selectors = [options.questionId, options.questionOrder, options.questionNumber].filter(
     (value) => value !== null,
   ).length;
   if (selectors > 1) {
     throw new Error(
-      'Bitte hoechstens eine Frage per --question-id, --question-order oder --question-number auswaehlen.',
+      'Bitte höchstens eine Frage per --question-id, --question-order oder --question-number auswählen.',
     );
   }
   if (options.freetextFile && !existsSync(options.freetextFile)) {
-    throw new Error(`Datei fuer --freetext-file nicht gefunden: ${options.freetextFile}`);
+    throw new Error(`Datei für --freetext-file nicht gefunden: ${options.freetextFile}`);
   }
 }
 
-function stripMarkup(text: string): string {
-  return text
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
-    .replace(/\$[^$]*\$/g, ' ')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/\[[^\]]+\]\([^)]*\)/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/[`*_>#~-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function buildPromptFragment(questionText: string): string {
-  const plain = stripMarkup(questionText);
-  const firstSentence = plain.split(/[.!?]/)[0]?.trim() ?? plain;
-  return (firstSentence || plain || 'der Frage').slice(0, 48).trim();
-}
-
-function loadFreetextPool(questionText: string, filePath: string | null): string[] {
+function loadFreetextPool(filePath: string | null, count: number): string[] {
   if (filePath) {
     const values = readFileSync(filePath, 'utf8')
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
     if (values.length === 0) {
-      throw new Error(`Datei fuer --freetext-file enthaelt keine nutzbaren Zeilen: ${filePath}`);
+      throw new Error(`Datei für --freetext-file enthält keine nutzbaren Zeilen: ${filePath}`);
     }
     return values;
   }
 
-  const prompt = buildPromptFragment(questionText);
-  return [
-    `${prompt} ist fuer mich zentral.`,
-    `Zu ${prompt} hilft ein konkretes Beispiel.`,
-    `Bei ${prompt} brauche ich noch mehr Uebung.`,
-    `${prompt} ist inzwischen deutlich klarer.`,
-    `Zu ${prompt} moechte ich mehr Praxisbezug sehen.`,
-    `${prompt} nehme ich heute besonders mit.`,
-    `Bei ${prompt} hilft mir die Visualisierung.`,
-    `${prompt} war fuer mich der wichtigste Punkt.`,
-    `Zu ${prompt} moechte ich weitere Aufgaben bearbeiten.`,
-    `${prompt} wurde heute gut erklaert.`,
-  ];
+  return buildSpacyFreetextResponses(count);
 }
 
 function buildParticipantNicknames(
@@ -324,8 +305,13 @@ function resolveTargetQuestion(
     return question;
   }
 
+  const freetextQuestion = questions.find((entry) => entry.type === 'FREETEXT');
+  if (freetextQuestion) {
+    return freetextQuestion;
+  }
+
   if (session.currentQuestion === null || session.currentQuestion === undefined) {
-    throw new Error('Die Session hat keine aktuelle Frage.');
+    throw new Error('Die Session hat keine aktuelle Frage und keine Freitextfrage.');
   }
 
   const currentQuestion =
@@ -565,12 +551,13 @@ function buildSelectionSummary(
 
 async function main(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2));
-  assertOptions(options);
-
   if (options.help) {
     printUsage();
     return;
   }
+
+  options.code = await resolveSessionCode(options.code);
+  assertOptions(options);
 
   const session = await prisma.session.findUnique({
     where: { code: options.code },
@@ -626,7 +613,7 @@ async function main(): Promise<void> {
     session.participants.map((participant) => participant.nickname),
     options.participantPrefix,
   );
-  const freetextPool = loadFreetextPool(question.text, options.freetextFile);
+  const freetextPool = loadFreetextPool(options.freetextFile, options.count);
   const timerSeconds = resolveEffectiveQuestionTimer(
     question.timer,
     session.quiz.defaultTimer,

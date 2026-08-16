@@ -4,31 +4,33 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-08-15 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-08-16 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
 ## NPM-Skripte (Root)
 
-| Befehl                                        | Bedeutung                                                                                                                 |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `npm run build`                               | `shared-types` → Backend `tsc` → Frontend `ng build`                                                                      |
-| `npm run typecheck`                           | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                                     |
-| `npm run lint`                                | Blockierendes ESLint-Gate über `libs/`, `apps/` und alle inventarisierten operativen JS-/TS-Skripte                       |
-| `npm run lint:scripts`                        | Blockierendes Voll-Gate: jede inventarisierte Skriptdatei muss ohne ESLint-Fehler und ohne Warnungen bestehen             |
-| `npm run lint:scripts:changed`                | Deterministisches Zusatz-Gate für neue/geänderte Skripte im angegebenen Git-SHA-Bereich; behandelt Löschungen und Renames |
-| `npm run lint:scripts:test`                   | Negativ-, Profil- und Mutationstests für Inventur, Changed-Script- und Voll-Gate                                          |
-| `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                    |
-| `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                           |
-| `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                   |
-| `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                         |
-| `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                 |
-| `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                         |
-| `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                              |
-| `npm run audit:trpc-dod`                      | Blockierendes Non-Regression-Gate für AppRouter und alle Backend-`src/**/*.test.ts`; Legacy bleibt zulässig               |
-| `npm run audit:trpc-dod -- --update-baseline` | Vollständigen/verbesserten Zustand atomar und monoton in die Git-verankerte Baseline übernehmen                           |
-| `npm run audit:trpc-dod:poc`                  | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                                   |
-| `npm run audit:trpc-dod:test`                 | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint)                 |
+| Befehl                                        | Bedeutung                                                                                                                                                 |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                               | `shared-types` → Backend `tsc` → Frontend `ng build`                                                                                                      |
+| `npm run typecheck`                           | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                                                                     |
+| `npm run lint`                                | Blockierendes ESLint-Gate über `libs/`, `apps/` und alle inventarisierten operativen JS-/TS-Skripte                                                       |
+| `npm run lint:scripts`                        | Blockierendes Voll-Gate: jede inventarisierte Skriptdatei muss ohne ESLint-Fehler und ohne Warnungen bestehen                                             |
+| `npm run lint:scripts:changed`                | Deterministisches Zusatz-Gate für neue/geänderte Skripte im angegebenen Git-SHA-Bereich; behandelt Löschungen und Renames                                 |
+| `npm run lint:scripts:test`                   | Negativ-, Profil- und Mutationstests für Inventur, Changed-Script- und Voll-Gate                                                                          |
+| `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                                                    |
+| `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                                                           |
+| `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                                                   |
+| `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                                                         |
+| `npm run spacy:macos-dev`                     | macOS: Clean, `build:prod` aller Locales, Host-Sidecar, `start:prod`, `serve:localize:api` auf 4200, Freitext- und Q&A-Seed (Demo-Quiz mit Freitextfrage) |
+| `npm run spacy:macos-dev:test`                | Hilfe-/Syntax-Tests für `scripts/macos-spacy-wordcloud-dev.sh`                                                                                            |
+| `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                                                 |
+| `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                                                         |
+| `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                                                              |
+| `npm run audit:trpc-dod`                      | Blockierendes Non-Regression-Gate für AppRouter und alle Backend-`src/**/*.test.ts`; Legacy bleibt zulässig                                               |
+| `npm run audit:trpc-dod -- --update-baseline` | Vollständigen/verbesserten Zustand atomar und monoton in die Git-verankerte Baseline übernehmen                                                           |
+| `npm run audit:trpc-dod:poc`                  | Isolierter Fixture-Audit der in Slice 2A eingeführten Evidenzkonvention                                                                                   |
+| `npm run audit:trpc-dod:test`                 | Negativ- und Determinismus-Tests für `scripts/audit-trpc-dod.mjs` (nach `npm ci`, nicht im Workflow-Lint)                                                 |
 
 Workspace-spezifisch:
 
@@ -234,7 +236,13 @@ npm run test:spacy-sidecar
 npm run test:spacy-compose
 ```
 
-Lokal den Sidecar nur bewusst starten: `npm run docker:up:nlp`. Produktion: Image selbst bauen, Compose-Profil `nlp`, `NLP_ENABLED=true`; Rollback `NLP_ENABLED=false` und `stop spacy`. `deploy.sh` startet den Sidecar nicht.
+Lokal den Sidecar nur bewusst starten. Auf **macOS** nicht `npm run docker:up:nlp` für Host-Node erwarten — der Socket im Volume ist unsichtbar. Stattdessen:
+
+```bash
+npm run spacy:macos-dev
+```
+
+Ablauf, Locale-URLs (`http://localhost:4200/de/` … `/it/`, **kein** `ng serve`) und Flags: [word-cloud-spacy.md](features/word-cloud-spacy.md#lokale-prüfung-auf-macos-host-npm). Unter Linux im App-Container: `npm run docker:up:nlp`. Produktion: Image selbst bauen, Compose-Profil `nlp`, `NLP_ENABLED=true`; Rollback `NLP_ENABLED=false` und `stop spacy`. `deploy.sh` startet den Sidecar nicht.
 
 Für W2.4a zusätzlich:
 

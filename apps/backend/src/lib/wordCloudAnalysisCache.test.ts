@@ -85,7 +85,7 @@ describe('wordCloudAnalysisCache', () => {
     expect(buildWordCloudSnapshotCacheKey({ ...input, sessionCode: 'XYZ789' })).not.toBe(key);
   });
 
-  it('cacht transiente Sidecar-Fallbacks nicht', () => {
+  it('cacht transiente Sidecar-Fallbacks und NLP_DISABLED nicht', () => {
     expect(shouldCacheWordCloudSnapshot(output)).toBe(true);
     expect(
       shouldCacheWordCloudSnapshot({
@@ -104,7 +104,7 @@ describe('wordCloudAnalysisCache', () => {
         normalizationFallbackReason: 'NLP_DISABLED',
         modelId: null,
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('liefert Memory-Hits und laesst TTL verfallen', async () => {
@@ -131,6 +131,18 @@ describe('wordCloudAnalysisCache', () => {
       normalizationApplied: 'NONE',
       normalizationFallbackUsed: true,
       normalizationFallbackReason: 'SIDECAR_UNAVAILABLE',
+      modelId: null,
+    });
+    expect(await cache.getSnapshot(input)).toBeNull();
+  });
+
+  it('schreibt NLP_DISABLED-Snapshots nicht in den Memory-Cache', async () => {
+    const cache = createMemoryWordCloudAnalysisCache();
+    await cache.setSnapshot(input, {
+      ...output,
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: true,
+      normalizationFallbackReason: 'NLP_DISABLED',
       modelId: null,
     });
     expect(await cache.getSnapshot(input)).toBeNull();

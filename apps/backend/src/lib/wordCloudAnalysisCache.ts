@@ -53,7 +53,13 @@ export function buildWordCloudSnapshotCacheKey(input: AnalyzeWordCloudInput): st
 }
 
 export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): boolean {
-  return !isTransientWordCloudNormalizationFallback(output.normalizationFallbackReason);
+  const reason = output.normalizationFallbackReason;
+  if (isTransientWordCloudNormalizationFallback(reason)) {
+    return false;
+  }
+  // Kill-Switch ist Prozesskonfiguration, kein Snapshot-Inhalt. Sonst bleibt
+  // „Glättung nicht verfügbar“ nach NLP_ENABLED=true bis zum TTL sichtbar.
+  return reason !== 'NLP_DISABLED';
 }
 
 export function createMemoryWordCloudAnalysisCache(
