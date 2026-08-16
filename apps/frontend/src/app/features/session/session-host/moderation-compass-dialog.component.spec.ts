@@ -30,7 +30,11 @@ describe('ModerationCompassDialogComponent', () => {
     const { fixture } = setup([]);
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Moderationskompass');
-    expect(text).toContain('Sobald Fragen, Ergebnisse oder Blitzlicht da sind');
+    expect(text).toContain('Dein Live-Überblick über Quiz, Q&A und Blitzlicht.');
+    expect(text).toContain('Du entscheidest, welche Themen behandelt werden.');
+    expect(text).toContain(
+      'Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.',
+    );
     expect(
       fixture.nativeElement.querySelector('.dialog-title-header__icon .moderation-compass-icon'),
     ).not.toBeNull();
@@ -55,9 +59,6 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).toContain('Median · Wie berechnet man den Median?');
     expect(text).toContain('Nächster Schritt');
     expect(text).toContain('Fass die häufigsten Themen kurz zusammen.');
-    expect(text).toContain(
-      'Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst.',
-    );
   });
 
   it('zeigt Blitzlicht-Rückmeldungen mit eigenem Kartentitel', () => {

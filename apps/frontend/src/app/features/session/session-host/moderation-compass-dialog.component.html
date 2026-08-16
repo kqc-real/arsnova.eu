@@ -6,8 +6,13 @@
     <span class="dialog-title-header__heading" i18n="@@sessionHost.moderationDialogTitle">
       Moderationskompass
     </span>
-    <span class="dialog-title-header__sub" i18n="@@sessionHost.moderationDialogIntro">
-      Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst.
+    <span class="dialog-title-header__sub moderation-compass-dialog__intro">
+      <span i18n="@@sessionHost.moderationDialogIntro">
+        Dein Live-Überblick über Quiz, Q&amp;A und Blitzlicht.
+      </span>
+      <span i18n="@@sessionHost.moderationDialogIntroDecide">
+        Du entscheidest, welche Themen behandelt werden.
+      </span>
     </span>
   </span>
 </h2>
@@ -24,10 +29,6 @@
 </button>
 
 <mat-dialog-content class="moderation-compass-dialog__content">
-  <p class="moderation-compass-dialog__mode" i18n="@@sessionHost.moderationRuleBasedHint">
-    Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst.
-  </p>
-
   @if (hasCards()) {
     <div class="moderation-compass-dialog__cards">
       @for (card of cards(); track card.kind) {
@@ -68,7 +69,7 @@
     </div>
   } @else {
     <p class="moderation-compass-dialog__empty" role="status" i18n="@@sessionHost.moderationEmpty">
-      Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise.
+      Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.
     </p>
   }
 </mat-dialog-content>
