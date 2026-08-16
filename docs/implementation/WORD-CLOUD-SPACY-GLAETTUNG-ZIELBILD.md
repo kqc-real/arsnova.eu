@@ -2,7 +2,7 @@
 
 # Word Cloud - Zielbild fuer spaCy als optionale Glaettung
 
-**Status:** umgesetzt (Story 1.14b, Analyseversion `1.14b.7`, August 2026)
+**Status:** umgesetzt (Story 1.14b, Analyseversion `1.14b.8`, August 2026)
 **Stand:** August 2026
 **Kanonische Produktdoku:** `docs/features/word-cloud-spacy.md`
 **Bezug:** `Word Cloud 2.5`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`, `docs/implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md`

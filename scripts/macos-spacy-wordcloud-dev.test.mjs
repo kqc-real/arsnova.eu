@@ -31,6 +31,14 @@ test('--help nennt Demo-Quiz, Clean, Produktions-Build und Locales', () => {
   assert.match(result.stdout, /seed:qa-forum/);
 });
 
+test('prueft spaCy-Modelle de/en/fr/es', () => {
+  const source = readFileSync(script, 'utf8');
+  assert.match(source, /fr_core_news_sm/);
+  assert.match(source, /es_core_news_sm/);
+  assert.match(source, /Wolkensprache DE\/EN\/FR\/ES wählen/);
+  assert.match(source, /http:\/\/localhost:4200\/it\//);
+});
+
 test('setzt ein lokales YJS_SHARE_TOKEN_SECRET fuer start:prod', () => {
   const source = readFileSync(script, 'utf8');
   assert.match(source, /YJS_SHARE_TOKEN_SECRET/);

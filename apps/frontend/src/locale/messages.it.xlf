@@ -15507,6 +15507,18 @@
         <source>Glättung fehlgeschlagen</source>
         <target>Uniformazione non riuscita</target>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
+        <source>Wähle die Sprache der Antworten</source>
+        <target>Scegli la lingua delle risposte</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
+        <source>Sprache der Wortwolke</source>
+        <target>Lingua della nuvola di parole</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocalePlaceholder" datatype="html">
+        <source>Sprache</source>
+        <target>Lingua</target>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <target>Mostra prima le domande con molto consenso e abbastanza voti. Le domande fissate restano evidenziate, ma non vengono anticipate.</target>

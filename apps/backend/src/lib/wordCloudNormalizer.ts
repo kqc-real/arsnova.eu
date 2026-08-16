@@ -4,6 +4,7 @@ import {
   type AnalyzeWordCloudInput,
   type WordCloudAnalysisSourceItem,
   type WordCloudLemmaApplication,
+  type WordCloudLemmaLocale,
   type WordCloudNormalizationFallbackReason,
 } from '@arsnova/shared-types';
 import { resolveNlpSidecarConfig } from './nlpSidecarConfig';
@@ -47,7 +48,7 @@ export class LemmaNormalizer implements WordCloudNormalizer {
   readonly kind = 'lemma' as const;
 
   constructor(
-    private readonly locale: 'de' | 'en',
+    private readonly locale: WordCloudLemmaLocale,
     private readonly sidecar = spacyClient.normalizeWithSpacySidecar,
     private readonly config = resolveNlpSidecarConfig(),
   ) {}

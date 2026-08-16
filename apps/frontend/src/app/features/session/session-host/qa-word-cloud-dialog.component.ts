@@ -7,8 +7,10 @@ import type {
   QaQuestionSortMode,
   WordCloudAnalysisEntryDTO,
   WordCloudAnalysisVariant,
+  WordCloudLemmaLocale,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import { WordCloudLemmaLocaleSelectComponent } from './word-cloud-lemma-locale-select.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
 import type { WeightedWordSource } from '../session-present/word-cloud.util';
 
@@ -38,6 +40,8 @@ export type QaWordCloudDialogData = {
   smoothingHint: () => string | null;
   smoothingDisabled: () => boolean;
   toggleSmoothing: () => void | Promise<void>;
+  lemmaLocale: () => WordCloudLemmaLocale | null;
+  setLemmaLocale: (locale: WordCloudLemmaLocale) => void | Promise<void>;
   itemLabelSingular: string;
   itemLabelPlural: string;
 };
@@ -53,6 +57,7 @@ export type QaWordCloudDialogData = {
     MatButtonToggleGroup,
     MatButtonToggle,
     WordCloudComponent,
+    WordCloudLemmaLocaleSelectComponent,
   ],
   templateUrl: './qa-word-cloud-dialog.component.html',
   styleUrl: './qa-word-cloud-dialog.component.scss',
@@ -94,6 +99,7 @@ export class QaWordCloudDialogComponent {
         return 'auto_fix_high';
     }
   });
+  readonly lemmaLocale = computed(() => this.data.lemmaLocale());
 
   setSortMode(mode: QaQuestionSortMode): void {
     if (mode === this.sortMode()) {
@@ -121,5 +127,9 @@ export class QaWordCloudDialogComponent {
     }
 
     void this.data.toggleSmoothing();
+  }
+
+  setLemmaLocale(locale: WordCloudLemmaLocale): void {
+    void this.data.setLemmaLocale(locale);
   }
 }

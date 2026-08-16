@@ -6,6 +6,7 @@ import {
 } from './confidence';
 import {
   WORD_CLOUD_DEFAULT_NORMALIZATION,
+  WORD_CLOUD_LEMMA_LOCALES,
   WORD_CLOUD_MAX_ANALYZE_ITEMS,
   WORD_CLOUD_MAX_ITEM_ID_CHARS,
   WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
@@ -3665,8 +3666,8 @@ export type WordCloudNormalizationFallbackReason = z.infer<
   typeof WordCloudNormalizationFallbackReasonEnum
 >;
 
-/** Erste 3.0-Stufe: erklärbarer Themenmodus ist für `de` und `en` Pflichtscope. */
-export const WordCloudAnalysisLocaleEnum = z.enum(['de', 'en']);
+/** Analyse-Locales mit Sidecar-Modell. `it` bleibt ausserhalb (CC BY-NC-SA). */
+export const WordCloudAnalysisLocaleEnum = z.enum(WORD_CLOUD_LEMMA_LOCALES);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
 
 /** Gewichtungsbasis für Q&A-Word-Cloud-Analysen. */

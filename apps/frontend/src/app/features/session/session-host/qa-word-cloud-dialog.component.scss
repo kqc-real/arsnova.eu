@@ -69,6 +69,16 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
+.qa-word-cloud-dialog__smooth-cluster {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.qa-word-cloud-dialog__smooth-cluster app-word-cloud-lemma-locale-select {
+  align-self: stretch;
+}
+
 .qa-word-cloud-dialog__freeze--active,
 .qa-word-cloud-dialog__smooth--active {
   border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
@@ -120,8 +130,13 @@
   .qa-word-cloud-dialog__sort-toggle,
   .qa-word-cloud-dialog__analysis-toggle,
   .qa-word-cloud-dialog__freeze,
-  .qa-word-cloud-dialog__smooth {
+  .qa-word-cloud-dialog__smooth-cluster {
     width: 100%;
+  }
+
+  .qa-word-cloud-dialog__smooth {
+    flex: 1 1 auto;
+    width: auto;
   }
 }
 

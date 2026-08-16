@@ -2,8 +2,9 @@
 # arsnova.eu – optionaler spaCy-Sidecar (Story 1.14b)
 #
 # Separates Python-Image, nicht der Node-App-Container.
-# Standard-Modelle: MIT de_core_news_sm + en_core_web_sm (3.8.0).
-# fr/es/it gehören nicht in dieses Default-Image.
+# Standard-Modelle: de/en (MIT), fr (LGPL-LR), es (GPL-3.0), jeweils 3.8.0.
+# it_core_news_sm (CC BY-NC-SA 3.0) gehört nicht in dieses Default-Image.
+# Lizenztexte: licenses/LGPL-LR.txt, licenses/GPL-3.0.txt. Image ist kein reines MIT.
 #
 # Basisimage: Multi-Arch-Index python:3.12-slim-bookworm, geprüft 2026-08-15 via
 #   docker buildx imagetools inspect python:3.12-slim-bookworm
@@ -24,6 +25,7 @@ RUN groupadd --gid 1000 spacy \
     && chown spacy:spacy /run/spacy
 
 COPY requirements.txt NOTICE ./
+COPY licenses ./licenses
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
     && rm -rf /root/.cache/pip
@@ -33,7 +35,7 @@ RUN chmod 0755 server.py healthcheck.py
 
 USER 1000:1000
 
-HEALTHCHECK --interval=15s --timeout=3s --start-period=45s --retries=5 \
+HEALTHCHECK --interval=15s --timeout=3s --start-period=90s --retries=5 \
     CMD python /app/healthcheck.py
 
 CMD ["python", "/app/server.py"]

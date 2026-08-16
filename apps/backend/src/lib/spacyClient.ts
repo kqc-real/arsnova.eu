@@ -11,7 +11,12 @@
  */
 import { request as httpRequest } from 'node:http';
 import { z } from 'zod';
-import { WORD_CLOUD_MAX_ITEM_TEXT_CHARS, wordCloudLemmaModelId } from '@arsnova/shared-types';
+import {
+  WORD_CLOUD_LEMMA_LOCALES,
+  WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
+  wordCloudLemmaModelId,
+  type WordCloudLemmaLocale,
+} from '@arsnova/shared-types';
 import { resolveNlpSidecarConfig, type NlpSidecarConfig } from './nlpSidecarConfig';
 
 export const SPACY_MAX_IN_FLIGHT = 2;
@@ -41,7 +46,7 @@ const SpacyTokenSchema = z.object({
 });
 
 const SpacyNormalizeResponseSchema = z.object({
-  locale: z.enum(['de', 'en']),
+  locale: z.enum(WORD_CLOUD_LEMMA_LOCALES),
   modelId: z.string().min(1).max(128),
   items: z
     .array(
@@ -88,7 +93,7 @@ export async function probeSpacySidecarHealth(
 }
 
 export async function normalizeWithSpacySidecar(
-  locale: 'de' | 'en',
+  locale: WordCloudLemmaLocale,
   texts: readonly SpacyNormalizeText[],
   config: NlpSidecarConfig = resolveNlpSidecarConfig(),
 ): Promise<SpacyNormalizeResponse> {

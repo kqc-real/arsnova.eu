@@ -86,6 +86,8 @@ import {
   CONFIDENCE_SCALE_MIN,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  isWordCloudLemmaLocale,
+  type WordCloudLemmaLocale,
 } from '@arsnova/shared-types';
 import type {
   AnalyzeWordCloudInput,
@@ -116,6 +118,7 @@ import type {
   WordCloudAnalysisVariant,
   WordCloudNormalizationFallbackReason,
 } from '@arsnova/shared-types';
+import { WordCloudLemmaLocaleSelectComponent } from './word-cloud-lemma-locale-select.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import {
   getWordCloudWeightFromNormalizedMetric,
@@ -240,6 +243,38 @@ function resolveFreetextWordCloudMode(value: unknown): FreetextWordCloudMode | n
   }
 
   return null;
+}
+
+function wordCloudLemmaLocaleStorageKey(sessionCode: string): string {
+  return `arsnova.wordCloudLemmaLocale.${sessionCode.toUpperCase()}`;
+}
+
+function readWordCloudLemmaLocaleOverride(sessionCode: string): WordCloudLemmaLocale | null {
+  if (!sessionCode || typeof sessionStorage === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = sessionStorage.getItem(wordCloudLemmaLocaleStorageKey(sessionCode));
+    return raw && isWordCloudLemmaLocale(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistWordCloudLemmaLocaleOverride(
+  sessionCode: string,
+  locale: WordCloudLemmaLocale,
+): void {
+  if (!sessionCode || typeof sessionStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    sessionStorage.setItem(wordCloudLemmaLocaleStorageKey(sessionCode), locale);
+  } catch {
+    /* quota / private mode */
+  }
 }
 
 function freetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null): number | null {
@@ -467,6 +502,7 @@ function musicTracksForPhase(
     MatSlideToggle,
     MatTooltip,
     WordCloudComponent,
+    WordCloudLemmaLocaleSelectComponent,
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     FeedbackHostComponent,
@@ -924,6 +960,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     return JSON.stringify({
+      locale: this.qaWordCloudAnalysisLocale(),
       texts: items.map((item) => item.text),
       maxNgramLength: freetextLemmaMaxNgramLength(this.freetextWordCloudMode()),
     });
@@ -1015,7 +1052,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (!this.qaWordCloudAnalysisLocale()) {
-      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Antworten`;
     }
 
     if (this.freetextWordCloudSmoothingStatus() === 'stale') {
@@ -1324,9 +1361,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudResponses = computed(() =>
     this.qaWordCloudQuestions().map((question) => question.text),
   );
+  readonly wordCloudLemmaLocaleOverride = signal<WordCloudLemmaLocale | null>(
+    readWordCloudLemmaLocaleOverride(this.code),
+  );
   readonly qaWordCloudAnalysisLocale = computed<WordCloudAnalysisLocale | null>(() => {
+    const override = this.wordCloudLemmaLocaleOverride();
+    if (override) {
+      return override;
+    }
+
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId));
-    return locale === 'de' || locale === 'en' ? locale : null;
+    return isWordCloudLemmaLocale(locale) ? locale : null;
   });
   readonly qaWordCloudTermLocale = computed<SupportedLocale>(() =>
     getEffectiveLocale(localeIdToSupported(this.localeId)),
@@ -1389,7 +1434,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         weight: this.qaWordCloudQuestionWeight(question),
       }))
       .sort((left, right) => left.id.localeCompare(right.id));
-    return JSON.stringify({ metric: this.qaSortMode(), items });
+    return JSON.stringify({
+      locale: this.qaWordCloudAnalysisLocale(),
+      metric: this.qaSortMode(),
+      items,
+    });
   });
   readonly qaWordCloudLemmaSnapshotVisible = computed(() => {
     if (this.qaWordCloudEffectiveAnalysisVariant() !== 'LEXICAL') {
@@ -1467,7 +1516,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (!this.qaWordCloudAnalysisLocale()) {
-      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Glättung nicht verfügbar`;
+      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Antworten`;
     }
 
     if (this.qaWordCloudSmoothingStatus() === 'stale') {
@@ -1579,6 +1628,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           smoothingHint: () => this.qaWordCloudSmoothingHint(),
           smoothingDisabled: () => this.qaWordCloudSmoothingDisabled(),
           toggleSmoothing: () => this.toggleQaWordCloudSmoothing(),
+          lemmaLocale: () => this.qaWordCloudAnalysisLocale(),
+          setLemmaLocale: (locale: WordCloudLemmaLocale) => this.setWordCloudLemmaLocale(locale),
           itemLabelSingular: 'Frage',
           itemLabelPlural: 'Fragen',
         },
@@ -2075,6 +2126,39 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     await this.requestFreetextWordCloudLemmaSmoothing();
+  }
+
+  async setWordCloudLemmaLocale(locale: string): Promise<void> {
+    if (!isWordCloudLemmaLocale(locale)) {
+      return;
+    }
+
+    if (locale === this.qaWordCloudAnalysisLocale()) {
+      this.wordCloudLemmaLocaleOverride.set(locale);
+      persistWordCloudLemmaLocaleOverride(this.code, locale);
+      return;
+    }
+
+    this.wordCloudLemmaLocaleOverride.set(locale);
+    persistWordCloudLemmaLocaleOverride(this.code, locale);
+
+    const shouldRefreshFreetextSmoothing = untracked(
+      () =>
+        this.freetextWordCloudLemmaPending() ||
+        this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA',
+    );
+    const shouldRefreshQaSmoothing = untracked(
+      () =>
+        this.qaWordCloudLemmaPending() ||
+        this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA',
+    );
+
+    if (shouldRefreshFreetextSmoothing) {
+      await this.requestFreetextWordCloudLemmaSmoothing();
+    }
+    if (shouldRefreshQaSmoothing) {
+      await this.requestQaWordCloudLemmaSmoothing();
+    }
   }
 
   async toggleFreetextWordCloudSmoothing(): Promise<void> {

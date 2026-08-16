@@ -3,7 +3,7 @@
 
 Unix-socket HTTP API, analog to the PDF worker:
 - GET  /health    → 204
-- POST /normalize → lemma/POS tokens for de/en snapshots
+- POST /normalize → lemma/POS tokens for de/en/fr/es snapshots
 
 The process never binds a TCP port. Request texts are not written to logs.
 """
@@ -29,10 +29,14 @@ DEFAULT_SOCKET_PATH = "/run/spacy/nlp.sock"
 MODEL_IDS = {
     "de": "de_core_news_sm@3.8.0",
     "en": "en_core_web_sm@3.8.0",
+    "fr": "fr_core_news_sm@3.8.0",
+    "es": "es_core_news_sm@3.8.0",
 }
 MODEL_NAMES = {
     "de": "de_core_news_sm",
     "en": "en_core_web_sm",
+    "fr": "fr_core_news_sm",
+    "es": "es_core_news_sm",
 }
 LOAD_EXCLUDES = ("parser", "senter")
 

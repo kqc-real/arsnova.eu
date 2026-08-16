@@ -93,7 +93,12 @@ class ParseNormalizeRequestTests(unittest.TestCase):
         parsed = server.parse_normalize_request(raw)
         self.assertEqual(parsed, ("de", [{"id": "a", "text": "Häuser"}]))
 
-    def test_rejects_excluded_locales_and_oversized_text(self) -> None:
+    def test_accepts_bundled_locales_and_rejects_italian(self) -> None:
+        for locale, text in (("de", "Häuser"), ("en", "houses"), ("fr", "maisons"), ("es", "casas")):
+            parsed = server.parse_normalize_request(
+                json.dumps({"locale": locale, "texts": [{"id": "a", "text": text}]}).encode()
+            )
+            self.assertEqual(parsed, (locale, [{"id": "a", "text": text}]))
         self.assertEqual(
             server.parse_normalize_request(
                 json.dumps({"locale": "it", "texts": [{"id": "a", "text": "ciao"}]}).encode()
@@ -134,7 +139,7 @@ class UnixSocketApiTests(unittest.TestCase):
             }
         )
         self.socket_path, self._http_server, self._thread, self._tmp = start_server(
-            {"de": nlp, "en": nlp}
+            {"de": nlp, "en": nlp, "fr": nlp, "es": nlp}
         )
 
     def tearDown(self) -> None:

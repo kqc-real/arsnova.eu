@@ -15564,6 +15564,18 @@
         <source>Glättung fehlgeschlagen</source>
         <target>Smoothing failed</target>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
+        <source>Wähle die Sprache der Antworten</source>
+        <target>Choose the language of the answers</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
+        <source>Sprache der Wortwolke</source>
+        <target>Word cloud language</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocalePlaceholder" datatype="html">
+        <source>Sprache</source>
+        <target>Language</target>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <target>Shows questions with strong approval and enough votes first. Pinned questions are marked, not promoted.</target>

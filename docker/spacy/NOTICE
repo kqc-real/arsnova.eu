@@ -3,14 +3,26 @@ Third-Party Notices
 
 This image is the optional arsnova.eu spaCy sidecar (Story 1.14b).
 arsnova.eu itself remains MIT-licensed. The bundled model packages are
-third-party works.
+third-party works and are not relicensed as part of arsnova.eu.
 
-Included MIT packages
----------------------
+This image is not a pure-MIT artifact: it aggregates MIT, LGPL-LR, and
+GPL-3.0 model packages. The models remain replaceable pip wheels
+(see requirements.txt).
+
+Included packages
+-----------------
 
 - spaCy 3.8.15 (MIT) — https://github.com/explosion/spaCy
 - de_core_news_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
 - en_core_web_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
+- fr_core_news_sm 3.8.0 (LGPL-LR) — https://github.com/explosion/spacy-models
+  License text: licenses/LGPL-LR.txt
+- es_core_news_sm 3.8.0 (GPL-3.0) — https://github.com/explosion/spacy-models
+  License text: licenses/GPL-3.0.txt
 
-This default image does not include fr_core_news_sm (LGPL-LR),
-es_core_news_sm (GPL-3.0), or it_core_news_sm (CC BY-NC-SA 3.0).
+Not included
+------------
+
+- it_core_news_sm (CC BY-NC-SA 3.0) is incompatible with the distributed
+  default image. Italian lemma support requires a license-compatible
+  alternative model.

@@ -13805,6 +13805,15 @@
           <context context-type="linenumber">1280</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
+        <source>Wähle die Sprache der Antworten</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
+        <source>Sprache der Wortwolke</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocalePlaceholder" datatype="html">
+        <source>Sprache</source>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <context-group purpose="location">

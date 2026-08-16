@@ -307,7 +307,7 @@ Ziel: optionalen NLP-Service betriebsfaehig machen, ohne den App-Container aufzu
 - separater NLP-Dienst
 - keine Vermischung mit dem Node-App-Image
 
-**Stand August 2026:** Phase 3 ist umgesetzt. Image und API liegen unter `docker/spacy/`. Das Default-Image enthält nur `de_core_news_sm` und `en_core_web_sm` (MIT). `fr`/`es`/`it` sind nicht enthalten; Hinweise stehen in `NOTICE`. Start lokal mit `npm run docker:up:nlp`. Produktion bleibt aus, bis Compose-Profil `nlp` und `NLP_ENABLED=true` bewusst gesetzt werden.
+**Stand August 2026:** Phase 3 ist umgesetzt. Image und API liegen unter `docker/spacy/`. Das Default-Image enthält `de_core_news_sm`/`en_core_web_sm` (MIT), `fr_core_news_sm` (LGPL-LR) und `es_core_news_sm` (GPL-3.0). `it_core_news_sm` ist nicht enthalten. Lizenztexte liegen unter `docker/spacy/licenses/`; das Image ist kein reines MIT. Start lokal mit `npm run docker:up:nlp`. Produktion bleibt aus, bis Compose-Profil `nlp` und `NLP_ENABLED=true` bewusst gesetzt werden.
 
 ---
 
@@ -399,7 +399,7 @@ Ziel: die Funktion ohne Regression freigeben.
 5. Neue Daten markieren den Stand als veraltet, aber rechnen nicht automatisch neu
 6. Ausfall des Sidecars fuehrt nicht zu leerer oder kaputter Wortwolke
 
-**Stand August 2026:** Phase 7 haertet den Slice. Kuratierte `de`/`en`-Fixtures belegen Flexion, Eigennamen, Verb-/Nominalfamilie, Komposita/Tippfehler, technische Begriffe, Sprachmischung und bewusste Nicht-Zusammenfuehrung. Frontend-Tests decken Ausloesen, Pending (lexikalische Wolke bleibt), stale/`Neu analysieren`, Locale-Sperre und Fehlerhinweis in Q&A und Freitext. Compose-Smoke (`npm run test:spacy-compose`) prueft Profil `nlp`, `network_mode: none` und getrennte `SPACY_IMAGE`. Sidecar-Unittests laufen ohne Modell-Download. Produktiv bleibt der Sidecar aus, bis Betreiber Image, Profil und `NLP_ENABLED=true` bewusst setzen; `deploy.sh` startet ihn nicht.
+**Stand August 2026:** Phase 7 haertet den Slice. Kuratierte `de`/`en`/`fr`/`es`-Fixtures belegen Flexion, Eigennamen, Verb-/Nominalfamilie, Komposita/Tippfehler, technische Begriffe, Sprachmischung und bewusste Nicht-Zusammenfuehrung. Frontend-Tests decken Ausloesen, Pending (lexikalische Wolke bleibt), stale/`Neu analysieren`, explizite Wolkensprache (Host-UI-Default, Override, `it` bis zur Wahl) und Fehlerhinweis in Q&A und Freitext. Compose-Smoke (`npm run test:spacy-compose`) prueft Profil `nlp`, `network_mode: none` und getrennte `SPACY_IMAGE`. Sidecar-Unittests laufen ohne Modell-Download. Produktiv bleibt der Sidecar aus, bis Betreiber Image, Profil und `NLP_ENABLED=true` bewusst setzen; `deploy.sh` startet ihn nicht.
 
 ---
 

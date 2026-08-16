@@ -1,9 +1,9 @@
-import type { AnalyzeWordCloudInput } from '@arsnova/shared-types';
+import type { AnalyzeWordCloudInput, WordCloudLemmaLocale } from '@arsnova/shared-types';
 import type { SpacyNormalizeResponse } from './spacyClient';
 
 export interface WordCloudLemmaFixture {
   readonly id: string;
-  readonly locale: 'de' | 'en';
+  readonly locale: WordCloudLemmaLocale;
   readonly items: AnalyzeWordCloudInput['items'];
   readonly sidecarItems: SpacyNormalizeResponse['items'];
   readonly expectedKeys: readonly string[];
@@ -12,7 +12,7 @@ export interface WordCloudLemmaFixture {
 }
 
 /**
- * Kuratierte de/en-Fälle für Story 1.14b (erste Qualitätsstufe).
+ * Kuratierte de/en/fr/es-Fälle für Story 1.14b (lexikalische Qualitätsstufe).
  * Die Sidecar-Tokens sind die erwartete spaCy-Antwort; die Tests mocken sie.
  */
 export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
@@ -238,5 +238,35 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
     expectedKeys: ['feature'],
     unexpectedKeys: ['das'],
     expectedLabels: { feature: 'Feature' },
+  },
+  {
+    id: 'fr-noun-plural',
+    locale: 'fr',
+    items: [
+      { id: 'item-1', text: 'maisons', weight: 2 },
+      { id: 'item-2', text: 'maison', weight: 1 },
+    ],
+    sidecarItems: [
+      { id: 'item-1', tokens: [{ text: 'maisons', lemma: 'maison', pos: 'NOUN' }] },
+      { id: 'item-2', tokens: [{ text: 'maison', lemma: 'maison', pos: 'NOUN' }] },
+    ],
+    expectedKeys: ['maison'],
+    unexpectedKeys: ['maisons'],
+    expectedLabels: { maison: 'maison' },
+  },
+  {
+    id: 'es-noun-plural',
+    locale: 'es',
+    items: [
+      { id: 'item-1', text: 'casas', weight: 2 },
+      { id: 'item-2', text: 'casa', weight: 1 },
+    ],
+    sidecarItems: [
+      { id: 'item-1', tokens: [{ text: 'casas', lemma: 'casa', pos: 'NOUN' }] },
+      { id: 'item-2', tokens: [{ text: 'casa', lemma: 'casa', pos: 'NOUN' }] },
+    ],
+    expectedKeys: ['casa'],
+    unexpectedKeys: ['casas'],
+    expectedLabels: { casa: 'casa' },
   },
 ];

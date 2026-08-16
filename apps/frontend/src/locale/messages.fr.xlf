@@ -15507,6 +15507,18 @@
         <source>Glättung fehlgeschlagen</source>
         <target>Échec du lissage</target>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
+        <source>Wähle die Sprache der Antworten</source>
+        <target>Choisis la langue des réponses</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
+        <source>Sprache der Wortwolke</source>
+        <target>Langue du nuage de mots</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudLemmaLocalePlaceholder" datatype="html">
+        <source>Sprache</source>
+        <target>Langue</target>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
         <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions épinglées restent signalées, sans être remontées.</target>
