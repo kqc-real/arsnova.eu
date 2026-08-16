@@ -2,7 +2,7 @@
 
 # 🎓 Onboarding: arsnova.eu
 
-**Stand:** 2026-07-05
+**Stand:** 2026-08-16
 
 Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als Studierende oder Studierender dabei, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
 
@@ -54,6 +54,8 @@ npm run dev
 
 Dann im Windows-Browser: **`http://localhost:4200`**
 
+Für eine **gefüllte** Session (Freitext + Q&A, ~500 Einträge) in WSL dieselbe Demo-Session anlegen und die Seeds aus [Volle lokale Session mit hoher Befüllung](#volle-lokale-session-mit-hoher-befüllung) ausführen. `npm run spacy:macos-dev` gibt es nur auf macOS.
+
 Wenn **WSL2/Ubuntu** noch nicht installiert ist, zuerst in **PowerShell als Administrator**:
 
 ```powershell
@@ -77,7 +79,54 @@ npm run dev
 
 Dann im Browser: **`http://localhost:4200`**
 
-Das ist absichtlich der einfachste Pfad: **Deutsch**, beide Server laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**.
+Das ist absichtlich der einfachste Pfad: **Deutsch**, beide Server laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
+
+**Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
+
+### Volle lokale Session mit hoher Befüllung
+
+Wenn du sofort eine **gefüllte Host-Session** willst (Freitext-Wortwolke, Q&A-Wortwolke, optional Sprachformen glätten), nicht nur die leere Startseite:
+
+**macOS** (empfohlen, ein Befehl): ersetzt `npm run dev`. Produktions-Build aller Locales, Host-spaCy-Sidecar, UI auf **http://localhost:4200/de/** (kein `ng serve`), danach Seeds.
+
+```bash
+cp .env.example .env   # falls noch nicht geschehen
+npm ci
+npm run setup:dev      # Postgres, Redis, Prisma, shared-types
+npm run spacy:macos-dev
+```
+
+1. Im Browser **http://localhost:4200/de/** öffnen (Root `/` leitet nach `/de/`).
+2. Als Host eine Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen und im Quizkanal die **Freitextfrage** anzeigen (DE: „Was hilft dir beim Lernen?“).
+3. Den **6-stelligen Session-Code** ins Terminal eingeben (oder von vornherein `--code ABC123 --yes`).
+4. Hart neu laden. Quizkanal → Wortwolke; Q&A → Wortwolke.
+
+Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap). Sprachformen glätten nur in **de/en**. In **fr/es/it** ist „Glättung nicht verfügbar“ Absicht.
+
+| Locale | URL                       |
+| ------ | ------------------------- |
+| de     | http://localhost:4200/de/ |
+| en     | http://localhost:4200/en/ |
+| fr     | http://localhost:4200/fr/ |
+| es     | http://localhost:4200/es/ |
+| it     | http://localhost:4200/it/ |
+
+Nicht parallel zu `npm run dev` starten — der Helfer belegt 3000 und 4200. Erster Lauf dauert (Locale-Build, ggf. spaCy-Modelle). Wiederholung mit vorhandenem Dist:
+
+```bash
+npm run spacy:macos-dev -- --yes --skip-clean --skip-build --code ABC123
+```
+
+Details, Flags und Logs: [features/word-cloud-spacy.md](features/word-cloud-spacy.md#lokale-prüfung-auf-macos-host-npm).
+
+**Linux / WSL2:** `npm run spacy:macos-dev` läuft nur auf macOS. Nach `npm run setup:dev` und `npm run dev` dieselbe Demo-Session anlegen, dann befüllen:
+
+```bash
+npm run seed:session-votes -w @arsnova/backend -- --code ABC123
+npm run seed:qa-forum -w @arsnova/backend -- --code ABC123 --replace
+```
+
+Für Glättung unter Linux im App-Container: `npm run docker:up:nlp` und `NLP_ENABLED=true` (nicht auf macOS-Host-Node — der Docker-Socket ist unsichtbar).
 
 **Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
 
@@ -112,7 +161,7 @@ npm run prisma:generate
 npm run build -w @arsnova/shared-types
 ```
 
-**Kurz:** Einmalig **`npm run setup:dev`** (startet Postgres + Redis, `prisma:push`, `prisma:generate`, **shared-types-Build**) — deckt die Schritte 3–6 ab, danach **`npm run dev`**.
+**Kurz:** Einmalig **`npm run setup:dev`** (startet Postgres + Redis, `prisma:push`, `prisma:generate`, **shared-types-Build**) — deckt die Schritte 3–6 ab, danach **`npm run dev`**. Auf macOS für eine volle Hörsaal-Session stattdessen **`npm run spacy:macos-dev`** ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
 
 **Vor dem ersten Commit / bei Pre-Commit-Hook:** Ist nach `npm ci` noch kein Prisma-Client da, **`npm run prisma:generate`** ausführen (sonst schlägt `tsc` fehl).
 
@@ -135,7 +184,7 @@ npm run dev:frontend:en   # → http://localhost:4200/en/ (Angular, EN)
 npm run dev:frontend:de   # → http://localhost:4200 (Angular, DE-Quelltexte)
 ```
 
-**Funktioniert alles?** Öffne **`http://localhost:4200`** im Browser (Standard-`dev`). Du solltest die Startseite mit dem **Server-Status-Widget** sehen. Wenn du **`npm run dev:en`** oder **`npm run dev:frontend:en`** nutzt, ist die URL **`http://localhost:4200/en/`**. Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002.
+**Funktioniert alles?** Öffne **`http://localhost:4200`** im Browser (Standard-`dev`). Du solltest die Startseite mit dem **Server-Status-Widget** sehen. Wenn du **`npm run dev:en`** oder **`npm run dev:frontend:en`** nutzt, ist die URL **`http://localhost:4200/en/`**. Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002. Leere Startseite ist normal; Befüllung: [hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung).
 
 **SQM-Schwerpunkt Last/Performance?** Nach dem lokalen Start:
 [`docs/praktikum/Arbeitsanweisungen SQM/05-last-pilot-durchfuehren.md`](praktikum/Arbeitsanweisungen%20SQM/05-last-pilot-durchfuehren.md)
@@ -149,14 +198,16 @@ belegt die Korrekturen der damals roten Gates.
 
 ### Typische Stolperstellen beim ersten Start
 
-| Symptom                                 | Wahrscheinliche Ursache                                        | Direkt ausprobieren                                                   |
-| --------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet      | Docker starten, dann `docker compose version` prüfen                  |
-| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                 | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren         |
-| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en` |
-| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt | `npm run setup:dev` erneut ausführen                                  |
-| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                  | `npm run free-dev-ports` und dann erneut `npm run dev`                |
-| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                             | `.env` ergänzen und Backend neu starten                               |
+| Symptom                                 | Wahrscheinliche Ursache                                                          | Direkt ausprobieren                                                                 |
+| --------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet                        | Docker starten, dann `docker compose version` prüfen                                |
+| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                                   | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren                       |
+| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                                  | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en`               |
+| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                |
+| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                              |
+| Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev` |
+| „Glättung nicht verfügbar“ in fr/es/it  | Sidecar hat nur MIT-Modelle **de/en**                                            | Absicht; in `http://localhost:4200/de/` oder `/en/` prüfen                          |
+| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                             |
 
 **Spezialfall Windows:** Wenn das Setup unter Windows „zufällig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.
 
@@ -170,7 +221,7 @@ npm run start:prod    # Port 3000 freigeben, Backend starten (liefert Frontend a
 npm run verify:production-serving
 ```
 
-Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`** und `npm run verify:production-serving -- http://localhost:3010`. Für den Einstieg reicht das; Details zu Auslieferung, Gzip und Fallbacks stehen im Root-[`README.md`](../README.md).
+Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`** und `npm run verify:production-serving -- http://localhost:3010`. Für den Einstieg reicht das; Details zu Auslieferung, Gzip und Fallbacks stehen im Root-[`README.md`](../README.md). Auf **macOS** kombiniert **`npm run spacy:macos-dev`** diesen Prod-Pfad mit Locale-UI auf 4200, spaCy und Seeds ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
 
 ---
 

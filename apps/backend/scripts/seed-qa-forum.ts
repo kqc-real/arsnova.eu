@@ -1,17 +1,28 @@
 #!/usr/bin/env tsx
 /**
- * Befuellt den Q&A-Kanal einer bestehenden Session mit belastbarem Fragenmaterial.
+ * Befüllt den Q&A-Kanal einer bestehenden Session mit lemma- und phrasenreichem Fragenmaterial.
+ *
+ * Für lokale spaCy-UI-Tests: ohne --code wird der Session-Code interaktiv abgefragt.
+ * Default sind 500 Fragen (Analyse-Cap) mit Flexionsformen, 2–3-Wort-Phrasen und
+ * gemischten Vote-Profilen für Meist unterstützt / Beste Fragen / Umstritten.
  *
  * Beispiele:
- *   SESSION_CODE=CWDE5X npm run seed:qa-forum -w @arsnova/backend
- *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --count 200 --replace
- *   npm run seed:qa-forum -w @arsnova/backend -- CWDE5X --dry-run
+ *   npm run seed:qa-forum -w @arsnova/backend
+ *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --replace
+ *   npm run seed:qa-forum -w @arsnova/backend -- --dry-run
+ *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext + Q&A): npm run spacy:macos-dev
  *
- * Das Skript arbeitet direkt gegen Prisma. Es ist fuer lokale Test- und Review-Sessions gedacht,
- * nicht fuer Produktivdaten.
+ * Das Skript arbeitet direkt gegen Prisma. Es ist für lokale Test- und Review-Sessions gedacht,
+ * nicht für Produktivdaten.
  */
 import { randomUUID } from 'crypto';
 import { format } from 'node:util';
+import { promptChoice, resolveSessionCode } from './lib/prompt-session-code';
+import {
+  buildSpacyQaQuestionTexts,
+  SPACY_WORDCLOUD_SEED_ITEM_COUNT,
+  SPACY_WORDCLOUD_SEED_PARTICIPANT_COUNT,
+} from './lib/spacy-wordcloud-seed-corpus';
 
 function log(...values: unknown[]): void {
   process.stdout.write(`${format(...values)}\n`);
@@ -28,12 +39,6 @@ type CliOptions = {
   append: boolean;
   dryRun: boolean;
   help: boolean;
-};
-
-type TopicSeed = {
-  name: string;
-  phrases: string[];
-  details: string[];
 };
 
 type GeneratedQuestion = {
@@ -54,8 +59,8 @@ type GeneratedVote = {
   direction: QaVoteDirection;
 };
 
-const DEFAULT_QUESTION_COUNT = 200;
-const DEFAULT_PARTICIPANT_COUNT = 80;
+const DEFAULT_QUESTION_COUNT = SPACY_WORDCLOUD_SEED_ITEM_COUNT;
+const DEFAULT_PARTICIPANT_COUNT = SPACY_WORDCLOUD_SEED_PARTICIPANT_COUNT;
 const PARTICIPANT_PREFIX = 'QA Seed';
 const MAX_QUESTION_COUNT = 500;
 const MAX_PARTICIPANT_COUNT = 250;
@@ -167,130 +172,27 @@ const KINDERGARTEN_SEED_NICKNAMES = [
   'Korallenfarbener Drachenkopf',
 ] as const;
 
-const TOPICS: TopicSeed[] = [
-  {
-    name: 'Lernziele',
-    phrases: ['klare Lernziele', 'roter Faden', 'Erwartungen an die Vorbereitung'],
-    details: ['die Uebung planbarer wird', 'wir Vorwissen besser einschaetzen koennen'],
-  },
-  {
-    name: 'Praxisbezug',
-    phrases: [
-      'konkreter Praxisbezug',
-      'Beispiele aus dem Projektalltag',
-      'Transfer in reale Faelle',
-    ],
-    details: ['die Theorie nicht abstrakt bleibt', 'wir Entscheidungen besser begruenden koennen'],
-  },
-  {
-    name: 'Uebungen',
-    phrases: ['mehr Uebungsaufgaben', 'schrittweise Aufgaben', 'Loesungswege nach der Uebung'],
-    details: ['wir Fehler selbst finden', 'die Wiederholung vor der Pruefung leichter wird'],
-  },
-  {
-    name: 'Tempo',
-    phrases: ['Tempo der Veranstaltung', 'Zeit fuer Rueckfragen', 'Pausen zwischen Themen'],
-    details: ['niemand beim Mitschreiben abhaengt', 'komplexe Inhalte verarbeitet werden'],
-  },
-  {
-    name: 'Bewertung',
-    phrases: ['faire Bewertung', 'Klausurvorbereitung', 'transparente Bewertungskriterien'],
-    details: ['die Erwartungen vor der Klausur klar sind', 'wir Prioritaeten richtig setzen'],
-  },
-  {
-    name: 'Gruppenarbeit',
-    phrases: ['Rollen in der Gruppenarbeit', 'Zusammenarbeit im Team', 'ungleiche Beteiligung'],
-    details: ['alle sichtbar beitragen', 'die Aufgabenverteilung nachvollziehbar bleibt'],
-  },
-  {
-    name: 'Feedback',
-    phrases: ['schnelleres Feedback', 'konkrete Rueckmeldungen', 'Feedback zu Zwischenergebnissen'],
-    details: [
-      'wir frueher korrigieren koennen',
-      'Missverstaendnisse nicht bis zum Abgabetermin bleiben',
-    ],
-  },
-  {
-    name: 'Technik',
-    phrases: ['stabile Technik', 'docker compose Setup', 'npm install im Projekt'],
-    details: [
-      'HTTP 404 Fehler schneller geloest werden',
-      'die lokale Umgebung reproduzierbar laeuft',
-    ],
-  },
-  {
-    name: 'Datenschutz',
-    phrases: ['Datenschutz bei Live-Fragen', 'anonyme Beteiligung', 'Umgang mit sensiblen Fragen'],
-    details: ['auch leise Teilnehmende Fragen stellen', 'Vertrauen in die Plattform entsteht'],
-  },
-  {
-    name: 'Barrierefreiheit',
-    phrases: ['barrierefreie Darstellung', 'lesbare Folien', 'einfache Sprache'],
-    details: ['Inhalte auf kleinen Displays nutzbar bleiben', 'Begriffe nicht unklar bleiben'],
-  },
-  {
-    name: 'KI',
-    phrases: ['KI-Unterstuetzung', 'Grenzen von ChatGPT', 'Transparenz bei KI-Quellen'],
-    details: ['wir Ergebnisse kritisch pruefen', 'Hilfsmittel fair eingesetzt werden'],
-  },
-  {
-    name: 'Moderation',
-    phrases: ['Priorisierung der Fragen', 'Moderation im Q&A', 'sichtbare offene Fragen'],
-    details: ['wichtige Punkte nicht untergehen', 'die Diskussion fokussiert bleibt'],
-  },
-  {
-    name: 'Material',
-    phrases: [
-      'Literatur und Quellen',
-      'kompakte Zusammenfassungen',
-      'Beispieldateien vor der Sitzung',
-    ],
-    details: ['wir gezielter nacharbeiten', 'die Vorbereitung weniger verstreut ist'],
-  },
-  {
-    name: 'Programmierung',
-    phrases: ['Debugging in C++', 'C# Beispiele', 'PostgreSQL und Redis im Backend'],
-    details: ['Fehlermeldungen besser verstanden werden', 'technische Begriffe korrekt bleiben'],
-  },
-  {
-    name: 'Organisation',
-    phrases: ['klare Termine', 'Abgaben und Fristen', 'Kommunikation bei Aenderungen'],
-    details: ['Planungssicherheit entsteht', 'kurzfristige Aenderungen nicht uebersehen werden'],
-  },
-  {
-    name: 'Interaktion',
-    phrases: ['mehr Interaktion im Hoersaal', 'kurze Abstimmungen', 'Live-Fragen im Q&A'],
-    details: ['das Auditorium aktiver wird', 'Fragen nicht erst am Ende kommen'],
-  },
-];
-
-const QUESTION_FRAMES = [
-  'Wie koennen wir {phrase} konkreter machen, damit {detail}?',
-  'Welche Beispiele zu {phrase} helfen am meisten, wenn {detail}?',
-  'Warum ist {phrase} aktuell noch unklar, obwohl {detail}?',
-  'Wo brauchen wir bei {phrase} mehr Orientierung, damit {detail}?',
-  'Was waere ein guter naechster Schritt fuer {phrase}, wenn {detail}?',
-  'Welche Risiken entstehen ohne {phrase}, besonders wenn {detail}?',
-  'Wie sollte {phrase} im Kurs sichtbar werden, damit {detail}?',
-  'Welche Entscheidung wuerde {phrase} verbessern, ohne dass {detail} leidet?',
-];
-
 function printUsage(): void {
   log(`
-Q&A-Forum einer bestehenden Session befuellen
+Q&A-Forum einer bestehenden Session befüllen (lokaler spaCy-UI-Test)
 
 Usage:
+  npm run seed:qa-forum -w @arsnova/backend
   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X [Optionen]
   SESSION_CODE=CWDE5X npm run seed:qa-forum -w @arsnova/backend
 
 Optionen:
-  --code <CODE>          Session-Code, alternativ SESSION_CODE oder erstes Argument
-  --count <N>            Anzahl Fragen, Default ${DEFAULT_QUESTION_COUNT}, max ${MAX_QUESTION_COUNT}
+  --code <CODE>          Session-Code; ohne Angabe und im TTY wird er abgefragt
+  --count <N>            Anzahl Fragen, Default ${DEFAULT_QUESTION_COUNT} (Wortwolken-Cap), max ${MAX_QUESTION_COUNT}
   --participants <N>     Anzahl Seed-Teilnehmende, Default ${DEFAULT_PARTICIPANT_COUNT}, max ${MAX_PARTICIPANT_COUNT}
-  --replace              Vorhandene Q&A-Fragen der Session vorher loeschen
-  --append               Neue Fragen trotz vorhandener Q&A-Fragen hinzufuegen
-  --dry-run              Nur pruefen und geplante Mengen ausgeben
+  --replace              Vorhandene Q&A-Fragen der Session vorher löschen
+  --append               Neue Fragen trotz vorhandener Q&A-Fragen hinzufügen
+  --dry-run              Nur prüfen und geplante Mengen ausgeben
   --help                 Hilfe anzeigen
+
+Hinweise:
+  - Das Default-Korpus mischt Flexionsformen, Kurzfragen, Phrasen und lange Texte.
+  - Vote-Profile bleiben gemischt, damit Sortierung Meist unterstützt / Beste Fragen / Umstritten die Glättung neu anstößt.
 `);
 }
 
@@ -364,7 +266,7 @@ function readPositiveInteger(
 function assertOptions(options: CliOptions): void {
   if (options.help) return;
   if (!/^[A-Z0-9]{6}$/.test(options.code)) {
-    throw new Error('Bitte einen gueltigen 6-stelligen Session-Code angeben.');
+    throw new Error('Bitte einen gültigen 6-stelligen Session-Code angeben.');
   }
   if (options.replace && options.append) {
     throw new Error('--replace und --append koennen nicht gleichzeitig verwendet werden.');
@@ -432,6 +334,7 @@ function buildQuestions(
   const questions: GeneratedQuestion[] = [];
   const votes: GeneratedVote[] = [];
   const startedAt = Date.now() - count * 45_000;
+  const texts = buildSpacyQaQuestionTexts(count);
 
   for (let index = 0; index < count; index++) {
     const authorParticipantId = participantIds[index % participantIds.length]!;
@@ -452,7 +355,7 @@ function buildQuestions(
 
     questions.push({
       id: questionId,
-      text: buildQuestionText(index),
+      text: texts[index] ?? `Offene Frage ${index + 1}?`,
       status: index === 0 ? 'PINNED' : 'ACTIVE',
       authorParticipantId,
       createdAt: new Date(startedAt + index * 45_000),
@@ -467,22 +370,6 @@ function buildQuestions(
   }
 
   return { questions, votes };
-}
-
-function buildQuestionText(index: number): string {
-  const topic = TOPICS[index % TOPICS.length]!;
-  const phrase = topic.phrases[Math.floor(index / TOPICS.length) % topic.phrases.length]!;
-  const detail = topic.details[(index * 3 + Math.floor(index / 5)) % topic.details.length]!;
-  const frame =
-    QUESTION_FRAMES[(index + Math.floor(index / TOPICS.length)) % QUESTION_FRAMES.length]!;
-  const suffix =
-    index % 11 === 0
-      ? ` Kontext: ${topic.name}.`
-      : index % 17 === 0
-        ? ' Bitte mit einem konkreten Beispiel beantworten.'
-        : '';
-
-  return `${frame.replace('{phrase}', phrase).replace('{detail}', detail)}${suffix}`;
 }
 
 function resolveVoteProfile(
@@ -600,12 +487,13 @@ function summarizeQuestions(questions: readonly GeneratedQuestion[]): Record<str
 
 async function main(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2));
-  assertOptions(options);
-
   if (options.help) {
     printUsage();
     return;
   }
+
+  options.code = await resolveSessionCode(options.code);
+  assertOptions(options);
 
   const { prisma } = await import('../src/db');
   try {
@@ -628,7 +516,7 @@ async function main(): Promise<void> {
       throw new Error(`Session ${options.code} nicht gefunden.`);
     }
     if (session.status === 'FINISHED') {
-      throw new Error(`Session ${options.code} ist beendet und wird nicht befuellt.`);
+      throw new Error(`Session ${options.code} ist beendet und wird nicht befüllt.`);
     }
 
     const existingQuestionCount = await prisma.qaQuestion.count({
@@ -653,27 +541,40 @@ async function main(): Promise<void> {
     const plannedUpVotes = planned.votes.filter((vote) => vote.direction === 'UP').length;
     const plannedDownVotes = planned.votes.length - plannedUpVotes;
 
+    if (existingQuestionCount > 0 && !options.replace && !options.append) {
+      const choice = await promptChoice(
+        `Session ${session.code} hat bereits ${existingQuestionCount} Q&A-Fragen. [r]ersetzen, [a]nhängen, Enter = abbrechen: `,
+        { r: 'replace', a: 'append' },
+      );
+      if (choice === 'replace') {
+        options.replace = true;
+      } else if (choice === 'append') {
+        options.append = true;
+      } else {
+        throw new Error(
+          `Session ${session.code} enthält bereits ${existingQuestionCount} Q&A-Fragen. ` +
+            'Nutze --replace zum Ersetzen oder --append zum Hinzufügen.',
+        );
+      }
+    }
+
     if (options.dryRun) {
       log('Dry run: Es wird nichts geschrieben.');
       log({
         sessionCode: session.code,
         sessionStatus: session.status,
         existingQuestionCount,
+        replace: options.replace,
+        append: options.append,
         plannedQuestionCount: planned.questions.length,
         plannedParticipantCount: options.participants,
         plannedVoteCount: planned.votes.length,
         plannedUpVotes,
         plannedDownVotes,
         profiles: summarizeQuestions(planned.questions),
+        questionPreview: planned.questions.slice(0, 5).map((question) => question.text),
       });
       return;
-    }
-
-    if (existingQuestionCount > 0 && !options.replace && !options.append) {
-      throw new Error(
-        `Session ${session.code} enthaelt bereits ${existingQuestionCount} Q&A-Fragen. ` +
-          'Nutze --replace zum Ersetzen oder --append zum Hinzufuegen.',
-      );
     }
 
     await prisma.session.update({

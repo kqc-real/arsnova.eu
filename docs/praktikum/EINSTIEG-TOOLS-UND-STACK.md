@@ -1,6 +1,6 @@
 # Einstieg: Werkzeuge und Technologien (für Studierende ohne Vorerfahrung)
 
-**Stand:** 2026-07-05
+**Stand:** 2026-08-16
 
 **Zielgruppe:** Du kannst **grundlegend programmieren** (z. B. Variablen, Schleifen, Funktionen in einer Hochschulsprache), kennst aber **noch nicht** die **Entwicklungswerkzeuge** und **Projekttechnologien** von arsnova.eu.
 
@@ -25,7 +25,7 @@ Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir di
 
 **Zum Veranstaltungsstart:** Die Lehrperson ergänzt den Einstieg durch eine **Greenfield-Demo** zu **Story 1.7a**. Das hilft beim Überblick über Repo, Werkzeuge und Arbeitsweise, ersetzt aber **nicht** das praktische Setup.
 
-**Wenn du nur den ersten lauffähigen Stand brauchst:** `cp .env.example .env` → `npm ci` → `npm run setup:dev` → `npm run dev` → Browser auf **`http://localhost:4200`**. Das ist für Einsteiger der einfachste Start.
+**Wenn du nur den ersten lauffähigen Stand brauchst:** `cp .env.example .env` → `npm ci` → `npm run setup:dev` → `npm run dev` → Browser auf **`http://localhost:4200`**. Das ist für Einsteiger der einfachste Start. **Gefüllte Session** (Freitext + Q&A, ~500 Einträge): auf macOS `npm run spacy:macos-dev`, sonst die Seeds in [`docs/onboarding.md`](../onboarding.md#volle-lokale-session-mit-hoher-befüllung).
 
 **Wenn du Windows nutzt:** Für dieses Repo bitte direkt **WSL2 mit Ubuntu** verwenden. Klone das Repo in WSL (z. B. `~/projects/arsnova.eu`) und führe die Befehle dort aus. **Nicht** PowerShell, **nicht** Git Bash und möglichst **nicht** unter `/mnt/c/...` arbeiten.
 

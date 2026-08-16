@@ -722,6 +722,7 @@ test('real evidence scope matches backend Vitest src/**/*.test.ts include', asyn
   const { isBackendVitestTestFile, readBackendVitestIncludes } = await loadAudit();
   assert.deepEqual(readBackendVitestIncludes(join(repoRoot, 'apps/backend/vitest.config.ts')), [
     'src/**/*.test.ts',
+    'scripts/**/*.test.ts',
   ]);
   assert.equal(
     isBackendVitestTestFile(join(repoRoot, 'apps/backend/src/lib/example.test.ts')),
@@ -730,6 +731,10 @@ test('real evidence scope matches backend Vitest src/**/*.test.ts include', asyn
   assert.equal(
     isBackendVitestTestFile(join(repoRoot, 'apps/backend/src/__tests__/example.test.ts')),
     true,
+  );
+  assert.equal(
+    isBackendVitestTestFile(join(repoRoot, 'apps/backend/scripts/lib/example.test.ts')),
+    false,
   );
   assert.equal(
     isBackendVitestTestFile(join(repoRoot, 'apps/backend/src/lib/example.spec.ts')),

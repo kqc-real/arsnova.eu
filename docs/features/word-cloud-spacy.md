@@ -3,7 +3,7 @@
 # Wortwolke: optionale Sprachformen-Glättung (Story 1.14b)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-15
+**Stand:** 2026-08-16
 **Status:** ✅ umgesetzt (Analyseversion `1.14b.7`)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
 **Semantik bleibt getrennt:** Story 1.14c / [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
@@ -70,19 +70,75 @@ Locales: `de`/`en` im Default-Sidecar (MIT). `fr`/`es`/`it` fallen im verteilten
 
 spaCy läuft als **optionaler Sidecar** hinter dem Backend, nicht im Angular-Frontend und nicht im Node-App-Container.
 
-| Größe               | Wert                                                            |
-| ------------------- | --------------------------------------------------------------- |
-| Kill-Switch         | `NLP_ENABLED` (nur exakt `true`; Default `false`)               |
-| Socket              | `NLP_SOCKET_PATH` (Unix-Socket, kein TCP, `network_mode: none`) |
-| Timeout / Cache-TTL | `NLP_TIMEOUT_MS`, `NLP_CACHE_TTL_SECONDS` (Default 1800 s)      |
-| Image               | `SPACY_IMAGE` (getrennt von `ARSNOVA_IMAGE`)                    |
-| Compose             | Profil `nlp`; `deploy.sh` startet den Sidecar nicht             |
-| Lokal               | `npm run docker:up:nlp`                                         |
-| Limits              | 1 CPU / 1 GiB RAM / 64 PIDs, non-root, read-only                |
+| Größe               | Wert                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Kill-Switch         | `NLP_ENABLED` (nur exakt `true`; Default `false`)                                                                     |
+| Socket              | `NLP_SOCKET_PATH` (Unix-Socket, kein TCP, `network_mode: none`)                                                       |
+| Timeout / Cache-TTL | `NLP_TIMEOUT_MS`, `NLP_CACHE_TTL_SECONDS` (Default 1800 s)                                                            |
+| Image               | `SPACY_IMAGE` (getrennt von `ARSNOVA_IMAGE`)                                                                          |
+| Compose             | Profil `nlp`; `deploy.sh` startet den Sidecar nicht                                                                   |
+| Lokal (Docker-App)  | `npm run docker:up:nlp` plus `NLP_ENABLED=true` im App-Container                                                      |
+| Lokal (Host-npm)    | macOS: `npm run spacy:macos-dev` (Abschnitt unten). Docker-Volume `/run/spacy/nlp.sock` ist für Host-Node unsichtbar. |
+| Limits              | 1 CPU / 1 GiB RAM / 64 PIDs, non-root, read-only                                                                      |
 
-Cache: Text-Cache (`locale + hash + Analyseversion`) und Snapshot-Cache (`session + Kanal + Metrik + Normalisierung + maxNgramLength + snapshotHash`). Transiente Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) werden nicht gecacht. Telemetrie loggt Dauer, Fallback und Cache-Hits ohne Rohtexte.
+Cache: Text-Cache (`locale + hash + Analyseversion`) und Snapshot-Cache (`session + Kanal + Metrik + Normalisierung + maxNgramLength + snapshotHash`). Transiente Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) und `NLP_DISABLED` werden nicht gecacht. Telemetrie loggt Dauer, Fallback und Cache-Hits ohne Rohtexte.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md).
+
+### Lokale Prüfung auf macOS (Host-npm)
+
+`ng serve` auf Port 4200 liefert **eine** Locale (ADR-0008). Für Glättung in **de/en** und den bewussten Fallback in **fr/es/it** braucht es den lokalisierten Produktions-Build.
+
+```bash
+npm run spacy:macos-dev
+```
+
+Für den Einstieg (Setup plus dieser Befehl): [onboarding.md](../onboarding.md#volle-lokale-session-mit-hoher-befüllung). Skript: [`scripts/macos-spacy-wordcloud-dev.sh`](../../scripts/macos-spacy-wordcloud-dev.sh). Es startet **keinen** Angular-Dev-Server. Port 4200 wird zuerst freigeräumt, danach bedient `serve:localize:api` den Dist.
+
+| Schritt       | Wirkung                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Aufräumen     | `free-dev-ports` (3000/3001/3002/4200), `clean:generated`, spaCy-Container, lokale arsnova-/spaCy-Images. Postgres/Redis-Volumes bleiben. |
+| Infrastruktur | `docker:up:dev` falls 5432/6379 fehlen; Host-Sidecar `docker/spacy/server.py` auf `/tmp/arsnova-nlp.sock`                                 |
+| Env           | lokale `.env`: `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock`, `NLP_TIMEOUT_MS=15000`                                        |
+| Build         | `npm run build:prod` (`de`/`en`/`fr`/`es`/`it`)                                                                                           |
+| Prozesse      | `start:prod` auf **3000**; `serve:localize:api` auf **4200** (Dist plus Proxy `/trpc`, `/trpc-ws`, `/yjs-ws`)                             |
+| Seeds         | nach Session-Code: `seed:session-votes` (Freitext) und `seed:qa-forum --replace`                                                          |
+
+`NODE_ENV=production` setzt kein HTTP-CORS für `ng serve`. Die Locale-UI daher über **4200 (Proxy)** oder **3000 (same-origin)** öffnen, nicht über einen parallelen Dev-Server.
+
+| Locale | URL                       | Sprachformen glätten         |
+| ------ | ------------------------- | ---------------------------- |
+| de     | http://localhost:4200/de/ | an                           |
+| en     | http://localhost:4200/en/ | an                           |
+| fr     | http://localhost:4200/fr/ | **Glättung nicht verfügbar** |
+| es     | http://localhost:4200/es/ | **Glättung nicht verfügbar** |
+| it     | http://localhost:4200/it/ | **Glättung nicht verfügbar** |
+
+Root http://localhost:4200/ leitet nach `/de/`. Derselbe Build liegt unter http://localhost:3000/de/ usw. Hart neu laden.
+
+**Vor dem Seed:** Host-Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen und die Freitextfrage anzeigen (DE: „Was hilft dir beim Lernen?“). Ohne diese Frage kann `seed:session-votes` die Wolke nicht befüllen. Der Q&A-Kanal darf aus sein; das Seed schaltet ihn sonst ein.
+
+Wiederholung ohne Clean/Build (Stack und Dist bleiben):
+
+```bash
+npm run spacy:macos-dev -- --yes --skip-clean --skip-build --code ABC123
+```
+
+| Flag             | Bedeutung                             |
+| ---------------- | ------------------------------------- |
+| `--code ABC123`  | 6-stelliger Session-Code              |
+| `--yes`          | Hinweis ohne Enter                    |
+| `--skip-clean`   | Dist, Caches und Images behalten      |
+| `--skip-build`   | vorhandenen Locale-Dist nutzen        |
+| `--keep-backend` | laufendes `start:prod` nicht ersetzen |
+| `--append-qa`    | Q&A-Fragen anhängen statt ersetzen    |
+| `--dry-run`      | Seeds nur prüfen                      |
+
+Logs: Sidecar `/tmp/arsnova-nlp-sidecar.log`, Backend `/tmp/arsnova-backend-nlp.log`, Locale-Server `/tmp/arsnova-frontend-localize.log`.
+
+Lokales `start:prod` verlangt ein HMAC-Secret ≥32 UTF-8-Bytes (`YJS_SHARE_TOKEN_SECRET` oder `JWT_SECRET`). Ist `JWT_SECRET` in `.env` kürzer, setzt der Helfer ein **prozesslokales** `YJS_SHARE_TOKEN_SECRET` und schreibt es nicht in `.env`.
+
+`npm run docker:up:nlp` hilft Host-Node auf macOS nicht. Unter Linux im App-Container: `npm run docker:up:nlp`. Hilfe-/Syntax-Tests: `npm run spacy:macos-dev:test`. Locale-Proxy allgemein: [I18N-ANGULAR.md](../I18N-ANGULAR.md) („Lokalisierter Build lokal“).
 
 ## Verträge und Code
 
@@ -93,13 +149,15 @@ Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.
 
 ## Tests
 
-| Check                                      | Befehl / Ort                                                           |
-| ------------------------------------------ | ---------------------------------------------------------------------- |
-| Vertrag und Resolver                       | `npm run test -w @arsnova/shared-types`                                |
-| Analyse, Fallback, Cache, Fixtures         | `npm run test -w @arsnova/backend` (`wordCloud*.test.ts`)              |
-| Host-Trigger, stale, Sort-/Moduswechsel    | `npm run test -w @arsnova/frontend` (`session-host.component.spec.ts`) |
-| Sidecar ohne Modell-Download               | `npm run test:spacy-sidecar`                                           |
-| Compose-Profil, kein TCP, getrenntes Image | `npm run test:spacy-compose`                                           |
+| Check                                      | Befehl / Ort                                                                                                                                                          |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vertrag und Resolver                       | `npm run test -w @arsnova/shared-types`                                                                                                                               |
+| Analyse, Fallback, Cache, Fixtures         | `npm run test -w @arsnova/backend` (`wordCloud*.test.ts`)                                                                                                             |
+| Host-Trigger, stale, Sort-/Moduswechsel    | `npm run test -w @arsnova/frontend` (`session-host.component.spec.ts`)                                                                                                |
+| Sidecar ohne Modell-Download               | `npm run test:spacy-sidecar`                                                                                                                                          |
+| Compose-Profil, kein TCP, getrenntes Image | `npm run test:spacy-compose`                                                                                                                                          |
+| Lokale UI-Füllung Freitext / Q&A           | `npm run seed:session-votes -w @arsnova/backend` bzw. `npm run seed:qa-forum -w @arsnova/backend` (fragt den Session-Code, Default 500 lemma-/phrasenreiche Einträge) |
+| macOS Host-npm (Sidecar + beide Seeds)     | `npm run spacy:macos-dev` — siehe [Lokale Prüfung auf macOS](#lokale-prüfung-auf-macos-host-npm); Syntax/Hilfe: `npm run spacy:macos-dev:test`                        |
 
 Siehe [TESTING.md](../TESTING.md).
 

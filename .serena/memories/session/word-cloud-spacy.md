@@ -8,6 +8,7 @@
 - Q&A: separate MatDialog. Smoothing only on `LEXICAL` (forces `LEXICAL`). Sort TOP/BEST/CONTROVERSIAL with active lemma re-smooths. THEME sort change stays `normalization: NONE`.
 - New incoming answers/questions mark stale; no auto-recompute on live input.
 - Shared contract: `libs/shared-types/src/word-cloud-normalization.ts`. Sidecar: `docker/spacy/`.
+- macOS Host-npm: `npm run spacy:macos-dev` (`scripts/macos-spacy-wordcloud-dev.sh`). Not `ng serve`. Localized dist via `serve:localize:api` on `http://localhost:4200/de/` … `/it/` plus `start:prod` on 3000. Smoothing only de/en. Docker volume socket is invisible to host Node; do not expect `docker:up:nlp`. Canonical: `docs/features/word-cloud-spacy.md` section “Lokale Prüfung auf macOS”.
 
 ## Related Memories
 

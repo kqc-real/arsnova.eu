@@ -44,8 +44,6 @@ Thumbs.db
 
 # ---------- Test & Coverage ----------
 coverage/
-__pycache__/
-*.pyc
 .lighthouseci/
 .lighthouseci-a11y/
 e2e/test-output/
@@ -54,6 +52,15 @@ scripts/load/artillery/.session.json
 scripts/load/artillery/.runtime-state.json
 scripts/load/artillery/.results-ready.flag
 scripts/load/artillery/reports/
+
+# ---------- Python ----------
+__pycache__/
+*.pyc
+docker/spacy/.venv/
+
+# Accidental tsc emit next to backend seed helpers (rootDir is apps/backend/src)
+apps/backend/scripts/**/*.js
+apps/backend/scripts/**/*.d.ts
 
 # ---------- Prisma ----------
 prisma/*.db
