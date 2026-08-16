@@ -316,7 +316,7 @@ const LOCALES = {
     freeTextQuestion: md`
 ### Was hilft dir beim Lernen?
 
-Antworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.
+Die Antworten werden als Wortwolke dargestellt.
     `,
     description: md`![Praxis-Showcase](${PI_IMAGE_URL})
 
@@ -324,7 +324,7 @@ Antworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.
 
 Die 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.
 
-Die Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Ein-Wort-Frage Begriffe aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.
+Die Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.
 
 Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.`,
     questions: [
@@ -575,7 +575,7 @@ _Ordne jedes Element einer der drei Literaturepochen zu._
     freeTextQuestion: md`
 ### What helps you learn?
 
-Answer in **one word**. The responses will be displayed as a word cloud.
+The responses will be displayed as a word cloud.
     `,
     description: md`![Teaching showcase](${PI_IMAGE_URL})
 
@@ -583,7 +583,7 @@ Answer in **one word**. The responses will be displayed as a word cloud.
 
 These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.
 
-The showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect one-word responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
+The showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect open free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
 
 Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
     questions: [
@@ -831,7 +831,7 @@ _Assign each item to one of the three literary movements._
     freeTextQuestion: md`
 ### Qu’est-ce qui t’aide à apprendre ?
 
-Réponds en **un mot**. Les réponses seront affichées sous forme de nuage de mots.
+Les réponses seront affichées sous forme de nuage de mots.
     `,
     description: md`![Démonstration pédagogique](${PI_IMAGE_URL})
 
@@ -839,7 +839,7 @@ Réponds en **un mot**. Les réponses seront affichées sous forme de nuage de m
 
 Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.
 
-La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres en un mot et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
+La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
 
 Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
     questions: [
@@ -1087,7 +1087,7 @@ _Associe chaque élément à l’un des trois mouvements littéraires._
     freeTextQuestion: md`
 ### ¿Qué te ayuda a aprender?
 
-Responde con **una palabra**. Las respuestas se mostrarán como una nube de palabras.
+Las respuestas se mostrarán como una nube de palabras.
     `,
     description: md`![Demostración didáctica](${PI_IMAGE_URL})
 
@@ -1095,7 +1095,7 @@ Responde con **una palabra**. Las respuestas se mostrarán como una nube de pala
 
 Estas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
 
-La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas de una sola palabra y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
+La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
 
 Los temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.`,
     questions: [
@@ -1343,7 +1343,7 @@ _Asigna cada elemento a uno de los tres movimientos literarios._
     freeTextQuestion: md`
 ### Che cosa ti aiuta a imparare?
 
-Rispondi con **una sola parola**. Le risposte saranno visualizzate sotto forma di nuvola di parole.
+Le risposte saranno visualizzate sotto forma di nuvola di parole.
     `,
     description: md`![Dimostrazione didattica](${PI_IMAGE_URL})
 
@@ -1351,7 +1351,7 @@ Rispondi con **una sola parola**. Le risposte saranno visualizzate sotto forma d
 
 Queste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
 
-La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte di una sola parola e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.
+La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.
 
 Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.`,
     questions: [

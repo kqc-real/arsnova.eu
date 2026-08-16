@@ -3,7 +3,7 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect one-word responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
+    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect open free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "text": "### What helps you learn?\n\nAnswer in **one word**. The responses will be displayed as a word cloud.",
+        "text": "### What helps you learn?\n\nThe responses will be displayed as a word cloud.",
         "type": "FREETEXT",
         "timer": null,
         "difficulty": "EASY",

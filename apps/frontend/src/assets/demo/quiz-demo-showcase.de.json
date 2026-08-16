@@ -3,7 +3,7 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Team-Quiz",
-    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDie 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.\n\nDie Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Ein-Wort-Frage Begriffe aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.\n\nTimer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.",
+    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDie 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.\n\nDie Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.\n\nTimer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "text": "### Was hilft dir beim Lernen?\n\nAntworte mit **einem Wort**. Die Antworten werden als Wortwolke dargestellt.",
+        "text": "### Was hilft dir beim Lernen?\n\nDie Antworten werden als Wortwolke dargestellt.",
         "type": "FREETEXT",
         "timer": null,
         "difficulty": "EASY",
