@@ -260,6 +260,72 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     });
     expect(result!.voteDistribution).toBeUndefined();
     expect(result!.correctVoterCount).toBeUndefined();
+    expect(result!.incorrectVoterCount).toBeUndefined();
+  });
+
+  it('liefert in RESULTS korrekte und inkorrekte Choice-Stimmen fuer den Moderationskompass', async () => {
+    const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
+    const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: null,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'MEDIUM',
+            timer: null,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            answers: [
+              { id: wrongId, text: '3', isCorrect: false },
+              { id: correctId, text: '4', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { selectedAnswers: [{ answerOptionId: correctId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+    ]);
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).toMatchObject({
+      type: 'SINGLE_CHOICE',
+      totalVotes: 4,
+      correctVoterCount: 1,
+      incorrectVoterCount: 3,
+    });
+    expect(result?.voteDistribution).toEqual([
+      {
+        id: wrongId,
+        text: '3',
+        isCorrect: false,
+        voteCount: 3,
+        votePercentage: 75,
+      },
+      {
+        id: correctId,
+        text: '4',
+        isCorrect: true,
+        voteCount: 1,
+        votePercentage: 25,
+      },
+    ]);
   });
 
   it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(

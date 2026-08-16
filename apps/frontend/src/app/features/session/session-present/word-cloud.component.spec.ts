@@ -38,6 +38,67 @@ describe('WordCloudComponent', () => {
     expect(component.filteredResponses().length).toBe(2);
   });
 
+  it('waehlt einen vorgegebenen Fokusbegriff in der Wolke', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', [
+      'Motivation durch Teamarbeit',
+      'Teamarbeit macht Spaß',
+      'Motivation hilft beim Lernen',
+    ]);
+    fixture.componentRef.setInput('focusedTermLabel', 'Motivation');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('motivation');
+    expect(fixture.componentInstance.selectedWordLabel()?.toLowerCase()).toBe('motivation');
+  });
+
+  it('setzt den Fokus erneut, wenn die Wolke die Auswahl verliert', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', [
+      'Motivation durch Teamarbeit',
+      'Teamarbeit macht Spaß',
+      'Motivation hilft beim Lernen',
+    ]);
+    fixture.componentRef.setInput('focusedTermLabel', 'Motivation');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('motivation');
+
+    fixture.componentInstance.selectedGroupKey.set(null);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('motivation');
+  });
+
+  it('trifft den Fokusbegriff auch als Teil einer Phrase', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('terms', [
+      {
+        key: 'uebung chatgpt',
+        label: 'Übung ChatGPT',
+        score: 8,
+        documentFrequency: 3,
+        sourceCount: 3,
+        variants: ['Übung ChatGPT'],
+        kind: 'bigram' as const,
+        basisLabel: 'Übung ChatGPT',
+        confidence: null,
+        members: [
+          {
+            sourceId: 'q1',
+            text: 'Grenzen von ChatGPT in der Übung',
+            weight: 3,
+          },
+        ],
+      },
+    ]);
+    fixture.componentRef.setInput('focusedTermLabel', 'Übung');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('uebung chatgpt');
+    expect(fixture.componentInstance.selectedWordLabel()).toBe('Übung ChatGPT');
+  });
+
   it('faellt bei leerer geglaetteter Analyse nicht auf ungeglättete Antworten zurueck', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [

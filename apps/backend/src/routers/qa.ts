@@ -506,7 +506,7 @@ export const qaRouter = router({
       }
 
       const participantCountForControversy =
-        input.moderatorView && sortMode === 'CONTROVERSIAL'
+        input.moderatorView === true
           ? await prisma.participant.count({
               where: { sessionId: session.id },
             })
@@ -1073,7 +1073,7 @@ export const qaRouter = router({
         }
 
         let participantCountForControversy: number | undefined;
-        if (input.moderatorView && sortMode === 'CONTROVERSIAL') {
+        if (input.moderatorView === true) {
           const now = Date.now();
           if (
             cachedParticipantCountForControversy === undefined ||

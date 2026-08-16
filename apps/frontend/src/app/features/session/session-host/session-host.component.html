@@ -264,202 +264,248 @@
 
     @if (effectiveStatus() !== 'FINISHED') {
       @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
-      <section class="session-host__live-banner">
-        <div class="session-host__live-banner-main">
-          <div class="session-host__live-access">
-            <button
-              mat-icon-button
-              type="button"
-              class="session-host__live-join-control"
-              (click)="toggleJoinInfoPopover($event)"
-              [attr.aria-expanded]="joinInfoPopoverOpen()"
-              aria-haspopup="dialog"
-              aria-controls="session-host-join-info"
-              i18n-aria-label="@@sessionHost.joinControlAria"
-              aria-label="Beitrittsinformationen öffnen"
-            >
-              <mat-icon aria-hidden="true">qr_code_2</mat-icon>
-              <span class="session-host__live-join-label" i18n>Beitritt</span>
-            </button>
-            <div class="session-host__live-code-block">
-              <p class="session-host__live-code" [attr.aria-label]="sessionCodeDisplayAria(s.code)">
-                {{ s.code }}
-              </p>
-              <p class="session-host__live-participants">
-                <span class="session-host__live-participants-count">{{
-                  liveParticipantCount
-                }}</span>
-                {{
-                  liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural()
-                }}
-              </p>
-              @if (
-                connectedParticipantStatusLabel(
-                  participantsPayload()?.connectedCount,
-                  liveParticipantCount
-                );
-                as connectedStatus
-              ) {
-                <p class="session-host__live-participants">{{ connectedStatus }}</p>
-              }
-              @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
-                <p class="session-host__live-participants">
-                  {{
-                    readingReadyProgressLabel(
-                      ready.readyCount,
-                      ready.connectedCount,
-                      participantsPayload()?.participantCount ?? ready.connectedCount
-                    )
-                  }}
-                </p>
-              }
-            </div>
-            <div class="session-host__live-actions">
+      <div class="session-host__live-shell-row">
+        <section class="session-host__live-banner">
+          <div class="session-host__live-banner-main">
+            <div class="session-host__live-access">
               <button
                 mat-icon-button
                 type="button"
-                class="session-host__meta-sound-control session-host__live-sound-control"
-                [class.session-host__meta-sound-control--active]="!musicMuted()"
-                [matMenuTriggerFor]="hostMusicMenu"
-                (click)="onHostMusicMenuOpening()"
-                i18n-aria-label="@@sessionHost.musicControlAria"
-                aria-label="Soundsteuerung öffnen"
+                class="session-host__live-join-control"
+                (click)="toggleJoinInfoPopover($event)"
+                [attr.aria-expanded]="joinInfoPopoverOpen()"
+                aria-haspopup="dialog"
+                aria-controls="session-host-join-info"
+                i18n-aria-label="@@sessionHost.joinControlAria"
+                aria-label="Beitrittsinformationen öffnen"
               >
-                @if (musicMuted()) {
-                  <mat-icon aria-hidden="true">volume_off</mat-icon>
-                } @else {
-                  <app-music-equalizer-icon class="session-host__live-sound-icon" />
-                }
-                <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
+                <mat-icon aria-hidden="true">qr_code_2</mat-icon>
+                <span class="session-host__live-join-label" i18n>Beitritt</span>
               </button>
-              @if (showHostViewControls() && !showChannelTabs()) {
-                <div class="session-host__view-controls session-host__view-controls--meta">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="session-host__view-toggle"
-                    [class.session-host__view-toggle--active]="!isImmersiveMode()"
-                    (click)="toggleHostFrameMode()"
-                    i18n-aria-label="@@sessionHost.frameToggleAria"
-                    aria-label="App-Rahmen umschalten"
-                    [attr.aria-pressed]="!isImmersiveMode()"
-                  >
-                    <mat-icon aria-hidden="true">{{
-                      isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
-                    }}</mat-icon>
-                  </button>
-
-                  @if (isFullscreenSupported()) {
+              <div class="session-host__live-code-block">
+                <p
+                  class="session-host__live-code"
+                  [attr.aria-label]="sessionCodeDisplayAria(s.code)"
+                >
+                  {{ s.code }}
+                </p>
+                <p class="session-host__live-participants">
+                  <span class="session-host__live-participants-count">{{
+                    liveParticipantCount
+                  }}</span>
+                  {{
+                    liveParticipantCount === 1
+                      ? participantLabelSingular()
+                      : participantLabelPlural()
+                  }}
+                </p>
+                @if (
+                  connectedParticipantStatusLabel(
+                    participantsPayload()?.connectedCount,
+                    liveParticipantCount
+                  );
+                  as connectedStatus
+                ) {
+                  <p class="session-host__live-participants">{{ connectedStatus }}</p>
+                }
+                @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
+                  <p class="session-host__live-participants">
+                    {{
+                      readingReadyProgressLabel(
+                        ready.readyCount,
+                        ready.connectedCount,
+                        participantsPayload()?.participantCount ?? ready.connectedCount
+                      )
+                    }}
+                  </p>
+                }
+              </div>
+              <div class="session-host__live-actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="session-host__meta-sound-control session-host__live-sound-control"
+                  [class.session-host__meta-sound-control--active]="!musicMuted()"
+                  [matMenuTriggerFor]="hostMusicMenu"
+                  (click)="onHostMusicMenuOpening()"
+                  i18n-aria-label="@@sessionHost.musicControlAria"
+                  aria-label="Soundsteuerung öffnen"
+                >
+                  @if (musicMuted()) {
+                    <mat-icon aria-hidden="true">volume_off</mat-icon>
+                  } @else {
+                    <app-music-equalizer-icon class="session-host__live-sound-icon" />
+                  }
+                  <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
+                </button>
+                @if (showHostViewControls() && !showChannelTabs()) {
+                  <div class="session-host__view-controls session-host__view-controls--meta">
                     <button
                       mat-icon-button
                       type="button"
-                      class="session-host__view-toggle session-host__view-toggle--fullscreen"
-                      [class.session-host__view-toggle--active]="isFullscreenActive()"
-                      (click)="toggleFullscreen()"
-                      i18n-aria-label="@@sessionHost.fullscreenToggleAria"
-                      aria-label="Vollbild umschalten"
-                      [attr.aria-pressed]="isFullscreenActive()"
+                      class="session-host__view-toggle"
+                      [class.session-host__view-toggle--active]="!isImmersiveMode()"
+                      (click)="toggleHostFrameMode()"
+                      i18n-aria-label="@@sessionHost.frameToggleAria"
+                      aria-label="App-Rahmen umschalten"
+                      [attr.aria-pressed]="!isImmersiveMode()"
                     >
                       <mat-icon aria-hidden="true">{{
-                        isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
+                        isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
                       }}</mat-icon>
                     </button>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-        @if (joinInfoPopoverOpen()) {
-          <div
-            class="session-host__join-viewport-overlay"
-            role="presentation"
-            (click)="closeJoinInfoPopover()"
-          >
-            <!-- Pointer bubbling would close the backdrop; Escape and the close button are keyboard equivalents. -->
-            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
-            <div
-              class="session-host__join-viewport-overlay__surface session-host__join-menu-panel"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="session-host-join-origin"
-              id="session-host-join-info"
-              tabindex="-1"
-              cdkTrapFocus
-              [cdkTrapFocusAutoCapture]="true"
-              (click)="$event.stopPropagation()"
-            >
-              <button
-                mat-icon-button
-                type="button"
-                class="session-host__join-viewport-overlay__close"
-                cdkFocusInitial
-                (click)="closeJoinInfoPopover()"
-                i18n-aria-label="@@sessionHost.joinOverlayCloseAria"
-                aria-label="Beitrittsinformationen schließen"
-              >
-                <mat-icon aria-hidden="true">close</mat-icon>
-              </button>
-              <div
-                class="session-host__join-menu-head dialog-title-header session-host__join-menu-title-header"
-              >
-                <div class="dialog-title-header__copy session-host__join-menu-title-copy">
-                  <p class="session-host__join-menu-origin" id="session-host-join-origin">
-                    <strong class="session-host__join-menu-origin-text">
-                      {{ joinOriginForMenu() }}
-                    </strong>
-                  </p>
-                  <p
-                    class="session-host__join-menu-origin session-host__join-menu-origin--code"
-                    [attr.aria-label]="sessionCodeDisplayAria(s.code)"
-                  >
-                    <strong class="session-host__join-menu-origin-text">
-                      {{ s.code }}
-                    </strong>
-                  </p>
-                </div>
+
+                    @if (isFullscreenSupported()) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="session-host__view-toggle session-host__view-toggle--fullscreen"
+                        [class.session-host__view-toggle--active]="isFullscreenActive()"
+                        (click)="toggleFullscreen()"
+                        i18n-aria-label="@@sessionHost.fullscreenToggleAria"
+                        aria-label="Vollbild umschalten"
+                        [attr.aria-pressed]="isFullscreenActive()"
+                      >
+                        <mat-icon aria-hidden="true">{{
+                          isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
+                        }}</mat-icon>
+                      </button>
+                    }
+                  </div>
+                }
               </div>
-              @if (qrDataUrl()) {
-                <div class="session-host__join-menu-qr-wrap">
-                  <img
-                    appMarkdownImageLightbox
-                    [src]="qrDataUrl()"
-                    [attr.alt]="joinUrl"
-                    data-markdown-image-lightbox="true"
-                    class="session-host__join-menu-qr session-host__join-menu-qr--viewport-overlay app-qr-image"
-                    width="320"
-                    height="320"
-                  />
-                </div>
-              }
-              <p class="session-host__join-menu-tip" i18n="@@sessionHost.joinOverlayTip">
-                Live-Ansicht:
-              </p>
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                class="session-host__join-menu-close-action"
-                (click)="closeJoinInfoPopover()"
-                i18n="@@sessionHost.joinOverlayBackToLobby"
-              >
-                Zur Lobby
-              </button>
-              <button
-                mat-stroked-button
-                type="button"
-                class="session-host__join-menu-copy-link"
-                (click)="copyJoinLinkToClipboard($event)"
-                i18n-aria-label="@@sessionHost.copyJoinLinkAria"
-                aria-label="Session-Link kopieren"
-              >
-                <mat-icon aria-hidden="true">content_copy</mat-icon>
-                <span i18n="@@sessionHost.copyJoinLinkButton">Session-Link kopieren</span>
-              </button>
             </div>
           </div>
-        }
-      </section>
+          @if (joinInfoPopoverOpen()) {
+            <div
+              class="session-host__join-viewport-overlay"
+              role="presentation"
+              (click)="closeJoinInfoPopover()"
+            >
+              <!-- Pointer bubbling would close the backdrop; Escape and the close button are keyboard equivalents. -->
+              <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
+              <div
+                class="session-host__join-viewport-overlay__surface session-host__join-menu-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="session-host-join-origin"
+                id="session-host-join-info"
+                tabindex="-1"
+                cdkTrapFocus
+                [cdkTrapFocusAutoCapture]="true"
+                (click)="$event.stopPropagation()"
+              >
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="session-host__join-viewport-overlay__close"
+                  cdkFocusInitial
+                  (click)="closeJoinInfoPopover()"
+                  i18n-aria-label="@@sessionHost.joinOverlayCloseAria"
+                  aria-label="Beitrittsinformationen schließen"
+                >
+                  <mat-icon aria-hidden="true">close</mat-icon>
+                </button>
+                <div
+                  class="session-host__join-menu-head dialog-title-header session-host__join-menu-title-header"
+                >
+                  <div class="dialog-title-header__copy session-host__join-menu-title-copy">
+                    <p class="session-host__join-menu-origin" id="session-host-join-origin">
+                      <strong class="session-host__join-menu-origin-text">
+                        {{ joinOriginForMenu() }}
+                      </strong>
+                    </p>
+                    <p
+                      class="session-host__join-menu-origin session-host__join-menu-origin--code"
+                      [attr.aria-label]="sessionCodeDisplayAria(s.code)"
+                    >
+                      <strong class="session-host__join-menu-origin-text">
+                        {{ s.code }}
+                      </strong>
+                    </p>
+                  </div>
+                </div>
+                @if (qrDataUrl()) {
+                  <div class="session-host__join-menu-qr-wrap">
+                    <img
+                      appMarkdownImageLightbox
+                      [src]="qrDataUrl()"
+                      [attr.alt]="joinUrl"
+                      data-markdown-image-lightbox="true"
+                      class="session-host__join-menu-qr session-host__join-menu-qr--viewport-overlay app-qr-image"
+                      width="320"
+                      height="320"
+                    />
+                  </div>
+                }
+                <p class="session-host__join-menu-tip" i18n="@@sessionHost.joinOverlayTip">
+                  Live-Ansicht:
+                </p>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="session-host__join-menu-close-action"
+                  (click)="closeJoinInfoPopover()"
+                  i18n="@@sessionHost.joinOverlayBackToLobby"
+                >
+                  Zur Lobby
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="session-host__join-menu-copy-link"
+                  (click)="copyJoinLinkToClipboard($event)"
+                  i18n-aria-label="@@sessionHost.copyJoinLinkAria"
+                  aria-label="Session-Link kopieren"
+                >
+                  <mat-icon aria-hidden="true">content_copy</mat-icon>
+                  <span i18n="@@sessionHost.copyJoinLinkButton">Session-Link kopieren</span>
+                </button>
+              </div>
+            </div>
+          }
+        </section>
+        <div class="session-host__moderation-stack">
+          @if (moderationCompassReturn()) {
+            <button
+              type="button"
+              class="session-host__moderation-return"
+              data-testid="host-moderation-compass-return"
+              (click)="returnToModerationCompass()"
+              i18n-aria-label="@@sessionHost.moderationReturnAria"
+              aria-label="Zurück zum Moderationskompass"
+            >
+              <mat-icon aria-hidden="true">arrow_back</mat-icon>
+              <span
+                class="session-host__moderation-return-label"
+                i18n="@@sessionHost.moderationReturn"
+                >Zurück</span
+              >
+            </button>
+          }
+          <button
+            #moderationCompassButton
+            type="button"
+            class="session-host__moderation-control"
+            data-testid="host-moderation-compass"
+            [class.session-host__moderation-control--has-signals]="moderationCompassHasSignals()"
+            (click)="openModerationCompassDialog()"
+            aria-haspopup="dialog"
+            [attr.aria-label]="moderationCompassButtonAria()"
+          >
+            @if (moderationCompassHasSignals()) {
+              <span class="session-host__moderation-control-dot" aria-hidden="true"></span>
+            }
+            <app-moderation-compass-icon />
+            <span
+              class="session-host__moderation-control-label"
+              i18n="@@sessionHost.moderationButton"
+              >Moderation</span
+            >
+          </button>
+        </div>
+      </div>
     }
 
     <div class="session-host__channel-stage">
@@ -3585,6 +3631,7 @@
                       [showResponsesPanel]="!freetextWordCloudMaximized()"
                       [maximizeActionHandler]="maximizeFreetextWordCloud"
                       [showReleaseNote]="false"
+                      [focusedTermLabel]="moderationCompassFocusedTerm()"
                     />
                   </div>
                 </details>
@@ -3862,10 +3909,13 @@
                   @for (question of qaVisibleQuestions(); track question.id) {
                     <article
                       class="session-qa-card"
+                      [attr.id]="'host-qa-question-' + question.id"
                       [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
+                      [class.session-qa-card--compass-focus]="isQaCompassFocused(question.id)"
                       [class.session-qa-card--author-selected]="isQaAuthorSelected(question)"
                       [class.session-qa-card--pinned]="question.status === 'PINNED'"
                       [class.session-qa-card--pending]="question.status === 'PENDING'"
+                      [attr.aria-current]="isQaCompassFocusPrimary(question.id) ? 'true' : null"
                       role="listitem"
                     >
                       <div class="session-qa-card__head">
@@ -3907,6 +3957,13 @@
                           }
                           @if (isQaQuestionHighlighted(question.id)) {
                             <span class="session-qa-card__marker" aria-hidden="true"></span>
+                          }
+                          @if (isQaCompassFocused(question.id)) {
+                            <span
+                              class="session-qa-card__badge session-qa-card__badge--compass"
+                              i18n="@@sessionHost.moderationCompassFocus"
+                              >Aus dem Kompass</span
+                            >
                           }
                           @if (question.isControversial) {
                             <span

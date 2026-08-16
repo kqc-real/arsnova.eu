@@ -44,6 +44,7 @@ export type QaWordCloudDialogData = {
   setLemmaLocale: (locale: WordCloudLemmaLocale) => void | Promise<void>;
   itemLabelSingular: string;
   itemLabelPlural: string;
+  focusedTermLabel?: () => string | null;
 };
 
 @Component({
@@ -100,6 +101,7 @@ export class QaWordCloudDialogComponent {
     }
   });
   readonly lemmaLocale = computed(() => this.data.lemmaLocale());
+  readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
 
   setSortMode(mode: QaQuestionSortMode): void {
     if (mode === this.sortMode()) {

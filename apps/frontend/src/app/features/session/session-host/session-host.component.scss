@@ -141,6 +141,7 @@
   --session-host-channel-tabs-offset: var(--session-host-channel-tabs-offset-immersive);
 }
 
+.session-host--with-channel-tabs .session-host__live-shell-row,
 .session-host--with-channel-tabs .session-host__live-banner {
   position: static;
   top: auto;
@@ -757,20 +758,193 @@
   line-height: 1.45;
 }
 
+.session-host__live-shell-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.65rem;
+  width: min(100%, calc(var(--app-live-channel-max-width) + 7.5rem));
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 .session-host__live-banner {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
   width: min(100%, var(--app-live-channel-max-width));
   max-width: var(--app-live-channel-max-width);
-  margin: 0 auto;
+  margin: 0;
   padding: clamp(0.72rem, 1.8vw, 0.95rem);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-extra-large);
   background: color-mix(in srgb, var(--mat-sys-surface-container-low) 92%, var(--mat-sys-surface));
   box-shadow: var(--mat-sys-level1);
   box-sizing: border-box;
+}
+
+.session-host__moderation-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+  align-self: stretch;
+  min-width: 2.75rem;
+}
+
+.session-host__moderation-return {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.5rem;
+  appearance: none;
+  font: inherit;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 92%, var(--mat-sys-surface));
+  box-shadow: var(--mat-sys-level1);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  box-sizing: border-box;
+
+  mat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 1.25rem;
+    color: var(--mat-sys-primary);
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  }
+}
+
+.session-host__moderation-return-label {
+  max-width: 5.6rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-medium);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.session-host__moderation-control {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  flex: 1 1 auto;
+  position: relative;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.55rem;
+  appearance: none;
+  font: inherit;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 92%, var(--mat-sys-surface));
+  box-shadow: var(--mat-sys-level1);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  box-sizing: border-box;
+
+  app-moderation-compass-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--mat-sys-primary);
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  }
+}
+
+.session-host__moderation-control--has-signals {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 82%, var(--mat-sys-surface));
+  box-shadow: var(--mat-sys-level2);
+  color: var(--mat-sys-on-primary-container);
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-primary-container));
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-primary-container));
+  }
+}
+
+.session-host__moderation-control-dot {
+  position: absolute;
+  top: 0.32rem;
+  right: 0.32rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--mat-sys-corner-full, 999px);
+  background: var(--mat-sys-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .session-host__moderation-control--has-signals .session-host__moderation-control-dot {
+    animation: session-host-moderation-signal-dot 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes session-host-moderation-signal-dot {
+  from {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.session-host__moderation-control-label {
+  max-width: 5.6rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-medium);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.session-host__moderation-control--has-signals .session-host__moderation-control-label {
+  color: var(--mat-sys-on-primary-container);
+  font-weight: 700;
 }
 
 .session-host__live-banner-main {
@@ -1160,6 +1334,7 @@
 }
 
 @media (max-width: 599px) {
+  .session-host--with-channel-tabs .session-host__live-shell-row,
   .session-host--with-channel-tabs .session-host__live-banner {
     position: static;
     top: auto;
@@ -1169,11 +1344,45 @@
     z-index: auto;
   }
 
+  .session-host__live-shell-row {
+    width: 100%;
+    gap: 0.45rem;
+    padding-inline: 0;
+  }
+
   .session-host__live-banner {
     gap: 0.45rem;
-    margin: 0 auto;
+    margin: 0;
     padding: var(--host-mobile-card-padding);
     align-items: center;
+  }
+
+  .session-host__moderation-stack {
+    gap: 0.35rem;
+    min-width: 3.15rem;
+  }
+
+  .session-host__moderation-return {
+    padding: 0.3rem 0.35rem;
+    min-width: 3.15rem;
+    min-height: 2.5rem;
+  }
+
+  .session-host__moderation-return-label {
+    max-width: 4.6rem;
+    font: var(--mat-sys-label-small);
+    font-weight: 650;
+  }
+
+  .session-host__moderation-control {
+    padding: 0.35rem 0.4rem;
+    min-width: 3.15rem;
+  }
+
+  .session-host__moderation-control-label {
+    max-width: 4.6rem;
+    font: var(--mat-sys-label-small);
+    font-weight: 650;
   }
 
   .session-host__live-access {
@@ -1513,6 +1722,7 @@
   display: grid;
   gap: 0.5rem;
   padding: 0.85rem 1rem;
+  scroll-margin-top: 5.5rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-outline-variant));
   border-radius: 1rem;
   background: linear-gradient(
@@ -1555,6 +1765,23 @@
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
     0 0.9rem 1.8rem color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.session-qa-card--compass-focus {
+  scroll-margin-block: 6rem;
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 72%, var(--mat-sys-outline-variant));
+  border-left-width: 0.35rem;
+  border-left-color: var(--mat-sys-primary);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      transparent 1.15rem
+    ),
+    color-mix(in srgb, var(--mat-sys-primary-container) 55%, var(--mat-sys-surface));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 38%, transparent),
+    0 1rem 1.8rem color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
 }
 
 .session-qa-card--author-selected {
@@ -1693,6 +1920,11 @@
   background: color-mix(in srgb, var(--mat-sys-secondary) 16%, transparent);
   color: var(--mat-sys-secondary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-secondary) 18%, transparent);
+}
+
+.session-qa-card__badge--compass {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
 }
 
 .session-qa-card__votes {
@@ -1890,6 +2122,10 @@
   .session-qa-card--highlight {
     animation: session-qa-card-highlight-in 320ms cubic-bezier(0.2, 0, 0, 1);
   }
+
+  .session-qa-card--compass-focus {
+    animation: session-qa-card-compass-focus-in 420ms cubic-bezier(0.2, 0, 0, 1);
+  }
 }
 
 @keyframes session-qa-card-highlight-in {
@@ -1900,6 +2136,19 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes session-qa-card-compass-focus-in {
+  from {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent),
+      0 0.4rem 0.8rem color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+  to {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 38%, transparent),
+      0 1rem 1.8rem color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
   }
 }
 

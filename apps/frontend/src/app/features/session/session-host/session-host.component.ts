@@ -129,14 +129,35 @@ import {
   type WordCloudTerm,
   type WordCloudTermDocument,
 } from '../session-present/word-cloud-term.service';
+import {
+  buildModerationCompassCards,
+  collectModerationQuizFacts,
+  compassQuestionStem,
+  compassTermsFromAnalysisEntries,
+  isNegativeFeedbackKey,
+  mergeModerationQuizSources,
+  notableQuickFeedbackSplit,
+  rememberModerationQuizSnapshot,
+  truncateCompassLabel,
+  type ModerationCompassQuizSourceCacheEntry,
+  type ModerationCompassSource,
+  type ModerationCompassTempo,
+  type ModerationCompassTerm,
+  type ModerationQuizFact,
+} from './moderation-compass';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso, recordServerTimeSample } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
+import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
-import { tempoTrendEmoji, tempoTrendLabel } from '../../feedback/feedback.config';
+import {
+  feedbackDisplayLabel,
+  tempoTrendEmoji,
+  tempoTrendLabel,
+} from '../../feedback/feedback.config';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import {
   buildQaQuestionsCsvFilename,
@@ -474,7 +495,7 @@ function musicTracksForPhase(
 
 /**
  * Host-Ansicht: Lobby + Präsentations-Steuerung (Epic 2).
- * Story 2.1a, 2.2, 2.3, 2.4, 4.2, 4.6, 4.7, 4.8, 7.1, 8.1, 8.4.
+ * Story 2.1a, 2.2, 2.3, 2.4, 4.2, 4.6, 4.7, 4.8, 7.1, 8.1, 8.4, 8.9a.
  */
 @Component({
   selector: 'app-session-host',
@@ -505,6 +526,7 @@ function musicTracksForPhase(
     WordCloudLemmaLocaleSelectComponent,
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
+    ModerationCompassIconComponent,
     FeedbackHostComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
@@ -550,8 +572,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
+  readonly qaCompassFocusQuestionId = signal<string | null>(null);
+  readonly qaCompassFocusQuestionIds = signal<ReadonlySet<string>>(new Set());
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
@@ -820,6 +845,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
+  private readonly moderationQuizSourceCache = signal<
+    readonly ModerationCompassQuizSourceCacheEntry[]
+  >([]);
   readonly hostVoteProgress = signal<HostVoteProgressDTO | null>(null);
   readonly displayedCurrentQuestionForHost = computed(() => {
     const question = this.currentQuestionForHost();
@@ -1451,9 +1479,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     return this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA';
   });
-  readonly qaWordCloudVisibleTerms = computed<WordCloudTerm[] | null>(() =>
-    this.qaWordCloudLemmaSnapshotVisible() ? null : this.qaWordCloudTerms(),
-  );
+  readonly qaWordCloudVisibleTerms = computed<WordCloudTerm[] | null>(() => {
+    if (this.qaWordCloudLemmaSnapshotVisible()) {
+      return null;
+    }
+
+    if (
+      this.qaWordCloudEffectiveAnalysisVariant() === 'THEME' &&
+      (this.qaWordCloudThemeAnalysisResult()?.entries.length ?? 0) > 0
+    ) {
+      return null;
+    }
+
+    return this.qaWordCloudTerms();
+  });
   readonly qaWordCloudAnalysisRequest = computed<AnalyzeWordCloudInput | null>(() =>
     this.buildQaWordCloudAnalysisRequest(),
   );
@@ -1540,11 +1579,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return null;
   });
   readonly qaWordCloudThemeFallbackHint = computed(() => {
-    if (this.qaWordCloudTerms().length > 0) {
+    if (this.qaWordCloudEffectiveAnalysisVariant() !== 'THEME') {
       return null;
     }
 
-    if (this.qaWordCloudEffectiveAnalysisVariant() !== 'THEME') {
+    if ((this.qaWordCloudThemeAnalysisResult()?.entries.length ?? 0) > 0) {
+      return null;
+    }
+
+    if (this.qaWordCloudTerms().length > 0) {
       return null;
     }
 
@@ -1592,7 +1635,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaDeletedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'DELETED').length,
   );
-  readonly openQaWordCloudDialog = async (): Promise<void> => {
+  readonly openQaWordCloudDialog = async (focusedTerm: string | null = null): Promise<void> => {
+    this.moderationCompassFocusedTerm.set(focusedTerm);
     this.tryEnterWordCloudFullscreenFromUserGesture();
     this.qaWordCloudDialogOpen.set(true);
     const request = this.qaWordCloudAnalysisRequest();
@@ -1632,6 +1676,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           setLemmaLocale: (locale: WordCloudLemmaLocale) => this.setWordCloudLemmaLocale(locale),
           itemLabelSingular: 'Frage',
           itemLabelPlural: 'Fragen',
+          focusedTermLabel: () => this.moderationCompassFocusedTerm(),
         },
         autoFocus: false,
         restoreFocus: true,
@@ -1648,6 +1693,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaWordCloudDialogOpen.set(false);
         this.qaWordCloudFrozen.set(false);
         this.frozenQaWordCloudQuestions.set(null);
+        const focusId = this.qaCompassFocusQuestionId();
+        if (this.activeChannel() === 'qa' && focusId) {
+          this.scrollHostQaQuestionIntoView(focusId);
+        }
       });
     } catch (error) {
       this.qaWordCloudDialogOpen.set(false);
@@ -1656,6 +1705,559 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       throw error;
     }
   };
+  readonly moderationCompassCards = computed(() =>
+    buildModerationCompassCards({
+      qaQuestions: this.qaForumQuestions().map((question) => ({
+        id: question.id,
+        text: this.moderationCompassQaSourceText(question),
+        status: question.status,
+        isControversial: question.isControversial,
+        positiveVoteCount: question.positiveVoteCount,
+        negativeVoteCount: question.negativeVoteCount,
+      })),
+      qaTerms: this.moderationCompassQaTerms(),
+      freetextTerms: [
+        ...(compassTermsFromAnalysisEntries(this.displayedFreetextAnalysisEntries()) ??
+          this.toModerationCompassTerms(this.displayedFreetextWordCloudTerms())),
+        ...this.aggregatedFreetextCompassTerms(),
+      ],
+      extraTopicSources: this.moderationCompassPinnedSources(),
+      topicWeightLabel: this.moderationCompassTopicWeightLabel(),
+      tempo: this.moderationCompassFeedback(),
+      quizSources: this.moderationCompassQuizSources(),
+    }),
+  );
+  readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
+  readonly moderationCompassReturn = signal<{ readonly channel: SessionChannelTab } | null>(null);
+  readonly moderationCompassFocusedTerm = signal<string | null>(null);
+  readonly moderationCompassButtonAria = computed(() =>
+    this.moderationCompassHasSignals()
+      ? $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`
+      : $localize`:@@sessionHost.moderationButtonAria:Moderationskompass öffnen`,
+  );
+  readonly openModerationCompassDialog = async (): Promise<void> => {
+    this.moderationCompassReturn.set(null);
+    this.clearQaCompassFocus();
+    this.moderationCompassFocusedTerm.set(null);
+    const { ModerationCompassDialogComponent } =
+      await import('./moderation-compass-dialog.component');
+    this.dialog.open(ModerationCompassDialogComponent, {
+      data: {
+        cards: () => this.moderationCompassCards(),
+        onSourceActivate: (source: ModerationCompassSource) => {
+          void this.followModerationCompassSource(source);
+        },
+      },
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      enterAnimationDuration: 180,
+      exitAnimationDuration: 140,
+      width: 'min(52rem, calc(100vw - 1.5rem))',
+      maxWidth: 'calc(100vw - 1rem)',
+      maxHeight: 'calc(100dvh - 1rem)',
+      panelClass: 'moderation-compass-dialog-panel',
+    });
+  };
+
+  private moderationCompassQaTerms(): ModerationCompassTerm[] {
+    const sortMode = this.qaSortMode();
+    const lemmaEntries =
+      this.qaWordCloudLemmaSnapshotVisible() && !this.qaWordCloudLemmaStale()
+        ? this.qaWordCloudAnalysisEntries()
+        : null;
+    const fromLemma = compassTermsFromAnalysisEntries(lemmaEntries, {
+      sortMode,
+      analysisVariant: 'LEXICAL',
+    });
+    if (fromLemma) {
+      return fromLemma;
+    }
+
+    const themeEntries =
+      this.qaWordCloudEffectiveAnalysisVariant() === 'THEME'
+        ? this.qaWordCloudThemeAnalysisResult()?.entries
+        : null;
+    const fromTheme = compassTermsFromAnalysisEntries(themeEntries, {
+      sortMode,
+      analysisVariant: 'THEME',
+    });
+    if (fromTheme) {
+      return fromTheme;
+    }
+
+    // Lokale N-Gramme sind lexikalisch – Sprung öffnet Einzelwörter, nicht Theme-Cluster.
+    return this.toModerationCompassTerms(this.qaWordCloudTerms(), {
+      sortMode,
+      analysisVariant: 'LEXICAL',
+    });
+  }
+
+  private toModerationCompassTerms(
+    terms: readonly WordCloudTerm[],
+    origin?: {
+      readonly sortMode: QaQuestionSortMode;
+      readonly analysisVariant: WordCloudAnalysisVariant;
+    },
+  ): ModerationCompassTerm[] {
+    return terms.map((term) => {
+      const memberSourceIds = term.members
+        .map((member) => member.sourceId.trim())
+        .filter((id) => id.length > 0);
+      return {
+        label: term.label,
+        documentFrequency: term.documentFrequency,
+        sourceCount: term.sourceCount,
+        memberTexts: term.members.map((member) => member.text),
+        ...(memberSourceIds.length > 0 ? { memberSourceIds } : {}),
+        ...origin,
+      };
+    });
+  }
+
+  private moderationCompassTopicWeightLabel(): string | null {
+    const hasQaTerms =
+      (this.qaWordCloudAnalysisEntries()?.length ?? 0) > 0 || this.qaWordCloudTerms().length > 0;
+    if (!hasQaTerms) {
+      return null;
+    }
+    return $localize`:@@sessionHost.moderationTopicWeight:Begriffe gewichtet nach ${this.qaWordCloudMetricLabel()}:metric:`;
+  }
+
+  async followModerationCompassSource(source: ModerationCompassSource): Promise<void> {
+    const target = source.target;
+    if (!target) {
+      return;
+    }
+    if (!this.isChannelEnabled(target.channel)) {
+      return;
+    }
+    const previousChannel = this.activeChannel();
+    if (target.channel === 'qa') {
+      this.qaShowPinnedOnly.set(false);
+      this.clearQaAuthorSelection();
+    }
+    await this.selectChannel(target.channel);
+    if (target.surface === 'word-cloud') {
+      if (target.channel === 'qa') {
+        if (target.sortMode && target.sortMode !== this.qaSortMode()) {
+          await this.setQaSortMode(target.sortMode, { scrollToTop: false });
+        }
+        const analysisVariant = this.resolveQaWordCloudJumpVariant(target);
+        if (analysisVariant) {
+          this.setQaWordCloudAnalysisVariant(analysisVariant);
+        }
+      }
+      this.moderationCompassFocusedTerm.set(target.termLabel ?? null);
+      this.applyQaCompassFocus(this.resolveQaCompassMemberQuestionIds(target));
+      if (target.channel === 'qa') {
+        await this.openQaWordCloudDialog(target.termLabel ?? null);
+      } else {
+        this.wordCloudExpanded.set(true);
+        this.maximizeFreetextWordCloud();
+      }
+      this.moderationCompassReturn.set({ channel: previousChannel });
+      return;
+    }
+    const questionId = target.questionId;
+    if (target.channel === 'qa' && questionId) {
+      this.applyQaCompassFocus([questionId]);
+      this.scrollHostQaQuestionIntoView(questionId);
+    } else {
+      this.clearQaCompassFocus();
+    }
+    this.moderationCompassReturn.set({ channel: previousChannel });
+  }
+
+  private applyQaCompassFocus(questionIds: readonly string[]): void {
+    const unique = [...new Set(questionIds.filter((id) => id.trim().length > 0))];
+    this.qaCompassFocusQuestionIds.set(new Set(unique));
+    this.qaCompassFocusQuestionId.set(unique[0] ?? null);
+  }
+
+  private clearQaCompassFocus(): void {
+    this.qaCompassFocusQuestionId.set(null);
+    this.qaCompassFocusQuestionIds.set(new Set());
+  }
+
+  private resolveQaWordCloudJumpVariant(
+    target: ModerationCompassSource['target'],
+  ): WordCloudAnalysisVariant | null {
+    if (!target) {
+      return null;
+    }
+
+    const requested = target.analysisVariant ?? null;
+    const label = target.termLabel?.trim() ?? '';
+    if (!label) {
+      return requested;
+    }
+
+    if (requested === 'LEXICAL') {
+      return 'LEXICAL';
+    }
+
+    if (this.qaWordCloudEntryMatchesFocus(this.qaWordCloudThemeAnalysisResult()?.entries, label)) {
+      return 'THEME';
+    }
+
+    if (
+      this.qaWordCloudTerms().some((term) =>
+        this.qaWordCloudTextMatchesFocus([term.label, term.key, ...term.variants], label),
+      )
+    ) {
+      return 'LEXICAL';
+    }
+
+    return requested ?? 'THEME';
+  }
+
+  private qaWordCloudEntryMatchesFocus(
+    entries:
+      | readonly { readonly label: string; readonly variants?: readonly string[] }[]
+      | null
+      | undefined,
+    label: string,
+  ): boolean {
+    return (
+      entries?.some((entry) =>
+        this.qaWordCloudTextMatchesFocus([entry.label, ...(entry.variants ?? [])], label),
+      ) ?? false
+    );
+  }
+
+  private qaWordCloudTextMatchesFocus(candidates: readonly string[], label: string): boolean {
+    const needle = label.trim().toLowerCase();
+    if (!needle) {
+      return false;
+    }
+    return candidates.some((candidate) => {
+      const value = candidate.trim().toLowerCase();
+      if (!value) {
+        return false;
+      }
+      if (value === needle) {
+        return true;
+      }
+      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`(?:^|[^\\p{L}\\p{N}])${escaped}(?:$|[^\\p{L}\\p{N}])`, 'u').test(value);
+    });
+  }
+
+  private resolveQaCompassMemberQuestionIds(target: ModerationCompassSource['target']): string[] {
+    if (!target || target.channel !== 'qa') {
+      return [];
+    }
+
+    const forumIds = new Set(this.qaForumQuestions().map((question) => question.id));
+    const resolved: string[] = [];
+    const seen = new Set<string>();
+    const push = (id: string | null | undefined) => {
+      if (!id || !forumIds.has(id) || seen.has(id)) {
+        return;
+      }
+      seen.add(id);
+      resolved.push(id);
+    };
+
+    push(target.questionId);
+    for (const id of target.questionIds ?? []) {
+      push(id);
+    }
+    for (const text of target.memberTexts ?? []) {
+      push(this.findQaQuestionIdForCompassMember(text));
+    }
+    push(this.findQaQuestionIdForCompassMember(target.memberText));
+    return resolved;
+  }
+
+  private findQaQuestionIdForCompassMember(memberText: string | undefined): string | null {
+    const needle = memberText?.trim().replace(/…$/u, '').replace(/\s+/g, ' ').toLowerCase();
+    if (!needle || needle.length < 4) {
+      return null;
+    }
+    const match = this.qaForumQuestions().find((question) => {
+      const text = question.text.trim().replace(/\s+/g, ' ').toLowerCase();
+      return text === needle || text.startsWith(needle) || needle.startsWith(text);
+    });
+    return match?.id ?? null;
+  }
+
+  async returnToModerationCompass(): Promise<void> {
+    const returnChannel = this.moderationCompassReturn()?.channel ?? null;
+    this.moderationCompassReturn.set(null);
+    this.clearQaCompassFocus();
+    this.moderationCompassFocusedTerm.set(null);
+    if (
+      returnChannel &&
+      this.isChannelEnabled(returnChannel) &&
+      this.activeChannel() !== returnChannel
+    ) {
+      await this.selectChannel(returnChannel);
+    }
+    const trigger = this.moderationCompassButtonRef?.nativeElement;
+    if (trigger) {
+      try {
+        trigger.focus();
+      } catch {
+        /* Fokus darf den Dialog nicht blockieren */
+      }
+    }
+    await this.openModerationCompassDialog();
+  }
+
+  private scrollHostQaQuestionIntoView(questionId: string): void {
+    const elementId = `host-qa-question-${questionId}`;
+    afterNextRender(
+      () => {
+        const attempt = (remaining: number): void => {
+          const target = this.document.getElementById(elementId);
+          const list = this.qaListContainerRef?.nativeElement;
+          if (!(target instanceof HTMLElement)) {
+            if (remaining > 0) {
+              this.document.defaultView?.setTimeout(() => attempt(remaining - 1), 120);
+            }
+            return;
+          }
+
+          if (list instanceof HTMLElement && list.contains(target)) {
+            const listRect = list.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const offset =
+              targetRect.top - listRect.top - (list.clientHeight - target.offsetHeight) / 2;
+            const nextTop = Math.max(0, list.scrollTop + offset);
+            try {
+              list.scrollTo({ top: nextTop, behavior: 'smooth' });
+            } catch {
+              list.scrollTop = nextTop;
+            }
+          }
+
+          try {
+            target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } catch {
+            target.scrollIntoView();
+          }
+          if (!target.hasAttribute('tabindex')) {
+            target.tabIndex = -1;
+          }
+          try {
+            target.focus({ preventScroll: true });
+          } catch {
+            target.focus();
+          }
+        };
+
+        const view = this.document.defaultView;
+        if (view) {
+          view.setTimeout(() => attempt(4), 160);
+          return;
+        }
+        attempt(0);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private aggregatedFreetextCompassTerms(): ModerationCompassTerm[] {
+    const counts = new Map<string, number>();
+    for (const response of this.displayedFreetextResponses()) {
+      const normalized = response.trim().replace(/\s+/g, ' ');
+      if (normalized.length < 8) {
+        continue;
+      }
+      counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .filter(([, count]) => count >= 2)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 3)
+      .map(([text, count]) => ({
+        label: $localize`:@@sessionHost.moderationFreetextRepeat:Mehrfach genannt: ${truncateCompassLabel(text, 64)}:text:`,
+        documentFrequency: count,
+        sourceCount: count,
+        memberTexts: [],
+      }));
+  }
+
+  private moderationCompassPinnedSources(): ModerationCompassSource[] {
+    return this.qaForumQuestions()
+      .filter((question) => question.status === 'PINNED')
+      .slice(0, 2)
+      .flatMap((question) => {
+        const label = truncateCompassLabel(question.text);
+        return label
+          ? [
+              {
+                kind: 'qa-question' as const,
+                label: $localize`:@@sessionHost.moderationPinned:Hervorgehoben: ${label}:question:`,
+                target: { channel: 'qa' as const, questionId: question.id },
+              },
+            ]
+          : [];
+      });
+  }
+
+  private moderationCompassQaSourceText(question: {
+    text: string;
+    isControversial?: boolean;
+    positiveVoteCount?: number;
+    negativeVoteCount?: number;
+  }): string {
+    if (
+      question.isControversial === true &&
+      typeof question.positiveVoteCount === 'number' &&
+      typeof question.negativeVoteCount === 'number'
+    ) {
+      return $localize`:@@sessionHost.moderationFrictionVotes:${question.positiveVoteCount}:up: dafür, ${question.negativeVoteCount}:down: dagegen · ${question.text}:question:`;
+    }
+    return question.text;
+  }
+
+  private moderationCompassFeedback(): ModerationCompassTempo | null {
+    const tempo = this.quickFeedbackTempoIndicator();
+    const result = this.quickFeedbackResult();
+    if (result?.type === 'TEMPO' || !result) {
+      return tempo ? { label: tempo.label, tone: tempo.tone, variant: 'tempo' } : null;
+    }
+    if (result.totalVotes < 3) {
+      return null;
+    }
+
+    const summary = notableQuickFeedbackSplit(result.totalVotes, result.distribution);
+    const title = $localize`:@@sessionHost.moderationCardFeedback:Rückmeldungen`;
+    if (summary.starAverage !== null && summary.starAverage <= 2.5) {
+      const avg = formatNumber(summary.starAverage, this.localeId, '1.0-1');
+      return {
+        variant: 'feedback',
+        title,
+        tone: 'caution',
+        label: $localize`:@@sessionHost.moderationFeedbackStars:Durchschnitt ${avg}:avg: von 5 Sternen`,
+      };
+    }
+    if (summary.split) {
+      return {
+        variant: 'feedback',
+        title,
+        tone: 'caution',
+        label: $localize`:@@sessionHost.moderationFeedbackSplit:Die Rückmeldungen sind geteilt.`,
+      };
+    }
+    if (summary.majorityRatio >= 0.6 && summary.majorityKey) {
+      if (!isNegativeFeedbackKey(summary.majorityKey)) {
+        return null;
+      }
+      const option = feedbackDisplayLabel(summary.majorityKey, result.type);
+      return {
+        variant: 'feedback',
+        title,
+        tone: 'caution',
+        label: $localize`:@@sessionHost.moderationFeedbackMajority:Die meisten: ${option}:option:`,
+      };
+    }
+    return null;
+  }
+
+  private moderationCompassQuizSources(): ModerationCompassSource[] {
+    const question = this.displayedCurrentQuestionForHost();
+    const current =
+      this.effectiveStatus() === 'RESULTS' && question
+        ? this.localizeCurrentQuestionQuizSources(question)
+        : [];
+    return mergeModerationQuizSources(
+      current,
+      this.moderationQuizSourceCache(),
+      question?.questionId ?? null,
+    );
+  }
+
+  private localizeCurrentQuestionQuizSources(
+    question: HostCurrentQuestionDTO,
+  ): ModerationCompassSource[] {
+    return collectModerationQuizFacts(question)
+      .map((fact) => this.localizeModerationQuizFact(fact, question))
+      .filter((source): source is ModerationCompassSource => source !== null)
+      .slice(0, 3);
+  }
+
+  private withQuizQuestionStem(message: string, question: { text: string }): string {
+    const stem = compassQuestionStem(question.text);
+    if (!stem || message.includes(stem)) {
+      return message;
+    }
+    return `${message} · ${stem}`;
+  }
+
+  private localizeModerationQuizFact(
+    fact: ModerationQuizFact,
+    question: HostCurrentQuestionDTO,
+  ): ModerationCompassSource | null {
+    const quizSource = (label: string): ModerationCompassSource => ({
+      kind: 'quiz-result',
+      label: this.withQuizQuestionStem(label, question),
+      target: { channel: 'quiz' },
+    });
+    switch (fact.type) {
+      case 'wrong-majority': {
+        const stem = compassQuestionStem(question.text);
+        return quizSource(
+          stem
+            ? $localize`:@@sessionHost.moderationQuizWrong:${fact.incorrect}:wrong: von ${fact.total}:total: liegen daneben · ${stem}:question:`
+            : $localize`:@@sessionHost.moderationQuizWrongPlain:${fact.incorrect}:wrong: von ${fact.total}:total: liegen daneben`,
+        );
+      }
+      case 'in-band':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizInBand:Nur ${fact.percent}:percent: % der Schätzungen liegen im erwarteten Bereich`,
+        );
+      case 'numeric-round-worse':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizRoundWorse:In Runde 2 liegen ${fact.percentPoints}:delta: Prozentpunkte weniger im erwarteten Bereich`,
+        );
+      case 'numeric-round-farther':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizRoundFarther:Mehr Schätzungen sind in Runde 2 weiter weg als näher dran`,
+        );
+      case 'matching-confusion':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizMatch:Häufige Verwechslung: ${truncateCompassLabel(fact.left, 32)}:left: → ${truncateCompassLabel(fact.wrong, 32)}:wrong:`,
+        );
+      case 'ordering-swap':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizOrder:Häufig vertauscht: ${truncateCompassLabel(fact.a, 32)}:a: und ${truncateCompassLabel(fact.b, 32)}:b:`,
+        );
+      case 'categorization-miss':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizCategory:Häufig falsch einsortiert: ${truncateCompassLabel(fact.item, 32)}:item: → ${truncateCompassLabel(fact.wrongCategory, 32)}:wrong:`,
+        );
+      case 'wrong-option':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizWrongOption:Häufigste andere Antwort: ${truncateCompassLabel(fact.option, 64)}:option:`,
+        );
+      case 'numeric-median':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizMedian:Median ${this.formatNumericHostStatValue(fact.median, question)}:median:, erwartet war etwa ${this.formatNumericHostStatValue(fact.reference, question)}:reference:`,
+        );
+      case 'numeric-spread':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizSpread:Die Schätzungen liegen weit auseinander`,
+        );
+      case 'round-drop':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizRoundDrop:Runde 2 hat weniger richtige Antworten als Runde 1`,
+        );
+      case 'rating-low':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizRatingLow:Durchschnitt ${formatNumber(fact.avg, this.localeId, '1.0-1')}:avg: von 5`,
+        );
+      case 'freetext-repeat':
+        return quizSource(
+          $localize`:@@sessionHost.moderationFreetextRepeat:Mehrfach genannt: ${truncateCompassLabel(fact.text, 64)}:text:`,
+        );
+      default:
+        return null;
+    }
+  }
+
   readonly qaShowNewBanner = computed(() => this.qaUnseenCount() > 0 && this.qaScrolledDown());
   readonly qaUnseenCount = computed(
     () =>
@@ -1855,9 +2457,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!request) {
         this.clearQaWordCloudThemeAnalysisTimer();
         this.lastQaWordCloudAnalysisRequestKey = null;
-        this.qaWordCloudThemeAnalysisResult.set(null);
         this.qaWordCloudThemeAnalysisPending.set(false);
-        this.qaWordCloudThemeFallbackActive.set(false);
+        // Letztes Theme-Ergebnis behalten: Kompass und erneutes Öffnen nutzen es weiter.
         return;
       }
 
@@ -2066,6 +2667,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       tryExitDocumentFullscreen(this.document, () => {
         this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+      });
+    });
+    effect(() => {
+      const status = this.effectiveStatus();
+      const question = this.displayedCurrentQuestionForHost();
+      if (status !== 'RESULTS' || !question) {
+        return;
+      }
+      const sources = this.localizeCurrentQuestionQuizSources(question);
+      if (sources.length === 0) {
+        return;
+      }
+      untracked(() => {
+        this.moderationQuizSourceCache.update((existing) =>
+          rememberModerationQuizSnapshot(existing, question.questionId, sources),
+        );
       });
     });
   }
@@ -5762,6 +6379,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaHighlightedQuestionIds().has(questionId);
   }
 
+  isQaCompassFocused(questionId: string): boolean {
+    return this.qaCompassFocusQuestionIds().has(questionId);
+  }
+
+  isQaCompassFocusPrimary(questionId: string): boolean {
+    return this.qaCompassFocusQuestionId() === questionId;
+  }
+
   qaQuestionScore(question: QaQuestionDTO): number {
     return question.score ?? question.upvoteCount;
   }
@@ -5816,7 +6441,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return formatLocaleNumber(value ?? 0, this.localeId, { maximumFractionDigits });
   }
 
-  async setQaSortMode(mode: QaQuestionSortMode): Promise<void> {
+  async setQaSortMode(
+    mode: QaQuestionSortMode,
+    options?: { readonly scrollToTop?: boolean },
+  ): Promise<void> {
     if (this.qaSortMode() === mode) {
       return;
     }
@@ -5824,7 +6452,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSortMode.set(mode);
     this.ensureQaSubscription();
     await this.refreshQaQuestions();
-    this.scrollQaListToTop();
+    if (options?.scrollToTop !== false) {
+      this.scrollQaListToTop();
+    }
 
     const shouldRefreshLemmaSmoothing = untracked(
       () =>

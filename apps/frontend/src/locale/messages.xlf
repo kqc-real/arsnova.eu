@@ -12123,6 +12123,141 @@
           <context context-type="linenumber">48,50</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogTitle" datatype="html">
+        <source> Moderationskompass </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogIntro" datatype="html">
+        <source> Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogCloseAria" datatype="html">
+        <source>Moderationskompass schließen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSourceJumpAria" datatype="html">
+        <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationRuleBasedHint" datatype="html">
+        <source> Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationEmpty" datatype="html">
+        <source> Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
+        <source>Häufige Themen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardClarification" datatype="html">
+        <source>Noch klären</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardFriction" datatype="html">
+        <source>Umstrittene Fragen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardTempo" datatype="html">
+        <source>Tempo</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardNextStep" datatype="html">
+        <source>Nächster Schritt</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextPending" datatype="html">
+        <source>Schau zuerst in die Fragen, die noch auf Freigabe warten.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuiz" datatype="html">
+        <source>Erkläre kurz die Lösung und die typischen Fehler.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
+        <source>Greif die umstrittenen Fragen kurz auf.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextTempo" datatype="html">
+        <source>Geh langsamer oder frag, wer nicht mehr folgt.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextFeedback" datatype="html">
+        <source>Sieh dir das Blitzlicht kurz an.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextSteady" datatype="html">
+        <source>Es wirkt ruhig. Du kannst so weitermachen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextTopics" datatype="html">
+        <source>Fass die häufigsten Themen kurz zusammen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButtonAria" datatype="html">
+        <source>Moderationskompass öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButtonAriaWithSignals" datatype="html">
+        <source>Moderationskompass öffnen, Hinweise vorhanden</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButton" datatype="html">
+        <source>Moderation</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationReturn" datatype="html">
+        <source>Zurück</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationReturnAria" datatype="html">
+        <source>Zurück zum Moderationskompass</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCompassFocus" datatype="html">
+        <source>Aus dem Kompass</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrong" datatype="html">
+        <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben · <x id="question" equiv-text="stem"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongPlain" datatype="html">
+        <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizInBand" datatype="html">
+        <source>Nur <x id="percent" equiv-text="rounded"/> % der Schätzungen liegen im erwarteten Bereich</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
+        <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardFeedback" datatype="html">
+        <source>Rückmeldungen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationTopicWeight" datatype="html">
+        <source>Begriffe gewichtet nach <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPinned" datatype="html">
+        <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFrictionVotes" datatype="html">
+        <source><x id="up" equiv-text="question.positiveVoteCount"/> dafür, <x id="down" equiv-text="question.negativeVoteCount"/> dagegen · <x id="question" equiv-text="question.text"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackStars" datatype="html">
+        <source>Durchschnitt <x id="avg" equiv-text="avg"/> von 5 Sternen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackSplit" datatype="html">
+        <source>Die Rückmeldungen sind geteilt.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackMajority" datatype="html">
+        <source>Die meisten: <x id="option" equiv-text="option"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFreetextRepeat" datatype="html">
+        <source>Mehrfach genannt: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundWorse" datatype="html">
+        <source>In Runde 2 liegen <x id="delta" equiv-text="fact.percentPoints"/> Prozentpunkte weniger im erwarteten Bereich</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundFarther" datatype="html">
+        <source>Mehr Schätzungen sind in Runde 2 weiter weg als näher dran</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMatch" datatype="html">
+        <source>Häufige Verwechslung: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizOrder" datatype="html">
+        <source>Häufig vertauscht: <x id="a" equiv-text="truncateCompassLabel(fact.a, 32)"/> und <x id="b" equiv-text="truncateCompassLabel(fact.b, 32)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizCategory" datatype="html">
+        <source>Häufig falsch einsortiert: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMedian" datatype="html">
+        <source>Median <x id="median" equiv-text="this.formatNumericHostStatValue(fact.median, question)"/>, erwartet war etwa <x id="reference" equiv-text="this.formatNumericHostStatValue(fact.reference, question)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSpread" datatype="html">
+        <source>Die Schätzungen liegen weit auseinander</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundDrop" datatype="html">
+        <source>Runde 2 hat weniger richtige Antworten als Runde 1</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRatingLow" datatype="html">
+        <source>Durchschnitt <x id="avg" equiv-text="formatNumber(fact.avg, this.localeId, '1.0-1')"/> von 5</source>
+      </trans-unit>
       <trans-unit id="sessionTabs.hostAria" datatype="html">
         <source>Live-Bereich wählen</source>
         <context-group purpose="location">

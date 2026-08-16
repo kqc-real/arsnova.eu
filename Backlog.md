@@ -1736,6 +1736,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Backend-/DTO-Test, dass Teilnehmer-Payloads keine internen Kompass- oder Moderationsartefakte enthalten.
     - Smoke- oder Component-Test, dass deaktivierte/fehlende Signale die Host-Ansicht nicht blockieren.
   - **Teilweise bereits umgesetzt / vorhandene Bausteine:**
+    - **Host-UX (laufend):** Button **Moderation** neben der Live-Leiste, großer Dialog mit regelbasierten Karten, klickbare Quellen (Kanalwechsel, Forum-Highlight, Wortwolken-Sprung inkl. Sortierung/Ansicht), **Zurück**, ruhiger Leerzustand; Present/Vote und `FINISHED` ohne Kompass. Noch nicht als Story abgeschlossen.
     - **Story 1.2d** liefert numerische Schätzfragen mit Referenzwert, Toleranzband, Statistik, Histogramm, Zwei-Runden-Flow und Rundenvergleich.
     - **Story 1.14** liefert Freitext-Wortwolken mit `d3-cloud`-Layout, Freeze und Export.
     - **Story 8.6/8.7** liefern Q&A-Kontroversitäts- und Wilson-Score, getrennte Up-/Downvote-Aggregate, Host-Sortiermodi und die sortierabhängige Q&A-Wortwolke.

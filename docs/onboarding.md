@@ -321,13 +321,13 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                 | Kurzbeschreibung                                                                                                         | Backlog / Referenz         |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| Barrierefreiheit & UX | Story **6.5** und **6.6** sind abgeschlossen; A11y-Journal bleibt Referenz für Nachweise                                 | Epic 6 / A11y-Journal      |
-| Kurzantwort-Ausbau    | **1.2ec–1.2ed**: verbleibende Schlüsselwort-/Token-Bewertung (**1.2f** geschlossen)                                      | Epic 1                     |
-| Q&A-Moderation        | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass/NLP/Zusammenfassung (**8.9a–8.9c**) ebenfalls offen | Epic 8, ADR-0011, ADR-0032 |
-| Last & Performance    | **0.7** lokal technisch grün; offen sind Staging-Langlauf, Produktionsbaseline und regelmäßiger Regressionsvergleich     | Epic 0, ADR-0013           |
-| Sync & Word Cloud     | **1.6c** Cutover 1. Oktober 2026; **1.14c** semantische Themen (**1.14a/1.14b** fertig; **0.8**/**1.6d** geschlossen)    | Backlog                    |
+| Thema                 | Kurzbeschreibung                                                                                                                             | Backlog / Referenz         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Barrierefreiheit & UX | Story **6.5** und **6.6** sind abgeschlossen; A11y-Journal bleibt Referenz für Nachweise                                                     | Epic 6 / A11y-Journal      |
+| Kurzantwort-Ausbau    | **1.2ec–1.2ed**: verbleibende Schlüsselwort-/Token-Bewertung (**1.2f** geschlossen)                                                          | Epic 1                     |
+| Q&A-Moderation        | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass Host-UX (**8.9a**) teilweise, NLP/Zusammenfassung (**8.9b–8.9c**) offen | Epic 8, ADR-0011, ADR-0032 |
+| Last & Performance    | **0.7** lokal technisch grün; offen sind Staging-Langlauf, Produktionsbaseline und regelmäßiger Regressionsvergleich                         | Epic 0, ADR-0013           |
+| Sync & Word Cloud     | **1.6c** Cutover 1. Oktober 2026; **1.14c** semantische Themen (**1.14a/1.14b** fertig; **0.8**/**1.6d** geschlossen)                        | Backlog                    |
 
 **Hinweis für neue Stories:** **Epic 11** ist aktuell nur ein nicht beauftragter Erweiterungspfad für Verlagszugänge und ein Redaktionsbackend.
 
