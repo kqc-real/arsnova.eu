@@ -145,4 +145,27 @@ describe('WordCloudTermExtractorService', () => {
     expect(keys).not.toContain('questions');
     expect(keys).not.toContain('customnoise');
   });
+
+  it('filtert schwache Hilfsverben wie helfen aus Q&A-Termen', () => {
+    const terms = service.extractTerms(
+      [
+        {
+          id: 'q1',
+          title: 'Welche Beispiele zu klare Visualisierung würden helfen?',
+          weight: 3,
+        },
+        {
+          id: 'q2',
+          title: 'Würde eine Visualisierung helfen?',
+          weight: 2,
+        },
+      ],
+      { locale: 'de', maxEntries: 40, maxNgramLength: 3 },
+    );
+
+    const labels = terms.map((term) => term.label.toLocaleLowerCase('de'));
+    expect(labels).toContain('visualisierung');
+    expect(labels).not.toContain('helfen');
+    expect(labels.every((label) => !label.split(/\s+/u).includes('helfen'))).toBe(true);
+  });
 });

@@ -177,6 +177,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private d3CloudImportPromise: Promise<(typeof import('d3-cloud'))['default']> | null = null;
   private layoutRunId = 0;
   private previousSelectionScopeKey: string | null | undefined = undefined;
+  private appliedFocusedTermLabel: string | null = null;
 
   readonly responses = input<string[]>([]);
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
@@ -184,6 +185,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly analysisEntries = input<WordCloudAnalysisEntryDTO[] | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly selectionScopeKey = input<string | null>(null);
+  readonly focusedTermLabel = input<string | null>(null);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
   readonly description = input<string | null>(
@@ -498,7 +500,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return words;
     }
 
-    return words.slice(0, getWordCloudLayoutWordCap(width, this.presentationMode()));
+    return this.pinFocusedWord(words, getWordCloudLayoutWordCap(width, this.presentationMode()));
   });
 
   readonly cloudStageHeightPx = computed(() => {
@@ -779,6 +781,37 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     });
 
     effect(() => {
+      const label = this.focusedTermLabel()?.trim() ?? '';
+      const words = this.words();
+      const selected = this.selectedGroupKey();
+      const filter = this.confidenceFilter();
+      if (!label) {
+        this.appliedFocusedTermLabel = null;
+        return;
+      }
+
+      const match = this.findFocusedWord(words, label);
+      if (!match) {
+        if (filter !== 'all' && this.showConfidenceFilterToggle()) {
+          this.confidenceFilter.set('all');
+        }
+        return;
+      }
+
+      if (selected === match.groupKey) {
+        this.appliedFocusedTermLabel = label;
+        return;
+      }
+
+      if (this.appliedFocusedTermLabel === label && selected) {
+        return;
+      }
+
+      this.selectedGroupKey.set(match.groupKey);
+      this.appliedFocusedTermLabel = label;
+    });
+
+    effect(() => {
       const filter = this.confidenceFilter();
       const options = this.confidenceFilterOptions();
       if (options.length === 0) {
@@ -866,6 +899,69 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   toggleWord(groupKey: string): void {
     this.selectedGroupKey.update((current) => (current === groupKey ? null : groupKey));
+  }
+
+  private pinFocusedWord(words: CloudWord[], cap: number): CloudWord[] {
+    const visible = words.slice(0, cap);
+    const focusedKey = this.selectedGroupKey();
+    if (!focusedKey || visible.some((entry) => entry.groupKey === focusedKey)) {
+      return visible;
+    }
+
+    const extra = words.find((entry) => entry.groupKey === focusedKey);
+    if (!extra) {
+      return visible;
+    }
+
+    return [extra, ...visible.slice(0, Math.max(0, cap - 1))];
+  }
+
+  private findFocusedWord(words: readonly CloudWord[], label: string): CloudWord | undefined {
+    const exact = words.find((entry) => this.termMatchesFocus(entry, label));
+    if (exact) {
+      return exact;
+    }
+
+    const needle = label.trim().toLowerCase();
+    if (needle.length < 2) {
+      return undefined;
+    }
+
+    const loose = words.filter((entry) =>
+      this.focusCandidates(entry).some(
+        (candidate) =>
+          this.containsWholeToken(candidate, needle) || this.containsWholeToken(needle, candidate),
+      ),
+    );
+    if (loose.length === 0) {
+      return undefined;
+    }
+
+    return [...loose].sort(
+      (left, right) => right.word.length - left.word.length || left.rank - right.rank,
+    )[0];
+  }
+
+  private termMatchesFocus(entry: CloudWord, label: string): boolean {
+    const needle = label.trim().toLowerCase();
+    if (!needle) {
+      return false;
+    }
+    return this.focusCandidates(entry).includes(needle);
+  }
+
+  private focusCandidates(entry: CloudWord): string[] {
+    return [entry.word, entry.groupKey, ...entry.variants].map((value) =>
+      value.trim().toLowerCase(),
+    );
+  }
+
+  private containsWholeToken(haystack: string, token: string): boolean {
+    if (token.length < 2 || haystack.length < token.length) {
+      return false;
+    }
+    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|[^\\p{L}\\p{N}])${escaped}(?:$|[^\\p{L}\\p{N}])`, 'u').test(haystack);
   }
 
   setConfidenceFilter(filter: ConfidenceFilter): void {

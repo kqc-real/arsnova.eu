@@ -13647,6 +13647,186 @@
           <context context-type="linenumber">48,50</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogTitle" datatype="html">
+        <source> Moderationskompass </source>
+        <target>Bussola di moderazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogIntro" datatype="html">
+        <source> Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst. </source>
+        <target>Una panoramica da quiz, domande e feedback live. Decidi tu cosa riprendere.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogCloseAria" datatype="html">
+        <source>Moderationskompass schließen</source>
+        <target>Chiudi la bussola di moderazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSourceJumpAria" datatype="html">
+        <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
+        <target>Vai alla fonte: <x id="label" equiv-text="source.label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationRuleBasedHint" datatype="html">
+        <source> Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst. </source>
+        <target>Solo dai segnali di questa sessione. Non cambia nulla da solo.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationEmpty" datatype="html">
+        <source> Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise. </source>
+        <target>Appena ci sono domande, risultati o feedback lampo, vedi qui dei suggerimenti.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
+        <source>Häufige Themen</source>
+        <target>Temi frequenti</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardClarification" datatype="html">
+        <source>Noch klären</source>
+        <target>Da chiarire</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardFriction" datatype="html">
+        <source>Umstrittene Fragen</source>
+        <target>Domande controverse</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardTempo" datatype="html">
+        <source>Tempo</source>
+        <target>Ritmo</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardNextStep" datatype="html">
+        <source>Nächster Schritt</source>
+        <target>Prossimo passo</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextPending" datatype="html">
+        <source>Schau zuerst in die Fragen, die noch auf Freigabe warten.</source>
+        <target>Inizia dalle domande ancora in attesa di approvazione.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuiz" datatype="html">
+        <source>Erkläre kurz die Lösung und die typischen Fehler.</source>
+        <target>Prenditi un momento per la soluzione e gli errori tipici.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
+        <source>Greif die umstrittenen Fragen kurz auf.</source>
+        <target>Riprendi in breve le domande controverse.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextTempo" datatype="html">
+        <source>Geh langsamer oder frag, wer nicht mehr folgt.</source>
+        <target>Rallenta o chiedi chi non sta più seguendo.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextFeedback" datatype="html">
+        <source>Sieh dir das Blitzlicht kurz an.</source>
+        <target>Dai un’occhiata al feedback lampo.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextSteady" datatype="html">
+        <source>Es wirkt ruhig. Du kannst so weitermachen.</source>
+        <target>Sembra calmo. Puoi continuare così.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextTopics" datatype="html">
+        <source>Fass die häufigsten Themen kurz zusammen.</source>
+        <target>Riassumi a voce i temi più frequenti.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButtonAria" datatype="html">
+        <source>Moderationskompass öffnen</source>
+        <target>Apri la bussola di moderazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButtonAriaWithSignals" datatype="html">
+        <source>Moderationskompass öffnen, Hinweise vorhanden</source>
+        <target>Apri la bussola di moderazione, ci sono suggerimenti</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationButton" datatype="html">
+        <source>Moderation</source>
+        <target>Moderazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationReturn" datatype="html">
+        <source>Zurück</source>
+        <target>Indietro</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationReturnAria" datatype="html">
+        <source>Zurück zum Moderationskompass</source>
+        <target>Torna alla bussola di moderazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCompassFocus" datatype="html">
+        <source>Aus dem Kompass</source>
+        <target>Dalla bussola</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrong" datatype="html">
+        <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben · <x id="question" equiv-text="stem"/></source>
+        <target><x id="wrong" equiv-text="incorrect"/> su <x id="total" equiv-text="total"/> sono errate · <x id="question" equiv-text="stem"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongPlain" datatype="html">
+        <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben</source>
+        <target><x id="wrong" equiv-text="incorrect"/> su <x id="total" equiv-text="total"/> sono errate</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizInBand" datatype="html">
+        <source>Nur <x id="percent" equiv-text="rounded"/> % der Schätzungen liegen im erwarteten Bereich</source>
+        <target>Solo il <x id="percent" equiv-text="rounded"/> % delle stime è nell’intervallo atteso</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
+        <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></source>
+        <target>Altra risposta più frequente: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationCardFeedback" datatype="html">
+        <source>Rückmeldungen</source>
+        <target>Feedback</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationTopicWeight" datatype="html">
+        <source>Begriffe gewichtet nach <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
+        <target>Termini ponderati secondo <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPinned" datatype="html">
+        <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
+        <target>In evidenza: <x id="question" equiv-text="label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFrictionVotes" datatype="html">
+        <source><x id="up" equiv-text="question.positiveVoteCount"/> dafür, <x id="down" equiv-text="question.negativeVoteCount"/> dagegen · <x id="question" equiv-text="question.text"/></source>
+        <target><x id="up" equiv-text="question.positiveVoteCount"/> a favore, <x id="down" equiv-text="question.negativeVoteCount"/> contrari · <x id="question" equiv-text="question.text"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackStars" datatype="html">
+        <source>Durchschnitt <x id="avg" equiv-text="avg"/> von 5 Sternen</source>
+        <target>Media <x id="avg" equiv-text="avg"/> su 5 stelle</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackSplit" datatype="html">
+        <source>Die Rückmeldungen sind geteilt.</source>
+        <target>I feedback sono divisi.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFeedbackMajority" datatype="html">
+        <source>Die meisten: <x id="option" equiv-text="option"/></source>
+        <target>La maggior parte: <x id="option" equiv-text="option"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFreetextRepeat" datatype="html">
+        <source>Mehrfach genannt: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></source>
+        <target>Citato più volte: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundWorse" datatype="html">
+        <source>In Runde 2 liegen <x id="delta" equiv-text="fact.percentPoints"/> Prozentpunkte weniger im erwarteten Bereich</source>
+        <target>Al giro 2 ci sono <x id="delta" equiv-text="fact.percentPoints"/> punti percentuali in meno nell’intervallo atteso</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundFarther" datatype="html">
+        <source>Mehr Schätzungen sind in Runde 2 weiter weg als näher dran</source>
+        <target>Al giro 2 più stime si allontanano di quante si avvicinino</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMatch" datatype="html">
+        <source>Häufige Verwechslung: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></source>
+        <target>Confusione frequente: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizOrder" datatype="html">
+        <source>Häufig vertauscht: <x id="a" equiv-text="truncateCompassLabel(fact.a, 32)"/> und <x id="b" equiv-text="truncateCompassLabel(fact.b, 32)"/></source>
+        <target>Spesso scambiati: <x id="a" equiv-text="truncateCompassLabel(fact.a, 32)"/> e <x id="b" equiv-text="truncateCompassLabel(fact.b, 32)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizCategory" datatype="html">
+        <source>Häufig falsch einsortiert: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></source>
+        <target>Spesso classificato male: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMedian" datatype="html">
+        <source>Median <x id="median" equiv-text="this.formatNumericHostStatValue(fact.median, question)"/>, erwartet war etwa <x id="reference" equiv-text="this.formatNumericHostStatValue(fact.reference, question)"/></source>
+        <target>Mediana <x id="median" equiv-text="this.formatNumericHostStatValue(fact.median, question)"/>, ci si aspettava circa <x id="reference" equiv-text="this.formatNumericHostStatValue(fact.reference, question)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSpread" datatype="html">
+        <source>Die Schätzungen liegen weit auseinander</source>
+        <target>Le stime sono molto disperse</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRoundDrop" datatype="html">
+        <source>Runde 2 hat weniger richtige Antworten als Runde 1</source>
+        <target>Il giro 2 ha meno risposte corrette del giro 1</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizRatingLow" datatype="html">
+        <source>Durchschnitt <x id="avg" equiv-text="formatNumber(fact.avg, this.localeId, '1.0-1')"/> von 5</source>
+        <target>Media <x id="avg" equiv-text="formatNumber(fact.avg, this.localeId, '1.0-1')"/> su 5</target>
+      </trans-unit>
       <trans-unit id="sessionTabs.hostAria" datatype="html">
         <source>Live-Bereich wählen</source>
         <target>Scegli l’area live</target>

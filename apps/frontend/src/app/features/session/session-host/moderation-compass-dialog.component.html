@@ -1,0 +1,74 @@
+<h2 mat-dialog-title class="dialog-title-header moderation-compass-dialog__title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <app-moderation-compass-icon />
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@sessionHost.moderationDialogTitle">
+      Moderationskompass
+    </span>
+    <span class="dialog-title-header__sub" i18n="@@sessionHost.moderationDialogIntro">
+      Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst.
+    </span>
+  </span>
+</h2>
+
+<button
+  mat-icon-button
+  type="button"
+  class="moderation-compass-dialog__close"
+  mat-dialog-close
+  i18n-aria-label="@@sessionHost.moderationDialogCloseAria"
+  aria-label="Moderationskompass schließen"
+>
+  <mat-icon aria-hidden="true">close</mat-icon>
+</button>
+
+<mat-dialog-content class="moderation-compass-dialog__content">
+  <p class="moderation-compass-dialog__mode" i18n="@@sessionHost.moderationRuleBasedHint">
+    Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst.
+  </p>
+
+  @if (hasCards()) {
+    <div class="moderation-compass-dialog__cards">
+      @for (card of cards(); track card.kind) {
+        <article
+          class="moderation-compass-card"
+          [attr.data-kind]="card.kind"
+          [attr.data-tone]="card.tone ?? 'neutral'"
+        >
+          <header class="moderation-compass-card__header">
+            <mat-icon class="moderation-compass-card__icon" aria-hidden="true">{{
+              cardIcon(card)
+            }}</mat-icon>
+            <h3 class="moderation-compass-card__title">{{ cardTitle(card) }}</h3>
+          </header>
+          @if (nextStepText(card.nextStepReason); as suggestion) {
+            <p class="moderation-compass-card__suggestion">{{ suggestion }}</p>
+          }
+          <ul class="moderation-compass-card__sources">
+            @for (source of card.sources; track source.kind + source.label) {
+              <li>
+                @if (source.target) {
+                  <button
+                    type="button"
+                    class="moderation-compass-card__source-button"
+                    [attr.aria-label]="sourceJumpAria(source)"
+                    (click)="activateSource(source)"
+                  >
+                    {{ source.label }}
+                  </button>
+                } @else {
+                  {{ source.label }}
+                }
+              </li>
+            }
+          </ul>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="moderation-compass-dialog__empty" role="status" i18n="@@sessionHost.moderationEmpty">
+      Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise.
+    </p>
+  }
+</mat-dialog-content>

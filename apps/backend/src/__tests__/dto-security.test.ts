@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { AnswerOptionRevealedDTOSchema, QuestionStudentDTOSchema } from '@arsnova/shared-types';
+import {
+  AnswerOptionRevealedDTOSchema,
+  QaQuestionDTOSchema,
+  QuestionStudentDTOSchema,
+} from '@arsnova/shared-types';
 
 describe('DTO security (Story 2.4)', () => {
   const validStudentPayload = {
@@ -97,5 +101,23 @@ describe('DTO security (Story 2.4)', () => {
     expect(parsed.matchingLeftOptions).toEqual([{ id: 'status-200', text: 'HTTP 200' }]);
     expect(parsed.matchingRightOptions).toEqual([{ id: 'meaning-ok', text: 'OK' }]);
     expect((parsed as Record<string, unknown>)['matchingPairs']).toBeUndefined();
+  });
+
+  it('accepts participant Q&A payloads without host-only controversy fields', () => {
+    const parsed = QaQuestionDTOSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Was ist klausurrelevant?',
+      upvoteCount: 4,
+      status: 'ACTIVE',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      hasUpvoted: true,
+      isOwn: false,
+      myVote: 'UP',
+    });
+
+    expect(parsed).not.toHaveProperty('controversyScore');
+    expect(parsed).not.toHaveProperty('isControversial');
+    expect(parsed).not.toHaveProperty('bestScore');
+    expect(parsed).not.toHaveProperty('score');
   });
 });

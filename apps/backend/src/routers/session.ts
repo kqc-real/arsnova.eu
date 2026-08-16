@@ -3992,6 +3992,8 @@ async function buildHostCurrentQuestionDto(
         ...base,
         totalVotes,
         correctVoterCount,
+        incorrectVoterCount:
+          typeof correctVoterCount === 'number' ? totalVotes - correctVoterCount : undefined,
         peerInstructionSuggestion,
         voteDistribution,
         roundComparison,

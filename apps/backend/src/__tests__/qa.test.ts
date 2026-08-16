@@ -129,6 +129,11 @@ describe('qa router (Epic 8)', () => {
           myVote: 'UP',
         },
       ]);
+      expect(result[0]).not.toHaveProperty('controversyScore');
+      expect(result[0]).not.toHaveProperty('isControversial');
+      expect(result[0]).not.toHaveProperty('bestScore');
+      expect(result[0]).not.toHaveProperty('positiveVoteCount');
+      expect(result[0]).not.toHaveProperty('negativeVoteCount');
     },
   );
 
@@ -642,6 +647,57 @@ describe('qa router (Epic 8)', () => {
     expect(result[1]?.bestScore).toBeGreaterThan(result[2]?.bestScore ?? 0);
   });
 
+  it('liefert Kontroversität im Host-BEST-Modus, damit der Kompass nicht von der Sortierung abhängt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    prismaMock.participant.count.mockResolvedValue(20);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Polarisiert stark',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [
+          ...Array.from({ length: 5 }, () => ({ direction: 'UP' })),
+          ...Array.from({ length: 5 }, () => ({ direction: 'DOWN' })),
+        ],
+      },
+    ]);
+    prismaMock.qaUpvote.groupBy.mockResolvedValue([
+      {
+        qaQuestionId: '11111111-1111-4111-8111-111111111111',
+        direction: 'UP',
+        _count: { _all: 5 },
+      },
+      {
+        qaQuestionId: '11111111-1111-4111-8111-111111111111',
+        direction: 'DOWN',
+        _count: { _all: 5 },
+      },
+    ]);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'BEST',
+    });
+
+    expect(result[0]).toMatchObject({
+      isControversial: true,
+      positiveVoteCount: 5,
+      negativeVoteCount: 5,
+    });
+    expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
+  });
+
   it('sortiert Host-Q&A im CONTROVERSIAL-Modus nach Kontroversität und kennzeichnet starke Polarität', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
@@ -837,6 +893,7 @@ describe('qa router (Epic 8)', () => {
         qaEnabled: true,
         qaOpen: true,
       });
+    prismaMock.participant.count.mockResolvedValue(0);
     prismaMock.qaQuestion.findMany.mockResolvedValue([
       {
         id: QUESTION_ID,
@@ -872,6 +929,7 @@ describe('qa router (Epic 8)', () => {
         negativeVoteCount: 0,
         voteCount: 0,
         bestScore: 0,
+        controversyScore: 0,
         isControversial: false,
         hasUpvoted: false,
         isOwn: false,

@@ -100,6 +100,11 @@ const FORUM_STOPWORDS_BY_LOCALE: Record<SupportedLocale, readonly string[]> = {
     'muss',
     'müssen',
     'muessen',
+    'hilft',
+    'helfen',
+    'helfe',
+    'hilfst',
+    'geholfen',
   ],
   en: [
     'question',

@@ -3804,7 +3804,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('unterdrueckt Backend-Fallback-Hinweise, wenn lokale Terme verfuegbar sind', async () => {
+  it('zeigt Theme-Entries statt lokaler Terme, sobald die Analyse belastbar ist', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -3877,18 +3877,21 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
 
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
       analysisVariant: () => string;
       themeModeAvailable: () => boolean;
       themeFallbackHint: () => string | null;
-      terms: () => Array<{ key: string }>;
+      terms: () => Array<{ key: string }> | null;
+      analysisEntries: () => Array<{ label: string }> | null;
     };
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.themeFallbackHint()).toBeNull();
-    expect(data.terms().length).toBeGreaterThan(0);
+    expect(data.terms()).toBeNull();
+    expect(data.analysisEntries()?.[0]?.label).toBe('gewinnt');
     fixture.destroy();
   });
 
@@ -11114,6 +11117,454 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       ) as HTMLAnchorElement | undefined;
       expect(reloadLink).toBeDefined();
       expect(reloadLink?.getAttribute('href')).toBe(document.location.href);
+      fixture.destroy();
+    });
+  });
+
+  describe('Moderationskompass', () => {
+    it('zeigt den Button Moderation neben der Live-Leiste', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector(
+        '[data-testid="host-moderation-compass"]',
+      ) as HTMLButtonElement | null;
+      expect(button).not.toBeNull();
+      expect(button?.textContent).toContain('Moderation');
+      expect(button?.querySelector('.moderation-compass-icon')).not.toBeNull();
+      expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
+        false,
+      );
+      expect(button?.getAttribute('aria-label')).toBe('Moderationskompass öffnen');
+      fixture.destroy();
+    });
+
+    it('bleibt in Quiz, Q&A und Blitzlicht sichtbar', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      for (const channel of ['quiz', 'qa', 'quickFeedback'] as const) {
+        component.activeChannel.set(channel);
+        fixture.detectChanges();
+        expect(
+          fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+        ).not.toBeNull();
+      }
+      fixture.destroy();
+    });
+
+    it('öffnet den großen Dialog mit Moderationskarten', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          upvoteCount: 4,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      dialogOpenMock.mockClear();
+      await fixture.componentInstance.openModerationCompassDialog();
+
+      expect(dialogOpenMock).toHaveBeenCalledTimes(1);
+      const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
+      expect(config['panelClass']).toBe('moderation-compass-dialog-panel');
+      const data = config['data'] as { cards: () => { kind: string }[] };
+      expect(data.cards().some((card) => card.kind === 'clarification')).toBe(true);
+
+      const button = fixture.nativeElement.querySelector(
+        '[data-testid="host-moderation-compass"]',
+      ) as HTMLButtonElement | null;
+      expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
+        true,
+      );
+      expect(button?.querySelector('.session-host__moderation-control-dot')).not.toBeNull();
+      expect(button?.getAttribute('aria-label')).toBe(
+        'Moderationskompass öffnen, Hinweise vorhanden',
+      );
+      fixture.destroy();
+    });
+
+    it('blendet den Button nach Session-Ende aus', async () => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+      fixture.destroy();
+    });
+
+    it('zeigt Reibung auch ohne CONTROVERSIAL-Sortierung', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      expect(component.qaSortMode()).toBe('BEST');
+      component.qaQuestions.set([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Ist die Klausur open book?',
+          upvoteCount: 0,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          isControversial: true,
+          positiveVoteCount: 5,
+          negativeVoteCount: 5,
+        },
+      ]);
+      fixture.detectChanges();
+
+      const friction = component.moderationCompassCards().find((card) => card.kind === 'friction');
+      expect(friction?.sources[0]?.label).toContain('5 dafür, 5 dagegen');
+      expect(friction?.sources[0]?.label).toContain('Ist die Klausur open book?');
+      fixture.destroy();
+    });
+
+    it('nimmt Quiz-Fakten erst nach der Ergebnisfreigabe auf', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.currentQuestionForHost.set({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 1,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        answers: [
+          { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
+          { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+        ],
+        voteDistribution: [
+          {
+            id: 'aaaaaaaa-1111-4111-8111-111111111111',
+            text: '5',
+            isCorrect: false,
+            voteCount: 22,
+            votePercentage: 73,
+          },
+          {
+            id: 'bbbbbbbb-2222-4222-8222-222222222222',
+            text: '4',
+            isCorrect: true,
+            voteCount: 8,
+            votePercentage: 27,
+          },
+        ],
+        totalVotes: 30,
+        correctVoterCount: 8,
+        incorrectVoterCount: 22,
+        matchingStats: {
+          totalVotes: 20,
+          fullyCorrectCount: 2,
+          pairHitRates: [],
+          commonConfusions: [
+            {
+              leftId: 'l1',
+              left: 'IaaS',
+              wrongRightId: 'r1',
+              wrongRight: 'SaaS',
+              count: 9,
+            },
+          ],
+          selectionCounts: [],
+        },
+      });
+      expect(
+        component
+          .moderationCompassCards()
+          .some((card) => card.sources.some((source) => source.kind === 'quiz-result')),
+      ).toBe(false);
+
+      component.session.update((session) =>
+        session ? { ...session, status: 'RESULTS', currentQuestion: 0 } : session,
+      );
+      fixture.detectChanges();
+
+      const clarification = component
+        .moderationCompassCards()
+        .find((card) => card.kind === 'clarification');
+      expect(clarification?.sources.map((source) => source.label)).toEqual(
+        expect.arrayContaining([
+          '22 von 30 liegen daneben · Was ist 2+2?',
+          'Häufigste andere Antwort: 5 · Was ist 2+2?',
+          'Häufige Verwechslung: IaaS → SaaS · Was ist 2+2?',
+        ]),
+      );
+      fixture.destroy();
+    });
+
+    it('behält Quiz-Fakten der letzten Ergebnisfreigabe', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.currentQuestionForHost.set({
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 2,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        answers: [
+          { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
+          { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+        ],
+        voteDistribution: [
+          {
+            id: 'aaaaaaaa-1111-4111-8111-111111111111',
+            text: '5',
+            isCorrect: false,
+            voteCount: 22,
+            votePercentage: 73,
+          },
+          {
+            id: 'bbbbbbbb-2222-4222-8222-222222222222',
+            text: '4',
+            isCorrect: true,
+            voteCount: 8,
+            votePercentage: 27,
+          },
+        ],
+        totalVotes: 30,
+        correctVoterCount: 8,
+        incorrectVoterCount: 22,
+      });
+      component.session.update((session) =>
+        session ? { ...session, status: 'RESULTS', currentQuestion: 0 } : session,
+      );
+      fixture.detectChanges();
+
+      component.session.update((session) =>
+        session ? { ...session, status: 'ACTIVE', currentQuestion: 1 } : session,
+      );
+      fixture.detectChanges();
+
+      expect(
+        component
+          .moderationCompassCards()
+          .some((card) =>
+            card.sources.some((source) => source.label.includes('22 von 30 liegen daneben')),
+          ),
+      ).toBe(true);
+      fixture.destroy();
+    });
+
+    it('springt von einer Q&A-Quelle zur Frage', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          upvoteCount: 4,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const source = component
+        .moderationCompassCards()
+        .find((card) => card.kind === 'clarification')
+        ?.sources.find((item) => item.kind === 'qa-question');
+
+      expect(source?.target).toEqual({
+        channel: 'qa',
+        questionId: '11111111-1111-4111-8111-111111111111',
+      });
+      await component.followModerationCompassSource(source!);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(component.activeChannel()).toBe('qa');
+      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
+      const focusedCard = fixture.nativeElement.querySelector(
+        '#host-qa-question-11111111-1111-4111-8111-111111111111',
+      ) as HTMLElement | null;
+      expect(focusedCard).not.toBeNull();
+      expect(focusedCard?.classList.contains('session-qa-card--compass-focus')).toBe(true);
+      expect(focusedCard?.getAttribute('aria-current')).toBe('true');
+      expect(focusedCard?.textContent).toContain('Aus dem Kompass');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-return"]'),
+      ).not.toBeNull();
+      expect(component.moderationCompassReturn()?.channel).toBe('quiz');
+
+      dialogOpenMock.mockClear();
+      await component.returnToModerationCompass();
+      fixture.detectChanges();
+
+      expect(component.activeChannel()).toBe('quiz');
+      expect(component.moderationCompassReturn()).toBeNull();
+      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(false);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-return"]'),
+      ).toBeNull();
+      expect(dialogOpenMock).toHaveBeenCalled();
+      fixture.destroy();
+    });
+
+    it('öffnet die Q&A-Wortwolke für einen Themenbegriff', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Grenzen von ChatGPT in der Übung',
+          upvoteCount: 3,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir mehr Übung zu ChatGPT?',
+          upvoteCount: 2,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      dialogOpenMock.mockClear();
+
+      await component.followModerationCompassSource({
+        kind: 'qa-term',
+        label: 'Übung · Grenzen von ChatGPT in der Übung',
+        target: {
+          channel: 'qa',
+          surface: 'word-cloud',
+          termLabel: 'Übung',
+          memberText: 'Grenzen von ChatGPT in der Übung',
+          memberTexts: ['Grenzen von ChatGPT in der Übung', 'Brauchen wir mehr Übung zu ChatGPT?'],
+          questionId: '11111111-1111-4111-8111-111111111111',
+          questionIds: [
+            '11111111-1111-4111-8111-111111111111',
+            '22222222-2222-4222-8222-222222222222',
+          ],
+          sortMode: 'TOP',
+          analysisVariant: 'LEXICAL',
+        },
+      });
+      fixture.detectChanges();
+
+      expect(component.activeChannel()).toBe('qa');
+      expect(component.qaSortMode()).toBe('TOP');
+      expect(component.qaWordCloudAnalysisVariant()).toBe('LEXICAL');
+      expect(component.moderationCompassFocusedTerm()).toBe('Übung');
+      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
+      expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
+      expect(component.isQaCompassFocusPrimary('11111111-1111-4111-8111-111111111111')).toBe(true);
+      expect(component.isQaCompassFocusPrimary('22222222-2222-4222-8222-222222222222')).toBe(false);
+      const [, config] = dialogOpenMock.mock.calls.at(-1) as [unknown, Record<string, unknown>];
+      expect(config['panelClass']).toBe('word-cloud-dialog-panel');
+      fixture.destroy();
+    });
+
+    it('zeigt negatives Blitzlicht neben Tempo', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.quickFeedbackResult.set({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 10,
+        distribution: { NEGATIVE: 8, POSITIVE: 2 },
+      });
+      fixture.detectChanges();
+
+      const tempo = component.moderationCompassCards().find((card) => card.kind === 'tempo');
+      expect(tempo?.title).toBe('Rückmeldungen');
+      expect(tempo?.sources[0]?.label).toContain('Die meisten:');
+      expect(
+        component.moderationCompassCards().find((card) => card.kind === 'nextStep')?.nextStepReason,
+      ).toBe('feedback');
       fixture.destroy();
     });
   });

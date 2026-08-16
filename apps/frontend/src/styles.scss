@@ -628,6 +628,24 @@ html {
   -webkit-overflow-scrolling: touch;
 }
 
+.cdk-overlay-pane.moderation-compass-dialog-panel {
+  width: min(52rem, calc(100vw - 1.5rem)) !important;
+  max-width: calc(100vw - 1rem) !important;
+  max-height: calc(100dvh - 1rem) !important;
+}
+
+.cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-surface {
+  overflow: hidden;
+}
+
+@media (max-width: 599px) {
+  .cdk-overlay-pane.moderation-compass-dialog-panel {
+    width: calc(100vw - 0.75rem) !important;
+    max-width: calc(100vw - 0.75rem) !important;
+    max-height: calc(100dvh - 0.75rem) !important;
+  }
+}
+
 .cdk-overlay-backdrop.word-cloud-dialog-backdrop {
   background: color-mix(in srgb, #08040f 80%, var(--mat-sys-primary) 20%);
   backdrop-filter: blur(12px) saturate(1.15);

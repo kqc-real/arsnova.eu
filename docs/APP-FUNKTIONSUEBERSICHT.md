@@ -331,6 +331,16 @@ Der Host sieht zusätzlich:
 - Rangliste
 - Team-Rangliste
 - aggregiertes Session-Feedback
+- Moderationskompass (Host-Button **Moderation** neben der Live-Leiste, alle
+  Live-Kanäle; Dialog mit Hinweiskarten aus Quiz-Ergebnissen, Fragen, Wortwolken
+  und Blitzlicht). Quellen springen auf Wunsch in den passenden Live-Kanal,
+  heben zugehörige Forum-Beiträge hervor (Badge **Aus dem Kompass**) oder öffnen
+  die Wortwolke zum Begriff in der Sortierung und Ansicht, aus der der Hinweis
+  stammt. Schwache Hilfsverben wie „helfen“ erscheinen nicht als Themenchip.
+  **Zurück** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut.
+  Present/Vote und beendete Sessions zeigen den Kompass nicht. Keine
+  automatischen Pin-/Archiv-/Phasenaktionen und kein neuer globaler Poller.
+  Story **8.9a** Host-UX ist teilweise umgesetzt; **8.9b/8.9c** bleiben offen.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 
