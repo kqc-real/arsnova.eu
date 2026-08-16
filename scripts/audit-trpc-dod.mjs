@@ -43,7 +43,8 @@ const DEFAULT_REAL_EVIDENCE_DIRS = [join(REPO_ROOT, 'apps/backend/src')];
 const DEFAULT_REAL_EVIDENCE_EXCLUDES = [join(REPO_ROOT, 'apps/backend/src/__tests__/trpc-dod-poc')];
 const DEFAULT_BASELINE = join(REPO_ROOT, '.github/trpc-dod-baseline.json');
 const BACKEND_VITEST_CONFIG = join(REPO_ROOT, 'apps/backend/vitest.config.ts');
-const BACKEND_VITEST_INCLUDE = 'src/**/*.test.ts';
+const BACKEND_VITEST_EVIDENCE_INCLUDE = 'src/**/*.test.ts';
+const BACKEND_VITEST_NON_EVIDENCE_INCLUDES = ['scripts/**/*.test.ts'];
 
 const SKIP_CALLEES = new Set([
   'describe.skip',
@@ -194,7 +195,16 @@ function readBackendVitestIncludes(configPath = BACKEND_VITEST_CONFIG) {
 
 function assertBackendVitestContract(configPath = BACKEND_VITEST_CONFIG) {
   const includes = readBackendVitestIncludes(configPath);
-  if (JSON.stringify(includes) !== JSON.stringify([BACKEND_VITEST_INCLUDE])) {
+  if (!includes.includes(BACKEND_VITEST_EVIDENCE_INCLUDE)) {
+    throw new Error(
+      `Unsupported backend Vitest include ${JSON.stringify(includes)}; update the tRPC DoD evidence matcher`,
+    );
+  }
+  const extras = includes.filter((pattern) => pattern !== BACKEND_VITEST_EVIDENCE_INCLUDE);
+  const unsupported = extras.filter(
+    (pattern) => !BACKEND_VITEST_NON_EVIDENCE_INCLUDES.includes(pattern),
+  );
+  if (unsupported.length > 0) {
     throw new Error(
       `Unsupported backend Vitest include ${JSON.stringify(includes)}; update the tRPC DoD evidence matcher`,
     );

@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // scripts/**/*.test.ts: Seed-Helfer; tRPC-DoD-Evidenz bleibt src/**/*.test.ts.
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     coverage: {
       provider: 'v8',

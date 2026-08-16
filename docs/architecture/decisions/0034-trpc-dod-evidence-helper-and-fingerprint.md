@@ -55,12 +55,7 @@ Beliebige `it(...)`-Tests mit Caller-Aufrufen zählen **nicht**. Evidenz in
 Testkörpers bleibt Review-Gegenstand; der Helper und das Audit prüfen
 Metadatenkonvention, kanonische Import-Bindung und grobe Leerheitsregeln.
 
-Der Realmodus deckt exakt den in `apps/backend/vitest.config.ts` festgelegten
-Backend-Testscope `src/**/*.test.ts` ab, also auch Tests neben Implementierungen
-unter `src/lib` oder `src/routers`. Ändert sich dieses Include, bricht der Audit
-strukturell ab, bis der Matcher bewusst nachgezogen wird. Nur die separat in
-Slice 2A ausgewerteten, nicht im `AppRouter` gemounteten PoC-Fixtures sind vom
-Realmodus ausgeschlossen.
+Der Realmodus deckt den Evidenz-Glob `src/**/*.test.ts` aus `apps/backend/vitest.config.ts` ab, also auch Tests neben Implementierungen unter `src/lib` oder `src/routers`. Zusätzliche Vitest-Includes (aktuell `scripts/**/*.test.ts` für Seed-Helfer) zählen **nicht** als tRPC-Evidenz und müssen im Audit allowlisted sein. Ein unbekanntes Include bricht den Audit strukturell ab, bis der Matcher bewusst nachgezogen wird. Nur die separat in Slice 2A ausgewerteten, nicht im `AppRouter` gemounteten PoC-Fixtures sind vom Realmodus ausgeschlossen.
 
 PoC-Direct-Evidenz muss die Fixture-Prozedur über `createCaller` tatsächlich
 ausführen.
