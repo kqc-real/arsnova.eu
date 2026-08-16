@@ -54,19 +54,25 @@
       <mat-icon aria-hidden="true">{{ frozen() ? 'play_arrow' : 'pause' }}</mat-icon>
       <span>{{ freezeLabel() }}</span>
     </button>
-    <button
-      mat-button
-      type="button"
-      class="qa-word-cloud-dialog__smooth"
-      [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
-      [disabled]="smoothingDisabled()"
-      [attr.aria-pressed]="smoothingPressed()"
-      [attr.aria-busy]="smoothingBusy() ? true : null"
-      (click)="toggleSmoothing()"
-    >
-      <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
-      <span>{{ smoothingLabel() }}</span>
-    </button>
+    <div class="qa-word-cloud-dialog__smooth-cluster">
+      <app-word-cloud-lemma-locale-select
+        [locale]="lemmaLocale()"
+        (localeChange)="setLemmaLocale($event)"
+      />
+      <button
+        mat-button
+        type="button"
+        class="qa-word-cloud-dialog__smooth"
+        [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+        [disabled]="smoothingDisabled()"
+        [attr.aria-pressed]="smoothingPressed()"
+        [attr.aria-busy]="smoothingBusy() ? true : null"
+        (click)="toggleSmoothing()"
+      >
+        <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+        <span>{{ smoothingLabel() }}</span>
+      </button>
+    </div>
   </div>
 
   @if (themeFallbackHint()) {

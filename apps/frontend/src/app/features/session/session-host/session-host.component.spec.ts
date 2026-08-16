@@ -289,6 +289,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   beforeEach(() => {
+    sessionStorage.removeItem('arsnova.wordCloudLemmaLocale.ABC123');
     vi.clearAllMocks();
     resetServerClockSkew();
     vi.stubGlobal('crypto', {
@@ -2523,11 +2524,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('laesst Freitext lokal, wenn die Glaettung nicht verfuegbar ist', async () => {
+  it('nimmt die Host-UI-Sprache als Wolkensprache und erlaubt eine explizite Abweichung', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
       order: 5,
-      text: 'Pourquoi un satellite reste-t-il en orbite?',
+      text: 'Warum bleibt ein Satellit im Orbit?',
       type: 'FREETEXT',
       difficulty: 'EASY',
       answers: [],
@@ -2537,11 +2539,155 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       questionId: '11111111-1111-4111-8111-111111111111',
       questionOrder: 5,
       questionType: 'FREETEXT',
-      questionText: 'Pourquoi un satellite reste-t-il en orbite?',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'fr_core_news_sm@3.8.0',
+        locale: 'fr',
+        entries: [
+          {
+            key: 'regression',
+            label: 'Regression',
+            count: 1,
+            basisLabel: 'Regression',
+            members: [],
+            variants: ['Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'de' }]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.qaWordCloudAnalysisLocale()).toBe('de');
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--freetext .word-cloud-lemma-locale__select',
+        ) !== null,
+      { timeout: 5000, interval: 25 },
+    );
+    const localeSelect = fixture.nativeElement.querySelector(
+      '.session-host__extra--freetext .word-cloud-lemma-locale__select',
+    ) as HTMLSelectElement | null;
+    expect(localeSelect?.value).toBe('de');
+
+    await component.setWordCloudLemmaLocale('fr');
+    fixture.detectChanges();
+    expect(component.qaWordCloudAnalysisLocale()).toBe('fr');
+    expect(localeSelect?.value).toBe('fr');
+
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toEqual([
+      [
+        expect.objectContaining({
+          mode: 'LEXICAL',
+          normalization: 'LEMMA',
+          locale: 'fr',
+        }),
+      ],
+    ]);
+
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        locale: 'en',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'en_core_web_sm@3.8.0',
+        entries: [
+          {
+            key: 'regression',
+            label: 'regression',
+            count: 1,
+            basisLabel: 'regression',
+            members: [],
+            variants: ['regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+    await component.setWordCloudLemmaLocale('en');
+    await vi.waitUntil(() => lemmaAnalyzeCalls().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()[1]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        normalization: 'LEMMA',
+        locale: 'en',
+      }),
+    ]);
+    fixture.destroy();
+  });
+
+  it('folgt der englischen Host-UI als Wolkensprache', () => {
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'en' }]);
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('en');
+    fixture.destroy();
+  });
+
+  it('laesst die italienische Host-UI ohne Wolkensprache, bis der Host eine waehlt', () => {
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('merkt die Wolkensprache in der Session auch nach italienischem UI-Default', async () => {
+    const fixture = setup();
+    await fixture.componentInstance.setWordCloudLemmaLocale('es');
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('es');
+    fixture.destroy();
+  });
+
+  it('stellt eine gemerkte Wolkensprache auch unter italienischer Host-UI wieder her', () => {
+    sessionStorage.setItem('arsnova.wordCloudLemmaLocale.ABC123', 'es');
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('es');
+    fixture.destroy();
+  });
+
+  it('laesst Freitext lokal, wenn die Glaettung nicht verfuegbar ist', async () => {
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Perché un satellite resta in orbita?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Perché un satellite resta in orbita?',
       responses: ['regression lineaire', 'orbite stable'],
     });
 
-    const fixture = setup([{ provide: LOCALE_ID, useValue: 'fr' }]);
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
     fixture.detectChanges();
     await fixture.whenStable();
     await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
@@ -2550,12 +2696,46 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     });
 
     const component = fixture.componentInstance;
+    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
     expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
-    expect(component.freetextWordCloudSmoothingHint()).toBe('Glättung nicht verfügbar');
+    expect(component.freetextWordCloudSmoothingHint()).toBe('Wähle die Sprache der Antworten');
     expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
     await component.toggleFreetextWordCloudSmoothing();
     expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
     expect(component.displayedFreetextAnalysisEntries()).toBeNull();
+
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        metric: 'TOP',
+        locale: 'es',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'es_core_news_sm@3.8.0',
+        entries: [
+          {
+            key: 'orbita',
+            label: 'orbita',
+            count: 1,
+            basisLabel: 'orbita',
+            members: [],
+            variants: ['orbite'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+    await component.setWordCloudLemmaLocale('es');
+    expect(component.qaWordCloudAnalysisLocale()).toBe('es');
+    expect(component.freetextWordCloudSmoothingDisabled()).toBe(false);
+    await component.toggleFreetextWordCloudSmoothing();
+    await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toEqual([
+      [expect.objectContaining({ locale: 'es', normalization: 'LEMMA' })],
+    ]);
     fixture.destroy();
   });
 
@@ -3295,14 +3475,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, open: true, title: 'Questions du public', moderationMode: true },
+        qa: { enabled: true, open: true, title: 'Domande del pubblico', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
       {
         id: '33333333-3333-4333-8333-333333333333',
-        text: 'Comment suivre les questions importantes?',
+        text: 'Come seguire le domande importanti?',
         upvoteCount: 5,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:00:00.000Z',
@@ -3312,7 +3492,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       },
     ]);
 
-    const fixture = setup([{ provide: LOCALE_ID, useValue: 'fr' }]);
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
     fixture.detectChanges();
     await fixture.whenStable();
     await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
@@ -3329,7 +3509,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
     expect(fixture.componentInstance.qaWordCloudTerms().length).toBeGreaterThan(0);
     expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
-    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe('Glättung nicht verfügbar');
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe(
+      'Wähle die Sprache der Antworten',
+    );
     await fixture.componentInstance.toggleQaWordCloudSmoothing();
     expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
 
@@ -3339,11 +3521,55 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       themeModeAvailable: () => boolean;
       themeFallbackHint: () => string | null;
       terms: () => Array<{ key: string }>;
+      lemmaLocale: () => string | null;
+      setLemmaLocale: (locale: string) => Promise<void>;
     };
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.themeFallbackHint()).toBeNull();
     expect(data.terms().length).toBeGreaterThan(0);
+    expect(data.lemmaLocale()).toBeNull();
+
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { normalization?: string; locale?: string }) =>
+        wordCloudAnalyzeResult({
+          mode: input.normalization === 'LEMMA' ? 'LEXICAL' : 'THEME',
+          locale: input.locale ?? 'fr',
+          metric: 'TOP',
+          normalization: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
+          normalizationApplied: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
+          modelId: 'fr_core_news_sm@3.8.0',
+          entries: [
+            {
+              key: 'domande',
+              label: 'domande',
+              count: 1,
+              basisLabel: 'domande',
+              members: [],
+              variants: ['domande'],
+              confidence: 0.9,
+            },
+          ],
+        }),
+    );
+    await data.setLemmaLocale('fr');
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('fr');
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'THEME', locale: 'fr', normalization: 'NONE' }),
+    );
+
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(lemmaAnalyzeCalls()).toEqual([
+      [expect.objectContaining({ locale: 'fr', normalization: 'LEMMA', mode: 'LEXICAL' })],
+    ]);
     fixture.destroy();
   });
 
@@ -3678,7 +3904,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       normalizationFallbackUsed: false,
       normalizationFallbackReason: null,
       fallbackLocale: 'de',
-      analysisVersion: '1.14b.7',
+      analysisVersion: '1.14b.8',
       modelId: null,
       snapshotHash: 'a'.repeat(64),
       entries: [],

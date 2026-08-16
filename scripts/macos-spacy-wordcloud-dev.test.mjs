@@ -31,6 +31,14 @@ test('--help nennt Demo-Quiz, Clean, Produktions-Build und Locales', () => {
   assert.match(result.stdout, /seed:qa-forum/);
 });
 
+test('prueft spaCy-Modelle de/en/fr/es', () => {
+  const source = readFileSync(script, 'utf8');
+  assert.match(source, /fr_core_news_sm/);
+  assert.match(source, /es_core_news_sm/);
+  assert.match(source, /Wolkensprache DE\/EN\/FR\/ES wählen/);
+  assert.match(source, /http:\/\/localhost:4200\/it\//);
+});
+
 test('setzt ein lokales YJS_SHARE_TOKEN_SECRET fuer start:prod', () => {
   const source = readFileSync(script, 'utf8');
   assert.match(source, /YJS_SHARE_TOKEN_SECRET/);
@@ -48,6 +56,15 @@ test('run_seeds übergibt Q&A-Flags literal, ohne $qa_flag', () => {
   assert.match(source, /seed:qa-forum -w @arsnova\/backend -- --code "\$CODE" --replace/);
   assert.match(source, /seed:qa-forum -w @arsnova\/backend -- --code "\$CODE" --append/);
   assert.doesNotMatch(source, /\$qa_flag/);
+});
+
+test('wendet das Prisma-Schema an, bevor Host-Session und Seeds laufen', () => {
+  const source = readFileSync(script, 'utf8');
+  assert.match(source, /npm run prisma:push/);
+  assert.match(source, /npm run prisma:generate/);
+  assert.match(source, /wait_for_postgres/);
+  const help = run(['--help']);
+  assert.match(help.stdout, /prisma:push/);
 });
 
 test('lehnt einen ungültigen Session-Code ab, bevor Clean oder Build startet', () => {

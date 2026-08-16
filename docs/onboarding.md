@@ -101,7 +101,7 @@ npm run spacy:macos-dev
 3. Den **6-stelligen Session-Code** ins Terminal eingeben (oder von vornherein `--code ABC123 --yes`).
 4. Hart neu laden. Quizkanal → Wortwolke; Q&A → Wortwolke.
 
-Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap). Sprachformen glätten nur in **de/en**. In **fr/es/it** ist „Glättung nicht verfügbar“ Absicht.
+Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap). Sprachformen glätten in **de/en/fr/es**. Unter **it** die Wolkensprache am Glätten-Button auf DE/EN/FR/ES stellen; ohne Wahl bleibt die Glättung aus.
 
 | Locale | URL                       |
 | ------ | ------------------------- |
@@ -206,7 +206,8 @@ belegt die Korrekturen der damals roten Gates.
 | Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                |
 | Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                              |
 | Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev` |
-| „Glättung nicht verfügbar“ in fr/es/it  | Sidecar hat nur MIT-Modelle **de/en**                                            | Absicht; in `http://localhost:4200/de/` oder `/en/` prüfen                          |
+| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:push` (der macOS-Helfer macht das jetzt selbst)                     |
+| „Wähle die Sprache der Antworten“ in it | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                         | Am Glätten-Button DE/EN/FR/ES wählen                                                |
 | `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                             |
 
 **Spezialfall Windows:** Wenn das Setup unter Windows „zufällig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.

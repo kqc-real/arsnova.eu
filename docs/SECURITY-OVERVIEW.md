@@ -232,8 +232,10 @@ hat keinen TCP-Port (`network_mode: none`), läuft non-root (UID 1000, passend
 zum `node`-User), capability-frei, read-only mit begrenztem `/tmp` und ist auf
 1 CPU / 1 GiB RAM / 64 PIDs limitiert. Compose startet ihn nur über das Profil
 `nlp`; `deploy.sh` lässt ihn aus. Der Kill-Switch `NLP_ENABLED` bleibt Default
-`false`. Das Default-Image enthält nur die MIT-Modelle `de_core_news_sm` und
-`en_core_web_sm`; `fr`/`es`/`it` gehören nicht dazu ([NOTICE](../NOTICE)).
+`false`. Das Default-Image enthält `de_core_news_sm` und `en_core_web_sm`
+(MIT), `fr_core_news_sm` (LGPL-LR) und `es_core_news_sm` (GPL-3.0). Es ist
+kein reines MIT-Artefakt. `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht
+dazu ([NOTICE](../NOTICE)).
 Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
 
 W3.1 hält externe PDF-Bilder nutzbar, ohne Chromium direkten Netzwerkzugriff zu

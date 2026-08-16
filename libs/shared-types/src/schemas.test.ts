@@ -748,7 +748,7 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       normalizationFallbackUsed: true,
       normalizationFallbackReason: 'NLP_DISABLED',
       fallbackLocale: 'en',
-      analysisVersion: '1.14b.7',
+      analysisVersion: '1.14b.8',
       modelId: null,
       snapshotHash: 'a'.repeat(64),
       entries: [
@@ -766,12 +766,30 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     expect(complete.normalizationApplied).toBe('NONE');
   });
 
-  it('lehnt Analyse-Locales ausser de/en ab', () => {
-    expect(() =>
+  it('akzeptiert fr/es und lehnt it als Analyse-Locale ab', () => {
+    expect(
       AnalyzeWordCloudInputSchema.parse({
         sessionCode: 'ABC123',
         mode: 'LEXICAL',
         locale: 'fr',
+        metric: 'TOP',
+        items: [sourceItem],
+      }).locale,
+    ).toBe('fr');
+    expect(
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'es',
+        metric: 'TOP',
+        items: [sourceItem],
+      }).locale,
+    ).toBe('es');
+    expect(() =>
+      AnalyzeWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'LEXICAL',
+        locale: 'it',
         metric: 'TOP',
         items: [sourceItem],
       }),

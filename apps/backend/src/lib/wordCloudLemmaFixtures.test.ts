@@ -3,6 +3,7 @@ import type { AnalyzeWordCloudInput } from '@arsnova/shared-types';
 import {
   WORD_CLOUD_MAX_ANALYZE_ITEMS,
   WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
+  wordCloudLemmaModelId,
 } from '@arsnova/shared-types';
 import { analyzeWordCloudSnapshot } from '../routers/wordCloud';
 import { createMemoryWordCloudAnalysisCache } from './wordCloudAnalysisCache';
@@ -14,7 +15,7 @@ describe('wordCloud lemma fixtures (Story 1.14b)', () => {
     async (fixture) => {
       const sidecar = vi.fn(async () => ({
         locale: fixture.locale,
-        modelId: fixture.locale === 'de' ? 'de_core_news_sm@3.8.0' : 'en_core_web_sm@3.8.0',
+        modelId: wordCloudLemmaModelId(fixture.locale) ?? '',
         items: fixture.sidecarItems,
       }));
       const input = {
@@ -33,6 +34,7 @@ describe('wordCloud lemma fixtures (Story 1.14b)', () => {
       });
 
       expect(sidecar).toHaveBeenCalledOnce();
+      expect(wordCloudLemmaModelId(fixture.locale)).toBeTruthy();
       expect(result.normalizationApplied).toBe('LEMMA');
       expect(result.fallbackUsed).toBe(false);
       const keys = result.entries.map((entry) => entry.key);

@@ -47,7 +47,7 @@ const output = {
   normalizationFallbackUsed: false,
   normalizationFallbackReason: null,
   fallbackLocale: 'de',
-  analysisVersion: '1.14b.7',
+  analysisVersion: '1.14b.8',
   modelId: 'de_core_news_sm@3.8.0',
   snapshotHash: 'a'.repeat(64),
   entries: [
@@ -71,7 +71,7 @@ describe('wordCloudAnalysisCache', () => {
   it('bildet Text-Schluessel ohne Rohtext und mit Analyseversion', () => {
     const textHash = hashWordCloudText('Häuser');
     const key = buildWordCloudTextCacheKey('de', textHash);
-    expect(key).toContain('nlp:wc:text:de:1.14b.7:');
+    expect(key).toContain('nlp:wc:text:de:1.14b.8:');
     expect(key).toContain(textHash);
     expect(key).not.toContain('Häuser');
   });

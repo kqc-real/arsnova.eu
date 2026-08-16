@@ -54,8 +54,8 @@ WICHTIG — Demo-Quiz mit Freitextfrage:
     http://localhost:4200/fr/   http://localhost:4200/es/
     http://localhost:4200/it/
   Gleicher Build auch unter http://localhost:3000/{de,en,fr,es,it}/
-  Sprachformen glätten nur in de/en. fr/es/it zeigen bewusst
-  „Glättung nicht verfügbar“.
+  Sprachformen glätten in de/en/fr/es. Unter it zuerst DE/EN/FR/ES
+  am Glätten-Button wählen (kein CC-BY-NC-SA-Modell im Default).
 
 Usage:
   npm run spacy:macos-dev
@@ -76,7 +76,7 @@ Ablauf:
   1. Aufräumen: free-dev-ports, npm run clean:generated, spaCy-Container,
      lokale arsnova-/spaCy-Images, baumelnde Docker-Images (Postgres/Redis
      und ihre Volumes bleiben).
-  2. docker:up:dev (Postgres/Redis), Host-Sidecar auf /tmp/arsnova-nlp.sock
+  2. docker:up:dev (Postgres/Redis), prisma:push, Host-Sidecar auf /tmp/arsnova-nlp.sock
   3. npm run build:prod (shared-types, Backend, Frontend de/en/fr/es/it)
   4. NLP_ENABLED in .env, npm run start:prod
   5. serve:localize:api auf Port 4200 (lokalisierter Dist + API-Proxy)
@@ -220,11 +220,42 @@ clean_workspace() {
 ensure_postgres_redis() {
   if port_in_use 5432 && port_in_use 6379; then
     info "Postgres (5432) und Redis (6379) laufen bereits."
+  else
+    docker_available || fail "Postgres/Redis sind nicht erreichbar und Docker fehlt. Bitte npm run docker:up:dev."
+    info "Starte Postgres und Redis …"
+    npm run docker:up:dev
+  fi
+  wait_for_postgres
+}
+
+postgres_accepts_connections() {
+  if docker exec arsnova-v3-postgres pg_isready -U arsnova_user -d arsnova_v3_dev >/dev/null 2>&1; then
     return 0
   fi
-  docker_available || fail "Postgres/Redis sind nicht erreichbar und Docker fehlt. Bitte npm run docker:up:dev."
-  info "Starte Postgres und Redis …"
-  npm run docker:up:dev
+  if command -v pg_isready >/dev/null 2>&1 \
+    && pg_isready -h 127.0.0.1 -p 5432 -d arsnova_v3_dev >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+wait_for_postgres() {
+  local i=0
+  while [[ "$i" -lt 30 ]]; do
+    if postgres_accepts_connections; then
+      return 0
+    fi
+    sleep 1
+    i=$((i + 1))
+  done
+  fail "Postgres auf Port 5432 ist nicht bereit (pg_isready)."
+}
+
+ensure_schema() {
+  [[ -f "$ROOT/.env" ]] || fail "Lokale .env fehlt. Bitte .env.example nach .env kopieren."
+  info "Synchronisiere Datenbankschema (prisma:push) …"
+  npm run prisma:push
+  npm run prisma:generate
 }
 
 sidecar_healthy() {
@@ -233,7 +264,7 @@ sidecar_healthy() {
 }
 
 python_has_models() {
-  "$1" -c 'import spacy; spacy.load("de_core_news_sm"); spacy.load("en_core_web_sm")' \
+  "$1" -c 'import spacy; spacy.load("de_core_news_sm"); spacy.load("en_core_web_sm"); spacy.load("fr_core_news_sm"); spacy.load("es_core_news_sm")' \
     >/dev/null 2>&1
 }
 
@@ -242,7 +273,7 @@ resolve_python() {
   if [[ -n "$VENV_DIR" ]]; then
     candidate="$VENV_DIR/bin/python"
     [[ -x "$candidate" ]] || fail "NLP_VENV hat kein python: $candidate"
-    python_has_models "$candidate" || fail "NLP_VENV enthält nicht de/en spaCy 3.8. Bitte venv neu anlegen."
+    python_has_models "$candidate" || fail "NLP_VENV enthält nicht de/en/fr/es spaCy 3.8. Bitte venv neu anlegen."
     PYTHON_BIN="$candidate"
     return 0
   fi
@@ -270,12 +301,12 @@ ensure_python() {
     || fail "Python 3.10+ erforderlich (gefunden: $(python3 --version 2>&1))."
 
   venv_dir="$ROOT/docker/spacy/.venv"
-  info "Lege spaCy-venv an unter $venv_dir (erster Lauf lädt die MIT-Modelle de/en, oft 1-3 Minuten) …"
+  info "Lege spaCy-venv an unter $venv_dir (erster Lauf lädt de/en/fr/es, oft mehrere Minuten) …"
   python3 -m venv "$venv_dir"
   py="$venv_dir/bin/python"
   "$py" -m pip install --upgrade pip >/dev/null
   "$py" -m pip install -r "$ROOT/docker/spacy/requirements.txt"
-  python_has_models "$py" || fail "spaCy-Modelle de/en konnten nicht geladen werden."
+  python_has_models "$py" || fail "spaCy-Modelle de/en/fr/es konnten nicht geladen werden."
   PYTHON_BIN="$py"
 }
 
@@ -588,6 +619,7 @@ else
 fi
 
 ensure_postgres_redis
+ensure_schema
 ensure_python
 info "Python: $PYTHON_BIN"
 start_sidecar "$PYTHON_BIN"
@@ -620,9 +652,9 @@ Fertig. Locales (hart neu laden):
 
   http://localhost:4200/de/   (Glättung an)
   http://localhost:4200/en/   (Glättung an)
-  http://localhost:4200/fr/   (Glättung nicht verfügbar)
-  http://localhost:4200/es/   (Glättung nicht verfügbar)
-  http://localhost:4200/it/   (Glättung nicht verfügbar)
+  http://localhost:4200/fr/   (Glättung an)
+  http://localhost:4200/es/   (Glättung an)
+  http://localhost:4200/it/   (Wolkensprache DE/EN/FR/ES wählen)
 
   Derselbe Build auch unter http://localhost:3000/{de,en,fr,es,it}/
 

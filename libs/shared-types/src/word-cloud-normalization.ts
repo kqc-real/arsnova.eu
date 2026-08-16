@@ -3,7 +3,8 @@
  *
  * spaCy liefert nur Lemma/POS-Hilfsdaten. Semantische Themen gehören zu Story 1.14c.
  * Diese Datei ist die schema-nahe Quelle für Normalisierungsmodus, Locale-/Lizenzgrenze
- * und den Resolver, der entscheidet, ob LEMMA tatsächlich angewandt werden darf.
+ * (`de`/`en` MIT, `fr` LGPL-LR, `es` GPL-3.0; `it` ausgeschlossen) und den Resolver,
+ * der entscheidet, ob LEMMA tatsächlich angewandt werden darf.
  */
 
 export const WORD_CLOUD_NORMALIZATION_VALUES = ['NONE', 'LEMMA'] as const;
@@ -11,7 +12,7 @@ type WordCloudNormalization = (typeof WORD_CLOUD_NORMALIZATION_VALUES)[number];
 export const WORD_CLOUD_DEFAULT_NORMALIZATION: WordCloudNormalization = 'NONE';
 
 /** Vertragsversion der Normalisierungsachse; Cache- und Snapshot-Schlüssel müssen sie enthalten. */
-export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.7';
+export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.8';
 
 /** Hartes Textbudget je Analyse-Item; identisch zum Sidecar-Client. */
 export const WORD_CLOUD_MAX_ITEM_TEXT_CHARS = 4_000;
@@ -42,11 +43,8 @@ export const WORD_CLOUD_TRANSIENT_NORMALIZATION_FALLBACK_REASONS = [
 /** Gepinnte spaCy-Runtime für das Sidecar (Phase 3). Patch-Updates bleiben in 3.8.x. */
 export const WORD_CLOUD_SPACY_RUNTIME_VERSION = '3.8.15';
 
-export const WORD_CLOUD_LEMMA_LOCALES = ['de', 'en'] as const;
+export const WORD_CLOUD_LEMMA_LOCALES = ['de', 'en', 'fr', 'es'] as const;
 export type WordCloudLemmaLocale = (typeof WORD_CLOUD_LEMMA_LOCALES)[number];
-
-export const WORD_CLOUD_LEMMA_DEFERRED_LOCALES = ['fr', 'es'] as const;
-export type WordCloudLemmaDeferredLocale = (typeof WORD_CLOUD_LEMMA_DEFERRED_LOCALES)[number];
 
 export const WORD_CLOUD_LEMMA_EXCLUDED_LOCALES = ['it'] as const;
 export type WordCloudLemmaExcludedLocale = (typeof WORD_CLOUD_LEMMA_EXCLUDED_LOCALES)[number];
@@ -60,12 +58,9 @@ export interface WordCloudLemmaModelPin {
 export const WORD_CLOUD_LEMMA_MODELS = {
   de: { id: 'de_core_news_sm', version: '3.8.0', license: 'MIT' },
   en: { id: 'en_core_web_sm', version: '3.8.0', license: 'MIT' },
-} as const satisfies Record<WordCloudLemmaLocale, WordCloudLemmaModelPin>;
-
-export const WORD_CLOUD_LEMMA_DEFERRED_MODELS = {
   fr: { id: 'fr_core_news_sm', version: '3.8.0', license: 'LGPL-LR' },
   es: { id: 'es_core_news_sm', version: '3.8.0', license: 'GPL-3.0' },
-} as const satisfies Record<WordCloudLemmaDeferredLocale, WordCloudLemmaModelPin>;
+} as const satisfies Record<WordCloudLemmaLocale, WordCloudLemmaModelPin>;
 
 export const WORD_CLOUD_LEMMA_EXCLUDED_MODELS = {
   it: { id: 'it_core_news_sm', version: '3.8.0', license: 'CC BY-NC-SA 3.0' },
@@ -83,7 +78,7 @@ type WordCloudNormalizationFallbackReason =
   (typeof WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS)[number];
 
 export function isWordCloudLemmaLocale(locale: string): locale is WordCloudLemmaLocale {
-  return locale === 'de' || locale === 'en';
+  return (WORD_CLOUD_LEMMA_LOCALES as readonly string[]).includes(locale);
 }
 
 export function isTransientWordCloudNormalizationFallback(

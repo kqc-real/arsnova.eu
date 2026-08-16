@@ -4475,6 +4475,12 @@ button.session-host__btn-discussion {
   color: var(--mat-sys-on-primary-container);
 }
 
+.session-host__smooth-cluster {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
 .session-host__extra-note {
   margin: 0 0 0.5rem;
   text-align: right;

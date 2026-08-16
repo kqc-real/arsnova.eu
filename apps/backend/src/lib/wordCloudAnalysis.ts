@@ -3,7 +3,7 @@ import type {
   AnalyzeWordCloudOutput,
   WordCloudAnalysisSourceItem,
 } from '@arsnova/shared-types';
-import { deu, eng } from 'stopword';
+import { deu, eng, fra, spa } from 'stopword';
 
 type WordCloudAnalysisEntry = AnalyzeWordCloudOutput['entries'][number];
 type SupportedLocale = AnalyzeWordCloudInput['locale'];
@@ -145,6 +145,8 @@ const ENGLISH_GROUPING_RULES: readonly GroupingRule[] = [
 const GROUPING_RULES_BY_LOCALE: Record<SupportedLocale, readonly GroupingRule[]> = {
   de: GERMAN_GROUPING_RULES,
   en: ENGLISH_GROUPING_RULES,
+  fr: [],
+  es: [],
 };
 
 /**
@@ -166,6 +168,8 @@ const STOPWORD_ALLOWLIST_BY_LOCALE: Record<SupportedLocale, readonly string[]> =
     'jetzt',
   ],
   en: ['make', 'makes', 'made', 'making', 'now'],
+  fr: ['faire'],
+  es: [],
 };
 
 function foldWordCloudStopword(token: string, locale: SupportedLocale): string {
@@ -403,6 +407,53 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
     'you',
     'question',
     'questions',
+  ]),
+  fr: createWordCloudStopwordLookup('fr', fra, [
+    'svp',
+    "s'il",
+    'vous',
+    'plait',
+    'encore',
+    'exactement',
+    'faut',
+    'doit',
+    'doivent',
+    'comment',
+    'quand',
+    'pourquoi',
+    'peux',
+    'peut',
+    'pouvez',
+    'besoin',
+    'juste',
+    'simplement',
+    'vraiment',
+    'maintenant',
+    'question',
+    'questions',
+    'sujet',
+    'sujets',
+  ]),
+  es: createWordCloudStopwordLookup('es', spa, [
+    'favor',
+    'exactamente',
+    'otra',
+    'vez',
+    'puede',
+    'pueden',
+    'necesito',
+    'necesitamos',
+    'realmente',
+    'ahora',
+    'momento',
+    'simplemente',
+    'justo',
+    'hacer',
+    'hace',
+    'pregunta',
+    'preguntas',
+    'tema',
+    'temas',
   ]),
 };
 
