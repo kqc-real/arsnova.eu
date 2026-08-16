@@ -13705,11 +13705,15 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogTitle" datatype="html">
         <source> Moderationskompass </source>
-        <target>Moderation compass</target>
+        <target>Moderation Compass</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntro" datatype="html">
-        <source> Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst. </source>
-        <target>A snapshot from the quiz, questions and live feedback. You decide what to pick up.</target>
+        <source> Dein Live-Überblick über Quiz, Q&amp;A und Blitzlicht. </source>
+        <target>Your live overview of Quiz, Q&amp;A, and Flash Polls.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
+        <source> Du entscheidest, welche Themen behandelt werden. </source>
+        <target>You decide which topics take center stage.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogCloseAria" datatype="html">
         <source>Moderationskompass schließen</source>
@@ -13719,13 +13723,9 @@
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
         <target>Jump to source: <x id="label" equiv-text="source.label"/></target>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationRuleBasedHint" datatype="html">
-        <source> Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst. </source>
-        <target>Only from this session’s signals. Nothing changes on its own.</target>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
-        <source> Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise. </source>
-        <target>Once questions, results or live feedback come in, you’ll see hints here.</target>
+        <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
+        <target>Key trends and insights will appear here as soon as your audience gets active.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>

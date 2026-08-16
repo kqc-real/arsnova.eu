@@ -12127,7 +12127,10 @@
         <source> Moderationskompass </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntro" datatype="html">
-        <source> Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst. </source>
+        <source> Dein Live-Überblick über Quiz, Q&amp;A und Blitzlicht. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
+        <source> Du entscheidest, welche Themen behandelt werden. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogCloseAria" datatype="html">
         <source>Moderationskompass schließen</source>
@@ -12135,11 +12138,8 @@
       <trans-unit id="sessionHost.moderationSourceJumpAria" datatype="html">
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationRuleBasedHint" datatype="html">
-        <source> Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst. </source>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
-        <source> Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise. </source>
+        <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>

@@ -13652,8 +13652,12 @@
         <target>Brújula de moderación</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntro" datatype="html">
-        <source> Überblick aus Quiz, Fragen und Blitzlicht. Du entscheidest, was du aufgreifst. </source>
-        <target>Una visión del cuestionario, las preguntas y el feedback en vivo. Tú decides qué retomas.</target>
+        <source> Dein Live-Überblick über Quiz, Q&amp;A und Blitzlicht. </source>
+        <target>Tu resumen en vivo de Quiz, Q&amp;A y Sondeos rápidos.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
+        <source> Du entscheidest, welche Themen behandelt werden. </source>
+        <target>Tú decides qué temas abordar.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogCloseAria" datatype="html">
         <source>Moderationskompass schließen</source>
@@ -13663,13 +13667,9 @@
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
         <target>Ir a la fuente: <x id="label" equiv-text="source.label"/></target>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationRuleBasedHint" datatype="html">
-        <source> Nur aus den Signalen dieser Session. Es ändert sich nichts von selbst. </source>
-        <target>Solo a partir de las señales de esta sesión. Nada cambia por sí solo.</target>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
-        <source> Sobald Fragen, Ergebnisse oder Blitzlicht da sind, siehst du hier Hinweise. </source>
-        <target>Cuando haya preguntas, resultados o feedback relámpago, verás pistas aquí.</target>
+        <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
+        <target>Las tendencias clave y los resultados aparecerán aquí en cuanto tu audiencia empiece a participar.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
