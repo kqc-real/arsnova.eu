@@ -18,8 +18,14 @@ export const MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY = 'arsnova-motd-suppress-ove
 export const MOTD_MOBILE_HOME_SEEN_KEY = 'arsnova-motd-mobile-home-seen';
 export const MOTD_MOBILE_FIRST_HOME_SESSION_KEY = 'arsnova-motd-mobile-first-home-session';
 
+/**
+ * Nach dem ersten Overlay-Angebot in dieser Browsersitzung kein weiteres
+ * Auto-Overlay (Reload, Rückkehr zur Startseite). Badge und Archiv bleiben.
+ */
+export const MOTD_OVERLAY_OFFERED_SESSION_KEY = 'arsnova-motd-overlay-offered-session';
+
 export type MotdClientStorageV1 = {
-  /** motdId → zuletzt bestätigte contentVersion (Overlay nicht mehr zeigen) */
+  /** motdId → zuletzt bestätigte contentVersion (diese Version nicht mehr als Overlay) */
   dismissed: Record<string, number>;
   /** Schlüssel `${motdId}:${contentVersion}:${kind}` */
   interactions: Record<string, true>;
@@ -117,6 +123,36 @@ export function consumeMotdOverlayReloadSuppress(): boolean {
   } catch {
     return false;
   }
+}
+
+/** Merkt, dass in dieser Sitzung bereits ein Auto-Overlay angeboten wurde. */
+export function markMotdOverlayOfferedThisSession(): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(MOTD_OVERLAY_OFFERED_SESSION_KEY, '1');
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function hasMotdOverlayBeenOfferedThisSession(): boolean {
+  if (typeof sessionStorage === 'undefined') return false;
+  try {
+    return sessionStorage.getItem(MOTD_OVERLAY_OFFERED_SESSION_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Nach dem Dismiss einer MOTD keine *andere* MOTD mehr automatisch öffnen.
+ * Eine höhere `contentVersion` derselben ID darf weiter unterbrechen (ADR-0018).
+ */
+export function shouldSkipQueuedMotdAutoOverlay(motdId: string): boolean {
+  const dismissed = readMotdClientStorage().dismissed;
+  const dismissedIds = Object.keys(dismissed);
+  if (dismissedIds.length === 0) return false;
+  return !Object.prototype.hasOwnProperty.call(dismissed, motdId);
 }
 
 /** Handy-Layout oder grober Primärzeiger: typischer Teilnehmer-Einstieg. */
