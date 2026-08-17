@@ -12,9 +12,7 @@ import {
 } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { tryExitDocumentFullscreen } from '../../core/document-fullscreen.util';
-import { Router, RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MatBadge } from '@angular/material/badge';
 import { MatIconButton } from '@angular/material/button';
@@ -36,7 +34,7 @@ import { MotdArchiveDialogComponent } from '../motd-archive-dialog/motd-archive-
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { LocaleSwitchGuardService } from '../../core/locale-switch-guard.service';
-import { isAppHomeRouterUrl, localizePath } from '../../core/locale-router';
+import { localizePath } from '../../core/locale-router';
 import { markHomeLocaleReloadSideEffects } from '../../core/locale-reload-focus';
 import {
   ConfirmLeaveDialogComponent,
@@ -70,13 +68,8 @@ export class TopToolbarComponent {
   private readonly localeId = inject(LOCALE_ID);
   private readonly document = inject(DOCUMENT);
   private readonly focusService = inject(PresetSnackbarFocusService);
-  private readonly router = inject(Router);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly dialog = inject(MatDialog);
-  readonly showHomeLink = toSignal(
-    this.router.events.pipe(map(() => !isAppHomeRouterUrl(this.router.url))),
-    { initialValue: !isAppHomeRouterUrl(this.router.url) },
-  );
 
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },

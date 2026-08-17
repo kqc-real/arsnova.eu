@@ -173,6 +173,20 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
+  it('bietet die Startseite nur über Logo und Produktname an', () => {
+    const fixture = createToolbar();
+    const brand = fixture.nativeElement.querySelector('.top-toolbar__brand') as HTMLAnchorElement;
+    expect(brand).not.toBeNull();
+    expect(brand.getAttribute('aria-label')).toBe('arsnova.eu Startseite');
+    expect(fixture.nativeElement.querySelector('.top-toolbar__home-link')).toBeNull();
+    expect(
+      Array.from(fixture.nativeElement.querySelectorAll('.top-toolbar__start mat-icon')).every(
+        (icon) => (icon as HTMLElement).textContent?.trim() !== 'home',
+      ),
+    ).toBe(true);
+    fixture.destroy();
+  });
+
   it('stilisiert Fokus direkt am Toggle-Button', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
