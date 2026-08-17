@@ -84,6 +84,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 ### 3.8 App-Header
 
 - **Nachrichten-Icon** öffnet Archiv/Übersicht (Sheet, Dialog oder eigene kleine View — Mobile-first).
+- **Ungelesen-Zähler** nur bei `archiveUnreadCount > 0`. Bei null ungelesenen Meldungen ist der Badge **vollständig unsichtbar** (kein leerer Punkt). Das Icon selbst bleibt, solange Archiv oder aktive MOTD existieren.
 - Wenn **kein Archiv-Eintrag** freigegeben und **kein aktives MOTD**: Icon **ausblenden** oder **deaktivieren** mit erklärendem Tooltip (i18n).
 
 ## 4. Technische Leitplanken
@@ -159,3 +160,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-08-13 | Abschnitt 9: lokale Seed-Kette um die Vision-MOTD **„Aus vielen Stimmen wird gemeinsame Erkenntnis“** ergänzt.                                                                                                                     |
 | 2026-08-13 | Abschnitte 3.6/4.1: Archiv-Lesestatus auf einen publikationsbasierten Cursor umgestellt; Legacy-`endsAt`-Felder bleiben API-kompatibel.                                                                                            |
 | 2026-08-14 | Abschnitte 3.5/3.6: Overlay auf Handy erst nach dem ersten Startseiten-Besuch (Reload derselben Sitzung bleibt unterdrückt; Desktop und Toolbar-Archiv unverändert).                                                               |
+| 2026-08-17 | Abschnitt 3.8: Toolbar-Zähler bei null ungelesenen MOTDs vollständig ausblenden.                                                                                                                                                   |

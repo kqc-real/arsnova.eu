@@ -118,7 +118,7 @@ Die Startseite ist der primäre Ort für die **Message of the Day**:
 - Sprachwechsel
 - Theme-Wechsel
 - lokaler Preset-Wechsel zwischen **Seriös** und **Spielerisch**
-- News-/Archiv-Icon mit Ungelesen-Badge
+- News-/Archiv-Icon; Ungelesen-Zähler nur bei ungelesenen Meldungen
 - Server-Status im Footer
 - PWA-Installations- und Update-Hinweise
 
@@ -740,7 +740,7 @@ Nutzende sehen:
 - aktuelle Meldung als Overlay auf der Startseite
 - Archiv-Dialog im Header
 - Archiv-Seite unter `/news-archive`
-- Ungelesen-Badges in Toolbar und Footer
+- Ungelesen-Zähler in der Toolbar nur bei ungelesenen Meldungen
 
 ### 9.2 Interaktionen
 
