@@ -98,7 +98,6 @@
   min-height: 48px;
 }
 
-/* Brand + Home-Icon gruppieren, damit auf Mobile beides links bleibt. */
 .top-toolbar__start {
   display: flex;
   align-items: center;
@@ -111,35 +110,6 @@
 /* MD3: Badge überlappt die Ecke des Icon-Buttons (matBadgeOverlap). */
 .top-toolbar__motd-btn {
   overflow: visible;
-}
-
-.top-toolbar__home-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  margin-inline: -8px;
-  color: var(--mat-sys-on-surface-variant);
-  text-decoration: none;
-  border-radius: 50%;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-  flex-shrink: 0;
-  .mat-icon {
-    font-size: 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-  &:hover {
-    color: var(--mat-sys-on-surface);
-    background-color: var(--mat-sys-surface-container-high);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
-  }
 }
 
 @media (min-width: 600px) {

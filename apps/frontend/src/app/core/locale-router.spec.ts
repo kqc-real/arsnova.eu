@@ -21,7 +21,7 @@ describe('locale-router', () => {
     document.querySelectorAll('base').forEach((el) => el.remove());
   });
 
-  describe('isAppHomeRouterUrl (Toolbar showHomeLink)', () => {
+  describe('isAppHomeRouterUrl', () => {
     it('erkennt Startseite ohne und mit Locale-Präfix', () => {
       expect(isAppHomeRouterUrl('/')).toBe(true);
       expect(isAppHomeRouterUrl('/de')).toBe(true);

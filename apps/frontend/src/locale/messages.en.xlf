@@ -22650,22 +22650,6 @@
           <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="topToolbar.homeTooltip" datatype="html">
-        <source>Zur Startseite</source>
-        <target>To home</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
-          <context context-type="linenumber">45</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="topToolbar.homeLinkAria" datatype="html">
-        <source>Zur Startseite</source>
-        <target>To home</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
-          <context context-type="linenumber">47</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="topToolbar.openMenuAria" datatype="html">
         <source>Einstellungen öffnen</source>
         <target>Open settings</target>
