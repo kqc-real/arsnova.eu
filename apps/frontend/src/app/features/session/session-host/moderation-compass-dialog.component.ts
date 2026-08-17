@@ -15,8 +15,11 @@ import type {
   ModerationCompassSource,
 } from './moderation-compass';
 
+export type ModerationCompassAnalysisMode = 'rule-based' | 'disabled';
+
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
+  analysisMode?: ModerationCompassAnalysisMode;
   onSourceActivate?: (source: ModerationCompassSource) => void;
 };
 
@@ -42,6 +45,7 @@ export class ModerationCompassDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<ModerationCompassDialogComponent>);
   readonly cards = computed(() => this.data.cards());
   readonly hasCards = computed(() => this.cards().length > 0);
+  readonly analysisMode = computed(() => this.data.analysisMode ?? 'rule-based');
 
   sourceJumpAria(source: ModerationCompassSource): string {
     return $localize`:@@sessionHost.moderationSourceJumpAria:Zur Quelle: ${source.label}:label:`;

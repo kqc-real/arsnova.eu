@@ -340,7 +340,8 @@ Der Host sieht zusätzlich:
   **Zurück** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut.
   Present/Vote und beendete Sessions zeigen den Kompass nicht. Keine
   automatischen Pin-/Archiv-/Phasenaktionen und kein neuer globaler Poller.
-  Story **8.9a** Host-UX ist teilweise umgesetzt; **8.9b/8.9c** bleiben offen.
+  Ruhige Zustände für fehlende Signale, regelbasierte Basis und deaktivierte
+  Analyse. Story **8.9a** ist umgesetzt; **8.9b/8.9c** bleiben offen.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

@@ -134,6 +134,8 @@ describe('qa router (Epic 8)', () => {
       expect(result[0]).not.toHaveProperty('bestScore');
       expect(result[0]).not.toHaveProperty('positiveVoteCount');
       expect(result[0]).not.toHaveProperty('negativeVoteCount');
+      expect(result[0]).not.toHaveProperty('moderationCompass');
+      expect(result[0]).not.toHaveProperty('compassCards');
     },
   );
 

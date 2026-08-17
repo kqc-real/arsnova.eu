@@ -1714,7 +1714,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         isControversial: question.isControversial,
         positiveVoteCount: question.positiveVoteCount,
         negativeVoteCount: question.negativeVoteCount,
+        score: question.score,
+        bestScore: question.bestScore,
+        controversyScore: question.controversyScore,
       })),
+      qaSortMode: this.qaSortMode(),
       qaTerms: this.moderationCompassQaTerms(),
       freetextTerms: [
         ...(compassTermsFromAnalysisEntries(this.displayedFreetextAnalysisEntries()) ??
@@ -1744,6 +1748,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
+        analysisMode: 'rule-based' as const,
         onSourceActivate: (source: ModerationCompassSource) => {
           void this.followModerationCompassSource(source);
         },
@@ -2240,6 +2245,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'numeric-spread':
         return quizSource(
           $localize`:@@sessionHost.moderationQuizSpread:Die Schätzungen liegen weit auseinander`,
+        );
+      case 'histogram-peak-out':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizHistogramPeak:Häufigster Schätzbereich: ${this.formatNumericHostStatValue(fact.from, question)}:from:–${this.formatNumericHostStatValue(fact.to, question)}:to: (${fact.share}:share: %), außerhalb des erwarteten Bereichs`,
         );
       case 'round-drop':
         return quizSource(

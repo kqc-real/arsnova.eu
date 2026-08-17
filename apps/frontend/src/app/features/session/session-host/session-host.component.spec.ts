@@ -11203,7 +11203,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(dialogOpenMock).toHaveBeenCalledTimes(1);
       const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
       expect(config['panelClass']).toBe('moderation-compass-dialog-panel');
-      const data = config['data'] as { cards: () => { kind: string }[] };
+      const data = config['data'] as {
+        cards: () => { kind: string }[];
+        analysisMode: 'rule-based' | 'disabled';
+      };
+      expect(data.analysisMode).toBe('rule-based');
       expect(data.cards().some((card) => card.kind === 'clarification')).toBe(true);
 
       const button = fixture.nativeElement.querySelector(
@@ -11565,6 +11569,174 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(
         component.moderationCompassCards().find((card) => card.kind === 'nextStep')?.nextStepReason,
       ).toBe('feedback');
+      fixture.destroy();
+    });
+
+    it('nimmt angepinnte Fragen in die Themenkarte und lässt Archiv weg', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.qaQuestions.set([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Bitte Kapitel 4 erklären',
+          upvoteCount: 6,
+          status: 'PINNED',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Alte Debatte',
+          upvoteCount: 0,
+          status: 'ARCHIVED',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          isControversial: true,
+          controversyScore: 0.9,
+          positiveVoteCount: 8,
+          negativeVoteCount: 7,
+        },
+      ]);
+      fixture.detectChanges();
+
+      const topics = component.moderationCompassCards().find((card) => card.kind === 'topics');
+      expect(
+        topics?.sources.some((source) => source.label.includes('Bitte Kapitel 4 erklären')),
+      ).toBe(true);
+      expect(
+        component
+          .moderationCompassCards()
+          .find((card) => card.kind === 'friction')
+          ?.sources.some((source) => source.label.includes('Alte Debatte')),
+      ).toBeFalsy();
+      fixture.destroy();
+    });
+
+    it('reiht offene Fragen nach BEST-Score', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      expect(component.qaSortMode()).toBe('BEST');
+      component.qaQuestions.set([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Weniger Wilson',
+          upvoteCount: 8,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          score: 8,
+          bestScore: 0.2,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Besserer Wilson',
+          upvoteCount: 1,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          score: 1,
+          bestScore: 0.8,
+        },
+      ]);
+      fixture.detectChanges();
+
+      expect(
+        component
+          .moderationCompassCards()
+          .find((card) => card.kind === 'clarification')
+          ?.sources.map((source) => source.label),
+      ).toEqual(['Besserer Wilson', 'Weniger Wilson']);
+      fixture.destroy();
+    });
+
+    it('nimmt Histogramm-Lage erst nach der Ergebnisfreigabe auf', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      const question = {
+        questionId: '66666666-6666-4666-8666-666666666666',
+        order: 0,
+        totalQuestions: 1,
+        text: 'Schätze den Messwert.',
+        type: 'NUMERIC_ESTIMATE' as const,
+        difficulty: 'MEDIUM' as const,
+        timer: null,
+        answers: [],
+        totalVotes: 16,
+        numericReferenceValue: 100,
+        numericIntervalLeft: 90,
+        numericIntervalRight: 110,
+        numericInputType: 'INTEGER' as const,
+        numericHistogram: [
+          { from: 40, to: 60, count: 12, inBand: false },
+          { from: 90, to: 110, count: 4, inBand: true },
+        ],
+      };
+      component.currentQuestionForHost.set(question);
+      expect(
+        component
+          .moderationCompassCards()
+          .some((card) =>
+            card.sources.some((source) => source.label.includes('Häufigster Schätzbereich')),
+          ),
+      ).toBe(false);
+
+      component.session.update((session) =>
+        session ? { ...session, status: 'RESULTS', currentQuestion: 0 } : session,
+      );
+      fixture.detectChanges();
+
+      expect(
+        component
+          .moderationCompassCards()
+          .some((card) =>
+            card.sources.some((source) =>
+              source.label.includes('Häufigster Schätzbereich: 40–60 (75 %)'),
+            ),
+          ),
+      ).toBe(true);
+      fixture.destroy();
+    });
+
+    it('bleibt ohne Q&A- und Blitzlichtkanal nutzbar', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+      ).not.toBeNull();
+      expect(fixture.componentInstance.moderationCompassCards()).toEqual([]);
       fixture.destroy();
     });
   });

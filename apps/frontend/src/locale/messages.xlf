@@ -12141,6 +12141,12 @@
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
         <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationRuleBased" datatype="html">
+        <source> Nur regelbasiert, ohne KI. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
+        <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
       </trans-unit>
@@ -12251,6 +12257,9 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizSpread" datatype="html">
         <source>Die Schätzungen liegen weit auseinander</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizHistogramPeak" datatype="html">
+        <source>Häufigster Schätzbereich: <x id="from" equiv-text="this.formatNumericHostStatValue(fact.from, question)"/>–<x id="to" equiv-text="this.formatNumericHostStatValue(fact.to, question)"/> (<x id="share" equiv-text="fact.share"/> %), außerhalb des erwarteten Bereichs</source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizRoundDrop" datatype="html">
         <source>Runde 2 hat weniger richtige Antworten als Runde 1</source>

@@ -13,6 +13,15 @@
       <span i18n="@@sessionHost.moderationDialogIntroDecide">
         Du entscheidest, welche Themen behandelt werden.
       </span>
+      <span class="moderation-compass-dialog__status">
+        @if (analysisMode() === 'disabled') {
+          <span i18n="@@sessionHost.moderationAnalysisOff">
+            Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.
+          </span>
+        } @else {
+          <span i18n="@@sessionHost.moderationRuleBased"> Nur regelbasiert, ohne KI. </span>
+        }
+      </span>
     </span>
   </span>
 </h2>

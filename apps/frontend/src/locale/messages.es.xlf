@@ -13671,6 +13671,14 @@
         <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
         <target>Las tendencias clave y los resultados aparecerán aquí en cuanto tu audiencia empiece a participar.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationRuleBased" datatype="html">
+        <source> Nur regelbasiert, ohne KI. </source>
+        <target>Solo basado en reglas, sin IA.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
+        <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>El análisis con IA está desactivado. Sigue la visión basada en reglas.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
         <target>Temas frecuentes</target>
@@ -13818,6 +13826,10 @@
       <trans-unit id="sessionHost.moderationQuizSpread" datatype="html">
         <source>Die Schätzungen liegen weit auseinander</source>
         <target>Las estimaciones están muy dispersas</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizHistogramPeak" datatype="html">
+        <source>Häufigster Schätzbereich: <x id="from" equiv-text="this.formatNumericHostStatValue(fact.from, question)"/>–<x id="to" equiv-text="this.formatNumericHostStatValue(fact.to, question)"/> (<x id="share" equiv-text="fact.share"/> %), außerhalb des erwarteten Bereichs</source>
+        <target>Rango de estimación más frecuente: <x id="from" equiv-text="this.formatNumericHostStatValue(fact.from, question)"/>–<x id="to" equiv-text="this.formatNumericHostStatValue(fact.to, question)"/> (<x id="share" equiv-text="fact.share"/> %), fuera del intervalo esperado</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizRoundDrop" datatype="html">
         <source>Runde 2 hat weniger richtige Antworten als Runde 1</source>

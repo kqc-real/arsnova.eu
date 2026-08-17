@@ -119,5 +119,24 @@ describe('DTO security (Story 2.4)', () => {
     expect(parsed).not.toHaveProperty('isControversial');
     expect(parsed).not.toHaveProperty('bestScore');
     expect(parsed).not.toHaveProperty('score');
+    expect(parsed).not.toHaveProperty('moderationCompass');
+    expect(parsed).not.toHaveProperty('compassCards');
+  });
+
+  it('strips compass and moderation artifacts from participant question payloads', () => {
+    const parsed = QuestionStudentDTOSchema.parse({
+      ...validStudentPayload,
+      moderationCompass: { cards: [] },
+      compassCards: [{ kind: 'topics' }],
+      numericHistogram: [{ from: 1, to: 2, count: 3, inBand: false }],
+      correctVoterCount: 4,
+      isCorrect: true,
+    });
+
+    expect(parsed).not.toHaveProperty('moderationCompass');
+    expect(parsed).not.toHaveProperty('compassCards');
+    expect(parsed).not.toHaveProperty('numericHistogram');
+    expect(parsed).not.toHaveProperty('correctVoterCount');
+    expect(parsed).not.toHaveProperty('isCorrect');
   });
 });

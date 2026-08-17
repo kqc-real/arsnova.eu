@@ -54,6 +54,9 @@ export type ModerationCompassQaQuestion = {
   readonly isControversial?: boolean;
   readonly positiveVoteCount?: number;
   readonly negativeVoteCount?: number;
+  readonly score?: number;
+  readonly bestScore?: number;
+  readonly controversyScore?: number;
 };
 
 export type ModerationCompassTermOrigin = {
@@ -80,6 +83,7 @@ export type ModerationCompassTempo = {
 
 export type ModerationCompassSnapshot = {
   readonly qaQuestions: readonly ModerationCompassQaQuestion[];
+  readonly qaSortMode?: ModerationCompassSortMode;
   readonly qaTerms: readonly ModerationCompassTerm[];
   readonly freetextTerms: readonly ModerationCompassTerm[];
   readonly extraTopicSources: readonly ModerationCompassSource[];
@@ -106,6 +110,12 @@ export type ModerationCompassQuizQuestion = {
     readonly stdDev?: number | null;
     readonly inBandPercent?: number | null;
   } | null;
+  readonly numericHistogram?: readonly {
+    readonly from: number;
+    readonly to: number;
+    readonly count: number;
+    readonly inBand: boolean;
+  }[];
   readonly numericRoundComparison?: {
     readonly inBandPercentDelta?: number | null;
     readonly pairedAnalysis?: {
@@ -160,6 +170,12 @@ export type ModerationQuizFact =
   | { readonly type: 'wrong-option'; readonly option: string }
   | { readonly type: 'numeric-median'; readonly median: number; readonly reference: number }
   | { readonly type: 'numeric-spread' }
+  | {
+      readonly type: 'histogram-peak-out';
+      readonly from: number;
+      readonly to: number;
+      readonly share: number;
+    }
   | { readonly type: 'round-drop' }
   | { readonly type: 'rating-low'; readonly avg: number }
   | { readonly type: 'freetext-repeat'; readonly text: string; readonly count: number };
@@ -215,6 +231,11 @@ export function collectModerationQuizFacts(
   const inBandPercent = question.numericStats?.inBandPercent;
   if (typeof inBandPercent === 'number' && inBandPercent < 50) {
     facts.push({ type: 'in-band', percent: Math.round(inBandPercent) });
+  }
+
+  const histogramPeak = outOfBandHistogramPeak(question.numericHistogram);
+  if (histogramPeak) {
+    facts.push(histogramPeak);
   }
 
   const inBandDelta = question.numericRoundComparison?.inBandPercentDelta;
@@ -355,6 +376,30 @@ function starAverage(distribution: Record<string, number>, totalVotes: number): 
 
 export function isNegativeFeedbackKey(key: string | null): boolean {
   return key !== null && NEGATIVE_FEEDBACK_KEYS.has(key);
+}
+
+function outOfBandHistogramPeak(
+  histogram: ModerationCompassQuizQuestion['numericHistogram'],
+): Extract<ModerationQuizFact, { type: 'histogram-peak-out' }> | null {
+  if (!histogram?.length) {
+    return null;
+  }
+  const total = histogram.reduce((sum, bin) => sum + positiveCount(bin.count), 0);
+  if (total < 8) {
+    return null;
+  }
+  const peak = [...histogram].sort(
+    (left, right) => positiveCount(right.count) - positiveCount(left.count),
+  )[0];
+  if (!peak || peak.inBand || positiveCount(peak.count) / total < 0.3) {
+    return null;
+  }
+  return {
+    type: 'histogram-peak-out',
+    from: peak.from,
+    to: peak.to,
+    share: Math.round((positiveCount(peak.count) / total) * 100),
+  };
 }
 
 function mostCommonFreeText(
@@ -586,21 +631,63 @@ function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompass
   return mixed;
 }
 
+function qaRankValue(
+  question: ModerationCompassQaQuestion,
+  sortMode: ModerationCompassSortMode | undefined,
+): number {
+  if (sortMode === 'BEST') {
+    return question.bestScore ?? 0;
+  }
+  if (sortMode === 'CONTROVERSIAL') {
+    return question.controversyScore ?? 0;
+  }
+  if (typeof question.score === 'number') {
+    return question.score;
+  }
+  return (question.positiveVoteCount ?? 0) - (question.negativeVoteCount ?? 0);
+}
+
+function compareQaQuestions(
+  left: ModerationCompassQaQuestion,
+  right: ModerationCompassQaQuestion,
+  sortMode: ModerationCompassSortMode | undefined,
+): number {
+  const rankDiff = qaRankValue(right, sortMode) - qaRankValue(left, sortMode);
+  if (rankDiff !== 0) {
+    return rankDiff;
+  }
+  return left.id.localeCompare(right.id);
+}
+
 function pendingQuestions(
   questions: readonly ModerationCompassQaQuestion[],
+  sortMode: ModerationCompassSortMode | undefined,
 ): ModerationCompassQaQuestion[] {
-  return questions.filter((question) => question.status === 'PENDING');
+  return questions
+    .filter((question) => question.status === 'PENDING')
+    .sort((left, right) => compareQaQuestions(left, right, sortMode));
+}
+
+function isFrictionQuestion(question: ModerationCompassQaQuestion): boolean {
+  if (question.status === 'ARCHIVED' || question.status === 'DELETED') {
+    return false;
+  }
+  if (question.isControversial === true) {
+    return true;
+  }
+  return (question.controversyScore ?? 0) > 0.5;
 }
 
 function controversialQuestions(
   questions: readonly ModerationCompassQaQuestion[],
 ): ModerationCompassQaQuestion[] {
-  return questions.filter(
-    (question) =>
-      question.isControversial === true &&
-      question.status !== 'ARCHIVED' &&
-      question.status !== 'DELETED',
-  );
+  return questions.filter(isFrictionQuestion).sort((left, right) => {
+    const scoreDiff = (right.controversyScore ?? 0) - (left.controversyScore ?? 0);
+    if (scoreDiff !== 0) {
+      return scoreDiff;
+    }
+    return left.id.localeCompare(right.id);
+  });
 }
 
 function quizConfusionSources(
@@ -705,7 +792,7 @@ export function buildModerationCompassCards(
     cards.push({ kind: 'topics', tone: 'neutral', sources: topicSources });
   }
 
-  const pending = pendingQuestions(snapshot.qaQuestions).filter(
+  const pending = pendingQuestions(snapshot.qaQuestions, snapshot.qaSortMode).filter(
     (question) => truncateCompassLabel(question.text).length > 0,
   );
   const quizSources = quizConfusionSources(snapshot.quizSources);

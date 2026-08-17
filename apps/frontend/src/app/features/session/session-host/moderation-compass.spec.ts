@@ -320,6 +320,14 @@ describe('buildModerationCompassCards', () => {
           text: 'Alte Debatte',
           status: 'ARCHIVED',
           isControversial: true,
+          controversyScore: 0.9,
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Gelöschte Debatte',
+          status: 'DELETED',
+          isControversial: true,
+          controversyScore: 0.95,
         },
       ],
     });
@@ -331,6 +339,70 @@ describe('buildModerationCompassCards', () => {
         target: { channel: 'qa', questionId: '11111111-1111-4111-8111-111111111111' },
       },
     ]);
+  });
+
+  it('reiht offene Fragen nach dem aktiven Q&A-Sortiermodus', () => {
+    const questions = [
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Weniger Zustimmung',
+        status: 'PENDING' as const,
+        score: 1,
+        bestScore: 0.8,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Mehr Zustimmung',
+        status: 'PENDING' as const,
+        score: 8,
+        bestScore: 0.2,
+      },
+    ];
+
+    expect(
+      buildModerationCompassCards({
+        ...emptySnapshot,
+        qaSortMode: 'TOP',
+        qaQuestions: questions,
+      })
+        .find((card) => card.kind === 'clarification')
+        ?.sources.map((source) => source.label),
+    ).toEqual(['Mehr Zustimmung', 'Weniger Zustimmung']);
+
+    expect(
+      buildModerationCompassCards({
+        ...emptySnapshot,
+        qaSortMode: 'BEST',
+        qaQuestions: questions,
+      })
+        .find((card) => card.kind === 'clarification')
+        ?.sources.map((source) => source.label),
+    ).toEqual(['Weniger Zustimmung', 'Mehr Zustimmung']);
+  });
+
+  it('reiht Reibung nach controversyScore und nutzt den Score auch ohne Flag', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaQuestions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Leicht umstritten',
+          status: 'ACTIVE',
+          isControversial: true,
+          controversyScore: 0.55,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Stark umstritten',
+          status: 'PINNED',
+          controversyScore: 0.82,
+        },
+      ],
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'friction')?.sources.map((source) => source.label),
+    ).toEqual(['Stark umstritten', 'Leicht umstritten']);
   });
 
   it('übernimmt Tempo nur mit vorhandener Tendenz', () => {
@@ -508,6 +580,17 @@ describe('collectModerationQuizFacts', () => {
         freeTextResponses: ['Bitte langsamer sprechen', 'Bitte langsamer sprechen'],
       }).map((fact) => fact.type),
     ).toEqual(['rating-low', 'freetext-repeat']);
+  });
+
+  it('nimmt den häufigsten Histogramm-Bereich außerhalb des Bands auf', () => {
+    expect(
+      collectModerationQuizFacts({
+        numericHistogram: [
+          { from: 40, to: 60, count: 12, inBand: false },
+          { from: 90, to: 110, count: 4, inBand: true },
+        ],
+      }),
+    ).toEqual([{ type: 'histogram-peak-out', from: 40, to: 60, share: 75 }]);
   });
 });
 
