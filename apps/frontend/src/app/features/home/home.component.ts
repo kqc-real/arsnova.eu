@@ -58,9 +58,12 @@ import {
   clearMotdThumbInteractionKeys,
   consumeMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
+  hasMotdOverlayBeenOfferedThisSession,
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  markMotdOverlayOfferedThisSession,
+  shouldSkipQueuedMotdAutoOverlay,
   shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
@@ -818,6 +821,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (shouldSuppressMotdOverlayOnMobileFirstHomeVisit()) {
       return;
     }
+    if (hasMotdOverlayBeenOfferedThisSession()) {
+      return;
+    }
     if (
       this.suppressMotdForJoinIntent() ||
       this.sessionCode().trim().length > 0 ||
@@ -827,6 +833,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const motd = await this.motdCurrent.getCurrent();
     if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
+      return;
+    }
+    if (shouldSkipQueuedMotdAutoOverlay(motd.id)) {
       return;
     }
     const activeElement = document.activeElement;
@@ -840,6 +849,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
     this.clearToolbarMotdDefer();
+    markMotdOverlayOfferedThisSession();
     const focusReturnCandidate =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&
