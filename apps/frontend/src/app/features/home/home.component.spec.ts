@@ -1460,6 +1460,69 @@ describe('HomeComponent', () => {
       );
     });
 
+    it('zeigt nach einem Overlay in derselben Sitzung keine weitere MOTD automatisch', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValue({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Erste Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      await comp['loadMotdOverlay']();
+      expect(comp.motd()).not.toBeNull();
+      const getCurrentCallsAfterFirst = vi.mocked(trpc.motd.getCurrent.query).mock.calls.length;
+
+      comp.motd.set(null);
+      await comp['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query).mock.calls.length).toBe(
+        getCurrentCallsAfterFirst,
+      );
+      expect(comp.motd()).toBeNull();
+    });
+
+    it('öffnet nach einem Dismiss nicht automatisch die nächste andere MOTD', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      const { markMotdDismissed } = await import('../../core/motd-storage');
+      markMotdDismissed('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 7);
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          contentVersion: 1,
+          markdown: 'Nächste Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      await comp['loadMotdOverlay']();
+
+      expect(comp.motd()).toBeNull();
+    });
+
+    it('öffnet eine neue Inhaltsversion derselben MOTD nach Dismiss weiterhin automatisch', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      const { markMotdDismissed } = await import('../../core/motd-storage');
+      markMotdDismissed('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 7);
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 8,
+          markdown: 'Aktualisierte Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      await comp['loadMotdOverlay']();
+
+      expect(comp.motd()?.contentVersion).toBe(8);
+    });
+
     it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({

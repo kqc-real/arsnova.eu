@@ -50,7 +50,7 @@ Konkrete Prozedurnamen und DTOs: siehe [`docs/features/motd.md`](../../features/
 
 ### 7. Clientzustand: localStorage
 
-- **„Overlay nicht erneut zeigen“** wird an **`motdId` + `contentVersion`** gebunden, nicht nur an „es gab ein Overlay“, damit inhaltliche Änderungen erneute Anzeige ermöglichen.
+- **„Overlay nicht erneut zeigen“** wird an **`motdId` + `contentVersion`** gebunden, nicht nur an „es gab ein Overlay“, damit inhaltliche Änderungen erneute Anzeige ermöglichen. Nach Dismiss einer MOTD öffnet die Startseite **keine andere** MOTD automatisch (Reload/Badge-Modell); eine höhere `contentVersion` derselben ID darf erneut als Overlay erscheinen.
 - **Schema-versioniertes** JSON unter stabilem Key **`arsnova-motd-v1`**, damit Migrationen möglich sind.
 
 ### 8. UX- und A11y-Pflichten (Kurz)

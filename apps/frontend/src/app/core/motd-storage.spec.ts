@@ -3,17 +3,21 @@ import {
   MOTD_LOCAL_STORAGE_KEY,
   MOTD_MOBILE_FIRST_HOME_SESSION_KEY,
   MOTD_MOBILE_HOME_SEEN_KEY,
+  MOTD_OVERLAY_OFFERED_SESSION_KEY,
   MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY,
   clearMotdThumbInteractionKeys,
   consumeMotdOverlayReloadSuppress,
   getMotdArchiveSeenUpToCursor,
+  hasMotdOverlayBeenOfferedThisSession,
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  markMotdOverlayOfferedThisSession,
   markMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   motdDismissedPairsForApi,
   setMotdArchiveSeenUpToCursor,
+  shouldSkipQueuedMotdAutoOverlay,
   shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
 } from './motd-storage';
 
@@ -110,6 +114,22 @@ describe('motd-storage', () => {
     clearMotdThumbInteractionKeys(id, 2);
     expect(hasMotdInteractionRecorded(id, 2, 'THUMB_UP')).toBe(false);
     expect(hasMotdInteractionRecorded(id, 2, 'THUMB_DOWN')).toBe(false);
+  });
+
+  it('merkt ein Overlay-Angebot nur für die aktuelle Browsersitzung', () => {
+    expect(hasMotdOverlayBeenOfferedThisSession()).toBe(false);
+    markMotdOverlayOfferedThisSession();
+    expect(sessionStorage.getItem(MOTD_OVERLAY_OFFERED_SESSION_KEY)).toBe('1');
+    expect(hasMotdOverlayBeenOfferedThisSession()).toBe(true);
+  });
+
+  it('unterdrückt die nächste andere MOTD nach einem Dismiss, nicht aber eine neue Version derselben ID', () => {
+    const firstId = '00000000-0000-4000-8000-000000000001';
+    const nextId = '00000000-0000-4000-8000-000000000002';
+    expect(shouldSkipQueuedMotdAutoOverlay(firstId)).toBe(false);
+    markMotdDismissed(firstId, 1);
+    expect(shouldSkipQueuedMotdAutoOverlay(nextId)).toBe(true);
+    expect(shouldSkipQueuedMotdAutoOverlay(firstId)).toBe(false);
   });
 
   it('unterdrückt MOTD-Overlay einmalig nach Locale-Reload', () => {
