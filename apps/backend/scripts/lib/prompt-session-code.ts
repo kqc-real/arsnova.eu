@@ -11,6 +11,14 @@ export function isSessionCode(value: string): boolean {
   return SESSION_CODE_PATTERN.test(value);
 }
 
+export function assertConcreteSessionCode(code: string): void {
+  if (/^X{6}$/.test(code)) {
+    throw new Error(
+      `„${code}“ ist ein Platzhalter. Bitte den echten 6-stelligen Code aus der Host-Ansicht verwenden (oben im Host-Tab, nicht Join).`,
+    );
+  }
+}
+
 export function isInteractiveStdio(): boolean {
   return Boolean(stdin.isTTY && stdout.isTTY);
 }
@@ -18,6 +26,7 @@ export function isInteractiveStdio(): boolean {
 export async function resolveSessionCode(provided: string): Promise<string> {
   const normalized = normalizeSessionCode(provided);
   if (isSessionCode(normalized)) {
+    assertConcreteSessionCode(normalized);
     return normalized;
   }
   if (provided.trim().length > 0) {
@@ -37,6 +46,7 @@ export async function resolveSessionCode(provided: string): Promise<string> {
       const raw = await readline.question('Session-Code (6 Zeichen): ');
       const code = normalizeSessionCode(raw);
       if (isSessionCode(code)) {
+        assertConcreteSessionCode(code);
         return code;
       }
       stdout.write('Ungültig. Bitte genau 6 Zeichen (A–Z, 0–9) eingeben.\n');

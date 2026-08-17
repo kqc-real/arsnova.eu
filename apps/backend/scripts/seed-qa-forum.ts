@@ -10,7 +10,7 @@
  *   npm run seed:qa-forum -w @arsnova/backend
  *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --replace
  *   npm run seed:qa-forum -w @arsnova/backend -- --dry-run
- *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext + Q&A): npm run spacy:macos-dev
+ *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext, Q&A, Kompass): npm run spacy:macos-dev
  *
  * Das Skript arbeitet direkt gegen Prisma. Es ist für lokale Test- und Review-Sessions gedacht,
  * nicht für Produktivdaten.

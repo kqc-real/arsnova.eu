@@ -6,6 +6,7 @@
   [class.session-host--with-channel-tabs]="showChannelTabs()"
   [class.session-host--with-live-banner]="effectiveStatus() !== 'FINISHED'"
   [class.session-host--immersive]="isImmersiveMode()"
+  [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
 >
   @if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {
@@ -501,7 +502,7 @@
             <span
               class="session-host__moderation-control-label"
               i18n="@@sessionHost.moderationButton"
-              >Moderation</span
+              >Kompass</span
             >
           </button>
         </div>
@@ -3620,6 +3621,7 @@
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }
                     <app-word-cloud
+                      #freetextWordCloud
                       [responses]="displayedFreetextResponses()"
                       [terms]="displayedFreetextVisibleTerms()"
                       [analysisEntries]="displayedFreetextAnalysisEntries()"
@@ -3826,15 +3828,31 @@
                         class="session-qa-filter-btn"
                         (click)="qaShowPinnedOnly.set(true)"
                         i18n-aria-label="@@sessionQa.filterPinnedAria"
-                        aria-label="Nur angeheftete Fragen anzeigen"
+                        aria-label="Nur hervorgehobene Fragen anzeigen"
                       >
                         <mat-icon aria-hidden="true">shield</mat-icon>
-                        <span i18n="@@sessionQa.filterPinnedLabel">Nur angeheftete</span>
+                        <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                       </button>
                     }
                   </div>
                 </div>
                 <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
+                @if (hasQaListFocus()) {
+                  <div class="session-qa-focus-bar">
+                    <p class="session-qa-focus-bar__hint" i18n="@@sessionQa.focusHint">
+                      Zugehörige Beiträge stehen oben und folgen der Sortierung.
+                    </p>
+                    <button
+                      type="button"
+                      class="session-qa-focus-bar__clear"
+                      (click)="clearQaListFocus()"
+                      i18n-aria-label="@@sessionQa.clearFocusAria"
+                      aria-label="Markierung lösen"
+                    >
+                      <span i18n="@@sessionQa.clearFocusLabel">Markierung lösen</span>
+                    </button>
+                  </div>
+                }
                 @if (qaShowNewBanner()) {
                   <button
                     type="button"
@@ -3959,11 +3977,9 @@
                             <span class="session-qa-card__marker" aria-hidden="true"></span>
                           }
                           @if (isQaCompassFocused(question.id)) {
-                            <span
-                              class="session-qa-card__badge session-qa-card__badge--compass"
-                              i18n="@@sessionHost.moderationCompassFocus"
-                              >Aus dem Kompass</span
-                            >
+                            <span class="session-qa-card__badge session-qa-card__badge--compass">{{
+                              qaFocusBadge()
+                            }}</span>
                           }
                           @if (question.isControversial) {
                             <span
@@ -4005,7 +4021,7 @@
                           <span
                             class="session-qa-card__metric session-qa-card__metric--best"
                             i18n="@@sessionQa.bestMetric"
-                            >Belastbare Zustimmung {{ formatQaPercent(question.bestScore) }}</span
+                            >Zustimmung {{ formatQaPercent(question.bestScore) }}</span
                           >
                         }
                         @if (
@@ -4059,7 +4075,7 @@
                   <div class="session-qa-empty session-qa-empty--filtered">
                     <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
                     <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
-                      Nur angeheftete aktiv – noch keine angehefteten Fragen vorhanden.
+                      Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
                     </p>
                   </div>
                 }
@@ -4078,15 +4094,15 @@
         class="session-host__exit-anchor"
         [class.session-host__exit-anchor--fixed]="showChannelTabs()"
         [class.session-host__exit-anchor--with-primary]="
-          effectiveStatus() === 'QUESTION_OPEN' ||
-          effectiveStatus() === 'DISCUSSION' ||
           showQuickFeedbackAnchorAction() ||
-          ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
-            !isLastQuestion()) ||
-          (effectiveStatus() === 'ACTIVE' &&
-            !quizStartQuestionPending() &&
-            !isQaSession() &&
-            hasCurrentQuizQuestionForHost())
+          (showQuizAnchorActions() &&
+            (effectiveStatus() === 'QUESTION_OPEN' ||
+              effectiveStatus() === 'DISCUSSION' ||
+              ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
+                !isLastQuestion()) ||
+              (effectiveStatus() === 'ACTIVE' &&
+                !quizStartQuestionPending() &&
+                hasCurrentQuizQuestionForHost())))
         "
         (wheel)="onExitAnchorWheel($event)"
         (touchstart)="onExitAnchorTouchStart($event)"
@@ -4104,6 +4120,7 @@
           Session beenden
         </button>
         @if (
+          showQuizAnchorActions() &&
           (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&
           !isFirstQuestion() &&
           !steppedBackToPreviousResult()
@@ -4144,9 +4161,9 @@
           </button>
         }
         @if (
+          showQuizAnchorActions() &&
           (effectiveStatus() === 'QUESTION_OPEN' || effectiveStatus() === 'ACTIVE') &&
           !quizStartQuestionPending() &&
-          !isQaSession() &&
           hasCurrentQuizQuestionForHost()
         ) {
           <button
@@ -4162,7 +4179,11 @@
             <span i18n="@@sessionHost.skipQuestion">Frage auslassen</span>
           </button>
         }
-        @if (effectiveStatus() === 'QUESTION_OPEN' && !quizStartQuestionPending()) {
+        @if (
+          showQuizAnchorActions() &&
+          effectiveStatus() === 'QUESTION_OPEN' &&
+          !quizStartQuestionPending()
+        ) {
           <button
             mat-flat-button
             color="primary"
@@ -4186,9 +4207,9 @@
           </button>
         }
         @if (
+          showQuizAnchorActions() &&
           effectiveStatus() === 'ACTIVE' &&
           !quizStartQuestionPending() &&
-          !isQaSession() &&
           hasCurrentQuizQuestionForHost()
         ) {
           @if (pendingTimerAccommodationCount(); as pendingCount) {
@@ -4272,7 +4293,9 @@
           }
         }
         @if (
-          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') && !isLastQuestion()
+          showQuizAnchorActions() &&
+          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
+          !isLastQuestion()
         ) {
           <button
             mat-flat-button
@@ -4286,7 +4309,7 @@
             Nächste Frage
           </button>
         }
-        @if (effectiveStatus() === 'DISCUSSION') {
+        @if (showQuizAnchorActions() && effectiveStatus() === 'DISCUSSION') {
           <div class="session-host__exit-anchor-action-pair">
             <button
               mat-flat-button

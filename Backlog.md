@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0), **8.5** (delegierbare Q&A-Moderation), **8.9b–8.9c** (optionale NLP-/Zusammenfassungsschicht über den Moderationskompass) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -114,7 +114,7 @@
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                                            | 🟡   | ✅ Fertig      |
 | 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                      | 🟡   | ✅ Fertig      |
 | 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                                   | 🟡   | ✅ Fertig      |
-| 8    | 8.9a  | Deterministischer Live-Moderationskompass                                          | 🟡   | ⬜ Offen       |
+| 8    | 8.9a  | Deterministischer Live-Moderationskompass                                          | 🟡   | ✅ Fertig      |
 | 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ⬜ Offen       |
 | 8    | 8.9c  | Optionale generative Moderationszusammenfassung                                    | 🟢   | ⬜ Offen       |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                         | 🟡   | ✅ Fertig      |
@@ -1735,8 +1735,8 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Component-/Unit-Tests für Kartenlogik, Quellenbelege, leere Zustände und fehlende Signalgruppen.
     - Backend-/DTO-Test, dass Teilnehmer-Payloads keine internen Kompass- oder Moderationsartefakte enthalten.
     - Smoke- oder Component-Test, dass deaktivierte/fehlende Signale die Host-Ansicht nicht blockieren.
-  - **Teilweise bereits umgesetzt / vorhandene Bausteine:**
-    - **Host-UX (laufend):** Button **Moderation** neben der Live-Leiste, großer Dialog mit regelbasierten Karten, klickbare Quellen (Kanalwechsel, Forum-Highlight, Wortwolken-Sprung inkl. Sortierung/Ansicht), **Zurück**, ruhiger Leerzustand; Present/Vote und `FINISHED` ohne Kompass. Noch nicht als Story abgeschlossen.
+  - **Umsetzungsstand Stand 2026-08-17:** Host-Button **Kompass** neben der Live-Leiste, Dialog mit regelbasierten Karten (`Themen`, `Klärung`, `Reibung`, `Tempo`). Der **nächste Schritt** ist der Vorschlagstext auf der auslösenden Karte, nicht eine zweite Quellenliste; tautologische Vorschläge auf einer einzelnen Karte entfallen. Klickbare Quellen (Kanalwechsel, Forum-Highlight, Wortwolken-Sprung inkl. Sortierung/Ansicht), **Zurück**, Markierung **Aus dem Kompass** bzw. **Aus der Wortwolke** mit **Markierung lösen**. Ruhige Zustände für fehlende Signale; Einschätzung aus den Live-Signalen. Quiz-Fakten erst nach `RESULTS`, inkl. Histogramm-Spitze außerhalb des Bands. Q&A-Ranking nutzt `score`/`bestScore`/`controversyScore` und den aktiven Sortiermodus; hervorgehobene Fragen als Themenquelle, Archiv/gelöscht ohne Reibung. Present/Vote und `FINISHED` ohne Kompass. Keine automatischen Pin-/Archiv-/Phasenaktionen, kein neuer globaler Poller, kein Teilnehmer-Fan-out. Moderatorzugang bleibt an Story **8.5** gebunden. i18n in `de`, `en`, `fr`, `es` und `it`.
+  - **Vorhandene Bausteine:**
     - **Story 1.2d** liefert numerische Schätzfragen mit Referenzwert, Toleranzband, Statistik, Histogramm, Zwei-Runden-Flow und Rundenvergleich.
     - **Story 1.14** liefert Freitext-Wortwolken mit `d3-cloud`-Layout, Freeze und Export.
     - **Story 8.6/8.7** liefern Q&A-Kontroversitäts- und Wilson-Score, getrennte Up-/Downvote-Aggregate, Host-Sortiermodi und die sortierabhängige Q&A-Wortwolke.

@@ -19,6 +19,11 @@
   gap: 0.2rem;
 }
 
+.moderation-compass-dialog__status {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
 .moderation-compass-dialog__close {
   position: absolute;
   top: 0.55rem;
@@ -120,6 +125,11 @@
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
   line-height: 1.5;
+}
+
+.moderation-compass-card__next-label {
+  margin-right: 0.35em;
+  font-weight: 650;
 }
 
 .moderation-compass-card__sources {

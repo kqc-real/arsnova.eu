@@ -48,7 +48,7 @@
   position: absolute;
   top: max(1rem, env(safe-area-inset-top, 0px) + 0.35rem);
   right: max(1rem, env(safe-area-inset-right, 0px) + 0.35rem);
-  z-index: 3;
+  z-index: 251;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   color: var(--mat-sys-on-surface);

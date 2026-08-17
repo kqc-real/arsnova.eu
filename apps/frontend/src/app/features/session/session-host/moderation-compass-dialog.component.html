@@ -13,6 +13,17 @@
       <span i18n="@@sessionHost.moderationDialogIntroDecide">
         Du entscheidest, welche Themen behandelt werden.
       </span>
+      <span class="moderation-compass-dialog__status">
+        @if (analysisMode() === 'disabled') {
+          <span i18n="@@sessionHost.moderationAnalysisOff">
+            Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.
+          </span>
+        } @else {
+          <span i18n="@@sessionHost.moderationRuleBased">
+            Einschätzung aus den sichtbaren Live-Signalen.
+          </span>
+        }
+      </span>
     </span>
   </span>
 </h2>
@@ -44,26 +55,35 @@
             <h3 class="moderation-compass-card__title">{{ cardTitle(card) }}</h3>
           </header>
           @if (nextStepText(card.nextStepReason); as suggestion) {
-            <p class="moderation-compass-card__suggestion">{{ suggestion }}</p>
+            <p class="moderation-compass-card__suggestion">
+              @if (card.kind !== 'nextStep') {
+                <strong class="moderation-compass-card__next-label"
+                  >{{ nextStepHeading() }}.</strong
+                >
+              }
+              {{ suggestion }}
+            </p>
           }
-          <ul class="moderation-compass-card__sources">
-            @for (source of card.sources; track source.kind + source.label) {
-              <li>
-                @if (source.target) {
-                  <button
-                    type="button"
-                    class="moderation-compass-card__source-button"
-                    [attr.aria-label]="sourceJumpAria(source)"
-                    (click)="activateSource(source)"
-                  >
+          @if (card.sources.length > 0) {
+            <ul class="moderation-compass-card__sources">
+              @for (source of card.sources; track source.kind + source.label) {
+                <li>
+                  @if (source.target) {
+                    <button
+                      type="button"
+                      class="moderation-compass-card__source-button"
+                      [attr.aria-label]="sourceJumpAria(source)"
+                      (click)="activateSource(source)"
+                    >
+                      {{ source.label }}
+                    </button>
+                  } @else {
                     {{ source.label }}
-                  </button>
-                } @else {
-                  {{ source.label }}
-                }
-              </li>
-            }
-          </ul>
+                  }
+                </li>
+              }
+            </ul>
+          }
         </article>
       }
     </div>

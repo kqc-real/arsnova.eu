@@ -158,7 +158,7 @@ Diese Stories bestimmen **keine** neue Page/URL, sondern Logik, Backend, globale
 | 6.5        | Barrierefreiheit                                                                                                            | Alle Routen                               |
 | 6.6        | UX-Testreihen                                                                                                               | Alle Routen / Forschungsschleife          |
 | 8.5        | Delegierbare Q&A-Moderation                                                                                                 | Backend + Host-UI                         |
-| 8.9a–8.9c  | Didaktischer Live-Moderationskompass (8.9a Host-Dialog teilweise), optionale Q&A-NLP-Kaskade und generative Zusammenfassung | Backend + Host-UI (`/session/:code/host`) |
+| 8.9a–8.9c  | Didaktischer Live-Moderationskompass (8.9a Host-Dialog umgesetzt), optionale Q&A-NLP-Kaskade und generative Zusammenfassung | Backend + Host-UI (`/session/:code/host`) |
 
 ---
 

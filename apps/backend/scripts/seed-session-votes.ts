@@ -11,7 +11,7 @@
  *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX
  *   npm run seed:session-votes -w @arsnova/backend -- --code 4XW4HX --question-number 2 --dry-run
  *   npm run seed:session-votes -w @arsnova/backend -- --freetext-file ../../tmp/pi-responses.txt
- *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext + Q&A): npm run spacy:macos-dev
+ *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext, Q&A, Kompass): npm run spacy:macos-dev
  *
  * Das Skript arbeitet direkt gegen Prisma. Es ist für lokale Review-Sessions gedacht,
  * nicht für Produktivdaten.

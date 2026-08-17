@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# macOS: Produktions-Build aller Locales, Host-spaCy-Sidecar, Seed für Freitext + Q&A.
+# macOS: Produktions-Build aller Locales, Host-spaCy-Sidecar, Seed für Freitext, Q&A und Moderationskompass.
 #
 # Docker-Volume /run/spacy/nlp.sock ist für Host-npm auf macOS nicht erreichbar.
 # Dieses Skript räumt lokale Build-Artefakte und alte arsnova-Images auf,
@@ -42,10 +42,12 @@ info() {
 
 print_usage() {
   cat <<'EOF'
-macOS-Helfer: Clean, Produktions-Build aller Locales, spaCy-Sidecar, Seeds
+macOS-Helfer: Clean, Produktions-Build aller Locales, spaCy-Sidecar, Seeds (Wortwolke + Moderationskompass 8.9a)
 
-WICHTIG — Demo-Quiz mit Freitextfrage:
+WICHTIG — Demo-Quiz als Host, nicht als Voter:
   Nach dem Start eine Host-Session mit dem Demo-Quiz (Praxis-Showcase) anlegen.
+  Den Host-Tab offen lassen (/session/CODE/host). Den Code nur ins Terminal
+  schreiben — nicht auf der Startseite eingeben (sonst landest du als Voter).
   Im Quizkanal die Freitextfrage anzeigen (DE: „Was hilft dir beim Lernen?“).
   Ohne diese Freitextfrage kann seed:session-votes die Wortwolke nicht befüllen.
 
@@ -67,7 +69,9 @@ Optionen:
   --yes             Hinweis bestätigen, ohne auf Enter zu warten
   --dry-run         Stack starten, Seeds nur prüfen, nichts schreiben
   --skip-clean      Dist, Caches und Docker-Images nicht löschen
-  --skip-build      npm run build:prod überspringen (vorhandener Dist)
+  --skip-build      npm run build:prod überspringen (vollständiger Dist:
+                    de/en/fr/es/it unter apps/frontend/dist/browser plus
+                    apps/backend/dist/index.js). Ein ng serve reicht nicht.
   --keep-backend    start:prod nicht neu starten
   --append-qa       Q&A-Fragen anhängen statt ersetzen
   --help            Diese Hilfe
@@ -80,7 +84,9 @@ Ablauf:
   3. npm run build:prod (shared-types, Backend, Frontend de/en/fr/es/it)
   4. NLP_ENABLED in .env, npm run start:prod
   5. serve:localize:api auf Port 4200 (lokalisierter Dist + API-Proxy)
-  6. seed:session-votes (Freitext) und seed:qa-forum (Default: ersetzen)
+  6. seed:session-votes (Freitext), seed:qa-forum (Default: ersetzen),
+     seed:moderation-compass (alle Host-Signale 8.9a: Q&A-Status/Scores,
+     Quiz-Ergebnisse, Tempo)
 EOF
 }
 
@@ -393,13 +399,30 @@ load_nvm_if_present() {
   command -v npm >/dev/null 2>&1 || fail "npm fehlt."
 }
 
+localized_dist_paths() {
+  printf '%s\n' \
+    "$ROOT/apps/frontend/dist/browser/de/index.html" \
+    "$ROOT/apps/frontend/dist/browser/en/index.html" \
+    "$ROOT/apps/frontend/dist/browser/fr/index.html" \
+    "$ROOT/apps/frontend/dist/browser/es/index.html" \
+    "$ROOT/apps/frontend/dist/browser/it/index.html" \
+    "$ROOT/apps/backend/dist/index.js"
+}
+
 require_localized_dist() {
-  [[ -f "$ROOT/apps/frontend/dist/browser/de/index.html" ]] \
-    && [[ -f "$ROOT/apps/frontend/dist/browser/en/index.html" ]] \
-    && [[ -f "$ROOT/apps/frontend/dist/browser/fr/index.html" ]] \
-    && [[ -f "$ROOT/apps/frontend/dist/browser/es/index.html" ]] \
-    && [[ -f "$ROOT/apps/frontend/dist/browser/it/index.html" ]] \
-    && [[ -f "$ROOT/apps/backend/dist/index.js" ]]
+  local path
+  local missing=()
+  while IFS= read -r path; do
+    if [[ ! -f "$path" ]]; then
+      missing+=("${path#"$ROOT/"}")
+    fi
+  done < <(localized_dist_paths)
+  if ((${#missing[@]} == 0)); then
+    return 0
+  fi
+  printf 'Fehlende Build-Artefakte:\n' >&2
+  printf '  %s\n' "${missing[@]}" >&2
+  return 1
 }
 
 build_prod() {
@@ -487,7 +510,7 @@ start_prod_backend() {
 start_localize_frontend() {
   info "Starte lokalisierten Dist auf Port 4200 (serve:localize:api, kein ng serve) …"
   require_localized_dist || fail \
-    "Kein vollständiger Locale-Build unter apps/frontend/dist/browser."
+    "Kein vollständiger Locale-Build (de/en/fr/es/it unter apps/frontend/dist/browser)."
   node "$ROOT/scripts/free-dev-ports.mjs" --ports=4200 >/dev/null
   : >"$FRONTEND_LOG"
   (
@@ -528,7 +551,8 @@ prompt_code_if_needed() {
   cat <<'EOF'
 
 Jetzt im Browser eine Host-Session mit dem Demo-Quiz starten
-(Freitextfrage anzeigen), dann den Session-Code eingeben.
+(Freitextfrage anzeigen). Host-Tab offen lassen, dann den
+Session-Code hier eingeben — nicht auf der Startseite joinen.
 
 EOF
   attempt=0
@@ -556,7 +580,11 @@ confirm_demo_quiz() {
   2. npm run build:prod erzeugt de/en/fr/es/it.
   3. Danach Host-Session mit dem Demo-Quiz starten.
      Quizkanal: Freitextfrage (DE: „Was hilft dir beim Lernen?“).
+     Host-Tab (/session/CODE/host) offen lassen. Code nur ins Terminal,
+     nicht ins Join-Feld auf der Startseite (das ist der Voter-Zugang).
   4. Q&A-Kanal darf an sein (das Seed schaltet ihn sonst mit an).
+  5. Danach schreibt seed:moderation-compass Q&A-Overlay, Quiz-Ergebnisse
+     und Tempo-Blitzlicht für den Moderationskompass (Button Moderation).
 
   Ohne diese Freitextfrage kann die Wortwolke nicht befüllt werden.
 ============================================================
@@ -594,6 +622,13 @@ run_seeds() {
       npm run seed:qa-forum -w @arsnova/backend -- --code "$CODE" --replace
     fi
   fi
+
+  info "Befülle Moderationskompass (8.9a) — seed:moderation-compass …"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    npm run seed:moderation-compass -w @arsnova/backend -- --code "$CODE" --dry-run
+  else
+    npm run seed:moderation-compass -w @arsnova/backend -- --code "$CODE"
+  fi
 }
 
 parse_args "$@"
@@ -628,7 +663,7 @@ ensure_env
 if [[ "$SKIP_BUILD" -eq 1 ]]; then
   info "build:prod übersprungen (--skip-build)."
   require_localized_dist || fail \
-    "Kein vollständiger Locale-Build unter apps/frontend/dist/browser. Ohne --skip-build starten."
+    "Kein vollständiger Locale-Build (de/en/fr/es/it). --skip-build weglassen oder zuerst npm run build:prod. ng serve auf 4200 reicht nicht."
 else
   build_prod
 fi
@@ -648,18 +683,22 @@ run_seeds
 
 cat <<EOF
 
-Fertig. Locales (hart neu laden):
+Fertig. Host-Ansicht in demselben Tab hart neu laden
+(nicht den Session-Code auf der Startseite eingeben — das ist der Voter-Join):
 
-  http://localhost:4200/de/   (Glättung an)
-  http://localhost:4200/en/   (Glättung an)
-  http://localhost:4200/fr/   (Glättung an)
-  http://localhost:4200/es/   (Glättung an)
-  http://localhost:4200/it/   (Wolkensprache DE/EN/FR/ES wählen)
+  http://localhost:4200/de/session/${CODE}/host
+  http://localhost:4200/en/session/${CODE}/host
+  http://localhost:4200/fr/session/${CODE}/host
+  http://localhost:4200/es/session/${CODE}/host
+  http://localhost:4200/it/session/${CODE}/host
 
-  Derselbe Build auch unter http://localhost:3000/{de,en,fr,es,it}/
+  Derselbe Host-Pfad unter http://localhost:3000/{de,en,fr,es,it}/session/${CODE}/host
 
   Quizkanal -> Freitextfrage -> Wortwolke -> Sprachformen glätten
   Q&A -> Wortwolke -> Einzelwörter / Sprachformen glätten
+  Unter it zuerst Wolkensprache DE/EN/FR/ES wählen
+  Button Moderation (Kompass). Tempo-Presence gilt ca. 3 Minuten.
+  Weitere Quiz-Fakten: jeweilige Frage im Quizkanal als Ergebnis anzeigen.
 
 Sidecar-Log: $SIDECAR_LOG
 Backend-Log: $BACKEND_LOG
