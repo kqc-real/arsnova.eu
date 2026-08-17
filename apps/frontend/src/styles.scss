@@ -1789,8 +1789,9 @@ $markdown-katex-flow-hosts:
   max-width: min(100vw - 1rem, 40rem) !important;
 }
 
-/* Motd-Zähler: MD3-Overlap behalten, Ziffern zentrieren; Breite für 99+ wachsen lassen. */
-.top-toolbar__motd-btn.mat-badge .mat-badge-content {
+/* Motd-Zähler: MD3-Overlap behalten, Ziffern zentrieren; Breite für 99+ wachsen lassen.
+ * `display: none` von `.mat-badge-hidden` muss !important gewinnen, sonst bleibt ein leerer Punkt. */
+.top-toolbar__motd-btn.mat-badge:not(.mat-badge-hidden) .mat-badge-content {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -1803,6 +1804,10 @@ $markdown-katex-flow-hosts:
   padding: 0 4px;
   font-size: var(--mat-badge-text-size, 0.6875rem);
   font-weight: 600;
+}
+
+.top-toolbar__motd-btn.mat-badge-hidden .mat-badge-content {
+  display: none !important;
 }
 
 /*

@@ -6,6 +6,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TopToolbarComponent } from './top-toolbar.component';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 
@@ -22,6 +23,9 @@ describe('TopToolbarComponent', () => {
   afterEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('preset-playful', 'dark', 'light');
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(false);
+    motdHeader.archiveUnreadCount.set(0);
   });
 
   function createToolbar() {
@@ -185,6 +189,49 @@ describe('TopToolbarComponent', () => {
       ),
     ).toBe(true);
     fixture.destroy();
+  });
+
+  it('blendet den MOTD-Zähler vollständig aus, wenn keine ungelesenen Meldungen da sind', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.archiveUnreadCount.set(0);
+    const fixture = createToolbar();
+    const btn = fixture.nativeElement.querySelector('.top-toolbar__motd-btn') as HTMLElement;
+
+    expect(btn).not.toBeNull();
+    expect(fixture.componentInstance.motdArchiveBadgeText()).toBe('');
+    expect(btn.classList.contains('mat-badge-hidden')).toBe(true);
+    fixture.destroy();
+  });
+
+  it('zeigt den MOTD-Zähler nur bei ungelesenen Meldungen', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.archiveUnreadCount.set(2);
+    const fixture = createToolbar();
+    const btn = fixture.nativeElement.querySelector('.top-toolbar__motd-btn') as HTMLElement;
+
+    expect(btn.classList.contains('mat-badge-hidden')).toBe(false);
+    expect(fixture.componentInstance.motdArchiveBadgeText()).toBe('2');
+    expect(btn.querySelector('.mat-badge-content')?.textContent?.trim()).toBe('2');
+    fixture.destroy();
+  });
+
+  it('erzwingt display:none für versteckte MOTD-Badges gegen den Zentrier-Override', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const stylesPath = join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    expect(styles).toMatch(
+      /\.top-toolbar__motd-btn\.mat-badge:not\(\.mat-badge-hidden\) \.mat-badge-content/,
+    );
+    expect(styles).toMatch(
+      /\.top-toolbar__motd-btn\.mat-badge-hidden \.mat-badge-content\s*\{[^}]*display:\s*none\s*!important/,
+    );
+    expect(styles).not.toMatch(
+      /\.top-toolbar__motd-btn\.mat-badge \.mat-badge-content\s*\{[^}]*display:\s*inline-flex\s*!important/,
+    );
   });
 
   it('stilisiert Fokus direkt am Toggle-Button', async () => {
