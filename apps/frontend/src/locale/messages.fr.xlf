@@ -13672,8 +13672,8 @@
         <target>Les tendances clés et les résultats apparaîtront ici dès que ton public commencera à participer.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationRuleBased" datatype="html">
-        <source> Nur regelbasiert, ohne KI. </source>
-        <target>Uniquement basé sur des règles, sans IA.</target>
+        <source> Einschätzung aus den sichtbaren Live-Signalen. </source>
+        <target>Repères tirés des signaux live visibles.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
@@ -13736,8 +13736,8 @@
         <target>Ouvrir la boussole de modération, pistes disponibles</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationButton" datatype="html">
-        <source>Moderation</source>
-        <target>Modération</target>
+        <source>Kompass</source>
+        <target>Boussole</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationReturn" datatype="html">
         <source>Zurück</source>
@@ -13750,6 +13750,30 @@
       <trans-unit id="sessionHost.moderationCompassFocus" datatype="html">
         <source>Aus dem Kompass</source>
         <target>Depuis la boussole</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationWordCloudFocus" datatype="html">
+        <source>Aus der Wortwolke</source>
+        <target>Depuis le nuage de mots</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.focusHint" datatype="html">
+        <source>Zugehörige Beiträge stehen oben und folgen der Sortierung.</source>
+        <target>Les contributions liées restent en haut et suivent le tri.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.clearFocusLabel" datatype="html">
+        <source>Markierung lösen</source>
+        <target>Retirer le repère</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.clearFocusAria" datatype="html">
+        <source>Markierung lösen</source>
+        <target>Retirer le repère</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudItemSingular" datatype="html">
+        <source>Frage</source>
+        <target>question</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudItemPlural" datatype="html">
+        <source>Fragen</source>
+        <target>questions</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrong" datatype="html">
         <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben · <x id="question" equiv-text="stem"/></source>
@@ -13772,8 +13796,8 @@
         <target>Retours</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationTopicWeight" datatype="html">
-        <source>Begriffe gewichtet nach <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
-        <target>Termes pondérés selon <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></target>
+        <source>Gewichtung: <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
+        <target>Pondération : <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPinned" datatype="html">
         <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
@@ -15112,16 +15136,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterPinnedAria" datatype="html">
-        <source>Nur angeheftete Fragen anzeigen</source>
-        <target>Afficher uniquement les questions épinglées</target>
+        <source>Nur hervorgehobene Fragen anzeigen</source>
+        <target>Afficher uniquement les questions mises en avant</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3723</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterPinnedLabel" datatype="html">
-        <source>Nur angeheftete</source>
-        <target>Épinglées seulement</target>
+        <source>Nur hervorgehobene</source>
+        <target>Uniquement mises en avant</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3726</context>
@@ -15184,8 +15208,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.bestMetric" datatype="html">
-        <source>Belastbare Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
-        <target>Approbation fiable <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
+        <source>Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
+        <target>Adhésion <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3892,3893</context>
@@ -15200,8 +15224,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
-        <source> Nur angeheftete aktiv – noch keine angehefteten Fragen vorhanden.</source>
-        <target>Vue épinglée active – aucune question épinglée pour le moment.</target>
+        <source> Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.</source>
+        <target>Vue « mises en avant » – aucune question mise en avant pour le moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3945,3947</context>
@@ -15604,8 +15628,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>belastbare Zustimmung</source>
-        <target>approbation fiable</target>
+        <source>beste Fragen</source>
+        <target>meilleures questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1126</context>
@@ -15712,24 +15736,24 @@
         <target>Langue</target>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
-        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions épinglées restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions mises en avant restent signalées, sans être remontées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions aux réactions partagées. Les questions épinglées restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Affiche d’abord les questions aux réactions partagées. Les questions mises en avant restent signalées, sans être remontées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintTop" datatype="html">
-        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions avec le plus de votes positifs. Les questions épinglées restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Affiche d’abord les questions avec le plus de votes positifs. Les questions mises en avant restent signalées, sans être remontées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1196</context>

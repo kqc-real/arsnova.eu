@@ -1,4 +1,4 @@
-import { computed, Component, inject } from '@angular/core';
+import { computed, Component, inject, ViewChild } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
@@ -65,6 +65,7 @@ export type QaWordCloudDialogData = {
 })
 export class QaWordCloudDialogComponent {
   readonly data = inject<QaWordCloudDialogData>(MAT_DIALOG_DATA);
+  @ViewChild(WordCloudComponent) private wordCloud?: WordCloudComponent;
 
   readonly responses = computed(() => this.data.responses());
   readonly weightedResponses = computed(() => this.data.weightedResponses());
@@ -102,6 +103,10 @@ export class QaWordCloudDialogComponent {
   });
   readonly lemmaLocale = computed(() => this.data.lemmaLocale());
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
+
+  selectedSourceIds(): readonly string[] {
+    return this.wordCloud?.selectedSourceIds() ?? [];
+  }
 
   setSortMode(mode: QaQuestionSortMode): void {
     if (mode === this.sortMode()) {

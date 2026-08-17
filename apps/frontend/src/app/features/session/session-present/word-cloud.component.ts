@@ -238,6 +238,43 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.showActionsPanel() ||
       (!this.outputOnly() && (this.showResponsesPanel() || this.showReleaseNote())),
   );
+  readonly selectedSourceIds = computed(() => {
+    const selected = this.selectedGroupKey();
+    if (!selected) {
+      return [] as string[];
+    }
+
+    const ids: string[] = [];
+    const seen = new Set<string>();
+    const collect = (sourceId: string | undefined): void => {
+      const id = sourceId?.trim() ?? '';
+      if (!id || seen.has(id)) {
+        return;
+      }
+      seen.add(id);
+      ids.push(id);
+    };
+
+    for (const term of this.filteredTerms() ?? []) {
+      if (term.key !== selected) {
+        continue;
+      }
+      for (const member of term.members) {
+        collect(member.sourceId);
+      }
+    }
+
+    for (const entry of this.filteredAnalysisEntries() ?? []) {
+      if (entry.key !== selected) {
+        continue;
+      }
+      for (const member of entry.members) {
+        collect(member.sourceId);
+      }
+    }
+
+    return ids;
+  });
 
   private static readonly COLLAPSED_PRESENTATION_FRAME_HEIGHT_PX = 80;
 
@@ -970,6 +1007,30 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   toggleResponses(): void {
     this.showResponses.update((value) => !value);
+  }
+
+  revealSelectedResponses(): boolean {
+    if (!this.selectedGroupKey()) {
+      return false;
+    }
+
+    this.showResponses.set(true);
+    this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+    return true;
+  }
+
+  revealFocusedOrSelectedResponses(): boolean {
+    if (!this.selectedGroupKey()) {
+      const label = this.focusedTermLabel()?.trim() ?? '';
+      if (label) {
+        const match = this.findFocusedWord(this.words(), label);
+        if (match) {
+          this.selectedGroupKey.set(match.groupKey);
+        }
+      }
+    }
+
+    return this.revealSelectedResponses();
   }
 
   showMoreResponses(): void {

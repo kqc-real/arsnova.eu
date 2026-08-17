@@ -573,10 +573,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
   readonly qaCompassFocusQuestionId = signal<string | null>(null);
   readonly qaCompassFocusQuestionIds = signal<ReadonlySet<string>>(new Set());
+  readonly qaFocusOrigin = signal<'compass' | 'word-cloud' | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
@@ -796,6 +798,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Wörter und Phrasen in den sichtbaren Q&A-Fragen dominieren.`;
   readonly qaWordCloudAnalysisVariant = signal<WordCloudAnalysisVariant>('THEME');
   readonly qaWordCloudDialogOpen = signal(false);
+  private qaWordCloudDialogRef: { close?: (result?: unknown) => void } | null = null;
   readonly qaWordCloudFrozen = signal(false);
   readonly frozenQaWordCloudQuestions = signal<QaQuestionDTO[] | null>(null);
   readonly qaWordCloudThemeAnalysisPending = signal(false);
@@ -1260,6 +1263,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(
     () => this.isRunningSession() || this.isQuizLobbyImmersive(),
   );
+  /** Quiz-Steuerung in der Aktionsleiste nur im Quiz-Kanal, nicht in Q&A oder Blitzlicht. */
+  readonly showQuizAnchorActions = computed(() => {
+    if (this.isQaSession() || !this.channels().quiz) {
+      return false;
+    }
+    return this.activeChannel() === 'quiz';
+  });
   /**
    * Quiz-Kanal: ACTIVE (z. B. nach Fragerunden-Start), aber noch keine Quiz-Frage – kein Voting,
    * daher keine „Ergebnis zeigen“-Steuerung; erste Frage explizit starten.
@@ -1365,13 +1375,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly qaVisibleQuestions = computed(() => {
     const selectedNickname = this.qaSelectedAuthorNickname();
-    const questions = this.qaFilteredQuestions();
-    if (!selectedNickname) {
+    const questions = selectedNickname
+      ? this.qaFilteredQuestions().filter(
+          (question) => this.qaQuestionAuthorNickname(question) === selectedNickname,
+        )
+      : this.qaFilteredQuestions();
+    const focused = this.qaCompassFocusQuestionIds();
+    if (focused.size === 0) {
       return questions;
     }
-    return questions.filter(
-      (question) => this.qaQuestionAuthorNickname(question) === selectedNickname,
-    );
+
+    const focusedQuestions: QaQuestionDTO[] = [];
+    const rest: QaQuestionDTO[] = [];
+    for (const question of questions) {
+      if (focused.has(question.id)) {
+        focusedQuestions.push(question);
+      } else {
+        rest.push(question);
+      }
+    }
+    focusedQuestions.sort((left, right) => this.compareQaForumSort(left, right));
+    return [...focusedQuestions, ...rest];
   });
   readonly liveQaWordCloudQuestions = computed(() => {
     const visibleQuestions = this.qaQuestions().filter(
@@ -1411,7 +1435,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudMetricLabel = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.wordCloudMetricBest:belastbare Zustimmung`;
+        return $localize`:@@sessionQa.wordCloudMetricBest:beste Fragen`;
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudMetricControversial:Kontroverse`;
       default:
@@ -1600,11 +1624,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
       default:
-        return $localize`:@@sessionQa.sortHintTop:Zeigt Fragen mit den meisten positiven Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintTop:Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
     }
   });
   readonly qaWordCloudOpenLabel = computed(
@@ -1646,6 +1670,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     try {
       const { QaWordCloudDialogComponent } = await import('./qa-word-cloud-dialog.component');
+      this.syncWordCloudOverlayTop();
       const dialogRef = this.dialog.open(QaWordCloudDialogComponent, {
         data: {
           responses: () => this.qaWordCloudResponses(),
@@ -1674,8 +1699,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           toggleSmoothing: () => this.toggleQaWordCloudSmoothing(),
           lemmaLocale: () => this.qaWordCloudAnalysisLocale(),
           setLemmaLocale: (locale: WordCloudLemmaLocale) => this.setWordCloudLemmaLocale(locale),
-          itemLabelSingular: 'Frage',
-          itemLabelPlural: 'Fragen',
+          itemLabelSingular: $localize`:@@sessionQa.wordCloudItemSingular:Frage`,
+          itemLabelPlural: $localize`:@@sessionQa.wordCloudItemPlural:Fragen`,
           focusedTermLabel: () => this.moderationCompassFocusedTerm(),
         },
         autoFocus: false,
@@ -1689,17 +1714,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         panelClass: 'word-cloud-dialog-panel',
         backdropClass: 'word-cloud-dialog-backdrop',
       });
-      dialogRef.afterClosed().subscribe(() => {
+      this.qaWordCloudDialogRef = dialogRef;
+      let selectedIds: string[] = [];
+      dialogRef.beforeClosed?.().subscribe(() => {
+        selectedIds = [...(dialogRef.componentInstance?.selectedSourceIds?.() ?? [])];
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        this.qaWordCloudDialogRef = null;
         this.qaWordCloudDialogOpen.set(false);
+        this.clearWordCloudOverlayTop();
         this.qaWordCloudFrozen.set(false);
         this.frozenQaWordCloudQuestions.set(null);
-        const focusId = this.qaCompassFocusQuestionId();
-        if (this.activeChannel() === 'qa' && focusId) {
-          this.scrollHostQaQuestionIntoView(focusId);
-        }
+        const fromResult = Array.isArray(result)
+          ? result.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+          : [];
+        this.restoreQaFocusAfterWordCloudClose(fromResult.length > 0 ? fromResult : selectedIds);
       });
     } catch (error) {
+      this.qaWordCloudDialogRef = null;
       this.qaWordCloudDialogOpen.set(false);
+      this.clearWordCloudOverlayTop();
       this.qaWordCloudFrozen.set(false);
       this.frozenQaWordCloudQuestions.set(null);
       throw error;
@@ -1825,7 +1859,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!hasQaTerms) {
       return null;
     }
-    return $localize`:@@sessionHost.moderationTopicWeight:Begriffe gewichtet nach ${this.qaWordCloudMetricLabel()}:metric:`;
+    return $localize`:@@sessionHost.moderationTopicWeight:Gewichtung: ${this.qaWordCloudMetricLabel()}:metric:`;
   }
 
   async followModerationCompassSource(source: ModerationCompassSource): Promise<void> {
@@ -1853,7 +1887,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       }
       this.moderationCompassFocusedTerm.set(target.termLabel ?? null);
-      this.applyQaCompassFocus(this.resolveQaCompassMemberQuestionIds(target));
+      this.applyQaCompassFocus(this.resolveQaCompassMemberQuestionIds(target), 'compass');
       if (target.channel === 'qa') {
         await this.openQaWordCloudDialog(target.termLabel ?? null);
       } else {
@@ -1865,7 +1899,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     const questionId = target.questionId;
     if (target.channel === 'qa' && questionId) {
-      this.applyQaCompassFocus([questionId]);
+      this.applyQaCompassFocus([questionId], 'compass');
       this.scrollHostQaQuestionIntoView(questionId);
     } else {
       this.clearQaCompassFocus();
@@ -1873,15 +1907,65 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.moderationCompassReturn.set({ channel: previousChannel });
   }
 
-  private applyQaCompassFocus(questionIds: readonly string[]): void {
+  private applyQaCompassFocus(
+    questionIds: readonly string[],
+    origin: 'compass' | 'word-cloud',
+  ): void {
     const unique = [...new Set(questionIds.filter((id) => id.trim().length > 0))];
     this.qaCompassFocusQuestionIds.set(new Set(unique));
     this.qaCompassFocusQuestionId.set(unique[0] ?? null);
+    this.qaFocusOrigin.set(unique.length > 0 ? origin : null);
+  }
+
+  private restoreQaFocusAfterWordCloudClose(cloudSourceIds: readonly string[]): void {
+    if (this.activeChannel() !== 'qa') {
+      return;
+    }
+
+    const forumIds = new Set(this.qaForumQuestions().map((question) => question.id));
+    const merged: string[] = [];
+    const seen = new Set<string>();
+    const push = (id: string | null | undefined): void => {
+      const next = id?.trim() ?? '';
+      if (!next || !forumIds.has(next) || seen.has(next)) {
+        return;
+      }
+      seen.add(next);
+      merged.push(next);
+    };
+
+    for (const id of this.qaCompassFocusQuestionIds()) {
+      push(id);
+    }
+    push(this.qaCompassFocusQuestionId());
+    for (const id of cloudSourceIds) {
+      push(id);
+    }
+
+    if (merged.length === 0) {
+      return;
+    }
+
+    const origin =
+      this.qaFocusOrigin() === 'compass' || this.moderationCompassReturn() !== null
+        ? 'compass'
+        : 'word-cloud';
+    this.applyQaCompassFocus(merged, origin);
+    const topFocusedId =
+      this.qaVisibleQuestions().find((question) => this.isQaCompassFocused(question.id))?.id ??
+      merged[0]!;
+    this.scrollHostQaQuestionIntoView(topFocusedId);
   }
 
   private clearQaCompassFocus(): void {
     this.qaCompassFocusQuestionId.set(null);
     this.qaCompassFocusQuestionIds.set(new Set());
+    this.qaFocusOrigin.set(null);
+  }
+
+  clearQaListFocus(): void {
+    this.clearQaCompassFocus();
+    this.moderationCompassFocusedTerm.set(null);
   }
 
   private resolveQaWordCloudJumpVariant(
@@ -2037,10 +2121,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           }
 
-          try {
-            target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          } catch {
-            target.scrollIntoView();
+          if (typeof target.scrollIntoView === 'function') {
+            try {
+              target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch {
+              target.scrollIntoView();
+            }
           }
           if (!target.hasAttribute('tabindex')) {
             target.tabIndex = -1;
@@ -2807,11 +2893,41 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly maximizeFreetextWordCloud = (): void => {
     this.tryEnterWordCloudFullscreenFromUserGesture();
     this.wordCloudExpanded.set(true);
+    this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
   };
 
   closeFreetextWordCloudMaximize(): void {
     this.freetextWordCloudMaximized.set(false);
+    this.clearWordCloudOverlayTop();
+    this.wordCloudExpanded.set(true);
+    this.freetextWordCloud?.revealFocusedOrSelectedResponses();
+  }
+
+  private closeOpenWordCloudOverlays(): void {
+    if (this.freetextWordCloudMaximized()) {
+      this.closeFreetextWordCloudMaximize();
+    }
+    this.qaWordCloudDialogRef?.close?.();
+  }
+
+  private syncWordCloudOverlayTop(): void {
+    const tabs = this.document.querySelector('.session-channel-tabs-shell');
+    const top =
+      tabs instanceof HTMLElement
+        ? Math.max(0, Math.round(tabs.getBoundingClientRect().bottom))
+        : 0;
+    this.document.documentElement.style.setProperty(
+      '--session-host-word-cloud-overlay-top',
+      `${top}px`,
+    );
+  }
+
+  private clearWordCloudOverlayTop(): void {
+    if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
+      return;
+    }
+    this.document.documentElement.style.removeProperty('--session-host-word-cloud-overlay-top');
   }
 
   onFreetextWordCloudDetailsToggle(target: HTMLDetailsElement): void {
@@ -3532,6 +3648,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.clearFoyerArrivalState();
     this.stopCountdown();
     this.sound.stopAll();
+    this.closeOpenWordCloudOverlays();
     if (this.emojiPulseTimer) {
       clearTimeout(this.emojiPulseTimer);
       this.emojiPulseTimer = null;
@@ -6289,11 +6406,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               const currentTop = scrollingElement.scrollTop ?? 0;
               const nextTop = Math.max(0, currentTop + rect.top - marginTop);
               scrollingElement.scrollTo({ top: nextTop, behavior: 'smooth' });
-            } else {
+            } else if (typeof target.scrollIntoView === 'function') {
               target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           } catch {
-            target.scrollIntoView();
+            if (typeof target.scrollIntoView === 'function') {
+              target.scrollIntoView();
+            }
           }
           return;
         }
@@ -6392,12 +6511,57 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaCompassFocusQuestionIds().has(questionId);
   }
 
+  hasQaListFocus(): boolean {
+    return this.qaCompassFocusQuestionIds().size > 0;
+  }
+
+  qaFocusBadge(): string {
+    if (this.qaFocusOrigin() === 'word-cloud') {
+      return $localize`:@@sessionHost.moderationWordCloudFocus:Aus der Wortwolke`;
+    }
+    return $localize`:@@sessionHost.moderationCompassFocus:Aus dem Kompass`;
+  }
+
   isQaCompassFocusPrimary(questionId: string): boolean {
     return this.qaCompassFocusQuestionId() === questionId;
   }
 
   qaQuestionScore(question: QaQuestionDTO): number {
     return question.score ?? question.upvoteCount;
+  }
+
+  private compareQaForumSort(left: QaQuestionDTO, right: QaQuestionDTO): number {
+    const mode = this.qaSortMode();
+    if (mode === 'BEST') {
+      const bestDiff = (right.bestScore ?? 0) - (left.bestScore ?? 0);
+      if (bestDiff !== 0) {
+        return bestDiff;
+      }
+    } else if (mode === 'CONTROVERSIAL') {
+      const controversyDiff = (right.controversyScore ?? 0) - (left.controversyScore ?? 0);
+      if (controversyDiff !== 0) {
+        return controversyDiff;
+      }
+    }
+
+    if (mode === 'BEST' || mode === 'CONTROVERSIAL') {
+      const positiveDiff = (right.positiveVoteCount ?? 0) - (left.positiveVoteCount ?? 0);
+      if (positiveDiff !== 0) {
+        return positiveDiff;
+      }
+    }
+
+    const scoreDiff = this.qaQuestionScore(right) - this.qaQuestionScore(left);
+    if (scoreDiff !== 0) {
+      return scoreDiff;
+    }
+
+    const createdDiff = Date.parse(left.createdAt) - Date.parse(right.createdAt);
+    if (Number.isFinite(createdDiff) && createdDiff !== 0) {
+      return createdDiff;
+    }
+
+    return left.id.localeCompare(right.id);
   }
 
   qaWordCloudQuestionWeight(question: QaQuestionDTO): number {
@@ -6521,6 +6685,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaTitleEditing.set(false);
       }
       this.activeChannel.set(channel);
+      if (prev !== channel) {
+        this.closeOpenWordCloudOverlays();
+      }
       if (channel === 'qa') {
         this.qaTitleEditing.set(false);
         this.syncQaTitleDraftFromSession();

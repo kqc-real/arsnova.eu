@@ -13672,8 +13672,8 @@
         <target>Le tendenze e gli insight principali appariranno qui non appena il pubblico inizierà a partecipare.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationRuleBased" datatype="html">
-        <source> Nur regelbasiert, ohne KI. </source>
-        <target>Solo basato su regole, senza IA.</target>
+        <source> Einschätzung aus den sichtbaren Live-Signalen. </source>
+        <target>Valutazione dai segnali live visibili.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
@@ -13736,8 +13736,8 @@
         <target>Apri la bussola di moderazione, ci sono suggerimenti</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationButton" datatype="html">
-        <source>Moderation</source>
-        <target>Moderazione</target>
+        <source>Kompass</source>
+        <target>Bussola</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationReturn" datatype="html">
         <source>Zurück</source>
@@ -13750,6 +13750,30 @@
       <trans-unit id="sessionHost.moderationCompassFocus" datatype="html">
         <source>Aus dem Kompass</source>
         <target>Dalla bussola</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationWordCloudFocus" datatype="html">
+        <source>Aus der Wortwolke</source>
+        <target>Dalla nuvola di parole</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.focusHint" datatype="html">
+        <source>Zugehörige Beiträge stehen oben und folgen der Sortierung.</source>
+        <target>I contributi collegati restano in alto e seguono l’ordinamento.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.clearFocusLabel" datatype="html">
+        <source>Markierung lösen</source>
+        <target>Togli evidenza</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.clearFocusAria" datatype="html">
+        <source>Markierung lösen</source>
+        <target>Togli evidenza</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudItemSingular" datatype="html">
+        <source>Frage</source>
+        <target>domanda</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudItemPlural" datatype="html">
+        <source>Fragen</source>
+        <target>domande</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrong" datatype="html">
         <source><x id="wrong" equiv-text="incorrect"/> von <x id="total" equiv-text="total"/> liegen daneben · <x id="question" equiv-text="stem"/></source>
@@ -13772,8 +13796,8 @@
         <target>Feedback</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationTopicWeight" datatype="html">
-        <source>Begriffe gewichtet nach <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
-        <target>Termini ponderati secondo <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></target>
+        <source>Gewichtung: <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></source>
+        <target>Ponderazione: <x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/></target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPinned" datatype="html">
         <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
@@ -15112,16 +15136,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterPinnedAria" datatype="html">
-        <source>Nur angeheftete Fragen anzeigen</source>
-        <target>Mostra solo le domande fissate</target>
+        <source>Nur hervorgehobene Fragen anzeigen</source>
+        <target>Mostra solo le domande evidenziate</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3723</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterPinnedLabel" datatype="html">
-        <source>Nur angeheftete</source>
-        <target>Solo fissate</target>
+        <source>Nur hervorgehobene</source>
+        <target>Solo evidenziate</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3726</context>
@@ -15184,8 +15208,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.bestMetric" datatype="html">
-        <source>Belastbare Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
-        <target>Approvazione affidabile <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
+        <source>Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
+        <target>Consenso <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3892,3893</context>
@@ -15200,8 +15224,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
-        <source> Nur angeheftete aktiv – noch keine angehefteten Fragen vorhanden.</source>
-        <target>Vista fissate attiva – non ci sono ancora domande fissate.</target>
+        <source> Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.</source>
+        <target>Vista evidenziate attiva: non ci sono ancora domande evidenziate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3945,3947</context>
@@ -15604,8 +15628,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>belastbare Zustimmung</source>
-        <target>approvazione affidabile</target>
+        <source>beste Fragen</source>
+        <target>domande migliori</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1126</context>
@@ -15712,24 +15736,24 @@
         <target>Lingua</target>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
-        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Mostra prima le domande con molto consenso e abbastanza voti. Le domande fissate restano evidenziate, ma non vengono anticipate.</target>
+        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Mostra prima le domande con molto consenso e abbastanza voti. Le domande evidenziate restano contrassegnate, ma non vengono anticipate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Mostra prima le domande con reazioni miste. Le domande fissate restano evidenziate, ma non vengono anticipate.</target>
+        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Mostra prima le domande con reazioni miste. Le domande evidenziate restano contrassegnate, ma non vengono anticipate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintTop" datatype="html">
-        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Mostra prima le domande con più voti positivi. Le domande fissate restano evidenziate, ma non vengono anticipate.</target>
+        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <target>Mostra prima le domande con più voti positivi. Le domande evidenziate restano contrassegnate, ma non vengono anticipate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1196</context>

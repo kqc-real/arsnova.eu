@@ -106,6 +106,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
   readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Wörter und Phrasen in den sichtbaren Q&A-Fragen dominieren.`;
   readonly qaWordCloudTitle = $localize`:@@sessionQa.wordCloudTitle:Q&A-Wortwolke`;
+  readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
+  readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly showPinnedQaQuestion = computed(

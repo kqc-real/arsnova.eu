@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "seed:finished-demo": "tsx scripts/seed-finished-demo.ts",
     "seed:session-votes": "tsx scripts/seed-session-votes.ts",
-    "seed:qa-forum": "tsx scripts/seed-qa-forum.ts"
+    "seed:qa-forum": "tsx scripts/seed-qa-forum.ts",
+    "seed:moderation-compass": "tsx scripts/seed-moderation-compass.ts"
   },
   "dependencies": {
     "@arsnova/session-export-report": "*",

@@ -13,8 +13,7 @@
   height: 100%;
   padding: clamp(0.9rem, 2vw, 1.55rem);
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   background:
@@ -36,6 +35,8 @@
 }
 
 .qa-word-cloud-dialog__toolbar {
+  position: relative;
+  z-index: 250;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -94,13 +95,17 @@
 }
 
 .qa-word-cloud-dialog__cloud {
-  display: block;
-  flex: 1 1 auto;
+  display: flex;
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0%;
+  flex-direction: column;
   min-height: 0;
   height: auto;
   width: 100%;
   max-width: none;
   margin: 0;
+  overflow: hidden;
   justify-self: stretch;
 }
 
@@ -108,7 +113,7 @@
   position: absolute;
   top: max(1rem, env(safe-area-inset-top, 0px) + 0.35rem);
   right: max(1rem, env(safe-area-inset-right, 0px) + 0.35rem);
-  z-index: 3;
+  z-index: 251;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   color: var(--mat-sys-on-surface);
@@ -145,7 +150,7 @@
     gap: 0.7rem;
     padding: max(0.5rem, env(safe-area-inset-top, 0px)) 0.5rem
       max(0.5rem, env(safe-area-inset-bottom, 0px));
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .qa-word-cloud-dialog__toolbar {
@@ -165,6 +170,6 @@
 
   .qa-word-cloud-dialog__cloud {
     min-height: 0;
-    height: 100%;
+    height: auto;
   }
 }

@@ -782,6 +782,30 @@ function nextStepSourceKind(reason: ModerationCompassNextStepReason): Moderation
   }
 }
 
+function preferredNextStepCardIndex(
+  cards: readonly ModerationCompassCard[],
+  reason: ModerationCompassNextStepReason,
+): number {
+  const preferredKind = nextStepSourceKind(reason);
+  const preferred = cards.findIndex((card) => card.kind === preferredKind);
+  if (preferred >= 0) {
+    return preferred;
+  }
+  const tempo = cards.findIndex((card) => card.kind === 'tempo');
+  return tempo >= 0 ? tempo : 0;
+}
+
+function isTautologicalNextStep(
+  reason: ModerationCompassNextStepReason,
+  cardKind: ModerationCompassCardKind,
+): boolean {
+  return (
+    (reason === 'pending-qa' && cardKind === 'clarification') ||
+    (reason === 'controversy' && cardKind === 'friction') ||
+    (reason === 'topics' && cardKind === 'topics')
+  );
+}
+
 export function buildModerationCompassCards(
   snapshot: ModerationCompassSnapshot,
 ): ModerationCompassCard[] {
@@ -846,17 +870,15 @@ export function buildModerationCompassCards(
     hasTopics: topicSources.length > 0,
   });
   if (reason && cards.length > 0) {
-    const preferredKind = nextStepSourceKind(reason);
-    const sourceCard =
-      cards.find((card) => card.kind === preferredKind) ??
-      cards.find((card) => card.kind === 'tempo') ??
-      cards[0];
-    cards.push({
-      kind: 'nextStep',
-      nextStepReason: reason,
-      tone: nextStepCardTone(reason, tempoTone),
-      sources: sourceCard.sources.slice(0, MAX_SOURCES),
-    });
+    const preferredIndex = preferredNextStepCardIndex(cards, reason);
+    const sourceCard = cards[preferredIndex];
+    if (sourceCard && (cards.length > 1 || !isTautologicalNextStep(reason, sourceCard.kind))) {
+      cards[preferredIndex] = {
+        ...sourceCard,
+        nextStepReason: reason,
+        tone: nextStepCardTone(reason, tempoTone),
+      };
+    }
   }
 
   return cards;

@@ -36,7 +36,7 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).toContain(
       'Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.',
     );
-    expect(text).toContain('Nur regelbasiert, ohne KI.');
+    expect(text).toContain('Einschätzung aus den sichtbaren Live-Signalen.');
     expect(text).not.toContain('Die KI-Analyse ist aus.');
     expect(
       fixture.nativeElement.querySelector('.dialog-title-header__icon .moderation-compass-icon'),
@@ -48,10 +48,6 @@ describe('ModerationCompassDialogComponent', () => {
     const { fixture } = setup([
       {
         kind: 'topics',
-        sources: [{ kind: 'qa-term', label: 'Median · Wie berechnet man den Median?' }],
-      },
-      {
-        kind: 'nextStep',
         nextStepReason: 'topics',
         sources: [{ kind: 'qa-term', label: 'Median · Wie berechnet man den Median?' }],
       },
@@ -62,14 +58,18 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).toContain('Median · Wie berechnet man den Median?');
     expect(text).toContain('Nächster Schritt');
     expect(text).toContain('Fass die häufigsten Themen kurz zusammen.');
-    expect(text).toContain('Nur regelbasiert, ohne KI.');
+    expect(text).toContain('Einschätzung aus den sichtbaren Live-Signalen.');
+    expect(fixture.nativeElement.querySelectorAll('.moderation-compass-card')).toHaveLength(1);
+    expect(
+      fixture.nativeElement.querySelectorAll('.moderation-compass-card__sources li'),
+    ).toHaveLength(1);
   });
 
   it('zeigt den ruhigen Zustand wenn die Analyse aus ist', () => {
     const { fixture } = setup([], vi.fn(), 'disabled');
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.');
-    expect(text).not.toContain('Nur regelbasiert, ohne KI.');
+    expect(text).not.toContain('Einschätzung aus den sichtbaren Live-Signalen.');
   });
 
   it('zeigt Blitzlicht-Rückmeldungen mit eigenem Kartentitel', () => {
@@ -77,10 +77,6 @@ describe('ModerationCompassDialogComponent', () => {
       {
         kind: 'tempo',
         title: 'Rückmeldungen',
-        sources: [{ kind: 'tempo', label: 'Die Rückmeldungen sind geteilt.' }],
-      },
-      {
-        kind: 'nextStep',
         nextStepReason: 'feedback',
         sources: [{ kind: 'tempo', label: 'Die Rückmeldungen sind geteilt.' }],
       },

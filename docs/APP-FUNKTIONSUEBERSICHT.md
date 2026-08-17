@@ -331,10 +331,12 @@ Der Host sieht zusätzlich:
 - Rangliste
 - Team-Rangliste
 - aggregiertes Session-Feedback
-- Moderationskompass (Host-Button **Moderation** neben der Live-Leiste, alle
+- Moderationskompass (Host-Button **Kompass** neben der Live-Leiste, alle
   Live-Kanäle; Dialog mit Hinweiskarten aus Quiz-Ergebnissen, Fragen, Wortwolken
-  und Blitzlicht). Quellen springen auf Wunsch in den passenden Live-Kanal,
-  heben zugehörige Forum-Beiträge hervor (Badge **Aus dem Kompass**) oder öffnen
+  und Blitzlicht). Der nächste Schritt steht als Vorschlag auf der auslösenden
+  Karte, ohne eine zweite identische Quellenliste. Quellen springen auf Wunsch in den passenden Live-Kanal,
+  heben zugehörige Forum-Beiträge hervor (Badge **Aus dem Kompass** oder **Aus
+  der Wortwolke**, in der aktiven Q&A-Sortierung; Markierung lösbar) oder öffnen
   die Wortwolke zum Begriff in der Sortierung und Ansicht, aus der der Hinweis
   stammt. Schwache Hilfsverben wie „helfen“ erscheinen nicht als Themenchip.
   **Zurück** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut.
@@ -505,7 +507,7 @@ Der Q&A-Kanal kann:
 
 Q&A erscheint:
 
-- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Meist unterstuetzt` / `Beste Fragen` / `Umstritten`, Bewertungsmetriken und sortierabhaengiger Q&A-Wortwolke
+- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Meist unterstuetzt` / `Beste Fragen` / `Umstritten`, Bewertungsmetriken (`Zustimmung` bzw. `Geteilte Reaktionen`) und sortierabhaengiger Q&A-Wortwolke
 - in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und reduzierte Q&A-Wortwolke aus denselben gewichteten Termen
 - in der Vote-Ansicht als Einreichungs- und Abstimmungsoberfläche
 

@@ -252,14 +252,14 @@ const QA_DETAILS = [
 ];
 
 const QA_FRAMES = [
-  'Warum bleiben {phrase} oft unklar, obwohl {detail}?',
-  'Welche {phrase} helfen am meisten, damit {detail}?',
-  'Wie sollten {phrase} sichtbar werden, sodass {detail}?',
-  'Wo brauchen wir bei {phrase} mehr Orientierung, damit {detail}?',
-  'Was wäre der nächste Schritt für {phrase}, wenn {detail}?',
-  'Welche Risiken entstehen ohne {phrase}, besonders wenn {detail}?',
-  'Wie hängt {phrase} mit den Übungen zusammen, damit {detail}?',
-  'Welche Beispiele zu {phrase} würden helfen, wenn {detail}?',
+  'Warum bleibt „{phrase}“ oft unklar, obwohl {detail}?',
+  'Was hilft bei „{phrase}“ am meisten, damit {detail}?',
+  'Wie sollten „{phrase}“ sichtbar werden, sodass {detail}?',
+  'Wo brauchen wir bei „{phrase}“ mehr Orientierung, damit {detail}?',
+  'Was wäre der nächste Schritt bei „{phrase}“, wenn {detail}?',
+  'Welche Risiken entstehen ohne „{phrase}“, besonders wenn {detail}?',
+  'Wie hängt „{phrase}“ mit den Übungen zusammen, damit {detail}?',
+  'Welche Beispiele zu „{phrase}“ würden helfen, wenn {detail}?',
 ];
 
 function clipSeedText(text: string, max = SPACY_WORDCLOUD_SEED_ITEM_CHARS): string {
@@ -328,7 +328,7 @@ function buildLongQaQuestion(index: number): string {
   const other = QA_PHRASES[(index * 3 + 1) % QA_PHRASES.length] ?? 'kurze Übungen';
   const detail = QA_DETAILS[index % QA_DETAILS.length] ?? 'die Übung planbarer wird';
   return clipSeedText(
-    `Wie können ${phrase} und ${other} so verzahnt werden, dass ${detail}? ` +
+    `Wie können „${phrase}“ und „${other}“ so verzahnt werden, dass ${detail}? ` +
       `Bitte mit einer Frage, mehreren Fragen, einem Beispiel und weiteren Beispielen antworten. ` +
       `Mir helfen Erklärungen, Visualisierungen und Rückmeldungen, solange die Übung den Faden hält. ` +
       `Ohne Pause, ohne Feedback und ohne Validierung bleibt das Lernen bruchstückhaft.`,

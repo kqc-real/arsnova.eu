@@ -97,11 +97,11 @@ npm run spacy:macos-dev
 ```
 
 1. Im Browser **http://localhost:4200/de/** öffnen (Root `/` leitet nach `/de/`).
-2. Als Host eine Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen und im Quizkanal die **Freitextfrage** anzeigen (DE: „Was hilft dir beim Lernen?“).
-3. Den **6-stelligen Session-Code** ins Terminal eingeben (oder von vornherein `--code ABC123 --yes`).
-4. Hart neu laden. Quizkanal → Wortwolke; Q&A → Wortwolke.
+2. Als Host eine Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen und im Quizkanal die **Freitextfrage** anzeigen (DE: „Was hilft dir beim Lernen?“). Den Host-Tab **`/session/CODE/host` offen lassen**.
+3. Den **6-stelligen Session-Code** ins Terminal eingeben (oder von vornherein `--code ABC123 --yes`) — **nicht** auf der Startseite joinen, sonst landest du als Voter.
+4. Dieselbe Host-Seite hart neu laden. Quizkanal → Wortwolke; Q&A → Wortwolke; Button **Kompass**.
 
-Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap). Sprachformen glätten in **de/en/fr/es**. Unter **it** die Wolkensprache am Glätten-Button auf DE/EN/FR/ES stellen; ohne Wahl bleibt die Glättung aus.
+Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap) plus ein Moderationskompass-Overlay (offene Fragen, Kontroverse, Quiz-Ergebnisse, Tempo). Sprachformen glätten in **de/en/fr/es**. Unter **it** die Wolkensprache am Glätten-Button auf DE/EN/FR/ES stellen; ohne Wahl bleibt die Glättung aus.
 
 | Locale | URL                       |
 | ------ | ------------------------- |
@@ -111,7 +111,7 @@ Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-C
 | es     | http://localhost:4200/es/ |
 | it     | http://localhost:4200/it/ |
 
-Nicht parallel zu `npm run dev` starten — der Helfer belegt 3000 und 4200. Erster Lauf dauert (Locale-Build, ggf. spaCy-Modelle). Wiederholung mit vorhandenem Dist:
+Nicht parallel zu `npm run dev` starten — der Helfer belegt 3000 und 4200. Erster Lauf dauert (Locale-Build, ggf. spaCy-Modelle). Wiederholung nur mit **vollständigem** Locale-Dist (`de`/`en`/`fr`/`es`/`it`); `ng serve` reicht nicht:
 
 ```bash
 npm run spacy:macos-dev -- --yes --skip-clean --skip-build --code ABC123
@@ -124,6 +124,7 @@ Details, Flags und Logs: [features/word-cloud-spacy.md](features/word-cloud-spac
 ```bash
 npm run seed:session-votes -w @arsnova/backend -- --code ABC123
 npm run seed:qa-forum -w @arsnova/backend -- --code ABC123 --replace
+npm run seed:moderation-compass -w @arsnova/backend -- --code ABC123
 ```
 
 Für Glättung unter Linux im App-Container: `npm run docker:up:nlp` und `NLP_ENABLED=true` (nicht auf macOS-Host-Node — der Docker-Socket ist unsichtbar).

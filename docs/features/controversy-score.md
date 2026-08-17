@@ -99,7 +99,7 @@ Anzeige nur wenn **beides** gilt:
 
 **Visualisierung:** Falls eine Voting-Anzeige existiert, kann ein Verlauf von neutral zu „warnend“ den steigenden Score andeuten (`prefers-reduced-motion` beachten).
 
-Die aktuelle Host-UI ergänzt diese Kennzeichnung durch eine sortierabhaengige Q&A-Wortwolke. Deren Termliste basiert auf bereinigter Document-Frequency pro Frage: Ein Begriff zaehlt je Frage maximal einmal, die aktive Sortiermetrik steuert das Dokumentgewicht. Der Tooltip zeigt den Groessenwert, die Zahl der zugehoerigen Fragen, die Gewichtungsbasis (`positive Stimmen`, `belastbare Zustimmung`, `Kontroverse`) sowie konkrete Fragen, damit Sortierung und Themenraum zusammen lesbar bleiben.
+Die aktuelle Host-UI ergänzt diese Kennzeichnung durch eine sortierabhaengige Q&A-Wortwolke. Deren Termliste basiert auf bereinigter Document-Frequency pro Frage: Ein Begriff zaehlt je Frage maximal einmal, die aktive Sortiermetrik steuert das Dokumentgewicht. Der Tooltip zeigt den Groessenwert, die Zahl der zugehoerigen Fragen, die Gewichtungsbasis (`positive Stimmen`, `beste Fragen`, `Kontroverse`) sowie konkrete Fragen, damit Sortierung und Themenraum zusammen lesbar bleiben.
 
 ### Sortier-UI
 
@@ -108,6 +108,8 @@ Die Sortierauswahl sitzt im heutigen Produkt in der Host-Ansicht in unmittelbare
 - `Meist unterstützt` — heutige Standardsortierung nach positiven Stimmen
 - `Umstritten` — Story 8.6
 - `Beste Fragen` — Story 8.7
+
+Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Umstritten` `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke bleiben bei `Beste Fragen`.
 
 Der aktive Modus bleibt während einer Session stabil, bis der Host ihn bewusst ändert. Bei späterer Moderator-Erweiterung ist ein konsistentes Berechtigungsmodell mit dem Host festzulegen.
 

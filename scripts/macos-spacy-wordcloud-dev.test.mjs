@@ -19,7 +19,7 @@ test('macos-spacy-wordcloud-dev.sh ist syntaktisch gültiges Bash', () => {
 test('--help nennt Demo-Quiz, Clean, Produktions-Build und Locales', () => {
   const result = run(['--help']);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Demo-Quiz mit Freitextfrage/);
+  assert.match(result.stdout, /Demo-Quiz als Host, nicht als Voter/);
   assert.match(result.stdout, /Was hilft dir beim Lernen/);
   assert.match(result.stdout, /build:prod/);
   assert.match(result.stdout, /clean:generated/);
@@ -29,6 +29,9 @@ test('--help nennt Demo-Quiz, Clean, Produktions-Build und Locales', () => {
   assert.match(result.stdout, /localhost:4200\/fr\//);
   assert.match(result.stdout, /seed:session-votes/);
   assert.match(result.stdout, /seed:qa-forum/);
+  assert.match(result.stdout, /seed:moderation-compass/);
+  assert.match(result.stdout, /Moderationskompass/);
+  assert.match(result.stdout, /Ein ng serve reicht nicht/);
 });
 
 test('prueft spaCy-Modelle de/en/fr/es', () => {
@@ -55,6 +58,10 @@ test('run_seeds übergibt Q&A-Flags literal, ohne $qa_flag', () => {
   const source = readFileSync(script, 'utf8');
   assert.match(source, /seed:qa-forum -w @arsnova\/backend -- --code "\$CODE" --replace/);
   assert.match(source, /seed:qa-forum -w @arsnova\/backend -- --code "\$CODE" --append/);
+  assert.match(source, /seed:moderation-compass -w @arsnova\/backend -- --code "\$CODE"/);
+  assert.match(source, /Button Moderation/);
+  assert.match(source, /session\/\$\{CODE\}\/host/);
+  assert.match(source, /Voter-Join/);
   assert.doesNotMatch(source, /\$qa_flag/);
 });
 
@@ -74,4 +81,13 @@ test('lehnt einen ungültigen Session-Code ab, bevor Clean oder Build startet', 
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /clean:generated/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /build:prod/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /Starte Host-Sidecar/);
+});
+
+test('require_localized_dist listet fehlende Locale-Dateien', () => {
+  const source = readFileSync(script, 'utf8');
+  assert.match(source, /Fehlende Build-Artefakte/);
+  assert.match(source, /dist\/browser\/de\/index\.html/);
+  assert.match(source, /dist\/browser\/it\/index\.html/);
+  assert.match(source, /apps\/backend\/dist\/index\.js/);
+  assert.match(source, /ng serve auf 4200 reicht nicht/);
 });

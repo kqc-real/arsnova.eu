@@ -58,5 +58,8 @@ describe('spaCy-Wortwolken-Seedkorpus', () => {
     expect(joined).toContain('Visualisierung');
     expect(questions.some((text) => text.length < 80)).toBe(true);
     expect(questions.some((text) => text.length >= 280)).toBe(true);
+    expect(joined).not.toMatch(/\sbei die\s/);
+    expect(joined).not.toMatch(/Welche die /);
+    expect(joined).toContain('„die nächste Übung“');
   });
 });

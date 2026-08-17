@@ -77,6 +77,10 @@ export class ModerationCompassDialogComponent {
     }
   }
 
+  nextStepHeading(): string {
+    return $localize`:@@sessionHost.moderationCardNextStep:Nächster Schritt`;
+  }
+
   cardIcon(card: ModerationCompassCard): string {
     switch (card.kind) {
       case 'topics':

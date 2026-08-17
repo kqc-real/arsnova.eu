@@ -98,7 +98,8 @@ describe('buildModerationCompassCards', () => {
         },
       },
     ]);
-    expect(cards.some((card) => card.kind === 'nextStep')).toBe(true);
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
+    expect(cards.find((card) => card.kind === 'topics')?.nextStepReason).toBeUndefined();
   });
 
   it('mischt Q&A- und Freitext-Begriffe in der Themenkarte', () => {
@@ -216,7 +217,8 @@ describe('buildModerationCompassCards', () => {
         target: { channel: 'qa', questionId: '11111111-1111-4111-8111-111111111111' },
       },
     ]);
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('pending-qa');
+    expect(cards.find((card) => card.kind === 'clarification')?.nextStepReason).toBeUndefined();
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('hängt den nächsten Schritt an die auslösende Karte', () => {
@@ -239,9 +241,11 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    const nextStep = cards.find((card) => card.kind === 'nextStep');
-    expect(nextStep?.nextStepReason).toBe('pending-qa');
-    expect(nextStep?.sources[0]?.label).toBe('Kommt Kapitel 4 in der Klausur vor?');
+    const clarification = cards.find((card) => card.kind === 'clarification');
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
+    expect(clarification?.nextStepReason).toBe('pending-qa');
+    expect(clarification?.sources[0]?.label).toBe('Kommt Kapitel 4 in der Klausur vor?');
+    expect(cards.find((card) => card.kind === 'topics')?.nextStepReason).toBeUndefined();
   });
 
   it('nimmt Quiz-Verwirrung erst nach Ergebnisfreigabe auf', () => {
@@ -257,7 +261,8 @@ describe('buildModerationCompassCards', () => {
 
     const clarification = cards.find((card) => card.kind === 'clarification');
     expect(clarification?.sources.some((source) => source.kind === 'quiz-result')).toBe(true);
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('quiz-confusion');
+    expect(clarification?.nextStepReason).toBe('quiz-confusion');
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('stellt Quiz-Verwirrung vor offenen Moderationsfragen', () => {
@@ -278,7 +283,10 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('quiz-confusion');
+    expect(cards.find((card) => card.kind === 'clarification')?.nextStepReason).toBe(
+      'quiz-confusion',
+    );
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('stellt Tempo-Alarm vor Quiz-Verwirrung', () => {
@@ -300,9 +308,9 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('tempo');
+    expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('tempo');
     expect(cards.find((card) => card.kind === 'tempo')?.tone).toBe('alert');
-    expect(cards.find((card) => card.kind === 'nextStep')?.tone).toBe('alert');
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('bildet Reibung nur aus kontroversen, nicht archivierten Fragen', () => {
@@ -414,7 +422,8 @@ describe('buildModerationCompassCards', () => {
     expect(cards.find((card) => card.kind === 'tempo')?.sources).toEqual([
       { kind: 'tempo', label: 'Es wirkt zu schnell.', target: { channel: 'quickFeedback' } },
     ]);
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('tempo');
+    expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('tempo');
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('unterdrückt Karten ohne nachvollziehbare Quelle', () => {
@@ -462,15 +471,12 @@ describe('buildModerationCompassCards', () => {
           memberTexts: ['Wie berechnet man den Median?'],
         },
       ],
-      topicWeightLabel: 'Begriffe gewichtet nach belastbare Zustimmung',
+      topicWeightLabel: 'Gewichtung: beste Fragen',
     });
 
     expect(
       cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.label),
-    ).toEqual([
-      'Median · Wie berechnet man den Median?',
-      'Begriffe gewichtet nach belastbare Zustimmung',
-    ]);
+    ).toEqual(['Median · Wie berechnet man den Median?', 'Gewichtung: beste Fragen']);
   });
 
   it('nimmt hervorgehobene Fragen als zusätzliche Themenquellen', () => {
@@ -498,7 +504,8 @@ describe('buildModerationCompassCards', () => {
     });
 
     expect(cards.find((card) => card.kind === 'tempo')?.title).toBe('Rückmeldungen');
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('feedback');
+    expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('feedback');
+    expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
   it('stellt Tempo-Vorsicht vor offenen Moderationsfragen', () => {
@@ -514,7 +521,8 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    expect(cards.find((card) => card.kind === 'nextStep')?.nextStepReason).toBe('tempo');
+    expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('tempo');
+    expect(cards.find((card) => card.kind === 'clarification')?.nextStepReason).toBeUndefined();
     expect(cards.find((card) => card.kind === 'clarification')?.tone).toBe('caution');
   });
 });

@@ -57,6 +57,7 @@
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
     "seed:qa-forum": "npm run seed:qa-forum -w @arsnova/backend",
     "seed:session-votes": "npm run seed:session-votes -w @arsnova/backend --",
+    "seed:moderation-compass": "npm run seed:moderation-compass -w @arsnova/backend --",
     "setup:dev": "npm run docker:up:dev && npm run prisma:push && npm run prisma:generate && npm run build -w @arsnova/shared-types",
     "docker:up": "docker compose up -d",
     "docker:up:dev": "docker compose up -d postgres redis",

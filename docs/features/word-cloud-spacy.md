@@ -99,14 +99,14 @@ npm run spacy:macos-dev
 
 Für den Einstieg (Setup plus dieser Befehl): [onboarding.md](../onboarding.md#volle-lokale-session-mit-hoher-befüllung). Skript: [`scripts/macos-spacy-wordcloud-dev.sh`](../../scripts/macos-spacy-wordcloud-dev.sh). Es startet **keinen** Angular-Dev-Server. Port 4200 wird zuerst freigeräumt, danach bedient `serve:localize:api` den Dist.
 
-| Schritt       | Wirkung                                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Aufräumen     | `free-dev-ports` (3000/3001/3002/4200), `clean:generated`, spaCy-Container, lokale arsnova-/spaCy-Images. Postgres/Redis-Volumes bleiben. |
-| Infrastruktur | `docker:up:dev` falls 5432/6379 fehlen; `prisma:push` (sonst fehlt `public.Quiz`); Host-Sidecar auf `/tmp/arsnova-nlp.sock`               |
-| Env           | lokale `.env`: `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock`, `NLP_TIMEOUT_MS=15000`                                        |
-| Build         | `npm run build:prod` (`de`/`en`/`fr`/`es`/`it`)                                                                                           |
-| Prozesse      | `start:prod` auf **3000**; `serve:localize:api` auf **4200** (Dist plus Proxy `/trpc`, `/trpc-ws`, `/yjs-ws`)                             |
-| Seeds         | nach Session-Code: `seed:session-votes` (Freitext) und `seed:qa-forum --replace`                                                          |
+| Schritt       | Wirkung                                                                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aufräumen     | `free-dev-ports` (3000/3001/3002/4200), `clean:generated`, spaCy-Container, lokale arsnova-/spaCy-Images. Postgres/Redis-Volumes bleiben.            |
+| Infrastruktur | `docker:up:dev` falls 5432/6379 fehlen; `prisma:push` (sonst fehlt `public.Quiz`); Host-Sidecar auf `/tmp/arsnova-nlp.sock`                          |
+| Env           | lokale `.env`: `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock`, `NLP_TIMEOUT_MS=15000`                                                   |
+| Build         | `npm run build:prod` (`de`/`en`/`fr`/`es`/`it`)                                                                                                      |
+| Prozesse      | `start:prod` auf **3000**; `serve:localize:api` auf **4200** (Dist plus Proxy `/trpc`, `/trpc-ws`, `/yjs-ws`)                                        |
+| Seeds         | nach Session-Code: `seed:session-votes` (Freitext), `seed:qa-forum --replace`, `seed:moderation-compass` (8.9a: Q&A-Overlay, Quiz-Ergebnisse, Tempo) |
 
 `NODE_ENV=production` setzt kein HTTP-CORS für `ng serve`. Die Locale-UI daher über **4200 (Proxy)** oder **3000 (same-origin)** öffnen, nicht über einen parallelen Dev-Server.
 
@@ -122,7 +122,7 @@ Die **Wolkensprache** am Glätten-Button folgt zuerst der Host-UI. Unter `/it/` 
 
 Root http://localhost:4200/ leitet nach `/de/`. Derselbe Build liegt unter http://localhost:3000/de/ usw. Hart neu laden.
 
-**Vor dem Seed:** Host-Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen und die Freitextfrage anzeigen (DE: „Was hilft dir beim Lernen?“). Ohne diese Frage kann `seed:session-votes` die Wolke nicht befüllen. Der Q&A-Kanal darf aus sein; das Seed schaltet ihn sonst ein.
+**Vor dem Seed:** Host-Session mit dem **Demo-Quiz** (Praxis-Showcase) anlegen, die Freitextfrage anzeigen (DE: „Was hilft dir beim Lernen?“) und den **Host-Tab** (`/session/CODE/host`) offen lassen. Den Code nur ins Terminal schreiben, nicht auf der Startseite joinen. Ohne diese Freitextfrage kann `seed:session-votes` die Wolke nicht befüllen. Der Q&A-Kanal darf aus sein; das Seed schaltet ihn sonst ein.
 
 Wiederholung ohne Clean/Build (Stack und Dist bleiben):
 
@@ -130,15 +130,15 @@ Wiederholung ohne Clean/Build (Stack und Dist bleiben):
 npm run spacy:macos-dev -- --yes --skip-clean --skip-build --code ABC123
 ```
 
-| Flag             | Bedeutung                             |
-| ---------------- | ------------------------------------- |
-| `--code ABC123`  | 6-stelliger Session-Code              |
-| `--yes`          | Hinweis ohne Enter                    |
-| `--skip-clean`   | Dist, Caches und Images behalten      |
-| `--skip-build`   | vorhandenen Locale-Dist nutzen        |
-| `--keep-backend` | laufendes `start:prod` nicht ersetzen |
-| `--append-qa`    | Q&A-Fragen anhängen statt ersetzen    |
-| `--dry-run`      | Seeds nur prüfen                      |
+| Flag             | Bedeutung                                                                  |
+| ---------------- | -------------------------------------------------------------------------- |
+| `--code ABC123`  | 6-stelliger Session-Code                                                   |
+| `--yes`          | Hinweis ohne Enter                                                         |
+| `--skip-clean`   | Dist, Caches und Images behalten                                           |
+| `--skip-build`   | vorhandenen Locale-Dist nutzen (`de`/`en`/`fr`/`es`/`it`; kein `ng serve`) |
+| `--keep-backend` | laufendes `start:prod` nicht ersetzen                                      |
+| `--append-qa`    | Q&A-Fragen anhängen statt ersetzen                                         |
+| `--dry-run`      | Seeds nur prüfen                                                           |
 
 Logs: Sidecar `/tmp/arsnova-nlp-sidecar.log`, Backend `/tmp/arsnova-backend-nlp.log`, Locale-Server `/tmp/arsnova-frontend-localize.log`.
 
@@ -155,15 +155,15 @@ Lokales `start:prod` verlangt ein HMAC-Secret ≥32 UTF-8-Bytes (`YJS_SHARE_TOKE
 
 ## Tests
 
-| Check                                      | Befehl / Ort                                                                                                                                                          |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vertrag und Resolver                       | `npm run test -w @arsnova/shared-types`                                                                                                                               |
-| Analyse, Fallback, Cache, Fixtures         | `npm run test -w @arsnova/backend` (`wordCloud*.test.ts`)                                                                                                             |
-| Host-Trigger, stale, Sort-/Moduswechsel    | `npm run test -w @arsnova/frontend` (`session-host.component.spec.ts`)                                                                                                |
-| Sidecar ohne Modell-Download               | `npm run test:spacy-sidecar`                                                                                                                                          |
-| Compose-Profil, kein TCP, getrenntes Image | `npm run test:spacy-compose`                                                                                                                                          |
-| Lokale UI-Füllung Freitext / Q&A           | `npm run seed:session-votes -w @arsnova/backend` bzw. `npm run seed:qa-forum -w @arsnova/backend` (fragt den Session-Code, Default 500 lemma-/phrasenreiche Einträge) |
-| macOS Host-npm (Sidecar + beide Seeds)     | `npm run spacy:macos-dev` — siehe [Lokale Prüfung auf macOS](#lokale-prüfung-auf-macos-host-npm); Syntax/Hilfe: `npm run spacy:macos-dev:test`                        |
+| Check                                      | Befehl / Ort                                                                                                                                                                                                                     |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vertrag und Resolver                       | `npm run test -w @arsnova/shared-types`                                                                                                                                                                                          |
+| Analyse, Fallback, Cache, Fixtures         | `npm run test -w @arsnova/backend` (`wordCloud*.test.ts`)                                                                                                                                                                        |
+| Host-Trigger, stale, Sort-/Moduswechsel    | `npm run test -w @arsnova/frontend` (`session-host.component.spec.ts`)                                                                                                                                                           |
+| Sidecar ohne Modell-Download               | `npm run test:spacy-sidecar`                                                                                                                                                                                                     |
+| Compose-Profil, kein TCP, getrenntes Image | `npm run test:spacy-compose`                                                                                                                                                                                                     |
+| Lokale UI-Füllung Freitext / Q&A / Kompass | `npm run seed:session-votes -w @arsnova/backend`, `npm run seed:qa-forum -w @arsnova/backend`, `npm run seed:moderation-compass -w @arsnova/backend` (Session-Code, Default 500 lemma-/phrasenreiche Einträge plus 8.9a-Signale) |
+| macOS Host-npm (Sidecar + Seeds)           | `npm run spacy:macos-dev` — siehe [Lokale Prüfung auf macOS](#lokale-prüfung-auf-macos-host-npm); Syntax/Hilfe: `npm run spacy:macos-dev:test`                                                                                   |
 
 Siehe [TESTING.md](../TESTING.md).
 

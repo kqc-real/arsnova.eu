@@ -97,6 +97,9 @@ describe('WordCloudComponent', () => {
 
     expect(fixture.componentInstance.selectedGroupKey()).toBe('uebung chatgpt');
     expect(fixture.componentInstance.selectedWordLabel()).toBe('Übung ChatGPT');
+    expect(fixture.componentInstance.selectedSourceIds()).toEqual(['q1']);
+    expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
+    expect(fixture.componentInstance.showResponses()).toBe(true);
   });
 
   it('faellt bei leerer geglaetteter Analyse nicht auf ungeglättete Antworten zurueck', () => {
@@ -750,7 +753,7 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('analysisMode', 'qa');
     fixture.componentRef.setInput('itemLabelSingular', 'Frage');
     fixture.componentRef.setInput('itemLabelPlural', 'Fragen');
-    fixture.componentRef.setInput('tooltipMetricLabel', 'belastbare Zustimmung');
+    fixture.componentRef.setInput('tooltipMetricLabel', 'beste Fragen');
     fixture.componentRef.setInput('responses', [
       'Sollten wir zuerst Python oder zuerst die Formel herleiten?',
       'Brauchen wir noch ein Rechenbeispiel zur Standardabweichung?',
@@ -770,7 +773,7 @@ describe('WordCloudComponent', () => {
     const tooltip = component.wordTooltipDisplay(entry!);
     expect(tooltip).toContain('Größenwert: 23');
     expect(tooltip).toContain('In 2 Fragen gefunden');
-    expect(tooltip).toContain('Gewichtung: belastbare Zustimmung');
+    expect(tooltip).toContain('Gewichtung: beste Fragen');
     expect(tooltip).toContain('Fragen:');
     expect(tooltip).toContain('• Sollten wir zuerst Python oder zuerst');
     expect(tooltip).toContain('   Formel herleiten?');
