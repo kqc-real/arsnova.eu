@@ -147,7 +147,7 @@
   "lint-staged": {
     "*.{ts,js}": "eslint --no-warn-ignored --fix",
     "apps/frontend/src/**/*.html": "eslint --no-warn-ignored --fix",
-    "*.{ts,js,json,html,css,scss,md}": "prettier --write"
+    "*.{ts,js,mjs,cjs,json,html,css,scss,md}": "prettier --write"
   },
   "overrides": {
     "@hono/node-server": "2.0.11",

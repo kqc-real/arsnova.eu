@@ -16,10 +16,11 @@
  *   VOTE_HTTP_CONNECTIONS=600 WITHIN_GRACE_REVEAL_OFFSET_MS=0
  *
  * Nutzt einen eigenen Undici-Dispatcher fuer den Burst. CI setzt Offset 0 fuer
- * maximalen Karenz-Rest auf dem lokalen Runner; ein Timing-Flake-Risiko bleibt.
+ * maximalen Karenz-Rest auf dem lokalen Runner. Keep-Alive und Connection-Warm-up
+ * vor Freigabe vermeiden Reconnect-Stuerme im engen 2s-Karenzfenster.
  */
 import { Agent, fetch as undiciFetch } from 'undici';
-import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { buildHealthCheckUrl, waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 import { summarizeDurations, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
 
@@ -54,13 +55,21 @@ const OUTSIDE_GRACE_REVEAL_OFFSET_MS = Math.max(
   Number(process.env.OUTSIDE_GRACE_REVEAL_OFFSET_MS || GRACE_MS + 300),
 );
 const SETTLE_AFTER_VOTES_MS = Math.max(0, Number(process.env.SETTLE_AFTER_VOTES_MS || 500));
+const CONNECTION_WARMUP_LEAD_MS = Math.max(
+  0,
+  Number(process.env.CONNECTION_WARMUP_LEAD_MS || 1_000),
+);
+const KEEP_ALIVE_TIMEOUT_MS = Math.max(10_000, Number(process.env.KEEP_ALIVE_TIMEOUT_MS || 30_000));
 
 const httpAgent = new Agent({
   connections: VOTE_HTTP_CONNECTIONS,
   pipelining: 1,
-  keepAliveTimeout: 10_000,
-  keepAliveMaxTimeout: 10_000,
+  // Länger als TIMER_SECONDS + ACTIVE-Nachlauf, sonst sterben Keep-Alives vor dem Karenz-Burst.
+  keepAliveTimeout: KEEP_ALIVE_TIMEOUT_MS,
+  keepAliveMaxTimeout: KEEP_ALIVE_TIMEOUT_MS,
 });
+
+const healthCheckUrl = buildHealthCheckUrl(TRPC_URL);
 
 function createHttpClient(hostToken) {
   return createTRPCProxyClient({
@@ -85,6 +94,27 @@ async function waitUntil(targetMs) {
   if (remaining > 0) {
     await sleep(remaining);
   }
+}
+
+/** Öffnet den Undici-Pool vor dem Karenz-Burst, damit Reconnects nicht die 2s-Karenz fressen. */
+async function warmHttpConnections() {
+  await Promise.all(
+    Array.from({ length: VOTE_HTTP_CONNECTIONS }, async () => {
+      try {
+        await undiciFetch(healthCheckUrl, { dispatcher: httpAgent });
+      } catch {
+        // Einzelne Warm-up-Fehler sind unkritisch; der anschließende Burst zeigt den Zustand.
+      }
+    }),
+  );
+}
+
+async function prepareReveal(revealAtMs) {
+  if (CONNECTION_WARMUP_LEAD_MS > 0) {
+    await waitUntil(revealAtMs - CONNECTION_WARMUP_LEAD_MS);
+    await warmHttpConnections();
+  }
+  await waitUntil(revealAtMs);
 }
 
 function summarizeErrors(results) {
@@ -248,10 +278,10 @@ async function runScenario({ name, hostTrpc, publicTrpc, code, participants, mod
   const deadlineMs = question.activeAtMs + question.timerMs;
 
   if (mode === 'within-grace') {
-    await waitUntil(deadlineMs + WITHIN_GRACE_REVEAL_OFFSET_MS);
+    await prepareReveal(deadlineMs + WITHIN_GRACE_REVEAL_OFFSET_MS);
     await hostTrpc.session.revealResults.mutate({ code });
   } else if (mode === 'outside-grace') {
-    await waitUntil(deadlineMs + OUTSIDE_GRACE_REVEAL_OFFSET_MS);
+    await prepareReveal(deadlineMs + OUTSIDE_GRACE_REVEAL_OFFSET_MS);
     await hostTrpc.session.revealResults.mutate({ code });
   }
 
@@ -324,6 +354,8 @@ async function run() {
     voteHttpConnections: VOTE_HTTP_CONNECTIONS,
     withinGraceRevealOffsetMs: WITHIN_GRACE_REVEAL_OFFSET_MS,
     outsideGraceRevealOffsetMs: OUTSIDE_GRACE_REVEAL_OFFSET_MS,
+    connectionWarmupLeadMs: CONNECTION_WARMUP_LEAD_MS,
+    keepAliveTimeoutMs: KEEP_ALIVE_TIMEOUT_MS,
     scenarios,
   };
 
@@ -387,6 +419,8 @@ async function run() {
       graceMs: GRACE_MS,
       voteHttpConnections: VOTE_HTTP_CONNECTIONS,
       withinGraceRevealOffsetMs: WITHIN_GRACE_REVEAL_OFFSET_MS,
+      connectionWarmupLeadMs: CONNECTION_WARMUP_LEAD_MS,
+      keepAliveTimeoutMs: KEEP_ALIVE_TIMEOUT_MS,
       voteP95LimitMs: VOTE_P95_LIMIT_MS,
       voteP99LimitMs: VOTE_P99_LIMIT_MS,
     },

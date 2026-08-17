@@ -597,12 +597,16 @@ Für den parallelen 600er-Burst setzt der Smoke einen eigenen Undici-Dispatcher 
 `WITHIN_GRACE_REVEAL_OFFSET_MS=100` (Clock-Skew-Puffer für Remote-Ziele); in CI wird er auf
 `0` gesetzt, damit der Burst maximalen Karenz-Rest auf dem lokalen Runner erhält.
 `undici` ist als Root-`devDependency` deklariert, damit `npm ci` den Import nicht nur über
-transitives Hoisting auflöst. In CI bleiben die Latenzgates bei
+transitives Hoisting auflöst. Keep-Alive liegt bei `KEEP_ALIVE_TIMEOUT_MS=30000`, und vor
+Karenz-/Outside-Reveal wärmt der Smoke den Undici-Pool mit parallelen `health.check`-Calls
+(`CONNECTION_WARMUP_LEAD_MS=1000`), damit Reconnects nach dem ACTIVE-Burst nicht die 2s-Karenz
+auffressen. In CI bleiben die Latenzgates bei
 `VOTE_P95_LIMIT_MS=4000` / `VOTE_P99_LIMIT_MS=4000`. Der Nightly vom 2026-08-15 akzeptierte
 fachlich 600/600 Karenz-Votes, verfehlte aber das vorherige 3000-ms-Gate (p95 3046 ms,
-p99 3095 ms; Vortag p95 2828 ms). Die 4000-ms-Gates halten die funktionale Prüfung und
-geben GitHub-Runnern Abstand zur gemessenen Burst-Latenz. Ein verbleibendes
-Runner-/Backend-Timing-Risiko im engen 2‑Sekunden-Karenzfenster bleibt bestehen.
+p99 3095 ms; Vortag p95 2828 ms). Der Nightly vom 2026-08-17 zeigte den Keep-Alive-Flake:
+nur 450/600 Karenz-Votes bei p95 2524 ms, nachdem Idle nach ACTIVE die 10s-Keep-Alives
+sterben ließ. Die 4000-ms-Gates und das Connection-Warm-up halten die funktionale Prüfung
+`accepted === 600` und geben GitHub-Runnern Abstand zur Burst-Latenz.
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
