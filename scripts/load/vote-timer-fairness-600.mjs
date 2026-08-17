@@ -59,10 +59,7 @@ const CONNECTION_WARMUP_LEAD_MS = Math.max(
   0,
   Number(process.env.CONNECTION_WARMUP_LEAD_MS || 1_000),
 );
-const KEEP_ALIVE_TIMEOUT_MS = Math.max(
-  10_000,
-  Number(process.env.KEEP_ALIVE_TIMEOUT_MS || 30_000),
-);
+const KEEP_ALIVE_TIMEOUT_MS = Math.max(10_000, Number(process.env.KEEP_ALIVE_TIMEOUT_MS || 30_000));
 
 const httpAgent = new Agent({
   connections: VOTE_HTTP_CONNECTIONS,
