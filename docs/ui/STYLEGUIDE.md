@@ -334,7 +334,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 
 ## Seitenuebergreifend: UX und Wording
 
-- **Zurueck zur Startseite:** Nur ueber Logo oder Home-Icon in der Top-Toolbar; keine expliziten "Startseite"-Links auf Inhaltseiten (NN/G: auf der Startseite selbst keinen aktiven Home-Link anbieten).
+- **Zurueck zur Startseite:** Nur ueber Logo und Produktname in der Top-Toolbar; keine expliziten "Startseite"-Links auf Inhaltseiten und kein zusaetzliches Home-Icon neben der Marke.
 - **Ladezustaende:** Kurz "Wird geladen…" (ohne "Session" oder Kontext, wenn der Kontext schon klar ist).
 - **Fehlermeldungen:** Nutzerorientiert, kein Technik-Jargon. "Ungültiger Code." statt "Ungültiger Session-Code."; "Nicht gefunden. Code prüfen oder neu eingeben."; "Seite konnte nicht geladen werden." statt "Inhalt konnte nicht geladen werden.".
 - **Platzhalter-Hinweise:** Keine Story-/Epic-Referenzen in der UI. Stattdessen kurze nutzerorientierte Hinweise (z. B. "Hier Quizzes anlegen und verwalten.", "Lobby und Steuerung werden hier angezeigt.").

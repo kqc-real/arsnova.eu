@@ -37,18 +37,6 @@
         </svg>
         <span class="top-toolbar__brand-title">arsnova.eu</span>
       </a>
-      @if (showHomeLink()) {
-        <a
-          [routerLink]="localizedPath('/')"
-          class="top-toolbar__home-link"
-          i18n-matTooltip="@@topToolbar.homeTooltip"
-          matTooltip="Zur Startseite"
-          i18n-aria-label="@@topToolbar.homeLinkAria"
-          aria-label="Zur Startseite"
-        >
-          <mat-icon>home</mat-icon>
-        </a>
-      }
       @if (motdHeaderState.motdToolbarIcon()) {
         <button
           type="button"

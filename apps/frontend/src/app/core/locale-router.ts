@@ -84,7 +84,7 @@ function normalizePath(path: string): string {
 
 /**
  * True, wenn die URL der Startseite entspricht (ohne Query/Hash; optionales /{locale}-Präfix wie in Dev entfernt).
- * Deckt Base `/de/` (Router.url oft `/`) und Dev `/de` bzw. `/de/` ab — konsistent mit `showHomeLink` in der Toolbar.
+ * Deckt Base `/de/` (Router.url oft `/`) und Dev `/de` bzw. `/de/` ab.
  */
 export function isAppHomeRouterUrl(pathOrUrl: string): boolean {
   const pathOnly = pathOrUrl.split(/[?#]/)[0] ?? '';
