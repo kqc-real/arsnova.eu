@@ -13679,6 +13679,34 @@
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
         <target>L'analisi IA è disattivata. Resta la visione basata su regole.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
+        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Le categorie tematiche sono ancora in elaborazione. Resta la visione basata su regole.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
+        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Le categorie IA sono incerte. Resta la visione basata su regole.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
+        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>L'analisi IA non è disponibile in questo momento. Resta la visione basata su regole.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
+        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+        <target>Categorie tematiche locali completano la visione basata su regole.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
+        <source>Inhalt</source>
+        <target>Contenuto</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
+        <source>Organisation</source>
+        <target>Organizzazione</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
+        <source>Technik</source>
+        <target>Tecnica</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
         <target>Temi frequenti</target>

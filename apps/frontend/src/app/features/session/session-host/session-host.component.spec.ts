@@ -34,6 +34,7 @@ const {
   getSessionConfidenceSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
   qaListQueryMock,
+  qaNlpRuntimeQueryMock,
   qaModerateMutateMock,
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
@@ -76,6 +77,7 @@ const {
   getSessionConfidenceSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
+  qaNlpRuntimeQueryMock: vi.fn(),
   qaModerateMutateMock: vi.fn(),
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -149,6 +151,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     qa: {
       list: { query: qaListQueryMock },
+      nlpRuntime: { query: qaNlpRuntimeQueryMock },
       moderate: { mutate: qaModerateMutateMock },
       toggleModeration: { mutate: qaToggleModerationMutateMock },
       onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
@@ -348,6 +351,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
+    qaNlpRuntimeQueryMock.mockResolvedValue({ enabled: false });
     qaModerateMutateMock.mockResolvedValue({});
     qaOnQuestionsUpdatedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     startQaMutateMock.mockResolvedValue({
@@ -11469,9 +11473,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(config['panelClass']).toBe('moderation-compass-dialog-panel');
       const data = config['data'] as {
         cards: () => { kind: string }[];
-        analysisMode: 'rule-based' | 'disabled';
+        analysisMode: 'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified';
       };
-      expect(data.analysisMode).toBe('rule-based');
+      expect(data.analysisMode).toBe('disabled');
       expect(data.cards().some((card) => card.kind === 'clarification')).toBe(true);
 
       const button = fixture.nativeElement.querySelector(

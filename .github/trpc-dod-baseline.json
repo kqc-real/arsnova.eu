@@ -182,6 +182,11 @@
       "fingerprint": "sha256:f2f735081fc805d8baa7465e98549fbbf40c73d8fe6d7d7c0134ecca942c2494",
       "missing": []
     },
+    "qa.nlpRuntime": {
+      "kind": "query",
+      "fingerprint": "sha256:27bfc06b6c620ecec380e70bae21f35ca355b8746f2705afc785b564064e0dca",
+      "missing": []
+    },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
       "fingerprint": "sha256:2459670030ef7175f07790b709356cac95c69805d2f65e9c69de0fa67e4e249f",
@@ -189,7 +194,7 @@
     },
     "qa.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:a736ceb0dec4e413e1f5be4849de4371ebe5959bce90efa2d447dc67b1cee4ad",
+      "fingerprint": "sha256:9b9582a9a859585f1ed9c0bb70872257109580b8e3956d9ba406555399bd6267",
       "missing": []
     },
     "qa.toggleModeration": {

@@ -6,7 +6,7 @@
 **Datum:** 2026-07-08
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-07-08
+**Letzter Repo-Abgleich:** 2026-08-19
 **Kontext-Tags:** Machine Learning, Natural Language Processing, Q&A, Backend-Architektur, Datenschutz, Performance
 
 ## Kontext
@@ -200,6 +200,21 @@ Ironie, Sarkasmus und doppelte Verneinungen gelten nicht als garantiert geloest.
 - Host-/Moderator-UI muss `pending`, `uncertain`, `disabled` und `failed` ruhig darstellen koennen.
 - Produktive Aktivierung erfolgt erst nach Last- und Qualitaetsmessung, nicht allein nach erfolgreichem Modellstart.
 - Die Funktion muss jederzeit abschaltbar sein, ohne bestehende Q&A-Flows zu beeintraechtigen.
+
+## Umsetzungsstand (2026-08-19)
+
+Der erste Slice ist im Repo:
+
+- Shared-Zod-Vertrag `pending` | `classified` | `uncertain` | `disabled` | `failed` plus Kategorie, Konfidenz, Modellversion, Analysezeitpunkt
+- Kill-Switch `QA_NLP_ENABLED` (produktiv default aus), getrennt von spaCy `NLP_ENABLED`
+- Asynchrone In-Process-Queue nach Persistenz von `QaQuestion`; `qa.submit` awaitet die Inferenz nicht
+- Stub-Worker ohne Modellartefakt (`modelVersion: stub` / unclassified)
+- Host-DTO `nlp` und `qa.nlpRuntime`; Teilnehmer-DTOs ohne NLP-Felder
+- Minimierter Snapshot nur mit `text`
+- Kompass-Statuszeile fuer `pending` / `uncertain` / `disabled` / `failed` / `classified`
+- Queue-Limit, Timeout und Drop/Skip sind konfiguriert und dokumentiert: [qa-nlp-moderation.md](../../features/qa-nlp-moderation.md)
+
+Noch offen: Gatekeeper- und Fallback-Modelle, kuratiertes Seed-Set, Qualitaets-/Lastmessung vor produktiver Aktivierung.
 
 ## Referenzen
 

@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   buildModerationCompassCards,
   collectModerationQuizFacts,
+  collectQaNlpCategorySources,
   compassQuestionStem,
   compassTermsFromAnalysisEntries,
   mergeModerationQuizSources,
   notableQuickFeedbackSplit,
   rememberModerationQuizSnapshot,
+  resolveModerationCompassAnalysisMode,
   truncateCompassLabel,
   type ModerationCompassSnapshot,
 } from './moderation-compass';
@@ -730,5 +732,72 @@ describe('mergeModerationQuizSources', () => {
       'Die Schätzungen liegen weit auseinander · π',
     ]);
     expect(merged.every((source) => source.target?.channel === 'quiz')).toBe(true);
+  });
+});
+
+describe('resolveModerationCompassAnalysisMode', () => {
+  it('zeigt disabled wenn die Kaskade aus ist', () => {
+    expect(resolveModerationCompassAnalysisMode({ enabled: false, statuses: ['pending'] })).toBe(
+      'disabled',
+    );
+  });
+
+  it('priorisiert pending vor failed und classified', () => {
+    expect(
+      resolveModerationCompassAnalysisMode({
+        enabled: true,
+        statuses: ['classified', 'pending', 'failed'],
+      }),
+    ).toBe('pending');
+  });
+
+  it('faellt ohne NLP-Status auf die regelbasierte Basis zurueck', () => {
+    expect(resolveModerationCompassAnalysisMode({ enabled: true, statuses: ['disabled'] })).toBe(
+      'rule-based',
+    );
+  });
+});
+
+describe('collectQaNlpCategorySources', () => {
+  it('buendelt klassifizierte Fragen nach Label', () => {
+    const sources = collectQaNlpCategorySources(
+      [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4?',
+          status: 'ACTIVE',
+          nlp: { status: 'classified', category: 'content' },
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wann ist die Klausur?',
+          status: 'ACTIVE',
+          nlp: { status: 'classified', category: 'organization' },
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Was ist der Median?',
+          status: 'ACTIVE',
+          nlp: { status: 'classified', category: 'content' },
+        },
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'WLAN tot',
+          status: 'ACTIVE',
+          nlp: { status: 'uncertain' },
+        },
+      ],
+      {
+        content: 'Inhalt',
+        organization: 'Organisation',
+        technical: 'Technik',
+      },
+    );
+
+    expect(sources.map((source) => source.label)).toEqual(['Inhalt · 2', 'Organisation']);
+    expect(sources[0]?.target?.questionIds).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '33333333-3333-4333-8333-333333333333',
+    ]);
   });
 });

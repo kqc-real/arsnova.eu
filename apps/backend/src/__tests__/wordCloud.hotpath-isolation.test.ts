@@ -12,4 +12,10 @@ describe('wordCloud hotpath isolation', () => {
       expect(source, file).not.toMatch(forbidden);
     }
   });
+
+  it('haelt den Q&A-Submit-Router frei von Klassifikator- und Worker-Implementierung', () => {
+    const source = readFileSync(join(routersDir, 'qa.ts'), 'utf8');
+    expect(source).not.toMatch(/qaNlpWorker|runStubQaNlpClassifier|spacyClient/);
+    expect(source).toMatch(/enqueueQaNlpJob/);
+  });
 });

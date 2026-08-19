@@ -2,8 +2,10 @@ import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import {
+  GetQaNlpRuntimeInputSchema,
   GetQaQuestionsInputSchema,
   ModerateQaQuestionInputSchema,
+  QaNlpRuntimeDTOSchema,
   QaQuestionDTOSchema,
   QaQuestionsListDTOSchema,
   QaVoteInputSchema,
@@ -15,6 +17,13 @@ import {
 } from '@arsnova/shared-types';
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
 import { prisma } from '../db';
+import { isQaNlpEnabled } from '../lib/qaNlpConfig';
+import { enqueueQaNlpJob } from '../lib/qaNlpQueue';
+import {
+  mapStoredQaNlpResult,
+  type QaNlpPersistCategory,
+  type QaNlpPersistStatus,
+} from '../lib/qaNlpResult';
 import { hostProcedure, publicProcedure, router } from '../trpc';
 
 const QA_SUBSCRIPTION_POLL_MS = 1000;
@@ -36,6 +45,11 @@ type QaQuestionRecord = {
   status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
   createdAt: Date;
   participantId: string;
+  nlpStatus?: QaNlpPersistStatus | null;
+  nlpCategory?: QaNlpPersistCategory | null;
+  nlpConfidence?: number | null;
+  nlpModelVersion?: string | null;
+  nlpAnalyzedAt?: Date | null;
   participant?: {
     nickname?: string | null;
   } | null;
@@ -284,11 +298,26 @@ function statusTieOrder(status: QaQuestionRecord['status']): number {
   }
 }
 
+function shouldAttachQaNlp(includeNlp: boolean, question: QaQuestionRecord): boolean {
+  if (!includeNlp) {
+    return false;
+  }
+  if (isQaNlpEnabled()) {
+    return true;
+  }
+  return (
+    question.nlpStatus !== undefined &&
+    question.nlpStatus !== null &&
+    question.nlpStatus !== 'DISABLED'
+  );
+}
+
 function mapQaQuestion(
   question: QaQuestionRecord,
   participantId?: string,
   voteStats?: QaQuestionVoteStats,
   includeVoteMetrics = false,
+  includeNlp = false,
 ) {
   const myUpvote = participantId
     ? (question.upvotes ?? []).find((v) => v.participantId === participantId)
@@ -326,6 +355,7 @@ function mapQaQuestion(
     myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
     isOwn: !!participantId && question.participantId === participantId,
     hasUpvoted: !!myUpvote && myUpvote.direction !== 'DOWN',
+    ...(shouldAttachQaNlp(includeNlp, question) ? { nlp: mapStoredQaNlpResult(question) } : {}),
   });
 }
 
@@ -349,7 +379,7 @@ function buildQaQuestionListPayload(
 
   return sortQuestions(decoratedQuestions, sortMode, includeVoteMetrics).map(
     ({ question, voteStats }) =>
-      mapQaQuestion(question, participantId, voteStats, includeVoteMetrics),
+      mapQaQuestion(question, participantId, voteStats, includeVoteMetrics, includeVoteMetrics),
   );
 }
 
@@ -526,6 +556,21 @@ export const qaRouter = router({
       );
     }),
 
+  nlpRuntime: publicProcedure
+    .input(GetQaNlpRuntimeInputSchema)
+    .output(QaNlpRuntimeDTOSchema)
+    .query(async ({ input, ctx }) => {
+      const session = await prisma.session.findUnique({
+        where: { id: input.sessionId },
+        select: { id: true, code: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      await assertHostSessionAccessFromContext(ctx, session.code);
+      return { enabled: isQaNlpEnabled() };
+    }),
+
   moderate: hostProcedure
     .input(ModerateQaQuestionInputSchema)
     .output(QaQuestionDTOSchema)
@@ -678,12 +723,14 @@ export const qaRouter = router({
         });
       }
 
+      const nlpEnabled = isQaNlpEnabled();
       const question = await prisma.qaQuestion.create({
         data: {
           sessionId: input.sessionId,
           participantId: input.participantId,
           text: input.text.trim(),
           status: session.qaModerationMode || session.moderationMode ? 'PENDING' : 'ACTIVE',
+          ...(nlpEnabled ? { nlpStatus: 'PENDING' as const } : {}),
         },
         include: {
           upvotes: {
@@ -693,6 +740,7 @@ export const qaRouter = router({
         },
       });
 
+      enqueueQaNlpJob({ questionId: question.id, text: question.text });
       return mapQaQuestion(question, input.participantId);
     }),
 

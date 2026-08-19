@@ -244,6 +244,26 @@ npm run spacy:macos-dev
 
 Ablauf, Locale-URLs (`http://localhost:4200/de/` … `/it/`, **kein** `ng serve`) und Flags: [word-cloud-spacy.md](features/word-cloud-spacy.md#lokale-prüfung-auf-macos-host-npm). Unter Linux im App-Container: `npm run docker:up:nlp`. Produktion: Image selbst bauen, Compose-Profil `nlp`, `NLP_ENABLED=true`; Rollback `NLP_ENABLED=false` und `stop spacy`. `deploy.sh` startet den Sidecar nicht.
 
+### Optionale Q&A-NLP-Kaskade (Story 8.9b)
+
+```bash
+npm test -w @arsnova/shared-types -- src/qa-nlp.test.ts
+npm test -w @arsnova/backend -- --run \
+  src/lib/qaNlpConfig.test.ts \
+  src/lib/qaNlpSnapshot.test.ts \
+  src/lib/qaNlpResult.test.ts \
+  src/lib/qaNlpQueue.test.ts \
+  src/__tests__/qa.nlp.test.ts \
+  src/__tests__/dto-security.test.ts \
+  src/__tests__/wordCloud.hotpath-isolation.test.ts
+npm run test -w @arsnova/frontend -- \
+  src/app/features/session/session-host/moderation-compass.spec.ts \
+  src/app/features/session/session-host/moderation-compass-dialog.component.spec.ts \
+  src/app/features/session/session-host/session-host.component.spec.ts
+```
+
+Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach Modelltraining und Last-/Qualitätsmessung.
+
 Für W2.4a zusätzlich:
 
 ```bash

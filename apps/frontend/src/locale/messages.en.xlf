@@ -13735,6 +13735,34 @@
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
         <target>AI analysis is off. You still get the rule-based view.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
+        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Topic categories are still being determined. You still get the rule-based view.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
+        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>The AI categories are uncertain. You still get the rule-based view.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
+        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>AI analysis is unavailable right now. You still get the rule-based view.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
+        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+        <target>Local topic categories complement the rule-based view.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
+        <source>Inhalt</source>
+        <target>Content</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
+        <source>Organisation</source>
+        <target>Organization</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
+        <source>Technik</source>
+        <target>Technical</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
         <target>Common topics</target>

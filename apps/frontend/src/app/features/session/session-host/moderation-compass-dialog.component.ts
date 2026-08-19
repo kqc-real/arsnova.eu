@@ -10,12 +10,13 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import type {
+  ModerationCompassAnalysisMode,
   ModerationCompassCard,
   ModerationCompassNextStepReason,
   ModerationCompassSource,
 } from './moderation-compass';
 
-export type ModerationCompassAnalysisMode = 'rule-based' | 'disabled';
+export type { ModerationCompassAnalysisMode };
 
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];

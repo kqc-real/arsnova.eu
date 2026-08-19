@@ -123,6 +123,23 @@ describe('DTO security (Story 2.4)', () => {
     expect(parsed).not.toHaveProperty('compassCards');
   });
 
+  it('does not require nlp on participant Q&A payloads', () => {
+    const parsed = QaQuestionDTOSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Was ist klausurrelevant?',
+      upvoteCount: 4,
+      status: 'ACTIVE',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      hasUpvoted: true,
+      isOwn: false,
+      myVote: 'UP',
+    });
+
+    expect(parsed).not.toHaveProperty('nlp');
+    expect(parsed).not.toHaveProperty('nlpStatus');
+    expect(parsed).not.toHaveProperty('modelVersion');
+  });
+
   it('strips compass and moderation artifacts from participant question payloads', () => {
     const parsed = QuestionStudentDTOSchema.parse({
       ...validStudentPayload,
