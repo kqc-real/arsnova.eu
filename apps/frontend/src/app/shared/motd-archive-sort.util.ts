@@ -1,4 +1,8 @@
-import type { MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
+import type {
+  MotdArchiveItemDTO,
+  MotdArchiveReadCursor,
+  MotdArchiveReadItem,
+} from '@arsnova/shared-types';
 
 function safeTime(iso: string): number {
   const t = Date.parse(iso);
@@ -53,4 +57,35 @@ export function isMotdArchiveItemNewerThanCursor(
   cursor: MotdArchiveReadCursor,
 ): boolean {
   return compareMotdArchiveReadCursors(motdArchiveReadCursorForItem(item), cursor) > 0;
+}
+
+export function isMotdArchiveItemIndividuallyRead(
+  item: Pick<MotdArchiveItemDTO, 'id' | 'contentVersion'>,
+  readItems: ReadonlyArray<MotdArchiveReadItem>,
+): boolean {
+  return readItems.some(
+    (read) => read.motdId === item.id && read.contentVersion >= item.contentVersion,
+  );
+}
+
+export function isMotdArchiveItemUnread(
+  item: MotdArchiveItemDTO,
+  seen: MotdArchiveReadCursor | undefined,
+  readItems: ReadonlyArray<MotdArchiveReadItem>,
+): boolean {
+  if (seen && !isMotdArchiveItemNewerThanCursor(item, seen)) {
+    return false;
+  }
+  return !isMotdArchiveItemIndividuallyRead(item, readItems);
+}
+
+export function countMotdArchiveUnreadItems(
+  items: MotdArchiveItemDTO[],
+  seen: MotdArchiveReadCursor | undefined,
+  readItems: ReadonlyArray<MotdArchiveReadItem>,
+): number {
+  return items.reduce(
+    (count, item) => count + (isMotdArchiveItemUnread(item, seen, readItems) ? 1 : 0),
+    0,
+  );
 }

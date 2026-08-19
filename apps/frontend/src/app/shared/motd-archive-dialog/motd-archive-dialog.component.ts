@@ -21,9 +21,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
+  getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
-  motdDismissedPairsForApi,
+  markMotdArchiveItemRead,
+  motdGetHeaderStateClientInput,
   setMotdArchiveSeenUpToCursor,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
@@ -34,7 +37,8 @@ import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
 import { splitMotdDecorativeEmoji, type MotdTitleDisplay } from '../motd-decorative-emoji.util';
 import {
   compareMotdArchiveReadCursors,
-  isMotdArchiveItemNewerThanCursor,
+  countMotdArchiveUnreadItems,
+  isMotdArchiveItemUnread,
   newestMotdArchiveReadCursor,
   sortMotdArchiveItemsNewFirst,
 } from '../motd-archive-sort.util';
@@ -76,6 +80,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly snackBar = inject(MatSnackBar);
   private readonly motdHeaderRefresh = inject(MotdHeaderRefreshService);
+  private readonly motdHeaderState = inject(MotdHeaderStateService);
   readonly data = inject<MotdArchiveDialogData>(MAT_DIALOG_DATA);
 
   readonly loading = signal(true);
@@ -87,8 +92,10 @@ export class MotdArchiveDialogComponent implements OnInit {
   readonly nextCursor = signal<string | null>(null);
   /** Neuester Publikationscursor; null wenn leer oder Header-Anfrage fehlgeschlagen. */
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
-  /** Ungelesen relativ zum Client-Wasserzeichen. */
+  /** Ungelesen relativ zum Client-Wasserzeichen und einzeln gelesenen Einträgen. */
   readonly archiveUnreadCount = signal(0);
+  /** Lokal einzeln als gelesen markierte MOTDs (für den Gelesen-Button). */
+  readonly archiveReadItems = signal(getMotdArchiveReadItems());
 
   /** motd id → Anzeige-Titel (Markdown-Überschrift oder Fallback) */
   readonly titleById = signal<Record<string, string>>({});
@@ -124,7 +131,9 @@ export class MotdArchiveDialogComponent implements OnInit {
       return;
     }
     setMotdArchiveSeenUpToCursor(max);
+    this.archiveReadItems.set([]);
     this.archiveUnreadCount.set(0);
+    this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
       $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
       undefined,
@@ -133,15 +142,39 @@ export class MotdArchiveDialogComponent implements OnInit {
     this.motdHeaderRefresh.notifyMotdHeaderRefresh();
   }
 
+  isArchiveItemUnread(item: MotdArchiveItemDTO): boolean {
+    return isMotdArchiveItemUnread(item, getMotdArchiveSeenUpToCursor(), this.archiveReadItems());
+  }
+
+  markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
+    if (!this.isArchiveItemUnread(item)) {
+      return;
+    }
+    if (!markMotdArchiveItemRead(item.id, item.contentVersion)) {
+      return;
+    }
+    this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
+    this.motdHeaderState.decrementArchiveUnreadCount();
+    this.focusArchivePanelHeader(event);
+    this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  private focusArchivePanelHeader(event: Event): void {
+    const current = event.currentTarget as HTMLElement | null;
+    current
+      ?.closest('.mat-expansion-panel')
+      ?.querySelector<HTMLElement>('.mat-expansion-panel-header')
+      ?.focus();
+  }
+
   async ngOnInit(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
-    const seen = getMotdArchiveSeenUpToCursor();
-    const dismissed = motdDismissedPairsForApi();
+    this.archiveReadItems.set(getMotdArchiveReadItems());
     const headerInput = {
       locale: this.data.locale,
-      ...(seen ? { archiveSeenUpToCursor: seen } : {}),
-      ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+      ...motdGetHeaderStateClientInput(),
     };
     const [stateResult, listResult] = await Promise.allSettled([
       trpc.motd.getHeaderState.query(headerInput),
@@ -238,11 +271,8 @@ export class MotdArchiveDialogComponent implements OnInit {
     }
 
     if (!headerOk && items.length > 0) {
-      const seen = getMotdArchiveSeenUpToCursor();
       this.archiveUnreadCount.set(
-        seen
-          ? items.filter((it) => isMotdArchiveItemNewerThanCursor(it, seen)).length
-          : items.length,
+        countMotdArchiveUnreadItems(items, getMotdArchiveSeenUpToCursor(), this.archiveReadItems()),
       );
     }
   }

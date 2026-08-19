@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MotdArchiveDialogComponent } from './motd-archive-dialog.component';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import { MOTD_LOCAL_STORAGE_KEY } from '../../core/motd-storage';
 
 const listArchiveQuery = vi.fn();
@@ -27,6 +28,11 @@ const defaultHeaderState = {
   archiveUnreadCount: 0,
 };
 
+const motdHeaderStateMock = {
+  decrementArchiveUnreadCount: vi.fn(),
+  setArchiveUnreadCount: vi.fn(),
+};
+
 describe('MotdArchiveDialogComponent', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -34,6 +40,8 @@ describe('MotdArchiveDialogComponent', () => {
     listArchiveQuery.mockResolvedValue({ items: [], nextCursor: null });
     getHeaderStateQuery.mockReset();
     getHeaderStateQuery.mockResolvedValue({ ...defaultHeaderState });
+    motdHeaderStateMock.decrementArchiveUnreadCount.mockReset();
+    motdHeaderStateMock.setArchiveUnreadCount.mockReset();
   });
 
   afterEach(() => {
@@ -47,6 +55,7 @@ describe('MotdArchiveDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: { locale } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         MotdHeaderRefreshService,
+        { provide: MotdHeaderStateService, useValue: motdHeaderStateMock },
       ],
     });
   }
@@ -232,6 +241,70 @@ describe('MotdArchiveDialogComponent', () => {
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(0);
     expect(snackSpy).toHaveBeenCalled();
     expect(notifySpy).toHaveBeenCalled();
+    expect(motdHeaderStateMock.setArchiveUnreadCount).toHaveBeenCalledWith(0);
+  });
+
+  it('markArchiveItemRead senkt den Zähler um 1 ohne die Wasserlinie zu verschieben', async () => {
+    const olderId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const newerId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    getHeaderStateQuery.mockResolvedValue({
+      ...defaultHeaderState,
+      hasArchiveEntries: true,
+      archiveCount: 2,
+      archiveMaxCursor: {
+        startsAtIso: '2026-03-15T12:00:00.000Z',
+        motdId: newerId,
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 2,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: newerId,
+          contentVersion: 1,
+          markdown: 'Neu',
+          startsAt: '2026-03-15T12:00:00.000Z',
+          endsAt: '2026-04-01T12:00:00.000Z',
+        },
+        {
+          id: olderId,
+          contentVersion: 1,
+          markdown: 'Alt',
+          startsAt: '2026-02-01T12:00:00.000Z',
+          endsAt: '2026-03-01T12:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    configureDialog();
+    const notifySpy = vi.spyOn(TestBed.inject(MotdHeaderRefreshService), 'notifyMotdHeaderRefresh');
+    const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+
+    const newer = fixture.componentInstance.items().find((item) => item.id === newerId);
+    expect(newer).toBeTruthy();
+    fixture.componentInstance.markArchiveItemRead(newer!, {
+      currentTarget: document.createElement('button'),
+    } as unknown as Event);
+
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
+    expect(fixture.componentInstance.isArchiveItemUnread(newer!)).toBe(false);
+    const stored = JSON.parse(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)!);
+    expect(stored.archiveReadItems).toEqual([{ motdId: newerId, contentVersion: 1 }]);
+    expect(stored.archiveSeenUpToCursor).toBeUndefined();
+    expect(motdHeaderStateMock.decrementArchiveUnreadCount).toHaveBeenCalledTimes(1);
+    expect(notifySpy).toHaveBeenCalled();
+
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const panels = [...root.querySelectorAll('.motd-archive__panel')];
+    expect(panels).toHaveLength(2);
+    expect(panels[0]!.classList.contains('motd-archive__panel--read')).toBe(true);
+    expect(panels[1]!.classList.contains('motd-archive__panel--read')).toBe(false);
+    expect(panels[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
+    expect(panels[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
   });
 
   it('setzt inert auf zugeklappte Panel-Inhalte, damit Tab die Header erreicht', async () => {

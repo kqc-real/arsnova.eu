@@ -8,7 +8,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 import type { AppLocale } from '@arsnova/shared-types';
 import { trpc } from './trpc.client';
 import { getEffectiveLocale, localeIdToSupported } from './locale-from-path';
-import { getMotdArchiveSeenUpToCursor, motdDismissedPairsForApi } from './motd-storage';
+import { motdGetHeaderStateClientInput } from './motd-storage';
 import { MotdHeaderRefreshService } from './motd-header-refresh.service';
 
 /**
@@ -33,12 +33,13 @@ export class MotdHeaderStateService {
    */
   private inFlight: Promise<void> | null = null;
   private lastRefreshAtMs = 0;
+  private pendingForceRefresh = false;
   private static readonly MIN_REFRESH_INTERVAL_MS = 1500;
 
   /** Aktive Meldung oder Archiv-Einträge → Campaign-Icon in der Toolbar. */
   readonly motdToolbarIcon = signal(false);
 
-  /** Ungelesene Archiv-MOTDs relativ zum Client-Wasserzeichen. */
+  /** Ungelesene Archiv-MOTDs relativ zum Client-Wasserzeichen und einzeln Gelesenen. */
   readonly archiveUnreadCount = signal(0);
 
   /** Anzahl Einträge im Archiv (Server, gleiche Filterlogik wie listArchive). */
@@ -47,7 +48,7 @@ export class MotdHeaderStateService {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.scheduleInitialRefresh();
-      this.motdHeaderRefresh.requests.subscribe(() => void this.refresh());
+      this.motdHeaderRefresh.requests.subscribe(() => void this.refresh({ force: true }));
       this.passiveRefresh$.pipe(debounceTime(500)).subscribe(() => void this.refresh());
       this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -56,28 +57,41 @@ export class MotdHeaderStateService {
     }
   }
 
-  async refresh(): Promise<void> {
+  /** Sofortiger Badge-Stand, bevor `getHeaderState` den Server bestätigt. */
+  decrementArchiveUnreadCount(): void {
+    this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
+  }
+
+  setArchiveUnreadCount(count: number): void {
+    this.archiveUnreadCount.set(Math.max(0, count));
+  }
+
+  async refresh(options?: { force?: boolean }): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
     if (this.inFlight) {
+      if (options?.force) {
+        this.pendingForceRefresh = true;
+      }
       return this.inFlight;
     }
     const now = Date.now();
-    if (now - this.lastRefreshAtMs < MotdHeaderStateService.MIN_REFRESH_INTERVAL_MS) {
+    if (
+      !options?.force &&
+      now - this.lastRefreshAtMs < MotdHeaderStateService.MIN_REFRESH_INTERVAL_MS
+    ) {
       return;
     }
     this.lastRefreshAtMs = now;
+    this.pendingForceRefresh = false;
 
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     this.inFlight = (async () => {
       try {
-        const seen = getMotdArchiveSeenUpToCursor();
-        const dismissed = motdDismissedPairsForApi();
         const s = await trpc.motd.getHeaderState.query({
           locale,
-          ...(seen ? { archiveSeenUpToCursor: seen } : {}),
-          ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+          ...motdGetHeaderStateClientInput(),
         });
         this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
         this.archiveUnreadCount.set(s.archiveUnreadCount);
@@ -91,7 +105,11 @@ export class MotdHeaderStateService {
       this.inFlight = null;
     });
 
-    return this.inFlight;
+    await this.inFlight;
+    if (this.pendingForceRefresh) {
+      this.pendingForceRefresh = false;
+      return this.refresh({ force: true });
+    }
   }
 
   private readonly onVisibilityChange = (): void => {

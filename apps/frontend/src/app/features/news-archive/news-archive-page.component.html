@@ -78,7 +78,12 @@
               @for (it of items(); track it.id) {
                 @let archiveMeta = formatArchiveDate(it.startsAt);
                 @let titleDisplay = archiveItemTitleDisplay(it.id);
-                <section class="news-archive-page__entry" [attr.id]="'motd-archive-' + it.id">
+                @let itemUnread = isArchiveItemUnread(it);
+                <section
+                  class="news-archive-page__entry"
+                  [class.news-archive-page__entry--read]="!itemUnread"
+                  [attr.id]="'motd-archive-' + it.id"
+                >
                   <h2 class="news-archive-page__entry-title">
                     <a
                       class="news-archive-page__entry-title-link"
@@ -93,16 +98,43 @@
                       <span>{{ titleDisplay.title }}</span></a
                     >
                   </h2>
-                  @if (archiveMeta) {
-                    <p class="news-archive-page__entry-meta">
+                  <p class="news-archive-page__entry-meta">
+                    @if (archiveMeta) {
                       <time [attr.datetime]="it.startsAt">{{ archiveMeta }}</time>
-                    </p>
-                  }
+                    }
+                    <span
+                      class="news-archive-page__read-state"
+                      [class.news-archive-page__read-state--unread]="itemUnread"
+                    >
+                      @if (itemUnread) {
+                        <span class="news-archive-page__unread-dot" aria-hidden="true"></span>
+                        <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
+                      } @else {
+                        <mat-icon aria-hidden="true">done</mat-icon>
+                        <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                      }
+                    </span>
+                  </p>
                   @if (htmlById()[it.id]; as safe) {
                     <div
                       class="news-archive-page__md motd-archive__body markdown-body"
                       [innerHTML]="safe"
                     ></div>
+                  }
+                  @if (itemUnread) {
+                    <div class="news-archive-page__item-actions">
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        class="news-archive-page__mark-read"
+                        i18n-aria-label="@@motd.archiveMarkItemReadAria"
+                        aria-label="Diese Meldung als gelesen markieren"
+                        (click)="markArchiveItemRead(it, $event)"
+                      >
+                        <mat-icon aria-hidden="true">done</mat-icon>
+                        <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                      </button>
+                    </div>
                   }
                 </section>
               }

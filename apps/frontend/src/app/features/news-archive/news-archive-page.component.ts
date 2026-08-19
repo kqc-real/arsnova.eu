@@ -20,7 +20,13 @@ import { MatDialog } from '@angular/material/dialog';
 import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
-import { setMotdArchiveSeenUpToCursor } from '../../core/motd-storage';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
+import {
+  getMotdArchiveReadItems,
+  getMotdArchiveSeenUpToCursor,
+  markMotdArchiveItemRead,
+  setMotdArchiveSeenUpToCursor,
+} from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
@@ -32,6 +38,7 @@ import {
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import {
   compareMotdArchiveReadCursors,
+  isMotdArchiveItemUnread,
   newestMotdArchiveReadCursor,
   sortMotdArchiveItemsNewFirst,
 } from '../../shared/motd-archive-sort.util';
@@ -94,6 +101,7 @@ export class NewsArchivePageComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly snackBar = inject(MatSnackBar);
   private readonly motdHeaderRefresh = inject(MotdHeaderRefreshService);
+  private readonly motdHeaderState = inject(MotdHeaderStateService);
   private readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
@@ -112,6 +120,7 @@ export class NewsArchivePageComponent {
   readonly nextCursor = signal<string | null>(null);
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   readonly archiveUnreadCount = signal(0);
+  readonly archiveReadItems = signal(getMotdArchiveReadItems());
   readonly titleById = signal<Record<string, string>>({});
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
@@ -135,6 +144,7 @@ export class NewsArchivePageComponent {
     this.nextCursor.set(data.nextCursor);
     this.archiveMaxCursor.set(data.archiveMaxCursor);
     this.archiveUnreadCount.set(data.archiveUnreadCount);
+    this.archiveReadItems.set(getMotdArchiveReadItems());
     this.titleById.set(data.titleById);
     this.htmlById.set(data.htmlById);
     this.error.set(data.errorMessage);
@@ -219,13 +229,41 @@ export class NewsArchivePageComponent {
       return;
     }
     setMotdArchiveSeenUpToCursor(max);
+    this.archiveReadItems.set([]);
     this.archiveUnreadCount.set(0);
+    this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
       $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
       undefined,
       { duration: 2800 },
     );
     this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  isArchiveItemUnread(item: MotdArchiveItemDTO): boolean {
+    return isMotdArchiveItemUnread(item, getMotdArchiveSeenUpToCursor(), this.archiveReadItems());
+  }
+
+  markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
+    if (!this.isArchiveItemUnread(item)) {
+      return;
+    }
+    if (!markMotdArchiveItemRead(item.id, item.contentVersion)) {
+      return;
+    }
+    this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
+    this.motdHeaderState.decrementArchiveUnreadCount();
+    this.focusArchiveEntryTitle(event);
+    this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  private focusArchiveEntryTitle(event: Event): void {
+    const current = event.currentTarget as HTMLElement | null;
+    current
+      ?.closest('.news-archive-page__entry')
+      ?.querySelector<HTMLElement>('.news-archive-page__entry-title-link')
+      ?.focus();
   }
 
   async loadMoreArchive(): Promise<void> {

@@ -3,7 +3,12 @@
  */
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@prisma/client';
-import type { AppLocale, MotdArchiveReadCursor, MotdPublicDTO } from '@arsnova/shared-types';
+import type {
+  AppLocale,
+  MotdArchiveReadCursor,
+  MotdArchiveReadItem,
+  MotdPublicDTO,
+} from '@arsnova/shared-types';
 import {
   MotdGetCurrentInputSchema,
   MotdGetCurrentOutputSchema,
@@ -192,6 +197,16 @@ function archiveReadCursorForItem(item: {
   };
 }
 
+function isArchiveItemIndividuallyRead(
+  item: { id: string; contentVersion: number },
+  readItems: ReadonlyArray<MotdArchiveReadItem> | undefined,
+): boolean {
+  if (!readItems?.length) return false;
+  return readItems.some(
+    (read) => read.motdId === item.id && read.contentVersion >= item.contentVersion,
+  );
+}
+
 /** Positiv, wenn `a` in der Archivsortierung neuer als `b` ist. */
 function compareArchiveReadCursors(a: MotdArchiveReadCursor, b: MotdArchiveReadCursor): number {
   const startsAtDifference = Date.parse(a.startsAtIso) - Date.parse(b.startsAtIso);
@@ -205,6 +220,7 @@ async function fetchArchiveHeaderStats(
   now: Date,
   seenCursor: MotdArchiveReadCursor | null,
   legacySeenEndsAt: Date | null,
+  archiveReadItems: ReadonlyArray<MotdArchiveReadItem> | undefined,
 ) {
   const rows = await prisma.motd.findMany({
     where: motdArchiveListWhere(now),
@@ -227,19 +243,18 @@ async function fetchArchiveHeaderStats(
     (latest, item) => (latest === null || item.endsAt > latest ? item.endsAt : latest),
     null,
   );
-  const archiveUnreadCount = seenCursor
-    ? visible.reduce(
-        (count, item) =>
-          count +
-          (compareArchiveReadCursors(archiveReadCursorForItem(item), seenCursor) > 0 ? 1 : 0),
-        0,
-      )
-    : legacySeenEndsAt
-      ? visible.reduce(
-          (count, item) => count + (new Date(item.endsAt) > legacySeenEndsAt ? 1 : 0),
-          0,
-        )
-      : archiveCount;
+  const archiveUnreadCount = visible.reduce((count, item) => {
+    if (isArchiveItemIndividuallyRead(item, archiveReadItems)) return count;
+    if (seenCursor) {
+      return (
+        count + (compareArchiveReadCursors(archiveReadCursorForItem(item), seenCursor) > 0 ? 1 : 0)
+      );
+    }
+    if (legacySeenEndsAt) {
+      return count + (new Date(item.endsAt) > legacySeenEndsAt ? 1 : 0);
+    }
+    return count + 1;
+  }, 0);
   return {
     archiveCount,
     archiveMaxCursor,
@@ -336,7 +351,8 @@ export const motdRouter = router({
 
   /**
    * Toolbar/Header: aktives Overlay?, Archiv-Anzahl und ungelesene Meldungen relativ zum
-   * publikationsbasierten Archiv-Lesecursor (mit Legacy-`endsAt`-Kompatibilität).
+   * publikationsbasierten Archiv-Lesecursor, optional abzüglich einzeln gelesener Einträge
+   * (mit Legacy-`endsAt`-Kompatibilität).
    */
   getHeaderState: publicProcedure
     .input(MotdHeaderStateInputSchema)
@@ -366,7 +382,7 @@ export const motdRouter = router({
       const dismissed = input.overlayDismissedUpTo;
       const [motd, archiveStats] = await Promise.all([
         fetchCurrentMotdDto(locale, now, dismissed),
-        fetchArchiveHeaderStats(locale, now, seenCursor, legacySeenEndsAt),
+        fetchArchiveHeaderStats(locale, now, seenCursor, legacySeenEndsAt, input.archiveReadItems),
       ]);
 
       const { archiveCount, archiveMaxCursor, archiveMaxEndsAtIso, archiveUnreadCount } =
