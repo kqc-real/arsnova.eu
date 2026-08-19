@@ -346,8 +346,8 @@ Der Host sieht zusätzlich:
   Ruhige Zustände für fehlende Signale, regelbasierte Basis und deaktivierte
   Analyse. Story **8.9a** ist umgesetzt. Story **8.9b** liefert den optionalen
   asynchronen Q&A-NLP-Vertrag (Kill-Switch default aus, Queue, Host-only
-  Kategorien in der Karte **Häufige Themen**, Gatekeeper und Seed-Kalibrierung);
-  semantischer Fallback bleibt offen. **8.9c** bleibt offen.
+  Kategorien in der Karte **Häufige Themen**, Gatekeeper, Seed-Kalibrierung
+  und k-NN-Fallback); Hörsaal-Lastmessung bleibt offen. **8.9c** bleibt offen.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-08-19
-**Status:** 🟡 Gatekeeper kalibriert auf erweitertem Seed-Eval; semantischer Fallback und Hörsaal-Lastmessung offen
+**Status:** 🟡 Level-1-Gatekeeper und Level-2-k-NN-Fallback im Repo; Kill-Switch default aus; Hörsaal-Lastmessung vor produktiver Aktivierung offen
 **Backlog:** Story 8.9b
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 
@@ -34,11 +34,11 @@ Der Analyse-Input enthält ausschließlich `text` (max. 500 Zeichen). Keine Toke
 
 Persistiert werden nur Ergebnisfelder an `QaQuestion`: Status, optionale Kategorie, Konfidenz, Modellversion, Analysezeitpunkt. Roh-Snapshots werden nicht gespeichert.
 
-Teilnehmer-DTOs enthalten kein `nlp`. Host/`moderatorView` sieht `nlp`, sobald `QA_NLP_ENABLED=true` oder ein nicht-`DISABLED`-Ergebnis vorliegt. `qa.nlpRuntime` liefert `{ enabled }` nur mit Host-Token.
+Teilnehmer-DTOs enthalten kein `nlp`. Host/`moderatorView` sieht `nlp`, sobald `QA_NLP_ENABLED=true` oder ein nicht-`DISABLED`-Ergebnis vorliegt. `qa.nlpRuntime` liefert `{ enabled, metrics }` nur mit Host-Token.
 
 ## Gatekeeper
 
-Der Worker nutzt ein gehashtes Zeichen-n-Gramm- plus Wort-Unigramm-Naive-Bayes (`modelVersion: gatekeeper-hash-nb-v1`) auf dem kuratierten Seed in `qaNlpSeed.ts`. Training erfolgt einmal im Prozess aus dem Train-Split. Softmax ist temperiert (`T=2`), damit Konfidenzen nicht bei 1.0 kleben.
+Der Worker nutzt zuerst ein gehashtes Zeichen-n-Gramm- plus Wort-Unigramm-Naive-Bayes (`modelVersion: gatekeeper-hash-nb-v1`) auf dem kuratierten Seed in `qaNlpSeed.ts`. Training erfolgt einmal im Prozess aus dem Train-Split. Softmax ist temperiert (`T=2`), damit Konfidenzen nicht bei 1.0 kleben. Unsichere oder kurze Texte gehen in den Level-2-k-NN (siehe unten).
 
 Eine Keyword-Baseline dient nur dem Vergleich in der Evaluation, nicht dem Live-Pfad.
 
@@ -51,7 +51,7 @@ QA_NLP_ENABLED=true npm run start:prod
 npm run apply:qa-nlp -w @arsnova/backend -- --code ABC123
 ```
 
-`apply:qa-nlp` schreibt Gatekeeper-Ergebnisse direkt nach Prisma und umgeht `qa.submit`. Neue Einreichungen laufen über die Queue, sobald der Kill-Switch am Backend-Prozess `true` ist.
+`apply:qa-nlp` schreibt Kaskaden-Ergebnisse (Gatekeeper plus Fallback) direkt nach Prisma und umgeht `qa.submit`. Neue Einreichungen laufen über die Queue, sobald der Kill-Switch am Backend-Prozess `true` ist.
 
 Der Stub (`modelVersion: stub`) bleibt für Tests und Queue-Fehlerpräfixe (`stub:timeout`, `stub:queue-limit`).
 
@@ -70,29 +70,40 @@ Dieselbe Kompass-UI, kein neuer Bildschirm. Statuszeile:
 
 Klassifizierte Fragen erscheinen in der Karte **Häufige Themen** als Inhalt, Ablauf und Technik (mit Anzahl). Ein Tipp darauf hebt die passenden Q&A-Fragen mit Badge **Aus dem Kompass · Inhaltliche Fragen** (bzw. Ablauf/Technik) hervor. Andere Kompass-Sprünge nutzen dieselbe Badge-Form mit Karten- oder Begriffshinweis. 8.9a-Karten bleiben der Fallback. Keine automatischen Pin-/Archiv-/Phasenaktionen.
 
+## Level 2 (k-NN-Fallback)
+
+Wenn der Gatekeeper **nicht** early-exitet (Konfidenz ≥ `QA_NLP_MIN_CONFIDENCE`, Abstand der beiden Top-Klassen ≥ 0.22 **und** mindestens 6 Tokens), läuft ein In-Process-k-NN (`modelVersion: fallback-knn-v1`, k=5, Cosinus) im **selben gehashten n-Gramm-Raum**. Prototypen kommen aus Train-Split plus `prototype`-Beispielen (Slang, FR/ES/IT); das Gatekeeper-Train bleibt eingefroren.
+
+Das ist die evaluierte Embedding-plus-Klassifikationslogik für ADR-0032 Level 2: dichte Nachbarn im Hash-Raum, ohne Transformer-Download. `multilingual-e5-*` bleibt Kandidat, falls ein späterer Hörsaal-Lasttest Qualität oder Latenz nicht trägt. Uneinigkeit zwischen akzeptiertem k-NN und Gatekeeper wird `uncertain`, außer der Gatekeeper liegt unter der Konfidenzschwelle.
+
+Early-Exit, Timeout und Queue-Limit sind lokale Smokes (u. a. 200 Kaskaden-Snapshots unter 500 ms in Unit-Tests). Sie ersetzen **keinen** k6/Artillery-Hörsaallasttest.
+
 ## Telemetrie
 
-Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Queue-Länge und Latenz. In-Process-Zähler: Queue-Länge, Enqueue, Skip, Completed, Failed, Unclassified.
+Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Queue-Länge, Latenz und Modellversion. In-Process-Zähler und Raten in `qa.nlpRuntime.metrics` (Host-only): Queue-Länge, letzte Latenz, Completed, Failed, Skipped, Early-Exit, Fallback, Unclassified sowie `earlyExitRate`, `fallbackRate`, `unclassifiedRate`. Unclassified zählt `uncertain`, `failed`, `disabled` und Ergebnisse ohne Kategorie.
 
-## Kalibrierung (Slice 3)
+## Kalibrierung und Seed-Qualität
 
-Train-Split bleibt eingefroren (`gatekeeper-hash-nb-v1`). Das gelabelte Eval (ohne `ambiguous`) umfasst Tippfehler, Kurzfragen, Slang, Code-Switching und DE/EN plus kleine FR/ES/IT-Stichproben. Gold-Labels bei `ambiguous` sind Best-Effort und zählen nicht in F1.
+Train-Split bleibt eingefroren (`gatekeeper-hash-nb-v1`). Das gelabelte Eval (ohne `ambiguous`) umfasst Tippfehler, Kurzfragen, Slang, Code-Switching, DE/EN und erweiterte FR/ES-Stichproben plus kleine IT-Stichprobe. Gold-Labels bei `ambiguous` sind Best-Effort und zählen nicht in F1.
 
 Gemessen mit `npm run eval:qa-nlp -w @arsnova/backend` (2026-08-19, Seed im Repo):
 
-| Kenngröße an `QA_NLP_MIN_CONFIDENCE=0.55` | Wert                 |
-| ----------------------------------------- | -------------------- |
-| Gelabeltes Eval / Ambiguous               | 76 / 15              |
-| Classified-Accuracy                       | 0.85                 |
-| Macro-F1 (Best-Guess)                     | 0.86                 |
-| Uncertain-Rate                            | 0.01                 |
-| Slang Classified-Accuracy                 | 0.64                 |
-| Ambiguous als `classified`                | 0.87 (Accuracy 0.38) |
+| Kenngröße an `QA_NLP_MIN_CONFIDENCE=0.55` | Gatekeeper           | Kaskade                        |
+| ----------------------------------------- | -------------------- | ------------------------------ |
+| Gelabeltes Eval / Ambiguous               | 100 / 15             | 100 / 15                       |
+| Classified-Accuracy                       | 0.84                 | 0.87                           |
+| Classified-Coverage                       | 0.97                 | 0.85                           |
+| Macro-F1 (Best-Guess, Gatekeeper)         | 0.82                 | —                              |
+| Uncertain-Rate / Fallback-Rate            | 0.03                 | Fallback 0.51, Early-Exit 0.49 |
+| Slang Classified-Accuracy                 | 0.67                 | 0.69                           |
+| Tippfehler Classified-Accuracy            | —                    | 0.94                           |
+| FR / ES (n=15 / 15) Classified-Accuracy   | —                    | 0.71 / 0.83                    |
+| Ambiguous als `classified`                | 0.87 (Accuracy 0.38) | —                              |
 
-Betriebspunkt: Default **0.55 bleibt**. Die niedrigste formale Schwelle mit Classified-Accuracy ≥ 0.80 wäre 0.20, filtert aber nichts (überconfidentes Softmax). Fallback-Budget für Level 2: Uncertain-Rate **0.30**. Das Budget ist auf diesem Seed **nicht** überschritten.
+Betriebspunkt: Default **0.55 bleibt**. Die niedrigste formale Schwelle mit Classified-Accuracy ≥ 0.80 wäre 0.20, filtert aber nichts (überconfidentes Softmax). Fallback-Budget für Level 2: Uncertain-Rate **0.30** auf dem Gatekeeper; das Budget ist auf diesem Seed **nicht** überschritten.
 
-Level 2 bleibt trotzdem der nächste Slice, weil die Uncertain-Rate den Fehler **unterschätzt**: Slang und mehrdeutige Kurzfragen werden mit hoher Konfidenz falsch einsortiert. FR/ES-Stichproben sind zu klein für eine Freigabe. Das Seed bleibt keine produktive Aktivierungsbasis.
+Das Seed bleibt **keine** Freigabebasis für `QA_NLP_ENABLED=true`. Slang und Mehrdeutigkeit bleiben schwach; IT ist zu klein. Produktive Aktivierung braucht den Hörsaal-Lasttest.
 
 ## Nächster Slice
 
-Semantischer Fallback (Level 2, ADR-0032) für unsichere **und** überconfident-falsche Fälle (Slang, Ambiguity), danach k6/Artillery-Lastmessung vor produktiver Aktivierung.
+k6/Artillery-Q&A-Lastmessung gemäß ADR-0013/0025/0026/0032 vor produktiver Aktivierung. Story 8.9b bleibt offen, bis dieser Lasttest vorliegt.

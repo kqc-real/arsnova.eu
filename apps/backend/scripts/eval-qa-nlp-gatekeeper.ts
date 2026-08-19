@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 /**
- * Druckt Precision/Recall/F1, Slice-Metriken und die Kalibrierkurve des
- * Q&A-NLP-Gatekeepers gegen das kuratierte Seed-Set.
- * Kein Produktiv-Freigabeersatz; dient der lokalen Messung (ADR-0032).
+ * Druckt Precision/Recall/F1, Slice-Metriken, die Kalibrierkurve des
+ * Gatekeepers und die Kaskaden-Kennzahlen (Early-Exit/Fallback) gegen das
+ * kuratierte Seed-Set. Kein Produktiv-Freigabeersatz (ADR-0032).
  */
 import { format } from 'node:util';
+import { classifyQaNlpCascade } from '../src/lib/qaNlpCascade';
 import {
   QA_NLP_LEVEL2_FALLBACK_BUDGET,
   QA_NLP_OPERATING_MIN_CLASSIFIED_ACCURACY,
@@ -20,7 +21,13 @@ import {
 import { getQaNlpGatekeeperModel } from '../src/lib/qaNlpGatekeeper';
 import { predictQaNlpKeywordBaseline } from '../src/lib/qaNlpKeywordBaseline';
 import { predictQaNlpNaiveBayes } from '../src/lib/qaNlpNaiveBayes';
-import { qaNlpAmbiguousEvalExamples, qaNlpLabeledEvalExamples } from '../src/lib/qaNlpSeed';
+import {
+  QA_NLP_SEED_LOCALES,
+  QA_NLP_SEED_TAGS,
+  qaNlpAmbiguousEvalExamples,
+  qaNlpLabeledEvalExamples,
+  type QaNlpSeedExample,
+} from '../src/lib/qaNlpSeed';
 
 function log(...values: unknown[]): void {
   process.stdout.write(`${format(...values)}\n`);
@@ -39,12 +46,69 @@ const keyword = evaluateQaNlpPredictions(
 const curve = calibrateQaNlpThreshold(labeledEval, predictNb);
 const operating = recommendQaNlpOperatingPoint(curve);
 
+function summarizeCascade(examples: readonly QaNlpSeedExample[]) {
+  let classified = 0;
+  let correct = 0;
+  let fallback = 0;
+  let earlyExit = 0;
+  for (const example of examples) {
+    const result = classifyQaNlpCascade({ text: example.text });
+    if (result.usedFallback) {
+      fallback += 1;
+    }
+    if (result.earlyExit) {
+      earlyExit += 1;
+    }
+    if (result.status === 'classified') {
+      classified += 1;
+      if (result.category === example.category) {
+        correct += 1;
+      }
+    }
+  }
+  return {
+    size: examples.length,
+    classifiedCount: classified,
+    earlyExitRate: examples.length === 0 ? 0 : earlyExit / examples.length,
+    fallbackRate: examples.length === 0 ? 0 : fallback / examples.length,
+    classifiedCoverage: examples.length === 0 ? 0 : classified / examples.length,
+    classifiedAccuracy: classified === 0 ? 0 : correct / classified,
+  };
+}
+
+function summarizeCascadeGroups<T extends string>(
+  examples: readonly QaNlpSeedExample[],
+  keys: readonly T[],
+  matches: (example: QaNlpSeedExample, key: T) => boolean,
+): Partial<Record<T, ReturnType<typeof summarizeCascade>>> {
+  const result: Partial<Record<T, ReturnType<typeof summarizeCascade>>> = {};
+  for (const key of keys) {
+    const subset = examples.filter((example) => matches(example, key));
+    if (subset.length === 0) {
+      continue;
+    }
+    result[key] = summarizeCascade(subset);
+  }
+  return result;
+}
+
 log(
   JSON.stringify(
     {
       modelVersion: model.version,
       minConfidenceDefault: QA_NLP_MIN_CONFIDENCE_DEFAULT,
       productionRelease: false,
+      cascade: {
+        ...summarizeCascade(labeledEval),
+        byTag: summarizeCascadeGroups(labeledEval, QA_NLP_SEED_TAGS, (example, tag) =>
+          example.tags.includes(tag),
+        ),
+        byLocale: summarizeCascadeGroups(
+          labeledEval,
+          QA_NLP_SEED_LOCALES,
+          (example, locale) => example.locale === locale,
+        ),
+      },
       eval: {
         labeledSize: labeledEval.length,
         ambiguousSize: ambiguousEval.length,

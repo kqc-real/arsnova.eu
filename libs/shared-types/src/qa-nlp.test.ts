@@ -12,6 +12,20 @@ const questionBase = {
   myVote: null,
 };
 
+const emptyMetrics = {
+  queueLength: 0,
+  lastLatencyMs: null,
+  completed: 0,
+  failed: 0,
+  skipped: 0,
+  earlyExit: 0,
+  fallback: 0,
+  unclassified: 0,
+  earlyExitRate: 0,
+  fallbackRate: 0,
+  unclassifiedRate: 0,
+};
+
 describe('Q&A-NLP-Vertrag (Story 8.9b)', () => {
   it('akzeptiert pending ohne Kategorie und Konfidenz', () => {
     const parsed = QaNlpResultSchema.parse({ status: 'pending' });
@@ -40,7 +54,10 @@ describe('Q&A-NLP-Vertrag (Story 8.9b)', () => {
   });
 
   it('haelt den Runtime-Kill-Switch als Host-only-DTO', () => {
-    expect(QaNlpRuntimeDTOSchema.parse({ enabled: false })).toEqual({ enabled: false });
+    expect(QaNlpRuntimeDTOSchema.parse({ enabled: false, metrics: emptyMetrics })).toEqual({
+      enabled: false,
+      metrics: emptyMetrics,
+    });
   });
 
   it('laesst Teilnehmer-Fragen ohne nlp zu und streift unbekannte Moderationsartefakte', () => {

@@ -169,5 +169,31 @@ describe('qaNlpQueue', () => {
     expect(writes[0]?.status).toBe('classified');
     expect(writes[0]?.category).toBe('organization');
     expect(writes[0]?.modelVersion).toBe(QA_NLP_GATEKEEPER_MODEL_VERSION);
+    expect(getQaNlpMetrics().earlyExit).toBe(1);
+    expect(getQaNlpMetrics().fallback).toBe(0);
+    expect(getQaNlpMetrics().earlyExitRate).toBe(1);
+  });
+
+  it('zaehlt Fallback und Unclassified nach kurzem Text', async () => {
+    resetQaNlpQueueForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 10,
+        concurrency: 1,
+        minConfidence: 0.55,
+      }),
+      writer: async () => undefined,
+    });
+
+    enqueueQaNlpJob({ questionId: QUESTION_ID, text: 'Hallo zusammen' });
+    await waitForQaNlpIdleForTests();
+    const snapshot = getQaNlpMetrics();
+    expect(snapshot.completed).toBe(1);
+    expect(snapshot.fallback).toBe(1);
+    expect(snapshot.earlyExit).toBe(0);
+    expect(snapshot.fallbackRate).toBe(1);
+    expect(snapshot.unclassified).toBeGreaterThanOrEqual(0);
+    expect(snapshot.unclassifiedRate).toBeGreaterThanOrEqual(0);
   });
 });

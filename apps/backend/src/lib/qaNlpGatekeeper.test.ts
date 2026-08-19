@@ -36,6 +36,16 @@ describe('qaNlpSeed', () => {
     expect(labeled.some((example) => example.locale === 'de')).toBe(true);
     expect(labeled.some((example) => example.locale === 'en')).toBe(true);
     expect(labeled.some((example) => example.locale === 'mixed')).toBe(true);
+    expect(labeled.filter((example) => example.locale === 'fr').length).toBeGreaterThanOrEqual(12);
+    expect(labeled.filter((example) => example.locale === 'es').length).toBeGreaterThanOrEqual(12);
+  });
+
+  it('deckt den Prototype-Split fuer Level 2 in allen Kategorien ab', () => {
+    const prototypes = qaNlpSeedBySplit('prototype');
+    expect(prototypes.length).toBeGreaterThanOrEqual(16);
+    expect(new Set(prototypes.map((example) => example.category))).toEqual(
+      new Set(['content', 'organization', 'technical']),
+    );
   });
 });
 

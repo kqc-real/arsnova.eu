@@ -203,21 +203,22 @@ Ironie, Sarkasmus und doppelte Verneinungen gelten nicht als garantiert geloest.
 
 ## Umsetzungsstand (2026-08-19)
 
-Der Vertrags-Slice, der Gatekeeper-Slice und der Kalibrier-Slice sind im Repo:
+Vertrag, Queue, Gatekeeper, Kalibrierung und Level-2-Fallback sind im Repo; der Kill-Switch bleibt default aus:
 
 - Shared-Zod-Vertrag `pending` | `classified` | `uncertain` | `disabled` | `failed` plus Kategorie, Konfidenz, Modellversion, Analysezeitpunkt
 - Kill-Switch `QA_NLP_ENABLED` (produktiv default aus), getrennt von spaCy `NLP_ENABLED`
 - Asynchrone In-Process-Queue nach Persistenz von `QaQuestion`; `qa.submit` awaitet die Inferenz nicht
 - Gatekeeper: gehashtes n-Gramm-Naive-Bayes auf kuratiertem Seed (`modelVersion: gatekeeper-hash-nb-v1`), Konfidenzschwelle `QA_NLP_MIN_CONFIDENCE`
 - Kalibrierung (Slice 3): erweitertes gelabeltes Eval, Kurve, Fallback-Budget 0.30; Default 0.55 bleibt, weil niedrigere Schwellen bei ueberconfidentem Softmax nichts filtern
+- Level 2: In-Process-k-NN im selben Hash-n-Gramm-Raum (`modelVersion: fallback-knn-v1`) als evaluierte Embedding-plus-Klassifikationslogik; Early-Exit nur bei Konfidenz, Margin und Mindesttokenzahl. Transformer (`multilingual-e5-*`) bleiben Kandidaten nach Lasttest, kein Download im Hotpath
 - Keyword-Baseline nur als Vergleich in `npm run eval:qa-nlp -w @arsnova/backend`
 - Stub bleibt fuer Tests und Queue-Fehlerpraefixe (`stub:timeout`)
-- Host-DTO `nlp` und `qa.nlpRuntime`; Teilnehmer-DTOs ohne NLP-Felder
+- Host-DTO `nlp` und `qa.nlpRuntime` inklusive Fallback-/Early-Exit-/Unclassified-Raten; Teilnehmer-DTOs ohne NLP-Felder
 - Minimierter Snapshot nur mit `text`
 - Kompass-Statuszeile fuer `pending` / `uncertain` / `disabled` / `failed` / `classified`
 - Queue-Limit, Timeout und Drop/Skip sind konfiguriert und dokumentiert: [qa-nlp-moderation.md](../../features/qa-nlp-moderation.md)
 
-Noch offen: semantischer Fallback (Level 2) fuer unsichere und ueberconfident-falsche Faelle, sowie Q&A-Lasttest vor produktiver Aktivierung.
+Noch offen: Q&A-Hoersaal-Lasttest (k6/Artillery, ADR-0013) vor produktiver Aktivierung. Die Story bleibt offen, bis dieser Test vorliegt.
 
 ## Referenzen
 

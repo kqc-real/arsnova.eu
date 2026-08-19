@@ -109,6 +109,19 @@ describe('qa NLP cascade (Story 8.9b)', () => {
 
       await expect(hostCaller.nlpRuntime({ sessionId: SESSION_ID })).resolves.toEqual({
         enabled: false,
+        metrics: {
+          queueLength: 0,
+          lastLatencyMs: null,
+          completed: 0,
+          failed: 0,
+          skipped: 0,
+          earlyExit: 0,
+          fallback: 0,
+          unclassified: 0,
+          earlyExitRate: 0,
+          fallbackRate: 0,
+          unclassifiedRate: 0,
+        },
       });
     },
   );
