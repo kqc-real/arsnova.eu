@@ -87,6 +87,7 @@ import {
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   isWordCloudLemmaLocale,
+  parseQaSummaryQuestionSourceId,
   type WordCloudLemmaLocale,
 } from '@arsnova/shared-types';
 import type {
@@ -103,6 +104,8 @@ import type {
   QaNlpCategory,
   QaQuestionDTO,
   QaQuestionSortMode,
+  QaSummaryRuntimeDTO,
+  QaSummarySource,
   QuickFeedbackResult,
   SessionChannelsDTO,
   SessionFeedbackSummary,
@@ -567,6 +570,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   readonly qaNlpEnabled = signal(false);
+  readonly qaSummaryRuntime = signal<QaSummaryRuntimeDTO | null>(null);
+  readonly qaSummaryEnabled = computed(() => this.qaSummaryRuntime()?.enabled === true);
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
@@ -884,6 +889,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly emojiNewCount = signal(0);
   readonly emojiBadgePulse = signal(false);
   private emojiPulseTimer: ReturnType<typeof setTimeout> | null = null;
+  private qaSummaryPollTimer: ReturnType<typeof setInterval> | null = null;
   /** Frage + Abstimmungsrunde (Peer Instruction), damit Emoji-Badge bei Rundenwechsel zurücksetzt. */
   private lastEmojiReactionScope = '';
   /** Aktuelle Quiz-Abstimmungsrunde (1/2) für Emoji-Host-Panel. */
@@ -1795,9 +1801,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.moderationCompassReturn.set(null);
     this.clearQaCompassFocus();
     this.moderationCompassFocusedTerm.set(null);
+    await this.refreshQaSummaryRuntime();
     const { ModerationCompassDialogComponent } =
       await import('./moderation-compass-dialog.component');
-    this.dialog.open(ModerationCompassDialogComponent, {
+    const dialogRef = this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
         analysisMode: resolveModerationCompassAnalysisMode({
@@ -1810,6 +1817,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ) => {
           void this.followModerationCompassSource(source, cardKind);
         },
+        summaryEnabled: () => this.qaSummaryEnabled(),
+        summary: () => this.qaSummaryRuntime(),
+        onRequestSummary: () => {
+          void this.requestQaSummary();
+        },
+        onSummarySourceActivate: (source: QaSummarySource) => {
+          void this.followQaSummarySource(source);
+        },
       },
       autoFocus: 'first-tabbable',
       restoreFocus: true,
@@ -1819,6 +1834,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       maxWidth: 'calc(100vw - 1rem)',
       maxHeight: 'calc(100dvh - 1rem)',
       panelClass: 'moderation-compass-dialog-panel',
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.stopQaSummaryPolling();
     });
   };
 
@@ -1941,6 +1959,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.clearQaCompassFocus();
     }
     this.moderationCompassReturn.set({ channel: previousChannel });
+  }
+
+  async followQaSummarySource(source: QaSummarySource): Promise<void> {
+    const questionId = parseQaSummaryQuestionSourceId(source.id);
+    if (!questionId) {
+      return;
+    }
+    await this.followModerationCompassSource(
+      {
+        kind: 'qa-question',
+        label: source.label,
+        target: { channel: 'qa', questionId, questionIds: [questionId] },
+      },
+      'topics',
+    );
   }
 
   private findCompassCardKind(
@@ -3442,6 +3475,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshLobbyTeams();
       await this.refreshQaQuestions();
       await this.refreshQaNlpRuntime();
+      await this.refreshQaSummaryRuntime();
       await this.refreshQuickFeedbackResult();
     } catch {
       this.session.set(null);
@@ -3764,6 +3798,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.stopHostPolling();
     this.clearFoyerArrivalState();
     this.stopCountdown();
+    this.stopQaSummaryPolling();
     this.sound.stopAll();
     this.closeOpenWordCloudOverlays();
     if (this.emojiPulseTimer) {
@@ -7448,6 +7483,60 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaNlpEnabled.set(runtime.enabled);
     } catch {
       this.qaNlpEnabled.set(false);
+    }
+  }
+
+  private async refreshQaSummaryRuntime(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId) {
+      this.qaSummaryRuntime.set(null);
+      this.stopQaSummaryPolling();
+      return;
+    }
+    try {
+      const runtime = await trpc.qa.summaryRuntime.query({ sessionId });
+      this.qaSummaryRuntime.set(runtime);
+      if (runtime.result?.status !== 'pending') {
+        this.stopQaSummaryPolling();
+      }
+    } catch {
+      this.qaSummaryRuntime.set(null);
+      this.stopQaSummaryPolling();
+    }
+  }
+
+  private async requestQaSummary(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId || !this.qaSummaryEnabled()) {
+      return;
+    }
+    try {
+      const runtime = await trpc.qa.requestSummary.mutate({
+        sessionId,
+        locale: getEffectiveLocale(localeIdToSupported(this.localeId)),
+      });
+      this.qaSummaryRuntime.set(runtime);
+      if (runtime.result?.status === 'pending') {
+        this.startQaSummaryPolling();
+      } else {
+        this.stopQaSummaryPolling();
+      }
+    } catch {
+      this.stopQaSummaryPolling();
+    }
+  }
+
+  private startQaSummaryPolling(): void {
+    this.stopQaSummaryPolling();
+    this.qaSummaryPollTimer = setInterval(() => {
+      void this.refreshQaSummaryRuntime();
+    }, 750);
+  }
+
+  private stopQaSummaryPolling(): void {
+    if (this.qaSummaryPollTimer) {
+      clearInterval(this.qaSummaryPollTimer);
+      this.qaSummaryPollTimer = null;
     }
   }
 

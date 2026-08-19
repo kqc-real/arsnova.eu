@@ -145,6 +145,9 @@ services:
       # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
       # QA_NLP_ENABLED kommt aus `.env.production` (Default false). Story 8.9b:
       # asynchrone Q&A-Klassifikation, getrennt von spaCy; Gatekeeper plus Seed-Kalibrierung.
+      # QA_SUMMARY_ENABLED kommt aus `.env.production` (Default false). Story 8.9c:
+      # optionale Moderationszusammenfassung, getrennt von QA_NLP_ENABLED; ohne
+      # private QA_SUMMARY_INFERENCE_URL kein Cloud-Fallback.
     depends_on:
       pdf-worker:
         condition: service_healthy

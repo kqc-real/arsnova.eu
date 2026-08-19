@@ -13723,6 +13723,38 @@
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
         <target>Jump to source: <x id="label" equiv-text="source.label"/></target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySourceJumpAria" datatype="html">
+        <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
+        <target>Jump to source: <x id="label" equiv-text="source.label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
+        <source>Die Zusammenfassung wird erstellt.</source>
+        <target>The summary is being created.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUncertain" datatype="html">
+        <source>Die Zusammenfassung ist unsicher.</source>
+        <target>The summary is uncertain.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFailed" datatype="html">
+        <source>Die Zusammenfassung ist gerade nicht verfügbar.</source>
+        <target>The summary is currently unavailable.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryNextSteps" datatype="html">
+        <source> Mögliche nächste Schritte </source>
+        <target>Possible next steps</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySources" datatype="html">
+        <source> Quellen </source>
+        <target>Sources</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryLimitations" datatype="html">
+        <source> Hinweise </source>
+        <target>Notes</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
+        <source> Zusammenfassung </source>
+        <target>Summary</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
         <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
         <target>Key trends and insights will appear here as soon as your audience gets active.</target>

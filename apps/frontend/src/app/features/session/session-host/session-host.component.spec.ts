@@ -35,6 +35,8 @@ const {
   wordCloudAnalyzeQueryMock,
   qaListQueryMock,
   qaNlpRuntimeQueryMock,
+  qaSummaryRuntimeQueryMock,
+  qaRequestSummaryMutateMock,
   qaModerateMutateMock,
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
@@ -78,6 +80,8 @@ const {
   wordCloudAnalyzeQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
   qaNlpRuntimeQueryMock: vi.fn(),
+  qaSummaryRuntimeQueryMock: vi.fn(),
+  qaRequestSummaryMutateMock: vi.fn(),
   qaModerateMutateMock: vi.fn(),
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -152,6 +156,8 @@ vi.mock('../../../core/trpc.client', () => ({
     qa: {
       list: { query: qaListQueryMock },
       nlpRuntime: { query: qaNlpRuntimeQueryMock },
+      summaryRuntime: { query: qaSummaryRuntimeQueryMock },
+      requestSummary: { mutate: qaRequestSummaryMutateMock },
       moderate: { mutate: qaModerateMutateMock },
       toggleModeration: { mutate: qaToggleModerationMutateMock },
       onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
@@ -352,6 +358,16 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
     qaNlpRuntimeQueryMock.mockResolvedValue({ enabled: false });
+    qaSummaryRuntimeQueryMock.mockResolvedValue({
+      enabled: false,
+      inferenceConfigured: false,
+      result: null,
+    });
+    qaRequestSummaryMutateMock.mockResolvedValue({
+      enabled: false,
+      inferenceConfigured: false,
+      result: null,
+    });
     qaModerateMutateMock.mockResolvedValue({});
     qaOnQuestionsUpdatedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     startQaMutateMock.mockResolvedValue({
@@ -11474,8 +11490,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       const data = config['data'] as {
         cards: () => { kind: string }[];
         analysisMode: 'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified';
+        summaryEnabled: () => boolean;
       };
       expect(data.analysisMode).toBe('disabled');
+      expect(data.summaryEnabled()).toBe(false);
       expect(data.cards().some((card) => card.kind === 'clarification')).toBe(true);
 
       const button = fixture.nativeElement.querySelector(
@@ -11488,6 +11506,81 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(button?.getAttribute('aria-label')).toBe(
         'Moderationskompass öffnen, Hinweise vorhanden',
       );
+      fixture.destroy();
+    });
+
+    it('gibt die Zusammenfassung nur an den Host-Dialog wenn sie aktiviert ist', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaSummaryRuntimeQueryMock.mockResolvedValue({
+        enabled: true,
+        inferenceConfigured: false,
+        result: null,
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          upvoteCount: 4,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup([{ provide: LOCALE_ID, useValue: 'de' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      dialogOpenMock.mockClear();
+      await fixture.componentInstance.openModerationCompassDialog();
+      const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
+      const data = config['data'] as {
+        summaryEnabled: () => boolean;
+        onRequestSummary: () => void;
+      };
+      expect(data.summaryEnabled()).toBe(true);
+
+      qaRequestSummaryMutateMock.mockResolvedValue({
+        enabled: true,
+        inferenceConfigured: false,
+        result: {
+          status: 'pending',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      });
+      data.onRequestSummary();
+      await fixture.whenStable();
+      expect(qaRequestSummaryMutateMock).toHaveBeenCalledWith({
+        sessionId: defaultSession.id,
+        locale: 'de',
+      });
+
+      await fixture.componentInstance.followQaSummarySource({
+        id: 'qa-question:11111111-1111-4111-8111-111111111111',
+        kind: 'qa-question',
+        label: 'Kommt Kapitel 4 in der Klausur vor?',
+      });
+      expect(fixture.componentInstance.activeChannel()).toBe('qa');
+      expect(
+        fixture.componentInstance.isQaCompassFocused('11111111-1111-4111-8111-111111111111'),
+      ).toBe(true);
       fixture.destroy();
     });
 

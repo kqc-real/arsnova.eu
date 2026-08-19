@@ -131,4 +131,4 @@ Ohne `HOST_TOKEN` stellt der Runner ein neues Host-Token aus und ersetzt das bis
 
 ## Nächster Slice
 
-Story 8.9c (generative Moderationszusammenfassung). Produktiv `QA_NLP_ENABLED` nicht stillschweigend auf `true` setzen; Slang-Qualität und ein Sentence-Transformer (`multilingual-e5-*`) bleiben optionale Folgearbeit, kein Hotpath-Zwang nach diesem Lasttest.
+Story 8.9c (generative Moderationszusammenfassung) hat Vertrag, Host-UI und privaten Adapter ohne LLM; Kill-Switch default aus. Produktiv `QA_NLP_ENABLED` nicht stillschweigend auf `true` setzen; Slang-Qualität und ein Sentence-Transformer (`multilingual-e5-*`) bleiben optionale Folgearbeit, kein Hotpath-Zwang nach diesem Lasttest.

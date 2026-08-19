@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { describe, expect, it, vi } from 'vitest';
+import { qaSummaryQuestionSourceId, type QaSummaryRuntimeDTO } from '@arsnova/shared-types';
 import { ModerationCompassDialogComponent } from './moderation-compass-dialog.component';
 import type { ModerationCompassCard } from './moderation-compass';
 
@@ -10,6 +11,12 @@ describe('ModerationCompassDialogComponent', () => {
     onSourceActivate: (source: ModerationCompassCard['sources'][number]) => void = vi.fn(),
     analysisMode:
       'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified' = 'rule-based',
+    summary?: {
+      enabled?: boolean;
+      runtime?: QaSummaryRuntimeDTO | null;
+      onRequestSummary?: () => void;
+      onSummarySourceActivate?: (source: { id: string; label: string }) => void;
+    },
   ) {
     const dialogRef = { close: vi.fn() };
     TestBed.configureTestingModule({
@@ -17,7 +24,15 @@ describe('ModerationCompassDialogComponent', () => {
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: { cards: () => cards, analysisMode, onSourceActivate },
+          useValue: {
+            cards: () => cards,
+            analysisMode,
+            onSourceActivate,
+            summaryEnabled: () => summary?.enabled === true,
+            summary: () => summary?.runtime ?? null,
+            onRequestSummary: summary?.onRequestSummary,
+            onSummarySourceActivate: summary?.onSummarySourceActivate,
+          },
         },
         { provide: MatDialogRef, useValue: dialogRef },
       ],
@@ -152,5 +167,115 @@ describe('ModerationCompassDialogComponent', () => {
 
     expect(onSourceActivate).toHaveBeenCalledWith(source, 'clarification');
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('blendet die Zusammenfassung aus wenn der Kill-Switch aus ist', () => {
+    const { fixture } = setup([]);
+    expect(fixture.nativeElement.querySelector('[data-testid="moderation-summary"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Zusammenfassung');
+  });
+
+  it('zeigt pending und ready quellengebunden', () => {
+    const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const onRequestSummary = vi.fn();
+    const onSummarySourceActivate = vi.fn();
+    const { fixture, dialogRef } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      onRequestSummary,
+      onSummarySourceActivate,
+      runtime: {
+        enabled: true,
+        inferenceConfigured: false,
+        result: {
+          status: 'ready',
+          statements: [{ text: 'Es gibt eine Frage zur Klausur.', sourceIds: [sourceId] }],
+          suggestedNextSteps: [{ text: 'Klär die Klausurfragen zuerst.', sourceIds: [sourceId] }],
+          limitations: ['Nur sichtbare Q&A-Fragen.'],
+          sources: [
+            { id: sourceId, kind: 'qa-question', label: 'Kommt Kapitel 4 in der Klausur vor?' },
+          ],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      },
+    });
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Zusammenfassung');
+    expect(text).toContain('Es gibt eine Frage zur Klausur.');
+    expect(text).toContain('Mögliche nächste Schritte');
+    expect(text).toContain('Klär die Klausurfragen zuerst.');
+    expect(text).toContain('Kommt Kapitel 4 in der Klausur vor?');
+    expect(text).toContain('Nur sichtbare Q&A-Fragen.');
+
+    const button = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__summary-button',
+    ) as HTMLButtonElement;
+    button.click();
+    expect(onRequestSummary).toHaveBeenCalledTimes(1);
+
+    const sourceButton = fixture.nativeElement.querySelector(
+      '[data-testid="moderation-summary"] .moderation-compass-card__source-button',
+    ) as HTMLButtonElement;
+    sourceButton.click();
+    expect(onSummarySourceActivate).toHaveBeenCalledWith({
+      id: sourceId,
+      kind: 'qa-question',
+      label: 'Kommt Kapitel 4 in der Klausur vor?',
+    });
+    expect(dialogRef.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('zeigt failed ruhig und sperrt den Button während pending', () => {
+    const pending = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'pending',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [],
+          snapshotHash: 'b'.repeat(64),
+          locale: 'de',
+        },
+      },
+    });
+    expect(pending.fixture.nativeElement.textContent).toContain(
+      'Die Zusammenfassung wird erstellt.',
+    );
+    expect(
+      (
+        pending.fixture.nativeElement.querySelector(
+          '.moderation-compass-dialog__summary-button',
+        ) as HTMLButtonElement | null
+      )?.disabled,
+    ).toBe(true);
+
+    TestBed.resetTestingModule();
+    const failed = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: {
+        enabled: true,
+        inferenceConfigured: false,
+        result: {
+          status: 'failed',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: ['Kein privater Inferenzserver konfiguriert.'],
+          sources: [],
+          snapshotHash: 'c'.repeat(64),
+          locale: 'de',
+        },
+      },
+    });
+    expect(failed.fixture.nativeElement.textContent).toContain(
+      'Die Zusammenfassung ist gerade nicht verfügbar.',
+    );
+    expect(failed.fixture.nativeElement.textContent).toContain(
+      'Kein privater Inferenzserver konfiguriert.',
+    );
   });
 });

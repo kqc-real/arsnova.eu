@@ -192,9 +192,19 @@
       "fingerprint": "sha256:2459670030ef7175f07790b709356cac95c69805d2f65e9c69de0fa67e4e249f",
       "missing": []
     },
+    "qa.requestSummary": {
+      "kind": "mutation",
+      "fingerprint": "sha256:abf005e449ed0709595860f242fea2ff86291b46611ae18fc099c0d6640e8312",
+      "missing": []
+    },
     "qa.submit": {
       "kind": "mutation",
       "fingerprint": "sha256:9b9582a9a859585f1ed9c0bb70872257109580b8e3956d9ba406555399bd6267",
+      "missing": []
+    },
+    "qa.summaryRuntime": {
+      "kind": "query",
+      "fingerprint": "sha256:89cbd842fd7cf64dc00b8b57983ec275aa1afd0fb614cbeb8a9db3614358963c",
       "missing": []
     },
     "qa.toggleModeration": {
