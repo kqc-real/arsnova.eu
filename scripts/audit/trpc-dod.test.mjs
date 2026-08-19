@@ -699,7 +699,7 @@ test('real mode accepts the Slice-2D full-coverage flag on a complete baseline',
     cwd: repoRoot,
   });
   assert.equal(run.status, 0, run.stderr || run.stdout);
-  assert.match(run.stdout, /Complete: 114/);
+  assert.match(run.stdout, /Complete: 115/);
   assert.match(run.stdout, /Incomplete: 0/);
   assert.match(run.stdout, /Untested: 0/);
 });
@@ -707,8 +707,8 @@ test('real mode accepts the Slice-2D full-coverage flag on a complete baseline',
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
-  assert.equal(procedures.length, 122);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 50);
+  assert.equal(procedures.length, 123);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 51);
   assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 64);
   assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
   assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
@@ -1375,8 +1375,8 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     }
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
-    assert.equal(report.summary.queriesMutations, 114);
-    assert.equal(report.summary.complete, 114);
+    assert.equal(report.summary.queriesMutations, 115);
+    assert.equal(report.summary.complete, 115);
     assert.equal(report.summary.untested, 0);
     assert.equal(report.summary.legacyProcedures, 0);
     assert.equal(report.summary.legacyMissingDimensions, 0);
@@ -1388,7 +1388,7 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     const queriesMutations = report.procedures.filter(
       (procedure) => procedure.kind !== 'subscription',
     );
-    assert.equal(queriesMutations.length, 114);
+    assert.equal(queriesMutations.length, 115);
     assert.ok(
       queriesMutations.every(
         (procedure) =>

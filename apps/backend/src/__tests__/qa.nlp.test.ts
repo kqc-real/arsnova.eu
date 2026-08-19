@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
@@ -92,19 +93,45 @@ describe('qa NLP cascade (Story 8.9b)', () => {
     vi.unstubAllEnvs();
   });
 
-  it('liefert qa.nlpRuntime nur fuer den Host und bleibt default aus', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: SESSION_ID,
-      code: 'CODE12',
-    });
+  trpcDodIt(
+    {
+      procedure: 'qa.nlpRuntime',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert den Kill-Switch-Zustand nur an den Host und bleibt default aus',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: 'CODE12',
+      });
 
-    await expect(caller.nlpRuntime({ sessionId: SESSION_ID })).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-    });
-    await expect(hostCaller.nlpRuntime({ sessionId: SESSION_ID })).resolves.toEqual({
-      enabled: false,
-    });
-  });
+      await expect(hostCaller.nlpRuntime({ sessionId: SESSION_ID })).resolves.toEqual({
+        enabled: false,
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.nlpRuntime',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt qa.nlpRuntime ohne Host-Token ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: 'CODE12',
+      });
+
+      await expect(caller.nlpRuntime({ sessionId: SESSION_ID })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+    },
+  );
 
   it('streift NLP-Felder in der Teilnehmerliste auch wenn die DB Klassifikation speichert', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
