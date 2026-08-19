@@ -176,6 +176,34 @@ describe('FeedbackVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt Kita-Reserve-Nummern als kompaktes Overlay statt Riesen-Ziffer', async () => {
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.componentRef.setInput('participantName', 'Tannengrüner Biber 6');
+    fixture.componentRef.setInput('participantAvatar', '🦫');
+    fixture.componentRef.setInput('participantAvatarSequence', '6');
+    fixture.componentRef.setInput('participantTeamName', 'Team 🍐');
+    fixture.componentRef.setInput('sessionTitle', 'Demo-Session');
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('showSessionCode', false);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const avatar = fixture.nativeElement.querySelector(
+      '.feedback-vote__context-kita-avatar',
+    ) as HTMLElement | null;
+    const emoji = avatar?.querySelector('.feedback-vote__context-kita-emoji');
+    const sequence = avatar?.querySelector('.feedback-vote__context-kita-sequence');
+    expect(avatar?.classList.contains('feedback-vote__context-kita-avatar--numbered')).toBe(true);
+    expect(emoji?.textContent?.trim()).toBe('🦫');
+    expect(sequence?.textContent?.trim()).toBe('6');
+    fixture.destroy();
+  });
+
   it('blendet die anonyme Fallback-Identität im Vote-Kontext aus', async () => {
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');

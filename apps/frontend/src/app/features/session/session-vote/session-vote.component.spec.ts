@@ -3524,6 +3524,20 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('trennt Kita-Reserve-Nummern vom grossen Live-Emoji', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.componentInstance.sessionSettings.set({
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+    });
+    fixture.componentInstance.playerNickname.set('Tannengrüner Biber 6');
+
+    expect(fixture.componentInstance.playerKindergartenEmoji()).toBe('🦫');
+    expect(fixture.componentInstance.playerKindergartenSequence()).toBe('6');
+    expect(fixture.componentInstance.playerKindergartenBadgeLabel()).toBe('🦫 6');
+    fixture.destroy();
+  });
+
   it('nutzt fuer den Q&A-Autojoin fortlaufende Kita-Reserve-Namen statt Zufallszahlen', async () => {
     localStorage.removeItem('arsnova-participant-ABC123');
     localStorage.removeItem('arsnova-nickname-ABC123');
