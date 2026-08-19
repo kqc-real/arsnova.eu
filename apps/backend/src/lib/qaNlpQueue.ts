@@ -1,6 +1,7 @@
 import type { QaNlpResult } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { logger } from './logger';
+import { readQaNlpCascadeFlags } from './qaNlpCascade';
 import { resolveQaNlpConfig, type QaNlpConfig } from './qaNlpConfig';
 import { createFailedQaNlpResult, toQaNlpPersistFields } from './qaNlpResult';
 import {
@@ -21,7 +22,7 @@ export type QaNlpProcessor = (snapshot: QaNlpAnalysisSnapshot) => Promise<QaNlpR
 
 export type QaNlpResultWriter = (questionId: string, result: QaNlpResult) => Promise<void>;
 
-export type QaNlpMetrics = {
+type QaNlpMetricCounters = {
   queueLength: number;
   running: number;
   enqueued: number;
@@ -29,7 +30,15 @@ export type QaNlpMetrics = {
   completed: number;
   failed: number;
   unclassified: number;
+  earlyExit: number;
+  fallback: number;
   lastLatencyMs: number | null;
+};
+
+export type QaNlpMetrics = QaNlpMetricCounters & {
+  earlyExitRate: number;
+  fallbackRate: number;
+  unclassifiedRate: number;
 };
 
 type QueueHooks = {
@@ -47,7 +56,7 @@ const defaultWriter: QaNlpResultWriter = async (questionId, result) => {
   });
 };
 
-const metrics: QaNlpMetrics = {
+const metrics: QaNlpMetricCounters = {
   queueLength: 0,
   running: 0,
   enqueued: 0,
@@ -55,6 +64,8 @@ const metrics: QaNlpMetrics = {
   completed: 0,
   failed: 0,
   unclassified: 0,
+  earlyExit: 0,
+  fallback: 0,
   lastLatencyMs: null,
 };
 
@@ -122,17 +133,29 @@ async function processJob(job: QaNlpJob): Promise<void> {
     const result = await withTimeout(hooks.processor(snapshot), config.timeoutMs);
     await persistResult(job.questionId, result);
     metrics.completed += 1;
+    const flags = readQaNlpCascadeFlags(result);
+    if (flags.usedFallback) {
+      metrics.fallback += 1;
+    }
+    if (flags.earlyExit) {
+      metrics.earlyExit += 1;
+    }
     if (
       result.status === 'disabled' ||
       result.status === 'failed' ||
+      result.status === 'uncertain' ||
       result.category === undefined
     ) {
       metrics.unclassified += 1;
     }
     logger.info('qa_nlp:completed', {
       status: result.status,
+      modelVersion: result.modelVersion,
       latencyMs: hooks.now() - started,
       queueLength: queue.length,
+      earlyExit: metrics.earlyExit,
+      fallback: metrics.fallback,
+      unclassified: metrics.unclassified,
     });
   } catch (error) {
     const timedOut = error instanceof Error && error.message === 'QA_NLP_TIMEOUT';
@@ -195,8 +218,22 @@ export function enqueueQaNlpJob(job: QaNlpJob): QaNlpEnqueueResult {
   return 'queued';
 }
 
+function rate(numerator: number, denominator: number): number {
+  if (denominator <= 0) {
+    return 0;
+  }
+  return Math.min(1, numerator / denominator);
+}
+
 export function getQaNlpMetrics(): QaNlpMetrics {
-  return { ...metrics, queueLength: queue.length };
+  const settled = metrics.completed + metrics.failed;
+  return {
+    ...metrics,
+    queueLength: queue.length,
+    earlyExitRate: rate(metrics.earlyExit, metrics.completed),
+    fallbackRate: rate(metrics.fallback, metrics.completed),
+    unclassifiedRate: rate(metrics.unclassified, settled),
+  };
 }
 
 export function resetQaNlpQueueForTests(overrides?: Partial<QueueHooks>): void {
@@ -211,6 +248,8 @@ export function resetQaNlpQueueForTests(overrides?: Partial<QueueHooks>): void {
   metrics.completed = 0;
   metrics.failed = 0;
   metrics.unclassified = 0;
+  metrics.earlyExit = 0;
+  metrics.fallback = 0;
   metrics.lastLatencyMs = null;
   hooks = {
     ...createDefaultHooks(),

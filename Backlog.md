@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0), **8.5** (delegierbare Q&A-Moderation), **8.9b–8.9c** (optionale NLP-/Zusammenfassungsschicht über den Moderationskompass) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0), **8.5** (delegierbare Q&A-Moderation), **8.9c** (optionale generative Moderationszusammenfassung) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -115,7 +115,7 @@
 | 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                      | 🟡   | ✅ Fertig      |
 | 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                                   | 🟡   | ✅ Fertig      |
 | 8    | 8.9a  | Deterministischer Live-Moderationskompass                                          | 🟡   | ✅ Fertig      |
-| 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ⬜ Offen       |
+| 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ✅ Fertig      |
 | 8    | 8.9c  | Optionale generative Moderationszusammenfassung                                    | 🟢   | ⬜ Offen       |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                         | 🟡   | ✅ Fertig      |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                                            | 🟡   | ✅ Fertig      |
@@ -143,13 +143,13 @@
 >
 > **Laufzeitabgleich Story 0.7 (2026-07-12):** Der [lokale Baseline-Lauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) bestätigt Artillery 500/500 Live und Reconnect, Vote-Timer-/Host-Progress-Hotpaths, Yjs-Sync und einen 30-Minuten-Soak. Story **0.7** ist damit betrieblich abgeschlossen; die Baseline liegt in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`.
 >
-> **Dauerlast-Slice Story 0.7 (PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165), lokal validiert):** Der neue, manuelle lokale 10-Minuten-Demo-Classroom-Lauf absolvierte 48 vollständige Runden mit 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufen ohne Fehler. HTTP-p95 lag bei 59,62 ms, p99 bei 83,78 ms; Redis und PostgreSQL lieferten jeweils 121/121 erfolgreiche Probes, alle 21/21 Gates bestanden. Der Slice ist kein PR-Gate.
+> **Laufzeitabgleich Story 8.9b (2026-08-19):** Lokaler k6-Join-Wave (500 VU) und Artillery-500 gegen eine bestehende RESULTS-Session: 500/500 Joins und WS, 100/100 Q&A-Submits, NLP-Queue ohne Skip/Timeout (`earlyExitRate` 0,87, `fallbackRate` 0,13). Kill-Switch bleibt produktiv `false`. Nachweis: [qa-nlp-moderation.md](docs/features/qa-nlp-moderation.md#hörsaallast-lokal-2026-08-19).
 >
 > **Ergänzung Angebotsoption Westermann (2026-05-28):** **Epic 11** beschreibt einen **noch nicht beauftragten** Erweiterungspfad für **personalisierte Verlagszugänge und ein Redaktionsbackend**; hierzu existiert im Monorepo aktuell bewusst **kein** Produktcode.
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · 🚫 Geschlossen (nicht umgesetzt) · ❌ Blockiert
 >
-> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 72 · 🟢 Could: 12 = **118 Stories gesamt** (**101** ✅ Fertig · **0** 🔨 In Arbeit · **13** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
+> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 72 · 🟢 Could: 12 = **118 Stories gesamt** (**102** ✅ Fertig · **0** 🔨 In Arbeit · **12** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
 
 ---
 
@@ -1749,7 +1749,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Kein Ersatz für die fachliche Entscheidung der Lehrperson.
   - **Abhängigkeiten:** Story 1.2d, Story 1.14, Story 2.4, Story 2.7, Story 2.8, Story 4.4, Story 4.5, Story 8.6, Story 8.7, Story 8.8, Story 6.5, ADR-0025, ADR-0026.
 - **Story 8.9b (Optionale Q&A-NLP-Kaskade für Moderationssignale):** 🟡 Als Lehrperson oder Moderator:in möchte ich optional asynchron berechnete Q&A-Kategorien und Unsicherheitswerte im Moderationskompass sehen, damit Themenballungen schneller sichtbar werden, ohne dass das Einreichen oder Anzeigen von Q&A-Fragen von Inferenz abhängt.
-  - **Stand (2026-08-19):** Vertrag, Kill-Switch `QA_NLP_ENABLED` (Default aus), asynchrone Queue, Gatekeeper (`gatekeeper-hash-nb-v1`) auf kuratiertem Seed-Set und Kompass-Statuszeile sind umgesetzt. Semantischer Fallback, größeres gelabeltes Set und Hörsaal-Lastmessung bleiben offen. Kanonisch: [docs/features/qa-nlp-moderation.md](docs/features/qa-nlp-moderation.md).
+  - **Stand (2026-08-19):** ✅ Fertig. Vertrag, Kill-Switch `QA_NLP_ENABLED` (Default aus), asynchrone Queue, Gatekeeper (`gatekeeper-hash-nb-v1`), Seed-Kalibrierung (Default `QA_NLP_MIN_CONFIDENCE=0.55`), Level-2-k-NN-Fallback (`fallback-knn-v1`) und lokaler k6/Artillery-Hörsaallast (500 Joins/WS, 100 Q&A-Submits ohne Queue-Skip/Timeout) sind umgesetzt. Produktiv bleibt der Kill-Switch aus; Aktivierung ist betreiberseitig. Kanonisch: [docs/features/qa-nlp-moderation.md](docs/features/qa-nlp-moderation.md).
   - **Produktziel:** Die NLP-Kaskade erweitert 8.9a nur um **Hilfssignale** für Q&A. Sie folgt [ADR-0032](docs/architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md): lokale/self-hosted Inferenz, asynchron, abschaltbar, messbar und ohne personenbezogene Sentimentanalyse.
   - **Abgrenzung zu Story 1.14c:** 8.9b bleibt der eigenständige, per persistierter Frage ausgelöste Klassifikationspfad aus ADR-0032 mit `classified`/`unclassified`. 1.14c ist dagegen ein host-ausgelöster, unveränderlicher Snapshot-/Clusterpfad mit `ready`/`stale`/`fallback`. Es gibt keine Signal-, Zustands-, Queue-, Cache- oder Lebenszyklusabhängigkeit zwischen beiden Verträgen. Zulässig ist nur, dieselbe abgesicherte und versionierte Inferenzserver-Rolle sowie gemeinsame Betriebsbausteine zu verwenden; 8.9b baut keinen zweiten physischen Modellserver auf.
   - **Akzeptanzkriterien:**

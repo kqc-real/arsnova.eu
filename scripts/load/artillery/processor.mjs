@@ -167,7 +167,11 @@ export async function joinSession(userContext, events) {
     const ctx = loadSessionContext();
     const trpc = createHttpTrpcSingle(ctx.trpcUrl);
     const index = nextParticipantIndex();
-    const nickname = `art-${String(index).padStart(3, '0')}`.slice(0, 30);
+    const prefix =
+      String(process.env.ARTILLERY_NICKNAME_PREFIX || 'art')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, 12) || 'art';
+    const nickname = `${prefix}-${String(index).padStart(4, '0')}`.slice(0, 30);
     const joined = await trpc.session.join.mutate({
       code: ctx.code,
       nickname,
@@ -297,6 +301,11 @@ export async function fetchCurrentQuestion(userContext, events) {
 }
 
 export async function submitVote(userContext, events) {
+  if (process.env.ARTILLERY_SKIP_VOTES === '1') {
+    bumpRuntimeState('voteSkippedInactive');
+    events.emit('counter', 'custom.votes_skipped_inactive', 1);
+    return;
+  }
   try {
     const ctx = loadSessionContext();
     const trpc = createHttpTrpcSingle(ctx.trpcUrl);
@@ -312,7 +321,11 @@ export async function submitVote(userContext, events) {
     events.emit('counter', 'custom.votes_ok', 1);
   } catch (error) {
     const message = error?.message ?? String(error);
-    if (message.includes('nicht mehr aktiv') || message.includes('not active')) {
+    if (
+      message.includes('nicht mehr aktiv') ||
+      message.includes('nicht aktiv') ||
+      message.includes('not active')
+    ) {
       bumpRuntimeState('voteSkippedInactive');
       events.emit('counter', 'custom.votes_skipped_inactive', 1);
       return;

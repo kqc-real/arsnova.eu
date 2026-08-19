@@ -18,6 +18,7 @@ import {
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
+import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { enqueueQaNlpJob } from '../lib/qaNlpQueue';
 import {
   mapStoredQaNlpResult,
@@ -568,7 +569,23 @@ export const qaRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       await assertHostSessionAccessFromContext(ctx, session.code);
-      return { enabled: isQaNlpEnabled() };
+      const metrics = getQaNlpMetrics();
+      return {
+        enabled: isQaNlpEnabled(),
+        metrics: {
+          queueLength: metrics.queueLength,
+          lastLatencyMs: metrics.lastLatencyMs,
+          completed: metrics.completed,
+          failed: metrics.failed,
+          skipped: metrics.skipped,
+          earlyExit: metrics.earlyExit,
+          fallback: metrics.fallback,
+          unclassified: metrics.unclassified,
+          earlyExitRate: metrics.earlyExitRate,
+          fallbackRate: metrics.fallbackRate,
+          unclassifiedRate: metrics.unclassifiedRate,
+        },
+      };
     }),
 
   moderate: hostProcedure

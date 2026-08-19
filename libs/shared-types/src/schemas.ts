@@ -4797,8 +4797,24 @@ export const QaNlpResultSchema = z
 export type QaNlpResult = z.infer<typeof QaNlpResultSchema>;
 
 /** Host-only Betriebszustand der Q&A-NLP-Kaskade; kein Teilnehmer-Feld. */
+export const QaNlpRuntimeMetricsSchema = z.object({
+  queueLength: z.number().int().nonnegative(),
+  lastLatencyMs: z.number().nonnegative().nullable(),
+  completed: z.number().int().nonnegative(),
+  failed: z.number().int().nonnegative(),
+  skipped: z.number().int().nonnegative(),
+  earlyExit: z.number().int().nonnegative(),
+  fallback: z.number().int().nonnegative(),
+  unclassified: z.number().int().nonnegative(),
+  earlyExitRate: z.number().min(0).max(1),
+  fallbackRate: z.number().min(0).max(1),
+  unclassifiedRate: z.number().min(0).max(1),
+});
+export type QaNlpRuntimeMetrics = z.infer<typeof QaNlpRuntimeMetricsSchema>;
+
 export const QaNlpRuntimeDTOSchema = z.object({
   enabled: z.boolean(),
+  metrics: QaNlpRuntimeMetricsSchema,
 });
 export type QaNlpRuntimeDTO = z.infer<typeof QaNlpRuntimeDTOSchema>;
 

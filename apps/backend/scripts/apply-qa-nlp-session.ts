@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * Klassifiziert bestehende Q&A-Fragen einer Session mit dem Gatekeeper
- * und schreibt die NLP-Felder. Umgeht qa.submit, damit Seeds und Altbestand
- * ohne Neueinreichung aktualisiert werden können.
+ * Klassifiziert bestehende Q&A-Fragen einer Session mit der Kaskade
+ * (Gatekeeper plus k-NN-Fallback) und schreibt die NLP-Felder. Umgeht qa.submit,
+ * damit Seeds und Altbestand ohne Neueinreichung aktualisiert werden können.
  *
  *   npm run apply:qa-nlp -w @arsnova/backend -- --code 3TVKXF
  */
 import { format } from 'node:util';
 import { prisma } from '../src/db';
-import { classifyQaNlpSnapshot } from '../src/lib/qaNlpGatekeeper';
+import { classifyQaNlpCascade } from '../src/lib/qaNlpCascade';
 import { toQaNlpPersistFields } from '../src/lib/qaNlpResult';
 import { buildQaNlpAnalysisSnapshot } from '../src/lib/qaNlpSnapshot';
 
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
 
   const counts = { classified: 0, uncertain: 0, failed: 0, other: 0 };
   for (const question of questions) {
-    const result = classifyQaNlpSnapshot(buildQaNlpAnalysisSnapshot(question.text));
+    const result = classifyQaNlpCascade(buildQaNlpAnalysisSnapshot(question.text));
     await prisma.qaQuestion.update({
       where: { id: question.id },
       data: toQaNlpPersistFields(result),

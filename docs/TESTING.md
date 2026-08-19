@@ -254,6 +254,10 @@ npm test -w @arsnova/backend -- --run \
   src/lib/qaNlpResult.test.ts \
   src/lib/qaNlpQueue.test.ts \
   src/lib/qaNlpGatekeeper.test.ts \
+  src/lib/qaNlpFallback.test.ts \
+  src/lib/qaNlpCascade.test.ts \
+  src/lib/qaNlpEvaluate.test.ts \
+  src/lib/qaNlpCalibrate.test.ts \
   src/__tests__/qa.nlp.test.ts \
   src/__tests__/dto-security.test.ts \
   src/__tests__/wordCloud.hotpath-isolation.test.ts
@@ -266,7 +270,7 @@ npm run test -w @arsnova/frontend -- \
   src/app/features/session/session-host/session-host.component.spec.ts
 ```
 
-Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach semantischem Fallback sowie Last-/Qualitätsmessung außerhalb des Seed-Sets.
+Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle, Kalibrierkurve, k-NN-Fallback und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Queue-Tests decken langsamen Worker, Timeout und Telemetrie (Early-Exit/Fallback/Unclassified) ab. Lokaler k6/Artillery-Hörsaallast 2026-08-19: 500 Joins/WS und 100 Q&A-Submits ohne Queue-Skip; Produktiv-Default bleibt aus.
 
 Für W2.4a zusätzlich:
 
@@ -523,6 +527,8 @@ Unified Live-Session: Join-Welle, Quiz-Vote, Q&A (20 %), Blitzlicht, WebSocket
 ```bash
 npm run dev:backend
 PARTICIPANTS=500 npm run load:artillery:500
+# bestehende Session (Join, Q&A, Blitzlicht, WS); RESULTS überspringt Votes:
+SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
 ```
 
 Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-500.mjs), [`scripts/load/artillery/500-live-session.yml`](../scripts/load/artillery/500-live-session.yml). CI-Job `artillery-500` (Schedule/Manuell, Standard 100 TN auf Runner).
