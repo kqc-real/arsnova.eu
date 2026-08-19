@@ -156,14 +156,34 @@ export function findKindergartenNicknameEmoji(
   return i === null ? null : kindergartenEmojiAtIndex(i);
 }
 
-export function findKindergartenNicknameBadgeLabel(
+/** Fortlaufende Reserve-Nummer nach erschöpfter Kindergarten-Liste, sonst null. */
+export function kindergartenNicknameSequence(nickname: string): string | null {
+  return nickname.trim().match(/\s+(\d+)$/)?.[1] ?? null;
+}
+
+export type KindergartenNicknameBadge = {
+  readonly emoji: string;
+  readonly sequence: string | null;
+};
+
+export function findKindergartenNicknameBadge(
   nickname: string,
   locale: SupportedLocale = getEffectiveLocale(),
-): string | null {
+): KindergartenNicknameBadge | null {
   const emoji = findKindergartenNicknameEmoji(nickname, locale);
   if (!emoji) {
     return null;
   }
-  const suffix = nickname.trim().match(/\s+(\d+)$/)?.[1] ?? null;
-  return suffix ? `${emoji} ${suffix}` : emoji;
+  return { emoji, sequence: kindergartenNicknameSequence(nickname) };
+}
+
+export function findKindergartenNicknameBadgeLabel(
+  nickname: string,
+  locale: SupportedLocale = getEffectiveLocale(),
+): string | null {
+  const badge = findKindergartenNicknameBadge(nickname, locale);
+  if (!badge) {
+    return null;
+  }
+  return badge.sequence ? `${badge.emoji} ${badge.sequence}` : badge.emoji;
 }

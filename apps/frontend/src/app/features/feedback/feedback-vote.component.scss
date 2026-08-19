@@ -294,9 +294,12 @@
 }
 
 .feedback-vote__context-kita-avatar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
   width: clamp(5.75rem, 18vw, 8.25rem);
   height: clamp(5.75rem, 18vw, 8.25rem);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 24%, transparent);
@@ -311,6 +314,34 @@
   box-shadow: 0 0.65rem 1.4rem color-mix(in srgb, black 12%, transparent);
   font-size: clamp(4rem, 13vw, 6.15rem);
   line-height: 1;
+}
+
+.feedback-vote__context-kita-emoji {
+  font-size: inherit;
+  line-height: 1;
+}
+
+.feedback-vote__context-kita-sequence {
+  position: absolute;
+  right: 0.32rem;
+  bottom: 0.32rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  max-width: calc(100% - 0.5rem);
+  height: 1.35rem;
+  padding: 0 0.32rem;
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-medium);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .feedback-vote__context-item:first-child dd {
@@ -770,6 +801,16 @@
 
   .feedback-vote__context-item {
     max-width: 100%;
+  }
+
+  .feedback-vote__context-kita-sequence {
+    right: 0.24rem;
+    bottom: 0.24rem;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    font: var(--mat-sys-label-small);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 
   .feedback-vote__heading {

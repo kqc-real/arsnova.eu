@@ -24,9 +24,17 @@
           @if (participantAvatarLabel(); as avatar) {
             <div
               class="feedback-vote__context-kita-avatar"
+              [class.feedback-vote__context-kita-avatar--numbered]="
+                participantAvatarSequenceLabel()
+              "
               [attr.aria-label]="participantIdentityCaption() + ' ' + identity"
             >
-              <span aria-hidden="true">{{ avatar }}</span>
+              <span class="feedback-vote__context-kita-emoji" aria-hidden="true">{{ avatar }}</span>
+              @if (participantAvatarSequenceLabel(); as sequence) {
+                <span class="feedback-vote__context-kita-sequence" aria-hidden="true">{{
+                  sequence
+                }}</span>
+              }
             </div>
           } @else {
             <div class="feedback-vote__context-item">

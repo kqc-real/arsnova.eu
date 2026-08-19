@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  findKindergartenNicknameBadge,
   findKindergartenNicknameBadgeLabel,
   findKindergartenNicknameEmoji,
   findKindergartenNicknameIndex,
+  kindergartenNicknameSequence,
   KINDERGARTEN_NICKNAME_EMOJIS,
 } from './kindergarten-nickname-icons';
 import { NICKNAME_LISTS, NICKNAME_LISTS_BY_LOCALE } from './nickname-themes';
@@ -45,6 +47,16 @@ describe('kindergarten-nickname-icons', () => {
   it('ordnet auch generierte Reserve-Namen dem Ursprungs-Emoji zu', () => {
     expect(findKindergartenNicknameIndex('Roter Drache 2')).toBe(0);
     expect(findKindergartenNicknameEmoji('Roter Drache 2')).toBe('🐉');
+    expect(kindergartenNicknameSequence('Roter Drache 2')).toBe('2');
+    expect(kindergartenNicknameSequence('Roter Drache')).toBeNull();
+    expect(findKindergartenNicknameBadge('Roter Drache 2')).toEqual({
+      emoji: '🐉',
+      sequence: '2',
+    });
+    expect(findKindergartenNicknameBadge('Roter Drache')).toEqual({
+      emoji: '🐉',
+      sequence: null,
+    });
     expect(findKindergartenNicknameBadgeLabel('Roter Drache 2')).toBe('🐉 2');
   });
 
