@@ -154,7 +154,7 @@ Auslöser: **Push** und **Pull Request** auf `main`.
 | **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
 | **e2e-chromium**                       | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                 |
 | **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-, Fokus- und Tab-Regressionen                                                                                                                                                   |
-| **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert                                                                                                                                              |
+| **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                   |
 | **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
 | **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
 | **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; nach Quality-Gates inkl. `publish-image`; übergibt `DEPLOY_IMAGE`/`DEPLOY_SHA`, checkt `DEPLOY_SHA` per SSH vor `scripts/deploy.sh` aus, dann Digest-Pull (kein Server-Build) |
@@ -400,7 +400,10 @@ gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 des Chromium-Jobs `e2e-chromium`. Der Job `webkit-e2e` startet dieselben echten
 Backend-/Frontend-Services, wählt WebKit explizit und führt `e2e:motd-focus`
 aus. Der Required-Check `e2e` wird nur grün, wenn beide
-Browser-Jobs erfolgreich sind. `smoke:short-text` und `smoke:unified-session` schreiben bei
+Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
+nachträglich rot. Playwright-Browser installiert
+[`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
+(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). `smoke:short-text` und `smoke:unified-session` schreiben bei
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese
