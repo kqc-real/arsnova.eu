@@ -454,7 +454,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly status = signal<SessionStatus>('LOBBY');
   readonly sessionSettings = signal<Partial<SessionInfoDTO>>({});
   readonly lobbyArrivalActive = signal(false);
-  readonly qrDataUrl = signal('');
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
@@ -594,21 +593,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = this.playerNickname()?.trim();
     return nick ? kindergartenNicknameSequence(nick) : null;
-  });
-
-  readonly playerKindergartenBadgeAriaLabel = computed(() => {
-    const nick = this.playerNickname()?.trim();
-    return nick ? $localize`Du fragst als ${nick}` : $localize`Dein Tier-Icon`;
-  });
-
-  readonly playerKindergartenSelectionAriaLabel = computed(() => {
-    const nick = this.playerNickname()?.trim();
-    if (!nick) {
-      return $localize`Dein Tier-Icon`;
-    }
-    return this.qaSelectedAuthorNickname() === nick
-      ? $localize`Auswahl für ${nick} aufheben`
-      : $localize`Alle Fragen von ${nick} hervorheben`;
   });
 
   readonly playerBadgeAriaLabel = computed(() => {
@@ -954,11 +938,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * Emoji für das große Kita-Icon im Live-Quiz (Lobby bis inkl. RESULTS), sonst null.
+   * Großes Kita-Icon in Quiz, Q&A und Blitzlicht (Teilnehmer-View).
    * Abschlussseite (FINISHED) nutzt die eigene Hero-Karte.
    */
   readonly kitaIdentityHeroEmoji = computed((): string | null => {
-    if (!this.showPrimaryLiveView() || !this.playerNickname()?.trim() || this.isFinished()) {
+    if (!this.playerNickname()?.trim() || this.isFinished()) {
       return null;
     }
     return this.playerKindergartenEmoji();
@@ -2986,7 +2970,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       ]);
     }
 
-    await this.generateQrCode();
     const initialSessionLoaded = await this.loadSessionInfo();
     if (!initialSessionLoaded) {
       this.activateSessionFallback();
@@ -3761,31 +3744,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (active === 'quiz' && qaRoundVisible) {
       this.activeChannel.set('qa');
       return;
-    }
-  }
-
-  private async generateQrCode(): Promise<void> {
-    if (!this.code) {
-      this.qrDataUrl.set('');
-      return;
-    }
-
-    try {
-      const qrcodeModule = await import('qrcode-generator');
-      const qrcodeFactory = (qrcodeModule.default ?? qrcodeModule) as unknown as (
-        typeNumber: 0,
-        errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H',
-      ) => {
-        addData(data: string): void;
-        make(): void;
-        createDataURL(cellSize?: number, margin?: number): string;
-      };
-      const qr = qrcodeFactory(0, 'M');
-      qr.addData(this.joinUrl);
-      qr.make();
-      this.qrDataUrl.set(qr.createDataURL(8, 2));
-    } catch {
-      this.qrDataUrl.set('');
     }
   }
 

@@ -454,22 +454,6 @@
       <section class="vote-live-banner app-live-channel-shell">
         <div class="vote-live-banner__main">
           <div class="vote-live-banner__access">
-            @if (qrDataUrl()) {
-              <div class="vote-live-banner__qr-wrap">
-                <img
-                  appMarkdownImageLightbox
-                  [src]="qrDataUrl()"
-                  [attr.alt]="joinUrl"
-                  data-markdown-image-lightbox="true"
-                  class="vote-live-banner__qr app-qr-image"
-                  width="320"
-                  height="320"
-                />
-              </div>
-              <div class="vote-live-banner__join-icon-tile" aria-hidden="true">
-                <mat-icon>qr_code_2</mat-icon>
-              </div>
-            }
             <div class="vote-live-banner__code-block">
               <p class="vote-live-banner__label" aria-hidden="true">
                 {{ vpc.voteLiveBannerCodeLabel(isPlayfulPreset()) }}
@@ -499,53 +483,54 @@
       </section>
     }
 
-    @if (showPrimaryLiveView()) {
-      @if (kitaIdentityHeroEmoji(); as kitaEmoji) {
-        <div class="vote-kita-hero-host">
-          <div
-            class="vote-lobby__kita-hero"
-            [class.vote-lobby__kita-hero--arrival]="showLobbyArrivalMoment()"
-            role="group"
-            [attr.aria-label]="playerBadgeAriaLabel()"
-          >
-            <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
-            <p class="vote-lobby__kita-identity">
-              <span class="vote-lobby__kita-nick">{{ playerNickname() }}</span>
-              @if (playerTeamName()) {
-                <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
-                @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
-                  @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
-                    <span class="vote-lobby__kita-team">{{
-                      teamNameLabelWithoutEmojiMarker(playerTeamName())
-                    }}</span>
-                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
-                      teamEmoji
-                    }}</span>
-                  } @else {
-                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
-                      teamEmoji
-                    }}</span>
-                    <span class="vote-lobby__kita-team">{{
-                      teamNameLabelWithoutEmojiMarker(playerTeamName())
-                    }}</span>
-                  }
+    @if (kitaIdentityHeroEmoji(); as kitaEmoji) {
+      <div class="vote-kita-hero-host">
+        <div
+          class="vote-lobby__kita-hero"
+          [class.vote-lobby__kita-hero--arrival]="showLobbyArrivalMoment()"
+          role="group"
+          [attr.aria-label]="playerBadgeAriaLabel()"
+        >
+          <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
+          <p class="vote-lobby__kita-identity">
+            <span class="vote-lobby__kita-nick">{{ playerNickname() }}</span>
+            @if (playerTeamName()) {
+              <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
+              @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
+                @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+                  <span class="vote-lobby__kita-team">{{
+                    teamNameLabelWithoutEmojiMarker(playerTeamName())
+                  }}</span>
+                  <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                    teamEmoji
+                  }}</span>
                 } @else {
-                  @if (playerTeamColor()) {
-                    <span
-                      class="vote-lobby__kita-team-dot"
-                      [style.background]="playerTeamColor()"
-                      aria-hidden="true"
-                    ></span>
-                  }
+                  <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                    teamEmoji
+                  }}</span>
                   <span class="vote-lobby__kita-team">{{
                     teamNameLabelWithoutEmojiMarker(playerTeamName())
                   }}</span>
                 }
+              } @else {
+                @if (playerTeamColor()) {
+                  <span
+                    class="vote-lobby__kita-team-dot"
+                    [style.background]="playerTeamColor()"
+                    aria-hidden="true"
+                  ></span>
+                }
+                <span class="vote-lobby__kita-team">{{
+                  teamNameLabelWithoutEmojiMarker(playerTeamName())
+                }}</span>
               }
-            </p>
-          </div>
+            }
+          </p>
         </div>
-      }
+      </div>
+    }
+
+    @if (showPrimaryLiveView()) {
       @if (isLobby()) {
         <div
           class="vote-lobby"
@@ -2441,28 +2426,6 @@
 
         @if (isQaChannelOpen()) {
           <div class="session-qa-form">
-            @if (playerKindergartenBadgeLabel(); as ownBadge) {
-              <div class="session-qa-form__identity">
-                <span class="session-qa-form__identity-text" i18n="@@sessionVote.qaIdentityHint"
-                  >Du fragst als</span
-                >
-                <button
-                  type="button"
-                  class="session-qa-form__identity-badge session-qa-form__identity-badge--button"
-                  [class.session-qa-form__identity-badge--selected]="
-                    qaSelectedAuthorNickname() === (playerNickname()?.trim() ?? null)
-                  "
-                  [attr.aria-label]="playerKindergartenSelectionAriaLabel()"
-                  [attr.aria-pressed]="
-                    qaSelectedAuthorNickname() === (playerNickname()?.trim() ?? null)
-                  "
-                  [attr.title]="playerNickname() ?? null"
-                  (click)="toggleQaAuthorSelection(playerNickname())"
-                >
-                  {{ ownBadge }}
-                </button>
-              </div>
-            }
             <textarea
               id="qa-draft"
               #qaTextarea

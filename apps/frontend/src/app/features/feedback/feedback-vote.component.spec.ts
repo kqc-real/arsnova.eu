@@ -167,9 +167,11 @@ describe('FeedbackVoteComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     expect(text).toContain('Demo-Session');
-    expect(text).toContain('ABC123');
-    expect(text).toContain('🦊');
-    expect(text).toContain('Team Blau');
+    expect(text).not.toContain('ABC123');
+    expect(text).not.toContain('🦊');
+    expect(text).not.toContain('Team Blau');
+    expect(fixture.nativeElement.querySelector('.feedback-vote__context-item')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.feedback-vote__context-kita-avatar')).toBeNull();
     const context = fixture.nativeElement.querySelector('.feedback-vote__context');
     expect(context?.getAttribute('aria-label')).toContain('Ada');
     expect(text).toContain('Ja · Nein · Vielleicht');
@@ -185,8 +187,8 @@ describe('FeedbackVoteComponent', () => {
     fixture.componentRef.setInput('participantAvatarSequence', '6');
     fixture.componentRef.setInput('participantTeamName', 'Team 🍐');
     fixture.componentRef.setInput('sessionTitle', 'Demo-Session');
-    fixture.componentRef.setInput('embeddedInSession', true);
-    fixture.componentRef.setInput('showSessionCode', false);
+    fixture.componentRef.setInput('embeddedInSession', false);
+    fixture.componentRef.setInput('showSessionCode', true);
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -217,12 +219,12 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
-    expect(text).toContain('ABC123');
+    expect(text).not.toContain('ABC123');
     expect(text).not.toContain('Ansicht');
     expect(text).not.toContain('Teilnehmende Person');
     const context = fixture.nativeElement.querySelector('.feedback-vote__context');
     expect(context?.getAttribute('aria-label')).toContain('Teilnehmeransicht');
-    expect(context?.querySelector('.feedback-vote__context-item dt mat-icon')).toBeNull();
+    expect(context?.querySelector('.feedback-vote__context-item')).toBeNull();
     fixture.destroy();
   });
 
