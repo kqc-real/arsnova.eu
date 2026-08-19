@@ -1,10 +1,21 @@
 import { extractExportQuestionText } from '../../../core/markdown-plain-text.util';
+import type { QuestionType } from '@arsnova/shared-types';
 
 export type ModerationCompassCardKind =
   'topics' | 'clarification' | 'friction' | 'tempo' | 'nextStep';
 
 export type ModerationCompassNextStepReason =
-  'pending-qa' | 'quiz-confusion' | 'controversy' | 'tempo' | 'feedback' | 'topics' | 'steady';
+  | 'pending-qa'
+  | 'quiz-confusion'
+  | 'quiz-survey'
+  | 'quiz-rating'
+  | 'controversy'
+  | 'tempo'
+  | 'feedback'
+  | 'topics'
+  | 'steady';
+
+export type ModerationCompassQuizInsightKind = 'scorable' | 'survey' | 'rating';
 
 export type ModerationCompassSourceKind =
   'qa-question' | 'qa-term' | 'freetext-term' | 'tempo' | 'quiz-result';
@@ -44,6 +55,7 @@ export type ModerationCompassCard = {
 
 export type ModerationCompassQuizSourceCacheEntry = {
   readonly questionId: string;
+  readonly questionType?: QuestionType;
   readonly sources: readonly ModerationCompassSource[];
 };
 
@@ -90,9 +102,11 @@ export type ModerationCompassSnapshot = {
   readonly topicWeightLabel: string | null;
   readonly tempo: ModerationCompassTempo | null;
   readonly quizSources: readonly ModerationCompassSource[];
+  readonly quizInsightKind?: ModerationCompassQuizInsightKind | null;
 };
 
 export type ModerationCompassQuizQuestion = {
+  readonly type?: QuestionType;
   readonly totalVotes?: number;
   readonly correctVoterCount?: number;
   readonly incorrectVoterCount?: number;
@@ -168,6 +182,7 @@ export type ModerationQuizFact =
   | { readonly type: 'ordering-swap'; readonly a: string; readonly b: string }
   | { readonly type: 'categorization-miss'; readonly item: string; readonly wrongCategory: string }
   | { readonly type: 'wrong-option'; readonly option: string }
+  | { readonly type: 'survey-top'; readonly option: string; readonly share: number }
   | { readonly type: 'numeric-median'; readonly median: number; readonly reference: number }
   | { readonly type: 'numeric-spread' }
   | {
@@ -214,6 +229,67 @@ export function compassQuestionStem(text: string, max = 56): string {
 export function collectModerationQuizFacts(
   question: ModerationCompassQuizQuestion,
 ): ModerationQuizFact[] {
+  if (question.type === 'SURVEY') {
+    return collectSurveyQuizFacts(question);
+  }
+  if (question.type === 'RATING') {
+    return collectRatingQuizFacts(question);
+  }
+  if (question.type === 'FREETEXT') {
+    return collectFreetextQuizFacts(question);
+  }
+  return collectScorableQuizFacts(question);
+}
+
+function topVoteDistributionOption(
+  voteDistribution: ModerationCompassQuizQuestion['voteDistribution'],
+): { text: string; voteCount: number } | null {
+  const top = [...(voteDistribution ?? [])]
+    .filter((option) => option.voteCount > 0)
+    .sort((left, right) => right.voteCount - left.voteCount)[0];
+  return top ?? null;
+}
+
+function collectSurveyQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
+  const facts: ModerationQuizFact[] = [];
+  const total = question.totalVotes ?? 0;
+  const top = topVoteDistributionOption(question.voteDistribution);
+  if (top && total > 0) {
+    facts.push({
+      type: 'survey-top',
+      option: top.text,
+      share: Math.round((top.voteCount / total) * 100),
+    });
+  }
+  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
+  if (repeat) {
+    facts.push(repeat);
+  }
+  return facts.slice(0, 6);
+}
+
+function collectRatingQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
+  const facts: ModerationQuizFact[] = [];
+  if (
+    typeof question.ratingAvg === 'number' &&
+    (question.ratingCount ?? 0) >= 3 &&
+    question.ratingAvg <= 2.5
+  ) {
+    facts.push({ type: 'rating-low', avg: question.ratingAvg });
+  }
+  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
+  if (repeat) {
+    facts.push(repeat);
+  }
+  return facts.slice(0, 6);
+}
+
+function collectFreetextQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
+  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
+  return repeat ? [repeat] : [];
+}
+
+function collectScorableQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
   const facts: ModerationQuizFact[] = [];
   const correct = question.correctVoterCount;
   const incorrect = question.incorrectVoterCount;
@@ -311,14 +387,6 @@ export function collectModerationQuizFacts(
   const round2 = question.roundComparison?.round2CorrectCount;
   if (typeof round1 === 'number' && typeof round2 === 'number' && round2 < round1) {
     facts.push({ type: 'round-drop' });
-  }
-
-  if (
-    typeof question.ratingAvg === 'number' &&
-    (question.ratingCount ?? 0) >= 3 &&
-    question.ratingAvg <= 2.5
-  ) {
-    facts.push({ type: 'rating-low', avg: question.ratingAvg });
   }
 
   const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
@@ -462,6 +530,7 @@ export function rememberModerationQuizSnapshot(
   existing: readonly ModerationCompassQuizSourceCacheEntry[],
   questionId: string,
   sources: readonly ModerationCompassSource[],
+  questionType?: QuestionType,
   maxQuestions = MAX_SOURCES,
 ): readonly ModerationCompassQuizSourceCacheEntry[] {
   const nextSources = sources
@@ -472,7 +541,7 @@ export function rememberModerationQuizSnapshot(
     nextSources.length === 0
       ? existing.filter((entry) => entry.questionId !== questionId)
       : [
-          { questionId, sources: nextSources },
+          { questionId, questionType, sources: nextSources },
           ...existing.filter((entry) => entry.questionId !== questionId),
         ].slice(0, maxQuestions);
 
@@ -737,6 +806,7 @@ function nextStepCardTone(
 function nextStepReason(input: {
   pendingCount: number;
   hasQuizConfusion: boolean;
+  quizInsightKind?: ModerationCompassQuizInsightKind | null;
   hasFriction: boolean;
   tempoTone: ModerationCompassTempo['tone'] | null;
   tempoVariant: ModerationCompassTempo['variant'];
@@ -746,6 +816,12 @@ function nextStepReason(input: {
     return input.tempoVariant === 'feedback' ? 'feedback' : 'tempo';
   }
   if (input.hasQuizConfusion) {
+    if (input.quizInsightKind === 'survey') {
+      return 'quiz-survey';
+    }
+    if (input.quizInsightKind === 'rating') {
+      return 'quiz-rating';
+    }
     return 'quiz-confusion';
   }
   if (input.tempoTone === 'caution') {
@@ -770,6 +846,8 @@ function nextStepSourceKind(reason: ModerationCompassNextStepReason): Moderation
   switch (reason) {
     case 'pending-qa':
     case 'quiz-confusion':
+    case 'quiz-survey':
+    case 'quiz-rating':
       return 'clarification';
     case 'controversy':
       return 'friction';
@@ -864,6 +942,7 @@ export function buildModerationCompassCards(
   const reason = nextStepReason({
     pendingCount: pending.length,
     hasQuizConfusion: quizSources.length > 0,
+    quizInsightKind: snapshot.quizInsightKind,
     hasFriction: frictionSources.length > 0,
     tempoTone,
     tempoVariant: snapshot.tempo?.variant,

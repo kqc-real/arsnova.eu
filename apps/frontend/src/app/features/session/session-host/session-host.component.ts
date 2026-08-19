@@ -139,6 +139,7 @@ import {
   notableQuickFeedbackSplit,
   rememberModerationQuizSnapshot,
   truncateCompassLabel,
+  type ModerationCompassQuizInsightKind,
   type ModerationCompassQuizSourceCacheEntry,
   type ModerationCompassSource,
   type ModerationCompassTempo,
@@ -1763,6 +1764,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       topicWeightLabel: this.moderationCompassTopicWeightLabel(),
       tempo: this.moderationCompassFeedback(),
       quizSources: this.moderationCompassQuizSources(),
+      quizInsightKind: this.moderationCompassQuizInsightKind(),
     }),
   );
   readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
@@ -2261,6 +2263,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  private moderationCompassQuizInsightKind(): ModerationCompassQuizInsightKind | null {
+    const question = this.displayedCurrentQuestionForHost();
+    if (this.effectiveStatus() === 'RESULTS' && question) {
+      return this.moderationCompassQuizInsightKindForType(question.type);
+    }
+    const cached = this.moderationQuizSourceCache().find((entry) => entry.sources.length > 0);
+    if (cached?.questionType) {
+      return this.moderationCompassQuizInsightKindForType(cached.questionType);
+    }
+    return this.moderationCompassQuizSources().length > 0 ? 'scorable' : null;
+  }
+
+  private moderationCompassQuizInsightKindForType(
+    type: HostCurrentQuestionDTO['type'],
+  ): ModerationCompassQuizInsightKind | null {
+    switch (type) {
+      case 'SURVEY':
+        return 'survey';
+      case 'RATING':
+        return 'rating';
+      case 'FREETEXT':
+        return null;
+      default:
+        return 'scorable';
+    }
+  }
+
   private localizeCurrentQuestionQuizSources(
     question: HostCurrentQuestionDTO,
   ): ModerationCompassSource[] {
@@ -2323,6 +2352,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'wrong-option':
         return quizSource(
           $localize`:@@sessionHost.moderationQuizWrongOption:Häufigste andere Antwort: ${truncateCompassLabel(fact.option, 64)}:option:`,
+        );
+      case 'survey-top':
+        return quizSource(
+          $localize`:@@sessionHost.moderationQuizSurveyTop:Häufigste Antwort: ${truncateCompassLabel(fact.option, 64)}:option:`,
         );
       case 'numeric-median':
         return quizSource(
@@ -2776,7 +2809,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       untracked(() => {
         this.moderationQuizSourceCache.update((existing) =>
-          rememberModerationQuizSnapshot(existing, question.questionId, sources),
+          rememberModerationQuizSnapshot(existing, question.questionId, sources, question.type),
         );
       });
     });

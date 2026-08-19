@@ -12168,6 +12168,12 @@
       <trans-unit id="sessionHost.moderationNextQuiz" datatype="html">
         <source>Erkläre kurz die Lösung und die typischen Fehler.</source>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuizSurvey" datatype="html">
+        <source>Fass kurz die Antwortverteilung zusammen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuizRating" datatype="html">
+        <source>Sprich die Bewertungen kurz an.</source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
         <source>Greif die umstrittenen Fragen kurz auf.</source>
       </trans-unit>
@@ -12230,6 +12236,9 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSurveyTop" datatype="html">
+        <source>Häufigste Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardFeedback" datatype="html">
         <source>Rückmeldungen</source>

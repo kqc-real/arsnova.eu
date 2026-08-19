@@ -13707,6 +13707,14 @@
         <source>Erkläre kurz die Lösung und die typischen Fehler.</source>
         <target>Prends un moment pour la solution et les erreurs typiques.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuizSurvey" datatype="html">
+        <source>Fass kurz die Antwortverteilung zusammen.</source>
+        <target>Résume brièvement la répartition des réponses.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNextQuizRating" datatype="html">
+        <source>Sprich die Bewertungen kurz an.</source>
+        <target>Aborde brièvement les évaluations.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
         <source>Greif die umstrittenen Fragen kurz auf.</source>
         <target>Reprend brièvement les questions controversées.</target>
@@ -13790,6 +13798,10 @@
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></source>
         <target>Autre réponse la plus fréquente : <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSurveyTop" datatype="html">
+        <source>Häufigste Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
+        <target>Réponse la plus fréquente : <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardFeedback" datatype="html">
         <source>Rückmeldungen</source>
