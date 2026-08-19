@@ -10,6 +10,11 @@
  * Run:
  *   npm run load:artillery:500
  *   TRPC_URL=http://127.0.0.1:3000/trpc WS_URL=ws://127.0.0.1:3001 PARTICIPANTS=500 npm run load:artillery:500
+ *   SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
+ *
+ * `SESSION_CODE` bindet den Lauf an eine bestehende Session (Join, Q&A, Blitzlicht, WS).
+ * Ohne `HOST_TOKEN` wird ein neues Host-Token ausgestellt und ersetzt das bisherige.
+ * Status `RESULTS`: Vote- und Fan-out-Gates entfallen (`ARTILLERY_SKIP_VOTES=1`).
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
@@ -18,7 +23,10 @@ import { fileURLToPath } from 'node:url';
 import { writeScenarioReport } from './lib/reporting.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
-import { createArtillery500Session } from './artillery/setup-session.mjs';
+import {
+  attachArtillery500Session,
+  createArtillery500Session,
+} from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
 import {
   summarizeDurations,
@@ -165,7 +173,23 @@ async function main() {
   rmSync(REVEAL_TIMESTAMP_FILE, { force: true });
   writeFileSync(RESULTS_READY_FILE, '0');
 
-  const session = await createArtillery500Session(TRPC_URL);
+  const existingCode = String(process.env.SESSION_CODE || '')
+    .trim()
+    .toUpperCase();
+  const session = existingCode
+    ? await attachArtillery500Session(TRPC_URL, existingCode)
+    : await createArtillery500Session(TRPC_URL);
+  if (session.attachedExisting) {
+    console.log(
+      `Artillery nutzt bestehende Session ${session.code} (Status ${session.openedStatus}).`,
+    );
+    if (!String(process.env.ARTILLERY_NICKNAME_PREFIX || '').trim()) {
+      process.env.ARTILLERY_NICKNAME_PREFIX = `n${Date.now().toString(36).slice(-5)}`;
+      console.log(
+        `Nickname-Prefix für Wiederholungslauf: ${process.env.ARTILLERY_NICKNAME_PREFIX}`,
+      );
+    }
+  }
   const sessionPayload = {
     trpcUrl: TRPC_URL,
     wsUrl: WS_URL,
@@ -191,17 +215,35 @@ async function main() {
   });
   await sleep(750);
 
-  const revealWatcher = (async () => {
-    const threshold = await waitForRevealMoment(
-      hostMonitor,
-      RAMP_SECONDS * 1000 + RESULTS_WAIT_MS + 60_000,
+  const skipVoteAndFanoutGates =
+    session.attachedExisting === true && session.openedStatus === 'RESULTS';
+  if (skipVoteAndFanoutGates) {
+    writeFileSync(RESULTS_READY_FILE, '1');
+    process.env.ARTILLERY_SKIP_VOTES = '1';
+    console.log(
+      'Session ist bereits RESULTS: Vote- und Status-Fan-out-Gates entfallen, Q&A/Join/WS bleiben aktiv.',
     );
-    if (!threshold.timedOut || threshold.votes > 0 || threshold.hostVotes > 0) {
-      await hostMonitor.revealResultsOnce();
-      writeFileSync(RESULTS_READY_FILE, '1');
-    }
-    return threshold;
-  })();
+  }
+
+  const revealWatcher = skipVoteAndFanoutGates
+    ? Promise.resolve({
+        joins: 0,
+        votes: 0,
+        hostVotes: 0,
+        waitedMs: 0,
+        skipped: true,
+      })
+    : (async () => {
+        const threshold = await waitForRevealMoment(
+          hostMonitor,
+          RAMP_SECONDS * 1000 + RESULTS_WAIT_MS + 60_000,
+        );
+        if (!threshold.timedOut || threshold.votes > 0 || threshold.hostVotes > 0) {
+          await hostMonitor.revealResultsOnce();
+          writeFileSync(RESULTS_READY_FILE, '1');
+        }
+        return threshold;
+      })();
 
   let artilleryExitCode;
   try {
@@ -212,7 +254,7 @@ async function main() {
   }
 
   const threshold = await revealWatcher;
-  if (!hostMonitor.state.revealed && (readState().votes ?? 0) > 0) {
+  if (!skipVoteAndFanoutGates && !hostMonitor.state.revealed && (readState().votes ?? 0) > 0) {
     await hostMonitor.revealResultsOnce();
     writeFileSync(RESULTS_READY_FILE, '1');
   }
@@ -278,7 +320,7 @@ async function main() {
     failures.push(`Joins: ${runtime.joins ?? 0}/${PARTICIPANTS}`);
   }
   const effectiveVotes = Math.max(runtime.votes ?? 0, hostMonitor.state.progressMaxTotalVotes);
-  if (effectiveVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
+  if (!skipVoteAndFanoutGates && effectiveVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
     failures.push(`Votes: ${effectiveVotes}/${PARTICIPANTS}`);
   }
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
@@ -300,20 +342,27 @@ async function main() {
       `Join-Latenz p95=${joinLatency.p95Ms}ms/p99=${joinLatency.p99Ms}ms (Limits ${JOIN_P95_LIMIT_MS}/${JOIN_P99_LIMIT_MS}ms)`,
     );
   }
-  if ((runtime.statusFanoutDurationMs?.length ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
+  if (
+    !skipVoteAndFanoutGates &&
+    (runtime.statusFanoutDurationMs?.length ?? 0) < PARTICIPANTS * MIN_WS_RATIO
+  ) {
     failures.push(
       `Status-Fan-out-Samples: ${runtime.statusFanoutDurationMs?.length ?? 0}/${PARTICIPANTS}`,
     );
   }
   if (
-    statusFanoutLatency.p95Ms > STATUS_P95_LIMIT_MS ||
-    statusFanoutLatency.p99Ms > STATUS_P99_LIMIT_MS
+    !skipVoteAndFanoutGates &&
+    (statusFanoutLatency.p95Ms > STATUS_P95_LIMIT_MS ||
+      statusFanoutLatency.p99Ms > STATUS_P99_LIMIT_MS)
   ) {
     failures.push(
       `Status-Fan-out p95=${statusFanoutLatency.p95Ms}ms/p99=${statusFanoutLatency.p99Ms}ms (Limits ${STATUS_P95_LIMIT_MS}/${STATUS_P99_LIMIT_MS}ms)`,
     );
   }
-  if (hostMonitor.state.progressMaxTotalVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
+  if (
+    !skipVoteAndFanoutGates &&
+    hostMonitor.state.progressMaxTotalVotes < PARTICIPANTS * MIN_VOTE_RATIO
+  ) {
     failures.push(`Host-WS-Progress: ${hostMonitor.state.progressMaxTotalVotes}/${PARTICIPANTS}`);
   }
   if (statusSnapshot?.status !== 'RESULTS' && hostMonitor.state.lastStatus !== 'RESULTS') {

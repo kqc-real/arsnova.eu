@@ -89,7 +89,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 8 – Q&A
 
 - Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Q&A-Wortwolke und Moderation umgesetzt.
-- Offen: delegierbare Moderation (8.5) sowie optionale NLP-/Zusammenfassungsschichten über den Live-Moderationskompass (8.9b–8.9c; 8.9a Host-UX umgesetzt).
+- Offen: delegierbare Moderation (8.5) sowie die optionale generative Moderationszusammenfassung (8.9c). 8.9a (Host-UX) und 8.9b (optionale NLP-Kaskade, Kill-Switch default aus) sind umgesetzt.
 
 ## Epic 9 – Admin/Recht
 
@@ -164,7 +164,7 @@ Produktionsbaselines.
 - Betrieblicher Sync-Termin: automatischer UUID-only-Legacy-Cutoff am 1. Oktober 2026 (1.6c); 1.6d ist mangels nachgewiesenem Engpass geschlossen
 - Asynchrone Quiz-Modi (2.9)
 - Q&A-Erweiterungen (8.5–8.7)
-- Didaktischer Live-Moderationskompass (8.9b–8.9c; 8.9a umgesetzt)
+- Optionale generative Moderationszusammenfassung (8.9c; 8.9a/8.9b umgesetzt)
 - Abschlussläufe Accessibility/UX (6.5/6.6)
 - Word-Cloud-2.0 (1.14a)
 

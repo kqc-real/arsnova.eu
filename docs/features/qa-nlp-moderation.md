@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-08-19
-**Status:** 🟡 Level-1-Gatekeeper und Level-2-k-NN-Fallback im Repo; Kill-Switch default aus; Hörsaal-Lastmessung vor produktiver Aktivierung offen
+**Status:** ✅ Level-1-Gatekeeper, Level-2-k-NN-Fallback und lokaler k6/Artillery-Hörsaallast im Repo; Kill-Switch produktiv default aus
 **Backlog:** Story 8.9b
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 
@@ -74,9 +74,9 @@ Klassifizierte Fragen erscheinen in der Karte **Häufige Themen** als Inhalt, Ab
 
 Wenn der Gatekeeper **nicht** early-exitet (Konfidenz ≥ `QA_NLP_MIN_CONFIDENCE`, Abstand der beiden Top-Klassen ≥ 0.22 **und** mindestens 6 Tokens), läuft ein In-Process-k-NN (`modelVersion: fallback-knn-v1`, k=5, Cosinus) im **selben gehashten n-Gramm-Raum**. Prototypen kommen aus Train-Split plus `prototype`-Beispielen (Slang, FR/ES/IT); das Gatekeeper-Train bleibt eingefroren.
 
-Das ist die evaluierte Embedding-plus-Klassifikationslogik für ADR-0032 Level 2: dichte Nachbarn im Hash-Raum, ohne Transformer-Download. `multilingual-e5-*` bleibt Kandidat, falls ein späterer Hörsaal-Lasttest Qualität oder Latenz nicht trägt. Uneinigkeit zwischen akzeptiertem k-NN und Gatekeeper wird `uncertain`, außer der Gatekeeper liegt unter der Konfidenzschwelle.
+Das ist die evaluierte Embedding-plus-Klassifikationslogik für ADR-0032 Level 2: dichte Nachbarn im Hash-Raum, ohne Transformer-Download. `multilingual-e5-*` bleibt Qualitätskandidat für Slang und Mehrdeutigkeit, kein Hotpath-Zwang nach dem Hörsaallasttest. Uneinigkeit zwischen akzeptiertem k-NN und Gatekeeper wird `uncertain`, außer der Gatekeeper liegt unter der Konfidenzschwelle.
 
-Early-Exit, Timeout und Queue-Limit sind lokale Smokes (u. a. 200 Kaskaden-Snapshots unter 500 ms in Unit-Tests). Sie ersetzen **keinen** k6/Artillery-Hörsaallasttest.
+Early-Exit, Timeout und Queue-Limit sind lokale Smokes (u. a. 200 Kaskaden-Snapshots unter 500 ms in Unit-Tests). Der Hörsaallasttest steht unten.
 
 ## Telemetrie
 
@@ -102,8 +102,33 @@ Gemessen mit `npm run eval:qa-nlp -w @arsnova/backend` (2026-08-19, Seed im Repo
 
 Betriebspunkt: Default **0.55 bleibt**. Die niedrigste formale Schwelle mit Classified-Accuracy ≥ 0.80 wäre 0.20, filtert aber nichts (überconfidentes Softmax). Fallback-Budget für Level 2: Uncertain-Rate **0.30** auf dem Gatekeeper; das Budget ist auf diesem Seed **nicht** überschritten.
 
-Das Seed bleibt **keine** Freigabebasis für `QA_NLP_ENABLED=true`. Slang und Mehrdeutigkeit bleiben schwach; IT ist zu klein. Produktive Aktivierung braucht den Hörsaal-Lasttest.
+Das Seed bleibt **keine** alleinige Freigabebasis für `QA_NLP_ENABLED=true`. Slang und Mehrdeutigkeit bleiben schwach; IT ist zu klein. Der Kill-Switch bleibt in `.env.production.example` `false`; Aktivierung ist eine bewusste lokale oder betreiberseitige Entscheidung.
+
+## Hörsaallast (lokal, 2026-08-19)
+
+Gemessen gegen eine bereits gefüllte Live-Session im Status `RESULTS` (Q&A offen, Moderation an). `QA_NLP_ENABLED=true` nur im lokalen Backend-Prozess, nicht in der Produktionsvorlage. Artillery mit `SESSION_CODE` an die bestehende Session; Votes übersprungen, weil keine Vote-Frage aktiv war.
+
+| Lauf                                                         | Ergebnis                                                                                                                                                                                                  |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run load:k6:health`                                     | p95 3,8 ms, 0 % HTTP-Fehler                                                                                                                                                                               |
+| `SESSION_CODE=… npm run load:k6:session` (50 VU)             | Join+Poll p95 4,8 ms                                                                                                                                                                                      |
+| `MODE=join-wave VUS=500 npm run load:k6:hotpaths`            | Checks vollständig, 0 % HTTP-Fehler; p95 121 ms, p99 1,22 s, max 6,6 s. Teurer Hotpath: Nickname-Listen bei bereits mehreren tausend Teilnehmenden, nicht die NLP-Queue                                   |
+| `SESSION_CODE=… PARTICIPANTS=500 npm run load:artillery:500` | 500/500 Joins, 500/500 WS, 100/100 `qa.submit`, 500 Blitzlicht; Join p95 19 ms, p99 35 ms; 0 VU-Fehler                                                                                                    |
+| `qa.nlpRuntime` nach dem Artillery-Lauf                      | `completed` 100, `failed` 0, `skipped` 0, `earlyExitRate` 0,87, `fallbackRate` 0,13, `unclassifiedRate` 0,13, `queueLength` 0, `lastLatencyMs` 2. Logs: Inferenz typisch 1–3 ms, max 19 ms, Queue nie > 0 |
+| Backend-RSS nach dem Lauf                                    | ca. 228 MiB für den Node-Child (`apps/backend/dist/index.js`)                                                                                                                                             |
+
+`qa.submit` blieb nicht-blockierend: die 100 Einreichungen liefen mit, während der Worker die Jobs nacheinander (Concurrency 1) in wenigen Millisekunden abarbeitete. Kein `qa_nlp:skipped` / `qa_nlp:failed`.
+
+Wiederholung an einer bestehenden Session:
+
+```bash
+SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
+# vorhandenes Host-Token behalten:
+HOST_TOKEN=… SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
+```
+
+Ohne `HOST_TOKEN` stellt der Runner ein neues Host-Token aus und ersetzt das bisherige in Redis.
 
 ## Nächster Slice
 
-k6/Artillery-Q&A-Lastmessung gemäß ADR-0013/0025/0026/0032 vor produktiver Aktivierung. Story 8.9b bleibt offen, bis dieser Lasttest vorliegt.
+Story 8.9c (generative Moderationszusammenfassung). Produktiv `QA_NLP_ENABLED` nicht stillschweigend auf `true` setzen; Slang-Qualität und ein Sentence-Transformer (`multilingual-e5-*`) bleiben optionale Folgearbeit, kein Hotpath-Zwang nach diesem Lasttest.
