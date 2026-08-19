@@ -96,10 +96,13 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: npm run test:theme-static -w @arsnova/landing
 
+      - name: Install Playwright Chromium
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh chromium
+
       - name: Accessibility gate
         run: |
           set -euo pipefail
-          node node_modules/playwright/cli.js install --with-deps chromium
           mkdir -p "$RUNNER_TEMP/landing-a11y"
           cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y/"
           node scripts/serve-static-compressed.mjs "$RUNNER_TEMP/landing-a11y" 4321 > "$RUNNER_TEMP/landing-static.log" 2>&1 &

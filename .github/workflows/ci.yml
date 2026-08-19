@@ -451,11 +451,15 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: npm run test:theme-static -w @arsnova/landing
 
+      - name: Install Playwright Chromium
+        if: needs.changes.outputs.docs_only != 'true'
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh chromium
+
       - name: Landing accessibility gate
         if: needs.changes.outputs.docs_only != 'true'
         run: |
           set -euo pipefail
-          node node_modules/playwright/cli.js install --with-deps chromium
           mkdir -p "$RUNNER_TEMP/landing-a11y"
           cp -R apps/landing/dist/. "$RUNNER_TEMP/landing-a11y/"
           node scripts/serve-static-compressed.mjs "$RUNNER_TEMP/landing-a11y" 4321 > "$RUNNER_TEMP/landing-static.log" 2>&1 &
@@ -683,7 +687,8 @@ jobs:
 
       - name: Install matching Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        run: node node_modules/playwright/cli.js install --with-deps chromium
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Run tests with coverage gate
         if: needs.changes.outputs.docs_only != 'true'
@@ -754,7 +759,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     if: github.event_name != 'schedule'
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     services:
       postgres:
@@ -822,7 +827,11 @@ jobs:
           npx prisma generate --schema prisma/schema.prisma
           npx prisma migrate deploy --schema prisma/schema.prisma
           npm run build:libs
-          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Install Playwright Chromium
+        if: needs.changes.outputs.docs_only != 'true'
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Generate five current PDF/UA locale demos
         if: needs.changes.outputs.docs_only != 'true'
@@ -1026,7 +1035,8 @@ jobs:
 
       - name: Install Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        run: node node_modules/playwright/cli.js install --with-deps chromium
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Run Playwright smoke flow
         if: needs.changes.outputs.docs_only != 'true'
@@ -1110,7 +1120,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, build]
     if: github.event_name != 'schedule'
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     services:
       postgres:
@@ -1194,7 +1204,8 @@ jobs:
 
       - name: Install Playwright WebKit
         if: needs.changes.outputs.docs_only != 'true'
-        run: node node_modules/playwright/cli.js install --with-deps webkit
+        timeout-minutes: 10
+        run: bash scripts/ci/playwright-install.sh webkit
 
       - name: Run WebKit MOTD and tab focus flows
         if: needs.changes.outputs.docs_only != 'true'
@@ -1268,7 +1279,7 @@ jobs:
     name: Playwright Smoke E2E
     runs-on: ubuntu-latest
     needs: [e2e-chromium, webkit-e2e]
-    if: always() && github.event_name != 'schedule'
+    if: always() && !cancelled() && github.event_name != 'schedule'
     steps:
       - name: Verify Chromium and WebKit results
         env:
@@ -1278,6 +1289,9 @@ jobs:
           set -euo pipefail
           if [ "$CHROMIUM_RESULT" != 'success' ] || [ "$WEBKIT_RESULT" != 'success' ]; then
             echo "Browser-E2E fehlgeschlagen: chromium=$CHROMIUM_RESULT webkit=$WEBKIT_RESULT"
+            if [ "$CHROMIUM_RESULT" = 'cancelled' ] || [ "$WEBKIT_RESULT" = 'cancelled' ]; then
+              echo "cancelled bedeutet meist Job-Timeout (z. B. hängendes Playwright-Install)."
+            fi
             exit 1
           fi
           echo "Browser-E2E bestanden: chromium=$CHROMIUM_RESULT webkit=$WEBKIT_RESULT"

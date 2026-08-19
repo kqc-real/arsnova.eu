@@ -203,7 +203,10 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 ### 4.7a pdfua
 
 - **Was?** Validiert die fünf PDF/UA-Demoexporte mit veraPDF 1.30.2 gegen
-  PDF/UA-1. Ein einzelner Normverstoß blockiert den Job.
+  PDF/UA-1. Ein einzelner Normverstoß blockiert den Job. Playwright Chromium
+  für die PDF-Erzeugung installiert [../scripts/ci/playwright-install.sh](../scripts/ci/playwright-install.sh)
+  mit Zeitlimit und Wiederholung, damit ein hängender CDN-/apt-Download nicht
+  den gesamten Job bis `timeout-minutes` blockiert.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
   Runner in [../scripts/validate-pdfua.mjs](../scripts/validate-pdfua.mjs).
 - **Wann?** Parallel zu den übrigen Qualitätsjobs, außer bei `schedule` und
@@ -237,7 +240,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
   Zielgrößenprüfungen. `SHORT_TEXT` und Unified Session führen axe zusätzlich
   in aktiven, Ergebnis-, Q&A-, Blitzlicht- und Session-Ende-Zuständen aus. Der
   stabile Required-Check `e2e` aggregiert `e2e-chromium` und `webkit-e2e` und
-  wird nur bei zwei erfolgreichen Browser-Jobs grün.
+  wird nur bei zwei erfolgreichen Browser-Jobs grün. Die Aggregator-Bedingung
+  ist `always() && !cancelled()`, damit ein abgebrochener Workflow den
+  Required-Check nicht nachträglich rot färbt. Ein Job-Timeout eines
+  Browser-Jobs bleibt `cancelled` und lässt den Aggregator weiterhin rot
+  werden. Playwright-Browser werden über
+  [../scripts/ci/playwright-install.sh](../scripts/ci/playwright-install.sh)
+  mit Zeitlimit und Wiederholung installiert.
 - **Wo?** Job und Skriptinventar in [../.github/workflows/ci.yml](../.github/workflows/ci.yml)
   und [../apps/frontend/package.json](../apps/frontend/package.json).
 - **Wann?** Nach `build`, außer bei `schedule`.
@@ -246,7 +255,9 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.9a webkit-e2e
 
-- **Was?** Installiert WebKit explizit und führt einen Desktop-MOTD-Smoke aus.
+- **Was?** Installiert WebKit explizit über
+  [../scripts/ci/playwright-install.sh](../scripts/ci/playwright-install.sh)
+  und führt einen Desktop-MOTD-Smoke aus.
   Der Smoke prüft Tastatur- und Pointer-Rücksprung, die anschließende Tab-Reihe und bildet
   Safaris fehlenden Pointer-Buttonfokus sowie ein fehlendes globales
   `TouchEvent` nach.
