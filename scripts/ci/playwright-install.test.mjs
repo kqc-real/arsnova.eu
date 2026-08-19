@@ -15,6 +15,7 @@ function runInstall(args, env = {}) {
     env: {
       ...process.env,
       PLAYWRIGHT_INSTALL_RETRY_SLEEP_SEC: '0',
+      PLAYWRIGHT_APT_LOCK_WAIT_SEC: '0',
       ...env,
     },
   });
@@ -103,4 +104,14 @@ test('playwright-install fails after the configured number of attempts', () => {
   assert.match(result.stdout, /Versuch 1 fehlgeschlagen/);
   assert.match(result.stdout, /Versuch 2 fehlgeschlagen/);
   assert.match(result.stderr, /nach 2 Versuchen fehlgeschlagen/);
+});
+
+test('playwright-install uses a seven-minute per-attempt timeout by default', () => {
+  const stub = makeTimeoutStub(1);
+  const result = runInstall(['chromium'], {
+    PLAYWRIGHT_CLI: stub.cliPath,
+    PLAYWRIGHT_TIMEOUT_BIN: stub.timeoutPath,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Timeout 420s/);
 });

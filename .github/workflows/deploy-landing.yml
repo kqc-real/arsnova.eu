@@ -97,7 +97,7 @@ jobs:
         run: npm run test:theme-static -w @arsnova/landing
 
       - name: Install Playwright Chromium
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Accessibility gate

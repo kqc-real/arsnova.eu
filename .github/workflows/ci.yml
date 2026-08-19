@@ -453,7 +453,7 @@ jobs:
 
       - name: Install Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Landing accessibility gate
@@ -687,7 +687,7 @@ jobs:
 
       - name: Install matching Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Run tests with coverage gate
@@ -830,7 +830,7 @@ jobs:
 
       - name: Install Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Generate five current PDF/UA locale demos
@@ -1035,7 +1035,7 @@ jobs:
 
       - name: Install Playwright Chromium
         if: needs.changes.outputs.docs_only != 'true'
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh chromium
 
       - name: Run Playwright smoke flow
@@ -1204,7 +1204,7 @@ jobs:
 
       - name: Install Playwright WebKit
         if: needs.changes.outputs.docs_only != 'true'
-        timeout-minutes: 10
+        timeout-minutes: 16
         run: bash scripts/ci/playwright-install.sh webkit
 
       - name: Run WebKit MOTD and tab focus flows
