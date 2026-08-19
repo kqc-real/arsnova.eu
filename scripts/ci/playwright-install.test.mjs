@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmodSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +15,6 @@ function runInstall(args, env = {}) {
     env: {
       ...process.env,
       PLAYWRIGHT_INSTALL_RETRY_SLEEP_SEC: '0',
-      PLAYWRIGHT_APT_LOCK_WAIT_SEC: '0',
       ...env,
     },
   });
@@ -26,12 +25,15 @@ function makeTimeoutStub(succeedOnAttempt) {
   const cliPath = join(dir, 'cli.js');
   const timeoutPath = join(dir, 'timeout');
   const countPath = join(dir, 'count');
-  writeFileSync(cliPath, 'console.log("stub-cli");\n');
+  const argsPath = join(dir, 'timeout.args');
+  writeFileSync(cliPath, 'console.log("stub-cli " + process.argv.slice(2).join(" "));\n');
   writeFileSync(countPath, '0\n');
+  writeFileSync(argsPath, '');
   writeFileSync(
     timeoutPath,
     `#!/usr/bin/env bash
 set -euo pipefail
+printf '%s\\n' "$*" >> ${JSON.stringify(argsPath)}
 count_file=${JSON.stringify(countPath)}
 succeed_on=${String(succeedOnAttempt)}
 count="$(cat "$count_file")"
@@ -44,7 +46,7 @@ exit 124
 `,
   );
   chmodSync(timeoutPath, 0o755);
-  return { dir, cliPath, timeoutPath, countPath };
+  return { dir, cliPath, timeoutPath, countPath, argsPath };
 }
 
 test('playwright-install rejects missing browser argument', () => {
@@ -67,7 +69,7 @@ test('playwright-install rejects missing Playwright CLI', () => {
   assert.match(result.stderr, /Playwright CLI nicht gefunden/);
 });
 
-test('playwright-install succeeds on the first attempt', () => {
+test('playwright-install downloads the browser without --with-deps then installs OS deps', () => {
   const stub = makeTimeoutStub(1);
   const result = runInstall(['webkit'], {
     PLAYWRIGHT_CLI: stub.cliPath,
@@ -76,11 +78,17 @@ test('playwright-install succeeds on the first attempt', () => {
   });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Versuch 1\/3/);
+  assert.match(result.stdout, /nur Browser-Binary/);
+  assert.match(result.stdout, /OS-Deps/);
   assert.match(result.stdout, /erfolgreich/);
   assert.doesNotMatch(result.stdout, /Versuch 2\//);
+  const timeoutArgs = readFileSync(stub.argsPath, 'utf8');
+  assert.match(timeoutArgs, /install webkit/);
+  assert.doesNotMatch(timeoutArgs, /--with-deps/);
+  assert.match(result.stdout, /stub-cli install-deps webkit/);
 });
 
-test('playwright-install retries after a timed-out attempt', () => {
+test('playwright-install retries after a timed-out browser download', () => {
   const stub = makeTimeoutStub(2);
   const result = runInstall(['chromium'], {
     PLAYWRIGHT_CLI: stub.cliPath,
@@ -91,6 +99,7 @@ test('playwright-install retries after a timed-out attempt', () => {
   assert.match(result.stdout, /Versuch 1 fehlgeschlagen \(Exit 124\)/);
   assert.match(result.stdout, /Versuch 2\/3/);
   assert.match(result.stdout, /erfolgreich/);
+  assert.match(result.stdout, /stub-cli install-deps chromium/);
 });
 
 test('playwright-install fails after the configured number of attempts', () => {
@@ -104,6 +113,7 @@ test('playwright-install fails after the configured number of attempts', () => {
   assert.match(result.stdout, /Versuch 1 fehlgeschlagen/);
   assert.match(result.stdout, /Versuch 2 fehlgeschlagen/);
   assert.match(result.stderr, /nach 2 Versuchen fehlgeschlagen/);
+  assert.doesNotMatch(result.stdout, /install-deps/);
 });
 
 test('playwright-install uses a seven-minute per-attempt timeout by default', () => {
