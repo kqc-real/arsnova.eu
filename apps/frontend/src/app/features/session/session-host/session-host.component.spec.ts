@@ -11723,7 +11723,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(focusedCard).not.toBeNull();
       expect(focusedCard?.classList.contains('session-qa-card--compass-focus')).toBe(true);
       expect(focusedCard?.getAttribute('aria-current')).toBe('true');
-      expect(focusedCard?.textContent).toContain('Aus dem Kompass');
+      expect(focusedCard?.textContent).toContain('Aus dem Kompass · Noch klären');
       expect(
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-return"]'),
       ).not.toBeNull();
@@ -11740,6 +11740,81 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-return"]'),
       ).toBeNull();
       expect(dialogOpenMock).toHaveBeenCalled();
+      fixture.destroy();
+    });
+
+    it('hebt alle Fragen einer NLP-Kategorie im Q&A-Kanal hervor', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      qaNlpRuntimeQueryMock.mockResolvedValue({ enabled: true });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Was ist der Median?',
+          upvoteCount: 4,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          nlp: { status: 'classified', category: 'content' },
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Was ist Varianz?',
+          upvoteCount: 2,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          nlp: { status: 'classified', category: 'content' },
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Wann ist die Klausur?',
+          upvoteCount: 1,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:02:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+          nlp: { status: 'classified', category: 'organization' },
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const topics = component.moderationCompassCards().find((card) => card.kind === 'topics');
+      const contentSource = topics?.sources.find((source) =>
+        source.label.startsWith('Inhaltliche Fragen'),
+      );
+
+      expect(contentSource?.label).toBe('Inhaltliche Fragen · 2');
+      expect(contentSource?.target?.questionIds).toEqual([
+        '11111111-1111-4111-8111-111111111111',
+        '22222222-2222-4222-8222-222222222222',
+      ]);
+
+      await component.followModerationCompassSource(contentSource!);
+      fixture.detectChanges();
+
+      expect(component.activeChannel()).toBe('qa');
+      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
+      expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
+      expect(component.isQaCompassFocused('33333333-3333-4333-8333-333333333333')).toBe(false);
+      expect(component.qaFocusBadge()).toBe('Aus dem Kompass · Inhaltliche Fragen');
       fixture.destroy();
     });
 
@@ -11906,7 +11981,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(cards[1]?.id).toBe('host-qa-question-22222222-2222-4222-8222-222222222222');
       expect(cards[0]?.classList.contains('session-qa-card--compass-focus')).toBe(true);
       expect(cards[1]?.classList.contains('session-qa-card--compass-focus')).toBe(true);
-      expect(cards[0]?.textContent).toContain('Aus dem Kompass');
+      expect(cards[0]?.textContent).toContain('Aus dem Kompass · Übung');
       expect(cards[0]?.textContent).toContain('Grenzen von ChatGPT in der Übung');
       expect(cards[1]?.textContent).toContain('Brauchen wir mehr Übung zu ChatGPT?');
       fixture.destroy();

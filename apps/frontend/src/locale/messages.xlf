@@ -12145,28 +12145,28 @@
         <source> Einschätzung aus den sichtbaren Live-Signalen. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
-        <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
+        <source> Die automatische Sortierung der Fragen ist aus. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
-        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+        <source> Die Fragen werden noch sortiert. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
-        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+        <source> Die Sortierung der Fragen ist unsicher. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
-        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+        <source> Die automatische Sortierung ist gerade nicht verfügbar. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
-        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+        <source> Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert. </source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
-        <source>Inhalt</source>
+        <source>Inhaltliche Fragen</source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
-        <source>Organisation</source>
+        <source>Fragen zum Ablauf</source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
-        <source>Technik</source>
+        <source>Technische Fragen</source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
@@ -12231,6 +12231,12 @@
       <trans-unit id="sessionHost.moderationWordCloudFocus" datatype="html">
         <source>Aus der Wortwolke</source>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationCompassFocusWithHint" datatype="html">
+        <source>Aus dem Kompass · <x id="hint" equiv-text="hint"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationWordCloudFocusWithHint" datatype="html">
+        <source>Aus der Wortwolke · <x id="hint" equiv-text="hint"/></source>
+      </trans-unit>
       <trans-unit id="sessionQa.focusHint" datatype="html">
         <source>Zugehörige Beiträge stehen oben und folgen der Sortierung.</source>
       </trans-unit>
@@ -12269,6 +12275,9 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationPinned" datatype="html">
         <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFocusPinned" datatype="html">
+        <source>Hervorgehoben</source>
       </trans-unit>
       <trans-unit id="sessionHost.moderationFrictionVotes" datatype="html">
         <source><x id="up" equiv-text="question.positiveVoteCount"/> dafür, <x id="down" equiv-text="question.negativeVoteCount"/> dagegen · <x id="question" equiv-text="question.text"/></source>

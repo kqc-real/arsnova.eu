@@ -16,23 +16,23 @@
       <span class="moderation-compass-dialog__status">
         @if (analysisMode() === 'disabled') {
           <span i18n="@@sessionHost.moderationAnalysisOff">
-            Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.
+            Die automatische Sortierung der Fragen ist aus.
           </span>
         } @else if (analysisMode() === 'pending') {
           <span i18n="@@sessionHost.moderationAnalysisPending">
-            Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung.
+            Die Fragen werden noch sortiert.
           </span>
         } @else if (analysisMode() === 'uncertain') {
           <span i18n="@@sessionHost.moderationAnalysisUncertain">
-            Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung.
+            Die Sortierung der Fragen ist unsicher.
           </span>
         } @else if (analysisMode() === 'failed') {
           <span i18n="@@sessionHost.moderationAnalysisFailed">
-            Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung.
+            Die automatische Sortierung ist gerade nicht verfügbar.
           </span>
         } @else if (analysisMode() === 'classified') {
           <span i18n="@@sessionHost.moderationAnalysisClassified">
-            Lokale Themenkategorien ergänzen die regelbasierte Einschätzung.
+            Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.
           </span>
         } @else {
           <span i18n="@@sessionHost.moderationRuleBased">
@@ -89,7 +89,7 @@
                       type="button"
                       class="moderation-compass-card__source-button"
                       [attr.aria-label]="sourceJumpAria(source)"
-                      (click)="activateSource(source)"
+                      (click)="activateSource(source, card)"
                     >
                       {{ source.label }}
                     </button>

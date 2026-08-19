@@ -8,7 +8,7 @@ import {
   buildQaNlpAnalysisSnapshot,
   type QaNlpAnalysisSnapshot,
 } from './qaNlpSnapshot';
-import { runStubQaNlpClassifier } from './qaNlpWorker';
+import { runQaNlpClassifier } from './qaNlpWorker';
 
 export type QaNlpJob = {
   readonly questionId: string;
@@ -64,7 +64,7 @@ let hooks: QueueHooks = createDefaultHooks();
 
 function createDefaultHooks(): QueueHooks {
   return {
-    processor: runStubQaNlpClassifier,
+    processor: runQaNlpClassifier,
     writer: defaultWriter,
     config: () => resolveQaNlpConfig(),
     now: () => Date.now(),

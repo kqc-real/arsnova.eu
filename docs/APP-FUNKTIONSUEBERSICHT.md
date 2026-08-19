@@ -335,8 +335,9 @@ Der Host sieht zusätzlich:
   Live-Kanäle; Dialog mit Hinweiskarten aus Quiz-Ergebnissen, Fragen, Wortwolken
   und Blitzlicht). Der nächste Schritt steht als Vorschlag auf der auslösenden
   Karte, ohne eine zweite identische Quellenliste. Quellen springen auf Wunsch in den passenden Live-Kanal,
-  heben zugehörige Forum-Beiträge hervor (Badge **Aus dem Kompass** oder **Aus
-  der Wortwolke**, in der aktiven Q&A-Sortierung; Markierung lösbar) oder öffnen
+  heben zugehörige Forum-Beiträge hervor (Badge **Aus dem Kompass · …** mit
+  Kategorie, Karte oder Begriff, bzw. **Aus der Wortwolke**, in der aktiven
+  Q&A-Sortierung; Markierung lösbar) oder öffnen
   die Wortwolke zum Begriff in der Sortierung und Ansicht, aus der der Hinweis
   stammt. Schwache Hilfsverben wie „helfen“ erscheinen nicht als Themenchip.
   **Zurück** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut.
@@ -344,8 +345,9 @@ Der Host sieht zusätzlich:
   automatischen Pin-/Archiv-/Phasenaktionen und kein neuer globaler Poller.
   Ruhige Zustände für fehlende Signale, regelbasierte Basis und deaktivierte
   Analyse. Story **8.9a** ist umgesetzt. Story **8.9b** liefert den optionalen
-  asynchronen Q&A-NLP-Vertrag (Kill-Switch default aus, Queue/Stub, Host-only
-  Kategorien); Klassifikator-Training bleibt offen. **8.9c** bleibt offen.
+  asynchronen Q&A-NLP-Vertrag (Kill-Switch default aus, Queue, Host-only
+  Kategorien in der Karte **Häufige Themen**, Gatekeeper auf Seed-Set);
+  semantischer Fallback bleibt offen. **8.9c** bleibt offen.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

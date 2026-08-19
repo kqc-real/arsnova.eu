@@ -253,16 +253,20 @@ npm test -w @arsnova/backend -- --run \
   src/lib/qaNlpSnapshot.test.ts \
   src/lib/qaNlpResult.test.ts \
   src/lib/qaNlpQueue.test.ts \
+  src/lib/qaNlpGatekeeper.test.ts \
   src/__tests__/qa.nlp.test.ts \
   src/__tests__/dto-security.test.ts \
   src/__tests__/wordCloud.hotpath-isolation.test.ts
+npm run eval:qa-nlp -w @arsnova/backend
+# bestehende Session nachklassifizieren (Kill-Switch am start:prod-Prozess muss true sein, damit die Host-UI „KI an“ zeigt):
+# npm run apply:qa-nlp -w @arsnova/backend -- --code ABC123
 npm run test -w @arsnova/frontend -- \
   src/app/features/session/session-host/moderation-compass.spec.ts \
   src/app/features/session/session-host/moderation-compass-dialog.component.spec.ts \
   src/app/features/session/session-host/session-host.component.spec.ts
 ```
 
-Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach Modelltraining und Last-/Qualitätsmessung.
+Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach semantischem Fallback sowie Last-/Qualitätsmessung außerhalb des Seed-Sets.
 
 Für W2.4a zusätzlich:
 

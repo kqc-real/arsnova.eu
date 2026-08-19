@@ -296,7 +296,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–6, 7.1, 9 und 10 sind umgesetzt. Für Story 6.5 sind technische A11y-Gates und die formale Assistive-Technology-/Zoom-/OS-/Reader-Abnahme nach WCAG 2.2 AA abgeschlossen; Story 6.6 (UX-Testreihen) ist ebenfalls fertig. Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 und 8.9a umgesetzt, 8.9b hat Vertrag/Queue/Stub (ohne trainiertes Modell), offen bleiben 8.5 und 8.9c.** Zusätzlich sind die numerische Schätzfrage 1.2d, Zuordnung 1.2g, Reihenfolge 1.2h, Confidence 1.2i, Kategorisierung 1.2j, Last-/Performance-Tests 0.7 sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt. **Geschlossen (nicht umgesetzt)** sind **0.8** (McCabe-Refactor) und **1.2f** (Hotspot auf Bild, A11y). Offen bleiben u. a. **1.2ec–1.2ed**, **1.14c** und **2.9**; **1.14a/1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) sind fertig. Bei **1.6c** steht nur noch der betriebliche Legacy-Cutoff aus, **1.6d** ist geschlossen. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. A11y-Status: [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md). Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–6, 7.1, 9 und 10 sind umgesetzt. Für Story 6.5 sind technische A11y-Gates und die formale Assistive-Technology-/Zoom-/OS-/Reader-Abnahme nach WCAG 2.2 AA abgeschlossen; Story 6.6 (UX-Testreihen) ist ebenfalls fertig. Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 und 8.9a umgesetzt, 8.9b hat Vertrag/Queue/Gatekeeper auf Seed-Set (semantischer Fallback offen), offen bleiben 8.5 und 8.9c.** Zusätzlich sind die numerische Schätzfrage 1.2d, Zuordnung 1.2g, Reihenfolge 1.2h, Confidence 1.2i, Kategorisierung 1.2j, Last-/Performance-Tests 0.7 sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt. **Geschlossen (nicht umgesetzt)** sind **0.8** (McCabe-Refactor) und **1.2f** (Hotspot auf Bild, A11y). Offen bleiben u. a. **1.2ec–1.2ed**, **1.14c** und **2.9**; **1.14a/1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) sind fertig. Bei **1.6c** steht nur noch der betriebliche Legacy-Cutoff aus, **1.6d** ist geschlossen. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. A11y-Status: [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md). Offene Stories: [`Backlog.md`](../Backlog.md).
 
 ### Was bereits funktioniert (✅ Implementiert – Stand: 2026-08-09)
 
@@ -322,13 +322,13 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                 | Kurzbeschreibung                                                                                                                                | Backlog / Referenz         |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| Barrierefreiheit & UX | Story **6.5** und **6.6** sind abgeschlossen; A11y-Journal bleibt Referenz für Nachweise                                                        | Epic 6 / A11y-Journal      |
-| Kurzantwort-Ausbau    | **1.2ec–1.2ed**: verbleibende Schlüsselwort-/Token-Bewertung (**1.2f** geschlossen)                                                             | Epic 1                     |
-| Q&A-Moderation        | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass (**8.9a**) fertig; **8.9b** Vertrag/Queue/Stub ohne Modell, **8.9c** offen | Epic 8, ADR-0011, ADR-0032 |
-| Last & Performance    | **0.7** lokal technisch grün; offen sind Staging-Langlauf, Produktionsbaseline und regelmäßiger Regressionsvergleich                            | Epic 0, ADR-0013           |
-| Sync & Word Cloud     | **1.6c** Cutover 1. Oktober 2026; **1.14c** semantische Themen (**1.14a/1.14b** fertig; **0.8**/**1.6d** geschlossen)                           | Backlog                    |
+| Thema                 | Kurzbeschreibung                                                                                                                                       | Backlog / Referenz         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| Barrierefreiheit & UX | Story **6.5** und **6.6** sind abgeschlossen; A11y-Journal bleibt Referenz für Nachweise                                                               | Epic 6 / A11y-Journal      |
+| Kurzantwort-Ausbau    | **1.2ec–1.2ed**: verbleibende Schlüsselwort-/Token-Bewertung (**1.2f** geschlossen)                                                                    | Epic 1                     |
+| Q&A-Moderation        | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass (**8.9a**) fertig; **8.9b** Vertrag/Queue/Gatekeeper auf Seed-Set, **8.9c** offen | Epic 8, ADR-0011, ADR-0032 |
+| Last & Performance    | **0.7** lokal technisch grün; offen sind Staging-Langlauf, Produktionsbaseline und regelmäßiger Regressionsvergleich                                   | Epic 0, ADR-0013           |
+| Sync & Word Cloud     | **1.6c** Cutover 1. Oktober 2026; **1.14c** semantische Themen (**1.14a/1.14b** fertig; **0.8**/**1.6d** geschlossen)                                  | Backlog                    |
 
 **Hinweis für neue Stories:** **Epic 11** ist aktuell nur ein nicht beauftragter Erweiterungspfad für Verlagszugänge und ein Redaktionsbackend.
 

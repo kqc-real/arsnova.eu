@@ -40,6 +40,7 @@ export type ModerationCompassSourceTarget = {
 export type ModerationCompassSource = {
   readonly kind: ModerationCompassSourceKind;
   readonly label: string;
+  readonly focusHint?: string;
   readonly target?: ModerationCompassSourceTarget;
 };
 
@@ -103,6 +104,7 @@ export type ModerationCompassSnapshot = {
   readonly qaTerms: readonly ModerationCompassTerm[];
   readonly freetextTerms: readonly ModerationCompassTerm[];
   readonly extraTopicSources: readonly ModerationCompassSource[];
+  readonly nlpTopicSources?: readonly ModerationCompassSource[];
   readonly topicWeightLabel: string | null;
   readonly tempo: ModerationCompassTempo | null;
   readonly quizSources: readonly ModerationCompassSource[];
@@ -652,6 +654,7 @@ function termSources(
       {
         kind,
         label,
+        focusHint: topic,
         target: {
           channel,
           surface: 'word-cloud',
@@ -674,6 +677,9 @@ function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompass
   const extras = snapshot.extraTopicSources
     .filter((source) => source.label.trim().length > 0)
     .map(withDefaultSourceTarget);
+  const nlp = (snapshot.nlpTopicSources ?? [])
+    .filter((source) => source.label.trim().length > 0)
+    .map(withDefaultSourceTarget);
   const mixed: ModerationCompassSource[] = [];
   const seen = new Set<string>();
   const push = (source: ModerationCompassSource | undefined) => {
@@ -688,6 +694,9 @@ function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompass
     mixed.push(source);
   };
 
+  for (const source of nlp) {
+    push(source);
+  }
   push(qa[0]);
   push(freetext[0]);
   push(extras[0]);
@@ -1011,6 +1020,7 @@ export function collectQaNlpCategorySources(
       kind: 'qa-question' as const,
       label:
         questionIds.length > 1 ? `${labels[category]} · ${questionIds.length}` : labels[category],
+      focusHint: labels[category],
       target: {
         channel: 'qa' as const,
         questionId: questionIds[0],
