@@ -90,6 +90,20 @@ describe('ModerationCompassDialogComponent', () => {
     ).toContain('thumbs_up_down');
   });
 
+  it('zeigt für Umfragen keinen Lösungshinweis', () => {
+    const { fixture } = setup([
+      {
+        kind: 'clarification',
+        nextStepReason: 'quiz-survey',
+        sources: [{ kind: 'quiz-result', label: 'Häufigste Antwort: Ganz okay' }],
+      },
+    ]);
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Fass kurz die Antwortverteilung zusammen.');
+    expect(text).not.toContain('Erkläre kurz die Lösung');
+  });
+
   it('macht Quellen klickbar und schließt den Dialog', () => {
     const source = {
       kind: 'qa-question' as const,

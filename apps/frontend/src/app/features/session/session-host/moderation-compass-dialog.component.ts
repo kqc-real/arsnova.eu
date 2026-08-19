@@ -102,6 +102,10 @@ export class ModerationCompassDialogComponent {
         return $localize`:@@sessionHost.moderationNextPending:Schau zuerst in die Fragen, die noch auf Freigabe warten.`;
       case 'quiz-confusion':
         return $localize`:@@sessionHost.moderationNextQuiz:Erkläre kurz die Lösung und die typischen Fehler.`;
+      case 'quiz-survey':
+        return $localize`:@@sessionHost.moderationNextQuizSurvey:Fass kurz die Antwortverteilung zusammen.`;
+      case 'quiz-rating':
+        return $localize`:@@sessionHost.moderationNextQuizRating:Sprich die Bewertungen kurz an.`;
       case 'controversy':
         return $localize`:@@sessionHost.moderationNextFriction:Greif die umstrittenen Fragen kurz auf.`;
       case 'tempo':

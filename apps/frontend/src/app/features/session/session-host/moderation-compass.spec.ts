@@ -251,6 +251,7 @@ describe('buildModerationCompassCards', () => {
   it('nimmt Quiz-Verwirrung erst nach Ergebnisfreigabe auf', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
+      quizInsightKind: 'scorable',
       quizSources: [
         {
           kind: 'quiz-result',
@@ -265,9 +266,42 @@ describe('buildModerationCompassCards', () => {
     expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
   });
 
+  it('nutzt für Umfragen keinen Lösungshinweis', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      quizInsightKind: 'survey',
+      quizSources: [
+        {
+          kind: 'quiz-result',
+          label: 'Häufigste Antwort: :neutral_face: Ganz okay',
+        },
+      ],
+    });
+
+    const clarification = cards.find((card) => card.kind === 'clarification');
+    expect(clarification?.nextStepReason).toBe('quiz-survey');
+    expect(clarification?.nextStepReason).not.toBe('quiz-confusion');
+  });
+
+  it('nutzt für Bewertungen einen eigenen Moderationshinweis', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      quizInsightKind: 'rating',
+      quizSources: [
+        {
+          kind: 'quiz-result',
+          label: 'Durchschnitt 2,0 von 5',
+        },
+      ],
+    });
+
+    expect(cards.find((card) => card.kind === 'clarification')?.nextStepReason).toBe('quiz-rating');
+  });
+
   it('stellt Quiz-Verwirrung vor offenen Moderationsfragen', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
+      quizInsightKind: 'scorable',
       qaQuestions: [
         {
           id: '11111111-1111-4111-8111-111111111111',
@@ -583,11 +617,35 @@ describe('collectModerationQuizFacts', () => {
   it('erkennt niedrige Bewertungen und wiederholte Freitexte', () => {
     expect(
       collectModerationQuizFacts({
+        type: 'RATING',
         ratingAvg: 2.0,
         ratingCount: 5,
         freeTextResponses: ['Bitte langsamer sprechen', 'Bitte langsamer sprechen'],
       }).map((fact) => fact.type),
     ).toEqual(['rating-low', 'freetext-repeat']);
+  });
+
+  it('leitet Umfragen ohne Lösungslogik und mit häufigster Antwort', () => {
+    expect(
+      collectModerationQuizFacts({
+        type: 'SURVEY',
+        totalVotes: 10,
+        voteDistribution: [
+          { text: ':neutral_face: Ganz okay', isCorrect: false, voteCount: 6 },
+          { text: 'Genervt', isCorrect: false, voteCount: 4 },
+        ],
+      }).map((fact) => fact.type),
+    ).toEqual(['survey-top']);
+    expect(
+      collectModerationQuizFacts({
+        type: 'SURVEY',
+        totalVotes: 10,
+        voteDistribution: [
+          { text: 'Ja', isCorrect: false, voteCount: 6 },
+          { text: 'Nein', isCorrect: false, voteCount: 4 },
+        ],
+      }).some((fact) => fact.type === 'wrong-option'),
+    ).toBe(false);
   });
 
   it('nimmt den häufigsten Histogramm-Bereich außerhalb des Bands auf', () => {
