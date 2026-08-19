@@ -1,5 +1,5 @@
 import { extractExportQuestionText } from '../../../core/markdown-plain-text.util';
-import type { QuestionType } from '@arsnova/shared-types';
+import type { QaNlpCategory, QaNlpResult, QaNlpStatus, QuestionType } from '@arsnova/shared-types';
 
 export type ModerationCompassCardKind =
   'topics' | 'clarification' | 'friction' | 'tempo' | 'nextStep';
@@ -59,6 +59,9 @@ export type ModerationCompassQuizSourceCacheEntry = {
   readonly sources: readonly ModerationCompassSource[];
 };
 
+export type ModerationCompassAnalysisMode =
+  'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified';
+
 export type ModerationCompassQaQuestion = {
   readonly id: string;
   readonly text: string;
@@ -69,6 +72,7 @@ export type ModerationCompassQaQuestion = {
   readonly score?: number;
   readonly bestScore?: number;
   readonly controversyScore?: number;
+  readonly nlp?: QaNlpResult;
 };
 
 export type ModerationCompassTermOrigin = {
@@ -961,4 +965,56 @@ export function buildModerationCompassCards(
   }
 
   return cards;
+}
+
+export function resolveModerationCompassAnalysisMode(input: {
+  readonly enabled: boolean;
+  readonly statuses?: readonly (QaNlpStatus | undefined)[];
+}): ModerationCompassAnalysisMode {
+  if (!input.enabled) {
+    return 'disabled';
+  }
+  const statuses = (input.statuses ?? []).filter((status): status is QaNlpStatus =>
+    Boolean(status),
+  );
+  if (statuses.includes('pending')) {
+    return 'pending';
+  }
+  if (statuses.includes('failed')) {
+    return 'failed';
+  }
+  if (statuses.includes('classified')) {
+    return 'classified';
+  }
+  if (statuses.includes('uncertain')) {
+    return 'uncertain';
+  }
+  return 'rule-based';
+}
+
+export function collectQaNlpCategorySources(
+  questions: readonly ModerationCompassQaQuestion[],
+  labels: Readonly<Record<QaNlpCategory, string>>,
+): ModerationCompassSource[] {
+  const grouped = new Map<QaNlpCategory, string[]>();
+  for (const question of questions) {
+    if (question.nlp?.status !== 'classified' || !question.nlp.category) {
+      continue;
+    }
+    const ids = grouped.get(question.nlp.category) ?? [];
+    ids.push(question.id);
+    grouped.set(question.nlp.category, ids);
+  }
+  return [...grouped.entries()]
+    .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
+    .map(([category, questionIds]) => ({
+      kind: 'qa-question' as const,
+      label:
+        questionIds.length > 1 ? `${labels[category]} · ${questionIds.length}` : labels[category],
+      target: {
+        channel: 'qa' as const,
+        questionId: questionIds[0],
+        questionIds,
+      },
+    }));
 }

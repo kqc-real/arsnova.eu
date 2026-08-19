@@ -342,21 +342,27 @@ model SessionFeedback {
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)
 model QaQuestion {
-  id            String           @id @default(uuid())
-  text          String           // Fragetext (max. 500 Zeichen, Markdown erlaubt)
-  upvoteCount   Int              @default(0)
-  status        QaQuestionStatus @default(ACTIVE)
-  sessionId     String
-  session       Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId String           // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
-  participant   Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  upvotes       QaUpvote[]       // Story 8.3: Einzelne Upvotes
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @default(now()) @updatedAt
+  id              String           @id @default(uuid())
+  text            String           // Fragetext (max. 500 Zeichen, Markdown erlaubt)
+  upvoteCount     Int              @default(0)
+  status          QaQuestionStatus @default(ACTIVE)
+  sessionId       String
+  session         Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId   String           // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
+  participant     Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  upvotes         QaUpvote[]       // Story 8.3: Einzelne Upvotes
+  nlpStatus       QaNlpStatus      @default(DISABLED) // Story 8.9b: Host-only Hilfssignal
+  nlpCategory     QaNlpCategory?
+  nlpConfidence   Float?
+  nlpModelVersion String?
+  nlpAnalyzedAt   DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
 
   @@index([sessionId, status, createdAt])
   @@index([sessionId, updatedAt])
   @@index([sessionId, participantId])
+  @@index([sessionId, nlpStatus])
 }
 
 // Vote-Tracking für Q&A-Fragen (Story 8.3): UP oder DOWN pro Teilnehmer
@@ -383,6 +389,21 @@ enum QaQuestionStatus {
   PINNED     // Vom Dozenten hervorgehoben ("Wird gerade beantwortet")
   ARCHIVED   // Als beantwortet markiert
   DELETED    // Vom Dozenten entfernt
+}
+
+// Story 8.9b / ADR-0032: optionale Q&A-NLP-Hilfssignale, nur Host-/Moderator-Sicht.
+enum QaNlpStatus {
+  PENDING
+  CLASSIFIED
+  UNCERTAIN
+  DISABLED
+  FAILED
+}
+
+enum QaNlpCategory {
+  CONTENT
+  ORGANIZATION
+  TECHNICAL
 }
 
 // ─── Admin Audit-Log (Epic 9, Story 9.2, 9.3) ────────────────────────────────

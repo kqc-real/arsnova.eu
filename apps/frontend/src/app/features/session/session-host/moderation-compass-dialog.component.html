@@ -18,6 +18,22 @@
           <span i18n="@@sessionHost.moderationAnalysisOff">
             Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.
           </span>
+        } @else if (analysisMode() === 'pending') {
+          <span i18n="@@sessionHost.moderationAnalysisPending">
+            Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung.
+          </span>
+        } @else if (analysisMode() === 'uncertain') {
+          <span i18n="@@sessionHost.moderationAnalysisUncertain">
+            Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung.
+          </span>
+        } @else if (analysisMode() === 'failed') {
+          <span i18n="@@sessionHost.moderationAnalysisFailed">
+            Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung.
+          </span>
+        } @else if (analysisMode() === 'classified') {
+          <span i18n="@@sessionHost.moderationAnalysisClassified">
+            Lokale Themenkategorien ergänzen die regelbasierte Einschätzung.
+          </span>
         } @else {
           <span i18n="@@sessionHost.moderationRuleBased">
             Einschätzung aus den sichtbaren Live-Signalen.

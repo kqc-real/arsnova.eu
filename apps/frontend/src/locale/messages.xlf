@@ -12147,6 +12147,27 @@
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
+        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
+        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
+        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
+        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
+        <source>Inhalt</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
+        <source>Organisation</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
+        <source>Technik</source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
       </trans-unit>

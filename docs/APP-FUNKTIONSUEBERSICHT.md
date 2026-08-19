@@ -343,7 +343,9 @@ Der Host sieht zusätzlich:
   Present/Vote und beendete Sessions zeigen den Kompass nicht. Keine
   automatischen Pin-/Archiv-/Phasenaktionen und kein neuer globaler Poller.
   Ruhige Zustände für fehlende Signale, regelbasierte Basis und deaktivierte
-  Analyse. Story **8.9a** ist umgesetzt; **8.9b/8.9c** bleiben offen.
+  Analyse. Story **8.9a** ist umgesetzt. Story **8.9b** liefert den optionalen
+  asynchronen Q&A-NLP-Vertrag (Kill-Switch default aus, Queue/Stub, Host-only
+  Kategorien); Klassifikator-Training bleibt offen. **8.9c** bleibt offen.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

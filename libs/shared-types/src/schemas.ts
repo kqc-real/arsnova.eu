@@ -129,6 +129,14 @@ export type QaQuestionStatus = z.infer<typeof QaQuestionStatusEnum>;
 export const QaQuestionSortModeEnum = z.enum(['TOP', 'BEST', 'CONTROVERSIAL']);
 export type QaQuestionSortMode = z.infer<typeof QaQuestionSortModeEnum>;
 
+/** Host-only Q&A-NLP-Ergebnisstatus (Story 8.9b / ADR-0032). */
+export const QaNlpStatusEnum = z.enum(['pending', 'classified', 'uncertain', 'disabled', 'failed']);
+export type QaNlpStatus = z.infer<typeof QaNlpStatusEnum>;
+
+/** Festes Labelset der Q&A-Klassifikation; nicht aus Wortwolken-Termen abgeleitet. */
+export const QaNlpCategoryEnum = z.enum(['content', 'organization', 'technical']);
+export type QaNlpCategory = z.infer<typeof QaNlpCategoryEnum>;
+
 export const SessionTypeEnum = z.enum(['QUIZ', 'Q_AND_A']);
 export type SessionType = z.infer<typeof SessionTypeEnum>;
 
@@ -4768,6 +4776,37 @@ export type AdminWhoAmIOutput = z.infer<typeof AdminWhoAmIOutputSchema>;
 // Q&A-Modus (Epic 8)
 // ---------------------------------------------------------------------------
 
+/** Host-only Hilfssignal der optionalen Q&A-NLP-Kaskade (Story 8.9b / ADR-0032). */
+export const QaNlpResultSchema = z
+  .object({
+    status: QaNlpStatusEnum,
+    category: QaNlpCategoryEnum.optional(),
+    confidence: z.number().min(0).max(1).optional(),
+    modelVersion: z.string().min(1).max(64).optional(),
+    analyzedAt: z.string().datetime().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.status === 'classified' && value.category === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'classified requires category',
+        path: ['category'],
+      });
+    }
+  });
+export type QaNlpResult = z.infer<typeof QaNlpResultSchema>;
+
+/** Host-only Betriebszustand der Q&A-NLP-Kaskade; kein Teilnehmer-Feld. */
+export const QaNlpRuntimeDTOSchema = z.object({
+  enabled: z.boolean(),
+});
+export type QaNlpRuntimeDTO = z.infer<typeof QaNlpRuntimeDTOSchema>;
+
+export const GetQaNlpRuntimeInputSchema = z.object({
+  sessionId: z.uuid(),
+});
+export type GetQaNlpRuntimeInput = z.infer<typeof GetQaNlpRuntimeInputSchema>;
+
 /** DTO: Eine Q&A-Frage */
 export const QaQuestionDTOSchema = z.object({
   id: z.uuid(),
@@ -4789,6 +4828,11 @@ export const QaQuestionDTOSchema = z.object({
   isOwn: z.boolean(),
   /** @deprecated – wird durch myVote ersetzt */
   hasUpvoted: z.boolean(),
+  /**
+   * Optionales NLP-Hilfssignal. Nur Host-/Moderator-Mapper dürfen dieses Feld
+   * setzen; Teilnehmer-Ausgaben müssen es weglassen.
+   */
+  nlp: QaNlpResultSchema.optional(),
 });
 export type QaQuestionDTO = z.infer<typeof QaQuestionDTOSchema>;
 

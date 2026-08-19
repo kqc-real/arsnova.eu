@@ -8,7 +8,8 @@ describe('ModerationCompassDialogComponent', () => {
   function setup(
     cards: readonly ModerationCompassCard[],
     onSourceActivate: (source: ModerationCompassCard['sources'][number]) => void = vi.fn(),
-    analysisMode: 'rule-based' | 'disabled' = 'rule-based',
+    analysisMode:
+      'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified' = 'rule-based',
   ) {
     const dialogRef = { close: vi.fn() };
     TestBed.configureTestingModule({
@@ -70,6 +71,27 @@ describe('ModerationCompassDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.');
     expect(text).not.toContain('Einschätzung aus den sichtbaren Live-Signalen.');
+  });
+
+  it('zeigt pending zurückhaltend', () => {
+    const { fixture } = setup([], vi.fn(), 'pending');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung.',
+    );
+  });
+
+  it('zeigt uncertain zurückhaltend', () => {
+    const { fixture } = setup([], vi.fn(), 'uncertain');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung.',
+    );
+  });
+
+  it('zeigt failed zurückhaltend', () => {
+    const { fixture } = setup([], vi.fn(), 'failed');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung.',
+    );
   });
 
   it('zeigt Blitzlicht-Rückmeldungen mit eigenem Kartentitel', () => {

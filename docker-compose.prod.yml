@@ -143,6 +143,8 @@ services:
       NLP_CACHE_TTL_SECONDS: '1800'
       # NLP_ENABLED kommt aus `.env.production` (Default false).
       # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
+      # QA_NLP_ENABLED kommt aus `.env.production` (Default false). Story 8.9b:
+      # asynchrone Q&A-Klassifikation, getrennt von spaCy; ohne Modell bleibt der Stub.
     depends_on:
       pdf-worker:
         condition: service_healthy

@@ -13679,6 +13679,34 @@
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
         <target>L'analyse par IA est désactivée. Il reste l'aperçu basé sur des règles.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
+        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Les catégories thématiques sont encore en cours. Il reste l'aperçu basé sur des règles.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
+        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Les catégories IA sont incertaines. Il reste l'aperçu basé sur des règles.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
+        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>L'analyse IA n'est pas disponible pour le moment. Il reste l'aperçu basé sur des règles.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
+        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+        <target>Des catégories thématiques locales complètent l'aperçu basé sur des règles.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
+        <source>Inhalt</source>
+        <target>Contenu</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
+        <source>Organisation</source>
+        <target>Organisation</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
+        <source>Technik</source>
+        <target>Technique</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
         <target>Thèmes fréquents</target>

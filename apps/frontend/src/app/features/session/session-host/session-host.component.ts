@@ -100,6 +100,7 @@ import type {
   NicknameTheme,
   NumericRoundComparisonDTO,
   NumericStatsDTO,
+  QaNlpCategory,
   QaQuestionDTO,
   QaQuestionSortMode,
   QuickFeedbackResult,
@@ -132,12 +133,14 @@ import {
 import {
   buildModerationCompassCards,
   collectModerationQuizFacts,
+  collectQaNlpCategorySources,
   compassQuestionStem,
   compassTermsFromAnalysisEntries,
   isNegativeFeedbackKey,
   mergeModerationQuizSources,
   notableQuickFeedbackSplit,
   rememberModerationQuizSnapshot,
+  resolveModerationCompassAnalysisMode,
   truncateCompassLabel,
   type ModerationCompassQuizInsightKind,
   type ModerationCompassQuizSourceCacheEntry,
@@ -562,6 +565,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly hostSteeringCallout = signal<HostSteeringCalloutState | null>(null);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly qaNlpEnabled = signal(false);
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
@@ -1752,6 +1756,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         score: question.score,
         bestScore: question.bestScore,
         controversyScore: question.controversyScore,
+        nlp: question.nlp,
       })),
       qaSortMode: this.qaSortMode(),
       qaTerms: this.moderationCompassQaTerms(),
@@ -1760,7 +1765,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.toModerationCompassTerms(this.displayedFreetextWordCloudTerms())),
         ...this.aggregatedFreetextCompassTerms(),
       ],
-      extraTopicSources: this.moderationCompassPinnedSources(),
+      extraTopicSources: [
+        ...this.moderationCompassPinnedSources(),
+        ...collectQaNlpCategorySources(
+          this.qaForumQuestions().map((question) => ({
+            id: question.id,
+            text: this.moderationCompassQaSourceText(question),
+            status: question.status,
+            nlp: question.nlp,
+          })),
+          this.moderationNlpCategoryLabels(),
+        ),
+      ],
       topicWeightLabel: this.moderationCompassTopicWeightLabel(),
       tempo: this.moderationCompassFeedback(),
       quizSources: this.moderationCompassQuizSources(),
@@ -1784,7 +1800,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
-        analysisMode: 'rule-based' as const,
+        analysisMode: resolveModerationCompassAnalysisMode({
+          enabled: this.qaNlpEnabled(),
+          statuses: this.qaQuestions().map((question) => question.nlp?.status),
+        }),
         onSourceActivate: (source: ModerationCompassSource) => {
           void this.followModerationCompassSource(source);
         },
@@ -3358,6 +3377,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
       await this.refreshQaQuestions();
+      await this.refreshQaNlpRuntime();
       await this.refreshQuickFeedbackResult();
     } catch {
       this.session.set(null);
@@ -7346,6 +7366,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch {
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
     }
+  }
+
+  private async refreshQaNlpRuntime(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId) {
+      this.qaNlpEnabled.set(false);
+      return;
+    }
+    try {
+      const runtime = await trpc.qa.nlpRuntime.query({ sessionId });
+      this.qaNlpEnabled.set(runtime.enabled);
+    } catch {
+      this.qaNlpEnabled.set(false);
+    }
+  }
+
+  private moderationNlpCategoryLabels(): Record<QaNlpCategory, string> {
+    return {
+      content: $localize`:@@sessionHost.moderationNlpCategoryContent:Inhalt`,
+      organization: $localize`:@@sessionHost.moderationNlpCategoryOrganization:Organisation`,
+      technical: $localize`:@@sessionHost.moderationNlpCategoryTechnical:Technik`,
+    };
   }
 
   private buildQaWordCloudAnalysisRequest(

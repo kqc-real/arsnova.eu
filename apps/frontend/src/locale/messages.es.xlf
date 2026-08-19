@@ -13679,6 +13679,34 @@
         <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
         <target>El análisis con IA está desactivado. Sigue la visión basada en reglas.</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
+        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Las categorías temáticas se están calculando. Sigue la visión basada en reglas.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
+        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>Las categorías de IA son inciertas. Sigue la visión basada en reglas.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
+        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
+        <target>El análisis con IA no está disponible ahora. Sigue la visión basada en reglas.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
+        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
+        <target>Las categorías temáticas locales complementan la visión basada en reglas.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
+        <source>Inhalt</source>
+        <target>Contenido</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
+        <source>Organisation</source>
+        <target>Organización</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
+        <source>Technik</source>
+        <target>Técnica</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
         <target>Temas frecuentes</target>
