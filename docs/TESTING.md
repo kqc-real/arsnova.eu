@@ -254,6 +254,8 @@ npm test -w @arsnova/backend -- --run \
   src/lib/qaNlpResult.test.ts \
   src/lib/qaNlpQueue.test.ts \
   src/lib/qaNlpGatekeeper.test.ts \
+  src/lib/qaNlpEvaluate.test.ts \
+  src/lib/qaNlpCalibrate.test.ts \
   src/__tests__/qa.nlp.test.ts \
   src/__tests__/dto-security.test.ts \
   src/__tests__/wordCloud.hotpath-isolation.test.ts
@@ -266,7 +268,7 @@ npm run test -w @arsnova/frontend -- \
   src/app/features/session/session-host/session-host.component.spec.ts
 ```
 
-Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach semantischem Fallback sowie Last-/Qualitätsmessung außerhalb des Seed-Sets.
+Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle, Kalibrierkurve und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Produktive Aktivierung erst nach semantischem Fallback sowie Last-/Qualitätsmessung außerhalb des Seed-Sets.
 
 Für W2.4a zusätzlich:
 

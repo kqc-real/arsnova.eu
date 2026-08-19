@@ -1,8 +1,18 @@
 import type { QaNlpCategory } from '@arsnova/shared-types';
 
 export type QaNlpSeedSplit = 'train' | 'eval';
-export type QaNlpSeedLocale = 'de' | 'en' | 'fr' | 'es' | 'it' | 'mixed';
-export type QaNlpSeedTag = 'canonical' | 'short' | 'typo' | 'slang' | 'code-switch' | 'ambiguous';
+export const QA_NLP_SEED_LOCALES = ['de', 'en', 'fr', 'es', 'it', 'mixed'] as const;
+export type QaNlpSeedLocale = (typeof QA_NLP_SEED_LOCALES)[number];
+export const QA_NLP_SEED_TAGS = [
+  'canonical',
+  'short',
+  'typo',
+  'slang',
+  'code-switch',
+  'ambiguous',
+] as const;
+
+export type QaNlpSeedTag = (typeof QA_NLP_SEED_TAGS)[number];
 
 export type QaNlpSeedExample = {
   readonly text: string;
@@ -553,8 +563,517 @@ export const QA_NLP_SEED_EXAMPLES: readonly QaNlpSeedExample[] = [
     locale: 'de',
     tags: ['ambiguous', 'short'],
   },
+
+  // --- eval slice 3: canonical DE/EN/FR/ES/IT ---
+  {
+    text: 'Was bedeutet der p-Wert in Aufgabe 2?',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Wie lautet die Definition von Bias auf Folie 4?',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Is regularization part of the exam?',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Can you repeat the Bayes example from the board?',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Pouvez-vous reexpliquer la variance?',
+    category: 'content',
+    split: 'eval',
+    locale: 'fr',
+    tags: ['canonical'],
+  },
+  {
+    text: 'La formula de Bayes esta en el examen?',
+    category: 'content',
+    split: 'eval',
+    locale: 'es',
+    tags: ['canonical'],
+  },
+  {
+    text: 'L esempio sulla slide 4 e da studiare?',
+    category: 'content',
+    split: 'eval',
+    locale: 'it',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Findet die Sprechstunde naechste Woche statt?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Wo gebe ich die Hausarbeit ab?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Is the makeup exam on campus or online?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Do we get an extension for the project?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Le cours de vendredi est-il annule?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'fr',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Donde se entrega el trabajo?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'es',
+    tags: ['canonical'],
+  },
+  {
+    text: 'L esame e in quale aula?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'it',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Der Beamer zeigt nur den Desktop, nicht die Folien.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Die Abstimmung laedt ewig.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'de',
+    tags: ['canonical'],
+  },
+  {
+    text: 'My laptop cannot join the session code.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'The QR code is too blurry to scan.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Le micro ne fonctionne plus.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'fr',
+    tags: ['canonical'],
+  },
+  {
+    text: 'La pagina de votacion no carga.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'es',
+    tags: ['canonical'],
+  },
+  {
+    text: 'Il codice QR non si legge.',
+    category: 'technical',
+    split: 'eval',
+    locale: 'it',
+    tags: ['canonical'],
+  },
+
+  // --- eval slice 3: typo / short / slang / code-switch ---
+  {
+    text: 'Konfidnezintervall nochmal erklaeren',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['typo'],
+  },
+  {
+    text: 'hypotesis test in der klaustur',
+    category: 'content',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['typo', 'code-switch'],
+  },
+  {
+    text: 'defintion of overfiting bitte',
+    category: 'content',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['typo', 'code-switch'],
+  },
+  {
+    text: 'Folie 12 beweis, ich kapiers nicht',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['typo', 'slang'],
+  },
+  {
+    text: 'what is precisoin vs recal',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['typo'],
+  },
+  {
+    text: 'Median klausurrelevant?',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Folie 7 nochmal?',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Exam: Bayes?',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['short'],
+  },
+  {
+    text: 'Ist overfitting dasselbe wie overtraining?',
+    category: 'content',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'Was ist der bias-variance tradeoff hier?',
+    category: 'content',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'Slide 9: was ist recall genau?',
+    category: 'content',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'Ich check den Loesungsweg null',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['slang'],
+  },
+  {
+    text: 'the example is kinda confusing, can you redo it',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['slang'],
+  },
+  {
+    text: 'Nachholklaustur welcher raum',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['typo', 'short'],
+  },
+  {
+    text: 'deadlien for hausarbeit',
+    category: 'organization',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['typo', 'code-switch'],
+  },
+  {
+    text: 'tutroium anmelden wie',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['typo', 'short'],
+  },
+  {
+    text: 'when is the assigment due exaclty',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['typo'],
+  },
+  {
+    text: 'Abgabe wann?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Raum Nummer?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Tutorium Pflicht?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Ist die deadline wirklich Freitag?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'Welcher Zoom link gilt heute?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'Office hours heute cancelled?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch', 'short'],
+  },
+  {
+    text: 'Koennen wir die Abgabe schieben?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['slang'],
+  },
+  {
+    text: 'is class off on friday?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['slang'],
+  },
+  {
+    text: 'Wlan im horsaal tot',
+    category: 'technical',
+    split: 'eval',
+    locale: 'de',
+    tags: ['typo', 'slang'],
+  },
+  {
+    text: 'moodel login error 500',
+    category: 'technical',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['typo', 'code-switch'],
+  },
+  {
+    text: 'mikrofon is silent again',
+    category: 'technical',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['typo', 'code-switch'],
+  },
+  {
+    text: 'safari blank quizz page',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['typo'],
+  },
+  {
+    text: 'PDF 404',
+    category: 'technical',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['short'],
+  },
+  {
+    text: 'Join code geht nicht',
+    category: 'technical',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['short', 'code-switch'],
+  },
+  {
+    text: 'Kein Ton',
+    category: 'technical',
+    split: 'eval',
+    locale: 'de',
+    tags: ['short'],
+  },
+  {
+    text: 'Stream laggt, audio gone',
+    category: 'technical',
+    split: 'eval',
+    locale: 'mixed',
+    tags: ['code-switch', 'slang'],
+  },
+  {
+    text: 'Browser crash on vote page',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['code-switch'],
+  },
+  {
+    text: 'QR join failed, wifi down',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['code-switch', 'short'],
+  },
+  {
+    text: 'Die App spinnt bei mir',
+    category: 'technical',
+    split: 'eval',
+    locale: 'de',
+    tags: ['slang'],
+  },
+  {
+    text: 'voting page is totally broken',
+    category: 'technical',
+    split: 'eval',
+    locale: 'en',
+    tags: ['slang'],
+  },
+
+  // --- eval slice 3: ambiguous (Gold Best-Effort, nicht in F1) ---
+  {
+    text: 'Huh?',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Das war zu schnell.',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['ambiguous'],
+  },
+  {
+    text: 'Can we go back?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Ich habs nicht mitbekommen.',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['ambiguous'],
+  },
+  {
+    text: 'Same question as before.',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous'],
+  },
+  {
+    text: 'Geht das auch anders?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'de',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Not sure what you mean.',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous'],
+  },
+  {
+    text: 'Bitte nochmal.',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Why?',
+    category: 'content',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Das hilft mir nicht.',
+    category: 'content',
+    split: 'eval',
+    locale: 'de',
+    tags: ['ambiguous'],
+  },
+  {
+    text: 'Is this important?',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous', 'short'],
+  },
+  {
+    text: 'Later please.',
+    category: 'organization',
+    split: 'eval',
+    locale: 'en',
+    tags: ['ambiguous', 'short'],
+  },
 ];
 
 export function qaNlpSeedBySplit(split: QaNlpSeedSplit): QaNlpSeedExample[] {
   return QA_NLP_SEED_EXAMPLES.filter((example) => example.split === split);
+}
+
+/** Gelabeltes Eval ohne `ambiguous` (Gold dort nur Best-Effort). */
+export function qaNlpLabeledEvalExamples(): QaNlpSeedExample[] {
+  return qaNlpSeedBySplit('eval').filter((example) => !example.tags.includes('ambiguous'));
+}
+
+export function qaNlpAmbiguousEvalExamples(): QaNlpSeedExample[] {
+  return qaNlpSeedBySplit('eval').filter((example) => example.tags.includes('ambiguous'));
+}
+
+export function qaNlpEvalExamplesWithTag(tag: QaNlpSeedTag): QaNlpSeedExample[] {
+  return qaNlpSeedBySplit('eval').filter((example) => example.tags.includes(tag));
 }

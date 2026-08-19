@@ -1,10 +1,22 @@
 import type { QaNlpCategory } from '@arsnova/shared-types';
-import type { QaNlpSeedExample } from './qaNlpSeed';
+import {
+  QA_NLP_SEED_LOCALES,
+  QA_NLP_SEED_TAGS,
+  type QaNlpSeedExample,
+  type QaNlpSeedLocale,
+  type QaNlpSeedTag,
+} from './qaNlpSeed';
 import type { QaNlpScoredPrediction } from './qaNlpNaiveBayes';
 import { QA_NLP_GATEKEEPER_CATEGORIES } from './qaNlpNaiveBayes';
 
 export type QaNlpEvalCounts = {
+  readonly size: number;
+  readonly classifiedCount: number;
+  /** Best-Guess-Accuracy ueber alle gelabelten Beispiele, unabhaengig von der Schwelle. */
   readonly accuracy: number;
+  /** Accuracy nur unter den Beispielen mit Konfidenz >= minConfidence. */
+  readonly classifiedAccuracy: number;
+  readonly classifiedCoverage: number;
   readonly macroF1: number;
   readonly perClass: Readonly<
     Record<QaNlpCategory, { precision: number; recall: number; f1: number; support: number }>
@@ -28,17 +40,23 @@ export function evaluateQaNlpPredictions(
 ): QaNlpEvalCounts {
   const confusion = emptyConfusion();
   let correct = 0;
-  let uncertain = 0;
+  let classifiedCorrect = 0;
+  let classifiedCount = 0;
   for (const example of examples) {
     const prediction = predict(example.text);
-    if (prediction.confidence < minConfidence) {
-      uncertain += 1;
+    const classified = prediction.confidence >= minConfidence;
+    if (classified) {
+      classifiedCount += 1;
     }
     confusion[example.category][prediction.category] += 1;
     if (prediction.category === example.category) {
       correct += 1;
+      if (classified) {
+        classifiedCorrect += 1;
+      }
     }
   }
+  const uncertain = examples.length - classifiedCount;
 
   const perClass = {} as Record<
     QaNlpCategory,
@@ -64,10 +82,60 @@ export function evaluateQaNlpPredictions(
     QA_NLP_GATEKEEPER_CATEGORIES.length;
 
   return {
+    size: examples.length,
+    classifiedCount,
     accuracy: examples.length === 0 ? 0 : correct / examples.length,
+    classifiedAccuracy: classifiedCount === 0 ? 0 : classifiedCorrect / classifiedCount,
+    classifiedCoverage: examples.length === 0 ? 0 : classifiedCount / examples.length,
     macroF1,
     perClass,
     confusion,
     uncertainRate: examples.length === 0 ? 0 : uncertain / examples.length,
   };
+}
+
+function evaluateNonEmptyGroups<T extends string>(
+  examples: readonly QaNlpSeedExample[],
+  predict: (text: string) => QaNlpScoredPrediction,
+  minConfidence: number,
+  keys: readonly T[],
+  matches: (example: QaNlpSeedExample, key: T) => boolean,
+): Partial<Record<T, QaNlpEvalCounts>> {
+  const result: Partial<Record<T, QaNlpEvalCounts>> = {};
+  for (const key of keys) {
+    const subset = examples.filter((example) => matches(example, key));
+    if (subset.length === 0) {
+      continue;
+    }
+    result[key] = evaluateQaNlpPredictions(subset, predict, minConfidence);
+  }
+  return result;
+}
+
+export function evaluateQaNlpByTag(
+  examples: readonly QaNlpSeedExample[],
+  predict: (text: string) => QaNlpScoredPrediction,
+  minConfidence: number,
+): Partial<Record<QaNlpSeedTag, QaNlpEvalCounts>> {
+  return evaluateNonEmptyGroups(
+    examples,
+    predict,
+    minConfidence,
+    QA_NLP_SEED_TAGS,
+    (example, tag) => example.tags.includes(tag),
+  );
+}
+
+export function evaluateQaNlpByLocale(
+  examples: readonly QaNlpSeedExample[],
+  predict: (text: string) => QaNlpScoredPrediction,
+  minConfidence: number,
+): Partial<Record<QaNlpSeedLocale, QaNlpEvalCounts>> {
+  return evaluateNonEmptyGroups(
+    examples,
+    predict,
+    minConfidence,
+    QA_NLP_SEED_LOCALES,
+    (example, locale) => example.locale === locale,
+  );
 }

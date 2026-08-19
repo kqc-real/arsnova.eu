@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-08-19
-**Status:** 🟡 Gatekeeper (hashed n-Gramm-Naive-Bayes) auf kuratiertem Seed-Set; semantischer Fallback und Hörsaal-Lastmessung offen
+**Status:** 🟡 Gatekeeper kalibriert auf erweitertem Seed-Eval; semantischer Fallback und Hörsaal-Lastmessung offen
 **Backlog:** Story 8.9b
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 
@@ -42,7 +42,7 @@ Der Worker nutzt ein gehashtes Zeichen-n-Gramm- plus Wort-Unigramm-Naive-Bayes (
 
 Eine Keyword-Baseline dient nur dem Vergleich in der Evaluation, nicht dem Live-Pfad.
 
-`npm run eval:qa-nlp -w @arsnova/backend` druckt Accuracy, Macro-F1, Confusion Matrix und Uncertain-Rate gegen den Eval-Split (ohne `ambiguous`). Das Seed-Set ist synthetisch-hörsaalnah und **keine** Freigabebasis für produktive Aktivierung.
+`npm run eval:qa-nlp -w @arsnova/backend` druckt Accuracy, Macro-F1, Confusion Matrix, Slice-Metriken nach Tag/Locale und die Kalibrierkurve. Das Seed-Set ist synthetisch-hörsaalnah und **keine** Freigabebasis für produktive Aktivierung.
 
 Bestehende Fragen einer Session (Seeds, Altbestand) werden nicht automatisch nachklassifiziert. Lokal:
 
@@ -74,6 +74,25 @@ Klassifizierte Fragen erscheinen in der Karte **Häufige Themen** als Inhalt, Ab
 
 Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Queue-Länge und Latenz. In-Process-Zähler: Queue-Länge, Enqueue, Skip, Completed, Failed, Unclassified.
 
+## Kalibrierung (Slice 3)
+
+Train-Split bleibt eingefroren (`gatekeeper-hash-nb-v1`). Das gelabelte Eval (ohne `ambiguous`) umfasst Tippfehler, Kurzfragen, Slang, Code-Switching und DE/EN plus kleine FR/ES/IT-Stichproben. Gold-Labels bei `ambiguous` sind Best-Effort und zählen nicht in F1.
+
+Gemessen mit `npm run eval:qa-nlp -w @arsnova/backend` (2026-08-19, Seed im Repo):
+
+| Kenngröße an `QA_NLP_MIN_CONFIDENCE=0.55` | Wert                 |
+| ----------------------------------------- | -------------------- |
+| Gelabeltes Eval / Ambiguous               | 76 / 15              |
+| Classified-Accuracy                       | 0.85                 |
+| Macro-F1 (Best-Guess)                     | 0.86                 |
+| Uncertain-Rate                            | 0.01                 |
+| Slang Classified-Accuracy                 | 0.64                 |
+| Ambiguous als `classified`                | 0.87 (Accuracy 0.38) |
+
+Betriebspunkt: Default **0.55 bleibt**. Die niedrigste formale Schwelle mit Classified-Accuracy ≥ 0.80 wäre 0.20, filtert aber nichts (überconfidentes Softmax). Fallback-Budget für Level 2: Uncertain-Rate **0.30**. Das Budget ist auf diesem Seed **nicht** überschritten.
+
+Level 2 bleibt trotzdem der nächste Slice, weil die Uncertain-Rate den Fehler **unterschätzt**: Slang und mehrdeutige Kurzfragen werden mit hoher Konfidenz falsch einsortiert. FR/ES-Stichproben sind zu klein für eine Freigabe. Das Seed bleibt keine produktive Aktivierungsbasis.
+
 ## Nächster Slice
 
-Semantischer Fallback (Level 2, ADR-0032), Kalibrierung gegen ein größeres gelabeltes Set, k6/Artillery-Lastmessung vor produktiver Aktivierung.
+Semantischer Fallback (Level 2, ADR-0032) für unsichere **und** überconfident-falsche Fälle (Slang, Ambiguity), danach k6/Artillery-Lastmessung vor produktiver Aktivierung.

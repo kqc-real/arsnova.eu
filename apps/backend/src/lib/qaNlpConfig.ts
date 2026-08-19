@@ -3,7 +3,8 @@
  *
  * Getrennt von `NLP_ENABLED` (spaCy-Wortwolke, Story 1.14b). Produktiv nur exakt
  * `true` schaltet den Pfad ein. Der Gatekeeper ist ein gehashtes n-Gramm-Naive-Bayes
- * auf dem kuratierten Seed-Set; der semantische Fallback bleibt ein spaeterer Slice.
+ * auf dem kuratierten Seed-Set; Slice 3 kalibriert `QA_NLP_MIN_CONFIDENCE`
+ * (Default 0.55 bleibt). Der semantische Fallback bleibt ein spaeterer Slice.
  */
 export const QA_NLP_TIMEOUT_DEFAULT_MS = 2_000;
 export const QA_NLP_TIMEOUT_MIN_MS = 200;

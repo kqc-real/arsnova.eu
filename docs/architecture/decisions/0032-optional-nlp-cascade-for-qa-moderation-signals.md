@@ -203,12 +203,13 @@ Ironie, Sarkasmus und doppelte Verneinungen gelten nicht als garantiert geloest.
 
 ## Umsetzungsstand (2026-08-19)
 
-Der Vertrags-Slice und der Gatekeeper-Slice sind im Repo:
+Der Vertrags-Slice, der Gatekeeper-Slice und der Kalibrier-Slice sind im Repo:
 
 - Shared-Zod-Vertrag `pending` | `classified` | `uncertain` | `disabled` | `failed` plus Kategorie, Konfidenz, Modellversion, Analysezeitpunkt
 - Kill-Switch `QA_NLP_ENABLED` (produktiv default aus), getrennt von spaCy `NLP_ENABLED`
 - Asynchrone In-Process-Queue nach Persistenz von `QaQuestion`; `qa.submit` awaitet die Inferenz nicht
 - Gatekeeper: gehashtes n-Gramm-Naive-Bayes auf kuratiertem Seed (`modelVersion: gatekeeper-hash-nb-v1`), Konfidenzschwelle `QA_NLP_MIN_CONFIDENCE`
+- Kalibrierung (Slice 3): erweitertes gelabeltes Eval, Kurve, Fallback-Budget 0.30; Default 0.55 bleibt, weil niedrigere Schwellen bei ueberconfidentem Softmax nichts filtern
 - Keyword-Baseline nur als Vergleich in `npm run eval:qa-nlp -w @arsnova/backend`
 - Stub bleibt fuer Tests und Queue-Fehlerpraefixe (`stub:timeout`)
 - Host-DTO `nlp` und `qa.nlpRuntime`; Teilnehmer-DTOs ohne NLP-Felder
@@ -216,7 +217,7 @@ Der Vertrags-Slice und der Gatekeeper-Slice sind im Repo:
 - Kompass-Statuszeile fuer `pending` / `uncertain` / `disabled` / `failed` / `classified`
 - Queue-Limit, Timeout und Drop/Skip sind konfiguriert und dokumentiert: [qa-nlp-moderation.md](../../features/qa-nlp-moderation.md)
 
-Noch offen: semantischer Fallback (Level 2), groesseres gelabeltes Set, Kalibrierkurve und Q&A-Lasttest vor produktiver Aktivierung.
+Noch offen: semantischer Fallback (Level 2) fuer unsichere und ueberconfident-falsche Faelle, sowie Q&A-Lasttest vor produktiver Aktivierung.
 
 ## Referenzen
 
