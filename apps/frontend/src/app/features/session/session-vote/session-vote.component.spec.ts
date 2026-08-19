@@ -897,6 +897,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       () => {
         fixture.detectChanges();
         expect(fixture.componentInstance.status()).toBe('ACTIVE');
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
       },
       { timeout: 5000, interval: 10 },
     );
@@ -3491,10 +3492,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(
       host.querySelector('.vote-page__bottom-actions .session-qa-form__submit'),
     ).not.toBeNull();
-    expect(host.querySelector('.session-qa-form__identity-badge')?.textContent?.trim()).toBe(
-      '🐉 2',
+    expect(host.querySelector('.session-qa-form__identity')).toBeNull();
+    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐉');
+    expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
+      'Roter Drache 2',
     );
-    expect(host.textContent).toContain('Du fragst als');
+    expect(host.textContent).not.toContain('Du fragst als');
     expect(host.querySelector('.session-qa-form__label')).toBeNull();
     expect(host.querySelector('#qa-draft')?.getAttribute('aria-label')).toBe('Deine Frage');
     expect(host.textContent).not.toContain('Neue Inhalte erscheinen hier automatisch.');
@@ -3535,6 +3538,129 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.playerKindergartenEmoji()).toBe('🦫');
     expect(fixture.componentInstance.playerKindergartenSequence()).toBe('6');
     expect(fixture.componentInstance.playerKindergartenBadgeLabel()).toBe('🦫 6');
+    expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🦫');
+
+    fixture.componentInstance.status.set('ACTIVE');
+    fixture.componentInstance.activeChannel.set('qa');
+    expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🦫');
+
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🦫');
+
+    fixture.componentInstance.status.set('FINISHED');
+    expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt in Q&A denselben Kita-Hero wie im Quiz', async () => {
+    localStorage.setItem('arsnova-nickname-ABC123', 'Tannengrüner Biber 6');
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Tannengrüner Biber 6',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: 'Team 🍐',
+    });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      preset: 'SERIOUS',
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.participantTeam.set({ teamName: 'Team 🍐' } as never);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
+      'Tannengrüner Biber 6',
+    );
+    expect(host.querySelector('.vote-lobby__kita-team')?.textContent?.trim()).toBe('Team');
+    expect(host.querySelector('.vote-lobby__kita-team-emoji')?.textContent?.trim()).toBe('🍐');
+    expect(host.querySelector('.session-qa-form__identity')).toBeNull();
+    expect(host.textContent).not.toContain('Du fragst als');
+    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent).not.toContain('6');
+    expect(host.querySelector('.vote-live-banner__qr-wrap')).toBeNull();
+    expect(host.querySelector('.vote-live-banner__join-icon-tile')).toBeNull();
+    expect(
+      Array.from(host.querySelectorAll('mat-icon')).some(
+        (el) => el.textContent?.trim() === 'qr_code_2',
+      ),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('zeigt im eingebetteten Blitzlicht den Kita-Hero ohne Session-Karte', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+      currentRound: 1,
+    });
+    localStorage.setItem('arsnova-nickname-ABC123', 'Tannengrüner Biber 6');
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.playerNickname.set('Tannengrüner Biber 6');
+    component.participantTeam.set({ teamName: 'Team 🍐' } as never);
+    component.status.set('ACTIVE');
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
+      'Tannengrüner Biber 6',
+    );
+    expect(host.querySelector('.vote-lobby__kita-team-emoji')?.textContent?.trim()).toBe('🍐');
+    expect(host.querySelector('app-feedback-vote')).not.toBeNull();
+    expect(host.querySelector('.feedback-vote__context-kita-avatar')).toBeNull();
+    expect(host.querySelector('.feedback-vote__context-item')).toBeNull();
+    expect(host.textContent).not.toContain('Session ABC123');
+    expect(host.querySelector('.vote-live-banner')).not.toBeNull();
+    expect(host.querySelector('.vote-live-banner__qr-wrap')).toBeNull();
+    expect(host.querySelector('.vote-live-banner__join-icon-tile')).toBeNull();
+    expect(
+      Array.from(host.querySelectorAll('mat-icon')).some(
+        (el) => el.textContent?.trim() === 'qr_code_2',
+      ),
+    ).toBe(false);
     fixture.destroy();
   });
 
@@ -3671,14 +3797,6 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.qaSelectedAuthorNickname()).toBeNull();
     expect(cards).toHaveLength(2);
     expect(cards[1]?.className).not.toContain('session-qa-card--author-selected');
-
-    (host.querySelector('.session-qa-form__identity-badge') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    cards = host.querySelectorAll('.session-qa-card');
-
-    expect(component.qaSelectedAuthorNickname()).toBe('Roter Drache 2');
-    expect(cards).toHaveLength(1);
-    expect(cards[0]?.className).toContain('session-qa-card--author-selected');
     fixture.destroy();
   });
 

@@ -411,7 +411,7 @@ Die Vote-Ansicht ist die aktive Interaktionsoberfläche für Teilnehmende.
 Sie unterstützt:
 
 - Lobby und Wartesituation
-- Nickname-/Team-Identität
+- Nickname-/Team-Identität (Quiz, Q&A und Blitzlicht gleich: Charakter-Icon, Anzeigename, Team)
 - Empfang der aktuellen Frage
 - Antwortabgabe je nach Fragetyp
 - Countdown
