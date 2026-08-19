@@ -13676,36 +13676,36 @@
         <target>Repères tirés des signaux live visibles.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
-        <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>L'analyse par IA est désactivée. Il reste l'aperçu basé sur des règles.</target>
+        <source> Die automatische Sortierung der Fragen ist aus. </source>
+        <target>Le tri automatique des questions est désactivé.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
-        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>Les catégories thématiques sont encore en cours. Il reste l'aperçu basé sur des règles.</target>
+        <source> Die Fragen werden noch sortiert. </source>
+        <target>Les questions sont encore en cours de tri.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
-        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>Les catégories IA sont incertaines. Il reste l'aperçu basé sur des règles.</target>
+        <source> Die Sortierung der Fragen ist unsicher. </source>
+        <target>Le tri des questions est incertain.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
-        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>L'analyse IA n'est pas disponible pour le moment. Il reste l'aperçu basé sur des règles.</target>
+        <source> Die automatische Sortierung ist gerade nicht verfügbar. </source>
+        <target>Le tri automatique n&apos;est pas disponible pour le moment.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
-        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
-        <target>Des catégories thématiques locales complètent l'aperçu basé sur des règles.</target>
+        <source> Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert. </source>
+        <target>Les questions sont grosso modo triées par contenu, organisation et technique.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
-        <source>Inhalt</source>
-        <target>Contenu</target>
+        <source>Inhaltliche Fragen</source>
+        <target>Questions de contenu</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
-        <source>Organisation</source>
-        <target>Organisation</target>
+        <source>Fragen zum Ablauf</source>
+        <target>Questions d&apos;organisation</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
-        <source>Technik</source>
-        <target>Technique</target>
+        <source>Technische Fragen</source>
+        <target>Questions techniques</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
@@ -13791,6 +13791,14 @@
         <source>Aus der Wortwolke</source>
         <target>Depuis le nuage de mots</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationCompassFocusWithHint" datatype="html">
+        <source>Aus dem Kompass · <x id="hint" equiv-text="hint"/></source>
+        <target>Depuis la boussole · <x id="hint" equiv-text="hint"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationWordCloudFocusWithHint" datatype="html">
+        <source>Aus der Wortwolke · <x id="hint" equiv-text="hint"/></source>
+        <target>Depuis le nuage de mots · <x id="hint" equiv-text="hint"/></target>
+      </trans-unit>
       <trans-unit id="sessionQa.focusHint" datatype="html">
         <source>Zugehörige Beiträge stehen oben und folgen der Sortierung.</source>
         <target>Les contributions liées restent en haut et suivent le tri.</target>
@@ -13842,6 +13850,10 @@
       <trans-unit id="sessionHost.moderationPinned" datatype="html">
         <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
         <target>Épinglé : <x id="question" equiv-text="label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFocusPinned" datatype="html">
+        <source>Hervorgehoben</source>
+        <target>Épinglé</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationFrictionVotes" datatype="html">
         <source><x id="up" equiv-text="question.positiveVoteCount"/> dafür, <x id="down" equiv-text="question.negativeVoteCount"/> dagegen · <x id="question" equiv-text="question.text"/></source>

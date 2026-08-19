@@ -12,6 +12,7 @@ import { ModerationCompassIconComponent } from './moderation-compass-icon.compon
 import type {
   ModerationCompassAnalysisMode,
   ModerationCompassCard,
+  ModerationCompassCardKind,
   ModerationCompassNextStepReason,
   ModerationCompassSource,
 } from './moderation-compass';
@@ -21,7 +22,7 @@ export type { ModerationCompassAnalysisMode };
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
   analysisMode?: ModerationCompassAnalysisMode;
-  onSourceActivate?: (source: ModerationCompassSource) => void;
+  onSourceActivate?: (source: ModerationCompassSource, cardKind: ModerationCompassCardKind) => void;
 };
 
 @Component({
@@ -52,11 +53,11 @@ export class ModerationCompassDialogComponent {
     return $localize`:@@sessionHost.moderationSourceJumpAria:Zur Quelle: ${source.label}:label:`;
   }
 
-  activateSource(source: ModerationCompassSource): void {
+  activateSource(source: ModerationCompassSource, card: ModerationCompassCard): void {
     if (!source.target) {
       return;
     }
-    this.data.onSourceActivate?.(source);
+    this.data.onSourceActivate?.(source, card.kind);
     this.dialogRef.close();
   }
 

@@ -69,6 +69,7 @@ describe('qa NLP cascade (Story 8.9b)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    vi.stubEnv('QA_NLP_ENABLED', '');
     resetQaNlpQueueForTests();
     hostAuthMocks.extractHostTokenMock.mockImplementation((req: unknown) => {
       const t = (req as { headers?: { 'x-host-token'?: string } } | undefined)?.headers?.[
@@ -203,6 +204,7 @@ describe('qa NLP cascade (Story 8.9b)', () => {
         timeoutMs: 1_000,
         queueLimit: 10,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       processor: async () => {
         await new Promise((resolve) => setTimeout(resolve, 80));
@@ -265,6 +267,7 @@ describe('qa NLP cascade (Story 8.9b)', () => {
         timeoutMs: 200,
         queueLimit: 10,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       processor: async () => createStubUnclassifiedQaNlpResult(),
       writer: async () => undefined,
