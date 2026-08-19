@@ -2,7 +2,8 @@
  * Kill-Switch und Betriebsgrenzen der optionalen Q&A-NLP-Kaskade (Story 8.9b / ADR-0032).
  *
  * Getrennt von `NLP_ENABLED` (spaCy-Wortwolke, Story 1.14b). Produktiv nur exakt
- * `true` schaltet den Pfad ein; ohne Modellartefakt bleibt der Worker ein Stub.
+ * `true` schaltet den Pfad ein. Der Gatekeeper ist ein gehashtes n-Gramm-Naive-Bayes
+ * auf dem kuratierten Seed-Set; der semantische Fallback bleibt ein spaeterer Slice.
  */
 export const QA_NLP_TIMEOUT_DEFAULT_MS = 2_000;
 export const QA_NLP_TIMEOUT_MIN_MS = 200;
@@ -14,12 +15,17 @@ export const QA_NLP_CONCURRENCY_DEFAULT = 1;
 export const QA_NLP_CONCURRENCY_MIN = 1;
 export const QA_NLP_CONCURRENCY_MAX = 4;
 export const QA_NLP_STUB_MODEL_VERSION = 'stub';
+export const QA_NLP_GATEKEEPER_MODEL_VERSION = 'gatekeeper-hash-nb-v1';
+export const QA_NLP_MIN_CONFIDENCE_DEFAULT = 0.55;
+export const QA_NLP_MIN_CONFIDENCE_MIN = 0.2;
+export const QA_NLP_MIN_CONFIDENCE_MAX = 0.95;
 
 export interface QaNlpConfig {
   readonly enabled: boolean;
   readonly timeoutMs: number;
   readonly queueLimit: number;
   readonly concurrency: number;
+  readonly minConfidence: number;
 }
 
 export function isQaNlpEnabled(value = process.env['QA_NLP_ENABLED']): boolean {
@@ -79,11 +85,33 @@ export function resolveQaNlpConcurrency(
   );
 }
 
+export function resolveQaNlpMinConfidence(
+  configuredValue = process.env['QA_NLP_MIN_CONFIDENCE'],
+): number {
+  const value = configuredValue?.trim();
+  if (!value) return QA_NLP_MIN_CONFIDENCE_DEFAULT;
+  if (!/^\d+(\.\d+)?$/.test(value)) {
+    throw new Error('QA_NLP_MIN_CONFIDENCE muss eine Zahl sein');
+  }
+  const parsed = Number(value);
+  if (
+    !Number.isFinite(parsed) ||
+    parsed < QA_NLP_MIN_CONFIDENCE_MIN ||
+    parsed > QA_NLP_MIN_CONFIDENCE_MAX
+  ) {
+    throw new Error(
+      `QA_NLP_MIN_CONFIDENCE muss zwischen ${QA_NLP_MIN_CONFIDENCE_MIN} und ${QA_NLP_MIN_CONFIDENCE_MAX} liegen`,
+    );
+  }
+  return parsed;
+}
+
 export function resolveQaNlpConfig(env: NodeJS.ProcessEnv = process.env): QaNlpConfig {
   return {
     enabled: isQaNlpEnabled(env['QA_NLP_ENABLED']),
     timeoutMs: resolveQaNlpTimeoutMs(env['QA_NLP_TIMEOUT_MS']),
     queueLimit: resolveQaNlpQueueLimit(env['QA_NLP_QUEUE_LIMIT']),
     concurrency: resolveQaNlpConcurrency(env['QA_NLP_CONCURRENCY']),
+    minConfidence: resolveQaNlpMinConfidence(env['QA_NLP_MIN_CONFIDENCE']),
   };
 }

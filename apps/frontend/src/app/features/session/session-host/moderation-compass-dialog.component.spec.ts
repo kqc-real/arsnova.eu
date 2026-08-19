@@ -38,7 +38,7 @@ describe('ModerationCompassDialogComponent', () => {
       'Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.',
     );
     expect(text).toContain('Einschätzung aus den sichtbaren Live-Signalen.');
-    expect(text).not.toContain('Die KI-Analyse ist aus.');
+    expect(text).not.toContain('Die automatische Sortierung der Fragen ist aus.');
     expect(
       fixture.nativeElement.querySelector('.dialog-title-header__icon .moderation-compass-icon'),
     ).not.toBeNull();
@@ -69,28 +69,31 @@ describe('ModerationCompassDialogComponent', () => {
   it('zeigt den ruhigen Zustand wenn die Analyse aus ist', () => {
     const { fixture } = setup([], vi.fn(), 'disabled');
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung.');
+    expect(text).toContain('Die automatische Sortierung der Fragen ist aus.');
     expect(text).not.toContain('Einschätzung aus den sichtbaren Live-Signalen.');
   });
 
   it('zeigt pending zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'pending');
-    expect(fixture.nativeElement.textContent).toContain(
-      'Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Die Fragen werden noch sortiert.');
   });
 
   it('zeigt uncertain zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'uncertain');
-    expect(fixture.nativeElement.textContent).toContain(
-      'Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Die Sortierung der Fragen ist unsicher.');
   });
 
   it('zeigt failed zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'failed');
     expect(fixture.nativeElement.textContent).toContain(
-      'Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung.',
+      'Die automatische Sortierung ist gerade nicht verfügbar.',
+    );
+  });
+
+  it('zeigt classified mit Hinweis auf Inhalt, Ablauf und Technik', () => {
+    const { fixture } = setup([], vi.fn(), 'classified');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.',
     );
   });
 
@@ -147,7 +150,7 @@ describe('ModerationCompassDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-tone="caution"]')).not.toBeNull();
     button?.click();
 
-    expect(onSourceActivate).toHaveBeenCalledWith(source);
+    expect(onSourceActivate).toHaveBeenCalledWith(source, 'clarification');
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
   });
 });

@@ -87,6 +87,7 @@ describe('buildModerationCompassCards', () => {
       {
         kind: 'qa-term',
         label: 'Median · Wie berechnet man den Median?',
+        focusHint: 'Median',
         target: {
           channel: 'qa',
           surface: 'word-cloud',
@@ -182,6 +183,56 @@ describe('buildModerationCompassCards', () => {
     expect(
       cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.kind),
     ).toEqual(['qa-term', 'freetext-term', 'qa-question']);
+  });
+
+  it('stellt NLP-Kategorien in der Themenkarte vor Wortwolken-Begriffe', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaTerms: [
+        {
+          label: 'Median',
+          documentFrequency: 4,
+          sourceCount: 4,
+          memberTexts: ['Wie berechnet man den Median?'],
+        },
+      ],
+      freetextTerms: [
+        {
+          label: 'Gruppenarbeit',
+          documentFrequency: 3,
+          sourceCount: 3,
+          memberTexts: ['Mehr Gruppenarbeit'],
+        },
+      ],
+      nlpTopicSources: [
+        {
+          kind: 'qa-question',
+          label: 'Inhaltliche Fragen · 2',
+          target: {
+            channel: 'qa',
+            questionId: '11111111-1111-4111-8111-111111111111',
+            questionIds: [
+              '11111111-1111-4111-8111-111111111111',
+              '33333333-3333-4333-8333-333333333333',
+            ],
+          },
+        },
+        {
+          kind: 'qa-question',
+          label: 'Fragen zum Ablauf',
+          target: { channel: 'qa', questionId: '22222222-2222-4222-8222-222222222222' },
+        },
+        {
+          kind: 'qa-question',
+          label: 'Technische Fragen',
+          target: { channel: 'qa', questionId: '44444444-4444-4444-8444-444444444444' },
+        },
+      ],
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.label),
+    ).toEqual(['Inhaltliche Fragen · 2', 'Fragen zum Ablauf', 'Technische Fragen']);
   });
 
   it('bildet Themenkarten auch nur aus Freitext-Begriffen', () => {
@@ -788,13 +839,17 @@ describe('collectQaNlpCategorySources', () => {
         },
       ],
       {
-        content: 'Inhalt',
-        organization: 'Organisation',
-        technical: 'Technik',
+        content: 'Inhaltliche Fragen',
+        organization: 'Fragen zum Ablauf',
+        technical: 'Technische Fragen',
       },
     );
 
-    expect(sources.map((source) => source.label)).toEqual(['Inhalt · 2', 'Organisation']);
+    expect(sources.map((source) => source.label)).toEqual([
+      'Inhaltliche Fragen · 2',
+      'Fragen zum Ablauf',
+    ]);
+    expect(sources[0]?.focusHint).toBe('Inhaltliche Fragen');
     expect(sources[0]?.target?.questionIds).toEqual([
       '11111111-1111-4111-8111-111111111111',
       '33333333-3333-4333-8333-333333333333',

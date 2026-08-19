@@ -13,7 +13,9 @@
     "seed:finished-demo": "tsx scripts/seed-finished-demo.ts",
     "seed:session-votes": "tsx scripts/seed-session-votes.ts",
     "seed:qa-forum": "tsx scripts/seed-qa-forum.ts",
-    "seed:moderation-compass": "tsx scripts/seed-moderation-compass.ts"
+    "seed:moderation-compass": "tsx scripts/seed-moderation-compass.ts",
+    "eval:qa-nlp": "tsx scripts/eval-qa-nlp-gatekeeper.ts",
+    "apply:qa-nlp": "tsx scripts/apply-qa-nlp-session.ts"
   },
   "dependencies": {
     "@arsnova/session-export-report": "*",

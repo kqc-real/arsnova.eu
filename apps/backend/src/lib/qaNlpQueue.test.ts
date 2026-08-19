@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { QA_NLP_STUB_MODEL_VERSION } from './qaNlpConfig';
+import { QA_NLP_GATEKEEPER_MODEL_VERSION, QA_NLP_STUB_MODEL_VERSION } from './qaNlpConfig';
 import {
   enqueueQaNlpJob,
   getQaNlpMetrics,
@@ -23,6 +23,7 @@ describe('qaNlpQueue', () => {
         timeoutMs: 200,
         queueLimit: 10,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       writer: async (questionId) => {
         writes.push(questionId);
@@ -45,6 +46,7 @@ describe('qaNlpQueue', () => {
         timeoutMs: 1_000,
         queueLimit: 10,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       processor: async () => {
         await new Promise((resolve) => setTimeout(resolve, 80));
@@ -82,6 +84,7 @@ describe('qaNlpQueue', () => {
         timeoutMs: 1_000,
         queueLimit: 1,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       processor: async () => {
         await blocker;
@@ -121,6 +124,7 @@ describe('qaNlpQueue', () => {
         timeoutMs: 30,
         queueLimit: 10,
         concurrency: 1,
+        minConfidence: 0.55,
       }),
       processor: async () => {
         await new Promise((resolve) => setTimeout(resolve, 80));
@@ -136,5 +140,34 @@ describe('qaNlpQueue', () => {
     expect(writes[0]?.status).toBe('failed');
     expect(writes[0]?.modelVersion).toBe(`${QA_NLP_STUB_MODEL_VERSION}:timeout`);
     expect(getQaNlpMetrics().failed).toBe(1);
+  });
+
+  it('nutzt den Gatekeeper als Default-Processor', async () => {
+    const writes: Array<{ status: string; category?: string; modelVersion?: string }> = [];
+    resetQaNlpQueueForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 10,
+        concurrency: 1,
+        minConfidence: 0.55,
+      }),
+      writer: async (_questionId, result) => {
+        writes.push({
+          status: result.status,
+          category: result.category,
+          modelVersion: result.modelVersion,
+        });
+      },
+    });
+
+    enqueueQaNlpJob({
+      questionId: QUESTION_ID,
+      text: 'Bis wann muss die Hausarbeit abgegeben werden?',
+    });
+    await waitForQaNlpIdleForTests();
+    expect(writes[0]?.status).toBe('classified');
+    expect(writes[0]?.category).toBe('organization');
+    expect(writes[0]?.modelVersion).toBe(QA_NLP_GATEKEEPER_MODEL_VERSION);
   });
 });

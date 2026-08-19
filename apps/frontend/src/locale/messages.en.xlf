@@ -13732,36 +13732,36 @@
         <target>Assessment from the visible live signals.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisOff" datatype="html">
-        <source> Die KI-Analyse ist aus. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>AI analysis is off. You still get the rule-based view.</target>
+        <source> Die automatische Sortierung der Fragen ist aus. </source>
+        <target>Automatic sorting of questions is off.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
-        <source> Themenkategorien werden noch ermittelt. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>Topic categories are still being determined. You still get the rule-based view.</target>
+        <source> Die Fragen werden noch sortiert. </source>
+        <target>Questions are still being sorted.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
-        <source> Die KI-Kategorien sind unsicher. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>The AI categories are uncertain. You still get the rule-based view.</target>
+        <source> Die Sortierung der Fragen ist unsicher. </source>
+        <target>The question sorting is uncertain.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
-        <source> Die KI-Analyse ist gerade nicht verfügbar. Es bleibt die regelbasierte Einschätzung. </source>
-        <target>AI analysis is unavailable right now. You still get the rule-based view.</target>
+        <source> Die automatische Sortierung ist gerade nicht verfügbar. </source>
+        <target>Automatic sorting isn&apos;t available right now.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
-        <source> Lokale Themenkategorien ergänzen die regelbasierte Einschätzung. </source>
-        <target>Local topic categories complement the rule-based view.</target>
+        <source> Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert. </source>
+        <target>Questions are roughly grouped by content, logistics, and technical issues.</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">
-        <source>Inhalt</source>
-        <target>Content</target>
+        <source>Inhaltliche Fragen</source>
+        <target>Content questions</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryOrganization" datatype="html">
-        <source>Organisation</source>
-        <target>Organization</target>
+        <source>Fragen zum Ablauf</source>
+        <target>Logistics questions</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryTechnical" datatype="html">
-        <source>Technik</source>
-        <target>Technical</target>
+        <source>Technische Fragen</source>
+        <target>Technical questions</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
         <source>Häufige Themen</source>
@@ -13847,6 +13847,14 @@
         <source>Aus der Wortwolke</source>
         <target>From the word cloud</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationCompassFocusWithHint" datatype="html">
+        <source>Aus dem Kompass · <x id="hint" equiv-text="hint"/></source>
+        <target>From the compass · <x id="hint" equiv-text="hint"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationWordCloudFocusWithHint" datatype="html">
+        <source>Aus der Wortwolke · <x id="hint" equiv-text="hint"/></source>
+        <target>From the word cloud · <x id="hint" equiv-text="hint"/></target>
+      </trans-unit>
       <trans-unit id="sessionQa.focusHint" datatype="html">
         <source>Zugehörige Beiträge stehen oben und folgen der Sortierung.</source>
         <target>Related posts stay at the top and follow the current sort.</target>
@@ -13898,6 +13906,10 @@
       <trans-unit id="sessionHost.moderationPinned" datatype="html">
         <source>Hervorgehoben: <x id="question" equiv-text="label"/></source>
         <target>Pinned: <x id="question" equiv-text="label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationFocusPinned" datatype="html">
+        <source>Hervorgehoben</source>
+        <target>Pinned</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationFrictionVotes" datatype="html">
         <source><x id="up" equiv-text="question.positiveVoteCount"/> dafür, <x id="down" equiv-text="question.negativeVoteCount"/> dagegen · <x id="question" equiv-text="question.text"/></source>
