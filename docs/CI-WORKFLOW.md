@@ -205,8 +205,10 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Was?** Validiert die fünf PDF/UA-Demoexporte mit veraPDF 1.30.2 gegen
   PDF/UA-1. Ein einzelner Normverstoß blockiert den Job. Playwright Chromium
   für die PDF-Erzeugung installiert [../scripts/ci/playwright-install.sh](../scripts/ci/playwright-install.sh)
-  mit Zeitlimit und Wiederholung, damit ein hängender CDN-/apt-Download nicht
-  den gesamten Job bis `timeout-minutes` blockiert.
+  mit Zeitlimit (7 Minuten je Versuch) und Wiederholung, damit ein hängender
+  CDN-Download nicht den gesamten Job bis `timeout-minutes` blockiert. Ein
+  abgewürgtes `apt-get` aus `--with-deps` wird vor dem Retry auf den apt-Lock
+  geprüft.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
   Runner in [../scripts/validate-pdfua.mjs](../scripts/validate-pdfua.mjs).
 - **Wann?** Parallel zu den übrigen Qualitätsjobs, außer bei `schedule` und
