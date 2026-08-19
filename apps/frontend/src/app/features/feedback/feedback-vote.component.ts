@@ -100,6 +100,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly participantId = input('');
   readonly participantName = input<string | null>(null);
   readonly participantAvatar = input<string | null>(null);
+  readonly participantAvatarSequence = input<string | null>(null);
   readonly participantTeamName = input<string | null>(null);
   readonly sessionTitle = input<string | null>(null);
   readonly embeddedInSession = input(false);
@@ -149,6 +150,10 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       : null,
   );
   readonly participantAvatarLabel = computed(() => this.participantAvatar()?.trim() || null);
+  readonly participantAvatarSequenceLabel = computed(() => {
+    const sequence = this.participantAvatarSequence()?.trim() ?? '';
+    return /^\d+$/.test(sequence) ? sequence : null;
+  });
   readonly participantTeamLabel = computed(() => this.participantTeamName()?.trim() || null);
   readonly showSessionContext = computed(
     () => !!this.code() && (this.showSessionCode() || this.embeddedInSession()),

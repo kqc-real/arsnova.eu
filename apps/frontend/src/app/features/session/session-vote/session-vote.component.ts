@@ -97,6 +97,7 @@ import {
 import {
   findKindergartenNicknameBadgeLabel,
   findKindergartenNicknameEmoji,
+  kindergartenNicknameSequence,
 } from '../../join/kindergarten-nickname-icons';
 import { getEffectiveLocale } from '../../../core/locale-from-path';
 import { formatLocaleCount } from '../../../core/locale-number.util';
@@ -587,6 +588,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = this.playerNickname()?.trim();
     return nick ? findKindergartenNicknameBadgeLabel(nick) : null;
+  });
+
+  readonly playerKindergartenSequence = computed((): string | null => {
+    if (!this.usesKindergartenNicknames()) return null;
+    const nick = this.playerNickname()?.trim();
+    return nick ? kindergartenNicknameSequence(nick) : null;
   });
 
   readonly playerKindergartenBadgeAriaLabel = computed(() => {
