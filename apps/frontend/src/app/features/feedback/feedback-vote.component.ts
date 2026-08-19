@@ -155,6 +155,15 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     return /^\d+$/.test(sequence) ? sequence : null;
   });
   readonly participantTeamLabel = computed(() => this.participantTeamName()?.trim() || null);
+  /** Session-Code und Avatar/Team nur außerhalb der Session-Vote-Shell; dort zeigt der Kita-Hero sie. */
+  readonly showStandaloneParticipantMeta = computed(
+    () =>
+      !this.embeddedInSession() &&
+      (!!this.participantIdentityLabel() || !!this.participantTeamLabel()),
+  );
+  readonly showContextMeta = computed(
+    () => this.showSessionCode() || this.showStandaloneParticipantMeta(),
+  );
   readonly showSessionContext = computed(
     () => !!this.code() && (this.showSessionCode() || this.embeddedInSession()),
   );
