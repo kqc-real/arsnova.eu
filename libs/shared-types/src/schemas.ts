@@ -4823,6 +4823,114 @@ export const GetQaNlpRuntimeInputSchema = z.object({
 });
 export type GetQaNlpRuntimeInput = z.infer<typeof GetQaNlpRuntimeInputSchema>;
 
+/**
+ * Optionale generative Moderationszusammenfassung (Story 8.9c).
+ * Host-only, ephemer, nicht Teil von Teilnehmer-DTOs oder `QaQuestion`.
+ */
+export const QaSummaryStatusEnum = z.enum(['pending', 'ready', 'uncertain', 'disabled', 'failed']);
+export type QaSummaryStatus = z.infer<typeof QaSummaryStatusEnum>;
+
+export const QaSummarySourceKindEnum = z.enum(['qa-question']);
+export type QaSummarySourceKind = z.infer<typeof QaSummarySourceKindEnum>;
+
+export const QA_SUMMARY_QUESTION_SOURCE_PREFIX = 'qa-question:' as const;
+
+export function qaSummaryQuestionSourceId(questionId: string): string {
+  return `${QA_SUMMARY_QUESTION_SOURCE_PREFIX}${questionId}`;
+}
+
+export function parseQaSummaryQuestionSourceId(sourceId: string): string | null {
+  if (!sourceId.startsWith(QA_SUMMARY_QUESTION_SOURCE_PREFIX)) {
+    return null;
+  }
+  const questionId = sourceId.slice(QA_SUMMARY_QUESTION_SOURCE_PREFIX.length);
+  const parsed = z.uuid().safeParse(questionId);
+  return parsed.success ? parsed.data : null;
+}
+
+export const QaSummaryStatementSchema = z.object({
+  text: z.string().min(1).max(400),
+  sourceIds: z.array(z.string().min(1).max(80)).min(1).max(8),
+});
+export type QaSummaryStatement = z.infer<typeof QaSummaryStatementSchema>;
+
+export const QaSummarySourceSchema = z.object({
+  id: z.string().min(1).max(80),
+  kind: QaSummarySourceKindEnum,
+  label: z.string().min(1).max(200),
+});
+export type QaSummarySource = z.infer<typeof QaSummarySourceSchema>;
+
+/** Werte identisch zu AppLocaleEnum; hier vorgezogen, weil der Q&A-Vertrag davor steht. */
+export const QaSummaryLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export type QaSummaryLocale = z.infer<typeof QaSummaryLocaleEnum>;
+
+export const QaSummaryResultSchema = z
+  .object({
+    status: QaSummaryStatusEnum,
+    statements: z.array(QaSummaryStatementSchema).max(6),
+    suggestedNextSteps: z.array(QaSummaryStatementSchema).max(4),
+    limitations: z.array(z.string().min(1).max(280)).max(6),
+    sources: z.array(QaSummarySourceSchema).max(40),
+    modelVersion: z.string().min(1).max(64).optional(),
+    analyzedAt: z.string().datetime().optional(),
+    snapshotHash: z.string().min(1).max(64),
+    locale: QaSummaryLocaleEnum,
+  })
+  .superRefine((value, ctx) => {
+    if (value.status === 'ready' && value.statements.length < 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'ready requires at least one statement',
+        path: ['statements'],
+      });
+    }
+  });
+export type QaSummaryResult = z.infer<typeof QaSummaryResultSchema>;
+
+/** Rohantwort des Inferenzadapters vor Quellenbindung. */
+export const QaSummaryModelOutputSchema = z.object({
+  status: z.enum(['ready', 'uncertain', 'failed']),
+  statements: z.array(QaSummaryStatementSchema).max(6),
+  suggestedNextSteps: z.array(QaSummaryStatementSchema).max(4),
+  limitations: z.array(z.string().min(1).max(280)).max(6),
+  modelVersion: z.string().min(1).max(64).optional(),
+});
+export type QaSummaryModelOutput = z.infer<typeof QaSummaryModelOutputSchema>;
+
+export const QaSummaryInferenceRequestSchema = z.object({
+  locale: QaSummaryLocaleEnum,
+  snapshotHash: z.string().min(1).max(64),
+  sources: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(80),
+        kind: QaSummarySourceKindEnum,
+        text: z.string().min(1).max(500),
+      }),
+    )
+    .max(40),
+});
+export type QaSummaryInferenceRequest = z.infer<typeof QaSummaryInferenceRequestSchema>;
+
+export const QaSummaryRuntimeDTOSchema = z.object({
+  enabled: z.boolean(),
+  inferenceConfigured: z.boolean(),
+  result: QaSummaryResultSchema.nullable(),
+});
+export type QaSummaryRuntimeDTO = z.infer<typeof QaSummaryRuntimeDTOSchema>;
+
+export const GetQaSummaryRuntimeInputSchema = z.object({
+  sessionId: z.uuid(),
+});
+export type GetQaSummaryRuntimeInput = z.infer<typeof GetQaSummaryRuntimeInputSchema>;
+
+export const RequestQaSummaryInputSchema = z.object({
+  sessionId: z.uuid(),
+  locale: QaSummaryLocaleEnum,
+});
+export type RequestQaSummaryInput = z.infer<typeof RequestQaSummaryInputSchema>;
+
 /** DTO: Eine Q&A-Frage */
 export const QaQuestionDTOSchema = z.object({
   id: z.uuid(),

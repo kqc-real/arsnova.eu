@@ -347,7 +347,8 @@ Der Host sieht zusätzlich:
   Analyse. Story **8.9a** ist umgesetzt. Story **8.9b** ist umgesetzt (optionaler
   asynchroner Q&A-NLP-Vertrag, Kill-Switch default aus, Queue, Host-only
   Kategorien in der Karte **Häufige Themen**, Gatekeeper, Seed-Kalibrierung,
-  k-NN-Fallback, lokaler Hörsaallast). **8.9c** bleibt offen.
+  k-NN-Fallback, lokaler Hörsaallast). **8.9c** hat Vertrag, Host-UI und
+  privaten Adapter ohne LLM im Repo; Kill-Switch default aus.
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

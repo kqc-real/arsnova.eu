@@ -13667,6 +13667,38 @@
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
         <target>Ir a la fuente: <x id="label" equiv-text="source.label"/></target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySourceJumpAria" datatype="html">
+        <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
+        <target>Ir a la fuente: <x id="label" equiv-text="source.label"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
+        <source>Die Zusammenfassung wird erstellt.</source>
+        <target>El resumen se está creando.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUncertain" datatype="html">
+        <source>Die Zusammenfassung ist unsicher.</source>
+        <target>El resumen es incierto.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFailed" datatype="html">
+        <source>Die Zusammenfassung ist gerade nicht verfügbar.</source>
+        <target>El resumen no está disponible en este momento.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryNextSteps" datatype="html">
+        <source> Mögliche nächste Schritte </source>
+        <target>Posibles siguientes pasos</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySources" datatype="html">
+        <source> Quellen </source>
+        <target>Fuentes</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryLimitations" datatype="html">
+        <source> Hinweise </source>
+        <target>Notas</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
+        <source> Zusammenfassung </source>
+        <target>Resumen</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
         <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
         <target>Las tendencias clave y los resultados aparecerán aquí en cuanto tu audiencia empiece a participar.</target>

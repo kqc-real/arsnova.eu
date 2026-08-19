@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogClose,
@@ -8,6 +8,7 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import type { QaSummaryResult, QaSummaryRuntimeDTO, QaSummarySource } from '@arsnova/shared-types';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import type {
   ModerationCompassAnalysisMode,
@@ -23,12 +24,17 @@ export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
   analysisMode?: ModerationCompassAnalysisMode;
   onSourceActivate?: (source: ModerationCompassSource, cardKind: ModerationCompassCardKind) => void;
+  summaryEnabled?: () => boolean;
+  summary?: () => QaSummaryRuntimeDTO | null;
+  onRequestSummary?: () => void;
+  onSummarySourceActivate?: (source: QaSummarySource) => void;
 };
 
 @Component({
   selector: 'app-moderation-compass-dialog',
   standalone: true,
   imports: [
+    MatButton,
     MatIconButton,
     MatDialogClose,
     MatDialogContent,
@@ -48,9 +54,17 @@ export class ModerationCompassDialogComponent {
   readonly cards = computed(() => this.data.cards());
   readonly hasCards = computed(() => this.cards().length > 0);
   readonly analysisMode = computed(() => this.data.analysisMode ?? 'rule-based');
+  readonly summaryEnabled = computed(() => this.data.summaryEnabled?.() === true);
+  readonly summaryRuntime = computed(() => this.data.summary?.() ?? null);
+  readonly summaryResult = computed(() => this.summaryRuntime()?.result ?? null);
+  readonly summaryPending = computed(() => this.summaryResult()?.status === 'pending');
 
   sourceJumpAria(source: ModerationCompassSource): string {
     return $localize`:@@sessionHost.moderationSourceJumpAria:Zur Quelle: ${source.label}:label:`;
+  }
+
+  summarySourceJumpAria(source: QaSummarySource): string {
+    return $localize`:@@sessionHost.moderationSummarySourceJumpAria:Zur Quelle: ${source.label}:label:`;
   }
 
   activateSource(source: ModerationCompassSource, card: ModerationCompassCard): void {
@@ -59,6 +73,31 @@ export class ModerationCompassDialogComponent {
     }
     this.data.onSourceActivate?.(source, card.kind);
     this.dialogRef.close();
+  }
+
+  activateSummarySource(source: QaSummarySource): void {
+    this.data.onSummarySourceActivate?.(source);
+    this.dialogRef.close();
+  }
+
+  requestSummary(): void {
+    if (this.summaryPending()) {
+      return;
+    }
+    this.data.onRequestSummary?.();
+  }
+
+  summaryStatusText(result: QaSummaryResult | null): string | null {
+    switch (result?.status) {
+      case 'pending':
+        return $localize`:@@sessionHost.moderationSummaryPending:Die Zusammenfassung wird erstellt.`;
+      case 'uncertain':
+        return $localize`:@@sessionHost.moderationSummaryUncertain:Die Zusammenfassung ist unsicher.`;
+      case 'failed':
+        return $localize`:@@sessionHost.moderationSummaryFailed:Die Zusammenfassung ist gerade nicht verfügbar.`;
+      default:
+        return null;
+    }
   }
 
   cardTitle(card: ModerationCompassCard): string {

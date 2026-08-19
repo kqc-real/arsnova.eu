@@ -170,6 +170,43 @@
   border-radius: 0.2rem;
 }
 
+.moderation-compass-dialog__summary {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+  padding: 0.95rem 1.05rem 1.05rem;
+  border-radius: var(--mat-sys-corner-large, 1rem);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.moderation-compass-dialog__summary-status,
+.moderation-compass-dialog__summary-statements,
+.moderation-compass-dialog__summary-limitations {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+  line-height: 1.5;
+}
+
+.moderation-compass-dialog__summary-heading {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-small);
+  font-weight: 650;
+}
+
+.moderation-compass-dialog__summary-statements,
+.moderation-compass-dialog__summary-limitations {
+  padding-left: 1.15rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.moderation-compass-dialog__summary-button {
+  justify-self: start;
+}
+
 @media (max-width: 599px) {
   .moderation-compass-dialog__content {
     min-width: 0;

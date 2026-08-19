@@ -4,12 +4,15 @@ import { z } from 'zod';
 import {
   GetQaNlpRuntimeInputSchema,
   GetQaQuestionsInputSchema,
+  GetQaSummaryRuntimeInputSchema,
   ModerateQaQuestionInputSchema,
   QaNlpRuntimeDTOSchema,
   QaQuestionDTOSchema,
   QaQuestionsListDTOSchema,
+  QaSummaryRuntimeDTOSchema,
   QaVoteInputSchema,
   QaVoteOutputSchema,
+  RequestQaSummaryInputSchema,
   SubmitQaQuestionInputSchema,
   ToggleQaModerationInputSchema,
   ToggleQaUpvoteOutputSchema,
@@ -20,6 +23,8 @@ import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { enqueueQaNlpJob } from '../lib/qaNlpQueue';
+import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
+import { getQaSummaryRuntime, requestQaSummary } from '../lib/qaSummaryQueue';
 import {
   mapStoredQaNlpResult,
   type QaNlpPersistCategory,
@@ -586,6 +591,42 @@ export const qaRouter = router({
           unclassifiedRate: metrics.unclassifiedRate,
         },
       };
+    }),
+
+  summaryRuntime: publicProcedure
+    .input(GetQaSummaryRuntimeInputSchema)
+    .output(QaSummaryRuntimeDTOSchema)
+    .query(async ({ input, ctx }) => {
+      const session = await prisma.session.findUnique({
+        where: { id: input.sessionId },
+        select: { id: true, code: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      await assertHostSessionAccessFromContext(ctx, session.code);
+      return getQaSummaryRuntime(input.sessionId);
+    }),
+
+  requestSummary: publicProcedure
+    .input(RequestQaSummaryInputSchema)
+    .output(QaSummaryRuntimeDTOSchema)
+    .mutation(async ({ input, ctx }) => {
+      const session = await prisma.session.findUnique({
+        where: { id: input.sessionId },
+        select: { id: true, code: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      await assertHostSessionAccessFromContext(ctx, session.code);
+      if (!isQaSummaryEnabled()) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Die Moderationszusammenfassung ist nicht aktiviert.',
+        });
+      }
+      return requestQaSummary(input.sessionId, input.locale);
     }),
 
   moderate: hostProcedure

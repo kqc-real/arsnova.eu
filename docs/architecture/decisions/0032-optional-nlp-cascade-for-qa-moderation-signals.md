@@ -221,6 +221,19 @@ Vertrag, Queue, Gatekeeper, Kalibrierung, Level-2-Fallback und lokaler Hoersaall
 
 Noch offen nach dem lokalen Hörsaallasttest: bewusste produktive Aktivierung (`QA_NLP_ENABLED=true` bleibt der Betreiberentscheid, Default aus). Sentence-Transformer (`multilingual-e5-*`) bleiben Qualitätskandidaten, kein Hotpath-Zwang.
 
+## Bezug zu Story 8.9c (2026-08-19)
+
+Die generative Moderationszusammenfassung ist ein eigener Vertrag, kein zweiter Klassifikator:
+
+- Kill-Switch `QA_SUMMARY_ENABLED` (produktiv default aus), getrennt von `QA_NLP_ENABLED` und `NLP_ENABLED`
+- On-demand `qa.requestSummary` / Host-only `qa.summaryRuntime`; Ergebnis ephemer in Memory, nicht an `QaQuestion`
+- Quellenbindung `qa-question:{uuid}`; unsourced Aussagen werden verworfen
+- Privater HTTP-Adapter; ohne URL oder bei SaaS-Host kein Cloud-Fallback
+- Host-Button im Kompass; Default aus lässt 8.9a unverändert
+- Echtes Modell erst mit Story 1.14c auf derselben privaten Serverrolle
+
+Kanonisch: [qa-summary.md](../../features/qa-summary.md).
+
 ## Referenzen
 
 - [ADR-0009: Einheitliche Live-Session mit Tabs fuer Quiz, Q&A und Blitzlicht](./0009-unified-live-session-channels.md)

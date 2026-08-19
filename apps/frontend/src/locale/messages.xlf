@@ -12138,6 +12138,30 @@
       <trans-unit id="sessionHost.moderationSourceJumpAria" datatype="html">
         <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySourceJumpAria" datatype="html">
+        <source>Zur Quelle: <x id="label" equiv-text="source.label"/></source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
+        <source>Die Zusammenfassung wird erstellt.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUncertain" datatype="html">
+        <source>Die Zusammenfassung ist unsicher.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFailed" datatype="html">
+        <source>Die Zusammenfassung ist gerade nicht verfügbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryNextSteps" datatype="html">
+        <source> Mögliche nächste Schritte </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySources" datatype="html">
+        <source> Quellen </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryLimitations" datatype="html">
+        <source> Hinweise </source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
+        <source> Zusammenfassung </source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationEmpty" datatype="html">
         <source> Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden. </source>
       </trans-unit>

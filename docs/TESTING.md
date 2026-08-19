@@ -272,6 +272,25 @@ npm run test -w @arsnova/frontend -- \
 
 Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle, Kalibrierkurve, k-NN-Fallback und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Queue-Tests decken langsamen Worker, Timeout und Telemetrie (Early-Exit/Fallback/Unclassified) ab. Lokaler k6/Artillery-Hörsaallast 2026-08-19: 500 Joins/WS und 100 Q&A-Submits ohne Queue-Skip; Produktiv-Default bleibt aus.
 
+### Optionale Moderationszusammenfassung (Story 8.9c)
+
+```bash
+npm test -w @arsnova/shared-types -- src/qa-summary.test.ts
+npm test -w @arsnova/backend -- --run \
+  src/lib/qaSummaryConfig.test.ts \
+  src/lib/qaSummarySnapshot.test.ts \
+  src/lib/qaSummaryValidate.test.ts \
+  src/lib/qaSummaryAdapter.test.ts \
+  src/lib/qaSummaryQueue.test.ts \
+  src/__tests__/qa.summary.test.ts \
+  src/__tests__/dto-security.test.ts
+npm run test -w @arsnova/frontend -- \
+  src/app/features/session/session-host/moderation-compass-dialog.component.spec.ts \
+  src/app/features/session/session-host/session-host.component.spec.ts
+```
+
+Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden, ephemer; ohne private `QA_SUMMARY_INFERENCE_URL` kein Cloud-Fallback. Produktdoku: [qa-summary.md](features/qa-summary.md). Echtes LLM erst mit Story 1.14c.
+
 Für W2.4a zusätzlich:
 
 ```bash

@@ -133,11 +133,17 @@ describe('DTO security (Story 2.4)', () => {
       hasUpvoted: true,
       isOwn: false,
       myVote: 'UP',
+      summary: { status: 'ready' },
+      qaSummary: { status: 'ready' },
+      moderationSummary: { status: 'ready' },
     });
 
     expect(parsed).not.toHaveProperty('nlp');
     expect(parsed).not.toHaveProperty('nlpStatus');
     expect(parsed).not.toHaveProperty('modelVersion');
+    expect(parsed).not.toHaveProperty('summary');
+    expect(parsed).not.toHaveProperty('qaSummary');
+    expect(parsed).not.toHaveProperty('moderationSummary');
   });
 
   it('strips compass and moderation artifacts from participant question payloads', () => {
