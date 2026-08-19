@@ -98,8 +98,7 @@ export function bindQaSummaryModelOutput(input: {
       label: qaSummarySourceLabel(source.text),
     }));
 
-  const status =
-    input.output.status === 'ready' && statements.length === 0 ? 'uncertain' : input.output.status;
+  const status = statements.length === 0 ? 'uncertain' : 'ready';
 
   return {
     status,

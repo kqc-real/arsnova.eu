@@ -21,6 +21,84 @@ export type QaSummarySnapshotQuestion = {
   readonly text: string;
 };
 
+export type QaSummarySnapshotCandidateStatus =
+  'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
+
+export type QaSummarySnapshotCandidateNlpStatus =
+  'PENDING' | 'CLASSIFIED' | 'UNCERTAIN' | 'DISABLED' | 'FAILED';
+
+export type QaSummarySnapshotCandidate = {
+  readonly id: string;
+  readonly text: string;
+  readonly status: QaSummarySnapshotCandidateStatus;
+  readonly upvoteCount: number;
+  readonly createdAt: Date;
+  readonly nlpStatus?: QaSummarySnapshotCandidateNlpStatus | null;
+};
+
+function statusRank(status: QaSummarySnapshotCandidateStatus): number {
+  if (status === 'PINNED') return 3;
+  if (status === 'PENDING') return 2;
+  if (status === 'ACTIVE') return 1;
+  return 0;
+}
+
+function nlpRank(status: QaSummarySnapshotCandidateNlpStatus | null | undefined): number {
+  if (status === 'CLASSIFIED') return 2;
+  if (status === 'UNCERTAIN') return 1;
+  return 0;
+}
+
+export function qaSummaryDedupeKey(text: string): string {
+  return text
+    .normalize('NFKC')
+    .toLocaleLowerCase('de-DE')
+    .replace(/[''`´‘’‚‛“”„‟«»]/g, '')
+    .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function compareQaSummarySnapshotCandidates(
+  left: QaSummarySnapshotCandidate,
+  right: QaSummarySnapshotCandidate,
+): number {
+  const status = statusRank(right.status) - statusRank(left.status);
+  if (status !== 0) return status;
+  if (right.upvoteCount !== left.upvoteCount) return right.upvoteCount - left.upvoteCount;
+  const nlp = nlpRank(right.nlpStatus) - nlpRank(left.nlpStatus);
+  if (nlp !== 0) return nlp;
+  const created = left.createdAt.getTime() - right.createdAt.getTime();
+  if (created !== 0) return created;
+  return left.id.localeCompare(right.id);
+}
+
+/**
+ * Wählt die Snapshot-Quellen: PINNED/PENDING vor reinem Upvote, Near-Duplicates
+ * auf eine kanonische Frage, 8.9b nur als Tie-Break. Das LLM sieht weiter nur
+ * `{ id, kind, text }` — Status und NLP bleiben intern.
+ */
+export function selectQaSummarySnapshotQuestions(
+  candidates: readonly QaSummarySnapshotCandidate[],
+  maxSources: number,
+): QaSummarySnapshotQuestion[] {
+  const canonicalByKey = new Map<string, QaSummarySnapshotCandidate>();
+  for (const candidate of candidates) {
+    const trimmed = candidate.text.trim();
+    if (!trimmed) continue;
+    const normalized = qaSummaryDedupeKey(trimmed);
+    const key = normalized.length > 0 ? normalized : `id:${candidate.id}`;
+    const current = canonicalByKey.get(key);
+    if (!current || compareQaSummarySnapshotCandidates(candidate, current) < 0) {
+      canonicalByKey.set(key, candidate);
+    }
+  }
+  return [...canonicalByKey.values()]
+    .sort(compareQaSummarySnapshotCandidates)
+    .slice(0, Math.max(0, maxSources))
+    .map((candidate) => ({ id: candidate.id, text: candidate.text }));
+}
+
 const FORBIDDEN_SNAPSHOT_KEYS = [
   'token',
   'hostToken',

@@ -59,6 +59,24 @@ describe('qaSummaryValidate', () => {
     expect(result.statements).toEqual([]);
   });
 
+  it('macht belegte Aussagen ready, auch wenn das Modell uncertain gemeldet hat', () => {
+    const result = bindQaSummaryModelOutput({
+      output: {
+        status: 'uncertain',
+        statements: [{ text: 'Es gibt eine Frage zur Klausur.', sourceIds: [SOURCE_ID] }],
+        suggestedNextSteps: [],
+        limitations: ['Die Analyse basiert ausschließlich auf den vorliegenden Fragen.'],
+      },
+      snapshot,
+      snapshotHash: 'f'.repeat(64),
+      analyzedAt: '2026-08-19T16:00:00.000Z',
+    });
+    expect(result.status).toBe('ready');
+    expect(result.statements).toEqual([
+      { text: 'Es gibt eine Frage zur Klausur.', sourceIds: [SOURCE_ID] },
+    ]);
+  });
+
   it('zeigt bei failed keine Modellsätze', () => {
     const result = bindQaSummaryModelOutput({
       output: {

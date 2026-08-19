@@ -12,6 +12,7 @@ import {
   assertQaSummarySnapshotMinimized,
   buildQaSummaryAnalysisSnapshot,
   hashQaSummarySnapshot,
+  selectQaSummarySnapshotQuestions,
   type QaSummaryAnalysisSnapshot,
 } from './qaSummarySnapshot';
 import {
@@ -58,18 +59,23 @@ const pendingTimers: ReturnType<typeof setImmediate>[] = [];
 let running = 0;
 
 const defaultLoadSnapshot: QaSummarySnapshotLoader = async (sessionId, locale, maxSources) => {
-  const questions = await prisma.qaQuestion.findMany({
+  const candidates = await prisma.qaQuestion.findMany({
     where: {
       sessionId,
       status: { in: ['PENDING', 'ACTIVE', 'PINNED'] },
     },
-    select: { id: true, text: true },
-    orderBy: [{ upvoteCount: 'desc' }, { createdAt: 'asc' }],
-    take: maxSources,
+    select: {
+      id: true,
+      text: true,
+      status: true,
+      upvoteCount: true,
+      createdAt: true,
+      nlpStatus: true,
+    },
   });
   return buildQaSummaryAnalysisSnapshot({
     locale,
-    questions,
+    questions: selectQaSummarySnapshotQuestions(candidates, maxSources),
     maxSources,
   });
 };
