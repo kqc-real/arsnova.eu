@@ -5348,6 +5348,16 @@ export const MotdOverlayDismissedPairSchema = z.object({
 export type MotdOverlayDismissedPair = z.infer<typeof MotdOverlayDismissedPairSchema>;
 
 /**
+ * Einzeln als gelesen markierte Archiv-MOTD. Identisch zum Overlay-Paar:
+ * `contentVersion` gilt als Untergrenze (höhere Version bleibt ungelesen).
+ */
+export const MotdArchiveReadItemSchema = MotdOverlayDismissedPairSchema;
+export type MotdArchiveReadItem = MotdOverlayDismissedPair;
+
+/** Max. einzeln gelesene Archiv-Einträge, die `getHeaderState` berücksichtigt. */
+export const MOTD_ARCHIVE_READ_ITEMS_MAX = 64;
+
+/**
  * tRPC-HTTP kann ohne Transformer bei Batch/Prefetch ein fehlendes `input` liefern (`undefined`).
  * `locale` ist optional; der Server leitet sie aus `Accept-Language` ab (s. Backend).
  */
@@ -5415,6 +5425,11 @@ const MotdHeaderStateInputPayloadSchema = z.object({
   /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveSeenUpToEndsAtIso: z.string().optional(),
   overlayDismissedUpTo: z.array(MotdOverlayDismissedPairSchema).max(32).optional(),
+  /**
+   * Einzeln gelesene Archiv-MOTDs (zusätzlich zum Wasserlinien-Cursor).
+   * Verhindert, dass „Gelesen“ auf einem Eintrag ältere ungelesene mitzieht.
+   */
+  archiveReadItems: z.array(MotdArchiveReadItemSchema).max(MOTD_ARCHIVE_READ_ITEMS_MAX).optional(),
 });
 
 export const MotdHeaderStateInputSchema = z.preprocess(
@@ -5432,7 +5447,10 @@ export const MotdHeaderStateOutputSchema = z.object({
   archiveMaxCursor: MotdArchiveReadCursorSchema.nullable(),
   /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveMaxEndsAtIso: z.string().nullable(),
-  /** Ungelesen relativ zum Cursor; ohne gültigen Cursor bzw. Legacy-Wasserzeichen = `archiveCount`. */
+  /**
+   * Ungelesen relativ zum Cursor, abzüglich `archiveReadItems`.
+   * Ohne gültigen Cursor bzw. Legacy-Wasserzeichen = sichtbare Archivanzahl minus einzeln Gelesene.
+   */
   archiveUnreadCount: z.number().int().min(0),
 });
 export type MotdHeaderStateOutput = z.infer<typeof MotdHeaderStateOutputSchema>;

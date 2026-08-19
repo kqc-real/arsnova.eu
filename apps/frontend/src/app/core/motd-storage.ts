@@ -1,7 +1,11 @@
 /**
  * Browser-Persistenz für MOTD (Epic 10): Dismiss-Versionen und einmalige Interaktionen pro Build.
  */
-import type { MotdArchiveReadCursor } from '@arsnova/shared-types';
+import {
+  MOTD_ARCHIVE_READ_ITEMS_MAX,
+  type MotdArchiveReadCursor,
+  type MotdArchiveReadItem,
+} from '@arsnova/shared-types';
 
 export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
 
@@ -31,6 +35,12 @@ export type MotdClientStorageV1 = {
   interactions: Record<string, true>;
   /** Globaler Lesecursor in der publikationsbasierten Archivsortierung (Epic 10). */
   archiveSeenUpToCursor?: MotdArchiveReadCursor;
+  /**
+   * Einzeln gelesene Archiv-MOTDs. Ergänzt den Wasserlinien-Cursor, damit
+   * „Gelesen“ auf einem Eintrag den Badge um 1 senkt, ohne ältere ungelesene
+   * mitzuziehen.
+   */
+  archiveReadItems?: MotdArchiveReadItem[];
 };
 
 const empty = (): MotdClientStorageV1 => ({ dismissed: {}, interactions: {} });
@@ -52,6 +62,30 @@ function isMotdArchiveReadCursor(value: unknown): value is MotdArchiveReadCursor
   );
 }
 
+function isMotdArchiveReadItem(value: unknown): value is MotdArchiveReadItem {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.motdId === 'string' &&
+    MOTD_UUID_PATTERN.test(item.motdId) &&
+    typeof item.contentVersion === 'number' &&
+    Number.isInteger(item.contentVersion) &&
+    item.contentVersion >= 1
+  );
+}
+
+function parseArchiveReadItems(raw: unknown): MotdArchiveReadItem[] {
+  if (!Array.isArray(raw)) return [];
+  const byId = new Map<string, number>();
+  for (const entry of raw) {
+    if (!isMotdArchiveReadItem(entry)) continue;
+    const prev = byId.get(entry.motdId) ?? 0;
+    byId.set(entry.motdId, Math.max(prev, entry.contentVersion));
+    if (byId.size >= MOTD_ARCHIVE_READ_ITEMS_MAX) break;
+  }
+  return [...byId.entries()].map(([motdId, contentVersion]) => ({ motdId, contentVersion }));
+}
+
 export function readMotdClientStorage(): MotdClientStorageV1 {
   if (typeof localStorage === 'undefined') return empty();
   try {
@@ -70,10 +104,12 @@ export function readMotdClientStorage(): MotdClientStorageV1 {
         : {};
     const cursorRaw = o.archiveSeenUpToCursor;
     const archiveSeenUpToCursor = isMotdArchiveReadCursor(cursorRaw) ? cursorRaw : undefined;
+    const archiveReadItems = parseArchiveReadItems(o.archiveReadItems);
     return {
       dismissed,
       interactions,
       ...(archiveSeenUpToCursor ? { archiveSeenUpToCursor } : {}),
+      ...(archiveReadItems.length ? { archiveReadItems } : {}),
     };
   } catch {
     return empty();
@@ -190,7 +226,7 @@ export function shouldSuppressMotdOverlayOnMobileFirstHomeVisit(): boolean {
 }
 
 /** Für `motd.getCurrent` / `getHeaderState`: lokal dismissierte Overlay-MOTDs (nächste Priorität). */
-export function motdDismissedPairsForApi(): { motdId: string; contentVersion: number }[] {
+export function motdDismissedPairsForApi(): MotdArchiveReadItem[] {
   const dismissed = readMotdClientStorage().dismissed;
   return Object.entries(dismissed).map(([motdId, contentVersion]) => ({
     motdId,
@@ -240,5 +276,60 @@ export function getMotdArchiveSeenUpToCursor(): MotdArchiveReadCursor | undefine
 export function setMotdArchiveSeenUpToCursor(cursor: MotdArchiveReadCursor): void {
   const cur = readMotdClientStorage();
   cur.archiveSeenUpToCursor = cursor;
+  delete cur.archiveReadItems;
   writeMotdClientStorage(cur);
+}
+
+export function getMotdArchiveReadItems(): MotdArchiveReadItem[] {
+  return readMotdClientStorage().archiveReadItems ?? [];
+}
+
+export function motdArchiveReadItemsForApi(): MotdArchiveReadItem[] {
+  return getMotdArchiveReadItems();
+}
+
+export function isMotdArchiveItemMarkedRead(motdId: string, contentVersion: number): boolean {
+  return getMotdArchiveReadItems().some(
+    (item) => item.motdId === motdId && item.contentVersion >= contentVersion,
+  );
+}
+
+/**
+ * Markiert eine Archiv-MOTD einzeln als gelesen.
+ * @returns `false`, wenn diese Version (oder eine höhere) bereits gespeichert war.
+ */
+export function markMotdArchiveItemRead(motdId: string, contentVersion: number): boolean {
+  if (isMotdArchiveItemMarkedRead(motdId, contentVersion)) {
+    return false;
+  }
+  const cur = readMotdClientStorage();
+  const items = [...(cur.archiveReadItems ?? [])];
+  const index = items.findIndex((item) => item.motdId === motdId);
+  if (index >= 0) {
+    items[index] = { motdId, contentVersion };
+  } else if (items.length >= MOTD_ARCHIVE_READ_ITEMS_MAX) {
+    items.shift();
+    items.push({ motdId, contentVersion });
+  } else {
+    items.push({ motdId, contentVersion });
+  }
+  cur.archiveReadItems = items;
+  writeMotdClientStorage(cur);
+  return true;
+}
+
+/** Locale-unabhängige Clientfelder für `motd.getHeaderState`. */
+export function motdGetHeaderStateClientInput(): {
+  archiveSeenUpToCursor?: MotdArchiveReadCursor;
+  overlayDismissedUpTo?: MotdArchiveReadItem[];
+  archiveReadItems?: MotdArchiveReadItem[];
+} {
+  const seen = getMotdArchiveSeenUpToCursor();
+  const dismissed = motdDismissedPairsForApi();
+  const readItems = motdArchiveReadItemsForApi();
+  return {
+    ...(seen ? { archiveSeenUpToCursor: seen } : {}),
+    ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+    ...(readItems.length ? { archiveReadItems: readItems } : {}),
+  };
 }

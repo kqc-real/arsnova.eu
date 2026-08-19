@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { MotdArchiveItemDTO } from '@arsnova/shared-types';
 import {
   isMotdArchiveItemNewerThanCursor,
+  isMotdArchiveItemUnread,
   newestMotdArchiveReadCursor,
   sortMotdArchiveItemsNewFirst,
 } from './motd-archive-sort.util';
@@ -42,5 +43,16 @@ describe('MOTD-Archivsortierung und Lesecursor', () => {
       motdId: newerVision.id,
       contentVersion: newerVision.contentVersion,
     });
+  });
+
+  it('zählt einzeln gelesene neuere MOTDs nicht als ungelesen', () => {
+    const seenWelcome = newestMotdArchiveReadCursor([permanentWelcome]);
+    expect(isMotdArchiveItemUnread(newerVision, seenWelcome, [])).toBe(true);
+    expect(
+      isMotdArchiveItemUnread(newerVision, seenWelcome, [
+        { motdId: newerVision.id, contentVersion: 1 },
+      ]),
+    ).toBe(false);
+    expect(isMotdArchiveItemUnread(permanentWelcome, seenWelcome, [])).toBe(false);
   });
 });

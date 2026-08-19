@@ -10,12 +10,15 @@ import {
   getMotdArchiveSeenUpToCursor,
   hasMotdOverlayBeenOfferedThisSession,
   isMotdDismissedForVersion,
+  markMotdArchiveItemRead,
   markMotdDismissed,
   markMotdInteractionRecorded,
   markMotdOverlayOfferedThisSession,
   markMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
   motdDismissedPairsForApi,
+  getMotdArchiveReadItems,
+  motdGetHeaderStateClientInput,
   setMotdArchiveSeenUpToCursor,
   shouldSkipQueuedMotdAutoOverlay,
   shouldSuppressMotdOverlayOnMobileFirstHomeVisit,
@@ -69,6 +72,28 @@ describe('motd-storage', () => {
     setMotdArchiveSeenUpToCursor(cursor);
     expect(getMotdArchiveSeenUpToCursor()).toEqual(cursor);
     expect(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)).toContain('archiveSeenUpToCursor');
+  });
+
+  it('merkt einzelne Archiv-MOTDs als gelesen und sendet sie an getHeaderState', () => {
+    const id = '00000000-0000-4000-8000-000000000005';
+    expect(markMotdArchiveItemRead(id, 1)).toBe(true);
+    expect(markMotdArchiveItemRead(id, 1)).toBe(false);
+    expect(getMotdArchiveReadItems()).toEqual([{ motdId: id, contentVersion: 1 }]);
+    expect(motdGetHeaderStateClientInput()).toEqual({
+      archiveReadItems: [{ motdId: id, contentVersion: 1 }],
+    });
+  });
+
+  it('löscht einzeln gelesene Archiv-MOTDs beim Setzen der Wasserlinie', () => {
+    const id = '00000000-0000-4000-8000-000000000006';
+    markMotdArchiveItemRead(id, 1);
+    setMotdArchiveSeenUpToCursor({
+      startsAtIso: '2026-05-01T00:00:00.000Z',
+      motdId: id,
+      contentVersion: 1,
+    });
+    expect(getMotdArchiveReadItems()).toEqual([]);
+    expect(motdGetHeaderStateClientInput().archiveReadItems).toBeUndefined();
   });
 
   it('ignoriert das alte endsAt-Wasserzeichen, damit neue Publikationen wieder auffallen', () => {
