@@ -632,6 +632,55 @@ describe('motd router', () => {
     expect(r.archiveMaxEndsAtIso).toBe('2099-12-31T23:59:59.999Z');
   });
 
+  it('getHeaderState zieht einzeln gelesene Archiv-MOTDs vom Ungelesen-Zähler ab', async () => {
+    const welcomeId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    prismaMock.motd.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: welcomeId,
+        contentVersion: 1,
+        startsAt: new Date('2025-01-01T00:00:00.000Z'),
+        endsAt: new Date('2099-12-31T23:59:59.999Z'),
+        locales: [{ locale: 'de', markdown: 'Willkommen' }],
+      },
+      {
+        id: M1,
+        contentVersion: 1,
+        startsAt: new Date('2026-06-10T00:00:00.000Z'),
+        endsAt: new Date('2027-03-31T23:59:59.999Z'),
+        locales: [{ locale: 'de', markdown: 'Neue Vision' }],
+      },
+    ]);
+
+    const caller = motdRouter.createCaller(ctx);
+    const r = await caller.getHeaderState({
+      locale: 'de',
+      archiveReadItems: [{ motdId: M1, contentVersion: 1 }],
+    });
+
+    expect(r.archiveCount).toBe(2);
+    expect(r.archiveUnreadCount).toBe(1);
+  });
+
+  it('getHeaderState lässt eine höhere contentVersion trotz älterem Einzel-Gelesen ungelesen', async () => {
+    prismaMock.motd.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: M1,
+        contentVersion: 2,
+        startsAt: new Date('2026-06-10T00:00:00.000Z'),
+        endsAt: new Date('2027-03-31T23:59:59.999Z'),
+        locales: [{ locale: 'de', markdown: 'Aktualisierte Vision' }],
+      },
+    ]);
+
+    const caller = motdRouter.createCaller(ctx);
+    const r = await caller.getHeaderState({
+      locale: 'de',
+      archiveReadItems: [{ motdId: M1, contentVersion: 1 }],
+    });
+
+    expect(r.archiveUnreadCount).toBe(1);
+  });
+
   it('recordInteraction wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {
     motdRateMocks.checkMotdRecordInteractionRate.mockResolvedValue({
       allowed: false,

@@ -3,10 +3,14 @@ import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsn
 import { trpc } from '../../core/trpc.client';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
-import { getMotdArchiveSeenUpToCursor, motdDismissedPairsForApi } from '../../core/motd-storage';
+import {
+  getMotdArchiveReadItems,
+  getMotdArchiveSeenUpToCursor,
+  motdGetHeaderStateClientInput,
+} from '../../core/motd-storage';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import {
-  isMotdArchiveItemNewerThanCursor,
+  countMotdArchiveUnreadItems,
   newestMotdArchiveReadCursor,
   sortMotdArchiveItemsNewFirst,
 } from '../../shared/motd-archive-sort.util';
@@ -65,12 +69,9 @@ export async function loadNewsArchivePageModel(
   fallbackTitle: string,
   loadErrorMessage: string,
 ): Promise<NewsArchiveInitialModel> {
-  const seen = getMotdArchiveSeenUpToCursor();
-  const dismissed = motdDismissedPairsForApi();
   const headerInput = {
     locale,
-    ...(seen ? { archiveSeenUpToCursor: seen } : {}),
-    ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+    ...motdGetHeaderStateClientInput(),
   };
 
   const [stateResult, listResult] = await Promise.allSettled([
@@ -108,10 +109,11 @@ export async function loadNewsArchivePageModel(
 
   if (!headerOk) {
     if (items.length > 0) {
-      const seenAgain = getMotdArchiveSeenUpToCursor();
-      archiveUnreadCount = seenAgain
-        ? items.filter((it) => isMotdArchiveItemNewerThanCursor(it, seenAgain)).length
-        : items.length;
+      archiveUnreadCount = countMotdArchiveUnreadItems(
+        items,
+        getMotdArchiveSeenUpToCursor(),
+        getMotdArchiveReadItems(),
+      );
     } else {
       archiveUnreadCount = 0;
     }

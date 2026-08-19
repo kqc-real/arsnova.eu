@@ -116,6 +116,10 @@
 }
 
 .news-archive-page__entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
   margin: 0 0 1rem;
   font: var(--mat-sys-body-large);
   color: var(--mat-sys-on-surface-variant);
@@ -124,6 +128,50 @@
 .news-archive-page__entry-meta time {
   font: inherit;
   color: inherit;
+}
+
+.news-archive-page__read-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.news-archive-page__read-state--unread {
+  color: var(--mat-sys-primary);
+}
+
+.news-archive-page__read-state mat-icon {
+  flex: 0 0 auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 1.125rem;
+}
+
+.news-archive-page__unread-dot {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--mat-sys-primary);
+}
+
+.news-archive-page__entry--read .news-archive-page__entry-title {
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.news-archive-page__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+}
+
+.news-archive-page__mark-read {
+  min-height: 2.5rem;
 }
 
 /* Markdown-Rumpf: gleiche Lesespur wie .legal-article :deep in legal-page */

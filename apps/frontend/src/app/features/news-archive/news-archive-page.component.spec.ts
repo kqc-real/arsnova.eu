@@ -7,6 +7,8 @@ import { Location } from '@angular/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NewsArchivePageComponent } from './news-archive-page.component';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
+import { MOTD_LOCAL_STORAGE_KEY } from '../../core/motd-storage';
 import type { NewsArchiveInitialModel } from './news-archive-initial';
 
 const listArchiveQuery = vi.fn();
@@ -63,6 +65,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -130,6 +136,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -208,6 +218,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -324,6 +338,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -374,6 +392,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -419,6 +441,10 @@ describe('NewsArchivePageComponent', () => {
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
       ],
     }).compileComponents();
 
@@ -435,5 +461,76 @@ describe('NewsArchivePageComponent', () => {
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('markArchiveItemRead senkt den Zähler um 1 und zeigt den Gelesen-Status', () => {
+    const itemId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const withItems: NewsArchiveInitialModel = {
+      ...emptyResolved,
+      items: [
+        {
+          id: itemId,
+          contentVersion: 1,
+          markdown: '# Erste Meldung\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      titleById: { [itemId]: 'Erste Meldung' },
+      htmlById: {},
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: itemId,
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 1,
+    };
+
+    const headerState = {
+      decrementArchiveUnreadCount: vi.fn(),
+      setArchiveUnreadCount: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { data: { newsArchive: withItems } } },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        { provide: MotdHeaderStateService, useValue: headerState },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.news-archive-page__read-state--unread'),
+    ).toBeTruthy();
+
+    const item = fixture.componentInstance.items()[0]!;
+    fixture.componentInstance.markArchiveItemRead(item, {
+      currentTarget: document.createElement('button'),
+    } as unknown as Event);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(0);
+    expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.news-archive-page__entry--read')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.news-archive-page__read-state')?.textContent,
+    ).toContain('Gelesen');
+    expect(
+      fixture.nativeElement.querySelector('.news-archive-page__read-state--unread'),
+    ).toBeNull();
+    const stored = JSON.parse(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)!);
+    expect(stored.archiveReadItems).toEqual([{ motdId: itemId, contentVersion: 1 }]);
+    expect(headerState.decrementArchiveUnreadCount).toHaveBeenCalled();
   });
 });
