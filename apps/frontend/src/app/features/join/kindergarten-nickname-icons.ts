@@ -119,6 +119,44 @@ export function kindergartenEmojiAtIndex(index: number): string | null {
   return KINDERGARTEN_NICKNAME_EMOJIS[index] ?? null;
 }
 
+/** Zu kurze Prefixe (z. B. „Roter“) nicht auf ganze Kita-Namen raten. */
+const KINDERGARTEN_PREFIX_MATCH_MIN_LENGTH = 8;
+
+function findUniqueKindergartenPrefixIndex(
+  names: readonly string[],
+  truncatedBase: string,
+): number | null {
+  if (truncatedBase.length < KINDERGARTEN_PREFIX_MATCH_MIN_LENGTH) {
+    return null;
+  }
+  let matchIndex: number | null = null;
+  for (let i = 0; i < names.length; i += 1) {
+    const listName = names[i] ?? '';
+    if (listName.startsWith(truncatedBase) && listName.length > truncatedBase.length) {
+      if (matchIndex !== null) {
+        return null;
+      }
+      matchIndex = i;
+    }
+  }
+  return matchIndex;
+}
+
+function kindergartenListsByLocalePreference(
+  locale: SupportedLocale,
+): readonly (readonly string[])[] {
+  const localizedList = NICKNAME_LISTS_BY_LOCALE[locale].KINDERGARTEN;
+  const otherLists = (
+    Object.entries(NICKNAME_LISTS_BY_LOCALE) as [
+      SupportedLocale,
+      (typeof NICKNAME_LISTS_BY_LOCALE)[SupportedLocale],
+    ][]
+  )
+    .filter(([candidateLocale]) => candidateLocale !== locale)
+    .map(([, lists]) => lists.KINDERGARTEN);
+  return [localizedList, ...otherLists];
+}
+
 /** Findet den Listenindex in der aktiven UI-Locale oder explizit angegebenen Locale. */
 export function findKindergartenNicknameIndex(
   nickname: string,
@@ -126,22 +164,19 @@ export function findKindergartenNicknameIndex(
 ): number | null {
   const t = nickname.trim().replace(/\s+\d+$/, '');
   if (!t) return null;
-  const localizedList = NICKNAME_LISTS_BY_LOCALE[locale].KINDERGARTEN;
-  const localizedIndex = localizedList.indexOf(t);
-  if (localizedIndex >= 0) {
-    return localizedIndex;
+
+  const lists = kindergartenListsByLocalePreference(locale);
+  for (const list of lists) {
+    const exactIndex = list.indexOf(t);
+    if (exactIndex >= 0) {
+      return exactIndex;
+    }
   }
 
-  for (const [candidateLocale, lists] of Object.entries(NICKNAME_LISTS_BY_LOCALE) as [
-    SupportedLocale,
-    (typeof NICKNAME_LISTS_BY_LOCALE)[SupportedLocale],
-  ][]) {
-    if (candidateLocale === locale) {
-      continue;
-    }
-    const candidateIndex = lists.KINDERGARTEN.indexOf(t);
-    if (candidateIndex >= 0) {
-      return candidateIndex;
+  for (const list of lists) {
+    const prefixIndex = findUniqueKindergartenPrefixIndex(list, t);
+    if (prefixIndex !== null) {
+      return prefixIndex;
     }
   }
 

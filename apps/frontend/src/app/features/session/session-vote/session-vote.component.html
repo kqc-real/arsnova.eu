@@ -364,12 +364,14 @@
         @if (playerKindergartenEmoji(); as kEmoji) {
           <span class="vote-player-badge__kita-id">
             <span class="vote-player-badge__emoji" aria-hidden="true">{{ kEmoji }}</span>
-            <span class="vote-player-badge__name vote-player-badge__name--kita">{{
-              playerNickname()
-            }}</span>
+            <span
+              class="vote-player-badge__name vote-player-badge__name--kita"
+              [attr.title]="playerNickname()"
+              >{{ playerNickname() }}</span
+            >
           </span>
         } @else {
-          <span class="vote-player-badge__name"
+          <span class="vote-player-badge__name" [attr.title]="playerNickname()"
             ><span class="vote-player-badge__self-prefix" i18n="@@sessionVote.playerSelfPrefix"
               >Du:</span
             >
@@ -501,7 +503,9 @@
         >
           <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
           <p class="vote-lobby__kita-identity">
-            <span class="vote-lobby__kita-nick">{{ playerNickname() }}</span>
+            <span class="vote-lobby__kita-nick" [attr.title]="playerNickname()">{{
+              playerNickname()
+            }}</span>
             @if (playerTeamName()) {
               <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
               @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {

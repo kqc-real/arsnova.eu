@@ -60,8 +60,27 @@ describe('kindergarten-nickname-icons', () => {
     expect(findKindergartenNicknameBadgeLabel('Roter Drache 2')).toBe('🐉 2');
   });
 
+  it('ordnet auf 30 Zeichen gekürzte Kita-Reservenamen eindeutig per Prefix zu', () => {
+    const fullIndex = NICKNAME_LISTS.KINDERGARTEN.indexOf('Mahagonifarbener Wasserbüffel');
+    expect(fullIndex).toBeGreaterThanOrEqual(0);
+    expect(findKindergartenNicknameIndex('Mahagonifarbener Wasserbüffe 3')).toBe(fullIndex);
+    expect(findKindergartenNicknameEmoji('Mahagonifarbener Wasserbüffe 3')).toBe('🐃');
+    expect(kindergartenNicknameSequence('Mahagonifarbener Wasserbüffe 3')).toBe('3');
+    expect(findKindergartenNicknameBadge('Mahagonifarbener Wasserbüffe 3')).toEqual({
+      emoji: '🐃',
+      sequence: '3',
+    });
+  });
+
+  it('schätzt kurze oder mehrdeutige Präfixe nicht', () => {
+    expect(findKindergartenNicknameIndex('Roter')).toBeNull();
+    expect(findKindergartenNicknameIndex('Korallen')).toBeNull();
+    expect(findKindergartenNicknameEmoji('Roter')).toBeNull();
+  });
+
   it('gibt null für unbekannte Strings zurück', () => {
     expect(findKindergartenNicknameIndex('Unbekannt')).toBeNull();
     expect(findKindergartenNicknameEmoji('Unbekannt')).toBeNull();
+    expect(findKindergartenNicknameIndex('Mahagonifarbener Wasserxyz')).toBeNull();
   });
 });
