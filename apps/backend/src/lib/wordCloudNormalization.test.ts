@@ -43,6 +43,13 @@ describe('wordCloudNormalization', () => {
     expect(
       buildWordCloudSnapshotHash({
         ...baseInput,
+        mode: 'SEMANTIC',
+        channel: 'QA',
+      }),
+    ).not.toBe(buildWordCloudSnapshotHash(baseInput));
+    expect(
+      buildWordCloudSnapshotHash({
+        ...baseInput,
         maxNgramLength: 3,
       }),
     ).not.toBe(buildWordCloudSnapshotHash(baseInput));

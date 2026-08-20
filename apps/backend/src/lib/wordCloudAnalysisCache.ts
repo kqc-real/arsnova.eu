@@ -59,7 +59,13 @@ export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): bo
   }
   // Kill-Switch ist Prozesskonfiguration, kein Snapshot-Inhalt. Sonst bleibt
   // „Glättung nicht verfügbar“ nach NLP_ENABLED=true bis zum TTL sichtbar.
-  return reason !== 'NLP_DISABLED';
+  if (reason === 'NLP_DISABLED') {
+    return false;
+  }
+  if (output.mode === 'SEMANTIC') {
+    return output.status === 'ready' || output.status === 'uncertain';
+  }
+  return true;
 }
 
 export function createMemoryWordCloudAnalysisCache(

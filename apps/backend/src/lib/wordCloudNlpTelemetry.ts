@@ -17,6 +17,7 @@ export interface WordCloudAnalyzeTelemetryEvent {
   readonly textCacheHits: number;
   readonly textCacheMisses: number;
   readonly sidecarCalled: boolean;
+  readonly encoderCalled?: boolean;
 }
 
 export interface WordCloudNlpTelemetrySnapshot {
@@ -84,5 +85,6 @@ export function recordWordCloudAnalyzeTelemetry(event: WordCloudAnalyzeTelemetry
     textCacheHits: event.textCacheHits,
     textCacheMisses: event.textCacheMisses,
     sidecarCalled: event.sidecarCalled,
+    encoderCalled: event.encoderCalled === true,
   });
 }

@@ -5,8 +5,9 @@ import { describe, expect, it } from 'vitest';
 const routersDir = join(process.cwd(), 'src/routers');
 
 describe('wordCloud hotpath isolation', () => {
-  it('haelt spaCy aus Vote-, Q&A-Submit- und Join-Routern', () => {
-    const forbidden = /spacyClient|wordCloudNormalizer|normalizeWordCloudItems|nlpSidecar/;
+  it('haelt spaCy und den Word-Cloud-Encoder aus Vote-, Q&A-Submit- und Join-Routern', () => {
+    const forbidden =
+      /spacyClient|wordCloudNormalizer|normalizeWordCloudItems|nlpSidecar|wordCloudEncoderClient|wordCloudSemanticAnalyze|embedWithWordCloudEncoder/;
     for (const file of ['vote.ts', 'qa.ts', 'session.ts']) {
       const source = readFileSync(join(routersDir, file), 'utf8');
       expect(source, file).not.toMatch(forbidden);

@@ -165,7 +165,7 @@ Produktionsbaselines.
 - Asynchrone Quiz-Modi (2.9)
 - Delegierbare Q&A-Moderation (8.5); 8.6/8.7 sind umgesetzt
 - Optionale generative Moderationszusammenfassung (8.9c Slice 4 / echtes Modell; Slices 1–3 und 8.9a/8.9b umgesetzt)
-- Word Cloud 3.0 (1.14c); 1.14a/1.14b sind umgesetzt
+- Word Cloud 3.0 Stufe 1 (1.14c Encoder + Clustering, Kill-Switch default aus); Stufe 2 LLM-Labels offen; 1.14a/1.14b sind umgesetzt
 
 ---
 

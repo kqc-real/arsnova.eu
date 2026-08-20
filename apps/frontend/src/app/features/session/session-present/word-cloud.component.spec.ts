@@ -1181,6 +1181,51 @@ describe('WordCloudComponent', () => {
     );
   });
 
+  it('erweitert Tooltip und CSV um Modellversion im Themenmodus', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput(
+      'analysisModelVersion',
+      'intfloat/multilingual-e5-small@sha256:testdigest',
+    );
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'semantic-0',
+        label: 'Kommt Kapitel 4 in die Klausur?',
+        count: 6,
+        basisLabel: 'Kommt Kapitel 4 in die Klausur?',
+        members: [
+          {
+            sourceId: 'question-1',
+            text: 'Kommt Kapitel 4 in die Klausur?',
+            weight: 3,
+          },
+          {
+            sourceId: 'question-2',
+            text: 'Ist Kapitel 4 klausurrelevant?',
+            weight: 3,
+          },
+        ],
+        variants: ['Kommt Kapitel 4 in die Klausur?'],
+        confidence: 0.91,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const tooltip = component.wordTooltipDisplay(component.words()[0]!);
+    expect(tooltip).toContain('Modell: intfloat/multilingual-e5-small@sha256:testdigest');
+    expect(tooltip).toContain('Ist Kapitel 4 klausurrelevant?');
+
+    const downloadSpy = vi
+      .spyOn(component as never, 'downloadBlob')
+      .mockImplementation(() => undefined);
+    component.exportCsv();
+    const [csv] = downloadSpy.mock.calls[0] as [string, string, string];
+    expect(csv).toContain('label,count,variants,basis,members,confidence,modelVersion');
+    expect(csv).toContain('intfloat/multilingual-e5-small@sha256:testdigest');
+  });
+
   it('exportiert PNG mit erfolgreichem Status statt schwarzem Leerbild', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [

@@ -114,6 +114,18 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
     ).toBe('MODE_UNSUPPORTED');
   });
 
+  it('behandelt jede Nicht-LEMMA-Anforderung als NONE', () => {
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'NONE',
+        mode: 'SEMANTIC',
+        locale: 'de',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }),
+    ).toMatchObject({ requested: 'NONE', applied: 'NONE', fallbackUsed: false, reason: null });
+  });
+
   it('faellt bei deaktiviertem NLP und fehlendem Sidecar lexikalisch zurueck', () => {
     expect(
       resolveWordCloudLemmaApplication({

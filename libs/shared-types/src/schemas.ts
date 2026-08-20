@@ -14,6 +14,7 @@ import {
   WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS,
   WORD_CLOUD_NORMALIZATION_VALUES,
 } from './word-cloud-normalization';
+import { WORD_CLOUD_ANALYSIS_CHANNEL_VALUES } from './word-cloud-semantic';
 
 // ---------------------------------------------------------------------------
 // Enums – müssen mit Prisma-Schema synchron bleiben
@@ -3713,12 +3714,16 @@ export const WordCloudAnalysisSourceItemSchema = z.object({
 });
 export type WordCloudAnalysisSourceItem = z.infer<typeof WordCloudAnalysisSourceItemSchema>;
 
+/** Kanal des Analyseauftrags. Encoder-Clustering gilt nur für Host-Q&A. */
+export const WordCloudAnalysisChannelEnum = z.enum(WORD_CLOUD_ANALYSIS_CHANNEL_VALUES);
+
 /** Input: Analyseauftrag für Word Cloud 3.0 inklusive optionaler Glättung (1.14b). */
 export const AnalyzeWordCloudInputSchema = z.object({
   sessionCode: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   mode: WordCloudAnalysisVariantEnum,
   locale: WordCloudAnalysisLocaleEnum,
   metric: WordCloudWeightMetricEnum,
+  channel: WordCloudAnalysisChannelEnum.optional(),
   normalization: WordCloudNormalizationEnum.default(WORD_CLOUD_DEFAULT_NORMALIZATION),
   items: z.array(WordCloudAnalysisSourceItemSchema).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   maxEntries: z.number().int().min(1).max(100).optional(),

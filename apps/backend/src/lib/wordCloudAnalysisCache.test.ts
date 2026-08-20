@@ -107,6 +107,24 @@ describe('wordCloudAnalysisCache', () => {
         modelId: null,
       }),
     ).toBe(false);
+    expect(
+      shouldCacheWordCloudSnapshot({
+        ...output,
+        mode: 'SEMANTIC',
+        status: 'disabled',
+        fallbackUsed: true,
+        analysisVersion: '1.14c.1',
+      }),
+    ).toBe(false);
+    expect(
+      shouldCacheWordCloudSnapshot({
+        ...output,
+        mode: 'SEMANTIC',
+        status: 'ready',
+        analysisVersion: '1.14c.1',
+        modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
+      }),
+    ).toBe(true);
   });
 
   it('liefert Memory-Hits und laesst TTL verfallen', async () => {

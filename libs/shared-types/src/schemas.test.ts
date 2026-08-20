@@ -820,6 +820,17 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     });
     expect(parsed.mode).toBe('SEMANTIC');
     expect(parsed.normalization).toBe('NONE');
+    expect(parsed.channel).toBeUndefined();
+
+    const withChannel = AnalyzeWordCloudInputSchema.parse({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      channel: 'QA',
+      items: [sourceItem],
+    });
+    expect(withChannel.channel).toBe('QA');
 
     const result = WordCloudAnalysisResultDTOSchema.parse({
       mode: 'SEMANTIC',

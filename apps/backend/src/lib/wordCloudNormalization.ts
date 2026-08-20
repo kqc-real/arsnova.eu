@@ -7,6 +7,7 @@ import type {
 import {
   resolveWordCloudLemmaApplication,
   WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
+  WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
 } from '@arsnova/shared-types';
 import { resolveNlpSidecarConfig } from './nlpSidecarConfig';
 
@@ -24,14 +25,19 @@ export interface WordCloudNormalizationMeta {
 export function buildWordCloudSnapshotHash(
   input: Pick<
     AnalyzeWordCloudInput,
-    'mode' | 'locale' | 'metric' | 'normalization' | 'items' | 'maxNgramLength'
+    'mode' | 'locale' | 'metric' | 'normalization' | 'items' | 'maxNgramLength' | 'channel'
   >,
 ): string {
+  const analysisVersion =
+    input.mode === 'SEMANTIC'
+      ? WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION
+      : WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION;
   const canonical = JSON.stringify({
-    analysisVersion: WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
+    analysisVersion,
     mode: input.mode,
     locale: input.locale,
     metric: input.metric,
+    channel: input.channel ?? null,
     normalization: input.normalization,
     maxNgramLength: input.maxNgramLength ?? 1,
     items: [...input.items]

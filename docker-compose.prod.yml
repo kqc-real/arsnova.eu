@@ -108,6 +108,38 @@ services:
       retries: 5
     stop_grace_period: 10s
 
+  # Start: COMPOSE_PROFILES=encoder WORD_CLOUD_ENCODER_IMAGE=arsnova-wordcloud-encoder:e5-small ./scripts/prod-compose.sh up -d wordcloud-encoder
+  wordcloud-encoder:
+    profiles: ['encoder']
+    image: ${WORD_CLOUD_ENCODER_IMAGE:-arsnova-wordcloud-encoder:e5-small}
+    container_name: arsnova-v3-wordcloud-encoder
+    restart: always
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    pids_limit: 64
+    mem_limit: 2g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    volumes:
+      - wordcloud_encoder_socket:/run/wordcloud-encoder
+    environment:
+      HOME: /tmp
+      WORD_CLOUD_ENCODER_SOCKET_PATH: /run/wordcloud-encoder/encoder.sock
+      WORD_CLOUD_ENCODER_MODEL_DIR: /models/e5-small
+    healthcheck:
+      test: ['CMD', 'python', '/app/healthcheck.py']
+      interval: 15s
+      timeout: 3s
+      start_period: 120s
+      retries: 5
+    stop_grace_period: 10s
+
   app:
     image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
     container_name: arsnova-v3-app
@@ -122,6 +154,7 @@ services:
     volumes:
       - pdf_worker_socket:/run/pdf-worker:ro
       - spacy_socket:/run/spacy:ro
+      - wordcloud_encoder_socket:/run/wordcloud-encoder:ro
     env_file:
       - .env.production
     ports:
@@ -141,6 +174,9 @@ services:
       NLP_SOCKET_PATH: /run/spacy/nlp.sock
       NLP_TIMEOUT_MS: '5000'
       NLP_CACHE_TTL_SECONDS: '1800'
+      WORD_CLOUD_ENCODER_SOCKET_PATH: /run/wordcloud-encoder/encoder.sock
+      WORD_CLOUD_ENCODER_TIMEOUT_MS: '8000'
+      WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS: '1800'
       # NLP_ENABLED kommt aus `.env.production` (Default false).
       # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
       # QA_NLP_ENABLED kommt aus `.env.production` (Default false). Story 8.9b:
@@ -148,6 +184,8 @@ services:
       # QA_SUMMARY_ENABLED kommt aus `.env.production` (Default false). Story 8.9c:
       # optionale Moderationszusammenfassung, getrennt von QA_NLP_ENABLED; ohne
       # private QA_SUMMARY_INFERENCE_URL kein Cloud-Fallback.
+      # WORD_CLOUD_SEMANTIC_ENABLED kommt aus `.env.production` (Default false).
+      # Encoder nur mit Compose-Profil `encoder`; deploy.sh startet ihn nicht.
     depends_on:
       pdf-worker:
         condition: service_healthy
@@ -173,3 +211,4 @@ volumes:
   redis_data:
   pdf_worker_socket:
   spacy_socket:
+  wordcloud_encoder_socket:

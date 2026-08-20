@@ -32,3 +32,19 @@ Not included
 
 Italian lemma support in the distributed default requires a license-compatible
 alternative model, not `it_core_news_sm`.
+
+Optional word-cloud encoder image (docker/wordcloud-encoder)
+------------------------------------------------------------
+
+Story 1.14c Stufe 1 ships an optional ONNX encoder sidecar. arsnova.eu remains
+MIT-licensed. The bundled embedding model is a third-party work.
+
+| Package                         | License    | Source                                              |
+| ------------------------------- | ---------- | --------------------------------------------------- |
+| intfloat/multilingual-e5-small  | Apache-2.0 | https://huggingface.co/intfloat/multilingual-e5-small |
+| onnxruntime                     | MIT        | https://github.com/microsoft/onnxruntime            |
+| tokenizers                      | Apache-2.0 | https://github.com/huggingface/tokenizers           |
+| numpy                           | BSD        | https://github.com/numpy/numpy                      |
+
+The encoder image does not include an LLM. Notices in the image:
+`docker/wordcloud-encoder/NOTICE`.

@@ -192,6 +192,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     $localize`:@@wordCloud.description:Häufig genannte Wörter erscheinen größer.`,
   );
   readonly tooltipMetricLabel = input<string | null>(null);
+  readonly analysisModelVersion = input<string | null>(null);
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
@@ -1115,6 +1116,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       lines.push(confidenceLine);
     }
 
+    const modelLine = this.analysisModelVersionLine();
+    if (modelLine) {
+      lines.push(modelLine);
+    }
+
     if (entry.variants.length > 1) {
       const variants = this.wordVariantPreview(entry.variants);
       lines.push($localize`:@@wordCloud.variantsTooltip:Auch gezählt: ${variants}:variants:`);
@@ -1151,6 +1157,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const confidenceLine = this.analysisConfidenceLine(entry.confidence);
     if (confidenceLine) {
       lines.push(confidenceLine);
+    }
+
+    const modelLine = this.analysisModelVersionLine();
+    if (modelLine) {
+      lines.push(modelLine);
     }
 
     if (entry.variants.length > 1) {
@@ -1203,8 +1214,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     const analysisEntries = this.analysisEntries();
     if (analysisEntries && analysisEntries.length > 0) {
+      const includeSemanticMeta = Boolean(this.analysisModelVersion());
       const rows = [
-        'label,count,variants,basis,members',
+        includeSemanticMeta
+          ? 'label,count,variants,basis,members,confidence,modelVersion'
+          : 'label,count,variants,basis,members',
         ...analysisEntries.map((entry) =>
           [
             this.escapeCsvField(entry.label),
@@ -1212,6 +1226,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
             this.escapeCsvField(entry.variants.join(' | ')),
             this.escapeCsvField(entry.basisLabel ?? ''),
             this.escapeCsvField(entry.members.map((member) => member.text).join(' | ')),
+            ...(includeSemanticMeta
+              ? [
+                  entry.confidence === null ? '' : String(entry.confidence),
+                  this.escapeCsvField(this.analysisModelVersion() ?? ''),
+                ]
+              : []),
           ].join(','),
         ),
       ];
@@ -1737,6 +1757,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const tier = this.analysisConfidenceTierLabel(confidence);
 
     return $localize`:@@wordCloud.themeConfidenceLabel:Erkennung: ${tier}:tier: (${percent}:percent:)`;
+  }
+
+  private analysisModelVersionLine(): string | null {
+    const version = this.analysisModelVersion()?.trim();
+    if (!version) {
+      return null;
+    }
+
+    return $localize`:@@wordCloud.modelVersionTooltip:Modell: ${version}:version:`;
   }
 
   private analysisConfidenceDetail(confidence: number | null): AnalysisDetailChip | null {

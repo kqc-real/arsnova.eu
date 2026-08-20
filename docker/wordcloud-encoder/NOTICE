@@ -1,0 +1,18 @@
+Third-Party Notices
+===================
+
+This image is the optional arsnova.eu word-cloud encoder (Story 1.14c Stufe 1).
+arsnova.eu itself remains MIT-licensed. The bundled embedding model is a
+third-party work and is not relicensed as part of arsnova.eu.
+
+Included packages
+-----------------
+
+- numpy (BSD) — https://github.com/numpy/numpy
+- onnxruntime (MIT) — https://github.com/microsoft/onnxruntime
+- tokenizers (Apache-2.0) — https://github.com/huggingface/tokenizers
+- huggingface_hub (Apache-2.0) — https://github.com/huggingface/huggingface_hub
+- intfloat/multilingual-e5-small (Apache-2.0)
+  https://huggingface.co/intfloat/multilingual-e5-small
+
+The default image is an Apache-2.0/MIT/BSD aggregate. It does not include an LLM.

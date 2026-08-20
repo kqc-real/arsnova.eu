@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-08-20
-**Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit Story 1.14c
+**Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit 8.9c Slice 4 nach 1.14c Stufe 1
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 
@@ -12,7 +12,7 @@
 
 Optionale, **on-demand** Moderationszusammenfassung über dem deterministischen Kompass (Story 8.9a, [moderation-compass.md](moderation-compass.md)). Der Host erhält 2–4 quellengebundene Stichpunkte (Thema plus eine kurze Klausel), keine automatischen Aktionen und keine Bewertung einzelner Teilnehmender.
 
-Sie ist **kein** spaCy-Pfad und **keine** Q&A-Klassifikation. `NLP_ENABLED` bleibt 1.14b, `QA_NLP_ENABLED` bleibt 8.9b. 8.9c nutzt `QA_SUMMARY_ENABLED`. Dieselbe private Inferenzserver-Rolle darf später Story 1.14c stellen; 8.9c besitzt nur den Zusammenfassungsvertrag.
+Sie ist **kein** spaCy-Pfad, **keine** Q&A-Klassifikation und **kein** Wortwolken-Themenmodus. `NLP_ENABLED` bleibt 1.14b, `QA_NLP_ENABLED` bleibt 8.9b, `WORD_CLOUD_SEMANTIC_ENABLED` bleibt 1.14c. 8.9c nutzt `QA_SUMMARY_ENABLED`. Stufe-1-Encoder ist umgesetzt ([word-cloud-semantic.md](word-cloud-semantic.md)); 8.9c besitzt nur den Zusammenfassungsvertrag.
 
 ## Betriebsgrenzen
 
@@ -49,7 +49,7 @@ Im Moderationskompass erscheint der Button **Zusammenfassung** nur bei `QA_SUMMA
 
 ## Adapter ohne LLM-Lieferung
 
-Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Slice 4 (echtes Modell im Betrieb) folgt mit Story 1.14c auf demselben privaten Server, anderem Auftrag. Reihenfolge, Entkopplung der Verträge und Hardware-Isolation: [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md) §4.
+Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Slice 4 (echtes Modell im Betrieb) folgt nach 1.14c Stufe 1 auf demselben privaten Server, anderem Auftrag. Reihenfolge, Entkopplung der Verträge und Hardware-Isolation: [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md) §4.
 
 ## Lokal prüfen
 
