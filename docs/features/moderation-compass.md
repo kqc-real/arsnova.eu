@@ -17,11 +17,11 @@ Er ist die Fallback-Basis für 8.9b und 8.9c: ohne NLP, ohne LLM, ohne neuen Dau
 
 ## Host-UI
 
-Button **Kompass** neben der Live-Leiste, in allen Live-Kanälen. Present/Vote und `FINISHED` ohne Kompass. Der Dialog bleibt erreichbar, auch wenn noch keine Karte entsteht; dann erscheint der Leertext zu fehlenden Signalen. Sobald mindestens eine Karte da ist, trägt der Button `has-signals`.
+Button **Kompass** neben der Live-Leiste, in allen Live-Kanälen. Present/Vote und `FINISHED` ohne Kompass. Der Dialog bleibt erreichbar, auch wenn noch keine Karte entsteht; dann erscheint der Leertext, der die vier Kartenarten nennt. Sobald mindestens eine Karte da ist, trägt der Button `has-signals`. Vor dem ersten Öffnen im Tab gibt es zusätzlich den kurzen Hinweis **Hinweise bereit**. Die Dialogfläche liegt auf `surface-container-high` (Dark: `surface-container-highest`) mit eigenem Scrim-Backdrop, damit sie sich vom Host-Verlauf abhebt.
 
-Kartenarten: **Themen**, **Klärung**, **Reibung**, **Tempo**. Der **nächste Schritt** ist der Vorschlagstext auf der auslösenden Karte, keine zweite Quellenliste. Tautologische Vorschläge auf einer einzelnen Karte entfallen.
+Leseordnung im Dialog: zuerst **Als Nächstes** (ein Vorschlag aus der stärksten Karte), dann die Signalkarten. Reihenfolge der Karten: **Tempo**, **Reibung**, **Klärung**, **Themen**. Tempo mit Vorsicht oder Alarm heißt **Kommen nicht mit**. Der nächste Schritt steht nur in der Handlungszeile, nicht noch einmal auf der Karte. Tautologische Vorschläge auf einer einzelnen Karte entfallen.
 
-Quellenklicks wechseln den Kanal, heben Forum-Beiträge hervor (Badge **Aus dem Kompass · …**) oder öffnen die Wortwolke zum Begriff. **Zurück** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut. **Markierung lösen** entfernt die Hervorhebung.
+Quellen sind Sprungzeilen mit Ziel (**Q&A**, **Wortwolke**, **Quiz**, **Blitzlicht**). Pro Karte sind drei Quellen sichtbar, weitere hinter **Noch … anzeigen**. Quellenklicks wechseln den Kanal, heben Forum-Beiträge hervor (Badge **Aus dem Kompass · …**) oder öffnen die Wortwolke zum Begriff. **Zurück zum Kompass** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut. **Markierung lösen** entfernt die Hervorhebung.
 
 Moderatorzugang bleibt an Story **8.5** gebunden; bis dahin nur Host-Token.
 

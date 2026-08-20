@@ -130,4 +130,32 @@ describe('qaSummaryAdapter', () => {
       modelVersion: 'stub:invalid-output',
     });
   });
+
+  it('wandelt einen abgebrochenen Antwort-Body in failed um', async () => {
+    resetQaSummaryAdapterForTests({
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        text: async () => {
+          throw Object.assign(new Error('read ECONNRESET'), { name: 'Error' });
+        },
+      }),
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1000,
+        queueLimit: 8,
+        concurrency: 1,
+        cooldownMs: 30_000,
+        ttlMs: 1_800_000,
+        maxSources: 20,
+        inferenceUrl: 'http://inference:8080/summary',
+        inferenceToken: null,
+      }),
+    });
+
+    await expect(runQaSummaryInference(snapshot, 'f'.repeat(64))).resolves.toMatchObject({
+      status: 'failed',
+      modelVersion: 'stub:error',
+    });
+  });
 });

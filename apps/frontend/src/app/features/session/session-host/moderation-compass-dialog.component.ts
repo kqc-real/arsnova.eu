@@ -1,4 +1,4 @@
-import { Component, computed, inject, ViewEncapsulation } from '@angular/core';
+import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -8,17 +8,32 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import type { QaSummaryResult, QaSummaryRuntimeDTO, QaSummarySource } from '@arsnova/shared-types';
+import {
+  sortQaSummaryStatementsByImportance,
+  type QaSummaryResult,
+  type QaSummaryRuntimeDTO,
+  type QaSummarySource,
+} from '@arsnova/shared-types';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
-import type {
-  ModerationCompassAnalysisMode,
-  ModerationCompassCard,
-  ModerationCompassCardKind,
-  ModerationCompassNextStepReason,
-  ModerationCompassSource,
+import {
+  extraModerationCompassSources,
+  moderationCompassSourceDestination,
+  splitModerationSummaryLead,
+  visibleModerationCompassSources,
+  type ModerationCompassAnalysisMode,
+  type ModerationCompassCard,
+  type ModerationCompassCardKind,
+  type ModerationCompassNextStepReason,
+  type ModerationCompassSource,
+  type ModerationCompassSourceDestination,
+  type ModerationSummaryScanParts,
 } from './moderation-compass';
 
 export type { ModerationCompassAnalysisMode };
+
+function normalizeSummaryNotice(text: string): string {
+  return text.trim().replace(/\s+/g, ' ').toLocaleLowerCase('de-DE');
+}
 
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
@@ -55,17 +70,80 @@ export class ModerationCompassDialogComponent {
   readonly cards = computed(() => this.data.cards());
   readonly hasCards = computed(() => this.cards().length > 0);
   readonly analysisMode = computed(() => this.data.analysisMode ?? 'rule-based');
+  readonly showAnalysisStatus = computed(() => this.analysisMode() !== 'rule-based');
+  readonly leadCard = computed(
+    () => this.cards().find((card) => card.nextStepReason !== undefined) ?? null,
+  );
+  readonly primaryNextStepReason = computed(() => this.leadCard()?.nextStepReason);
   readonly summaryEnabled = computed(() => this.data.summaryEnabled?.() === true);
   readonly summaryRuntime = computed(() => this.data.summary?.() ?? null);
   readonly summaryResult = computed(() => this.summaryRuntime()?.result ?? null);
   readonly summaryPending = computed(() => this.summaryResult()?.status === 'pending');
+  readonly summaryRevealed = signal(false);
+  readonly showSummaryNextSteps = computed(() => {
+    const result = this.summaryResult();
+    return (
+      this.primaryNextStepReason() === undefined && (result?.suggestedNextSteps.length ?? 0) > 0
+    );
+  });
+  readonly showSummaryBody = computed(() => {
+    const result = this.summaryResult();
+    if (!result) {
+      return false;
+    }
+    if (result.status === 'failed') {
+      return (
+        result.statements.length > 0 ||
+        result.sources.length > 0 ||
+        this.summaryLimitations(result).length > 0
+      );
+    }
+    return this.summaryRevealed() || this.summaryPending();
+  });
+
+  visibleSources(card: ModerationCompassCard): readonly ModerationCompassSource[] {
+    return visibleModerationCompassSources(card.sources);
+  }
+
+  extraSources(card: ModerationCompassCard): readonly ModerationCompassSource[] {
+    return extraModerationCompassSources(card.sources);
+  }
+
+  summaryScanParts(text: string): ModerationSummaryScanParts {
+    return splitModerationSummaryLead(text, this.summaryResult()?.locale ?? 'de');
+  }
+
+  summaryStatements(result: QaSummaryResult): QaSummaryResult['statements'] {
+    return sortQaSummaryStatementsByImportance(
+      result.statements,
+      result.sources.map((source) => source.id),
+    );
+  }
+
+  moreSourcesLabel(count: number): string {
+    return $localize`:@@sessionHost.moderationMoreSources:Noch ${count}:count: anzeigen`;
+  }
+
+  sourceDestinationLabel(source: ModerationCompassSource): string {
+    return this.destinationLabel(moderationCompassSourceDestination(source));
+  }
+
+  summarySourceDestinationLabel(): string {
+    return this.destinationLabel('qa');
+  }
 
   sourceJumpAria(source: ModerationCompassSource): string {
-    return $localize`:@@sessionHost.moderationSourceJumpAria:Zur Quelle: ${source.label}:label:`;
+    const destination = this.sourceDestinationLabel(source);
+    return $localize`:@@sessionHost.moderationSourceOpenAria:Öffnet ${destination}:destination:: ${source.label}:label:`;
   }
 
   summarySourceJumpAria(source: QaSummarySource): string {
-    return $localize`:@@sessionHost.moderationSummarySourceJumpAria:Zur Quelle: ${source.label}:label:`;
+    const destination = this.summarySourceDestinationLabel();
+    return $localize`:@@sessionHost.moderationSummarySourceOpenAria:Öffnet ${destination}:destination:: ${source.label}:label:`;
+  }
+
+  summarySourcesToggleLabel(count: number): string {
+    return $localize`:@@sessionHost.moderationSummarySourcesToggle:Zugehörige Fragen (${count}:count:)`;
   }
 
   activateSource(source: ModerationCompassSource, card: ModerationCompassCard): void {
@@ -85,11 +163,38 @@ export class ModerationCompassDialogComponent {
     if (this.summaryPending()) {
       return;
     }
+    this.summaryRevealed.set(true);
     this.data.onRequestSummary?.();
   }
 
   summaryStatusText(result: QaSummaryResult | null): string | null {
-    switch (result?.status) {
+    if (!result) {
+      return null;
+    }
+    if (result.status === 'pending') {
+      return this.genericSummaryStatus(result.status);
+    }
+    if (result.status !== 'failed' && result.status !== 'uncertain') {
+      return null;
+    }
+    const generic = this.genericSummaryStatus(result.status);
+    const specific = result.limitations.find(
+      (item) => normalizeSummaryNotice(item) !== normalizeSummaryNotice(generic ?? ''),
+    );
+    return specific ?? generic;
+  }
+
+  summaryLimitations(result: QaSummaryResult): readonly string[] {
+    const skip = new Set(
+      [this.summaryStatusText(result), this.genericSummaryStatus(result.status)]
+        .filter((item): item is string => Boolean(item))
+        .map(normalizeSummaryNotice),
+    );
+    return result.limitations.filter((item) => !skip.has(normalizeSummaryNotice(item)));
+  }
+
+  private genericSummaryStatus(status: QaSummaryResult['status']): string | null {
+    switch (status) {
       case 'pending':
         return $localize`:@@sessionHost.moderationSummaryPending:Die Zusammenfassung wird erstellt.`;
       case 'uncertain':
@@ -113,14 +218,16 @@ export class ModerationCompassDialogComponent {
       case 'friction':
         return $localize`:@@sessionHost.moderationCardFriction:Umstrittene Fragen`;
       case 'tempo':
-        return $localize`:@@sessionHost.moderationCardTempo:Tempo`;
+        return card.tone === 'alert' || card.tone === 'caution'
+          ? $localize`:@@sessionHost.moderationCardTempoBehind:Kommen nicht mit`
+          : $localize`:@@sessionHost.moderationCardTempo:Tempo`;
       case 'nextStep':
-        return $localize`:@@sessionHost.moderationCardNextStep:Nächster Schritt`;
+        return $localize`:@@sessionHost.moderationNowHeading:Als Nächstes`;
     }
   }
 
   nextStepHeading(): string {
-    return $localize`:@@sessionHost.moderationCardNextStep:Nächster Schritt`;
+    return $localize`:@@sessionHost.moderationNowHeading:Als Nächstes`;
   }
 
   cardIcon(card: ModerationCompassCard): string {
@@ -160,6 +267,19 @@ export class ModerationCompassDialogComponent {
         return $localize`:@@sessionHost.moderationNextTopics:Fass die häufigsten Themen kurz zusammen.`;
       default:
         return null;
+    }
+  }
+
+  private destinationLabel(destination: ModerationCompassSourceDestination): string {
+    switch (destination) {
+      case 'quiz':
+        return $localize`:@@sessionHost.moderationSourceChannelQuiz:Quiz`;
+      case 'word-cloud':
+        return $localize`:@@sessionHost.moderationSourceChannelWordCloud:Wortwolke`;
+      case 'quickFeedback':
+        return $localize`:@@sessionHost.moderationSourceChannelFeedback:Blitzlicht`;
+      default:
+        return $localize`:@@sessionHost.moderationSourceChannelQa:Q&A`;
     }
   }
 }

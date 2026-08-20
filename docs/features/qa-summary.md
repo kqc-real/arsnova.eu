@@ -10,23 +10,23 @@
 
 ## Zweck
 
-Optionale, **on-demand** Moderationszusammenfassung über dem deterministischen Kompass (Story 8.9a, [moderation-compass.md](moderation-compass.md)). Der Host erhält 2–4 quellengebundene Sätze, keine automatischen Aktionen und keine Bewertung einzelner Teilnehmender.
+Optionale, **on-demand** Moderationszusammenfassung über dem deterministischen Kompass (Story 8.9a, [moderation-compass.md](moderation-compass.md)). Der Host erhält 2–4 quellengebundene Stichpunkte (Thema plus eine kurze Klausel), keine automatischen Aktionen und keine Bewertung einzelner Teilnehmender.
 
 Sie ist **kein** spaCy-Pfad und **keine** Q&A-Klassifikation. `NLP_ENABLED` bleibt 1.14b, `QA_NLP_ENABLED` bleibt 8.9b. 8.9c nutzt `QA_SUMMARY_ENABLED`. Dieselbe private Inferenzserver-Rolle darf später Story 1.14c stellen; 8.9c besitzt nur den Zusammenfassungsvertrag.
 
 ## Betriebsgrenzen
 
-| Env                          | Default   | Wirkung                                                                                          |
-| ---------------------------- | --------- | ------------------------------------------------------------------------------------------------ |
-| `QA_SUMMARY_ENABLED`         | `false`   | Nur exakt `true` zeigt den Host-Button und erlaubt `qa.requestSummary`                           |
-| `QA_SUMMARY_TIMEOUT_MS`      | `8000`    | Hartes Inferenz-Timeout (500–30.000). Danach `failed` (`stub:timeout`)                           |
-| `QA_SUMMARY_QUEUE_LIMIT`     | `8`       | Wartende plus laufende Jobs (1–32). Überlast: Skip, `failed` (`stub:queue-limit`)                |
-| `QA_SUMMARY_CONCURRENCY`     | `1`       | Parallele Jobs im Backend-Prozess (1–2)                                                          |
-| `QA_SUMMARY_COOLDOWN_MS`     | `30000`   | Kein zweiter Job für denselben Snapshot-Hash innerhalb der Frist                                 |
-| `QA_SUMMARY_TTL_MS`          | `1800000` | Ephemeres Ergebnis pro Session (60 s–8 h); keine Prisma-Spalte                                   |
-| `QA_SUMMARY_MAX_SOURCES`     | `20`      | Max. Q&A-Quellen im Snapshot (1–40)                                                              |
-| `QA_SUMMARY_INFERENCE_URL`   | leer      | Nur privater `http`/`https`-Endpunkt. Leer oder SaaS-Host → kein Cloud-Fallback, Status `failed` |
-| `QA_SUMMARY_INFERENCE_TOKEN` | leer      | Optionaler Bearer-Token; nie in der URL                                                          |
+| Env                          | Default   | Wirkung                                                                                                            |
+| ---------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------ |
+| `QA_SUMMARY_ENABLED`         | `false`   | Nur exakt `true` zeigt den Host-Button und erlaubt `qa.requestSummary`                                             |
+| `QA_SUMMARY_TIMEOUT_MS`      | `8000`    | Hartes Inferenz-Timeout (500–30.000). Danach `failed` (`stub:timeout`)                                             |
+| `QA_SUMMARY_QUEUE_LIMIT`     | `8`       | Wartende plus laufende Jobs (1–32). Überlast: Skip, `failed` (`stub:queue-limit`)                                  |
+| `QA_SUMMARY_CONCURRENCY`     | `1`       | Parallele Jobs im Backend-Prozess (1–2)                                                                            |
+| `QA_SUMMARY_COOLDOWN_MS`     | `30000`   | Kein zweiter Job für denselben Snapshot-Hash innerhalb der Frist. `failed` (Timeout) darf sofort wiederholt werden |
+| `QA_SUMMARY_TTL_MS`          | `1800000` | Ephemeres Ergebnis pro Session (60 s–8 h); keine Prisma-Spalte                                                     |
+| `QA_SUMMARY_MAX_SOURCES`     | `20`      | Max. Q&A-Quellen im Snapshot (1–40)                                                                                |
+| `QA_SUMMARY_INFERENCE_URL`   | leer      | Nur privater `http`/`https`-Endpunkt. Leer oder SaaS-Host → kein Cloud-Fallback, Status `failed`                   |
+| `QA_SUMMARY_INFERENCE_TOKEN` | leer      | Optionaler Bearer-Token; nie in der URL                                                                            |
 
 `qa.requestSummary` awaitet die Inferenz nicht. Das Ergebnis liegt in Memory bis TTL oder bis zur nächsten Anfrage.
 
@@ -34,7 +34,7 @@ Sie ist **kein** spaCy-Pfad und **keine** Q&A-Klassifikation. `NLP_ENABLED` blei
 
 Status: `pending` | `ready` | `uncertain` | `disabled` | `failed`.
 
-Aussagen sind `{ text, sourceIds }`. Quellen-IDs sind stabil (`qa-question:{uuid}`). Sätze ohne belegte Snapshot-Quelle werden verworfen; bleibt nichts übrig, wird der Status `uncertain`. Belegte Aussagen machen das Ergebnis `ready`, auch wenn das Modell selbst `uncertain` gemeldet hat.
+Aussagen sind `{ text, sourceIds }`. Quellen-IDs sind stabil (`qa-question:{uuid}`). Sätze ohne belegte Snapshot-Quelle werden verworfen; bleibt nichts übrig, wird der Status `uncertain`. Belegte Aussagen machen das Ergebnis `ready`, auch wenn das Modell selbst `uncertain` gemeldet hat. Adapterfehler (abgebrochener Body, ungültige Antwort) enden in `failed`, ohne die Queue zu werfen. Die Host-UI formatiert lange Protokollsätze zusätzlich als scanbare Stichpunkte (`Thema: Klausel`), ohne Klauseln an `und`/`von` abzuschneiden. Die Anzeigereihenfolge folgt der Snapshot-Rangfolge (angepinnt/ausstehend/Upvotes, dann mehr Quellen).
 
 Host-only:
 
@@ -45,7 +45,7 @@ Teilnehmer-DTOs enthalten kein Summary-Feld. Der 8.9b-NLP-Snapshot bleibt aussch
 
 ## Host-UI
 
-Im Moderationskompass erscheint der Button **Zusammenfassung** nur bei `QA_SUMMARY_ENABLED=true`. On demand. Ruhige Zustände für pending / uncertain / failed. Karten und Zusammenfassung liegen im scrollbareren Dialogkörper. Quellen-Klicks schließen den Dialog und springen zur Frage. Chrome ist XLF; Modelltext folgt `locale`.
+Im Moderationskompass erscheint der Button **Zusammenfassung** nur bei `QA_SUMMARY_ENABLED=true`. On demand, als zweite Ebene unter den Live-Signalkarten, mit dem Titel **Kurzfassung der offenen Fragen**. Der Button steht am Anfang dieses Blocks. Ein vorhandenes Ergebnis bleibt zugeklappt, bis der Host die Zusammenfassung anfordert; Aussagen erscheinen als scanbare Stichpunkte mit Themen-Lead. **Hinweise** stehen direkt unter den Punkten, Quellen hinter **Zugehörige Fragen (…)**. Identische Fehl- oder Unsicher-Meldungen erscheinen nur einmal, nicht zusätzlich unter Hinweise. KI-Vorschläge für nächste Schritte entfallen, wenn die Handlungszeile des Kompasses schon einen nächsten Schritt zeigt. Quellen-Klicks schließen den Dialog und springen zur Frage. Chrome ist XLF; Modelltext folgt `locale`. Kein Modellname in der Live-UI.
 
 ## Adapter ohne LLM-Lieferung
 
@@ -66,7 +66,7 @@ QA_SUMMARY_ENABLED=true
 QA_SUMMARY_INFERENCE_URL=http://127.0.0.1:8787/summary
 ```
 
-Backend nach Env-Änderung neu starten. Kompass-Button **Zusammenfassung** erscheint nur bei exakt `true`. Standardmodus ist lokal-extraktiv (kein Cloud). Optional `GEMINI_API_KEY` nur für den Helferprozess: arsnova spricht weiter `127.0.0.1`, der Helfer übersetzt nach Gemini (`GEMINI_MODEL`, Default `gemini-3.5-flash-lite`, Thinking `MINIMAL`). Dann verlassen Q&A-Texte den Rechner. Lokal `QA_SUMMARY_TIMEOUT_MS=30000`. `QA_SUMMARY_DEV_MODE=extractive` erzwingt den lokalen Modus trotz Key.
+Backend nach Env-Änderung neu starten. Kompass-Button **Zusammenfassung** erscheint nur bei exakt `true`. Standardmodus ist lokal-extraktiv (kein Cloud). Optional `GEMINI_API_KEY` nur für den Helferprozess: arsnova spricht weiter `127.0.0.1`, der Helfer übersetzt nach Gemini (`GEMINI_MODEL`, Default `gemini-3.5-flash-lite`, Thinking `MINIMAL`). Dann verlassen Q&A-Texte den Rechner. Der Helfer bricht Gemini immer vor `QA_SUMMARY_TIMEOUT_MS` ab (5 s Vorsprung, bei kürzeren Timeouts mindestens 200 ms) und fällt auf die lokale Kurzfassung zurück, damit das Backend nicht mit `stub:timeout` endet. Ohne Env-Wert gilt der Backend-Default 8 s, der Helfer wartet dann 3 s. Lokal oft `QA_SUMMARY_TIMEOUT_MS=30000`. `QA_SUMMARY_DEV_MODE=extractive` erzwingt den lokalen Modus trotz Key.
 
 App plus Helfer in einem Terminal: `npm run dev:qa-summary`. Hilfe: `npm run qa-summary:dev -- --help`. Tests: `npm run qa-summary:dev:test`.
 

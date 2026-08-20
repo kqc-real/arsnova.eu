@@ -37,18 +37,19 @@ Prüfmatrizen aus PR 7 des Audits.
 
 ## Übersicht
 
-| Arbeitsschnitt | Thema                                      | Status        | Automatische Validierung                                    | Manuelle Abnahme | PR/Commit                      |
-| -------------- | ------------------------------------------ | ------------- | ----------------------------------------------------------- | ---------------- | ------------------------------ |
-| PR 1           | Semantik und Eingaben                      | abgeschlossen | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
-| PR 2           | Fokus und SPA-Navigation                   | abgeschlossen | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
-| PR 3           | Dialoge und Overlays                       | abgeschlossen | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                 |
-| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | abgeschlossen | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                 |
-| PR 5           | i18n assistiver Texte                      | abgeschlossen | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                 |
-| PR 6           | automatisierte Qualitätssicherung          | abgeschlossen | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow   | bestanden        | #91 `746f43c1`                 |
-| PR 7           | manuelle Abschlussprüfung                  | abgeschlossen | Browser-/Locale-Matrix und Fokusregressionen grün           | bestanden        | Projektabnahme 2026-07-27      |
-| PR 8           | PDF/UA und Dokumentation                   | abgeschlossen | veraPDF PDF/UA-1: fünf Locale-Demos PASS                    | bestanden        | #92 `1d5f798b`, #93 `5dfd9119` |
-| PR 9           | WCAG-AA-Restblocker (Semantik, Gates)      | abgeschlossen | Headings, axe A/AA, Lighthouse weight=0, erweiterter Reflow | bestanden        | #101                           |
-| PR 9b          | Timer-Nachteilsausgleich (2.2.1)           | abgeschlossen | persönliche Timer-Anpassung schema-first + Vote-UI          | bestanden        | #101                           |
+| Arbeitsschnitt | Thema                                      | Status        | Automatische Validierung                                    | Manuelle Abnahme | PR/Commit                                      |
+| -------------- | ------------------------------------------ | ------------- | ----------------------------------------------------------- | ---------------- | ---------------------------------------------- |
+| PR 1           | Semantik und Eingaben                      | abgeschlossen | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                                 |
+| PR 2           | Fokus und SPA-Navigation                   | abgeschlossen | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                                 |
+| PR 3           | Dialoge und Overlays                       | abgeschlossen | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #89 `1e3fff8c`                                 |
+| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | abgeschlossen | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                                 |
+| PR 5           | i18n assistiver Texte                      | abgeschlossen | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build  | bestanden        | #90 `e2d99a25`                                 |
+| PR 6           | automatisierte Qualitätssicherung          | abgeschlossen | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow   | bestanden        | #91 `746f43c1`                                 |
+| PR 7           | manuelle Abschlussprüfung                  | abgeschlossen | Browser-/Locale-Matrix und Fokusregressionen grün           | bestanden        | Projektabnahme 2026-07-27                      |
+| PR 8           | PDF/UA und Dokumentation                   | abgeschlossen | veraPDF PDF/UA-1: fünf Locale-Demos PASS                    | bestanden        | #92 `1d5f798b`, #93 `5dfd9119`                 |
+| PR 9           | WCAG-AA-Restblocker (Semantik, Gates)      | abgeschlossen | Headings, axe A/AA, Lighthouse weight=0, erweiterter Reflow | bestanden        | #101                                           |
+| PR 9b          | Timer-Nachteilsausgleich (2.2.1)           | abgeschlossen | persönliche Timer-Anpassung schema-first + Vote-UI          | bestanden        | #101                                           |
+| Kompass-UX     | Moderationskompass Erstnutzung             | umgesetzt     | Dialog-/Host-Tests, Typecheck, ESLint, lokalisierter Build  | ausstehend       | Branch `feat/moderation-compass-first-user-ux` |
 
 ## PR 1 – Kritische Semantik und Eingaben
 
@@ -1397,6 +1398,45 @@ Fortlaufende Regressionstests, zusätzliche Geräte-/AT-Stichproben und ein
 optionaler PAC-Gegencheck bleiben sinnvolle, aber nicht blockierende
 Verbesserungen. Die Abnahme enthält weder einen AAA-Claim noch eine Aussage
 vollständiger Universalität.
+
+## Moderationskompass Erstnutzung (2026-08-20)
+
+**Datum:** 2026-08-20
+**Status:** umgesetzt
+**WCAG:** 1.3.1, 2.4.3, 2.4.6, 2.5.8, 4.1.2
+
+### Ausgangsproblem
+
+Der Host-Dialog zeigte Regelkarten und optionale Zusammenfassung als einen
+langen Textblock. Die zeitkritische Tempo-Karte stand zuletzt, der nächste
+Schritt doppelt, Quellen wirkten wie Fußnoten, der Button **Zusammenfassung**
+saß hinter dem Ergebnis.
+
+### Konkrete Umsetzung
+
+- Eine Handlungszeile **Als Nächstes** und Kartenreihenfolge Tempo → Reibung →
+  Klärung → Themen.
+- Quellen als Sprungzeilen mit Zielkanal, 44-px-Ziele, maximal drei sichtbar.
+- Zusammenfassung als optionale zweite Ebene, Button oben, Quellen
+  eingeklappt, Hinweise an den Sätzen. Aussagen als scanbare Stichpunkte
+  mit Themen-Lead statt Fließsatz.
+- **Zurück zum Kompass** als sichtbare Beschriftung; einmaliger Hinweis
+  **Hinweise bereit** vor dem ersten Öffnen im Tab.
+
+### Betroffene Dateien
+
+- `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`
+- `apps/frontend/src/app/features/session/session-host/moderation-compass-dialog.component.*`
+- `apps/frontend/src/app/features/session/session-host/session-host.component.*`
+- `docs/features/moderation-compass.md`, `docs/features/qa-summary.md`
+
+### Tests und Nachweise
+
+Fokussierte Frontend-Tests für Dialog, Kartenbau und Host-Button.
+
+### Offene Risiken
+
+Manuelle Screenreader- und 320-px-Stichprobe im Live-Host stehen noch aus.
 
 ## Vorlage für weitere Einträge
 

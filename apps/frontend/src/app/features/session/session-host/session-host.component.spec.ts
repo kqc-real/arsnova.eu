@@ -11406,6 +11406,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   describe('Moderationskompass', () => {
+    beforeEach(() => {
+      sessionStorage.removeItem('arsnova.moderation-compass.opened');
+    });
+
     it('zeigt den Button Moderation neben der Live-Leiste', async () => {
       const fixture = setup();
       fixture.detectChanges();
@@ -11487,6 +11491,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(dialogOpenMock).toHaveBeenCalledTimes(1);
       const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
       expect(config['panelClass']).toBe('moderation-compass-dialog-panel');
+      expect(config['backdropClass']).toBe('moderation-compass-dialog-backdrop');
       const data = config['data'] as {
         cards: () => { kind: string }[];
         analysisMode: 'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified';
@@ -11502,10 +11507,56 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
         true,
       );
+      expect(button?.classList.contains('session-host__moderation-control--first-hint')).toBe(
+        false,
+      );
       expect(button?.querySelector('.session-host__moderation-control-dot')).not.toBeNull();
       expect(button?.getAttribute('aria-label')).toBe(
         'Moderationskompass öffnen, Hinweise vorhanden',
       );
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-first-hint"]'),
+      ).toBeNull();
+      fixture.destroy();
+    });
+
+    it('zeigt vor dem ersten Öffnen einen kurzen Hinweis am Kompass', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          upvoteCount: 4,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector(
+        '[data-testid="host-moderation-compass"]',
+      ) as HTMLButtonElement | null;
+      expect(button?.classList.contains('session-host__moderation-control--first-hint')).toBe(true);
+      expect(button?.getAttribute('aria-label')).toBe('Moderationskompass öffnen, Hinweise bereit');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-first-hint"]')
+          ?.textContent,
+      ).toContain('Hinweise bereit');
       fixture.destroy();
     });
 

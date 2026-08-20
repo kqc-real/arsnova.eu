@@ -1,5 +1,14 @@
 import { extractExportQuestionText } from '../../../core/markdown-plain-text.util';
-import type { QaNlpCategory, QaNlpResult, QaNlpStatus, QuestionType } from '@arsnova/shared-types';
+import {
+  type QaNlpCategory,
+  type QaNlpResult,
+  type QaNlpStatus,
+  type QuestionType,
+} from '@arsnova/shared-types';
+import {
+  toQaSummaryScanBullet,
+  type QaSummaryScanLocale,
+} from '@arsnova/shared-types/qa-summary-scan';
 
 export type ModerationCompassCardKind =
   'topics' | 'clarification' | 'friction' | 'tempo' | 'nextStep';
@@ -201,10 +210,100 @@ export type ModerationQuizFact =
   | { readonly type: 'rating-low'; readonly avg: number }
   | { readonly type: 'freetext-repeat'; readonly text: string; readonly count: number };
 
-const MAX_SOURCES = 3;
+export const MODERATION_COMPASS_VISIBLE_SOURCE_COUNT = 3;
+export const MODERATION_COMPASS_STORED_SOURCE_COUNT = 8;
+export const MODERATION_COMPASS_OPENED_STORAGE_KEY = 'arsnova.moderation-compass.opened';
+
 const MAX_TOPIC_TERMS = 5;
 const SOURCE_LABEL_MAX = 88;
 const NEGATIVE_FEEDBACK_KEYS = new Set(['NEGATIVE', 'NO', 'FALSE', 'LOST', 'SLOW_DOWN', '1', '2']);
+const CARD_KIND_ORDER: readonly ModerationCompassCardKind[] = [
+  'tempo',
+  'friction',
+  'clarification',
+  'topics',
+  'nextStep',
+];
+
+export type ModerationCompassSourceDestination = 'qa' | 'quiz' | 'word-cloud' | 'quickFeedback';
+
+export function visibleModerationCompassSources(
+  sources: readonly ModerationCompassSource[],
+): readonly ModerationCompassSource[] {
+  return sources.slice(0, MODERATION_COMPASS_VISIBLE_SOURCE_COUNT);
+}
+
+export function extraModerationCompassSources(
+  sources: readonly ModerationCompassSource[],
+): readonly ModerationCompassSource[] {
+  return sources.slice(MODERATION_COMPASS_VISIBLE_SOURCE_COUNT);
+}
+
+export type ModerationSummaryScanParts = {
+  readonly lead: string | null;
+  readonly body: string;
+};
+
+const SUMMARY_LEAD_RE = /^([^:：]{2,36})[:：] (.+)$/u;
+
+/** Splits "Median: Formel unklar" so the host can scan the topic first. */
+export function splitModerationSummaryLead(
+  text: string,
+  locale: QaSummaryScanLocale = 'de',
+): ModerationSummaryScanParts {
+  const body = toQaSummaryScanBullet(text, locale);
+  const match = body.match(SUMMARY_LEAD_RE);
+  if (!match) {
+    return { lead: null, body };
+  }
+  const lead = match[1].trim();
+  const rest = match[2].trim();
+  if (!rest || lead.includes('.') || /\d{1,2}:\d{2}$/.test(lead)) {
+    return { lead: null, body };
+  }
+  return { lead, body: rest };
+}
+
+export function moderationCompassSourceDestination(
+  source: ModerationCompassSource,
+): ModerationCompassSourceDestination {
+  if (source.target?.surface === 'word-cloud') {
+    return 'word-cloud';
+  }
+  if (!source.target && (source.kind === 'qa-term' || source.kind === 'freetext-term')) {
+    return 'word-cloud';
+  }
+  const channel =
+    source.target?.channel ??
+    (source.kind === 'quiz-result' || source.kind === 'freetext-term'
+      ? 'quiz'
+      : source.kind === 'tempo'
+        ? 'quickFeedback'
+        : 'qa');
+  if (channel === 'quiz') {
+    return 'quiz';
+  }
+  if (channel === 'quickFeedback') {
+    return 'quickFeedback';
+  }
+  return 'qa';
+}
+
+export function moderationCompassWasOpened(): boolean {
+  try {
+    return sessionStorage.getItem(MODERATION_COMPASS_OPENED_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function rememberModerationCompassOpened(): void {
+  try {
+    sessionStorage.setItem(MODERATION_COMPASS_OPENED_STORAGE_KEY, '1');
+  } catch {
+    // Private mode or blocked storage must not break the host view.
+  }
+}
 
 export function truncateCompassLabel(text: string, max = SOURCE_LABEL_MAX): string {
   const trimmed = text.trim().replace(/\s+/g, ' ');
@@ -537,12 +636,12 @@ export function rememberModerationQuizSnapshot(
   questionId: string,
   sources: readonly ModerationCompassSource[],
   questionType?: QuestionType,
-  maxQuestions = MAX_SOURCES,
+  maxQuestions = MODERATION_COMPASS_STORED_SOURCE_COUNT,
 ): readonly ModerationCompassQuizSourceCacheEntry[] {
   const nextSources = sources
     .filter((source) => source.label.trim().length > 0)
     .map(withDefaultSourceTarget)
-    .slice(0, MAX_SOURCES);
+    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT);
   const next =
     nextSources.length === 0
       ? existing.filter((entry) => entry.questionId !== questionId)
@@ -581,7 +680,7 @@ export function mergeModerationQuizSources(
   current: readonly ModerationCompassSource[],
   cached: readonly ModerationCompassQuizSourceCacheEntry[],
   currentQuestionId: string | null,
-  max = MAX_SOURCES,
+  max = MODERATION_COMPASS_STORED_SOURCE_COUNT,
 ): ModerationCompassSource[] {
   const merged: ModerationCompassSource[] = [];
   const seen = new Set<string>();
@@ -683,7 +782,7 @@ function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompass
   const mixed: ModerationCompassSource[] = [];
   const seen = new Set<string>();
   const push = (source: ModerationCompassSource | undefined) => {
-    if (!source || mixed.length >= MAX_SOURCES) {
+    if (!source || mixed.length >= MODERATION_COMPASS_STORED_SOURCE_COUNT) {
       return;
     }
     const key = `${source.kind}:${source.label}`;
@@ -703,7 +802,11 @@ function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompass
   for (const source of [...qa.slice(1), ...freetext.slice(1), ...extras.slice(1)]) {
     push(source);
   }
-  if (mixed.length > 0 && mixed.length < MAX_SOURCES && snapshot.topicWeightLabel) {
+  if (
+    mixed.length > 0 &&
+    mixed.length < MODERATION_COMPASS_VISIBLE_SOURCE_COUNT &&
+    snapshot.topicWeightLabel
+  ) {
     push({
       kind: 'qa-term',
       label: snapshot.topicWeightLabel,
@@ -778,7 +881,7 @@ function quizConfusionSources(
   return sources
     .filter((source) => source.kind === 'quiz-result' && source.label.trim().length > 0)
     .map(withDefaultSourceTarget)
-    .slice(0, MAX_SOURCES);
+    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT);
 }
 
 function qaQuestionSource(question: ModerationCompassQaQuestion): ModerationCompassSource | null {
@@ -911,12 +1014,17 @@ export function buildModerationCompassCards(
     (question) => truncateCompassLabel(question.text).length > 0,
   );
   const quizSources = quizConfusionSources(snapshot.quizSources);
-  const quizTake = Math.min(quizSources.length, pending.length > 0 ? 2 : MAX_SOURCES);
+  const quizTake = Math.min(
+    quizSources.length,
+    pending.length > 0 ? 2 : MODERATION_COMPASS_STORED_SOURCE_COUNT,
+  );
   const takenQuiz = quizSources.slice(0, quizTake);
-  const pendingSources = pending.slice(0, MAX_SOURCES - takenQuiz.length).flatMap((question) => {
-    const source = qaQuestionSource(question);
-    return source ? [source] : [];
-  });
+  const pendingSources = pending
+    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT - takenQuiz.length)
+    .flatMap((question) => {
+      const source = qaQuestionSource(question);
+      return source ? [source] : [];
+    });
   const clarificationSources: ModerationCompassSource[] = [...takenQuiz, ...pendingSources];
   if (clarificationSources.length > 0) {
     cards.push({
@@ -931,7 +1039,7 @@ export function buildModerationCompassCards(
       const source = qaQuestionSource(question);
       return source ? [source] : [];
     })
-    .slice(0, MAX_SOURCES);
+    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT);
   if (frictionSources.length > 0) {
     cards.push({ kind: 'friction', tone: 'caution', sources: frictionSources });
   }
@@ -973,7 +1081,9 @@ export function buildModerationCompassCards(
     }
   }
 
-  return cards;
+  return [...cards].sort(
+    (left, right) => CARD_KIND_ORDER.indexOf(left.kind) - CARD_KIND_ORDER.indexOf(right.kind),
+  );
 }
 
 export function resolveModerationCompassAnalysisMode(input: {

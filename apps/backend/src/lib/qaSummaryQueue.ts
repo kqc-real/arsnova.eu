@@ -117,6 +117,16 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
+function summarizeQaSummaryCatch(error: unknown): { errorName: string; errorMessage: string } {
+  if (!(error instanceof Error)) {
+    return { errorName: 'unknown', errorMessage: 'non-error' };
+  }
+  return {
+    errorName: error.name.slice(0, 40),
+    errorMessage: error.message.replace(/\s+/g, ' ').slice(0, 160),
+  };
+}
+
 function inferenceConfigured(config: QaSummaryConfig): boolean {
   return Boolean(config.inferenceUrl);
 }
@@ -220,6 +230,7 @@ async function processJob(job: QueueJob): Promise<void> {
     logger.warn('qa_summary:failed', {
       reason: timedOut ? 'timeout' : 'error',
       latencyMs: hooks.now() - started,
+      ...summarizeQaSummaryCatch(error),
     });
   } finally {
     running -= 1;
@@ -274,7 +285,8 @@ export async function requestQaSummary(
     existing &&
     existing.lastFinishedAt !== null &&
     now - existing.lastFinishedAt < config.cooldownMs &&
-    existing.result.snapshotHash === snapshotHash
+    existing.result.snapshotHash === snapshotHash &&
+    existing.result.status !== 'failed'
   ) {
     return toRuntime(sessionId);
   }

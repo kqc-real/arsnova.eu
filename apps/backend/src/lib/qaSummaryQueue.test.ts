@@ -120,4 +120,50 @@ describe('qaSummaryQueue', () => {
     expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('failed');
     expect(getQaSummaryRuntime(SESSION_ID).result?.modelVersion).toBe('stub:timeout');
   });
+
+  it('lässt nach einem Timeout sofort einen neuen Versuch zu', async () => {
+    let processed = 0;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig({ timeoutMs: 20 }),
+      loadSnapshot: async () => snapshot,
+      processor: async () => {
+        processed += 1;
+        if (processed === 1) {
+          return new Promise(() => {
+            /* first attempt hangs */
+          });
+        }
+        return {
+          status: 'ready',
+          statements: [{ text: 'Es gibt eine Klausurfrage.', sourceIds: [SOURCE_ID] }],
+          suggestedNextSteps: [],
+          limitations: [],
+        };
+      },
+    });
+
+    await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('failed');
+
+    await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(processed).toBe(2);
+    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('ready');
+  });
+
+  it('wird bei Processor-Fehler failed, ohne die Queue zu blockieren', async () => {
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      loadSnapshot: async () => snapshot,
+      processor: async () => {
+        throw new Error('read ECONNRESET');
+      },
+    });
+
+    await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('failed');
+    expect(getQaSummaryRuntime(SESSION_ID).result?.modelVersion).toBe('stub:error');
+  });
 });

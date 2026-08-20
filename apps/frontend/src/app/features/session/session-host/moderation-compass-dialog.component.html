@@ -7,39 +7,36 @@
       Moderationskompass
     </span>
     <span class="dialog-title-header__sub moderation-compass-dialog__intro">
-      <span i18n="@@sessionHost.moderationDialogIntro">
-        Dein Live-Überblick über Quiz, Q&amp;A und Blitzlicht.
-      </span>
-      <span i18n="@@sessionHost.moderationDialogIntroDecide">
-        Du entscheidest, welche Themen behandelt werden.
-      </span>
-      <span class="moderation-compass-dialog__status">
-        @if (analysisMode() === 'disabled') {
-          <span i18n="@@sessionHost.moderationAnalysisOff">
-            Die automatische Sortierung der Fragen ist aus.
-          </span>
-        } @else if (analysisMode() === 'pending') {
-          <span i18n="@@sessionHost.moderationAnalysisPending">
-            Die Fragen werden noch sortiert.
-          </span>
-        } @else if (analysisMode() === 'uncertain') {
-          <span i18n="@@sessionHost.moderationAnalysisUncertain">
-            Die Sortierung der Fragen ist unsicher.
-          </span>
-        } @else if (analysisMode() === 'failed') {
-          <span i18n="@@sessionHost.moderationAnalysisFailed">
-            Die automatische Sortierung ist gerade nicht verfügbar.
-          </span>
-        } @else if (analysisMode() === 'classified') {
-          <span i18n="@@sessionHost.moderationAnalysisClassified">
-            Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.
-          </span>
-        } @else {
-          <span i18n="@@sessionHost.moderationRuleBased">
-            Einschätzung aus den sichtbaren Live-Signalen.
-          </span>
-        }
-      </span>
+      @if (hasCards()) {
+        <span i18n="@@sessionHost.moderationDialogJump">
+          Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.
+        </span>
+      }
+      @if (showAnalysisStatus()) {
+        <span class="moderation-compass-dialog__status">
+          @if (analysisMode() === 'disabled') {
+            <span i18n="@@sessionHost.moderationAnalysisOff">
+              Die automatische Sortierung der Fragen ist aus.
+            </span>
+          } @else if (analysisMode() === 'pending') {
+            <span i18n="@@sessionHost.moderationAnalysisPending">
+              Die Fragen werden noch sortiert.
+            </span>
+          } @else if (analysisMode() === 'uncertain') {
+            <span i18n="@@sessionHost.moderationAnalysisUncertain">
+              Die Sortierung der Fragen ist unsicher.
+            </span>
+          } @else if (analysisMode() === 'failed') {
+            <span i18n="@@sessionHost.moderationAnalysisFailed">
+              Die automatische Sortierung ist gerade nicht verfügbar.
+            </span>
+          } @else if (analysisMode() === 'classified') {
+            <span i18n="@@sessionHost.moderationAnalysisClassified">
+              Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.
+            </span>
+          }
+        </span>
+      }
     </span>
   </span>
 </h2>
@@ -57,12 +54,30 @@
 
 <mat-dialog-content class="moderation-compass-dialog__content">
   @if (hasCards()) {
+    @if (nextStepText(primaryNextStepReason()); as suggestion) {
+      <p
+        class="moderation-compass-dialog__now"
+        role="status"
+        [attr.data-tone]="leadCard()?.tone ?? 'neutral'"
+        data-testid="moderation-next-step"
+      >
+        <strong class="moderation-compass-dialog__now-label">{{ nextStepHeading() }}</strong>
+        {{ suggestion }}
+      </p>
+    }
+    <p
+      class="moderation-compass-dialog__signals-kicker"
+      i18n="@@sessionHost.moderationSignalsLabel"
+    >
+      Aus der Live-Runde
+    </p>
     <div class="moderation-compass-dialog__cards">
       @for (card of cards(); track card.kind) {
         <article
           class="moderation-compass-card"
           [attr.data-kind]="card.kind"
           [attr.data-tone]="card.tone ?? 'neutral'"
+          [attr.data-lead]="card.nextStepReason ? 'true' : null"
         >
           <header class="moderation-compass-card__header">
             <mat-icon class="moderation-compass-card__icon" aria-hidden="true">{{
@@ -70,19 +85,9 @@
             }}</mat-icon>
             <h3 class="moderation-compass-card__title">{{ cardTitle(card) }}</h3>
           </header>
-          @if (nextStepText(card.nextStepReason); as suggestion) {
-            <p class="moderation-compass-card__suggestion">
-              @if (card.kind !== 'nextStep') {
-                <strong class="moderation-compass-card__next-label"
-                  >{{ nextStepHeading() }}.</strong
-                >
-              }
-              {{ suggestion }}
-            </p>
-          }
-          @if (card.sources.length > 0) {
+          @if (visibleSources(card).length > 0) {
             <ul class="moderation-compass-card__sources">
-              @for (source of card.sources; track source.kind + source.label) {
+              @for (source of visibleSources(card); track source.kind + source.label) {
                 <li>
                   @if (source.target) {
                     <button
@@ -91,22 +96,73 @@
                       [attr.aria-label]="sourceJumpAria(source)"
                       (click)="activateSource(source, card)"
                     >
-                      {{ source.label }}
+                      <span class="moderation-compass-card__source-dest">{{
+                        sourceDestinationLabel(source)
+                      }}</span>
+                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
                     </button>
                   } @else {
-                    {{ source.label }}
+                    <span class="moderation-compass-card__source-static">
+                      <span class="moderation-compass-card__source-dest">{{
+                        sourceDestinationLabel(source)
+                      }}</span>
+                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
+                    </span>
                   }
                 </li>
               }
             </ul>
           }
+          @if (extraSources(card).length > 0) {
+            <details class="moderation-compass-card__more">
+              <summary class="moderation-compass-card__more-summary">
+                {{ moreSourcesLabel(extraSources(card).length) }}
+              </summary>
+              <ul class="moderation-compass-card__sources">
+                @for (source of extraSources(card); track source.kind + source.label) {
+                  <li>
+                    @if (source.target) {
+                      <button
+                        type="button"
+                        class="moderation-compass-card__source-button"
+                        [attr.aria-label]="sourceJumpAria(source)"
+                        (click)="activateSource(source, card)"
+                      >
+                        <span class="moderation-compass-card__source-dest">{{
+                          sourceDestinationLabel(source)
+                        }}</span>
+                        <span class="moderation-compass-card__source-label">{{
+                          source.label
+                        }}</span>
+                      </button>
+                    } @else {
+                      <span class="moderation-compass-card__source-static">
+                        <span class="moderation-compass-card__source-dest">{{
+                          sourceDestinationLabel(source)
+                        }}</span>
+                        <span class="moderation-compass-card__source-label">{{
+                          source.label
+                        }}</span>
+                      </span>
+                    }
+                  </li>
+                }
+              </ul>
+            </details>
+          }
         </article>
       }
     </div>
   } @else {
-    <p class="moderation-compass-dialog__empty" role="status" i18n="@@sessionHost.moderationEmpty">
-      Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.
-    </p>
+    <div class="moderation-compass-dialog__empty" role="status">
+      <p i18n="@@sessionHost.moderationEmptyHint">
+        Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärbedarf, umstrittene
+        Fragen und Tempo.
+      </p>
+      <p i18n="@@sessionHost.moderationDialogIntroDecide">
+        Du entscheidest, welche Themen behandelt werden.
+      </p>
+    </div>
   }
 
   @if (summaryEnabled()) {
@@ -115,66 +171,18 @@
       data-testid="moderation-summary"
       aria-live="polite"
     >
-      @if (summaryStatusText(summaryResult()); as statusText) {
-        <p class="moderation-compass-dialog__summary-status" role="status">{{ statusText }}</p>
-      }
-      @if (summaryResult(); as result) {
-        @if (result.statements.length > 0) {
-          <ul class="moderation-compass-dialog__summary-statements">
-            @for (statement of result.statements; track statement.text) {
-              <li>{{ statement.text }}</li>
-            }
-          </ul>
-        }
-        @if (result.suggestedNextSteps.length > 0) {
-          <h3
-            class="moderation-compass-dialog__summary-heading"
-            i18n="@@sessionHost.moderationSummaryNextSteps"
-          >
-            Mögliche nächste Schritte
-          </h3>
-          <ul class="moderation-compass-dialog__summary-statements">
-            @for (step of result.suggestedNextSteps; track step.text) {
-              <li>{{ step.text }}</li>
-            }
-          </ul>
-        }
-        @if (result.sources.length > 0) {
-          <h3
-            class="moderation-compass-dialog__summary-heading"
-            i18n="@@sessionHost.moderationSummarySources"
-          >
-            Quellen
-          </h3>
-          <ul class="moderation-compass-card__sources">
-            @for (source of result.sources; track source.id) {
-              <li>
-                <button
-                  type="button"
-                  class="moderation-compass-card__source-button"
-                  [attr.aria-label]="summarySourceJumpAria(source)"
-                  (click)="activateSummarySource(source)"
-                >
-                  {{ source.label }}
-                </button>
-              </li>
-            }
-          </ul>
-        }
-        @if (result.limitations.length > 0) {
-          <h3
-            class="moderation-compass-dialog__summary-heading"
-            i18n="@@sessionHost.moderationSummaryLimitations"
-          >
-            Hinweise
-          </h3>
-          <ul class="moderation-compass-dialog__summary-limitations">
-            @for (limitation of result.limitations; track limitation) {
-              <li>{{ limitation }}</li>
-            }
-          </ul>
-        }
-      }
+      <h3
+        class="moderation-compass-dialog__summary-title"
+        i18n="@@sessionHost.moderationSummaryTitle"
+      >
+        Kurzfassung der offenen Fragen
+      </h3>
+      <p
+        class="moderation-compass-dialog__summary-intro"
+        i18n="@@sessionHost.moderationSummaryIntro"
+      >
+        Optional: 2–4 kurze Stichpunkte zum Überfliegen.
+      </p>
       <button
         mat-stroked-button
         type="button"
@@ -186,6 +194,87 @@
       >
         Zusammenfassung
       </button>
+      @if (summaryStatusText(summaryResult()); as statusText) {
+        <p class="moderation-compass-dialog__summary-status" role="status">{{ statusText }}</p>
+      }
+      @if (showSummaryBody()) {
+        @if (summaryResult(); as result) {
+          @if (result.statements.length > 0) {
+            <ul class="moderation-compass-dialog__summary-statements">
+              @for (statement of summaryStatements(result); track statement.text) {
+                @let parts = summaryScanParts(statement.text);
+                <li>
+                  @if (parts.lead) {
+                    <span class="moderation-compass-dialog__summary-lead">{{ parts.lead }}:</span>
+                    {{ parts.body }}
+                  } @else {
+                    {{ parts.body }}
+                  }
+                </li>
+              }
+            </ul>
+          }
+          @let notices = summaryLimitations(result);
+          @if (notices.length > 0) {
+            <h4
+              class="moderation-compass-dialog__summary-heading"
+              i18n="@@sessionHost.moderationSummaryLimitations"
+            >
+              Hinweise
+            </h4>
+            <ul class="moderation-compass-dialog__summary-limitations">
+              @for (limitation of notices; track limitation) {
+                <li>{{ limitation }}</li>
+              }
+            </ul>
+          }
+          @if (showSummaryNextSteps()) {
+            <h4
+              class="moderation-compass-dialog__summary-heading"
+              i18n="@@sessionHost.moderationSummaryNextSteps"
+            >
+              Mögliche nächste Schritte
+            </h4>
+            <ul class="moderation-compass-dialog__summary-statements">
+              @for (step of result.suggestedNextSteps; track step.text) {
+                @let parts = summaryScanParts(step.text);
+                <li>
+                  @if (parts.lead) {
+                    <span class="moderation-compass-dialog__summary-lead">{{ parts.lead }}:</span>
+                    {{ parts.body }}
+                  } @else {
+                    {{ parts.body }}
+                  }
+                </li>
+              }
+            </ul>
+          }
+          @if (result.sources.length > 0) {
+            <details class="moderation-compass-dialog__summary-sources">
+              <summary class="moderation-compass-dialog__summary-sources-summary">
+                {{ summarySourcesToggleLabel(result.sources.length) }}
+              </summary>
+              <ul class="moderation-compass-card__sources">
+                @for (source of result.sources; track source.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="moderation-compass-card__source-button"
+                      [attr.aria-label]="summarySourceJumpAria(source)"
+                      (click)="activateSummarySource(source)"
+                    >
+                      <span class="moderation-compass-card__source-dest">{{
+                        summarySourceDestinationLabel()
+                      }}</span>
+                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </details>
+          }
+        }
+      }
     </section>
   }
 </mat-dialog-content>

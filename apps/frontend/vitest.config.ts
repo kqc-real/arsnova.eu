@@ -42,6 +42,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@arsnova/shared-types/qa-summary-scan': path.resolve(
+        projectRoot,
+        '../../libs/shared-types/src/qa-summary-scan.ts',
+      ),
       '@arsnova/shared-types': path.resolve(
         projectRoot,
         '../../libs/shared-types/src/index.workspace.ts',
