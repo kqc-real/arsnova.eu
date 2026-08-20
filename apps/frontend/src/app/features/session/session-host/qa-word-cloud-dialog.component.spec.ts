@@ -44,7 +44,7 @@ describe('QaWordCloudDialogComponent', () => {
       smoothingStatus: () => 'idle',
       smoothingLabel: () => 'Sprachformen glätten',
       smoothingHint: () => null,
-      smoothingDisabled: () => false,
+      smoothingDisabled: () => analysisVariant === 'SEMANTIC',
       toggleSmoothing: vi.fn(),
       lemmaLocale: () => 'de',
       setLemmaLocale: vi.fn(),
@@ -89,5 +89,11 @@ describe('QaWordCloudDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Themen sind noch nicht verfügbar');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__cloud')).not.toBeNull();
+
+    const smoothButton = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__smooth',
+    ) as HTMLButtonElement;
+    expect(smoothButton.disabled).toBe(true);
+    expect(smoothButton.getAttribute('aria-pressed')).toBe('false');
   });
 });
