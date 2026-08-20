@@ -468,6 +468,16 @@
           }
         </section>
         <div class="session-host__moderation-stack">
+          @if (moderationCompassShowFirstHint() && !moderationCompassReturn()) {
+            <span
+              class="session-host__moderation-first-hint"
+              data-testid="host-moderation-compass-first-hint"
+              role="status"
+              i18n="@@sessionHost.moderationFirstHint"
+            >
+              Hinweise bereit
+            </span>
+          }
           @if (moderationCompassReturn()) {
             <button
               type="button"
@@ -480,8 +490,8 @@
               <mat-icon aria-hidden="true">arrow_back</mat-icon>
               <span
                 class="session-host__moderation-return-label"
-                i18n="@@sessionHost.moderationReturn"
-                >Zurück</span
+                i18n="@@sessionHost.moderationReturnToCompass"
+                >Zurück zum Kompass</span
               >
             </button>
           }
@@ -491,6 +501,7 @@
             class="session-host__moderation-control"
             data-testid="host-moderation-compass"
             [class.session-host__moderation-control--has-signals]="moderationCompassHasSignals()"
+            [class.session-host__moderation-control--first-hint]="moderationCompassShowFirstHint()"
             (click)="openModerationCompassDialog()"
             aria-haspopup="dialog"
             [attr.aria-label]="moderationCompassButtonAria()"

@@ -1,15 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildModerationCompassCards,
   collectModerationQuizFacts,
   collectQaNlpCategorySources,
   compassQuestionStem,
   compassTermsFromAnalysisEntries,
+  extraModerationCompassSources,
   mergeModerationQuizSources,
+  MODERATION_COMPASS_OPENED_STORAGE_KEY,
+  moderationCompassSourceDestination,
+  moderationCompassWasOpened,
   notableQuickFeedbackSplit,
+  rememberModerationCompassOpened,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
+  splitModerationSummaryLead,
   truncateCompassLabel,
+  visibleModerationCompassSources,
   type ModerationCompassSnapshot,
 } from './moderation-compass';
 
@@ -32,6 +39,31 @@ describe('truncateCompassLabel', () => {
     const label = truncateCompassLabel('a'.repeat(120), 20);
     expect(label.endsWith('…')).toBe(true);
     expect(label.length).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('splitModerationSummaryLead', () => {
+  it('trennt Thema und Klausel am Doppelpunkt', () => {
+    expect(splitModerationSummaryLead('Median: Formel und Berechnung sind unklar.')).toEqual({
+      lead: 'Median',
+      body: 'Formel und Berechnung sind unklar.',
+    });
+  });
+
+  it('lässt Fließsätze ohne Lead unverändert', () => {
+    const text = 'Es gibt eine Frage zur Klausur.';
+    expect(splitModerationSummaryLead(text)).toEqual({ lead: null, body: text });
+  });
+
+  it('macht Gemini-Protokolle zu Thema plus Klausel', () => {
+    expect(
+      splitModerationSummaryLead(
+        'Es gibt konkrete Fragen zur Berechnung des Medians und der dazu passenden Formel.',
+      ),
+    ).toEqual({
+      lead: 'Median',
+      body: 'Berechnung und Formel.',
+    });
   });
 });
 
@@ -180,9 +212,10 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    expect(
-      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.kind),
-    ).toEqual(['qa-term', 'freetext-term', 'qa-question']);
+    const kinds =
+      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.kind) ?? [];
+    expect(kinds.slice(0, 3)).toEqual(['qa-term', 'freetext-term', 'qa-question']);
+    expect(kinds.length).toBeGreaterThan(3);
   });
 
   it('stellt NLP-Kategorien in der Themenkarte vor Wortwolken-Begriffe', () => {
@@ -230,9 +263,14 @@ describe('buildModerationCompassCards', () => {
       ],
     });
 
-    expect(
-      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.label),
-    ).toEqual(['Inhaltliche Fragen · 2', 'Fragen zum Ablauf', 'Technische Fragen']);
+    const labels =
+      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.label) ?? [];
+    expect(labels.slice(0, 3)).toEqual([
+      'Inhaltliche Fragen · 2',
+      'Fragen zum Ablauf',
+      'Technische Fragen',
+    ]);
+    expect(labels).toContain('Median · Wie berechnet man den Median?');
   });
 
   it('bildet Themenkarten auch nur aus Freitext-Begriffen', () => {
@@ -540,9 +578,9 @@ describe('buildModerationCompassCards', () => {
     });
 
     const clarification = cards.find((card) => card.kind === 'clarification');
-    expect(clarification?.sources).toHaveLength(3);
+    expect(clarification?.sources).toHaveLength(4);
     expect(clarification?.sources.filter((source) => source.kind === 'qa-question')).toHaveLength(
-      2,
+      3,
     );
     expect(clarification?.sources.some((source) => source.kind === 'quiz-result')).toBe(true);
   });
@@ -611,6 +649,98 @@ describe('buildModerationCompassCards', () => {
     expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('tempo');
     expect(cards.find((card) => card.kind === 'clarification')?.nextStepReason).toBeUndefined();
     expect(cards.find((card) => card.kind === 'clarification')?.tone).toBe('caution');
+  });
+
+  it('zeigt Tempo und Reibung vor Themen', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      tempo: { label: 'Viele kommen nicht mehr mit.', tone: 'alert' },
+      qaTerms: [
+        {
+          label: 'Median',
+          documentFrequency: 4,
+          sourceCount: 4,
+          memberTexts: ['Wie berechnet man den Median?'],
+        },
+      ],
+      qaQuestions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Ist die Klausur open book?',
+          status: 'ACTIVE',
+          isControversial: true,
+        },
+      ],
+    });
+
+    expect(cards.map((card) => card.kind)).toEqual(['tempo', 'friction', 'topics']);
+  });
+
+  it('bewahrt zusätzliche Quellen hinter den ersten drei', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaQuestions: [
+        { id: '11111111-1111-4111-8111-111111111111', text: 'Frage eins?', status: 'PENDING' },
+        { id: '22222222-2222-4222-8222-222222222222', text: 'Frage zwei?', status: 'PENDING' },
+        { id: '33333333-3333-4333-8333-333333333333', text: 'Frage drei?', status: 'PENDING' },
+        { id: '44444444-4444-4444-8444-444444444444', text: 'Frage vier?', status: 'PENDING' },
+        { id: '55555555-5555-4555-8555-555555555555', text: 'Frage fünf?', status: 'PENDING' },
+      ],
+    });
+
+    const sources = cards.find((card) => card.kind === 'clarification')?.sources ?? [];
+    expect(sources).toHaveLength(5);
+    expect(visibleModerationCompassSources(sources)).toHaveLength(3);
+    expect(extraModerationCompassSources(sources).map((source) => source.label)).toEqual([
+      'Frage vier?',
+      'Frage fünf?',
+    ]);
+  });
+});
+
+describe('moderationCompassSourceDestination', () => {
+  it('erkennt Wortwolke, Quiz, Blitzlicht und Q&A', () => {
+    expect(
+      moderationCompassSourceDestination({
+        kind: 'qa-term',
+        label: 'Median',
+        target: { channel: 'qa', surface: 'word-cloud', termLabel: 'Median' },
+      }),
+    ).toBe('word-cloud');
+    expect(
+      moderationCompassSourceDestination({
+        kind: 'quiz-result',
+        label: '22 von 30 liegen daneben',
+        target: { channel: 'quiz' },
+      }),
+    ).toBe('quiz');
+    expect(
+      moderationCompassSourceDestination({
+        kind: 'tempo',
+        label: 'Viele kommen nicht mehr mit.',
+        target: { channel: 'quickFeedback' },
+      }),
+    ).toBe('quickFeedback');
+    expect(
+      moderationCompassSourceDestination({
+        kind: 'qa-question',
+        label: 'Was ist der Median?',
+        target: { channel: 'qa', questionId: '11111111-1111-4111-8111-111111111111' },
+      }),
+    ).toBe('qa');
+  });
+});
+
+describe('rememberModerationCompassOpened', () => {
+  afterEach(() => {
+    sessionStorage.removeItem(MODERATION_COMPASS_OPENED_STORAGE_KEY);
+  });
+
+  it('merkt das erste Öffnen nur im Tab', () => {
+    sessionStorage.removeItem(MODERATION_COMPASS_OPENED_STORAGE_KEY);
+    expect(moderationCompassWasOpened()).toBe(false);
+    rememberModerationCompassOpened();
+    expect(moderationCompassWasOpened()).toBe(true);
   });
 });
 

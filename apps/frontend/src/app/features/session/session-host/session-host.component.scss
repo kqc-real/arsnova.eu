@@ -795,7 +795,20 @@
   gap: 0.45rem;
   flex: 0 0 auto;
   align-self: stretch;
+  position: relative;
   min-width: 2.75rem;
+}
+
+.session-host__moderation-first-hint {
+  max-width: 6.8rem;
+  padding: 0.28rem 0.45rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
 }
 
 .session-host__moderation-return {
@@ -806,15 +819,15 @@
   gap: 0.15rem;
   flex: 0 0 auto;
   min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: 0.35rem 0.5rem;
+  min-height: 44px;
+  padding: 0.4rem 0.5rem;
   appearance: none;
   font: inherit;
-  border: 1px solid var(--mat-sys-outline-variant);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
   border-radius: var(--mat-sys-corner-extra-large);
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 92%, var(--mat-sys-surface));
-  box-shadow: var(--mat-sys-level1);
-  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 82%, var(--mat-sys-surface));
+  box-shadow: var(--mat-sys-level2);
+  color: var(--mat-sys-on-primary-container);
   cursor: pointer;
   box-sizing: border-box;
 
@@ -822,11 +835,11 @@
     width: 1.25rem;
     height: 1.25rem;
     font-size: 1.25rem;
-    color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary-container);
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
+    background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-primary-container));
   }
 
   &:focus-visible {
@@ -840,10 +853,10 @@
 }
 
 .session-host__moderation-return-label {
-  max-width: 5.6rem;
-  color: var(--mat-sys-on-surface);
+  max-width: 6.4rem;
+  color: var(--mat-sys-on-primary-container);
   font: var(--mat-sys-label-medium);
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.2;
   text-align: center;
 }
@@ -902,6 +915,10 @@
   &:active {
     background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-primary-container));
   }
+}
+
+.session-host__moderation-control--first-hint {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 72%, var(--mat-sys-outline-variant));
 }
 
 .session-host__moderation-control-dot {
@@ -1365,13 +1382,18 @@
   .session-host__moderation-return {
     padding: 0.3rem 0.35rem;
     min-width: 3.15rem;
-    min-height: 2.5rem;
+    min-height: 44px;
   }
 
   .session-host__moderation-return-label {
-    max-width: 4.6rem;
+    max-width: 5.4rem;
     font: var(--mat-sys-label-small);
-    font-weight: 650;
+    font-weight: 700;
+  }
+
+  .session-host__moderation-first-hint {
+    max-width: 5.4rem;
+    padding: 0.2rem 0.35rem;
   }
 
   .session-host__moderation-control {

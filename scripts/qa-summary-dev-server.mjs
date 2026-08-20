@@ -29,40 +29,40 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 
 const COPY = {
   de: {
-    asked: 'Es wird gefragt: ',
-    next: 'Klär zuerst: ',
+    asked: '',
+    next: 'Als Nächstes: ',
     limitation: 'Nur sichtbare Q&A-Fragen, keine Teilnehmendenbewertung.',
     empty: 'Es liegen keine Q&A-Quellen vor.',
     quoteStart: '„',
     quoteEnd: '“',
   },
   en: {
-    asked: 'Participants ask: ',
-    next: 'Clarify first: ',
+    asked: '',
+    next: 'Up next: ',
     limitation: 'Visible Q&A questions only; no participant evaluation.',
     empty: 'No Q&A sources are available.',
     quoteStart: '"',
     quoteEnd: '"',
   },
   fr: {
-    asked: 'Question posée : ',
-    next: 'Clarifier d’abord : ',
+    asked: '',
+    next: 'À suivre : ',
     limitation: 'Uniquement les questions Q&R visibles, sans évaluation des participant·e·s.',
     empty: 'Aucune source Q&R n’est disponible.',
     quoteStart: '« ',
     quoteEnd: ' »',
   },
   es: {
-    asked: 'Se pregunta: ',
-    next: 'Aclara primero: ',
+    asked: '',
+    next: 'Lo siguiente: ',
     limitation: 'Solo preguntas de Q&A visibles; sin evaluación de participantes.',
     empty: 'No hay fuentes de Q&A.',
     quoteStart: '«',
     quoteEnd: '»',
   },
   it: {
-    asked: 'Viene chiesto: ',
-    next: 'Chiarisci prima: ',
+    asked: '',
+    next: 'A seguire: ',
     limitation: 'Solo domande Q&A visibili, nessuna valutazione delle persone partecipanti.',
     empty: 'Non ci sono fonti Q&A.',
     quoteStart: '«',
@@ -175,9 +175,19 @@ function resolveAllowedSourceId(rawId, allowedIds) {
   return allowedIds.has(prefixed) ? prefixed : null;
 }
 
+function composeStatementText(statement) {
+  const topic =
+    typeof statement.topic === 'string' ? statement.topic.trim().replace(/:+$/g, '') : '';
+  const clause = typeof statement.clause === 'string' ? statement.clause.trim() : '';
+  if (topic && clause) {
+    return `${topic}: ${clause}`;
+  }
+  return typeof statement.text === 'string' ? statement.text : '';
+}
+
 function bindStatement(statement, allowedIds) {
   if (!statement || typeof statement !== 'object') return null;
-  const text = clip(typeof statement.text === 'string' ? statement.text : '', 400);
+  const text = clip(composeStatementText(statement), 400);
   if (!text) return null;
   const rawIds = Array.isArray(statement.sourceIds) ? statement.sourceIds : [];
   const sourceIds = [
@@ -268,18 +278,25 @@ export function summarizeExtractive(request) {
 export function buildGeminiPrompt(request) {
   const lines = request.sources.map((source) => `- ${source.id}: ${source.text}`);
   return [
-    'You write a short moderation summary for a live lecture Q&A.',
-    `Write all statement texts in locale "${request.locale}".`,
+    'You brief the live-session host. They scan this in a few seconds during class.',
+    `Write all statement and next-step texts in locale "${request.locale}".`,
     'Return JSON only with keys status, statements, suggestedNextSteps, limitations.',
     'status MUST be ready when sources exist and at least one statement cites a listed sourceId.',
     'status is uncertain only when sources are empty or no statement can be grounded.',
     'status is failed only for a technical problem.',
-    'Each statement and next step is { "text": string, "sourceIds": string[] }.',
-    'Use 2 to 4 short statements (about 1 sentence each) when sources exist.',
+    'Each statement and next step is { "topic": string, "clause": string, "sourceIds": string[] }.',
+    'Use 2 to 4 scan bullets when sources exist. One lecture concern per bullet.',
+    'Order bullets by host importance: first the theme backed by the earliest listed sources or the most sourceIds.',
+    'topic is 1-4 words. clause is one complete concrete ask, at most 14 words. Never write a protocol sentence.',
+    'Informal host voice (du / tu / tú / you). No protocol or essay tone.',
+    'Forbidden phrasing: Es gibt, Zudem, Ein Studierender, Ein Teilnehmer, Teilnehmende erbitten, sowie+inklusive stacks, optimal integriert, participants request, furthermore it is asked, concrete inquiries.',
+    'Never end a clause with und, oder, von, sowie, or a hanging comma. Do not mention individual students.',
+    'Do not pack two topics into one bullet.',
+    'Good (de): "Median: Formel und Berechnung sind unklar." / "Kapitel 4: Wiederholung und Klausurrelevanz." / "Übungen: Visualisierungen und Ergebnis-Check."',
+    'Bad (de): "Es gibt konkrete Nachfragen zur Berechnung und zur Formel des Medians." / "Teilnehmende erbitten zusätzliches Anschauungsmaterial sowie eine Wiederholung von Kapitel 4 inklusive Klärung der Klausurrelevanz." / "Übungen: Planbarkeit bei den kommenden und."',
+    'Next steps: 1-2 short imperatives, same Topic: clause pattern when useful.',
     'If many questions overlap, still return ready and summarize the dominant themes once.',
-    'Cover distinct lecture concerns. Do not repeat near-duplicate phrasings or inflection lists.',
-    'Spread sourceIds across statements: at most two IDs per statement, prefer unused sources.',
-    'Copy each sourceId exactly as listed, including the qa-question: prefix.',
+    'Attach every listed sourceId that supports the bullet, including the qa-question: prefix.',
     'Do not invent source IDs. Do not evaluate individual participants. Do not propose automated actions.',
     'If sources are empty, return status uncertain and no statements.',
     'Sources:',
@@ -289,6 +306,29 @@ export function buildGeminiPrompt(request) {
 
 export function resolveGeminiGenerateUrl(model) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+}
+
+/** Helper must finish before the backend AbortSignal, otherwise the host sees stub:timeout. */
+export function resolveHelperInferenceTimeoutMs(backendTimeoutMs, fallback = 15_000) {
+  const parsed = Number.parseInt(String(backendTimeoutMs), 10);
+  const backend = Number.isFinite(parsed) && parsed >= 1_000 ? parsed : fallback;
+  return Math.max(3_000, backend - 5_000);
+}
+
+export function withExtractiveFallback(request, geminiOutput) {
+  if (geminiOutput?.status !== 'failed') {
+    return geminiOutput;
+  }
+  const extractive = summarizeExtractive(request);
+  if (extractive.status !== 'ready') {
+    return geminiOutput;
+  }
+  const limitation = 'Modell nicht rechtzeitig; lokale Kurzfassung.';
+  return {
+    ...extractive,
+    limitations: [...new Set([...(extractive.limitations ?? []), limitation])].slice(0, 6),
+    modelVersion: clip(`${geminiOutput.modelVersion ?? 'gemini'}+extractive`, 64),
+  };
 }
 
 export function limitationFromGeminiHttpError(status, payload) {
@@ -507,10 +547,13 @@ export async function handleQaSummaryDevRequest(request, response, options) {
     return;
   }
 
-  const output =
+  let output =
     options.mode === 'gemini'
       ? await options.summarizeGemini(parsed.request)
       : options.summarizeExtractive(parsed.request);
+  if (options.mode === 'gemini') {
+    output = withExtractiveFallback(parsed.request, output);
+  }
   sendJson(response, 200, output);
 }
 
@@ -593,7 +636,7 @@ async function main(argv = process.argv.slice(2), env = process.env) {
     );
   }
 
-  const geminiTimeoutMs = Number.parseInt(String(env['QA_SUMMARY_TIMEOUT_MS'] || '15000'), 10);
+  const geminiTimeoutMs = resolveHelperInferenceTimeoutMs(env['QA_SUMMARY_TIMEOUT_MS']);
   const { server, port: boundPort } = await listenQaSummaryDevServer({
     host,
     port,

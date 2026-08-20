@@ -141,7 +141,9 @@ import {
   compassTermsFromAnalysisEntries,
   isNegativeFeedbackKey,
   mergeModerationQuizSources,
+  moderationCompassWasOpened,
   notableQuickFeedbackSplit,
+  rememberModerationCompassOpened,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
   truncateCompassLabel,
@@ -1790,14 +1792,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }),
   );
   readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
+  readonly moderationCompassOpened = signal(moderationCompassWasOpened());
+  readonly moderationCompassShowFirstHint = computed(
+    () => this.moderationCompassHasSignals() && !this.moderationCompassOpened(),
+  );
   readonly moderationCompassReturn = signal<{ readonly channel: SessionChannelTab } | null>(null);
   readonly moderationCompassFocusedTerm = signal<string | null>(null);
-  readonly moderationCompassButtonAria = computed(() =>
-    this.moderationCompassHasSignals()
-      ? $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`
-      : $localize`:@@sessionHost.moderationButtonAria:Moderationskompass öffnen`,
-  );
+  readonly moderationCompassButtonAria = computed(() => {
+    if (!this.moderationCompassHasSignals()) {
+      return $localize`:@@sessionHost.moderationButtonAria:Moderationskompass öffnen`;
+    }
+    if (!this.moderationCompassOpened()) {
+      return $localize`:@@sessionHost.moderationButtonAriaFirstHint:Moderationskompass öffnen, Hinweise bereit`;
+    }
+    return $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`;
+  });
   readonly openModerationCompassDialog = async (): Promise<void> => {
+    rememberModerationCompassOpened();
+    this.moderationCompassOpened.set(true);
     this.moderationCompassReturn.set(null);
     this.clearQaCompassFocus();
     this.moderationCompassFocusedTerm.set(null);
@@ -1834,6 +1846,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       maxWidth: 'calc(100vw - 1rem)',
       maxHeight: 'calc(100dvh - 1rem)',
       panelClass: 'moderation-compass-dialog-panel',
+      backdropClass: 'moderation-compass-dialog-backdrop',
     });
     dialogRef.afterClosed().subscribe(() => {
       this.stopQaSummaryPolling();

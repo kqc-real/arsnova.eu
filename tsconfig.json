@@ -18,6 +18,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
+      "@arsnova/shared-types/qa-summary-scan": ["libs/shared-types/src/qa-summary-scan.ts"],
       "@arsnova/shared-types": ["libs/shared-types/src/index.workspace.ts"],
       "@arsnova/session-export-report": ["libs/session-export-report/src/index.workspace.ts"],
       "@arsnova/api": ["apps/backend/src/routers/index.ts"]

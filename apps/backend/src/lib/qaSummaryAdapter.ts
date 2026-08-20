@@ -57,7 +57,29 @@ function unconfiguredOutput(modelVersion: string, limitation: string): QaSummary
   };
 }
 
+function isAbortOrTimeout(error: unknown): boolean {
+  return error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+}
+
+function failedOutputFromCaughtError(error: unknown): QaSummaryModelOutput {
+  if (isAbortOrTimeout(error)) {
+    return unconfiguredOutput('stub:timeout', 'Die Zusammenfassung hat zu lange gedauert.');
+  }
+  return unconfiguredOutput('stub:error', 'Die Zusammenfassung ist gerade nicht verfügbar.');
+}
+
 export async function runQaSummaryInference(
+  snapshot: QaSummaryAnalysisSnapshot,
+  snapshotHash: string,
+): Promise<QaSummaryModelOutput> {
+  try {
+    return await runQaSummaryInferenceUnchecked(snapshot, snapshotHash);
+  } catch (error) {
+    return failedOutputFromCaughtError(error);
+  }
+}
+
+async function runQaSummaryInferenceUnchecked(
   snapshot: QaSummaryAnalysisSnapshot,
   snapshotHash: string,
 ): Promise<QaSummaryModelOutput> {
@@ -79,7 +101,7 @@ export async function runQaSummaryInference(
     );
   }
 
-  const body = QaSummaryInferenceRequestSchema.parse({
+  const request = QaSummaryInferenceRequestSchema.safeParse({
     locale: snapshot.locale,
     snapshotHash,
     sources: snapshot.sources.map((source) => ({
@@ -88,6 +110,9 @@ export async function runQaSummaryInference(
       text: source.text,
     })),
   });
+  if (!request.success) {
+    return unconfiguredOutput('stub:invalid-input', 'Die Zusammenfassungsanfrage war ungültig.');
+  }
 
   const headers: Record<string, string> = {
     'content-type': 'application/json',
@@ -103,26 +128,23 @@ export async function runQaSummaryInference(
     response = await hooks.fetch(config.inferenceUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(request.data),
       signal,
     });
   } catch (error) {
-    const timedOut =
-      (error instanceof Error && error.name === 'TimeoutError') ||
-      (error instanceof Error && error.name === 'AbortError');
-    return unconfiguredOutput(
-      timedOut ? 'stub:timeout' : 'stub:error',
-      timedOut
-        ? 'Die Zusammenfassung hat zu lange gedauert.'
-        : 'Die Zusammenfassung ist gerade nicht verfügbar.',
-    );
+    return failedOutputFromCaughtError(error);
   }
 
   if (!response.ok) {
     return unconfiguredOutput('stub:error', 'Die Zusammenfassung ist gerade nicht verfügbar.');
   }
 
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    return failedOutputFromCaughtError(error);
+  }
   if (text.length > QA_SUMMARY_MAX_RESPONSE_BYTES) {
     return unconfiguredOutput('stub:invalid-output', 'Die Modellantwort war zu groß.');
   }

@@ -1,7 +1,8 @@
-import type {
-  QaSummaryModelOutput,
-  QaSummaryResult,
-  QaSummaryStatement,
+import {
+  sortQaSummaryStatementsByImportance,
+  type QaSummaryModelOutput,
+  type QaSummaryResult,
+  type QaSummaryStatement,
 } from '@arsnova/shared-types';
 import { qaSummarySourceLabel, type QaSummaryAnalysisSnapshot } from './qaSummarySnapshot';
 
@@ -14,7 +15,7 @@ function bindStatement(
   const sourceIds = [
     ...new Set(statement.sourceIds.filter((sourceId) => allowedSourceIds.has(sourceId))),
   ].slice(0, 8);
-  const text = statement.text.trim().slice(0, 400);
+  const text = typeof statement.text === 'string' ? statement.text.trim().slice(0, 400) : '';
   if (!text || sourceIds.length === 0) {
     return null;
   }
@@ -45,10 +46,13 @@ export function bindQaSummaryModelOutput(input: {
   readonly analyzedAt: string;
 }): QaSummaryResult {
   const allowedSourceIds = new Set(input.snapshot.sources.map((source) => source.id));
-  const statements = input.output.statements
-    .map((statement) => bindStatement(statement, allowedSourceIds))
-    .filter((statement): statement is QaSummaryStatement => statement !== null)
-    .slice(0, 6);
+  const rankedSourceIds = input.snapshot.sources.map((source) => source.id);
+  const statements = sortQaSummaryStatementsByImportance(
+    input.output.statements
+      .map((statement) => bindStatement(statement, allowedSourceIds))
+      .filter((statement): statement is QaSummaryStatement => statement !== null),
+    rankedSourceIds,
+  ).slice(0, 6);
   const suggestedNextSteps = input.output.suggestedNextSteps
     .map((statement) => bindStatement(statement, allowedSourceIds))
     .filter((statement): statement is QaSummaryStatement => statement !== null)

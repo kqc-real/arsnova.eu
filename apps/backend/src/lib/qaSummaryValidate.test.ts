@@ -93,4 +93,37 @@ describe('qaSummaryValidate', () => {
     expect(result.statements).toEqual([]);
     expect(result.sources).toEqual([]);
   });
+
+  it('ordnet Aussagen nach Snapshot-Rangfolge', () => {
+    const secondId = '22222222-2222-4222-8222-222222222222';
+    const secondSource = qaSummaryQuestionSourceId(secondId);
+    const rankedSnapshot = buildQaSummaryAnalysisSnapshot({
+      locale: 'de',
+      questions: [
+        { id: QUESTION_ID, text: 'Wie berechnet man den Median?' },
+        { id: secondId, text: 'Kommt Kapitel 4 in der Klausur vor?' },
+      ],
+      maxSources: 20,
+    });
+
+    const result = bindQaSummaryModelOutput({
+      output: {
+        status: 'ready',
+        statements: [
+          { text: 'Kapitel 4: Klausurrelevanz.', sourceIds: [secondSource] },
+          { text: 'Median: Formel.', sourceIds: [SOURCE_ID] },
+        ],
+        suggestedNextSteps: [],
+        limitations: [],
+      },
+      snapshot: rankedSnapshot,
+      snapshotHash: 'a'.repeat(64),
+      analyzedAt: '2026-08-20T09:00:00.000Z',
+    });
+
+    expect(result.statements.map((statement) => statement.text)).toEqual([
+      'Median: Formel.',
+      'Kapitel 4: Klausurrelevanz.',
+    ]);
+  });
 });

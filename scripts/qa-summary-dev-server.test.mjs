@@ -10,9 +10,11 @@ import {
   parseQaSummaryInferenceRequest,
   resolveEffectiveQaSummaryDevMode,
   resolveGeminiGenerateUrl,
+  resolveHelperInferenceTimeoutMs,
   sanitizeQaSummaryModelOutput,
   summarizeExtractive,
   summarizeWithGemini,
+  withExtractiveFallback,
   buildGeminiPrompt,
 } from './qa-summary-dev-server.mjs';
 
@@ -66,12 +68,15 @@ test('parseQaSummaryInferenceRequest lehnt SaaS-fremde Payloads und ungültige L
   assert.equal(parseQaSummaryInferenceRequest(sampleRequest).ok, true);
 });
 
-test('Gemini-Prompt verlangt Streuung, ready als Default und keine Near-Duplicate-Wiederholung', () => {
+test('Gemini-Prompt verlangt Streuung, ready als Default und scanbare Stichpunkte', () => {
   const prompt = buildGeminiPrompt(sampleRequest);
   assert.match(prompt, /status MUST be ready when sources exist/);
-  assert.match(prompt, /Cover distinct lecture concerns/);
-  assert.match(prompt, /at most two IDs per statement/);
-  assert.match(prompt, /2 to 4 short statements/);
+  assert.match(prompt, /topic is 1-4 words/);
+  assert.match(prompt, /Order bullets by host importance/);
+  assert.match(prompt, /Never end a clause/);
+  assert.match(prompt, /Attach every listed sourceId/);
+  assert.match(prompt, /2 to 4 scan bullets/);
+  assert.match(prompt, /Forbidden phrasing/);
 });
 
 test('summarizeExtractive bindet nur vorhandene Quellen', () => {
@@ -145,6 +150,25 @@ test('sanitizeQaSummaryModelOutput ergaenzt das qa-question-Praefix', () => {
   );
   assert.equal(output.status, 'ready');
   assert.deepEqual(output.statements, [{ text: 'Belegt ohne Prefix.', sourceIds: [SOURCE_A] }]);
+});
+
+test('sanitizeQaSummaryModelOutput setzt topic und clause zu einem Stichpunkt', () => {
+  const output = sanitizeQaSummaryModelOutput(
+    {
+      status: 'ready',
+      statements: [
+        { topic: 'Median', clause: 'Formel und Berechnung sind unklar.', sourceIds: [SOURCE_A] },
+      ],
+      suggestedNextSteps: [],
+      limitations: [],
+    },
+    new Set([SOURCE_A]),
+    'test',
+  );
+  assert.equal(output.status, 'ready');
+  assert.deepEqual(output.statements, [
+    { text: 'Median: Formel und Berechnung sind unklar.', sourceIds: [SOURCE_A] },
+  ]);
 });
 
 test('HTTP /summary spricht den Adapter-Vertrag auf Loopback', async () => {
@@ -253,6 +277,8 @@ test('Gemini-Pfad nutzt Header-Key und unser JSON, nicht die Gemini-URL als Infe
   assert.match(geminiBody.contents[0].parts[0].text, /Kapitel 4/);
   assert.equal(geminiBody.generationConfig.thinkingConfig.thinkingLevel, 'MINIMAL');
   assert.equal(geminiBody.generationConfig.responseMimeType, 'application/json');
+  assert.equal(geminiBody.generationConfig.responseSchema, undefined);
+  assert.equal(geminiBody.systemInstruction, undefined);
 });
 
 test('Gemini-404 erklärt ein abgekündigtes Modell', async () => {
@@ -275,6 +301,26 @@ test('Gemini-404 erklärt ein abgekündigtes Modell', async () => {
   assert.match(output.limitations[0] ?? '', /Modell nicht verfügbar/);
   assert.match(output.limitations[0] ?? '', /gemini-3\.5-flash-lite/);
   assert.equal(output.modelVersion, 'gemini:gemini-2.5-flash:http-404');
+});
+
+test('Helper-Timeout liegt unter dem Backend-Timeout', () => {
+  assert.equal(resolveHelperInferenceTimeoutMs('30000'), 25_000);
+  assert.equal(resolveHelperInferenceTimeoutMs(undefined), 10_000);
+  assert.equal(resolveHelperInferenceTimeoutMs('2000'), 3_000);
+});
+
+test('withExtractiveFallback liefert lokale Kurzfassung wenn Gemini failed', () => {
+  const output = withExtractiveFallback(sampleRequest, {
+    status: 'failed',
+    statements: [],
+    suggestedNextSteps: [],
+    limitations: ['Gemini hat zu lange gedauert.'],
+    modelVersion: 'gemini:gemini-3.5-flash-lite:timeout',
+  });
+  assert.equal(output.status, 'ready');
+  assert.ok(output.statements.length >= 1);
+  assert.match(output.modelVersion, /extractive/);
+  assert.match(output.limitations.join(' '), /lokale Kurzfassung/);
 });
 
 test('--help nennt Loopback-URL und optionalen Gemini-Key', () => {
