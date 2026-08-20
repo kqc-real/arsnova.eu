@@ -71,7 +71,7 @@ import {
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
-import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
+import { tryAutoRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import { buildQuizExportJsonFilename } from '../../../core/export-filename.util';
 import { SessionResultsExportService } from '../../../core/session-results-export.service';
 
@@ -1108,7 +1108,7 @@ export class QuizListComponent implements OnInit {
     this.actionInfo.set(null);
     this.actionInfoWarnings.set([]);
     this.liveStartPending.set(true);
-    tryRequestDocumentFullscreen(this.document);
+    tryAutoRequestDocumentFullscreen(this.document);
     try {
       let payload = this.quizStore.getUploadPayload(options.quizId);
       const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);

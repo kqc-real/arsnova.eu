@@ -540,5 +540,35 @@ describe('ModerationCompassDialogComponent', () => {
       1,
     );
     expect(duplicateText).not.toContain('Hinweise');
+
+    TestBed.resetTestingModule();
+    const emptySnapshot = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'uncertain',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: ['Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.'],
+          sources: [],
+          snapshotHash: 'e'.repeat(64),
+          locale: 'de',
+        },
+      },
+    });
+    (
+      emptySnapshot.fixture.nativeElement.querySelector(
+        '.moderation-compass-dialog__summary-button',
+      ) as HTMLButtonElement
+    ).click();
+    emptySnapshot.fixture.detectChanges();
+    const emptySnapshotText = emptySnapshot.fixture.nativeElement.textContent as string;
+    expect(emptySnapshotText).toContain(
+      'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.',
+    );
+    expect(emptySnapshotText).not.toContain('Die Zusammenfassung ist unsicher.');
+    expect(emptySnapshotText).not.toContain('Hinweise');
   });
 });
