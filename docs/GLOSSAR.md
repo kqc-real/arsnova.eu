@@ -2,7 +2,7 @@
 
 # Glossar: arsnova.eu
 
-**Stand:** 2026-08-15
+**Stand:** 2026-08-20
 
 **Zweck:** Einheitliche **produktnahe Begriffe** (Workflows, UI, Rollen) plus eine **kurze Brücke** zu Prisma-Modellnamen. Vollständiges Schema nur in `schema.prisma` / Handbuch — hier keine Spalten- oder Enum-Listen.
 
@@ -38,6 +38,8 @@
 - **Load-Status:** Diagnosewert zur aktuellen Systemlast: `healthy`, `busy`, `overloaded`. Erklärt den Service-Status, ist aber nicht mit ihm identisch. Vertiefung: ADR-0021.
 - **MOTD / Message of the Day:** Plattform-Kommunikation für aktuelle Hinweise, Archiv und Interaktionsmetriken. Vorkommen: App-Overlay, Admin-Pflege. Vertiefung: ADR-0018, [motd](features/motd.md).
 - **Moderator / delegierte Q&A-Moderation:** Zielrolle für ausgelagerte, kanalgebundene Q&A-Moderation. Stand 2026-07-05: noch keine eigene Route, kein Moderator-Token und keine dedizierte Moderator-UI; produktive Q&A-Moderation läuft hostgebunden über `hostProcedure` und `moderatorView: true`. Vertiefung: ADR-0011, Story 8.5.
+- **Moderationskompass / Kompass:** Host-Dialog mit regelbasierten, quellenbelegten Hinweiskarten (Themen, Klärung, Reibung, Tempo) aus bereits sichtbaren Session-Signalen. Keine Auto-Aktionen, kein Teilnehmer-Profiling. Vorkommen: Host-Live-Leiste. Vertiefung: Story 8.9a, [moderation-compass](features/moderation-compass.md).
+- **Moderationszusammenfassung:** Optionale, on-demand 2–4 quellengebundene Sätze über dem Kompass. Kill-Switch `QA_SUMMARY_ENABLED` default aus; ohne privaten Inferenz-Endpunkt kein Cloud-Fallback. Echtes Modell erst mit Story 1.14c. Vertiefung: Story 8.9c, [qa-summary](features/qa-summary.md).
 - **Motivationsmeldungen:** Kontextbezogene Rückmeldungen, die Teilnehmende nach Antworten oder Ergebnissen ermutigen bzw. einordnen; Teil des Motivations- und Feedback-Designs. Vertiefung: Story 5.7.
 - **Numerische Schätzfrage / `NUMERIC_ESTIMATE`:** Bewertbarer Fragetyp für Zahlen-Schätzungen mit Zahlentyp, Referenzwert und Toleranzband. Unterstützt optional zwei Runden mit Diskussionsphase sowie beamer-taugliche Statistik und Histogramm-Auswertung nach der Freigabe. Vertiefung: Story 1.2d, `docs/features/numeric-estimate.md`.
 - **Peer Instruction:** Zweite Abstimmungsrunde **im Quiz** (Vorher/Nachher), unabhängig von Blitzlicht-Vergleichsrunde. Vorkommen: Session `currentRound`. Vertiefung: Story 2.7.
@@ -45,6 +47,7 @@
 - **Preset:** Voreinstellung **Seriös** oder **Spielerisch**. Als Quiz-Preset setzt es Defaults für Gamification, Zeit, Lesephase, **Action Sounds** usw.; als UI-Preset ist es eine lokale Browser-Auswahl. In Live-Sessions überschreibt der Host damit nicht das Preset oder Theme von Join-, Vote- oder Present-Clients. Vorkommen: Quiz neu/bearbeiten, Startseite, Header-Toggle. Kanonische Quiz-Defaults: `QUIZ_PRESETS` in shared-types. Vertiefung: [preset-modes](features/preset-modes.md).
 - **Preset-Toast:** Overlay zum Feintuning der Preset-Optionen und Speichern in `localStorage`. Vorkommen: Startseite. Vertiefung: `PresetToastComponent`.
 - **Q&A-Kanal:** Fragen einreichen, Up-/Downvotes, Moderation durch Host und Sortierung nach `Top`, `Beste Fragen` oder `Umstritten`. Vorkommen: Session-Tab. Vertiefung: Epic 8, ADR-0009, [controversy-score](features/controversy-score.md).
+- **Q&A-NLP-Kaskade:** Optionale, asynchrone Host-only Kategorien (`content` / `organization` / `technical`) nach `qa.submit`. Kill-Switch `QA_NLP_ENABLED` default aus; Join/Vote/Submit warten nicht. Vertiefung: Story 8.9b, ADR-0032, [qa-nlp-moderation](features/qa-nlp-moderation.md).
 - **Quick-Feedback:** Technischer Name des tRPC-Routers **`quickFeedback`**, der Redis-Keys `qf:*` und des Live-Kanals `quickFeedback` — fachlich = Blitzlicht. Aktuelle Typen: `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`, `TEMPO`. Klassische Typen bleiben Einmal-Votes; `TEMPO` hat bewusst mutable Semantik. Vertiefung: [blitzlicht-quickfeedback-api](features/blitzlicht-quickfeedback-api.md).
 - **Referenzwert:** Zielwert der numerischen Schätzfrage; dient als Mittelpunkt für relatives Toleranzband und Nähe-Scoring. Vertiefung: Story 1.2d, `docs/features/numeric-estimate.md`.
 - **Scorecard:** Persönliche Auswertung (Punkte, Streak, Rang) für Teilnehmende; nutzt nur bewertbare Fragen und die Effective-Vote-Regel. Vorkommen: Nach Fragen / Ende. Vertiefung: Story 5.6, ADR-0028.
@@ -64,7 +67,7 @@
 - **Vergleichsrunde:** Zweite Blitzlicht-Abstimmung nach eingefrorener erster Runde; **UI-Wort** (nicht „Diskussionsrunde“). Vorkommen: Blitzlicht-Host. Vertiefung: ADR-0010.
 - **Vote / Teilnehmer-Ansicht:** Rolle/Ansicht: Mitmachen, abstimmen, Q&A, Blitzlicht. Vorkommen: Route `session/.../vote`. Vertiefung: ADR-0006.
 - **Wilson-Score:** Statistischer Score für die Sortierung nach „Beste Fragen“ im Q&A-Kanal; bevorzugt Fragen mit stabiler positiver Zustimmung. Vertiefung: Story 8.7, [controversy-score](features/controversy-score.md).
-- **Wortwolke / Word Cloud:** Live-Visualisierung häufiger Begriffe aus Freitext-Antworten und Q&A-Fragen; lexikalisch mit optionaler Sprachformen-Glättung. Vorkommen: Host, Presenter. Vertiefung: ADR-0012, Story 1.14 / 1.14a / 1.14b, [word-cloud-spacy](features/word-cloud-spacy.md).
+- **Wortwolke / Word Cloud:** Live-Visualisierung häufiger Begriffe aus Freitext-Antworten und Q&A-Fragen; lexikalisch mit optionaler Sprachformen-Glättung. Semantische Themen bleiben Story 1.14c. Vorkommen: Host, Presenter. Vertiefung: ADR-0012, Story 1.14 / 1.14a / 1.14b, [word-cloud-spacy](features/word-cloud-spacy.md).
 - **Zwei-Runden-Flow:** Schätzfrage mit Runde 1, optionaler Diskussionsphase und Runde 2; die zweite Runde kann die erste ersetzen und wird getrennt ausgewertet. Vertiefung: Story 1.2d, Story 2.7, `docs/features/numeric-estimate.md`.
 
 ---
@@ -73,30 +76,30 @@
 
 Diese Kürzel tauchen in Doku, Tickets, Reviews, Commits und im technischen Gespräch rund um arsnova.eu regelmäßig auf.
 
-| Kürzel     | Bedeutung                                | Kontext in arsnova.eu                                                                             |
-| ---------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **ADR**    | Architecture Decision Record             | Architekturentscheidungen unter [`docs/architecture/decisions/`](architecture/decisions/)         |
-| **A11y**   | Accessibility / Barrierefreiheit         | Story 6.5, UI-Review, Tastatur, Screenreader, Kontraste                                           |
-| **CSR**    | Client-Side Rendering                    | Normales Angular-Routing und UI-Rendering im Browser                                              |
-| **DTO**    | Data Transfer Object                     | Geteilte API-Form zwischen Backend und Frontend; siehe `libs/shared-types`                        |
-| **DoD**    | Definition of Done                       | Verbindliche Abnahmekriterien pro Story im [`Backlog.md`](../Backlog.md)                          |
-| **IAB**    | In-App Browser                           | Eingebetteter Browser z. B. aus QR-Scanner, Mail- oder Messenger-App; relevant für Join-/QR-Flows |
-| **i18n**   | Internationalization                     | Mehrsprachigkeit der App-Struktur, Message-IDs, Locale-Routing                                    |
-| **l10n**   | Localization                             | Konkrete Übersetzung und Lokalisierung pro Sprache (`de`, `en`, `fr`, `it`, `es`)                 |
-| **MOTD**   | Message of the Day                       | Plattform-/News-Overlay und Archiv; siehe [features/motd.md](features/motd.md)                    |
-| **NLP**    | Natural Language Processing              | Optionale Wortwolken-Glättung (1.14b); semantische Bündelung bleibt 1.14c / 8.9                   |
-| **PWA**    | Progressive Web App                      | Installierbare Web-App mit Service Worker und Offline-/Update-Mechanik                            |
-| **Prisma** | Prisma ORM / Schema-Tooling              | Datenmodell und Datenbankzugriff; Quelle: [`prisma/schema.prisma`](../prisma/schema.prisma)       |
-| **QR**     | Quick Response Code                      | Session-Beitritt, Join-Link, Einstieg per Kamera-Scan                                             |
-| **Redis**  | In-Memory-Datenspeicher / Pub-Sub-Broker | Echtzeit, Blitzlicht-Zustand (`qf:*`, inkl. Tempo-Buckets), Live-Signale                          |
-| **SLO**    | Service Level Objective                  | Zielwerte für Betriebszustand, Latenz und Fehlerrate; Eingang in `serviceStatus`                  |
-| **SPA**    | Single-Page Application                  | Grundform des Frontends: eine Angular-App statt klassischer Mehrseiten-App                        |
-| **SSR**    | Server-Side Rendering                    | Angular-Server-/Prerender-Pfad für SEO, Social Previews und lokalisierte Builds                   |
-| **tRPC**   | Typed Remote Procedure Call              | End-to-End typisierte API zwischen Frontend und Backend; Router, Procedures, Subscriptions        |
-| **UI**     | User Interface                           | Oberfläche, Komponenten, Layout, Beschriftung                                                     |
-| **UX**     | User Experience                          | Bedienerlebnis, Verständlichkeit, Fluss, Feedback                                                 |
-| **Yjs**    | CRDT-Bibliothek für kollaborative Daten  | Local-First Quiz-Sammlung, Sync zwischen Geräten                                                  |
-| **Zod**    | TypeScript Schema Validation             | Gemeinsame Runtime-Validierung für DTOs, API-Inputs/-Outputs und Exportformate                    |
+| Kürzel     | Bedeutung                                | Kontext in arsnova.eu                                                                                                                             |
+| ---------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ADR**    | Architecture Decision Record             | Architekturentscheidungen unter [`docs/architecture/decisions/`](architecture/decisions/)                                                         |
+| **A11y**   | Accessibility / Barrierefreiheit         | Story 6.5, UI-Review, Tastatur, Screenreader, Kontraste                                                                                           |
+| **CSR**    | Client-Side Rendering                    | Normales Angular-Routing und UI-Rendering im Browser                                                                                              |
+| **DTO**    | Data Transfer Object                     | Geteilte API-Form zwischen Backend und Frontend; siehe `libs/shared-types`                                                                        |
+| **DoD**    | Definition of Done                       | Verbindliche Abnahmekriterien pro Story im [`Backlog.md`](../Backlog.md)                                                                          |
+| **IAB**    | In-App Browser                           | Eingebetteter Browser z. B. aus QR-Scanner, Mail- oder Messenger-App; relevant für Join-/QR-Flows                                                 |
+| **i18n**   | Internationalization                     | Mehrsprachigkeit der App-Struktur, Message-IDs, Locale-Routing                                                                                    |
+| **l10n**   | Localization                             | Konkrete Übersetzung und Lokalisierung pro Sprache (`de`, `en`, `fr`, `it`, `es`)                                                                 |
+| **MOTD**   | Message of the Day                       | Plattform-/News-Overlay und Archiv; siehe [features/motd.md](features/motd.md)                                                                    |
+| **NLP**    | Natural Language Processing              | Getrennte optionale Pfade: Wortwolken-Glättung (1.14b, `NLP_ENABLED`), Q&A-Kategorien (8.9b, `QA_NLP_ENABLED`), semantische Themen (1.14c, offen) |
+| **PWA**    | Progressive Web App                      | Installierbare Web-App mit Service Worker und Offline-/Update-Mechanik                                                                            |
+| **Prisma** | Prisma ORM / Schema-Tooling              | Datenmodell und Datenbankzugriff; Quelle: [`prisma/schema.prisma`](../prisma/schema.prisma)                                                       |
+| **QR**     | Quick Response Code                      | Session-Beitritt, Join-Link, Einstieg per Kamera-Scan                                                                                             |
+| **Redis**  | In-Memory-Datenspeicher / Pub-Sub-Broker | Echtzeit, Blitzlicht-Zustand (`qf:*`, inkl. Tempo-Buckets), Live-Signale                                                                          |
+| **SLO**    | Service Level Objective                  | Zielwerte für Betriebszustand, Latenz und Fehlerrate; Eingang in `serviceStatus`                                                                  |
+| **SPA**    | Single-Page Application                  | Grundform des Frontends: eine Angular-App statt klassischer Mehrseiten-App                                                                        |
+| **SSR**    | Server-Side Rendering                    | Angular-Server-/Prerender-Pfad für SEO, Social Previews und lokalisierte Builds                                                                   |
+| **tRPC**   | Typed Remote Procedure Call              | End-to-End typisierte API zwischen Frontend und Backend; Router, Procedures, Subscriptions                                                        |
+| **UI**     | User Interface                           | Oberfläche, Komponenten, Layout, Beschriftung                                                                                                     |
+| **UX**     | User Experience                          | Bedienerlebnis, Verständlichkeit, Fluss, Feedback                                                                                                 |
+| **Yjs**    | CRDT-Bibliothek für kollaborative Daten  | Local-First Quiz-Sammlung, Sync zwischen Geräten                                                                                                  |
+| **Zod**    | TypeScript Schema Validation             | Gemeinsame Runtime-Validierung für DTOs, API-Inputs/-Outputs und Exportformate                                                                    |
 
 ---
 

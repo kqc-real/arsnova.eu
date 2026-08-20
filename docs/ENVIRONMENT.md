@@ -305,7 +305,7 @@ Story 8.9b hat den asynchronen Vertrag, den Kill-Switch, einen hashed-n-Gramm-Na
 
 ### Optionale Moderationszusammenfassung (Story 8.9c)
 
-Slices 1–3 sind im Repo: Shared-Vertrag, Host-Button im Kompass, ephemere Queue, privater HTTP-Adapter. Standard bleibt `QA_SUMMARY_ENABLED=false`. Das Flag ist weder `QA_NLP_ENABLED` noch `NLP_ENABLED`. Ohne private `QA_SUMMARY_INFERENCE_URL` gibt es keinen SaaS-Fallback; `qa.requestSummary` awaitet die Inferenz nicht. Der Snapshot rangiert sichtbare Fragen (PINNED/PENDING vor Upvote, Near-Duplicate-Kanonisierung, optionales 8.9b-Tie-Break) und sendet dem Modell nur `{ id, kind, text }`. Aussagen ohne Snapshot-Quelle werden verworfen. Lokal: `npm run qa-summary:dev` auf `http://127.0.0.1:8787/summary` (nicht Produktion; optional `GEMINI_API_KEY` nur im Helfer). Echtes Modell folgt mit Story 1.14c. Produktdoku: [qa-summary.md](features/qa-summary.md).
+Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking sind im Repo: Shared-Vertrag, Host-Button im Kompass, ephemere Queue, privater HTTP-Adapter. Standard bleibt `QA_SUMMARY_ENABLED=false`. Das Flag ist weder `QA_NLP_ENABLED` noch `NLP_ENABLED`. Ohne private `QA_SUMMARY_INFERENCE_URL` gibt es keinen SaaS-Fallback; `qa.requestSummary` awaitet die Inferenz nicht. Der Snapshot rangiert sichtbare Fragen (PINNED/PENDING vor Upvote, Near-Duplicate-Kanonisierung, optionales 8.9b-Tie-Break) und sendet dem Modell nur `{ id, kind, text }`. Aussagen ohne Snapshot-Quelle werden verworfen. Lokal: `npm run qa-summary:dev` auf `http://127.0.0.1:8787/summary` (nicht Produktion; optional `GEMINI_API_KEY` nur im Helfer). Echtes Modell folgt mit Story 1.14c. Produktdoku: [qa-summary.md](features/qa-summary.md).
 
 ### Empfohlenes Profil: hochfrequentierter Betrieb
 

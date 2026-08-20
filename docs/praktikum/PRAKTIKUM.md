@@ -138,7 +138,7 @@ Nein — **KI-Agenten** sind erwünscht. Du bleibst **verantwortlich** für Arch
 Damit **halluzinierte** oder kaputte LLM-Antworten die App nicht zerstören — gleiches Prinzip wie beim KI-Quiz-Import (`Backlog` Story **1.9a**).
 
 **Muss die Wolke „schön“ wie bei Mentimeter sein?**  
-Nein, nicht als Pflicht. **Lesbarkeit** und **korrekte Aggregation** zählen mehr als Pixel-Perfektion. Ein Ausbau (z. B. D3-Layout) ist **Story 1.14a** im Backlog — gerne als Ausblick erwähnen, nicht als Pflicht des Praktikums.
+Nein, nicht als Pflicht. **Lesbarkeit** und **korrekte Aggregation** zählen mehr als Pixel-Perfektion. Die produktive Layout-Engine (`d3-cloud`, Story **1.14a**) ist umgesetzt; der offene semantische Pfad ist **1.14c**.
 
 **Sprachen — wirklich alle fünf?**  
 Ja, sobald **neue** UI-Texte dazukommen (**ADR-0008**). Reine Fehlermeldungen vom Server ggf. als i18n-fähige Codes + Übersetzung im Client — im Konzept kurz festlegen.
@@ -164,7 +164,8 @@ Bei der **Betreuung** vor Ort; im Repo bei inhaltlichen Regeln zusätzlich [`Bac
 ## 8. Literatur / Links im Repo
 
 - [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](./BEGRIFFE-FREITEXT-UND-SEMANTIK.md) — **Langtext:** Sprachebenen, Normalisierung, Semantik, Mehrsprachigkeit (für das Konzept)
-- [`Backlog.md`](../../Backlog.md) — Stories **1.14**, **1.14a** (Word Cloud), **8.x** (Q&A)
+- [`Backlog.md`](../../Backlog.md) — Stories **1.14**, **1.14a/b** (Word Cloud, fertig), **1.14c** (Semantik, offen), **8.9a–c** (Kompass / NLP / Zusammenfassung)
+- [`docs/features/moderation-compass.md`](../features/moderation-compass.md) — Host-Kompass (8.9a)
 - [`docs/ui/STYLEGUIDE.md`](../ui/STYLEGUIDE.md) — Markdown/KaTeX-Styling-Hinweise (falls du gerenderten Text berührst)
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
 - [`docs/vibe-coding/`](../vibe-coding/) — Beispiele für arbeitsorientierte Prompts (optional)

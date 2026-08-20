@@ -10,7 +10,7 @@
 
 ## Zweck
 
-Die optionale Kaskade ergänzt den deterministischen Moderationskompass (Story 8.9a) um **Host-only Hilfssignale**: Kategorie (`content` / `organization` / `technical`), Unsicherheit und ruhige Zustände `pending` | `classified` | `uncertain` | `disabled` | `failed`.
+Die optionale Kaskade ergänzt den deterministischen Moderationskompass (Story 8.9a, [moderation-compass.md](moderation-compass.md)) um **Host-only Hilfssignale**: Kategorie (`content` / `organization` / `technical`), Unsicherheit und ruhige Zustände `pending` | `classified` | `uncertain` | `disabled` | `failed`.
 
 Sie ist **kein** spaCy-Pfad. `NLP_ENABLED` bleibt Story 1.14b (Wortwolken-Lemmatisierung). 8.9b nutzt `QA_NLP_ENABLED`. Es gibt keine Vorarbeit für Story 1.14c: eigene Verträge, Queue und Modelllebenszyklus.
 

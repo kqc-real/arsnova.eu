@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-07-05
+> Stand dieser Übersicht: 2026-08-20
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -347,8 +347,11 @@ Der Host sieht zusätzlich:
   Analyse. Story **8.9a** ist umgesetzt. Story **8.9b** ist umgesetzt (optionaler
   asynchroner Q&A-NLP-Vertrag, Kill-Switch default aus, Queue, Host-only
   Kategorien in der Karte **Häufige Themen**, Gatekeeper, Seed-Kalibrierung,
-  k-NN-Fallback, lokaler Hörsaallast). **8.9c** hat Vertrag, Host-UI und
-  privaten Adapter ohne LLM im Repo; Kill-Switch default aus.
+  k-NN-Fallback, lokaler Hörsaallast). **8.9c** hat Vertrag, Host-UI,
+  privaten Adapter, Snapshot-Ranking und lokalen Loopback-Helfer ohne LLM;
+  Kill-Switch default aus. Kanonisch: [moderation-compass.md](features/moderation-compass.md),
+  [qa-nlp-moderation.md](features/qa-nlp-moderation.md),
+  [qa-summary.md](features/qa-summary.md).
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
   Ergebnisfreigabe
 

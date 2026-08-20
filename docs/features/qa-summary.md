@@ -3,14 +3,14 @@
 # Generative Moderationszusammenfassung (Story 8.9c)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
-**Stand:** 2026-08-19
-**Status:** Slices 1–3 im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit Story 1.14c
+**Stand:** 2026-08-20
+**Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit Story 1.14c
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 
 ## Zweck
 
-Optionale, **on-demand** Moderationszusammenfassung über dem deterministischen Kompass (Story 8.9a). Der Host erhält 2–4 quellengebundene Sätze, keine automatischen Aktionen und keine Bewertung einzelner Teilnehmender.
+Optionale, **on-demand** Moderationszusammenfassung über dem deterministischen Kompass (Story 8.9a, [moderation-compass.md](moderation-compass.md)). Der Host erhält 2–4 quellengebundene Sätze, keine automatischen Aktionen und keine Bewertung einzelner Teilnehmender.
 
 Sie ist **kein** spaCy-Pfad und **keine** Q&A-Klassifikation. `NLP_ENABLED` bleibt 1.14b, `QA_NLP_ENABLED` bleibt 8.9b. 8.9c nutzt `QA_SUMMARY_ENABLED`. Dieselbe private Inferenzserver-Rolle darf später Story 1.14c stellen; 8.9c besitzt nur den Zusammenfassungsvertrag.
 

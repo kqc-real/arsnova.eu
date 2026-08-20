@@ -2,13 +2,14 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-06-04
+**Zuletzt aktualisiert:** 2026-08-20
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-06-04):**
+**Produktstatus (Stand 2026-08-20):**
 
-- Produktionsreif umgesetzt: Epics **0–5**, **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi und Tempo-Blitzlicht; offen: delegierte Moderation), **9** (Admin: Inspektion, Löschung, Behördenexport, Audit) und **10** (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`).
-- Plattform: Epic **6** im Kern umgesetzt (Theme, i18n, Legal, Responsive); offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
+- Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: delegierte Moderation **8.5** und 8.9c Slice 4), **9** (Admin) und **10** (MOTD — ADR-0018, `docs/features/motd.md`).
+- **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c** semantischer Themenmodus mit eigenem Inferenzserver bleibt offen. Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
+- **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit 1.14c. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
 - **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
 - **Offene Zielbilder:** Delegierte Moderation bleibt ohne eigene `/moderate`-Route und ohne Moderator-Token noch Zielbild; Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt.
@@ -54,6 +55,16 @@ Wir verzichten auf klassische REST-Schnittstellen und das manuelle Schreiben von
 
 Während einer Live-Sitzung müssen die Fragen an die Smartphones der Teilnehmenden gesendet werden. Das Backend lädt die Daten und **muss zwingend** ein DTO (Data Transfer Object) anwenden, bevor die Daten über WebSockets versendet werden. Lösungsrelevante Felder wie `isCorrect` werden serverseitig entfernt, um clientseitiges Cheating, etwa über Chrome DevTools, auszuschließen.
 
+### 3.4 Optionale Host-Inferenz (Wortwolke und Moderationshilfe)
+
+Join, Vote, Q&A-Submit und Realtime warten **nicht** auf Modelle. Die lexikalische Wortwolke (1.14a) und der deterministische Moderationskompass (8.9a) bleiben der Live-Pfad. Optional, jeweils mit eigenem Kill-Switch default aus:
+
+- **1.14b** spaCy-Sidecar hinter Unix-Socket (Host-Aktion „Sprachformen glätten“)
+- **8.9b** asynchrone Q&A-NLP-Queue nach Persistenz (Host-only Kategorien)
+- **8.9c** on-demand Zusammenfassung über privaten HTTP-Adapter (ephemer, quellengebunden)
+
+Ein getrennter Open-Weight-Inferenzserver (**1.14c**) ist Zielbild und darf später dieselben Verträge auf getrennten Queues bedienen. Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
+
 ---
 
 ## 4. Architecture Decision Records (ADRs)
@@ -88,6 +99,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0028: Quiz-Bewertung und Effective-Vote-Regel vereinheitlichen](./decisions/0028-quiz-scoring-and-effective-vote-rule.md)
 - [ADR-0029: Tempo als vordefiniertes Blitzlicht-Template statt eigenem Session-Kanal](./decisions/0029-tempo-as-predefined-blitzlicht-template.md)
 - [ADR-0031: Quiz-Editor-Aenderungserkennung zentralisieren](./decisions/0031-centralized-quiz-editor-save-detection.md)
+- [ADR-0032: Optionale NLP-Kaskade fuer Q&A-Moderationssignale](./decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
 - [ADR-0034: tRPC-DoD-Evidenz per Helper, Source-Fingerprint und Audit (Proposed)](./decisions/0034-trpc-dod-evidence-helper-and-fingerprint.md)
 
 **Vertiefende Architektur-Dokumente:**

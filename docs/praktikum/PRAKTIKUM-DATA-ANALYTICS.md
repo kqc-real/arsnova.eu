@@ -33,12 +33,12 @@
 
 ## 1. Was ist das Ziel?
 
-In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). **Geplant** ist eine intelligentere, aber bewusst gestufte Auswertung: zuerst ein deterministischer Moderationskompass (Backlog Story **8.9a**), danach optional eine asynchrone Q&A-NLP-Kaskade für Kategorien und Unsicherheiten (**8.9b**, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)) und erst später eine optionale generative Zusammenfassung (**8.9c**).
+In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). Der Produktstand ist gestuft: der deterministische Moderationskompass (**8.9a**, umgesetzt) liest vorhandene Host-Signale; optional ergänzt eine asynchrone Q&A-NLP-Kaskade Kategorien und Unsicherheiten (**8.9b**, umgesetzt, Kill-Switch default aus, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)); die generative Zusammenfassung (**8.9c**) hat Vertrag, Host-UI und privaten Adapter, Slice 4 (echtes Modell) bleibt offen. Semantische Wortwolken-Themen sind **1.14c**.
 
 **Dein Praktikum** fokussiert **Data Analytics und NLP**:
 
 - Du bewertest **mehrere Schichten**: vorhandene deterministische/lexikalische Auswertung, klassische NLP-Baselines, leichte supervised Klassifikatoren, moderne mehrsprachige Embeddings und optional lokale generative Modelle.
-- Du zeigst, welche Schicht für welche Produktstufe sinnvoll ist: **8.9a** ohne neue Inferenz, **8.9b** asynchron und abschaltbar für Q&A-Hilfssignale, **8.9c** nur als spätere quellengebundene Zusammenfassung.
+- Du zeigst, welche Schicht für welche Produktstufe sinnvoll ist: **8.9a** ohne neue Inferenz (fertig), **8.9b** asynchron und abschaltbar für Q&A-Hilfssignale (fertig, produktiv default aus), **8.9c** nur als quellengebundene Zusammenfassung (Slices 1–3 im Repo, Slice 4 offen).
 - Falls ein selbst gehostetes Sprachmodell verwendet wird, behandelst du es als **optionale Komfortschicht** mit klarer Validierung, Timeout, Fallback und Datenschutzgrenzen, nicht als Pflichtantwort auf jedes NLP-Problem.
 
 So lernst du, **wann** welche Schicht sinnvoll ist — statt „alles mit einem großen LLM“ zu lösen.
@@ -156,13 +156,14 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 ## 8. Bezug zur Codebasis
 
-| Thema              | Wo im Repo (Orientierung)                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                        |
-| Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md) |
-| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — u. a. **1.14**, **1.14a**                                                                                           |
-| Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                          |
-| Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                 |
+| Thema              | Wo im Repo (Orientierung)                                                                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                                                                                          |
+| Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)                                                                   |
+| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — **1.14a/b** fertig, **1.14c** offen; **8.9a/b** fertig, **8.9c** Slices 1–3, Slice 4 offen                                                                                            |
+| Produktdoku        | [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md) |
+| Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                                                                                            |
+| Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                                                                                   |
 
 ---
 
@@ -228,6 +229,9 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 ## 13. Literatur / Links im Repo
 
 - [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](./BEGRIFFE-FREITEXT-UND-SEMANTIK.md)
+- [`docs/features/moderation-compass.md`](../features/moderation-compass.md)
+- [`docs/features/qa-nlp-moderation.md`](../features/qa-nlp-moderation.md)
+- [`docs/features/qa-summary.md`](../features/qa-summary.md)
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
 - [`docs/vibe-coding/`](../vibe-coding/) — optional für Prompt-Stil und Arbeitsablauf
 
@@ -235,4 +239,4 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 
 ---
 
-_Stand: 2026-04-01 · Pflege: bei Änderungen am Praktikumsmodell dieses Dokument und Verweise in `docs/README.md` anpassen._
+_Stand: 2026-08-20 · Pflege: bei Änderungen am Praktikumsmodell dieses Dokument und Verweise in `docs/README.md` anpassen._
