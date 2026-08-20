@@ -28,6 +28,7 @@ import {
   type ModerationCompassSourceDestination,
   type ModerationSummaryScanParts,
 } from './moderation-compass';
+import { localizeQaSummaryChromeLimitation } from './qa-summary-chrome-copy';
 
 export type { ModerationCompassAnalysisMode };
 
@@ -178,9 +179,9 @@ export class ModerationCompassDialogComponent {
       return null;
     }
     const generic = this.genericSummaryStatus(result.status);
-    const specific = result.limitations.find(
-      (item) => normalizeSummaryNotice(item) !== normalizeSummaryNotice(generic ?? ''),
-    );
+    const specific = result.limitations
+      .map((item) => localizeQaSummaryChromeLimitation(item))
+      .find((item) => normalizeSummaryNotice(item) !== normalizeSummaryNotice(generic ?? ''));
     return specific ?? generic;
   }
 
@@ -190,7 +191,9 @@ export class ModerationCompassDialogComponent {
         .filter((item): item is string => Boolean(item))
         .map(normalizeSummaryNotice),
     );
-    return result.limitations.filter((item) => !skip.has(normalizeSummaryNotice(item)));
+    return result.limitations
+      .map((item) => localizeQaSummaryChromeLimitation(item))
+      .filter((item) => !skip.has(normalizeSummaryNotice(item)));
   }
 
   private genericSummaryStatus(status: QaSummaryResult['status']): string | null {

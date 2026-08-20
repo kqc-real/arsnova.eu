@@ -12173,7 +12173,161 @@
         <source>Die Zusammenfassung ist gerade nicht verfügbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">215</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryEmptySnapshot" datatype="html">
+        <source>Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryNoSources" datatype="html">
+        <source>Es liegen keine Q&amp;A-Quellen vor.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryTimeout" datatype="html">
+        <source>Die Zusammenfassung hat zu lange gedauert.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUnconfigured" datatype="html">
+        <source>Kein privater Inferenzserver konfiguriert.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummarySaasBlocked" datatype="html">
+        <source>Öffentliche SaaS-LLM-Endpunkte sind nicht zulässig.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryInvalidRequest" datatype="html">
+        <source>Die Zusammenfassungsanfrage war ungültig.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryModelTooLarge" datatype="html">
+        <source>Die Modellantwort war zu groß.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryModelInvalid" datatype="html">
+        <source>Die Modellantwort war ungültig.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryDroppedUnsourced" datatype="html">
+        <source>Aussagen ohne belegte Quelle wurden entfernt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryVisibleOnly" datatype="html">
+        <source>Nur sichtbare Q&amp;A-Fragen, keine Teilnehmendenbewertung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryExtractiveTimeout" datatype="html">
+        <source>Modell nicht rechtzeitig; lokale Kurzfassung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryExtractiveFallback" datatype="html">
+        <source>Lokale Kurzfassung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiTimeout" datatype="html">
+        <source>Gemini hat zu lange gedauert.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiUnavailable" datatype="html">
+        <source>Gemini ist gerade nicht erreichbar.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiEmpty" datatype="html">
+        <source>Gemini lieferte keinen Text.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiInvalid" datatype="html">
+        <source>Gemini lieferte kein JSON-Objekt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">40</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiInvalidJson" datatype="html">
+        <source>Gemini lieferte keine gültige JSON-Antwort.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiKeyMissing" datatype="html">
+        <source>GEMINI_API_KEY fehlt für den Gemini-Modus.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiKeyRejected" datatype="html">
+        <source>Gemini hat den API-Key abgelehnt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiRateLimit" datatype="html">
+        <source>Gemini ist überlastet (Rate-Limit).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">48</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiRejected" datatype="html">
+        <source>Gemini hat die Anfrage abgelehnt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">50</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryGeminiModelMissing" datatype="html">
+        <source>Gemini-Modell nicht verfügbar.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-summary-chrome-copy.ts</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTopics" datatype="html">
