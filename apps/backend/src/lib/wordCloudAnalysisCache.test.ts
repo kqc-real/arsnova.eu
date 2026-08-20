@@ -50,6 +50,8 @@ const output = {
   analysisVersion: '1.14b.8',
   modelId: 'de_core_news_sm@3.8.0',
   snapshotHash: 'a'.repeat(64),
+  status: 'ready',
+  modelVersion: null,
   entries: [
     {
       key: 'haus',

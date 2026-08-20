@@ -3658,9 +3658,32 @@ export const LiveFreetextDTOSchema = z.object({
 });
 export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
 
-/** Analyseansicht für Word-Cloud 3.0 – lexikalischer Fallback vs. Themenmodus. */
-export const WordCloudAnalysisVariantEnum = z.enum(['LEXICAL', 'THEME']);
+/**
+ * Analyseansicht der Host-Q&A-Wortwolke.
+ * `LEXICAL` = Einzelwörter, `THEME` = Wörter & Phrasen (2.x), `SEMANTIC` = semantische Themen (1.14c).
+ */
+export const WORD_CLOUD_ANALYSIS_VARIANT_VALUES = ['LEXICAL', 'THEME', 'SEMANTIC'] as const;
+export const WordCloudAnalysisVariantEnum = z.enum(WORD_CLOUD_ANALYSIS_VARIANT_VALUES);
 export type WordCloudAnalysisVariant = z.infer<typeof WordCloudAnalysisVariantEnum>;
+
+/** Snapshot-Zustände des semantischen Themenpfads; nicht 8.9b/8.9c. */
+export const WORD_CLOUD_CLUSTER_STATUS_VALUES = [
+  'pending',
+  'ready',
+  'uncertain',
+  'stale',
+  'disabled',
+  'failed',
+  'fallback',
+] as const;
+export const WordCloudClusterStatusEnum = z.enum(WORD_CLOUD_CLUSTER_STATUS_VALUES);
+export type WordCloudClusterStatus = z.infer<typeof WordCloudClusterStatusEnum>;
+
+export function isWordCloudPhraseAnalysisVariant(
+  mode: WordCloudAnalysisVariant,
+): mode is 'THEME' | 'SEMANTIC' {
+  return mode === 'THEME' || mode === 'SEMANTIC';
+}
 
 /** Optionale sprachliche Glättung (Story 1.14b); orthogonal zu LEXICAL/THEME. */
 export const WordCloudNormalizationEnum = z.enum(WORD_CLOUD_NORMALIZATION_VALUES);
@@ -3736,6 +3759,8 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   metric: WordCloudWeightMetricEnum,
   generatedAt: z.string(), // ISO-8601
   fallbackUsed: z.boolean(),
+  status: WordCloudClusterStatusEnum,
+  modelVersion: z.string().min(1).max(128).nullable(),
   normalization: WordCloudNormalizationEnum,
   normalizationApplied: WordCloudNormalizationEnum,
   normalizationFallbackUsed: z.boolean(),

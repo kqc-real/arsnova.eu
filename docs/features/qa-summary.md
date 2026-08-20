@@ -49,7 +49,7 @@ Im Moderationskompass erscheint der Button **Zusammenfassung** nur bei `QA_SUMMA
 
 ## Adapter ohne LLM-Lieferung
 
-Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Slice 4 (echtes Modell im Betrieb) folgt mit Story 1.14c auf demselben privaten Server, anderem Auftrag.
+Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Slice 4 (echtes Modell im Betrieb) folgt mit Story 1.14c auf demselben privaten Server, anderem Auftrag. Reihenfolge, Entkopplung der Verträge und Hardware-Isolation: [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md) §4.
 
 ## Lokal prüfen
 

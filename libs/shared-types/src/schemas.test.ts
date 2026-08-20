@@ -743,6 +743,8 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       metric: 'TOP',
       generatedAt: '2026-08-15T09:00:00.000Z',
       fallbackUsed: false,
+      status: 'ready',
+      modelVersion: null,
       normalization: 'LEMMA',
       normalizationApplied: 'NONE',
       normalizationFallbackUsed: true,
@@ -804,6 +806,58 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
         locale: 'de',
         metric: 'TOP',
         items: [{ ...sourceItem, text: 'a'.repeat(4001) }],
+      }),
+    ).toThrow();
+  });
+
+  it('akzeptiert SEMANTIC und verlangt Cluster-Status statt 8.9c-Felder', () => {
+    const parsed = AnalyzeWordCloudInputSchema.parse({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      items: [sourceItem],
+    });
+    expect(parsed.mode).toBe('SEMANTIC');
+    expect(parsed.normalization).toBe('NONE');
+
+    const result = WordCloudAnalysisResultDTOSchema.parse({
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      generatedAt: '2026-08-20T15:00:00.000Z',
+      fallbackUsed: true,
+      status: 'disabled',
+      modelVersion: null,
+      normalization: 'NONE',
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: false,
+      normalizationFallbackReason: null,
+      fallbackLocale: 'de',
+      analysisVersion: '1.14b.8',
+      modelId: null,
+      snapshotHash: 'b'.repeat(64),
+      entries: [
+        {
+          key: 'kapitel 4',
+          label: 'Kapitel 4',
+          count: 1,
+          basisLabel: 'Kapitel 4',
+          members: [{ sourceId: sourceItem.id, text: sourceItem.text, weight: 1 }],
+          variants: ['Kapitel 4'],
+          confidence: 0.4,
+        },
+      ],
+    });
+    expect(result.status).toBe('disabled');
+    expect(result.modelVersion).toBeNull();
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.entries[0]?.members).toHaveLength(1);
+
+    expect(() =>
+      WordCloudAnalysisResultDTOSchema.parse({
+        ...result,
+        status: 'classified',
       }),
     ).toThrow();
   });

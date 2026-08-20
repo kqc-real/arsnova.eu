@@ -3573,6 +3573,12 @@
                           i18n="@@sessionHost.wordCloudAnalysisPhrases"
                           >Wörter &amp; Phrasen</mat-button-toggle
                         >
+                        <mat-button-toggle
+                          value="SEMANTIC"
+                          (click)="setFreetextWordCloudMode('SEMANTIC')"
+                          i18n="@@sessionHost.wordCloudAnalysisSemantic"
+                          >Themen</mat-button-toggle
+                        >
                       </mat-button-toggle-group>
                       <button
                         mat-button
@@ -3609,6 +3615,11 @@
                         </button>
                       </div>
                     </div>
+                    @if (freetextWordCloudSemanticHint()) {
+                      <p class="session-host__extra-note" role="status" aria-live="polite">
+                        {{ freetextWordCloudSemanticHint() }}
+                      </p>
+                    }
                     @if (freetextWordCloudSmoothingHint()) {
                       <p class="session-host__extra-note" role="status" aria-live="polite">
                         {{ freetextWordCloudSmoothingHint() }}

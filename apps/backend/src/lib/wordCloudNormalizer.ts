@@ -91,7 +91,7 @@ const NO_TEXT_CACHE_STATS: WordCloudNormalizationCacheStats = {
 
 /**
  * Wählt Identity- oder Lemma-Normalisierung. spaCy wird nur bei LEXICAL + LEMMA
- * und aktivem Kill-Switch angesprochen; THEME bleibt ohne Sidecar-Aufruf.
+ * und aktivem Kill-Switch angesprochen; THEME und SEMANTIC bleiben ohne Sidecar-Aufruf.
  */
 export async function normalizeWordCloudItems(
   input: AnalyzeWordCloudInput,
