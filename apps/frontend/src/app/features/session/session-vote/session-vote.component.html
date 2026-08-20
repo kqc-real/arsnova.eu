@@ -9,14 +9,16 @@
 </p>
 
 <ng-template #timerAccommodationPanel>
-  <section
+  <details
     class="vote-timer-a11y"
     data-testid="vote-timer-accommodation"
     aria-labelledby="vote-timer-a11y-heading"
+    [attr.open]="timerAccommodationPanelExpanded() ? true : null"
+    (toggle)="onTimerAccommodationPanelToggle($any($event.currentTarget))"
   >
-    <header class="vote-timer-a11y__header">
+    <summary class="vote-timer-a11y__summary">
       <mat-icon class="vote-timer-a11y__icon" aria-hidden="true">schedule</mat-icon>
-      <div>
+      <div class="vote-timer-a11y__summary-copy">
         <h2
           id="vote-timer-a11y-heading"
           class="vote-timer-a11y__title"
@@ -24,75 +26,81 @@
         >
           Zeit anpassen
         </h2>
-        <p class="vote-timer-a11y__supporting" i18n="@@sessionVote.timerAccommodation.help">
-          Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown
+        <p class="vote-timer-a11y__supporting">
+          {{ timerAccommodationOptionLabel(timerAccommodation()) }}
         </p>
       </div>
-    </header>
-    <p class="vote-timer-a11y__points">{{ timerAccommodationPointsHint() }}</p>
-    <details class="vote-timer-a11y__scoring" data-testid="vote-scoring-info">
-      <summary class="vote-timer-a11y__scoring-summary">
-        <mat-icon aria-hidden="true">info</mat-icon>
-        <span i18n="@@sessionVote.scoringInfo.summary">So werden Punkte berechnet</span>
-      </summary>
-      <div class="vote-timer-a11y__scoring-body">
-        <p i18n="@@sessionVote.scoringInfo.intro">So setzt sich deine Punktezahl zusammen:</p>
-        <ol class="vote-timer-a11y__scoring-list">
-          <li i18n="@@sessionVote.scoringInfo.base">
-            Basis: Bis zu 1000 Punkte für eine richtige Antwort.
-          </li>
-          <li i18n="@@sessionVote.scoringInfo.difficulty">
-            Schwierigkeit: Leicht ×1, Mittel ×2, Schwer ×3.
-          </li>
-          <li i18n="@@sessionVote.scoringInfo.time">
-            Zeit: Je früher du beim gemeinsamen Raum-Countdown richtig antwortest, desto höher der
-            Zeitanteil. Nach Ablauf bleiben noch 10 % davon. Deine persönliche Frist ändert nur, wie
-            lange du antworten darfst – nicht diese Zeitwertung.
-          </li>
-          <li i18n="@@sessionVote.scoringInfo.streak">
-            Serie: Mehrere richtige Antworten hintereinander geben Bonus – 1× ×1,0 · 2× ×1,1 · 3×
-            ×1,2 · 4× ×1,3 · ab 5× ×1,5. Eine falsche bewertbare Antwort setzt die Serie zurück.
-            Umfragen und unbewerteter Freitext unterbrechen sie nicht.
-          </li>
-          <li i18n="@@sessionVote.scoringInfo.preview">
-            Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus.
-          </li>
-        </ol>
-      </div>
-    </details>
-    <mat-button-toggle-group
-      class="vote-timer-a11y__options"
-      [value]="timerAccommodation()"
-      [disabled]="timerAccommodationSaving()"
-      [attr.aria-label]="timerAccommodationGroupAriaLabel()"
-      (change)="setTimerAccommodation($any($event.value))"
-    >
-      @for (mode of timerAccommodationModes; track mode) {
-        <mat-button-toggle class="vote-timer-a11y__option" [value]="mode">
-          {{ timerAccommodationOptionLabel(mode) }}
-        </mat-button-toggle>
+      <mat-icon class="vote-timer-a11y__chevron" aria-hidden="true">expand_more</mat-icon>
+    </summary>
+    <div class="vote-timer-a11y__body">
+      <p class="vote-timer-a11y__help" i18n="@@sessionVote.timerAccommodation.help">
+        Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown
+      </p>
+      <p class="vote-timer-a11y__points">{{ timerAccommodationPointsHint() }}</p>
+      <details class="vote-timer-a11y__scoring" data-testid="vote-scoring-info">
+        <summary class="vote-timer-a11y__scoring-summary">
+          <mat-icon aria-hidden="true">info</mat-icon>
+          <span i18n="@@sessionVote.scoringInfo.summary">So werden Punkte berechnet</span>
+        </summary>
+        <div class="vote-timer-a11y__scoring-body">
+          <p i18n="@@sessionVote.scoringInfo.intro">So setzt sich deine Punktezahl zusammen:</p>
+          <ol class="vote-timer-a11y__scoring-list">
+            <li i18n="@@sessionVote.scoringInfo.base">
+              Basis: Bis zu 1000 Punkte für eine richtige Antwort.
+            </li>
+            <li i18n="@@sessionVote.scoringInfo.difficulty">
+              Schwierigkeit: Leicht ×1, Mittel ×2, Schwer ×3.
+            </li>
+            <li i18n="@@sessionVote.scoringInfo.time">
+              Zeit: Je früher du beim gemeinsamen Raum-Countdown richtig antwortest, desto höher der
+              Zeitanteil. Nach Ablauf bleiben noch 10 % davon. Deine persönliche Frist ändert nur,
+              wie lange du antworten darfst – nicht diese Zeitwertung.
+            </li>
+            <li i18n="@@sessionVote.scoringInfo.streak">
+              Serie: Mehrere richtige Antworten hintereinander geben Bonus – 1× ×1,0 · 2× ×1,1 · 3×
+              ×1,2 · 4× ×1,3 · ab 5× ×1,5. Eine falsche bewertbare Antwort setzt die Serie zurück.
+              Umfragen und unbewerteter Freitext unterbrechen sie nicht.
+            </li>
+            <li i18n="@@sessionVote.scoringInfo.preview">
+              Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus.
+            </li>
+          </ol>
+        </div>
+      </details>
+      <mat-button-toggle-group
+        class="vote-timer-a11y__options"
+        [value]="timerAccommodation()"
+        [disabled]="timerAccommodationSaving()"
+        [attr.aria-label]="timerAccommodationGroupAriaLabel()"
+        (change)="setTimerAccommodation($any($event.value))"
+      >
+        @for (mode of timerAccommodationModes; track mode) {
+          <mat-button-toggle class="vote-timer-a11y__option" [value]="mode">
+            {{ timerAccommodationOptionLabel(mode) }}
+          </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+      @if (timerAccommodation() === 'OFF') {
+        <p
+          class="vote-timer-a11y__status"
+          role="status"
+          aria-live="polite"
+          i18n="@@sessionVote.timerAccommodation.offStatus"
+        >
+          Keine persönliche Frist · Punkte weiter nach dem Raum-Timer
+        </p>
+      } @else if (timerAccommodation() === 'EXTENDED') {
+        <p
+          class="vote-timer-a11y__status"
+          role="status"
+          aria-live="polite"
+          i18n="@@sessionVote.timerAccommodation.extendedStatus"
+        >
+          10× Zeit aktiv · Das Ergebnis wartet auf dich
+        </p>
       }
-    </mat-button-toggle-group>
-    @if (timerAccommodation() === 'OFF') {
-      <p
-        class="vote-timer-a11y__status"
-        role="status"
-        aria-live="polite"
-        i18n="@@sessionVote.timerAccommodation.offStatus"
-      >
-        Keine persönliche Frist · Punkte weiter nach dem Raum-Timer
-      </p>
-    } @else if (timerAccommodation() === 'EXTENDED') {
-      <p
-        class="vote-timer-a11y__status"
-        role="status"
-        aria-live="polite"
-        i18n="@@sessionVote.timerAccommodation.extendedStatus"
-      >
-        10× Zeit aktiv · Das Ergebnis wartet auf dich
-      </p>
-    }
-  </section>
+    </div>
+  </details>
 </ng-template>
 
 @if (showSessionEndGate()) {
