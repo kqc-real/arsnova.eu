@@ -32,10 +32,10 @@ Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Ver
 
 Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung.
 
-| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                     | Glättung                                                   |
-| -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Einzelwörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Stufe 0: 2.x-Fallback) | `WORDS` und `PHRASES`; `SEMANTIC` blendet die Glättung aus |
-| Q&A      | eigener `MatDialog`                                  | `Einzelwörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`)  | nur `LEXICAL`; Einschalten erzwingt `LEXICAL`              |
+| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                     | Glättung                                                                                               |
+| -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Einzelwörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Stufe 0: 2.x-Fallback) | `WORDS` und `PHRASES`; `SEMANTIC` blendet die Glättung aus                                             |
+| Q&A      | eigener `MatDialog`                                  | `Einzelwörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`)  | `LEXICAL` und `THEME`; `SEMANTIC` blendet die Glättung aus; Einschalten bei `THEME` erzwingt `LEXICAL` |
 
 Presenter zeigt die Wolke ohne Glättungssteuerung, ohne Wolkensprache und ohne den Modus `Themen`.
 
@@ -48,7 +48,7 @@ Die **Wolkensprache** steht klein neben **Sprachformen glätten** (Freitext und 
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
 - **Q&A-Sortierung** `Meist unterstützt` / `Beste Fragen` / `Umstritten` bei aktiver `LEXICAL`-Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
 - **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE`, nicht den Lemma-Pfad. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
-- **Q&A `Themen`:** Story 1.14c Stufe 0. Kein Encoder und kein LLM. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Ohne Inferenzserver bleibt die Karte auf dem 2.x-Phrasenpfad (`status: disabled`, `fallbackUsed: true`).
+- **Q&A `Themen`:** Story 1.14c Stufe 0. Kein Encoder und kein LLM. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Ohne Inferenzserver bleibt die Karte auf dem 2.x-Phrasenpfad (`status: disabled`, `fallbackUsed: true`).
 - **Freitext `Themen`:** derselbe Host-Toggle und 2.x-Fallback; Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.

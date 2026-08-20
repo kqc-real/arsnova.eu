@@ -1604,6 +1604,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaWordCloudLemmaFingerprint() !== snapshotKey;
   });
   readonly qaWordCloudSmoothingStatus = computed<'idle' | 'pending' | 'active' | 'stale'>(() => {
+    if (this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC') {
+      return 'idle';
+    }
+
     if (this.qaWordCloudLemmaPending()) {
       return 'pending';
     }
@@ -1615,6 +1619,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return 'idle';
   });
   readonly qaWordCloudSmoothingDisabled = computed(() => {
+    if (this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC') {
+      return true;
+    }
+
     if (this.qaWordCloudLemmaPending()) {
       return true;
     }
@@ -1638,7 +1646,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   });
   readonly qaWordCloudSmoothingHint = computed(() => {
-    if (this.qaWordCloudLemmaPending()) {
+    if (
+      this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC' ||
+      this.qaWordCloudLemmaPending()
+    ) {
       return null;
     }
 
@@ -6891,7 +6902,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleQaWordCloudSmoothing(): Promise<void> {
-    if (this.qaWordCloudLemmaPending()) {
+    if (
+      this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC' ||
+      this.qaWordCloudLemmaPending()
+    ) {
       return;
     }
 
@@ -7825,6 +7839,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async requestQaWordCloudLemmaSmoothing(): Promise<void> {
+    if (this.qaWordCloudAnalysisVariant() === 'SEMANTIC') {
+      return;
+    }
+
     if (this.qaWordCloudAnalysisVariant() !== 'LEXICAL') {
       this.setQaWordCloudAnalysisVariant('LEXICAL');
     }
