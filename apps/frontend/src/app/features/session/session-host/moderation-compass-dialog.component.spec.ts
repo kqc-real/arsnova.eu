@@ -208,6 +208,11 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).toContain('Kommt Kapitel 4 in der Klausur vor?');
     expect(text).toContain('Nur sichtbare Q&A-Fragen.');
 
+    const summary = fixture.nativeElement.querySelector(
+      'mat-dialog-content [data-testid="moderation-summary"]',
+    );
+    expect(summary).not.toBeNull();
+
     const button = fixture.nativeElement.querySelector(
       '.moderation-compass-dialog__summary-button',
     ) as HTMLButtonElement;

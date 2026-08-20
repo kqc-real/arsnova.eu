@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -47,6 +47,7 @@ export type ModerationCompassDialogData = {
     '../../../shared/styles/dialog-title-header.scss',
     './moderation-compass-dialog.component.scss',
   ],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ModerationCompassDialogComponent {
   readonly data = inject<ModerationCompassDialogData>(MAT_DIALOG_DATA);

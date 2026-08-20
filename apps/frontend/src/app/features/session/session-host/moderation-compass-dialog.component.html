@@ -108,84 +108,84 @@
       Hier erscheinen wichtige Trends und Auswertungen, sobald die Teilnehmenden aktiv werden.
     </p>
   }
-</mat-dialog-content>
 
-@if (summaryEnabled()) {
-  <section
-    class="moderation-compass-dialog__summary"
-    data-testid="moderation-summary"
-    aria-live="polite"
-  >
-    @if (summaryStatusText(summaryResult()); as statusText) {
-      <p class="moderation-compass-dialog__summary-status" role="status">{{ statusText }}</p>
-    }
-    @if (summaryResult(); as result) {
-      @if (result.statements.length > 0) {
-        <ul class="moderation-compass-dialog__summary-statements">
-          @for (statement of result.statements; track statement.text) {
-            <li>{{ statement.text }}</li>
-          }
-        </ul>
-      }
-      @if (result.suggestedNextSteps.length > 0) {
-        <h3
-          class="moderation-compass-dialog__summary-heading"
-          i18n="@@sessionHost.moderationSummaryNextSteps"
-        >
-          Mögliche nächste Schritte
-        </h3>
-        <ul class="moderation-compass-dialog__summary-statements">
-          @for (step of result.suggestedNextSteps; track step.text) {
-            <li>{{ step.text }}</li>
-          }
-        </ul>
-      }
-      @if (result.sources.length > 0) {
-        <h3
-          class="moderation-compass-dialog__summary-heading"
-          i18n="@@sessionHost.moderationSummarySources"
-        >
-          Quellen
-        </h3>
-        <ul class="moderation-compass-card__sources">
-          @for (source of result.sources; track source.id) {
-            <li>
-              <button
-                type="button"
-                class="moderation-compass-card__source-button"
-                [attr.aria-label]="summarySourceJumpAria(source)"
-                (click)="activateSummarySource(source)"
-              >
-                {{ source.label }}
-              </button>
-            </li>
-          }
-        </ul>
-      }
-      @if (result.limitations.length > 0) {
-        <h3
-          class="moderation-compass-dialog__summary-heading"
-          i18n="@@sessionHost.moderationSummaryLimitations"
-        >
-          Hinweise
-        </h3>
-        <ul class="moderation-compass-dialog__summary-limitations">
-          @for (limitation of result.limitations; track limitation) {
-            <li>{{ limitation }}</li>
-          }
-        </ul>
-      }
-    }
-    <button
-      mat-stroked-button
-      type="button"
-      class="moderation-compass-dialog__summary-button"
-      [disabled]="summaryPending()"
-      [attr.aria-busy]="summaryPending()"
-      (click)="requestSummary()"
-      i18n="@@sessionHost.moderationSummaryButton"
+  @if (summaryEnabled()) {
+    <section
+      class="moderation-compass-dialog__summary"
+      data-testid="moderation-summary"
+      aria-live="polite"
     >
-      Zusammenfassung
-    </button>
-  </section>
-}
+      @if (summaryStatusText(summaryResult()); as statusText) {
+        <p class="moderation-compass-dialog__summary-status" role="status">{{ statusText }}</p>
+      }
+      @if (summaryResult(); as result) {
+        @if (result.statements.length > 0) {
+          <ul class="moderation-compass-dialog__summary-statements">
+            @for (statement of result.statements; track statement.text) {
+              <li>{{ statement.text }}</li>
+            }
+          </ul>
+        }
+        @if (result.suggestedNextSteps.length > 0) {
+          <h3
+            class="moderation-compass-dialog__summary-heading"
+            i18n="@@sessionHost.moderationSummaryNextSteps"
+          >
+            Mögliche nächste Schritte
+          </h3>
+          <ul class="moderation-compass-dialog__summary-statements">
+            @for (step of result.suggestedNextSteps; track step.text) {
+              <li>{{ step.text }}</li>
+            }
+          </ul>
+        }
+        @if (result.sources.length > 0) {
+          <h3
+            class="moderation-compass-dialog__summary-heading"
+            i18n="@@sessionHost.moderationSummarySources"
+          >
+            Quellen
+          </h3>
+          <ul class="moderation-compass-card__sources">
+            @for (source of result.sources; track source.id) {
+              <li>
+                <button
+                  type="button"
+                  class="moderation-compass-card__source-button"
+                  [attr.aria-label]="summarySourceJumpAria(source)"
+                  (click)="activateSummarySource(source)"
+                >
+                  {{ source.label }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+        @if (result.limitations.length > 0) {
+          <h3
+            class="moderation-compass-dialog__summary-heading"
+            i18n="@@sessionHost.moderationSummaryLimitations"
+          >
+            Hinweise
+          </h3>
+          <ul class="moderation-compass-dialog__summary-limitations">
+            @for (limitation of result.limitations; track limitation) {
+              <li>{{ limitation }}</li>
+            }
+          </ul>
+        }
+      }
+      <button
+        mat-stroked-button
+        type="button"
+        class="moderation-compass-dialog__summary-button"
+        [disabled]="summaryPending()"
+        [attr.aria-busy]="summaryPending()"
+        (click)="requestSummary()"
+        i18n="@@sessionHost.moderationSummaryButton"
+      >
+        Zusammenfassung
+      </button>
+    </section>
+  }
+</mat-dialog-content>

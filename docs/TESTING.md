@@ -24,6 +24,9 @@
 | `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                                                                              |
 | `npm run spacy:macos-dev`                     | macOS: Clean, `build:prod` aller Locales, Host-Sidecar, `start:prod`, `serve:localize:api` auf 4200, Freitext-, Q&A- und Moderationskompass-Seed (Demo-Quiz mit Freitextfrage) |
 | `npm run spacy:macos-dev:test`                | Hilfe-/Syntax-Tests für `scripts/macos-spacy-wordcloud-dev.sh`                                                                                                                 |
+| `npm run qa-summary:dev`                      | Lokaler 8.9c-Inferenzhelfer auf `127.0.0.1:8787/summary` (extraktiv; optional Gemini-Key nur im Helfer)                                                                        |
+| `npm run qa-summary:dev:test`                 | Vertrag-, Loopback- und Gemini-Mock-Tests für `scripts/qa-summary-dev-server.mjs`                                                                                              |
+| `npm run dev:qa-summary`                      | `npm run dev` plus 8.9c-Helfer; braucht `QA_SUMMARY_ENABLED=true` und die Loopback-URL in `.env`                                                                               |
 | `npm run format:check`                        | Prettier (ohne Schreiben)                                                                                                                                                      |
 | `npm run validate:pdfua`                      | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                                                                                              |
 | `npm run verify:production-serving`           | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)                                                                                   |
@@ -289,7 +292,7 @@ npm run test -w @arsnova/frontend -- \
   src/app/features/session/session-host/session-host.component.spec.ts
 ```
 
-Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden, ephemer; ohne private `QA_SUMMARY_INFERENCE_URL` kein Cloud-Fallback. Produktdoku: [qa-summary.md](features/qa-summary.md). Echtes LLM erst mit Story 1.14c.
+Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden, ephemer; ohne private `QA_SUMMARY_INFERENCE_URL` kein Cloud-Fallback. Lokaler Helfer: `npm run qa-summary:dev` / `npm run qa-summary:dev:test`. Produktdoku: [qa-summary.md](features/qa-summary.md). Echtes LLM erst mit Story 1.14c.
 
 Für W2.4a zusätzlich:
 
