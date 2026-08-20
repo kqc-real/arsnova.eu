@@ -1939,6 +1939,104 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('faellt Freitext-Semantik ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        fallbackUsed: true,
+        status: 'disabled',
+        entries: [
+          {
+            key: 'lineare regression',
+            label: 'lineare Regression',
+            count: 2,
+            basisLabel: 'lineare Regression',
+            members: [
+              {
+                sourceId: 'response-0',
+                text: 'Lineare Regression im Projekt',
+                weight: 1,
+              },
+              {
+                sourceId: 'response-1',
+                text: 'Lineare Regression hilft',
+                weight: 1,
+              },
+            ],
+            variants: ['lineare Regression'],
+            confidence: 0.4,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+
+    await vi.waitUntil(
+      () =>
+        wordCloudAnalyzeQueryMock.mock.calls.some(
+          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
+        ),
+      { timeout: 5000, interval: 25 },
+    );
+    await vi.waitUntil(() => component.displayedFreetextAnalysisEntries()?.length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    expect(component.freetextWordCloudMode()).toBe('SEMANTIC');
+    expect(component.freetextWordCloudSemanticHint()).toBe(
+      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
+    );
+    expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
+    expect(component.displayedFreetextAnalysisEntries()?.[0]?.label).toBe('lineare Regression');
+    expect(component.displayedFreetextVisibleTerms()).toBeNull();
+    expect(component.freetextWordCloudLemmaSnapshotVisible()).toBe(false);
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        normalization: 'NONE',
+      }),
+    );
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__extra--freetext mat-button-toggle[value="SEMANTIC"]',
+      ),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('oeffnet die Freitext-Wortwolke im Vollbild mit Analyse-Toggle und Freeze-Steuerung', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
@@ -2031,6 +2129,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         '.session-host__extra--maximized mat-button-toggle[value="PHRASES"] button',
       ) as HTMLButtonElement | null;
       expect(phrasesToggle).not.toBeNull();
+      expect(
+        fixture.nativeElement.querySelector(
+          '.session-host__extra--maximized mat-button-toggle[value="SEMANTIC"]',
+        ),
+      ).not.toBeNull();
       phrasesToggle?.click();
       fixture.detectChanges();
       await fixture.whenStable();
@@ -4110,6 +4213,137 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('faellt Themen ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(async (input: { mode?: string }) => {
+      if (input.mode === 'SEMANTIC') {
+        return wordCloudAnalyzeResult({
+          mode: 'SEMANTIC',
+          fallbackUsed: true,
+          status: 'disabled',
+          entries: [
+            {
+              key: 'kapitel-4',
+              label: 'Kapitel 4',
+              count: 7,
+              basisLabel: 'Kapitel 4',
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Kommt Kapitel 4 in der Klausur vor?',
+                  weight: 4,
+                },
+                {
+                  sourceId: '22222222-2222-4222-8222-222222222222',
+                  text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+                  weight: 3,
+                },
+              ],
+              variants: ['Kapitel 4'],
+              confidence: 0.4,
+            },
+          ],
+        });
+      }
+      return wordCloudAnalyzeResult({
+        entries: [
+          {
+            key: 'kapitel-4',
+            label: 'Kapitel 4',
+            count: 7,
+            basisLabel: 'Kapitel 4',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 4,
+              },
+            ],
+            variants: ['Kapitel 4'],
+            confidence: 0.88,
+          },
+        ],
+      });
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.componentInstance.setQaWordCloudAnalysisVariant('SEMANTIC');
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+
+    await vi.waitUntil(
+      () =>
+        wordCloudAnalyzeQueryMock.mock.calls.some(
+          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
+        ),
+      { timeout: 5000, interval: 25 },
+    );
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudAnalysisEntries()?.length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
+    expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBe(
+      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
+    );
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Kapitel 4');
+    expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
+
+    const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
+    const data = config['data'] as {
+      analysisVariant: () => string;
+      themeFallbackHint: () => string | null;
+      analysisEntries: () => Array<{ label: string }> | null;
+      terms: () => unknown[] | null;
+    };
+    expect(data.analysisVariant()).toBe('SEMANTIC');
+    expect(data.themeFallbackHint()).toContain('Themen sind noch nicht verfügbar');
+    expect(data.analysisEntries()?.[0]?.label).toBe('Kapitel 4');
+    expect(data.terms()).toBeNull();
+    fixture.destroy();
+  });
+
   function wordCloudAnalyzeResult(overrides: Record<string, unknown> = {}) {
     return {
       mode: 'THEME',
@@ -4117,6 +4351,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       metric: 'BEST',
       generatedAt: '2026-03-24T12:00:00.000Z',
       fallbackUsed: false,
+      status: 'ready',
+      modelVersion: null,
       normalization: 'NONE',
       normalizationApplied: 'NONE',
       normalizationFallbackUsed: false,

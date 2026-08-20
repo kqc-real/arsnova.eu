@@ -71,6 +71,8 @@ describe('wordCloud.analyze', () => {
       expect(result.mode).toBe('THEME');
       expect(result.metric).toBe('BEST');
       expect(result.fallbackUsed).toBe(false);
+      expect(result.status).toBe('ready');
+      expect(result.modelVersion).toBeNull();
       expect(result.normalization).toBe('NONE');
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
@@ -434,6 +436,65 @@ describe('wordCloud.analyze', () => {
     });
   });
 
+  it('faellt SEMANTIC ohne Encoder auf den 2.x-Themenpfad mit status disabled', async () => {
+    const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 8,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+          weight: 5,
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Wie funktioniert lineare Regression im Praxisprojekt?',
+          weight: 3,
+        },
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Wann nutzen wir lineare Regression fuer Prognosen?',
+          weight: 4,
+        },
+      ],
+    });
+
+    expect(sidecar).not.toHaveBeenCalled();
+    expect(result.mode).toBe('SEMANTIC');
+    expect(result.status).toBe('disabled');
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.modelVersion).toBeNull();
+    expect(result.entries).toHaveLength(2);
+    expect(result.entries[0]).toMatchObject({
+      key: 'kapitel 4',
+      label: 'Kapitel 4',
+    });
+    expect(result.entries[0]?.members).toHaveLength(2);
+  });
+
+  it('liefert SEMANTIC ohne Items als disabled ohne leeren Sondervertrag', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      items: [],
+    });
+
+    expect(result.mode).toBe('SEMANTIC');
+    expect(result.status).toBe('disabled');
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.entries).toEqual([]);
+  });
+
   it('cacht Themenanalysen ohne Sidecar-Aufruf', async () => {
     const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
     const cache = createMemoryWordCloudAnalysisCache();
@@ -680,11 +741,11 @@ describe('wordCloud.analyze', () => {
       expect(result.fallbackUsed).toBe(false);
     });
 
-    it('ruft den Sidecar bei THEME + LEMMA nicht an', async () => {
+    it('ruft den Sidecar bei THEME + LEMMA und SEMANTIC + LEMMA nicht an', async () => {
       vi.stubEnv('NLP_ENABLED', 'true');
       const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar');
 
-      const result = await hostCaller.analyze({
+      const theme = await hostCaller.analyze({
         sessionCode: 'ABC123',
         mode: 'THEME',
         locale: 'de',
@@ -704,9 +765,36 @@ describe('wordCloud.analyze', () => {
         ],
       });
 
+      const semantic = await hostCaller.analyze({
+        sessionCode: 'ABC123',
+        mode: 'SEMANTIC',
+        locale: 'de',
+        metric: 'BEST',
+        normalization: 'LEMMA',
+        items: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 8,
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 5,
+          },
+        ],
+      });
+
       expect(sidecar).not.toHaveBeenCalled();
-      expect(result.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
-      expect(result.entries[0]).toMatchObject({
+      expect(theme.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+      expect(theme.entries[0]).toMatchObject({
+        key: 'kapitel 4',
+        label: 'Kapitel 4',
+      });
+      expect(semantic.mode).toBe('SEMANTIC');
+      expect(semantic.status).toBe('disabled');
+      expect(semantic.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+      expect(semantic.entries[0]).toMatchObject({
         key: 'kapitel 4',
         label: 'Kapitel 4',
       });

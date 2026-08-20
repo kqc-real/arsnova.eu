@@ -3,6 +3,7 @@ import {
   AnalyzeWordCloudInputSchema,
   AnalyzeWordCloudOutputSchema,
   type AnalyzeWordCloudOutput,
+  isWordCloudPhraseAnalysisVariant,
 } from '@arsnova/shared-types';
 import {
   buildLexicalWordCloudEntries,
@@ -33,12 +34,15 @@ function buildAnalysisOutput(
   themeFallbackUsed: boolean,
   meta: WordCloudNormalizationMeta,
 ): AnalyzeWordCloudOutput {
+  const semanticUnavailable = input.mode === 'SEMANTIC';
   return AnalyzeWordCloudOutputSchema.parse({
     mode: input.mode,
     locale: input.locale,
     metric: input.metric,
     generatedAt: new Date().toISOString(),
-    fallbackUsed: themeFallbackUsed,
+    fallbackUsed: semanticUnavailable || themeFallbackUsed,
+    status: semanticUnavailable ? 'disabled' : 'ready',
+    modelVersion: null,
     entries,
     ...meta,
   });
@@ -48,7 +52,7 @@ function analyzeFromNormalized(
   input: AnalyzeWordCloudInput,
   normalized: Awaited<ReturnType<typeof normalizeWordCloudItems>>,
 ): AnalyzeWordCloudOutput {
-  if (input.mode === 'THEME') {
+  if (isWordCloudPhraseAnalysisVariant(input.mode)) {
     const analysis = buildThemeWordCloudAnalysis(input);
     if (!analysis.usedThemeAnchors || analysis.entries.length === 0) {
       return buildAnalysisOutput(
@@ -139,9 +143,11 @@ export async function analyzeWordCloudSnapshot(
 /**
  * Word-Cloud-Analysepfad für den Host.
  * THEME bleibt der deterministische Phrasen-/Anchor-Pfad ohne spaCy.
+ * SEMANTIC (1.14c Stufe 0) nutzt denselben 2.x-Pfad und markiert `status: disabled`,
+ * solange kein Encoder-Server angebunden ist. Kein 8.9c-Vertrag.
  * LEXICAL + LEMMA glättet über den Sidecar und fällt hart auf Identity zurück.
  * Freitext-Phrasen kommen über `maxNgramLength` 2/3 in denselben LEXICAL-Snapshot;
- * Q&A-Einzelwörter bleiben bei Default 1. THEME-Fallback bleibt unigram-only.
+ * Q&A-Einzelwörter bleiben bei Default 1. THEME-/SEMANTIC-Fallback bleibt unigram-only.
  */
 export const wordCloudRouter = router({
   analyze: hostProcedure

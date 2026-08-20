@@ -65,6 +65,7 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 - **Screenshot-Übersicht:** [screenshots/README.md](screenshots/README.md)
 - **Selbsteinschätzung (Story 1.2i):** [features/confidence-slider.md](features/confidence-slider.md)
 - **Wortwolken-Glättung (Story 1.14b):** [features/word-cloud-spacy.md](features/word-cloud-spacy.md)
+- **Word Cloud 3.0 / Story 1.14c (Stufe 0 Vertrag/UI, Encoder offen):** [implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md](implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md) · Voranalyse 2026-08-20: [implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md)
 - **Moderationskompass (Story 8.9a):** [features/moderation-compass.md](features/moderation-compass.md)
 - **Q&A-NLP-Kaskade (Story 8.9b, Gatekeeper plus k-NN-Fallback):** [features/qa-nlp-moderation.md](features/qa-nlp-moderation.md)
 - **Moderationszusammenfassung (Story 8.9c, Slices 1–3, Kill-Switch default aus):** [features/qa-summary.md](features/qa-summary.md)

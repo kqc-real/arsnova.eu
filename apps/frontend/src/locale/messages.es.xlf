@@ -13999,6 +13999,14 @@
           <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudAnalysisSemantic" datatype="html">
+        <source>Themen</source>
+        <target>Temas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
+          <context context-type="linenumber">47</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutAria" datatype="html">
         <source>Hinweis: Etwas ist in der Session schiefgegangen</source>
         <target>Aviso: algo en la sesión no ha ido fino</target>
@@ -15251,6 +15259,14 @@
           <context context-type="linenumber">3588</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.wordCloudAnalysisSemantic" datatype="html">
+        <source>Themen</source>
+        <target>Temas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3578</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.qaTitleEditAria" datatype="html">
         <source>Q&amp;A-Titel bearbeiten</source>
         <target>Editar título de Q&amp;A</target>
@@ -16053,6 +16069,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1637</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
+        <source>Themen werden vorbereitet. Es gelten Wörter und Phrasen.</source>
+        <target>Los temas se están preparando. Se muestran palabras y frases.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1625</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
+        <source>Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.</source>
+        <target>Los temas aún no están disponibles. Se muestran palabras y frases.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1627</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">

@@ -8,6 +8,8 @@
 
 **Status:** kanonisches Zielbild fuer Story `1.14c`; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`. Die optionale spaCy-Glaettung aus Story `1.14b` ist umgesetzt (`docs/features/word-cloud-spacy.md`).
 
+**Voranalyse (2026-08-20):** Modellwahl, 8-vCPU/16-GB-Grenze, Zusammenspiel mit 8.9c, Gemini-Vergleich und Implementierungsstufen in [`WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md`](WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md). Die Voranalyse ersetzt dieses Zielbild nicht.
+
 **Architekturbezug:** `ADR-0012`, `ADR-0013`, `ADR-0025`, `ADR-0026`, `ADR-0032`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`
 
 **Abgrenzung:** spaCy als optionale sprachliche Glaettung ist in Story `1.14b` umgesetzt (`docs/features/word-cloud-spacy.md`) und ist nicht identisch mit diesem semantischen `3.0`-Themenpfad.
@@ -31,25 +33,26 @@ Damit wird `3.0` zu einer **Host-first-Moderationsstory** mit hohem Nutzwert und
 
 ---
 
-## Stand Mai 2026
+## Stand August 2026
 
-Der lokale Host-first-Pfad ist inzwischen produktseitig vorhanden, aber nicht als echter semantischer Themenmodus beschriftet:
+Der lokale Host-first-Pfad ist produktseitig vorhanden. `THEME` bleibt der lexikalische Phrasenmodus, nicht die semantische Clusterung:
 
-- gemeinsamer Analysevertrag in `libs/shared-types/src/schemas.ts`
+- gemeinsamer Analysevertrag in `libs/shared-types/src/schemas.ts` (`LEXICAL`, `THEME`, `SEMANTIC`)
 - Backend-Router in `apps/backend/src/routers/wordCloud.ts`
 - deterministischer Theme-Analyzer in `apps/backend/src/lib/wordCloudAnalysis.ts`
-- Host-Toggle `Einzelwoerter` / `Begriffe & Phrasen` in `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.html`
+- Host-Toggle `Einzelwörter` / `Wörter & Phrasen` / `Themen` in Q&A-Dialog und Host-Freitext
 - Vollbilddialog fuer denselben Analysemodus in `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.ts`
 - gemeinsamer Renderer fuer gelieferte Analyse-Entries in `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
 - erklaerbare Tooltips, CSV-Ausgabe und Quellenlisten
+- **Stufe 0 (2026-08-20):** `SEMANTIC` ist in Host-Q&A und Host-Freitext sichtbar; ohne Encoder-Server antwortet `wordCloud.analyze` mit `status: disabled`, `fallbackUsed: true` und 2.x-Eintraegen. Keine leere Karte. Presenter und 8.9c-Slice-4 bleiben aussen vor.
 
-Nicht umgesetzt als Teil dieses Standes und deshalb Gegenstand von Story `1.14c` sind weiterhin:
+Nicht umgesetzt und deshalb Gegenstand der weiteren `1.14c`-Stufen:
 
-- ein echter, sichtbar beschrifteter semantischer Themenmodus
+- Encoder + deterministisches semantisches Clustering (Stufe 1)
+- optionale quellengebundene Labelbildung durch ein Open-Weight-LLM (Stufe 2)
 - Confidence-Filter fuer den lokalen Document-Frequency-Pfad
-- Presenter-Q&A-Rollout als eigener Produktpfad
-- semantischer Quiz-Freitext-Rollout
-- mehrsprachige Embeddings, deterministisches semantisches Clustering und die optionale quellengebundene Labelbildung durch ein Open-Weight-LLM
+- Presenter-Q&A- und Presenter-Freitext-Themenmodus
+- Encoder-Clustering fuer Freitext-Snapshots (dieselbe Stufe-1-Kaskade wie Q&A; die Stufe-0-UI ist vorhanden)
 - der getrennte, private Inferenzserver mit Queue, Timeout, Ressourcen-, Sicherheits- und Kostenbudget
 - die Mess-, FinOps-, Lizenz- und Degradationsnachweise fuer eine spaetere Produktivfreigabe
 
@@ -145,7 +148,7 @@ Stattdessen braucht es einen klaren Analysevertrag.
 Der aktuelle Stand liegt bereits im Shared Layer in `libs/shared-types/src/schemas.ts`, u. a. mit:
 
 ```ts
-const WordCloudAnalysisVariantEnum = z.enum(['LEXICAL', 'THEME']);
+const WordCloudAnalysisVariantEnum = z.enum(['LEXICAL', 'THEME', 'SEMANTIC']);
 const AnalyzeWordCloudInputSchema = z.object({
   sessionCode: z.string(),
   mode: WordCloudAnalysisVariantEnum,
@@ -171,6 +174,9 @@ const AnalyzeWordCloudOutputSchema = z.object({
   metric: WordCloudWeightMetricEnum,
   generatedAt: z.string(),
   fallbackUsed: z.boolean(),
+  status: WordCloudClusterStatusEnum,
+  modelVersion: z.string().nullable(),
+  snapshotHash: z.string(),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
 });
 ```
@@ -306,7 +312,7 @@ Aufgaben:
 
 Ergebnis:
 
-- Der Host-Vollbilddialog bietet `Einzelwoerter`, `Begriffe & Phrasen` und `Semantische Themen`; der gemeinsame Renderer zeigt semantische Entries samt Konfidenz, Mitgliedern und Analyseversion, ohne Rohtexte selbst zu analysieren.
+- Der Host-Vollbilddialog bietet `Einzelwoerter`, `Begriffe & Phrasen` und `Themen`; der gemeinsame Renderer zeigt semantische Entries samt Konfidenz, Mitgliedern und Analyseversion, ohne Rohtexte selbst zu analysieren.
 
 ### Phase 4: Tests, Fixtures und Performance-Grenzen absichern
 

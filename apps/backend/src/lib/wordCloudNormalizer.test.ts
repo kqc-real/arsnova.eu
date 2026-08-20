@@ -149,17 +149,22 @@ describe('wordCloudNormalizer', () => {
     expect(invalid.meta.normalizationFallbackReason).toBe('INVALID_RESPONSE');
   });
 
-  it('ruft den Sidecar bei THEME + LEMMA nicht an', async () => {
+  it('ruft den Sidecar bei THEME + LEMMA und SEMANTIC + LEMMA nicht an', async () => {
     const sidecar = vi.fn(async () => {
-      throw new Error('Sidecar darf bei THEME nicht aufgerufen werden');
+      throw new Error('Sidecar darf bei THEME/SEMANTIC nicht aufgerufen werden');
     });
-    const result = await normalizeWordCloudItems(
+    const theme = await normalizeWordCloudItems(
       { ...lemmaInput, mode: 'THEME' },
       { env: { NLP_ENABLED: 'true' }, sidecar },
     );
+    const semantic = await normalizeWordCloudItems(
+      { ...lemmaInput, mode: 'SEMANTIC' },
+      { env: { NLP_ENABLED: 'true' }, sidecar },
+    );
     expect(sidecar).not.toHaveBeenCalled();
-    expect(result.meta.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
-    expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Häuser', lookup: 'häuser' }]);
+    expect(theme.meta.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+    expect(semantic.meta.normalizationFallbackReason).toBe('MODE_UNSUPPORTED');
+    expect(theme.tokensByItemId.get('item-1')).toEqual([{ display: 'Häuser', lookup: 'häuser' }]);
   });
 
   it('laesst LemmaNormalizer den Sidecar sprechen', async () => {

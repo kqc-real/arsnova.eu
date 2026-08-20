@@ -54,6 +54,7 @@
 }
 
 .qa-word-cloud-dialog__analysis-toggle {
+  max-width: min(100%, 48rem);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
@@ -137,6 +138,10 @@
   .qa-word-cloud-dialog__freeze,
   .qa-word-cloud-dialog__smooth-cluster {
     width: 100%;
+  }
+
+  .qa-word-cloud-dialog__analysis-toggle {
+    font-size: 0.8125rem;
   }
 
   .qa-word-cloud-dialog__smooth {

@@ -97,7 +97,7 @@ export function wordCloudLemmaModelId(locale: string): string | null {
 
 export interface ResolveWordCloudLemmaApplicationInput {
   readonly requested: WordCloudNormalization;
-  readonly mode: 'LEXICAL' | 'THEME';
+  readonly mode: 'LEXICAL' | 'THEME' | 'SEMANTIC';
   readonly locale: string;
   readonly nlpEnabled: boolean;
   readonly sidecarAvailable: boolean;
@@ -115,7 +115,7 @@ export interface WordCloudLemmaApplication {
 /**
  * Entscheidet, ob eine angeforderte Lemma-Glättung tatsächlich laufen darf.
  *
- * THEME + LEMMA ist in Story 1.14b bewusst kein Produktpfad.
+ * THEME + LEMMA und SEMANTIC + LEMMA sind bewusst kein Produktpfad.
  * Ohne erreichbaren Sidecar bleibt applied immer NONE.
  */
 export function resolveWordCloudLemmaApplication(

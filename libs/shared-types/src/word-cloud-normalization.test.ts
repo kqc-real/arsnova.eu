@@ -93,11 +93,20 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
     });
   });
 
-  it('lehnt THEME + LEMMA als Mode-Fallback ab', () => {
+  it('lehnt THEME + LEMMA und SEMANTIC + LEMMA als Mode-Fallback ab', () => {
     expect(
       resolveWordCloudLemmaApplication({
         requested: 'LEMMA',
         mode: 'THEME',
+        locale: 'de',
+        nlpEnabled: true,
+        sidecarAvailable: true,
+      }).reason,
+    ).toBe('MODE_UNSUPPORTED');
+    expect(
+      resolveWordCloudLemmaApplication({
+        requested: 'LEMMA',
+        mode: 'SEMANTIC',
         locale: 'de',
         nlpEnabled: true,
         sidecarAvailable: true,
