@@ -100,7 +100,7 @@ export class QaWordCloudDialogComponent {
       case 'stale':
         return 'refresh';
       default:
-        return 'auto_fix_high';
+        return this.analysisVariant() === 'SEMANTIC' ? 'refresh' : 'auto_fix_high';
     }
   });
   readonly lemmaLocale = computed(() => this.data.lemmaLocale());

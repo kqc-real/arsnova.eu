@@ -70,4 +70,19 @@ describe('wordCloudSemanticConfig', () => {
     });
     expect(publicConfig.inferenceUrl).toBeNull();
   });
+
+  it('akzeptiert Encoder-Timeout bis 120 s fuer CPU-e5', () => {
+    const config = resolveWordCloudSemanticConfig({
+      WORD_CLOUD_SEMANTIC_ENABLED: 'true',
+      WORD_CLOUD_ENCODER_URL: 'http://127.0.0.1:8790/embed',
+      WORD_CLOUD_ENCODER_TIMEOUT_MS: '120000',
+    });
+    expect(config.timeoutMs).toBe(120_000);
+    expect(() =>
+      resolveWordCloudSemanticConfig({
+        WORD_CLOUD_SEMANTIC_ENABLED: 'true',
+        WORD_CLOUD_ENCODER_TIMEOUT_MS: '120001',
+      }),
+    ).toThrow(/WORD_CLOUD_ENCODER_TIMEOUT_MS/);
+  });
 });

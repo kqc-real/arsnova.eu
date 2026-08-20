@@ -27,14 +27,7 @@ RUN groupadd --gid 1000 encoder \
 COPY requirements.txt NOTICE ./
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
-    && python - <<'PY'
-from huggingface_hub import snapshot_download
-snapshot_download(
-    repo_id="Xenova/multilingual-e5-small",
-    local_dir="/models/e5-small",
-    allow_patterns=["onnx/model.onnx", "onnx/model_quantized.onnx", "tokenizer.json", "tokenizer_config.json", "config.json"],
-)
-PY
+    && python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Xenova/multilingual-e5-small', local_dir='/models/e5-small', allow_patterns=['onnx/model.onnx', 'onnx/model_quantized.onnx', 'tokenizer.json', 'tokenizer_config.json', 'config.json'])" \
     && rm -rf /root/.cache/pip /tmp/huggingface /tmp/huggingface_hub \
     && chown -R encoder:encoder /models/e5-small
 

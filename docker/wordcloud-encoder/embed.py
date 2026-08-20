@@ -16,6 +16,8 @@ MODEL_ID = "intfloat/multilingual-e5-small"
 DEFAULT_MODEL_DIR = "/models/e5-small"
 MAX_SEQ_LENGTH = 512
 E5_PREFIX = "query: "
+# CPU-Sidecar (1 vCPU / 2 GiB): nicht 500×512 in einem Forward.
+EMBED_BATCH_SIZE = 16
 
 
 class Embedder(Protocol):
@@ -78,10 +80,9 @@ class OnnxE5Embedder:
         from tokenizers import Tokenizer
 
         root = Path(model_dir)
-        onnx_path = root / "onnx" / "model.onnx"
-        if not onnx_path.is_file():
-            quantized = root / "onnx" / "model_quantized.onnx"
-            onnx_path = quantized if quantized.is_file() else root / "model.onnx"
+        quantized = root / "onnx" / "model_quantized.onnx"
+        full = root / "onnx" / "model.onnx"
+        onnx_path = quantized if quantized.is_file() else full if full.is_file() else root / "model.onnx"
         if not onnx_path.is_file():
             raise FileNotFoundError(str(onnx_path))
         tokenizer_path = root / "tokenizer.json"
@@ -92,7 +93,9 @@ class OnnxE5Embedder:
         self._session = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
         self._tokenizer = Tokenizer.from_file(str(tokenizer_path))
         self._tokenizer.enable_truncation(max_length=MAX_SEQ_LENGTH)
-        self._tokenizer.enable_padding(length=MAX_SEQ_LENGTH)
+        # Pad to the longest sequence in the batch, not 512. Q&A items are short;
+        # fixed 512-padding made 500 CPU embeddings miss WORD_CLOUD_ENCODER_TIMEOUT_MS.
+        self._tokenizer.enable_padding()
         self._input_names = [item.name for item in self._session.get_inputs()]
         self.model_id = MODEL_ID
         self.model_version = f"{MODEL_ID}@sha256:{file_digest(onnx_path)}"
@@ -100,6 +103,12 @@ class OnnxE5Embedder:
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
         if not texts:
             return []
+        vectors: list[list[float]] = []
+        for start in range(0, len(texts), EMBED_BATCH_SIZE):
+            vectors.extend(self._embed_batch(texts[start : start + EMBED_BATCH_SIZE]))
+        return vectors
+
+    def _embed_batch(self, texts: Sequence[str]) -> list[list[float]]:
         prefixed = [f"{E5_PREFIX}{text}" for text in texts]
         encoded = self._tokenizer.encode_batch(prefixed)
         input_ids = self._np.asarray([item.ids for item in encoded], dtype=self._np.int64)

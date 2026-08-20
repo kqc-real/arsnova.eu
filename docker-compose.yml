@@ -61,7 +61,7 @@ services:
       NLP_CACHE_TTL_SECONDS: '1800'
       WORD_CLOUD_SEMANTIC_ENABLED: 'false'
       WORD_CLOUD_ENCODER_SOCKET_PATH: /run/wordcloud-encoder/encoder.sock
-      WORD_CLOUD_ENCODER_TIMEOUT_MS: '8000'
+      WORD_CLOUD_ENCODER_TIMEOUT_MS: '120000'
       WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS: '1800'
     volumes:
       - spacy_socket:/run/spacy:ro

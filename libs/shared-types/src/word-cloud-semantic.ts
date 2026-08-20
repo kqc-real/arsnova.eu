@@ -5,7 +5,7 @@
  * spricht nur `wordCloud.analyze`. Pflichtlocales der Stufe: de/en.
  */
 
-export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.1';
+export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.2';
 
 /** Hugging-Face-Karte; Digest kommt vom Inferenzdienst. */
 export const WORD_CLOUD_SEMANTIC_MODEL_ID = 'intfloat/multilingual-e5-small';
@@ -21,8 +21,13 @@ export const WORD_CLOUD_SEMANTIC_SOURCE_ID_PREFIX = 'qa-question:';
 export const WORD_CLOUD_SEMANTIC_MIN_TOPICS = 5;
 export const WORD_CLOUD_SEMANTIC_MAX_TOPICS = 12;
 
-/** Average-Linkage: Cluster mergen, solange mittlere Kosinusähnlichkeit >= Schwelle. */
-export const WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD = 0.8;
+/**
+ * Complete-Linkage: Cluster mergen, solange die schwächste paarweise
+ * Kosinusähnlichkeit >= Schwelle. 0,87 liegt über der e5-small-Baseline
+ * gleicher Wrapper über verschiedene Q&A-Familien (~0,84–0,86) und unter
+ * intra-familiären Paraphrasen (~0,89–0,98).
+ */
+export const WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD = 0.87;
 
 export const WORD_CLOUD_SEMANTIC_MIN_CLUSTER_SIZE = 2;
 

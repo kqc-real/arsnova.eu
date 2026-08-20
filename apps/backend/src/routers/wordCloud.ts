@@ -97,7 +97,7 @@ export async function analyzeWordCloudSnapshot(
   const cache = options.cache ?? getWordCloudAnalysisCache();
   const normalize = options.normalize ?? normalizeWordCloudItems;
 
-  const cached = await cache.getSnapshot(input);
+  const cached = input.refresh === true ? null : await cache.getSnapshot(input);
   if (cached) {
     recordWordCloudAnalyzeTelemetry({
       sessionCode: input.sessionCode,

@@ -45,8 +45,8 @@ Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine auto
 | Freitext  | nicht in Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` | 2.x wie Stufe 0                  |
 | Presenter | kein Themenmodus                                                         | lexikalisch 2.x                  |
 
-- **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen.
-- **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots.
+- **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
+- **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots. Locale steckt im Snapshot-Hash: `de` und `en` sind getrennte Caches. Deutsche Q&A bleibt auf **DE**; EN startet keine bessere Analyse, nur einen zweiten Lauf.
 - **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Die Glättung bleibt ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext).
 - Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen.
 
@@ -56,10 +56,10 @@ Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgli
 
 ```text
 Host-Snapshot (PINNED/ACTIVE, Gewichtung, Locale)
-  → Hash (Analyseversion 1.14c.1 + Kanal)
+  → Hash (Analyseversion 1.14c.2 + Kanal)
   → Cache (nur ready/uncertain)
   → privater Encoder (e5-small, nur Embeddings)
-  → agglomeratives Clustering im Backend (Average-Linkage, Kosinus ≥ 0,8)
+  → agglomeratives Clustering im Backend (Complete-Linkage, Kosinus ≥ 0,87)
   → extraktives Label (Mitglied nächst am Zentroid, sonst kürzester Text)
   → Zod AnalyzeWordCloud*
 ```
@@ -74,18 +74,18 @@ Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln `qa-qu
 
 Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: Compose-Profil `encoder`, Unix-Socket, `network_mode: none`, kein öffentlicher Port. Alternativ internes HTTP analog 8.9c (`WORD_CLOUD_ENCODER_URL`), nur Loopback (`localhost`, `127.0.0.0/8`, `::1`) oder RFC1918/`fc00::/7`-Literale. Browser sprechen den Dienst nie an. Öffentliche DNS-Namen, öffentliche IPs und SaaS-Hosts sind blockiert. `deploy.sh` startet den Encoder nicht.
 
-| Größe                 | Wert                                                                                                      |
-| --------------------- | --------------------------------------------------------------------------------------------------------- |
-| Kill-Switch           | `WORD_CLOUD_SEMANTIC_ENABLED` (nur exakt `true`; Default `false`)                                         |
-| Nicht wiederverwendet | `NLP_ENABLED`, `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED`, `QA_SUMMARY_INFERENCE_URL`                         |
-| Socket                | `WORD_CLOUD_ENCODER_SOCKET_PATH` (Default `/run/wordcloud-encoder/encoder.sock`)                          |
-| HTTP (optional)       | `WORD_CLOUD_ENCODER_URL` nur Loopback/RFC1918-Literale, Token `WORD_CLOUD_ENCODER_TOKEN` (nie in der URL) |
-| Timeout / Cache-TTL   | `WORD_CLOUD_ENCODER_TIMEOUT_MS` (Default 8000), `WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS` (1800)             |
-| Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                               |
-| Compose               | Profil `encoder`                                                                                          |
-| Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                                    |
-| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                             |
-| Analyseversion        | `1.14c.1`                                                                                                 |
+| Größe                 | Wert                                                                                                                 |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Kill-Switch           | `WORD_CLOUD_SEMANTIC_ENABLED` (nur exakt `true`; Default `false`)                                                    |
+| Nicht wiederverwendet | `NLP_ENABLED`, `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED`, `QA_SUMMARY_INFERENCE_URL`                                    |
+| Socket                | `WORD_CLOUD_ENCODER_SOCKET_PATH` (Default `/run/wordcloud-encoder/encoder.sock`)                                     |
+| HTTP (optional)       | `WORD_CLOUD_ENCODER_URL` nur Loopback/RFC1918-Literale, Token `WORD_CLOUD_ENCODER_TOKEN` (nie in der URL)            |
+| Timeout / Cache-TTL   | `WORD_CLOUD_ENCODER_TIMEOUT_MS` (Default 8000, Max 120000 für CPU-e5), `WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS` (1800) |
+| Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                                          |
+| Compose               | Profil `encoder`                                                                                                     |
+| Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                                               |
+| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                                        |
+| Analyseversion        | `1.14c.2`                                                                                                            |
 
 Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, langsamer oder überlasteter Encoder: `failed` bzw. `pending`, ebenfalls 2.x. Locales außer `de`/`en`: `fallback` plus lexikalische Wolke.
 
@@ -101,14 +101,26 @@ Im App-Container `WORD_CLOUD_SEMANTIC_ENABLED=true` und Socket `/run/wordcloud-e
 
 ### Lokal (Host-npm / macOS)
 
-Sidecar mit Loopback, kein Docker-Port:
+Compose-Profil `encoder` bleibt `network_mode: none` (Unix-Socket, für Host-Node unsichtbar). Lokal das gebaute Image per Loopback-HTTP:
+
+```bash
+docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder
+docker run --rm --name arsnova-wordcloud-encoder-local \
+  -e WORD_CLOUD_ENCODER_HTTP_BIND=0.0.0.0:8790 \
+  -e WORD_CLOUD_ENCODER_MODEL_DIR=/models/e5-small \
+  -p 127.0.0.1:8790:8790 \
+  arsnova-wordcloud-encoder:e5-small
+```
 
 ```env
 WORD_CLOUD_SEMANTIC_ENABLED=true
 WORD_CLOUD_ENCODER_URL=http://127.0.0.1:8790/embed
+WORD_CLOUD_ENCODER_TIMEOUT_MS=120000
 ```
 
-Der Python-Dienst akzeptiert `WORD_CLOUD_ENCODER_HTTP_BIND=127.0.0.1:8790`. Produktion setzt diesen Bind nicht. `WORD_CLOUD_ENCODER_ALLOW_STUB=true` ist nur für Unittests ohne ONNX-Gewichte.
+Produktion setzt den HTTP-Bind nicht. `WORD_CLOUD_ENCODER_ALLOW_STUB=true` ist nur für Unittests ohne ONNX-Gewichte, nicht für die Themenprüfung.
+
+Lokale Q&A-Paraphrasen (Klausur/Regression/Folien/Beamer plus längere Fragen für Stufe-2-Labels): `npm run seed:qa-forum -w @arsnova/backend -- --code ABC123 --corpus semantic`.
 
 ## Vertrag
 
@@ -123,6 +135,8 @@ Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `f
 ## Qualität
 
 CI-Fixtures (geometrische Einheitsvektoren, kein Modell-Download): die drei Klausur-Paraphrasen zu Kapitel 4 fallen zusammen; Folien vs. Beamer-Hänger nicht. Dasselbe Seed auf Englisch (exam / slides / projector). Echtes e5 nur im gebauten Image.
+
+e5-small liegt bei deutschsprachigen Vorlesungsfragen oft schon bei Kosinus ~0,80 zwischen verschiedenen Themen; identische Satzrahmen („Kurze Nachfrage“, „Kann das jemand einordnen“) ziehen fremde Familien auf ~0,84–0,89. Average-Linkage bei 0,80 verkettet daraus ein Mega-Thema. Complete-Linkage bei 0,87 hält Paraphrasen zusammen und die Familien getrennt. Die Host-Stufe **sicher** (≥ 0,85) bleibt davon unabhängig; engere Cluster liegen typisch darüber.
 
 ## Tests
 

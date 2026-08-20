@@ -3734,6 +3734,8 @@ export const AnalyzeWordCloudInputSchema = z.object({
       z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[2]),
     ])
     .optional(),
+  /** Host-Neuanalyse: Snapshot-Cache umgehen, Hash bleibt gleich. */
+  refresh: z.boolean().optional(),
 });
 export type AnalyzeWordCloudInput = z.infer<typeof AnalyzeWordCloudInputSchema>;
 

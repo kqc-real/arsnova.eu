@@ -65,4 +65,22 @@ describe('wordCloudSemanticCluster', () => {
       ['de-klausur-1', 'de-klausur-2', 'de-klausur-3'].sort(),
     );
   });
+
+  it('trennt zwei dichte Familien, die Average-Linkage ueber gemeinsame Wrapper verketten wuerde', () => {
+    const embeddings = [
+      { id: 'a1', text: 'A', vector: [1, 0, 0, 0] },
+      { id: 'a-wrap', text: 'Wrap A', vector: [0.95, 0.3122499, 0, 0] },
+      { id: 'b1', text: 'B', vector: [0.78, 0.18895122, 0.5965714, 0] },
+      { id: 'b-wrap', text: 'Wrap B', vector: [0.8, 0.32025631, 0.44502163, 0.24370401] },
+    ];
+    const clusters = clusterWordCloudEmbeddings(embeddings);
+    const clusterOf = (id: string) =>
+      clusters
+        .find((cluster) => cluster.memberIds.includes(id))
+        ?.memberIds.slice()
+        .sort();
+
+    expect(clusterOf('a1')).toEqual(['a-wrap', 'a1'].sort());
+    expect(clusterOf('b1')).toEqual(['b-wrap', 'b1'].sort());
+  });
 });

@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
+import {
+  WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
+  type AnalyzeWordCloudInput,
+  type AnalyzeWordCloudOutput,
+} from '@arsnova/shared-types';
 import { hashWordCloudText } from './wordCloudNormalization';
 
 const mocks = vi.hoisted(() => ({
@@ -114,7 +118,7 @@ describe('wordCloudAnalysisCache', () => {
         mode: 'SEMANTIC',
         status: 'disabled',
         fallbackUsed: true,
-        analysisVersion: '1.14c.1',
+        analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
       }),
     ).toBe(false);
     expect(
@@ -122,7 +126,7 @@ describe('wordCloudAnalysisCache', () => {
         ...output,
         mode: 'SEMANTIC',
         status: 'ready',
-        analysisVersion: '1.14c.1',
+        analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
         modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
       }),
     ).toBe(true);
@@ -177,7 +181,7 @@ describe('wordCloudAnalysisCache', () => {
       ...output,
       mode: 'SEMANTIC',
       status: 'ready',
-      analysisVersion: '1.14c.1',
+      analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
       modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
     } as const satisfies AnalyzeWordCloudOutput;
 
@@ -199,7 +203,7 @@ describe('wordCloudAnalysisCache', () => {
       ...output,
       mode: 'SEMANTIC',
       status: 'ready',
-      analysisVersion: '1.14c.1',
+      analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
       modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
     } as const satisfies AnalyzeWordCloudOutput;
 
@@ -257,7 +261,7 @@ describe('createRedisWordCloudAnalysisCache', () => {
       ...output,
       mode: 'SEMANTIC',
       status: 'ready',
-      analysisVersion: '1.14c.1',
+      analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
       modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
     } as const satisfies AnalyzeWordCloudOutput;
 

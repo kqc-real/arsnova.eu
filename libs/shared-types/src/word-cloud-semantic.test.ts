@@ -14,7 +14,7 @@ describe('word-cloud-semantic', () => {
     expect(WORD_CLOUD_SEMANTIC_LOCALES).toEqual(['de', 'en']);
     expect(isWordCloudSemanticLocale('de')).toBe(true);
     expect(isWordCloudSemanticLocale('fr')).toBe(false);
-    expect(WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION).toBe('1.14c.1');
+    expect(WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION).toBe('1.14c.2');
     expect(WORD_CLOUD_SEMANTIC_MAX_TOPICS).toBe(12);
   });
 

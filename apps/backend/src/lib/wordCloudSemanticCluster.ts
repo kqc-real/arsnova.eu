@@ -42,29 +42,50 @@ export function cosineSimilarity(left: readonly number[], right: readonly number
   return dot / denominator;
 }
 
-function averageLinkage(
-  left: readonly number[],
-  right: readonly number[],
-  vectors: readonly (readonly number[])[],
-): number {
-  let sum = 0;
-  let count = 0;
-  for (const leftIndex of left) {
-    const leftVector = vectors[leftIndex];
-    if (!leftVector) continue;
-    for (const rightIndex of right) {
-      const rightVector = vectors[rightIndex];
-      if (!rightVector) continue;
-      sum += cosineSimilarity(leftVector, rightVector);
-      count += 1;
+function pairwiseCosineMatrix(vectors: readonly (readonly number[])[]): number[][] {
+  const size = vectors.length;
+  const matrix: number[][] = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => 0),
+  );
+  for (let i = 0; i < size; i += 1) {
+    const row = matrix[i]!;
+    row[i] = 1;
+    const left = vectors[i];
+    if (!left) continue;
+    for (let j = i + 1; j < size; j += 1) {
+      const right = vectors[j];
+      const score = right ? cosineSimilarity(left, right) : 0;
+      row[j] = score;
+      matrix[j]![i] = score;
     }
   }
-  return count === 0 ? 0 : sum / count;
+  return matrix;
+}
+
+/** Complete-Linkage: schwächste Kosinusähnlichkeit zwischen den zwei Gruppen (Schwelle 0,87). */
+function completeLinkage(
+  left: readonly number[],
+  right: readonly number[],
+  matrix: readonly (readonly number[])[],
+): number {
+  let min = Number.POSITIVE_INFINITY;
+  for (const leftIndex of left) {
+    const row = matrix[leftIndex];
+    if (!row) continue;
+    for (const rightIndex of right) {
+      const score = row[rightIndex];
+      if (score === undefined) continue;
+      if (score < min) {
+        min = score;
+      }
+    }
+  }
+  return Number.isFinite(min) ? min : 0;
 }
 
 function meanPairwiseCosine(
   memberIndexes: readonly number[],
-  vectors: readonly (readonly number[])[],
+  matrix: readonly (readonly number[])[],
 ): number {
   if (memberIndexes.length < 2) {
     return 0.4;
@@ -72,12 +93,12 @@ function meanPairwiseCosine(
   let sum = 0;
   let count = 0;
   for (let i = 0; i < memberIndexes.length; i += 1) {
-    const left = vectors[memberIndexes[i] ?? -1];
-    if (!left) continue;
+    const row = matrix[memberIndexes[i] ?? -1];
+    if (!row) continue;
     for (let j = i + 1; j < memberIndexes.length; j += 1) {
-      const right = vectors[memberIndexes[j] ?? -1];
-      if (!right) continue;
-      sum += cosineSimilarity(left, right);
+      const score = row[memberIndexes[j] ?? -1];
+      if (score === undefined) continue;
+      sum += score;
       count += 1;
     }
   }
@@ -140,7 +161,7 @@ function extractiveLabel(
 }
 
 /**
- * Agglomeratives Clustering (Average-Linkage, Kosinus). Kein festes k.
+ * Agglomeratives Clustering (Complete-Linkage, Kosinus). Kein festes k.
  * Mindestgröße 2; Singletons bleiben unsichere Einzelthemen.
  */
 export function clusterWordCloudEmbeddings(
@@ -151,6 +172,7 @@ export function clusterWordCloudEmbeddings(
     return [];
   }
   const vectors = embeddings.map((item) => item.vector);
+  const matrix = pairwiseCosineMatrix(vectors);
   const nodes: Array<{ members: number[] }> = embeddings.map((_, index) => ({ members: [index] }));
 
   while (nodes.length > 1) {
@@ -159,7 +181,7 @@ export function clusterWordCloudEmbeddings(
     let bestScore = Number.NEGATIVE_INFINITY;
     for (let i = 0; i < nodes.length; i += 1) {
       for (let j = i + 1; j < nodes.length; j += 1) {
-        const score = averageLinkage(nodes[i]!.members, nodes[j]!.members, vectors);
+        const score = completeLinkage(nodes[i]!.members, nodes[j]!.members, matrix);
         if (score > bestScore) {
           bestScore = score;
           bestLeft = i;
@@ -179,7 +201,7 @@ export function clusterWordCloudEmbeddings(
   }
 
   return nodes.map((node) => {
-    const confidence = meanPairwiseCosine(node.members, vectors);
+    const confidence = meanPairwiseCosine(node.members, matrix);
     const labelSource = extractiveLabel(node.members, embeddings, vectors);
     return {
       memberIds: node.members

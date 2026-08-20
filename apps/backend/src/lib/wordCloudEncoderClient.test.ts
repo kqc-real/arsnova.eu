@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { toWordCloudSemanticSourceId } from '@arsnova/shared-types';
 import {
+  WORD_CLOUD_ENCODER_MAX_RESPONSE_BYTES,
   embedWithWordCloudEncoder,
   resetWordCloudEncoderClientForTests,
   WordCloudEncoderError,
@@ -28,6 +29,10 @@ const request = {
 describe('wordCloudEncoderClient', () => {
   afterEach(() => {
     resetWordCloudEncoderClientForTests();
+  });
+
+  it('laesst 500 e5-small-Vektoren in der HTTP-Antwort zu', () => {
+    expect(WORD_CLOUD_ENCODER_MAX_RESPONSE_BYTES).toBeGreaterThanOrEqual(16_777_216);
   });
 
   it('blockiert SaaS-Hosts auch wenn die URL gesetzt ist', async () => {
