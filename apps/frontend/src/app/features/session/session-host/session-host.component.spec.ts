@@ -4347,8 +4347,22 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBe(
       'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
     );
+    expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Kapitel 4');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
+
+    const lemmaCallsBeforeToggle = wordCloudAnalyzeQueryMock.mock.calls.filter(
+      (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
+    ).length;
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    expect(fixture.componentInstance.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
+    expect(
+      wordCloudAnalyzeQueryMock.mock.calls.filter(
+        (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
+      ),
+    ).toHaveLength(lemmaCallsBeforeToggle);
 
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
@@ -4356,11 +4370,15 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       themeFallbackHint: () => string | null;
       analysisEntries: () => Array<{ label: string }> | null;
       terms: () => unknown[] | null;
+      smoothingDisabled: () => boolean;
+      smoothingStatus: () => string;
     };
     expect(data.analysisVariant()).toBe('SEMANTIC');
     expect(data.themeFallbackHint()).toContain('Themen sind noch nicht verfügbar');
     expect(data.analysisEntries()?.[0]?.label).toBe('Kapitel 4');
     expect(data.terms()).toBeNull();
+    expect(data.smoothingDisabled()).toBe(true);
+    expect(data.smoothingStatus()).toBe('idle');
     fixture.destroy();
   });
 
@@ -4541,6 +4559,113 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()?.length).toBeGreaterThan(0);
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet Q&A-Glaettung in Themen aus und wechselt nicht still auf Einzelwoerter', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { mode?: string; normalization?: string }) => {
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: 'klausur',
+                label: 'Klausur',
+                count: 4,
+                basisLabel: 'Klausur',
+                members: [
+                  {
+                    sourceId: '11111111-1111-4111-8111-111111111111',
+                    text: 'Kommt Kapitel 4 in der Klausur vor?',
+                    weight: 4,
+                  },
+                ],
+                variants: ['Klausur'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          mode: input.mode ?? 'THEME',
+          status: input.mode === 'SEMANTIC' ? 'disabled' : 'ready',
+          fallbackUsed: input.mode === 'SEMANTIC',
+          entries: [
+            {
+              key: 'kapitel-4',
+              label: 'Kapitel 4',
+              count: 4,
+              basisLabel: 'Kapitel 4',
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Kommt Kapitel 4 in der Klausur vor?',
+                  weight: 4,
+                },
+              ],
+              variants: ['Kapitel 4'],
+              confidence: 0.8,
+            },
+          ],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('LEXICAL');
+
+    fixture.componentInstance.setQaWordCloudAnalysisVariant('SEMANTIC');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(false);
+
+    const lemmaCount = lemmaAnalyzeCalls().length;
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    expect(fixture.componentInstance.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
+    expect(lemmaAnalyzeCalls()).toHaveLength(lemmaCount);
     fixture.destroy();
   });
 
