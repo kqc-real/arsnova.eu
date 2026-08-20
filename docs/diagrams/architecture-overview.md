@@ -4,11 +4,11 @@
 
 **Erstellt:** 2026-02-20
 
-**Zuletzt aktualisiert:** 2026-07-27
+**Zuletzt aktualisiert:** 2026-08-20
 
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, **10 (MOTD)** umgesetzt · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, **8.9a/8.9b**, 9, **10 (MOTD)** umgesetzt · **1.14 / 1.14a / 1.14b** fertig, **1.14c** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus) · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 ## System-Architektur-Diagramm
 
@@ -95,6 +95,28 @@ graph LR
     class SHARED shared
     class PG,REDIS,IDB database
     class DOZENT,STUDENT,ADMIN client
+```
+
+## Wortwolke und Moderationshilfe (1.14 / 8.9)
+
+Vereinfachte Sicht. Details und Kill-Switches: [diagrams.md §1.3](diagrams.md), [moderation-compass.md](../features/moderation-compass.md). Live-Submit wartet nicht auf Inferenz. 1.14c ist Zielbild, kein Produktionsknoten.
+
+```mermaid
+%%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 44, 'rankSpacing': 68, 'padding': 14}}}%%
+flowchart LR
+    HOST[Host Kompass und Wortwolke]
+    LEX[wordCloudAnalysis lexikalisch]
+    SPACY[spaCy-Sidecar optional]
+    NLP[QA-NLP-Queue optional]
+    SUM[Summary-Adapter optional]
+    INFER[Inferenzserver 1.14c offen]
+
+    HOST --> LEX
+    HOST -.->|Sprachformen glaetten| SPACY
+    HOST -.->|nach qa.submit| NLP
+    HOST -.->|Zusammenfassung on demand| SUM
+    SUM -.-> INFER
+    NLP -.-> INFER
 ```
 
 ## Datenfluss-Diagramm
@@ -300,6 +322,7 @@ graph LR
         FBHOST[FeedbackHostComponent]
         FBVOTE[FeedbackVoteComponent]
         WCLOUD[WordCloudComponent]
+        COMPASS[ModerationCompassDialog]
         FOYER[FoyerEntranceLayerComponent]
         COUNTDOWN[CountdownFingersComponent]
         SROOT --> SHOST
@@ -308,6 +331,8 @@ graph LR
         SHOST --> FBHOST
         SVOTE --> FBVOTE
         SHOST --> FOYER
+        SHOST --> WCLOUD
+        SHOST --> COMPASS
         SPRESENT --> WCLOUD
         SHOST --> COUNTDOWN
         SVOTE --> COUNTDOWN
@@ -501,6 +526,8 @@ erDiagram
         string text
         int upvoteCount
         enum status
+        enum nlpStatus
+        enum nlpCategory
     }
     QaUpvote {
         string qaQuestionId FK

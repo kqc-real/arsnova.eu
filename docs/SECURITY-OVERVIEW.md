@@ -4,7 +4,7 @@
 
 Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollständiges Threat-Model und keine Rechtsberatung; technische Tiefe: Handbuch, ADRs, Prisma, `session.ts` / DTO-Schicht.
 
-**Stand:** 2026-07-27 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`) und Plattformstatistik (`PlatformStatistic`, `DailyStatistic`).
+**Stand:** 2026-08-20 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`), Plattformstatistik (`PlatformStatistic`, `DailyStatistic`) sowie die optionalen Host-NLP-/Summary-Pfade (1.14b, 8.9b, 8.9c).
 
 ---
 
@@ -237,6 +237,8 @@ zum `node`-User), capability-frei, read-only mit begrenztem `/tmp` und ist auf
 kein reines MIT-Artefakt. `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht
 dazu ([NOTICE](../NOTICE)).
 Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
+
+Die optionale Q&A-NLP-Kaskade (Story 8.9b) und die Moderationszusammenfassung (Story 8.9c) laufen **nicht** im Participant-Hotpath. `qa.submit` persistiert zuerst; Inferenz ist asynchron oder on demand. Teilnehmer-DTOs enthalten keine NLP- oder Summary-Felder. Analyse-Snapshots sind auf `text` (8.9b) bzw. `{ id, kind, text }` plus Locale (8.9c) begrenzt — ohne Nicknames, IPs, Tokens, Participant-IDs oder Session-IDs. 8.9c-Ergebnisse liegen ephemer in Memory (TTL), nicht in Prisma. Öffentliche SaaS-Hosts sind als Inferenz-URL abgelehnt. Kill-Switches `QA_NLP_ENABLED` und `QA_SUMMARY_ENABLED` bleiben Default `false`. Produktdoku: [qa-nlp-moderation.md](features/qa-nlp-moderation.md), [qa-summary.md](features/qa-summary.md).
 
 W3.1 hält externe PDF-Bilder nutzbar, ohne Chromium direkten Netzwerkzugriff zu
 geben: Die App ruft ausschließlich öffentliche, DNS-/IP-gebundene

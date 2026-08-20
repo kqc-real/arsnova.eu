@@ -1,0 +1,15 @@
+# Moderationskompass und optionale Q&A-Inferenz (8.9 / 1.14)
+
+- Canonical docs: `docs/features/moderation-compass.md` (8.9a), `docs/features/qa-nlp-moderation.md` (8.9b), `docs/features/qa-summary.md` (8.9c), `docs/features/word-cloud-spacy.md` (1.14b). Diagram: `docs/diagrams/diagrams.md` §1.3.
+- 8.9a is done: host-only rule-based compass cards from already loaded signals. No auto pin/archive/phase actions. Cards appear only with evidence; the button stays visible. Present/Vote/FINISHED have no compass. Moderator access waits for story 8.5.
+- 8.9b is done, `QA_NLP_ENABLED` default false. Async queue after `qa.submit` persist; participant DTOs never include `nlp`. Gatekeeper plus in-process k-NN fallback. Separate from spaCy `NLP_ENABLED`.
+- 8.9c slices 1–3 plus local loopback helper and snapshot ranking are in repo; `QA_SUMMARY_ENABLED` default false; no SaaS fallback. Slice 4 (real model) waits for 1.14c on a private inference server with a separate contract. Results are ephemeral in memory, not Prisma.
+- 1.14/1.14a lexical word cloud is production; 1.14b optional lemma smoothing; 1.14c semantic topics remain open. Do not mix the three kill switches.
+- Live hot paths must not await inference.
+
+## Related Memories
+
+- `mem:core`
+- `mem:session/word-cloud-spacy`
+- `mem:security/dto-stripping`
+- `mem:backend/api-router`

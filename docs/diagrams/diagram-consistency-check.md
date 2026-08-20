@@ -1,8 +1,8 @@
 # Konsistenzprüfung: Diagramme · Handbuch · Backlog · Code
 
-**Datum:** 2026-06-17
+**Datum:** 2026-08-20
 
-**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0015/0016, ADR-0021, ADR-0028/0029, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md).
+**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0012, ADR-0015/0016, ADR-0021, ADR-0028/0029, ADR-0032, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md), [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 **Epic 0:** Alle Stories 0.1–0.6 umgesetzt (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD). health.check, health.footerBundle, health.stats, health.ping, Rate-Limit-Service und Frontend ServerStatusWidget sind implementiert.
 
@@ -20,13 +20,13 @@
 ### 1.2 Frontend-Komponenten
 
 - **Routen:** Home (/), Quiz (/quiz), Quiz-Sync (/quiz/sync/:docId), Session (/session/:code/host|present|vote), Join (/join/:code), Standalone-Blitzlicht (/feedback/:code|vote), **Admin (/admin)**, Help (/help), News-Archiv (/news-archive), Legal (/legal/imprint|privacy) – konsistent mit Backlog, ADR-0006 und ROUTES_AND_STORIES.md.
-- **Komponenten:** Alle geplanten Komponenten (inkl. QaModeratorComponent, QaStudentComponent, RatingScaleComponent, FreetextInputComponent, MotivationMessageComponent, EmojiBarComponent, BonusTokenDisplay, BonusTokenListComponent, EmojiOverlayComponent, QrCodeComponent, WordcloudComponent, RatingHistogramComponent, ImportExportComponent, ConfirmDialogComponent) sind abgebildet. ✓
+- **Komponenten:** Alle geplanten Komponenten (inkl. QaModeratorComponent, QaStudentComponent, RatingScaleComponent, FreetextInputComponent, MotivationMessageComponent, EmojiBarComponent, BonusTokenDisplay, BonusTokenListComponent, EmojiOverlayComponent, QrCodeComponent, WordcloudComponent, ModerationCompassDialog, RatingHistogramComponent, ImportExportComponent, ConfirmDialogComponent) sind abgebildet. ✓
 
 ### 1.3 Datenbank-Schema (erDiagram)
 
 - **Entitäten:** Quiz, Question, AnswerOption, Session, Participant, PlatformStatistic, DailyStatistic, Team, Vote, VoteAnswer, BonusToken, SessionFeedback, QaQuestion, QaUpvote, AdminAuditLog, MotdTemplate, Motd, MotdLocale, MotdInteractionCounter, MotdAuditLog – stimmen mit Prisma-Schema überein. ✓
 - **Relationen & Kardinalitäten:** Alle zentralen 1:n-, n:m- und Snapshot-Beziehungen korrekt; optionale Beziehungen (`Session.quizId`, `Participant.teamId`, `Motd.templateId`) sind im ER-Diagramm als optional bzw. kompakt dargestellt.
-- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, Platform/DailyStatistic und MOTD.
+- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, Platform/DailyStatistic, MOTD und Host-only Q&A-NLP (`QaQuestion.nlpStatus`, `nlpCategory`; weitere NLP-Felder nur in Prisma).
 
 ### 1.4 Sequenzdiagramme (Dozent & Student)
 
@@ -46,6 +46,7 @@
 | Thema                | diagrams.md                                                                                                                   | architecture-overview.md                                                                   | Bewertung                     |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------- |
 | tRPC-Router          | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd                                                        | health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd             | ✓ gleich                      |
+| 1.14 / 8.9           | §1.3 Wortwolke, Kompass, optionale spaCy-/NLP-/Summary-Pfade; Host-Wortwolke + ModerationCompassDialog                        | kompaktes LR-Diagramm „Wortwolke und Moderationshilfe“                                     | ✓ Überblick vs. Detail        |
 | DTOs                 | QuestionStudentDTO, QuestionRevealedDTO, SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO, NumericEstimate-Stats     | QuestionPreviewDTO, QuestionStudentDTO, QuestionRevealedDTO, NumericEstimate-Stats-Hinweis | ⚠️ Übersicht bleibt kompakter |
 | Data-Stripping       | ACTIVE ohne isCorrect/Schätzlagen, RESULTS mit isCorrect bzw. NumericEstimate-Stats                                           | Sicherheits-Diagramm + Datenfluss                                                          | ✓ gleich                      |
 | Session-Ablauf       | quiz.upload → session.create → …                                                                                              | Datenfluss zeigt quiz.upload + session.create                                              | ✓ konsistent                  |
@@ -58,7 +59,8 @@
 Die Komponenten-Hierarchie in architecture-overview.md ist eine **bewusst vereinfachte** Darstellung. Folgende Komponenten aus diagrams.md fehlen dort:
 
 - **Session-Steuerung:** QaModeratorComponent, BonusTokenListComponent
-- **Beamer:** WordcloudComponent, RatingHistogramComponent, EmojiOverlayComponent, QrCodeComponent
+- **Beamer:** RatingHistogramComponent, EmojiOverlayComponent, QrCodeComponent
+- **Wortwolke / Kompass:** `WordCloudComponent` und `ModerationCompassDialog` hängen in beiden Dateien am Host; Presenter zeigt die Wolke ohne Kompass
 - **Student:** McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, NumericEstimateInput/-Result, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, BonusTokenDisplay
 - **Shared:** LanguageSwitcherComponent, ConfirmDialogComponent, MarkdownKatexComponent (fehlt in Hierarchie-Darstellung)
 - **Quiz:** ImportExportComponent, QuizConfigComponent
@@ -76,6 +78,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 | **§3.1 Local-First & Zero-Knowledge** | Quiz-Sammlung lokal (Yjs/IndexedDB); Session-Kopie (quiz.upload) in Dozent-Sequenz ✓                                                                                                               |
 | **§3.2 End-to-End Typsicherheit**     | tRPC Router, httpBatchLink/wsLink, Path-Alias @arsnova/api – in Frontend-Services und System-Architektur ✓                                                                                         |
 | **§3.3 Security & Data-Stripping**    | QuestionStudentDTO ohne isCorrect, QuestionRevealedDTO mit isCorrect; Sicherheits-Diagramm in architecture-overview ✓                                                                              |
+| **§3.4 Optionale Host-Inferenz**      | diagrams.md §1.3 und architecture-overview „Wortwolke und Moderationshilfe“ ✓                                                                                                                      |
 | **§5 Datenmodell**                    | Prisma als Single Source of Truth – erDiagram in beiden Dateien, synchron mit schema.prisma ✓                                                                                                      |
 | **Story 0.4 Server-Status**           | Aggregierte Kennzahlen + Polling: ausführlich in [server-status-widget.md](../features/server-status-widget.md) (Sequenz-, Zustands- und Aktivitätsdiagramme); Architektur-Diagramme nur kompakt ✓ |
 
@@ -102,7 +105,9 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - Markdown/KaTeX (1.7) – MarkdownKatexComponent in Shared ✓
 - Stories **1.7a** und **1.7b** (Markdown-Bilder URL+Lightbox, KaTeX-Editor MD3-Toolbar) – umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)); keine eigene Mermaid-Erweiterung nötig
 - Story **1.2d NUMERIC_ESTIMATE** – umgesetzt und in Diagrammen sichtbar: Question-/Vote-Felder, Data-Stripping während ACTIVE, Runde-2-Pfad, Histogramm/Statistik/Paarvergleich nach RESULTS; Details in [numeric-estimate.md](../features/numeric-estimate.md) ✓
-- Word Cloud interaktiv + Export (1.14) – WordcloudComponent bereits in Beamer/Ergebnis-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
+- Word Cloud interaktiv + Export (1.14) – WordcloudComponent in Host- und Presenter-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
+- Story **1.14a** (d3-cloud, Freeze, Phrasen) und **1.14b** (optionaler spaCy-Sidecar) – umgesetzt; Diagramm §1.3 und [word-cloud-spacy.md](../features/word-cloud-spacy.md) ✓
+- Story **1.14c** (semantischer Themenmodus / Inferenzserver) – offen, im Diagramm als Zielbild-Knoten gekennzeichnet ⚠️ bewusst
 
 ### Epic 2: Session-Start & Steuerung
 
@@ -166,8 +171,11 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 - qaRouter in Backend-Diagramm ✓
 - QaModeratorComponent (Dozent), QaStudentComponent (Student) ✓
-- QaQuestion, QaUpvote im DB-Schema ✓
+- QaQuestion, QaUpvote im DB-Schema; Host-only `nlpStatus` / `nlpCategory` in erDiagram ✓
 - QaQuestionDTO, SubmitQaQuestionInputSchema, UpvoteQaQuestionInputSchema in shared-types ✓
+- Story **8.9a** Moderationskompass – Host-Dialog, clientseitige Karten; [moderation-compass.md](../features/moderation-compass.md) ✓
+- Story **8.9b** optionale Q&A-NLP-Kaskade – Queue nach Persistenz, Kill-Switch default aus; [qa-nlp-moderation.md](../features/qa-nlp-moderation.md) ✓
+- Story **8.9c** Moderationszusammenfassung – Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer); Slice 4 / echtes Modell offen; [qa-summary.md](../features/qa-summary.md) ✓
 
 ---
 
@@ -181,6 +189,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 | NicknameThemeEnum                                                            | NicknameTheme                                          | ✓ Werte identisch                                                                       |
 | TeamAssignmentEnum                                                           | TeamAssignment                                         | ✓ Werte identisch                                                                       |
 | QaQuestionStatusEnum                                                         | QaQuestionStatus                                       | ✓ Werte identisch                                                                       |
+| QaNlpStatusEnum / QaNlpCategoryEnum                                          | QaNlpStatus / QaNlpCategory                            | ✓ Host-only 8.9b; Teilnehmer-DTOs ohne NLP-Felder                                       |
 | SessionTypeEnum                                                              | SessionType                                            | ✓ Werte identisch                                                                       |
 | MotdStatusEnum                                                               | MotdStatus                                             | ✓ Werte identisch                                                                       |
 | MotdAuditActionEnum                                                          | MotdAuditAction                                        | ✓ Werte identisch                                                                       |
@@ -239,7 +248,7 @@ Story 0.4: Das **ServerStatusWidget** ist in diagrams.md (App-Shell / Shared) ab
 
 ### 8.1 Repo-weiter Mermaid-Audit und Doku-Abgleich
 
-Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständige Render-Prüfung. Am 2026-05-31 wurden die zentralen Diagrammtexte, Standangaben und Redis-/Realtime-Begriffe mit Architektur-Handbuch, Glossar, Onboarding und Funktionsübersicht abgeglichen. Am 2026-06-17 erfolgte ein fachlicher Abgleich für Story 1.2d `NUMERIC_ESTIMATE`: Backlog-Status, Feature-Doku, Datenmodellfelder, Data-Stripping, Scoring, Zwei-Runden-Flow, Ergebnisaggregation und die Trennung von `HostCurrentQuestionDTO` und `HostVoteProgressDTO` wurden in den zentralen Diagrammen nachgeführt. Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
+Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständige Render-Prüfung. Am 2026-08-20 wurden Wortwolke, Moderationskompass und optionale Inferenzpfade (Stories **1.14 / 1.14a / 1.14b**, **8.9a–8.9c**) in `diagrams.md` §1.3, der Frontend-Hierarchie (Host-Wortwolke + `ModerationCompassDialog`) und `architecture-overview.md` nachgeführt. Prisma-Felder `QaQuestion.nlpStatus` / `nlpCategory` sind in den ER-Diagrammen sichtbar; 8.9c bleibt ephemer (kein Prisma-Modell). Es gab **keinen** neuen `mmdc`-Render-Audit. Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
 
 | Datei                                              | Ergebnis                                                                                                                           |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -249,20 +258,21 @@ Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständi
 | `docs/features/blitzlicht-quickfeedback-api.md`    | Fehlende `quickFeedback`-Procedures `isActive`, `hostResults`, `onHostResults` ergänzt                                             |
 | `docs/features/preset-modes.md`                    | Foyer-Einflug an lokales UI-Preset `spielerisch` und Reward-Effekte gebunden; keine Host-Übersteuerung von Client-Presets          |
 | `docs/features/numeric-estimate.md`                | Neu: didaktisches Konzept, Plausibilitäts-/Toleranzband, Zwei-Runden-Flow, Data-Stripping, Nähe-Scoring, Statistik und Import      |
+| `docs/features/moderation-compass.md`              | Neu 2026-08-20: kanonische 8.9a-Doku; Diagramm §1.3                                                                                |
 | `docs/onboarding.md`                               | Backend-Diagramm um `wordCloudRouter`, `wordCloudAnalysis` und aktuellen Server-Status-Pfad ergänzt                                |
 | `docs/didaktik/dritter-kurs-data-analytics-nlp.md` | Zielbild an bestehenden `wordCloudRouter` und deterministische `wordCloudAnalysis`-Baseline angepasst                              |
 | `docs/praktikum/HANDOUT-TAGESREKORD-KI-AGENT.md`   | Tagesrekord-Sequenzen auf `footerBundle`/`stats`-Trennung und dynamisches Chart-Lazy-Loading aktualisiert                          |
 | `docs/architecture/quiz-library-sync.md`           | Geprüft; keine fachliche Änderung nötig                                                                                            |
 
-Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft; am 2026-06-17 erfolgte ein fachlicher Text- und Begriffsabgleich für `NUMERIC_ESTIMATE`, aber kein neuer repo-weiter Render-Audit.
+Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft. Am 2026-08-20 kam ein fachlicher Abgleich für 1.14/8.9 hinzu (zwei neue Mermaid-Blöcke in `diagrams.md` und `architecture-overview.md`), aber kein neuer repo-weiter `mmdc`-Lauf.
 
-| Aspekt                                     | Bewertung                                                                                                                                                    |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                                                      |
-| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                                                                   |
-| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet                                                                              |
-| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–8 abgedeckt; 0.4 vertieft in server-status-widget.md, 1.2d vertieft in numeric-estimate.md; offene Mini-Lücke §7.3 (Team-UI) |
-| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                                                |
-| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) abgedeckt                                                                                                  |
+| Aspekt                                     | Bewertung                                                                                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                               |
+| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                                            |
+| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet; 1.14/8.9 im Handbuch als Verweis                     |
+| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–8 abgedeckt; 0.4, 1.2d, 1.14, 8.9a–c in den jeweiligen Feature-Docs; offene Mini-Lücke §7.3 (Team-UI) |
+| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                         |
+| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) plus optionale spaCy-/NLP-/Summary-Pfade                                            |
 
-**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der PAUSED-Status ist in diagrams.md und im Datenfluss in architecture-overview.md berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
+**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der PAUSED-Status ist in diagrams.md und im Datenfluss in architecture-overview.md berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
