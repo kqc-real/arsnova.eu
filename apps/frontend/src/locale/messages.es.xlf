@@ -14119,14 +14119,6 @@
           <context context-type="linenumber">452,454</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationFirstHint" datatype="html">
-        <source> Hinweise bereit</source>
-        <target>Pistas listas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">477,479</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationReturnAria" datatype="html">
         <source>Zurück zum Moderationskompass</source>
         <target>Volver a la brújula de moderación</target>
@@ -16133,14 +16125,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1803</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.moderationButtonAriaFirstHint" datatype="html">
-        <source>Moderationskompass öffnen, Hinweise bereit</source>
-        <target>Abrir la brújula de moderación, pistas listas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1806</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationButtonAriaWithSignals" datatype="html">

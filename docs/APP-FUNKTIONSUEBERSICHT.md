@@ -217,7 +217,7 @@ Die Vorschau ist ein eigenständiger Arbeitsmodus und kann:
 - Inline-Schnellkorrekturen an Frage und Antworten erlauben
 - Timer und Lesephase direkt gegenprüfen
 - direkt aus der Vorschau eine Live-Session starten
-- auf Wunsch Vollbild anfordern
+- auf Wunsch Vollbild anfordern (nicht automatisch beim Live-Start in Chrome auf Android)
 
 ### 3.8 Import und Export
 
@@ -293,7 +293,7 @@ In der Lobby sind verfügbar:
 - visuelle Join-/Ankunftsmomente
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
-- Vollbildunterstützung
+- Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
 
 #### Quiz-Steuerung
 
