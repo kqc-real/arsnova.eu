@@ -7832,10 +7832,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaWordCloudThemeAnalysisResult.set(null);
       }
       this.qaWordCloudThemeFallbackActive.set(true);
-      if (request.mode === 'SEMANTIC') {
-        this.lastQaWordCloudSemanticAnalyzedKey = JSON.stringify(request);
-        this.qaWordCloudSemanticStale.set(false);
-      }
+      // SEMANTIC: Fingerprint und Stale-Flag nur bei Erfolg aktualisieren.
+      // Sonst gelten veraltete Cluster nach einem fehlgeschlagenen Retry als aktuell.
     } finally {
       if (runId === this.qaWordCloudThemeAnalysisRunId) {
         this.qaWordCloudThemeAnalysisPending.set(false);

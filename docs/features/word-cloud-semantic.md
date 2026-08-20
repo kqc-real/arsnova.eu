@@ -45,7 +45,7 @@ Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine auto
 | Freitext  | nicht in Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` | 2.x wie Stufe 0                  |
 | Presenter | kein Themenmodus                                                         | lexikalisch 2.x                  |
 
-- **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife.
+- **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen.
 - **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots.
 - **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Die Glättung bleibt ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext).
 - Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen.
@@ -72,22 +72,22 @@ Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln `qa-qu
 
 ## Betrieb
 
-Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: Compose-Profil `encoder`, Unix-Socket, `network_mode: none`, kein öffentlicher Port. Alternativ internes HTTP analog 8.9c (`WORD_CLOUD_ENCODER_URL`), nur Loopback/privates Netz. Browser sprechen den Dienst nie an. Öffentliche SaaS-Hosts sind blockiert. `deploy.sh` startet den Encoder nicht.
+Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: Compose-Profil `encoder`, Unix-Socket, `network_mode: none`, kein öffentlicher Port. Alternativ internes HTTP analog 8.9c (`WORD_CLOUD_ENCODER_URL`), nur Loopback (`localhost`, `127.0.0.0/8`, `::1`) oder RFC1918/`fc00::/7`-Literale. Browser sprechen den Dienst nie an. Öffentliche DNS-Namen, öffentliche IPs und SaaS-Hosts sind blockiert. `deploy.sh` startet den Encoder nicht.
 
-| Größe                 | Wert                                                                                          |
-| --------------------- | --------------------------------------------------------------------------------------------- |
-| Kill-Switch           | `WORD_CLOUD_SEMANTIC_ENABLED` (nur exakt `true`; Default `false`)                             |
-| Nicht wiederverwendet | `NLP_ENABLED`, `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED`, `QA_SUMMARY_INFERENCE_URL`             |
-| Socket                | `WORD_CLOUD_ENCODER_SOCKET_PATH` (Default `/run/wordcloud-encoder/encoder.sock`)              |
-| HTTP (optional)       | `WORD_CLOUD_ENCODER_URL`, Token `WORD_CLOUD_ENCODER_TOKEN` (nie in der URL)                   |
-| Timeout / Cache-TTL   | `WORD_CLOUD_ENCODER_TIMEOUT_MS` (Default 8000), `WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS` (1800) |
-| Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                   |
-| Compose               | Profil `encoder`                                                                              |
-| Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                        |
-| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                 |
-| Analyseversion        | `1.14c.1`                                                                                     |
+| Größe                 | Wert                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| Kill-Switch           | `WORD_CLOUD_SEMANTIC_ENABLED` (nur exakt `true`; Default `false`)                                         |
+| Nicht wiederverwendet | `NLP_ENABLED`, `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED`, `QA_SUMMARY_INFERENCE_URL`                         |
+| Socket                | `WORD_CLOUD_ENCODER_SOCKET_PATH` (Default `/run/wordcloud-encoder/encoder.sock`)                          |
+| HTTP (optional)       | `WORD_CLOUD_ENCODER_URL` nur Loopback/RFC1918-Literale, Token `WORD_CLOUD_ENCODER_TOKEN` (nie in der URL) |
+| Timeout / Cache-TTL   | `WORD_CLOUD_ENCODER_TIMEOUT_MS` (Default 8000), `WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS` (1800)             |
+| Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                               |
+| Compose               | Profil `encoder`                                                                                          |
+| Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                                    |
+| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                             |
+| Analyseversion        | `1.14c.1`                                                                                                 |
 
-Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen. Toter, langsamer oder überlasteter Encoder: `failed` bzw. `pending`, ebenfalls 2.x. Locales außer `de`/`en`: `fallback` plus lexikalische Wolke.
+Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, langsamer oder überlasteter Encoder: `failed` bzw. `pending`, ebenfalls 2.x. Locales außer `de`/`en`: `fallback` plus lexikalische Wolke.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md). Lizenzen: [NOTICE](../../NOTICE), [docker/wordcloud-encoder/NOTICE](../../docker/wordcloud-encoder/NOTICE).
 
@@ -116,7 +116,7 @@ Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstante
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 
-`stale` setzt das Frontend, wenn sich der Host-Snapshot nach einem `ready`-Ergebnis ändert. Cache speichert SEMANTIC nur bei `ready`/`uncertain`.
+`stale` setzt das Frontend, wenn sich der Host-Snapshot nach einem `ready`-Ergebnis ändert. Cache speichert SEMANTIC nur bei `ready`/`uncertain` und mit `WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS`. Bei Kill-Switch aus werden Hits nicht ausgeliefert.
 
 8.9c bleibt unabhängig: anderer Kill-Switch, anderer Snapshot (inkl. `PENDING`), anderer Auftrag. Cluster-Labels sind keine Summary-Bullets.
 

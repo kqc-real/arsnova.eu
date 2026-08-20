@@ -14,6 +14,7 @@ import {
 } from '@arsnova/shared-types';
 import {
   isBlockedWordCloudEncoderHost,
+  isPrivateWordCloudEncoderHttpHost,
   resolveWordCloudSemanticConfig,
   type WordCloudSemanticConfig,
 } from './wordCloudSemanticConfig';
@@ -158,7 +159,10 @@ async function embedOverHttp(
   } catch {
     throw new WordCloudEncoderError('UNAVAILABLE');
   }
-  if (isBlockedWordCloudEncoderHost(parsedUrl.hostname)) {
+  if (
+    isBlockedWordCloudEncoderHost(parsedUrl.hostname) ||
+    !isPrivateWordCloudEncoderHttpHost(parsedUrl.hostname)
+  ) {
     throw new WordCloudEncoderError('SAAS_BLOCKED');
   }
 
@@ -342,7 +346,7 @@ function messageFor(code: WordCloudEncoderFailureCode): string {
     case 'BACKPRESSURE':
       return 'Word-Cloud-Encoder ist ausgelastet';
     case 'SAAS_BLOCKED':
-      return 'Öffentliche SaaS-Endpunkte sind nicht zulässig';
+      return 'Öffentliche Encoder-Ziele sind nicht zulässig';
     default:
       return 'Word-Cloud-Encoder ist nicht erreichbar';
   }

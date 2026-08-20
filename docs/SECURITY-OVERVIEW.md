@@ -246,8 +246,9 @@ Compose startet ihn nur über das Profil `encoder`; `deploy.sh` lässt ihn aus. 
 Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` bleibt Default `false` und ist nicht
 `NLP_ENABLED`, `QA_NLP_ENABLED` oder `QA_SUMMARY_ENABLED`. Der Snapshot an den Encoder
 enthält nur `{ id, text }` plus anonyme Quellschlüssel `qa-question:{uuid}` — ohne
-Nicknames, IPs, Tokens oder Participant-IDs. Öffentliche SaaS-Hosts in
-`WORD_CLOUD_ENCODER_URL` sind abgelehnt. Clustering läuft im Backend, nicht im Sidecar.
+Nicknames, IPs, Tokens oder Participant-IDs. `WORD_CLOUD_ENCODER_URL` darf nur
+Loopback oder private Netzadressen verwenden; öffentliche DNS-Namen, öffentliche
+IPs und SaaS-Hosts sind abgelehnt. Clustering läuft im Backend, nicht im Sidecar.
 Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md).
 
 Die optionale Q&A-NLP-Kaskade (Story 8.9b) und die Moderationszusammenfassung (Story 8.9c) laufen **nicht** im Participant-Hotpath. `qa.submit` persistiert zuerst; Inferenz ist asynchron oder on demand. Teilnehmer-DTOs enthalten keine NLP-, Summary- oder Cluster-Felder. Analyse-Snapshots sind auf `text` (8.9b) bzw. `{ id, kind, text }` plus Locale (8.9c) bzw. `{ id, text }` (1.14c) begrenzt. 8.9c-Ergebnisse liegen ephemer in Memory (TTL), nicht in Prisma. Öffentliche SaaS-Hosts sind als Inferenz-URL abgelehnt. Kill-Switches `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED` und `WORD_CLOUD_SEMANTIC_ENABLED` bleiben Default `false`. Produktdoku: [qa-nlp-moderation.md](features/qa-nlp-moderation.md), [qa-summary.md](features/qa-summary.md), [word-cloud-semantic.md](features/word-cloud-semantic.md).

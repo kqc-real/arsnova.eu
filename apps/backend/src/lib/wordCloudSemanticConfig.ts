@@ -5,8 +5,10 @@
  * Getrennt von `NLP_ENABLED` (1.14b), `QA_NLP_ENABLED` (8.9b) und
  * `QA_SUMMARY_ENABLED` / `QA_SUMMARY_INFERENCE_URL` (8.9c).
  * Produktiv nur exakt `true` aktiviert den Q&A-Themenpfad.
- * Ohne privaten Socket oder private URL gibt es keinen SaaS-Fallback.
+ * Ohne privaten Socket oder private URL gibt es keinen öffentlichen Fallback.
  */
+import { BlockList, isIP } from 'node:net';
+
 export const WORD_CLOUD_ENCODER_TIMEOUT_DEFAULT_MS = 8_000;
 export const WORD_CLOUD_ENCODER_TIMEOUT_MIN_MS = 500;
 export const WORD_CLOUD_ENCODER_TIMEOUT_MAX_MS = 30_000;
@@ -31,6 +33,14 @@ const BLOCKED_SAAS_HOSTS = new Set([
   'api.fireworks.ai',
   'api.deepseek.com',
 ]);
+
+const PRIVATE_ENCODER_HTTP_HOSTS = new BlockList();
+PRIVATE_ENCODER_HTTP_HOSTS.addSubnet('127.0.0.0', 8, 'ipv4');
+PRIVATE_ENCODER_HTTP_HOSTS.addSubnet('10.0.0.0', 8, 'ipv4');
+PRIVATE_ENCODER_HTTP_HOSTS.addSubnet('172.16.0.0', 12, 'ipv4');
+PRIVATE_ENCODER_HTTP_HOSTS.addSubnet('192.168.0.0', 16, 'ipv4');
+PRIVATE_ENCODER_HTTP_HOSTS.addAddress('::1', 'ipv6');
+PRIVATE_ENCODER_HTTP_HOSTS.addSubnet('fc00::', 7, 'ipv6');
 
 export interface WordCloudSemanticConfig {
   readonly enabled: boolean;
@@ -67,11 +77,47 @@ function parseBoundedInt(
 }
 
 export function isBlockedWordCloudEncoderHost(hostname: string): boolean {
-  const host = hostname.trim().toLowerCase().replace(/\.+$/, '');
+  const host = normalizeEncoderHostname(hostname);
   if (BLOCKED_SAAS_HOSTS.has(host)) {
     return true;
   }
   return host.endsWith('.openai.azure.com');
+}
+
+/**
+ * HTTP-Transport nur Loopback (`localhost`, `127.0.0.0/8`, `::1`) oder
+ * RFC1918 / Unique-Local-IPv6-Literale. Öffentliche DNS-Namen sind
+ * kein privater Sidecar.
+ */
+export function isPrivateWordCloudEncoderHttpHost(hostname: string): boolean {
+  const host = normalizeEncoderHostname(hostname);
+  if (!host) {
+    return false;
+  }
+  if (host === 'localhost') {
+    return true;
+  }
+  const mappedIpv4 = ipv4MappedFromIpv6(host);
+  if (mappedIpv4) {
+    return PRIVATE_ENCODER_HTTP_HOSTS.check(mappedIpv4, 'ipv4');
+  }
+  const version = isIP(host);
+  if (version === 4) {
+    return PRIVATE_ENCODER_HTTP_HOSTS.check(host, 'ipv4');
+  }
+  if (version === 6) {
+    return PRIVATE_ENCODER_HTTP_HOSTS.check(host, 'ipv6');
+  }
+  return false;
+}
+
+function normalizeEncoderHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/\.+$/, '');
+}
+
+function ipv4MappedFromIpv6(host: string): string | null {
+  const match = host.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i);
+  return match?.[1] ?? null;
 }
 
 export function resolveWordCloudEncoderSocketPath(
@@ -101,8 +147,11 @@ export function resolveWordCloudEncoderUrl(
   if (!parsed.hostname) {
     throw new Error('WORD_CLOUD_ENCODER_URL braucht einen Hostnamen');
   }
-  if (isBlockedWordCloudEncoderHost(parsed.hostname)) {
-    throw new Error('WORD_CLOUD_ENCODER_URL darf keine öffentlichen SaaS-LLM-Endpunkte verwenden');
+  if (
+    isBlockedWordCloudEncoderHost(parsed.hostname) ||
+    !isPrivateWordCloudEncoderHttpHost(parsed.hostname)
+  ) {
+    throw new Error('WORD_CLOUD_ENCODER_URL darf nur Loopback oder private Netzadressen verwenden');
   }
   return parsed.toString();
 }

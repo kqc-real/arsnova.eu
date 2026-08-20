@@ -3,7 +3,7 @@
 - Canonical: `docs/features/word-cloud-semantic.md`. Analysis version `1.14c.1`.
 - UI label is **Themen**; internal variant `SEMANTIC`. `THEME` stays 2.x phrases. Do not call the UI “Semantische Themen”.
 - Kill-switch `WORD_CLOUD_SEMANTIC_ENABLED` (exact `true` only). Do not reuse `NLP_ENABLED`, `QA_NLP_ENABLED`, `QA_SUMMARY_ENABLED`, or `QA_SUMMARY_INFERENCE_URL`.
-- Sidecar: Compose profile `encoder`, Unix socket `/run/wordcloud-encoder/encoder.sock`, `network_mode: none`, 1 CPU / 2 GiB / 64 PIDs. Optional private HTTP `WORD_CLOUD_ENCODER_URL` (SaaS hosts blocked). Image `WORD_CLOUD_ENCODER_IMAGE`, not `ARSNOVA_IMAGE`/`SPACY_IMAGE`. `deploy.sh` does not start it.
+- Sidecar: Compose profile `encoder`, Unix socket `/run/wordcloud-encoder/encoder.sock`, `network_mode: none`, 1 CPU / 2 GiB / 64 PIDs. Optional private HTTP `WORD_CLOUD_ENCODER_URL` (loopback/RFC1918 literals only; public DNS and SaaS blocked). Image `WORD_CLOUD_ENCODER_IMAGE`, not `ARSNOVA_IMAGE`/`SPACY_IMAGE`. `deploy.sh` does not start it.
 - Encoder returns embeddings only (ONNX `intfloat/multilingual-e5-small`). Clustering and extractive labels run in TypeScript (`wordCloudSemanticCluster.ts`). No encoder code in the browser.
 - Host Q&A only for locales `de`/`en`. Freitext and `fr`/`es`/`it` fall back lexically (`status: fallback`). Without kill-switch: `disabled` + 2.x. Dead/timeout encoder: `failed` + 2.x.
 - Snapshot `{ id, text }` with `qa-question:{uuid}`. No tokens, IPs, nicknames, participant IDs. `hostProcedure`. Participant DTOs have no cluster fields.

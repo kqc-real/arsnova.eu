@@ -68,6 +68,7 @@ const output = {
 describe('wordCloudAnalysisCache', () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
   });
 
   it('bildet Text-Schluessel ohne Rohtext und mit Analyseversion', () => {
@@ -167,6 +168,47 @@ describe('wordCloudAnalysisCache', () => {
     });
     expect(await cache.getSnapshot(input)).toBeNull();
   });
+
+  it('liefert SEMANTIC-Cache-Hits nicht nach Kill-Switch-Rollback', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createMemoryWordCloudAnalysisCache(60);
+    const semanticInput = { ...input, mode: 'SEMANTIC' } as const satisfies AnalyzeWordCloudInput;
+    const semanticOutput = {
+      ...output,
+      mode: 'SEMANTIC',
+      status: 'ready',
+      analysisVersion: '1.14c.1',
+      modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
+    } as const satisfies AnalyzeWordCloudOutput;
+
+    await cache.setSnapshot(semanticInput, semanticOutput);
+    expect(await cache.getSnapshot(semanticInput)).toMatchObject({ status: 'ready' });
+
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'false');
+    expect(await cache.getSnapshot(semanticInput)).toBeNull();
+  });
+
+  it('nutzt fuer SEMANTIC die Encoder-TTL statt NLP_CACHE_TTL_SECONDS', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-15T12:00:00.000Z'));
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');
+    const cache = createMemoryWordCloudAnalysisCache(60);
+    const semanticInput = { ...input, mode: 'SEMANTIC' } as const satisfies AnalyzeWordCloudInput;
+    const semanticOutput = {
+      ...output,
+      mode: 'SEMANTIC',
+      status: 'ready',
+      analysisVersion: '1.14c.1',
+      modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
+    } as const satisfies AnalyzeWordCloudOutput;
+
+    await cache.setSnapshot(semanticInput, semanticOutput);
+    vi.advanceTimersByTime(60_000);
+    expect(await cache.getSnapshot(semanticInput)).toMatchObject({ status: 'ready' });
+    vi.advanceTimersByTime(60_000);
+    expect(await cache.getSnapshot(semanticInput)).toBeNull();
+  });
 });
 
 describe('createRedisWordCloudAnalysisCache', () => {
@@ -181,6 +223,10 @@ describe('createRedisWordCloudAnalysisCache', () => {
         return 'OK';
       }),
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('rundet Text- und Snapshot-Werte ueber Redis', async () => {
@@ -200,6 +246,32 @@ describe('createRedisWordCloudAnalysisCache', () => {
       'EX',
       90,
     );
+  });
+
+  it('schreibt SEMANTIC-Snapshots mit Encoder-TTL', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const semanticInput = { ...input, mode: 'SEMANTIC' } as const satisfies AnalyzeWordCloudInput;
+    const semanticOutput = {
+      ...output,
+      mode: 'SEMANTIC',
+      status: 'ready',
+      analysisVersion: '1.14c.1',
+      modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
+    } as const satisfies AnalyzeWordCloudOutput;
+
+    await cache.setSnapshot(semanticInput, semanticOutput);
+    expect(mocks.getRedis().set).toHaveBeenCalledWith(
+      buildWordCloudSnapshotCacheKey(semanticInput),
+      expect.any(String),
+      'EX',
+      120,
+    );
+    expect(await cache.getSnapshot(semanticInput)).toMatchObject({ status: 'ready' });
+
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'false');
+    expect(await cache.getSnapshot(semanticInput)).toBeNull();
   });
 
   it('ist fail-open bei Redis-Fehlern und kaputten Eintraegen', async () => {

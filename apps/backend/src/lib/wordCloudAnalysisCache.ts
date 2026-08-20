@@ -17,8 +17,12 @@ import {
 import { getRedis } from '../redis';
 import { logger } from './logger';
 import { resolveNlpSidecarConfig } from './nlpSidecarConfig';
-import { buildWordCloudSnapshotHash } from './wordCloudNormalization';
 import type { WordCloudRawToken } from './wordCloudAnalysis';
+import { buildWordCloudSnapshotHash } from './wordCloudNormalization';
+import {
+  isWordCloudSemanticEnabled,
+  resolveWordCloudEncoderCacheTtlSeconds,
+} from './wordCloudSemanticConfig';
 
 const TEXT_KEY_PREFIX = 'nlp:wc:text';
 const SNAPSHOT_KEY_PREFIX = 'nlp:wc:snap';
@@ -68,6 +72,22 @@ export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): bo
   return true;
 }
 
+function snapshotTtlSeconds(input: AnalyzeWordCloudInput, lexicalTtlSeconds: number): number {
+  if (input.mode === 'SEMANTIC') {
+    return resolveWordCloudEncoderCacheTtlSeconds();
+  }
+  return lexicalTtlSeconds;
+}
+
+function shouldServeCachedWordCloudSnapshot(input: AnalyzeWordCloudInput): boolean {
+  // Kill-Switch ist Prozesskonfiguration, kein Snapshot-Inhalt.
+  // Sonst bleiben ready/uncertain nach Rollback auf false bis zum TTL sichtbar.
+  if (input.mode === 'SEMANTIC' && !isWordCloudSemanticEnabled()) {
+    return false;
+  }
+  return true;
+}
+
 export function createMemoryWordCloudAnalysisCache(
   ttlSeconds = resolveNlpSidecarConfig().cacheTtlSeconds,
 ): WordCloudAnalysisCache & { clear(): void } {
@@ -98,6 +118,9 @@ export function createMemoryWordCloudAnalysisCache(
         if (entry) snapshots.delete(key);
         return null;
       }
+      if (!shouldServeCachedWordCloudSnapshot(input)) {
+        return null;
+      }
       return entry.output;
     },
     async setSnapshot(input, output) {
@@ -105,7 +128,7 @@ export function createMemoryWordCloudAnalysisCache(
         return;
       }
       snapshots.set(buildWordCloudSnapshotCacheKey(input), {
-        expiresAt: Date.now() + ttlMs,
+        expiresAt: Date.now() + snapshotTtlSeconds(input, ttlSeconds) * 1000,
         output,
       });
     },
@@ -161,7 +184,10 @@ export function createRedisWordCloudAnalysisCache(
         const raw = await getRedis().get(buildWordCloudSnapshotCacheKey(input));
         if (!raw) return null;
         const parsed = AnalyzeWordCloudOutputSchema.safeParse(JSON.parse(raw));
-        return parsed.success ? parsed.data : null;
+        if (!parsed.success || !shouldServeCachedWordCloudSnapshot(input)) {
+          return null;
+        }
+        return parsed.data;
       } catch {
         return null;
       }
@@ -175,7 +201,7 @@ export function createRedisWordCloudAnalysisCache(
           buildWordCloudSnapshotCacheKey(input),
           JSON.stringify(output),
           'EX',
-          ttlSeconds,
+          snapshotTtlSeconds(input, ttlSeconds),
         );
       } catch (error) {
         logger.warn('wordcloud:snapshot_cache_write_failed', {

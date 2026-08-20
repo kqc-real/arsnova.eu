@@ -43,6 +43,19 @@ describe('wordCloudEncoderClient', () => {
     });
   });
 
+  it('blockiert oeffentliche HTTP-Ziele auch ohne SaaS-Hostliste', async () => {
+    resetWordCloudEncoderClientForTests({
+      config: () => ({
+        ...baseConfig,
+        inferenceUrl: 'https://example.com/embed',
+      }),
+    });
+
+    await expect(embedWithWordCloudEncoder(request)).rejects.toMatchObject({
+      code: 'SAAS_BLOCKED',
+    });
+  });
+
   it('weist ueberlange und schemawidrige Antworten zurueck', async () => {
     resetWordCloudEncoderClientForTests({
       config: () => baseConfig,
