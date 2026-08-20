@@ -212,7 +212,6 @@ export type ModerationQuizFact =
 
 export const MODERATION_COMPASS_VISIBLE_SOURCE_COUNT = 3;
 export const MODERATION_COMPASS_STORED_SOURCE_COUNT = 8;
-export const MODERATION_COMPASS_OPENED_STORAGE_KEY = 'arsnova.moderation-compass.opened';
 
 const MAX_TOPIC_TERMS = 5;
 const SOURCE_LABEL_MAX = 88;
@@ -287,22 +286,6 @@ export function moderationCompassSourceDestination(
     return 'quickFeedback';
   }
   return 'qa';
-}
-
-export function moderationCompassWasOpened(): boolean {
-  try {
-    return sessionStorage.getItem(MODERATION_COMPASS_OPENED_STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function rememberModerationCompassOpened(): void {
-  try {
-    sessionStorage.setItem(MODERATION_COMPASS_OPENED_STORAGE_KEY, '1');
-  } catch {
-    // Private mode or blocked storage must not break the host view.
-  }
 }
 
 export function truncateCompassLabel(text: string, max = SOURCE_LABEL_MAX): string {

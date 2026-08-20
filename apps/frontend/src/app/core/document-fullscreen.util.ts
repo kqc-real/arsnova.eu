@@ -3,6 +3,18 @@
  * Kein await davor — sonst blockieren Chromium/WebKit die API oft.
  */
 
+/** Chrome/Android zeigt dann einen nicht unterdrückbaren Systemhinweis zum Verlassen. */
+const ANDROID_RE = /Android/i;
+const ANDROID_CHROMIUM_RE = /Chrome|Chromium|EdgA|SamsungBrowser/i;
+
+export function shouldSkipAutoDocumentFullscreen(userAgent: string): boolean {
+  return ANDROID_RE.test(userAgent) && ANDROID_CHROMIUM_RE.test(userAgent);
+}
+
+function currentUserAgent(): string {
+  return typeof navigator === 'undefined' ? '' : navigator.userAgent;
+}
+
 export function isDocumentFullscreenEnterAvailable(doc: Document): boolean {
   const d = doc as Document & {
     fullscreenEnabled?: boolean;
@@ -77,6 +89,15 @@ export function tryRequestDocumentFullscreen(doc: Document, onSettled?: () => vo
   } else {
     sync();
   }
+}
+
+/** Session-Start und ähnliche Auto-Einstiege, nicht der explizite Vollbild-Schalter. */
+export function tryAutoRequestDocumentFullscreen(doc: Document, onSettled?: () => void): void {
+  if (shouldSkipAutoDocumentFullscreen(currentUserAgent())) {
+    onSettled?.();
+    return;
+  }
+  tryRequestDocumentFullscreen(doc, onSettled);
 }
 
 /** Vollbild verlassen, falls aktiv (kein User-Gesture nötig). */

@@ -3535,6 +3535,26 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält Q&A-Sortierung in der Kartenbreite ohne ng-deep', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
+
+    expect(styles).not.toMatch(/session-qa-sort-toggle[\s\S]{0,800}::ng-deep/);
+    expect(styles).toMatch(/\.session-host \{[^}]*min-width:\s*0/);
+    expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*flex-wrap:\s*wrap/);
+    expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*min-width:\s*0/);
+    expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*max-width:\s*100%/);
+    expect(styles).toMatch(
+      /\.session-qa-sort-hint \{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/,
+    );
+    expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*align-self:\s*flex-start/);
+    expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*flex:\s*0 0 auto/);
+    expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*min-height:\s*44px/);
+  });
+
   it('oeffnet die Q&A-Wortwolke im Vollbild mit Sortierzustand des Hosts', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -11642,10 +11662,6 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   describe('Moderationskompass', () => {
-    beforeEach(() => {
-      sessionStorage.removeItem('arsnova.moderation-compass.opened');
-    });
-
     it('zeigt den Button Moderation neben der Live-Leiste', async () => {
       const fixture = setup();
       fixture.detectChanges();
@@ -11743,56 +11759,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
         true,
       );
-      expect(button?.classList.contains('session-host__moderation-control--first-hint')).toBe(
-        false,
-      );
-      expect(button?.querySelector('.session-host__moderation-control-dot')).not.toBeNull();
+      expect(button?.querySelector('.session-host__moderation-control-dot')).toBeNull();
       expect(button?.getAttribute('aria-label')).toBe(
         'Moderationskompass öffnen, Hinweise vorhanden',
       );
-      expect(
-        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-first-hint"]'),
-      ).toBeNull();
-      fixture.destroy();
-    });
-
-    it('zeigt vor dem ersten Öffnen einen kurzen Hinweis am Kompass', async () => {
-      getInfoQueryMock.mockResolvedValue({
-        ...defaultSession,
-        channels: {
-          quiz: { enabled: true },
-          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
-          quickFeedback: { enabled: false, open: false },
-        },
-      });
-      qaListQueryMock.mockResolvedValue([
-        {
-          id: '11111111-1111-4111-8111-111111111111',
-          text: 'Kommt Kapitel 4 in der Klausur vor?',
-          upvoteCount: 4,
-          status: 'PENDING',
-          createdAt: '2026-03-13T12:00:00.000Z',
-          myVote: null,
-          isOwn: false,
-          hasUpvoted: false,
-        },
-      ]);
-
-      const fixture = setup();
-      fixture.detectChanges();
-      await fixture.whenStable();
-      await flushComponentAfterStable(fixture, 50);
-      fixture.detectChanges();
-
-      const button = fixture.nativeElement.querySelector(
-        '[data-testid="host-moderation-compass"]',
-      ) as HTMLButtonElement | null;
-      expect(button?.classList.contains('session-host__moderation-control--first-hint')).toBe(true);
-      expect(button?.getAttribute('aria-label')).toBe('Moderationskompass öffnen, Hinweise bereit');
-      expect(
-        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-first-hint"]')
-          ?.textContent,
-      ).toContain('Hinweise bereit');
       fixture.destroy();
     });
 

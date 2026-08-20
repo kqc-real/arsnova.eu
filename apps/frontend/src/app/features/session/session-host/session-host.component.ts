@@ -3,6 +3,7 @@ import { CdkTrapFocus } from '@angular/cdk/a11y';
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
+  tryAutoRequestDocumentFullscreen,
   tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
@@ -142,9 +143,7 @@ import {
   compassTermsFromAnalysisEntries,
   isNegativeFeedbackKey,
   mergeModerationQuizSources,
-  moderationCompassWasOpened,
   notableQuickFeedbackSplit,
-  rememberModerationCompassOpened,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
   truncateCompassLabel,
@@ -1849,24 +1848,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }),
   );
   readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
-  readonly moderationCompassOpened = signal(moderationCompassWasOpened());
-  readonly moderationCompassShowFirstHint = computed(
-    () => this.moderationCompassHasSignals() && !this.moderationCompassOpened(),
-  );
   readonly moderationCompassReturn = signal<{ readonly channel: SessionChannelTab } | null>(null);
   readonly moderationCompassFocusedTerm = signal<string | null>(null);
   readonly moderationCompassButtonAria = computed(() => {
     if (!this.moderationCompassHasSignals()) {
       return $localize`:@@sessionHost.moderationButtonAria:Moderationskompass öffnen`;
     }
-    if (!this.moderationCompassOpened()) {
-      return $localize`:@@sessionHost.moderationButtonAriaFirstHint:Moderationskompass öffnen, Hinweise bereit`;
-    }
     return $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`;
   });
   readonly openModerationCompassDialog = async (): Promise<void> => {
-    rememberModerationCompassOpened();
-    this.moderationCompassOpened.set(true);
     this.moderationCompassReturn.set(null);
     this.clearQaCompassFocus();
     this.moderationCompassFocusedTerm.set(null);
@@ -3965,7 +3955,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * damit `requestFullscreen()` noch in derselben User-Geste wie der Klick liegt.
    */
   private tryEnterHostFullscreenFromUserGesture(): void {
-    tryRequestDocumentFullscreen(this.document, () => {
+    tryAutoRequestDocumentFullscreen(this.document, () => {
       this.isFullscreenActive.set(this.getFullscreenElement() !== null);
     });
   }

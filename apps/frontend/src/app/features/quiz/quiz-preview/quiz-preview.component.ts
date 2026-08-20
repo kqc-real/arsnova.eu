@@ -66,7 +66,7 @@ import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-edi
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
-import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
+import { tryAutoRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 
 type LiveStartMode = 'full' | 'current';
@@ -1154,7 +1154,7 @@ export class QuizPreviewComponent implements OnDestroy {
     this.liveStartError.set(null);
     this.liveStartPending.set(true);
     if (isPlatformBrowser(this.platformId)) {
-      tryRequestDocumentFullscreen(this.document);
+      tryAutoRequestDocumentFullscreen(this.document);
     }
     try {
       let payload = this.buildLiveStartPayload(mode);

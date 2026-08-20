@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   buildModerationCompassCards,
   collectModerationQuizFacts,
@@ -7,11 +7,8 @@ import {
   compassTermsFromAnalysisEntries,
   extraModerationCompassSources,
   mergeModerationQuizSources,
-  MODERATION_COMPASS_OPENED_STORAGE_KEY,
   moderationCompassSourceDestination,
-  moderationCompassWasOpened,
   notableQuickFeedbackSplit,
-  rememberModerationCompassOpened,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
   splitModerationSummaryLead,
@@ -735,19 +732,6 @@ describe('moderationCompassSourceDestination', () => {
         target: { channel: 'qa', questionId: '11111111-1111-4111-8111-111111111111' },
       }),
     ).toBe('qa');
-  });
-});
-
-describe('rememberModerationCompassOpened', () => {
-  afterEach(() => {
-    sessionStorage.removeItem(MODERATION_COMPASS_OPENED_STORAGE_KEY);
-  });
-
-  it('merkt das erste Öffnen nur im Tab', () => {
-    sessionStorage.removeItem(MODERATION_COMPASS_OPENED_STORAGE_KEY);
-    expect(moderationCompassWasOpened()).toBe(false);
-    rememberModerationCompassOpened();
-    expect(moderationCompassWasOpened()).toBe(true);
   });
 });
 

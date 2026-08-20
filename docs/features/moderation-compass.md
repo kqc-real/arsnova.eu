@@ -17,7 +17,7 @@ Er ist die Fallback-Basis für 8.9b und 8.9c: ohne NLP, ohne LLM, ohne neuen Dau
 
 ## Host-UI
 
-Button **Kompass** neben der Live-Leiste, in allen Live-Kanälen. Present/Vote und `FINISHED` ohne Kompass. Der Dialog bleibt erreichbar, auch wenn noch keine Karte entsteht; dann erscheint der Leertext, der die vier Kartenarten nennt. Sobald mindestens eine Karte da ist, trägt der Button `has-signals`. Vor dem ersten Öffnen im Tab gibt es zusätzlich den kurzen Hinweis **Hinweise bereit**. Die Dialogfläche liegt auf `surface-container-high` (Dark: `surface-container-highest`) mit eigenem Scrim-Backdrop, damit sie sich vom Host-Verlauf abhebt.
+Button **Kompass** neben der Live-Leiste, in allen Live-Kanälen, als kompakte Pille oben an der Join-Karte (nicht über deren volle Höhe). Present/Vote und `FINISHED` ohne Kompass. Der Dialog bleibt erreichbar, auch wenn noch keine Karte entsteht; dann erscheint der Leertext, der die vier Kartenarten nennt. Sobald mindestens eine Karte da ist, trägt der Button `has-signals`. Die Dialogfläche liegt auf `surface-container-high` (Dark: `surface-container-highest`) mit eigenem Scrim-Backdrop, damit sie sich vom Host-Verlauf abhebt.
 
 Leseordnung im Dialog: zuerst **Als Nächstes** (ein Vorschlag aus der stärksten Karte), dann die Signalkarten. Reihenfolge der Karten: **Tempo**, **Reibung**, **Klärung**, **Themen**. Tempo mit Vorsicht oder Alarm heißt **Kommen nicht mit**. Der nächste Schritt steht nur in der Handlungszeile, nicht noch einmal auf der Karte. Tautologische Vorschläge auf einer einzelnen Karte entfallen.
 

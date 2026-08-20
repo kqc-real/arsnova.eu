@@ -1420,8 +1420,7 @@ saß hinter dem Ergebnis.
 - Zusammenfassung als optionale zweite Ebene, Button oben, Quellen
   eingeklappt, Hinweise an den Sätzen. Aussagen als scanbare Stichpunkte
   mit Themen-Lead statt Fließsatz.
-- **Zurück zum Kompass** als sichtbare Beschriftung; einmaliger Hinweis
-  **Hinweise bereit** vor dem ersten Öffnen im Tab.
+- **Zurück zum Kompass** als sichtbare Beschriftung.
 
 ### Betroffene Dateien
 
@@ -1437,6 +1436,72 @@ Fokussierte Frontend-Tests für Dialog, Kartenbau und Host-Button.
 ### Offene Risiken
 
 Manuelle Screenreader- und 320-px-Stichprobe im Live-Host stehen noch aus.
+
+## Android-Chrome: kein Auto-Vollbild beim Session-Start (2026-08-20)
+
+**Datum:** 2026-08-20
+**Status:** umgesetzt
+**WCAG:** 2.4.11, 1.4.13
+
+### Ausgangsproblem
+
+Chrome auf Android legt nach `requestFullscreen` einen Systemhinweis über die
+Host-Leiste (u. a. **Session beenden**). Der Text ist nicht im App-DOM und
+nicht unterdrückbar.
+
+### Konkrete Umsetzung
+
+Automatischer Vollbild-Einstieg beim Session-Start (Lobby, Quiz-Liste,
+Vorschau) entfällt auf Android-Chrome/Samsung Internet. Der explizite
+Vollbild-Schalter bleibt.
+
+### Betroffene Dateien
+
+- `apps/frontend/src/app/core/document-fullscreen.util.ts`
+- `apps/frontend/src/app/features/session/session-host/session-host.component.ts`
+- `apps/frontend/src/app/features/quiz/quiz-list/quiz-list.component.ts`
+- `apps/frontend/src/app/features/quiz/quiz-preview/quiz-preview.component.ts`
+
+### Tests und Nachweise
+
+`document-fullscreen.util.spec.ts`
+
+### Offene Risiken
+
+Wer auf Android-Chrome den Vollbild-Schalter nutzt, sieht den Chrome-Hinweis
+weiter.
+
+## Host-Q&A: Sortierung bleibt im Viewport (2026-08-20)
+
+**Datum:** 2026-08-20
+**Status:** umgesetzt
+**WCAG:** 1.4.10, 1.4.4
+
+### Ausgangsproblem
+
+Auf schmalen Host-Viewports (u. a. iPhone SE) liefen Kompass-Zeile und
+Q&A-Sortierung (**Meist unterstützt** / **Beste Fragen** / **Umstritten**)
+plus der Sortierhinweis rechts aus dem sichtbaren Bereich.
+
+### Konkrete Umsetzung
+
+Host-Shell, Kanalbühne und Q&A-Karte mit `min-width: 0` / `max-width: 100%`.
+Die Sortiergruppe umbricht auf dem Host-Element (`flex-wrap`), ohne
+`::ng-deep`. Hinweistext mit `overflow-wrap: anywhere`. Der Kompass bleibt
+eine Pille oben an der Join-Karte (nicht auf deren volle Höhe gestreckt),
+mit 44-px-Mindestziel.
+
+### Betroffene Dateien
+
+- `apps/frontend/src/app/features/session/session-host/session-host.component.scss`
+
+### Tests und Nachweise
+
+Host-Spec: Q&A-Sortierung in der Kartenbreite ohne ng-deep.
+
+### Offene Risiken
+
+320-px-Stichprobe im Live-Host steht noch aus.
 
 ## Vorlage für weitere Einträge
 
