@@ -6,7 +6,7 @@
 
 **Folgt auf:** `Story 1.14`, `Story 1.14a`, `Story 1.14b`, `Word Cloud 2.1/2.2/2.3/2.4/2.5/2.6`
 
-**Status:** kanonisches Zielbild fuer Story `1.14c`; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`. Die optionale spaCy-Glaettung aus Story `1.14b` ist umgesetzt (`docs/features/word-cloud-spacy.md`).
+**Status:** kanonisches Zielbild fuer Story `1.14c`. Stufe 0 (Vertrag/UI) und Stufe 1 (privater Encoder + Clustering) sind im Repo; Kill-Switch default aus. Produktdoku Stufe 1: [`docs/features/word-cloud-semantic.md`](../features/word-cloud-semantic.md). Die optionale spaCy-Glaettung aus Story `1.14b` bleibt getrennt (`docs/features/word-cloud-spacy.md`).
 
 **Voranalyse (2026-08-20):** Modellwahl, 8-vCPU/16-GB-Grenze, Zusammenspiel mit 8.9c, Gemini-Vergleich und Implementierungsstufen in [`WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md`](WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md). Die Voranalyse ersetzt dieses Zielbild nicht.
 
@@ -44,17 +44,17 @@ Der lokale Host-first-Pfad ist produktseitig vorhanden. `THEME` bleibt der lexik
 - Vollbilddialog fuer denselben Analysemodus in `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.ts`
 - gemeinsamer Renderer fuer gelieferte Analyse-Entries in `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
 - erklaerbare Tooltips, CSV-Ausgabe und Quellenlisten
-- **Stufe 0 (2026-08-20):** `SEMANTIC` ist in Host-Q&A und Host-Freitext sichtbar; ohne Encoder-Server antwortet `wordCloud.analyze` mit `status: disabled`, `fallbackUsed: true` und 2.x-Eintraegen. Keine leere Karte. Presenter und 8.9c-Slice-4 bleiben aussen vor.
+- **Stufe 0 (2026-08-20):** `SEMANTIC` ist in Host-Q&A und Host-Freitext sichtbar; ohne Kill-Switch antwortet `wordCloud.analyze` mit `status: disabled`, `fallbackUsed: true` und 2.x-Eintraegen. Keine leere Karte. Presenter bleibt aussen vor.
+- **Stufe 1 (2026-08-20):** privater Encoder-Sidecar (Compose-Profil `encoder`, Unix-Socket oder internes HTTP), agglomeratives Clustering im Backend, extraktive Labels. Host-Q&A-Themenmodus fuer `de`/`en`. Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` default aus. Ohne/mit totem Server bleibt 2.x. Freitext-Toggle faellt kontrolliert lexikalisch zurueck. Kanonisch: [`docs/features/word-cloud-semantic.md`](../features/word-cloud-semantic.md).
 
 Nicht umgesetzt und deshalb Gegenstand der weiteren `1.14c`-Stufen:
 
-- Encoder + deterministisches semantisches Clustering (Stufe 1)
 - optionale quellengebundene Labelbildung durch ein Open-Weight-LLM (Stufe 2)
 - Confidence-Filter fuer den lokalen Document-Frequency-Pfad
 - Presenter-Q&A- und Presenter-Freitext-Themenmodus
-- Encoder-Clustering fuer Freitext-Snapshots (dieselbe Stufe-1-Kaskade wie Q&A; die Stufe-0-UI ist vorhanden)
-- der getrennte, private Inferenzserver mit Queue, Timeout, Ressourcen-, Sicherheits- und Kostenbudget
-- die Mess-, FinOps-, Lizenz- und Degradationsnachweise fuer eine spaetere Produktivfreigabe
+- Encoder-Clustering fuer Freitext-Snapshots (dieselbe Kaskade wie Q&A; die Stufe-0-UI ist vorhanden)
+- physisch getrennte Inferenzbox mit LLM, GPU und den Mess-/FinOps-/Lizenz-Nachweisen fuer eine spaetere Produktivfreigabe
+- 8.9c Slice 4 (generatives Summary-Modell auf derselben Serverrolle, anderem Auftrag)
 
 ---
 

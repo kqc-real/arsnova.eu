@@ -122,8 +122,9 @@ export function resolveWordCloudLemmaApplication(
   input: ResolveWordCloudLemmaApplicationInput,
 ): WordCloudLemmaApplication {
   const fallbackLocale = isWordCloudLemmaLocale(input.locale) ? input.locale : 'de';
+  const requested = input.requested === 'LEMMA' ? 'LEMMA' : 'NONE';
 
-  if (input.requested === 'NONE') {
+  if (requested === 'NONE') {
     return {
       requested: 'NONE',
       applied: 'NONE',
@@ -135,7 +136,7 @@ export function resolveWordCloudLemmaApplication(
   }
 
   if (input.mode !== 'LEXICAL') {
-    return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'MODE_UNSUPPORTED');
+    return createWordCloudLemmaFallback(requested, fallbackLocale, 'MODE_UNSUPPORTED');
   }
   if (!isWordCloudLemmaLocale(input.locale)) {
     return createWordCloudLemmaFallback(input.requested, fallbackLocale, 'LOCALE_UNSUPPORTED');

@@ -31,7 +31,7 @@
 - **6.5 Barrierefreiheit:** fortlaufender Audit- und Nachweispunkt.
 - **6.6 Thinking Aloud:** qualitative UX-Testreihe und Umsetzung der Befunde offen.
 - **8.5 Delegierbare Q&A-Moderation:** keine eigene Moderator-Route / kein Moderator-Token im Ist-Stand.
-- **1.14c Word Cloud 3.0:** semantischer Q&A-Themenmodus bleibt offen; 1.14a/1.14b sind abgeschlossen.
+- **1.14c Word Cloud 3.0:** Stufe 1 (Encoder + Clustering) im Repo, Kill-Switch default aus; Stufe 2 LLM-Labels und Presenter-Themenmodus bleiben offen; 1.14a/1.14b sind abgeschlossen.
 
 ---
 

@@ -22,6 +22,9 @@
 | `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                                                                                |
 | `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                                                                        |
 | `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                                                                              |
+| `npm run test:wordcloud-encoder`              | Unittests des optionalen Word-Cloud-Encoders ohne Modell-Download (`docker/wordcloud-encoder/tests`)                                                                           |
+| `npm run test:wordcloud-encoder-compose`      | Compose-Smoke: Encoder nur über Profil `encoder`, kein TCP-Port, cgroup 1 CPU / 2 GiB, `WORD_CLOUD_ENCODER_IMAGE` getrennt von `ARSNOVA_IMAGE`                                 |
+| `npm run docker:up:encoder`                   | Optionalen Word-Cloud-Encoder lokal bauen und starten (`docker compose --profile encoder`)                                                                                     |
 | `npm run spacy:macos-dev`                     | macOS: Clean, `build:prod` aller Locales, Host-Sidecar, `start:prod`, `serve:localize:api` auf 4200, Freitext-, Q&A- und Moderationskompass-Seed (Demo-Quiz mit Freitextfrage) |
 | `npm run spacy:macos-dev:test`                | Hilfe-/Syntax-Tests für `scripts/macos-spacy-wordcloud-dev.sh`                                                                                                                 |
 | `npm run qa-summary:dev`                      | Lokaler 8.9c-Inferenzhelfer auf `127.0.0.1:8787/summary` (extraktiv; optional Gemini-Key nur im Helfer)                                                                        |
@@ -246,6 +249,29 @@ npm run spacy:macos-dev
 ```
 
 Ablauf, Locale-URLs (`http://localhost:4200/de/` … `/it/`, **kein** `ng serve`) und Flags: [word-cloud-spacy.md](features/word-cloud-spacy.md#lokale-prüfung-auf-macos-host-npm). Unter Linux im App-Container: `npm run docker:up:nlp`. Produktion: Image selbst bauen, Compose-Profil `nlp`, `NLP_ENABLED=true`; Rollback `NLP_ENABLED=false` und `stop spacy`. `deploy.sh` startet den Sidecar nicht.
+
+### Optionaler Word-Cloud-Encoder (Story 1.14c Stufe 1)
+
+Stufe 1 ist im Repo; der Sidecar bleibt Default aus. Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md).
+
+```bash
+npm run test -w @arsnova/shared-types -- src/word-cloud-semantic.test.ts
+npm test -w @arsnova/backend -- --run \
+  src/lib/wordCloudSemanticConfig.test.ts \
+  src/lib/wordCloudSemanticCluster.test.ts \
+  src/lib/wordCloudSemanticAnalyze.test.ts \
+  src/lib/wordCloudEncoderClient.test.ts \
+  src/lib/wordCloudAnalysisCache.test.ts \
+  src/lib/wordCloudNormalization.test.ts \
+  src/__tests__/wordCloud.hotpath-isolation.test.ts
+npm run test -w @arsnova/frontend -- \
+  src/app/features/session/session-host/session-host.component.spec.ts \
+  src/app/features/session/session-present/word-cloud.component.spec.ts
+npm run test:wordcloud-encoder
+npm run test:wordcloud-encoder-compose
+```
+
+Lokal den Encoder nur bewusst starten. Auf **macOS** nicht `npm run docker:up:encoder` für Host-Node erwarten — der Socket im Volume ist unsichtbar. Stattdessen Loopback `WORD_CLOUD_ENCODER_URL=http://127.0.0.1:8790/embed`. Unter Linux im App-Container: `npm run docker:up:encoder`. Produktion: Image selbst bauen, Compose-Profil `encoder`, `WORD_CLOUD_SEMANTIC_ENABLED=true`; Rollback `WORD_CLOUD_SEMANTIC_ENABLED=false` und `stop wordcloud-encoder`. `deploy.sh` startet den Encoder nicht.
 
 ### Optionale Q&A-NLP-Kaskade (Story 8.9b)
 

@@ -14395,6 +14395,18 @@
           <context context-type="linenumber">1627</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
+        <source>Neue Fragen seit der letzten Themenanalyse</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticUncertainHint" datatype="html">
+        <source>Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticFailedHint" datatype="html">
+        <source>Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticFallbackHint" datatype="html">
+        <source>Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.</source>
+      </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
         <context-group purpose="location">
@@ -16559,6 +16571,9 @@
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1739</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.modelVersionTooltip" datatype="html">
+        <source>Modell: <x id="version" equiv-text="version"/></source>
       </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceHigh" datatype="html">
         <source>sicher</source>

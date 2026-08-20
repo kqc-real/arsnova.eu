@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-08-20 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Stand:** 2026-08-20 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -164,7 +164,8 @@ flowchart TB
         SPACY[spaCy-Sidecar 1.14b<br/>Unix-Socket]
         NLPQ[Q-and-A-NLP-Queue 8.9b]
         SUMAD[Summary-Adapter 8.9c<br/>privates HTTP]
-        INFER[Inferenzserver 1.14c<br/>offen]
+        ENC[Encoder-Sidecar 1.14c Stufe 1<br/>Unix-Socket]
+        LLM[LLM-Inferenz Stufe 2 / 8.9c Slice 4<br/>offen]
     end
 
     PG[(PostgreSQL<br/>QaQuestion.nlp)]
@@ -172,6 +173,7 @@ flowchart TB
 
     WCLOUDUI --> WCR
     WCR -->|Host Sprachformen glaetten| SPACY
+    WCR -->|Host Q-and-A Themen| ENC
     QASUB --> QAR
     QAR -->|Persistenz zuerst| PG
     QAR -.->|nach Persistenz enqueue| NLPQ
@@ -181,11 +183,11 @@ flowchart TB
     COMPASS --> SUMBTN
     SUMBTN -->|qa.requestSummary on demand| SUMAD
     SUMAD --> MEM
-    SUMAD -.->|Slice 4| INFER
-    NLPQ -.->|gleiche Serverrolle spaeter| INFER
+    SUMAD -.->|Slice 4| LLM
+    NLPQ -.->|gleiche Serverrolle spaeter| LLM
 ```
 
-Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). 8.9c-Ergebnisse liegen ephemer in Memory, nicht in Prisma. 1.14c ist Zielbild, kein Live-Knoten.
+Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). 8.9c-Ergebnisse liegen ephemer in Memory, nicht in Prisma. 1.14c Stufe 1 ist der optionale Encoder-Sidecar (Kill-Switch default aus); Stufe 2/Slice 4 bleiben Zielbild.
 
 ---
 

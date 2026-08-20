@@ -525,6 +525,10 @@ describe('wordCloud.analyze', () => {
     expect(first.fallbackUsed).toBe(false);
     expect(second.generatedAt).toBe(first.generatedAt);
     expect(second.entries[0]).toMatchObject({ key: 'kapitel 4', label: 'Kapitel 4' });
+
+    const getSnapshot = vi.spyOn(cache, 'getSnapshot');
+    await analyzeWordCloudSnapshot({ ...input, refresh: true }, { cache });
+    expect(getSnapshot).not.toHaveBeenCalled();
     sidecar.mockRestore();
   });
 

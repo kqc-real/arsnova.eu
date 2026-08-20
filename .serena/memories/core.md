@@ -17,6 +17,7 @@
   - Session phases and live DTO lifecycle: `mem:session/lifecycle`.
 - Feature/story-specific memories:
   - Word-cloud spaCy smoothing (1.14b done): `mem:session/word-cloud-spacy`.
+  - Word-cloud semantic topics (1.14c Stufe 1 encoder+clustering, kill-switch default off): `mem:session/word-cloud-semantic`.
   - Moderation compass and optional Q&A NLP/summary (8.9a done, 8.9b done default off, 8.9c slices 1–3): `mem:session/moderation-compass`.
   - Numeric estimate story requirements and two-round/privacy rules: `mem:session/numeric-estimate-story-1-2d`.
   - Numeric estimate PR #25 implementation/review state: `mem:session/numeric-estimate-pr25-state`.
@@ -46,6 +47,7 @@
 - `mem:security/dto-stripping`
 - `mem:session/lifecycle`
 - `mem:session/word-cloud-spacy`
+- `mem:session/word-cloud-semantic`
 - `mem:session/numeric-estimate-story-1-2d`
 - `mem:session/numeric-estimate-pr25-state`
 - `mem:quality/numeric-estimate-ux-performance-guidelines`

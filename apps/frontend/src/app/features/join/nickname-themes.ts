@@ -1926,7 +1926,16 @@ export function getGeneratedNicknameFallbackList(
   const generatedKeys = new Set<string>();
 
   for (let sequence = 2; generated.length < limit; sequence += 1) {
+    const suffix = ` ${sequence}`;
     for (const baseNickname of originalNicknames) {
+      const trimmedBase = baseNickname.trim();
+      // Kita: lange Bases lieber überspringen, statt den Tiernamen mitten im Wort zu zerschneiden.
+      if (
+        theme === 'KINDERGARTEN' &&
+        trimmedBase.length + suffix.length > GENERATED_NICKNAME_MAX_LENGTH
+      ) {
+        continue;
+      }
       const candidate = formatGeneratedNickname(baseNickname, sequence);
       const candidateKey = normalizeNicknameKey(candidate);
       if (takenNicknames.has(candidateKey) || generatedKeys.has(candidateKey)) {

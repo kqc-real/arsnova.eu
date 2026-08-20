@@ -4,7 +4,7 @@
 
 **Status:** Voranalyse / Architekturmeinung, **keine** Produktfreigabe
 
-**Stand:** 2026-08-20, 15:20 Europe/Berlin
+**Stand:** 2026-08-20, Europe/Berlin (Stufe-1-Umsetzung derselben Nacht: Encoder + Clustering im Repo, Kill-Switch default aus; diese Datei bleibt Voranalyse, keine Produktfreigabe)
 
 **Autor:** Lead-Architektur (Chat 2026-08-20)
 
@@ -35,14 +35,14 @@ Quellen im Repo: `docs/features/word-cloud-spacy.md`, `qa-nlp-moderation.md`, `q
 
 Drei Kill-Switches, absichtlich getrennt. Live-Hotpaths (`qa.submit`, Join, Vote, WebSocket) warten nie auf Inferenz. Kein Sentence-Transformer, kein ONNX, kein scikit-learn im App-Prozess. Öffentliche SaaS-Hosts für `QA_SUMMARY_INFERENCE_URL` sind blockiert.
 
-| Schicht                     | Story           | Typ                                            | Default                    |
-| --------------------------- | --------------- | ---------------------------------------------- | -------------------------- |
-| Wortwolke 2.5, Kompass 8.9a | 1.14a / 8.9a    | Regeln, DF, N-Gramme                           | an                         |
-| Sprachformen glätten        | 1.14b           | spaCy `*_sm` (de/en/fr/es), Sidecar            | `NLP_ENABLED=false`        |
-| Q&A-Kategorie               | 8.9b            | Naive Bayes + k-NN im Hash-n-Gramm-Raum        | `QA_NLP_ENABLED=false`     |
-| Kompass-Kurzfassung         | 8.9c Slices 1–3 | Vertrag, extraktiv; Gemini nur Loopback-Helfer | `QA_SUMMARY_ENABLED=false` |
-| KI-Quiz-Import              | 1.9a/1.9b       | Prompt + Zod, LLM **außerhalb** (ADR-0007)     | an, ohne Server-KI         |
-| Semantische Themen          | **1.14c**       | Encoder + Cluster, optional LLM-Label          | **nicht gebaut**           |
+| Schicht                     | Story           | Typ                                            | Default                                                            |
+| --------------------------- | --------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
+| Wortwolke 2.5, Kompass 8.9a | 1.14a / 8.9a    | Regeln, DF, N-Gramme                           | an                                                                 |
+| Sprachformen glätten        | 1.14b           | spaCy `*_sm` (de/en/fr/es), Sidecar            | `NLP_ENABLED=false`                                                |
+| Q&A-Kategorie               | 8.9b            | Naive Bayes + k-NN im Hash-n-Gramm-Raum        | `QA_NLP_ENABLED=false`                                             |
+| Kompass-Kurzfassung         | 8.9c Slices 1–3 | Vertrag, extraktiv; Gemini nur Loopback-Helfer | `QA_SUMMARY_ENABLED=false`                                         |
+| KI-Quiz-Import              | 1.9a/1.9b       | Prompt + Zod, LLM **außerhalb** (ADR-0007)     | an, ohne Server-KI                                                 |
+| Semantische Themen          | **1.14c**       | Encoder + Cluster, optional LLM-Label          | Stufe 1 Encoder+Clustering im Repo, Default aus; Stufe 2 LLM offen |
 
 RoBERTa / XLM-R kommen in Backlog, ADR-0032 und Word-Cloud-3.0 **nicht** vor. MiniLM/mBERT gelten im Praktikum als zu schwache Encoder-Baseline, nicht als Ziel. `mDeBERTa-v3-base-mnli-xnli` ist Zero-shot-Kandidat für **8.9b**, nicht für Themencluster.
 
@@ -88,7 +88,7 @@ Kanonisch (Backlog, ADR-0032, [qa-summary.md](../features/qa-summary.md)): **8.9
 | Snapshot         | bis `QA_SUMMARY_MAX_SOURCES` sichtbare `PENDING`/`ACTIVE`/`PINNED`; Ranking und Near-Duplicate-Kanon | `PINNED`/`ACTIVE`; Gewichtung `TOP`/`BEST`/`CONTROVERSIAL` bleibt orthogonal |
 | Persistenz       | ephemer im Speicher, TTL, kein Prisma                                                                | Cache über Snapshot-Hash; Zustand `stale` bei neuen Daten                    |
 | Kill-Switch      | `QA_SUMMARY_ENABLED`                                                                                 | **neuer**, getrennter Env (nicht `QA_SUMMARY_*`)                             |
-| Stand 2026-08-20 | Slices 1–3 plus Loopback-Helfer; Slice 4 offen                                                       | nicht gebaut                                                                 |
+| Stand 2026-08-20 | Slices 1–3 plus Loopback-Helfer; Slice 4 offen                                                       | Stufe 0+1 im Repo; Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` default aus     |
 
 Keines ersetzt das andere. 8.9a bleibt Fallback, wenn 8.9c fehlt oder fehlschlägt. Die lexikalische 2.x-Wolke bleibt Fallback, wenn 1.14c fehlt oder fehlschlägt. Der Kompass darf keine Wortwolken-Cluster voraussetzen; die Wolke darf keine Kurzfassung voraussetzen.
 
@@ -203,14 +203,16 @@ Reihenfolge ist mergefähig. Jede Stufe hat eigenen Kill-Switch-Pfad und lexikal
 
 ### Stufe 1 — Encoder + Clustering (das eigentliche 1.14c)
 
-- Privater Inferenzdienst (Compose-Profil, Unix-Socket oder internes HTTP wie spaCy/8.9c-Adapter). Nur Backend darf ihn erreichen.
+**Umgesetzt 2026-08-20** (kein LLM, kein 8.9c-Slice-4, kein Presenter-Themenmodus). Kanonisch: [word-cloud-semantic.md](../features/word-cloud-semantic.md).
+
+- Privater Inferenzdienst (Compose-Profil `encoder`, Unix-Socket oder internes HTTP wie spaCy/8.9c-Adapter). Nur Backend darf ihn erreichen.
 - Pipeline: Host-Snapshot (`PINNED`/`ACTIVE`, Gewichtung, Locale) → Hash → Cache → `e5-small` → agglomeratives Clustering → extraktive Labels → Zod.
 - Höchstens ein aktiver Job pro Session. Neue Daten → `stale`, Button **Neu analysieren**, keine Dauerschleife.
 - Snapshot nur `{ id, text }` plus anonyme Quellschlüssel. Keine Tokens, IPs, Nicknames, Participant-IDs.
-- Kill-Switch (neuer Env, nicht `NLP_ENABLED` / `QA_NLP_ENABLED` / `QA_SUMMARY_ENABLED`). 8.9c bleibt unabhängig schaltbar.
+- Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` (nicht `NLP_ENABLED` / `QA_NLP_ENABLED` / `QA_SUMMARY_ENABLED`). 8.9c bleibt unabhängig schaltbar.
 - Timeout, Parallelität 1, CPU-/RAM-cgroup, Circuit Breaker.
 - Fixtures: die drei Klausur-Paraphrasen zu Kapitel 4 müssen zusammenfallen; Folien vs. Beamer-Hänger nicht.
-- Last: Join/Vote/`qa.submit`/WS unverändert bei tot/langsam/überlastetem Encoder (künstliche Verzögerung wie 1.14b).
+- Last: Join/Vote/`qa.submit`/WS unverändert bei tot/langsam/überlastetem Encoder (Hotpath-Isolation analog 1.14b).
 
 **Done wenn:** Host bekommt 5–12 erklärbare Themen, Tooltip/CSV mit Mitgliedern, Fallback hart, `de`/`en`-Fixtures grün, Encoder-Digest versioniert.
 
@@ -255,8 +257,10 @@ Reihenfolge und Entkopplung: §4.6.
 
 ## 8. Offene Entscheidungen (nicht in dieser Voranalyse getroffen)
 
-- Endgültiger Env-Name und Compose-Profil des Inferenzdienstes.
-- Socket vs. internes HTTP; ob Encoder und 8.9c-Adapter getrennte Ports/Pfade auf derselben Box teilen.
+In Stufe 1 festgelegt (Code): Env `WORD_CLOUD_SEMANTIC_ENABLED` / `WORD_CLOUD_ENCODER_*`, Compose-Profil `encoder`, Unix-Socket analog spaCy plus optionales internes HTTP analog 8.9c. Encoder und 8.9c-Adapter bleiben getrennte Pfade.
+
+Weiterhin offen:
+
 - Ob Presenter später denselben Cache lesen darf (eigene Folgestory).
 - Ob 8.9c Slice 4 denselben `llama-server` wie 1.14c-Labels nutzt oder bei extraktiv bleibt, bis GPU da ist.
 - Ob 8.9c später clusterbewusst Quellen wählt (Folgestory, Vertragänderung).
@@ -267,6 +271,7 @@ Reihenfolge und Entkopplung: §4.6.
 ## 9. Kanonische Verweise
 
 - Story: [Backlog.md](../../Backlog.md) 1.14c, Abgrenzung 8.9c
+- Produktdoku Stufe 1: [word-cloud-semantic.md](../features/word-cloud-semantic.md)
 - Zielbild: [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
 - Kaskade/Encoder-Kandidaten: [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Abschnitt „Bezug zu Story 8.9c“)
 - 1.14b / 8.9a–c: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md)

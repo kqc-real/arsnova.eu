@@ -19,6 +19,7 @@ import {
 } from '../lib/wordCloudNormalizer';
 import type { WordCloudNormalizationMeta } from '../lib/wordCloudNormalization';
 import { recordWordCloudAnalyzeTelemetry } from '../lib/wordCloudNlpTelemetry';
+import { analyzeSemanticWordCloudSnapshot } from '../lib/wordCloudSemanticAnalyze';
 import { hostProcedure, router } from '../trpc';
 
 export interface AnalyzeWordCloudSnapshotOptions {
@@ -34,14 +35,13 @@ function buildAnalysisOutput(
   themeFallbackUsed: boolean,
   meta: WordCloudNormalizationMeta,
 ): AnalyzeWordCloudOutput {
-  const semanticUnavailable = input.mode === 'SEMANTIC';
   return AnalyzeWordCloudOutputSchema.parse({
     mode: input.mode,
     locale: input.locale,
     metric: input.metric,
     generatedAt: new Date().toISOString(),
-    fallbackUsed: semanticUnavailable || themeFallbackUsed,
-    status: semanticUnavailable ? 'disabled' : 'ready',
+    fallbackUsed: themeFallbackUsed,
+    status: 'ready',
     modelVersion: null,
     entries,
     ...meta,
@@ -97,7 +97,7 @@ export async function analyzeWordCloudSnapshot(
   const cache = options.cache ?? getWordCloudAnalysisCache();
   const normalize = options.normalize ?? normalizeWordCloudItems;
 
-  const cached = await cache.getSnapshot(input);
+  const cached = input.refresh === true ? null : await cache.getSnapshot(input);
   if (cached) {
     recordWordCloudAnalyzeTelemetry({
       sessionCode: input.sessionCode,
@@ -112,6 +112,7 @@ export async function analyzeWordCloudSnapshot(
       textCacheHits: 0,
       textCacheMisses: 0,
       sidecarCalled: false,
+      encoderCalled: false,
     });
     return cached;
   }
@@ -121,7 +122,13 @@ export async function analyzeWordCloudSnapshot(
     env: options.env,
     sidecar: options.sidecar,
   });
-  const output = analyzeFromNormalized(input, normalized);
+  const output =
+    input.mode === 'SEMANTIC'
+      ? await analyzeSemanticWordCloudSnapshot(input, normalized.meta, {
+          env: options.env,
+          tokensByItemId: normalized.tokensByItemId,
+        })
+      : analyzeFromNormalized(input, normalized);
   await cache.setSnapshot(input, output);
   recordWordCloudAnalyzeTelemetry({
     sessionCode: input.sessionCode,
@@ -136,6 +143,7 @@ export async function analyzeWordCloudSnapshot(
     textCacheHits: normalized.cache.textHits,
     textCacheMisses: normalized.cache.textMisses,
     sidecarCalled: normalized.cache.sidecarCalled,
+    encoderCalled: input.mode === 'SEMANTIC' && Boolean(output.modelVersion),
   });
   return output;
 }
@@ -143,8 +151,8 @@ export async function analyzeWordCloudSnapshot(
 /**
  * Word-Cloud-Analysepfad für den Host.
  * THEME bleibt der deterministische Phrasen-/Anchor-Pfad ohne spaCy.
- * SEMANTIC (1.14c Stufe 0) nutzt denselben 2.x-Pfad und markiert `status: disabled`,
- * solange kein Encoder-Server angebunden ist. Kein 8.9c-Vertrag.
+ * SEMANTIC (1.14c Stufe 1) clustert Host-Q&A über den privaten Encoder;
+ * ohne Kill-Switch oder bei totem Server bleibt der 2.x-Phrasenpfad.
  * LEXICAL + LEMMA glättet über den Sidecar und fällt hart auf Identity zurück.
  * Freitext-Phrasen kommen über `maxNgramLength` 2/3 in denselben LEXICAL-Snapshot;
  * Q&A-Einzelwörter bleiben bei Default 1. THEME-/SEMANTIC-Fallback bleibt unigram-only.

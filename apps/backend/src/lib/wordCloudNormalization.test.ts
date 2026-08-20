@@ -43,6 +43,13 @@ describe('wordCloudNormalization', () => {
     expect(
       buildWordCloudSnapshotHash({
         ...baseInput,
+        mode: 'SEMANTIC',
+        channel: 'QA',
+      }),
+    ).not.toBe(buildWordCloudSnapshotHash(baseInput));
+    expect(
+      buildWordCloudSnapshotHash({
+        ...baseInput,
         maxNgramLength: 3,
       }),
     ).not.toBe(buildWordCloudSnapshotHash(baseInput));
@@ -52,6 +59,11 @@ describe('wordCloudNormalization', () => {
         maxNgramLength: 1,
       }),
     ).toBe(buildWordCloudSnapshotHash(baseInput));
+    const refreshed: AnalyzeWordCloudInput = {
+      ...baseInput,
+      refresh: true,
+    };
+    expect(buildWordCloudSnapshotHash(refreshed)).toBe(buildWordCloudSnapshotHash(baseInput));
   });
 
   it('hasht Rohtexte stabil und ohne Klartext im Digest', () => {

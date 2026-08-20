@@ -7,6 +7,7 @@
 - Behind exactly one Nginx/reverse proxy, `TRUST_PROXY_HOPS=1` is production-relevant so rate limits see real client IPs.
 - Docker local dev services are Postgres and Redis; production deploy must include migration/generate/health sequencing as documented.
 - Optional spaCy sidecar (Story 1.14b, done): Compose profile `nlp`, `NLP_ENABLED` default false, `deploy.sh` does not start it. Canonical: `docs/features/word-cloud-spacy.md` and `mem:session/word-cloud-spacy`.
+- Optional word-cloud encoder (Story 1.14c Stufe 1): Compose profile `encoder`, `WORD_CLOUD_SEMANTIC_ENABLED` default false, `deploy.sh` does not start it. Canonical: `docs/features/word-cloud-semantic.md` and `mem:session/word-cloud-semantic`.
 - Do not store production secrets or real `.env.production` values in repo docs, prompts, memories, or commits.
 
 ## Verwandte Memories:

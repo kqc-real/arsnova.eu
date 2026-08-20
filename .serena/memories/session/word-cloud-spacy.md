@@ -1,7 +1,7 @@
 # Word Cloud spaCy (Story 1.14b)
 
 - Story 1.14b is done (analysis version `1.14b.8`). Canonical doc: `docs/features/word-cloud-spacy.md`.
-- spaCy is optional host-triggered lemma smoothing, not semantics. Story 1.14c remains the semantic topic path. Never call the UI feature spaCy/NLP/Lemma.
+- spaCy is optional host-triggered lemma smoothing, not semantics. Story 1.14c Stufe 1 is the semantic topic path (`mem:session/word-cloud-semantic`). Never call the UI feature spaCy/NLP/Lemma.
 - Default stays lexical 2.x. `NLP_ENABLED` default false; `deploy.sh` does not start the sidecar. Compose profile `nlp`; Unix socket `NLP_SOCKET_PATH`; no TCP (`network_mode: none`). Bundled models `de`/`en` (MIT), `fr` (LGPL-LR), `es` (GPL-3.0); `it` excluded. Image is not pure MIT.
 - Pipeline: fetch → clean/protect terms → optional lemma/POS → lexical aggregate → render. Renderer never analyzes raw text. `THEME + LEMMA` is `MODE_UNSUPPORTED`.
 - Freitext: in-place maximize of the same `app-word-cloud`; modes WORDS/PHRASES map to `maxNgramLength` 1 vs 3. Mode switch with smoothing active re-analyzes the same snapshot.

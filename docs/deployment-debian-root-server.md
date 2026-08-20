@@ -563,6 +563,11 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   TCP-Port, Compose-Profil `nlp`. `deploy.sh` startet ihn nicht. Die App mountet
   `spacy_socket` read-only; `NLP_ENABLED` kommt aus `.env.production` und bleibt
   Default `false`. Standard-Modelle sind MIT `de`/`en` ([NOTICE](../NOTICE)).
+- Der optionale Word-Cloud-Encoder (Story 1.14c Stufe 1) ist ein eigenes Python-Image ohne
+  TCP-Port, Compose-Profil `encoder`. `deploy.sh` startet ihn nicht. Die App mountet
+  `wordcloud_encoder_socket` read-only; `WORD_CLOUD_SEMANTIC_ENABLED` kommt aus
+  `.env.production` und bleibt Default `false`. Modell `intfloat/multilingual-e5-small`
+  (Apache-2.0): [word-cloud-semantic.md](features/word-cloud-semantic.md).
 - Fixe Laufzeitwerte (`PORT`, `HOST`, `WS_PORT`, `WS_HOST`, `YJS_WS_PORT`, `YJS_WS_HOST`, `NODE_ENV`) sind im Compose bzw. in `.env.production` gesetzt; Secrets und Verbindungsdaten kommen aus `.env.production`.
 - Der tRPC-WebSocket-Server begrenzt global aktive Verbindungen und Upgrades
   sowie Nachrichten je Verbindung/global. Die 1.200-/3.000-Defaults tragen
@@ -680,7 +685,12 @@ Produktion: Image selbst bauen (`docker build -t arsnova-spacy:3.8.15 docker/spa
 optional unter einem eigenen GHCR-Namen taggen (nicht `ARSNOVA_IMAGE`), dann
 `COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy`
 und `NLP_ENABLED=true`. Rollback über Kill-Switch und `stop spacy`. Produktdoku:
-[word-cloud-spacy.md](features/word-cloud-spacy.md).
+[word-cloud-spacy.md](features/word-cloud-spacy.md). Analog Encoder Stufe 1: Image
+`docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder`, dann
+`COMPOSE_PROFILES=encoder WORD_CLOUD_ENCODER_IMAGE=arsnova-wordcloud-encoder:e5-small ./scripts/prod-compose.sh up -d wordcloud-encoder`
+und `WORD_CLOUD_SEMANTIC_ENABLED=true`. Rollback `WORD_CLOUD_SEMANTIC_ENABLED=false` und
+`stop wordcloud-encoder`. `deploy.sh` startet den Encoder nicht. Produktdoku:
+[word-cloud-semantic.md](features/word-cloud-semantic.md).
 
 W2.4b wird bewusst zweistufig ausgerollt:
 

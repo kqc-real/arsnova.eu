@@ -6,9 +6,13 @@
  * Default sind 500 Fragen (Analyse-Cap) mit Flexionsformen, 2–3-Wort-Phrasen und
  * gemischten Vote-Profilen für Meist unterstützt / Beste Fragen / Umstritten.
  *
+ * `--corpus semantic` füllt statt dessen Paraphrasencluster für Host-Q&A-Themen
+ * (1.14c Stufe 1 Encoder, vorbereitet auf Stufe-2-LLM-Labels).
+ *
  * Beispiele:
  *   npm run seed:qa-forum -w @arsnova/backend
  *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --replace
+ *   npm run seed:qa-forum -w @arsnova/backend -- --code 88XZMY --corpus semantic
  *   npm run seed:qa-forum -w @arsnova/backend -- --dry-run
  *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext, Q&A, Kompass): npm run spacy:macos-dev
  *
@@ -18,6 +22,11 @@
 import { randomUUID } from 'crypto';
 import { format } from 'node:util';
 import { promptChoice, resolveSessionCode } from './lib/prompt-session-code';
+import {
+  buildSemanticQaQuestionTexts,
+  SEMANTIC_QA_SEED_ITEM_COUNT,
+  SEMANTIC_QA_SEED_PARTICIPANT_COUNT,
+} from './lib/semantic-wordcloud-seed-corpus';
 import {
   buildSpacyQaQuestionTexts,
   SPACY_WORDCLOUD_SEED_ITEM_COUNT,
@@ -31,8 +40,11 @@ function log(...values: unknown[]): void {
 type QaQuestionStatus = 'ACTIVE' | 'PINNED';
 type QaVoteDirection = 'UP' | 'DOWN';
 
+type SeedCorpus = 'spacy' | 'semantic';
+
 type CliOptions = {
   code: string;
+  corpus: SeedCorpus;
   count: number;
   participants: number;
   replace: boolean;
@@ -174,25 +186,28 @@ const KINDERGARTEN_SEED_NICKNAMES = [
 
 function printUsage(): void {
   log(`
-Q&A-Forum einer bestehenden Session befüllen (lokaler spaCy-UI-Test)
+Q&A-Forum einer bestehenden Session befüllen (lokaler spaCy- oder Themen-UI-Test)
 
 Usage:
   npm run seed:qa-forum -w @arsnova/backend
   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X [Optionen]
+  npm run seed:qa-forum -w @arsnova/backend -- --code 88XZMY --corpus semantic
   SESSION_CODE=CWDE5X npm run seed:qa-forum -w @arsnova/backend
 
 Optionen:
   --code <CODE>          Session-Code; ohne Angabe und im TTY wird er abgefragt
-  --count <N>            Anzahl Fragen, Default ${DEFAULT_QUESTION_COUNT} (Wortwolken-Cap), max ${MAX_QUESTION_COUNT}
-  --participants <N>     Anzahl Seed-Teilnehmende, Default ${DEFAULT_PARTICIPANT_COUNT}, max ${MAX_PARTICIPANT_COUNT}
+  --corpus <NAME>        spacy (Default, 500 Flexions-/Phrasenfragen) oder semantic (Paraphrasen für Themen/Stufe 2)
+  --count <N>            Anzahl Fragen; spaCy Default ${DEFAULT_QUESTION_COUNT}, semantic Default ${SEMANTIC_QA_SEED_ITEM_COUNT}; max ${MAX_QUESTION_COUNT}
+  --participants <N>     Anzahl Seed-Teilnehmende; spaCy Default ${DEFAULT_PARTICIPANT_COUNT}, semantic Default ${SEMANTIC_QA_SEED_PARTICIPANT_COUNT}; max ${MAX_PARTICIPANT_COUNT}
   --replace              Vorhandene Q&A-Fragen der Session vorher löschen
   --append               Neue Fragen trotz vorhandener Q&A-Fragen hinzufügen
   --dry-run              Nur prüfen und geplante Mengen ausgeben
   --help                 Hilfe anzeigen
 
 Hinweise:
-  - Das Default-Korpus mischt Flexionsformen, Kurzfragen, Phrasen und lange Texte.
-  - Vote-Profile bleiben gemischt, damit Sortierung Meist unterstützt / Beste Fragen / Umstritten die Glättung neu anstößt.
+  - Das spaCy-Korpus mischt Flexionsformen, Kurzfragen, Phrasen und lange Texte.
+  - Das semantic-Korpus bündelt Klausur-, Regression-, Folien- und Beamer-Paraphrasen plus längere Fragen für LLM-Kurzlabels.
+  - Vote-Profile bleiben gemischt, damit Sortierung Meist unterstützt / Beste Fragen / Umstritten die Analyse neu anstößt.
 `);
 }
 
@@ -226,6 +241,7 @@ function parseCliOptions(argv: string[]): CliOptions {
   const replace = hasFlag('replace');
   const append = hasFlag('append');
   const dryRun = hasFlag('dry-run');
+  const corpus = parseSeedCorpus(readValue('corpus') ?? process.env['QA_SEED_CORPUS']);
   const code = (
     readValue('code') ??
     process.env['SESSION_CODE'] ??
@@ -235,20 +251,32 @@ function parseCliOptions(argv: string[]): CliOptions {
     .trim()
     .toUpperCase();
   const count = readPositiveInteger(readValue('count') ?? process.env['QUESTION_COUNT'], {
-    fallback: DEFAULT_QUESTION_COUNT,
+    fallback: corpus === 'semantic' ? SEMANTIC_QA_SEED_ITEM_COUNT : DEFAULT_QUESTION_COUNT,
     max: MAX_QUESTION_COUNT,
     label: 'count',
   });
   const participants = readPositiveInteger(
     readValue('participants') ?? process.env['PARTICIPANT_COUNT'],
     {
-      fallback: DEFAULT_PARTICIPANT_COUNT,
+      fallback:
+        corpus === 'semantic' ? SEMANTIC_QA_SEED_PARTICIPANT_COUNT : DEFAULT_PARTICIPANT_COUNT,
       max: MAX_PARTICIPANT_COUNT,
       label: 'participants',
     },
   );
 
-  return { code, count, participants, replace, append, dryRun, help };
+  return { code, corpus, count, participants, replace, append, dryRun, help };
+}
+
+function parseSeedCorpus(value: string | undefined): SeedCorpus {
+  const corpus = value?.trim().toLowerCase();
+  if (!corpus || corpus === 'spacy') {
+    return 'spacy';
+  }
+  if (corpus === 'semantic') {
+    return 'semantic';
+  }
+  throw new Error(`Ungueltiges Korpus fuer --corpus: ${value}. Erlaubt: spacy, semantic.`);
 }
 
 function readPositiveInteger(
@@ -327,14 +355,21 @@ function buildParticipantNicknames(
   );
 }
 
+function buildQuestionTexts(corpus: SeedCorpus, count: number): string[] {
+  return corpus === 'semantic'
+    ? buildSemanticQaQuestionTexts(count)
+    : buildSpacyQaQuestionTexts(count);
+}
+
 function buildQuestions(
   count: number,
   participantIds: readonly string[],
+  corpus: SeedCorpus,
 ): { questions: GeneratedQuestion[]; votes: GeneratedVote[] } {
   const questions: GeneratedQuestion[] = [];
   const votes: GeneratedVote[] = [];
   const startedAt = Date.now() - count * 45_000;
-  const texts = buildSpacyQaQuestionTexts(count);
+  const texts = buildQuestionTexts(corpus, count);
 
   for (let index = 0; index < count; index++) {
     const authorParticipantId = participantIds[index % participantIds.length]!;
@@ -537,6 +572,7 @@ async function main(): Promise<void> {
     const planned = buildQuestions(
       options.count,
       participantNicknames.map((_, index) => `participant-${index}`),
+      options.corpus,
     );
     const plannedUpVotes = planned.votes.filter((vote) => vote.direction === 'UP').length;
     const plannedDownVotes = planned.votes.length - plannedUpVotes;
@@ -563,6 +599,7 @@ async function main(): Promise<void> {
       log({
         sessionCode: session.code,
         sessionStatus: session.status,
+        corpus: options.corpus,
         existingQuestionCount,
         replace: options.replace,
         append: options.append,
@@ -613,6 +650,7 @@ async function main(): Promise<void> {
     const generated = buildQuestions(
       options.count,
       seedParticipants.map((participant) => participant.id),
+      options.corpus,
     );
     const voteRows = generated.votes.map((vote) => ({
       id: randomUUID(),
@@ -667,6 +705,7 @@ async function main(): Promise<void> {
     log('Q&A-Forum befuellt.');
     log({
       sessionCode: session.code,
+      corpus: options.corpus,
       participantsReused: existingParticipants.length,
       participantsCreated: missingParticipants.length,
       questionsCreated: generated.questions.length,

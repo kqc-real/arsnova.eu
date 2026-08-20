@@ -8,8 +8,8 @@
 **Produktstatus (Stand 2026-08-20):**
 
 - Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: delegierte Moderation **8.5** und 8.9c Slice 4), **9** (Admin) und **10** (MOTD — ADR-0018, `docs/features/motd.md`).
-- **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c** semantischer Themenmodus mit eigenem Inferenzserver bleibt offen. Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
-- **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit 1.14c. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
+- **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen (`WORD_CLOUD_SEMANTIC_ENABLED` default aus); Stufe 2 LLM-Labels offen. Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
+- **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
 - **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
 - **Offene Zielbilder:** Delegierte Moderation bleibt ohne eigene `/moderate`-Route und ohne Moderator-Token noch Zielbild; Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt.
@@ -60,10 +60,11 @@ Während einer Live-Sitzung müssen die Fragen an die Smartphones der Teilnehmen
 Join, Vote, Q&A-Submit und Realtime warten **nicht** auf Modelle. Die lexikalische Wortwolke (1.14a) und der deterministische Moderationskompass (8.9a) bleiben der Live-Pfad. Optional, jeweils mit eigenem Kill-Switch default aus:
 
 - **1.14b** spaCy-Sidecar hinter Unix-Socket (Host-Aktion „Sprachformen glätten“)
+- **1.14c Stufe 1** Encoder-Sidecar hinter Unix-Socket oder privatem HTTP (Host-Q&A-Themen; Clustering im Backend)
 - **8.9b** asynchrone Q&A-NLP-Queue nach Persistenz (Host-only Kategorien)
 - **8.9c** on-demand Zusammenfassung über privaten HTTP-Adapter (ephemer, quellengebunden)
 
-Ein getrennter Open-Weight-Inferenzserver (**1.14c**) ist Zielbild und darf später dieselben Verträge auf getrennten Queues bedienen. Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
+Stufe-2-LLM-Labels und 8.9c Slice 4 bleiben Zielbild auf derselben privaten Serverrolle, getrennten Queues. Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 
 ---
 

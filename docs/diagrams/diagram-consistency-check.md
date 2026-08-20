@@ -107,7 +107,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - Story **1.2d NUMERIC_ESTIMATE** – umgesetzt und in Diagrammen sichtbar: Question-/Vote-Felder, Data-Stripping während ACTIVE, Runde-2-Pfad, Histogramm/Statistik/Paarvergleich nach RESULTS; Details in [numeric-estimate.md](../features/numeric-estimate.md) ✓
 - Word Cloud interaktiv + Export (1.14) – WordcloudComponent in Host- und Presenter-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
 - Story **1.14a** (d3-cloud, Freeze, Phrasen) und **1.14b** (optionaler spaCy-Sidecar) – umgesetzt; Diagramm §1.3 und [word-cloud-spacy.md](../features/word-cloud-spacy.md) ✓
-- Story **1.14c** (semantischer Themenmodus / Inferenzserver) – offen, im Diagramm als Zielbild-Knoten gekennzeichnet ⚠️ bewusst
+- Story **1.14c Stufe 1** (Encoder-Sidecar + Clustering, Kill-Switch default aus) – im Repo; [word-cloud-semantic.md](../features/word-cloud-semantic.md) ✓; Stufe 2 LLM-Labels bleibt offen ⚠️ bewusst
 
 ### Epic 2: Session-Start & Steuerung
 

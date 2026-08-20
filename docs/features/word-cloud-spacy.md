@@ -6,7 +6,7 @@
 **Stand:** 2026-08-16
 **Status:** ✅ umgesetzt (Analyseversion `1.14b.8`)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
-**Semantik bleibt getrennt:** Story 1.14c / [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
+**Semantik bleibt getrennt:** Story 1.14c Stufe 1 / [word-cloud-semantic.md](word-cloud-semantic.md)
 
 ## Zweck
 
@@ -32,10 +32,10 @@ Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Ver
 
 Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung.
 
-| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                     | Glättung                                                                                               |
-| -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Einzelwörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Stufe 0: 2.x-Fallback) | `WORDS` und `PHRASES`; `SEMANTIC` blendet die Glättung aus                                             |
-| Q&A      | eigener `MatDialog`                                  | `Einzelwörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`)  | `LEXICAL` und `THEME`; `SEMANTIC` blendet die Glättung aus; Einschalten bei `THEME` erzwingt `LEXICAL` |
+| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                                  | Glättung                                                                                               |
+| -------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Einzelwörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Encoder-Clustering nicht in Stufe 1 → 2.x-Fallback) | `WORDS` und `PHRASES`; `SEMANTIC` blendet die Glättung aus                                             |
+| Q&A      | eigener `MatDialog`                                  | `Einzelwörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)              | `LEXICAL` und `THEME`; `SEMANTIC` blendet die Glättung aus; Einschalten bei `THEME` erzwingt `LEXICAL` |
 
 Presenter zeigt die Wolke ohne Glättungssteuerung, ohne Wolkensprache und ohne den Modus `Themen`.
 
@@ -48,8 +48,8 @@ Die **Wolkensprache** steht klein neben **Sprachformen glätten** (Freitext und 
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
 - **Q&A-Sortierung** `Meist unterstützt` / `Beste Fragen` / `Umstritten` bei aktiver `LEXICAL`-Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
 - **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE`, nicht den Lemma-Pfad. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
-- **Q&A `Themen`:** Story 1.14c Stufe 0. Kein Encoder und kein LLM. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Ohne Inferenzserver bleibt die Karte auf dem 2.x-Phrasenpfad (`status: disabled`, `fallbackUsed: true`).
-- **Freitext `Themen`:** derselbe Host-Toggle und 2.x-Fallback; Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
+- **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
+- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt nicht (kontrollierter 2.x-Fallback). Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.
 
@@ -171,7 +171,7 @@ Siehe [TESTING.md](../TESTING.md).
 
 ## Nicht-Ziele
 
-Semantische Paraphrasencluster, Embeddings, generative Labels, Participant-Analyse, automatische Dauerneuberechnung bei neuem Input, neue Layout-Engine, externer SaaS-NLP, Relizenzierung von arsnova.eu, Mitlieferung von `it_core_news_sm` im Default-Image.
+Semantische Paraphrasencluster und Embeddings gehören zu Story 1.14c ([word-cloud-semantic.md](word-cloud-semantic.md)), nicht in diese Glättungsstory. Generative Labels, Participant-Analyse, automatische Dauerneuberechnung bei neuem Input, neue Layout-Engine, externer SaaS-NLP, Relizenzierung von arsnova.eu, Mitlieferung von `it_core_news_sm` im Default-Image.
 
 ## Planungshistorie
 

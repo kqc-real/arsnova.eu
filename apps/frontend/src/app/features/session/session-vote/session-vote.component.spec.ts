@@ -3614,6 +3614,52 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt gekuerzte Kita-Reservenamen vollstaendig mit Tier-Emoji statt Du-Badge', async () => {
+    localStorage.setItem('arsnova-nickname-ABC123', 'Mahagonifarbener Wasserbüffe 3');
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Mahagonifarbener Wasserbüffe 3',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: 'Team 🍐',
+    });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      preset: 'SERIOUS',
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.participantTeam.set({ teamName: 'Team 🍐' } as never);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🐃');
+    expect(fixture.componentInstance.showCompactPlayerBadge()).toBe(false);
+    expect(host.querySelector('.vote-player-badge')).toBeNull();
+    expect(host.querySelector('.vote-player-badge__self-prefix')).toBeNull();
+    expect(host.querySelector('.vote-lobby__kita-hero')).not.toBeNull();
+    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐃');
+    expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
+      'Mahagonifarbener Wasserbüffe 3',
+    );
+    expect(host.querySelector('.vote-lobby__kita-nick')?.getAttribute('title')).toBe(
+      'Mahagonifarbener Wasserbüffe 3',
+    );
+    expect(host.textContent).not.toContain('Du:');
+    fixture.destroy();
+  });
+
   it('zeigt in Q&A denselben Kita-Hero wie im Quiz', async () => {
     localStorage.setItem('arsnova-nickname-ABC123', 'Tannengrüner Biber 6');
     getParticipantSelfQueryMock.mockResolvedValue({

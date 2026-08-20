@@ -125,6 +125,7 @@
 .vote-player-badge {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.3rem;
   padding: 0.25rem 0.65rem;
   border-radius: var(--mat-sys-corner-full);
@@ -134,7 +135,7 @@
   width: fit-content;
   margin: 0 auto 0.75rem;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .vote-player-badge--arrival {
@@ -166,10 +167,10 @@
 }
 
 .vote-player-badge__name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 10rem;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  max-width: min(100%, 18rem);
   font-weight: 600;
 }
 
@@ -182,13 +183,14 @@
 .vote-player-badge__kita-id {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.25rem;
   min-width: 0;
   max-width: 100%;
 }
 
 .vote-player-badge__name--kita {
-  max-width: 9rem;
+  max-width: min(100%, 18rem);
 }
 
 /* Kita: wie Join (nick-emoji--trigger) – kein Chip, kleines Tier-Icon in einer Textzeile */
@@ -222,10 +224,6 @@
 
   .vote-player-badge--kindergarten .vote-player-badge__emoji {
     font-size: 1.75rem;
-  }
-
-  .vote-player-badge__name--kita {
-    max-width: 11rem;
   }
 }
 
@@ -1267,10 +1265,10 @@
 
 .vote-lobby__kita-nick {
   min-width: 0;
-  max-width: min(100%, 14rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: min(100%, 36rem);
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .vote-lobby__kita-team {
