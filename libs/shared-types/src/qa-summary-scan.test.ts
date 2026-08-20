@@ -60,6 +60,12 @@ describe('toQaSummaryScanBullet', () => {
       ),
     ).toBe('Übungen: Mehr Orientierung und Planbarkeit.');
   });
+
+  it('lässt englische Kommalisten nicht zu deutschen und-Ketten werden', () => {
+    expect(toQaSummaryScanBullet('Topics: inputs, outputs, and errors.', 'en')).toBe(
+      'Topics: Inputs, outputs, and errors.',
+    );
+  });
 });
 
 describe('sortQaSummaryStatementsByImportance', () => {

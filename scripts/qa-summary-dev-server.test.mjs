@@ -305,8 +305,10 @@ test('Gemini-404 erklärt ein abgekündigtes Modell', async () => {
 
 test('Helper-Timeout liegt unter dem Backend-Timeout', () => {
   assert.equal(resolveHelperInferenceTimeoutMs('30000'), 25_000);
-  assert.equal(resolveHelperInferenceTimeoutMs(undefined), 10_000);
-  assert.equal(resolveHelperInferenceTimeoutMs('2000'), 3_000);
+  assert.equal(resolveHelperInferenceTimeoutMs(undefined), 3_000);
+  assert.equal(resolveHelperInferenceTimeoutMs('8000'), 3_000);
+  assert.equal(resolveHelperInferenceTimeoutMs('2000'), 1_800);
+  assert.equal(resolveHelperInferenceTimeoutMs('500'), 300);
 });
 
 test('withExtractiveFallback liefert lokale Kurzfassung wenn Gemini failed', () => {
@@ -321,6 +323,20 @@ test('withExtractiveFallback liefert lokale Kurzfassung wenn Gemini failed', () 
   assert.ok(output.statements.length >= 1);
   assert.match(output.modelVersion, /extractive/);
   assert.match(output.limitations.join(' '), /lokale Kurzfassung/);
+});
+
+test('withExtractiveFallback behält die Gemini-Ursache neben der lokalen Kurzfassung', () => {
+  const output = withExtractiveFallback(sampleRequest, {
+    status: 'failed',
+    statements: [],
+    suggestedNextSteps: [],
+    limitations: ['Gemini hat den API-Key abgelehnt.'],
+    modelVersion: 'gemini:gemini-3.5-flash-lite:http-403',
+  });
+  assert.equal(output.status, 'ready');
+  assert.match(output.limitations.join(' '), /API-Key abgelehnt/);
+  assert.match(output.limitations.join(' '), /Lokale Kurzfassung/);
+  assert.doesNotMatch(output.limitations.join(' '), /nicht rechtzeitig/);
 });
 
 test('--help nennt Loopback-URL und optionalen Gemini-Key', () => {

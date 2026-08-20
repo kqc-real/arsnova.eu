@@ -6,6 +6,27 @@
 
 const MAX_CLAUSE_WORDS = 14;
 const MAX_LEAD_WORDS = 5;
+const MAX_SCAN_CHARS = 400;
+
+export type QaSummaryScanLocale = 'de' | 'en' | 'fr' | 'es' | 'it';
+
+function collapseWhitespace(value: string): string {
+  const clipped = value.length > MAX_SCAN_CHARS ? value.slice(0, MAX_SCAN_CHARS) : value;
+  let result = '';
+  let gap = false;
+  for (const char of clipped) {
+    if (char === ' ' || char === '\t' || char === '\n' || char === '\r' || char === '\f') {
+      gap = true;
+      continue;
+    }
+    if (gap && result.length > 0) {
+      result += ' ';
+    }
+    result += char;
+    gap = false;
+  }
+  return result;
+}
 
 const PROTOCOL_PREFIXES: readonly RegExp[] = [
   /^zudem\s+wird\s+(?:diskutiert|gefragt),?\s*(?:wie\s+)?/i,
@@ -44,7 +65,7 @@ const TOPIC_RULES: readonly { re: RegExp; topic: (match: RegExpMatchArray) => st
   { re: /(?<!\p{L})visualisierung(?:en)?(?!\p{L})/iu, topic: () => 'Visualisierung' },
 ];
 
-const EXISTING_LEAD_RE = /^(.{2,36}?)[:：]\s+(.+)$/u;
+const EXISTING_LEAD_RE = /^([^:：]{2,36})[:：] (.+)$/u;
 
 const FUNCTION_WORDS = new Set([
   'und',
@@ -140,19 +161,19 @@ function stripProtocolPrefix(text: string): string {
 }
 
 function normalizePhrases(text: string): string {
-  return text
-    .replace(/\s+/g, ' ')
-    .replace(/\bund der dazu passenden\b/gi, ' und')
-    .replace(/\beine (?:erneute |detailliertere )?Erklärung von\b/gi, 'Wiederholung')
-    .replace(/\berneute Erklärung\b/gi, 'Wiederholung')
-    .replace(/\bzusätzliche(?:s|n)?\b/gi, '')
-    .replace(/\bkonkrete[ns]?\b/gi, '')
-    .replace(/\bgenaue[ns]?\b/gi, '')
-    .replace(/\bmitsamt\b/gi, 'und')
-    .replace(/\binklusive\b/gi, 'und')
-    .replace(/\s+die Planbarkeit\b[\s\S]*$/i, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return collapseWhitespace(
+    collapseWhitespace(text)
+      .replace(/\bund der dazu passenden\b/gi, ' und')
+      .replace(/\beine (?:erneute |detailliertere )?Erklärung von\b/gi, 'Wiederholung')
+      .replace(/\berneute Erklärung\b/gi, 'Wiederholung')
+      .replace(/\bzusätzliche(?:s|n)?\b/gi, '')
+      .replace(/\bkonkrete[ns]?\b/gi, '')
+      .replace(/\bgenaue[ns]?\b/gi, '')
+      .replace(/\bmitsamt\b/gi, 'und')
+      .replace(/\binklusive\b/gi, 'und')
+      .replace(/\s+die Planbarkeit\b[\s\S]*$/i, '')
+      .trim(),
+  );
 }
 
 function stripTrailingFunctionWords(text: string): string {
@@ -185,28 +206,32 @@ function stripIncompleteTail(text: string): string {
   return clause;
 }
 
-function tidyClause(text: string): string {
-  let clause = text.replace(/\s+/g, ' ').trim();
-  clause = clause.replace(
-    /\b(?:von|zu|zum|zur|mit|über|nach|bei|für|um)\s+(?:und|oder|sowie|,)\b/gi,
-    ',',
-  );
-  clause = clause.replace(/\s+und\s+(?=von|zu|zur|zum)\b/gi, ' ');
-  clause = clause.replace(/\b(?:des|der|die|das|dem|den)\s+(,|und)\b/gi, '$1');
-  clause = clause.replace(/,(?!\s*\p{Lu})/gu, ' und');
-  clause = clause.replace(/,\s+([^,]{1,60})$/u, ' und $1');
+function tidyClause(text: string, locale: QaSummaryScanLocale = 'de'): string {
+  let clause = collapseWhitespace(text);
+  if (locale === 'de') {
+    clause = clause.replace(
+      /\b(?:von|zu|zum|zur|mit|über|nach|bei|für|um)\s+(?:und|oder|sowie|,)\b/gi,
+      ',',
+    );
+    clause = clause.replace(/\s+und\s+(?=von|zu|zur|zum)\b/gi, ' ');
+    clause = clause.replace(/\b(?:des|der|die|das|dem|den)\s+(,|und)\b/gi, '$1');
+    clause = clause.replace(/,(?!\s*\p{Lu})/gu, ' und');
+    clause = clause.replace(/,\s+([^,]{1,60})$/u, ' und $1');
+    clause = clause.replace(/\s+und\s+und\b/gi, ' und');
+    clause = clause.replace(/\bund\s+rechtzeitigem\s+Feedback\b/gi, 'und rechtzeitiges Feedback');
+  }
   clause = clause.replace(/\s*,\s*,+/g, ',');
   clause = clause.replace(/\s+,/g, ',');
   clause = clause.replace(/,(?!\s)/g, ', ');
-  clause = clause.replace(/\s+und\s+und\b/gi, ' und');
-  clause = clause.replace(/\bund\s+rechtzeitigem\s+Feedback\b/gi, 'und rechtzeitiges Feedback');
-  clause = clause.replace(/\s+/g, ' ').trim();
+  clause = collapseWhitespace(clause);
   clause = clause.replace(/^[,.:;]+|[,.:;]+$/g, '').trim();
   clause = stripIncompleteTail(clause);
-  clause = clause.replace(/^(?:der|die|das|dem|den|des|ein|eine)\s+/i, '').trim();
-  clause = clause.replace(/^(.+?) und (.+?) und (.+)$/u, '$1, $2 und $3');
+  if (locale === 'de') {
+    clause = clause.replace(/^(?:der|die|das|dem|den|des|ein|eine)\s+/i, '').trim();
+    clause = clause.replace(/^(.+?) und (.+?) und (.+)$/u, '$1, $2 und $3');
+  }
 
-  const words = clause.split(/\s+/).filter(Boolean);
+  const words = clause.split(' ').filter(Boolean);
   if (words.length > MAX_CLAUSE_WORDS) {
     let cut = words.slice(0, MAX_CLAUSE_WORDS);
     while (cut.length > 3 && FUNCTION_WORDS.has(cut[cut.length - 1]?.toLocaleLowerCase() ?? '')) {
@@ -216,7 +241,8 @@ function tidyClause(text: string): string {
   }
 
   if (clause) {
-    clause = clause.replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase('de-DE'));
+    const localeTag = locale === 'de' ? 'de-DE' : locale;
+    clause = clause.replace(/^\p{Ll}/u, (letter) => letter.toLocaleUpperCase(localeTag));
     if (!/[.!?]$/.test(clause)) {
       clause = `${clause}.`;
     }
@@ -224,30 +250,33 @@ function tidyClause(text: string): string {
   return clause;
 }
 
-function dropTopicFromClause(clause: string, topic: string): string {
+function dropTopicFromClause(
+  clause: string,
+  topic: string,
+  locale: QaSummaryScanLocale = 'de',
+): string {
   const topicPattern = escapeRegExp(topic);
-  const withoutTopic = clause
-    .replace(
+  const withoutTopic = collapseWhitespace(
+    clause.replace(
       new RegExp(
         `\\b(?:des|der|die|das|dem|den|von|zu|zur|zum)?\\s*${topicPattern}s?(?!\\p{L})`,
         'giu',
       ),
       ' ',
-    )
-    .replace(/\s+/g, ' ')
-    .trim();
-  return tidyClause(withoutTopic);
+    ),
+  );
+  return tidyClause(withoutTopic, locale);
 }
 
-function formatLeadClause(lead: string, body: string): string {
+function formatLeadClause(lead: string, body: string, locale: QaSummaryScanLocale = 'de'): string {
   const stripped = stripProtocolPrefix(normalizePhrases(body));
-  const clause = dropTopicFromClause(stripped, lead) || tidyClause(stripped);
+  const clause = dropTopicFromClause(stripped, lead, locale) || tidyClause(stripped, locale);
   return clause ? `${lead}: ${clause}` : lead;
 }
 
 /** Converts a model sentence into a host-scan bullet without changing source binding. */
-export function toQaSummaryScanBullet(text: string): string {
-  const normalized = text.trim().replace(/\s+/g, ' ');
+export function toQaSummaryScanBullet(text: string, locale: QaSummaryScanLocale = 'de'): string {
+  const normalized = collapseWhitespace(text);
   if (!normalized) {
     return normalized;
   }
@@ -260,10 +289,10 @@ export function toQaSummaryScanBullet(text: string): string {
       lead &&
       body &&
       !lead.includes('.') &&
-      lead.split(/\s+/).length <= MAX_LEAD_WORDS &&
+      lead.split(' ').length <= MAX_LEAD_WORDS &&
       !/\d{1,2}:\d{2}$/.test(lead)
     ) {
-      return formatLeadClause(lead, body);
+      return formatLeadClause(lead, body, locale);
     }
   }
 
@@ -279,10 +308,10 @@ export function toQaSummaryScanBullet(text: string): string {
   const topic = detectTopic(normalized);
   const rest = stripProtocolPrefix(normalizePhrases(normalized));
   if (!topic) {
-    return tidyClause(rest) || normalized;
+    return tidyClause(rest, locale) || normalized;
   }
 
-  const clause = dropTopicFromClause(rest, topic) || tidyClause(rest);
+  const clause = dropTopicFromClause(rest, topic, locale) || tidyClause(rest, locale);
   return clause ? `${topic}: ${clause}` : normalized;
 }
 

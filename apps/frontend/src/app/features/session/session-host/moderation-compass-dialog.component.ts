@@ -110,7 +110,7 @@ export class ModerationCompassDialogComponent {
   }
 
   summaryScanParts(text: string): ModerationSummaryScanParts {
-    return splitModerationSummaryLead(text);
+    return splitModerationSummaryLead(text, this.summaryResult()?.locale ?? 'de');
   }
 
   summaryStatements(result: QaSummaryResult): QaSummaryResult['statements'] {

@@ -309,10 +309,14 @@ export function resolveGeminiGenerateUrl(model) {
 }
 
 /** Helper must finish before the backend AbortSignal, otherwise the host sees stub:timeout. */
-export function resolveHelperInferenceTimeoutMs(backendTimeoutMs, fallback = 15_000) {
+export function resolveHelperInferenceTimeoutMs(backendTimeoutMs, fallback = 8_000) {
   const parsed = Number.parseInt(String(backendTimeoutMs), 10);
-  const backend = Number.isFinite(parsed) && parsed >= 1_000 ? parsed : fallback;
-  return Math.max(3_000, backend - 5_000);
+  const backend = Number.isFinite(parsed) && parsed >= 500 ? parsed : fallback;
+  const withLead = backend - 5_000;
+  if (withLead >= 200) {
+    return withLead;
+  }
+  return Math.max(100, backend - 200);
 }
 
 export function withExtractiveFallback(request, geminiOutput) {
@@ -323,10 +327,16 @@ export function withExtractiveFallback(request, geminiOutput) {
   if (extractive.status !== 'ready') {
     return geminiOutput;
   }
-  const limitation = 'Modell nicht rechtzeitig; lokale Kurzfassung.';
+  const original = (geminiOutput.limitations ?? [])
+    .map((item) => String(item).trim())
+    .filter(Boolean);
+  const timedOut =
+    /timeout/i.test(String(geminiOutput.modelVersion ?? '')) ||
+    original.some((item) => /zu lange|timeout/i.test(item));
+  const note = timedOut ? 'Modell nicht rechtzeitig; lokale Kurzfassung.' : 'Lokale Kurzfassung.';
   return {
     ...extractive,
-    limitations: [...new Set([...(extractive.limitations ?? []), limitation])].slice(0, 6),
+    limitations: [...new Set([...original, note, ...(extractive.limitations ?? [])])].slice(0, 6),
     modelVersion: clip(`${geminiOutput.modelVersion ?? 'gemini'}+extractive`, 64),
   };
 }
@@ -349,7 +359,7 @@ export async function summarizeWithGemini(request, options) {
   const apiKey = options.apiKey?.trim();
   const model = options.model?.trim() || QA_SUMMARY_DEV_DEFAULT_GEMINI_MODEL;
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
-  const timeoutMs = options.timeoutMs ?? 15_000;
+  const timeoutMs = options.timeoutMs ?? 3_000;
   const allowedIds = new Set(request.sources.map((source) => source.id));
   const modelVersion = `gemini:${clip(model, 48)}`;
 
@@ -647,7 +657,7 @@ async function main(argv = process.argv.slice(2), env = process.env) {
       summarizeWithGemini(request, {
         apiKey: env['GEMINI_API_KEY'],
         model: env['GEMINI_MODEL'],
-        timeoutMs: Number.isFinite(geminiTimeoutMs) ? geminiTimeoutMs : 15_000,
+        timeoutMs: Number.isFinite(geminiTimeoutMs) ? geminiTimeoutMs : 3_000,
       }),
   });
 

@@ -65,6 +65,13 @@ describe('splitModerationSummaryLead', () => {
       body: 'Berechnung und Formel.',
     });
   });
+
+  it('lässt englische Kommalisten nicht zu deutschen und-Ketten werden', () => {
+    expect(splitModerationSummaryLead('Topics: inputs, outputs, and errors.', 'en')).toEqual({
+      lead: 'Topics',
+      body: 'Inputs, outputs, and errors.',
+    });
+  });
 });
 
 describe('compassQuestionStem', () => {

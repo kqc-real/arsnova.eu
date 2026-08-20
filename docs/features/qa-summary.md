@@ -66,7 +66,7 @@ QA_SUMMARY_ENABLED=true
 QA_SUMMARY_INFERENCE_URL=http://127.0.0.1:8787/summary
 ```
 
-Backend nach Env-Änderung neu starten. Kompass-Button **Zusammenfassung** erscheint nur bei exakt `true`. Standardmodus ist lokal-extraktiv (kein Cloud). Optional `GEMINI_API_KEY` nur für den Helferprozess: arsnova spricht weiter `127.0.0.1`, der Helfer übersetzt nach Gemini (`GEMINI_MODEL`, Default `gemini-3.5-flash-lite`, Thinking `MINIMAL`). Dann verlassen Q&A-Texte den Rechner. Der Helfer bricht Gemini 5 s vor `QA_SUMMARY_TIMEOUT_MS` ab und fällt auf die lokale Kurzfassung zurück, damit das Backend nicht mit `stub:timeout` endet. Lokal `QA_SUMMARY_TIMEOUT_MS=30000`. `QA_SUMMARY_DEV_MODE=extractive` erzwingt den lokalen Modus trotz Key.
+Backend nach Env-Änderung neu starten. Kompass-Button **Zusammenfassung** erscheint nur bei exakt `true`. Standardmodus ist lokal-extraktiv (kein Cloud). Optional `GEMINI_API_KEY` nur für den Helferprozess: arsnova spricht weiter `127.0.0.1`, der Helfer übersetzt nach Gemini (`GEMINI_MODEL`, Default `gemini-3.5-flash-lite`, Thinking `MINIMAL`). Dann verlassen Q&A-Texte den Rechner. Der Helfer bricht Gemini immer vor `QA_SUMMARY_TIMEOUT_MS` ab (5 s Vorsprung, bei kürzeren Timeouts mindestens 200 ms) und fällt auf die lokale Kurzfassung zurück, damit das Backend nicht mit `stub:timeout` endet. Ohne Env-Wert gilt der Backend-Default 8 s, der Helfer wartet dann 3 s. Lokal oft `QA_SUMMARY_TIMEOUT_MS=30000`. `QA_SUMMARY_DEV_MODE=extractive` erzwingt den lokalen Modus trotz Key.
 
 App plus Helfer in einem Terminal: `npm run dev:qa-summary`. Hilfe: `npm run qa-summary:dev -- --help`. Tests: `npm run qa-summary:dev:test`.
 

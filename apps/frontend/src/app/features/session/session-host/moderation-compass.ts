@@ -5,7 +5,10 @@ import {
   type QaNlpStatus,
   type QuestionType,
 } from '@arsnova/shared-types';
-import { toQaSummaryScanBullet } from '@arsnova/shared-types/qa-summary-scan';
+import {
+  toQaSummaryScanBullet,
+  type QaSummaryScanLocale,
+} from '@arsnova/shared-types/qa-summary-scan';
 
 export type ModerationCompassCardKind =
   'topics' | 'clarification' | 'friction' | 'tempo' | 'nextStep';
@@ -241,11 +244,14 @@ export type ModerationSummaryScanParts = {
   readonly body: string;
 };
 
-const SUMMARY_LEAD_RE = /^(.{2,36}?)[:：]\s+(.+)$/u;
+const SUMMARY_LEAD_RE = /^([^:：]{2,36})[:：] (.+)$/u;
 
 /** Splits "Median: Formel unklar" so the host can scan the topic first. */
-export function splitModerationSummaryLead(text: string): ModerationSummaryScanParts {
-  const body = toQaSummaryScanBullet(text);
+export function splitModerationSummaryLead(
+  text: string,
+  locale: QaSummaryScanLocale = 'de',
+): ModerationSummaryScanParts {
+  const body = toQaSummaryScanBullet(text, locale);
   const match = body.match(SUMMARY_LEAD_RE);
   if (!match) {
     return { lead: null, body };
