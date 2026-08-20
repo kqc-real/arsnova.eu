@@ -406,6 +406,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       '[data-testid="vote-timer-accommodation"]',
     ) as HTMLElement | null;
     expect(timerCard).toBeTruthy();
+    expect(timerCard).toBeInstanceOf(HTMLDetailsElement);
+    expect((timerCard as HTMLDetailsElement).open).toBe(false);
+    expect(component.timerAccommodationPanelExpanded()).toBe(false);
     expect(timerCard?.querySelector('h2')?.textContent).toContain('Zeit anpassen');
     expect(timerCard?.querySelector('mat-button-toggle-group')).toBeTruthy();
     expect(host.textContent).toContain('Zeit anpassen');
@@ -461,14 +464,73 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(component.showLobbyTimerAccommodationControls()).toBe(true);
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        '[data-testid="vote-timer-accommodation"]',
-      ),
-    ).toBeTruthy();
+    expect(component.timerAccommodationPanelExpanded()).toBe(true);
+    const lobbyPanel = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="vote-timer-accommodation"]',
+    ) as HTMLDetailsElement | null;
+    expect(lobbyPanel).toBeTruthy();
+    expect(lobbyPanel?.open).toBe(true);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown',
     );
+    fixture.destroy();
+  });
+
+  it('lässt die Zeitanpassung in der Abstimmung aufklappen, ohne das Scoring-Details zu schließen', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.sessionSettings.set({ type: 'QUIZ' });
+    component.sessionTimerSeconds.set(30);
+    component.currentRound.set(1);
+    component.currentQuestion.set({
+      id: 'timer-a11y-question',
+      text: 'Frage mit Timer',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 30,
+      sessionTimer: 30,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+    fixture.detectChanges();
+
+    const panel = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="vote-timer-accommodation"]',
+    ) as HTMLDetailsElement | null;
+    expect(panel).toBeTruthy();
+    expect(component.timerAccommodationPanelExpanded()).toBe(false);
+    expect(panel!.open).toBe(false);
+
+    panel!.open = true;
+    panel!.dispatchEvent(new Event('toggle', { bubbles: true }));
+    fixture.detectChanges();
+    expect(component.timerAccommodationPanelExpanded()).toBe(true);
+    expect(panel!.open).toBe(true);
+
+    const scoring = panel!.querySelector(
+      '[data-testid="vote-scoring-info"]',
+    ) as HTMLDetailsElement | null;
+    expect(scoring).toBeTruthy();
+    scoring!.open = true;
+    scoring!.dispatchEvent(new Event('toggle', { bubbles: true }));
+    fixture.detectChanges();
+    expect(component.timerAccommodationPanelExpanded()).toBe(true);
+    expect(panel!.open).toBe(true);
+
+    component.status.set('RESULTS');
+    fixture.detectChanges();
+    expect(component.timerAccommodationPanelExpanded()).toBe(false);
     fixture.destroy();
   });
 
@@ -3888,6 +3950,23 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Q&A');
     expect(text).toContain('Blitzlicht');
     fixture.destroy();
+  });
+
+  it('hält mobile Kanal-Tabs unter der Top-Toolbar, damit Theme- und Sprachmenü erreichbar bleiben', () => {
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    const appStyles = readFileSync(resolve(process.cwd(), 'src/app/app.component.scss'), 'utf8');
+    const mobileTabs = voteStyles.match(
+      /@media \(max-width: 599px\) \{[\s\S]*?\.session-channel-tabs-shell \{[\s\S]*?\n {2}\}/,
+    )?.[0];
+
+    expect(mobileTabs).toBeTruthy();
+    expect(mobileTabs).toContain('z-index: 8');
+    expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 4rem)');
+    expect(mobileTabs).not.toContain('z-index: 10');
+    expect(appStyles).toContain('--vote-channel-tabs-sticky-top:');
   });
 
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {

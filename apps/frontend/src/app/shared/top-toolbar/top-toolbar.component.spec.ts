@@ -247,4 +247,13 @@ describe('TopToolbarComponent', () => {
     expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*flex-direction:\s*row/);
     expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*justify-content:\s*space-evenly/);
   });
+
+  it('stapelt die Toolbar über dem scrollenden Main-Inhalt, damit das mobile Menü nicht überdeckt wird', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'top-toolbar.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/:host\s*\{[^}]*z-index:\s*20/);
+  });
 });

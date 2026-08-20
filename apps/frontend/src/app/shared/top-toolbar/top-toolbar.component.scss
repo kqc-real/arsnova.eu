@@ -1,3 +1,8 @@
+/* Flex-Item von .app-layout: über dem scrollenden Main-Inhalt, unter Skip-Link/Bannern. */
+:host {
+  z-index: 20;
+}
+
 /* Standard: sticky; mit --fixed (position: fixed) für Hide-on-Scroll. Fluchtlinien wie .l-page (Karten). */
 .top-toolbar {
   --top-toolbar-inline: 1rem;

@@ -498,6 +498,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly liveScorePreviewVisible = signal(true);
   readonly timerAccommodationSaving = signal(false);
   readonly timerAccommodationModes = TIMER_ACCOMMODATION_MODES;
+  /** Lobby aufgeklappt, Abstimmung/Ergebnis zugeklappt; manuell weiter bedienbar. */
+  readonly timerAccommodationPanelExpanded = signal(false);
   private questionActiveAtMs: number | null = null;
   /** Nur bei Timer-aus: leichter 1-Hz-Ticker statt Countdown-Interval. */
   private scorePreviewTimer: ReturnType<typeof setInterval> | null = null;
@@ -897,6 +899,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const sc = this.scorecard();
       const token = `${questionId}:${message}:${sc ? `${sc.questionOrder}:${sc.totalScore}:${sc.currentRank}` : 'pending'}`;
       this.scheduleResultContentScroll(token);
+    });
+    effect(() => {
+      const expandInLobby = this.status() === 'LOBBY';
+      untracked(() => this.timerAccommodationPanelExpanded.set(expandInLobby));
     });
     effect(() => {
       const selectedNickname = this.qaSelectedAuthorNickname();
@@ -2665,6 +2671,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return seconds === 1
       ? $localize`:@@sessionVote.countdownAriaOne:1 Sekunde verbleibend`
       : $localize`:@@sessionVote.countdownAriaMany:${seconds}:seconds: Sekunden verbleibend`;
+  }
+
+  onTimerAccommodationPanelToggle(target: EventTarget | null): void {
+    if (!(target instanceof HTMLDetailsElement)) {
+      return;
+    }
+    // Nur das äußere Panel; verschachteltes Scoring-`<details>` bubbelt sonst mit.
+    this.timerAccommodationPanelExpanded.set(target.open);
   }
 
   timerAccommodationGroupAriaLabel(): string {

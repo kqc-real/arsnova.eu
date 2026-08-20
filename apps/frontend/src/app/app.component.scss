@@ -29,6 +29,8 @@
 .app-main--toolbar-fixed {
   padding-top: 4rem;
   --vote-channel-tabs-desktop-top: 6.75rem;
+  /* Sticky-Offset in .app-main (nicht Viewport): unter der kompakten Toolbar bleiben. */
+  --vote-channel-tabs-sticky-top: calc(4rem + var(--host-mobile-toolbar-gap, 0.5rem));
 }
 
 .app-main--immersive-host {
@@ -49,6 +51,7 @@
 
 .app-main--toolbar-hidden {
   --vote-channel-tabs-desktop-top: 0.5rem;
+  --vote-channel-tabs-sticky-top: calc(0.35rem + env(safe-area-inset-top, 0px));
 }
 
 @media (min-width: 600px) {

@@ -1291,6 +1291,8 @@ Persönliche Präferenz am `Participant` (`timerAccommodation`: `DEFAULT` |
   `session.setTimerAccommodation`;
 - Backend: Vote-Deadline personalisiert; Self-/Join-DTO tragen den Modus;
 - Vote-UI: MD3-Segmented-Control Standard / 10× Zeit / Ohne Timer mit Live-Status;
+  in der Lobby aufgeklappt, während Abstimmung und Ergebnis als Disclosure
+  zugeklappt;
 - Vote-UI: lokale Punktvorschau am Session-Timer; in der Nachlaufzeit wird der
   feste Mindestwert als „Nachlaufzeit · richtige Antwort“ gekennzeichnet (1 Hz,
   ohne Netzwerkanfrage und ohne `aria-live`-Spam);
