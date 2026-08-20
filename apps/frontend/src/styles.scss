@@ -637,35 +637,8 @@ html {
   max-height: calc(100dvh - 1rem) !important;
 }
 
-.cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-inner-container,
-.cdk-overlay-pane.moderation-compass-dialog-panel .mdc-dialog__container,
-.cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-container,
 .cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-surface {
-  max-height: inherit;
-}
-
-.cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-surface {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
   overflow: hidden;
-}
-
-.cdk-overlay-pane.moderation-compass-dialog-panel app-moderation-compass-dialog {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  max-height: 100%;
-}
-
-.cdk-overlay-pane.moderation-compass-dialog-panel .mat-mdc-dialog-content {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 599px) {
