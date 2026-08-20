@@ -3890,6 +3890,23 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält mobile Kanal-Tabs unter der Top-Toolbar, damit Theme- und Sprachmenü erreichbar bleiben', () => {
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    const appStyles = readFileSync(resolve(process.cwd(), 'src/app/app.component.scss'), 'utf8');
+    const mobileTabs = voteStyles.match(
+      /@media \(max-width: 599px\) \{[\s\S]*?\.session-channel-tabs-shell \{[\s\S]*?\n {2}\}/,
+    )?.[0];
+
+    expect(mobileTabs).toBeTruthy();
+    expect(mobileTabs).toContain('z-index: 8');
+    expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 4rem)');
+    expect(mobileTabs).not.toContain('z-index: 10');
+    expect(appStyles).toContain('--vote-channel-tabs-sticky-top:');
+  });
+
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {
     localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
     setParticipantJoinArrival('ABC123');
