@@ -41,6 +41,7 @@ const {
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
+  prevQuestionMutateMock,
   skipQuestionMutateMock,
   revealAnswersMutateMock,
   revealResultsMutateMock,
@@ -86,6 +87,7 @@ const {
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
+  prevQuestionMutateMock: vi.fn(),
   skipQuestionMutateMock: vi.fn(),
   revealAnswersMutateMock: vi.fn(),
   revealResultsMutateMock: vi.fn(),
@@ -130,6 +132,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      prevQuestion: { mutate: prevQuestionMutateMock },
       skipQuestion: { mutate: skipQuestionMutateMock },
       revealAnswers: { mutate: revealAnswersMutateMock },
       revealResults: { mutate: revealResultsMutateMock },
@@ -471,6 +474,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       currentQuestion: null,
       currentRound: 1,
       activeAt: null,
+    });
+    prevQuestionMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
     });
     skipQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
@@ -6528,6 +6536,61 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('weist beim Auslassen der letzten Frage darauf hin, dass die Session endet', async () => {
+    const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 0,
+      totalQuestions: 1,
+      text: 'Letzte Frage im Quiz',
+      type: 'SINGLE_CHOICE',
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [{ id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: true }],
+      totalVotes: 0,
+    });
+    skipQuestionMutateMock.mockResolvedValue({
+      status: 'FINISHED',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 0,
+      { timeout: 5000, interval: 25 },
+    );
+
+    await fixture.componentInstance.skipQuestion();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          consequences: ['Es folgt keine weitere Frage. Die Session wird beendet.'],
+        }),
+      }),
+    );
+    expect(skipQuestionMutateMock).toHaveBeenCalledWith({ code: 'ABC123', questionId });
+    const snackBar = TestBed.inject(MatSnackBar);
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Frage ausgelassen. Die Session ist beendet.',
+      '',
+      expect.objectContaining({ duration: 4000 }),
+    );
+    fixture.destroy();
+  });
+
   it('stellt den laufenden Countdown nach einem fehlgeschlagenen Skip wieder her', async () => {
     const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
     const serverTime = new Date().toISOString();
@@ -8884,7 +8947,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('ordnet bei Ergebnisstand Ausstieg und Rückblick vor der Aktion "Nächste Frage" an', async () => {
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      currentQuestion: 1,
+    });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         opts.onData({ status: 'RESULTS', currentQuestion: 1 });
@@ -8895,6 +8962,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 1,
       totalQuestions: 3,
+      canShowPreviousResult: true,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: true,
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
       answers: [
@@ -8925,6 +8995,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 1,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
       '.session-host__exit-anchor',
@@ -8933,6 +9008,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       (button.textContent ?? '').trim(),
     );
 
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual([
+      'Session beenden',
+      'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
+      'Nächste Frage',
+    ]);
+
     const previousButton = exitAnchor.querySelector('.session-host__exit-anchor-button--previous');
     const previousFullLabel = previousButton?.querySelector(
       '.session-host__exit-anchor-label--previous-full',
@@ -8940,19 +9022,652 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const previousTooltip = fixture.debugElement
       .query(By.css('.session-host__exit-anchor-button--previous'))
       .injector.get(MatTooltip);
-
-    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual([
-      'Session beenden',
-      'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
-      'Nächste Frage',
-    ]);
     expect(previousFullLabel?.textContent).toBe('Letztes Ergebnis erneut anzeigen');
     expect(previousTooltip.touchGestures).toBe('off');
     expect(
       previousButton?.querySelector('.session-host__exit-anchor-label--previous-compact')
         ?.textContent,
     ).toBe('Letztes Ergebnis');
+    fixture.destroy();
+  });
+
+  it('blendet Letztes Ergebnis auf der ersten Frage aus', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 13,
+      text: 'Wie fühlt sich der Raum an?',
+      type: 'SURVEY',
+      canShowPreviousResult: false,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'Gut', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Okay', isCorrect: false },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'Gut',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'Okay',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
+    expect(host.textContent).not.toContain('Letztes Ergebnis');
+    fixture.destroy();
+  });
+
+  it('blendet Letztes Ergebnis aus, wenn das Quiz ab einer späteren Frage gestartet wurde', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 2 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'cccccccc-3333-4333-8333-333333333333',
+      order: 2,
+      totalQuestions: 4,
+      text: 'Startfrage',
+      type: 'FREETEXT',
+      canShowPreviousResult: false,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: true,
+      answers: [],
+      freeTextResponses: [],
+      totalVotes: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 2,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const buttonTexts = [...host.querySelectorAll('button')].map((button) =>
+      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
+    expect(host.textContent).not.toContain('Letztes Ergebnis');
+    expect(host.querySelector('.session-host__question-last-badge')).toBeNull();
+    expect(buttonTexts).toContain('Nächste Frage');
+    expect(buttonTexts.some((text) => text.includes('Zur Gesamtauswertung'))).toBe(false);
+    fixture.destroy();
+  });
+
+  it('zeigt auf der letzten Frage nach Start ab hier Gesamtauswertung statt Vorgänger', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 3 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'dddddddd-4444-4444-8444-444444444444',
+      order: 3,
+      totalQuestions: 4,
+      text: 'Letzte Frage',
+      type: 'FREETEXT',
+      canShowPreviousResult: false,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [],
+      freeTextResponses: ['ok'],
+      totalVotes: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 3,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const buttonTexts = [...host.querySelectorAll('button')].map((button) =>
+      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
+    expect(host.textContent).toContain('Letzte Frage');
+    expect(buttonTexts).not.toContain('Nächste Frage');
+    expect(buttonTexts.some((text) => text.includes('Zur Gesamtauswertung'))).toBe(true);
+    fixture.destroy();
+  });
+
+  it('blendet Letztes Ergebnis aus, wenn die Vorgängerfrage ausgelassen wurde', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 13,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT',
+      canShowPreviousResult: false,
+      answers: [],
+      freeTextResponses: [],
+      totalVotes: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.session-host__exit-anchor-button--previous'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt nach prevQuestion das Umfrage-Ergebnis ohne Musterlösung und ohne Steuerungs-Callout', async () => {
+    const freetextQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 13,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT' as const,
+      canShowPreviousResult: true,
+      answers: [] as { id: string; text: string; isCorrect: boolean }[],
+      freeTextResponses: [] as string[],
+      totalVotes: 0,
+    };
+    const surveyQuestion = {
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 13,
+      text: 'Wie fühlt sich der Raum an?',
+      type: 'SURVEY' as const,
+      canShowPreviousResult: false,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'Gut', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Okay', isCorrect: false },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'Gut',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'Okay',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+    };
+
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(freetextQuestion);
+    prevQuestionMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.session-host__exit-anchor-button--previous'),
+    ).not.toBeNull();
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(surveyQuestion);
+    await fixture.componentInstance.prevQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(prevQuestionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.steppedBackToPreviousResult()).toBe(true);
+    expect(fixture.componentInstance.displayedCurrentQuestionForHost()?.type).toBe('SURVEY');
+    expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
+    expect(host.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+    expect(host.textContent).toContain('Gut');
+    expect(host.querySelector('.session-host__extra--freetext')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt bei fehlender Vorgängerfrage keinen WLAN-Steuerungs-Callout', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 13,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT',
+      canShowPreviousResult: true,
+      answers: [],
+      freeTextResponses: [],
+      totalVotes: 0,
+    });
+    prevQuestionMutateMock.mockRejectedValueOnce(
+      new Error('BAD_REQUEST: Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.'),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    await fixture.componentInstance.prevQuestion();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+    expect(fixture.componentInstance.steppedBackToPreviousResult()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('bietet auf der letzten Frage mit Ergebnissen "Zur Gesamtauswertung" statt "Nächste Frage"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 12 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'cccccccc-3333-4333-8333-333333333333',
+      order: 12,
+      totalQuestions: 13,
+      text: 'Was nimmst du mit?',
+      type: 'FREETEXT',
+      canShowPreviousResult: true,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [],
+      freeTextResponses: ['Wiederholen'],
+      totalVotes: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 12,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const exitAnchor = host.querySelector('.session-host__exit-anchor') as HTMLElement;
+    expect(host.querySelector('.session-host__question-last-badge')?.textContent).toContain(
+      'Letzte Frage',
+    );
+    expect(host.querySelector('.session-host__question-last-badge')?.tagName).toBe('SPAN');
+    expect(host.querySelector('.session-host__exit-anchor-button--last-question')).toBeNull();
+    expect(exitAnchor.textContent).toContain('Zur Gesamtauswertung');
+    expect(exitAnchor.textContent).toContain('Auswertung');
+    expect(
+      Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').trim(),
+      ).some((text) => text === 'Nächste Frage'),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('zeigt auf der letzten Frage ohne verwertbare Ergebnisse nur die Markierung "Letzte Frage"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Wie fühlt sich der Raum an?',
+      type: 'SURVEY',
+      canShowPreviousResult: false,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'Gut', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Okay', isCorrect: false },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'Gut',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'Okay',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 0,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const lastHint = host.querySelector('.session-host__question-last-badge');
+    const exitAnchor = host.querySelector('.session-host__exit-anchor') as HTMLElement;
+    expect(lastHint?.tagName).toBe('SPAN');
+    expect(lastHint?.getAttribute('role')).toBe('status');
+    expect(lastHint?.textContent).toContain('Letzte Frage');
+    expect(host.querySelector('.session-host__exit-anchor-button--last-question')).toBeNull();
+    expect(
+      Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').trim(),
+      ).some((text) => text.includes('Letzte Frage')),
+    ).toBe(false);
+    expect(host.textContent).not.toContain('Nächste Frage');
+    expect(host.textContent).not.toContain('Zur Gesamtauswertung');
+    fixture.destroy();
+  });
+
+  it('bietet nach Rückblick von der letzten Frage "Zur Gesamtauswertung" statt "Nächste Frage"', async () => {
+    const lastQuestion = {
+      questionId: 'cccccccc-3333-4333-8333-333333333333',
+      order: 12,
+      totalQuestions: 13,
+      text: 'Was nimmst du mit?',
+      type: 'FREETEXT' as const,
+      canShowPreviousResult: true,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [] as { id: string; text: string; isCorrect: boolean }[],
+      freeTextResponses: ['Wiederholen'],
+      totalVotes: 1,
+    };
+    const previousQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 11,
+      totalQuestions: 13,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT' as const,
+      canShowPreviousResult: true,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: false,
+      answers: [] as { id: string; text: string; isCorrect: boolean }[],
+      freeTextResponses: ['Notizen'],
+      totalVotes: 1,
+    };
+
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 12 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(lastQuestion);
+    prevQuestionMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 11,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 12,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(previousQuestion);
+    await fixture.componentInstance.prevQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 11,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    expect(fixture.componentInstance.skipCurrentResultQuestionOnNext()).toBe(true);
+    expect(exitAnchor.textContent).toContain('Zur Gesamtauswertung');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.session-host__question-last-badge'),
+    ).toBeNull();
+    expect(exitAnchor.textContent).not.toContain('Letzte Frage');
+    expect(
+      Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').trim(),
+      ).some((text) => text === 'Nächste Frage'),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('zeigt nach einem Rückblick nicht den Hinweis "Letzte Frage"', async () => {
+    const lastQuestion = {
+      questionId: 'cccccccc-3333-4333-8333-333333333333',
+      order: 1,
+      totalQuestions: 2,
+      text: 'Zweite Frage',
+      type: 'SURVEY' as const,
+      canShowPreviousResult: true,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'Gut', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Okay', isCorrect: false },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'Gut',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'Okay',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+    };
+    const previousQuestion = {
+      ...lastQuestion,
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      text: 'Erste Frage',
+      canShowPreviousResult: false,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: false,
+    };
+
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(lastQuestion);
+    prevQuestionMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 1,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.session-host__question-last-badge')
+        ?.textContent,
+    ).toContain('Letzte Frage');
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(previousQuestion);
+    await fixture.componentInstance.prevQuestion();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 0,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.steppedBackToPreviousResult()).toBe(true);
+    expect(host.querySelector('.session-host__question-last-badge')).toBeNull();
+    expect(host.querySelector('.session-host__exit-anchor-button--last-question')).toBeNull();
+    expect(host.textContent).not.toContain('Letzte Frage');
+    fixture.destroy();
+  });
+
+  it('zeigt in der Diskussionsphase der letzten Frage den Weg zur Gesamtauswertung', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'DISCUSSION', currentQuestion: 2 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 2,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      canShowPreviousResult: true,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 2,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').replace(/^replay/, '').trim(),
+    );
+
+    expect(buttonTexts).toEqual([
+      'Session beenden',
+      'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
+      'Zweite Abstimmung',
+      'Zur Gesamtauswertung ohne zweite Abstimmung',
+    ]);
+    expect(exitAnchor.textContent).not.toContain('Zur nächsten Frage ohne zweite Abstimmung');
     fixture.destroy();
   });
 
@@ -8982,7 +9697,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ]);
 
     expect(styles).toMatch(
-      /@media \(max-width: 599px\) and \(orientation: portrait\)[\s\S]*?session-host__exit-anchor-label--previous-compact,\s*\.session-host__exit-anchor-label--reveal-options-compact\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere[^}]*hyphens:\s*auto/,
+      /@media \(max-width: 599px\) and \(orientation: portrait\)[\s\S]*?session-host__exit-anchor-label--previous-compact,\s*\.session-host__exit-anchor-label--reveal-options-compact,\s*\.session-host__exit-anchor-label--finish-evaluation-compact\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere[^}]*hyphens:\s*auto/,
     );
     expect(styles).toMatch(
       /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--paired-secondary\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*1/,
@@ -9021,6 +9736,25 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
       expect(unitStart).toBeGreaterThanOrEqual(0);
       expect(unit).toContain(`<target>${expectedLabel}</target>`);
+    }
+
+    const finishEvaluationTranslations = new Map([
+      ['messages.en.xlf', 'Results'],
+      ['messages.fr.xlf', 'Bilan'],
+      ['messages.es.xlf', 'Resumen'],
+      ['messages.it.xlf', 'Sintesi'],
+    ]);
+    for (const [fileName, expectedLabel] of finishEvaluationTranslations) {
+      const catalog = readFileSync(join(componentDir, '../../../../locale', fileName), 'utf8');
+      const unitStart = catalog.indexOf(
+        '<trans-unit id="sessionHost.finishEvaluationAnchorCompact"',
+      );
+      const unitEnd = catalog.indexOf('</trans-unit>', unitStart);
+      const unit = catalog.slice(unitStart, unitEnd);
+
+      expect(unitStart).toBeGreaterThanOrEqual(0);
+      expect(unit).toContain(`<target>${expectedLabel}</target>`);
+      expect(expectedLabel.length).toBeLessThanOrEqual(11);
     }
   });
 

@@ -417,6 +417,11 @@ function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | unde
   );
 }
 
+function isPrevQuestionUnavailableError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes('Rückwärtsnavigation nicht möglich');
+}
+
 function sameStringArray(
   left: readonly string[] | null | undefined,
   right: readonly string[] | null | undefined,
@@ -5708,18 +5713,72 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.session()?.currentQuestion;
   }
 
-  /** True, wenn die aktuelle Frage die letzte ist – dann zeigt der Steuerungs-Button „Session beenden“. */
+  /** Fallback: letzte Vorlagenfrage nach Reihenfolge, wenn das DTO keine Folgemarker liefert. */
   isLastQuestion(): boolean {
     const q = this.displayedCurrentQuestionForHost();
     if (!q || q.totalQuestions === null || q.totalQuestions === undefined) return false;
     return q.order + 1 >= q.totalQuestions;
   }
 
-  isFirstQuestion(): boolean {
+  /**
+   * True, wenn der Host aus RESULTS/DISCUSSION auf eine enthaltene Vorgängerfrage
+   * zurückblättern kann. Unabhängig von Musterlösung; ohne Frage-DTO unsichtbar.
+   */
+  canShowPreviousResultAnchor(): boolean {
+    if (this.steppedBackToPreviousResult()) return false;
     const q = this.displayedCurrentQuestionForHost();
     if (!q) return false;
-    return q.order === 0;
+    if (typeof q.canShowPreviousResult === 'boolean') {
+      return q.canShowPreviousResult;
+    }
+    return q.order !== 0;
   }
+
+  /** Ob nach der aktuellen (bzw. nach einem Rückblick) noch eine Frage geöffnet werden kann. */
+  readonly canOpenFollowingQuestion = computed(() => {
+    const q = this.displayedCurrentQuestionForHost();
+    if (!q) return false;
+    if (this.skipCurrentResultQuestionOnNext()) {
+      if (typeof q.hasUnopenedFollowingQuestion === 'boolean') {
+        return q.hasUnopenedFollowingQuestion;
+      }
+      return !this.isLastQuestion();
+    }
+    if (typeof q.hasNextQuestion === 'boolean') {
+      return q.hasNextQuestion;
+    }
+    return !this.isLastQuestion();
+  });
+
+  readonly hasOverallEvaluation = computed(() => {
+    if ((this.participantsPayload()?.participantCount ?? 0) > 0) return true;
+    if (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0) return true;
+    if (this.freetextResponses().length > 0) return true;
+    const q = this.displayedCurrentQuestionForHost();
+    if (!q) return false;
+    if ((q.totalVotes ?? 0) > 0) return true;
+    if ((q.freeTextResponses?.length ?? 0) > 0) return true;
+    if ((q.ratingCount ?? 0) > 0) return true;
+    return q.voteDistribution?.some((entry) => entry.voteCount > 0) === true;
+  });
+
+  readonly showFinishEvaluationAnchor = computed(() => {
+    if (this.displayedCurrentQuestionForHost() === null) return false;
+    return !this.canOpenFollowingQuestion() && this.hasOverallEvaluation();
+  });
+
+  /** Statischer Hinweis auf der Fragenkarte, nicht in der Aktionsleiste. */
+  readonly showLastQuestionBadge = computed(() => {
+    if (this.steppedBackToPreviousResult() || this.skipCurrentResultQuestionOnNext()) {
+      return false;
+    }
+    const q = this.displayedCurrentQuestionForHost();
+    if (!q) return false;
+    if (typeof q.hasNextQuestion === 'boolean') {
+      return !q.hasNextQuestion;
+    }
+    return this.isLastQuestion();
+  });
 
   countdownAriaLabel(): string {
     const seconds = this.countdownSeconds() ?? 0;
@@ -7456,16 +7515,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         : null;
 
     const voteCount = this.hostVoteCount(question);
+    const skipFinishesSession = !this.canOpenFollowingQuestion();
+    const consequences: string[] = [];
+    if (voteCount > 0) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogVotes:Bereits abgegebene Antworten werden nicht ausgewertet.`,
+      );
+    }
+    if (skipFinishesSession) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogEndsSession:Es folgt keine weitere Frage. Die Session wird beendet.`,
+      );
+    }
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
         title: $localize`:@@sessionHost.skipQuestionDialogTitle:Frage auslassen?`,
         message: $localize`:@@sessionHost.skipQuestionDialogMessage:Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.`,
-        consequences:
-          voteCount > 0
-            ? [
-                $localize`:@@sessionHost.skipQuestionDialogVotes:Bereits abgegebene Antworten werden nicht ausgewertet.`,
-              ]
-            : [],
+        consequences,
         confirmLabel: $localize`:@@sessionHost.skipQuestionConfirm:Frage auslassen`,
         cancelLabel: $localize`:@@sessionHost.skipQuestionCancel:Frage behalten`,
       } satisfies ConfirmLeaveDialogData,
@@ -7503,7 +7569,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
       await this.refreshCurrentQuestionForHost();
       this.focusAfterQuestionSkip(result.status);
-      if (result.status !== 'FINISHED') {
+      if (result.status === 'FINISHED') {
+        this.snackBar.open(
+          $localize`:@@sessionHost.skipQuestionSuccessFinished:Frage ausgelassen. Die Session ist beendet.`,
+          '',
+          { duration: 4000 },
+        );
+      } else {
         this.snackBar.open(
           $localize`:@@sessionHost.skipQuestionSuccess:Frage ausgelassen. Die nächste Frage wurde gestartet.`,
           '',
@@ -7567,6 +7639,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async prevQuestion(): Promise<void> {
     if (this.controlPending() || !this.code) return;
+    if (!this.canShowPreviousResultAnchor()) return;
     this.controlPending.set(true);
     try {
       const result = await trpc.session.prevQuestion.mutate({ code: this.code.toUpperCase() });
@@ -7576,7 +7649,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
-    } catch {
+      if (this.shouldPollLiveFreetext()) {
+        await this.refreshLiveFreetext();
+      }
+    } catch (error) {
+      if (isPrevQuestionUnavailableError(error)) {
+        this.steppedBackToPreviousResult.set(true);
+        return;
+      }
       this.openHostSteeringCalloutForSteeringFailure(() => void this.prevQuestion());
     } finally {
       this.controlPending.set(false);

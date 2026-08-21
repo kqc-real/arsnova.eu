@@ -172,6 +172,7 @@ import {
 } from '../lib/readingReady';
 import {
   findNextUnskippedQuestionIndex,
+  findFollowingQuestionIndex,
   findPreviousIncludedQuestionIndex,
   getIncludedSessionQuestionIds,
   getSessionQuestionProgressSummary,
@@ -3266,6 +3267,8 @@ type HostCurrentQuestionSession = {
   currentQuestion: number | null;
   currentRound: number;
   answerDisplayOrder: Prisma.JsonValue | null;
+  questionProgress?: Prisma.JsonValue | null;
+  questionProgressComplete?: boolean | null;
   quiz: {
     defaultTimer: number | null;
     timerScaleByDifficulty: boolean | null;
@@ -3599,10 +3602,23 @@ async function buildHostCurrentQuestionDto(
     );
   }
 
+  const questionRefs = questions.map((entry) => ({ id: entry.id, order: entry.order }));
+  const progress = parseSessionQuestionProgress(session.questionProgress);
+  const complete = session.questionProgressComplete === true;
+  const canShowPreviousResult =
+    findPreviousIncludedQuestionIndex(questionRefs, progress, complete, idx) !== null;
+  const hasNextQuestion =
+    findFollowingQuestionIndex(questionRefs, progress, complete, idx) !== null;
+  const hasUnopenedFollowingQuestion =
+    findFollowingQuestionIndex(questionRefs, progress, complete, idx, true) !== null;
+
   const base = {
     questionId: question.id,
     order: question.order,
     totalQuestions: questions.length,
+    canShowPreviousResult,
+    hasNextQuestion,
+    hasUnopenedFollowingQuestion,
     text: question.text,
     type: question.type as QuestionType,
     difficulty: question.difficulty,
@@ -4051,6 +4067,8 @@ async function fetchHostCurrentQuestionEnvelope(
       currentQuestion: true,
       currentRound: true,
       answerDisplayOrder: true,
+      questionProgress: true,
+      questionProgressComplete: true,
       quiz: {
         select: {
           questions: {
