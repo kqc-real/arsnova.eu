@@ -106,6 +106,46 @@ describe('aggregateWords', () => {
     });
   });
 
+  it('filtert Frageverben zählt und läuft in der Q&A-Wolke', () => {
+    const result = aggregateWords(
+      [
+        'Zählt Kapitel 4 zur Auswahl?',
+        'Zählt die Uhrzeit?',
+        'Läuft der Stream nur Ton?',
+        'Läuft die Demo unter Jupyter?',
+      ],
+      DEFAULT_STOPWORDS,
+      'de',
+      'qa',
+    );
+
+    expect(result.some((entry) => entry.groupKey === 'zaehlt')).toBe(false);
+    expect(result.some((entry) => entry.groupKey === 'laeuft')).toBe(false);
+    expect(result.some((entry) => entry.word.toLocaleLowerCase() === 'zählt')).toBe(false);
+    expect(result.some((entry) => entry.word.toLocaleLowerCase() === 'läuft')).toBe(false);
+  });
+
+  it('filtert nackte Zahlen und Partizipien in der Q&A-Wolke, behaelt Kapitel 10', () => {
+    const result = aggregateWords(
+      [
+        'Kommt Kapitel 10 in der Klausur vor?',
+        'Brauchen wir Kapitel 10 fuer die Pruefung?',
+        'Nach 10 Minuten Pause',
+        'Bitte 10 Minuten einplanen',
+        'Kurze Uebungen festigen das Gelernte.',
+        'Gelernt habe ich die Formel.',
+      ],
+      DEFAULT_STOPWORDS,
+      'de',
+      'qa',
+    );
+
+    expect(result.some((entry) => entry.groupKey === '10')).toBe(false);
+    expect(result.some((entry) => entry.groupKey === 'kapitel 10')).toBe(true);
+    expect(result.some((entry) => entry.word.toLocaleLowerCase() === 'gelernt')).toBe(false);
+    expect(result.some((entry) => entry.word.toLocaleLowerCase() === 'gelernte')).toBe(false);
+  });
+
   it('laesst fachliche Kurzbegriffe mit zwei Zeichen zu, filtert aber Einzelzeichen', () => {
     const result = aggregateWords(['pi KI a b', 'KI hilft bei pi']);
 

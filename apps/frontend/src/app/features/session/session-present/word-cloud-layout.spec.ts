@@ -8,7 +8,9 @@ import {
   getWordCloudRangeScale,
   getWordCloudLayoutHeight,
   getWordCloudLayoutWordCap,
+  getWordCloudRotation,
   getWordCloudWidthScale,
+  scaleWordCloudFontSize,
   shouldUseWordCloudLayout,
 } from './word-cloud-layout';
 
@@ -45,9 +47,30 @@ describe('word-cloud layout helpers', () => {
   });
 
   it('rechnet fuer Chips ein paddingsicheres Mindestmass aus', () => {
-    expect(getWordCloudChipPadding(14)).toBe(12);
-    expect(getWordCloudChipPadding(40)).toBe(22);
+    expect(getWordCloudChipPadding(14)).toBe(8);
+    expect(getWordCloudChipPadding(40)).toBe(16);
     expect(getWordCloudChipPadding(20, 320)).toBeLessThan(getWordCloudChipPadding(20, 520));
+  });
+
+  it('macht das Top-Wort deutlich groesser als das Mittelfeld', () => {
+    expect(scaleWordCloudFontSize(1, 14, 48)).toBe(48);
+    expect(scaleWordCloudFontSize(0, 14, 48)).toBe(14);
+    expect(scaleWordCloudFontSize(0.5, 14, 48)).toBeLessThan(14 + Math.round(0.5 * (48 - 14)));
+  });
+
+  it('stellt nur kurze Einzelwoerter gelegentlich senkrecht', () => {
+    expect(getWordCloudRotation('Klausur', 0, 960)).toBe(0);
+    expect(getWordCloudRotation('Kapitel 4', 2, 960)).toBe(0);
+    expect(getWordCloudRotation('Zusammenarbeit', 2, 960)).toBe(0);
+    expect(getWordCloudRotation('Quiz', 2, 390)).toBe(0);
+
+    const shortWords = Array.from({ length: 40 }, (_, index) => `kurz${index}`);
+    const vertical = shortWords.filter((word) => getWordCloudRotation(word, 2, 960) === 90).length;
+    expect(vertical).toBeGreaterThanOrEqual(4);
+    expect(vertical).toBeLessThanOrEqual(12);
+    expect(getWordCloudRotation(shortWords[0] ?? 'kurz0', 2, 960)).toBe(
+      getWordCloudRotation(shortWords[0] ?? 'kurz0', 8, 960),
+    );
   });
 
   it('skaliert die mobile Wortwolke unterhalb des Breakpoints stufenlos weiter', () => {

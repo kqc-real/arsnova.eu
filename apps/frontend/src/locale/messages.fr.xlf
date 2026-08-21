@@ -14160,8 +14160,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisLexical" datatype="html">
-        <source>Einzelwörter</source>
-        <target>Mots seuls</target>
+        <source>Wörter</source>
+        <target>Mots</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">37</context>
@@ -14183,6 +14183,59 @@
           <context context-type="linenumber">47</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSizeLabel" datatype="html">
+        <source>Größe</source>
+        <target>Taille</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSizeAria" datatype="html">
+        <source>Größe nach Stimmen, besten Fragen oder Kontroverse</source>
+        <target>Taille selon les votes, les meilleures questions ou la controverse</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSizeTop" datatype="html">
+        <source>Stimmen</source>
+        <target>Votes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudRefreshThemes" datatype="html">
+        <source>Themen aktualisieren</source>
+        <target>Actualiser les thèmes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
+        <source>Themen in den Fragen</source>
+        <target>Thèmes dans les questions</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudDescriptionLexical" datatype="html">
+        <source>Häufige Wörter aus den sichtbaren Fragen.</source>
+        <target>Mots fréquents issus des questions visibles.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudDescriptionPhrases" datatype="html">
+        <source>Häufige Wörter und kurze Wortgruppen.</source>
+        <target>Mots fréquents et courts groupes de mots.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudDescriptionSemantic" datatype="html">
+        <source>Ähnliche Fragen sind gruppiert.</source>
+        <target>Les questions similaires sont regroupées.</target>
+      </trans-unit>
+      <trans-unit id="sessionWordCloud.freetextDescriptionSemantic" datatype="html">
+        <source>Ähnliche Antworten sind gruppiert.</source>
+        <target>Les réponses similaires sont regroupées.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudEntrySingular" datatype="html">
+        <source>Begriff</source>
+        <target>Terme</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudEntryPlural" datatype="html">
+        <source>Begriffe</source>
+        <target>Termes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudThemeSingular" datatype="html">
+        <source>Thema</source>
+        <target>Thème</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudThemePlural" datatype="html">
+        <source>Themen</source>
+        <target>Thèmes</target>
+      </trans-unit>
+
       <trans-unit id="sessionHost.steeringCalloutAria" datatype="html">
         <source>Hinweis: Etwas ist in der Session schiefgegangen</source>
         <target>À savoir : un petit souci avec votre session</target>
@@ -15412,8 +15465,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisWords" datatype="html">
-        <source>Einzelwörter</source>
-        <target>Mots isolés</target>
+        <source>Wörter</source>
+        <target>Mots</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3582</context>
@@ -16076,8 +16129,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
-        <source>Glättung aktiv</source>
-        <target>Lissage actif</target>
+        <source>Glättung ist an</source>
+        <target>Lissage activé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1088</context>
@@ -16100,8 +16153,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Sprachformen glätten</source>
-        <target>Lisser les formes de mots</target>
+        <source>Wortformen glätten</source>
+        <target>Lisser les formes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1092</context>
@@ -16272,8 +16325,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudThemeFallbackHint" datatype="html">
-        <source>Es werden Einzelwörter gezeigt, bis Wortgruppen und Phrasen belastbar sind.</source>
-        <target>Les mots seuls s’affichent jusqu’à ce que les groupes de mots et les expressions soient suffisamment fiables.</target>
+        <source>Es werden Wörter gezeigt, bis Wortgruppen belastbar sind.</source>
+        <target>Les mots s’affichent jusqu’à ce que les groupes de mots soient suffisamment fiables.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1637</context>
@@ -16287,6 +16340,28 @@
           <context context-type="linenumber">1625</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticPendingLabel" datatype="html">
+        <source>Themen werden vorbereitet.</source>
+        <target>Les thèmes sont en cours de préparation.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticPendingFallback" datatype="html">
+        <source>Es gelten Wörter und Phrasen.</source>
+        <target>Les mots et expressions s’affichent à la place.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticWaitMoment" datatype="html">
+        <source>Das kann einen Moment dauern.</source>
+        <target>Cela peut prendre un moment.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticWaitMinute" datatype="html">
+        <source>Bei vielen Fragen kann das eine Minute dauern.</source>
+        <target>Avec beaucoup de questions, cela peut prendre une minute.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticWaitMinuteFreetext" datatype="html">
+        <source>Bei vielen Antworten kann das eine Minute dauern.</source>
+        <target>Avec beaucoup de réponses, cela peut prendre une minute.</target>
+      </trans-unit>
+
+
       <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
         <source>Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.</source>
         <target>Les thèmes ne sont pas encore disponibles. Les mots et les expressions s’affichent à la place.</target>
@@ -16344,16 +16419,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudCountOneMetric" datatype="html">
-        <source>1 sichtbare Frage · Größe von Wörtern und Phrasen: <x id="metric" equiv-text="metric"/></source>
-        <target>1 question visible · Taille des mots et expressions : <x id="metric" equiv-text="metric"/></target>
+        <source>1 sichtbare Frage</source>
+        <target>1 question visible</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1661</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudCountManyMetric" datatype="html">
-        <source><x id="count" equiv-text="count"/> sichtbare Fragen · Größe von Wörtern und Phrasen: <x id="metric" equiv-text="metric"/></source>
-        <target><x id="count" equiv-text="count"/> questions visibles · Taille des mots et expressions : <x id="metric" equiv-text="metric"/></target>
+        <source><x id="count" equiv-text="count"/> sichtbare Fragen</source>
+        <target><x id="count" equiv-text="count"/> questions visibles</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1663</context>
@@ -18458,8 +18533,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
-        <source>Sprache der Wortwolke</source>
-        <target>Langue du nuage de mots</target>
+        <source>Sprache der Antworten</source>
+        <target>Langue des réponses</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/word-cloud-lemma-locale-select.component.ts</context>
           <context context-type="linenumber">22</context>
@@ -18710,8 +18785,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceFilter" datatype="html">
-        <source>Erkannte Themen</source>
-        <target>Thèmes détectés</target>
+        <source>Gruppierung</source>
+        <target>Regroupement</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">232</context>

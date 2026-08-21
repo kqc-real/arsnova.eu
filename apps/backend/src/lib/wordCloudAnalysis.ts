@@ -37,7 +37,6 @@ interface CandidateStats {
 
 interface PreparedItem {
   readonly item: WordCloudAnalysisSourceItem;
-  readonly exactKey: string;
   readonly tokens: Candidate[];
   readonly candidates: Candidate[];
 }
@@ -73,11 +72,12 @@ interface GroupingRule {
 }
 
 const MIN_TOKEN_LENGTH = 2;
-const LEMMA_UNIGRAM_POS_TYPES = new Set(['NOUN', 'PROPN', 'NUM', 'X']);
+const LEMMA_UNIGRAM_POS_TYPES = new Set(['NOUN', 'PROPN', 'X']);
 const LEMMA_PHRASE_POS_TYPES = new Set(['NOUN', 'PROPN', 'NUM', 'X', 'ADJ']);
 const TOKEN_PATTERN = /-?\d+(?:[.,]\d+)*|[\p{L}\p{N}-]+/gu;
-const NUMBER_TOKEN_PATTERN = /^-?\d+(?:[.,]\d+)*$/;
-const WHITESPACE_PATTERN = /\s+/gu;
+const NUMBER_TOKEN_PATTERN = /^-?\d+(?:[.,]\d+)*\.?$/;
+const LETTER_PATTERN = /\p{L}/u;
+const NON_CONTENT_POS_TYPES = new Set(['PUNCT', 'SYM']);
 const COMBINING_MARK_PATTERN = /\p{M}+/gu;
 const DECIMAL_SEPARATOR_SPACING_PATTERN = /(\d)\s*([.,])\s*(?=\d)/g;
 
@@ -296,6 +296,15 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
     'können',
     'kommt',
     'kommen',
+    'laeuft',
+    'läuft',
+    'laufen',
+    'zaehlt',
+    'zählt',
+    'zaehlen',
+    'zählen',
+    'gelernt',
+    'gelernte',
     'laesst',
     'lässt',
     'liegt',
@@ -503,6 +512,7 @@ export function buildLexicalWordCloudEntries(
 
 /**
  * THEME bleibt ohne spaCy: immer interne Tokenisierung, nie Lemma-Overrides.
+ * Ohne belastbaren Kurzanker (Token/Phrase) entsteht kein Eintrag — keine Vollsätze.
  */
 export function buildThemeWordCloudAnalysis(
   input: AnalyzeWordCloudInput,
@@ -513,11 +523,15 @@ export function buildThemeWordCloudAnalysis(
 
   for (const prepared of preparedItems) {
     const anchor = chooseThemeAnchor(prepared, candidateStats);
+    if (!anchor) {
+      continue;
+    }
+
     const bucket = getOrCreateBucket(
       buckets,
-      anchor?.key ?? prepared.exactKey,
+      anchor.key,
       anchor,
-      anchor ? (candidateStats.get(anchor.key) ?? null) : null,
+      candidateStats.get(anchor.key) ?? null,
     );
 
     bucket.count += prepared.item.weight;
@@ -556,7 +570,7 @@ function prepareItem(
 ): PreparedItem {
   const candidates = new Map<string, Candidate>();
   const tokens = (rawTokens ?? tokenizeWordCloudText(item.text))
-    .filter((token) => isNumericToken(token.lookup) || token.lookup.length >= MIN_TOKEN_LENGTH)
+    .filter((token) => isContentToken(token))
     .filter((token) => !isStopwordRawToken(token, locale))
     .map((token) => getTokenCandidate(token, locale));
 
@@ -582,7 +596,6 @@ function prepareItem(
 
   return {
     item,
-    exactKey: normalizeExactTextKey(item.text),
     tokens,
     candidates: [...candidates.values()],
   };
@@ -929,6 +942,10 @@ function isStopwordRawToken(token: WordCloudRawToken, locale: SupportedLocale): 
 }
 
 function isLemmaUnigramCandidate(token: Candidate): boolean {
+  if (isLetterlessUnigram(token)) {
+    return false;
+  }
+
   return !token.pos || LEMMA_UNIGRAM_POS_TYPES.has(token.pos);
 }
 
@@ -958,13 +975,6 @@ function isStopwordToken(token: string, locale: SupportedLocale): boolean {
   return folded !== '' && lookup.has(folded);
 }
 
-function normalizeExactTextKey(value: string): string {
-  return collapseNumericSeparatorSpacing(value)
-    .trim()
-    .replace(WHITESPACE_PATTERN, ' ')
-    .toLocaleLowerCase();
-}
-
 function normalizeLookupToken(value: string): string {
   return normalizeToken(collapseNumericSeparatorSpacing(value).trim().toLocaleLowerCase());
 }
@@ -979,6 +989,27 @@ function normalizeToken(value: string): string {
 
 function isNumericToken(value: string): boolean {
   return NUMBER_TOKEN_PATTERN.test(value);
+}
+
+function tokenHasLetter(value: string): boolean {
+  return LETTER_PATTERN.test(value);
+}
+
+function isContentToken(token: WordCloudRawToken): boolean {
+  const pos = token.pos?.toUpperCase();
+  if (pos && NON_CONTENT_POS_TYPES.has(pos)) {
+    return false;
+  }
+
+  if (isNumericToken(token.lookup) || isNumericToken(token.display)) {
+    return true;
+  }
+
+  return tokenHasLetter(token.lookup) && token.lookup.length >= MIN_TOKEN_LENGTH;
+}
+
+function isLetterlessUnigram(token: Candidate): boolean {
+  return !tokenHasLetter(token.key) && !tokenHasLetter(token.label);
 }
 
 function normalizeTokenForGrouping(token: string, locale: SupportedLocale): string {

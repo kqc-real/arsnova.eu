@@ -3,9 +3,9 @@
 # Wortwolke: semantischer Q&A-Themenmodus (Story 1.14c Stufe 1)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-20
+**Stand:** 2026-08-21
 **Status:** Stufe 1 im Repo (Encoder + Clustering, extraktive Labels); Kill-Switch produktiv default aus; kein LLM
-**Backlog:** Story 1.14c (Word Cloud 3.0)
+**Backlog:** Story 1.14c (Q&A-Themen), Story 1.14d (Freitext-Themen, offen)
 **Glättung bleibt getrennt:** Story 1.14b / [word-cloud-spacy.md](word-cloud-spacy.md)
 **Zielbild:** [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
 **Voranalyse:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md)
@@ -22,16 +22,16 @@ Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Li
 
 Das Host-Label ist **Themen**. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
 
-| Zustand         | Host-Text                                                               |
-| --------------- | ----------------------------------------------------------------------- |
-| Läuft           | **Themen werden vorbereitet. Es gelten Wörter und Phrasen.**            |
-| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** plus **Neu analysieren** |
-| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**             |
-| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.**         |
-| Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**   |
-| Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**     |
+| Zustand         | Host-Text                                                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| Läuft           | **Themen werden vorbereitet.** plus unbestimmte Fortschrittsleiste; darunter **Es gelten Wörter und Phrasen.** |
+| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** plus **Themen aktualisieren**                                   |
+| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                                    |
+| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.**                                                |
+| Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**                                          |
+| Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**                                            |
 
-`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Presenter hat keinen Themenmodus. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort nicht (kontrollierter 2.x-Fallback, `status: fallback`).
+`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Presenter hat keinen Themenmodus. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
@@ -39,16 +39,17 @@ Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine automatische Runde bei jeder neuen Frage, Abstimmung oder Tastendruck.
 
-| Kanal     | Encoder-Clustering                                                       | Ohne Kill-Switch / tot / Timeout |
-| --------- | ------------------------------------------------------------------------ | -------------------------------- |
-| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                          | 2.x-Phrasen, keine leere Karte   |
-| Freitext  | nicht in Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` | 2.x wie Stufe 0                  |
-| Presenter | kein Themenmodus                                                         | lexikalisch 2.x                  |
+| Kanal     | Encoder-Clustering                                                                                            | Ohne Kill-Switch / tot / Timeout |
+| --------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                               | 2.x-Phrasen, keine leere Karte   |
+| Freitext  | nicht in 1.14c Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` (Story **1.14d** hebt das auf) | 2.x wie Stufe 0                  |
+| Presenter | kein Themenmodus                                                                                              | lexikalisch 2.x                  |
 
 - **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
 - **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots. Locale steckt im Snapshot-Hash: `de` und `en` sind getrennte Caches. Deutsche Q&A bleibt auf **DE**; EN startet keine bessere Analyse, nur einen zweiten Lauf.
-- **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Die Glättung bleibt ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext).
-- Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen.
+- **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Der Glättungsknopf bleibt in **Themen** ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext). Solange Themen vorbereitet werden oder der 2.x-Phrasen-Fallback gilt, bleibt eine zuvor aktive Glättung auf der sichtbaren Wörter-&-Phrasen-Wolke wirksam.
+- Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen **mit derselben Glättung wie unter Wörter & Phrasen**, falls die Glättung an ist. Host und Q&A-Dialog zeigen denselben Fortschritt (Text plus unbestimmte Leiste, kein Prozentwert). Die Anzeige bleibt mindestens 1 s sichtbar, damit Cache- oder Fallback-Antworten nicht nur aufblitzen; das Cluster-Ergebnis wechselt erst danach. Läuft die Analyse nach 2 s noch, kommt ein grober Zeit-Hinweis: **Das kann einen Moment dauern.**, ab etwa 100 sichtbaren Fragen bzw. Antworten **Bei vielen Fragen/Antworten kann das eine Minute dauern.** Keine exakten Anzahlen oder Obergrenzen.
+- Ohne Cluster mit mindestens zwei Mitgliedern (eine einzelne Frage, nur Singletons) ist der Status `fallback`, nicht `uncertain`. Der Encoder läuft erst ab zwei Fragen. `uncertain` gilt nur, wenn Themenblasen da sind, aber die Konfidenz unter der Host-Stufe **sicher** liegt.
 
 Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgliedsfragen, Konfidenz und bei Encoder-Treffer die Modellversion.
 
@@ -151,9 +152,13 @@ e5-small liegt bei deutschsprachigen Vorlesungsfragen oft schon bei Kosinus ~0,8
 
 Siehe [TESTING.md](../TESTING.md).
 
+## Folgestory 1.14d (Host-Freitext-Themen)
+
+Offen. Derselbe Encoder und Kill-Switch, anderer Snapshot: sichtbare Freitextantworten der aktuellen Frage, oft ganze Sätze (Beispiel: „Schreibt, wie ihr euch gerade fühlt“). Die Stufe-0-UI bleibt; `channel: 'FREETEXT'` soll dann clustern statt hart auf `fallback` zu gehen. Presenter bleibt außen vor. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
+
 ## Nicht-Ziele (bewusst außerhalb von Stufe 1)
 
-LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Presenter-Themenmodus, Encoder-Clustering für Freitext, SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
+LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Presenter-Themenmodus, Encoder-Clustering für Freitext (**Story 1.14d**), SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
 
 ## Verträge und Code
 

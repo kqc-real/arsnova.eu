@@ -42,6 +42,7 @@ const SpacyTokenSchema = z.object({
   text: z.string().min(1).max(256),
   lemma: z.string().min(1).max(256),
   pos: z.string().min(1).max(16),
+  tag: z.string().max(16).nullable().optional(),
   entType: z.string().max(32).nullable().optional(),
 });
 

@@ -206,6 +206,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       },
     ],
     expectedKeys: ['c++', 'http'],
+    unexpectedKeys: ['404'],
   },
   {
     id: 'en-noun-plural',

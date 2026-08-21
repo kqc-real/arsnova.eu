@@ -69,6 +69,7 @@ describe('WordCloudTermExtractorService', () => {
     expect(keys).toContain('npm install');
     expect(keys).toContain('docker compose');
     expect(keys).toContain('http 404');
+    expect(keys).not.toContain('404');
     expect(terms.find((term) => term.key === 'http 404')?.label).toBe('HTTP 404');
   });
 
@@ -84,6 +85,19 @@ describe('WordCloudTermExtractorService', () => {
 
     expect(terms.some((term) => term.label.includes('.') || term.key.includes('.'))).toBe(false);
     expect(terms.some((term) => term.label === 'hängen' || term.key === 'haengen')).toBe(true);
+  });
+
+  it('laesst nackte Zahlen als Unigramme weg und behaelt sie in Phrasen', () => {
+    const terms = service.extractTerms(
+      [
+        { id: 'r1', body: 'Nach 10 Minuten Pause' },
+        { id: 'r2', body: 'Bitte 10 Minuten einplanen' },
+      ],
+      { locale: 'de', maxEntries: 20, maxNgramLength: 2 },
+    );
+
+    expect(terms.some((term) => term.key === '10')).toBe(false);
+    expect(terms.some((term) => term.key === '10 minuten')).toBe(true);
   });
 
   it('extrahiert Bigramme und Trigramme und gewichtet Phrasen staerker als Einzelwoerter', () => {

@@ -2,7 +2,7 @@
  * Zwei Cache-Ebenen für Host-Wortwolkenanalysen (Story 1.14b, Phase 6).
  *
  * Text-Cache: spaCy-Tokens nach locale + Text-Hash + Analyseversion.
- * Snapshot-Cache: komplette Analyse nach Session + Modus + Metrik + Normalization + snapshotHash.
+ * Snapshot-Cache: komplette Analyse nach Session + Modus + Metrik + Normalization + Analyseversion + snapshotHash.
  *
  * Redis ist flüchtig mit TTL. Fehler sind fail-open: Analyse läuft ohne Cache weiter.
  * Rohtexte stehen nicht im Redis-Schlüssel.
@@ -50,6 +50,7 @@ export function buildWordCloudSnapshotCacheKey(input: AnalyzeWordCloudInput): st
     input.mode,
     input.metric,
     input.normalization,
+    WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
     String(input.maxEntries ?? 'default'),
     String(input.maxNgramLength ?? 1),
     snapshotHash,

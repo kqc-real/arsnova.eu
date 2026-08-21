@@ -67,7 +67,7 @@
         >
           @for (option of confidenceFilterOptions(); track option.value) {
             <mat-button-toggle [value]="option.value" [disabled]="option.count === 0">
-              {{ option.label }}
+              {{ option.label }} {{ option.count }}
             </mat-button-toggle>
           }
         </mat-button-toggle-group>

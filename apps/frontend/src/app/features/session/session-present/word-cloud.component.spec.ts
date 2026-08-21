@@ -986,7 +986,7 @@ describe('WordCloudComponent', () => {
 
     const component = fixture.componentInstance;
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('Erkannte Themen');
+    expect(text).toContain('Gruppierung');
     expect(text).toContain('sicher');
     expect(text).toContain('mittel');
     expect(text).toContain('unsicher');
@@ -1060,6 +1060,69 @@ describe('WordCloudComponent', () => {
       'Welche Frage gewinnt?',
       'Welche Frage bleibt offen?',
     ]);
+  });
+
+  it('laesst geglaettete Einzelwoerter ohne Treffsicherheit neben sicheren Phrasen sichtbar', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('showConfidenceFilter', false);
+    fixture.componentRef.setInput('responses', [
+      'Kommt Kapitel 4 in der Klausur vor?',
+      'Brauchen wir Kapitel 4 fuer die Pruefung?',
+    ]);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'kapitel 4',
+        label: 'Kapitel 4',
+        count: 8,
+        basisLabel: 'Kapitel 4',
+        members: [
+          {
+            sourceId: 'question-1',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 4,
+          },
+        ],
+        variants: ['Kapitel 4'],
+        confidence: 0.91,
+      },
+      {
+        key: 'klausur',
+        label: 'Klausur',
+        count: 4,
+        basisLabel: 'Klausur',
+        members: [
+          {
+            sourceId: 'question-1',
+            text: 'Kommt Kapitel 4 in der Klausur vor?',
+            weight: 4,
+          },
+        ],
+        variants: ['Klausur'],
+        confidence: null,
+      },
+      {
+        key: 'regression',
+        label: 'Regression',
+        count: 3,
+        basisLabel: 'Regression',
+        members: [
+          {
+            sourceId: 'question-2',
+            text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+            weight: 3,
+          },
+        ],
+        variants: ['Regression'],
+        confidence: 0.72,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.confidenceFilter()).toBe('high');
+    expect(component.showConfidenceFilterToggle()).toBe(false);
+    expect(component.words().map((entry) => entry.groupKey)).toEqual(['kapitel 4', 'klausur']);
   });
 
   it('haelt beim asynchronen Eintreffen von Theme-Entries den Default auf hoch', () => {

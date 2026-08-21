@@ -87,7 +87,7 @@ describe('wordCloudNormalization', () => {
       normalizationFallbackUsed: true,
       normalizationFallbackReason: 'SIDECAR_UNAVAILABLE',
       fallbackLocale: 'de',
-      analysisVersion: '1.14b.8',
+      analysisVersion: '1.14b.13',
       modelId: null,
     });
     expect(

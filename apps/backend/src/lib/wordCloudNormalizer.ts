@@ -24,6 +24,37 @@ import {
 
 const NAME_ENTITY_TYPES = new Set(['PERSON', 'GPE', 'ORG', 'LOC']);
 const LEMMA_POS_TYPES = new Set(['NOUN', 'VERB', 'ADJ', 'ADV', 'AUX']);
+const FINITE_VERB_TAGS = new Set([
+  'VVFIN',
+  'VAFIN',
+  'VMFIN',
+  'VVIMP',
+  'VAIMP',
+  'VMIMP',
+  'VVPP',
+  'VAPP',
+  'VMPP',
+]);
+/** Finite/partizipiale Formen, die de_core_news_sm oft als NN/NE lässt (Läuft der…, Gelernt). */
+const GERMAN_FINITE_VERB_SURFACES = new Set([
+  'zaehlt',
+  'laeuft',
+  'kommt',
+  'geht',
+  'gibt',
+  'gilt',
+  'steht',
+  'sieht',
+  'bleibt',
+  'liegt',
+  'faellt',
+  'haelt',
+  'nimmt',
+  'hilft',
+  'braucht',
+  'gelernt',
+  'gelernte',
+]);
 
 export interface WordCloudNormalizer {
   readonly kind: 'identity' | 'lemma';
@@ -186,10 +217,9 @@ export function mapSpacyTokenToWordCloud(
   token: SpacyNormalizeToken,
   neighbors: { readonly next?: SpacyNormalizeToken } = {},
 ): WordCloudRawToken {
-  const pos = token.pos.toUpperCase();
   const entType = token.entType?.trim().toUpperCase() ?? '';
   const nominalizedInfinitive = isNominalizedInfinitive(token, neighbors.next);
-  const effectivePos = nominalizedInfinitive ? 'NOUN' : pos;
+  const effectivePos = resolveEffectiveSpacyPos(token, nominalizedInfinitive);
   const keepSurface =
     effectivePos === 'PROPN' ||
     NAME_ENTITY_TYPES.has(entType) ||
@@ -226,6 +256,9 @@ function isNominalizedInfinitive(token: SpacyNormalizeToken, next?: SpacyNormali
   if (token.pos.toUpperCase() !== 'VERB') {
     return false;
   }
+  if (isGermanFiniteVerbSurface(token.text) || isGermanFiniteVerbSurface(token.lemma)) {
+    return false;
+  }
 
   const text = token.text.trim();
   if (!hasNounCapitalization(text)) {
@@ -239,6 +272,35 @@ function isNominalizedInfinitive(token: SpacyNormalizeToken, next?: SpacyNormali
 
   const nextPos = next?.pos.toUpperCase();
   return nextPos !== 'PRON' && nextPos !== 'AUX';
+}
+
+function resolveEffectiveSpacyPos(
+  token: SpacyNormalizeToken,
+  nominalizedInfinitive: boolean,
+): string {
+  if (isFiniteVerbTag(token.tag)) {
+    return 'VERB';
+  }
+  if (nominalizedInfinitive) {
+    return 'NOUN';
+  }
+  if (isGermanFiniteVerbSurface(token.text) || isGermanFiniteVerbSurface(token.lemma)) {
+    return 'VERB';
+  }
+  return token.pos.toUpperCase();
+}
+
+function isGermanFiniteVerbSurface(value: string): boolean {
+  const folded = toWordCloudLookupToken(value)
+    .replaceAll('ä', 'ae')
+    .replaceAll('ö', 'oe')
+    .replaceAll('ü', 'ue')
+    .replaceAll('ß', 'ss');
+  return GERMAN_FINITE_VERB_SURFACES.has(folded);
+}
+
+function isFiniteVerbTag(tag: string | null | undefined): boolean {
+  return Boolean(tag && FINITE_VERB_TAGS.has(tag.trim().toUpperCase()));
 }
 
 function hasNounCapitalization(text: string): boolean {

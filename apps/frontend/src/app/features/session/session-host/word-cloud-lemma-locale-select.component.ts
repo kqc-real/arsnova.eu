@@ -19,7 +19,7 @@ const WORD_CLOUD_LEMMA_LOCALE_LABELS: Record<WordCloudLemmaLocale, { code: strin
   template: `
     <label class="word-cloud-lemma-locale">
       <span class="sr-only" i18n="@@sessionHost.wordCloudLemmaLocaleAria"
-        >Sprache der Wortwolke</span
+        >Sprache der Antworten</span
       >
       <select
         class="word-cloud-lemma-locale__select"

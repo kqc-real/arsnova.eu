@@ -121,6 +121,62 @@ describe('wordCloudSemanticAnalyze', () => {
     expect(calls).toBe(3);
   });
 
+  it('laesst eine einzelne Q&A-Frage ohne Encoder als fallback fallen', async () => {
+    const embed = async () => {
+      throw new Error('encoder must not run');
+    };
+    resetWordCloudSemanticAnalyzeForTests({
+      config: () => enabledConfig,
+      embed,
+    });
+
+    const result = await analyzeWordCloudSnapshot({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      channel: 'QA',
+      normalization: 'NONE',
+      items: [{ id: '11111111-1111-4111-8111-111111111111', text: 'asdfgh', weight: 1 }],
+    });
+
+    expect(result.status).toBe('fallback');
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.entries.length).toBeGreaterThan(0);
+    expect(result.modelVersion).toBeNull();
+  });
+
+  it('laesst nur Singletons nach dem Clustering als fallback fallen', async () => {
+    resetWordCloudSemanticAnalyzeForTests({
+      config: () => enabledConfig,
+      embed: async (input) => ({
+        modelId: 'intfloat/multilingual-e5-small',
+        modelVersion: 'intfloat/multilingual-e5-small@sha256:testdigest',
+        items: input.items.map((item, index) => ({
+          id: toWordCloudSemanticSourceId(item.id),
+          embedding: [index === 0 ? 1 : 0, index === 1 ? 1 : 0, 0, 0],
+        })),
+      }),
+    });
+
+    const result = await analyzeWordCloudSnapshot({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      channel: 'QA',
+      normalization: 'NONE',
+      items: [
+        { id: '11111111-1111-4111-8111-111111111111', text: 'Banane', weight: 1 },
+        { id: '22222222-2222-4222-8222-222222222222', text: 'Schraubenzieher', weight: 1 },
+      ],
+    });
+
+    expect(result.status).toBe('fallback');
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.entries.length).toBeGreaterThan(0);
+  });
+
   it('laesst Freitext und nicht-de/en lexikalisch fallen', async () => {
     const embed = async () => {
       throw new Error('encoder must not run');

@@ -98,6 +98,99 @@ describe('wordCloudNormalizer', () => {
       lookup: 'machen',
       pos: 'VERB',
     });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Macht', lemma: 'Macht', pos: 'NOUN', tag: 'VVFIN' },
+        { next: { text: 'das', lemma: 'der', pos: 'PRON' } },
+      ),
+    ).toEqual({
+      display: 'Macht',
+      lookup: 'macht',
+      pos: 'VERB',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Macht', lemma: 'Macht', pos: 'NOUN', tag: 'NN' },
+        { next: { text: 'der', lemma: 'der', pos: 'DET' } },
+      ),
+    ).toEqual({
+      display: 'Macht',
+      lookup: 'macht',
+      pos: 'NOUN',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Zählt', lemma: 'Zählt', pos: 'PROPN' },
+        { next: { text: 'Online-Teilnahme', lemma: 'Online-Teilnahme', pos: 'NOUN' } },
+      ),
+    ).toEqual({
+      display: 'Zählt',
+      lookup: 'zählt',
+      pos: 'VERB',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Zählt', lemma: 'Zählt', pos: 'X' },
+        { next: { text: 'ungekennzeichnete', lemma: 'ungekennzeichnet', pos: 'ADJ' } },
+      ),
+    ).toEqual({
+      display: 'Zählt',
+      lookup: 'zählt',
+      pos: 'VERB',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Läuft', lemma: 'Läuft', pos: 'NOUN', tag: 'NN' },
+        { next: { text: 'der', lemma: 'der', pos: 'DET' } },
+      ),
+    ).toEqual({
+      display: 'Läuft',
+      lookup: 'läuft',
+      pos: 'VERB',
+    });
+    expect(
+      mapSpacyTokenToWordCloud({ text: 'zählt', lemma: 'zählen', pos: 'VERB', tag: 'VVFIN' }),
+    ).toEqual({
+      display: 'zählen',
+      lookup: 'zählen',
+      pos: 'VERB',
+      surfaceLookup: 'zählt',
+    });
+    expect(
+      mapSpacyTokenToWordCloud({ text: 'Gelernt', lemma: 'Gelernt', pos: 'VERB', tag: 'VVPP' }),
+    ).toEqual({
+      display: 'Gelernt',
+      lookup: 'gelernt',
+      pos: 'VERB',
+    });
+    expect(
+      mapSpacyTokenToWordCloud({ text: 'Gelernte', lemma: 'Gelernt', pos: 'NOUN', tag: 'NN' }),
+    ).toEqual({
+      display: 'Gelernt',
+      lookup: 'gelernt',
+      pos: 'VERB',
+      surfaceLookup: 'gelernte',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Berlin', lemma: 'Berlin', pos: 'PROPN', tag: 'NE', entType: 'GPE' },
+        { next: { text: 'ist', lemma: 'sein', pos: 'AUX' } },
+      ),
+    ).toEqual({
+      display: 'Berlin',
+      lookup: 'berlin',
+      pos: 'PROPN',
+    });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Angular', lemma: 'Angular', pos: 'PROPN', tag: 'NE' },
+        { next: { text: 'Framework', lemma: 'Framework', pos: 'NOUN' } },
+      ),
+    ).toEqual({
+      display: 'Angular',
+      lookup: 'angular',
+      pos: 'PROPN',
+    });
   });
 
   it('wendet Lemma nur an, wenn der Sidecar Tokens liefert', async () => {

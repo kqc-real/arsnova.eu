@@ -250,6 +250,9 @@ export class WordCloudTermExtractorService {
 
     const tokens = this.tokenize(masked, stopwords);
     for (const token of tokens) {
+      if (!/\p{L}/u.test(token.key)) {
+        continue;
+      }
       this.addDocumentCandidate(documentCandidates, {
         key: token.key,
         label: token.label,
