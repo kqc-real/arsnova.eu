@@ -181,6 +181,16 @@ describe('wordCloudNormalizer', () => {
       lookup: 'berlin',
       pos: 'PROPN',
     });
+    expect(
+      mapSpacyTokenToWordCloud(
+        { text: 'Angular', lemma: 'Angular', pos: 'PROPN', tag: 'NE' },
+        { next: { text: 'Framework', lemma: 'Framework', pos: 'NOUN' } },
+      ),
+    ).toEqual({
+      display: 'Angular',
+      lookup: 'angular',
+      pos: 'PROPN',
+    });
   });
 
   it('wendet Lemma nur an, wenn der Sidecar Tokens liefert', async () => {

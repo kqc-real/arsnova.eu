@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
 **Stand:** 2026-08-21
-**Status:** ✅ umgesetzt (Analyseversion `1.14b.12`)
+**Status:** ✅ umgesetzt (Analyseversion `1.14b.13`)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
 **Semantik bleibt getrennt:** Story 1.14c Stufe 1 / [word-cloud-semantic.md](word-cloud-semantic.md)
 
@@ -70,7 +70,7 @@ Erste Qualitätsstufe:
 - `PROPN` bleibt Oberflächenform
 - Adjektive nur in Nominalphrasen, nicht als Einzelwort
 - Verben, Auxiliare, Adverbien und Komparative als Unigramme unterdrückt
-- großgeschriebene finite Verben am Satzanfang (`Zählt …?`, `Läuft der …?`, `Macht das …?`) bleiben Verben, auch wenn spaCy sie als Nomen/`PROPN` taggt
+- großgeschriebene finite Verben am Satzanfang (`Zählt …?`, `Läuft der …?`, `Macht das …?`) bleiben Verben über STTS-Verb-Tags oder bekannte finite Oberflächen, nicht über ein generelles `PROPN`/`X`-Nachbar-Muster
 - Partizipien (`Gelernt`, `das Gelernte`) bleiben Verben und sind als Unigramme unsichtbar
 - substantivierte Infinitive (`Lernen`) bleiben sichtbar
 - Stopwortfilter auf Lemma **und** gebeugte Oberfläche

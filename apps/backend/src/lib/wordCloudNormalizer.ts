@@ -35,8 +35,6 @@ const FINITE_VERB_TAGS = new Set([
   'VAPP',
   'VMPP',
 ]);
-const SENTENCE_INITIAL_VERB_FOLLOWERS = new Set(['DET', 'PRON', 'NOUN', 'ADJ', 'ADV', 'PROPN']);
-const CAPITALIZED_VERB_MISTAG_POS = new Set(['PROPN', 'X']);
 /** Finite/partizipiale Formen, die de_core_news_sm oft als NN/NE lässt (Läuft der…, Gelernt). */
 const GERMAN_FINITE_VERB_SURFACES = new Set([
   'zaehlt',
@@ -221,7 +219,7 @@ export function mapSpacyTokenToWordCloud(
 ): WordCloudRawToken {
   const entType = token.entType?.trim().toUpperCase() ?? '';
   const nominalizedInfinitive = isNominalizedInfinitive(token, neighbors.next);
-  const effectivePos = resolveEffectiveSpacyPos(token, neighbors.next, nominalizedInfinitive);
+  const effectivePos = resolveEffectiveSpacyPos(token, nominalizedInfinitive);
   const keepSurface =
     effectivePos === 'PROPN' ||
     NAME_ENTITY_TYPES.has(entType) ||
@@ -278,7 +276,6 @@ function isNominalizedInfinitive(token: SpacyNormalizeToken, next?: SpacyNormali
 
 function resolveEffectiveSpacyPos(
   token: SpacyNormalizeToken,
-  next: SpacyNormalizeToken | undefined,
   nominalizedInfinitive: boolean,
 ): string {
   if (isFiniteVerbTag(token.tag)) {
@@ -286,9 +283,6 @@ function resolveEffectiveSpacyPos(
   }
   if (nominalizedInfinitive) {
     return 'NOUN';
-  }
-  if (looksLikeSentenceInitialFiniteVerb(token, next)) {
-    return 'VERB';
   }
   if (isGermanFiniteVerbSurface(token.text) || isGermanFiniteVerbSurface(token.lemma)) {
     return 'VERB';
@@ -307,22 +301,6 @@ function isGermanFiniteVerbSurface(value: string): boolean {
 
 function isFiniteVerbTag(tag: string | null | undefined): boolean {
   return Boolean(tag && FINITE_VERB_TAGS.has(tag.trim().toUpperCase()));
-}
-
-function looksLikeSentenceInitialFiniteVerb(
-  token: SpacyNormalizeToken,
-  next?: SpacyNormalizeToken,
-): boolean {
-  if (!next || !CAPITALIZED_VERB_MISTAG_POS.has(token.pos.toUpperCase())) {
-    return false;
-  }
-  if (!hasNounCapitalization(token.text.trim())) {
-    return false;
-  }
-  if (toWordCloudLookupToken(token.lemma) !== toWordCloudLookupToken(token.text)) {
-    return false;
-  }
-  return SENTENCE_INITIAL_VERB_FOLLOWERS.has(next.pos.toUpperCase());
 }
 
 function hasNounCapitalization(text: string): boolean {

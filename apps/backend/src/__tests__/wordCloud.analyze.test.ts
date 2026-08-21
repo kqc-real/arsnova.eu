@@ -77,7 +77,7 @@ describe('wordCloud.analyze', () => {
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
       expect(result.normalizationFallbackReason).toBeNull();
-      expect(result.analysisVersion).toBe('1.14b.12');
+      expect(result.analysisVersion).toBe('1.14b.13');
       expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
