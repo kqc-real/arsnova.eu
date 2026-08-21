@@ -20,7 +20,7 @@ Ohne Sidecar, ohne Host-Klick und bei jedem Fehler bleibt die bestehende Wortwol
 | --------------- | ------------------------------------------------------------------------ |
 | Auslöser        | **Sprachformen glätten**                                                 |
 | Läuft           | **Analyse läuft**                                                        |
-| Aktiv           | **Glättung aktiv**                                                       |
+| Aktiv           | **Glättung aktiv** (Zustand eingeschaltet, nicht „läuft gerade“)         |
 | Neue Daten      | **Neue Antworten/Fragen seit letzter Glättung** plus **Neu analysieren** |
 | Nicht verfügbar | **Glättung nicht verfügbar**                                             |
 | Sprache wählen  | **Wähle die Sprache der Antworten** (kein Lemma-Modell für die Host-UI)  |
@@ -49,7 +49,7 @@ Die **Wolkensprache** steht klein neben **Sprachformen glätten** (Freitext und 
 - **Q&A-Sortierung** `Meist unterstützt` / `Beste Fragen` / `Umstritten` bei aktiver `LEXICAL`-Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
 - **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE`, nicht den Lemma-Pfad. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
-- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt nicht (kontrollierter 2.x-Fallback). Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
+- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.
 

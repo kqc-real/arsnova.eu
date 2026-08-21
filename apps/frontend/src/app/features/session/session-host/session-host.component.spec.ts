@@ -2379,8 +2379,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(component.freetextWordCloudMode()).toBe('PHRASES');
+    expect(component.freetextWordCloudSmoothingStatus()).toBe('pending');
     expect(component.displayedFreetextAnalysisEntries()).toBeNull();
     expect(component.displayedFreetextVisibleTerms()?.some((term) => term.key.includes(' '))).toBe(
+      true,
+    );
+    expect(component.displayedFreetextVisibleTerms()?.every((term) => term.key.includes(' '))).toBe(
       true,
     );
     const cloud = fixture.debugElement.query(By.directive(WordCloudComponent))
@@ -4864,6 +4868,103 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()?.length).toBeGreaterThan(0);
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt Q&A-Woerter & Phrasen ungeglaettet und nicht als Glättung aktiv', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { mode?: string; normalization?: string }) => {
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: 'klausur',
+                label: 'Klausur',
+                count: 4,
+                basisLabel: 'Klausur',
+                members: [],
+                variants: ['Klausur'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+
+        return wordCloudAnalyzeResult({
+          mode: 'THEME',
+          entries: [
+            {
+              key: 'kommt',
+              label: 'Kommt',
+              count: 4,
+              basisLabel: 'Kommt',
+              members: [],
+              variants: ['Kommt'],
+              confidence: 0.4,
+            },
+          ],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    await vi.waitUntil(
+      () =>
+        fixture.componentInstance.qaWordCloudThemeAnalysisResult()?.entries[0]?.label === 'Kommt',
+      { timeout: 5000, interval: 25 },
+    );
+    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('LEXICAL');
+
+    fixture.componentInstance.setQaWordCloudAnalysisVariant('THEME');
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant() === 'THEME',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(false);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
+    expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Sprachformen glätten');
+    expect(fixture.componentInstance.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Kommt');
     fixture.destroy();
   });
 

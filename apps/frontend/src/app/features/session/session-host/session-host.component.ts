@@ -1062,7 +1062,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    return this.displayedFreetextWordCloudTerms();
+    const terms = this.displayedFreetextWordCloudTerms();
+    if (
+      this.freetextWordCloudMode() === 'PHRASES' &&
+      this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA'
+    ) {
+      return terms.filter((term) => !isWordCloudUnigramEntryKey(term.key));
+    }
+
+    return terms;
   });
   readonly displayedFreetextAnalysisEntries = computed(() => {
     if (this.freetextWordCloudLemmaSnapshotVisible()) {
@@ -1116,7 +1124,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return 'pending';
       }
 
-      if (this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA') {
+      if (
+        this.freetextWordCloudLemmaResult()?.normalizationApplied === 'LEMMA' &&
+        this.freetextWordCloudLemmaSnapshotVisible()
+      ) {
         return this.freetextWordCloudLemmaStale() ? 'stale' : 'active';
       }
 
@@ -1633,7 +1644,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return 'pending';
     }
 
-    if (this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA') {
+    if (
+      this.qaWordCloudLemmaResult()?.normalizationApplied === 'LEMMA' &&
+      this.qaWordCloudLemmaSnapshotVisible()
+    ) {
       return this.qaWordCloudLemmaStale() ? 'stale' : 'active';
     }
 

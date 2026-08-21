@@ -9,6 +9,7 @@ import {
   isWordCloudSemanticLocale,
   toWordCloudSemanticSourceId,
   WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
+  WORD_CLOUD_SEMANTIC_MIN_CLUSTER_SIZE,
   WORD_CLOUD_SEMANTIC_MODEL_ID,
   type AnalyzeWordCloudInput,
   type AnalyzeWordCloudOutput,
@@ -231,6 +232,17 @@ async function runSemanticEncoderJob(
       modelId: null,
     });
   }
+  if (input.items.length < WORD_CLOUD_SEMANTIC_MIN_CLUSTER_SIZE) {
+    return buildSemanticAnalysisOutput({
+      request: input,
+      entries: fallbackEntries,
+      meta,
+      status: 'fallback',
+      fallbackUsed: true,
+      modelVersion: null,
+      modelId: null,
+    });
+  }
   if (isCircuitOpen(now)) {
     return buildSemanticAnalysisOutput({
       request: input,
@@ -255,7 +267,7 @@ async function runSemanticEncoderJob(
         request: input,
         entries: fallbackEntries,
         meta,
-        status: 'uncertain',
+        status: 'fallback',
         fallbackUsed: true,
         modelVersion: response.modelVersion,
         modelId: response.modelId,

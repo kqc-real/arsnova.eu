@@ -308,7 +308,7 @@ Lokal auf **macOS** mit Host-`npm` nicht `docker:up:nlp` erwarten. Helfer `npm r
 
 ### Optionaler Word-Cloud-Encoder (Story 1.14c Stufe 1)
 
-Stufe 1 ist im Repo; der Sidecar bleibt **betrieblich optional**. `deploy.sh` startet ihn nicht. Standard bleibt `WORD_CLOUD_SEMANTIC_ENABLED=false`. Das Flag ist weder `NLP_ENABLED` noch `QA_NLP_ENABLED` noch `QA_SUMMARY_ENABLED`. Ohne privaten Socket oder private Loopback-/RFC1918-URL gibt es keinen öffentlichen HTTP-Fallback. Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md). Bewusst einschalten nur mit eigenem Image und Compose-Profil `encoder`:
+Stufe 1 ist im Repo; der Sidecar bleibt **betrieblich optional**. `deploy.sh` startet ihn nicht. Standard bleibt `WORD_CLOUD_SEMANTIC_ENABLED=false`. Das Flag ist weder `NLP_ENABLED` noch `QA_NLP_ENABLED` noch `QA_SUMMARY_ENABLED`. Ohne privaten Socket oder private Loopback-/RFC1918-URL gibt es keinen öffentlichen HTTP-Fallback. **Story 1.14d** (Host-Freitext-Themen) soll denselben Schalter und Sidecar nutzen, keinen zweiten öffentlichen Dienst. Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md). Bewusst einschalten nur mit eigenem Image und Compose-Profil `encoder`:
 
 ```bash
 docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder

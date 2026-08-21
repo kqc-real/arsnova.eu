@@ -45,14 +45,14 @@ Der lokale Host-first-Pfad ist produktseitig vorhanden. `THEME` bleibt der lexik
 - gemeinsamer Renderer fuer gelieferte Analyse-Entries in `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
 - erklaerbare Tooltips, CSV-Ausgabe und Quellenlisten
 - **Stufe 0 (2026-08-20):** `SEMANTIC` ist in Host-Q&A und Host-Freitext sichtbar; ohne Kill-Switch antwortet `wordCloud.analyze` mit `status: disabled`, `fallbackUsed: true` und 2.x-Eintraegen. Keine leere Karte. Presenter bleibt aussen vor.
-- **Stufe 1 (2026-08-20):** privater Encoder-Sidecar (Compose-Profil `encoder`, Unix-Socket oder internes HTTP), agglomeratives Clustering im Backend, extraktive Labels. Host-Q&A-Themenmodus fuer `de`/`en`. Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` default aus. Ohne/mit totem Server bleibt 2.x. Freitext-Toggle faellt kontrolliert lexikalisch zurueck. Kanonisch: [`docs/features/word-cloud-semantic.md`](../features/word-cloud-semantic.md).
+- **Stufe 1 (2026-08-20):** privater Encoder-Sidecar (Compose-Profil `encoder`, Unix-Socket oder internes HTTP), agglomeratives Clustering im Backend, extraktive Labels. Host-Q&A-Themenmodus fuer `de`/`en`. Kill-Switch `WORD_CLOUD_SEMANTIC_ENABLED` default aus. Ohne/mit totem Server bleibt 2.x. Freitext-Toggle faellt in 1.14c kontrolliert lexikalisch zurueck; Encoder-Clustering fuer Freitext ist Story 1.14d. Kanonisch: [`docs/features/word-cloud-semantic.md`](../features/word-cloud-semantic.md).
 
-Nicht umgesetzt und deshalb Gegenstand der weiteren `1.14c`-Stufen:
+Nicht umgesetzt und deshalb Gegenstand der weiteren `1.14c`-Stufen beziehungsweise eigener Folgestorys:
 
 - optionale quellengebundene Labelbildung durch ein Open-Weight-LLM (Stufe 2)
 - Confidence-Filter fuer den lokalen Document-Frequency-Pfad
 - Presenter-Q&A- und Presenter-Freitext-Themenmodus
-- Encoder-Clustering fuer Freitext-Snapshots (dieselbe Kaskade wie Q&A; die Stufe-0-UI ist vorhanden)
+- Encoder-Clustering fuer Freitext-Snapshots (**Story 1.14d**; dieselbe Kaskade wie Q&A; die Stufe-0-UI ist vorhanden)
 - physisch getrennte Inferenzbox mit LLM, GPU und den Mess-/FinOps-/Lizenz-Nachweisen fuer eine spaetere Produktivfreigabe
 - 8.9c Slice 4 (generatives Summary-Modell auf derselben Serverrolle, anderem Auftrag)
 
@@ -83,7 +83,7 @@ Nicht jede spaetere `3.x`-Faehigkeit muss in diese erste Story hinein.
 - **kein** LLM im Participant- oder synchronen Live-Hotpath; eine optionale, host-ausgeloeste und quellengebundene Labelbildung auf dem getrennten Inferenzserver gehoert dagegen zum Vergleichs- und Zielumfang
 - **kein** Ersetzen der heutigen lexikalischen Wolke als Fallback
 - **kein** semantischer Presenter-Rollout in derselben Story
-- **kein** semantischer Ausbau fuer Quiz-Freitext in derselben Story
+- **kein** semantischer Ausbau fuer Quiz-Freitext in derselben Story (Folgestory **1.14d**)
 - **keine** Vollabdeckung aller unterstuetzten Locales auf `de`-/`en`-Niveau in der ersten Stufe
 - **keine** opaken Cluster ohne erklaerbare Mitgliedschaft
 - **keine** neue WYSIWYG-Export-Logik fuer PNG
@@ -333,7 +333,7 @@ Pflichtchecks:
 Im Cloud-Computing-Kurs werden Deployment, Messung, Resilienz, Privacy/Security und Wirtschaftlichkeit des Zwei-Server-Pfads demonstriert und schrittweise umgesetzt. Die Produktivaktivierung bleibt eine gesonderte Entscheidung. Nicht Teil von `1.14c`, aber direkte Anschlusskandidaten sind:
 
 - Presenter-Q&A bekommt spaeter denselben Themenmodus auf Cache-Basis
-- Quiz-Freitext bekommt spaeter einen eigenen `3.x`-Pfad
+- Quiz-Freitext-Themenmodus: **Story 1.14d** (gleicher Encoder, anderer Snapshot)
 - Mehrsprachigkeit ueber `de`/`en` hinaus
 - spaetere kuratierte Fachdomain-Synonyme
 
@@ -408,4 +408,4 @@ Damit wird der groesste inhaltliche Mehrwert erschlossen, ohne die bestehende `2
 - moderationsnah
 - messbar und iterativ ausbaubar
 
-Embeddings, deterministisches Clustering und die optionale quellengebundene LLM-Labelbildung gehoeren zu Story `1.14c`. Presenter-/Quiz-Freitext-Rollout und weitere Locales bleiben dagegen spaetere `3.x`-Folgestorys.
+Embeddings, deterministisches Clustering und die optionale quellengebundene LLM-Labelbildung gehoeren zu Story `1.14c`. Encoder-Clustering fuer Quiz-Freitext ist Story `1.14d`. Presenter-Rollout und weitere Locales bleiben spaetere `3.x`-Folgestorys.
