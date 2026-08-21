@@ -3570,7 +3570,7 @@
                           value="WORDS"
                           (click)="setFreetextWordCloudMode('WORDS')"
                           i18n="@@sessionHost.wordCloudAnalysisWords"
-                          >Einzelwörter</mat-button-toggle
+                          >Wörter</mat-button-toggle
                         >
                         <mat-button-toggle
                           value="PHRASES"
@@ -3589,38 +3589,75 @@
                         mat-button
                         type="button"
                         class="session-host__extra-action"
+                        [class.session-host__extra-action--icon]="freetextWordCloudMaximized()"
+                        [attr.aria-pressed]="wordCloudFrozen()"
+                        [attr.aria-label]="wordCloudFreezeLabel()"
+                        [matTooltip]="wordCloudFreezeLabel()"
+                        matTooltipTouchGestures="off"
                         (click)="toggleWordCloudFreeze()"
                       >
                         <mat-icon aria-hidden="true">{{
                           wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
                         }}</mat-icon>
-                        <span>{{ wordCloudFreezeLabel() }}</span>
+                        @if (!freetextWordCloudMaximized()) {
+                          <span>{{ wordCloudFreezeLabel() }}</span>
+                        }
                       </button>
-                      <div class="session-host__smooth-cluster">
-                        <app-word-cloud-lemma-locale-select
-                          [locale]="qaWordCloudAnalysisLocale()"
-                          (localeChange)="setWordCloudLemmaLocale($event)"
-                        />
-                        <button
-                          mat-button
-                          type="button"
-                          class="session-host__extra-action session-host__extra-action--smooth"
-                          [class.session-host__extra-action--smooth-active]="
-                            freetextWordCloudSmoothingPressed()
-                          "
-                          [disabled]="freetextWordCloudSmoothingDisabled()"
-                          [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
-                          [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
-                          (click)="toggleFreetextWordCloudSmoothing()"
-                        >
-                          <mat-icon aria-hidden="true">{{
-                            freetextWordCloudSmoothingIcon()
-                          }}</mat-icon>
-                          <span>{{ freetextWordCloudSmoothingLabel() }}</span>
-                        </button>
-                      </div>
+                      @if (freetextWordCloudShowSmoothing()) {
+                        <div class="session-host__smooth-cluster">
+                          <app-word-cloud-lemma-locale-select
+                            [locale]="qaWordCloudAnalysisLocale()"
+                            (localeChange)="setWordCloudLemmaLocale($event)"
+                          />
+                          <button
+                            mat-button
+                            type="button"
+                            class="session-host__extra-action session-host__extra-action--smooth"
+                            [class.session-host__extra-action--smooth-active]="
+                              freetextWordCloudSmoothingPressed()
+                            "
+                            [disabled]="freetextWordCloudSmoothingDisabled()"
+                            [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
+                            [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
+                            (click)="toggleFreetextWordCloudSmoothing()"
+                          >
+                            <mat-icon aria-hidden="true">{{
+                              freetextWordCloudSmoothingIcon()
+                            }}</mat-icon>
+                            <span>{{ freetextWordCloudSmoothingLabel() }}</span>
+                          </button>
+                        </div>
+                      }
                     </div>
-                    @if (freetextWordCloudSemanticHint()) {
+                    @if (freetextWordCloudSemanticAnalysisPending()) {
+                      <div
+                        class="session-host__word-cloud-progress"
+                        role="status"
+                        aria-live="polite"
+                        aria-busy="true"
+                        [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
+                      >
+                        <p
+                          class="session-host__word-cloud-progress-label"
+                          i18n="@@sessionQa.wordCloudSemanticPendingLabel"
+                        >
+                          Themen werden vorbereitet.
+                        </p>
+                        @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
+                          <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
+                        }
+                        <mat-progress-bar
+                          class="session-host__word-cloud-progress-bar"
+                          mode="indeterminate"
+                        />
+                        <p
+                          class="session-host__word-cloud-progress-fallback"
+                          i18n="@@sessionQa.wordCloudSemanticPendingFallback"
+                        >
+                          Es gelten Wörter und Phrasen.
+                        </p>
+                      </div>
+                    } @else if (freetextWordCloudSemanticHint()) {
                       <p class="session-host__extra-note" role="status" aria-live="polite">
                         {{ freetextWordCloudSemanticHint() }}
                       </p>
@@ -3640,7 +3677,11 @@
                       [analysisEntries]="displayedFreetextAnalysisEntries()"
                       [selectionScopeKey]="displayedCurrentQuestionForHost()?.questionId ?? null"
                       [eyebrow]="freetextWordCloudEyebrow"
-                      [description]="freetextWordCloudDescription"
+                      [description]="freetextWordCloudDescription()"
+                      [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
+                      [wordLabelPlural]="freetextWordCloudWordLabelPlural()"
+                      [showConfidenceFilter]="freetextWordCloudMode() === 'SEMANTIC'"
+                      [weightingHint]="null"
                       [presentationMode]="freetextWordCloudMaximized()"
                       [showMaximizeAction]="!freetextWordCloudMaximized()"
                       [showResponsesPanel]="!freetextWordCloudMaximized()"

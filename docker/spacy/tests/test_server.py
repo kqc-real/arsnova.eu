@@ -26,12 +26,14 @@ class FakeToken:
         lemma: str,
         pos: str,
         ent_type: str = "",
+        tag: str = "",
         is_space: bool = False,
     ) -> None:
         self.text = text
         self.lemma_ = lemma
         self.pos_ = pos
         self.ent_type_ = ent_type
+        self.tag_ = tag
         self.is_space = is_space
 
 
@@ -119,14 +121,16 @@ class ParseNormalizeRequestTests(unittest.TestCase):
             [
                 FakeToken("Häuser", "Haus", "NOUN"),
                 FakeToken("Berlin", "Berlin", "PROPN", ent_type="GPE"),
+                FakeToken("Macht", "Macht", "NOUN", tag="VVFIN"),
                 FakeToken(" ", " ", "SPACE", is_space=True),
             ]
         )
         self.assertEqual(
             server.tokens_from_doc(doc),
             [
-                {"text": "Häuser", "lemma": "Haus", "pos": "NOUN", "entType": None},
-                {"text": "Berlin", "lemma": "Berlin", "pos": "PROPN", "entType": "GPE"},
+                {"text": "Häuser", "lemma": "Haus", "pos": "NOUN", "tag": None, "entType": None},
+                {"text": "Berlin", "lemma": "Berlin", "pos": "PROPN", "tag": None, "entType": "GPE"},
+                {"text": "Macht", "lemma": "Macht", "pos": "NOUN", "tag": "VVFIN", "entType": None},
             ],
         )
 
@@ -171,7 +175,7 @@ class UnixSocketApiTests(unittest.TestCase):
         self.assertEqual(payload["modelId"], "de_core_news_sm@3.8.0")
         self.assertEqual(
             payload["items"][0]["tokens"],
-            [{"text": "Häuser", "lemma": "Haus", "pos": "NOUN", "entType": None}],
+            [{"text": "Häuser", "lemma": "Haus", "pos": "NOUN", "tag": None, "entType": None}],
         )
 
     def test_unknown_path_is_not_found(self) -> None:

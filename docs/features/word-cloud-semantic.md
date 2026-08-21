@@ -22,14 +22,14 @@ Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Li
 
 Das Host-Label ist **Themen**. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
 
-| Zustand         | Host-Text                                                               |
-| --------------- | ----------------------------------------------------------------------- |
-| Läuft           | **Themen werden vorbereitet. Es gelten Wörter und Phrasen.**            |
-| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** plus **Neu analysieren** |
-| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**             |
-| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.**         |
-| Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**   |
-| Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**     |
+| Zustand         | Host-Text                                                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| Läuft           | **Themen werden vorbereitet.** plus unbestimmte Fortschrittsleiste; darunter **Es gelten Wörter und Phrasen.** |
+| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** plus **Themen aktualisieren**                                   |
+| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                                    |
+| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.**                                                |
+| Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**                                          |
+| Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**                                            |
 
 `THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Presenter hat keinen Themenmodus. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
 
@@ -47,8 +47,8 @@ Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine auto
 
 - **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
 - **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots. Locale steckt im Snapshot-Hash: `de` und `en` sind getrennte Caches. Deutsche Q&A bleibt auf **DE**; EN startet keine bessere Analyse, nur einen zweiten Lauf.
-- **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Die Glättung bleibt ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext).
-- Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen.
+- **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Der Glättungsknopf bleibt in **Themen** ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext). Solange Themen vorbereitet werden oder der 2.x-Phrasen-Fallback gilt, bleibt eine zuvor aktive Glättung auf der sichtbaren Wörter-&-Phrasen-Wolke wirksam.
+- Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen **mit derselben Glättung wie unter Wörter & Phrasen**, falls die Glättung an ist. Host und Q&A-Dialog zeigen denselben Fortschritt (Text plus unbestimmte Leiste, kein Prozentwert). Die Anzeige bleibt mindestens 1 s sichtbar, damit Cache- oder Fallback-Antworten nicht nur aufblitzen; das Cluster-Ergebnis wechselt erst danach. Läuft die Analyse nach 2 s noch, kommt ein grober Zeit-Hinweis: **Das kann einen Moment dauern.**, ab etwa 100 sichtbaren Fragen bzw. Antworten **Bei vielen Fragen/Antworten kann das eine Minute dauern.** Keine exakten Anzahlen oder Obergrenzen.
 - Ohne Cluster mit mindestens zwei Mitgliedern (eine einzelne Frage, nur Singletons) ist der Status `fallback`, nicht `uncertain`. Der Encoder läuft erst ab zwei Fragen. `uncertain` gilt nur, wenn Themenblasen da sind, aber die Konfidenz unter der Host-Stufe **sicher** liegt.
 
 Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgliedsfragen, Konfidenz und bei Encoder-Treffer die Modellversion.

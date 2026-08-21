@@ -4685,6 +4685,11 @@ button.session-host__btn-discussion {
   padding-inline: 3rem 3.25rem;
 }
 
+.session-host__extra--maximized .session-host__word-cloud-progress {
+  margin-inline: auto;
+  text-align: center;
+}
+
 .session-host__extra-close-maximize {
   position: absolute;
   top: max(0.65rem, env(safe-area-inset-top, 0px));
@@ -4791,6 +4796,19 @@ button.session-host__btn-discussion {
   font-weight: 600;
 }
 
+.session-host__extra-action--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.7rem;
+  min-height: 2.7rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  border-radius: var(--mat-sys-corner-small, 0.5rem);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  color: inherit;
+}
+
 .session-host__extra-action--smooth-active {
   border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
   background: color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface));
@@ -4810,6 +4828,47 @@ button.session-host__btn-discussion {
   color: color-mix(in srgb, var(--mat-sys-on-surface) 84%, white 16%);
 }
 
+.session-host__word-cloud-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  width: min(100%, 22rem);
+  margin: 0 0 0.65rem auto;
+  text-align: right;
+}
+
+.session-host__word-cloud-progress-label {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 650;
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__word-cloud-progress-wait {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 88%, white 12%);
+}
+
+.session-host__word-cloud-progress-fallback {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 78%, white 22%);
+}
+
+.session-host__word-cloud-progress-bar {
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-host__word-cloud-progress-bar {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
   .session-host__extra-summary {
     flex-direction: column;
@@ -4825,6 +4884,11 @@ button.session-host__btn-discussion {
   }
 
   .session-host__extra-note {
+    text-align: left;
+  }
+
+  .session-host__word-cloud-progress {
+    margin-inline: 0 auto;
     text-align: left;
   }
 

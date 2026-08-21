@@ -12,7 +12,7 @@ type WordCloudNormalization = (typeof WORD_CLOUD_NORMALIZATION_VALUES)[number];
 export const WORD_CLOUD_DEFAULT_NORMALIZATION: WordCloudNormalization = 'NONE';
 
 /** Vertragsversion der Normalisierungsachse; Cache- und Snapshot-Schlüssel müssen sie enthalten. */
-export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.8';
+export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.12';
 
 /** Hartes Textbudget je Analyse-Item; identisch zum Sidecar-Client. */
 export const WORD_CLOUD_MAX_ITEM_TEXT_CHARS = 4_000;

@@ -37,7 +37,7 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
 
   it('pinnt Runtime und Vertragsversion für Cache-Schlüssel', () => {
     expect(WORD_CLOUD_SPACY_RUNTIME_VERSION).toBe('3.8.15');
-    expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.8');
+    expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.12');
     expect(WORD_CLOUD_DEFAULT_NORMALIZATION).toBe('NONE');
     expect(WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH).toBe(1);
     expect(WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH).toBe(3);

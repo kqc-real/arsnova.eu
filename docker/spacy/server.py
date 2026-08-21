@@ -78,11 +78,13 @@ def tokens_from_doc(doc: Iterable[Any]) -> list[dict[str, str | None]]:
         if not text or not lemma:
             continue
         ent = str(getattr(token, "ent_type_", "") or "") or None
+        tag = str(getattr(token, "tag_", "") or "") or None
         tokens.append(
             {
                 "text": text[:256],
                 "lemma": lemma[:256],
                 "pos": pos[:16],
+                "tag": None if tag is None else tag[:16],
                 "entType": None if ent is None else ent[:32],
             }
         )

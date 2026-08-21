@@ -77,7 +77,7 @@ describe('wordCloud.analyze', () => {
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
       expect(result.normalizationFallbackReason).toBeNull();
-      expect(result.analysisVersion).toBe('1.14b.8');
+      expect(result.analysisVersion).toBe('1.14b.12');
       expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
@@ -339,6 +339,37 @@ describe('wordCloud.analyze', () => {
         variants: ['gewinnt'],
       },
     ]);
+  });
+
+  it('zeigt im Themenmodus keine einzigartigen Vollfragen neben belastbaren Kurzgruppen', async () => {
+    const result = await hostCaller.analyze({
+      sessionCode: 'ABC123',
+      mode: 'THEME',
+      locale: 'de',
+      metric: 'TOP',
+      maxEntries: 80,
+      items: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 8,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+          weight: 5,
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Sollen wir Zotero oder Citavi verwenden?',
+          weight: 4,
+        },
+      ],
+    });
+
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.entries.map((entry) => entry.label)).toEqual(['Kapitel 4']);
+    expect(result.entries.some((entry) => /Zotero|Citavi/u.test(entry.label))).toBe(false);
   });
 
   it('aggregiert im lexikalischen Pfad Tokens statt kompletter Fragetexte', async () => {

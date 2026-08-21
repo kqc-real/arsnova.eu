@@ -187,6 +187,15 @@ const QA_EXTRA_STOPWORDS_BY_LOCALE: Partial<Record<SupportedLocale, readonly str
     'nochmals',
     'kommt',
     'kommen',
+    'läuft',
+    'laufen',
+    'lief',
+    'gelaufen',
+    'zählt',
+    'zählen',
+    'gezählt',
+    'gelernt',
+    'gelernte',
     'kann',
     'kannst',
     'könnt',
@@ -572,6 +581,9 @@ function collectResponseGroupings(
     const grouping = getWordGrouping(word, effectiveLocale);
 
     tokenGroupings.push(grouping);
+    if (effectiveAnalysisMode === 'qa' && isNumericToken(word)) {
+      continue;
+    }
     addResponseGrouping(groupings, grouping);
   }
 

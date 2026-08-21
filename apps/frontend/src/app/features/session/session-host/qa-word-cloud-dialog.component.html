@@ -12,21 +12,6 @@
 
   <div class="qa-word-cloud-dialog__toolbar">
     <mat-button-toggle-group
-      class="qa-word-cloud-dialog__sort-toggle"
-      [value]="sortMode()"
-      (valueChange)="setSortMode($any($event))"
-      aria-label="Q&A-Sortierung"
-      i18n-aria-label="@@sessionQa.sortAria"
-    >
-      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
-        >Meist unterstützt</mat-button-toggle
-      >
-      <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</mat-button-toggle>
-      <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
-        >Umstritten</mat-button-toggle
-      >
-    </mat-button-toggle-group>
-    <mat-button-toggle-group
       class="qa-word-cloud-dialog__analysis-toggle"
       [value]="analysisVariant()"
       (valueChange)="setAnalysisVariant($any($event))"
@@ -34,7 +19,7 @@
       aria-label="Wortwolken-Ansicht"
     >
       <mat-button-toggle value="LEXICAL" i18n="@@sessionQa.wordCloudAnalysisLexical"
-        >Einzelwörter</mat-button-toggle
+        >Wörter</mat-button-toggle
       >
       <mat-button-toggle
         value="THEME"
@@ -46,42 +31,96 @@
         >Themen</mat-button-toggle
       >
     </mat-button-toggle-group>
+
+    <label class="qa-word-cloud-dialog__size">
+      <span class="qa-word-cloud-dialog__size-label" i18n="@@sessionQa.wordCloudSizeLabel"
+        >Größe</span
+      >
+      <select
+        class="qa-word-cloud-dialog__size-select"
+        [value]="sortMode()"
+        (change)="onSizeChange($event)"
+        i18n-aria-label="@@sessionQa.wordCloudSizeAria"
+        aria-label="Größe nach Stimmen, besten Fragen oder Kontroverse"
+      >
+        <option value="TOP" i18n="@@sessionQa.wordCloudSizeTop">Stimmen</option>
+        <option value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</option>
+        <option value="CONTROVERSIAL" i18n="@@sessionQa.wordCloudMetricControversial">
+          Kontroverse
+        </option>
+      </select>
+    </label>
+
     <button
-      mat-button
+      mat-icon-button
       type="button"
       class="qa-word-cloud-dialog__freeze"
       [class.qa-word-cloud-dialog__freeze--active]="frozen()"
       [attr.aria-pressed]="frozen()"
+      [attr.aria-label]="freezeLabel()"
+      [matTooltip]="freezeLabel()"
+      matTooltipTouchGestures="off"
       (click)="toggleFreeze()"
     >
       <mat-icon aria-hidden="true">{{ frozen() ? 'play_arrow' : 'pause' }}</mat-icon>
-      <span>{{ freezeLabel() }}</span>
     </button>
-    <div class="qa-word-cloud-dialog__smooth-cluster">
-      <app-word-cloud-lemma-locale-select
-        [locale]="lemmaLocale()"
-        (localeChange)="setLemmaLocale($event)"
-      />
+
+    @if (showSmoothingControls()) {
+      <div class="qa-word-cloud-dialog__smooth-cluster">
+        <app-word-cloud-lemma-locale-select
+          [locale]="lemmaLocale()"
+          (localeChange)="setLemmaLocale($event)"
+        />
+        <button
+          mat-button
+          type="button"
+          class="qa-word-cloud-dialog__smooth"
+          [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+          [disabled]="smoothingDisabled()"
+          [attr.aria-pressed]="smoothingPressed()"
+          [attr.aria-busy]="smoothingBusy() ? true : null"
+          (click)="toggleSmoothing()"
+        >
+          <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+          <span>{{ smoothingLabel() }}</span>
+        </button>
+      </div>
+    }
+
+    @if (showThemeRefresh()) {
       <button
         mat-button
         type="button"
-        class="qa-word-cloud-dialog__smooth"
-        [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+        class="qa-word-cloud-dialog__refresh"
         [disabled]="smoothingDisabled()"
-        [attr.aria-pressed]="smoothingPressed()"
         [attr.aria-busy]="smoothingBusy() ? true : null"
         (click)="toggleSmoothing()"
       >
-        <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
-        <span>{{ smoothingLabel() }}</span>
+        <mat-icon aria-hidden="true">refresh</mat-icon>
+        <span>{{ themeRefreshLabel }}</span>
       </button>
-    </div>
+    }
   </div>
 
-  @if (themeFallbackHint()) {
+  @if (themesPending()) {
+    <div
+      class="qa-word-cloud-dialog__progress"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      [attr.aria-label]="themeProgressAria()"
+    >
+      <p class="qa-word-cloud-dialog__progress-label">{{ themeProgressLabel }}</p>
+      @if (themeWaitHint(); as waitHint) {
+        <p class="qa-word-cloud-dialog__progress-wait">{{ waitHint }}</p>
+      }
+      <mat-progress-bar class="qa-word-cloud-dialog__progress-bar" mode="indeterminate" />
+      <p class="qa-word-cloud-dialog__progress-fallback">{{ themeProgressFallback }}</p>
+    </div>
+  } @else if (themeFallbackHint() && !showThemeRefresh()) {
     <p class="qa-word-cloud-dialog__mode-note">{{ themeFallbackHint() }}</p>
   }
-  @if (smoothingHint()) {
+  @if (smoothingHint() && showSmoothingControls()) {
     <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
   }
 
@@ -94,11 +133,14 @@
     [analysisMode]="'qa'"
     [title]="title()"
     [eyebrow]="data.eyebrow"
-    [description]="data.description"
+    [description]="description()"
     [itemLabelSingular]="data.itemLabelSingular"
     [itemLabelPlural]="data.itemLabelPlural"
+    [wordLabelSingular]="wordLabelSingular()"
+    [wordLabelPlural]="wordLabelPlural()"
+    [showConfidenceFilter]="analysisVariant() === 'SEMANTIC'"
     [showResponsesPanel]="false"
-    [weightingHint]="weightingHint()"
+    [weightingHint]="null"
     [tooltipMetricLabel]="tooltipMetricLabel()"
     [analysisModelVersion]="analysisModelVersion()"
     [showReleaseNote]="false"

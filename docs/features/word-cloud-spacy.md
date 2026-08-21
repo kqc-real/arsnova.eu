@@ -3,8 +3,8 @@
 # Wortwolke: optionale Sprachformen-Glättung (Story 1.14b)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-16
-**Status:** ✅ umgesetzt (Analyseversion `1.14b.8`)
+**Stand:** 2026-08-21
+**Status:** ✅ umgesetzt (Analyseversion `1.14b.12`)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
 **Semantik bleibt getrennt:** Story 1.14c Stufe 1 / [word-cloud-semantic.md](word-cloud-semantic.md)
 
@@ -12,44 +12,47 @@
 
 Die optionale Glättung führt in der **lexikalischen** Freitext- und Q&A-Wortwolke Flexionsformen zusammen (`Frage`/`Fragen`, `validieren`/`validiert`/`Validierung`). Sie erzeugt **keine** Synonym-, Intent- oder Themencluster.
 
-Ohne Sidecar, ohne Host-Klick und bei jedem Fehler bleibt die bestehende Wortwolke 2.5 der Standard.
+Ohne Sidecar und bei jedem Fehler bleibt die bestehende Wortwolke 2.5 der Standard. Mit Sidecar startet die Glättung, sobald die Wolke angezeigt wird.
 
 ## UI-Begriffe
 
-| Zustand         | Host-Text                                                                |
-| --------------- | ------------------------------------------------------------------------ |
-| Auslöser        | **Sprachformen glätten**                                                 |
-| Läuft           | **Analyse läuft**                                                        |
-| Aktiv           | **Glättung aktiv** (Zustand eingeschaltet, nicht „läuft gerade“)         |
-| Neue Daten      | **Neue Antworten/Fragen seit letzter Glättung** plus **Neu analysieren** |
-| Nicht verfügbar | **Glättung nicht verfügbar**                                             |
-| Sprache wählen  | **Wähle die Sprache der Antworten** (kein Lemma-Modell für die Host-UI)  |
-| Fehler          | **Glättung fehlgeschlagen**                                              |
+| Zustand         | Host-Text                                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Auslöser        | **Wortformen glätten** (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**) |
+| Läuft           | **Analyse läuft**                                                                                                |
+| Aktiv           | **Glättung ist an** (Zustand eingeschaltet, nicht „läuft gerade“)                                                |
+| Neue Daten      | **Neue Antworten/Fragen seit letzter Glättung** plus **Neu analysieren**                                         |
+| Nicht verfügbar | **Glättung nicht verfügbar**                                                                                     |
+| Sprache wählen  | **Wähle die Sprache der Antworten** (kein Lemma-Modell für die Host-UI)                                          |
+| Fehler          | **Glättung fehlgeschlagen**                                                                                      |
 
 Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Versionsangaben dürfen in Diagnose, Telemetrie und Export erscheinen. Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 ## Host-Verhalten
 
-Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung.
+Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (`Glättung ist an`), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Unter `/it/` bleibt sie aus, bis eine Lemma-Sprache gewählt ist — danach startet sie ebenfalls.
 
-| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                                  | Glättung                                                                                               |
-| -------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Einzelwörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Encoder-Clustering nicht in Stufe 1 → 2.x-Fallback) | `WORDS` und `PHRASES`; `SEMANTIC` blendet die Glättung aus                                             |
-| Q&A      | eigener `MatDialog`                                  | `Einzelwörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)              | `LEXICAL` und `THEME`; `SEMANTIC` blendet die Glättung aus; Einschalten bei `THEME` erzwingt `LEXICAL` |
+| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                   | Glättung                                                                                                                                                    |
+| -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Encoder-Clustering nicht in Stufe 1 → 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
+| Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)     | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
 
 Presenter zeigt die Wolke ohne Glättungssteuerung, ohne Wolkensprache und ohne den Modus `Themen`.
 
-Die **Wolkensprache** steht klein neben **Sprachformen glätten** (Freitext und Q&A). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
+Die **Wolkensprache** steht klein neben **Wortformen glätten** und nur in der Ansicht, in der Glättung wirkt (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
+
+In der Q&A-Wolke steht die **Größe** (Stimmen / Beste Fragen / Kontroverse) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
 
 ### Wann neu geglättet wird
 
+- **Wolke anzeigen:** Freitext aufgeklappt/maximiert bzw. Q&A-Dialog geöffnet startet die Glättung, sofern eine Wolkensprache existiert und der Host sie nicht ausgeschaltet hat.
 - **Neue eingehende Daten:** Snapshot wird **veraltet** markiert; keine automatische Neuberechnung.
 - **Freitext-Ansicht wechseln** bei aktiver Glättung: dieselbe Antwortmenge mit der anderen N-Gramm-Länge neu analysieren.
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
-- **Q&A-Sortierung** `Meist unterstützt` / `Beste Fragen` / `Umstritten` bei aktiver `LEXICAL`-Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
-- **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE`, nicht den Lemma-Pfad. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
+- **Q&A-Sortierung** `Größe: Stimmen` / `Beste Fragen` / `Kontroverse` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
+- **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, parallel den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
-- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Einzelwörter` / `Wörter & Phrasen`.
+- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.
 
@@ -62,13 +65,19 @@ Der Renderer analysiert keine Rohtexte. Gruppierungsschlüssel und Anzeigelabel 
 Erste Qualitätsstufe:
 
 - Lemma intern für `NOUN`, `VERB`, `ADJ`/`ADV`
-- sichtbare Unigramme nur `NOUN`, `PROPN`, `NUM` und technische `X`
+- sichtbare Unigramme nur `NOUN`, `PROPN` und technische `X` mit mindestens einem Buchstaben
+- nackte Zahlen (`10`, `404`) und Satzzeichen (`..`) keine eigenen Wörter; in Phrasen (`Kapitel 10`, `HTTP 404`) bleiben sie
 - `PROPN` bleibt Oberflächenform
 - Adjektive nur in Nominalphrasen, nicht als Einzelwort
 - Verben, Auxiliare, Adverbien und Komparative als Unigramme unterdrückt
+- großgeschriebene finite Verben am Satzanfang (`Zählt …?`, `Läuft der …?`, `Macht das …?`) bleiben Verben, auch wenn spaCy sie als Nomen/`PROPN` taggt
+- Partizipien (`Gelernt`, `das Gelernte`) bleiben Verben und sind als Unigramme unsichtbar
 - substantivierte Infinitive (`Lernen`) bleiben sichtbar
 - Stopwortfilter auf Lemma **und** gebeugte Oberfläche
 - leere Unigramm-Liste fällt nicht auf die lokale ungeglättete Aggregation zurück
+- Q&A **Wörter & Phrasen** mit Glättung: Unigramme vom Lemma-Pfad, Phrasen weiter aus `THEME` (kein `THEME + LEMMA`)
+- Q&A **Wörter & Phrasen** zeigt nur belastbare Kurzgruppen (2–3 Tokens) und keine einzigartigen Vollfragen
+- Q&A **Themen** in Vorbereitung oder 2.x-Fallback: sichtbare Wörter & Phrasen behalten die Glättung; `SEMANTIC + LEMMA` bleibt `MODE_UNSUPPORTED`
 
 Locales: `de`/`en` (MIT), `fr` (LGPL-LR) und `es` (GPL-3.0) im Default-Sidecar. `it` fällt lexikalisch zurück (`it_core_news_sm` ist CC BY-NC-SA 3.0 und gehört nicht ins Default-Image). Das Image ist kein reines MIT-Artefakt. Hinweise: [NOTICE](../../NOTICE).
 
@@ -114,7 +123,7 @@ Für den Einstieg (Setup plus dieser Befehl): [onboarding.md](../onboarding.md#v
 
 Die **Wolkensprache** am Glätten-Button folgt zuerst der Host-UI. Unter `/it/` zuerst DE/EN/FR/ES wählen; danach ist Glättung unabhängig von der UI-Locale.
 
-| Locale | URL                       | Sprachformen glätten                                     |
+| Locale | URL                       | Wortformen glätten                                       |
 | ------ | ------------------------- | -------------------------------------------------------- |
 | de     | http://localhost:4200/de/ | an (Default DE)                                          |
 | en     | http://localhost:4200/en/ | an (Default EN)                                          |

@@ -40,17 +40,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: stretch;
   justify-content: center;
   justify-self: center;
   padding-inline: clamp(0.25rem, 1vw, 0.75rem);
-}
-
-.qa-word-cloud-dialog__sort-toggle {
-  max-width: min(100%, 36rem);
-  background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
-  backdrop-filter: blur(14px) saturate(1.2);
 }
 
 .qa-word-cloud-dialog__analysis-toggle {
@@ -61,14 +54,59 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
+.qa-word-cloud-dialog__size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.7rem;
+  padding: 0 0.65rem 0 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  border-radius: var(--mat-sys-corner-small, 0.5rem);
+  background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
+  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.qa-word-cloud-dialog__size-label {
+  font: var(--mat-sys-label-medium);
+  font-weight: 700;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 78%, white 22%);
+  white-space: nowrap;
+}
+
+.qa-word-cloud-dialog__size-select {
+  box-sizing: border-box;
+  min-height: 2.2rem;
+  min-width: 7.5rem;
+  max-width: 11rem;
+  padding: 0 0.15rem 0 0.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-large);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.qa-word-cloud-dialog__size-select:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
 .qa-word-cloud-dialog__freeze,
-.qa-word-cloud-dialog__smooth {
+.qa-word-cloud-dialog__smooth,
+.qa-word-cloud-dialog__refresh {
   min-height: 2.7rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   color: var(--mat-sys-on-surface);
   box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
   backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.qa-word-cloud-dialog__freeze {
+  width: 2.7rem;
+  padding: 0;
 }
 
 .qa-word-cloud-dialog__smooth-cluster {
@@ -93,6 +131,47 @@
   text-align: center;
   font: var(--mat-sys-label-medium);
   color: color-mix(in srgb, var(--mat-sys-on-surface) 84%, white 16%);
+}
+
+.qa-word-cloud-dialog__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  width: min(100%, 22rem);
+  margin: -0.15rem auto 0;
+  text-align: center;
+}
+
+.qa-word-cloud-dialog__progress-label {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 650;
+  color: var(--mat-sys-on-surface);
+}
+
+.qa-word-cloud-dialog__progress-wait {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 88%, white 12%);
+}
+
+.qa-word-cloud-dialog__progress-fallback {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 78%, white 22%);
+}
+
+.qa-word-cloud-dialog__progress-bar {
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-word-cloud-dialog__progress-bar {
+    display: none;
+  }
 }
 
 .qa-word-cloud-dialog__cloud {
@@ -133,9 +212,7 @@
     padding-right: 3.25rem;
   }
 
-  .qa-word-cloud-dialog__sort-toggle,
   .qa-word-cloud-dialog__analysis-toggle,
-  .qa-word-cloud-dialog__freeze,
   .qa-word-cloud-dialog__smooth-cluster {
     width: 100%;
   }
@@ -163,13 +240,13 @@
     padding-right: 3rem;
   }
 
-  .qa-word-cloud-dialog__sort-toggle,
   .qa-word-cloud-dialog__analysis-toggle {
-    max-width: min(100%, 26rem);
+    max-width: min(100%, 32rem);
   }
 
   .qa-word-cloud-dialog__freeze,
-  .qa-word-cloud-dialog__smooth {
+  .qa-word-cloud-dialog__smooth,
+  .qa-word-cloud-dialog__refresh {
     min-height: 2.35rem;
   }
 

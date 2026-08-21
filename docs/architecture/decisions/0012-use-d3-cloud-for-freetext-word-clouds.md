@@ -127,6 +127,7 @@ Die Entscheidung ist inzwischen umgesetzt. Der aktuelle Produktstand ist:
 - Der PNG-Export bleibt bewusst ein geordneter Zeilenexport nach Wortgroesse. Er bildet nicht den exakten d3-Livezustand ab, weil diese Variante fuer Doku, Versand und Moderationsunterlagen stabiler und lesbarer ist als ein fragiler WYSIWYG-Snapshot.
 - Repo-Abgleich 2026-05-31: `d3-cloud` ist als Frontend-Dev-Dependency vorhanden, `WordCloudComponent` nutzt die gemeinsame Layout-Engine fuer Freitext- und Q&A-Wortwolken, und `WordCloudTermService` kapselt die fachliche Term-Extraktion getrennt vom Layout.
 - Repo-Abgleich 2026-08-15: Story 1.14b fuegt eine optionale, host-ausgeloeste spaCy-Glaettung **vor** dieser Aggregation hinzu. Layout-Owner bleibt `app-word-cloud`. Freitext-Maximize erfolgt in-place. Produktdoku: [word-cloud-spacy.md](../../features/word-cloud-spacy.md).
+- Repo-Abgleich 2026-08-21: Live-Layout nutzt engeres Padding, eine steilere Groessenskala und gelegentliche 90-Grad-Rotation kurzer Einzelwoerter. Chips bleiben; PNG bleibt der zeilenweise Export.
 
 ## Konsequenzen
 

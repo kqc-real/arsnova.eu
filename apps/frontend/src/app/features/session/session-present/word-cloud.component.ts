@@ -33,9 +33,11 @@ import {
   getWordCloudChipPadding,
   getWordCloudLayoutHeight,
   getWordCloudLayoutWordCap,
+  getWordCloudRotation,
   getWordCloudWidthScale,
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
   MOBILE_WORD_CLOUD_BREAKPOINT,
+  scaleWordCloudFontSize,
   shouldUseWordCloudLayout,
 } from './word-cloud-layout';
 import {
@@ -206,6 +208,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly itemLabelPlural = input($localize`:@@wordCloud.itemPlural:Antworten`);
   readonly wordLabelSingular = input($localize`:@@wordCloud.wordSingular:Wort`);
   readonly wordLabelPlural = input($localize`:@@wordCloud.wordPlural:Wörter`);
+  readonly showConfidenceFilter = input(true);
   readonly showResponsesSingularLabel = input(
     $localize`:@@wordCloud.showResponsesSingular:Antwort anzeigen`,
   );
@@ -230,7 +233,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly focusFilterPrefix = $localize`:@@wordCloud.focusFilterPrefix:Im Fokus:`;
   readonly exportCsvLabel = $localize`:@@wordCloud.exportCsv:CSV speichern`;
   readonly exportPngLabel = $localize`:@@wordCloud.exportPngOrdered:PNG speichern`;
-  readonly confidenceFilterGroupLabel = $localize`:@@wordCloud.themeConfidenceFilter:Erkannte Themen`;
+  readonly confidenceFilterGroupLabel = $localize`:@@wordCloud.themeConfidenceFilter:Gruppierung`;
   readonly showActionsPanel = computed(
     () => !this.outputOnly() && (this.showMaximizeAction() || this.showExportActions()),
   );
@@ -441,7 +444,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly showConfidenceFilterToggle = computed(
-    () => !this.outputOnly() && this.confidenceFilterOptions().length > 0,
+    () =>
+      this.showConfidenceFilter() &&
+      !this.outputOnly() &&
+      this.confidenceFilterOptions().length > 0,
   );
 
   private readonly filteredAnalysisEntries = computed(() => {
@@ -484,7 +490,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         variants: term.variants.length > 0 ? term.variants : [term.label],
         basisLabel: term.basisLabel,
         confidence: term.confidence,
-        size: minFontSize + Math.round((term.score / maxScore) * (maxFontSize - minFontSize)),
+        size: scaleWordCloudFontSize(term.score / maxScore, minFontSize, maxFontSize),
         rank: index,
       }));
     }
@@ -505,7 +511,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         variants: entry.variants.length > 0 ? entry.variants : [entry.label],
         basisLabel: entry.basisLabel,
         confidence: entry.confidence,
-        size: minFontSize + Math.round((entry.count / maxCount) * (maxFontSize - minFontSize)),
+        size: scaleWordCloudFontSize(entry.count / maxCount, minFontSize, maxFontSize),
         rank: index,
       }));
     }
@@ -522,7 +528,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       ...entry,
       basisLabel: null,
       confidence: null,
-      size: minFontSize + Math.round((entry.count / maxCount) * (maxFontSize - minFontSize)),
+      size: scaleWordCloudFontSize(entry.count / maxCount, minFontSize, maxFontSize),
       rank: index,
     }));
   });
@@ -1447,7 +1453,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private resolveFontSizeRange(wordCount: number): { min: number; max: number } {
     if (!this.presentationMode()) {
-      return { min: 14, max: 40 };
+      return { min: 14, max: 48 };
     }
 
     if (!this.disableCloudLayout()) {
@@ -1499,7 +1505,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         };
       }
 
-      return { min: 16, max: 56 };
+      return { min: 16, max: 68 };
     }
 
     const availableHeight = this.usableVisualFrameHeight();
@@ -1558,7 +1564,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return entries.map((entry) => ({
       text: entry.word,
       size: entry.size,
-      rotate: 0,
+      rotate: getWordCloudRotation(entry.word, entry.rank, stageWidth),
       padding: getWordCloudChipPadding(entry.size, stageWidth),
       entry,
     }));
@@ -1829,6 +1835,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     confidence: number | null,
     filter: Exclude<ConfidenceFilter, 'all'>,
   ): boolean {
+    if (confidence === null) {
+      return true;
+    }
+
     return this.resolveConfidenceFilterTier(confidence) === filter;
   }
 
