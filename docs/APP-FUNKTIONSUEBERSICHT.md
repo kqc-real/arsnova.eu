@@ -651,7 +651,8 @@ Abschlussansicht. Ohne verwertbare Ergebnisse bleibt auf der Fragenkarte der
 statische Hinweis **Letzte Frage** (kein Button). Nach einem Rückblick auf eine
 vorherige Frage erscheint dieser Hinweis nicht.
 Nach einem Rückblick von der letzten Frage gilt dasselbe: Weiter beendet die Session,
-statt nur die bereits gezeigte letzte Frage erneut zu öffnen. In der Diskussionsphase ersetzt
+statt nur die bereits gezeigte letzte Frage erneut zu öffnen. Nach einem Reload bleiben
+die Folgemarker im Host-DTO maßgeblich, nicht nur der lokale Rückblick-Zustand. In der Diskussionsphase ersetzt
 **Zur Gesamtauswertung ohne zweite Abstimmung** den Sprung zur nächsten Frage.
 
 ### 7.4 Belohnungs- und Motivationssystem

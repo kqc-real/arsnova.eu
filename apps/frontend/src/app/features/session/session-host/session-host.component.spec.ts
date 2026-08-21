@@ -9510,6 +9510,61 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält nach Reload im Rückblick Gesamtauswertung und überspringt die bereits geöffnete Folgefrage', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 11 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 11,
+      totalQuestions: 13,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT',
+      canShowPreviousResult: true,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: false,
+      answers: [],
+      freeTextResponses: ['Notizen'],
+      totalVotes: 1,
+    });
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'FINISHED',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitUntil(
+      () => fixture.componentInstance.displayedCurrentQuestionForHost()?.order === 11,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.skipCurrentResultQuestionOnNext()).toBe(false);
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    expect(exitAnchor.textContent).toContain('Zur Gesamtauswertung');
+    expect(
+      Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+        (button.textContent ?? '').trim(),
+      ).some((text) => text === 'Nächste Frage'),
+    ).toBe(false);
+
+    await fixture.componentInstance.nextQuestion();
+    expect(nextQuestionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      skipCurrentResultQuestion: true,
+    });
+    fixture.destroy();
+  });
+
   it('zeigt nach einem Rückblick nicht den Hinweis "Letzte Frage"', async () => {
     const lastQuestion = {
       questionId: 'cccccccc-3333-4333-8333-333333333333',

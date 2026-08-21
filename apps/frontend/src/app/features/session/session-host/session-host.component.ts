@@ -5738,10 +5738,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly canOpenFollowingQuestion = computed(() => {
     const q = this.displayedCurrentQuestionForHost();
     if (!q) return false;
+    if (typeof q.hasUnopenedFollowingQuestion === 'boolean') {
+      return q.hasUnopenedFollowingQuestion;
+    }
     if (this.skipCurrentResultQuestionOnNext()) {
-      if (typeof q.hasUnopenedFollowingQuestion === 'boolean') {
-        return q.hasUnopenedFollowingQuestion;
-      }
       return !this.isLastQuestion();
     }
     if (typeof q.hasNextQuestion === 'boolean') {
@@ -5749,6 +5749,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return !this.isLastQuestion();
   });
+
+  /**
+   * Aus RESULTS/DISCUSSION immer die bereits geöffnete Folgefrage überspringen.
+   * Nach Reload ist `skipCurrentResultQuestionOnNext` weg; die DTO-Flags bleiben.
+   */
+  private shouldSkipCurrentResultQuestionOnNext(): boolean {
+    if (this.skipCurrentResultQuestionOnNext()) return true;
+    const status = this.effectiveStatus();
+    return status === 'RESULTS' || status === 'DISCUSSION';
+  }
 
   readonly hasOverallEvaluation = computed(() => {
     if ((this.participantsPayload()?.participantCount ?? 0) > 0) return true;
@@ -7469,7 +7479,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.countdownSeconds.set(null);
       const result = await trpc.session.nextQuestion.mutate({
         code: this.code.toUpperCase(),
-        ...(this.skipCurrentResultQuestionOnNext() && { skipCurrentResultQuestion: true }),
+        ...(this.shouldSkipCurrentResultQuestionOnNext() && { skipCurrentResultQuestion: true }),
       });
       if (startingQuizFromLobby && typeof result.currentQuestion !== 'number') {
         this.quizStartQuestionPending.set(false);
