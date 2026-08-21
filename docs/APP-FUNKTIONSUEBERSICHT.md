@@ -630,11 +630,30 @@ Der Ablauf ist jeweils:
 
 Während Lese- und Abstimmungsphase kann der Host eine Frage über die sichtbare Aktion
 **Frage auslassen** aus dem laufenden Durchlauf entfernen. Eine Bestätigung weist darauf
-hin, dass die Frage und bereits abgegebene Antworten nicht ausgewertet werden. Danach
-startet atomar die nächste Frage; bei der letzten Frage endet die Session regulär.
+hin, dass die Frage und bereits abgegebene Antworten nicht ausgewertet werden. Gibt es
+keine Folgefrage, nennt die Bestätigung, dass die Session danach endet. Sonst startet
+atomar die nächste Frage.
 Ausgelassene und nie geöffnete Fragen zählen nicht für Score, Ranglisten,
 Selbsteinschätzung, Bonuscodes, Nachbesprechung, PDF oder CSV. Geöffnete Fragen ohne
 Antworten bleiben als durchgeführte Fragen erhalten.
+
+Aus **Ergebnisse** oder **Diskussion** kann der Host **Letztes Ergebnis** nutzen, um die
+vorherige durchgeführte Frage ohne neue Abstimmung erneut anzuzeigen. Das gilt auch für
+Fragen ohne Musterlösung (Umfrage, Freitext, Reihenfolge, Bewertung). Auf der ersten
+durchgeführten Frage oder nach einem Rückblick ist die Aktion nicht sichtbar.
+Dasselbe gilt nach **Ab hier** in der Vorschau: Fragen vor dem Startpunkt bleiben ungeöffnet
+und sind kein Vorgänger für **Letztes Ergebnis**.
+
+**Nächste Frage** erscheint nur, wenn noch eine nicht ausgelassene Frage folgt – auch
+wenn die letzte Vorlagenfrage übersprungen wurde. Gibt es keine nächste Frage und
+liegen verwertbare Ergebnisse vor, führt **Zur Gesamtauswertung** in die
+Abschlussansicht. Ohne verwertbare Ergebnisse bleibt auf der Fragenkarte der
+statische Hinweis **Letzte Frage** (kein Button). Nach einem Rückblick auf eine
+vorherige Frage erscheint dieser Hinweis nicht.
+Nach einem Rückblick von der letzten Frage gilt dasselbe: Weiter beendet die Session,
+statt nur die bereits gezeigte letzte Frage erneut zu öffnen. Nach einem Reload bleiben
+die Folgemarker im Host-DTO maßgeblich, nicht nur der lokale Rückblick-Zustand. In der Diskussionsphase ersetzt
+**Zur Gesamtauswertung ohne zweite Abstimmung** den Sprung zur nächsten Frage.
 
 ### 7.4 Belohnungs- und Motivationssystem
 

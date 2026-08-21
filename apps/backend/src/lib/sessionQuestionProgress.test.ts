@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   findNextUnskippedQuestionIndex,
+  findFollowingQuestionIndex,
   findPreviousIncludedQuestionIndex,
   getSessionQuestionProgressSummary,
   markSessionQuestionCompleted,
@@ -63,5 +64,42 @@ describe('sessionQuestionProgress', () => {
     progress = markSessionQuestionOpened(progress, questions[2].id, at);
 
     expect(findPreviousIncludedQuestionIndex(questions, progress, true, 2)).toBe(0);
+    expect(findPreviousIncludedQuestionIndex(questions, progress, true, 0)).toBeNull();
+    expect(findPreviousIncludedQuestionIndex(questions, progress, true, 2)).not.toBe(1);
+  });
+
+  it('findet keine Vorgängerfrage, wenn die erste durchgeführte Frage nicht order 0 ist', () => {
+    const at = new Date();
+    const progress = markSessionQuestionOpened(
+      markSessionQuestionSkipped({}, questions[0].id, at),
+      questions[1].id,
+      at,
+    );
+
+    expect(findPreviousIncludedQuestionIndex(questions, progress, true, 1)).toBeNull();
+  });
+
+  it('behandelt nie geöffnete Fragen vor einem späteren Start wie nicht enthalten', () => {
+    const at = new Date();
+    const progress = markSessionQuestionOpened({}, questions[2].id, at);
+
+    expect(findPreviousIncludedQuestionIndex(questions, progress, true, 2)).toBeNull();
+    expect(findFollowingQuestionIndex(questions, progress, true, 2, false)).toBe(3);
+    expect(findFollowingQuestionIndex(questions, progress, true, 3, false)).toBeNull();
+  });
+
+  it('unterscheidet die nächste Frage vom Weiter nach einem Ergebnis-Rückblick', () => {
+    const at = new Date();
+    let progress = markSessionQuestionCompleted({}, questions[0].id, at);
+    progress = markSessionQuestionCompleted(progress, questions[1].id, at);
+    progress = markSessionQuestionCompleted(progress, questions[2].id, at);
+    progress = markSessionQuestionCompleted(progress, questions[3].id, at);
+
+    expect(findFollowingQuestionIndex(questions, progress, true, 0, false)).toBe(1);
+    expect(findFollowingQuestionIndex(questions, progress, true, 1, false)).toBe(2);
+    expect(findFollowingQuestionIndex(questions, progress, true, 3, false)).toBeNull();
+    expect(findFollowingQuestionIndex(questions, progress, true, 1, true)).toBe(3);
+    expect(findFollowingQuestionIndex(questions, progress, true, 2, true)).toBeNull();
+    expect(findFollowingQuestionIndex(questions, progress, true, 3, true)).toBeNull();
   });
 });

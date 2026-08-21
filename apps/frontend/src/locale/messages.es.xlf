@@ -14747,7 +14747,7 @@
           <context context-type="linenumber">1441,1442</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1017989655370592681" datatype="html">
+      <trans-unit id="sessionHost.lastQuestionBadge" datatype="html">
         <source>Letzte Frage</source>
         <target>Última pregunta</target>
         <context-group purpose="location">
@@ -15315,12 +15315,12 @@
           <context context-type="linenumber">3279,3281</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7435414614973406916" datatype="html">
-        <source> Keine Frage aktiv. Mit „Nächste Frage“ starten.</source>
-        <target>Ninguna pregunta activa. Comience con &quot;Siguiente pregunta&quot;.</target>
+      <trans-unit id="sessionHost.noActiveQuestion" datatype="html">
+        <source>Keine Frage aktiv.</source>
+        <target>Ninguna pregunta activa.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">3283,3285</context>
+          <context context-type="linenumber">3274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.emojiReactionsTitle" datatype="html">
@@ -15672,8 +15672,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.prevQuestionTooltip" datatype="html">
-        <source>Zeigt die letzte Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung).</source>
-        <target>Vuelve a mostrar la pregunta anterior con su resultado y la respuesta correcta (sin nueva votación).</target>
+        <source>Zeigt die vorherige Frage mit ihrem Ergebnis erneut an (ohne neue Abstimmung).</source>
+        <target>Vuelve a mostrar la pregunta anterior con su resultado (sin nueva votación).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4146</context>
@@ -15795,6 +15795,30 @@
           <context context-type="linenumber">4319,4321</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.finishEvaluationAnchorAria" datatype="html">
+        <source>Zur Gesamtauswertung</source>
+        <target>Ir al resumen general</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4337</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.finishEvaluationAnchor" datatype="html">
+        <source>Zur Gesamtauswertung</source>
+        <target>Ir al resumen general</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4342</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.finishEvaluationAnchorCompact" datatype="html">
+        <source>Auswertung</source>
+        <target>Resumen</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4347</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.skipDiscussionNextQuestionAria" datatype="html">
         <source>Zur nächsten Frage ohne zweite Abstimmung</source>
         <target>A la siguiente pregunta sin segunda votación</target>
@@ -15809,6 +15833,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4346</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.skipDiscussionFinishEvaluationAria" datatype="html">
+        <source>Zur Gesamtauswertung ohne zweite Abstimmung</source>
+        <target>Ir al resumen general sin segunda votación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4403</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.skipDiscussionFinishEvaluation" datatype="html">
+        <source>Zur Gesamtauswertung ohne zweite Abstimmung</source>
+        <target>Ir al resumen general sin segunda votación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4406</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5482759156748483613" datatype="html">
@@ -18029,6 +18069,14 @@
           <context context-type="linenumber">7288</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.skipQuestionDialogEndsSession" datatype="html">
+        <source>Es folgt keine weitere Frage. Die Session wird beendet.</source>
+        <target>No hay más preguntas. La sesión terminará.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7527</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.skipQuestionConfirm" datatype="html">
         <source>Frage auslassen</source>
         <target>Omitir pregunta</target>
@@ -18051,6 +18099,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">7330</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.skipQuestionSuccessFinished" datatype="html">
+        <source>Frage ausgelassen. Die Session ist beendet.</source>
+        <target>Pregunta omitida. La sesión ha terminado.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7575</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNlpCategoryContent" datatype="html">

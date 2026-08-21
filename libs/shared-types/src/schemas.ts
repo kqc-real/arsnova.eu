@@ -3162,8 +3162,21 @@ export type GetSessionConfidenceSummaryOutput = z.infer<
 export const HostCurrentQuestionDTOSchema = z.object({
   questionId: z.string().uuid(),
   order: z.number().int().min(0),
-  /** Gesamtanzahl Fragen im Quiz (für Host-Button „Nächste Frage“ vs. „Session beenden“). */
+  /** Gesamtanzahl Fragen im Quiz (Host-Anzeige Frage n / m). */
   totalQuestions: z.number().int().min(1).optional(),
+  /**
+   * Ob der Host aus RESULTS/DISCUSSION auf eine fachlich enthaltene Vorgängerfrage
+   * zurückblättern kann. Unabhängig von Musterlösung (Umfrage, Freitext, Reihenfolge).
+   */
+  canShowPreviousResult: z.boolean().optional(),
+  /** Ob nach der aktuellen Frage noch eine nicht ausgelassene Frage folgt. */
+  hasNextQuestion: z.boolean().optional(),
+  /**
+   * Ob nach einem Rückblick („Letztes Ergebnis“) noch eine Frage folgt, wenn
+   * die bereits gezeigte aktuelle Frage übersprungen wird. Sonst führt Weiter
+   * zur Abschlussauswertung.
+   */
+  hasUnopenedFollowingQuestion: z.boolean().optional(),
   text: z.string(),
   type: QuestionTypeEnum,
   difficulty: DifficultyEnum,

@@ -205,6 +205,53 @@ describe('session.nextQuestion (Story 2.3)', () => {
     );
   });
 
+  it('oeffnet aus der Lobby die Startfrage, wenn currentQuestion auf den Vorgaenger zeigt', async () => {
+    const startId = '33333333-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'LOBBY',
+      currentQuestion: 1,
+      questionProgress: {},
+      questionProgressComplete: true,
+      quiz: {
+        readingPhaseEnabled: false,
+        questions: [
+          { id: '11111111-1111-4111-8111-111111111111', order: 0, type: 'SINGLE_CHOICE' },
+          { id: '22222222-2222-4222-8222-222222222222', order: 1, type: 'SINGLE_CHOICE' },
+          { id: startId, order: 2, type: 'SINGLE_CHOICE' },
+        ],
+      },
+    });
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 2,
+    });
+
+    const result = await caller.nextQuestion({ code: CODE });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(result.currentQuestion).toBe(2);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({
+          status: 'ACTIVE',
+          currentQuestion: 2,
+          questionProgress: expect.objectContaining({
+            [startId]: expect.objectContaining({ state: 'OPENED' }),
+          }),
+        }),
+      }),
+    );
+    const progress = prismaMock.session.update.mock.calls[0][0].data.questionProgress as Record<
+      string,
+      { state: string }
+    >;
+    expect(progress['11111111-1111-4111-8111-111111111111']).toBeUndefined();
+    expect(progress['22222222-2222-4222-8222-222222222222']).toBeUndefined();
+  });
+
   it('setzt FINISHED wenn nach letzter Frage', async () => {
     const questionId = '33333333-3333-4333-8333-333333333333';
     prismaMock.session.findUnique.mockResolvedValue({
@@ -994,17 +1041,149 @@ describe('session.prevQuestion', () => {
   );
 
   it('wirft BAD_REQUEST bei erster Frage (currentQuestion === 0)', async () => {
+    const firstId = '11111111-1111-4111-8111-111111111111';
+    const secondId = '22222222-2222-4222-8222-222222222222';
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       status: 'RESULTS',
       currentQuestion: 0,
+      questionProgress: {
+        [firstId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:00:00.000Z',
+          completedAt: '2026-08-21T10:01:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          { id: firstId, order: 0 },
+          { id: secondId, order: 1 },
+        ],
+      },
     });
 
     await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
       code: 'BAD_REQUEST',
       message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
     });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
+
+  it('wirft BAD_REQUEST wenn vor der Startfrage nie geöffnete Fragen liegen', async () => {
+    const firstId = '11111111-1111-4111-8111-111111111111';
+    const secondId = '22222222-2222-4222-8222-222222222222';
+    const startId = '33333333-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 2,
+      questionProgress: {
+        [startId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:00:00.000Z',
+          completedAt: '2026-08-21T10:01:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          { id: firstId, order: 0 },
+          { id: secondId, order: 1 },
+          { id: startId, order: 2 },
+        ],
+      },
+    });
+
+    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('wirft BAD_REQUEST wenn die Vorgängerfrage ausgelassen wurde', async () => {
+    const firstId = '11111111-1111-4111-8111-111111111111';
+    const secondId = '22222222-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 1,
+      questionProgress: {
+        [firstId]: {
+          state: 'SKIPPED',
+          openedAt: '2026-08-21T10:00:00.000Z',
+          skippedAt: '2026-08-21T10:00:01.000Z',
+        },
+        [secondId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:00:02.000Z',
+          completedAt: '2026-08-21T10:01:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          { id: firstId, order: 0 },
+          { id: secondId, order: 1 },
+        ],
+      },
+    });
+
+    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it.each(['SURVEY', 'FREETEXT', 'ORDERING', 'RATING'] as const)(
+    'blaettert von RESULTS auf die vorherige %s-Frage ohne Musterloesung zurueck',
+    async (previousType) => {
+      const firstId = '11111111-1111-4111-8111-111111111111';
+      const secondId = '22222222-2222-4222-8222-222222222222';
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 1,
+        questionProgress: {
+          [firstId]: {
+            state: 'COMPLETED',
+            openedAt: '2026-08-21T10:00:00.000Z',
+            completedAt: '2026-08-21T10:01:00.000Z',
+          },
+          [secondId]: {
+            state: 'COMPLETED',
+            openedAt: '2026-08-21T10:01:00.000Z',
+            completedAt: '2026-08-21T10:02:00.000Z',
+          },
+        },
+        questionProgressComplete: true,
+        quiz: {
+          questions: [
+            { id: firstId, order: 0, type: previousType },
+            { id: secondId, order: 1, type: 'SINGLE_CHOICE' },
+          ],
+        },
+      });
+      prismaMock.session.update.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        currentQuestion: 0,
+      });
+
+      const result = await caller.prevQuestion({ code: CODE });
+
+      expect(result.status).toBe('RESULTS');
+      expect(result.currentQuestion).toBe(0);
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: SESSION_ID },
+          data: expect.objectContaining({ status: 'RESULTS', currentQuestion: 0, currentRound: 1 }),
+        }),
+      );
+    },
+  );
 
   it('öffnet eine unter der Sperre bereits beendete Session nicht rückwärts erneut', async () => {
     prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({

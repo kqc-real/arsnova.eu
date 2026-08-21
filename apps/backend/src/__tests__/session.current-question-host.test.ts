@@ -897,6 +897,133 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result!.peerInstructionSuggestion).toBeUndefined();
   });
 
+  it('setzt canShowPreviousResult nur wenn eine fachlich enthaltene Vorgängerfrage existiert', async () => {
+    const firstId = '11111111-1111-4111-8111-111111111111';
+    const secondId = '22222222-2222-4222-8222-222222222222';
+    const surveyAnswers = [
+      { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'Gut', isCorrect: false },
+      { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Okay', isCorrect: false },
+    ];
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      questionProgress: {
+        [firstId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:00:00.000Z',
+          completedAt: '2026-08-21T10:01:00.000Z',
+        },
+        [secondId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:01:00.000Z',
+          completedAt: '2026-08-21T10:02:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          {
+            id: firstId,
+            order: 0,
+            text: 'Wie fühlt sich der Raum an?',
+            type: 'SURVEY',
+            difficulty: 'EASY',
+            answers: surveyAnswers,
+          },
+          {
+            id: secondId,
+            order: 1,
+            text: 'Was hilft dir beim Lernen?',
+            type: 'FREETEXT',
+            difficulty: 'EASY',
+            answers: [],
+          },
+        ],
+      },
+    });
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).toMatchObject({
+      questionId: secondId,
+      type: 'FREETEXT',
+      canShowPreviousResult: true,
+      hasNextQuestion: false,
+      hasUnopenedFollowingQuestion: false,
+    });
+  });
+
+  it('blendet den Vorgänger aus, wenn das Quiz erst ab einer späteren Frage geöffnet wurde', async () => {
+    const firstId = '11111111-1111-4111-8111-111111111111';
+    const secondId = '22222222-2222-4222-8222-222222222222';
+    const startId = '33333333-3333-4333-8333-333333333333';
+    const lastId = '44444444-4444-4444-8444-444444444444';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'RESULTS',
+      currentQuestion: 2,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      questionProgress: {
+        [startId]: {
+          state: 'COMPLETED',
+          openedAt: '2026-08-21T10:00:00.000Z',
+          completedAt: '2026-08-21T10:01:00.000Z',
+        },
+      },
+      questionProgressComplete: true,
+      quiz: {
+        questions: [
+          {
+            id: firstId,
+            order: 0,
+            text: 'Frage 1',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'EASY',
+            answers: [{ id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: true }],
+          },
+          {
+            id: secondId,
+            order: 1,
+            text: 'Frage 2',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'EASY',
+            answers: [{ id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true }],
+          },
+          {
+            id: startId,
+            order: 2,
+            text: 'Startfrage',
+            type: 'FREETEXT',
+            difficulty: 'EASY',
+            answers: [],
+          },
+          {
+            id: lastId,
+            order: 3,
+            text: 'Letzte Frage',
+            type: 'FREETEXT',
+            difficulty: 'EASY',
+            answers: [],
+          },
+        ],
+      },
+    });
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).toMatchObject({
+      questionId: startId,
+      order: 2,
+      canShowPreviousResult: false,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: true,
+    });
+  });
+
   it('liefert null wenn keine Session', async () => {
     prismaMock.session.findUnique.mockResolvedValue(null);
 

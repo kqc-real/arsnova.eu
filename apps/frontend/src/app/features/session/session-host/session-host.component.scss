@@ -241,7 +241,8 @@
 }
 
 .session-host__exit-anchor-label--previous-compact,
-.session-host__exit-anchor-label--reveal-options-compact {
+.session-host__exit-anchor-label--reveal-options-compact,
+.session-host__exit-anchor-label--finish-evaluation-compact {
   display: none;
 }
 
@@ -335,17 +336,20 @@
 
 @media (max-width: 599px) and (orientation: portrait) {
   .session-host__exit-anchor-button--previous,
-  .session-host__exit-anchor-button--reveal-options {
+  .session-host__exit-anchor-button--reveal-options,
+  .session-host__exit-anchor-button--finish-evaluation {
     padding-inline: 0.5rem;
   }
 
   .session-host__exit-anchor-label--previous-full,
-  .session-host__exit-anchor-label--reveal-options-full {
+  .session-host__exit-anchor-label--reveal-options-full,
+  .session-host__exit-anchor-label--finish-evaluation-full {
     display: none;
   }
 
   .session-host__exit-anchor-label--previous-compact,
-  .session-host__exit-anchor-label--reveal-options-compact {
+  .session-host__exit-anchor-label--reveal-options-compact,
+  .session-host__exit-anchor-label--finish-evaluation-compact {
     display: inline;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -4861,14 +4865,18 @@ button.session-host__btn-discussion {
 }
 
 .session-host__question-last-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font: var(--mat-sys-label-medium);
-  font-weight: 600;
-  color: var(--mat-sys-primary);
-  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-  border: 1.5px solid var(--mat-sys-primary);
-  border-radius: var(--mat-sys-corner-small, 6px);
-  padding: 0.25rem 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.00625em;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+  border: 0;
+  border-radius: var(--mat-sys-corner-extra-small);
+  padding: 0.125rem 0.5rem;
+  pointer-events: none;
+  user-select: none;
 }
 
 .session-host__all-voted {

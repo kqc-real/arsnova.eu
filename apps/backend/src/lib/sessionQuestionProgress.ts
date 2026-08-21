@@ -141,6 +141,22 @@ export function findNextUnskippedQuestionIndex(
   return null;
 }
 
+/**
+ * Nächste fachlich folgende Frage. `skipAlreadyOpened` entspricht
+ * `skipCurrentResultQuestion` in `session.nextQuestion` (Rückblick → weiter).
+ */
+export function findFollowingQuestionIndex(
+  questions: readonly SessionQuestionRef[],
+  progress: SessionQuestionProgressMap,
+  complete: boolean,
+  currentIndex: number,
+  skipAlreadyOpened = false,
+): number | null {
+  const startIndex = skipAlreadyOpened && !complete ? currentIndex + 1 : currentIndex;
+  const skipOpenedCount = skipAlreadyOpened && complete ? 1 : 0;
+  return findNextUnskippedQuestionIndex(questions, progress, startIndex, skipOpenedCount);
+}
+
 export function findPreviousIncludedQuestionIndex(
   questions: readonly SessionQuestionRef[],
   progress: SessionQuestionProgressMap,
