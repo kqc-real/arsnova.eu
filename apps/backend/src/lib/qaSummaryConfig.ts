@@ -6,6 +6,8 @@
  * Produktiv nur exakt `true` schaltet den Host-Button und die Queue ein.
  * Ohne private `QA_SUMMARY_INFERENCE_URL` gibt es keinen Cloud-Fallback.
  */
+import { QA_SUMMARY_MIN_VISIBLE_QUESTIONS } from '@arsnova/shared-types';
+
 export const QA_SUMMARY_TIMEOUT_DEFAULT_MS = 8_000;
 export const QA_SUMMARY_TIMEOUT_MIN_MS = 500;
 export const QA_SUMMARY_TIMEOUT_MAX_MS = 30_000;
@@ -22,7 +24,7 @@ export const QA_SUMMARY_TTL_DEFAULT_MS = 1_800_000;
 export const QA_SUMMARY_TTL_MIN_MS = 60_000;
 export const QA_SUMMARY_TTL_MAX_MS = 28_800_000;
 export const QA_SUMMARY_MAX_SOURCES_DEFAULT = 20;
-export const QA_SUMMARY_MAX_SOURCES_MIN = 1;
+export const QA_SUMMARY_MAX_SOURCES_MIN = QA_SUMMARY_MIN_VISIBLE_QUESTIONS;
 export const QA_SUMMARY_MAX_SOURCES_MAX = 40;
 export const QA_SUMMARY_STUB_MODEL_VERSION = 'stub';
 

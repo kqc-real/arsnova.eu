@@ -47,12 +47,19 @@ function hostCtx(token: string | null) {
 const caller = qaRouter.createCaller(hostCtx(null));
 const hostCaller = qaRouter.createCaller(hostCtx('host-token-123'));
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
-const QUESTION_ID = '11111111-1111-4111-8111-111111111111';
-const SOURCE_ID = qaSummaryQuestionSourceId(QUESTION_ID);
+const QUESTION_IDS = [
+  '11111111-1111-4111-8111-111111111111',
+  '22222222-2222-4222-8222-222222222222',
+  '33333333-3333-4333-8333-333333333333',
+] as const;
+const SOURCE_ID = qaSummaryQuestionSourceId(QUESTION_IDS[0]);
 
 const snapshot = buildQaSummaryAnalysisSnapshot({
   locale: 'de',
-  questions: [{ id: QUESTION_ID, text: 'Kommt Kapitel 4 in der Klausur vor?' }],
+  questions: QUESTION_IDS.map((id, index) => ({
+    id,
+    text: `Offene Frage ${index + 1}?`,
+  })),
   maxSources: 20,
 });
 
