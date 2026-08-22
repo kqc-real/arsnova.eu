@@ -9,6 +9,7 @@
 **Autor:** Lead-Architektur (Chat 2026-08-20)
 
 **Gilt nicht statt:** [Backlog Story 1.14c](../../Backlog.md), [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](WORD-CLOUD-3.0-STORY-VORSCHLAG.md), [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
+**Runtime-Entscheid ratifiziert:** [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) legt `llama.cpp`/`llama-server` statt Ollama fest; das Modell (`Qwen3-4B-Instruct-2507`) aus §5.2 bleibt unverändert.
 
 Diese Datei hält die am 20. August 2026 verdichteten Erkenntnisse fest: KI-Bestand der App, Zieltechnik 1.14c, Zusammenspiel mit der Kompass-Kurzfassung (8.9c), Modellwahl unter 8 vCPU / 16 GB, Vergleich zum Dev-Gemini, Open-Weight-Lage (inkl. chinesischer Labs) und ein konkretes Implementierungsvorgehen. Messwerte auf dem Hetzner-Zielhost und dem Q&A-Seed stehen noch aus.
 
