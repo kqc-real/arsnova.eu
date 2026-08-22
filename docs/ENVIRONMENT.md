@@ -2,7 +2,7 @@
 
 # Umgebungsvariablen (Referenz)
 
-**Stand:** 2026-08-16
+**Stand:** 2026-08-22
 
 **Lokal:** Vorlage [`../.env.example`](../.env.example) nach `.env` kopieren und anpassen.  
 **Produktion (Docker):** Vorlage [`.env.production.example`](../.env.production.example) → `.env.production`; siehe auch [deployment-debian-root-server.md](deployment-debian-root-server.md).
@@ -308,7 +308,7 @@ Lokal auf **macOS** mit Host-`npm` nicht `docker:up:nlp` erwarten. Helfer `npm r
 
 ### Optionaler Word-Cloud-Encoder (Story 1.14c Stufe 1)
 
-Stufe 1 ist im Repo; der Sidecar bleibt **betrieblich optional**. `deploy.sh` startet ihn nicht. Standard bleibt `WORD_CLOUD_SEMANTIC_ENABLED=false`. Das Flag ist weder `NLP_ENABLED` noch `QA_NLP_ENABLED` noch `QA_SUMMARY_ENABLED`. Ohne privaten Socket oder private Loopback-/RFC1918-URL gibt es keinen öffentlichen HTTP-Fallback. **Story 1.14d** (Host-Freitext-Themen) soll denselben Schalter und Sidecar nutzen, keinen zweiten öffentlichen Dienst. Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md). Bewusst einschalten nur mit eigenem Image und Compose-Profil `encoder`:
+Stufe 1 ist im Repo; der Sidecar bleibt **betrieblich optional**. `deploy.sh` startet ihn nicht. Standard bleibt `WORD_CLOUD_SEMANTIC_ENABLED=false`. Das Flag ist weder `NLP_ENABLED` noch `QA_NLP_ENABLED` noch `QA_SUMMARY_ENABLED` noch das geplante `OPEN_WEIGHT_LLM_ENABLED`. Ohne privaten Socket oder private Loopback-/RFC1918-URL gibt es keinen öffentlichen HTTP-Fallback. **Story 1.14d** (Host-Freitext-Themen) soll denselben Schalter und Sidecar nutzen, keinen zweiten öffentlichen Dienst. Das LLM (Story 8.9d) ist ein anderer Prozess auf der Inferenzbox, kein Encoder-Image. Produktdoku: [word-cloud-semantic.md](features/word-cloud-semantic.md). Bewusst einschalten nur mit eigenem Image und Compose-Profil `encoder`:
 
 ```bash
 docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder
@@ -323,7 +323,11 @@ Story 8.9b hat den asynchronen Vertrag, den Kill-Switch, einen hashed-n-Gramm-Na
 
 ### Optionale Moderationszusammenfassung (Story 8.9c)
 
-Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking sind im Repo: Shared-Vertrag, Host-Karte im Kompass, ephemere Queue, privater HTTP-Adapter. Standard bleibt `QA_SUMMARY_ENABLED=false`. Das Flag ist weder `QA_NLP_ENABLED` noch `NLP_ENABLED` noch `WORD_CLOUD_SEMANTIC_ENABLED`. Die Karte erscheint nur mit Kill-Switch, gesetzter privater `QA_SUMMARY_INFERENCE_URL` und mindestens drei sichtbaren Q&A-Beiträgen (`PENDING`/`ACTIVE`/`PINNED`); es gibt keinen Live-Ping des Helfers. Ohne private URL gibt es keinen SaaS-Fallback; `qa.requestSummary` awaitet die Inferenz nicht und startet unter drei Quellen keinen Job. Der Snapshot rangiert sichtbare Fragen (PINNED/PENDING vor Upvote, Near-Duplicate-Kanonisierung, optionales 8.9b-Tie-Break) und sendet dem Modell nur `{ id, kind, text }`. Aussagen ohne Snapshot-Quelle werden verworfen. Lokal: `npm run qa-summary:dev` auf `http://127.0.0.1:8787/summary` (nicht Produktion; optional `GEMINI_API_KEY` nur im Helfer). Echtes Summary-LLM folgt als 8.9c Slice 4 nach 1.14c Stufe 1 auf derselben privaten Serverrolle, anderem Auftrag. Produktdoku: [qa-summary.md](features/qa-summary.md).
+Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking sind im Repo: Shared-Vertrag, Host-Karte im Kompass, ephemere Queue, privater HTTP-Adapter. Standard bleibt `QA_SUMMARY_ENABLED=false`. Das Flag ist weder `QA_NLP_ENABLED` noch `NLP_ENABLED` noch `WORD_CLOUD_SEMANTIC_ENABLED` noch das geplante `OPEN_WEIGHT_LLM_ENABLED`. Die Karte erscheint nur mit Kill-Switch, gesetzter privater `QA_SUMMARY_INFERENCE_URL` und mindestens drei sichtbaren Q&A-Beiträgen (`PENDING`/`ACTIVE`/`PINNED`); es gibt keinen Live-Ping des Helfers. Ohne private URL gibt es keinen SaaS-Fallback; `qa.requestSummary` awaitet die Inferenz nicht und startet unter drei Quellen keinen Job. Der Snapshot rangiert sichtbare Fragen (PINNED/PENDING vor Upvote, Near-Duplicate-Kanonisierung, optionales 8.9b-Tie-Break) und sendet dem Modell nur `{ id, kind, text }`. Aussagen ohne Snapshot-Quelle werden verworfen. Lokal: `npm run qa-summary:dev` auf `http://127.0.0.1:8787/summary` (nicht Produktion; optional `GEMINI_API_KEY` nur im Helfer). Die extraktive Kurzfassung lebt dort; Slice 4 muss sie in die Backend-Queue ziehen. `QA_SUMMARY_INFERENCE_URL` zeigt nicht auf `llama-server` `/v1/chat/completions`. Echtes Summary-LLM folgt als 8.9c Slice 4 nach Story 8.9d / [ADR-0035](architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), anderem Auftrag, nach Prefill-Messung. Produktdoku: [qa-summary.md](features/qa-summary.md).
+
+### Geplanter Open-Weight-LLM-Server (Story 8.9d)
+
+Noch nicht implementiert. Runtime und Leitplanken: [ADR-0035](architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md). Geplanter Kill-Switch `OPEN_WEIGHT_LLM_ENABLED` (nur exakt `true`), Compose-Profil `llm`, eigenes Image. Kanonisch zweiter privater Host; kein LLM auf dem 16-GB-Live-Host neben spaCy/Encoder. Der Schalter lässt `WORD_CLOUD_SEMANTIC_ENABLED` und 8.9a unberührt. `deploy.sh` startet den Dienst nicht.
 
 ### Empfohlenes Profil: hochfrequentierter Betrieb
 
@@ -406,4 +410,4 @@ Joins unbeeinträchtigt, während der ungültige Pfad fail-closed fehlschlägt.
 - [deployment-debian-root-server.md](deployment-debian-root-server.md) — Produktions-Deployment mit Docker Compose und Nginx
 - [README.md](../README.md) — `npm run dev`, Docker-Hinweise
 
-**Stand:** 2026-08-16 — abgeglichen mit [`.env.example`](../.env.example), [`.env.production.example`](../.env.production.example), [`docker-compose.prod.yml`](../docker-compose.prod.yml), [deployment-debian-root-server.md](deployment-debian-root-server.md), [docs/TESTING.md](TESTING.md) und den aktuellen Env-Readern im Backend. **`PlatformStatistic`**, **`DailyStatistic`** und MOTD-Interaktionszähler werden in der DB gepflegt, nicht über Env. Bei neuen `process.env`-Lesern diese Tabelle und [`.env.example`](../.env.example) mitziehen.
+**Stand:** 2026-08-22 — abgeglichen mit [`.env.example`](../.env.example), [`.env.production.example`](../.env.production.example), [`docker-compose.prod.yml`](../docker-compose.prod.yml), [deployment-debian-root-server.md](deployment-debian-root-server.md), [docs/TESTING.md](TESTING.md) und den aktuellen Env-Readern im Backend. **`PlatformStatistic`**, **`DailyStatistic`** und MOTD-Interaktionszähler werden in der DB gepflegt, nicht über Env. Bei neuen `process.env`-Lesern diese Tabelle und [`.env.example`](../.env.example) mitziehen.

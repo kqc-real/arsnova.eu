@@ -8,6 +8,7 @@
 - Docker local dev services are Postgres and Redis; production deploy must include migration/generate/health sequencing as documented.
 - Optional spaCy sidecar (Story 1.14b, done): Compose profile `nlp`, `NLP_ENABLED` default false, `deploy.sh` does not start it. Canonical: `docs/features/word-cloud-spacy.md` and `mem:session/word-cloud-spacy`.
 - Optional word-cloud encoder (Story 1.14c Stufe 1): Compose profile `encoder`, `WORD_CLOUD_SEMANTIC_ENABLED` default false, `deploy.sh` does not start it. Canonical: `docs/features/word-cloud-semantic.md` and `mem:session/word-cloud-semantic`.
+- Planned open-weight LLM server (Story 8.9d, not implemented): Compose profile `llm`, `OPEN_WEIGHT_LLM_ENABLED` default false, second private host, not on the 16 GB live host. Canonical: ADR-0035.
 - Do not store production secrets or real `.env.production` values in repo docs, prompts, memories, or commits.
 
 ## Verwandte Memories:
