@@ -9,6 +9,8 @@ import {
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import {
+  canRequestQaSummary,
+  shouldShowQaSummaryCard,
   sortQaSummaryStatementsByImportance,
   type QaSummaryResult,
   type QaSummaryRuntimeDTO,
@@ -41,6 +43,7 @@ export type ModerationCompassDialogData = {
   analysisMode?: ModerationCompassAnalysisMode;
   onSourceActivate?: (source: ModerationCompassSource, cardKind: ModerationCompassCardKind) => void;
   summaryEnabled?: () => boolean;
+  summaryVisibleQuestionCount?: () => number;
   summary?: () => QaSummaryRuntimeDTO | null;
   onRequestSummary?: () => void;
   onSummarySourceActivate?: (source: QaSummarySource) => void;
@@ -80,6 +83,23 @@ export class ModerationCompassDialogComponent {
   readonly summaryRuntime = computed(() => this.data.summary?.() ?? null);
   readonly summaryResult = computed(() => this.summaryRuntime()?.result ?? null);
   readonly summaryPending = computed(() => this.summaryResult()?.status === 'pending');
+  readonly showSummaryCard = computed(() => {
+    const runtime = this.summaryRuntime();
+    return shouldShowQaSummaryCard({
+      enabled: this.summaryEnabled(),
+      inferenceConfigured: runtime?.inferenceConfigured === true,
+      visibleQuestionCount: this.data.summaryVisibleQuestionCount?.() ?? 0,
+      resultStatus: runtime?.result?.status ?? null,
+    });
+  });
+  readonly summaryRequestable = computed(() => {
+    const runtime = this.summaryRuntime();
+    return canRequestQaSummary({
+      enabled: this.summaryEnabled(),
+      inferenceConfigured: runtime?.inferenceConfigured === true,
+      visibleQuestionCount: this.data.summaryVisibleQuestionCount?.() ?? 0,
+    });
+  });
   readonly summaryRevealed = signal(false);
   readonly showSummaryNextSteps = computed(() => {
     const result = this.summaryResult();
@@ -165,7 +185,9 @@ export class ModerationCompassDialogComponent {
       return;
     }
     this.summaryRevealed.set(true);
-    this.data.onRequestSummary?.();
+    if (this.summaryRequestable()) {
+      this.data.onRequestSummary?.();
+    }
   }
 
   summaryStatusText(result: QaSummaryResult | null): string | null {

@@ -1,8 +1,10 @@
-import type {
-  AppLocale,
-  QaSummaryModelOutput,
-  QaSummaryResult,
-  QaSummaryRuntimeDTO,
+import {
+  isQaSummaryKeepableResultStatus,
+  QA_SUMMARY_MIN_VISIBLE_QUESTIONS,
+  type AppLocale,
+  type QaSummaryModelOutput,
+  type QaSummaryResult,
+  type QaSummaryRuntimeDTO,
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { logger } from './logger';
@@ -131,6 +133,26 @@ function inferenceConfigured(config: QaSummaryConfig): boolean {
   return Boolean(config.inferenceUrl);
 }
 
+const TOO_FEW_VISIBLE_QUESTIONS_LIMITATION =
+  'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.';
+
+function hasTooFewSummarySources(snapshot: QaSummaryAnalysisSnapshot): boolean {
+  return snapshot.sources.length < QA_SUMMARY_MIN_VISIBLE_QUESTIONS;
+}
+
+function tooFewSourcesResult(
+  snapshot: QaSummaryAnalysisSnapshot,
+  snapshotHash: string,
+  analyzedAt: string,
+): QaSummaryResult {
+  return createUncertainQaSummaryResult({
+    snapshot,
+    snapshotHash,
+    analyzedAt,
+    limitation: TOO_FEW_VISIBLE_QUESTIONS_LIMITATION,
+  });
+}
+
 function pruneExpired(sessionId: string, now: number): void {
   const state = states.get(sessionId);
   if (!state) return;
@@ -161,13 +183,8 @@ async function processJob(job: QueueJob): Promise<void> {
     const snapshotHash = hashQaSummarySnapshot(snapshot);
     const analyzedAt = new Date(hooks.now()).toISOString();
 
-    if (snapshot.sources.length === 0) {
-      const result = createUncertainQaSummaryResult({
-        snapshot,
-        snapshotHash,
-        analyzedAt,
-        limitation: 'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.',
-      });
+    if (hasTooFewSummarySources(snapshot)) {
+      const result = tooFewSourcesResult(snapshot, snapshotHash, analyzedAt);
       states.set(job.sessionId, {
         result,
         inflight: false,
@@ -175,7 +192,8 @@ async function processJob(job: QueueJob): Promise<void> {
         expiresAt: hooks.now() + config.ttlMs,
       });
       logger.info('qa_summary:uncertain', {
-        reason: 'empty-snapshot',
+        reason: 'too-few-sources',
+        sourceCount: snapshot.sources.length,
         latencyMs: hooks.now() - started,
       });
       return;
@@ -280,6 +298,24 @@ export async function requestQaSummary(
   const snapshot = await hooks.loadSnapshot(sessionId, locale, config.maxSources);
   assertQaSummarySnapshotMinimized(snapshot);
   const snapshotHash = hashQaSummarySnapshot(snapshot);
+
+  if (hasTooFewSummarySources(snapshot)) {
+    if (isQaSummaryKeepableResultStatus(existing?.result.status)) {
+      return toRuntime(sessionId);
+    }
+    const result = tooFewSourcesResult(snapshot, snapshotHash, new Date(now).toISOString());
+    states.set(sessionId, {
+      result,
+      inflight: false,
+      lastFinishedAt: now,
+      expiresAt: now + config.ttlMs,
+    });
+    logger.info('qa_summary:uncertain', {
+      reason: 'too-few-sources',
+      sourceCount: snapshot.sources.length,
+    });
+    return toRuntime(sessionId);
+  }
 
   if (
     existing &&

@@ -92,8 +92,10 @@ import {
   parseQaSummaryQuestionSourceId,
   type WordCloudLemmaLocale,
 } from '@arsnova/shared-types';
-import type {
-  AnalyzeWordCloudInput,
+import {
+  canRequestQaSummary,
+  countQaSummaryVisibleQuestions,
+  type AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
   ConfidenceResultDTO,
   ConfidenceQuestionSummaryDTO,
@@ -580,6 +582,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaNlpEnabled = signal(false);
   readonly qaSummaryRuntime = signal<QaSummaryRuntimeDTO | null>(null);
   readonly qaSummaryEnabled = computed(() => this.qaSummaryRuntime()?.enabled === true);
+  readonly qaSummaryVisibleQuestionCount = computed(() =>
+    countQaSummaryVisibleQuestions(this.qaQuestions()),
+  );
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
@@ -2099,6 +2104,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           void this.followModerationCompassSource(source, cardKind);
         },
         summaryEnabled: () => this.qaSummaryEnabled(),
+        summaryVisibleQuestionCount: () => this.qaSummaryVisibleQuestionCount(),
         summary: () => this.qaSummaryRuntime(),
         onRequestSummary: () => {
           void this.requestQaSummary();
@@ -8007,7 +8013,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async requestQaSummary(): Promise<void> {
     const sessionId = this.session()?.id;
-    if (!sessionId || !this.qaSummaryEnabled()) {
+    const runtime = this.qaSummaryRuntime();
+    if (
+      !sessionId ||
+      !canRequestQaSummary({
+        enabled: runtime?.enabled === true,
+        inferenceConfigured: runtime?.inferenceConfigured === true,
+        visibleQuestionCount: this.qaSummaryVisibleQuestionCount(),
+      })
+    ) {
       return;
     }
     try {

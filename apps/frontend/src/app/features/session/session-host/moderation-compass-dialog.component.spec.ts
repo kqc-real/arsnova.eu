@@ -13,6 +13,7 @@ describe('ModerationCompassDialogComponent', () => {
       'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified' = 'rule-based',
     summary?: {
       enabled?: boolean;
+      visibleQuestionCount?: number;
       runtime?: QaSummaryRuntimeDTO | null;
       onRequestSummary?: () => void;
       onSummarySourceActivate?: (source: { id: string; label: string }) => void;
@@ -29,6 +30,7 @@ describe('ModerationCompassDialogComponent', () => {
             analysisMode,
             onSourceActivate,
             summaryEnabled: () => summary?.enabled === true,
+            summaryVisibleQuestionCount: () => summary?.visibleQuestionCount ?? 0,
             summary: () => summary?.runtime ?? null,
             onRequestSummary: summary?.onRequestSummary,
             onSummarySourceActivate: summary?.onSummarySourceActivate,
@@ -233,17 +235,47 @@ describe('ModerationCompassDialogComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Zusammenfassung');
   });
 
+  it('blendet die Zusammenfassung ohne Inferenz-Endpunkt aus', () => {
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 5,
+      runtime: { enabled: true, inferenceConfigured: false, result: null },
+    });
+    expect(fixture.nativeElement.querySelector('[data-testid="moderation-summary"]')).toBeNull();
+  });
+
+  it('blendet die Zusammenfassung bei weniger als drei sichtbaren Fragen aus', () => {
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 2,
+      runtime: { enabled: true, inferenceConfigured: true, result: null },
+    });
+    expect(fixture.nativeElement.querySelector('[data-testid="moderation-summary"]')).toBeNull();
+  });
+
+  it('zeigt die Zusammenfassungskarte bei konfiguriertem Endpunkt und drei Fragen', () => {
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 3,
+      runtime: { enabled: true, inferenceConfigured: true, result: null },
+    });
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="moderation-summary"]'),
+    ).not.toBeNull();
+  });
+
   it('zeigt pending und ready quellengebunden', () => {
     const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
     const onRequestSummary = vi.fn();
     const onSummarySourceActivate = vi.fn();
     const { fixture, dialogRef } = setup([], vi.fn(), 'rule-based', {
       enabled: true,
+      visibleQuestionCount: 3,
       onRequestSummary,
       onSummarySourceActivate,
       runtime: {
         enabled: true,
-        inferenceConfigured: false,
+        inferenceConfigured: true,
         result: {
           status: 'ready',
           statements: [{ text: 'Es gibt eine Frage zur Klausur.', sourceIds: [sourceId] }],
@@ -496,6 +528,7 @@ describe('ModerationCompassDialogComponent', () => {
     TestBed.resetTestingModule();
     const failed = setup([], vi.fn(), 'rule-based', {
       enabled: true,
+      visibleQuestionCount: 5,
       runtime: {
         enabled: true,
         inferenceConfigured: false,
@@ -510,17 +543,17 @@ describe('ModerationCompassDialogComponent', () => {
         },
       },
     });
-    expect(failed.fixture.nativeElement.textContent).toContain(
+    expect(
+      failed.fixture.nativeElement.querySelector('[data-testid="moderation-summary"]'),
+    ).toBeNull();
+    expect(failed.fixture.nativeElement.textContent).not.toContain(
       'Kein privater Inferenzserver konfiguriert.',
     );
-    expect(failed.fixture.nativeElement.textContent).not.toContain(
-      'Die Zusammenfassung ist gerade nicht verfügbar.',
-    );
-    expect(failed.fixture.nativeElement.textContent).not.toContain('Hinweise');
 
     TestBed.resetTestingModule();
     const failedDuplicate = setup([], vi.fn(), 'rule-based', {
       enabled: true,
+      visibleQuestionCount: 3,
       runtime: {
         enabled: true,
         inferenceConfigured: true,
@@ -544,6 +577,7 @@ describe('ModerationCompassDialogComponent', () => {
     TestBed.resetTestingModule();
     const emptySnapshot = setup([], vi.fn(), 'rule-based', {
       enabled: true,
+      visibleQuestionCount: 2,
       runtime: {
         enabled: true,
         inferenceConfigured: true,
@@ -558,17 +592,48 @@ describe('ModerationCompassDialogComponent', () => {
         },
       },
     });
+    expect(
+      emptySnapshot.fixture.nativeElement.querySelector('[data-testid="moderation-summary"]'),
+    ).toBeNull();
+    expect(emptySnapshot.fixture.nativeElement.textContent).not.toContain(
+      'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.',
+    );
+  });
+
+  it('behält eine ready-Kurzfassung unter drei Fragen und fordert keine neue an', () => {
+    const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const onRequestSummary = vi.fn();
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 1,
+      onRequestSummary,
+      runtime: {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'ready',
+          statements: [{ text: 'Es gibt eine Frage zur Klausur.', sourceIds: [sourceId] }],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            { id: sourceId, kind: 'qa-question', label: 'Kommt Kapitel 4 in der Klausur vor?' },
+          ],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      },
+    });
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="moderation-summary"]'),
+    ).not.toBeNull();
     (
-      emptySnapshot.fixture.nativeElement.querySelector(
+      fixture.nativeElement.querySelector(
         '.moderation-compass-dialog__summary-button',
       ) as HTMLButtonElement
     ).click();
-    emptySnapshot.fixture.detectChanges();
-    const emptySnapshotText = emptySnapshot.fixture.nativeElement.textContent as string;
-    expect(emptySnapshotText).toContain(
-      'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.',
-    );
-    expect(emptySnapshotText).not.toContain('Die Zusammenfassung ist unsicher.');
-    expect(emptySnapshotText).not.toContain('Hinweise');
+    fixture.detectChanges();
+    expect(onRequestSummary).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Es gibt eine Frage zur Klausur.');
   });
 });

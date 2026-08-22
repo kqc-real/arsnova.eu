@@ -12,3 +12,4 @@ export * from './word-cloud-normalization.js';
 export * from './word-cloud-semantic.js';
 export * from './qa-summary-rank.js';
 export * from './qa-summary-scan.js';
+export * from './qa-summary-visibility.js';

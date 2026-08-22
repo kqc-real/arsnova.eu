@@ -10,8 +10,12 @@ import { buildQaSummaryAnalysisSnapshot } from './qaSummarySnapshot';
 import type { QaSummaryConfig } from './qaSummaryConfig';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
-const QUESTION_ID = '11111111-1111-4111-8111-111111111111';
-const SOURCE_ID = qaSummaryQuestionSourceId(QUESTION_ID);
+const QUESTION_IDS = [
+  '11111111-1111-4111-8111-111111111111',
+  '22222222-2222-4222-8222-222222222222',
+  '33333333-3333-4333-8333-333333333333',
+] as const;
+const SOURCE_ID = qaSummaryQuestionSourceId(QUESTION_IDS[0]);
 
 function testConfig(overrides: Partial<QaSummaryConfig> = {}): QaSummaryConfig {
   return {
@@ -30,7 +34,19 @@ function testConfig(overrides: Partial<QaSummaryConfig> = {}): QaSummaryConfig {
 
 const snapshot = buildQaSummaryAnalysisSnapshot({
   locale: 'de',
-  questions: [{ id: QUESTION_ID, text: 'Kommt Kapitel 4 in der Klausur vor?' }],
+  questions: QUESTION_IDS.map((id, index) => ({
+    id,
+    text: `Offene Frage ${index + 1}?`,
+  })),
+  maxSources: 20,
+});
+
+const twoQuestionSnapshot = buildQaSummaryAnalysisSnapshot({
+  locale: 'de',
+  questions: QUESTION_IDS.slice(0, 2).map((id, index) => ({
+    id,
+    text: `Offene Frage ${index + 1}?`,
+  })),
   maxSources: 20,
 });
 
@@ -165,5 +181,55 @@ describe('qaSummaryQueue', () => {
     await waitForQaSummaryIdleForTests();
     expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('failed');
     expect(getQaSummaryRuntime(SESSION_ID).result?.modelVersion).toBe('stub:error');
+  });
+
+  it('ruft ohne drei sichtbare Fragen keine Inferenz auf', async () => {
+    let processed = 0;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      loadSnapshot: async () => twoQuestionSnapshot,
+      processor: async () => {
+        processed += 1;
+        return {
+          status: 'ready',
+          statements: [{ text: 'Sollte nicht entstehen.', sourceIds: [SOURCE_ID] }],
+          suggestedNextSteps: [],
+          limitations: [],
+        };
+      },
+    });
+
+    const runtime = await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(processed).toBe(0);
+    expect(runtime.result?.status).toBe('uncertain');
+    expect(runtime.result?.limitations).toContain(
+      'Es gibt noch zu wenige sichtbare Fragen für eine Zusammenfassung.',
+    );
+  });
+
+  it('überschreibt ein ready-Ergebnis nicht wenn die Fragenzahl unter die Schwelle fällt', async () => {
+    let allowTooFew = false;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      loadSnapshot: async () => (allowTooFew ? twoQuestionSnapshot : snapshot),
+      processor: async (): Promise<QaSummaryModelOutput> => ({
+        status: 'ready',
+        statements: [{ text: 'Es gibt eine Klausurfrage.', sourceIds: [SOURCE_ID] }],
+        suggestedNextSteps: [],
+        limitations: [],
+        modelVersion: 'stub',
+      }),
+    });
+
+    await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('ready');
+
+    allowTooFew = true;
+    const kept = await requestQaSummary(SESSION_ID, 'de');
+    await waitForQaSummaryIdleForTests();
+    expect(kept.result?.status).toBe('ready');
+    expect(kept.result?.statements[0]?.text).toBe('Es gibt eine Klausurfrage.');
   });
 });
