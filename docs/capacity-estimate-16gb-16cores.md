@@ -17,6 +17,8 @@
 | **Summe**          |                                              | **~10–11 GB**                   | 16 Kerne            |
 
 **Hinweis:** Kein Node-Cluster im aktuellen Stand – ein Prozess bedient HTTP, tRPC und WebSocket.
+Optionale Sidecars (spaCy ~1 GB, Encoder ~2 GB, PDF-Worker ~1 GB) liegen **über** dieser Baseline.
+Das Open-Weight-LLM (~4 GB plus KV, Story 8.9d / [ADR-0035](architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)) gehört **nicht** auf diesen Live-Host.
 
 ---
 

@@ -3,8 +3,8 @@
 # Generative Moderationszusammenfassung (Story 8.9c)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
-**Stand:** 2026-08-20
-**Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit 8.9c Slice 4 nach 1.14c Stufe 1
+**Stand:** 2026-08-22
+**Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit 8.9c Slice 4 nach Story 8.9d / ADR-0035, nicht als Drop-in auf `llama-server`
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
@@ -49,7 +49,9 @@ Im Moderationskompass erscheint der Block **Kurzfassung der offenen Fragen** nur
 
 ## Adapter ohne LLM-Lieferung
 
-Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Slice 4 (echtes Modell im Betrieb) folgt nach 1.14c Stufe 1 auf demselben privaten Server, anderem Auftrag. Reihenfolge, Entkopplung der Verträge und Hardware-Isolation: [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md) §4.
+Ohne `QA_SUMMARY_INFERENCE_URL` bleibt der Kompass nutzbar; eine Anfrage endet in `failed` mit `stub:unconfigured`. Öffentliche SaaS-Hosts (`api.openai.com`, `api.anthropic.com`, …) werden abgelehnt. Lokal stellt `npm run qa-summary:dev` einen privaten Loopback-Endpunkt. Die extraktive Kurzfassung lebt in diesem Helfer; Slice 4 muss sie in die Backend-Queue ziehen, sonst endet ein llama-Timeout als leere `failed`-Karte.
+
+Slice 4 spricht **nicht** `llama-server` `/v1/chat/completions` über `QA_SUMMARY_INFERENCE_URL`. Ein Node-Client (Story 8.9d) übersetzt den bestehenden Vertrag. Das LLM bekommt eine gekürzte, schon gerankte Quellenliste, nicht automatisch alle `QA_SUMMARY_MAX_SOURCES`. DoD ist nicht „gleich Gemini unter 8 s“. Reihenfolge, Entkopplung und Hardware: [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md) §4 und [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md).
 
 ## Lokal prüfen
 
@@ -85,4 +87,4 @@ npm run test -w @arsnova/frontend -- \
   src/app/features/session/session-host/session-host.component.spec.ts
 ```
 
-Produktiv `QA_SUMMARY_ENABLED` nicht stillschweigend auf `true` setzen. Ohne privaten Inferenzserver gibt es keine Zusammenfassung.
+Produktiv `QA_SUMMARY_ENABLED` nicht stillschweigend auf `true` setzen. Ohne privaten Inferenzserver gibt es keine Zusammenfassung. `OPEN_WEIGHT_LLM_ENABLED` (Story 8.9d, noch nicht implementiert) schaltet den Themenmodus nicht ab.

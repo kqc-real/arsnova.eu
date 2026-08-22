@@ -3,7 +3,7 @@
 # Wortwolke: semantischer Q&A-Themenmodus (Story 1.14c Stufe 1)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-21
+**Stand:** 2026-08-22
 **Status:** Stufe 1 im Repo (Encoder + Clustering, extraktive Labels); Kill-Switch produktiv default aus; kein LLM
 **Backlog:** Story 1.14c (Q&A-Themen), Story 1.14d (Freitext-Themen, offen)
 **Glättung bleibt getrennt:** Story 1.14b / [word-cloud-spacy.md](word-cloud-spacy.md)
@@ -160,6 +160,8 @@ Offen. Derselbe Encoder und Kill-Switch, anderer Snapshot: sichtbare Freitextant
 ## Nicht-Ziele (bewusst außerhalb von Stufe 1)
 
 LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Presenter-Themenmodus, Encoder-Clustering für Freitext (**Story 1.14d**), SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
+
+Stufe 2 bleibt offen hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md): das LLM darf nur das Label ersetzen. Clustering bleibt Stufe 1; LLM-Ausfall fällt auf das extraktive Label, nicht auf lexikalisch 2.x. `OPEN_WEIGHT_LLM_ENABLED` aus lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
 
 ## Verträge und Code
 

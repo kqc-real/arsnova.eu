@@ -9,7 +9,7 @@
 **Autor:** Lead-Architektur (Chat 2026-08-20)
 
 **Gilt nicht statt:** [Backlog Story 1.14c](../../Backlog.md), [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](WORD-CLOUD-3.0-STORY-VORSCHLAG.md), [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
-**Runtime-Entscheid ratifiziert:** [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) legt `llama.cpp`/`llama-server` statt Ollama fest; das Modell (`Qwen3-4B-Instruct-2507`) aus §5.2 bleibt unverändert.
+**Runtime-Entscheid ratifiziert:** [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) legt `llama.cpp`/`llama-server` statt Ollama und die Betriebsleitplanken (Topologie, ein Slot, kein OpenAI-Drop-in) fest; das Modell (`Qwen3-4B-Instruct-2507`) aus §5.2 bleibt unverändert.
 
 Diese Datei hält die am 20. August 2026 verdichteten Erkenntnisse fest: KI-Bestand der App, Zieltechnik 1.14c, Zusammenspiel mit der Kompass-Kurzfassung (8.9c), Modellwahl unter 8 vCPU / 16 GB, Vergleich zum Dev-Gemini, Open-Weight-Lage (inkl. chinesischer Labs) und ein konkretes Implementierungsvorgehen. Messwerte auf dem Hetzner-Zielhost und dem Q&A-Seed stehen noch aus.
 
@@ -116,7 +116,7 @@ Getrennt halten:
 
 **Reihenfolge:** 1.14c-Stufe 1 (Encoder + Clustering) **nicht** auf Slice 4 warten. Slice 4 ist der generative Summary-Job, nicht der Encoder. Ein gemergter Themenmodus ohne LLM ist zulässig, während 8.9c weiter extraktiv bzw. über den lokalen Gemini-Helfer läuft.
 
-**Hardware:** Encoder (ONNX) und LLM (llama.cpp) als **getrennte Prozesse** auf der Inferenzbox. Prefill eines 8.9c-Prompts darf Encoder-Cluster nicht blockieren. Teilen sich beide LLM-Jobs später **einen** `llama-server`, serialisieren und priorisieren: Timeout/Fallback pro Auftrag, kein gemeinsames „ein Request hängt alles“.
+**Hardware:** Encoder (ONNX) und LLM (llama.cpp) als **getrennte Prozesse**. Kanonisch auf der Inferenzbox (zweiter privater Host); Prefill eines 8.9c-Prompts darf Encoder-Cluster nicht blockieren. Teilen sich beide LLM-Jobs später **einen** `llama-server`, gilt **ein** gemeinsames Inflight (`--parallel 1`): der zweite Auftrag fällt sofort auf Fallback, statt in llama.cpp zu warten. Leitplanken: [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) §2.
 
 Gemini-Loopback (`npm run qa-summary:dev`, `gemini-3.5-flash-lite`) bleibt **nur** der lokale 8.9c-Helfer. Er ist kein 1.14c-Produktionspfad und kein stiller Cloud-Fallback.
 
@@ -140,7 +140,7 @@ Gemini-Loopback (`npm run qa-summary:dev`, `gemini-3.5-flash-lite`) bleibt **nur
 
 1. **1.14c Stufe 0–1** mergen. 8.9c bleibt Slices 1–3 (extraktiv / optional Gemini-Dev). Beide Kill-Switches unabhängig.
 2. **1.14c Stufe 2** (optionale Kurzlabels auf Qwen3-4B). Mitgliedschaft unverändert.
-3. **8.9c Slice 4** auf derselben Box, **eigener** Prompt und Zod-Vertrag. Extraktive Kurzfassung bleibt Fallback. DoD **nicht** „gleich Gemini Flash-Lite unter 3–8 s“.
+3. **8.9c Slice 4** auf derselben Box, **eigener** Prompt und Zod-Vertrag, erst nach Prefill-Messung. Extraktive Kurzfassung in der **Backend-Queue**, nicht nur im Gemini-Helfer. DoD **nicht** „gleich Gemini Flash-Lite unter 3–8 s“. `QA_SUMMARY_INFERENCE_URL` zeigt nicht auf `/v1/chat/completions`.
 4. GPU-Box erst danach, wenn der Summary-Auftrag messbar an CPU-Prefill scheitert.
 
 Solange Slice 4 fehlt, ist 8.9c produktseitig unvollständig — das blockiert 1.14c-Stufe 1 nicht.
@@ -263,7 +263,7 @@ In Stufe 1 festgelegt (Code): Env `WORD_CLOUD_SEMANTIC_ENABLED` / `WORD_CLOUD_EN
 Weiterhin offen:
 
 - Ob Presenter später denselben Cache lesen darf (eigene Folgestory).
-- Ob 8.9c Slice 4 denselben `llama-server` wie 1.14c-Labels nutzt oder bei extraktiv bleibt, bis GPU da ist.
+- Ob Slice 4 nach der Prefill-Messung auf der 8-vCPU-Box produktiv denselben `llama-server` nutzt oder bis zu einer GPU-Entscheidung extraktiv bleibt. Dieselbe Serverrolle und getrennte Aufträge sind in [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) festgelegt; die Messung ist es nicht.
 - Ob 8.9c später clusterbewusst Quellen wählt (Folgestory, Vertragänderung).
 - Produktivaktivierung und Unit Economics (Kurs-Messprogramm).
 
