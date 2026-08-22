@@ -48,6 +48,8 @@ Es gibt **keine** globale Teilnehmer- oder Frageschwelle für den Dialog. Karten
 | Tempo            | nur wenn eine Tempo-/Feedback-Tendenz vorliegt; Split z. B. Mehrheit &lt; 60 % und Zweite ≥ 30 %                  |
 | Nächster Schritt | nur wenn bereits eine andere Karte da ist                                                                         |
 
+Die optionale 8.9c-Kurzfassung ist kein Signalkarten-Typ. Sie erscheint nur bei Kill-Switch, konfiguriertem privatem Endpunkt und mindestens drei sichtbaren Q&A-Beiträgen; siehe [qa-summary.md](qa-summary.md).
+
 Implementierung: `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`.
 
 ## Grenzen

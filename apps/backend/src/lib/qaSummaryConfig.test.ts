@@ -6,6 +6,7 @@ import {
   QA_SUMMARY_TIMEOUT_DEFAULT_MS,
   resolveQaSummaryConfig,
   resolveQaSummaryInferenceUrl,
+  resolveQaSummaryMaxSources,
   resolveQaSummaryTimeoutMs,
 } from './qaSummaryConfig';
 
@@ -31,6 +32,13 @@ describe('qaSummaryConfig', () => {
     expect(resolveQaSummaryTimeoutMs(undefined)).toBe(QA_SUMMARY_TIMEOUT_DEFAULT_MS);
     expect(() => resolveQaSummaryTimeoutMs('abc')).toThrow(/ganze Zahl/);
     expect(() => resolveQaSummaryTimeoutMs('100')).toThrow(/zwischen/);
+  });
+
+  it('laesst QA_SUMMARY_MAX_SOURCES nicht unter die Frageschwelle fallen', () => {
+    expect(resolveQaSummaryMaxSources(undefined)).toBe(20);
+    expect(resolveQaSummaryMaxSources('3')).toBe(3);
+    expect(() => resolveQaSummaryMaxSources('1')).toThrow(/zwischen 3 und 40/);
+    expect(() => resolveQaSummaryMaxSources('2')).toThrow(/zwischen 3 und 40/);
   });
 
   it('lehnt öffentliche SaaS-LLM-Hosts ab', () => {

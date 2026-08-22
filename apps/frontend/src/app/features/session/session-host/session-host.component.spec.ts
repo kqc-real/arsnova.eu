@@ -13267,7 +13267,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       });
       qaSummaryRuntimeQueryMock.mockResolvedValue({
         enabled: true,
-        inferenceConfigured: false,
+        inferenceConfigured: true,
         result: null,
       });
       qaListQueryMock.mockResolvedValue([
@@ -13277,6 +13277,26 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
           upvoteCount: 4,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wie berechnet man den Median?',
+          upvoteCount: 2,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Zählt die bessere Klausur?',
+          upvoteCount: 1,
+          status: 'PINNED',
+          createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
           hasUpvoted: false,
@@ -13294,13 +13314,15 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
       const data = config['data'] as {
         summaryEnabled: () => boolean;
+        summaryVisibleQuestionCount: () => number;
         onRequestSummary: () => void;
       };
       expect(data.summaryEnabled()).toBe(true);
+      expect(data.summaryVisibleQuestionCount()).toBe(3);
 
       qaRequestSummaryMutateMock.mockResolvedValue({
         enabled: true,
-        inferenceConfigured: false,
+        inferenceConfigured: true,
         result: {
           status: 'pending',
           statements: [],
@@ -13327,6 +13349,55 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(
         fixture.componentInstance.isQaCompassFocused('11111111-1111-4111-8111-111111111111'),
       ).toBe(true);
+      fixture.destroy();
+    });
+
+    it('startet keine Zusammenfassung ohne Inferenz-Endpunkt oder mit zu wenigen Fragen', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaSummaryRuntimeQueryMock.mockResolvedValue({
+        enabled: true,
+        inferenceConfigured: true,
+        result: null,
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          upvoteCount: 4,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup([{ provide: LOCALE_ID, useValue: 'de' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      dialogOpenMock.mockClear();
+      qaRequestSummaryMutateMock.mockClear();
+      await fixture.componentInstance.openModerationCompassDialog();
+      const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
+      const data = config['data'] as {
+        summaryVisibleQuestionCount: () => number;
+        onRequestSummary: () => void;
+      };
+      expect(data.summaryVisibleQuestionCount()).toBe(1);
+      data.onRequestSummary();
+      await fixture.whenStable();
+      expect(qaRequestSummaryMutateMock).not.toHaveBeenCalled();
       fixture.destroy();
     });
 
