@@ -9,6 +9,7 @@
 **Glättung bleibt getrennt:** Story 1.14b / [word-cloud-spacy.md](word-cloud-spacy.md)
 **Zielbild:** [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
 **Voranalyse:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md)
+**ADR (Stufe-2-LLM-Runtime):** [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
 
 ## Zweck
 

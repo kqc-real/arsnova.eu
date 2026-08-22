@@ -6,7 +6,7 @@
 **Stand:** 2026-08-20
 **Status:** Slices 1–3 plus Loopback-Helfer und Snapshot-Ranking im Repo (Vertrag, Host-UI, privater HTTP-Adapter); Kill-Switch produktiv default aus; echtes LLM erst mit 8.9c Slice 4 nach 1.14c Stufe 1
 **Backlog:** Story 8.9c
-**ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)
+**ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
 ## Zweck
 
