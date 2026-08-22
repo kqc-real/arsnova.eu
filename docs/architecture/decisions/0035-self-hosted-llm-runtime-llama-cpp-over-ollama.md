@@ -132,7 +132,10 @@ Verbindlich:
   ~4-GB-Budget leicht.
 - **Ein** gemeinsames Inflight über Label- **und** Summary-Adapter. Ist der Slot belegt, bekommt
   der zweite Auftrag sofort Fallback — nicht `pending` hinter einer versteckten llama.cpp-Queue.
-  Vor dem POST: `GET /slots?fail_on_no_slot=1` (503 → Backpressure).
+  Vor dem POST: `GET /slots?fail_on_no_slot=1` (503 → Backpressure). Dafür muss `--slots` gesetzt
+  sein; ohne den Endpunkt antwortet `llama-server` mit 501 `not_supported_error`, nicht mit 503.
+  Das App-Inflight bleibt die erste Sperre. Die Slot-Sonde fängt Belegung ab, die der Node-Zähler
+  nicht sieht (zweiter Prozess, Slot nach Client-Abort noch belegt).
 - `--slot-prompt-similarity 0`, damit Summary-KV nicht an Label-Prompts klebt.
 - Client-Abort muss den Slot freigeben. Node-Timeout ohne Abbruch auf der Engine lässt Prefill
   weiterlaufen.
@@ -205,6 +208,7 @@ LLM aus darf den Themenmodus nicht abschalten und 8.9a nicht verstecken.
 Mindestens, gegen die Server-Defaults:
 
 - `--no-webui` (WebUI ist default an)
+- `--slots` (sonst fehlt `GET /slots`. In älteren Builds default aus, [llama.cpp#9776](https://github.com/ggml-org/llama.cpp/pull/9776); seit [llama.cpp#15630](https://github.com/ggml-org/llama.cpp/pull/15630) default an. 8.9d darf nicht vom Image-Default abhängen.)
 - `--api-key` gesetzt; Token analog `QA_SUMMARY_INFERENCE_TOKEN` / `WORD_CLOUD_ENCODER_TOKEN`
 - `--reasoning off` (auch beim Instruct-GGUF; Thinking-Gewichte sprengen jedes Timeout)
 - `--n-gpu-layers 0` explizit
@@ -315,9 +319,10 @@ Flags, gemeinsames Inflight, Health, Tests ohne Modell-Download) → 1.14c Stufe
   `WORD_CLOUD_ENCODER_IMAGE` / `ARSNOVA_IMAGE`; `deploy.sh` startet es nicht automatisch.
   Image-Digest pinnen; GGUF als Volume, nicht CI-Layer.
 - `OPEN_WEIGHT_LLM_ENABLED` ist der fünfte Kill-Switch; siehe Matrix in §2.6.
-- `--parallel 1`, `--ctx-size` gepinnt, `--n-predict` gedeckelt, `--no-webui`, `--api-key`,
-  `--reasoning off`, `--n-gpu-layers 0`, `--slot-prompt-similarity 0`. Ein gemeinsames Inflight;
-  `GET /slots?fail_on_no_slot=1` vor dem POST; Abbruch gibt den Slot frei.
+- `--parallel 1`, `--ctx-size` gepinnt, `--n-predict` gedeckelt, `--no-webui`, `--slots`,
+  `--api-key`, `--reasoning off`, `--n-gpu-layers 0`, `--slot-prompt-similarity 0`. Ein
+  gemeinsames Inflight; `GET /slots?fail_on_no_slot=1` vor dem POST (ohne `--slots`: 501, nicht
+  503); Abbruch gibt den Slot frei.
 - Node-Client übersetzt App-Verträge nach Chat-Completions; `json_schema` **pro Request**.
   `QA_SUMMARY_INFERENCE_URL` zeigt nicht auf `/v1/chat/completions`.
 - 1.14c Stufe 2 und 8.9c Slice 4 behalten getrennte Prompts, Zod-Verträge, Queues und Cooldowns;
