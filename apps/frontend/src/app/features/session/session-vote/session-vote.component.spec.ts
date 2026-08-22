@@ -3998,7 +3998,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('hält mobile Kanal-Tabs unter der Top-Toolbar, damit Theme- und Sprachmenü erreichbar bleiben', () => {
+  it('hält mobile Kanal-Tabs unter der Top-Toolbar, ohne den Toolbar-Offset doppelt zu zählen', () => {
     const voteStyles = readFileSync(
       resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
       'utf8',
@@ -4007,12 +4007,18 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const mobileTabs = voteStyles.match(
       /@media \(max-width: 599px\) \{[\s\S]*?\.session-channel-tabs-shell \{[\s\S]*?\n {2}\}/,
     )?.[0];
+    const toolbarFixedBlock = appStyles.match(/\.app-main--toolbar-fixed \{[\s\S]*?\n\}/)?.[0];
+    const toolbarFixedStickyTop = toolbarFixedBlock?.match(
+      /--vote-channel-tabs-sticky-top:\s*([^;]+);/,
+    )?.[1];
 
     expect(mobileTabs).toBeTruthy();
     expect(mobileTabs).toContain('z-index: 8');
-    expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 4rem)');
+    expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 0.5rem)');
     expect(mobileTabs).not.toContain('z-index: 10');
-    expect(appStyles).toContain('--vote-channel-tabs-sticky-top:');
+    expect(toolbarFixedBlock).toContain('padding-top: 4rem');
+    expect(toolbarFixedStickyTop).toBe('var(--host-mobile-toolbar-gap, 0.5rem)');
+    expect(toolbarFixedStickyTop).not.toContain('4rem');
   });
 
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {

@@ -29,8 +29,11 @@
 .app-main--toolbar-fixed {
   padding-top: 4rem;
   --vote-channel-tabs-desktop-top: 6.75rem;
-  /* Sticky-Offset in .app-main (nicht Viewport): unter der kompakten Toolbar bleiben. */
-  --vote-channel-tabs-sticky-top: calc(4rem + var(--host-mobile-toolbar-gap, 0.5rem));
+  /* Sticky-top sitzt in der Content-Box von .app-main. padding-top bleibt als
+     Scrollport-Inset stehen, deshalb kleben die Tabs auch nach dem Scrollen
+     unter der Toolbar. Dieselben 4rem in sticky-top zu addieren schiebt sie
+     im Ruhezustand um eine weitere Toolbar-Höhe nach unten. */
+  --vote-channel-tabs-sticky-top: var(--host-mobile-toolbar-gap, 0.5rem);
 }
 
 .app-main--immersive-host {
