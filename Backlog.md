@@ -151,7 +151,7 @@
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · 🚫 Geschlossen (nicht umgesetzt) · ❌ Blockiert
 >
-> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 72 · 🟢 Could: 12 = **118 Stories gesamt** (**102** ✅ Fertig · **0** 🔨 In Arbeit · **12** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
+> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 73 · 🟢 Could: 13 = **120 Stories gesamt** (**104** ✅ Fertig · **0** 🔨 In Arbeit · **12** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
 
 ---
 
@@ -1832,7 +1832,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
   - **Produktziel:** Diese Story liefert ausschließlich den **Runtime- und Betriebsbaustein** für den privaten LLM-Server, den Story 1.14c Stufe 2 und Story 8.9c Slice 4 über getrennte Aufträge auf derselben Serverrolle nutzen dürfen. Sie ersetzt nicht das umfangreiche Mess-, Sicherheits-, Datenschutz-, FinOps- und ADR-Programm aus Story 1.14c „Zielarchitektur und Infrastrukturgrenze“/„Verbindliches Messprogramm“; diese Story liefert nur die konkrete Serving-Runtime, auf der jenes Programm aufsetzt.
   - **Stand (2026-08-22):** [ADR-0035](docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) legt die Runtime fest: `llama.cpp`/`llama-server` (MIT), nicht Ollama (läuft laut eigener Projekthistorie inzwischen selbst über `llama-server`, bringt aber Registry-/Auth-/Agent-/Cloud-Funktionsumfang mit, der für einen internen Single-Model-Sidecar unverhältnismäßig ist), nicht vLLM (GPU-first, für die aktuelle 8-vCPU/16-GB-CPU-Box der falsche Werkzeugtyp), nicht Hugging-Face-TGI (vom Betreiber selbst archiviert, verweist selbst auf `llama.cpp`). Modellwahl unverändert aus der Voranalyse: `Qwen3-4B-Instruct-2507` Q4_K_M (Apache 2.0), non-thinking. Reine Architekturentscheidung; noch nicht implementiert.
   - **Akzeptanzkriterien:**
-    - Der LLM-Server läuft als eigener, privater Prozess/Container ohne öffentlichen Port, analog dem spaCy-Sidecar (1.14b) und dem Encoder-Sidecar (1.14c Stufe 1): eigenes Compose-Profil, eigenes Image, Unix-Socket oder internes HTTP.
+    - Der LLM-Server läuft als eigener, privater Prozess/Container ohne öffentlichen Port, analog dem spaCy-Sidecar (1.14b) und dem Encoder-Sidecar (1.14c Stufe 1): eigenes Compose-Profil, eigenes Image, Unix-Socket oder internes HTTP. Er läuft **nicht ungedeckelt** neben Node/PostgreSQL/Redis auf dem Live-Host; kanonisch bleibt Voranalyse §5.2 (eigene Inferenzrolle oder streng gedeckelter Sidecar).
     - Ein eigener, unabhängiger Kill-Switch schaltet den Server frei; er wird mit keinem der vier bestehenden Schalter (`NLP_ENABLED`, `QA_NLP_ENABLED`, `WORD_CLOUD_SEMANTIC_ENABLED`, `QA_SUMMARY_ENABLED`) verwechselt oder wiederverwendet.
     - Das Modell ist ein gepinntes, digest-versioniertes Artefakt; kein automatischer Laufzeit-Pull gegen eine öffentliche Registry in Produktion.
     - Ressourcenlimits, Timeout unterhalb der jeweiligen Backend-Timeouts, Concurrency-Begrenzung und Circuit Breaker sind konfiguriert, analog Encoder-Client und Summary-Adapter.

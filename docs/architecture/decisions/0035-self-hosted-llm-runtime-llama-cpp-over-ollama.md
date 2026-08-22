@@ -8,7 +8,7 @@
 **Letzter Repo-Abgleich:** 2026-08-22
 **Kontext-Tags:** Machine Learning, Inferenz-Runtime, Selbst-Hosting, Backend-Architektur, Betrieb, Open-Weight-LLM
 
-**Ersetzt keine Produktentscheidung, nur die Runtime:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md), [ADR-0032](0032-optional-nlp-cascade-for-qa-moderation-signals.md), Backlog Story 1.14c, Story 8.9c.
+**Ersetzt keine Produktentscheidung, nur die Runtime:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md), [ADR-0032](0032-optional-nlp-cascade-for-qa-moderation-signals.md), Backlog Story 1.14c, Story 8.9c.
 
 ## Kontext
 
@@ -24,8 +24,10 @@ und ist **nicht** Gegenstand dieser ADR.
 
 Randbedingungen, die für diese Entscheidung unverändert aus ADR-0032 und der Voranalyse gelten:
 
-- Zielhost bleibt eine einzelne Produktionsmaschine mit **8 vCPU / 16 GB RAM**, geteilt mit
-  Node-App, PostgreSQL und Redis. Keine GPU im aktuellen Betrieb.
+- Live-Host bleibt **8 vCPU / 16 GB RAM** (Node-App, PostgreSQL, Redis). **Kein LLM auf
+  diesem Host** (Voranalyse §5.2). Die Inferenzrolle ist ein **zweiter, privater** Host
+  derselben Größenordnung **oder** ein streng gedeckelter Sidecar (cgroup: 2–4 Threads,
+  ~4 GB). Keine GPU im aktuellen Betrieb.
 - Live-Hotpfade (`qa.submit`, Join, Vote, WebSocket) dürfen nie auf Inferenz warten.
 - Kein öffentlicher Port, kein stiller SaaS-Fallback, kein zweites Modellserver-Silo neben dem
   bereits beschlossenen privaten Encoder-Sidecar (1.14c Stufe 1, `docker/wordcloud-encoder`).
@@ -74,7 +76,7 @@ Entscheidung über **wie viel zusätzliche Produktschicht** um dieselbe Engine h
 **vLLM** ist explizit GPU-first entworfen (PagedAttention, CUDA-Graphs, Tensor-/Pipeline-/Expert-Parallelism)
 und für 8 vCPU/16 GB ohne GPU der falsche Werkzeugtyp — hervorragend geeignet, **sobald** arsnova.eu
 tatsächlich eine GPU-Box einführt (Voranalyse §5.4 sieht das bereits als spätere, eigene
-FinOps-/Security-Entscheidung vor). Für den aktuellen Zielhost verworfen.
+FinOps-/Security-Entscheidung vor). Für die aktuelle Inferenz-CPU-Rolle verworfen.
 
 **TGI** ist vom eigenen Betreiber (Hugging Face) am 21.03.2026 archiviert und in "maintenance
 mode" versetzt worden; das README selbst empfiehlt für lokale/CPU-Einsätze ausdrücklich
@@ -164,8 +166,8 @@ Diese Entscheidung betrifft ausschließlich die **Betreiber-seitige** Serving-Ru
   `llama-server`, bringt aber Registry-/Auth-/Agent-/Cloud-Funktionsumfang mit, der für einen
   internen, ops-gepinnten Single-Model-Sidecar überdimensioniert ist und zusätzliche
   Audit-/Lockdown-Arbeit erzeugen würde, ohne einen Inferenzvorteil zu liefern.
-- **vLLM:** verworfen für die aktuelle CPU-only-8-vCPU/16-GB-Box; explizit für eine spätere
-  GPU-Stufe vorgemerkt (Voranalyse §5.4).
+- **vLLM:** verworfen für die aktuelle Inferenz-CPU-Rolle (8 vCPU/16 GB, ohne GPU); explizit für
+  eine spätere GPU-Stufe vorgemerkt (Voranalyse §5.4).
 - **Hugging Face TGI:** verworfen — vom eigenen Betreiber archiviert/in Wartungsmodus, verweist
   selbst auf `vllm`/`SGLang` oder `llama.cpp`; eigenes README schließt CPU als Zielplattform aus.
 - **`llamafile`:** verworfen; löst ein Distributions-/Portabilitätsproblem, das Docker/Compose
@@ -182,6 +184,7 @@ Diese Entscheidung betrifft ausschließlich die **Betreiber-seitige** Serving-Ru
 
 - Kein öffentlicher Port; Unix-Socket oder internes HTTP mit demselben Loopback-/RFC1918-Literal-
   Prinzip wie beim Encoder-Adapter.
+- Kein ungedeckeltes LLM neben Node/PostgreSQL/Redis auf dem Live-Host (Voranalyse §5.2).
 - Eigenes Compose-Profil und eigenes Image, getrennt von `SPACY_IMAGE`/`WORD_CLOUD_ENCODER_IMAGE`/
   `ARSNOVA_IMAGE`; `deploy.sh` startet es nicht automatisch.
 - Modell als gepinntes, digest-versioniertes Artefakt; kein automatischer Laufzeit-Pull aus einer
@@ -199,11 +202,11 @@ Diese Entscheidung betrifft ausschließlich die **Betreiber-seitige** Serving-Ru
 
 ---
 
-**Referenzen:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md),
+**Referenzen:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md),
 [ADR-0032](0032-optional-nlp-cascade-for-qa-moderation-signals.md),
 [ADR-0025](0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md),
 [ADR-0026](0026-prioritize-performance-hotpaths-and-de-escalate-telemetry-side-load.md),
-[word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-summary.md](../features/qa-summary.md),
+[word-cloud-semantic.md](../../features/word-cloud-semantic.md), [qa-summary.md](../../features/qa-summary.md),
 [github.com/ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp),
 [github.com/ollama/ollama](https://github.com/ollama/ollama),
 [github.com/vllm-project/vllm](https://github.com/vllm-project/vllm),
