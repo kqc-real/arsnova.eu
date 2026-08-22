@@ -4007,14 +4007,16 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const mobileTabs = voteStyles.match(
       /@media \(max-width: 599px\) \{[\s\S]*?\.session-channel-tabs-shell \{[\s\S]*?\n {2}\}/,
     )?.[0];
-    const toolbarFixedStickyTop = appStyles.match(
-      /\.app-main--toolbar-fixed \{[\s\S]*?--vote-channel-tabs-sticky-top:\s*([^;]+);/,
+    const toolbarFixedBlock = appStyles.match(/\.app-main--toolbar-fixed \{[\s\S]*?\n\}/)?.[0];
+    const toolbarFixedStickyTop = toolbarFixedBlock?.match(
+      /--vote-channel-tabs-sticky-top:\s*([^;]+);/,
     )?.[1];
 
     expect(mobileTabs).toBeTruthy();
     expect(mobileTabs).toContain('z-index: 8');
     expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 0.5rem)');
     expect(mobileTabs).not.toContain('z-index: 10');
+    expect(toolbarFixedBlock).toContain('padding-top: 4rem');
     expect(toolbarFixedStickyTop).toBe('var(--host-mobile-toolbar-gap, 0.5rem)');
     expect(toolbarFixedStickyTop).not.toContain('4rem');
   });
