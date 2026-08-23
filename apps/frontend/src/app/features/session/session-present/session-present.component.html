@@ -379,6 +379,9 @@
             <div
               class="session-present__lobby-teams-grid"
               [style.--lobby-audience-cols]="lobbyTeamsView().length"
+              tabindex="0"
+              role="region"
+              aria-labelledby="session-present-lobby-audience"
             >
               @for (team of lobbyTeamsView(); track team.id) {
                 <article
@@ -437,6 +440,9 @@
             <div
               class="session-present__lobby-people-cols"
               [style.--lobby-audience-cols]="lobbyPeople().length"
+              tabindex="0"
+              role="region"
+              aria-labelledby="session-present-lobby-audience"
             >
               @for (person of lobbyPeople(); track person.id) {
                 <article class="session-present__lobby-person-col">

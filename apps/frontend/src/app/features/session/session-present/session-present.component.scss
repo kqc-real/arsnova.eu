@@ -135,14 +135,25 @@ app-session-projection-quiz,
 }
 
 .session-present--lobby.session-present--qa {
-  overflow: auto;
+  overflow: hidden;
   justify-content: flex-start;
 }
 
 .session-present--lobby.session-present--qa .session-present__lobby-stage {
-  flex: 0 1 auto;
+  flex: 1 1 0;
+  min-height: 0;
   height: auto;
-  max-height: min(52vh, 100%);
+  max-height: none;
+}
+
+.session-present--lobby.session-present--qa .session-present__qa-card,
+.session-present--lobby.session-present--qa .session-present__qa-list-card {
+  flex: 0 0 auto;
+}
+
+.session-present--lobby.session-present--qa .session-present__lobby-teams-grid,
+.session-present--lobby.session-present--qa .session-present__lobby-people-cols {
+  overflow: hidden;
 }
 
 .session-present__lobby-stage {
