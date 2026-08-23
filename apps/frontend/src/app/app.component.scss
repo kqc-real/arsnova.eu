@@ -40,34 +40,6 @@
   padding-top: 0;
 }
 
-.app-main:has(app-session-present) {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.app-main:has(app-session-present) .app-main__content {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  height: auto;
-  min-height: 0;
-}
-
-.app-main:has(app-session-present) router-outlet {
-  display: none;
-  flex: 0 0 auto;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.app-main:has(app-session-present) .app-main__content > :not(router-outlet) {
-  flex: 1 1 auto;
-  min-height: 0;
-  height: auto;
-}
-
 @media (min-width: 600px) {
   .app-main--toolbar-fixed {
     padding-top: 4.5rem;

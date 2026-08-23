@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  PRESENTER_VIEW_WINDOW_NAME,
   openPresenterViewWindow,
   presenterViewPath,
+  presenterViewWindowName,
 } from './presenter-window.util';
 
 describe('presenter-window.util', () => {
@@ -20,8 +20,16 @@ describe('presenter-window.util', () => {
 
     const opened = openPresenterViewWindow(win, 'xy9k2p');
 
-    expect(open).toHaveBeenCalledWith(presenterViewPath('xy9k2p'), PRESENTER_VIEW_WINDOW_NAME);
+    expect(open).toHaveBeenCalledWith(
+      presenterViewPath('xy9k2p'),
+      presenterViewWindowName('xy9k2p'),
+    );
     expect(opened).toBeTruthy();
+  });
+
+  it('nutzt einen session-spezifischen Fensternamen', () => {
+    expect(presenterViewWindowName('abc123')).toBe('arsnova-presenter-ABC123');
+    expect(presenterViewWindowName('abc123')).not.toBe(presenterViewWindowName('xyz789'));
   });
 
   it('gibt null zurück, wenn kein Window vorhanden ist', () => {

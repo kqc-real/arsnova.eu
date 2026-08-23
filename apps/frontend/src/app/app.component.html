@@ -117,6 +117,7 @@
     id="main-content"
     class="app-main app-main--toolbar-fixed"
     [class.app-main--immersive-host]="hideAppChrome()"
+    [class.app-main--present]="isPresentRoute()"
     [class.app-main--toolbar-hidden]="toolbarHidden() && !hideAppChrome()"
     role="main"
     tabindex="0"

@@ -10,7 +10,11 @@
   [class.session-present--feedback]="showQuickFeedbackCard()"
 >
   @if (showFinishProjection()) {
-    <div class="session-present__finish" aria-labelledby="session-present-finish-title">
+    <div
+      class="session-present__finish"
+      [class.session-present__finish--paged]="personalBoardPageCount() > 1"
+      aria-labelledby="session-present-finish-title"
+    >
       <h1
         class="session-present__finish-title"
         id="session-present-finish-title"
@@ -156,6 +160,9 @@
                 >Bei Punktgleichheit entscheidet die schnellere Antwortzeit.</span
               >
             </p>
+            @if (personalBoardPageLabel(); as pageLabel) {
+              <p class="session-present__board-page" aria-live="polite">{{ pageLabel }}</p>
+            }
             <ol
               class="session-present__board-list"
               [class.session-present__board-list--overflow]="personalBoardOverflows()"
@@ -163,7 +170,10 @@
               [class.session-present__board-list--dense]="personalBoardDensity() === 'dense'"
               [style.--board-cols]="personalBoardColumnCount()"
             >
-              @for (entry of personalLeaderboard(); track entry.rank + ':' + entry.nickname) {
+              @for (
+                entry of visiblePersonalLeaderboard();
+                track entry.rank + ':' + entry.nickname
+              ) {
                 <li
                   class="session-present__board-item"
                   [class.session-present__board-item--champion]="entry.rank === 1"

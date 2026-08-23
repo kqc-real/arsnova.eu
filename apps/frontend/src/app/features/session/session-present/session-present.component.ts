@@ -110,6 +110,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private metaPollTimer: ReturnType<typeof setInterval> | null = null;
   private livePollTimer: ReturnType<typeof setInterval> | null = null;
+  private boardPageTimer: ReturnType<typeof setInterval> | null = null;
   private lobbyFoyerSequence = 0;
   private lobbyFoyerLaneCursor = 0;
   private readonly knownLobbyParticipantIds = new Set<string>();
@@ -119,6 +120,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
       this.stopPolling();
+      this.stopBoardPageTimer();
       return;
     }
     this.startPolling();
@@ -129,6 +131,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
+  private readonly personalBoardPageIndex = signal(0);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
   readonly pinnedQaQuestion = signal<QaQuestionDTO | null>(null);
   readonly presenterQaQuestions = signal<QaQuestionDTO[]>([]);
@@ -342,8 +345,47 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (count <= 32) return 5;
     if (count <= 48) return 6;
     if (count <= 72) return 8;
-    return 10;
+    if (count <= 96) return 10;
+    return 12;
   }
+
+  private static readonly BOARD_PAGE_ROWS = 18;
+  private static readonly BOARD_PAGE_MS = 8_000;
+
+  static pageSizeForParticipantTotal(count: number): number {
+    return this.columnCountForParticipantTotal(count) * this.BOARD_PAGE_ROWS;
+  }
+
+  static pageSlice<T>(entries: T[], pageIndex: number): T[] {
+    const size = this.pageSizeForParticipantTotal(entries.length);
+    if (entries.length <= size) {
+      return entries;
+    }
+    const pages = Math.ceil(entries.length / size);
+    const page = ((pageIndex % pages) + pages) % pages;
+    return entries.slice(page * size, page * size + size);
+  }
+
+  readonly visiblePersonalLeaderboard = computed(() =>
+    SessionPresentComponent.pageSlice(this.personalLeaderboard(), this.personalBoardPageIndex()),
+  );
+  readonly personalBoardPageCount = computed(() => {
+    const total = this.personalLeaderboard().length;
+    const size = SessionPresentComponent.pageSizeForParticipantTotal(total);
+    return Math.max(1, Math.ceil(total / size));
+  });
+  readonly personalBoardPageLabel = computed(() => {
+    const total = this.personalLeaderboard().length;
+    const size = SessionPresentComponent.pageSizeForParticipantTotal(total);
+    if (total <= size) {
+      return null;
+    }
+    const pages = Math.max(1, Math.ceil(total / size));
+    const page = ((this.personalBoardPageIndex() % pages) + pages) % pages;
+    const start = page * size + 1;
+    const end = Math.min(total, (page + 1) * size);
+    return $localize`:@@sessionPresent.leaderboardPage:${start}:start:–${end}:end: von ${total}:total:`;
+  });
   readonly quickFeedbackEntries = computed(() => {
     const data = this.quickFeedbackResult();
     if (!data) {
@@ -377,6 +419,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
     this.stopPolling();
+    this.stopBoardPageTimer();
     this.stopCountdown();
     this.currentQuestionSub?.unsubscribe();
     this.voteProgressSub?.unsubscribe();
@@ -422,6 +465,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       await this.loadFinishLeaderboards();
       return;
     }
+    this.stopBoardPageTimer();
     await this.refreshLiveFreetext();
     await this.refreshQaQuestions();
     await this.refreshQuickFeedbackResult();
@@ -591,6 +635,34 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     } catch {
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
+    }
+    this.syncBoardPageTimer();
+  }
+
+  private syncBoardPageTimer(): void {
+    if (!this.showFinishProjection() || this.personalBoardPageCount() <= 1) {
+      this.stopBoardPageTimer();
+      this.personalBoardPageIndex.set(0);
+      return;
+    }
+    if (this.boardPageTimer !== null) {
+      return;
+    }
+    this.boardPageTimer = setInterval(() => {
+      const pages = this.personalBoardPageCount();
+      if (pages <= 1) {
+        this.stopBoardPageTimer();
+        this.personalBoardPageIndex.set(0);
+        return;
+      }
+      this.personalBoardPageIndex.update((index) => (index + 1) % pages);
+    }, SessionPresentComponent.BOARD_PAGE_MS);
+  }
+
+  private stopBoardPageTimer(): void {
+    if (this.boardPageTimer !== null) {
+      clearInterval(this.boardPageTimer);
+      this.boardPageTimer = null;
     }
   }
 

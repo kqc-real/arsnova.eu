@@ -1,9 +1,12 @@
 import { localizePath } from '../../../core/locale-router';
 
-export const PRESENTER_VIEW_WINDOW_NAME = 'arsnova-presenter';
-
 export function presenterViewPath(sessionCode: string): string {
   return localizePath(`/session/${sessionCode.trim().toUpperCase()}/present`);
+}
+
+/** Eigener Window-Name pro Session, damit ein offenes Presenter-Fenster nicht Token/Kontext einer anderen Session wiederverwendet. */
+export function presenterViewWindowName(sessionCode: string): string {
+  return `arsnova-presenter-${sessionCode.trim().toUpperCase()}`;
 }
 
 /**
@@ -18,5 +21,5 @@ export function openPresenterViewWindow(
   if (!win) {
     return null;
   }
-  return win.open(presenterViewPath(sessionCode), PRESENTER_VIEW_WINDOW_NAME);
+  return win.open(presenterViewPath(sessionCode), presenterViewWindowName(sessionCode));
 }

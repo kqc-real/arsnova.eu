@@ -18853,6 +18853,10 @@
           <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPage" datatype="html">
+        <source><x id="start" equiv-text="start"/>–<x id="end" equiv-text="end"/> von <x id="total" equiv-text="total"/></source>
+        <target><x id="start" equiv-text="start"/>–<x id="end" equiv-text="end"/> of <x id="total" equiv-text="total"/></target>
+      </trans-unit>
       <trans-unit id="sessionPresent.teamLeaderboardTitle" datatype="html">
         <source>Team-Leaderboard</source>
         <target>Team leaderboard</target>

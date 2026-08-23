@@ -496,6 +496,63 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('paginiert Leaderboards, die nicht auf eine Beamerseite passen', () => {
+    expect(SessionPresentComponent.columnCountForParticipantTotal(500)).toBe(12);
+    expect(SessionPresentComponent.pageSizeForParticipantTotal(24)).toBeGreaterThan(24);
+    expect(SessionPresentComponent.pageSizeForParticipantTotal(500)).toBe(216);
+    expect(
+      SessionPresentComponent.pageSlice(
+        Array.from({ length: 500 }, (_, i) => i),
+        0,
+      ),
+    ).toHaveLength(216);
+    expect(
+      SessionPresentComponent.pageSlice(
+        Array.from({ length: 500 }, (_, i) => i),
+        2,
+      ),
+    ).toEqual(Array.from({ length: 68 }, (_, i) => i + 432));
+  });
+
+  it('zeigt große Leaderboards seitenweise statt sie hinter overflow:hidden abzuschneiden', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Hörsaal-Quiz',
+      title: null,
+      participantCount: 250,
+      teamMode: false,
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 250 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Spieler ${index + 1}`,
+        totalScore: 2500 - index,
+        correctCount: 12,
+        totalQuestions: 12,
+        totalResponseTimeMs: 1000 + index * 10,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const pageSize = SessionPresentComponent.pageSizeForParticipantTotal(250);
+    const items = fixture.nativeElement.querySelectorAll('.session-present__board-item');
+    expect(items.length).toBe(pageSize);
+    expect(fixture.nativeElement.textContent).toContain('Spieler 1');
+    expect(fixture.nativeElement.textContent).not.toContain('Spieler 250');
+    expect(fixture.nativeElement.querySelector('.session-present__board-page')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__finish--paged')).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('zeigt im Fehlerzustand einen direkten Link zur Startseite', async () => {
     getInfoQueryMock.mockRejectedValue(new Error('Session nicht gefunden.'));
 

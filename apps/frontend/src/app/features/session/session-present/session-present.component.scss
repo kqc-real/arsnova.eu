@@ -1,3 +1,31 @@
+::ng-deep .app-main--present {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+::ng-deep .app-main--present .app-main__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+::ng-deep .app-main--present router-outlet {
+  display: none;
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+::ng-deep .app-main--present .app-main__content > :not(router-outlet) {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
 :host {
   display: flex;
   flex-direction: column;
@@ -669,6 +697,10 @@ app-session-projection-quiz,
   grid-template-rows: auto minmax(0, 1fr) minmax(0, max-content) auto;
 }
 
+.session-present__finish--paged {
+  grid-template-rows: auto minmax(7rem, 1fr) minmax(0, max-content) minmax(0, max-content) auto;
+}
+
 .session-present__finish-hero {
   display: grid;
   grid-area: hero;
@@ -902,6 +934,14 @@ app-session-projection-quiz,
   margin: 0 0 0.45rem;
   color: var(--mat-sys-on-surface-variant);
   font-size: 0.9rem;
+}
+
+.session-present__board-page {
+  margin: 0 0 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+  font-weight: 600;
+  text-align: center;
 }
 
 .session-present__board-list {
