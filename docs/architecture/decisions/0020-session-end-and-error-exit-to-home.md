@@ -28,7 +28,7 @@ Views, die bereits **in einer laufenden Session** sind und deren Session-Kontext
 
 Das gilt insbesondere fuer:
 
-- Presenter (`/session/:code/present`) bei `FINISHED`
+- Presenter (`/session/:code/present`) bei `FINISHED`, sofern kein Abschluss-Gate (Gesamtauswertung/Leaderboard) angezeigt wird
 - Vote (`/session/:code/vote`) bei `FINISHED`, sofern kein explizites Abschluss-Gate offen bleiben muss; `FINISHED` hat dabei Vorrang vor dem gerade aktiven Live-Kanal (`Quiz`, `Q&A`, `Blitzlicht`)
 - Host (`/session/:code/host`) bei verwaister oder serverseitig bereits beendeter Session, wenn eine Host-Aktion wie `session.end` keine gueltige Session mehr findet
 
@@ -113,6 +113,7 @@ Stand 2026-04-06:
 - Presenter zeigt bei fehlender oder ungueltiger Session-Metadatenlage eine lokale CTA `Zur Startseite`; Live-Freitext-Refreshes ueberschreiben den Fehlerzustand dann nicht mehr.
 - Standalone-Blitzlicht-Vote zeigt im Fehlerzustand eine lokale CTA `Zur Startseite`.
 - Vote behaelt das bestehende Abschluss-Gate fuer Bonus-Code bzw. Session-Feedback und fuehrt von dort ueber eine explizite CTA zur Startseite.
+- **Presenter-Gesamtauswertung:** Bei `FINISHED` bleibt `/session/:code/present` auf einem Abschluss-Gate mit vollständigem persönlichem Leaderboard, optionalem Team-Leaderboard und extra großem Rang-1. Die lokale Home-CTA bleibt sichtbar.
 
 Stand 2026-05-31:
 

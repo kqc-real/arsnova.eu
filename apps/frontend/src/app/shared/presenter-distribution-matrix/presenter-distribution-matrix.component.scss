@@ -3,6 +3,20 @@
   min-width: 0;
 }
 
+:host-context(.session-projection-quiz) .distribution-matrix__title {
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+}
+
+:host-context(.session-projection-quiz) th,
+:host-context(.session-projection-quiz) td {
+  padding: 0.4rem 0.5rem;
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+}
+
+:host-context(.session-projection-quiz) .distribution-matrix__count {
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+
 .distribution-matrix {
   max-width: 100%;
   overflow: auto;

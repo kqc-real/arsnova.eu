@@ -14,6 +14,7 @@ const FINGER_IMAGES: Record<number, string> = {
   standalone: true,
   host: {
     '[class.countdown-fingers-host--viewport]': 'size() === "small"',
+    '[class.countdown-fingers-host--present]': 'size() === "present"',
   },
   template: `
     @if (imageSrc()) {
@@ -21,6 +22,7 @@ const FINGER_IMAGES: Record<number, string> = {
         class="countdown-fingers"
         [class.countdown-fingers--large]="size() === 'large'"
         [class.countdown-fingers--small]="size() === 'small'"
+        [class.countdown-fingers--present]="size() === 'present'"
         role="img"
         [attr.aria-label]="ariaLabel()"
       >
@@ -32,6 +34,15 @@ const FINGER_IMAGES: Record<number, string> = {
     `
       :host {
         display: contents;
+      }
+
+      :host.countdown-fingers-host--present {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
       }
 
       :host.countdown-fingers-host--viewport {
@@ -80,6 +91,23 @@ const FINGER_IMAGES: Record<number, string> = {
         }
       }
 
+      .countdown-fingers--present {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+
+        .countdown-fingers__img {
+          width: auto;
+          height: auto;
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .countdown-fingers {
           .countdown-fingers__img {
@@ -112,7 +140,7 @@ const FINGER_IMAGES: Record<number, string> = {
 })
 export class CountdownFingersComponent {
   readonly seconds = input.required<number>();
-  readonly size = input<'small' | 'large'>('small');
+  readonly size = input<'small' | 'large' | 'present'>('small');
 
   readonly imageSrc = computed(() => {
     const s = this.seconds();

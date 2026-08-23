@@ -77,6 +77,7 @@ import {
   type SessionLiveChannel,
   type SessionInfoDTO,
   type SessionStatus,
+  type LeaderboardEntryDTO,
   type TeamDTO,
   type TeamLeaderboardEntryDTO,
   type TimerAccommodation,
@@ -553,6 +554,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly participantTeam = signal<ParticipantDTO | null>(null);
   readonly sessionTeams = signal<TeamDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
+  readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
+  readonly teamLeaderboardWinner = computed(() => {
+    const winner = this.teamLeaderboard()[0] ?? null;
+    if (!winner || !this.teamScoreboardHasPoints()) {
+      return null;
+    }
+    return winner;
+  });
   readonly playerTeamName = computed(() => this.participantTeam()?.teamName ?? null);
   readonly playerTeamColor = computed(() => {
     const teamName = this.playerTeamName();
@@ -584,6 +594,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nick = this.playerNickname()?.trim();
     return nick ? findKindergartenNicknameEmoji(nick) : null;
   });
+
+  leaderboardKindergartenEmoji(nickname: string): string | null {
+    if (!this.usesKindergartenNicknames()) return null;
+    const nick = nickname.trim();
+    return nick ? findKindergartenNicknameEmoji(nick) : null;
+  }
 
   readonly playerKindergartenBadgeLabel = computed((): string | null => {
     if (!this.usesKindergartenNicknames()) return null;
@@ -1155,6 +1171,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
   readonly visibleTeamLeaderboard = computed(() => {
     const leaderboard = this.teamLeaderboard();
+    if (this.isFinished()) {
+      return leaderboard;
+    }
     const ownEntry = this.ownTeamEntry();
     if (leaderboard.length <= 3 || !ownEntry || ownEntry.rank <= 3) {
       return leaderboard.slice(0, 3);
@@ -2910,6 +2929,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           await this.refreshFeedbackSubmittedForGate();
         }
       }
+      await Promise.all([this.loadPersonalLeaderboard(), this.loadTeamRewardState()]);
       const bonus = this.bonusToken();
       const hasBonus = typeof bonus === 'string' && bonus.length > 0;
       const needsFeedback =
@@ -5131,6 +5151,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionTeams.set(payload.teams);
     } catch {
       this.sessionTeams.set([]);
+    }
+  }
+
+  private async loadPersonalLeaderboard(): Promise<void> {
+    if (!this.code) {
+      this.personalLeaderboard.set([]);
+      return;
+    }
+    try {
+      const entries = await trpc.session.getLeaderboard.query({
+        code: this.code,
+        anonymousClientId: getAnonymousClientId(),
+      });
+      this.personalLeaderboard.set(entries);
+    } catch {
+      this.personalLeaderboard.set([]);
     }
   }
 

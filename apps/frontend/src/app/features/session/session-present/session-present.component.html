@@ -1,85 +1,500 @@
 <section
-  class="session-present l-stack l-stack--sm"
+  class="session-present"
   appMarkdownImageLightbox
+  [class.session-present--finish]="showFinishProjection()"
   [class.session-present--team-finale]="showTeamFinish()"
+  [class.session-present--lobby]="showLobbyProjection()"
+  [class.session-present--quiz]="showQuizProjection()"
+  [class.session-present--freetext]="showPresenterFreetextResultsStage()"
+  [class.session-present--qa]="showPinnedQaQuestion() || showQaQueue()"
+  [class.session-present--feedback]="showQuickFeedbackCard()"
 >
-  @if (showTeamFinish() && winningTeam(); as winner) {
-    <mat-card appearance="outlined" class="session-present__winner-card">
-      <mat-card-content>
-        @if (isPlayfulPreset()) {
-          <div class="session-present__confetti" aria-hidden="true">
-            @for (piece of [0, 1, 2, 3, 4, 5, 6, 7]; track piece) {
-              <span class="session-present__confetti-piece" [style.--i]="piece"></span>
+  @if (showFinishProjection()) {
+    <div
+      class="session-present__finish"
+      [class.session-present__finish--paged]="personalBoardPageCount() > 1"
+      aria-labelledby="session-present-finish-title"
+    >
+      <h1
+        class="session-present__finish-title"
+        id="session-present-finish-title"
+        i18n="@@sessionPresent.finishTitle"
+      >
+        Gesamtauswertung
+      </h1>
+
+      @if (personalLeaderboardWinner() || showTeamFinish()) {
+        <div
+          class="session-present__finish-hero"
+          [class.session-present__finish-hero--with-teams]="showTeamFinish()"
+        >
+          @if (personalLeaderboardWinner(); as winner) {
+            <mat-card
+              appearance="outlined"
+              class="session-present__winner-card session-present__winner-card--champion"
+              data-testid="presenter-personal-winner"
+            >
+              <mat-card-content>
+                @if (isPlayfulPreset()) {
+                  <div class="session-present__confetti" aria-hidden="true">
+                    @for (piece of [0, 1, 2, 3, 4, 5, 6, 7]; track piece) {
+                      <span class="session-present__confetti-piece" [style.--i]="piece"></span>
+                    }
+                  </div>
+                }
+                <div class="session-present__winner-head">
+                  <span class="session-present__winner-trophy" aria-hidden="true">🏆</span>
+                  <p
+                    class="session-present__winner-label"
+                    i18n="@@sessionHost.leaderboardWinnerLabel"
+                  >
+                    Gewonnen hat
+                  </p>
+                </div>
+                <p class="session-present__winner-name session-present__winner-name--champion">
+                  @if (leaderboardKindergartenEmoji(winner.nickname); as emoji) {
+                    <span
+                      class="session-present__winner-emoji session-present__winner-emoji--hero"
+                      aria-hidden="true"
+                      >{{ emoji }}</span
+                    >
+                  }
+                  <span class="session-present__winner-identity">
+                    <span>{{ winner.nickname }}</span>
+                    @if (winner.teamName; as teamName) {
+                      <span
+                        class="session-present__participant-team-icon session-present__participant-team-icon--hero"
+                        [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                        [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                      >
+                        @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                          <span aria-hidden="true">{{ teamEmoji }}</span>
+                        } @else {
+                          <span
+                            class="session-present__participant-team-dot session-present__participant-team-dot--hero"
+                            [style.background]="winner.teamColor || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                        }
+                      </span>
+                    }
+                  </span>
+                </p>
+                <p class="session-present__winner-meta" i18n="@@sessionHost.leaderboardWinnerMeta">
+                  Mit {{ winner.totalScore | number }} Punkten
+                </p>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @if (showTeamFinish() && winningTeam(); as winner) {
+            <mat-card
+              appearance="outlined"
+              class="session-present__winner-card session-present__winner-card--champion session-present__winner-card--team"
+              data-testid="presenter-team-winner"
+            >
+              <mat-card-content>
+                @if (isPlayfulPreset()) {
+                  <div class="session-present__confetti" aria-hidden="true">
+                    @for (piece of [0, 1, 2, 3, 4, 5, 6, 7]; track piece) {
+                      <span class="session-present__confetti-piece" [style.--i]="piece"></span>
+                    }
+                  </div>
+                }
+                <div class="session-present__winner-head">
+                  <span class="session-present__winner-trophy" aria-hidden="true">🏆</span>
+                  <p
+                    class="session-present__winner-label"
+                    i18n="@@sessionHost.leaderboardWinnerLabel"
+                  >
+                    Gewonnen hat
+                  </p>
+                </div>
+                <p class="session-present__winner-name session-present__winner-name--champion">
+                  @if (teamNameEmojiMarker(winner.teamName); as teamEmoji) {
+                    <span
+                      class="session-present__winner-emoji session-present__winner-emoji--hero"
+                      aria-hidden="true"
+                      >{{ teamEmoji }}</span
+                    >
+                  } @else {
+                    <span
+                      class="session-present__winner-dot session-present__winner-dot--champion"
+                      [style.background]="winner.teamColor || 'var(--mat-sys-primary)'"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span>{{ teamNameLabelWithoutEmojiMarker(winner.teamName) }}</span>
+                </p>
+                @if (winningTeamLabel(winner); as winnerText) {
+                  <p class="session-present__winner-text">{{ winnerText }}</p>
+                }
+                <p class="session-present__winner-meta">
+                  {{ teamMemberLabel(winner.memberCount) }} ·
+                  {{ '∅ ' + (winner.totalScore | number) }}
+                  <span i18n>Punkte</span>
+                </p>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+
+      @if (personalLeaderboard().length > 0) {
+        <mat-card
+          appearance="outlined"
+          class="session-present__board-card"
+          aria-labelledby="session-present-personal-board"
+        >
+          <mat-card-content>
+            <h2
+              class="session-present__board-title"
+              id="session-present-personal-board"
+              i18n="@@sessionPresent.leaderboardTitle"
+            >
+              Leaderboard
+            </h2>
+            <p class="session-present__board-hint">
+              <mat-icon aria-hidden="true">timer</mat-icon>
+              <span i18n="@@sessionHost.leaderboardTiebreakHint"
+                >Bei Punktgleichheit entscheidet die schnellere Antwortzeit.</span
+              >
+            </p>
+            @if (personalBoardPageLabel(); as pageLabel) {
+              <p class="session-present__board-page" aria-live="polite">{{ pageLabel }}</p>
             }
+            <ol
+              class="session-present__board-list"
+              [class.session-present__board-list--overflow]="personalBoardOverflows()"
+              [class.session-present__board-list--compact]="personalBoardDensity() === 'compact'"
+              [class.session-present__board-list--dense]="personalBoardDensity() === 'dense'"
+              [style.--board-cols]="personalBoardColumnCount()"
+            >
+              @for (
+                entry of visiblePersonalLeaderboard();
+                track entry.rank + ':' + entry.nickname
+              ) {
+                <li
+                  class="session-present__board-item"
+                  [class.session-present__board-item--champion]="entry.rank === 1"
+                  [class.session-present__board-item--silver]="entry.rank === 2"
+                  [class.session-present__board-item--bronze]="entry.rank === 3"
+                >
+                  <span class="session-present__board-lead">
+                    <span class="session-present__board-rank">
+                      @if (entry.rank === 1) {
+                        <span
+                          class="session-present__board-medal session-present__board-medal--gold"
+                          aria-hidden="true"
+                          >🥇</span
+                        >
+                        <span class="sr-only">{{ entry.rank }}</span>
+                      } @else if (entry.rank === 2) {
+                        <span
+                          class="session-present__board-medal session-present__board-medal--silver"
+                          aria-hidden="true"
+                          >🥈</span
+                        >
+                        <span class="sr-only">{{ entry.rank }}</span>
+                      } @else if (entry.rank === 3) {
+                        <span
+                          class="session-present__board-medal session-present__board-medal--bronze"
+                          aria-hidden="true"
+                          >🥉</span
+                        >
+                        <span class="sr-only">{{ entry.rank }}</span>
+                      } @else {
+                        {{ entry.rank }}
+                      }
+                    </span>
+                    @if (leaderboardKindergartenEmoji(entry.nickname); as emoji) {
+                      <span class="session-present__board-emoji" aria-hidden="true">{{
+                        emoji
+                      }}</span>
+                    }
+                  </span>
+                  <span class="session-present__board-name">{{ entry.nickname }}</span>
+                  <span class="session-present__board-tail">
+                    @if (entry.teamName; as teamName) {
+                      <span
+                        class="session-present__participant-team-icon"
+                        [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                        [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                      >
+                        @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                          <span aria-hidden="true">{{ teamEmoji }}</span>
+                        } @else {
+                          <span
+                            class="session-present__participant-team-dot"
+                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                        }
+                      </span>
+                    }
+                    <span class="session-present__board-score">{{
+                      entry.totalScore | number
+                    }}</span>
+                  </span>
+                </li>
+              }
+            </ol>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (showTeamFinish()) {
+        <mat-card
+          appearance="outlined"
+          class="session-present__team-board-card"
+          data-testid="presenter-team-board"
+        >
+          <mat-card-content>
+            <h2
+              class="session-present__team-board-title"
+              i18n="@@sessionPresent.teamLeaderboardTitle"
+            >
+              Team-Leaderboard
+            </h2>
+            <ol class="session-present__team-board-list">
+              @for (entry of teamLeaderboard(); track entry.rank + ':' + entry.teamName) {
+                <li
+                  class="session-present__team-board-item"
+                  [class.session-present__team-board-item--winner]="
+                    teamScoreboardHasPoints() && entry.rank === 1
+                  "
+                >
+                  <div class="session-present__team-board-head">
+                    <span
+                      class="session-present__team-board-rank"
+                      [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                      >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
+                    >
+                    <span class="session-present__team-board-name">
+                      @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                        <span class="session-present__team-board-emoji" aria-hidden="true">{{
+                          teamEmoji
+                        }}</span>
+                      } @else {
+                        <span
+                          class="session-present__team-board-dot"
+                          [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                          aria-hidden="true"
+                        ></span>
+                      }
+                      {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
+                    </span>
+                    <span class="session-present__team-board-meta">
+                      {{ teamMemberLabel(entry.memberCount) }} ·
+                      {{ '∅ ' + (entry.totalScore | number) }}
+                    </span>
+                  </div>
+                  <div class="session-present__team-board-track" aria-hidden="true">
+                    <div
+                      class="session-present__team-board-fill"
+                      [style.width]="teamScoreBarWidth(entry.totalScore)"
+                      [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ol>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (personalLeaderboard().length === 0 && teamLeaderboard().length === 0) {
+        <mat-card appearance="outlined" class="session-placeholder">
+          <mat-card-content>
+            <p class="session-placeholder__text" i18n="@@sessionPresent.finishEmpty">
+              Die Session ist beendet.
+            </p>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <a matButton="filled" [routerLink]="localizedPath('/')" class="session-present__finish-home">
+        <mat-icon>home</mat-icon>
+        <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
+      </a>
+    </div>
+  } @else {
+    @if (showLobbyProjection()) {
+      <div
+        class="session-present__lobby-stage"
+        [class.session-present__lobby-stage--with-motif]="!!session()?.quizMotifImageUrl"
+      >
+        @if (showLobbyFoyerOverlay()) {
+          <div class="session-present__lobby-foyer" aria-hidden="true">
+            <app-foyer-entrance-layer [chips]="lobbyFoyerOverlayChips()" [overlay]="true" />
           </div>
         }
-        <div class="session-present__winner-head">
-          <mat-icon class="session-present__winner-icon" aria-hidden="true">emoji_events</mat-icon>
-          <p class="session-present__winner-label" i18n>Team-Sieg</p>
-        </div>
-        <h1 class="session-present__winner-name">
-          <span
-            class="session-present__winner-dot"
-            [style.background]="winner.teamColor || 'var(--mat-sys-primary)'"
-            aria-hidden="true"
-          ></span>
-          {{ winner.teamName }}
-        </h1>
-        @if (winningTeamLabel(winner); as winnerText) {
-          <p class="session-present__winner-text">{{ winnerText }}</p>
+
+        @if (session()?.quizMotifImageUrl; as motifUrl) {
+          <figure class="session-present__lobby-motif-col">
+            <img
+              class="session-present__lobby-motif"
+              [src]="motifUrl"
+              i18n-alt="@@sessionHost.quizMotifImageAlt"
+              alt="Motivbild zum Quiz"
+              data-markdown-image-lightbox="true"
+              loading="eager"
+              decoding="async"
+              referrerpolicy="strict-origin-when-cross-origin"
+              (error)="onPresenterImageError($event)"
+            />
+          </figure>
         }
-        <p class="session-present__winner-meta">
-          {{ teamMemberLabel(winner.memberCount) }} · {{ '∅ ' + (winner.totalScore | number) }}
-          <span i18n>Punkte</span>
-        </p>
-      </mat-card-content>
-    </mat-card>
 
-    <mat-card appearance="outlined" class="session-present__team-board-card">
-      <mat-card-content>
-        <h2 class="session-present__team-board-title" i18n>Team-Finale</h2>
-        <ol class="session-present__team-board-list">
-          @for (entry of teamLeaderboard(); track entry.rank) {
-            <li
-              class="session-present__team-board-item"
-              [class.session-present__team-board-item--winner]="
-                teamScoreboardHasPoints() && entry.rank === 1
-              "
+        <mat-card appearance="outlined" class="session-present__lobby-card">
+          <mat-card-content class="session-present__lobby">
+            <p class="session-present__lobby-label" i18n="@@sessionPresent.lobbyLabel">Beitritt</p>
+            <p class="session-present__lobby-code">{{ sessionCode }}</p>
+            @if (joinQrDataUrl()) {
+              <img
+                class="session-present__lobby-qr app-qr-image"
+                [src]="joinQrDataUrl()"
+                [alt]="joinUrl"
+                width="280"
+                height="280"
+              />
+            }
+            <p class="session-present__lobby-hint" i18n="@@sessionPresent.lobbyHint">
+              Mit Code oder QR-Code teilnehmen.
+            </p>
+          </mat-card-content>
+        </mat-card>
+
+        <section
+          class="session-present__lobby-audience"
+          aria-labelledby="session-present-lobby-audience"
+        >
+          <h2 id="session-present-lobby-audience" class="session-present__lobby-audience-title">
+            <span i18n="@@sessionPresent.lobbyAudienceTitle">Warten auf die Teilnehmenden...</span>
+            <span class="session-present__lobby-audience-count" aria-live="polite">{{
+              lobbyAudienceCountLabel()
+            }}</span>
+          </h2>
+          @if (lobbyTeamsView().length > 0) {
+            <div
+              class="session-present__lobby-teams-grid"
+              [style.--lobby-audience-cols]="lobbyTeamsView().length"
+              tabindex="0"
+              role="region"
+              aria-labelledby="session-present-lobby-audience"
             >
-              <div class="session-present__team-board-head">
-                <span
-                  class="session-present__team-board-rank"
-                  [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
-                  >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
+              @for (team of lobbyTeamsView(); track team.id) {
+                <article
+                  class="session-present__lobby-team"
+                  [style.--team-accent]="team.color || 'var(--mat-sys-primary)'"
                 >
-                <span class="session-present__team-board-name">
-                  <span
-                    class="session-present__team-board-dot"
-                    [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                    aria-hidden="true"
-                  ></span>
-                  {{ entry.teamName }}
-                </span>
-                <span class="session-present__team-board-meta">
-                  {{ teamMemberLabel(entry.memberCount) }} ·
-                  {{ '∅ ' + (entry.totalScore | number) }}
-                </span>
-              </div>
-              <div class="session-present__team-board-track" aria-hidden="true">
-                <div
-                  class="session-present__team-board-fill"
-                  [style.width]="teamScoreBarWidth(entry.totalScore)"
-                  [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                ></div>
-              </div>
-            </li>
+                  <header class="session-present__lobby-team-head">
+                    <span class="session-present__lobby-team-dot" aria-hidden="true"></span>
+                    <h3 class="session-present__lobby-team-name">{{ team.name }}</h3>
+                    <span class="session-present__lobby-team-count">{{
+                      teamMemberLabel(team.memberCount)
+                    }}</span>
+                  </header>
+                  @if (showLobbyTeamFoyer()) {
+                    <div class="session-present__lobby-team-foyer">
+                      <app-foyer-entrance-layer
+                        [chips]="foyerChipsForTeam(team.id)"
+                        [compact]="true"
+                        [overlay]="true"
+                      />
+                    </div>
+                  }
+                  @if (team.members.length > 0) {
+                    <ul class="session-present__lobby-team-members" role="list">
+                      @for (member of team.members; track member.id) {
+                        <li>
+                          <span class="session-present__lobby-nick" [attr.title]="member.nickname">
+                            @if (lobbyNicknameBadge(member.nickname); as badge) {
+                              <span class="session-present__lobby-nick-icon" aria-hidden="true">{{
+                                badge.emoji
+                              }}</span>
+                              @if (badge.sequence) {
+                                <span class="session-present__lobby-nick-seq" aria-hidden="true">{{
+                                  badge.sequence
+                                }}</span>
+                              }
+                            } @else {
+                              <mat-icon
+                                class="session-present__lobby-nick-mat-icon"
+                                aria-hidden="true"
+                                >person</mat-icon
+                              >
+                            }
+                            <span class="session-present__lobby-nick-text">{{
+                              member.nickname
+                            }}</span>
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </article>
+              }
+            </div>
+          } @else if (lobbyPeople().length > 0) {
+            <div
+              class="session-present__lobby-people-cols"
+              [style.--lobby-audience-cols]="lobbyPeople().length"
+              tabindex="0"
+              role="region"
+              aria-labelledby="session-present-lobby-audience"
+            >
+              @for (person of lobbyPeople(); track person.id) {
+                <article class="session-present__lobby-person-col">
+                  <div class="session-present__lobby-person-foyer" aria-hidden="true">
+                    <app-foyer-entrance-layer
+                      [chips]="foyerChipsForPerson(person.id)"
+                      [compact]="true"
+                      [overlay]="true"
+                    />
+                  </div>
+                  <p class="session-present__lobby-person">
+                    @if (session()?.anonymousMode) {
+                      ?
+                    } @else {
+                      <span class="session-present__lobby-nick" [attr.title]="person.nickname">
+                        @if (lobbyNicknameBadge(person.nickname); as badge) {
+                          <span class="session-present__lobby-nick-icon" aria-hidden="true">{{
+                            badge.emoji
+                          }}</span>
+                          @if (badge.sequence) {
+                            <span class="session-present__lobby-nick-seq" aria-hidden="true">{{
+                              badge.sequence
+                            }}</span>
+                          }
+                        } @else {
+                          <mat-icon class="session-present__lobby-nick-mat-icon" aria-hidden="true"
+                            >person</mat-icon
+                          >
+                        }
+                        <span class="session-present__lobby-nick-text">{{ person.nickname }}</span>
+                      </span>
+                    }
+                  </p>
+                </article>
+              }
+            </div>
           }
-        </ol>
-      </mat-card-content>
-    </mat-card>
-  }
+        </section>
+      </div>
+    }
 
-  @if (!showTeamFinish()) {
+    @if (showQuizProjection() && !showPresenterFreetextResultsStage()) {
+      <app-session-projection-quiz
+        [question]="hostQuestion()"
+        [status]="session()?.status ?? null"
+        [voteProgress]="hostVoteProgress()"
+        [participantCount]="session()?.participantCount ?? 0"
+        [countdownSeconds]="countdownSeconds()"
+        [motifImageUrl]="session()?.quizMotifImageUrl ?? null"
+      />
+    }
+
     @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
       <mat-card appearance="outlined" class="session-present__qa-card">
         <mat-card-content>
@@ -123,7 +538,7 @@
           </div>
 
           <div class="session-present__qa-list" role="list">
-            @for (question of presenterQaQuestions(); track question.id) {
+            @for (question of visibleQaQueueQuestions(); track question.id) {
               <article class="session-present__qa-list-item" role="listitem">
                 <div class="session-present__qa-list-votes">
                   <mat-icon aria-hidden="true">thumb_up</mat-icon>
@@ -140,7 +555,7 @@
       </mat-card>
     }
 
-    @if (presenterQaWordCloudQuestions().length > 0) {
+    @if (showQaWordCloud()) {
       <section class="session-present__word-cloud-card">
         <app-word-cloud
           [responses]="presenterQaWordCloudResponses()"
@@ -231,7 +646,7 @@
       </mat-card>
     }
 
-    @if (showPresenterFreetextStage()) {
+    @if (showPresenterFreetextResultsStage()) {
       <app-word-cloud
         class="session-present__word-cloud-stage"
         [responses]="freetextResponses()"
@@ -243,7 +658,7 @@
         [presentationMode]="true"
         [outputOnly]="true"
       />
-    } @else {
+    } @else if (!showQuizProjection() && !showLobbyProjection()) {
       <mat-card appearance="outlined" class="session-placeholder">
         <mat-card-content>
           <p class="session-placeholder__text">{{ presenterInfo() }}</p>
