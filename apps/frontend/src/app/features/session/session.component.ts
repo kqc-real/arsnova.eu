@@ -10,7 +10,8 @@ import { recordServerTimeSample } from './session-server-clock';
 
 /**
  * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote. Redirect '' → host.
- * Host-Route ohne l-section, damit die Host-Ansicht volle Toolbar-Breite (56rem) nutzen kann.
+ * Host- und Present-Route ohne l-page/l-section: Host braucht die volle Steuerbreite,
+ * Present die volle HDMI-/Beamer-Bühne.
  */
 @Component({
   selector: 'app-session',
@@ -24,6 +25,8 @@ export class SessionComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   /** true wenn Host-Route aktiv (dann keine l-section-Begrenzung). */
   isHostRoute = signal(false);
+  /** true wenn Present-Route aktiv (volle Projektionsfläche). */
+  isPresentRoute = signal(false);
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -71,5 +74,6 @@ export class SessionComponent implements OnInit, OnDestroy {
     const childPath =
       this.route.firstChild?.routeConfig?.path ?? this.route.snapshot.firstChild?.routeConfig?.path;
     this.isHostRoute.set(childPath === 'host');
+    this.isPresentRoute.set(childPath === 'present');
   }
 }

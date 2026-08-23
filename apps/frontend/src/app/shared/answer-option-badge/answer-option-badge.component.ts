@@ -51,6 +51,8 @@ import {
         --answer-option-badge-icon-size: 64%;
         --answer-option-badge-stroke-width: 2.6;
         --answer-option-badge-offset-y: -1px;
+        --answer-option-badge-fill: none;
+        --answer-option-badge-stroke: currentColor;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -65,8 +67,8 @@ import {
         width: var(--answer-option-badge-icon-size);
         height: var(--answer-option-badge-icon-size);
         display: block;
-        fill: none;
-        stroke: currentColor;
+        fill: var(--answer-option-badge-fill);
+        stroke: var(--answer-option-badge-stroke);
         stroke-linecap: round;
         stroke-linejoin: round;
         stroke-width: var(--answer-option-badge-stroke-width);

@@ -142,6 +142,37 @@
               }}</mat-icon>
             </button>
 
+            <button
+              mat-button
+              type="button"
+              class="session-host__view-toggle session-host__view-toggle--labeled"
+              data-testid="open-presenter-view"
+              (click)="openPresenterView()"
+              i18n-aria-label="@@sessionHost.presenterViewAria"
+              aria-label="Presenter-Ansicht in neuem Tab öffnen"
+              i18n-matTooltip="@@sessionHost.presenterViewTooltip"
+              matTooltip="Presenter-Ansicht (Beamer)"
+              matTooltipTouchGestures="off"
+            >
+              <span class="session-host__view-toggle-content">
+                <svg
+                  class="session-host__view-toggle-icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                  />
+                </svg>
+                <span
+                  class="session-host__view-toggle-label"
+                  i18n="@@sessionHost.presenterViewLabel"
+                  >Presenter-Ansicht</span
+                >
+              </span>
+            </button>
             @if (isFullscreenSupported()) {
               <button
                 mat-icon-button
@@ -354,6 +385,38 @@
                       <mat-icon aria-hidden="true">{{
                         isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
                       }}</mat-icon>
+                    </button>
+
+                    <button
+                      mat-button
+                      type="button"
+                      class="session-host__view-toggle session-host__view-toggle--labeled"
+                      data-testid="open-presenter-view"
+                      (click)="openPresenterView()"
+                      i18n-aria-label="@@sessionHost.presenterViewAria"
+                      aria-label="Presenter-Ansicht in neuem Tab öffnen"
+                      i18n-matTooltip="@@sessionHost.presenterViewTooltip"
+                      matTooltip="Presenter-Ansicht (Beamer)"
+                      matTooltipTouchGestures="off"
+                    >
+                      <span class="session-host__view-toggle-content">
+                        <svg
+                          class="session-host__view-toggle-icon"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                          />
+                        </svg>
+                        <span
+                          class="session-host__view-toggle-label"
+                          i18n="@@sessionHost.presenterViewLabel"
+                          >Presenter-Ansicht</span
+                        >
+                      </span>
                     </button>
 
                     @if (isFullscreenSupported()) {
@@ -1083,12 +1146,41 @@
                       <mat-icon aria-hidden="true">groups</mat-icon>
                       <span i18n>Team-Leaderboard</span>
                     </h2>
+                    @if (teamScoreboardHasPoints() && teamLeaderboard()[0]; as teamWinner) {
+                      <div class="session-host__leaderboard-winner">
+                        <p class="session-host__leaderboard-winner-label">
+                          <span
+                            class="session-host__lb-medal session-host__lb-medal--trophy"
+                            aria-hidden="true"
+                            >🏆</span
+                          >
+                          <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
+                        </p>
+                        <p class="session-host__leaderboard-winner-name">
+                          <span class="session-host__leaderboard-winner-name-line">
+                            @if (teamNameEmojiMarker(teamWinner.teamName); as teamEmoji) {
+                              <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            }
+                            <span>{{ teamNameLabelWithoutEmojiMarker(teamWinner.teamName) }}</span>
+                          </span>
+                        </p>
+                        <p class="session-host__leaderboard-winner-meta">
+                          {{ teamMemberLabel(teamWinner.memberCount) }} ·
+                          {{ '∅ ' + (teamWinner.totalScore | number) }}
+                        </p>
+                      </div>
+                    }
                     <ol class="session-host__team-bars">
                       @for (entry of teamLeaderboard(); track entry.rank) {
                         <li
                           class="session-host__team-bar-item"
                           [class.session-host__team-bar-item--top3]="
                             teamScoreboardHasPoints() && entry.rank <= 3
+                          "
+                          [class.session-host__team-bar-item--champion]="
+                            teamScoreboardHasPoints() && entry.rank === 1
                           "
                         >
                           <div class="session-host__team-bar-head">

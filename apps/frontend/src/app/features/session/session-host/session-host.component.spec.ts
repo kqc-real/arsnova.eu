@@ -915,6 +915,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('.session-host__view-controls--inline'),
     ).not.toBeNull();
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(presenterButton).not.toBeNull();
+    expect(presenterButton?.textContent).toContain('Presenter-Ansicht');
+    expect(presenterButton?.querySelector('svg.session-host__view-toggle-icon')).not.toBeNull();
     fixture.destroy();
   });
 

@@ -72,6 +72,7 @@ import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
+import { openPresenterViewWindow } from '../session-present/presenter-window.util';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
@@ -4245,6 +4246,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   toggleHostFrameMode(): void {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
+  }
+
+  openPresenterView(): void {
+    const opened = openPresenterViewWindow(this.document.defaultView, this.code);
+    if (!opened) {
+      this.snackBar.open(
+        $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
+        '',
+        { duration: 6000 },
+      );
+    }
   }
 
   private getFullscreenElement(): Element | null {

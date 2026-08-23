@@ -1,11 +1,15 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, LOCALE_ID, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
+import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
+import type { Unsubscribable } from '@trpc/server/observable';
+import { HostDisplayModeService } from '../../../core/host-display-mode.service';
+import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
 import {
   localizeKnownServerError,
   sessionNotFoundUiMessage,
@@ -20,13 +24,16 @@ import {
   feedbackTitle,
 } from '../../feedback/feedback.config';
 import type {
+  HostCurrentQuestionDTO,
+  HostVoteProgressDTO,
+  LeaderboardEntryDTO,
   QaQuestionDTO,
   QuickFeedbackResult,
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
-import { localizePath } from '../../../core/locale-router';
+import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { formatLocaleCount, formatLocalePercent } from '../../../core/locale-number.util';
 import {
   getEffectiveLocale,
@@ -36,12 +43,39 @@ import {
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import {
+  findKindergartenNicknameBadge,
+  findKindergartenNicknameEmoji,
+  type KindergartenNicknameBadge,
+} from '../../join/kindergarten-nickname-icons';
+import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-shortcode.util';
+import {
+  FoyerEntranceLayerComponent,
+  type FoyerEntranceChip,
+} from '../session-host/foyer-entrance-layer.component';
+import { buildFoyerChipLabel } from '../session-host/foyer-chip-label.util';
 import { getWordCloudWeightFromUpvotes } from './word-cloud.util';
 import {
   WordCloudTermExtractorService,
   type WordCloudTerm,
   type WordCloudTermDocument,
 } from './word-cloud-term.service';
+
+type LobbyParticipant = {
+  id: string;
+  nickname: string;
+  teamId: string | null;
+};
+
+type LobbyTeam = {
+  id: string;
+  name: string;
+  color: string | null;
+  memberCount: number;
+};
+
+const LOBBY_FOYER_LANE_COUNT = 3;
+const LOBBY_FOYER_MAX_INITIAL_FLIGHTS = 12;
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -58,7 +92,9 @@ import {
     MatIcon,
     RouterLink,
     WordCloudComponent,
+    SessionProjectionQuizComponent,
     MarkdownImageLightboxDirective,
+    FoyerEntranceLayerComponent,
   ],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',
@@ -67,13 +103,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private static readonly META_POLL_MS = 10_000;
   private static readonly LIVE_POLL_MS = 2_000;
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly localeId = inject(LOCALE_ID);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private readonly themePreset = inject(ThemePresetService);
+  private readonly hostDisplayMode = inject(HostDisplayModeService);
   private metaPollTimer: ReturnType<typeof setInterval> | null = null;
   private livePollTimer: ReturnType<typeof setInterval> | null = null;
+  private lobbyFoyerSequence = 0;
+  private lobbyFoyerLaneCursor = 0;
+  private readonly knownLobbyParticipantIds = new Set<string>();
+  private readonly lobbyFoyerTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
@@ -88,6 +128,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
 
   readonly session = signal<SessionInfoDTO | null>(null);
+  readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
   readonly pinnedQaQuestion = signal<QaQuestionDTO | null>(null);
   readonly presenterQaQuestions = signal<QaQuestionDTO[]>([]);
@@ -95,6 +136,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly freetextResponses = signal<string[]>([]);
   readonly freetextQuestionId = signal<string | null>(null);
   readonly currentQuestionLabel = signal<string | null>(null);
+  readonly hostQuestion = signal<HostCurrentQuestionDTO | null>(null);
+  readonly hostVoteProgress = signal<HostVoteProgressDTO | null>(null);
+  readonly joinQrDataUrl = signal('');
+  readonly countdownSeconds = signal<number | null>(null);
+  private currentQuestionSub: Unsubscribable | null = null;
+  private voteProgressSub: Unsubscribable | null = null;
+  private statusSub: Unsubscribable | null = null;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private countdownDeadlineMs: number | null = null;
+  private countdownKey: string | null = null;
+  readonly joinUrl = resolveLocalizedJoinUrl(this.code);
+  readonly sessionCode = this.code;
   readonly showHomeCta = signal(false);
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
@@ -110,11 +163,53 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  readonly lobbyParticipants = signal<LobbyParticipant[]>([]);
+  readonly lobbyTeams = signal<LobbyTeam[]>([]);
+  readonly lobbyFoyerChips = signal<FoyerEntranceChip[]>([]);
+  readonly lobbyTeamsView = computed(() => {
+    const people = this.lobbyParticipants();
+    const hideNames = this.session()?.anonymousMode === true;
+    return this.lobbyTeams().map((team) => ({
+      ...team,
+      members: hideNames ? [] : people.filter((person) => person.teamId === team.id),
+    }));
+  });
+  readonly lobbyPeople = computed(() => {
+    if (this.lobbyTeams().length > 0) {
+      return [];
+    }
+    return this.lobbyParticipants();
+  });
+  readonly lobbyParticipantCount = computed(() => {
+    const listed = this.lobbyParticipants().length;
+    const fromSession = this.session()?.participantCount ?? 0;
+    const fromTeams = this.lobbyTeams().reduce((sum, team) => sum + team.memberCount, 0);
+    return Math.max(listed, fromSession, fromTeams);
+  });
+  readonly showLobbyFoyerOverlay = computed(() => false);
+  readonly showLobbyTeamFoyer = computed(
+    () => this.showLobbyProjection() && this.session()?.teamMode === true,
+  );
+  readonly lobbyFoyerOverlayChips = computed(() =>
+    this.lobbyFoyerChips().filter((chip) => !chip.teamId),
+  );
+  readonly showSecondaryPresentSurfaces = computed(
+    () =>
+      !this.showFinishProjection() &&
+      !this.showTeamFinish() &&
+      !this.showLobbyProjection() &&
+      !this.showQuizProjection() &&
+      !this.showPresenterFreetextStage(),
+  );
   readonly showPinnedQaQuestion = computed(
-    () => this.pinnedQaQuestion() !== null && !this.showTeamFinish(),
+    () => this.pinnedQaQuestion() !== null && this.showSecondaryPresentSurfaces(),
   );
   readonly showQaQueue = computed(
-    () => this.presenterQaQuestions().length > 0 && !this.showTeamFinish(),
+    () => this.presenterQaQuestions().length > 0 && this.showSecondaryPresentSurfaces(),
+  );
+  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 6));
+  readonly showQaWordCloud = computed(
+    () => this.presenterQaWordCloudQuestions().length > 0 && this.showSecondaryPresentSurfaces(),
   );
   readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
     getEffectiveLocale(localeIdToSupported(this.localeId)),
@@ -164,11 +259,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     })),
   );
   readonly showQuickFeedbackCard = computed(
-    () => this.quickFeedbackResult() !== null && !this.showTeamFinish(),
+    () => this.quickFeedbackResult() !== null && this.showSecondaryPresentSurfaces(),
   );
-  readonly showPresenterFreetextStage = computed(
-    () => this.presenterFreetextActive() && !this.showTeamFinish(),
-  );
+  readonly showPresenterFreetextStage = computed(() => {
+    if (!this.presenterFreetextActive() || this.showFinishProjection()) {
+      return false;
+    }
+    const channel = this.session()?.preferredChannel;
+    return channel !== 'qa' && channel !== 'quickFeedback';
+  });
+  readonly showPresenterFreetextResultsStage = computed(() => {
+    if (!this.showPresenterFreetextStage()) {
+      return false;
+    }
+    if (!this.hostQuestion()) {
+      return true;
+    }
+    return this.session()?.status === 'RESULTS';
+  });
+  readonly showFinishProjection = computed(() => this.session()?.status === 'FINISHED');
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return (
@@ -177,6 +286,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.teamLeaderboard().length > 0
     );
   });
+  readonly showLobbyProjection = computed(
+    () => this.session()?.status === 'LOBBY' && !this.showFinishProjection(),
+  );
+  readonly showQuizProjection = computed(() => {
+    if (this.showFinishProjection() || this.showLobbyProjection()) {
+      return false;
+    }
+    const session = this.session();
+    if (!session || session.type === 'Q_AND_A') {
+      return false;
+    }
+    if (session.preferredChannel === 'qa' || session.preferredChannel === 'quickFeedback') {
+      return false;
+    }
+    return this.hostQuestion() !== null;
+  });
+  readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
   readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
@@ -187,6 +313,37 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return Math.max(...board.map((e) => e.totalScore));
   });
   readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
+  /** Ab dieser Länge wird die Boardliste mehrspaltig, damit alle Einträge auf der Projektion bleiben. */
+  private static readonly BOARD_OVERFLOW_COUNT = 8;
+  readonly personalBoardOverflows = computed(
+    () => this.personalLeaderboard().length > SessionPresentComponent.BOARD_OVERFLOW_COUNT,
+  );
+  readonly teamBoardOverflows = computed(
+    () => this.teamLeaderboard().length > SessionPresentComponent.BOARD_OVERFLOW_COUNT,
+  );
+  readonly personalBoardColumnCount = computed(() =>
+    SessionPresentComponent.columnCountForParticipantTotal(this.personalLeaderboard().length),
+  );
+  readonly personalBoardDensity = computed(() => {
+    const count = this.personalLeaderboard().length;
+    if (count > 36) {
+      return 'dense' as const;
+    }
+    if (count > 16) {
+      return 'compact' as const;
+    }
+    return 'comfortable' as const;
+  });
+
+  static columnCountForParticipantTotal(count: number): number {
+    if (count <= 6) return 2;
+    if (count <= 12) return 3;
+    if (count <= 20) return 4;
+    if (count <= 32) return 5;
+    if (count <= 48) return 6;
+    if (count <= 72) return 8;
+    return 10;
+  }
   readonly quickFeedbackEntries = computed(() => {
     const data = this.quickFeedbackResult();
     if (!data) {
@@ -207,9 +364,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.hostDisplayMode.setHostSessionActive(true);
     await this.refreshSessionMeta();
     await this.refreshPresenterLiveData();
+    this.ensurePresenterSubscriptions();
     this.startPolling();
+    void this.generateJoinQr();
   }
 
   ngOnDestroy(): void {
@@ -217,6 +377,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
     this.stopPolling();
+    this.stopCountdown();
+    this.currentQuestionSub?.unsubscribe();
+    this.voteProgressSub?.unsubscribe();
+    this.statusSub?.unsubscribe();
+    this.clearLobbyAudience();
+    this.hostDisplayMode.setHostSessionActive(false);
   }
 
   private startPolling(): void {
@@ -252,9 +418,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
+    if (this.showFinishProjection()) {
+      await this.loadFinishLeaderboards();
+      return;
+    }
     await this.refreshLiveFreetext();
     await this.refreshQaQuestions();
     await this.refreshQuickFeedbackResult();
+    await this.refreshHostQuestion();
+    await this.refreshHostVoteProgress();
+    await this.refreshLobbyAudience();
   }
 
   teamScoreBarWidth(totalScore: number): string {
@@ -265,6 +438,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   teamMemberLabel(count: number): string {
     return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+  }
+
+  lobbyAudienceCountLabel(): string {
+    const count = this.lobbyParticipantCount();
+    const formatted = formatLocaleCount(count, this.localeId);
+    if (count === 1) {
+      return $localize`:@@sessionPresent.lobbyAudienceCountOne:${formatted}:count: Person`;
+    }
+    return $localize`:@@sessionPresent.lobbyAudienceCountMany:${formatted}:count: Teilnehmende`;
+  }
+
+  lobbyNicknameBadge(nickname: string): KindergartenNicknameBadge | null {
+    const session = this.session();
+    if (session?.nicknameTheme !== 'KINDERGARTEN' || session.anonymousMode === true) {
+      return null;
+    }
+    return findKindergartenNicknameBadge(nickname);
+  }
+
+  foyerChipsForTeam(teamId: string): FoyerEntranceChip[] {
+    return this.lobbyFoyerChips().filter((chip) => chip.teamId === teamId);
+  }
+
+  foyerChipsForPerson(participantId: string): FoyerEntranceChip[] {
+    return this.lobbyFoyerChips().filter((chip) => chip.participantId === participantId);
   }
 
   teamLeaderboardRankDisplay(rank: number): string {
@@ -278,10 +476,26 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`${entry.teamName} gewinnt mit ${formatLocaleCount(entry.totalScore, this.localeId)}:totalScore: Punkten!`;
   }
 
+  leaderboardKindergartenEmoji(nickname: string): string | null {
+    return findKindergartenNicknameEmoji(nickname);
+  }
+
+  teamNameEmojiMarker(teamName: string | null | undefined): string | null {
+    return teamName ? extractEdgeEmoji(teamName) : null;
+  }
+
+  teamNameLabelWithoutEmojiMarker(teamName: string | null | undefined): string {
+    if (!teamName) {
+      return $localize`Team`;
+    }
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
+  }
+
   renderMarkdown(value: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(value, {
-        imagePolicy: 'external-https-only',
+        imagePolicy: 'external-https-and-app-assets',
         headingStartLevel: 3,
       }).html,
     );
@@ -349,17 +563,34 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.showHomeCta.set(false);
       this.session.set(session);
       if (session.status === 'FINISHED') {
-        void this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
+        await this.loadFinishLeaderboards();
         return;
       }
+      this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
+      this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
-      this.pinnedQaQuestion.set(null);
-      this.presenterQaQuestions.set([]);
+      this.clearLobbyAudience();
+    }
+  }
+
+  private async loadFinishLeaderboards(): Promise<void> {
+    const code = this.code.toUpperCase();
+    const anonymousClientId = getAnonymousClientId();
+    try {
+      const [personal, teams] = await Promise.all([
+        trpc.session.getLeaderboard.query({ code, anonymousClientId }),
+        trpc.session.getTeamLeaderboard.query({ code, anonymousClientId }),
+      ]);
+      this.personalLeaderboard.set(personal);
+      this.teamLeaderboard.set(teams);
+    } catch {
+      this.personalLeaderboard.set([]);
+      this.teamLeaderboard.set([]);
     }
   }
 
@@ -400,7 +631,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private async refreshQaQuestions(): Promise<void> {
     const sessionId = this.session()?.id;
     const qaEnabled = this.session()?.channels?.qa.enabled ?? this.session()?.type === 'Q_AND_A';
-    if (!sessionId || !qaEnabled || this.showTeamFinish()) {
+    if (!sessionId || !qaEnabled || this.showFinishProjection()) {
       this.pinnedQaQuestion.set(null);
       this.presenterQaQuestions.set([]);
       return;
@@ -423,7 +654,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private async refreshQuickFeedbackResult(): Promise<void> {
     const quickFeedbackEnabled = this.session()?.channels?.quickFeedback.enabled ?? false;
-    if (!quickFeedbackEnabled || this.showTeamFinish()) {
+    if (!quickFeedbackEnabled || this.showFinishProjection()) {
       this.quickFeedbackResult.set(null);
       return;
     }
@@ -435,6 +666,320 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.quickFeedbackResult.set(result);
     } catch {
       this.quickFeedbackResult.set(null);
+    }
+  }
+
+  private async refreshHostQuestion(): Promise<void> {
+    if (!this.session() || this.session()?.type === 'Q_AND_A') {
+      this.hostQuestion.set(null);
+      this.stopCountdown();
+      return;
+    }
+    try {
+      const question = await trpc.session.getCurrentQuestionForHost.query({
+        code: this.code.toUpperCase(),
+      });
+      this.hostQuestion.set(question);
+      if (this.session()?.status === 'ACTIVE') {
+        this.startCountdown(question?.timer ?? null);
+      } else {
+        this.stopCountdown();
+      }
+    } catch {
+      this.hostQuestion.set(null);
+    }
+  }
+
+  private async refreshHostVoteProgress(): Promise<void> {
+    if (!this.hostQuestion() || this.session()?.status !== 'ACTIVE') {
+      this.hostVoteProgress.set(null);
+      return;
+    }
+    try {
+      this.hostVoteProgress.set(
+        await trpc.session.getHostVoteProgress.query({ code: this.code.toUpperCase() }),
+      );
+    } catch {
+      this.hostVoteProgress.set(null);
+    }
+  }
+
+  private ensurePresenterSubscriptions(): void {
+    if (this.code.length !== 6) {
+      return;
+    }
+    const code = this.code.toUpperCase();
+    this.currentQuestionSub ??= trpc.session.onCurrentQuestionForHostChanged.subscribe(
+      { code },
+      {
+        onData: (data) => this.hostQuestion.set(data),
+        onError: () => {
+          this.currentQuestionSub?.unsubscribe();
+          this.currentQuestionSub = null;
+        },
+      },
+    );
+    this.voteProgressSub ??= trpc.session.onHostVoteProgressChanged.subscribe(
+      { code },
+      {
+        onData: (data) => this.hostVoteProgress.set(data),
+        onError: () => {
+          this.voteProgressSub?.unsubscribe();
+          this.voteProgressSub = null;
+        },
+      },
+    );
+    this.statusSub ??= trpc.session.onStatusChanged.subscribe(
+      { code, anonymousClientId: getAnonymousClientId() },
+      {
+        onData: (data) => {
+          if (data.serverTime) {
+            recordServerTimeSample(data.serverTime, Date.now());
+          }
+          this.session.update((current) =>
+            current
+              ? {
+                  ...current,
+                  status: data.status as SessionInfoDTO['status'],
+                  currentQuestion: data.currentQuestion,
+                  preferredChannel: data.preferredChannel ?? current.preferredChannel,
+                }
+              : current,
+          );
+          this.syncCountdownFromStatus(data.timer, data.activeAt);
+          if (data.status === 'FINISHED') {
+            void this.loadFinishLeaderboards();
+          }
+        },
+        onError: () => {
+          this.statusSub?.unsubscribe();
+          this.statusSub = null;
+        },
+      },
+    );
+  }
+
+  private syncCountdownFromStatus(
+    timer: number | null | undefined,
+    activeAt?: string | null,
+  ): void {
+    if (this.session()?.status !== 'ACTIVE') {
+      this.stopCountdown();
+      return;
+    }
+    this.startCountdown(timer ?? this.hostQuestion()?.timer ?? null, activeAt ?? undefined);
+  }
+
+  private startCountdown(timerSeconds: number | null | undefined, activeAt?: string): void {
+    if (!timerSeconds || timerSeconds <= 0) {
+      this.stopCountdown();
+      return;
+    }
+    const question = this.hostQuestion();
+    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
+    const nextDeadline = stableCountdownDeadlineMs({
+      timerSeconds,
+      activeAt,
+      currentDeadlineMs: this.countdownDeadlineMs,
+      currentKey: this.countdownKey,
+      nextKey,
+    });
+    const sameRun =
+      this.countdownKey === nextKey &&
+      this.countdownDeadlineMs !== null &&
+      Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
+
+    this.countdownKey = nextKey;
+    this.countdownDeadlineMs = nextDeadline;
+
+    if (sameRun && (this.countdownTimer !== null || remainingCountdownSeconds(nextDeadline) <= 0)) {
+      this.countdownSeconds.set(remainingCountdownSeconds(nextDeadline));
+      return;
+    }
+
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+
+    const tick = (): void => {
+      const deadline = this.countdownDeadlineMs;
+      if (deadline === null) {
+        return;
+      }
+      const remaining = remainingCountdownSeconds(deadline);
+      this.countdownSeconds.set(remaining);
+      if (remaining <= 0 && this.countdownTimer) {
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+      }
+    };
+    tick();
+    if ((this.countdownSeconds() ?? 0) > 0) {
+      this.countdownTimer = setInterval(tick, 1000);
+    }
+  }
+
+  private stopCountdown(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+    this.countdownDeadlineMs = null;
+    this.countdownKey = null;
+    this.countdownSeconds.set(null);
+  }
+
+  private async refreshLobbyAudience(): Promise<void> {
+    if (this.session()?.status !== 'LOBBY') {
+      this.clearLobbyAudience();
+      return;
+    }
+
+    const code = this.code.toUpperCase();
+    const anonymousClientId = getAnonymousClientId();
+
+    try {
+      const payload = await trpc.session.getParticipants.query({ code });
+      this.applyLobbyParticipants(
+        payload.participants.map((participant) => ({
+          id: participant.id,
+          nickname: participant.nickname,
+          teamId: participant.teamId ?? null,
+        })),
+      );
+    } catch {
+      try {
+        const payload = await trpc.session.getParticipantNicknames.query({
+          code,
+          anonymousClientId,
+        });
+        this.applyLobbyParticipants(
+          payload.nicknames.map((nickname) => ({
+            id: `nick:${nickname}`,
+            nickname,
+            teamId: null,
+          })),
+        );
+      } catch {
+        // Keep the last stable lobby snapshot if live lookups fail briefly.
+      }
+    }
+
+    if (this.session()?.teamMode === true) {
+      try {
+        const payload = await trpc.session.getTeams.query({ code, anonymousClientId });
+        this.lobbyTeams.set(
+          payload.teams.map((team) => ({
+            id: team.id,
+            name: team.name,
+            color: team.color ?? null,
+            memberCount: team.memberCount,
+          })),
+        );
+      } catch {
+        // Keep the last team snapshot on transient errors.
+      }
+    } else {
+      this.lobbyTeams.set([]);
+    }
+  }
+
+  private applyLobbyParticipants(participants: LobbyParticipant[]): void {
+    const previousIds = this.knownLobbyParticipantIds;
+    const nextIds = new Set(participants.map((participant) => participant.id));
+    const isFirstSnapshot = previousIds.size === 0;
+    const newcomers = isFirstSnapshot
+      ? participants.slice(-LOBBY_FOYER_MAX_INITIAL_FLIGHTS)
+      : participants.filter((participant) => !previousIds.has(participant.id));
+
+    this.lobbyParticipants.set(participants);
+    this.knownLobbyParticipantIds.clear();
+    for (const id of nextIds) {
+      this.knownLobbyParticipantIds.add(id);
+    }
+
+    newcomers.forEach((participant, index) => {
+      this.spawnLobbyFoyerChip(participant, index * 180);
+    });
+  }
+
+  private spawnLobbyFoyerChip(participant: LobbyParticipant, delayMs: number): void {
+    const session = this.session();
+    const sequence = this.lobbyFoyerSequence++;
+    const kindergartenEmoji =
+      session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true
+        ? findKindergartenNicknameEmoji(participant.nickname)
+        : null;
+    const label = buildFoyerChipLabel({
+      nickname: participant.nickname,
+      anonymousMode: session?.anonymousMode === true,
+      kindergartenEmoji,
+      preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
+    });
+    const teamMode = session?.teamMode === true && !!participant.teamId;
+    const chip: FoyerEntranceChip = {
+      ...label,
+      id: `${participant.id}-${sequence}`,
+      participantId: participant.id,
+      teamId: participant.teamId,
+      sequence,
+      delayMs,
+      lane: this.lobbyFoyerLaneCursor++ % LOBBY_FOYER_LANE_COUNT,
+      direction: sequence % 2 === 0 ? 'left' : 'right',
+      enterDurationMs: teamMode ? 1760 : 680,
+      presenceMs: teamMode ? 3200 : 1800,
+      settleDelayMs: teamMode ? 1280 : 0,
+      badgeDelayMs: teamMode ? 1440 : 0,
+      badgePresenceMs: teamMode ? 1380 : 0,
+      pulseDelayMs: teamMode ? 1880 : 0,
+    };
+    this.lobbyFoyerChips.update((chips) => [...chips, chip]);
+    const lifetimeMs = delayMs + chip.enterDurationMs + chip.presenceMs + 500;
+    const timer = setTimeout(() => {
+      this.lobbyFoyerChips.update((chips) => chips.filter((entry) => entry.id !== chip.id));
+      this.lobbyFoyerTimers.delete(chip.id);
+    }, lifetimeMs);
+    this.lobbyFoyerTimers.set(chip.id, timer);
+  }
+
+  private clearLobbyAudience(): void {
+    for (const timer of this.lobbyFoyerTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.lobbyFoyerTimers.clear();
+    this.knownLobbyParticipantIds.clear();
+    this.lobbyFoyerSequence = 0;
+    this.lobbyFoyerLaneCursor = 0;
+    this.lobbyParticipants.set([]);
+    this.lobbyTeams.set([]);
+    this.lobbyFoyerChips.set([]);
+  }
+
+  onPresenterImageError(event: Event): void {
+    const el = event.target;
+    if (el instanceof HTMLElement) {
+      el.remove();
+    }
+  }
+
+  private async generateJoinQr(): Promise<void> {
+    try {
+      const qrcodeModule = await import('qrcode-generator');
+      const qrcodeFactory = (qrcodeModule.default ?? qrcodeModule) as unknown as (
+        typeNumber: 0,
+        errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H',
+      ) => {
+        addData(data: string): void;
+        make(): void;
+        createDataURL(cellSize?: number, margin?: number): string;
+      };
+      const qr = qrcodeFactory(0, 'M');
+      qr.addData(this.joinUrl);
+      qr.make();
+      this.joinQrDataUrl.set(qr.createDataURL(8, 2));
+    } catch {
+      this.joinQrDataUrl.set('');
     }
   }
 

@@ -642,6 +642,114 @@
             }
           </section>
 
+          @if (personalLeaderboard().length > 0) {
+            <section
+              class="vote-finished-leaderboard"
+              aria-labelledby="finished-leaderboard-heading"
+            >
+              <h2 class="vote-finished-leaderboard__title" id="finished-leaderboard-heading">
+                <mat-icon aria-hidden="true">leaderboard</mat-icon>
+                <span i18n="@@7139999409916594388">Leaderboard</span>
+              </h2>
+              @if (personalLeaderboardWinner(); as winner) {
+                <div class="vote-finished-winner" data-testid="vote-finished-personal-winner">
+                  <p class="vote-finished-winner__label">
+                    <span class="vote-lb-medal" aria-hidden="true">🏆</span>
+                    <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
+                  </p>
+                  <p class="vote-finished-winner__name">
+                    @if (leaderboardKindergartenEmoji(winner.nickname); as em) {
+                      <span class="vote-finished-winner__emoji" aria-hidden="true">{{ em }}</span>
+                    }
+                    <span>{{ winner.nickname }}</span>
+                    @if (winner.teamName; as teamName) {
+                      <span
+                        class="vote-finished-leaderboard__team-icon vote-finished-leaderboard__team-icon--hero"
+                        [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                        [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                      >
+                        @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                          <span aria-hidden="true">{{ teamEmoji }}</span>
+                        } @else {
+                          <span
+                            class="vote-finished-leaderboard__team-dot vote-finished-leaderboard__team-dot--hero"
+                            [style.background]="winner.teamColor || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                        }
+                      </span>
+                    }
+                  </p>
+                  <p class="vote-finished-winner__meta" i18n="@@sessionHost.leaderboardWinnerMeta">
+                    Mit {{ winner.totalScore | number }} Punkten
+                  </p>
+                </div>
+              }
+              <ol class="vote-finished-leaderboard__list">
+                @for (entry of personalLeaderboard(); track entry.rank) {
+                  <li
+                    class="vote-finished-leaderboard__item"
+                    [class.vote-finished-leaderboard__item--own]="
+                      entry.nickname === playerNickname()
+                    "
+                    [class.vote-finished-leaderboard__item--champion]="entry.rank === 1"
+                  >
+                    <span class="vote-finished-leaderboard__lead">
+                      <span class="vote-finished-leaderboard__rank">
+                        @if (entry.rank === 1) {
+                          <span class="vote-lb-medal vote-lb-medal--gold" aria-hidden="true"
+                            >🥇</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 2) {
+                          <span class="vote-lb-medal vote-lb-medal--silver" aria-hidden="true"
+                            >🥈</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 3) {
+                          <span class="vote-lb-medal vote-lb-medal--bronze" aria-hidden="true"
+                            >🥉</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else {
+                          {{ entry.rank }}
+                        }
+                      </span>
+                      @if (leaderboardKindergartenEmoji(entry.nickname); as em) {
+                        <span class="vote-finished-leaderboard__emoji" aria-hidden="true">{{
+                          em
+                        }}</span>
+                      }
+                    </span>
+                    <span class="vote-finished-leaderboard__name">{{ entry.nickname }}</span>
+                    <span class="vote-finished-leaderboard__tail">
+                      @if (entry.teamName; as teamName) {
+                        <span
+                          class="vote-finished-leaderboard__team-icon"
+                          [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                          [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                        >
+                          @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                            <span aria-hidden="true">{{ teamEmoji }}</span>
+                          } @else {
+                            <span
+                              class="vote-finished-leaderboard__team-dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                          }
+                        </span>
+                      }
+                      <span class="vote-finished-leaderboard__score">{{
+                        entry.totalScore | number
+                      }}</span>
+                    </span>
+                  </li>
+                }
+              </ol>
+            </section>
+          }
+
           @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {
             <section
               class="vote-team-reward"
@@ -717,6 +825,25 @@
                   }}</span>
                 </div>
               </div>
+              @if (teamLeaderboardWinner(); as teamWinner) {
+                <div class="vote-finished-winner" data-testid="vote-finished-team-winner">
+                  <p class="vote-finished-winner__label">
+                    <span class="vote-lb-medal" aria-hidden="true">🏆</span>
+                    <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
+                  </p>
+                  <p class="vote-finished-winner__name">
+                    @if (teamNameEmojiMarker(teamWinner.teamName); as teamEmoji) {
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                    }
+                    <span>{{ teamNameLabelWithoutEmojiMarker(teamWinner.teamName) }}</span>
+                  </p>
+                  <p class="vote-finished-winner__meta">
+                    {{ '∅ ' + (teamWinner.totalScore | number) }}
+                  </p>
+                </div>
+              }
               @if (visibleTeamLeaderboard().length > 0) {
                 <ol class="vote-team-reward__board">
                   @for (entry of visibleTeamLeaderboard(); track entry.rank) {
@@ -733,6 +860,9 @@
                       "
                       [class.vote-team-reward__board-item--rank3]="
                         teamScoreboardHasPoints() && entry.rank === 3
+                      "
+                      [class.vote-team-reward__board-item--champion]="
+                        isFinished() && teamScoreboardHasPoints() && entry.rank === 1
                       "
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >

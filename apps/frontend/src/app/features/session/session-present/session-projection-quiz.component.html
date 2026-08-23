@@ -1,0 +1,673 @@
+@if (question(); as q) {
+  <article
+    class="session-projection-quiz"
+    data-testid="presenter-quiz-stage"
+    appMarkdownImageLightbox
+    [class.session-projection-quiz--reading]="isReadingPhase()"
+    [class.session-projection-quiz--split]="showStageColumn()"
+    [class.session-projection-quiz--code]="hasQuestionCode()"
+    [class.session-projection-quiz--with-visual]="!!questionVisual()"
+    [class.session-projection-quiz--results]="isResults()"
+    [class.session-projection-quiz--discussion]="isDiscussion()"
+    [class.session-projection-quiz--fingers]="showFingerCountdown()"
+  >
+    @if (isDiscussion()) {
+      <p class="session-projection-quiz__discussion" role="status">
+        <mat-icon aria-hidden="true">groups</mat-icon>
+        <span i18n="@@sessionPresent.quizDiscussionBanner"
+          >Tauscht euch kurz aus. Die zweite Abstimmung folgt.</span
+        >
+      </p>
+    }
+
+    <mat-card appearance="outlined" class="session-projection-quiz__question">
+      <mat-card-content>
+        <p class="session-projection-quiz__meta">
+          @if (q.totalQuestions != null) {
+            <span i18n="@@sessionPresent.quizCounter"
+              >Frage {{ q.order + 1 }} / {{ q.totalQuestions }}</span
+            >
+          } @else {
+            <span i18n="@@sessionPresent.quizNumber">Frage {{ q.order + 1 }}</span>
+          }
+          @if (phaseLabel()) {
+            <span class="session-projection-quiz__phase">{{ phaseLabel() }}</span>
+          }
+          @if (q.showQuestionTypeIndicators !== false && questionTypeName()) {
+            <span class="session-projection-quiz__pill">{{ questionTypeName() }}</span>
+          }
+          @if (showsDifficulty() && difficultyLabel()) {
+            <span class="session-projection-quiz__pill session-projection-quiz__pill--difficulty">
+              <mat-icon class="session-projection-quiz__pill-icon" aria-hidden="true"
+                >fitness_center</mat-icon
+              >
+              {{ difficultyLabel() }}
+            </span>
+          }
+          @if (isLastQuestion()) {
+            <span class="session-projection-quiz__pill" i18n="@@sessionVote.lastQuestionSerious"
+              >Letzte Frage</span
+            >
+          }
+          @if (isSecondRound()) {
+            <span class="session-projection-quiz__pill" i18n="@@sessionVote.roundBadgeSerious"
+              >2. Runde</span
+            >
+          }
+          @if (isActive() && participantCount() > 0) {
+            <span class="session-projection-quiz__progress" role="status">
+              {{ voteProgressPercent() }}&nbsp;%
+              <span class="session-projection-quiz__progress-meta"
+                >{{ liveVoteCount() }} / {{ participantCount() }}</span
+              >
+            </span>
+          }
+          @if (countdownSeconds() !== null && isActive()) {
+            <span
+              class="session-projection-quiz__countdown"
+              [class.session-projection-quiz__countdown--urgent]="countdownSeconds()! <= 5"
+              role="timer"
+            >
+              {{ countdownSeconds() }}
+            </span>
+          }
+        </p>
+
+        <div class="session-projection-quiz__question-body">
+          <h1
+            class="session-projection-quiz__title markdown-body"
+            [innerHTML]="renderMarkdown(questionTitleMarkdown())"
+          ></h1>
+
+          @if (questionVisual(); as visual) {
+            <div class="session-projection-quiz__visual">
+              <img
+                [src]="visual.url"
+                [alt]="visual.alt"
+                data-markdown-image-lightbox="true"
+                loading="eager"
+                decoding="async"
+                referrerpolicy="strict-origin-when-cross-origin"
+                (error)="onQuestionVisualError($event)"
+              />
+            </div>
+          }
+
+          @if (isReadingPhase() && !hasQuestionCode()) {
+            <p class="session-projection-quiz__reading" role="status">
+              <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
+                >menu_book</mat-icon
+              >
+              <span i18n="@@sessionPresent.quizReadingHint"
+                >Lesephase – Antworten folgen gleich.</span
+              >
+            </p>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    @if (hasQuestionCode()) {
+      <mat-card appearance="outlined" class="session-projection-quiz__code">
+        <mat-card-content>
+          <div
+            class="session-projection-quiz__code-body"
+            [style.--pq-code-columns]="questionCodeColumnCount()"
+          >
+            @for (columnMarkdown of questionCodeColumnMarkdown(); track $index) {
+              <div
+                class="session-projection-quiz__code-column markdown-body"
+                [innerHTML]="renderMarkdown(columnMarkdown)"
+              ></div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (showStageColumn()) {
+      <mat-card appearance="outlined" class="session-projection-quiz__stage">
+        <mat-card-content>
+          @if (isResults() && evaluationHeadline(); as headline) {
+            <p class="session-projection-quiz__evaluation" role="status">
+              <mat-icon aria-hidden="true">analytics</mat-icon>
+              <span>{{ headline }}</span>
+            </p>
+          }
+          @if (isReadingPhase()) {
+            <p class="session-projection-quiz__reading" role="status">
+              <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
+                >menu_book</mat-icon
+              >
+              <span i18n="@@sessionPresent.quizReadingHint"
+                >Lesephase – Antworten folgen gleich.</span
+              >
+            </p>
+          } @else if (q.type === 'RATING') {
+            <div class="session-projection-quiz__rating">
+              @if (q.ratingLabelMin || q.ratingLabelMax) {
+                <p class="session-projection-quiz__rating-labels">
+                  <span>{{ q.ratingLabelMin }}</span>
+                  <span>{{ q.ratingLabelMax }}</span>
+                </p>
+              }
+              @for (value of ratingValues(); track value) {
+                <div class="session-projection-quiz__bar">
+                  <span>{{ value }}</span>
+                  <div class="session-projection-quiz__bar-track">
+                    <div
+                      class="session-projection-quiz__bar-fill"
+                      [style.width.%]="isResults() ? ratingBarPercent(value) : 0"
+                    ></div>
+                  </div>
+                  <span>{{ isResults() ? ratingCount(value) : '·' }}</span>
+                </div>
+              }
+              @if (isResults() && q.ratingAvg != null) {
+                <p class="session-projection-quiz__stat">∅ {{ q.ratingAvg | number: '1.1-1' }}</p>
+              }
+              @if (!isResults()) {
+                <p
+                  class="session-projection-quiz__waiting"
+                  i18n="@@sessionPresent.quizRatingWaiting"
+                >
+                  Bewertungen kommen live an.
+                </p>
+              }
+            </div>
+          } @else if (q.type === 'NUMERIC_ESTIMATE') {
+            @if (isResults() && q.numericHistogram?.length) {
+              <div class="session-projection-quiz__histogram" role="img">
+                @for (bin of q.numericHistogram; track $index) {
+                  <div class="session-projection-quiz__hist-bin">
+                    <div
+                      class="session-projection-quiz__hist-bar"
+                      [class.session-projection-quiz__hist-bar--band]="bin.inBand"
+                      [style.height.%]="histogramBarPercent(bin.count)"
+                    ></div>
+                    <span>{{ bin.count }}</span>
+                  </div>
+                }
+              </div>
+              @if (numericInsightStats(); as stats) {
+                <div class="session-projection-quiz__insights" role="group">
+                  <div class="session-projection-quiz__insight">
+                    <span class="session-projection-quiz__insight-kicker">{{
+                      numericPrimaryCaption(stats)
+                    }}</span>
+                    <strong class="session-projection-quiz__insight-value">{{
+                      numericPrimaryValue(stats)
+                    }}</strong>
+                    <span class="session-projection-quiz__insight-caption"
+                      >n={{ formatCount(stats.n) }}</span
+                    >
+                  </div>
+                  @if (numericInBandValue(stats); as inBand) {
+                    <div class="session-projection-quiz__insight">
+                      <span
+                        class="session-projection-quiz__insight-kicker"
+                        i18n="@@sessionHost.numericInBandInsightKicker"
+                        >Akzeptiert</span
+                      >
+                      <strong class="session-projection-quiz__insight-value">{{ inBand }}</strong>
+                      <span class="session-projection-quiz__insight-caption">{{
+                        numericInBandCaption(stats)
+                      }}</span>
+                    </div>
+                  }
+                  @if (numericErrorValue(stats); as errorValue) {
+                    <div class="session-projection-quiz__insight">
+                      <span class="session-projection-quiz__insight-kicker">{{
+                        numericErrorCaption()
+                      }}</span>
+                      <strong class="session-projection-quiz__insight-value">{{
+                        errorValue
+                      }}</strong>
+                    </div>
+                  }
+                  @if (numericRoundComparison(); as comparison) {
+                    @if (numericPairedValue(comparison); as paired) {
+                      <div class="session-projection-quiz__insight">
+                        <span
+                          class="session-projection-quiz__insight-kicker"
+                          i18n="@@sessionHost.numericPairedInsightKicker"
+                          >Rundenvergleich</span
+                        >
+                        <strong class="session-projection-quiz__insight-value">{{ paired }}</strong>
+                        <span class="session-projection-quiz__insight-caption">{{
+                          numericPairedCaption()
+                        }}</span>
+                      </div>
+                    }
+                  }
+                </div>
+                @if (numericInterpretation(stats); as interpretation) {
+                  <p class="session-projection-quiz__interpretation">
+                    <mat-icon aria-hidden="true">psychology_alt</mat-icon>
+                    <span>{{ interpretation }}</span>
+                  </p>
+                }
+                @if (numericReferenceLabel(); as reference) {
+                  <p class="session-projection-quiz__stat">{{ reference }}</p>
+                }
+              }
+            } @else {
+              <div class="session-projection-quiz__numeric-prompt">
+                <p
+                  class="session-projection-quiz__prompt"
+                  i18n="@@sessionPresent.quizNumericPrompt"
+                >
+                  Numerische Schätzung
+                </p>
+                <ul class="session-projection-quiz__numeric-facts">
+                  @if (numericModeLabel(); as modeLabel) {
+                    <li>{{ modeLabel }}</li>
+                  }
+                  @if (numericFormatHint(); as formatHint) {
+                    <li>{{ formatHint }}</li>
+                  }
+                  @if (numericRangeHint(); as rangeHint) {
+                    <li>{{ rangeHint }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          } @else if (q.type === 'MATCHING') {
+            @if (isResults() && matchingResultPairs().length) {
+              <ul class="session-projection-quiz__pair-list">
+                @for (pair of matchingResultPairs(); track pair.id) {
+                  <li class="session-projection-quiz__pair">
+                    <span
+                      class="session-projection-quiz__pair-from markdown-body"
+                      [innerHTML]="renderMarkdown(pair.from, 4)"
+                    ></span>
+                    <mat-icon aria-hidden="true">east</mat-icon>
+                    <span
+                      class="session-projection-quiz__pair-to markdown-body"
+                      [innerHTML]="renderMarkdown(pair.to, 4)"
+                    ></span>
+                    <span class="session-projection-quiz__pair-score"
+                      >{{ pair.percent }}&nbsp;%</span
+                    >
+                  </li>
+                }
+              </ul>
+            } @else if (matchingLeftOptions().length) {
+              <div class="session-projection-quiz__option-board">
+                <section>
+                  <h2 i18n="@@sessionVote.matchingLeftOptions">Begriffe</h2>
+                  <ul>
+                    @for (item of matchingLeftOptions(); track item.id) {
+                      <li
+                        class="session-projection-quiz__option-chip markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+                <section>
+                  <h2 i18n="@@sessionVote.matchingRightOptions">Gegenstücke</h2>
+                  <ul>
+                    @for (item of matchingRightOptions(); track item.id) {
+                      <li
+                        class="session-projection-quiz__option-chip markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+              </div>
+            } @else {
+              <p i18n="@@sessionPresent.quizMatchingWaiting">Zuordnungen kommen live an.</p>
+            }
+          } @else if (q.type === 'ORDERING') {
+            @if (isResults() && orderingResultPairs().length) {
+              <ul class="session-projection-quiz__pair-list">
+                @for (pair of orderingResultPairs(); track pair.id) {
+                  <li class="session-projection-quiz__pair">
+                    <span
+                      class="session-projection-quiz__pair-from markdown-body"
+                      [innerHTML]="renderMarkdown(pair.from, 4)"
+                    ></span>
+                    <mat-icon aria-hidden="true">east</mat-icon>
+                    <span
+                      class="session-projection-quiz__pair-to markdown-body"
+                      [innerHTML]="renderMarkdown(pair.to, 4)"
+                    ></span>
+                    <span class="session-projection-quiz__pair-score"
+                      >{{ pair.percent }}&nbsp;%</span
+                    >
+                  </li>
+                }
+              </ul>
+            } @else if (orderingPreviewItems().length) {
+              <div
+                class="session-projection-quiz__option-board session-projection-quiz__option-board--single"
+              >
+                <section>
+                  <h2 i18n="@@sessionVote.discussionOrderingOptions">
+                    Elemente in neutraler Reihenfolge
+                  </h2>
+                  <ul>
+                    @for (item of orderingPreviewItems(); track item.id) {
+                      <li
+                        class="session-projection-quiz__option-chip markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+              </div>
+            } @else {
+              <p i18n="@@sessionPresent.quizOrderingWaiting">Reihenfolgen kommen live an.</p>
+            }
+          } @else if (q.type === 'CATEGORIZATION') {
+            @if (isResults() && categorizationResultPairs().length) {
+              <ul class="session-projection-quiz__pair-list">
+                @for (pair of categorizationResultPairs(); track pair.id) {
+                  <li class="session-projection-quiz__pair">
+                    <span
+                      class="session-projection-quiz__pair-from markdown-body"
+                      [innerHTML]="renderMarkdown(pair.from, 4)"
+                    ></span>
+                    <mat-icon aria-hidden="true">east</mat-icon>
+                    <span
+                      class="session-projection-quiz__pair-to markdown-body"
+                      [innerHTML]="renderMarkdown(pair.to, 4)"
+                    ></span>
+                    <span class="session-projection-quiz__pair-score"
+                      >{{ pair.percent }}&nbsp;%</span
+                    >
+                  </li>
+                }
+              </ul>
+            } @else if (categorizationPreviewItems().length) {
+              <div class="session-projection-quiz__option-board">
+                <section>
+                  <h2 i18n="@@sessionVote.categoriesLabel">Kategorien</h2>
+                  <ul>
+                    @for (category of categorizationPreviewCategories(); track category.id) {
+                      <li class="session-projection-quiz__option-chip">{{ category.name }}</li>
+                    }
+                  </ul>
+                </section>
+                <section>
+                  <h2 i18n="@@sessionVote.categorizationItemsLabel">Elemente</h2>
+                  <ul>
+                    @for (item of categorizationPreviewItems(); track item.id) {
+                      <li
+                        class="session-projection-quiz__option-chip markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
+              </div>
+            } @else {
+              <p i18n="@@sessionPresent.quizCategorizationWaiting">Zuordnungen kommen live an.</p>
+            }
+          } @else if (q.type === 'FREETEXT') {
+            @if (isResults() && freetextTopAnswers().length) {
+              <ul class="session-projection-quiz__answers" role="list">
+                @for (entry of freetextTopAnswers(); track entry.text) {
+                  <li class="session-projection-quiz__answer">
+                    <div class="session-projection-quiz__answer-head">
+                      <span>{{ entry.text }}</span>
+                      <span class="session-projection-quiz__answer-pct"
+                        >{{ entry.percent }}&nbsp;%</span
+                      >
+                    </div>
+                    <div class="session-projection-quiz__bar-track">
+                      <div
+                        class="session-projection-quiz__bar-fill"
+                        [style.width.%]="entry.percent"
+                      ></div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="session-projection-quiz__prompt" i18n="@@sessionPresent.quizFreetextPrompt">
+                Freitextantwort
+              </p>
+            }
+          } @else if (q.type === 'SHORT_TEXT' && !isResults()) {
+            <p class="session-projection-quiz__prompt" i18n="@@sessionPresent.quizShortTextPrompt">
+              Kurze Textantwort
+            </p>
+          } @else if (showRoundComparison()) {
+            <div
+              class="session-projection-quiz__round-comparison"
+              role="img"
+              i18n-aria-label="@@sessionHost.roundComparisonPeerInstructionAria"
+              aria-label="Vorher/Nachher-Vergleich Peer Instruction"
+            >
+              <div class="session-projection-quiz__round-comparison-legend">
+                @let round1Votes = q.roundComparison!.round1Total;
+                @if (round1Votes === 1) {
+                  <span
+                    class="session-projection-quiz__round-comparison-legend-item session-projection-quiz__round-comparison-legend-item--r1"
+                    i18n="@@sessionHost.roundComparisonRound1VotesLabelOne"
+                    >Runde 1 ({{ formatCount(round1Votes) }} Stimme)</span
+                  >
+                } @else {
+                  <span
+                    class="session-projection-quiz__round-comparison-legend-item session-projection-quiz__round-comparison-legend-item--r1"
+                    i18n="@@sessionHost.roundComparisonRound1VotesLabelMany"
+                    >Runde 1 ({{ formatCount(round1Votes) }} Stimmen)</span
+                  >
+                }
+                @let round2Votes = q.roundComparison!.round2Total;
+                @if (round2Votes === 1) {
+                  <span
+                    class="session-projection-quiz__round-comparison-legend-item session-projection-quiz__round-comparison-legend-item--r2"
+                    i18n="@@sessionHost.roundComparisonRound2VotesLabelOne"
+                    >Runde 2 ({{ formatCount(round2Votes) }} Stimme)</span
+                  >
+                } @else {
+                  <span
+                    class="session-projection-quiz__round-comparison-legend-item session-projection-quiz__round-comparison-legend-item--r2"
+                    i18n="@@sessionHost.roundComparisonRound2VotesLabelMany"
+                    >Runde 2 ({{ formatCount(round2Votes) }} Stimmen)</span
+                  >
+                }
+              </div>
+              @if (
+                q.roundComparison!.round1CorrectCount !== null &&
+                q.roundComparison!.round1CorrectCount !== undefined &&
+                q.type !== 'SURVEY'
+              ) {
+                <p
+                  class="session-projection-quiz__evaluation session-projection-quiz__evaluation--correct"
+                >
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                  <span i18n="@@sessionHost.roundComparisonCorrectCounts"
+                    >Richtig: {{ formatCount(q.roundComparison!.round1CorrectCount) }} in Runde 1,
+                    danach {{ formatCount(q.roundComparison!.round2CorrectCount) }} in Runde 2</span
+                  >
+                </p>
+              }
+              <ul class="session-projection-quiz__answers" role="list">
+                @for (
+                  answer of q.roundComparison!.round1Distribution;
+                  track answer.id;
+                  let i = $index
+                ) {
+                  @let r2 = q.roundComparison!.round2Distribution[i];
+                  <li
+                    class="session-projection-quiz__answer"
+                    [class.session-projection-quiz__answer--correct]="
+                      revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY'
+                    "
+                    [class.session-projection-quiz__answer--wrong]="
+                      revealCorrectness() && !answer.isCorrect && q.type !== 'SURVEY'
+                    "
+                  >
+                    <div class="session-projection-quiz__answer-head">
+                      <app-answer-option-badge
+                        [index]="i"
+                        [questionType]="q.type"
+                        [showTypeIndicator]="q.showQuestionTypeIndicators !== false"
+                      />
+                      <span
+                        class="markdown-body"
+                        [innerHTML]="renderMarkdown(answer.text, 4)"
+                      ></span>
+                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
+                        <mat-icon aria-hidden="true">check_circle</mat-icon>
+                      }
+                    </div>
+                    <div class="session-projection-quiz__round-bars">
+                      <div class="session-projection-quiz__round-bar">
+                        <span
+                          class="session-projection-quiz__round-bar-label session-projection-quiz__round-bar-label--r1"
+                          >R1</span
+                        >
+                        <div class="session-projection-quiz__bar-track">
+                          <div
+                            class="session-projection-quiz__bar-fill session-projection-quiz__bar-fill--r1"
+                            [style.width.%]="answer.votePercentage"
+                          ></div>
+                        </div>
+                        <span
+                          class="session-projection-quiz__round-bar-pct session-projection-quiz__round-bar-pct--r1"
+                          >{{ answer.votePercentage }}&nbsp;%</span
+                        >
+                      </div>
+                      <div class="session-projection-quiz__round-bar">
+                        <span
+                          class="session-projection-quiz__round-bar-label session-projection-quiz__round-bar-label--r2"
+                          >R2</span
+                        >
+                        <div class="session-projection-quiz__bar-track">
+                          <div
+                            class="session-projection-quiz__bar-fill session-projection-quiz__bar-fill--r2"
+                            [style.width.%]="r2?.votePercentage ?? 0"
+                          ></div>
+                        </div>
+                        <span
+                          class="session-projection-quiz__round-bar-pct session-projection-quiz__round-bar-pct--r2"
+                          >{{ r2?.votePercentage ?? 0 }}&nbsp;%</span
+                        >
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+              @if (q.roundComparison!.opinionShift; as shift) {
+                <div class="session-projection-quiz__opinion-shift" role="status">
+                  <mat-icon aria-hidden="true">swap_horiz</mat-icon>
+                  <span>{{
+                    opinionShiftChangedMindLabel(
+                      shift.changedCount,
+                      shift.bothRoundsCount,
+                      shift.changedPercentage
+                    )
+                  }}</span>
+                  @if (
+                    shift.wrongToCorrectCount !== null &&
+                    shift.wrongToCorrectCount !== undefined &&
+                    q.type !== 'SURVEY'
+                  ) {
+                    <span class="session-projection-quiz__opinion-shift-detail">
+                      <span class="session-projection-quiz__opinion-shift-gain">{{
+                        opinionShiftWrongToCorrectLabel(shift.wrongToCorrectCount)
+                      }}</span>
+                      <span class="session-projection-quiz__opinion-shift-loss">{{
+                        opinionShiftCorrectToWrongLabel(shift.correctToWrongCount ?? 0)
+                      }}</span>
+                    </span>
+                  }
+                  @if (shift.migrations && shift.migrations.length > 0) {
+                    <ul class="session-projection-quiz__migrations" role="list">
+                      @for (m of shift.migrations; track m.from + m.to) {
+                        <li class="session-projection-quiz__migration">
+                          <span>{{ formatCount(m.count) }}×</span>
+                          <span>{{ m.from }}</span>
+                          <mat-icon aria-hidden="true">east</mat-icon>
+                          <span>{{ m.to }}</span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+            </div>
+          } @else if (showVoteDistribution()) {
+            <ul class="session-projection-quiz__answers" role="list">
+              @for (answer of q.voteDistribution!; track answer.id; let i = $index) {
+                <li
+                  class="session-projection-quiz__answer"
+                  [class.session-projection-quiz__answer--correct]="
+                    revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY'
+                  "
+                  [class.session-projection-quiz__answer--wrong]="
+                    revealCorrectness() && !answer.isCorrect && q.type !== 'SURVEY'
+                  "
+                >
+                  <div class="session-projection-quiz__answer-head">
+                    <app-answer-option-badge
+                      [index]="i"
+                      [questionType]="q.type"
+                      [showTypeIndicator]="q.showQuestionTypeIndicators !== false"
+                    />
+                    <span class="markdown-body" [innerHTML]="renderMarkdown(answer.text, 4)"></span>
+                    <span class="session-projection-quiz__answer-pct"
+                      >{{ answer.votePercentage }}&nbsp;%</span
+                    >
+                    @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
+                      <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    }
+                  </div>
+                  <div class="session-projection-quiz__bar-track">
+                    <div
+                      class="session-projection-quiz__bar-fill"
+                      [class.session-projection-quiz__bar-fill--correct]="
+                        revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY'
+                      "
+                      [style.width.%]="answer.votePercentage"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else if (showChoiceAnswers()) {
+            <ul class="session-projection-quiz__answers" role="list">
+              @for (answer of q.answers; track answer.id; let i = $index) {
+                <li
+                  class="session-projection-quiz__answer"
+                  [class.session-projection-quiz__answer--correct]="
+                    revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY'
+                  "
+                  [class.session-projection-quiz__answer--wrong]="
+                    revealCorrectness() && !answer.isCorrect && q.type !== 'SURVEY'
+                  "
+                >
+                  <div class="session-projection-quiz__answer-head">
+                    <app-answer-option-badge
+                      [index]="i"
+                      [questionType]="q.type"
+                      [showTypeIndicator]="q.showQuestionTypeIndicators !== false"
+                    />
+                    <span class="markdown-body" [innerHTML]="renderMarkdown(answer.text, 4)"></span>
+                    @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
+                      <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (showFingerCountdown()) {
+      <mat-card appearance="outlined" class="session-projection-quiz__fingers">
+        <mat-card-content>
+          <app-countdown-fingers [seconds]="countdownSeconds()!" size="present" />
+        </mat-card-content>
+      </mat-card>
+    }
+  </article>
+}

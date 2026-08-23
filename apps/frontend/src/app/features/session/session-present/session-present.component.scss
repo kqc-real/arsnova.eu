@@ -1,12 +1,24 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .session-placeholder__text {
   margin: 0 0 1rem;
   color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  font: var(--mat-sys-headline-small);
 }
 
 .session-placeholder__question {
   margin: 0;
-  font: var(--mat-sys-title-small);
+  font: var(--mat-sys-headline-medium);
 }
 
 .session-placeholder__home-link {
@@ -17,9 +29,416 @@
 }
 
 .session-present {
-  width: 100%;
+  --present-inset-inline: clamp(0.9rem, 1.7vw, 1.4rem);
+  --present-inset-block: clamp(0.65rem, 1.35vh, 1.1rem);
+  --present-stack-gap: clamp(0.75rem, 1.5vh, 1.15rem);
+
   box-sizing: border-box;
-  padding-top: clamp(0.65rem, 1.8vw, 1rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--present-stack-gap);
+  width: min(100%, 76rem);
+  max-width: 76rem;
+  margin-inline: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding: var(--present-inset-block) var(--present-inset-inline);
+}
+
+.session-present--quiz,
+.session-present--freetext {
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+  padding: clamp(1.25rem, 3.4vh, 2.8rem) clamp(1.2rem, 2.2vw, 2.4rem);
+  gap: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+app-session-projection-quiz,
+.session-present--quiz app-session-projection-quiz {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.session-present__lobby-card,
+.session-present__winner-card,
+.session-present__team-board-card,
+.session-present__qa-card,
+.session-present__qa-list-card,
+.session-present__feedback-card,
+.session-present__word-cloud-card,
+.session-present__word-cloud-stage,
+.session-placeholder {
+  width: min(100%, 76rem);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.session-present--lobby .session-present__lobby-card,
+.session-placeholder {
+  width: min(100%, 34rem);
+}
+
+.session-present--lobby,
+.session-present--qa,
+.session-present--feedback {
+  justify-content: center;
+}
+
+.session-present--lobby {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+  padding: clamp(1.1rem, 3vmin, 2.4rem);
+  gap: clamp(1.1rem, 2.6vmin, 1.8rem);
+}
+
+.session-present__lobby-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  justify-items: stretch;
+  gap: clamp(1rem, 2.4vmin, 1.8rem);
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+}
+
+.session-present__lobby-foyer {
+  position: absolute;
+  inset: 0;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.session-present__lobby-card,
+.session-present__winner-card,
+.session-present__team-board-card,
+.session-present__qa-card,
+.session-present__qa-list-card,
+.session-present__feedback-card,
+.session-placeholder {
+  mat-card-content {
+    display: grid;
+    gap: 0.9rem;
+    padding: clamp(1.15rem, 2.2vw, 1.75rem) clamp(1.25rem, 2.4vw, 1.9rem) !important;
+  }
+}
+
+.session-present--lobby .session-present__lobby-card mat-card-content {
+  padding: clamp(1.7rem, 3.8vmin, 2.8rem) clamp(1.6rem, 3.4vw, 2.6rem) !important;
+}
+
+.session-present__lobby {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(0.85rem, 1.8vw, 1.35rem);
+  height: auto;
+  padding: clamp(1.7rem, 3.8vmin, 2.8rem) clamp(1.6rem, 3.4vw, 2.6rem) !important;
+  text-align: center;
+}
+
+.session-present__lobby-motif-col {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.session-present__lobby-motif {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 1.2rem;
+}
+
+.session-present--lobby .session-present__lobby-card {
+  container-type: inline-size;
+  container-name: present-join;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  --app-qr-size: min(22rem, 100%);
+}
+
+.session-present__lobby-label {
+  margin: 0 0 0.15rem;
+  color: var(--mat-sys-primary);
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-present__lobby-code {
+  margin: 0;
+  max-width: 100%;
+  font-size: clamp(1.85rem, 18cqi, 4.1rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.session-present__lobby-qr {
+  width: min(22rem, 100%);
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 1rem;
+  justify-self: center;
+}
+
+.session-present__lobby-hint {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  line-height: 1.5;
+}
+
+.session-present__lobby-audience {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: clamp(0.35rem, 1.2vmin, 0.8rem);
+}
+
+.session-present__lobby-audience-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem 1rem;
+  margin: 0 0 clamp(0.75rem, 1.8vmin, 1.15rem);
+  color: var(--mat-sys-primary);
+  font-size: clamp(1.25rem, 2.5vw, 1.85rem);
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  text-wrap: pretty;
+}
+
+.session-present__lobby-audience-count {
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.session-present__lobby-teams-grid,
+.session-present__lobby-people-cols {
+  display: grid;
+  grid-template-columns: repeat(var(--lobby-audience-cols, 1), minmax(0, 1fr));
+  gap: clamp(0.7rem, 1.6vmin, 1.1rem);
+  min-height: 0;
+  flex: 1 1 auto;
+  height: 100%;
+  overflow: auto;
+}
+
+.session-present__lobby-team,
+.session-present__lobby-person-col {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 9rem;
+  height: 100%;
+  padding: clamp(1rem, 2vmin, 1.35rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--team-accent, var(--mat-sys-primary)) 42%, transparent);
+  border-radius: 1.15rem;
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container) 88%,
+    var(--team-accent, var(--mat-sys-primary)) 12%
+  );
+}
+
+.session-present__lobby-person-col {
+  align-content: end;
+  justify-items: center;
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, var(--mat-sys-primary) 22%);
+  background: color-mix(in srgb, var(--mat-sys-surface-container) 90%, var(--mat-sys-primary) 10%);
+}
+
+.session-present__lobby-team-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.session-present__lobby-team-dot {
+  flex: 0 0 auto;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  background: var(--team-accent, var(--mat-sys-primary));
+}
+
+.session-present__lobby-team-name {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  font-weight: 750;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.session-present__lobby-team-count {
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  font-weight: 650;
+}
+
+.session-present__lobby-team-foyer,
+.session-present__lobby-person-foyer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.session-present__lobby-team-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session-present__lobby-team-members li,
+.session-present__lobby-person {
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 82%,
+    var(--mat-sys-primary) 18%
+  );
+  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.session-present__lobby-nick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.session-present__lobby-nick-icon,
+.session-present__lobby-nick-mat-icon {
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
+.session-present__lobby-nick-icon {
+  font-size: 1.55em;
+}
+
+.session-present__lobby-nick-mat-icon {
+  width: 1.25em;
+  height: 1.25em;
+  font-size: 1.25em;
+}
+
+.session-present__lobby-nick-seq {
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.82em;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-present__lobby-nick-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.session-present__lobby-person-col .session-present__lobby-nick {
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.session-present__lobby-person-col .session-present__lobby-nick-icon,
+.session-present__lobby-person-col .session-present__lobby-nick-mat-icon {
+  font-size: clamp(2.4rem, 6.5vw, 4.6rem);
+}
+
+.session-present__lobby-person-col .session-present__lobby-nick-mat-icon {
+  width: 1em;
+  height: 1em;
+}
+
+.session-present__lobby-person-col .session-present__lobby-person {
+  display: flex;
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+}
+
+.session-present__lobby-people {
+  display: none;
+}
+
+.session-present__lobby-person {
+  margin: 0;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 82%,
+    var(--mat-sys-primary) 18%
+  );
+  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .session-present__qa-card {
@@ -29,93 +448,54 @@
     color-mix(in srgb, var(--mat-sys-primary-container) 48%, white),
     var(--mat-sys-surface)
   );
-  box-shadow: 0 1rem 2rem color-mix(in srgb, black 7%, transparent);
-
-  mat-card-content {
-    display: grid;
-    gap: 1rem;
-    padding-block: clamp(1.25rem, 3vw, 2rem);
-  }
 }
 
-.session-present__qa-head {
+.session-present__qa-head,
+.session-present__qa-list-head,
+.session-present__feedback-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.session-present__qa-label {
+.session-present__qa-label,
+.session-present__feedback-label {
   margin: 0;
   color: var(--mat-sys-primary);
-  font: var(--mat-sys-label-large);
+  font-size: 0.95rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.session-present__qa-title {
+.session-present__qa-title,
+.session-present__qa-list-title,
+.session-present__feedback-title {
   margin: 0.25rem 0 0;
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
   line-height: 1.25;
 }
 
-.session-present__qa-votes {
+.session-present__qa-votes,
+.session-present__qa-list-votes,
+.session-present__qa-list-count {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   min-height: 2.4rem;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
   color: var(--mat-sys-primary);
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
   font-weight: 700;
-  box-sizing: border-box;
 }
 
-.session-present__qa-text {
-  font-size: clamp(1.2rem, 2vw, 1.65rem);
-  line-height: 1.55;
-  color: var(--mat-sys-on-surface);
-}
-
-.session-present__qa-list-card {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-outline-variant));
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, var(--mat-sys-surface));
-  box-shadow: 0 0.85rem 1.75rem color-mix(in srgb, black 6%, transparent);
-
-  mat-card-content {
-    display: grid;
-    gap: 1rem;
-    padding-block: clamp(1rem, 2.4vw, 1.5rem);
-  }
-}
-
-.session-present__qa-list-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.session-present__qa-list-title {
-  margin: 0.25rem 0 0;
-  font-size: clamp(1.1rem, 1.8vw, 1.45rem);
-  line-height: 1.3;
-}
-
-.session-present__qa-list-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.6rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-title-small);
-  font-weight: 700;
+.session-present__qa-text,
+.session-present__qa-list-text {
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  line-height: 1.4;
 }
 
 .session-present__qa-list {
@@ -127,99 +507,10 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
-  align-items: flex-start;
-  padding: 0.85rem 0.95rem;
+  padding: 0.85rem 1rem;
   border-radius: 1rem;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--mat-sys-surface) 94%, transparent),
-    color-mix(in srgb, var(--mat-sys-surface-container-low) 82%, var(--mat-sys-surface))
-  );
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-outline-variant));
-  box-shadow: 0 0.75rem 1.5rem color-mix(in srgb, black 6%, transparent);
-}
-
-.session-present__qa-list-votes {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 2rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-title-small);
-  font-weight: 700;
-  box-sizing: border-box;
-}
-
-.session-present__qa-list-text {
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-large);
-  line-height: 1.55;
-}
-
-@media (max-width: 599px) {
-  .session-present__qa-card,
-  .session-present__qa-list-card,
-  .session-present__feedback-card {
-    mat-card-content {
-      gap: var(--host-mobile-stack-gap);
-    }
-  }
-
-  .session-present__qa-list-item {
-    grid-template-columns: 1fr;
-    gap: 0.55rem;
-    padding: var(--host-mobile-card-padding);
-  }
-
-  .session-present__qa-votes,
-  .session-present__qa-list-votes {
-    justify-self: start;
-  }
-
-  .session-present__qa-title {
-    font-size: clamp(1.2rem, 5vw, 1.45rem);
-  }
-
-  .session-present__qa-text,
-  .session-present__qa-list-text {
-    font: var(--mat-sys-body-medium);
-    line-height: 1.6;
-  }
-}
-
-.session-present__feedback-card {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-outline-variant));
-  background: color-mix(in srgb, var(--mat-sys-primary-container) 20%, var(--mat-sys-surface));
-
-  mat-card-content {
-    display: grid;
-    gap: 1rem;
-    padding-block: clamp(1.1rem, 2.8vw, 1.8rem);
-  }
-}
-
-.session-present__feedback-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.session-present__feedback-label {
-  margin: 0;
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-label-large);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.session-present__feedback-title {
-  margin: 0.25rem 0 0;
-  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
-  line-height: 1.25;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
 }
 
 .session-present__feedback-meta {
@@ -234,7 +525,7 @@
   align-items: center;
   padding: 0.28rem 0.7rem;
   border-radius: 999px;
-  font: var(--mat-sys-label-medium);
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -245,7 +536,6 @@
 
 .session-present__feedback-votes {
   background: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-present__feedback-bars {
@@ -255,32 +545,27 @@
 
 .session-present__feedback-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.75rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
   align-items: center;
 }
 
 .session-present__feedback-row-label {
-  min-width: 2.5rem;
+  min-width: 2.75rem;
   text-align: center;
-  font-size: 1.65rem;
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
   font-weight: 700;
 }
 
 .session-present__feedback-row-stars {
-  display: inline-flex;
-  min-width: 6.25rem;
-  justify-content: flex-start;
-  color: var(--app-rating-star);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0;
+  color: var(--app-rating-star, var(--mat-sys-tertiary));
+  font-size: 1.2rem;
 }
 
 .session-present__feedback-row-icon {
-  font-size: 1.55rem;
-  width: 1.55rem;
-  height: 1.55rem;
+  font-size: 1.8rem;
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .session-present__feedback-row-icon--positive {
@@ -291,12 +576,8 @@
   color: var(--arsnova-bar-wrong, #c62828);
 }
 
-.session-present__feedback-row-icon--neutral {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .session-present__feedback-track {
-  height: 1rem;
+  height: 1.1rem;
   border-radius: 999px;
   background: var(--mat-sys-surface-container-high);
   overflow: hidden;
@@ -306,128 +587,614 @@
   height: 100%;
   min-width: 0.75rem;
   border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--mat-sys-primary) 70%, white),
-    var(--mat-sys-primary)
-  );
+  background: var(--mat-sys-primary);
 }
 
 .session-present__feedback-row-value {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  font-size: 1.1rem;
   font-variant-numeric: tabular-nums;
 }
 
-.session-present--team-finale {
-  max-width: 72rem;
-  margin: 0 auto;
-  gap: 1.25rem;
-}
-
-.session-present__winner-card,
-.session-present__team-board-card {
+.session-present__winner-card {
   position: relative;
   overflow: hidden;
-}
-
-.session-present__winner-card {
-  min-height: min(40vh, 24rem);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
     var(--mat-sys-surface)
   );
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, var(--mat-sys-outline-variant));
-
-  .session-present--team-finale & {
-    box-shadow: 0 1rem 2.5rem color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-  }
-
-  mat-card-content {
-    display: flex;
-    min-height: inherit;
-    flex-direction: column;
-    justify-content: center;
-    padding-block: clamp(1.75rem, 4vw, 3rem);
-  }
 }
 
 .session-present__winner-head {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.75rem;
+  gap: 0.35rem;
+  padding: 0.15rem 0.65rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
 }
 
 .session-present__winner-icon {
-  color: var(--mat-sys-primary);
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .session-present__winner-label {
   margin: 0;
-  font: var(--mat-sys-title-small);
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.session-present--finish {
+  width: 100%;
+  max-width: none;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow: hidden;
+  padding-inline: clamp(0.7rem, 1.4vw, 1.4rem);
+  gap: 0;
+}
+
+.session-present--finish > .session-present__finish {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.session-present__finish {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'title'
+    'hero'
+    'board'
+    'teams'
+    'home';
+  grid-template-rows: auto minmax(11rem, 1fr) minmax(0, max-content) minmax(0, max-content) auto;
+  gap: clamp(0.4rem, 1.1vmin, 0.75rem);
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.session-present__finish:not(:has(.session-present__finish-hero)) {
+  grid-template-areas:
+    'title'
+    'board'
+    'teams'
+    'home';
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, max-content) auto;
+}
+
+.session-present__finish-hero {
+  display: grid;
+  grid-area: hero;
+  gap: clamp(0.55rem, 1.3vmin, 0.9rem);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 0;
+  height: 100%;
+}
+
+.session-present__finish-hero .session-present__winner-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
+  overflow: hidden;
+}
+
+.session-present__finish-hero .session-present__winner-card--champion {
+  background:
+    radial-gradient(
+      ellipse at 50% 18%,
+      color-mix(in srgb, #ffe082 55%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(155deg, color-mix(in srgb, #f9a825 46%, transparent), transparent 62%),
+    var(--mat-sys-surface);
+  border-color: color-mix(in srgb, #f9a825 68%, var(--mat-sys-outline-variant));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #ffe082 42%, transparent),
+    0 0.55rem 1.8rem color-mix(in srgb, #f9a825 28%, transparent);
+}
+
+.session-present__finish-hero .session-present__winner-card mat-card-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(0.08rem, 0.8cqh, 0.35rem);
+  min-height: 0;
+  overflow: visible;
+  padding: clamp(0.4rem, 2cqh, 1rem) clamp(0.7rem, 2.4cqw, 1.4rem) !important;
+}
+
+.session-present__finish-hero .session-present__winner-text {
+  display: none;
+}
+
+.session-present__finish-hero .session-present__winner-head {
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: clamp(0.08rem, 0.7cqh, 0.28rem);
+  padding: 0;
+  background: transparent;
+}
+
+.session-present__finish-hero .session-present__winner-label {
+  font-size: clamp(0.78rem, 3cqh, 1.2rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.session-present__finish-hero .session-present__winner-meta {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: clamp(1rem, min(5.2cqh, 4.2cqw), 1.85rem);
+  font-weight: 800;
+}
+
+.session-present__finish-hero .session-present__winner-name--champion {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  gap: clamp(0.15rem, 1.1cqh, 0.5rem);
+  margin: 0;
+  max-width: 100%;
+  font-size: clamp(1.55rem, min(11cqh, 8.5cqw), 3.5rem);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.session-present__finish-hero .session-present__winner-emoji--hero {
+  font-size: clamp(3.6rem, min(34cqh, 26cqw), 11.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 0.35rem 0.7rem color-mix(in srgb, #f9a825 48%, transparent));
+}
+
+.session-present__finish-hero .session-present__winner-trophy {
+  font-size: clamp(2.6rem, min(20cqh, 16cqw), 7.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 0.28rem 0.6rem color-mix(in srgb, #f9a825 42%, transparent));
+}
+
+.session-present__finish-hero
+  .session-present__winner-card:has(.session-present__winner-emoji--hero)
+  .session-present__winner-trophy {
+  font-size: clamp(1.45rem, min(6.5cqh, 5.5cqw), 2.5rem);
+}
+
+.session-present__finish-hero .session-present__winner-dot--champion {
+  width: clamp(3rem, min(20cqh, 16cqw), 7.5rem);
+  height: clamp(3rem, min(20cqh, 16cqw), 7.5rem);
+}
+
+@media (min-width: 900px) {
+  .session-present__finish-hero--with-teams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.session-present__finish-title {
+  grid-area: title;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2rem, 4.8vmin, 3.4rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.08;
+  color: var(--mat-sys-on-surface);
+  text-wrap: balance;
+}
+
+.session-present__finish-home {
+  grid-area: home;
+  justify-self: center;
+}
+
+.session-present__winner-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.session-present__winner-card--champion {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, #f9a825 28%, transparent), transparent 62%),
+    var(--mat-sys-surface);
+  border-color: color-mix(in srgb, #f9a825 46%, var(--mat-sys-outline-variant));
+  text-align: center;
+}
+
+.session-present__winner-dot--champion {
+  width: clamp(2.4rem, 16cqh, 7.5rem);
+  height: clamp(2.4rem, 16cqh, 7.5rem);
 }
 
 .session-present__winner-name {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin: 0.55rem 0 0;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0.15rem 0 0;
+  font-size: clamp(2.8rem, 8vw, 5rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.session-present__winner-name--champion {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+  font-size: clamp(1.45rem, 3.6vmin, 2.4rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.session-present__winner-emoji {
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.session-present__winner-emoji--hero {
+  font-size: clamp(2.8rem, 7.4vmin, 4.8rem);
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0.2rem 0.4rem color-mix(in srgb, #f9a825 35%, transparent));
+}
+
+.session-present__winner-trophy {
+  font-size: clamp(1.4rem, 3.6vmin, 2.2rem);
+  line-height: 1;
+}
+
+.session-present__board-card,
+.session-present__team-board-card,
+.session-present__winner-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+.session-present__finish .session-present__board-card {
+  grid-area: board;
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
+  overflow: visible;
+}
+
+.session-present__finish .session-present__team-board-card {
+  grid-area: teams;
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
+  overflow: visible;
+}
+
+.session-present__finish .session-present__board-card mat-card-content,
+.session-present__finish .session-present__team-board-card mat-card-content {
+  padding: 0.4rem 0.75rem 0.45rem !important;
+  gap: 0.22rem;
+}
+
+.session-present__finish .session-placeholder {
+  grid-area: board;
+}
+
+.session-present__board-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   font-weight: 700;
+}
+
+.session-present__board-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.9rem;
+}
+
+.session-present__board-list {
+  --board-cols-used: var(--board-cols, 1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.45rem 0.85rem;
+  grid-template-columns: repeat(var(--board-cols-used), minmax(0, 1fr));
+}
+
+@media (max-width: 899px) {
+  .session-present__board-list {
+    --board-cols-used: 1;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1399px) {
+  .session-present__board-list {
+    --board-cols-used: min(2, var(--board-cols, 2));
+  }
+}
+
+.session-present__board-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.7rem;
+  padding: 0.4rem 0.7rem 0.45rem;
+  border-radius: var(--mat-sys-corner-large, 0.875rem);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  font-size: clamp(0.95rem, 1.4vw, 1.18rem);
+  font-weight: 700;
+}
+
+.session-present__board-item--champion {
+  border-color: color-mix(in srgb, #f9a825 50%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, #f9a825 12%, var(--mat-sys-surface-container-low));
+}
+
+.session-present__board-item--silver {
+  border-color: color-mix(in srgb, #90a4ae 42%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, #cfd8dc 10%, var(--mat-sys-surface-container-low));
+}
+
+.session-present__board-item--bronze {
+  border-color: color-mix(in srgb, #bf8a4a 46%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, #d7a86e 10%, var(--mat-sys-surface-container-low));
+}
+
+.session-present__board-lead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 3.2rem;
+}
+
+.session-present__board-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.session-present__board-medal {
+  display: block;
+  line-height: 1;
+  transform: scale(1.02);
+  filter: drop-shadow(0 0.18rem 0.35rem color-mix(in srgb, #000 22%, transparent));
+}
+
+.session-present__board-medal--gold {
+  font-size: clamp(2.8rem, 5.4vw, 4.8rem);
+  filter: drop-shadow(0 0.22rem 0.45rem color-mix(in srgb, #f9a825 55%, transparent));
+}
+
+.session-present__board-medal--silver {
+  font-size: clamp(2.45rem, 4.8vw, 4.2rem);
+  filter: drop-shadow(0 0.2rem 0.4rem color-mix(in srgb, #90a4ae 48%, transparent));
+}
+
+.session-present__board-medal--bronze {
+  font-size: clamp(2.25rem, 4.4vw, 3.8rem);
+  filter: drop-shadow(0 0.2rem 0.38rem color-mix(in srgb, #bf8a4a 50%, transparent));
+}
+
+.session-present__board-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(1.05rem, 1.85vw, 1.5rem);
+  font-weight: 800;
   line-height: 1.2;
+}
+
+.session-present__board-tail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 3.1rem;
+}
+
+.session-present__participant-team-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: clamp(1.45rem, 2.6vw, 2.1rem);
+  line-height: 1;
+}
+
+.session-present__participant-team-icon--hero {
+  font-size: clamp(1.8rem, min(10cqh, 8cqw), 3.2rem);
+}
+
+.session-present__participant-team-dot {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent);
+}
+
+.session-present__participant-team-dot--hero {
+  width: clamp(1.4rem, min(8cqh, 6.5cqw), 2.6rem);
+  height: clamp(1.4rem, min(8cqh, 6.5cqw), 2.6rem);
+}
+
+.session-present__winner-identity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.session-present__board-emoji {
+  font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+  line-height: 1;
+}
+
+.session-present__board-item--champion .session-present__board-emoji {
+  font-size: clamp(1.65rem, 3.1vw, 2.5rem);
+}
+
+.session-present__board-score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.session-present__board-card:has(.session-present__board-list--compact)
+  .session-present__board-hint {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+}
+
+.session-present__board-card:has(.session-present__board-list--dense) .session-present__board-hint {
+  display: none;
+}
+
+.session-present__board-card:has(.session-present__board-list--dense)
+  .session-present__board-title {
+  margin: 0 0 0.2rem;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+.session-present__board-list--compact {
+  gap: 0.28rem 0.55rem;
+}
+
+.session-present__board-list--compact .session-present__board-item {
+  padding: 0.22rem 0.5rem 0.25rem;
+  column-gap: 0.45rem;
+}
+
+.session-present__board-list--compact .session-present__board-lead,
+.session-present__board-list--compact .session-present__board-tail {
+  min-width: 2.6rem;
+  gap: 0.06rem;
+}
+
+.session-present__board-list--compact .session-present__board-medal--gold {
+  font-size: clamp(2.2rem, 4.2vw, 3.5rem);
+}
+
+.session-present__board-list--compact .session-present__board-medal--silver {
+  font-size: clamp(2rem, 3.8vw, 3.1rem);
+}
+
+.session-present__board-list--compact .session-present__board-medal--bronze {
+  font-size: clamp(1.85rem, 3.5vw, 2.85rem);
+}
+
+.session-present__board-list--compact .session-present__board-name {
+  font-size: clamp(0.95rem, 1.5vw, 1.25rem);
+}
+
+.session-present__board-list--dense {
+  gap: 0.16rem 0.38rem;
+}
+
+.session-present__board-list--dense .session-present__board-item {
+  padding: 0.1rem 0.38rem 0.12rem;
+  column-gap: 0.35rem;
+}
+
+.session-present__board-list--dense .session-present__board-lead,
+.session-present__board-list--dense .session-present__board-tail {
+  min-width: 2.2rem;
+  gap: 0.02rem;
+}
+
+.session-present__board-list--dense .session-present__board-medal--gold {
+  font-size: clamp(1.75rem, 3.2vw, 2.7rem);
+}
+
+.session-present__board-list--dense .session-present__board-medal--silver {
+  font-size: clamp(1.6rem, 2.9vw, 2.45rem);
+}
+
+.session-present__board-list--dense .session-present__board-medal--bronze {
+  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+}
+
+.session-present__board-list--dense .session-present__board-emoji {
+  font-size: clamp(1.05rem, 1.7vw, 1.4rem);
+}
+
+.session-present__board-list--dense .session-present__board-name {
+  font-size: clamp(0.82rem, 1.25vw, 1.05rem);
+}
+
+.session-present__board-list--dense .session-present__participant-team-icon {
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
 }
 
 .session-present__winner-dot,
 .session-present__team-board-dot {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 1.1rem;
+  height: 1.1rem;
   border-radius: 999px;
   flex-shrink: 0;
 }
 
 .session-present__winner-text {
-  margin: 0.6rem 0 0;
-  max-width: 24ch;
-  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
-  line-height: 1.25;
+  margin: 0.1rem 0 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
 }
 
 .session-present__winner-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0.8rem 0 0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-  color: var(--mat-sys-on-surface-variant);
-  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  margin: 0.1rem 0 0;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .session-present__team-board-title {
-  margin: 0 0 1rem;
-  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  margin: 0 0 0.45rem;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   font-weight: 700;
 }
 
-.session-present__team-board-list {
+.session-present__team-board-list,
+.session-present__team-board-list--overflow {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.85rem 1.1rem;
 }
 
 .session-present__team-board-item {
-  padding: 1rem 1.1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 24rem;
+  min-width: min(24rem, 100%);
+  max-width: 36rem;
+  padding: 0.95rem 1.15rem;
   border-radius: var(--mat-sys-corner-large, 0.875rem);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -440,14 +1207,17 @@
 
 .session-present__team-board-head {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 0.45rem;
 }
 
-.session-present__team-board-rank {
-  color: var(--mat-sys-primary);
-  font-size: 1.05rem;
+.session-present__team-board-rank,
+.session-present__team-board-name {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
   font-weight: 700;
 }
 
@@ -455,20 +1225,29 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  min-width: 0;
+}
+
+.session-present__team-board-emoji {
+  font-size: clamp(2rem, 4.2vw, 3.2rem);
+  line-height: 1;
+}
+
+.session-present__team-board-item--winner .session-present__team-board-emoji {
+  font-size: clamp(2rem, 4.2vw, 3.2rem);
 }
 
 .session-present__team-board-meta {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 0.95rem;
-  text-align: right;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .session-present__team-board-track {
-  margin-top: 0.7rem;
-  height: 0.8rem;
+  flex: 0 0 0.85rem;
+  align-self: stretch;
+  margin-top: auto;
+  height: 0.85rem;
   border-radius: 999px;
   background: var(--mat-sys-surface-container-high);
   overflow: hidden;
@@ -480,24 +1259,10 @@
   border-radius: inherit;
 }
 
-.session-present__word-cloud-card {
-  padding: clamp(1rem, 3vw, 1.4rem);
-  border-radius: var(--mat-sys-corner-extra-large, 1.25rem);
-  background:
-    radial-gradient(
-      circle at top,
-      color-mix(in srgb, var(--mat-sys-primary) 10%, transparent),
-      transparent 62%
-    ),
-    color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, var(--mat-sys-surface));
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, var(--mat-sys-outline-variant));
-  box-shadow: 0 1rem 2rem color-mix(in srgb, var(--mat-sys-shadow) 5%, transparent);
-}
-
+.session-present__word-cloud-card,
 .session-present__word-cloud-stage {
-  display: block;
-  width: 100%;
-  height: min(92dvh, 78rem);
+  flex: 1 1 auto;
+  min-height: 16rem;
 }
 
 .session-present__confetti {
@@ -507,7 +1272,7 @@
 }
 
 .session-present__confetti-piece {
-  --size: 0.55rem;
+  --size: 0.7rem;
   position: absolute;
   top: -0.5rem;
   left: calc(10% + (var(--i) * 10%));
@@ -517,87 +1282,28 @@
   background: hsl(calc(var(--i) * 42deg), 90%, 60%);
 }
 
-@media (max-width: 700px) {
-  .session-present {
-    gap: var(--host-mobile-stack-gap);
-    padding-top: clamp(0.85rem, 3vw, 1.1rem);
+@media (min-width: 960px) {
+  .session-present__lobby-stage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: space-evenly;
+    column-gap: clamp(1.2rem, 3.2vmin, 2.4rem);
   }
 
-  .session-present__qa-card,
-  .session-present__feedback-card,
-  .session-present__winner-card,
-  .session-present__team-board-card {
-    mat-card-content {
-      padding-block: var(--host-mobile-card-padding);
-    }
+  .session-present__lobby-stage--with-motif {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .session-present__qa-head {
-    flex-direction: column;
-  }
-
-  .session-present__feedback-head {
-    flex-direction: column;
-  }
-
-  .session-present__feedback-meta {
-    justify-items: start;
-  }
-
-  .session-present__feedback-row {
-    grid-template-columns: auto 1fr;
-    gap: 0.45rem 0.5rem;
-  }
-
-  .session-present__feedback-row-value {
-    grid-column: 1 / -1;
-    padding-left: 3rem;
-    font: var(--mat-sys-body-small);
-  }
-
-  .session-present--team-finale {
-    gap: 1rem;
-  }
-
-  .session-present__winner-card {
-    min-height: auto;
-  }
-
-  .session-present__winner-name {
-    font-size: clamp(2rem, 8vw, 2.8rem);
-  }
-
-  .session-present__winner-text {
-    font-size: clamp(1rem, 4.5vw, 1.35rem);
-  }
-
-  .session-present__winner-head,
-  .session-present__winner-meta {
-    width: fit-content;
+  .session-present--lobby .session-present__lobby-card {
+    align-self: center;
+    justify-self: center;
+    width: min(100%, 32rem);
     max-width: 100%;
+    height: auto;
   }
 
-  .session-present__team-board-item {
-    padding: var(--host-mobile-card-padding);
-  }
-
-  .session-present__team-board-head {
-    grid-template-columns: auto 1fr;
-  }
-
-  .session-present__team-board-meta {
-    grid-column: 1 / -1;
-    text-align: left;
-    padding-left: 2rem;
-  }
-
-  .session-present__word-cloud-card {
-    padding: var(--host-mobile-card-padding);
-  }
-
-  .session-present__word-cloud-stage {
-    display: block;
-    height: min(86dvh, 64rem);
+  .session-present--qa .session-present__qa-list {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

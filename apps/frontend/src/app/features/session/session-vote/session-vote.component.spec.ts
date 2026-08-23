@@ -44,6 +44,7 @@ const {
   setTimerAccommodationMutateMock,
   getTeamsQueryMock,
   getTeamLeaderboardQueryMock,
+  getLeaderboardQueryMock,
   getPersonalScorecardQueryMock,
   getPersonalResultQueryMock,
   getHasSubmittedFeedbackQueryMock,
@@ -70,6 +71,7 @@ const {
   setTimerAccommodationMutateMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
+  getLeaderboardQueryMock: vi.fn(),
   getPersonalScorecardQueryMock: vi.fn(),
   getPersonalResultQueryMock: vi.fn(),
   getHasSubmittedFeedbackQueryMock: vi.fn(),
@@ -101,6 +103,7 @@ vi.mock('../../../core/trpc.client', () => ({
       setTimerAccommodation: { mutate: setTimerAccommodationMutateMock },
       getTeams: { query: getTeamsQueryMock },
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
+      getLeaderboard: { query: getLeaderboardQueryMock },
       getPersonalScorecard: { query: getPersonalScorecardQueryMock },
       getPersonalResult: { query: getPersonalResultQueryMock },
       getHasSubmittedFeedback: { query: getHasSubmittedFeedbackQueryMock },
@@ -241,6 +244,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       }),
     );
     getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
+    getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,

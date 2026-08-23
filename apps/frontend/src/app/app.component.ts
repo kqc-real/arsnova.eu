@@ -192,6 +192,9 @@ export class AppComponent implements OnInit, OnDestroy {
   isPreviewRoute = signal(
     typeof window !== 'undefined' && this.matchesPreviewRoute(window.location.pathname),
   );
+  isPresentRoute = signal(
+    typeof window !== 'undefined' && this.matchesPresentRoute(window.location.pathname),
+  );
   footerStatusPollingSuppressedRoute = signal(
     typeof window !== 'undefined' &&
       this.matchesFooterStatusPollingSuppressedRoute(window.location.pathname),
@@ -224,7 +227,9 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Offline-Styling + Retry nur nach abgeschlossenem Check und fehlgeschlagenem API-Status. */
   footerShowApiOffline = computed(() => this.footerHealthCheckDone() && !this.apiStatus());
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
-  footerVisible = computed(() => !this.isFeedbackRoute() && !this.isImmersiveHostView());
+  /** Beamer-/Presenter-Route: ohne Toolbar und Footer, volle Bühnenfläche. */
+  hideAppChrome = computed(() => this.isImmersiveHostView() || this.isPresentRoute());
+  footerVisible = computed(() => !this.isFeedbackRoute() && !this.hideAppChrome());
   serverStatusWidgetVisible = computed(
     () => this.footerVisible() && !this.footerStatusPollingSuppressedRoute(),
   );
@@ -1056,6 +1061,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isPreviewRoute.set(
       this.matchesPreviewRoute(routerPath) || this.matchesPreviewRoute(windowPath),
     );
+    this.isPresentRoute.set(
+      this.matchesPresentRoute(routerPath) || this.matchesPresentRoute(windowPath),
+    );
     this.isContentOverlayRoute.set(
       isContentOverlayPath(fromRouter) || isContentOverlayPath(fromWindow),
     );
@@ -1110,6 +1118,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private matchesPreviewRoute(pathname: string): boolean {
     return /\/quiz\/[^/]+\/preview\/?$/.test(pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, ''));
+  }
+
+  private matchesPresentRoute(pathname: string): boolean {
+    const normalized = pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/';
+    return /^\/session\/[^/]+\/present\/?$/.test(normalized);
   }
 
   private matchesFooterStatusPollingSuppressedRoute(pathname: string): boolean {

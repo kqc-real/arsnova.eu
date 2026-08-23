@@ -1,4 +1,9 @@
-<div class="session-page-shell" [class.l-page]="!isHostRoute()" [class.l-section]="!isHostRoute()">
+<div
+  class="session-page-shell"
+  [class.l-page]="!isHostRoute() && !isPresentRoute()"
+  [class.l-section]="!isHostRoute() && !isPresentRoute()"
+  [class.session-page-shell--projection]="isPresentRoute()"
+>
   @if (loading()) {
     <div class="session-page__state">
       <p class="session-page__muted-text" i18n>Wird geladen…</p>
