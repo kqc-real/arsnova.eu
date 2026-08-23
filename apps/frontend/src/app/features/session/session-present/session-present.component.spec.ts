@@ -612,6 +612,66 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('hält Lobby und Q&A gleichzeitig sichtbar, wenn die Session noch im Foyer ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Welche Themen sind heute besonders wichtig?',
+        upvoteCount: 7,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement.querySelector('.session-present') as HTMLElement | null;
+    expect(root?.classList.contains('session-present--lobby')).toBe(true);
+    expect(root?.classList.contains('session-present--qa')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Welche Themen sind heute besonders wichtig?',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Kommt Kapitel 4 in der Klausur vor?');
+    fixture.destroy();
+  });
+
   it('zeigt aktive Fragen als sichtbare Q&A-Warteschlange in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

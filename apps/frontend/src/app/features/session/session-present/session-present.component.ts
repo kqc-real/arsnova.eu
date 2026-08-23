@@ -196,14 +196,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly lobbyFoyerOverlayChips = computed(() =>
     this.lobbyFoyerChips().filter((chip) => !chip.teamId),
   );
-  readonly showSecondaryPresentSurfaces = computed(
-    () =>
-      !this.showFinishProjection() &&
-      !this.showTeamFinish() &&
-      !this.showLobbyProjection() &&
-      !this.showQuizProjection() &&
-      !this.showPresenterFreetextStage(),
-  );
+  readonly showSecondaryPresentSurfaces = computed(() => !this.showFinishProjection());
   readonly showPinnedQaQuestion = computed(
     () => this.pinnedQaQuestion() !== null && this.showSecondaryPresentSurfaces(),
   );

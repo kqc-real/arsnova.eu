@@ -134,6 +134,17 @@ app-session-projection-quiz,
   gap: clamp(1.1rem, 2.6vmin, 1.8rem);
 }
 
+.session-present--lobby.session-present--qa {
+  overflow: auto;
+  justify-content: flex-start;
+}
+
+.session-present--lobby.session-present--qa .session-present__lobby-stage {
+  flex: 0 1 auto;
+  height: auto;
+  max-height: min(52vh, 100%);
+}
+
 .session-present__lobby-stage {
   position: relative;
   display: grid;
