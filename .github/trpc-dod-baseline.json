@@ -449,7 +449,7 @@
     },
     "session.getParticipantNicknames": {
       "kind": "query",
-      "fingerprint": "sha256:a988f40151ac6b3095b1e0e72594ff062bff89479ce2275bd376bc1739e9d70e",
+      "fingerprint": "sha256:bd674f5f39219c821d3f9244a1aee28006c43fe2b2911c82783425b50747315b",
       "missing": []
     },
     "session.getParticipantSelf": {
