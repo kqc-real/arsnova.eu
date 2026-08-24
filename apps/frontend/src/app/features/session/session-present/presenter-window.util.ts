@@ -2,6 +2,7 @@ import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-route
 import { normalizeHostSessionCode } from '../../../core/host-session-token';
 import {
   copyHostTokenToSessionStorage,
+  clearHostTokenHandoff,
   stageHostTokenHandoff,
 } from '../../../core/host-session-token-handoff';
 
@@ -68,11 +69,10 @@ export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined):
 
 /**
  * Öffnet die Presenter-Ansicht aus dem Host-Tab.
- * Desktop kann sessionStorage in den neuen Tab übernehmen.
- * Tablets bekommen `_blank` und eine kurzlebige Token-Übergabe; der neue Tab
- * startet auf der Startseite (nicht /present), damit der Host-Guard das
- * Initial-Bundle nicht um den Handoff-Parser vergrößert. Home übernimmt das
- * Token und wechselt in die Presenter-Ansicht.
+ * Desktop kopiert sessionStorage in das benannte Fenster.
+ * Tablets bekommen `_blank` auf die Startseite und nur das kurzlebige
+ * localStorage-Handoff — ein direkter sessionStorage-Copy würde Home
+ * `hostTabHasToken()` wahr machen und die Weiterleitung nach /present verhindern.
  */
 export function openPresenterViewWindow(
   win: Window | null | undefined,
@@ -82,16 +82,21 @@ export function openPresenterViewWindow(
     return null;
   }
 
-  stageHostTokenHandoff(sessionCode);
   const touch = shouldOpenPresenterInUnnamedTab(win);
+  if (touch) {
+    stageHostTokenHandoff(sessionCode);
+  }
   const url = touch ? resolveLocalizedAppUrl('/') : presenterViewUrl(sessionCode);
   const target = touch ? '_blank' : presenterViewWindowName(sessionCode);
   const opened = win.open(url, target);
-  if (!opened) {
+  if (!opened || opened.closed) {
+    if (touch) {
+      clearHostTokenHandoff();
+    }
     return null;
   }
-  if (opened.closed || opened === win) {
-    return opened.closed ? null : opened;
+  if (opened === win) {
+    return opened;
   }
 
   try {
@@ -99,10 +104,12 @@ export function openPresenterViewWindow(
   } catch {
     // iOS kann den Handle sperren; Handoff und die ursprüngliche open-URL bleiben.
   }
-  try {
-    copyHostTokenToSessionStorage(opened.sessionStorage, sessionCode);
-  } catch {
-    // Cross-origin oder fehlendes sessionStorage: Handoff bleibt der Fallback.
+  if (!touch) {
+    try {
+      copyHostTokenToSessionStorage(opened.sessionStorage, sessionCode);
+    } catch {
+      // Cross-origin oder fehlendes sessionStorage: Desktop öffnet /present direkt.
+    }
   }
   return opened;
 }

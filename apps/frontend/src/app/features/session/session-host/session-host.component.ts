@@ -1448,7 +1448,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly onPresenterDesktopMediaChange = (
     event: MediaQueryListEvent | MediaQueryList,
   ): void => {
-    this.showPresenterViewButton.set(event.matches);
+    const offered = event.matches;
+    if (!offered && this.showPresenterViewButton()) {
+      this.moveFocusFromPresenterButton();
+    }
+    this.showPresenterViewButton.set(offered);
   };
   readonly musicPhases: ReadonlyArray<{ id: MusicPhase; label: string }> = [
     { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
@@ -4300,6 +4304,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     } catch {
       this.showPresenterViewButton.set(true);
+    }
+  }
+
+  private moveFocusFromPresenterButton(): void {
+    const active = this.document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return;
+    }
+    if (!active.closest('[data-testid="open-presenter-view"]')) {
+      return;
+    }
+    const toolbar = active.closest('.session-host__view-controls');
+    const fallback = toolbar?.querySelector<HTMLElement>(
+      '.session-host__view-toggle--fullscreen, .session-host__view-toggle:not(.session-host__view-toggle--presenter)',
+    );
+    if (fallback?.isConnected && fallback !== active) {
+      try {
+        fallback.focus({ preventScroll: true });
+      } catch {
+        /* Fokusziel darf das Ausblenden nicht blockieren */
+      }
     }
   }
 

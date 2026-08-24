@@ -102,7 +102,18 @@ export function stageHostTokenHandoff(sessionCode: string): void {
   try {
     globalThis.window.localStorage.setItem(HOST_TOKEN_HANDOFF_KEY, JSON.stringify(payload));
   } catch {
-    // Private mode / quota: Presenter versucht danach den direkten sessionStorage-Copy.
+    // Private mode / quota: der Presenter-Tab startet ohne Handoff.
+  }
+}
+
+export function clearHostTokenHandoff(): void {
+  if (!isBrowser()) {
+    return;
+  }
+  try {
+    globalThis.window.localStorage.removeItem(HOST_TOKEN_HANDOFF_KEY);
+  } catch {
+    // Private mode: nichts zu entfernen.
   }
 }
 

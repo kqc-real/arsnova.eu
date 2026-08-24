@@ -8,6 +8,7 @@ import {
   setHostToken,
 } from './host-session-token';
 import {
+  clearHostTokenHandoff,
   hostTabHasToken,
   stageHostTokenHandoff,
   takeHostTokenHandoffSessionCode,
@@ -86,5 +87,13 @@ describe('host-session-token', () => {
     stageHostTokenHandoff('ABC123');
     expect(getHostToken('ABC123')).toBe('existing-token');
     expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('existing-token');
+  });
+
+  it('raeumt ein gestagtes Handoff ohne das Host-Token zu loeschen', () => {
+    setHostToken('ABC123', 'existing-token');
+    stageHostTokenHandoff('ABC123');
+    clearHostTokenHandoff();
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
+    expect(getHostToken('ABC123')).toBe('existing-token');
   });
 });

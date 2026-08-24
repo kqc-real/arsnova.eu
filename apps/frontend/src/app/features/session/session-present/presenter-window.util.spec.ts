@@ -44,13 +44,14 @@ describe('presenter-window.util', () => {
     expect(result).toBe(opened);
   });
 
-  it('öffnet auf Touch-Geräten _blank und uebergibt das Host-Token', () => {
+  it('öffnet auf Touch-Geräten _blank und uebergibt das Host-Token nur per Handoff', () => {
     setHostToken('XY9K2P', 'host-token-xyz');
     const replace = vi.fn();
+    const openedStorage = { setItem: vi.fn() };
     const opened = {
       closed: false,
       location: { replace },
-      sessionStorage: window.sessionStorage,
+      sessionStorage: openedStorage,
     };
     const open = vi.fn(() => opened);
     const win = {
@@ -63,7 +64,39 @@ describe('presenter-window.util', () => {
 
     expect(open).toHaveBeenCalledWith(expect.not.stringContaining('/session/'), '_blank');
     expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('host-token-xyz');
+    expect(openedStorage.setItem).not.toHaveBeenCalled();
     expect(replace).toHaveBeenCalled();
+  });
+
+  it('entfernt das Touch-Handoff wenn das Popup blockiert wird', () => {
+    setHostToken('XY9K2P', 'host-token-xyz');
+    const win = {
+      open: vi.fn(() => null),
+      navigator: { maxTouchPoints: 5 },
+      matchMedia: () => ({ matches: true }),
+    } as unknown as Window;
+
+    expect(openPresenterViewWindow(win, 'xy9k2p')).toBeNull();
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
+  });
+
+  it('legt auf Desktop kein Handoff in localStorage', () => {
+    setHostToken('XY9K2P', 'host-token-xyz');
+    const opened = {
+      closed: false,
+      location: { replace: vi.fn() },
+      sessionStorage: { setItem: vi.fn() },
+    };
+    const win = {
+      open: vi.fn(() => opened),
+      navigator: { maxTouchPoints: 0 },
+      matchMedia: () => ({ matches: false }),
+    } as unknown as Window;
+
+    openPresenterViewWindow(win, 'xy9k2p');
+
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
+    expect(opened.sessionStorage.setItem).toHaveBeenCalled();
   });
 
   it('erkennt Touch-Geraete fuer unbenannte Presenter-Tabs', () => {
