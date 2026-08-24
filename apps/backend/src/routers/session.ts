@@ -1489,7 +1489,7 @@ const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()(
   status: true,
   currentQuestion: true,
   participants: {
-    orderBy: { joinedAt: 'asc' },
+    orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
     select: {
       id: true,
       nickname: true,
@@ -5234,7 +5234,7 @@ export const sessionRouter = router({
         where: { code },
         include: {
           participants: {
-            orderBy: { joinedAt: 'asc' },
+            orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
             select: { nickname: true },
           },
         },

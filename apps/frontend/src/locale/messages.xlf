@@ -16624,6 +16624,13 @@
           <context context-type="linenumber">409</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.anonymousParticipantNumber" datatype="html">
+        <source>Anonyme Person <x id="number" equiv-text="number"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">630</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaLabel" datatype="html">
         <source> Frage aus dem Publikum </source>
         <context-group purpose="location">

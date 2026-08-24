@@ -237,7 +237,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 - **Was?** `e2e-chromium` führt Playwright-Smokes mit echten Services (Postgres + Redis),
   produktionsnahen Migrationen und Backend-/Frontend-Start: Host-/Presenter-Auth,
-  Host-Musik, `SHORT_TEXT`, `NUMERIC_ESTIMATE`, Quiz-Sync und Unified Session.
+  Presenter-Lobby-Geometrie, Host-Musik, `SHORT_TEXT`, `NUMERIC_ESTIMATE`,
+  Quiz-Sync und Unified Session. Der Presenter-Viewport-Smoke prüft eine
+  gefüllte Lobby mit 50 Personen blockierend in vier Tablet-/Beamer-Viewports
+  auf Scroll, Clipping und Flächenüberlappung. Er läuft für Kindergarten,
+  Mittelstufe, Oberstufe und Nobelpreis im Light Theme sowie anonym im Dark
+  Theme; die nummerierten Packed-Modi prüfen zusätzlich Theme-Icon und
+  Beitrittsreihenfolge.
   Vor den Flows laufen axe auf statischen Kernrouten sowie Reflow-, Fokus- und
   Zielgrößenprüfungen. `SHORT_TEXT` und Unified Session führen axe zusätzlich
   in aktiven, Ergebnis-, Q&A-, Blitzlicht- und Session-Ende-Zuständen aus. Der

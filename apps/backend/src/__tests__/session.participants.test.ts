@@ -123,7 +123,7 @@ describe('session participant access (Story 2.2)', () => {
           status: true,
           currentQuestion: true,
           participants: {
-            orderBy: { joinedAt: 'asc' },
+            orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
             select: {
               id: true,
               nickname: true,
@@ -197,6 +197,15 @@ describe('session participant access (Story 2.2)', () => {
       expect(result).toEqual({
         nicknames: ['Marie Curie', 'Ada Lovelace'],
         participantCount: 2,
+      });
+      expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
+        where: { code: 'ABC123' },
+        include: {
+          participants: {
+            orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
+            select: { nickname: true },
+          },
+        },
       });
     },
   );

@@ -88,6 +88,14 @@ type LobbyTeam = {
   memberCount: number;
 };
 
+type PackedLobbyIdentity = {
+  icon: 'school' | 'military_tech' | 'theater_comedy';
+  number: string;
+  theme: 'middle-school' | 'high-school' | 'nobel' | 'anonymous';
+  accessibleLabel: string;
+  title: string;
+};
+
 const LOBBY_FOYER_LANE_COUNT = 3;
 const LOBBY_FOYER_MAX_ACTIVE_CHIPS = 6;
 const LOBBY_FOYER_CHIP_LIFETIME_MS = 1100;
@@ -209,6 +217,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly lobbyParticipants = signal<LobbyParticipant[]>([]);
   readonly lobbyTeams = signal<LobbyTeam[]>([]);
+  private readonly lobbyEntranceNumbers = computed(
+    () =>
+      new Map(
+        this.lobbyParticipants().map(
+          (participant, index) => [participant.id, String(index + 1).padStart(2, '0')] as const,
+        ),
+      ),
+  );
   readonly lobbyFoyerChips = signal<FoyerEntranceChip[]>([]);
   readonly hiddenFoyerParticipantIds = signal<Set<string>>(new Set());
   readonly landedLobbyParticipantIds = signal<Set<string>>(new Set());
@@ -596,6 +612,53 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return null;
     }
     return findKindergartenNicknameBadge(nickname);
+  }
+
+  packedLobbyIdentity(participant: LobbyParticipant, packed: boolean): PackedLobbyIdentity | null {
+    if (!packed) {
+      return null;
+    }
+
+    const number = this.lobbyEntranceNumbers().get(participant.id);
+    const session = this.session();
+    if (!number || !session) {
+      return null;
+    }
+
+    if (session.anonymousMode === true) {
+      const accessibleLabel = $localize`:@@sessionPresent.anonymousParticipantNumber:Anonyme Person ${number}:number:`;
+      return {
+        icon: 'theater_comedy',
+        number,
+        theme: 'anonymous',
+        accessibleLabel,
+        title: accessibleLabel,
+      };
+    }
+
+    const identity = (() => {
+      switch (session.nicknameTheme) {
+        case 'MIDDLE_SCHOOL':
+          return { icon: 'school', theme: 'middle-school' } as const;
+        case 'HIGH_SCHOOL':
+          return { icon: 'school', theme: 'high-school' } as const;
+        case 'NOBEL_LAUREATES':
+          return { icon: 'military_tech', theme: 'nobel' } as const;
+        default:
+          return null;
+      }
+    })();
+
+    if (!identity) {
+      return null;
+    }
+
+    return {
+      ...identity,
+      number,
+      accessibleLabel: participant.nickname,
+      title: participant.nickname,
+    };
   }
 
   foyerChipsForTeam(teamId: string): FoyerEntranceChip[] {

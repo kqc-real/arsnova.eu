@@ -457,34 +457,61 @@
                               isLandedLobbyParticipant(member.id)
                             "
                           >
-                            <span
-                              class="session-present__lobby-nick"
-                              [attr.title]="member.nickname"
-                            >
-                              @if (lobbyNicknameBadge(member.nickname); as badge) {
-                                <span class="session-present__lobby-nick-icon" aria-hidden="true">{{
-                                  badge.emoji
-                                }}</span>
-                                @if (badge.sequence) {
+                            @if (
+                              packedLobbyIdentity(member, lobbyAudienceIsPacked(team.memberCount));
+                              as identity
+                            ) {
+                              <span
+                                class="session-present__lobby-packed-identity"
+                                [class]="
+                                  'session-present__lobby-packed-identity--' + identity.theme
+                                "
+                                [attr.title]="identity.title"
+                                [attr.aria-label]="identity.accessibleLabel"
+                              >
+                                <mat-icon
+                                  class="session-present__lobby-nick-mat-icon session-present__lobby-packed-icon"
+                                  aria-hidden="true"
+                                  >{{ identity.icon }}</mat-icon
+                                >
+                                <span
+                                  class="session-present__lobby-packed-number"
+                                  aria-hidden="true"
+                                  >{{ identity.number }}</span
+                                >
+                              </span>
+                            } @else {
+                              <span
+                                class="session-present__lobby-nick"
+                                [attr.title]="member.nickname"
+                              >
+                                @if (lobbyNicknameBadge(member.nickname); as badge) {
                                   <span
-                                    class="session-present__lobby-nick-seq"
+                                    class="session-present__lobby-nick-icon"
                                     aria-hidden="true"
-                                    >{{ badge.sequence }}</span
+                                    >{{ badge.emoji }}</span
+                                  >
+                                  @if (badge.sequence) {
+                                    <span
+                                      class="session-present__lobby-nick-seq"
+                                      aria-hidden="true"
+                                      >{{ badge.sequence }}</span
+                                    >
+                                  }
+                                } @else {
+                                  <mat-icon
+                                    class="session-present__lobby-nick-mat-icon"
+                                    aria-hidden="true"
+                                    >person</mat-icon
                                   >
                                 }
-                              } @else {
-                                <mat-icon
-                                  class="session-present__lobby-nick-mat-icon"
-                                  aria-hidden="true"
-                                  >person</mat-icon
+                                <span
+                                  class="session-present__lobby-nick-text"
+                                  [class.sr-only]="lobbyAudienceIsPacked(team.memberCount)"
+                                  >{{ member.nickname }}</span
                                 >
-                              }
-                              <span
-                                class="session-present__lobby-nick-text"
-                                [class.sr-only]="lobbyAudienceIsPacked(team.memberCount)"
-                                >{{ member.nickname }}</span
-                              >
-                            </span>
+                              </span>
+                            }
                           </li>
                         }
                       </ul>
@@ -516,7 +543,26 @@
                     "
                   >
                     <p class="session-present__lobby-person">
-                      @if (session()?.anonymousMode) {
+                      @if (
+                        packedLobbyIdentity(person, lobbyAudienceIsPacked(lobbyParticipantCount()));
+                        as identity
+                      ) {
+                        <span
+                          class="session-present__lobby-packed-identity"
+                          [class]="'session-present__lobby-packed-identity--' + identity.theme"
+                          [attr.title]="identity.title"
+                          [attr.aria-label]="identity.accessibleLabel"
+                        >
+                          <mat-icon
+                            class="session-present__lobby-nick-mat-icon session-present__lobby-packed-icon"
+                            aria-hidden="true"
+                            >{{ identity.icon }}</mat-icon
+                          >
+                          <span class="session-present__lobby-packed-number" aria-hidden="true">{{
+                            identity.number
+                          }}</span>
+                        </span>
+                      } @else if (session()?.anonymousMode) {
                         ?
                       } @else {
                         <span class="session-present__lobby-nick" [attr.title]="person.nickname">

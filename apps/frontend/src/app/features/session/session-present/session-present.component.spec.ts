@@ -1019,6 +1019,102 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it.each([
+    {
+      label: 'Mittelstufe',
+      nicknameTheme: 'MIDDLE_SCHOOL' as const,
+      anonymousMode: false,
+      icon: 'school',
+      themeClass: 'session-present__lobby-packed-identity--middle-school',
+    },
+    {
+      label: 'Oberstufe',
+      nicknameTheme: 'HIGH_SCHOOL' as const,
+      anonymousMode: false,
+      icon: 'school',
+      themeClass: 'session-present__lobby-packed-identity--high-school',
+    },
+    {
+      label: 'Nobelpreis',
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      anonymousMode: false,
+      icon: 'military_tech',
+      themeClass: 'session-present__lobby-packed-identity--nobel',
+    },
+    {
+      label: 'anonym',
+      nicknameTheme: 'HIGH_SCHOOL' as const,
+      anonymousMode: true,
+      icon: 'theater_comedy',
+      themeClass: 'session-present__lobby-packed-identity--anonymous',
+    },
+  ])(
+    'zeigt im Packed-Modus fuer $label Theme-Icons mit stabilen Eingangsnummern',
+    async ({ nicknameTheme, anonymousMode, icon, themeClass }) => {
+      const participants = Array.from({ length: 26 }, (_, index) => ({
+        id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+        nickname: `Person ${index + 1}`,
+        teamId: null,
+        teamName: null,
+      }));
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'LOBBY',
+        quizName: 'Quiz',
+        title: null,
+        participantCount: participants.length,
+        teamMode: false,
+        anonymousMode,
+        nicknameTheme,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: participants.length,
+        participants,
+      });
+      getTeamsQueryMock.mockResolvedValue({ teamCount: 0, teams: [] });
+
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      fixture.detectChanges();
+
+      const identities = [
+        ...fixture.nativeElement.querySelectorAll('.session-present__lobby-packed-identity'),
+      ] as HTMLElement[];
+      expect(identities).toHaveLength(participants.length);
+      expect(identities.every((element) => element.classList.contains(themeClass))).toBe(true);
+      expect(
+        identities.map((element) =>
+          (element.querySelector('.session-present__lobby-packed-icon')?.textContent ?? '').trim(),
+        ),
+      ).toEqual(Array.from({ length: participants.length }, () => icon));
+      expect(
+        identities.map((element) =>
+          (
+            element.querySelector('.session-present__lobby-packed-number')?.textContent ?? ''
+          ).trim(),
+        ),
+      ).toEqual(
+        Array.from({ length: participants.length }, (_, index) =>
+          String(26 - index).padStart(2, '0'),
+        ),
+      );
+
+      if (anonymousMode) {
+        expect(identities[0]?.getAttribute('aria-label')).toBe('Anonyme Person 26');
+        expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Anonyme Person 01');
+      } else {
+        expect(identities[0]?.getAttribute('aria-label')).toBe('Person 26');
+        expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Person 1');
+      }
+      fixture.destroy();
+    },
+  );
+
   it('zeigt Kindergarten-Teilnehmende in der Lobby mit Tier-Icon', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

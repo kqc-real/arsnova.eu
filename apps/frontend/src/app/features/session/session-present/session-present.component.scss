@@ -694,6 +694,49 @@ app-session-projection-quiz,
   font-size: clamp(0.55rem, 50cqh, 0.8rem);
 }
 
+.session-present__lobby-packed-identity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.12rem, 8cqw, 0.42rem);
+  min-width: 0;
+  max-width: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.session-present__lobby-packed-identity--middle-school {
+  color: var(--mat-sys-secondary);
+}
+
+.session-present__lobby-packed-identity--high-school {
+  color: var(--mat-sys-primary);
+}
+
+.session-present__lobby-packed-identity--nobel {
+  color: var(--mat-sys-tertiary);
+}
+
+.session-present__lobby-packed-identity--anonymous {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-present__lobby-packed-identity .session-present__lobby-packed-icon {
+  width: 1em;
+  height: 1em;
+  font-size: clamp(0.8rem, min(72cqh, 48cqw), 2.5rem);
+}
+
+.session-present__lobby-packed-number {
+  flex: 0 0 auto;
+  font-size: clamp(0.62rem, min(42cqh, 30cqw), 1.28rem);
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+}
+
 .session-present__lobby-nick-text {
   min-width: 0;
   overflow-wrap: anywhere;
