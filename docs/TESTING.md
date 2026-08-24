@@ -542,7 +542,8 @@ alternativ `MIDDLE_SCHOOL`, `HIGH_SCHOOL` oder `NOBEL_LAUREATES` prüfen;
 `PRESENTER_ANONYMOUS_MODE=1` aktiviert die anonymen Eingangsnummern. Für die
 nummerierten Packed-Modi validiert der Smoke zusätzlich Theme-Icon und
 Beitrittsreihenfolge. `PRESENTER_COLOR_SCHEME=dark` prüft dieselben Viewports
-mit dem dunklen Material-Theme.
+mit dem dunklen Material-Theme. Über `PRESENTER_PARTICIPANT_COUNT` lässt sich
+die Lobby für manuelle Dichteprüfungen auf bis zu 500 Personen skalieren.
 
 Der Confidence-E2E lädt das deutsche Demo-Quiz hoch, lässt standardmäßig 30 Teilnehmende
 mit reproduzierbar zufälligen Sicherheitsgraden abstimmen und prüft anschließend

@@ -44,7 +44,15 @@ const EXPECTED_PACKED_ICON = ANONYMOUS_MODE
       ? 'military_tech'
       : null;
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
-const PARTICIPANT_COUNT = 50;
+const requestedParticipantCount = Number(process.env.PRESENTER_PARTICIPANT_COUNT || 50);
+if (
+  !Number.isInteger(requestedParticipantCount) ||
+  requestedParticipantCount < 1 ||
+  requestedParticipantCount > 500
+) {
+  throw new Error('PRESENTER_PARTICIPANT_COUNT muss eine ganze Zahl zwischen 1 und 500 sein.');
+}
+const PARTICIPANT_COUNT = requestedParticipantCount;
 const GEOMETRY_TOLERANCE_PX = 1.5;
 const NOBEL_LAUREATE_NICKNAMES = [
   'Marie Curie',
@@ -157,7 +165,9 @@ function createTrpcClient() {
 
 function participantNickname(index) {
   if (NICKNAME_THEME === 'NOBEL_LAUREATES') {
-    return NOBEL_LAUREATE_NICKNAMES[index];
+    const base = NOBEL_LAUREATE_NICKNAMES[index % NOBEL_LAUREATE_NICKNAMES.length];
+    const cycle = Math.floor(index / NOBEL_LAUREATE_NICKNAMES.length);
+    return cycle === 0 ? base : `${base} ${cycle + 1}`;
   }
   if (NICKNAME_THEME === 'KINDERGARTEN') {
     return kindergartenNickname(index, 'de');
