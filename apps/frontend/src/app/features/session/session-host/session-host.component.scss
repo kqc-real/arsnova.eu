@@ -566,11 +566,16 @@
   .session-host__view-toggle--fullscreen {
     display: none;
   }
+
+  .session-host__view-toggle--presenter {
+    display: none;
+  }
 }
 
-/* Smartphone Landscape: Fullscreen-Button ausblenden (Viewport-Höhe typisch < 500px). */
-@media (max-height: 500px) {
-  .session-host__view-toggle--fullscreen {
+/* Smartphone Landscape: Fullscreen- und Presenter-Button ausblenden (Höhe typisch < 500px). */
+@media (max-height: 499px) {
+  .session-host__view-toggle--fullscreen,
+  .session-host__view-toggle--presenter {
     display: none;
   }
 }
@@ -2633,7 +2638,7 @@
   font-size: 3.75rem;
   line-height: 1;
   flex-shrink: 0;
-  cursor: default;
+  cursor: pointer;
   user-select: none;
 }
 
@@ -2655,6 +2660,8 @@
   border: none;
   border-radius: 0;
   box-shadow: none;
+  cursor: pointer;
+  user-select: none;
 }
 
 @keyframes session-lobby-landed-echo-fade {

@@ -916,6 +916,27 @@ describe('HomeComponent', () => {
       expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
     });
 
+    it('leitet ein Presenter-Token-Handoff von der Startseite in die Presenter-Ansicht um', async () => {
+      const { stageHostTokenHandoff, setHostToken, clearHostToken } =
+        await import('../../core/host-session-token');
+      setHostToken('ABC123', 'host-token-present');
+      stageHostTokenHandoff('ABC123');
+      clearHostToken('ABC123');
+
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'present'], { replaceUrl: true });
+    });
+
     it('unterbindet bei join-Query das Onboarding für bereits beendete Sessions', async () => {
       setRouteQueryParams({ join: 'abc123' });
       const { trpc } = await import('../../core/trpc.client');

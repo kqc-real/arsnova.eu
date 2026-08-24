@@ -1,13 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setHostToken } from '../../../core/host-session-token';
 import {
+  isPresenterViewOffered,
   openPresenterViewWindow,
+  PRESENTER_VIEW_OFFERED_MEDIA,
   presenterViewPath,
   presenterViewWindowName,
+  shouldOpenPresenterInUnnamedTab,
 } from './presenter-window.util';
 
 describe('presenter-window.util', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.sessionStorage.clear();
+    window.localStorage.clear();
   });
 
   it('baut den Presenter-Pfad aus dem Session-Code', () => {
@@ -15,16 +21,64 @@ describe('presenter-window.util', () => {
   });
 
   it('öffnet die Presenter-Ansicht in einem benannten Fenster', () => {
-    const open = vi.fn(() => ({ closed: false }) as Window);
-    const win = { open } as unknown as Window;
+    const replace = vi.fn();
+    const opened = {
+      closed: false,
+      location: { replace },
+      sessionStorage: window.sessionStorage,
+    };
+    const open = vi.fn(() => opened);
+    const win = {
+      open,
+      navigator: { maxTouchPoints: 0 },
+      matchMedia: () => ({ matches: false }),
+    } as unknown as Window;
 
-    const opened = openPresenterViewWindow(win, 'xy9k2p');
+    const result = openPresenterViewWindow(win, 'xy9k2p');
 
     expect(open).toHaveBeenCalledWith(
-      presenterViewPath('xy9k2p'),
+      expect.stringContaining('/session/XY9K2P/present'),
       presenterViewWindowName('xy9k2p'),
     );
-    expect(opened).toBeTruthy();
+    expect(replace).toHaveBeenCalled();
+    expect(result).toBe(opened);
+  });
+
+  it('öffnet auf Touch-Geräten _blank und uebergibt das Host-Token', () => {
+    setHostToken('XY9K2P', 'host-token-xyz');
+    const replace = vi.fn();
+    const opened = {
+      closed: false,
+      location: { replace },
+      sessionStorage: window.sessionStorage,
+    };
+    const open = vi.fn(() => opened);
+    const win = {
+      open,
+      navigator: { maxTouchPoints: 5 },
+      matchMedia: () => ({ matches: true }),
+    } as unknown as Window;
+
+    openPresenterViewWindow(win, 'xy9k2p');
+
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'), '_blank');
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('host-token-xyz');
+    expect(replace).toHaveBeenCalled();
+  });
+
+  it('erkennt Touch-Geraete fuer unbenannte Presenter-Tabs', () => {
+    expect(
+      shouldOpenPresenterInUnnamedTab({
+        navigator: { maxTouchPoints: 5 },
+        matchMedia: () => ({ matches: false }),
+      } as unknown as Window),
+    ).toBe(true);
+    expect(
+      shouldOpenPresenterInUnnamedTab({
+        navigator: { maxTouchPoints: 0 },
+        matchMedia: () => ({ matches: false }),
+      } as unknown as Window),
+    ).toBe(false);
   });
 
   it('nutzt einen session-spezifischen Fensternamen', () => {
@@ -34,5 +88,28 @@ describe('presenter-window.util', () => {
 
   it('gibt null zurück, wenn kein Window vorhanden ist', () => {
     expect(openPresenterViewWindow(null, 'ABC123')).toBeNull();
+  });
+
+  it('bietet die Presenter-Ansicht ohne matchMedia als Desktop an', () => {
+    expect(isPresenterViewOffered(null)).toBe(true);
+    expect(isPresenterViewOffered({} as Window)).toBe(true);
+  });
+
+  it('bietet die Presenter-Ansicht ab Tablet-Breite an', () => {
+    const matchMedia = vi.fn((query: string) => ({
+      matches: query === PRESENTER_VIEW_OFFERED_MEDIA,
+    }));
+    const win = { matchMedia } as unknown as Window;
+
+    expect(isPresenterViewOffered(win)).toBe(true);
+    expect(matchMedia).toHaveBeenCalledWith(PRESENTER_VIEW_OFFERED_MEDIA);
+  });
+
+  it('bietet die Presenter-Ansicht auf schmalem Smartphone-Viewport nicht an', () => {
+    const win = {
+      matchMedia: vi.fn(() => ({ matches: false })),
+    } as unknown as Window;
+
+    expect(isPresenterViewOffered(win)).toBe(false);
   });
 });

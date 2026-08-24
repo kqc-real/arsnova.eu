@@ -72,7 +72,11 @@ import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
-import { openPresenterViewWindow } from '../session-present/presenter-window.util';
+import {
+  isPresenterViewOffered,
+  openPresenterViewWindow,
+  PRESENTER_VIEW_OFFERED_MEDIA,
+} from '../session-present/presenter-window.util';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
@@ -1435,6 +1439,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     isDocumentFullscreenEnterAvailable(this.document),
   );
   readonly isFullscreenActive = signal(false);
+  /**
+   * Presenter-Button: nach der ersten Render-Runde an Viewport-Medien koppeln,
+   * damit SSR/Hydration denselben DOM behalten. Tablets und Desktop bleiben sichtbar.
+   */
+  readonly showPresenterViewButton = signal(true);
+  private presenterDesktopMediaQuery: MediaQueryList | null = null;
+  private readonly onPresenterDesktopMediaChange = (
+    event: MediaQueryListEvent | MediaQueryList,
+  ): void => {
+    this.showPresenterViewButton.set(event.matches);
+  };
   readonly musicPhases: ReadonlyArray<{ id: MusicPhase; label: string }> = [
     { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
     { id: 'reading', label: $localize`:@@sessionHost.phaseConnectingShort:Lesen` },
@@ -3295,6 +3310,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         void this.requestQaWordCloudLemmaSmoothing();
       });
     });
+    afterNextRender(
+      () => {
+        this.bindPresenterDesktopMedia();
+      },
+      { injector: this.injector },
+    );
   }
 
   getColor(index: number): string {
@@ -4161,6 +4182,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unbindPresenterDesktopMedia();
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
@@ -4249,6 +4271,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   openPresenterView(): void {
+    if (!this.showPresenterViewButton()) {
+      return;
+    }
     const opened = openPresenterViewWindow(this.document.defaultView, this.code);
     if (!opened) {
       this.snackBar.open(
@@ -4257,6 +4282,38 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         { duration: 6000 },
       );
     }
+  }
+
+  private bindPresenterDesktopMedia(): void {
+    const win = this.document.defaultView;
+    this.showPresenterViewButton.set(isPresenterViewOffered(win));
+    if (!win || typeof win.matchMedia !== 'function') {
+      return;
+    }
+    try {
+      const mediaQuery = win.matchMedia(PRESENTER_VIEW_OFFERED_MEDIA);
+      this.presenterDesktopMediaQuery = mediaQuery;
+      if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', this.onPresenterDesktopMediaChange);
+      } else if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(this.onPresenterDesktopMediaChange);
+      }
+    } catch {
+      this.showPresenterViewButton.set(true);
+    }
+  }
+
+  private unbindPresenterDesktopMedia(): void {
+    const mediaQuery = this.presenterDesktopMediaQuery;
+    if (!mediaQuery) {
+      return;
+    }
+    if (typeof mediaQuery.removeEventListener === 'function') {
+      mediaQuery.removeEventListener('change', this.onPresenterDesktopMediaChange);
+    } else if (typeof mediaQuery.removeListener === 'function') {
+      mediaQuery.removeListener(this.onPresenterDesktopMediaChange);
+    }
+    this.presenterDesktopMediaQuery = null;
   }
 
   private getFullscreenElement(): Element | null {

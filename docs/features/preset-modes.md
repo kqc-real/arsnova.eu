@@ -64,7 +64,7 @@ Damit behalten Teilnehmende die Kontrolle darüber, ob für sie **Seriös**/**Sp
 - Zeitlimit: **an** (Standard-Sekundenwert aus `DEFAULT_TIMER_SECONDS` in shared-types)
 - **`anonymousMode`: false**, **`allowCustomNicknames`: false**, **`nicknameTheme`: Oberstufe** — vorgegebene Pseudonyme, kein reiner Anonym-Modus
 - Lesephase: **aus**
-- Foyer-Einflug im Live-Betrieb: In der Host-Lobby erscheinen neue Teilnehmende im lokalen UI-Preset `spielerisch` als dezente Einflug-Chips, sofern `enableRewardEffects !== false`; auf Teilnehmendengeräten gibt es nur dann einen kurzen Ankunftsmoment, wenn deren lokales UI-Preset ebenfalls `spielerisch` ist.
+- Foyer-Einflug im Live-Betrieb: In der Host- und Presenter-Lobby erscheinen neue Teilnehmende im lokalen UI-Preset `spielerisch` als dezente Einflug-Chips und danach als Teilnehmer-Badge oben in der Spalte (neueste zuerst), sofern `enableRewardEffects !== false`; auf Teilnehmendengeräten gibt es nur dann einen kurzen Ankunftsmoment, wenn deren lokales UI-Preset ebenfalls `spielerisch` ist.
 
 **Hinweis Startseite:** Im **Preset-Toast** (localStorage) kann die **Altersgruppe** für Nicks separat gewählt werden; beim **neuen Quiz** legt das Preset aber **`QUIZ_PRESETS`** fest (derzeit **Oberstufe** für beide Modi).
 
@@ -143,7 +143,7 @@ Ist die Parent-Option aus, wird die abhängige Option ausgegraut und auf „aus"
 - `quiz/new` und `quiz/:id`: Teamanzahl, Auto/Manual-Zuweisung und optionale eigene Team-Namen mit Live-Vorschau
 - `join/:code`: Teamkarten mit Farben, Mitgliederzahl und Auswahlzustand; bei `MANUAL` direkte Kartenwahl ohne zweites Auswahlmuster, bei `AUTO` sichtbare Teamvorschau mit hervorgehobener Vorschlagskarte
 - `session/:code/host`: Teamübersicht in der Lobby als primärer Beamer-Moment, Zugang/QR als sekundärer Block darunter; Abschlussansicht zusätzlich mit Team-Leaderboard
-- `session/:code/present`: Team-Siegerkarte und kompaktes Balkenboard für das Beamer-Finale, reduziert auf den eigentlichen Abschlussmoment
+- `session/:code/present`: Lobby-Teamspalten ohne Scroll (dichte Badges), Team-Siegerkarte und kompaktes Balkenboard für das Beamer-Finale
 - `session/:code/vote`: kollektiver Team-Reward in `RESULTS` und `FINISHED` mit eigener Teamkarte und Mini-Leaderboard
 
 Der sichtbare Teamfluss von Setup über Join/Lobby bis Vote/Present ist damit umgesetzt und über echte Runtime-Captures aus einer lokalen Multi-Client-Session verifiziert (`runtime-02-join-manual.png`, `runtime-03-host-lobby-fixed.png`, `runtime-05-join-auto.png`, `runtime-06-present-finale.png`).
