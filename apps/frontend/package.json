@@ -16,6 +16,7 @@
     "lighthouse:serve": "npm run build:prod && npm run serve:dist",
     "check:viewport": "node scripts/check-viewport-320.mjs",
     "smoke:host-present-auth": "node scripts/check-host-present-auth-flow.mjs",
+    "smoke:presenter-viewports": "node scripts/check-presenter-viewports.mjs",
     "smoke:host-music": "node scripts/check-host-music-flow.mjs",
     "smoke:short-text": "node scripts/check-short-text-flow.mjs",
     "smoke:numeric-estimate": "node scripts/check-numeric-estimate-flow.mjs",

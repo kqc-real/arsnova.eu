@@ -403,6 +403,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure |
 | `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                        |
 | `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                 |
+| `smoke:presenter-viewports`       | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports               |
 | `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                 |
 | `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                          |
 | `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                       |
@@ -424,11 +425,14 @@ Es benötigt Docker und validiert die committed PDF/UA-Demos mit veraPDF 1.30.2
 gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 [`praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md).
 
-`a11y:axe:static`, `a11y:layout`, `smoke:short-text`,
-`smoke:session-question-progress` und `smoke:unified-session` sind Bestandteile
-des Chromium-Jobs `e2e-chromium`. Der Job `webkit-e2e` startet dieselben echten
-Backend-/Frontend-Services, wählt WebKit explizit und führt `e2e:motd-focus`
-aus. Der Required-Check `e2e` wird nur grün, wenn beide
+`a11y:axe:static`, `a11y:layout`, `smoke:presenter-viewports`,
+`smoke:short-text`, `smoke:session-question-progress` und
+`smoke:unified-session` sind Bestandteile des Chromium-Jobs `e2e-chromium`.
+Der Presenter-Smoke legt vorab 50 Personen in einer Lobby an und blockiert bei
+Scroll, Clipping oder Überlappung in 712×1138, 1138×712, 820×1180 und
+1280×720 CSS-Pixeln; Fehlerscreenshots landen im E2E-Artefakt. Der Job
+`webkit-e2e` startet dieselben echten Backend-/Frontend-Services, wählt WebKit
+explizit und führt `e2e:motd-focus` aus. Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
 [`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
@@ -524,10 +528,21 @@ Diese Skripte erwarten ebenfalls eine laufende lokale App mit Backend und Fronte
 BASE_URL=http://localhost:4200 npm run smoke:short-text -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:numeric-estimate -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:presenter-viewports -w @arsnova/frontend
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:session-question-progress -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run e2e:confidence-summary-demo -w @arsnova/frontend
 ```
+
+Mit `PRESENTER_VIEWPORT_SCREENSHOTS=1` speichert der Presenter-Smoke auch bei
+erfolgreichen Prüfungen alle vier Screenshots. Das Zielverzeichnis lässt sich
+über `PRESENTER_VIEWPORT_ARTIFACT_DIR` festlegen. Standardmäßig nutzt der Smoke
+Kindergarten-Tierpseudonyme. Über `PRESENTER_NICKNAME_THEME` lassen sich
+alternativ `MIDDLE_SCHOOL`, `HIGH_SCHOOL` oder `NOBEL_LAUREATES` prüfen;
+`PRESENTER_ANONYMOUS_MODE=1` aktiviert die anonymen Eingangsnummern. Für die
+nummerierten Packed-Modi validiert der Smoke zusätzlich Theme-Icon und
+Beitrittsreihenfolge. `PRESENTER_COLOR_SCHEME=dark` prüft dieselben Viewports
+mit dem dunklen Material-Theme.
 
 Der Confidence-E2E lädt das deutsche Demo-Quiz hoch, lässt standardmäßig 30 Teilnehmende
 mit reproduzierbar zufälligen Sicherheitsgraden abstimmen und prüft anschließend

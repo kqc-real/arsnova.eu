@@ -1096,6 +1096,11 @@ jobs:
           BASE_URL=http://localhost:4200 npm run a11y:axe:static -w @arsnova/frontend
           BASE_URL=http://localhost:4200 npm run a11y:layout -w @arsnova/frontend
           npm run smoke:host-present-auth -w @arsnova/frontend
+          npm run smoke:presenter-viewports -w @arsnova/frontend
+          PRESENTER_NICKNAME_THEME=MIDDLE_SCHOOL npm run smoke:presenter-viewports -w @arsnova/frontend
+          PRESENTER_NICKNAME_THEME=HIGH_SCHOOL npm run smoke:presenter-viewports -w @arsnova/frontend
+          PRESENTER_NICKNAME_THEME=NOBEL_LAUREATES npm run smoke:presenter-viewports -w @arsnova/frontend
+          PRESENTER_NICKNAME_THEME=HIGH_SCHOOL PRESENTER_ANONYMOUS_MODE=1 PRESENTER_COLOR_SCHEME=dark npm run smoke:presenter-viewports -w @arsnova/frontend
           npm run smoke:host-music -w @arsnova/frontend
           npm run smoke:short-text -w @arsnova/frontend
           npm run smoke:numeric-estimate -w @arsnova/frontend

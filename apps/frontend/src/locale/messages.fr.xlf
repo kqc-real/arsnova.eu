@@ -18817,6 +18817,10 @@
         <source><x id="count" equiv-text="formatted"/> Teilnehmende</source>
         <target><x id="count" equiv-text="formatted"/> participant·es</target>
       </trans-unit>
+      <trans-unit id="sessionPresent.anonymousParticipantNumber" datatype="html">
+        <source>Anonyme Person <x id="number" equiv-text="number"/></source>
+        <target>Personne anonyme <x id="number" equiv-text="number"/></target>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaLabel" datatype="html">
         <source> Frage aus dem Publikum </source>
         <target>Question du public</target>
