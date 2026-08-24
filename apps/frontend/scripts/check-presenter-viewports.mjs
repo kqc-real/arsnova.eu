@@ -12,7 +12,7 @@
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
  *     node scripts/check-presenter-viewports.mjs
  */
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium } from 'playwright';
@@ -36,6 +36,12 @@ if (!SUPPORTED_NICKNAME_THEMES.has(requestedNicknameTheme)) {
 const NICKNAME_THEME = requestedNicknameTheme;
 const ANONYMOUS_MODE = process.env.PRESENTER_ANONYMOUS_MODE === '1';
 const COLOR_SCHEME = process.env.PRESENTER_COLOR_SCHEME === 'dark' ? 'dark' : 'light';
+const MOTIF_IMAGE_URL = process.env.PRESENTER_MOTIF_IMAGE_URL?.trim() || null;
+const MOTIF_IMAGE_PATHNAME = MOTIF_IMAGE_URL
+  ? decodeURIComponent(new URL(MOTIF_IMAGE_URL).pathname)
+  : null;
+const MOTIF_IMAGE_FILE = process.env.PRESENTER_MOTIF_IMAGE_FILE?.trim() || null;
+const MOTIF_IMAGE_BODY = MOTIF_IMAGE_FILE ? await readFile(MOTIF_IMAGE_FILE) : null;
 const EXPECTED_PACKED_ICON = ANONYMOUS_MODE
   ? 'theater_comedy'
   : NICKNAME_THEME === 'MIDDLE_SCHOOL' || NICKNAME_THEME === 'HIGH_SCHOOL'
@@ -116,7 +122,7 @@ const VIEWPORTS = [
 const QUIZ_PAYLOAD = {
   name: `Presenter Viewports ${Date.now()}`,
   description: undefined,
-  motifImageUrl: null,
+  motifImageUrl: MOTIF_IMAGE_URL,
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
@@ -214,7 +220,7 @@ function formatFailures(viewport, failures) {
 
 async function inspectPresenterGeometry(page) {
   return page.evaluate(
-    ({ expectedParticipants, expectedPackedIcon, tolerance }) => {
+    ({ expectedMotif, expectedParticipants, expectedPackedIcon, tolerance }) => {
       const rect = (element) => {
         const value = element.getBoundingClientRect();
         return {
@@ -250,6 +256,7 @@ async function inspectPresenterGeometry(page) {
       const people = bySelector('.session-present__lobby-people-cols--packed');
       const code = bySelector('.session-present__lobby-code');
       const qr = bySelector('.session-present__lobby-qr');
+      const motif = bySelector('.session-present__lobby-motif');
       const cards = [...document.querySelectorAll('.session-present__lobby-person-col')];
       const icons = [
         ...document.querySelectorAll(
@@ -290,6 +297,13 @@ async function inspectPresenterGeometry(page) {
       }
       if (icons.length !== expectedParticipants) {
         failures.push(`erwartet ${expectedParticipants} Personen-Icons, gefunden ${icons.length}`);
+      }
+      if (expectedMotif) {
+        if (!motif) {
+          failures.push('Konfiguriertes Quiz-Motiv fehlt');
+        } else if (!visible(motif) || !within(rect(motif), viewport)) {
+          failures.push('Quiz-Motiv ist unsichtbar oder liegt außerhalb des Viewports');
+        }
       }
       if (expectedPackedIcon) {
         const packedIcons = [...document.querySelectorAll('.session-present__lobby-packed-icon')];
@@ -399,10 +413,14 @@ async function inspectPresenterGeometry(page) {
           badge: cards[0]
             ? `${Math.round(rect(cards[0]).width)}×${Math.round(rect(cards[0]).height)}`
             : 'fehlt',
+          motif: motif
+            ? `${Math.round(rect(motif).width)}×${Math.round(rect(motif).height)}`
+            : 'fehlt',
         },
       };
     },
     {
+      expectedMotif: Boolean(MOTIF_IMAGE_URL),
       expectedParticipants: PARTICIPANT_COUNT,
       expectedPackedIcon: EXPECTED_PACKED_ICON,
       tolerance: GEOMETRY_TOLERANCE_PX,
@@ -416,6 +434,17 @@ async function verifyViewport(browser, session, viewport) {
     colorScheme: COLOR_SCHEME,
     reducedMotion: 'reduce',
   });
+  if (MOTIF_IMAGE_PATHNAME && MOTIF_IMAGE_BODY) {
+    await context.route(
+      (url) => decodeURIComponent(url.pathname) === MOTIF_IMAGE_PATHNAME,
+      (route) =>
+        route.fulfill({
+          body: MOTIF_IMAGE_BODY,
+          contentType: 'image/jpeg',
+          status: 200,
+        }),
+    );
+  }
   await context.addInitScript(
     ({ code, colorScheme, hostToken, prefix }) => {
       globalThis.sessionStorage.setItem(`${prefix}${code}`, hostToken);
@@ -459,6 +488,33 @@ async function verifyViewport(browser, session, viewport) {
         });
       });
     });
+    const motif = page.locator('.session-present__lobby-motif');
+    const motifCount = await motif.count();
+    if (MOTIF_IMAGE_URL && motifCount === 0) {
+      throw new Error('Konfiguriertes Quiz-Motiv fehlt in der Presenter-Lobby.');
+    }
+    if (motifCount > 0) {
+      await motif.evaluate((image) => {
+        if (!(image instanceof HTMLImageElement)) {
+          throw new Error('Motiv ist kein Bild.');
+        }
+        if (image.complete && image.naturalWidth > 0) {
+          return image.decode();
+        }
+        return new Promise((resolve, reject) => {
+          image.addEventListener(
+            'load',
+            () => {
+              image.decode().then(() => resolve(undefined), reject);
+            },
+            { once: true },
+          );
+          image.addEventListener('error', () => reject(new Error('Motiv konnte nicht laden.')), {
+            once: true,
+          });
+        });
+      });
+    }
     await page.evaluate(
       () =>
         document.fonts?.ready ??
@@ -471,7 +527,7 @@ async function verifyViewport(browser, session, viewport) {
       console.log(
         `OK ${viewport.name} (${viewport.width}×${viewport.height}) — ` +
           `Lobby ${result.metrics.root}, Publikum ${result.metrics.audience}, ` +
-          `Badge ${result.metrics.badge}`,
+          `Badge ${result.metrics.badge}, Motiv ${result.metrics.motif}`,
       );
     }
   } catch (error) {
@@ -491,6 +547,12 @@ async function verifyViewport(browser, session, viewport) {
       });
       if (CAPTURE_SCREENSHOTS) {
         console.log(`Screenshot ${screenshotPath}`);
+        const motif = page.locator('.session-present__lobby-motif');
+        if ((await motif.count()) > 0) {
+          const motifPath = resolve(artifactDir, `presenter-${viewport.name}-motif.png`);
+          await motif.screenshot({ path: motifPath });
+          console.log(`Motiv-Screenshot ${motifPath}`);
+        }
       }
     } catch (error) {
       if (CAPTURE_SCREENSHOTS) {

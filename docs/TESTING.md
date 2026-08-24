@@ -543,7 +543,11 @@ alternativ `MIDDLE_SCHOOL`, `HIGH_SCHOOL` oder `NOBEL_LAUREATES` prüfen;
 nummerierten Packed-Modi validiert der Smoke zusätzlich Theme-Icon und
 Beitrittsreihenfolge. `PRESENTER_COLOR_SCHEME=dark` prüft dieselben Viewports
 mit dem dunklen Material-Theme. Über `PRESENTER_PARTICIPANT_COUNT` lässt sich
-die Lobby für manuelle Dichteprüfungen auf bis zu 500 Personen skalieren.
+die Lobby für manuelle Dichteprüfungen auf bis zu 500 Personen skalieren;
+`PRESENTER_MOTIF_IMAGE_URL` ergänzt dabei ein Quiz-Motiv. Für reproduzierbare
+Screenshots kann `PRESENTER_MOTIF_IMAGE_FILE` die HTTPS-Ressource lokal
+erfüllen; der Smoke wartet auf die vollständige Bilddekodierung und prüft die
+Motiv-Geometrie.
 
 Der Confidence-E2E lädt das deutsche Demo-Quiz hoch, lässt standardmäßig 30 Teilnehmende
 mit reproduzierbar zufälligen Sicherheitsgraden abstimmen und prüft anschließend
