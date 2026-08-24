@@ -61,7 +61,7 @@ describe('presenter-window.util', () => {
 
     openPresenterViewWindow(win, 'xy9k2p');
 
-    expect(open).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'), '_blank');
+    expect(open).toHaveBeenCalledWith(expect.not.stringContaining('/session/'), '_blank');
     expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('host-token-xyz');
     expect(replace).toHaveBeenCalled();
   });

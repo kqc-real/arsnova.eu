@@ -3,13 +3,15 @@ import {
   clearHostToken,
   getSessionEntryCommands,
   getHostToken,
-  hasAnyHostToken,
   hasHostToken,
   normalizeHostSessionCode,
   setHostToken,
+} from './host-session-token';
+import {
+  hostTabHasToken,
   stageHostTokenHandoff,
   takeHostTokenHandoffSessionCode,
-} from './host-session-token';
+} from './host-session-token-handoff';
 
 describe('host-session-token', () => {
   beforeEach(() => {
@@ -29,7 +31,6 @@ describe('host-session-token', () => {
     expect(normalizeHostSessionCode(' abc123 ')).toBe('ABC123');
     expect(getHostToken('ABC123')).toBe('token-123');
     expect(hasHostToken('abc123')).toBe(true);
-    expect(hasAnyHostToken()).toBe(true);
   });
 
   it('entfernt gespeicherte Tokens wieder', () => {
@@ -38,7 +39,6 @@ describe('host-session-token', () => {
 
     expect(getHostToken('ABC123')).toBeNull();
     expect(hasHostToken('ABC123')).toBe(false);
-    expect(hasAnyHostToken()).toBe(false);
   });
 
   it('liefert Join- oder Host-Ziel für den direkten Session-Einstieg', () => {
@@ -69,7 +69,22 @@ describe('host-session-token', () => {
       }),
     );
 
+    expect(takeHostTokenHandoffSessionCode()).toBeNull();
     expect(hasHostToken('ABC123')).toBe(false);
     expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
+  });
+
+  it('erkennt einen Host-Tab mit bestehendem Token ohne das Handoff zu lesen', () => {
+    setHostToken('ABC123', 'existing-token');
+    expect(hostTabHasToken()).toBe(true);
+    clearHostToken('ABC123');
+    expect(hostTabHasToken()).toBe(false);
+  });
+
+  it('laesst ein bestehendes Host-Token unangetastet und verbraucht das Handoff nicht', () => {
+    setHostToken('ABC123', 'existing-token');
+    stageHostTokenHandoff('ABC123');
+    expect(getHostToken('ABC123')).toBe('existing-token');
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('existing-token');
   });
 });

@@ -917,8 +917,8 @@ describe('HomeComponent', () => {
     });
 
     it('leitet ein Presenter-Token-Handoff von der Startseite in die Presenter-Ansicht um', async () => {
-      const { stageHostTokenHandoff, setHostToken, clearHostToken } =
-        await import('../../core/host-session-token');
+      const { setHostToken, clearHostToken } = await import('../../core/host-session-token');
+      const { stageHostTokenHandoff } = await import('../../core/host-session-token-handoff');
       setHostToken('ABC123', 'host-token-present');
       stageHostTokenHandoff('ABC123');
       clearHostToken('ABC123');

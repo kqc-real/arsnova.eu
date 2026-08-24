@@ -32,11 +32,11 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
+import { hasHostToken } from '../../core/host-session-token';
 import {
-  hasAnyHostToken,
-  hasHostToken,
+  hostTabHasToken,
   takeHostTokenHandoffSessionCode,
-} from '../../core/host-session-token';
+} from '../../core/host-session-token-handoff';
 import { setHostToken, trpc } from '../../core/trpc.client';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -345,7 +345,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private redirectPresenterHandoff(): boolean {
-    if (hasAnyHostToken()) {
+    if (hostTabHasToken()) {
       return false;
     }
     const code = takeHostTokenHandoffSessionCode();

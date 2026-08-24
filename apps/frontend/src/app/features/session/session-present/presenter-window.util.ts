@@ -1,9 +1,9 @@
 import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
+import { normalizeHostSessionCode } from '../../../core/host-session-token';
 import {
   copyHostTokenToSessionStorage,
-  normalizeHostSessionCode,
   stageHostTokenHandoff,
-} from '../../../core/host-session-token';
+} from '../../../core/host-session-token-handoff';
 
 /**
  * Presenter ab Tablet, nicht auf Smartphones.
@@ -68,8 +68,11 @@ export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined):
 
 /**
  * Öffnet die Presenter-Ansicht aus dem Host-Tab.
- * Desktop kann sessionStorage in den neuen Tab übernehmen; Tablets bekommen
- * eine absolute URL, `_blank` und eine kurzlebige same-origin Token-Übergabe.
+ * Desktop kann sessionStorage in den neuen Tab übernehmen.
+ * Tablets bekommen `_blank` und eine kurzlebige Token-Übergabe; der neue Tab
+ * startet auf der Startseite (nicht /present), damit der Host-Guard das
+ * Initial-Bundle nicht um den Handoff-Parser vergrößert. Home übernimmt das
+ * Token und wechselt in die Presenter-Ansicht.
  */
 export function openPresenterViewWindow(
   win: Window | null | undefined,
@@ -80,10 +83,9 @@ export function openPresenterViewWindow(
   }
 
   stageHostTokenHandoff(sessionCode);
-  const url = presenterViewUrl(sessionCode);
-  const target = shouldOpenPresenterInUnnamedTab(win)
-    ? '_blank'
-    : presenterViewWindowName(sessionCode);
+  const touch = shouldOpenPresenterInUnnamedTab(win);
+  const url = touch ? resolveLocalizedAppUrl('/') : presenterViewUrl(sessionCode);
+  const target = touch ? '_blank' : presenterViewWindowName(sessionCode);
   const opened = win.open(url, target);
   if (!opened) {
     return null;
