@@ -114,7 +114,6 @@ app-session-projection-quiz,
   min-width: 0;
 }
 
-.session-present--lobby .session-present__lobby-card,
 .session-placeholder {
   width: min(100%, 34rem);
 }
@@ -126,12 +125,17 @@ app-session-projection-quiz,
 }
 
 .session-present--lobby {
+  --present-lobby-col-gap: clamp(0.85rem, 1.8vmin, 1.35rem);
+  --present-lobby-inset: clamp(1.15rem, 3.4vmin, 2.6rem);
+
   position: relative;
+  align-items: stretch;
   width: 100%;
   max-width: none;
+  min-height: 0;
   overflow: hidden;
-  padding: clamp(1.1rem, 3vmin, 2.4rem);
-  gap: clamp(1.1rem, 2.6vmin, 1.8rem);
+  padding: var(--present-lobby-inset);
+  gap: clamp(0.45rem, 1.4vmin, 1.8rem);
 }
 
 .session-present--lobby.session-present--qa {
@@ -159,20 +163,51 @@ app-session-projection-quiz,
 .session-present__lobby-stage {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'stack'
+    'audience';
   align-items: stretch;
   justify-items: stretch;
-  gap: clamp(1rem, 2.4vmin, 1.8rem);
+  gap: var(--present-lobby-col-gap);
   width: 100%;
+  min-width: 0;
   min-height: 0;
+  flex: 1 1 0;
+  height: auto;
+  overflow: hidden;
+}
+
+.session-present__lobby-stage > *,
+.session-present__lobby-poster > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+.session-present__lobby-poster {
+  display: contents;
+}
+
+.session-present__lobby-join-stack {
+  grid-area: stack;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.45rem, 1.4vmin, 1.2rem);
+  width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(0.65rem, 2vmin, 1.5rem);
+  overflow: hidden;
 }
 
 .session-present__lobby-foyer {
   position: absolute;
   inset: 0;
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
   pointer-events: none;
   z-index: 4;
 }
@@ -192,66 +227,108 @@ app-session-projection-quiz,
 }
 
 .session-present--lobby .session-present__lobby-card mat-card-content {
-  padding: clamp(1.7rem, 3.8vmin, 2.8rem) clamp(1.6rem, 3.4vw, 2.6rem) !important;
+  padding: 0 !important;
 }
 
 .session-present__lobby {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: clamp(0.85rem, 1.8vw, 1.35rem);
+  gap: clamp(0.35rem, 1.2vmin, 1.35rem);
+  width: max-content;
+  max-width: 100%;
   height: auto;
-  padding: clamp(1.7rem, 3.8vmin, 2.8rem) clamp(1.6rem, 3.4vw, 2.6rem) !important;
+  min-height: min-content;
+  overflow: visible;
+  padding: 0 !important;
   text-align: center;
 }
 
 .session-present__lobby-motif-col {
   display: flex;
-  align-items: stretch;
+  flex: 0 1 auto;
+  align-items: center;
   justify-content: center;
+  width: auto;
+  max-width: 100%;
   min-width: 0;
   min-height: 0;
-  height: 100%;
+  max-height: min(28vh, 42%);
   margin: 0;
   overflow: hidden;
 }
 
 .session-present__lobby-motif {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(28vh, 12rem);
   object-fit: contain;
+  object-position: center;
   border-radius: 1.2rem;
 }
 
 .session-present--lobby .session-present__lobby-card {
-  container-type: inline-size;
-  container-name: present-join;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   align-self: center;
-  width: 100%;
+  width: max-content;
   max-width: 100%;
-  min-width: 0;
+  min-width: min(12.5rem, 100%);
+  min-height: min-content;
   height: auto;
-  min-height: 0;
-  overflow: hidden;
-  --app-qr-size: min(22rem, 100%);
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  --mat-card-outlined-container-color: transparent;
+  --mat-card-outlined-outline-width: 0;
+  --mdc-outlined-card-container-color: transparent;
+  --mdc-outlined-card-outline-width: 0;
+  --mdc-outlined-card-container-elevation: 0;
+  --mdc-elevated-card-container-color: transparent;
+  --app-qr-size: min(14.5rem, 38vw, 28dvh);
+
+  :is(.mat-mdc-card-content, mat-card-content) {
+    overflow: visible;
+  }
 }
 
-.session-present__lobby-label {
+.session-present__lobby-brand {
+  --app-eu-blue: #002395;
+  --app-eu-blue-dark: #001a75;
+  --app-eu-yellow: #ffcc00;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.45rem, 1.2vmin, 0.7rem);
   margin: 0 0 0.15rem;
-  color: var(--mat-sys-primary);
-  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-present__lobby-brand-icon {
+  width: clamp(1.85rem, 3.6vmin, 2.6rem);
+  height: clamp(1.85rem, 3.6vmin, 2.6rem);
+  flex-shrink: 0;
+  border-radius: var(--mat-sys-corner-small, 0.35rem);
+}
+
+.session-present__lobby-brand-title {
+  font-size: clamp(1.25rem, 2.6vmin, 1.85rem);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .session-present__lobby-code {
   margin: 0;
   max-width: 100%;
-  font-size: clamp(1.85rem, 18cqi, 4.1rem);
+  font-size: clamp(1.7rem, 5.4vw, 3.4rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1;
@@ -263,29 +340,35 @@ app-session-projection-quiz,
 }
 
 .session-present__lobby-qr {
-  width: min(22rem, 100%);
+  width: var(--app-qr-size);
   max-width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
-  border-radius: 1rem;
+  object-fit: contain;
+  padding: 0.4rem;
+  border: none;
+  border-radius: 0.45rem;
+  background: #fff;
   justify-self: center;
 }
 
-.session-present__lobby-hint {
-  margin: 0.25rem 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
-  line-height: 1.5;
-}
-
 .session-present__lobby-audience {
+  position: relative;
+  box-sizing: border-box;
+  grid-area: audience;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   height: 100%;
+  max-height: 100%;
   overflow: hidden;
-  padding: clamp(0.35rem, 1.2vmin, 0.8rem);
+  padding: clamp(0.9rem, 2.6vmin, 1.85rem);
+}
+
+.session-present__lobby-audience--empty {
+  justify-content: center;
+  align-items: center;
 }
 
 .session-present__lobby-audience-title {
@@ -294,13 +377,31 @@ app-session-projection-quiz,
   align-items: baseline;
   justify-content: space-between;
   gap: 0.45rem 1rem;
-  margin: 0 0 clamp(0.75rem, 1.8vmin, 1.15rem);
+  margin: 0 0 clamp(0.85rem, 2vmin, 1.25rem);
   color: var(--mat-sys-primary);
   font-size: clamp(1.25rem, 2.5vw, 1.85rem);
   font-weight: 750;
   letter-spacing: 0.02em;
   line-height: 1.25;
   text-wrap: pretty;
+}
+
+.session-present__lobby-audience--empty .session-present__lobby-audience-title {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  text-align: center;
+}
+
+.session-present__lobby-audience--crowd .session-present__lobby-audience-title,
+.session-present__lobby-audience--packed .session-present__lobby-audience-title {
+  margin-bottom: 0.45rem;
+  font-size: clamp(1.05rem, 2.1vw, 1.45rem);
+}
+
+.session-present__lobby-audience--packed {
+  padding: clamp(0.55rem, 1.6vmin, 1.15rem);
 }
 
 .session-present__lobby-audience-count {
@@ -312,28 +413,55 @@ app-session-projection-quiz,
   white-space: nowrap;
 }
 
-.session-present__lobby-teams-grid,
-.session-present__lobby-people-cols {
+.session-present__lobby-teams-grid {
   display: grid;
-  grid-template-columns: repeat(var(--lobby-audience-cols, 1), minmax(0, 1fr));
-  gap: clamp(0.7rem, 1.6vmin, 1.1rem);
+  align-items: stretch;
+  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--present-lobby-col-gap);
   min-height: 0;
   flex: 1 1 auto;
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
 }
 
-.session-present__lobby-team,
-.session-present__lobby-person-col {
-  position: relative;
+.session-present__lobby-people-cols {
   display: grid;
-  align-content: start;
-  gap: 0.7rem;
-  min-width: 0;
-  min-height: 9rem;
+  align-content: stretch;
+  align-items: stretch;
+  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--present-lobby-col-gap);
+  min-height: 0;
+  flex: 1 1 auto;
   height: 100%;
-  padding: clamp(1rem, 2vmin, 1.35rem);
   overflow: hidden;
+}
+
+.session-present__lobby-people-cols--crowd {
+  gap: 0.35rem;
+}
+
+.session-present__lobby-people-cols--packed {
+  gap: 0.08rem 0.16rem;
+}
+
+.session-present__lobby-people-cols .session-present__lobby-person-col {
+  height: auto;
+  min-height: 0;
+}
+
+.session-present__lobby-team {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(0.45rem, 1.2vmin, 1.1rem);
+  overflow: hidden;
+  isolation: isolate;
   border: 1px solid color-mix(in srgb, var(--team-accent, var(--mat-sys-primary)) 42%, transparent);
   border-radius: 1.15rem;
   background: color-mix(
@@ -343,73 +471,176 @@ app-session-projection-quiz,
   );
 }
 
+.session-present__lobby-team--packed {
+  gap: 0.28rem;
+  padding: clamp(0.35rem, 0.9vmin, 0.7rem);
+}
+
 .session-present__lobby-person-col {
+  position: relative;
+  display: grid;
   align-content: end;
   justify-items: center;
-  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, var(--mat-sys-primary) 22%);
+  gap: 0.45rem;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: clamp(0.55rem, 1.4vmin, 1.35rem);
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant) 55%, var(--mat-sys-primary) 22%);
+  border-radius: 1.15rem;
   background: color-mix(in srgb, var(--mat-sys-surface-container) 90%, var(--mat-sys-primary) 10%);
 }
 
 .session-present__lobby-team-head {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.55rem;
+  row-gap: 0.2rem;
   min-width: 0;
 }
 
+.session-present__lobby-team--packed .session-present__lobby-team-name {
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+}
+
+.session-present__lobby-team--packed .session-present__lobby-team-count {
+  font-size: clamp(0.8rem, 1.3vw, 0.95rem);
+}
+
 .session-present__lobby-team-dot {
-  flex: 0 0 auto;
+  grid-column: 1;
+  grid-row: 1;
   width: 0.85rem;
   height: 0.85rem;
+  margin-top: 0.38em;
   border-radius: 999px;
   background: var(--team-accent, var(--mat-sys-primary));
 }
 
 .session-present__lobby-team-name {
+  grid-column: 2;
+  grid-row: 1;
   margin: 0;
   min-width: 0;
-  flex: 1 1 auto;
   font-size: clamp(1.25rem, 2.4vw, 1.7rem);
   font-weight: 750;
   line-height: 1.2;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 .session-present__lobby-team-count {
-  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 2;
   color: var(--mat-sys-on-surface-variant);
   font-size: clamp(0.95rem, 1.6vw, 1.15rem);
   font-weight: 650;
+  white-space: nowrap;
 }
 
-.session-present__lobby-team-foyer,
-.session-present__lobby-person-foyer {
+.session-present__lobby-team-foyer {
   position: absolute;
   inset: 0;
+  min-height: 0;
   pointer-events: none;
+  z-index: 24;
 }
 
 .session-present__lobby-team-members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  gap: 0.28rem;
   margin: 0;
   padding: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  height: 100%;
+  overflow: hidden;
   list-style: none;
+}
+
+.session-present__lobby-team--crowd .session-present__lobby-team-members {
+  gap: 0.18rem;
+}
+
+.session-present__lobby-team--packed .session-present__lobby-team-members {
+  gap: 0.02rem 0.14rem;
 }
 
 .session-present__lobby-team-members li,
 .session-present__lobby-person {
-  padding: 0.28rem 0.7rem;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.18rem 0.4rem;
   border-radius: 999px;
   background: color-mix(
     in srgb,
     var(--mat-sys-surface-container-high) 82%,
     var(--mat-sys-primary) 18%
   );
-  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+  font-size: clamp(0.78rem, 1.35vw, 1.05rem);
   font-weight: 650;
-  line-height: 1.3;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.session-present__lobby-team-members li {
+  container-type: size;
+  cursor: pointer;
+  user-select: none;
+}
+
+.session-present__lobby-team--crowd .session-present__lobby-team-members li,
+.session-present__lobby-team--crowd .session-present__lobby-person {
+  padding: 0.1rem 0.28rem;
+  font-size: clamp(0.7rem, 1.15vw, 0.9rem);
+}
+
+.session-present__lobby-team--packed .session-present__lobby-team-members li,
+.session-present__lobby-people-cols--packed .session-present__lobby-person {
+  padding: 0.02rem 0.08rem;
+  background: transparent;
+}
+
+.session-present__lobby-team--crowd:not(.session-present__lobby-team--packed)
+  .session-present__lobby-nick-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-present__lobby-badge--landed {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: session-present-lobby-badge-land 420ms ease-out both;
+  }
+}
+
+@keyframes session-present-lobby-badge-land {
+  from {
+    transform: scale(0.88);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .session-present__lobby-nick {
@@ -418,16 +649,20 @@ app-session-projection-quiz,
   gap: 0.4rem;
   min-width: 0;
   max-width: 100%;
+  cursor: pointer;
+  user-select: none;
 }
 
 .session-present__lobby-nick-icon,
 .session-present__lobby-nick-mat-icon {
   flex: 0 0 auto;
   line-height: 1;
+  cursor: pointer;
+  user-select: none;
 }
 
 .session-present__lobby-nick-icon {
-  font-size: 1.55em;
+  font-size: clamp(0.85rem, min(70cqh, 70cqw), 1.7rem);
 }
 
 .session-present__lobby-nick-mat-icon {
@@ -442,11 +677,31 @@ app-session-projection-quiz,
   font-size: 0.82em;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  user-select: none;
+}
+
+.session-present__lobby-team--packed .session-present__lobby-nick {
+  gap: 0.08rem;
+}
+
+.session-present__lobby-team--packed .session-present__lobby-nick-icon,
+.session-present__lobby-team--packed .session-present__lobby-nick-mat-icon {
+  font-size: clamp(0.7rem, min(88cqh, 78cqw), 2.9rem);
+}
+
+.session-present__lobby-team--packed .session-present__lobby-nick-seq {
+  font-size: clamp(0.55rem, 50cqh, 0.8rem);
 }
 
 .session-present__lobby-nick-text {
   min-width: 0;
   overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  cursor: pointer;
+  user-select: none;
 }
 
 .session-present__lobby-person-col .session-present__lobby-nick {
@@ -457,7 +712,36 @@ app-session-projection-quiz,
 
 .session-present__lobby-person-col .session-present__lobby-nick-icon,
 .session-present__lobby-person-col .session-present__lobby-nick-mat-icon {
-  font-size: clamp(2.4rem, 6.5vw, 4.6rem);
+  font-size: clamp(1.35rem, 4.5vw, 4.6rem);
+}
+
+.session-present__lobby-people-cols--packed .session-present__lobby-person-col {
+  height: 100%;
+  padding: 0.04rem;
+  border: none;
+  background: transparent;
+  align-content: center;
+  container-type: size;
+}
+
+.session-present__lobby-people-cols--packed .session-present__lobby-person {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  padding: 0;
+}
+
+.session-present__lobby-people-cols--packed .session-present__lobby-nick {
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.12rem;
+}
+
+.session-present__lobby-people-cols--packed .session-present__lobby-nick-icon,
+.session-present__lobby-people-cols--packed .session-present__lobby-nick-mat-icon {
+  font-size: clamp(0.7rem, min(88cqh, 78cqw), 2.9rem);
 }
 
 .session-present__lobby-person-col .session-present__lobby-nick-mat-icon {
@@ -470,6 +754,8 @@ app-session-projection-quiz,
   justify-content: center;
   background: transparent;
   padding: 0;
+  cursor: pointer;
+  user-select: none;
 }
 
 .session-present__lobby-people {
@@ -478,17 +764,9 @@ app-session-projection-quiz,
 
 .session-present__lobby-person {
   margin: 0;
-  padding: 0.28rem 0.7rem;
-  border-radius: 999px;
-  background: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container-high) 82%,
-    var(--mat-sys-primary) 18%
-  );
-  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
-  font-weight: 650;
-  line-height: 1.3;
   text-align: center;
+  cursor: pointer;
+  user-select: none;
 }
 
 .session-present__qa-card {
@@ -1288,6 +1566,9 @@ app-session-projection-quiz,
   align-items: center;
   gap: 0.55rem;
   min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .session-present__team-board-emoji {
@@ -1344,28 +1625,146 @@ app-session-projection-quiz,
   background: hsl(calc(var(--i) * 42deg), 90%, 60%);
 }
 
-@media (min-width: 960px) {
+/*
+ * Tablet-Cluster (CSS-px, inkl. Chrome):
+ * - Querformat oft nur 712–834 hoch (Galaxy Tab S4 1138×712, iPad mini 1133×744).
+ * - Breite 11": 1133–1210; 13": 1366–1451. Nicht 1080p (1920×1080).
+ * Ab 900px: Beitritt | Publikum. Motiv sitzt über dem Beitritt, nicht als dritte Spalte.
+ */
+@media (min-width: 900px) {
   .session-present__lobby-stage {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.45fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'stack audience';
     align-items: stretch;
-    justify-content: space-evenly;
-    column-gap: clamp(1.2rem, 3.2vmin, 2.4rem);
+    justify-content: stretch;
+    column-gap: var(--present-lobby-col-gap);
+    row-gap: var(--present-lobby-col-gap);
   }
 
   .session-present__lobby-stage--with-motif {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.45fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'stack audience';
   }
 
   .session-present--lobby .session-present__lobby-card {
-    align-self: center;
-    justify-self: center;
-    width: min(100%, 32rem);
-    max-width: 100%;
-    height: auto;
+    --app-qr-size: min(16rem, 28vw, 36dvh);
+  }
+
+  .session-present__lobby-motif {
+    max-height: min(32vh, 14rem);
   }
 
   .session-present--qa .session-present__qa-list {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Beamer/große Desktops, nicht 11"-Tablets: Motiv | Beitritt | Publikum. */
+@media (min-width: 1280px) and (min-height: 900px) {
+  .session-present__lobby-stage {
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'stack audience';
+    column-gap: var(--present-lobby-col-gap);
+  }
+
+  .session-present__lobby-stage--with-motif {
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'motif join audience';
+  }
+
+  .session-present__lobby-stage--with-motif .session-present__lobby-join-stack {
+    display: contents;
+  }
+
+  .session-present__lobby-stage--with-motif .session-present__lobby-motif-col {
+    grid-area: motif;
+    align-self: center;
+    justify-self: center;
+    max-height: min(72vh, 100%);
+  }
+
+  .session-present__lobby-stage--with-motif .session-present__lobby-motif {
+    max-height: min(68vh, 28rem);
+  }
+
+  .session-present--lobby .session-present__lobby-card {
+    grid-area: join;
+    align-self: center;
+    justify-self: center;
+    --app-qr-size: min(17.5rem, 22vw, 38dvh);
+  }
+
+  .session-present__lobby-stage--solo-join {
+    --present-lobby-hero: min(24rem, 40vmin, 48dvh);
+
+    display: flex;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    grid-template-areas: none;
+  }
+
+  .session-present__lobby-stage--solo-join .session-present__lobby-poster {
+    display: flex;
+  }
+
+  .session-present__lobby-stage--solo-join.session-present__lobby-stage--with-motif
+    .session-present__lobby-join-stack {
+    display: flex;
+  }
+
+  .session-present__lobby-stage--solo-join .session-present__lobby-motif-col {
+    grid-area: auto;
+  }
+
+  .session-present__lobby-stage--solo-join .session-present__lobby-card {
+    grid-area: auto;
+    --app-qr-size: var(--present-lobby-hero);
+  }
+}
+
+/* Kurze Tablet-Querformate (Tab S4 712px, iPad mini 744px). */
+@media (max-height: 800px) {
+  .session-present {
+    --present-inset-block: clamp(0.35rem, 1vh, 0.7rem);
+    --present-stack-gap: clamp(0.4rem, 1.1vh, 0.75rem);
+  }
+
+  .session-present--lobby {
+    padding: clamp(0.45rem, 1.5vh, 0.95rem);
+    gap: clamp(0.4rem, 1.3vh, 0.8rem);
+  }
+
+  .session-present--lobby .session-present__lobby-card {
+    --app-qr-size: min(12.5rem, 34vw, 32dvh);
+  }
+
+  .session-present__lobby {
+    gap: 0.45rem;
+  }
+
+  .session-present__lobby-code {
+    font-size: clamp(1.45rem, 5.2vw, 2.5rem);
+  }
+
+  .session-present__lobby-audience-title {
+    font-size: clamp(1.05rem, 2.1vw, 1.45rem);
+    margin-bottom: 0.45rem;
+  }
+
+  .session-present__lobby-stage--solo-join {
+    --present-lobby-hero: min(16.5rem, 42vmin, 40dvh);
+  }
+
+  .session-present__lobby-stage--solo-join .session-present__lobby-card {
+    --app-qr-size: var(--present-lobby-hero);
+  }
+
+  .session-present__lobby-stage--solo-join .session-present__lobby-code {
+    font-size: clamp(1.85rem, 6vmin, 3rem);
   }
 }
 

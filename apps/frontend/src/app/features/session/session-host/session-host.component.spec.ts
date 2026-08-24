@@ -924,6 +924,132 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('blendet die Presenter-Ansicht auf Mobilgeräten aus', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.componentInstance.showPresenterViewButton()).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('zeigt die Presenter-Ansicht auf Tablets', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query.includes('min-width: 600px'),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.componentInstance.showPresenterViewButton()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('legt den Fokus auf die Rahmen-Umschaltung wenn der Presenter-Button verschwindet', async () => {
+    let changeHandler: ((event: { matches: boolean }) => void) | undefined;
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query.includes('min-width: 600px'),
+        media: query,
+        addEventListener: vi.fn((_type: string, handler: (event: { matches: boolean }) => void) => {
+          if (query.includes('min-width: 600px') && query.includes('min-height: 500px')) {
+            changeHandler = handler;
+          }
+        }),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    const frameToggle = fixture.nativeElement.querySelector(
+      '.session-host__view-toggle:not(.session-host__view-toggle--presenter)',
+    ) as HTMLButtonElement | null;
+    expect(presenterButton).not.toBeNull();
+    expect(frameToggle).not.toBeNull();
+    presenterButton?.focus();
+    expect(document.activeElement).toBe(presenterButton);
+
+    changeHandler?.({ matches: false });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    expect(document.activeElement).toBe(frameToggle);
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
   it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

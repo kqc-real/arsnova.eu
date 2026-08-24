@@ -856,13 +856,19 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('ABC123');
-    expect(text).toContain('Beitritt');
+    expect(text).toContain('arsnova.eu');
     expect(text).toContain('Warten auf die Teilnehmenden');
+    expect(text).not.toContain('Mit Code oder QR-Code teilnehmen.');
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-brand')).toBeTruthy();
     expect(text).not.toContain('Aktuelle Frage ist keine Freitext-Frage.');
     const motif = fixture.nativeElement.querySelector(
       '.session-present__lobby-motif',
     ) as HTMLImageElement | null;
     expect(motif?.getAttribute('src')).toBe('https://example.com/motif.jpg');
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-join-stack')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-stage--with-motif'),
+    ).toBeTruthy();
     const codeEl = fixture.nativeElement.querySelector(
       '.session-present__lobby-code',
     ) as HTMLElement | null;
@@ -934,10 +940,82 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('2 Teilnehmende');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-audience')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-teams-grid')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeTruthy();
+    const teamNames = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-name'),
+    ].map((el) => (el.textContent ?? '').trim());
+    expect(teamNames).toEqual(['Rot', 'Blau']);
+    const teamCounts = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-count'),
+    ].map((el) => (el.textContent ?? '').trim());
+    expect(teamCounts.every((label) => label.includes('Mitglied'))).toBe(true);
+    expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
     ).toBe(2);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
+    const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const participants = Array.from({ length: 30 }, (_, index) => ({
+      id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+      nickname: `Person ${index + 1}`,
+      teamId,
+      teamName: 'Rot',
+    }));
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 30,
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 30,
+      participants,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: teamId,
+          name: 'Rot',
+          color: '#c62828',
+          memberCount: 30,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const team = fixture.nativeElement.querySelector(
+      '.session-present__lobby-team',
+    ) as HTMLElement | null;
+    const nickTexts = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text'),
+    ] as HTMLElement[];
+    expect(team?.classList.contains('session-present__lobby-team--crowd')).toBe(true);
+    expect(team?.classList.contains('session-present__lobby-team--packed')).toBe(true);
+    const members = fixture.nativeElement.querySelector(
+      '.session-present__lobby-team-members',
+    ) as HTMLElement | null;
+    expect(members?.style.gridTemplateColumns.replace(/\s+/g, ' ').trim()).toBe(
+      'repeat(4, minmax(0, 1fr))',
+    );
+    expect(nickTexts).toHaveLength(30);
+    expect(nickTexts.every((node) => node.classList.contains('sr-only'))).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Person 1');
+    expect(fixture.nativeElement.textContent).toContain('Person 30');
     fixture.destroy();
   });
 
@@ -1005,6 +1083,51 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('hält Beitritt und Wartehinweis ohne Motiv und ohne Teamspalten in der Fläche', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: '2KTYP7',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 0,
+      teamMode: false,
+      anonymousMode: false,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 0,
+      participants: [],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const stage = fixture.nativeElement.querySelector(
+      '.session-present__lobby-stage',
+    ) as HTMLElement | null;
+    expect(stage).toBeTruthy();
+    expect(stage?.classList.contains('session-present__lobby-stage--solo-join')).toBe(false);
+    expect(stage?.classList.contains('session-present__lobby-stage--with-motif')).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-present--lobby-solo')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-poster')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-qr')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-audience')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-audience--empty'),
+    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-teams-grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-people-cols')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('ABC123');
+    expect(fixture.nativeElement.textContent).toContain('Warten auf die Teilnehmenden');
+    fixture.destroy();
+  });
+
   it('zeigt ohne Teams einfliegende Teilnehmende in einzelnen Spalten', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1046,6 +1169,10 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Luna');
     expect(text).toContain('Milo');
     expect(text).toContain('2 Teilnehmende');
+    expect(fixture.componentInstance.lobbyPeople().map((person) => person.nickname)).toEqual([
+      'Milo',
+      'Luna',
+    ]);
     expect(fixture.nativeElement.querySelector('.session-present__lobby-people-cols')).toBeTruthy();
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-person-col').length,
@@ -1053,6 +1180,195 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
     ).toBe(2);
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-stage--solo-join'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present--lobby-solo')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('laesst neue Teilnehmende erst einfliegen und zeigt sie danach noch nicht als Badge', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: false,
+      anonymousMode: false,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Luna');
+    expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
+
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Milo',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+    });
+    await (
+      fixture.componentInstance as unknown as { refreshLobbyAudience(): Promise<void> }
+    ).refreshLobbyAudience();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.lobbyFoyerChips().length).toBe(1);
+    expect(fixture.componentInstance.lobbyPeople().map((person) => person.nickname)).toEqual([
+      'Luna',
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('Luna');
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-nick-text')?.textContent,
+    ).not.toContain('Milo');
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-foyer')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeTruthy();
+
+    fixture.componentInstance.lobbyFoyerChips.set([]);
+    fixture.componentInstance.hiddenFoyerParticipantIds.set(new Set());
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.lobbyPeople().map((person) => person.nickname)).toEqual([
+      'Milo',
+      'Luna',
+    ]);
+    expect(
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+        (node.textContent ?? '').trim(),
+      ),
+    ).toEqual(['Milo', 'Luna']);
+    fixture.destroy();
+  });
+
+  it('unterdrueckt Team-Badges waehrend des Einflugs', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
+          teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          teamName: 'Rot',
+        },
+      ],
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          name: 'Rot',
+          color: '#c62828',
+          memberCount: 1,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Luna');
+    expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
+
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
+          teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          teamName: 'Rot',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Milo',
+          teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          teamName: 'Rot',
+        },
+      ],
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          name: 'Rot',
+          color: '#c62828',
+          memberCount: 2,
+        },
+      ],
+    });
+    await (
+      fixture.componentInstance as unknown as { refreshLobbyAudience(): Promise<void> }
+    ).refreshLobbyAudience();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.lobbyFoyerChips().length).toBe(1);
+    expect(
+      fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
+    ).toEqual(['Luna']);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team-foyer')).toBeTruthy();
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text').length).toBe(
+      1,
+    );
+
+    fixture.componentInstance.lobbyFoyerChips.set([]);
+    fixture.componentInstance.hiddenFoyerParticipantIds.set(new Set());
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
+    ).toEqual(['Milo', 'Luna']);
+    expect(
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+        (node.textContent ?? '').trim(),
+      ),
+    ).toEqual(['Milo', 'Luna']);
     fixture.destroy();
   });
 

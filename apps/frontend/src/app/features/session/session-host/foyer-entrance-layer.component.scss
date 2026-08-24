@@ -310,6 +310,8 @@
     0 10px 24px -18px var(--foyer-shadow-strong),
     0 2px 6px var(--foyer-shadow-soft);
   color: var(--foyer-accent-color);
+  cursor: pointer;
+  user-select: none;
 
   @media (prefers-reduced-motion: no-preference) {
     animation-name: foyer-chip-spin;
@@ -396,6 +398,8 @@
   font-size: 1.35rem;
   line-height: 1;
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
 }
 
 .foyer-entrance-layer--compact .foyer-entrance-layer__chip-emoji {

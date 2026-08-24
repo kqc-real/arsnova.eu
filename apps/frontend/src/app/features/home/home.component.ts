@@ -33,6 +33,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { hasHostToken } from '../../core/host-session-token';
+import {
+  hostTabHasToken,
+  takeHostTokenHandoffSessionCode,
+} from '../../core/host-session-token-handoff';
 import { setHostToken, trpc } from '../../core/trpc.client';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -323,6 +327,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      if (this.redirectPresenterHandoff()) {
+        return;
+      }
       if (this.redirectPendingJoinFromQuery()) {
         return;
       }
@@ -335,6 +342,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       // nicht direkt von einem Overlay unterbrochen wird.
       this.scheduleIdleWork(() => void this.loadMotdOverlay(), 2400, 1600);
     }
+  }
+
+  private redirectPresenterHandoff(): boolean {
+    if (hostTabHasToken()) {
+      return false;
+    }
+    const code = takeHostTokenHandoffSessionCode();
+    if (!code) {
+      return false;
+    }
+
+    this.scheduleTimeout(() => {
+      void this.router.navigate(localizeCommands(['session', code, 'present']), {
+        replaceUrl: true,
+      });
+    }, 0);
+    return true;
   }
 
   private redirectPendingJoinFromQuery(): boolean {
