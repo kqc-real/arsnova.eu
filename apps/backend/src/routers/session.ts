@@ -8194,10 +8194,16 @@ export const sessionRouter = router({
       if (!session.quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
       }
-      if (!['RESULTS', 'FINISHED', 'DISCUSSION', 'PAUSED'].includes(session.status)) {
+      const activeQuestionPausedByHost =
+        session.status === 'PAUSED' &&
+        (session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE');
+      if (
+        !['RESULTS', 'FINISHED', 'DISCUSSION', 'PAUSED'].includes(session.status) ||
+        activeQuestionPausedByHost
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Scorecard nur bei RESULTS, DISCUSSION, PAUSED oder FINISHED verfügbar.',
+          message: 'Scorecard erst nach Freigabe der Ergebnisse verfügbar.',
         });
       }
 

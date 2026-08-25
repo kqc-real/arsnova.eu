@@ -1159,6 +1159,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   ...current,
                   status: data.status as SessionInfoDTO['status'],
                   currentQuestion: data.currentQuestion,
+                  pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
                 }

@@ -775,8 +775,7 @@ describe('SessionPresentComponent', () => {
       serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
-      status: 'PAUSED',
-      pausedFromStatus: 'ACTIVE',
+      status: 'ACTIVE',
       quizName: 'Team-Quiz',
       title: null,
       participantCount: 3,
@@ -804,6 +803,29 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]'),
+    ).not.toBeNull();
+    const statusHandlers = subscribeMock.mock.calls.at(-1)?.[1] as
+      | {
+          onData: (data: {
+            status: 'PAUSED';
+            currentQuestion: number;
+            pausedFromStatus: 'ACTIVE';
+            preferredChannel: 'quiz';
+            presenterSurface: 'default';
+          }) => void;
+        }
+      | undefined;
+    statusHandlers?.onData({
+      status: 'PAUSED',
+      currentQuestion: 0,
+      pausedFromStatus: 'ACTIVE',
+      preferredChannel: 'quiz',
+      presenterSurface: 'default',
+    });
     fixture.detectChanges();
 
     const paused = fixture.nativeElement.querySelector(

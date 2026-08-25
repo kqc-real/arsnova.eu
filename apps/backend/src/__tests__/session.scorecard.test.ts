@@ -324,6 +324,39 @@ describe('session.getPersonalScorecard', () => {
       }),
     );
   });
+
+  it.each(['QUESTION_OPEN', 'ACTIVE'] as const)(
+    'verbirgt die Scorecard während einer aus %s pausierten Frage',
+    async (pausedFromStatus) => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'PAUSED',
+        pausedFromStatus,
+        quiz: {
+          questions: [
+            {
+              id: '33333333-3333-4333-8333-333333333333',
+              type: 'SINGLE_CHOICE',
+              answers: [{ id: '44444444-4444-4444-8444-444444444444', isCorrect: true }],
+            },
+          ],
+        },
+        participants: [{ id: '11111111-1111-4111-8111-111111111111' }],
+      });
+
+      await expect(
+        caller.getPersonalScorecard({
+          code: 'ABC123',
+          participantId: '11111111-1111-4111-8111-111111111111',
+          questionIndex: 0,
+        }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Scorecard erst nach Freigabe der Ergebnisse verfügbar.',
+      });
+      expect(prismaMock.vote.findUnique).not.toHaveBeenCalled();
+    },
+  );
 });
 
 trpcDodIt(

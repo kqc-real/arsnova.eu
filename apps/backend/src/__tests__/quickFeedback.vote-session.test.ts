@@ -136,20 +136,63 @@ describe('quickFeedback.vote und Session-Status', () => {
     lastTempoEvalResult = null;
     lastTempoChoiceAction = null;
     redisMock.eval.mockImplementation(
-      async (
-        _script: string,
-        _keyCount: number,
-        key: string,
-        cKey: string,
-        _bucketKey: string,
-        _knownKey: string,
-        voterId: string,
-        value: string,
-        _ttl: string,
-        _bucket: string,
-        _knownTtl: string,
-        ...tempoValues: string[]
-      ) => {
+      async (script: string, _keyCount: number, ...args: string[]) => {
+        if (script.includes('QUICK_FEEDBACK_SET_LIVE_RESULTS')) {
+          const [key, knownKey, enabled, ttl, knownTtl] = args;
+          const raw = (await redisMock.get(key)) as string | null;
+          if (!raw) {
+            return JSON.stringify({ error: 'MISSING' });
+          }
+          const result = JSON.parse(raw) as { showLiveResults?: boolean };
+          result.showLiveResults = enabled === '1';
+          await redisMock.set(key, JSON.stringify(result), 'EX', Number(ttl));
+          await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
+          return JSON.stringify({ showLiveResults: result.showLiveResults });
+        }
+
+        if (script.includes('QUICK_FEEDBACK_STANDARD_VOTE')) {
+          const [key, vKey, cKey, knownKey, voterId, value, ttl, knownTtl] = args;
+          const raw = (await redisMock.get(key)) as string | null;
+          if (!raw) {
+            return JSON.stringify({ error: 'MISSING' });
+          }
+          const result = JSON.parse(raw) as {
+            locked?: boolean;
+            type?: string;
+            totalVotes: number;
+            distribution?: Record<string, number>;
+          };
+          if (result.locked === true) {
+            return JSON.stringify({ error: 'LOCKED' });
+          }
+          if (result.type === 'TEMPO') {
+            return JSON.stringify({ error: 'TYPE_CHANGED' });
+          }
+          if (!result.distribution || !Object.hasOwn(result.distribution, value)) {
+            return JSON.stringify({ error: 'INVALID_VALUE' });
+          }
+          if ((await redisMock.sismember(vKey, voterId)) === 1) {
+            return JSON.stringify({ error: 'ALREADY_VOTED' });
+          }
+          result.distribution[value] = (result.distribution[value] ?? 0) + 1;
+          result.totalVotes += 1;
+          await redisMock.set(key, JSON.stringify(result), 'EX', Number(ttl));
+          await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
+          return JSON.stringify({ totalVotes: result.totalVotes, cKey });
+        }
+
+        const [
+          key,
+          cKey,
+          _bucketKey,
+          _knownKey,
+          voterId,
+          value,
+          _ttl,
+          _bucket,
+          _knownTtl,
+          ...tempoValues
+        ] = args;
         const raw = (await redisMock.get(key)) as string | null;
         if (!raw) {
           return JSON.stringify({ error: 'MISSING' });
@@ -526,15 +569,27 @@ describe('quickFeedback.vote und Session-Status', () => {
       title: 'erlaubt Standalone-Blitzlicht-Stimmen ohne Session-Nachschlag',
     },
     async () => {
-      redisMock.get.mockResolvedValue(
-        JSON.stringify({
-          type: 'MOOD',
-          locked: false,
-          totalVotes: 0,
-          distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
-          sessionBound: false,
-        }),
-      );
+      redisMock.get
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            type: 'MOOD',
+            locked: false,
+            showLiveResults: false,
+            totalVotes: 0,
+            distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+            sessionBound: false,
+          }),
+        )
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            type: 'MOOD',
+            locked: false,
+            showLiveResults: true,
+            totalVotes: 0,
+            distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+            sessionBound: false,
+          }),
+        );
 
       await expect(
         caller.vote({
@@ -546,6 +601,12 @@ describe('quickFeedback.vote und Session-Status', () => {
 
       expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
       expect(redisMock.sismember).toHaveBeenCalledWith('qf:voters:ABCDEF', VOTER_ID);
+      const saved = redisMock.set.mock.calls.find(([key]) => key === 'qf:ABCDEF')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        showLiveResults: true,
+        totalVotes: 1,
+        distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+      });
     },
   );
 
@@ -1385,16 +1446,27 @@ describe('quickFeedback.vote und Session-Status', () => {
       title: 'ändert die Ergebnisfreigabe ohne die laufende Runde zurückzusetzen',
     },
     async () => {
-      redisMock.get.mockResolvedValue(
-        JSON.stringify({
-          type: 'YESNO',
-          locked: false,
-          showLiveResults: false,
-          totalVotes: 3,
-          distribution: { YES: 2, NO: 1, MAYBE: 0 },
-          sessionBound: false,
-        }),
-      );
+      redisMock.get
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            type: 'YESNO',
+            locked: false,
+            showLiveResults: false,
+            totalVotes: 3,
+            distribution: { YES: 2, NO: 1, MAYBE: 0 },
+            sessionBound: false,
+          }),
+        )
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            type: 'YESNO',
+            locked: false,
+            showLiveResults: false,
+            totalVotes: 4,
+            distribution: { YES: 3, NO: 1, MAYBE: 0 },
+            sessionBound: false,
+          }),
+        );
 
       await expect(
         caller.setLiveResults({ sessionCode: 'ABC123', showLiveResults: true }),
@@ -1403,8 +1475,8 @@ describe('quickFeedback.vote und Session-Status', () => {
       const saved = redisMock.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
       expect(JSON.parse(saved)).toMatchObject({
         showLiveResults: true,
-        totalVotes: 3,
-        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        totalVotes: 4,
+        distribution: { YES: 3, NO: 1, MAYBE: 0 },
       });
     },
   );
