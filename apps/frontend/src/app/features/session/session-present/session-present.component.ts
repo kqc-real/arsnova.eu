@@ -306,15 +306,27 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return grouped;
   });
   readonly showSecondaryPresentSurfaces = computed(() => !this.showFinishProjection());
+  readonly showQaProjection = computed(
+    () =>
+      this.session()?.preferredChannel === 'qa' &&
+      this.presenterQaWordCloudQuestions().length > 0 &&
+      this.showSecondaryPresentSurfaces(),
+  );
   readonly showPinnedQaQuestion = computed(
-    () => this.pinnedQaQuestion() !== null && this.showSecondaryPresentSurfaces(),
+    () =>
+      this.showQaProjection() &&
+      this.session()?.presenterSurface !== 'qaWordCloud' &&
+      this.pinnedQaQuestion() !== null,
   );
   readonly showQaQueue = computed(
-    () => this.presenterQaQuestions().length > 0 && this.showSecondaryPresentSurfaces(),
+    () =>
+      this.showQaProjection() &&
+      this.session()?.presenterSurface !== 'qaWordCloud' &&
+      this.presenterQaQuestions().length > 0,
   );
   readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 6));
   readonly showQaWordCloud = computed(
-    () => this.presenterQaWordCloudQuestions().length > 0 && this.showSecondaryPresentSurfaces(),
+    () => this.showQaProjection() && this.session()?.presenterSurface === 'qaWordCloud',
   );
   readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
     getEffectiveLocale(localeIdToSupported(this.localeId)),
@@ -364,7 +376,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     })),
   );
   readonly showQuickFeedbackCard = computed(
-    () => this.quickFeedbackResult() !== null && this.showSecondaryPresentSurfaces(),
+    () =>
+      this.session()?.preferredChannel === 'quickFeedback' &&
+      this.quickFeedbackResult() !== null &&
+      this.showSecondaryPresentSurfaces(),
   );
   readonly showPresenterFreetextStage = computed(() => {
     if (
@@ -374,8 +389,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     ) {
       return false;
     }
-    const channel = this.session()?.preferredChannel;
-    return channel !== 'qa' && channel !== 'quickFeedback';
+    return !this.showQaProjection() && !this.showQuickFeedbackCard();
   });
   readonly showPresenterFreetextResultsStage = computed(() => {
     if (!this.showPresenterFreetextStage()) {
@@ -384,7 +398,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!this.hostQuestion()) {
       return true;
     }
-    return this.session()?.status === 'RESULTS';
+    return (
+      this.session()?.presenterSurface === 'freetextWordCloud' ||
+      this.session()?.status === 'RESULTS'
+    );
   });
   readonly showFinishProjection = computed(() => this.session()?.status === 'FINISHED');
   readonly showTeamFinish = computed(() => {
@@ -396,7 +413,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   });
   readonly showLobbyProjection = computed(
-    () => this.session()?.status === 'LOBBY' && !this.showFinishProjection(),
+    () =>
+      this.session()?.status === 'LOBBY' &&
+      !this.showFinishProjection() &&
+      !this.showQaProjection() &&
+      !this.showQuickFeedbackCard(),
   );
   readonly hasLobbyAudienceColumns = computed(
     () => this.lobbyTeamsView().length > 0 || this.lobbyPeople().length > 0,
@@ -409,7 +430,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!session || session.type === 'Q_AND_A') {
       return false;
     }
-    if (session.preferredChannel === 'qa' || session.preferredChannel === 'quickFeedback') {
+    if (this.showQaProjection() || this.showQuickFeedbackCard()) {
       return false;
     }
     return this.hostQuestion() !== null;
@@ -975,6 +996,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   status: data.status as SessionInfoDTO['status'],
                   currentQuestion: data.currentQuestion,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
+                  presenterSurface: data.presenterSurface ?? current.presenterSurface,
                 }
               : current,
           );

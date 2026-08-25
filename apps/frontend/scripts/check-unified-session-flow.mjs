@@ -6,6 +6,8 @@
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:unified-session -w @arsnova/frontend
  */
+import { mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
 import { assertNoBlockingA11y } from './axe-a11y.mjs';
@@ -13,10 +15,16 @@ import { assertNoBlockingA11y } from './axe-a11y.mjs';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:4200/de';
 const TRPC_URL = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const DESKTOP = { width: 1440, height: 1000 };
+const PRESENTER_HDMI = { width: 1280, height: 720 };
 const MOBILE = { width: 430, height: 932 };
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const PARTICIPANT_JOIN_BUTTON = /join now|jetzt beitreten|mitmachen/i;
 const A11Y_SCAN_ENABLED = process.env.A11Y_SCAN !== '0';
+const CAPTURE_SCREENSHOTS = process.env.UNIFIED_SESSION_SCREENSHOTS === '1';
+const SCREENSHOT_DIR = resolve(
+  process.env.UNIFIED_SESSION_SCREENSHOT_DIR ||
+    resolve(import.meta.dirname, '../../../tmp/presenter-channels-hdmi'),
+);
 const SMOKE_QUESTIONS = {
   quizPrompt: 'Which unified flow is under test?',
   quizCorrectAnswer: 'Quiz, Q&A and quick feedback',
@@ -79,6 +87,16 @@ async function scanA11y(page, label) {
   if (A11Y_SCAN_ENABLED) {
     await assertNoBlockingA11y(page, `unified-${label}`);
   }
+}
+
+async function capturePresenterScreenshot(page, name) {
+  if (!CAPTURE_SCREENSHOTS) {
+    return;
+  }
+  await mkdir(SCREENSHOT_DIR, { recursive: true });
+  const path = resolve(SCREENSHOT_DIR, `presenter-${name}-1280x720.png`);
+  await page.screenshot({ path });
+  console.log(`Screenshot ${path}`);
 }
 
 function createBrowserTrpcClient() {
@@ -472,7 +490,7 @@ async function verifyHostQuestions(host, hardFailures) {
   logStep(false, 'Host approves queued question');
 }
 
-async function verifyPresenterView(presenter, code, hardFailures) {
+async function verifyPresenterView(host, presenter, code, hardFailures) {
   await presenter.goto(`${BASE_URL}/session/${code}/present`, {
     waitUntil: 'domcontentloaded',
     timeout: 30_000,
@@ -499,11 +517,76 @@ async function verifyPresenterView(presenter, code, hardFailures) {
     .catch(() => false);
   if (queueQuestionVisible) {
     logStep(true, 'Presenter shows Q&A queue');
-    return;
+  } else {
+    hardFailures.push('Presenter does not show the active Q&A queue.');
+    logStep(false, 'Presenter shows Q&A queue');
   }
 
-  hardFailures.push('Presenter does not show the active Q&A queue.');
-  logStep(false, 'Presenter shows Q&A queue');
+  const qaFitsViewport = await presenter.evaluate(() => {
+    const root = document.querySelector('.session-present');
+    const stage = document.querySelector('.session-present__qa-stage');
+    if (!(root instanceof HTMLElement) || !(stage instanceof HTMLElement)) {
+      return false;
+    }
+    const rect = stage.getBoundingClientRect();
+    return (
+      root.scrollHeight <= root.clientHeight + 1 &&
+      rect.top >= -1 &&
+      rect.left >= -1 &&
+      rect.right <= window.innerWidth + 1 &&
+      rect.bottom <= window.innerHeight + 1
+    );
+  });
+  if (qaFitsViewport) {
+    logStep(true, 'Presenter Q&A questions fit HDMI viewport');
+  } else {
+    hardFailures.push('Presenter Q&A stage scrolls or clips in the HDMI viewport.');
+    logStep(false, 'Presenter Q&A questions fit HDMI viewport');
+  }
+
+  const openWordCloud = host
+    .locator('.session-host__extra-summary--button', { hasText: /wortwolke|word cloud/i })
+    .first();
+  if (await openWordCloud.isVisible().catch(() => false)) {
+    await clickViaDom(openWordCloud);
+  }
+  const exclusiveWordCloudVisible = await presenter
+    .locator('.session-present__word-cloud-card')
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(async () => {
+      const questionSurfaceVisible = await presenter
+        .locator('.session-present__qa-card, .session-present__qa-list-card')
+        .first()
+        .isVisible()
+        .catch(() => false);
+      return !questionSurfaceVisible;
+    })
+    .catch(() => false);
+  if (exclusiveWordCloudVisible) {
+    logStep(true, 'Presenter switches exclusively to Q&A word cloud');
+    await capturePresenterScreenshot(presenter, 'qa');
+  } else {
+    hardFailures.push('Presenter does not switch exclusively to the Q&A word cloud.');
+    logStep(false, 'Presenter switches exclusively to Q&A word cloud');
+  }
+
+  const closeWordCloud = host.locator('.qa-word-cloud-dialog__close').first();
+  if (await closeWordCloud.isVisible().catch(() => false)) {
+    await clickViaDom(closeWordCloud);
+  } else {
+    await host.keyboard.press('Escape');
+  }
+  const questionsRestored = await presenter
+    .locator('.session-present__qa-list-card')
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (questionsRestored) {
+    logStep(true, 'Presenter restores Q&A questions after closing word cloud');
+  } else {
+    hardFailures.push('Presenter does not restore Q&A questions after closing the word cloud.');
+    logStep(false, 'Presenter restores Q&A questions after closing word cloud');
+  }
 }
 
 async function runQuickFeedbackFlow(host, participant, warnings, hardFailures) {
@@ -559,6 +642,81 @@ async function runQuickFeedbackFlow(host, participant, warnings, hardFailures) {
     'Host result stayed at zero votes during the smoke test after one participant vote.',
   );
   logWarn('Host does not see quick feedback result immediately');
+}
+
+async function verifyPresenterQuickFeedback(presenter, hardFailures) {
+  const feedbackCard = presenter.locator('.session-present__feedback-card').first();
+  const feedbackVisible = await feedbackCard
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  const qaStillVisible = await presenter
+    .locator(
+      '.session-present__qa-card, .session-present__qa-list-card, .session-present__word-cloud-card',
+    )
+    .first()
+    .isVisible()
+    .catch(() => false);
+  const feedbackFitsViewport = feedbackVisible
+    ? await feedbackCard.evaluate((card) => {
+        const root = document.querySelector('.session-present');
+        if (!(root instanceof HTMLElement)) {
+          return false;
+        }
+        const rect = card.getBoundingClientRect();
+        return (
+          root.scrollHeight <= root.clientHeight + 1 &&
+          rect.top >= -1 &&
+          rect.left >= -1 &&
+          rect.right <= window.innerWidth + 1 &&
+          rect.bottom <= window.innerHeight + 1
+        );
+      })
+    : false;
+
+  if (feedbackVisible && !qaStillVisible && feedbackFitsViewport) {
+    logStep(true, 'Presenter switches exclusively to HDMI-sized quick feedback');
+    await capturePresenterScreenshot(presenter, 'blitzlicht');
+    return;
+  }
+
+  hardFailures.push(
+    'Presenter does not switch exclusively to a visible HDMI-sized quick feedback stage.',
+  );
+  logStep(false, 'Presenter switches exclusively to HDMI-sized quick feedback');
+}
+
+async function verifyPresenterQuizChannel(host, presenter, hardFailures) {
+  await clickChannelTab(host, 0);
+  const startButton = host
+    .getByRole('button', { name: /erste frage starten|start first question/i })
+    .first();
+  if (await startButton.isVisible().catch(() => false)) {
+    await clickViaDom(startButton);
+  }
+
+  const quizVisible = await presenter
+    .getByText(SMOKE_QUESTIONS.quizPrompt, { exact: true })
+    .first()
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  const secondaryChannelVisible = await presenter
+    .locator(
+      '.session-present__qa-stage, .session-present__feedback-card, .session-present__word-cloud-card',
+    )
+    .first()
+    .isVisible()
+    .catch(() => false);
+
+  if (quizVisible && !secondaryChannelVisible) {
+    logStep(true, 'Presenter switches exclusively back to quiz');
+    await capturePresenterScreenshot(presenter, 'quiz');
+    return;
+  }
+
+  hardFailures.push('Presenter does not switch exclusively back to the quiz channel.');
+  logStep(false, 'Presenter switches exclusively back to quiz');
 }
 
 async function endSessionAndScan(host, participant, hardFailures) {
@@ -706,7 +864,7 @@ async function main() {
       { sessionCode: code, token: hostToken, prefix: HOST_TOKEN_STORAGE_PREFIX },
     );
 
-    const presenterContext = await browser.newContext({ viewport: DESKTOP });
+    const presenterContext = await browser.newContext({ viewport: PRESENTER_HDMI });
     await presenterContext.addInitScript(
       ({ sessionCode, token, prefix }) => {
         globalThis.sessionStorage.setItem(`${prefix}${sessionCode}`, token);
@@ -730,11 +888,13 @@ async function main() {
     await scanA11y(participant, 'participant-qa');
     await verifyHostQuestions(host, hardFailures);
     await scanA11y(host, 'host-qa-moderation');
-    await verifyPresenterView(presenter, code, hardFailures);
+    await verifyPresenterView(host, presenter, code, hardFailures);
     await scanA11y(presenter, 'presenter-qa');
     await runQuickFeedbackFlow(host, participant, warnings, hardFailures);
+    await verifyPresenterQuickFeedback(presenter, hardFailures);
     await scanA11y(host, 'host-feedback');
     await scanA11y(participant, 'participant-feedback');
+    await verifyPresenterQuizChannel(host, presenter, hardFailures);
     await endSessionAndScan(host, participant, hardFailures);
 
     console.log(`\nSession-Code: ${code}`);

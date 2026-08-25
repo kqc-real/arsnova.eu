@@ -51,6 +51,7 @@ const {
   enableQaChannelMutateMock,
   enableQuickFeedbackChannelMutateMock,
   setPreferredLiveChannelMutateMock,
+  setPresenterSurfaceMutateMock,
   closeQaChannelMutateMock,
   reopenQaChannelMutateMock,
   closeQuickFeedbackChannelMutateMock,
@@ -97,6 +98,7 @@ const {
   enableQaChannelMutateMock: vi.fn(),
   enableQuickFeedbackChannelMutateMock: vi.fn(),
   setPreferredLiveChannelMutateMock: vi.fn(),
+  setPresenterSurfaceMutateMock: vi.fn(),
   closeQaChannelMutateMock: vi.fn(),
   reopenQaChannelMutateMock: vi.fn(),
   closeQuickFeedbackChannelMutateMock: vi.fn(),
@@ -142,6 +144,7 @@ vi.mock('../../../core/trpc.client', () => ({
       enableQaChannel: { mutate: enableQaChannelMutateMock },
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
       setPreferredLiveChannel: { mutate: setPreferredLiveChannelMutateMock },
+      setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
       closeQaChannel: { mutate: closeQaChannelMutateMock },
       reopenQaChannel: { mutate: reopenQaChannelMutateMock },
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
@@ -399,7 +402,16 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       qa: { enabled: false, open: false, title: null, moderationMode: false },
       quickFeedback: { enabled: true, open: true },
     });
-    setPreferredLiveChannelMutateMock.mockResolvedValue({ preferredChannel: 'quiz' });
+    setPreferredLiveChannelMutateMock.mockImplementation(
+      async ({ channel }: { channel: 'quiz' | 'qa' | 'quickFeedback' }) => ({
+        preferredChannel: channel,
+      }),
+    );
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => ({
+        presenterSurface: surface,
+      }),
+    );
     closeQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: true, open: false, title: 'Fragen', moderationMode: true },
@@ -1121,6 +1133,93 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.channels().qa).toBe(true);
+    fixture.destroy();
+  });
+
+  it('behält die laufende Projektion beim Wechsel auf einen noch leeren Q&A-Kanal bei', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await fixture.componentInstance.selectChannel('qa');
+
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('quiz');
+
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Jetzt ist der Kanal präsentationsbereit.',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-08-24T18:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    await (
+      fixture.componentInstance as unknown as {
+        refreshQaQuestions(): Promise<void>;
+      }
+    ).refreshQaQuestions();
+
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      channel: 'qa',
+    });
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('qa');
+    fixture.destroy();
+  });
+
+  it('projiziert Q&A beim Kanalwechsel, sobald eine sichtbare Frage vorhanden ist', async () => {
+    const visibleQuestion = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Welche Frage wird projiziert?',
+      upvoteCount: 2,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-08-24T18:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([visibleQuestion]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.qaQuestions.set([visibleQuestion]);
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await fixture.componentInstance.selectChannel('qa');
+
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      channel: 'qa',
+    });
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('qa');
     fixture.destroy();
   });
 

@@ -440,7 +440,11 @@ nachträglich rot. Playwright-Browser installiert
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese
-Ausnahme nicht.
+Ausnahme nicht. Der Unified-Session-Smoke prüft den exklusiven Presenter-Wechsel
+Q&A → Blitzlicht → Quiz in 1280×720 ohne Scroll oder Clipping. Mit
+`UNIFIED_SESSION_SCREENSHOTS=1` speichert er die drei HDMI-Bilder unter
+`tmp/presenter-channels-hdmi`; `UNIFIED_SESSION_SCREENSHOT_DIR` überschreibt das
+Zielverzeichnis.
 
 Lokal lassen sich dieselben browserabhängigen Prüfungen gezielt ausführen:
 

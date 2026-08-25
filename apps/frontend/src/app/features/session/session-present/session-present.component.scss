@@ -124,6 +124,15 @@ app-session-projection-quiz,
   justify-content: center;
 }
 
+.session-present--qa,
+.session-present--feedback {
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+  padding: clamp(0.8rem, 2vh, 1.4rem) clamp(0.9rem, 2vw, 1.8rem);
+}
+
 .session-present--lobby {
   --present-lobby-col-gap: clamp(0.85rem, 1.8vmin, 1.35rem);
   --present-lobby-inset: clamp(1.15rem, 3.4vmin, 2.6rem);
@@ -136,28 +145,6 @@ app-session-projection-quiz,
   overflow: hidden;
   padding: var(--present-lobby-inset);
   gap: clamp(0.45rem, 1.4vmin, 1.8rem);
-}
-
-.session-present--lobby.session-present--qa {
-  overflow: hidden;
-  justify-content: flex-start;
-}
-
-.session-present--lobby.session-present--qa .session-present__lobby-stage {
-  flex: 1 1 0;
-  min-height: 0;
-  height: auto;
-  max-height: none;
-}
-
-.session-present--lobby.session-present--qa .session-present__qa-card,
-.session-present--lobby.session-present--qa .session-present__qa-list-card {
-  flex: 0 0 auto;
-}
-
-.session-present--lobby.session-present--qa .session-present__lobby-teams-grid,
-.session-present--lobby.session-present--qa .session-present__lobby-people-cols {
-  overflow: hidden;
 }
 
 .session-present__lobby-stage {
@@ -821,6 +808,76 @@ app-session-projection-quiz,
   );
 }
 
+.session-present__qa-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'pinned queue';
+  gap: clamp(0.65rem, 1.5vmin, 1.15rem);
+  width: min(100%, 94rem);
+  height: 100%;
+  min-height: 0;
+  margin-inline: auto;
+}
+
+.session-present__qa-stage:not(:has(.session-present__qa-card)) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'queue';
+}
+
+.session-present__qa-stage:has(.session-present__word-cloud-card) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'cloud';
+}
+
+.session-present__qa-stage > .session-present__qa-card {
+  grid-area: pinned;
+}
+
+.session-present__qa-stage > .session-present__qa-list-card {
+  grid-area: queue;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.session-present__qa-stage > .session-present__word-cloud-card {
+  grid-area: cloud;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.session-present__qa-stage > .session-present__word-cloud-card app-word-cloud {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.session-present__qa-stage .session-present__qa-list {
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.session-present--feedback .session-present__feedback-card {
+  width: min(100%, 88rem);
+  margin: auto;
+}
+
+.session-present--feedback .session-present__feedback-card mat-card-content {
+  gap: clamp(1.2rem, 3vh, 2.4rem);
+  padding: clamp(1.5rem, 4vh, 3rem) clamp(1.5rem, 4vw, 3.5rem) !important;
+}
+
+.session-present--feedback .session-present__feedback-bars {
+  gap: clamp(0.9rem, 2.5vh, 1.8rem);
+}
+
+.session-present--feedback .session-present__feedback-track {
+  height: clamp(1.2rem, 3vh, 2rem);
+}
+
 .session-present__qa-head,
 .session-present__qa-list-head,
 .session-present__feedback-head {
@@ -1155,6 +1212,26 @@ app-session-projection-quiz,
 @media (min-width: 900px) {
   .session-present__finish-hero--with-teams {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 899px), (max-aspect-ratio: 4 / 3) {
+  .session-present__qa-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    grid-template-areas:
+      'pinned'
+      'queue';
+  }
+
+  .session-present__qa-stage:not(:has(.session-present__qa-card)) {
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'queue';
+  }
+
+  .session-present__qa-stage:has(.session-present__word-cloud-card) {
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'cloud';
   }
 }
 
@@ -1700,7 +1777,7 @@ app-session-projection-quiz,
   }
 
   .session-present--qa .session-present__qa-list {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
