@@ -448,6 +448,102 @@ describe('session.enable channel mutations', () => {
       expect(prismaMock.session.update).not.toHaveBeenCalled();
     },
   );
+
+  trpcDodIt(
+    {
+      procedure: 'session.setPresenterSurface',
+      case: 'happy',
+      mode: 'direct',
+      title: 'schaltet die Q&A-Wortwolke exklusiv auf die Presenter-Fläche',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        type: 'QUIZ',
+        quizId: '11111111-1111-4111-8111-111111111111',
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Fragen',
+        qaModerationMode: true,
+        title: null,
+        moderationMode: false,
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+      });
+
+      await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+
+      await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quiz' });
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.setPresenterSurface',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'weist eine Wortwolke außerhalb ihres projizierten Kanals zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        type: 'QUIZ',
+        quizId: '11111111-1111-4111-8111-111111111111',
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Fragen',
+        qaModerationMode: true,
+        title: null,
+        moderationMode: false,
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+      });
+
+      await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quiz' });
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
+      });
+    },
+  );
+
+  it('weist einen geschlossenen Nebenkanal als Presenter-Ziel zurück', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: false,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: false,
+    });
+
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Q&A-Kanal ist nicht geöffnet.',
+    });
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quickFeedback' }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Blitzlicht-Kanal ist nicht geöffnet.',
+    });
+  });
 });
 
 trpcDodIt(

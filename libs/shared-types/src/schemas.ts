@@ -2933,6 +2933,12 @@ export type UpdateSessionQaTitleOutput = z.infer<typeof UpdateSessionQaTitleOutp
 
 export const SessionLiveChannelSchema = z.enum(['quiz', 'qa', 'quickFeedback']);
 export type SessionLiveChannel = z.infer<typeof SessionLiveChannelSchema>;
+export const SessionPresenterSurfaceSchema = z.enum([
+  'default',
+  'qaWordCloud',
+  'freetextWordCloud',
+]);
+export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
 
 /** Output: Status-Update nach nextQuestion / revealAnswers / revealResults (Story 2.3, 3.5). */
 export const SessionStatusUpdateSchema = z.object({
@@ -2949,6 +2955,7 @@ export const SessionStatusUpdateSchema = z.object({
   /** Kanalzustand für Live-Umschaltung auf Vote-Clients. */
   channels: z.lazy(() => SessionChannelsDTOSchema).optional(),
   preferredChannel: SessionLiveChannelSchema.optional(),
+  presenterSurface: SessionPresenterSurfaceSchema.optional(),
   /** Nur beim atomaren Übergang nach „Frage auslassen“ gesetzt. */
   skippedQuestionId: z.string().uuid().optional(),
   /** ISO-8601-Zeitpunkt des Auslassens; dient Clients als idempotenter Ereignisschlüssel. */
@@ -3606,6 +3613,7 @@ export const SessionInfoDTOSchema = z.object({
   title: z.string().nullable().optional(),
   channels: SessionChannelsDTOSchema.optional(), // ADR-0009: Übergangsweise optional für schrittweise Migration
   preferredChannel: SessionLiveChannelSchema.optional(),
+  presenterSurface: SessionPresenterSurfaceSchema.optional(),
   participantCount: z.number(),
   nicknameTheme: NicknameThemeEnum.optional(),
   allowCustomNicknames: z.boolean().optional(),

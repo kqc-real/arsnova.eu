@@ -120,6 +120,7 @@ import {
   SessionFeedbackSummary,
   SessionConfidenceSummaryDTO,
   SessionInfoDTO,
+  SessionPresenterSurface,
   SessionParticipantsPayload,
   TeamAssignment,
   SessionResultsPdfProfile,
@@ -856,6 +857,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
+  private presenterSurfaceSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
   private lastFreetextWordCloudSemanticRequestKey: string | null = null;
@@ -1969,6 +1971,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.moderationCompassFocusedTerm.set(focusedTerm);
     this.tryEnterWordCloudFullscreenFromUserGesture();
     this.qaWordCloudDialogOpen.set(true);
+    await this.activatePresenterSurface('qaWordCloud', 'qa');
     const request = this.qaWordCloudAnalysisRequest();
     if (request) {
       if (request.mode === 'SEMANTIC') {
@@ -2040,6 +2043,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       dialogRef.afterClosed().subscribe((result) => {
         this.qaWordCloudDialogRef = null;
         this.qaWordCloudDialogOpen.set(false);
+        void this.syncPresenterSurface('default');
         this.clearWordCloudOverlayTop();
         this.qaWordCloudFrozen.set(false);
         this.frozenQaWordCloudQuestions.set(null);
@@ -2051,6 +2055,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.qaWordCloudDialogRef = null;
       this.qaWordCloudDialogOpen.set(false);
+      void this.syncPresenterSurface('default');
       this.clearWordCloudOverlayTop();
       this.qaWordCloudFrozen.set(false);
       this.frozenQaWordCloudQuestions.set(null);
@@ -3456,10 +3461,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudExpanded.set(true);
     this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
+    void this.activatePresenterSurface('freetextWordCloud', 'quiz');
   };
 
   closeFreetextWordCloudMaximize(): void {
     this.freetextWordCloudMaximized.set(false);
+    void this.syncPresenterSurface('default');
     this.clearWordCloudOverlayTop();
     this.wordCloudExpanded.set(true);
     this.freetextWordCloud?.revealFocusedOrSelectedResponses();
@@ -3966,6 +3973,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             currentRound: data.currentRound,
             channels: data.channels,
             preferredChannel: data.preferredChannel,
+            presenterSurface: data.presenterSurface,
           } satisfies SessionStatusUpdate;
           if (update.status === 'LOBBY' || update.status === 'FINISHED') {
             this.quizStartQuestionPending.set(false);
@@ -7429,7 +7437,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.syncQaTitleDraftFromSession();
       }
       this.ensureActiveChannel();
-      await this.syncPreferredLiveChannel(channel);
+      await this.reconcilePresentedChannel();
     }
   }
 
@@ -7593,7 +7601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       this.activeChannel.set(channel);
       this.ensureActiveChannel();
-      await this.syncPreferredLiveChannel(channel);
+      await this.reconcilePresentedChannel();
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.enableChannel(channel));
     } finally {
@@ -7602,16 +7610,104 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {
-    if (!this.code || !this.isChannelEnabled(channel)) {
+    if (
+      !this.code ||
+      !this.isPresenterChannelReady(channel) ||
+      this.session()?.preferredChannel === channel
+    ) {
       return;
     }
     try {
-      await trpc.session.setPreferredLiveChannel.mutate({
+      const result = await trpc.session.setPreferredLiveChannel.mutate({
         code: this.code.toUpperCase(),
         channel,
       });
+      this.session.update((session) =>
+        session
+          ? {
+              ...session,
+              preferredChannel: result.preferredChannel,
+              presenterSurface: 'default',
+            }
+          : session,
+      );
     } catch {
       // Der Host bleibt lokal bedienbar; bei nächstem gültigen Kanalwechsel erneut versuchen.
+    }
+  }
+
+  private syncPresenterSurface(surface: SessionPresenterSurface): Promise<void> {
+    return this.enqueuePresenterSurfaceSync(() => this.syncPresenterSurfaceNow(surface));
+  }
+
+  private async syncPresenterSurfaceNow(surface: SessionPresenterSurface): Promise<void> {
+    if (!this.code || this.session()?.presenterSurface === surface) {
+      return;
+    }
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate({
+        code: this.code.toUpperCase(),
+        surface,
+      });
+      this.session.update((session) =>
+        session ? { ...session, presenterSurface: result.presenterSurface } : session,
+      );
+    } catch {
+      // Die lokale Wortwolkenansicht bleibt bedienbar, auch wenn die Projektion nicht synchronisiert.
+    }
+  }
+
+  private async activatePresenterSurface(
+    surface: SessionPresenterSurface,
+    channel: SessionChannelTab,
+  ): Promise<void> {
+    await this.enqueuePresenterSurfaceSync(async () => {
+      await this.syncPreferredLiveChannel(channel);
+      await this.syncPresenterSurfaceNow(surface);
+    });
+  }
+
+  private enqueuePresenterSurfaceSync(operation: () => Promise<void>): Promise<void> {
+    const queued = this.presenterSurfaceSyncQueue.then(operation, operation);
+    this.presenterSurfaceSyncQueue = queued;
+    return queued;
+  }
+
+  private isPresenterChannelReady(channel: SessionChannelTab): boolean {
+    if (!this.isChannelEnabled(channel)) {
+      return false;
+    }
+    if (channel === 'quiz') {
+      return true;
+    }
+    if (!this.isChannelOpen(channel)) {
+      return false;
+    }
+    if (channel === 'qa') {
+      return this.qaQuestions().some(
+        (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+      );
+    }
+    return this.quickFeedbackResult() !== null;
+  }
+
+  private async reconcilePresentedChannel(): Promise<void> {
+    const active = this.activeChannel();
+    if (this.isPresenterChannelReady(active)) {
+      await this.syncPreferredLiveChannel(active);
+      return;
+    }
+
+    const preferred = this.session()?.preferredChannel;
+    if (preferred && this.isPresenterChannelReady(preferred)) {
+      return;
+    }
+
+    const fallback = (['quiz', 'qa', 'quickFeedback'] as const).find((channel) =>
+      this.isPresenterChannelReady(channel),
+    );
+    if (fallback) {
+      await this.syncPreferredLiveChannel(fallback);
     }
   }
 
@@ -7697,6 +7793,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       {
         onData: (data) => {
           this.qaQuestions.set(data);
+          void this.reconcilePresentedChannel();
           this.dismissHostSteeringCallout();
         },
         onError: () => this.burstHostFallbackAfterWsGap(),
@@ -8066,6 +8163,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sort: this.qaSortMode(),
       });
       this.qaQuestions.set(questions);
+      await this.reconcilePresentedChannel();
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
@@ -8651,6 +8749,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionCode: this.code.toUpperCase(),
       });
       this.quickFeedbackResult.set(result);
+      await this.reconcilePresentedChannel();
     } catch {
       // Keep the last snapshot visible during transient polling failures.
     }

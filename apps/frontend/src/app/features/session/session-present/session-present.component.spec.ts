@@ -185,6 +185,14 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]'),
     ).toBeTruthy();
+
+    fixture.componentInstance.session.update((session) =>
+      session ? { ...session, presenterSurface: 'freetextWordCloud' } : session,
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Live-Freitext');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
     fixture.destroy();
   });
 
@@ -612,7 +620,7 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('hält Lobby und Q&A gleichzeitig sichtbar, wenn die Session noch im Foyer ist', async () => {
+  it('ersetzt die Lobby durch Q&A, sobald der ausgewählte Kanal präsentationsbereit ist', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -660,15 +668,47 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement.querySelector('.session-present') as HTMLElement | null;
-    expect(root?.classList.contains('session-present--lobby')).toBe(true);
+    expect(root?.classList.contains('session-present--lobby')).toBe(false);
     expect(root?.classList.contains('session-present--qa')).toBe(true);
-    expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__qa-card')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-placeholder')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain(
       'Welche Themen sind heute besonders wichtig?',
     );
     expect(fixture.nativeElement.textContent).toContain('Kommt Kapitel 4 in der Klausur vor?');
+    fixture.destroy();
+  });
+
+  it('behält die Lobby bei, solange der ausgewählte Q&A-Kanal noch keine sichtbare Frage hat', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).toBeNull();
     fixture.destroy();
   });
 
@@ -723,6 +763,7 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Als Nächstes im Raum');
     expect(text).toContain('Kommt Kapitel 4 in der Klausur vor?');
     expect(text).toContain('Kannst du das Beispiel noch einmal erklären?');
+    expect(text).not.toContain('Q&A-Wortwolke');
     fixture.destroy();
   });
 
@@ -738,6 +779,7 @@ describe('SessionPresentComponent', () => {
       participantCount: 3,
       teamMode: false,
       preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
       channels: {
         quiz: { enabled: true },
         qa: { enabled: true, title: 'Fragen', moderationMode: false },
@@ -782,6 +824,8 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
+    expect(text).not.toContain('Als Nächstes im Raum');
+    expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
     fixture.destroy();
   });
 
@@ -822,6 +866,61 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Ja · Nein · Vielleicht');
     expect(text).toContain('Runde 2 läuft');
     expect(text).toContain('9 Stimmen');
+    fixture.destroy();
+  });
+
+  it('zeigt ausschließlich Blitzlicht, wenn Q&A-Daten weiterhin vorhanden sind', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Diese Frage darf nicht parallel sichtbar bleiben.',
+        upvoteCount: 5,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'YESNO',
+      locked: false,
+      totalVotes: 3,
+      distribution: { YES: 2, NO: 1, MAYBE: 0 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__word-cloud-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-placeholder')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Diese Frage darf nicht parallel sichtbar bleiben.',
+    );
     fixture.destroy();
   });
 

@@ -35,6 +35,7 @@ import {
   SessionParticipantNicknamesPayloadSchema,
   SessionChannelsDTOSchema,
   SessionLiveChannelSchema,
+  SessionPresenterSurfaceSchema,
   SessionTeamsPayloadSchema,
   SessionStatusUpdateSchema,
   HostCurrentQuestionDTOSchema,
@@ -308,6 +309,7 @@ type StatusSnapshotPayload = {
   currentRound?: number;
   channels?: z.infer<typeof SessionChannelsDTOSchema>;
   preferredChannel?: z.infer<typeof SessionLiveChannelSchema>;
+  presenterSurface?: z.infer<typeof SessionPresenterSurfaceSchema>;
   skippedQuestionId?: string;
   questionSkippedAt?: string;
 };
@@ -336,6 +338,7 @@ const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
 const preferredLiveChannelByCode = new Map<string, z.infer<typeof SessionLiveChannelSchema>>();
+const presenterSurfaceByCode = new Map<string, z.infer<typeof SessionPresenterSurfaceSchema>>();
 const sessionInfoInFlight = new Map<
   string,
   Promise<Omit<z.infer<typeof SessionInfoDTOSchema>, 'serverTime'>>
@@ -796,12 +799,14 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
             )
           : null;
       const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(code, channels);
       return {
         status: session.status,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
         channels,
-        preferredChannel: resolvePreferredLiveChannel(code, channels),
+        preferredChannel,
+        presenterSurface: resolvePresenterSurface(code, preferredChannel),
         ...(session.lastSkippedQuestionId &&
           session.lastQuestionSkippedAt && {
             skippedQuestionId: session.lastSkippedQuestionId,
@@ -3046,8 +3051,8 @@ function defaultPreferredLiveChannel(
   channels: z.infer<typeof SessionChannelsDTOSchema>,
 ): z.infer<typeof SessionLiveChannelSchema> {
   if (channels.quiz.enabled) return 'quiz';
-  if (channels.qa.enabled) return 'qa';
-  if (channels.quickFeedback.enabled) return 'quickFeedback';
+  if (channels.qa.enabled && channels.qa.open) return 'qa';
+  if (channels.quickFeedback.enabled && channels.quickFeedback.open) return 'quickFeedback';
   return 'quiz';
 }
 
@@ -3057,9 +3062,21 @@ function resolvePreferredLiveChannel(
 ): z.infer<typeof SessionLiveChannelSchema> {
   const stored = preferredLiveChannelByCode.get(code.toUpperCase());
   if (stored === 'quiz' && channels.quiz.enabled) return stored;
-  if (stored === 'qa' && channels.qa.enabled) return stored;
-  if (stored === 'quickFeedback' && channels.quickFeedback.enabled) return stored;
+  if (stored === 'qa' && channels.qa.enabled && channels.qa.open) return stored;
+  if (stored === 'quickFeedback' && channels.quickFeedback.enabled && channels.quickFeedback.open) {
+    return stored;
+  }
   return defaultPreferredLiveChannel(channels);
+}
+
+function resolvePresenterSurface(
+  code: string,
+  preferredChannel: z.infer<typeof SessionLiveChannelSchema>,
+): z.infer<typeof SessionPresenterSurfaceSchema> {
+  const stored = presenterSurfaceByCode.get(code.toUpperCase());
+  if (stored === 'qaWordCloud' && preferredChannel === 'qa') return stored;
+  if (stored === 'freetextWordCloud' && preferredChannel === 'quiz') return stored;
+  return 'default';
 }
 
 /** Bewertete Fragetypen, bei denen Runde 2 vom Peer-Instruction-Fenster abhaengt. */
@@ -4470,6 +4487,7 @@ async function resolvePublicSessionInfo(
           : null;
       const onboardingProfile = resolveSessionOnboardingProfile(session, q);
       const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(session.code, channels);
       const visibleCurrentQuestion = session.status === 'LOBBY' ? null : session.currentQuestion;
       return {
         id: session.id,
@@ -4487,7 +4505,8 @@ async function resolvePublicSessionInfo(
         quizMotifImageUrl: q?.motifImageUrl ?? null,
         title: session.title ?? null,
         channels,
-        preferredChannel: resolvePreferredLiveChannel(session.code, channels),
+        preferredChannel,
+        presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
         participantCount: session._count.participants,
         nicknameTheme: onboardingProfile.nicknameTheme,
         allowCustomNicknames: onboardingProfile.allowCustomNicknames,
@@ -5570,19 +5589,78 @@ export const sessionRouter = router({
       if (input.channel === 'quiz' && !channels.quiz.enabled) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz-Kanal ist nicht aktiv.' });
       }
-      if (input.channel === 'qa' && !channels.qa.enabled) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiv.' });
+      if (input.channel === 'qa' && (!channels.qa.enabled || !channels.qa.open)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht geöffnet.' });
       }
-      if (input.channel === 'quickFeedback' && !channels.quickFeedback.enabled) {
+      if (
+        input.channel === 'quickFeedback' &&
+        (!channels.quickFeedback.enabled || !channels.quickFeedback.open)
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Blitzlicht-Kanal ist nicht aktiv.',
+          message: 'Blitzlicht-Kanal ist nicht geöffnet.',
         });
       }
 
       preferredLiveChannelByCode.set(code, input.channel);
+      presenterSurfaceByCode.set(code, 'default');
       invalidateSessionStatusCachesForCode(code);
       return { preferredChannel: input.channel };
+    }),
+
+  setPresenterSurface: hostProcedure
+    .input(
+      z.object({
+        code: z.string().length(6),
+        surface: SessionPresenterSurfaceSchema,
+      }),
+    )
+    .output(z.object({ presenterSurface: SessionPresenterSurfaceSchema }))
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(code, channels);
+      if (
+        input.surface === 'qaWordCloud' &&
+        (preferredChannel !== 'qa' || !channels.qa.enabled || !channels.qa.open)
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
+        });
+      }
+      if (
+        input.surface === 'freetextWordCloud' &&
+        (preferredChannel !== 'quiz' || !channels.quiz.enabled)
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Freitext-Wortwolke ist nicht präsentationsbereit.',
+        });
+      }
+
+      presenterSurfaceByCode.set(code, input.surface);
+      invalidateSessionStatusCachesForCode(code);
+      return { presenterSurface: input.surface };
     }),
 
   onStatusChanged: publicProcedure
@@ -7380,6 +7458,7 @@ export const sessionRouter = router({
       void touchParticipantPresence(session.id, participantId);
       const serverTime = new Date().toISOString();
       const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(session.code, channels);
       return {
         id: session.id,
         code: session.code,
@@ -7390,7 +7469,8 @@ export const sessionRouter = router({
         quizMotifImageUrl: session.quiz?.motifImageUrl ?? null,
         title: session.title ?? null,
         channels,
-        preferredChannel: resolvePreferredLiveChannel(session.code, channels),
+        preferredChannel,
+        presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
         participantCount: newParticipantCount,
         nicknameTheme: onboardingProfile.nicknameTheme,
         allowCustomNicknames: onboardingProfile.allowCustomNicknames,

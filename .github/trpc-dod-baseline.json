@@ -509,7 +509,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:008d85f60b1839ec68fb57ef788b384c6352f8aa815eb2c5076025fe7a35384b",
+      "fingerprint": "sha256:bd5a3e6dbf2fddb402b76e485d853e39d63efde4b65bb4776678d42b684bf643",
       "missing": []
     },
     "session.markParticipantOffline": {
@@ -574,7 +574,12 @@
     },
     "session.setPreferredLiveChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:1207e0bf5ed89ade0e6498ce0769cf3a33e33b000afc91792da20699ca275600",
+      "fingerprint": "sha256:be3299109fe397b11fc9613f2d01d4190a9dbf3933173e3e542a4885973b9a20",
+      "missing": []
+    },
+    "session.setPresenterSurface": {
+      "kind": "mutation",
+      "fingerprint": "sha256:11ea30b777926475375de216c4aefe4bcae1b25f9ce8855d763347535acb55c0",
       "missing": []
     },
     "session.setTimerAccommodation": {

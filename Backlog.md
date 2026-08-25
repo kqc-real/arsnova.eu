@@ -75,6 +75,7 @@
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)                               | 🟡   | ✅ Fertig      |
 | 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions                                   | 🔴   | ✅ Fertig      |
 | 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien (noch nicht beauftragt)               | 🔴   | ⬜ Offen       |
+| 2    | 2.10  | Smartphone als zweiten Host verbinden (Paired Host)                                | 🟡   | ⬜ Offen       |
 | 3    | 3.1   | Beitreten                                                                          | 🔴   | ✅ Fertig      |
 | 3    | 3.2   | Nicknames                                                                          | 🟡   | ✅ Fertig      |
 | 3    | 3.3a  | Frage empfangen                                                                    | 🔴   | ✅ Fertig      |
@@ -1191,6 +1192,74 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Barrierefreiheit und i18n:** Alle neuen Modi, Warnhinweise, Dashboard-Legenden, Timeout-Zustände und Feedbacktexte sind für de/en/fr/es/it lokalisiert, per Tastatur bedienbar, screenreader-tauglich und farbunabhängig verständlich.
     - **Tests:** Unit-/Integrationstests decken mindestens Pacing-Konfiguration, Migrations-Defaults, Antwortabgabe im Self-Paced-Modus, timeboxed Timeout, sofortiges vs. verzögertes Feedback, Data-Stripping, Dashboard-Aggregation, Ergebnisexport und Bonuscode-Integration ab.
   - **Abhängigkeiten:** Story 2.1a (Session-Erstellung), Story 2.3 (Präsentations-Steuerung), Story 2.4 (Data-Stripping), Story 2.6 (Lesephase), Story 3.3a/b (Frage empfangen und Abstimmung), Story 3.4 (Feedback), Story 3.5 (Countdown), Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.6 (Bonus-Codes), Story 4.7 (Export), Story 6.2 (i18n), Story 6.5 (Barrierefreiheit), ADR-0013 und ADR-0025 (Performance-Hotpaths).
+- **Story 2.10 (Smartphone als zweiten Host verbinden / Paired Host):** 🟡 ⬜ Offen – Als Lehrperson möchte ich mein Smartphone mit einer bereits laufenden Veranstaltung als **zweiten vollwertigen Host** verbinden, damit ich dieselbe Host-Ansicht einschließlich Ergebnissen, Moderationskompass, Q&A und Blitzlicht mobil bedienen kann, während der Laptop oder ein anderer Bildschirm die Presenter-Ansicht zeigt.
+  - **Produktbegriff und technische Benennung:**
+    - Die UI verwendet die verständliche Bezeichnung **„Smartphone verbinden“**; der technische Domänenbegriff lautet **Paired Host**.
+    - Ein Paired Host ist dieselbe fachliche Host-Rolle auf einem weiteren Gerät, keine reduzierte Fernbedienung und keine Moderatorrolle.
+    - Vorgesehene technische Namen sind `HostDevicePairingService`, `HostDevicePairingDialogComponent`, `SessionHostPairingComponent`, `HostPairingToken`, `PairedHostToken` und die Rolle `PAIRED_HOST`.
+  - **Abgrenzung zum Quiz-Sync:**
+    - Der Quiz-Sync-Link und sein Share-Token synchronisieren ausschließlich die Local-First-Quizsammlung und Presets über Yjs/IndexedDB.
+    - Weder Session-Code noch Pairing-, Host- oder Paired-Host-Token werden aus dem Quiz-Sync-Token abgeleitet oder über das Yjs-Dokument verteilt.
+    - Das Öffnen einer synchronisierten Quizsammlung verleiht niemals automatisch Rechte an einer bereits laufenden Session.
+  - **Akzeptanzkriterien – Pairing-UX:**
+    - Der ursprüngliche Host bietet in der laufenden Host-Ansicht die Aktion **„Smartphone verbinden“** an.
+    - Der Dialog zeigt einen QR-Code und die Aktion **„Link kopieren“** sowie den verständlichen Hinweis: „Das verbundene Gerät kann Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.“
+    - Technische Begriffe wie Pairing-, Remote- oder Host-Token werden in der regulären UI nicht angezeigt.
+    - Der Pairing-Link enthält den Session-Code und das geheime Pairing-Material so, dass das Geheimnis nicht als HTTP-Pfad oder Query-Parameter an Server-, Proxy- oder Analytics-Logs übertragen wird; bevorzugt wird ein URL-Fragment mit anschließendem explizitem Token-Austausch.
+    - Das Smartphone zeigt vor der Kopplung eine Bestätigung „Mit Veranstaltung {SESSION_CODE} verbinden?“ mit der primären Aktion **„Als Host verbinden“**.
+    - Nach erfolgreicher Kopplung wird das Smartphone auf dieselbe lokalisierte Route `/session/:code/host` weitergeleitet; es gibt keine dauerhaft separate Remote-Control-Oberfläche.
+  - **Akzeptanzkriterien – Token- und Rollenmodell:**
+    - Der Session-Code allein bleibt ein öffentlicher Join-Zugang und gewährt weder Host- noch Pairing-Rechte.
+    - Der ursprüngliche Host erzeugt serverseitig ein kryptografisch starkes, einmalig verwendbares und kurzlebiges `HostPairingToken`, das genau an eine laufende Session gebunden ist.
+    - Das erfolgreiche Einlösen verbraucht das Pairing-Token atomar und erzeugt ein eigenes `PairedHostToken`; Wiederholung, Parallel-Einlösung, Ablauf und bereits verbrauchte Tokens werden sicher zurückgewiesen.
+    - Das `PairedHostToken` besitzt vollständige Host-Rechte für genau diese Session und wird von bestehenden Host-Prozeduren als Rolle `PAIRED_HOST` akzeptiert.
+    - Pairing- und Paired-Host-Tokens werden serverseitig ausschließlich gehasht gespeichert. Mehrere Host-Geräte erhalten getrennte Token-IDs, damit ein einzelnes Gerät widerrufen werden kann, ohne den ursprünglichen Host oder andere gekoppelte Geräte abzumelden.
+    - Nur der ursprüngliche Host darf neue Geräte koppeln, gekoppelte Geräte auflisten oder einzelne Paired Hosts widerrufen. Ein Paired Host darf keine weiteren Geräte koppeln und keine Host-Berechtigungen verwalten.
+    - Beim Session-Ende, bei Ablauf der Session-Berechtigung und beim sicherheitsbedingten Cleanup werden der ursprüngliche Host-Zugang, alle Pairing-Tokens und alle Paired-Host-Tokens serverseitig invalidiert; lokale Tokens werden auf allen erreichbaren Clients entfernt.
+    - Verlust, Widerruf und Ablauf werden auf HTTP- und WebSocket-Pfaden konsistent erkannt. Ein widerrufenes Gerät fällt in einen sicheren Einstieg zurück und behält keine Host-Daten aus neuen Realtime-Ereignissen.
+  - **Akzeptanzkriterien – Host-Twin-Funktionalität:**
+    - Der Paired Host nutzt die bestehende responsive `SessionHostComponent` und sieht denselben autorisierten Session-Zustand wie der ursprüngliche Host: aktuelle Frage, Timer, Abstimmungsfortschritt, Ergebnisse, Leaderboards, Freitext-/Wortwolkenansichten, Moderationskompass, Q&A und Blitzlicht.
+    - Alle regulären Host-Aktionen bleiben verfügbar, insbesondere nächste/vorherige Frage, Lesephase beenden, Antworten und Ergebnisse freigeben, Frage auslassen, Peer-Instruction-Diskussion und zweite Runde, Kanalwechsel, Q&A-Moderation, Presenter-Flächenwechsel, Blitzlicht-Steuerung und Session-Ende.
+    - Sicherheitskritische Aktionen wie **Session beenden** behalten ihre bestehende Bestätigung und dürfen nicht durch einen versehentlichen einzelnen Tap ausgelöst werden.
+    - Die Presenter-Ansicht bleibt eine getrennte Anzeige ohne Steuerbedienelemente. Aktionen eines beliebigen autorisierten Hosts aktualisieren Presenter, ursprünglichen Host und weitere Paired Hosts über den kanonischen serverseitigen Session-Zustand.
+    - Gerätebezogene Medienwiedergabe erzeugt keine unbeabsichtigten doppelten Sounds oder Hintergrundmusik. Ein neu gekoppeltes Smartphone startet standardmäßig ohne Audioausgabe; die Steuerdaten und sichtbaren Zustände bleiben davon unberührt.
+  - **Akzeptanzkriterien – Synchronisation und Konkurrenz:**
+    - Der aktuelle Session-Zustand in PostgreSQL bzw. den bestehenden kanonischen Laufzeitdiensten bleibt die einzige fachliche Wahrheit; Host-Geräte synchronisieren keine Session-Steuerung über Yjs oder Browser-Storage.
+    - Bestehende tRPC-HTTP-Snapshots, WebSocket-Subscriptions und Reconnect-Fallbacks werden für alle Host-Geräte wiederverwendet.
+    - Gleichzeitige oder nahezu gleichzeitige Aktionen mehrerer Hosts verletzen keine Statusinvarianten. Ungültig gewordene Übergänge werden serverseitig deterministisch zurückgewiesen und anschließend aus dem aktuellen Snapshot korrigiert angezeigt.
+    - Wiederholte Klicks, Reconnect-Wiederholungen und doppelt gesendete Steuerbefehle erzeugen keine doppelten Fragen, Runden, Ergebnisfreigaben oder Session-Enden.
+    - UI-Pendingzustände sperren nur die betroffene Aktion und lösen sich nach Erfolg, Ablehnung, Timeout oder Snapshot-Reconciliation zuverlässig auf.
+  - **Gemeinsame Grundlage mit Story 8.5 (delegierbare Q&A-Moderation):**
+    - Pairing-Austausch, gehashte Multi-Token-Registry, Token-ID, TTL, Widerruf, Geräteanzeige sowie HTTP-/WebSocket-Prüfung werden als gemeinsamer technischer Unterbau für delegierte Session-Zugänge entworfen.
+    - `PAIRED_HOST` bleibt eine vollwertige Host-Rolle und darf die bestehende Host-Shell verwenden.
+    - `MODERATOR` bleibt gemäß ADR-0011 eine getrennte, kanalgebundene Rolle mit eigenem Moderator-Token, eigener `/session/:code/moderate`-Route und ausschließlich freigegebenen Q&A-Prozeduren.
+    - Ein Moderator-Token darf niemals `hostProcedure` passieren; der Host-Twin ersetzt Story 8.5 nicht und weicht deren Rollentrennung nicht auf.
+  - **Geräteverwaltung und Datenschutz:**
+    - Der ursprüngliche Host sieht eine kompakte Liste gekoppelter Geräte mit verständlichem Geräte-/Browserlabel, Kopplungszeit, Verbindungsstatus und Aktion **„Verbindung trennen“**.
+    - Geräte- und Browserlabels sind nur Vertrauenssignale und keine manipulationssicheren Identitätsnachweise. Es werden keine Accounts, dauerhaften Personenprofile oder unnötigen Gerätefingerprints eingeführt.
+    - Die Anzeige und serverseitige Speicherung beschränken sich auf die für Kopplung, Widerruf und Betrieb erforderlichen Metadaten und folgen der Session-TTL.
+  - **Performance und Betrieb:**
+    - Ein Paired Host verursacht höchstens konstant zusätzliche Host-Last; Abstimmungsfortschritt verwendet weiterhin den leichtgewichtigen Vote-Progress-Pfad statt vollständiger Frage-DTOs pro Stimme.
+    - Fallback-Polling läuft nicht parallel in hoher Frequenz, solange die jeweilige WebSocket-Verbindung gesund ist. Reconnects mehrerer Host-Geräte erzeugen keine rekursiven Refresh- oder Resubscribe-Schleifen.
+    - Teure Moderations-, Wortwolken- oder Exportberechnungen werden nicht allein durch das Vorhandensein eines zweiten Host-Geräts doppelt ausgelöst.
+    - Der Last- und Reconnect-Nachweis umfasst mindestens **ursprünglicher Host + Paired Host + Presenter + 500 Lecture-Hall-Clients**, einschließlich Shared-NAT, Abstimmungswelle, Host-Twin-Reconnect und Presenter-Wechseln.
+  - **Barrierefreiheit und i18n:**
+    - Pairing-Dialog, Smartphone-Bestätigung, Statusmeldungen, Ablauf-/Widerrufsfehler und Geräteverwaltung sind für `de`, `en`, `fr`, `es` und `it` synchronisiert.
+    - QR-Code und Link-Kopie besitzen eine gleichwertige textuelle Alternative. Pairing und Widerruf sind per Tastatur und Screenreader bedienbar; Fokus bleibt nach Erfolg, Fehler und Dialogschluss auf einem sichtbaren, sinnvollen Ziel.
+    - Die bestehende mobile Host-Ansicht erfüllt weiterhin Story 2.8 und WCAG 2.2 AA bei 320 px Breite, Reflow, Zoom, Safe Areas und reduzierter Bewegung.
+  - **Tests und Definition of Done:**
+    - Shared-Type-Contracttests decken Pairing-Erzeugung, Einlösung und Rollen-/Token-Ausgaben ab.
+    - Backendtests decken Happy Path, falschen Session-Code, fehlendes Primär-Host-Recht, Ablauf, Wiederverwendung, parallele Einlösung, Einzelwiderruf, Session-Ende, HTTP- und WebSocket-Autorisierung sowie die strikte Trennung von `PAIRED_HOST` und `MODERATOR` ab.
+    - Frontendtests decken Dialogzustände, QR-/Link-Fallback, Bestätigung, Redirect, lokale Token-Ablage, Widerruf, Reconnect, Fokusmanagement und die vollständige mobile Host-Shell ab.
+    - Ein Browser-Smoke verwendet getrennte Browser-Kontexte für ursprünglichen Host, Smartphone-Host und Presenter und verifiziert mindestens `LOBBY → Frage → Ergebnis → Kanalwechsel → Session-Ende` sowie den sofortigen Entzug eines Paired Hosts.
+    - Produktions-, Sicherheits-, Redis-, WebSocket-, Reconnect-, Accessibility-, lokalisierte Build- und Lastprüfungen werden entsprechend `AGENTS.md` und `docs/TESTING.md` ausgeführt und mit exakten Befehlen dokumentiert.
+  - **Nicht-Ziele:**
+    - Keine Kopplung über Quiz-Sync-Link oder Session-Code allein.
+    - Keine reduzierte Remote-Light-Oberfläche neben der bestehenden Host-Shell.
+    - Keine Ersetzung oder Aufweichung der Moderatorrolle aus Story 8.5 / ADR-0011.
+    - Keine Accountpflicht, dauerhafte Geräteidentität oder geräteübergreifende Speicherung des Host-Tokens im Quiz-Yjs-Dokument.
+    - Keine Steuerbedienelemente in der Presenter-Ansicht.
+  - **Abhängigkeiten:** Story 2.1c (Host-/Presenter-Token), Story 2.3 (Präsentations-Steuerung), Story 2.5 (Presenter), Story 2.8 (Smartphone-Hosting), Story 6.2 (i18n), Story 6.5 (Barrierefreiheit), Story 8.5 (delegierbare Q&A-Moderation), ADR-0011 (Moderatorrolle), ADR-0014 (Mobile Host), ADR-0019 (Session-Token), ADR-0025 (Live-Performance) sowie `docs/SECURITY-OVERVIEW.md`.
 
 ---
 
