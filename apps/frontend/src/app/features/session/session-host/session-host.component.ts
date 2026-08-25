@@ -857,7 +857,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
-  private presenterSurfaceSyncQueue: Promise<void> = Promise.resolve();
+  private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
   private lastFreetextWordCloudSemanticRequestKey: string | null = null;
@@ -1971,7 +1971,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.moderationCompassFocusedTerm.set(focusedTerm);
     this.tryEnterWordCloudFullscreenFromUserGesture();
     this.qaWordCloudDialogOpen.set(true);
-    await this.activatePresenterSurface('qaWordCloud', 'qa');
+    void this.activatePresenterSurface('qaWordCloud', 'qa');
     const request = this.qaWordCloudAnalysisRequest();
     if (request) {
       if (request.mode === 'SEMANTIC') {
@@ -7609,7 +7609,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {
+  private syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {
+    return this.enqueuePresenterProjectionSync(() => this.syncPreferredLiveChannelNow(channel));
+  }
+
+  private async syncPreferredLiveChannelNow(channel: SessionChannelTab): Promise<void> {
     if (
       !this.code ||
       !this.isPresenterChannelReady(channel) ||
@@ -7637,7 +7641,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private syncPresenterSurface(surface: SessionPresenterSurface): Promise<void> {
-    return this.enqueuePresenterSurfaceSync(() => this.syncPresenterSurfaceNow(surface));
+    return this.enqueuePresenterProjectionSync(() => this.syncPresenterSurfaceNow(surface));
   }
 
   private async syncPresenterSurfaceNow(surface: SessionPresenterSurface): Promise<void> {
@@ -7661,15 +7665,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     surface: SessionPresenterSurface,
     channel: SessionChannelTab,
   ): Promise<void> {
-    await this.enqueuePresenterSurfaceSync(async () => {
-      await this.syncPreferredLiveChannel(channel);
+    await this.enqueuePresenterProjectionSync(async () => {
+      await this.syncPreferredLiveChannelNow(channel);
       await this.syncPresenterSurfaceNow(surface);
     });
   }
 
-  private enqueuePresenterSurfaceSync(operation: () => Promise<void>): Promise<void> {
-    const queued = this.presenterSurfaceSyncQueue.then(operation, operation);
-    this.presenterSurfaceSyncQueue = queued;
+  private enqueuePresenterProjectionSync(operation: () => Promise<void>): Promise<void> {
+    const queued = this.presenterProjectionSyncQueue.then(operation, operation);
+    this.presenterProjectionSyncQueue = queued;
     return queued;
   }
 
