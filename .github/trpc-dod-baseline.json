@@ -279,7 +279,7 @@
     },
     "quickFeedback.setLiveResults": {
       "kind": "mutation",
-      "fingerprint": "sha256:aff3c578dd8b3b2b993e3c6b845b0ad273caa55384a458d7b0c9b7750cbbdb4b",
+      "fingerprint": "sha256:89e8f8d1644d8d3bd18b5d08d43025e362f34d37556bcb76dbff9a06ca3b856e",
       "missing": []
     },
     "quickFeedback.startDiscussion": {
@@ -299,7 +299,7 @@
     },
     "quickFeedback.vote": {
       "kind": "mutation",
-      "fingerprint": "sha256:3adcd4e3f09cc158897e3c737842e4f7598b40ef0b3536c088035c64caadee7b",
+      "fingerprint": "sha256:71fd50cd77c81fba02c3d8bacdd2c7c8ce0f51aba44867d09ef986db5375a0bc",
       "missing": []
     },
     "quiz.upload": {
@@ -474,7 +474,7 @@
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:c6bcf9c07537347a9fc393fb4c09d28e00ac2b4dc115342408d28cb57692fff8",
+      "fingerprint": "sha256:e13ae683983f48ebf7c49389ca1d8cea54aef6bd978ab066b5715ca9c87e177c",
       "missing": []
     },
     "session.getQuizCollectionHistoryAvailability": {
