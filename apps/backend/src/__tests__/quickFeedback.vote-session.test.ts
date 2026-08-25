@@ -344,6 +344,71 @@ describe('quickFeedback.vote und Session-Status', () => {
     },
   );
 
+  it('verbirgt laufende bewertende Ergebnisse vor Presenter und Teilnehmenden', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        showLiveResults: false,
+        totalVotes: 3,
+        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        sessionBound: false,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).resolves.toMatchObject({
+      showLiveResults: false,
+      resultsVisible: false,
+      totalVotes: 3,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+    });
+  });
+
+  it('verbirgt laufende bewertende Ergebnisse auch in der öffentlichen Subscription', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        showLiveResults: false,
+        totalVotes: 3,
+        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        sessionBound: false,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    const stream = await caller.onResults({ sessionCode: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+    const first = await iterator.next();
+
+    expect(first.value).toMatchObject({
+      resultsVisible: false,
+      totalVotes: 3,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+    });
+    await iterator.return?.();
+  });
+
+  it('gibt verdeckte Ergebnisse nach dem Sperren der Runde frei', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: true,
+        showLiveResults: false,
+        totalVotes: 3,
+        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        sessionBound: false,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).resolves.toMatchObject({
+      resultsVisible: true,
+      distribution: { YES: 2, NO: 1, MAYBE: 0 },
+    });
+  });
+
   it('beendet Ergebnis-Subscriptions natürlich abgelaufener Blitzlichter ohne Code-Fehler', async () => {
     redisMock.get.mockResolvedValue(null);
     redisMock.exists.mockResolvedValue(1);
@@ -1061,6 +1126,8 @@ describe('quickFeedback.vote und Session-Status', () => {
         set: ReturnType<typeof vi.fn>;
       };
       expect(multi.set).toHaveBeenCalledWith(`qf:known:${result.sessionCode}`, '1', 'EX', 2_100);
+      const stored = multi.set.mock.calls.find(([key]) => key === `qf:${result.sessionCode}`)?.[1];
+      expect(JSON.parse(String(stored))).toMatchObject({ showLiveResults: true });
     },
   );
 
@@ -1307,6 +1374,66 @@ describe('quickFeedback.vote und Session-Status', () => {
         code: 'UNAUTHORIZED',
       });
       expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.setLiveResults',
+      case: 'happy',
+      mode: 'direct',
+      title: 'ändert die Ergebnisfreigabe ohne die laufende Runde zurückzusetzen',
+    },
+    async () => {
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          showLiveResults: false,
+          totalVotes: 3,
+          distribution: { YES: 2, NO: 1, MAYBE: 0 },
+          sessionBound: false,
+        }),
+      );
+
+      await expect(
+        caller.setLiveResults({ sessionCode: 'ABC123', showLiveResults: true }),
+      ).resolves.toEqual({ showLiveResults: true });
+
+      const saved = redisMock.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      expect(JSON.parse(saved)).toMatchObject({
+        showLiveResults: true,
+        totalVotes: 3,
+        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quickFeedback.setLiveResults',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'schützt die Ergebnisfreigabe mit dem Host-Token',
+    },
+    async () => {
+      assertFeedbackHostAccessMock.mockRejectedValue(new TRPCError({ code: 'UNAUTHORIZED' }));
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'YESNO',
+          locked: false,
+          showLiveResults: false,
+          totalVotes: 0,
+          distribution: { YES: 0, NO: 0, MAYBE: 0 },
+          sessionBound: false,
+        }),
+      );
+
+      await expect(
+        caller.setLiveResults({ sessionCode: 'ABC123', showLiveResults: true }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(redisMock.set).not.toHaveBeenCalledWith('qf:ABC123', expect.anything(), 'EX', 1800);
     },
   );
 

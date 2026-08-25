@@ -5189,6 +5189,10 @@ export const QuickFeedbackTypeEnum = z.enum([
 ]);
 export type QuickFeedbackType = z.infer<typeof QuickFeedbackTypeEnum>;
 
+export function quickFeedbackDefaultsToLiveResults(type: QuickFeedbackType): boolean {
+  return type === 'MOOD' || type === 'TEMPO';
+}
+
 export const MoodValueEnum = z.enum(['POSITIVE', 'NEUTRAL', 'NEGATIVE']);
 export type MoodValue = z.infer<typeof MoodValueEnum>;
 
@@ -5237,6 +5241,7 @@ export type TempoTrend = z.infer<typeof TempoTrendSchema>;
 export const CreateQuickFeedbackInputSchema = z.object({
   type: QuickFeedbackTypeEnum,
   sessionCode: z.string().trim().length(6).optional(),
+  showLiveResults: z.boolean().optional(),
 });
 export type CreateQuickFeedbackInput = z.infer<typeof CreateQuickFeedbackInputSchema>;
 
@@ -5245,6 +5250,14 @@ export const UpdateQuickFeedbackTypeInputSchema = z.object({
   type: QuickFeedbackTypeEnum,
 });
 export type UpdateQuickFeedbackTypeInput = z.infer<typeof UpdateQuickFeedbackTypeInputSchema>;
+
+export const UpdateQuickFeedbackPresentationInputSchema = z.object({
+  sessionCode: z.string().trim().length(6),
+  showLiveResults: z.boolean(),
+});
+export type UpdateQuickFeedbackPresentationInput = z.infer<
+  typeof UpdateQuickFeedbackPresentationInputSchema
+>;
 
 export const CreateQuickFeedbackOutputSchema = z.object({
   feedbackId: z.string(),
@@ -5276,6 +5289,8 @@ export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOu
 export const QuickFeedbackResultSchema = z.object({
   type: QuickFeedbackTypeEnum,
   locked: z.boolean(),
+  showLiveResults: z.boolean().optional(),
+  resultsVisible: z.boolean().optional(),
   totalVotes: z.number(),
   distribution: z.record(z.string(), z.number()),
   currentRound: z.number().int().min(1).max(2).optional(),

@@ -101,45 +101,73 @@
         >
           @if (cloudLayoutActive()) {
             @for (entry of positionedWords(); track entry.groupKey) {
-              <button
-                type="button"
-                mat-button
-                class="word-cloud__word word-cloud__word--positioned"
-                [class.word-cloud__word--active]="selectedGroupKey() === entry.groupKey"
-                [class.word-cloud__word--top]="entry.rank < 2"
-                [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
-                [style.font-size.px]="entry.size"
-                [style.left.px]="cloudWordLeft(entry)"
-                [style.top.px]="cloudWordTop(entry)"
-                [style.transform]="cloudWordTransform(entry)"
-                [style.z-index]="wordZIndex(entry.rank)"
-                [matTooltip]="wordTooltipDisplay(entry)"
-                matTooltipClass="word-cloud-tooltip"
-                [matTooltipShowDelay]="120"
-                [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
-                (click)="toggleWord(entry.groupKey)"
-              >
-                {{ entry.word }}
-              </button>
+              @if (outputOnly()) {
+                <span
+                  class="word-cloud__word word-cloud__word--positioned word-cloud__word--output"
+                  [class.word-cloud__word--top]="entry.rank < 2"
+                  [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
+                  [style.font-size.px]="entry.size"
+                  [style.left.px]="cloudWordLeft(entry)"
+                  [style.top.px]="cloudWordTop(entry)"
+                  [style.transform]="cloudWordTransform(entry)"
+                  [style.z-index]="wordZIndex(entry.rank)"
+                  [attr.title]="wordTooltipDisplay(entry)"
+                >
+                  {{ entry.word }}
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  mat-button
+                  class="word-cloud__word word-cloud__word--positioned"
+                  [class.word-cloud__word--active]="selectedGroupKey() === entry.groupKey"
+                  [class.word-cloud__word--top]="entry.rank < 2"
+                  [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
+                  [style.font-size.px]="entry.size"
+                  [style.left.px]="cloudWordLeft(entry)"
+                  [style.top.px]="cloudWordTop(entry)"
+                  [style.transform]="cloudWordTransform(entry)"
+                  [style.z-index]="wordZIndex(entry.rank)"
+                  [matTooltip]="wordTooltipDisplay(entry)"
+                  matTooltipClass="word-cloud-tooltip"
+                  [matTooltipShowDelay]="120"
+                  [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
+                  (click)="toggleWord(entry.groupKey)"
+                >
+                  {{ entry.word }}
+                </button>
+              }
             }
           } @else {
             @for (entry of displayWords(); track entry.groupKey) {
-              <button
-                type="button"
-                mat-button
-                class="word-cloud__word"
-                [class.word-cloud__word--active]="selectedGroupKey() === entry.groupKey"
-                [class.word-cloud__word--top]="entry.rank < 2"
-                [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
-                [style.font-size.px]="entry.size"
-                [matTooltip]="wordTooltipDisplay(entry)"
-                matTooltipClass="word-cloud-tooltip"
-                [matTooltipShowDelay]="120"
-                [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
-                (click)="toggleWord(entry.groupKey)"
-              >
-                {{ entry.word }}
-              </button>
+              @if (outputOnly()) {
+                <span
+                  class="word-cloud__word word-cloud__word--output"
+                  [class.word-cloud__word--top]="entry.rank < 2"
+                  [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
+                  [style.font-size.px]="entry.size"
+                  [attr.title]="wordTooltipDisplay(entry)"
+                >
+                  {{ entry.word }}
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  mat-button
+                  class="word-cloud__word"
+                  [class.word-cloud__word--active]="selectedGroupKey() === entry.groupKey"
+                  [class.word-cloud__word--top]="entry.rank < 2"
+                  [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
+                  [style.font-size.px]="entry.size"
+                  [matTooltip]="wordTooltipDisplay(entry)"
+                  matTooltipClass="word-cloud-tooltip"
+                  [matTooltipShowDelay]="120"
+                  [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
+                  (click)="toggleWord(entry.groupKey)"
+                >
+                  {{ entry.word }}
+                </button>
+              }
             }
           }
         </div>

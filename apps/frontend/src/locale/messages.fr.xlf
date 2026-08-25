@@ -15048,8 +15048,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.orderingNeutralOptions" datatype="html">
-        <source> Elemente in neutraler Reihenfolge </source>
-        <target>Éléments en ordre neutre</target>
+        <source> Unsortierte Reihenfolge </source>
+        <target>Ordre non trié</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2337,2339</context>
@@ -18765,14 +18765,6 @@
           <context context-type="linenumber">40</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionPresent.finishTitle" datatype="html">
-        <source>Gesamtauswertung</source>
-        <target>Résultat final</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionPresent.leaderboardTitle" datatype="html">
         <source>Leaderboard</source>
         <target>Classement</target>
@@ -18898,8 +18890,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.</source>
-        <target>Les grands mots et expressions viennent de questions plus fréquentes ou plus soutenues.</target>
+        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
+        <target>Les grands mots et expressions viennent de questions plus fréquentes ou plus soutenues. Les graphies similaires peuvent être regroupées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">129</context>
@@ -20897,8 +20889,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionOrderingOptions" datatype="html">
-        <source> Elemente in neutraler Reihenfolge </source>
-        <target>Éléments en ordre neutre</target>
+        <source> Unsortierte Reihenfolge </source>
+        <target>Ordre non trié</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1053,1055</context>
@@ -24259,6 +24251,46 @@
       <trans-unit id="sessionVote.quizPausedHint" datatype="html">
         <source>Gleich geht es mit derselben Frage weiter.</source>
         <target>Nous reprendrons bientôt avec la même question.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnectingWithSnapshot" datatype="html">
+        <source>Verbindung wird wiederhergestellt. Der letzte Stand bleibt sichtbar.</source>
+        <target>Rétablissement de la connexion. Le dernier état reste affiché.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnecting" datatype="html">
+        <source>Verbindung wird wiederhergestellt …</source>
+        <target>Rétablissement de la connexion …</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResults" datatype="html">
+        <source>Ergebnisse während der Runde live zeigen</source>
+        <target>Afficher les résultats en direct pendant le tour</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
+        <source>Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
+        <target>La répartition est affichée dans le présentateur pendant le vote.</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintHidden" datatype="html">
+        <source>Bis zum Pausieren oder Rundenende zeigt der Presenter nur die Beteiligung.</source>
+        <target>Jusqu’à la pause ou la fin du tour, le présentateur affiche uniquement la participation.</target>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsUpdateFailed" datatype="html">
+        <source>Die Ergebnisanzeige konnte nicht geändert werden.</source>
+        <target>Impossible de modifier l’affichage des résultats.</target>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsClose" datatype="html">
+        <source>Schließen</source>
+        <target>Fermer</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackOpinionShift" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ formatCount(shift.changedCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(shift.bothRoundsCount) }}"/> änderten ihre Einschätzung (<x id="INTERPOLATION_2" equiv-text="{{ formatCount(shift.changedPercentage) }}"/> %).</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ formatCount(shift.changedCount) }}"/> sur <x id="INTERPOLATION_1" equiv-text="{{ formatCount(shift.bothRoundsCount) }}"/> ont changé d’avis (<x id="INTERPOLATION_2" equiv-text="{{ formatCount(shift.changedPercentage) }}"/> %).</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackCollecting" datatype="html">
+        <source>Antworten werden gesammelt</source>
+        <target>Collecte des réponses</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackRevealHint" datatype="html">
+        <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
+        <target>La répartition apparaît lorsque le tour est mis en pause ou terminé.</target>
       </trans-unit>
     </body>
   </file>

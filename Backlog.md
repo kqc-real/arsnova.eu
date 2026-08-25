@@ -1093,17 +1093,19 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Ein automatisierter Test verifiziert, dass das ausgehende JSON im Status `ACTIVE` kein `isCorrect` enthält.
     - Ein separater Test bestätigt, dass `isCorrect` im Status `RESULTS` korrekt mitgesendet wird.
     - Code-Review-Checkliste dokumentiert die Stripping-Regel.
-- **Story 2.5 (Beamer-Ansicht = Host-Ansicht):** 🔴 Als Lehrperson sehe ich genau das auf dem Beamer, was auf meinem Laptop angezeigt wird (gespiegelt). Es gibt keinen zweiten Bildschirmausgang – die **Host-Ansicht ist die Beamer-Ansicht**.
-  - **Kontext:** Sobald die Lehrperson die Live-Session startet, spielt sich alles in diesem einen View ab (`/session/:code/host`). Der Beamer darf nichts verraten, was die Lehrperson nicht freigegeben hat (z. B. korrekte Antworten erst nach Klick auf „Ergebnis zeigen“).
+- **Story 2.5 (Passive Presenter-/Beamer-Ansicht):** 🔴 Als Lehrperson projiziere ich Quiz, Q&A oder Blitzlicht in einer ruhigen, rein anzeigenden Ansicht, während die Host-Steuerung auf meinem Gerät bleibt.
+  - **Kontext:** Die Host-Ansicht (`/session/:code/host`) steuert die Session; die getrennte Presenter-Route (`/session/:code/present`) zeigt ausschließlich den freigegebenen Kanalinhalt. Der Beamer darf weder Host-Bedienelemente noch nicht freigegebene Lösungen oder Ergebnisverteilungen zeigen.
   - **Akzeptanzkriterien:**
-    - Die Host-Ansicht ist die einzige Projektions-Ansicht; keine separate „Beamer-Route“ erforderlich (Route `/session/:code/present` optional, z. B. gleicher Inhalt für Vollbild-Tab).
-    - Beamer-tauglich: große Schrift wo nötig (≥ 24px Basis für Fragentext), hoher Kontrast, Fokus auf Inhalt (Lobby: Code, QR, Teilnehmende; Frage: Stamm + Optionen; Steuerung: ein klarer Button).
-    - **Nichts verraten:** Korrekte Antworten (grün/Häkchen) werden in der Host-Ansicht erst im Status `RESULTS` angezeigt (bereits umgesetzt).
+    - Die Presenter-Route bleibt vollständig passiv: keine Kanal-, Moderations-, Export-, Wortwolken- oder Session-Steuerung; Wortwolkenbegriffe sind dort keine Buttons.
+    - Beamer-tauglich: große Schrift wo nötig (≥ 24px Basis für Fragentext), hoher Kontrast, Fokus auf Inhalt sowie adaptive Dichte ohne Presenter-Scrollen.
+    - **Nichts verraten:** Korrekte Quizantworten erscheinen erst im Status `RESULTS`. Bewertende Blitzlichtformate verbergen ihre Live-Verteilung standardmäßig; Stimmung und Tempo zeigen sie standardmäßig live. Der Host kann diese Freigabe pro laufender Blitzlichtrunde umschalten.
+    - Bei einem transienten Verbindungsabbruch bleibt der letzte gültige Projektionsstand sichtbar und wird durch einen unaufdringlichen Reconnect-Hinweis ergänzt. Definitiv abgelaufene oder ungültige Sessions wechseln weiterhin in den Fehlerzustand.
     - **Lobby-Phase:** Session-Code, QR-Code (2.1b), Live-Teilnehmerliste (2.2).
     - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur Fragenstamm (großformatig); Antwortoptionen ausgeblendet; Hinweis „Warte auf Freigabe…“ (Story 2.6).
-    - **Frage-Phase (`ACTIVE`):** Fragenstamm, Antwortoptionen ohne Lösungsmarkierung, Countdown (Story 3.5), Live-Abstimmungsbalken.
+    - **Frage-Phase (`ACTIVE`):** Fragenstamm, Antwortoptionen ohne Lösungsmarkierung und Countdown (Story 3.5); keine lösungsbeeinflussende Antwortverteilung. Aktivierte Emoji-Reaktionen der Teilnehmenden erscheinen als kompakte, rein anzeigende Leiste und bleiben nach Abstimmungsrunde getrennt.
     - **Ergebnis-Phase (`RESULTS`):** Ergebnis-Visualisierung (Story 4.4), optional Leaderboard-Zwischenstand.
-    - **End-Phase (`FINISHED`):** finales Leaderboard (Story 4.1), Belohnungseffekte (Story 5.4).
+    - **End-Phase (`FINISHED`):** finales Leaderboard bei vorhandener Beteiligung (Story 4.1), Belohnungseffekte (Story 5.4). Ohne Stimmen bleibt nur der zentrierte Hinweis „Die Session ist beendet.“ sichtbar. Die passive Projektion bietet in beiden Fällen keine Navigation zur Startseite an und kann während der anschließenden Lehrveranstaltung geöffnet bleiben.
+    - Q&A priorisiert die angepinnte Spotlight-Frage und zeigt höchstens vier kommende Fragen mit zurückgenommener Upvote-Hierarchie; Wortwolken kennzeichnen ihre automatische Zusammenfassung verständlich.
     - Statuswechsel via tRPC-Subscription; die Lehrperson kann F11 für Browser-Vollbild nutzen.
 - **Story 2.6 (Zwei-Phasen-Frageanzeige / Lesephase):** 🟡 Als Lehrperson möchte ich, dass beim Freigeben einer Frage zunächst nur der Fragenstamm angezeigt wird (Lesephase), damit die Teilnehmenden die Frage in Ruhe und vollständig lesen können, bevor die Antwortoptionen erscheinen und der Countdown beginnt.
   - **Didaktische Begründung:** In klassischen Quiz-Apps erscheinen Frage und Antworten gleichzeitig. Teilnehmende springen dann oft direkt zu den Antworten, ohne die Frage gründlich zu lesen — insbesondere bei komplexen Fragen mit Formeln oder längeren Texten. Die Zwei-Phasen-Anzeige fördert **kognitives Processing** und reduziert impulsives Raten.

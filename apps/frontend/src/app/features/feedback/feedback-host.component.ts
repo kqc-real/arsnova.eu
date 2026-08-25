@@ -20,6 +20,7 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedback-host-token';
 import { formatLocaleCount, formatLocalePercent } from '../../core/locale-number.util';
 import { clearHostToken } from '../../core/host-session-token';
@@ -44,7 +45,11 @@ import {
   tempoTrendLabel,
   tempoTrendTone,
 } from './feedback.config';
-import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
+import {
+  quickFeedbackDefaultsToLiveResults,
+  type QuickFeedbackResult,
+  type QuickFeedbackType,
+} from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
 
 type StarAverageIcon = 'star' | 'star_half' | 'star_border';
@@ -67,6 +72,7 @@ interface StarAverageSummary {
     MatButton,
     MatIconButton,
     MatIcon,
+    MatSlideToggle,
     CdkTrapFocus,
     MarkdownImageLightboxDirective,
   ],
@@ -98,6 +104,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly error = signal<string | null>(null);
   readonly copied = signal(false);
   readonly resetting = signal(false);
+  readonly liveResultsPending = signal(false);
   readonly locked = signal(false);
   readonly tempoViewMode = signal<TempoViewMode>('details');
   private priorFeedbackHadResultForMenu = false;
@@ -115,6 +122,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly showStandaloneBottomActionBar = computed(
     () => !this.embeddedInSession() && this.result() !== null && this.isStandaloneFeedbackRoute(),
   );
+  readonly showLiveResults = computed(() => {
+    const result = this.result();
+    return result
+      ? (result.showLiveResults ?? quickFeedbackDefaultsToLiveResults(result.type))
+      : false;
+  });
   readonly presetChips = QUICK_FEEDBACK_PRESET_CHIPS;
   readonly tempoSpotlight = QUICK_FEEDBACK_TEMPO_SPOTLIGHT;
   readonly tempoHostSpotlightEyebrow = $localize`:@@feedback.tempoHostSpotlightEyebrow:Live-Rückmeldung`;
@@ -392,6 +405,34 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       this.locked.set(res.locked);
     } catch {
       // best-effort
+    }
+  }
+
+  async setLiveResults(showLiveResults: boolean): Promise<void> {
+    const code = this.code();
+    const current = this.result();
+    if (
+      !code ||
+      !current ||
+      this.liveResultsPending() ||
+      this.showLiveResults() === showLiveResults
+    ) {
+      return;
+    }
+
+    this.liveResultsPending.set(true);
+    this.result.set({ ...current, showLiveResults });
+    try {
+      await trpc.quickFeedback.setLiveResults.mutate({ sessionCode: code, showLiveResults });
+    } catch {
+      this.result.set(current);
+      this.snackBar.open(
+        $localize`:@@feedback.liveResultsUpdateFailed:Die Ergebnisanzeige konnte nicht geändert werden.`,
+        $localize`:@@feedback.liveResultsClose:Schließen`,
+        { duration: 4000 },
+      );
+    } finally {
+      this.liveResultsPending.set(false);
     }
   }
 

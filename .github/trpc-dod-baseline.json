@@ -224,12 +224,12 @@
     },
     "quickFeedback.changeType": {
       "kind": "mutation",
-      "fingerprint": "sha256:58647b200be90f028345855a2a176de241e9726c1e26089ae7a2d8f97149f942",
+      "fingerprint": "sha256:b0cb6e88b6126efe59f5cbf8ec28859aad7950f6489d7d970cdf23bf728dc652",
       "missing": []
     },
     "quickFeedback.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:fc05b0494edb1adbde419bd084133765b421712feff05cbb93e8363486e64e6c",
+      "fingerprint": "sha256:2f9894c9cad797b680d6a1d386b8ccaeecf6a35cd08e7626421c907a1edf1851",
       "missing": []
     },
     "quickFeedback.end": {
@@ -239,7 +239,7 @@
     },
     "quickFeedback.hostResults": {
       "kind": "query",
-      "fingerprint": "sha256:3e3e2eba656f9dce745153f4b2c10a88b16888d817c91d19e8aa0c5daa1b4464",
+      "fingerprint": "sha256:50efcd2a73b8ea8b42297ef0014d6311690baad237c6c3b9dd7fd36802eda707",
       "missing": []
     },
     "quickFeedback.isActive": {
@@ -259,12 +259,12 @@
     },
     "quickFeedback.onHostResults": {
       "kind": "subscription",
-      "fingerprint": "sha256:ab92d9c3b51bc16b84d858270ae256f539fef4bda9aa243c356a65cf3c529f30",
+      "fingerprint": "sha256:232b39960378bb7a16e5321afb61fc1df9b950085b9613ffd7152502d2262f26",
       "missing": []
     },
     "quickFeedback.onResults": {
       "kind": "subscription",
-      "fingerprint": "sha256:27bfe8a90df6dda5e9dd2e8972255877e120f64bec45820d2010d1e7b4023299",
+      "fingerprint": "sha256:3d32599a81c4a7f9dccb2b8f71c925d1f2453db516796091523199078ab8e324",
       "missing": []
     },
     "quickFeedback.reset": {
@@ -274,7 +274,12 @@
     },
     "quickFeedback.results": {
       "kind": "query",
-      "fingerprint": "sha256:a50b6eb72df0fe089a9c1a16d33f7561f5ed6c52baccff3fe5e54b2f03f559d7",
+      "fingerprint": "sha256:c300c480fabc183c5a5aa789a676631e387a7cdebe645000ac143c953497efee",
+      "missing": []
+    },
+    "quickFeedback.setLiveResults": {
+      "kind": "mutation",
+      "fingerprint": "sha256:aff3c578dd8b3b2b993e3c6b845b0ad273caa55384a458d7b0c9b7750cbbdb4b",
       "missing": []
     },
     "quickFeedback.startDiscussion": {

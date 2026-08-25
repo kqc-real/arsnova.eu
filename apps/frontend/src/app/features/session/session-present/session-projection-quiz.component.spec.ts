@@ -61,7 +61,45 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Drei');
     expect(text).toContain('Vier');
     expect(text).toContain('50');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__progress mat-icon')
+        ?.textContent,
+    ).toContain('how_to_vote');
     expect(text).not.toContain('check_circle');
+    expect(fixture.nativeElement.querySelector('button, input, select, textarea, form')).toBeNull();
+  });
+
+  it('harmonisiert führende Emoji-Shortcuts mit dem Optionstext', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'SURVEY',
+        answers: [
+          {
+            id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            text: '😐 Ganz okay',
+            isCorrect: false,
+          },
+          {
+            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            text: 'Bereit 😄',
+            isCorrect: false,
+          },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const emoji = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__answer-leading-emoji',
+    ) as HTMLElement | null;
+    expect(emoji?.textContent).toBe('😐');
+    expect(emoji?.parentElement?.textContent).toContain('😐\u00a0Ganz okay');
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-projection-quiz__answer-leading-emoji')
+        .length,
+    ).toBe(1);
   });
 
   it('verdichtet vier lange Antwortoptionen für eine überlauffreie Presenter-Bühne', () => {
@@ -173,6 +211,14 @@ describe('SessionProjectionQuizComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-projection-quiz__bar-track').length,
     ).toBe(2);
+    const barValues = fixture.nativeElement.querySelectorAll(
+      '.session-projection-quiz__bar-track .session-projection-quiz__bar-value',
+    ) as NodeListOf<HTMLElement>;
+    expect(Array.from(barValues, (value) => value.textContent?.replace(/\s/g, ''))).toEqual([
+      '40%',
+      '60%',
+    ]);
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__answer-pct')).toBeNull();
   });
 
   it('markiert die Lesephase als volle Projektionsbühne', () => {
@@ -287,6 +333,10 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Danach');
     expect(text).toContain('Zuletzt');
     expect(text).toContain('Schwer');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__option-board--single h2')
+        ?.textContent,
+    ).toContain('Unsortierte Reihenfolge');
 
     fixture.componentRef.setInput(
       'question',
@@ -480,6 +530,7 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement;
     expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(true);
     expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__countdown')).toBeNull();
   });
 
   it('legt Codefragen dreispaltig an: Frage, Code, Antworten', () => {
@@ -556,6 +607,9 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement;
     expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(false);
     expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('12');
   });
 
   it('zeigt in Runde 2 Vorher/Nachher und Wechselwähler statt nur 0 %', () => {

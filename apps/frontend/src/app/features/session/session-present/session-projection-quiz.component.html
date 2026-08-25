@@ -11,6 +11,7 @@
     [class.session-projection-quiz--discussion]="isDiscussion()"
     [class.session-projection-quiz--fingers]="showFingerCountdown()"
     [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
+    [class.session-projection-quiz--with-reactions]="showEmojiReactions()"
   >
     @if (isDiscussion()) {
       <p class="session-projection-quiz__discussion" role="status">
@@ -57,13 +58,14 @@
           }
           @if (isActive() && participantCount() > 0) {
             <span class="session-projection-quiz__progress" role="status">
+              <mat-icon aria-hidden="true">how_to_vote</mat-icon>
               {{ voteProgressPercent() }}&nbsp;%
               <span class="session-projection-quiz__progress-meta"
                 >{{ liveVoteCount() }} / {{ participantCount() }}</span
               >
             </span>
           }
-          @if (countdownSeconds() !== null && isActive()) {
+          @if (countdownSeconds() !== null && isActive() && !showFingerCountdown()) {
             <span
               class="session-projection-quiz__countdown"
               [class.session-projection-quiz__countdown--urgent]="countdownSeconds()! <= 5"
@@ -356,9 +358,7 @@
                 class="session-projection-quiz__option-board session-projection-quiz__option-board--single"
               >
                 <section>
-                  <h2 i18n="@@sessionVote.discussionOrderingOptions">
-                    Elemente in neutraler Reihenfolge
-                  </h2>
+                  <h2 i18n="@@sessionVote.discussionOrderingOptions">Unsortierte Reihenfolge</h2>
                   <ul>
                     @for (item of orderingPreviewItems(); track item.id) {
                       <li
@@ -522,7 +522,7 @@
                       />
                       <span
                         class="markdown-body"
-                        [innerHTML]="renderMarkdown(answer.text, 4)"
+                        [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
                       @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
                         <mat-icon aria-hidden="true">check_circle</mat-icon>
@@ -622,10 +622,10 @@
                       [questionType]="q.type"
                       [showTypeIndicator]="q.showQuestionTypeIndicators !== false"
                     />
-                    <span class="markdown-body" [innerHTML]="renderMarkdown(answer.text, 4)"></span>
-                    <span class="session-projection-quiz__answer-pct"
-                      >{{ answer.votePercentage }}&nbsp;%</span
-                    >
+                    <span
+                      class="markdown-body"
+                      [innerHTML]="renderAnswerMarkdown(answer.text)"
+                    ></span>
                     @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
                       <mat-icon aria-hidden="true">check_circle</mat-icon>
                     }
@@ -638,6 +638,9 @@
                       "
                       [style.width.%]="answer.votePercentage"
                     ></div>
+                    <span class="session-projection-quiz__bar-value"
+                      >{{ answer.votePercentage }}&nbsp;%</span
+                    >
                   </div>
                 </li>
               }
@@ -660,7 +663,10 @@
                       [questionType]="q.type"
                       [showTypeIndicator]="q.showQuestionTypeIndicators !== false"
                     />
-                    <span class="markdown-body" [innerHTML]="renderMarkdown(answer.text, 4)"></span>
+                    <span
+                      class="markdown-body"
+                      [innerHTML]="renderAnswerMarkdown(answer.text)"
+                    ></span>
                     @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
                       <mat-icon aria-hidden="true">check_circle</mat-icon>
                     }
@@ -679,6 +685,35 @@
           <app-countdown-fingers [seconds]="countdownSeconds()!" size="present" />
         </mat-card-content>
       </mat-card>
+    }
+
+    @if (showEmojiReactions() && emojiReactions(); as reactionData) {
+      <aside
+        class="session-projection-quiz__emoji-reactions"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="presenter-emoji-reactions"
+      >
+        <span class="session-projection-quiz__emoji-reactions-label">
+          <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
+          <span i18n="@@sessionHost.emojiReactionsTitle">Reaktionen der Teilnehmenden</span>
+        </span>
+        <span class="session-projection-quiz__emoji-reactions-list" role="list">
+          @for (emoji of emojiOrder; track emoji) {
+            @if (reactionData.reactions[emoji] > 0) {
+              <span class="session-projection-quiz__emoji-reaction" role="listitem">
+                <span class="session-projection-quiz__emoji-reaction-icon" aria-hidden="true">{{
+                  emoji
+                }}</span>
+                <span class="session-projection-quiz__emoji-reaction-count">{{
+                  reactionData.reactions[emoji]
+                }}</span>
+              </span>
+            }
+          }
+        </span>
+      </aside>
     }
   </article>
 }

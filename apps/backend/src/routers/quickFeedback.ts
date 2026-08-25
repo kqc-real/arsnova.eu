@@ -8,6 +8,7 @@ import {
   CreateQuickFeedbackInputSchema,
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackTypeInputSchema,
+  UpdateQuickFeedbackPresentationInputSchema,
   QuickFeedbackVoteInputSchema,
   QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
@@ -22,6 +23,7 @@ import {
   type QuickFeedbackType,
   type QuickFeedbackResult,
   type QuickFeedbackVoteInput,
+  quickFeedbackDefaultsToLiveResults,
 } from '@arsnova/shared-types';
 import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { getRedis } from '../redis';
@@ -137,6 +139,26 @@ type SessionQuickFeedbackGate = {
 
 function feedbackKey(code: string): string {
   return `qf:${code}`;
+}
+
+function showLiveResults(result: Pick<QuickFeedbackResult, 'type' | 'showLiveResults'>): boolean {
+  return result.showLiveResults ?? quickFeedbackDefaultsToLiveResults(result.type);
+}
+
+function audienceQuickFeedbackResult(result: StoredQuickFeedbackResult): QuickFeedbackResult {
+  const resultsVisible = showLiveResults(result) || result.locked || result.discussion === true;
+  const distribution = resultsVisible
+    ? result.distribution
+    : Object.fromEntries(Object.keys(result.distribution).map((key) => [key, 0]));
+  return {
+    ...result,
+    showLiveResults: showLiveResults(result),
+    resultsVisible,
+    distribution,
+    round1Distribution: resultsVisible ? result.round1Distribution : undefined,
+    opinionShift: resultsVisible ? result.opinionShift : undefined,
+    tempoTrend: resultsVisible ? result.tempoTrend : undefined,
+  };
 }
 
 function knownFeedbackKey(code: string): string {
@@ -467,6 +489,7 @@ export const quickFeedbackRouter = router({
       const initial: StoredQuickFeedbackResult = {
         type: input.type,
         locked: false,
+        showLiveResults: input.showLiveResults ?? quickFeedbackDefaultsToLiveResults(input.type),
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
         sessionBound,
@@ -494,6 +517,7 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.type = input.type;
       result.locked = false;
+      result.showLiveResults = quickFeedbackDefaultsToLiveResults(input.type);
       result.totalVotes = 0;
       result.distribution = emptyDistribution(input.type);
       result.currentRound = undefined;
@@ -513,6 +537,18 @@ export const quickFeedbackRouter = router({
       await multi.exec();
 
       return { ok: true };
+    }),
+
+  setLiveResults: publicProcedure
+    .input(UpdateQuickFeedbackPresentationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const redis = getRedis();
+      const code = input.sessionCode.toUpperCase();
+      const result = await loadQuickFeedbackForHost(ctx, code);
+      result.showLiveResults = input.showLiveResults;
+      await redis.set(feedbackKey(code), JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      await redis.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+      return { showLiveResults: result.showLiveResults };
     }),
 
   reset: publicProcedure
@@ -760,7 +796,7 @@ export const quickFeedbackRouter = router({
       const result = JSON.parse(raw) as StoredQuickFeedbackResult;
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code, gate ?? undefined);
-      return QuickFeedbackResultSchema.parse(result);
+      return QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
     }),
 
   hostResults: publicProcedure
@@ -771,7 +807,11 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code);
-      return QuickFeedbackResultSchema.parse(result);
+      return QuickFeedbackResultSchema.parse({
+        ...result,
+        showLiveResults: showLiveResults(result),
+        resultsVisible: true,
+      });
     }),
 
   onResults: publicProcedure
@@ -798,7 +838,7 @@ export const quickFeedbackRouter = router({
         const result = JSON.parse(raw) as StoredQuickFeedbackResult;
         await enrichOpinionShift(result, code);
         await enrichTempoTrend(result, code, gate ?? undefined);
-        const payload = QuickFeedbackResultSchema.parse(result);
+        const payload = QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
@@ -826,7 +866,11 @@ export const quickFeedbackRouter = router({
 
         await enrichOpinionShift(result, code);
         await enrichTempoTrend(result, code);
-        const payload = QuickFeedbackResultSchema.parse(result);
+        const payload = QuickFeedbackResultSchema.parse({
+          ...result,
+          showLiveResults: showLiveResults(result),
+          resultsVisible: true,
+        });
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
