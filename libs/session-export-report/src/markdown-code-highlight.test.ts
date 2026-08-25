@@ -10,6 +10,6 @@ describe('renderExportMarkdownCodeBlockHtml', () => {
       lang: 'java',
     });
     expect(html).toContain('class="hljs');
-    expect(html).toContain('<span class="hljs-keyword">void</span>');
+    expect(html).toContain('<span class="hljs-type">void</span>');
   });
 });
