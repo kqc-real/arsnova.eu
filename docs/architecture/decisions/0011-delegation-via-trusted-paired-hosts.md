@@ -2,9 +2,9 @@
 
 # ADR-0011: Delegation über vertrauenswürdige Paired Hosts
 
-**Status:** Accepted  
-**Datum:** 2026-03-16  
-**Ersetzt am:** 2026-08-25  
+**Status:** Accepted
+**Datum:** 2026-03-16
+**Ersetzt am:** 2026-08-25
 **Entscheider:** Projektteam
 
 ## Kontext
