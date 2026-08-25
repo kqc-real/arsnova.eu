@@ -5,14 +5,14 @@
 **Zuletzt aktualisiert:** 2026-08-21
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-08-21):**
+**Produktstatus (Stand 2026-08-25):**
 
-- Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: delegierte Moderation **8.5** und 8.9c Slice 4), **9** (Admin) und **10** (MOTD — ADR-0018, `docs/features/motd.md`).
+- Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: 8.9c Slice 4), **9** (Admin) und **10** (MOTD — ADR-0018, `docs/features/motd.md`).
 - **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen (`WORD_CLOUD_SEMANTIC_ENABLED` default aus); Stufe 2 LLM-Labels offen; **1.14d** Host-Freitext-Themen (offen, gleicher Encoder). Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [`WORD-CLOUD-3.0-STORY-VORSCHLAG.md`](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
 - **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
 - **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
-- **Offene Zielbilder:** Delegierte Moderation bleibt ohne eigene `/moderate`-Route und ohne Moderator-Token noch Zielbild; Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt.
+- **Offene Zielbilder:** Story **2.10** plant separat widerrufbare Paired Hosts für eigene Zweitgeräte und persönlich vertrauenswürdige Tutor:innen oder Moderator:innen; eine eingeschränkte Moderatorrolle ist nicht vorgesehen. Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt.
 
 ## 1. Einleitung & Philosophie
 
@@ -86,7 +86,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0008: Internationalisierung (i18n) — Technik, Locale-Strategie und Hinweise bei Inhaltsverlust](./decisions/0008-i18n-internationalization.md)
 - [ADR-0009: Unified Live-Session Channels (Quiz, Q&A, Blitzlicht)](./decisions/0009-unified-live-session-channels.md)
 - [ADR-0010: Blitzlicht als Kernmodus mit konsistenter UX in Startseite und Live-Session](./decisions/0010-blitzlicht-as-core-live-mode.md)
-- [ADR-0011: Delegierbare Moderatorrolle für Live-Sessions](./decisions/0011-delegated-moderator-role-for-live-sessions.md)
+- [ADR-0011: Delegation über vertrauenswürdige Paired Hosts](./decisions/0011-delegation-via-trusted-paired-hosts.md)
 - [ADR-0012: d3-cloud als Layout-Engine fuer Freitext-Word-Clouds](./decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)
 - [ADR-0013: k6 und Artillery als Standard-Stack fuer Last- und Performance-Tests](./decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md)
 - [ADR-0015: Markdown-Bilder nur per URL und Lightbox-Ansicht](./decisions/0015-markdown-images-url-only-and-lightbox.md)

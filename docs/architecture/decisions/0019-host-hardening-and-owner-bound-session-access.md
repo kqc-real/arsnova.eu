@@ -83,7 +83,7 @@ Für alle Live-Zugriffe gilt künftig konsistent:
 - Host-Steuerung, Presenter-Zugang und Blitzlicht-Hosting sind sauber voneinander getrennt.
 - Öffentliche Session- und Sammlungsendpunkte geben weniger unnötige Daten preis.
 - Die Quiz-Sammlung bleibt accountfrei, ohne serverseitig frei erratbare Historienzugriffe offen zu lassen.
-- Die Architektur bleibt kompatibel mit späteren delegierten Rollen (z. B. Moderator-Token).
+- Die Architektur bleibt kompatibel mit separat widerrufbaren Paired-Host-Tokens für vertrauenswürdige Co-Hosts.
 
 ### Negativ / Risiken
 
@@ -113,4 +113,4 @@ Die Härtung ist weiterhin im Code sichtbar: `hostProcedure` schuetzt Host- und 
 
 ---
 
-**Referenzen:** [ADR-0006](./0006-roles-routes-authorization-host-admin.md), [ADR-0009](./0009-unified-live-session-channels.md), [ADR-0010](./0010-blitzlicht-as-core-live-mode.md), [ADR-0011](./0011-delegated-moderator-role-for-live-sessions.md), [docs/SECURITY-OVERVIEW.md](../../SECURITY-OVERVIEW.md), [docs/ROUTES_AND_STORIES.md](../../ROUTES_AND_STORIES.md).
+**Referenzen:** [ADR-0006](./0006-roles-routes-authorization-host-admin.md), [ADR-0009](./0009-unified-live-session-channels.md), [ADR-0010](./0010-blitzlicht-as-core-live-mode.md), [ADR-0011: Delegation über vertrauenswürdige Paired Hosts](./0011-delegation-via-trusted-paired-hosts.md), [docs/SECURITY-OVERVIEW.md](../../SECURITY-OVERVIEW.md), [docs/ROUTES_AND_STORIES.md](../../ROUTES_AND_STORIES.md).

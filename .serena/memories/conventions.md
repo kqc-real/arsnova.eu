@@ -2,7 +2,7 @@
 
 - API/contract flow: shared Zod schema first in `libs/shared-types`, then backend procedure/model code, then frontend callers and tests.
 - No ad-hoc REST endpoints or parallel handwritten DTOs for tRPC payloads.
-- Authorization is server-side: host/admin/moderator/feedback-host behavior must use the proper token/procedure checks, not route shape, session code, `moderatorView`, or client state alone.
+- Authorization is server-side: host/admin/paired-host/feedback-host behavior must use the proper token/procedure checks, not route shape, session code, `moderatorView`, or client state alone. `moderatorView` is a host-side data-view flag, not a role proof.
 - Preserve participant DTO stripping; live participant views must not receive solution-only data (`isCorrect`, answers that reveal grading, owner-bound history without proof, etc.).
 - Preserve the effective-vote rule for Peer Instruction scoring, leaderboards, bonus codes, and exports.
 - Frontend:

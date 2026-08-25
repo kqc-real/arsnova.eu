@@ -97,17 +97,17 @@ Wenn du dir nur einen ersten roten Faden merken willst, dann ist es dieser: **er
 
 Diese Begriffe musst du nicht sofort im Detail beherrschen. Du solltest sie aber wiedererkennen, wenn du Tickets, Reviews oder Code liest.
 
-| Begriff                        | Kurz erklärt                                                                                                                                                              |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Session / Live-Session**     | Laufende Veranstaltung mit einem sechsstelligen Code. Eine Session kann Quiz, Q&A und Blitzlicht bündeln.                                                                 |
-| **Local-First**                | Die dauerhafte Quiz-Sammlung liegt im Browser der Lehrperson, nicht dauerhaft in einer zentralen Quiz-Cloud.                                                              |
-| **DTO / Data-Stripping**       | Das Backend filtert Daten, bevor Teilnehmende sie sehen. Beispiel: `isCorrect` darf vor der Ergebnisphase nicht an die Teilnehmer-Ansicht gehen.                          |
-| **Kurzantwort / `SHORT_TEXT`** | Bewertbarer Fragetyp für kurze Text-, Zahlen- oder Einheitenantworten. Nicht mit offenem Freitext verwechseln.                                                            |
-| **Effective Vote**             | Bewertungsregel: Bei Peer Instruction ersetzt Runde 2 die Runde 1; ohne Runde 2 zählt Runde 1. Wichtig für Leaderboards, Scorecards, Teams und Bonus-Codes.               |
-| **Server-Status**              | Footer- und Hilfedialog-Anzeige für Betriebszustand, Systemlast und Plattformstatistiken. Technisch u. a. `health.footerBundle` und `health.stats`.                       |
-| **MOTD**                       | Message of the Day: Plattform-Kommunikation mit Startseiten-Overlay, Archiv, Admin-Pflege und aggregierten Interaktionszählern.                                           |
-| **Moderator / Tempo**          | Aktuelle Zielbilder: Delegierte Q&A-Moderation hat noch keine eigene Moderator-Route/Token; Tempo ist als Blitzlicht-Template geplant, nicht als eigener Kanal.           |
-| **Last- / Performance-Tests**  | Mehrere Werkzeuge je nach Szenario (k6, Artillery, Playwright, Lighthouse). Einstieg: [`HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](./HANDOUT-LAST-UND-PERFORMANCE-TESTS.md). |
+| Begriff                        | Kurz erklärt                                                                                                                                                                |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Session / Live-Session**     | Laufende Veranstaltung mit einem sechsstelligen Code. Eine Session kann Quiz, Q&A und Blitzlicht bündeln.                                                                   |
+| **Local-First**                | Die dauerhafte Quiz-Sammlung liegt im Browser der Lehrperson, nicht dauerhaft in einer zentralen Quiz-Cloud.                                                                |
+| **DTO / Data-Stripping**       | Das Backend filtert Daten, bevor Teilnehmende sie sehen. Beispiel: `isCorrect` darf vor der Ergebnisphase nicht an die Teilnehmer-Ansicht gehen.                            |
+| **Kurzantwort / `SHORT_TEXT`** | Bewertbarer Fragetyp für kurze Text-, Zahlen- oder Einheitenantworten. Nicht mit offenem Freitext verwechseln.                                                              |
+| **Effective Vote**             | Bewertungsregel: Bei Peer Instruction ersetzt Runde 2 die Runde 1; ohne Runde 2 zählt Runde 1. Wichtig für Leaderboards, Scorecards, Teams und Bonus-Codes.                 |
+| **Server-Status**              | Footer- und Hilfedialog-Anzeige für Betriebszustand, Systemlast und Plattformstatistiken. Technisch u. a. `health.footerBundle` und `health.stats`.                         |
+| **MOTD**                       | Message of the Day: Plattform-Kommunikation mit Startseiten-Overlay, Archiv, Admin-Pflege und aggregierten Interaktionszählern.                                             |
+| **Paired Host / Tempo**        | Aktuelle Zielbilder: Vertrauenswürdige Tutor:innen oder Moderator:innen werden als vollwertige Paired Hosts geplant; Tempo ist ein Blitzlicht-Template, kein eigener Kanal. |
+| **Last- / Performance-Tests**  | Mehrere Werkzeuge je nach Szenario (k6, Artillery, Playwright, Lighthouse). Einstieg: [`HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](./HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).   |
 
 Mehr Begriffe und genaue Abgrenzungen stehen im [`docs/GLOSSAR.md`](../GLOSSAR.md).
 

@@ -15,7 +15,7 @@
 | Quiz-Presets (Seriös/Spielerisch)    | 1.11         | Header / Startseite | Quiz- und Home-Kontext             | ✅ umgesetzt                                                           |
 | Session erstellen                    | 2.1a, Epic 1 | Erstellen / Quiz    | `/quiz`                            | ✅ Quiz-Sammlung, Editor und Live-Start sind umgesetzt                 |
 | Quiz wählen                          | Epic 1       | Quiz-Sammlung       | `/quiz`                            | ✅ umgesetzt                                                           |
-| Q&A                                  | 8.1-8.4      | Session / Host      | Session-Kanal                      | ✅ Q&A-Kern umgesetzt; Delegation 8.5 bleibt offen                     |
+| Q&A                                  | 8.1–8.4      | Session / Host      | Session-Kanal                      | ✅ Q&A-Kern umgesetzt; vertrauenswürdige Co-Hosts über 2.10 geplant    |
 | Tempo-Blitzlicht                     | 8.8          | Startseite / Host   | `/feedback/:code`                  | ✅ Startseite als Format-Chip `Tempo`; Host-Spotlight `Tempo-Feedback` |
 | Session-Code-Eingabe                 | 3.1          | Beitreten-Karte     | `/session/:code`                   | ✅ Join-Flow umgesetzt                                                 |
 | Zuletzt beigetretene Sessions        | -            | Beitreten-Karte     | `/session/:code`                   | ✅ Zusatzfeature                                                       |
@@ -30,7 +30,7 @@
 
 - **6.5 Barrierefreiheit:** fortlaufender Audit- und Nachweispunkt.
 - **6.6 Thinking Aloud:** qualitative UX-Testreihe und Umsetzung der Befunde offen.
-- **8.5 Delegierbare Q&A-Moderation:** keine eigene Moderator-Route / kein Moderator-Token im Ist-Stand.
+- **2.10 Paired Host:** eigenes Zweitgerät oder vertrauenswürdige Tutor:in beziehungsweise Moderator:in als vollwertigen, separat widerrufbaren Host verbinden.
 - **1.14c Word Cloud 3.0:** Stufe 1 (Encoder + Clustering) im Repo, Kill-Switch default aus; Stufe 2 LLM-Labels und Presenter-Themenmodus bleiben offen; 1.14a/1.14b sind abgeschlossen.
 
 ---

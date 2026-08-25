@@ -23,7 +23,7 @@ Leseordnung im Dialog: zuerst **Als Nächstes** (ein Vorschlag aus der stärkste
 
 Quellen sind Sprungzeilen mit Ziel (**Q&A**, **Wortwolke**, **Quiz**, **Blitzlicht**). Pro Karte sind drei Quellen sichtbar, weitere hinter **Noch … anzeigen**. Quellenklicks wechseln den Kanal, heben Forum-Beiträge hervor (Badge **Aus dem Kompass · …**) oder öffnen die Wortwolke zum Begriff. **Zurück zum Kompass** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut. **Markierung lösen** entfernt die Hervorhebung.
 
-Moderatorzugang bleibt an Story **8.5** gebunden; bis dahin nur Host-Token.
+Der Kompass ist eine Host-Funktion. Vertrauenswürdige Tutor:innen oder Moderator:innen sollen ihn künftig ausschließlich als vollwertige, separat widerrufbare Paired Hosts gemäß Story **2.10** nutzen.
 
 ## Signale
 
