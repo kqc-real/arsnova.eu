@@ -119,6 +119,7 @@ model Session {
   status          SessionStatus @default(LOBBY)
   statusChangedAt DateTime      @default(now())    // Zeitpunkt des letzten Statuswechsels (Story 3.5 Countdown-Sync)
   activeQuestionStartedAt DateTime?                // Serverzeit, zu der die aktuell abstimmbare Frage/Runde gestartet wurde
+  pausedFromStatus SessionStatus?                  // Ausgangsphase einer Host-Pause (nur QUESTION_OPEN oder ACTIVE)
   title           String?                          // Story 8.1: Titel für Q&A-Runden
   moderationMode  Boolean       @default(false)   // Story 8.4: Q&A-Fragen vorab moderieren
   qaEnabled       Boolean       @default(false)   // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
@@ -280,7 +281,7 @@ enum SessionStatus {
   LOBBY          // Warten auf Teilnehmer
   QUESTION_OPEN  // Story 2.6: Nur Fragenstamm sichtbar (Lesephase)
   ACTIVE         // Antwortoptionen sichtbar, Countdown läuft
-  PAUSED         // Zwischen Fragen
+  PAUSED         // Host-Unterbrechung derselben QUESTION_OPEN-/ACTIVE-Phase
   RESULTS        // Ergebnisse werden angezeigt
   DISCUSSION     // Story 2.7: Peer Instruction – Diskussionsphase zwischen Runde 1 und 2
   FINISHED       // Session beendet

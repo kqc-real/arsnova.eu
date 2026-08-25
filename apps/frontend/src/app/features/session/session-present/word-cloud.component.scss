@@ -305,6 +305,15 @@
   white-space: normal;
 }
 
+.word-cloud__word--output {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
+}
+
 .word-cloud__word--positioned {
   position: absolute;
   inset: auto auto;

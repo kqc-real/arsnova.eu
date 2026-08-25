@@ -13343,7 +13343,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.orderingNeutralOptions" datatype="html">
-        <source> Elemente in neutraler Reihenfolge </source>
+        <source> Unsortierte Reihenfolge </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2337,2339</context>
@@ -16568,13 +16568,6 @@
           <context context-type="linenumber">45</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionPresent.finishTitle" datatype="html">
-        <source>Gesamtauswertung</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionPresent.leaderboardTitle" datatype="html">
         <source>Leaderboard</source>
         <context-group purpose="location">
@@ -16631,6 +16624,34 @@
           <context context-type="linenumber">630</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.qaClosed" datatype="html">
+        <source>Q&amp;A ist geschlossen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">426</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackClosed" datatype="html">
+        <source>Blitzlicht ist geschlossen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">427</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaStandby" datatype="html">
+        <source>Noch keine freigegebenen Fragen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">413</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStandby" datatype="html">
+        <source>Blitzlicht noch nicht gestartet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">414</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaLabel" datatype="html">
         <source> Frage aus dem Publikum </source>
         <context-group purpose="location">
@@ -16685,7 +16706,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.</source>
+        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">129</context>
@@ -16834,7 +16855,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionOrderingOptions" datatype="html">
-        <source>Elemente in neutraler Reihenfolge</source>
+        <source>Unsortierte Reihenfolge</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
           <context context-type="linenumber">209</context>
@@ -21401,6 +21422,60 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">174</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.pauseQuiz" datatype="html">
+        <source>Quiz pausieren</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.resumeQuiz" datatype="html">
+        <source>Quiz fortsetzen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedHint" datatype="html">
+        <source>Antworten und Countdown sind angehalten.</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedMessage" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedHint" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnectingWithSnapshot" datatype="html">
+        <source>Verbindung wird wiederhergestellt. Der letzte Stand bleibt sichtbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnecting" datatype="html">
+        <source>Verbindung wird wiederhergestellt …</source>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResults" datatype="html">
+        <source>Ergebnisse während der Runde live zeigen</source>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
+        <source>Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintHidden" datatype="html">
+        <source>Bis zum Pausieren oder Rundenende zeigt der Presenter nur die Beteiligung.</source>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsUpdateFailed" datatype="html">
+        <source>Die Ergebnisanzeige konnte nicht geändert werden.</source>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsClose" datatype="html">
+        <source>Schließen</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackOpinionShift" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ formatCount(shift.changedCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(shift.bothRoundsCount) }}"/> änderten ihre Einschätzung (<x id="INTERPOLATION_2" equiv-text="{{ formatCount(shift.changedPercentage) }}"/> %).</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackCollecting" datatype="html">
+        <source>Antworten werden gesammelt</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackRevealHint" datatype="html">
+        <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
       </trans-unit>
     </body>
   </file>

@@ -238,6 +238,27 @@
         </button>
       }
     </div>
+    <div class="feedback-host__presentation-setting">
+      <mat-slide-toggle
+        [checked]="showLiveResults()"
+        [disabled]="liveResultsPending()"
+        (change)="setLiveResults($event.checked)"
+        i18n="@@feedback.showLiveResults"
+      >
+        Ergebnisse während der Runde live zeigen
+      </mat-slide-toggle>
+      <p class="feedback-host__presentation-setting-hint">
+        @if (showLiveResults()) {
+          <span i18n="@@feedback.showLiveResultsHintLive">
+            Die Verteilung wird während der Abstimmung im Presenter angezeigt.
+          </span>
+        } @else {
+          <span i18n="@@feedback.showLiveResultsHintHidden">
+            Bis zum Pausieren oder Rundenende zeigt der Presenter nur die Beteiligung.
+          </span>
+        }
+      </p>
+    </div>
   </ng-template>
 
   <div

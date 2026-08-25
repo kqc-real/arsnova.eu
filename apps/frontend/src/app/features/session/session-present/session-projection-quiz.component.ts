@@ -3,6 +3,7 @@ import { Component, computed, inject, input, LOCALE_ID } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { EMOJI_REACTIONS } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
@@ -42,6 +43,11 @@ import {
   stableSeededShuffle,
 } from './session-projection-quiz.util';
 
+type PresenterEmojiReactions = {
+  reactions: Record<string, number>;
+  total: number;
+};
+
 @Component({
   selector: 'app-session-projection-quiz',
   standalone: true,
@@ -67,17 +73,14 @@ export class SessionProjectionQuizComponent {
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
   readonly participantCount = input(0);
   readonly countdownSeconds = input<number | null>(null);
+  readonly emojiReactions = input<PresenterEmojiReactions | null>(null);
+  readonly emojiOrder = EMOJI_REACTIONS;
+  readonly showEmojiReactions = computed(
+    () =>
+      (this.status() === 'ACTIVE' || this.status() === 'RESULTS') &&
+      (this.emojiReactions()?.total ?? 0) > 0,
+  );
 
-  readonly showFingerCountdown = computed(() => {
-    const seconds = this.countdownSeconds();
-    return (
-      this.isActive() &&
-      seconds !== null &&
-      seconds >= 0 &&
-      seconds <= 5 &&
-      this.themePreset.preset() === 'spielerisch'
-    );
-  });
   readonly motifImageUrl = input<string | null>(null);
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
@@ -139,6 +142,14 @@ export class SessionProjectionQuizComponent {
       return false;
     }
     return question.answers.length > 0;
+  });
+  readonly hasDenseAnswerCopy = computed(() => {
+    const answers = this.question()?.answers ?? [];
+    if (answers.length < 4) {
+      return false;
+    }
+    const lengths = answers.map((answer) => answer.text.trim().length);
+    return Math.max(...lengths, 0) > 16 || lengths.reduce((sum, length) => sum + length, 0) > 56;
   });
 
   readonly showRoundComparison = computed(() => {
@@ -246,6 +257,17 @@ export class SessionProjectionQuizComponent {
   readonly hasQuestionCode = computed(
     () => presenterQuestionCodeBlocks(this.question()?.text ?? '').length > 0,
   );
+  readonly showFingerCountdown = computed(() => {
+    const seconds = this.countdownSeconds();
+    return (
+      this.isActive() &&
+      !this.hasQuestionCode() &&
+      seconds !== null &&
+      seconds >= 0 &&
+      seconds <= 5 &&
+      this.themePreset.preset() === 'spielerisch'
+    );
+  });
 
   readonly questionCodeColumnMarkdown = computed(() =>
     presenterQuestionCodeColumnMarkdown(this.question()?.text ?? ''),
@@ -461,6 +483,22 @@ export class SessionProjectionQuizComponent {
         // Labels like „9. November 1918“ must not become a one-item <ol> shown as „1.“.
         escapeListMarkers: headingStartLevel >= 4,
       }).html,
+    );
+  }
+
+  renderAnswerMarkdown(value: string): SafeHtml {
+    const html = renderMarkdownWithKatex(value, {
+      headingStartLevel: 4,
+      imagePolicy: 'external-https-and-app-assets',
+      escapeListMarkers: true,
+    }).html;
+    const leadingEmoji =
+      /(<(?:p|h[1-6])(?:\s[^>]*)?>)(\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*)\s+/u;
+    return this.sanitizer.bypassSecurityTrustHtml(
+      html.replace(
+        leadingEmoji,
+        '$1<span class="session-projection-quiz__answer-leading-emoji">$2</span>&nbsp;',
+      ),
     );
   }
 

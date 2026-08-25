@@ -450,6 +450,251 @@ describe('session.nextQuestion (Story 2.3)', () => {
   });
 });
 
+describe('session Quiz-Pause', () => {
+  const snapshotSession = (
+    status: 'PAUSED' | 'ACTIVE' | 'QUESTION_OPEN',
+    statusChangedAt: Date,
+    activeQuestionStartedAt: Date | null,
+    pausedFromStatus: 'QUESTION_OPEN' | 'ACTIVE' | null = status === 'PAUSED' ? 'ACTIVE' : null,
+  ) => ({
+    type: 'QUIZ',
+    quizId: '11111111-1111-4111-8111-111111111111',
+    qaEnabled: false,
+    qaOpen: false,
+    qaTitle: null,
+    qaModerationMode: false,
+    title: null,
+    moderationMode: false,
+    quickFeedbackEnabled: false,
+    quickFeedbackOpen: false,
+    status,
+    currentQuestion: 0,
+    currentRound: 1,
+    pausedFromStatus,
+    statusChangedAt,
+    activeQuestionStartedAt,
+    lastSkippedQuestionId: null,
+    lastQuestionSkippedAt: null,
+    quiz: {
+      defaultTimer: 60,
+      timerScaleByDifficulty: false,
+      questions: [{ timer: 60, difficulty: 'MEDIUM' }],
+    },
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.pauseQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'pausiert eine aktive Quizfrage unter Zeilen-Sperre',
+    },
+    async () => {
+      const activeAt = new Date('2026-08-25T12:00:00.000Z');
+      const pausedAt = new Date('2026-08-25T12:00:10.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(pausedAt);
+      try {
+        prismaMock.session.findUnique
+          .mockResolvedValueOnce({ id: SESSION_ID })
+          .mockResolvedValueOnce({
+            status: 'ACTIVE',
+            currentQuestion: 0,
+            quizId: '11111111-1111-4111-8111-111111111111',
+          })
+          .mockResolvedValueOnce(snapshotSession('PAUSED', pausedAt, activeAt));
+
+        await expect(caller.pauseQuiz({ code: CODE })).resolves.toMatchObject({
+          status: 'PAUSED',
+          currentQuestion: 0,
+          pausedFromStatus: 'ACTIVE',
+        });
+        expect(prismaMock.session.update).toHaveBeenCalledWith({
+          where: { id: SESSION_ID },
+          data: {
+            status: 'PAUSED',
+            pausedFromStatus: 'ACTIVE',
+            statusChangedAt: pausedAt,
+          },
+        });
+        expect(loadSignalMocks.recordSessionTransitionActivity).toHaveBeenCalledOnce();
+        expect(loadSignalMocks.markCountdownSessionActive).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it('setzt eine pausierte Lesephase ohne Abstimmungs-Timer fort', async () => {
+    const pausedAt = new Date('2026-08-25T12:00:10.000Z');
+    const resumedAt = new Date('2026-08-25T12:00:40.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(resumedAt);
+    try {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
+        .mockResolvedValueOnce({
+          status: 'PAUSED',
+          currentQuestion: 0,
+          pausedFromStatus: 'QUESTION_OPEN',
+          statusChangedAt: pausedAt,
+          activeQuestionStartedAt: null,
+          quizId: '11111111-1111-4111-8111-111111111111',
+        })
+        .mockResolvedValueOnce(snapshotSession('QUESTION_OPEN', resumedAt, null));
+
+      await expect(caller.resumeQuiz({ code: CODE })).resolves.toMatchObject({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        pausedFromStatus: null,
+      });
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: {
+          status: 'QUESTION_OPEN',
+          pausedFromStatus: null,
+          statusChangedAt: resumedAt,
+          activeQuestionStartedAt: null,
+        },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('öffnet während einer Host-Pause nicht versehentlich die nächste Frage', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({
+      id: SESSION_ID,
+      status: 'PAUSED',
+      pausedFromStatus: 'ACTIVE',
+      currentQuestion: 0,
+      quiz: {
+        readingPhaseEnabled: true,
+        questions: [{ id: 'q1' }, { id: 'q2' }],
+      },
+    });
+
+    await expect(caller.nextQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Das pausierte Quiz muss zuerst fortgesetzt werden.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.resumeQuiz',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt eine aktive Quizfrage mit eingefrorenem Timer fort',
+    },
+    async () => {
+      const activeAt = new Date('2026-08-25T12:00:00.000Z');
+      const pausedAt = new Date('2026-08-25T12:00:10.000Z');
+      const resumedAt = new Date('2026-08-25T12:00:40.000Z');
+      const shiftedActiveAt = new Date('2026-08-25T12:00:30.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(resumedAt);
+      try {
+        prismaMock.session.findUnique
+          .mockResolvedValueOnce({ id: SESSION_ID })
+          .mockResolvedValueOnce({
+            status: 'PAUSED',
+            currentQuestion: 0,
+            pausedFromStatus: 'ACTIVE',
+            statusChangedAt: pausedAt,
+            activeQuestionStartedAt: activeAt,
+            quizId: '11111111-1111-4111-8111-111111111111',
+          })
+          .mockResolvedValueOnce(snapshotSession('ACTIVE', resumedAt, shiftedActiveAt));
+
+        await expect(caller.resumeQuiz({ code: CODE })).resolves.toMatchObject({
+          status: 'ACTIVE',
+          currentQuestion: 0,
+          pausedFromStatus: null,
+          activeAt: shiftedActiveAt.toISOString(),
+          timer: 60,
+        });
+        expect(prismaMock.session.update).toHaveBeenCalledWith({
+          where: { id: SESSION_ID },
+          data: {
+            status: 'ACTIVE',
+            pausedFromStatus: null,
+            statusChangedAt: resumedAt,
+            activeQuestionStartedAt: shiftedActiveAt,
+          },
+        });
+        expect(loadSignalMocks.recordSessionTransitionActivity).toHaveBeenCalledOnce();
+        expect(loadSignalMocks.markCountdownSessionActive).toHaveBeenCalledWith(SESSION_ID);
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.pauseQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'weist eine Quiz-Pause außerhalb einer laufenden Frage zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
+        .mockResolvedValueOnce({
+          status: 'RESULTS',
+          currentQuestion: 0,
+          quizId: '11111111-1111-4111-8111-111111111111',
+        });
+
+      await expect(caller.pauseQuiz({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.resumeQuiz',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'weist Fortsetzen ohne autoritative Ausgangsphase zurück',
+    },
+    async () => {
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
+        .mockResolvedValueOnce({
+          status: 'PAUSED',
+          currentQuestion: 0,
+          pausedFromStatus: null,
+          statusChangedAt: new Date(),
+          activeQuestionStartedAt: null,
+          quizId: '11111111-1111-4111-8111-111111111111',
+        });
+
+      await expect(caller.resumeQuiz({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+    },
+  );
+});
+
 describe('session.skipQuestion', () => {
   const QUESTION_ID_1 = '11111111-1111-4111-8111-111111111111';
   const QUESTION_ID_2 = '22222222-2222-4222-8222-222222222222';

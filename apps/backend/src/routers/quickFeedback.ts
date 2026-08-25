@@ -8,6 +8,7 @@ import {
   CreateQuickFeedbackInputSchema,
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackTypeInputSchema,
+  UpdateQuickFeedbackPresentationInputSchema,
   QuickFeedbackVoteInputSchema,
   QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
@@ -22,6 +23,7 @@ import {
   type QuickFeedbackType,
   type QuickFeedbackResult,
   type QuickFeedbackVoteInput,
+  quickFeedbackDefaultsToLiveResults,
 } from '@arsnova/shared-types';
 import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { getRedis } from '../redis';
@@ -54,6 +56,56 @@ const QUICK_FEEDBACK_POLL_ACTIVE_MS = 500;
 const QUICK_FEEDBACK_POLL_IDLE_MS = 1200;
 const TEMPO_DEFAULT_VALUE = 'FOLLOWING';
 const TEMPO_DEVIATION_VALUES = ['SPEED_UP', 'SLOW_DOWN', 'LOST'] as const;
+const SET_LIVE_RESULTS_SCRIPT = `
+-- QUICK_FEEDBACK_SET_LIVE_RESULTS
+local raw = redis.call('GET', KEYS[1])
+if not raw then
+  return cjson.encode({ error = 'MISSING' })
+end
+
+local result = cjson.decode(raw)
+result['showLiveResults'] = ARGV[1] == '1'
+redis.call('SET', KEYS[1], cjson.encode(result), 'EX', tonumber(ARGV[2]))
+redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[3]))
+return cjson.encode({ showLiveResults = result['showLiveResults'] })
+`;
+const STANDARD_VOTE_SCRIPT = `
+-- QUICK_FEEDBACK_STANDARD_VOTE
+local raw = redis.call('GET', KEYS[1])
+if not raw then
+  return cjson.encode({ error = 'MISSING' })
+end
+
+local result = cjson.decode(raw)
+if result['locked'] == true then
+  return cjson.encode({ error = 'LOCKED' })
+end
+if result['type'] == 'TEMPO' then
+  return cjson.encode({ error = 'TYPE_CHANGED' })
+end
+
+local distribution = result['distribution'] or {}
+local value = ARGV[2]
+if distribution[value] == nil then
+  return cjson.encode({ error = 'INVALID_VALUE' })
+end
+if redis.call('SISMEMBER', KEYS[2], ARGV[1]) == 1 then
+  return cjson.encode({ error = 'ALREADY_VOTED' })
+end
+
+distribution[value] = (tonumber(distribution[value]) or 0) + 1
+result['distribution'] = distribution
+result['totalVotes'] = (tonumber(result['totalVotes']) or 0) + 1
+
+local ttl = tonumber(ARGV[3])
+redis.call('SET', KEYS[1], cjson.encode(result), 'EX', ttl)
+redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('EXPIRE', KEYS[2], ttl)
+redis.call('HSET', KEYS[3], ARGV[1], value)
+redis.call('EXPIRE', KEYS[3], ttl)
+redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[4]))
+return cjson.encode({ totalVotes = result['totalVotes'] })
+`;
 const TEMPO_VOTE_SCRIPT = `
 local raw = redis.call('GET', KEYS[1])
 if not raw then
@@ -137,6 +189,26 @@ type SessionQuickFeedbackGate = {
 
 function feedbackKey(code: string): string {
   return `qf:${code}`;
+}
+
+function showLiveResults(result: Pick<QuickFeedbackResult, 'type' | 'showLiveResults'>): boolean {
+  return result.showLiveResults ?? quickFeedbackDefaultsToLiveResults(result.type);
+}
+
+function audienceQuickFeedbackResult(result: StoredQuickFeedbackResult): QuickFeedbackResult {
+  const resultsVisible = showLiveResults(result) || result.locked || result.discussion === true;
+  const distribution = resultsVisible
+    ? result.distribution
+    : Object.fromEntries(Object.keys(result.distribution).map((key) => [key, 0]));
+  return {
+    ...result,
+    showLiveResults: showLiveResults(result),
+    resultsVisible,
+    distribution,
+    round1Distribution: resultsVisible ? result.round1Distribution : undefined,
+    opinionShift: resultsVisible ? result.opinionShift : undefined,
+    tempoTrend: resultsVisible ? result.tempoTrend : undefined,
+  };
 }
 
 function knownFeedbackKey(code: string): string {
@@ -467,6 +539,7 @@ export const quickFeedbackRouter = router({
       const initial: StoredQuickFeedbackResult = {
         type: input.type,
         locked: false,
+        showLiveResults: input.showLiveResults ?? quickFeedbackDefaultsToLiveResults(input.type),
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
         sessionBound,
@@ -494,6 +567,7 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.type = input.type;
       result.locked = false;
+      result.showLiveResults = quickFeedbackDefaultsToLiveResults(input.type);
       result.totalVotes = 0;
       result.distribution = emptyDistribution(input.type);
       result.currentRound = undefined;
@@ -513,6 +587,34 @@ export const quickFeedbackRouter = router({
       await multi.exec();
 
       return { ok: true };
+    }),
+
+  setLiveResults: publicProcedure
+    .input(UpdateQuickFeedbackPresentationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const redis = getRedis();
+      const code = input.sessionCode.toUpperCase();
+      await loadQuickFeedbackForHost(ctx, code);
+      const raw = await redis.eval(
+        SET_LIVE_RESULTS_SCRIPT,
+        2,
+        feedbackKey(code),
+        knownFeedbackKey(code),
+        input.showLiveResults ? '1' : '0',
+        String(FEEDBACK_TTL_SECONDS),
+        String(KNOWN_FEEDBACK_TTL_SECONDS),
+      );
+      const payload =
+        typeof raw === 'string'
+          ? (JSON.parse(raw) as { error?: 'MISSING'; showLiveResults?: boolean })
+          : null;
+      if (payload?.error === 'MISSING') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+        });
+      }
+      return { showLiveResults: payload?.showLiveResults ?? input.showLiveResults };
     }),
 
   reset: publicProcedure
@@ -661,7 +763,6 @@ export const quickFeedbackRouter = router({
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {
     const code = input.sessionCode.toUpperCase();
-    const redis = getRedis();
     const key = feedbackKey(code);
     const result = await loadQuickFeedbackForVote(code).catch(async (error: unknown) => {
       if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
@@ -692,25 +793,7 @@ export const quickFeedbackRouter = router({
       return { ok: true };
     }
 
-    const vKey = votersKey(code);
-    const alreadyVoted = await redis.sismember(vKey, input.voterId);
-    if (alreadyVoted) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Du hast bereits abgestimmt.' });
-    }
-
-    result.distribution[input.value] = (result.distribution[input.value] ?? 0) + 1;
-    result.totalVotes += 1;
-
-    const cKey = choicesKey(code);
-    const multi = redis.multi();
-    multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-    multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-    multi.sadd(vKey, input.voterId);
-    multi.expire(vKey, FEEDBACK_TTL_SECONDS);
-    multi.hset(cKey, input.voterId, input.value);
-    multi.expire(cKey, FEEDBACK_TTL_SECONDS);
-    await multi.exec();
-    void recordVoteActivity();
+    await submitStandardVote(input, key);
 
     return { ok: true };
   }),
@@ -760,7 +843,7 @@ export const quickFeedbackRouter = router({
       const result = JSON.parse(raw) as StoredQuickFeedbackResult;
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code, gate ?? undefined);
-      return QuickFeedbackResultSchema.parse(result);
+      return QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
     }),
 
   hostResults: publicProcedure
@@ -771,7 +854,11 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code);
-      return QuickFeedbackResultSchema.parse(result);
+      return QuickFeedbackResultSchema.parse({
+        ...result,
+        showLiveResults: showLiveResults(result),
+        resultsVisible: true,
+      });
     }),
 
   onResults: publicProcedure
@@ -798,7 +885,7 @@ export const quickFeedbackRouter = router({
         const result = JSON.parse(raw) as StoredQuickFeedbackResult;
         await enrichOpinionShift(result, code);
         await enrichTempoTrend(result, code, gate ?? undefined);
-        const payload = QuickFeedbackResultSchema.parse(result);
+        const payload = QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
@@ -826,7 +913,11 @@ export const quickFeedbackRouter = router({
 
         await enrichOpinionShift(result, code);
         await enrichTempoTrend(result, code);
-        const payload = QuickFeedbackResultSchema.parse(result);
+        const payload = QuickFeedbackResultSchema.parse({
+          ...result,
+          showLiveResults: showLiveResults(result),
+          resultsVisible: true,
+        });
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
@@ -840,6 +931,47 @@ export const quickFeedbackRouter = router({
       }
     }),
 });
+
+async function submitStandardVote(input: QuickFeedbackVoteInput, key: string): Promise<void> {
+  const redis = getRedis();
+  const code = input.sessionCode.toUpperCase();
+  const raw = await redis.eval(
+    STANDARD_VOTE_SCRIPT,
+    4,
+    key,
+    votersKey(code),
+    choicesKey(code),
+    knownFeedbackKey(code),
+    input.voterId,
+    input.value,
+    String(FEEDBACK_TTL_SECONDS),
+    String(KNOWN_FEEDBACK_TTL_SECONDS),
+  );
+  const payload =
+    typeof raw === 'string'
+      ? (JSON.parse(raw) as {
+          error?: 'MISSING' | 'LOCKED' | 'TYPE_CHANGED' | 'INVALID_VALUE' | 'ALREADY_VOTED';
+        })
+      : null;
+
+  if (payload?.error === 'MISSING') {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
+  if (payload?.error === 'LOCKED') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
+  }
+  if (payload?.error === 'ALREADY_VOTED') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Du hast bereits abgestimmt.' });
+  }
+  if (payload?.error === 'TYPE_CHANGED' || payload?.error === 'INVALID_VALUE') {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültige Auswahl.' });
+  }
+
+  void recordVoteActivity();
+}
 
 async function submitTempoVote(input: QuickFeedbackVoteInput, key: string): Promise<void> {
   const redis = getRedis();

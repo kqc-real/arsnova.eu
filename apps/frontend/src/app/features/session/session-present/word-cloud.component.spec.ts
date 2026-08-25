@@ -309,6 +309,8 @@ describe('WordCloudComponent', () => {
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(fixture.nativeElement.querySelector('.word-cloud__supporting')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.word-cloud__word--output')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('button.word-cloud__word')).toBeNull();
   });
 
   it('fuellt im Presentation-Modus die verfuegbare Host-Hoehe', () => {

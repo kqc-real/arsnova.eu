@@ -67,6 +67,15 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        border-radius: 0.8rem;
+        background-color: light-dark(
+          var(--mat-sys-primary),
+          var(--mat-sys-surface-container-highest)
+        );
         pointer-events: none;
         user-select: none;
       }
@@ -77,6 +86,8 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--large {
+        padding: 0.45rem;
+
         .countdown-fingers__img {
           width: 120px;
           height: auto;
@@ -85,6 +96,8 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--small {
+        padding: 0.3rem;
+
         .countdown-fingers__img {
           width: 56px;
           height: auto;
@@ -92,12 +105,10 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--present {
-        display: flex;
-        align-items: center;
-        justify-content: center;
         width: 100%;
         height: 100%;
         min-height: 0;
+        padding: clamp(0.45rem, 1.4vmin, 0.9rem);
 
         .countdown-fingers__img {
           width: auto;

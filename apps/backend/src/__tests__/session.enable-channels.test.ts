@@ -517,7 +517,7 @@ describe('session.enable channel mutations', () => {
     },
   );
 
-  it('weist einen geschlossenen Nebenkanal als Presenter-Ziel zurück', async () => {
+  it('behält geschlossene, aktivierte Nebenkanäle als Presenter-Ziel bei', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
@@ -533,15 +533,41 @@ describe('session.enable channel mutations', () => {
 
     await expect(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
+    ).resolves.toEqual({
+      preferredChannel: 'qa',
+    });
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quickFeedback' }),
+    ).resolves.toEqual({
+      preferredChannel: 'quickFeedback',
+    });
+  });
+
+  it('weist einen nicht aktivierten Nebenkanal als Presenter-Ziel zurück', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: false,
+      qaOpen: false,
+      qaTitle: null,
+      qaModerationMode: false,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
     ).rejects.toMatchObject({
       code: 'BAD_REQUEST',
-      message: 'Q&A-Kanal ist nicht geöffnet.',
+      message: 'Q&A-Kanal ist nicht aktiv.',
     });
     await expect(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quickFeedback' }),
     ).rejects.toMatchObject({
       code: 'BAD_REQUEST',
-      message: 'Blitzlicht-Kanal ist nicht geöffnet.',
+      message: 'Blitzlicht-Kanal ist nicht aktiv.',
     });
   });
 });

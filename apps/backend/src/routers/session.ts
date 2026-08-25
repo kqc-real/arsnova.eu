@@ -304,6 +304,7 @@ type CacheEntry<T> = {
 type StatusSnapshotPayload = {
   status: string;
   currentQuestion: number | null;
+  pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
   activeAt?: string;
   timer?: number | null;
   currentRound?: number;
@@ -768,6 +769,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           status: true,
           currentQuestion: true,
           currentRound: true,
+          pausedFromStatus: true,
           statusChangedAt: true,
           activeQuestionStartedAt: true,
           lastSkippedQuestionId: true,
@@ -804,6 +806,10 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
         status: session.status,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
+        pausedFromStatus:
+          session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE'
+            ? session.pausedFromStatus
+            : null,
         channels,
         preferredChannel,
         presenterSurface: resolvePresenterSurface(code, preferredChannel),
@@ -3051,8 +3057,8 @@ function defaultPreferredLiveChannel(
   channels: z.infer<typeof SessionChannelsDTOSchema>,
 ): z.infer<typeof SessionLiveChannelSchema> {
   if (channels.quiz.enabled) return 'quiz';
-  if (channels.qa.enabled && channels.qa.open) return 'qa';
-  if (channels.quickFeedback.enabled && channels.quickFeedback.open) return 'quickFeedback';
+  if (channels.qa.enabled) return 'qa';
+  if (channels.quickFeedback.enabled) return 'quickFeedback';
   return 'quiz';
 }
 
@@ -3062,10 +3068,8 @@ function resolvePreferredLiveChannel(
 ): z.infer<typeof SessionLiveChannelSchema> {
   const stored = preferredLiveChannelByCode.get(code.toUpperCase());
   if (stored === 'quiz' && channels.quiz.enabled) return stored;
-  if (stored === 'qa' && channels.qa.enabled && channels.qa.open) return stored;
-  if (stored === 'quickFeedback' && channels.quickFeedback.enabled && channels.quickFeedback.open) {
-    return stored;
-  }
+  if (stored === 'qa' && channels.qa.enabled) return stored;
+  if (stored === 'quickFeedback' && channels.quickFeedback.enabled) return stored;
   return defaultPreferredLiveChannel(channels);
 }
 
@@ -4496,6 +4500,10 @@ async function resolvePublicSessionInfo(
         status: session.status,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
+        ...((session.pausedFromStatus === 'QUESTION_OPEN' ||
+          session.pausedFromStatus === 'ACTIVE') && {
+          pausedFromStatus: session.pausedFromStatus,
+        }),
         ...(session.lastSkippedQuestionId &&
           session.lastQuestionSkippedAt && {
             skippedQuestionId: session.lastSkippedQuestionId,
@@ -4779,7 +4787,7 @@ export const sessionRouter = router({
             quickFeedbackOpen: true,
           },
         });
-        invalidateSessionMetadataCachesForCode(code);
+        invalidateSessionStatusCachesForCode(code);
         return buildSessionChannels(updated);
       }
 
@@ -4828,7 +4836,7 @@ export const sessionRouter = router({
             quickFeedbackOpen: true,
           },
         });
-        invalidateSessionMetadataCachesForCode(code);
+        invalidateSessionStatusCachesForCode(code);
         return buildSessionChannels(updated);
       }
 
@@ -5042,7 +5050,7 @@ export const sessionRouter = router({
           quickFeedbackOpen: true,
         },
       });
-      invalidateSessionMetadataCachesForCode(code);
+      invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
     }),
 
@@ -5096,7 +5104,7 @@ export const sessionRouter = router({
           quickFeedbackOpen: true,
         },
       });
-      invalidateSessionMetadataCachesForCode(code);
+      invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
     }),
 
@@ -5152,7 +5160,7 @@ export const sessionRouter = router({
           quickFeedbackOpen: true,
         },
       });
-      invalidateSessionMetadataCachesForCode(code);
+      invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
     }),
 
@@ -5208,7 +5216,7 @@ export const sessionRouter = router({
           quickFeedbackOpen: true,
         },
       });
-      invalidateSessionMetadataCachesForCode(code);
+      invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
     }),
 
@@ -5589,16 +5597,13 @@ export const sessionRouter = router({
       if (input.channel === 'quiz' && !channels.quiz.enabled) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz-Kanal ist nicht aktiv.' });
       }
-      if (input.channel === 'qa' && (!channels.qa.enabled || !channels.qa.open)) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht geöffnet.' });
+      if (input.channel === 'qa' && !channels.qa.enabled) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiv.' });
       }
-      if (
-        input.channel === 'quickFeedback' &&
-        (!channels.quickFeedback.enabled || !channels.quickFeedback.open)
-      ) {
+      if (input.channel === 'quickFeedback' && !channels.quickFeedback.enabled) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Blitzlicht-Kanal ist nicht geöffnet.',
+          message: 'Blitzlicht-Kanal ist nicht aktiv.',
         });
       }
 
@@ -5663,6 +5668,130 @@ export const sessionRouter = router({
       return { presenterSurface: input.surface };
     }),
 
+  pauseQuiz: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            status: true,
+            currentQuestion: true,
+            quizId: true,
+          },
+        });
+        if (!session?.quizId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Kein Quiz-Kanal aktiv.' });
+        }
+        if (session.status !== 'QUESTION_OPEN' && session.status !== 'ACTIVE') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Das Quiz kann nur während Lese- oder Abstimmungsphase pausiert werden.',
+          });
+        }
+        if (session.currentQuestion === null) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'Keine laufende Quizfrage.' });
+        }
+
+        await tx.session.update({
+          where: { id: identity.id },
+          data: {
+            status: 'PAUSED',
+            pausedFromStatus: session.status,
+            statusChangedAt: new Date(),
+          },
+        });
+      });
+
+      invalidateSessionStatusCachesForCode(code);
+      void recordSessionTransitionActivity();
+      return SessionStatusUpdateSchema.parse(await fetchStatusSnapshot(code));
+    }),
+
+  resumeQuiz: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const resumeStatus = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            status: true,
+            currentQuestion: true,
+            pausedFromStatus: true,
+            statusChangedAt: true,
+            activeQuestionStartedAt: true,
+            quizId: true,
+          },
+        });
+        if (!session?.quizId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Kein Quiz-Kanal aktiv.' });
+        }
+        if (
+          session.status !== 'PAUSED' ||
+          (session.pausedFromStatus !== 'QUESTION_OPEN' && session.pausedFromStatus !== 'ACTIVE')
+        ) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Das Quiz ist nicht durch den Host pausiert.',
+          });
+        }
+        if (session.currentQuestion === null) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'Keine pausierte Quizfrage.' });
+        }
+
+        const now = new Date();
+        const resumeStatus = session.pausedFromStatus;
+        const pauseDurationMs = Math.max(0, now.getTime() - session.statusChangedAt.getTime());
+        const resumedQuestionStartedAt =
+          resumeStatus === 'ACTIVE'
+            ? new Date(
+                (session.activeQuestionStartedAt ?? session.statusChangedAt).getTime() +
+                  pauseDurationMs,
+              )
+            : null;
+
+        await tx.session.update({
+          where: { id: identity.id },
+          data: {
+            status: resumeStatus,
+            pausedFromStatus: null,
+            statusChangedAt: now,
+            activeQuestionStartedAt: resumedQuestionStartedAt,
+          },
+        });
+        return resumeStatus;
+      });
+
+      invalidateSessionStatusCachesForCode(code);
+      void recordSessionTransitionActivity();
+      if (resumeStatus === 'ACTIVE') {
+        void markCountdownSessionActive(identity.id);
+      }
+      return SessionStatusUpdateSchema.parse(await fetchStatusSnapshot(code));
+    }),
+
   onStatusChanged: publicProcedure
     .input(PublicSessionCodeLookupInputSchema)
     .subscription(async function* ({ input }) {
@@ -5688,7 +5817,7 @@ export const sessionRouter = router({
       }
     }),
 
-  /** Nächste Frage öffnen (Story 2.3). LOBBY/PAUSED/RESULTS/DISCUSSION → QUESTION_OPEN oder ACTIVE; bei Lesephase aus: direkt ACTIVE.
+  /** Nächste Frage öffnen (Story 2.3). LOBBY/Legacy-PAUSED/RESULTS/DISCUSSION → QUESTION_OPEN oder ACTIVE; bei Lesephase aus: direkt ACTIVE.
    * Zusätzlich: ACTIVE + currentQuestion null (z. B. nach Q&A-Start aus der Lobby) erlaubt den Start der ersten Quiz-Frage. */
   nextQuestion: hostProcedure
     .input(NextQuestionInputSchema)
@@ -5739,6 +5868,15 @@ export const sessionRouter = router({
         if (session.quiz.questions.length === 0) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz hat keine Fragen.' });
         }
+        if (
+          session.status === 'PAUSED' &&
+          (session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE')
+        ) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Das pausierte Quiz muss zuerst fortgesetzt werden.',
+          });
+        }
         const allowedFrom = ['LOBBY', 'PAUSED', 'RESULTS', 'DISCUSSION'];
         const awaitingFirstQuizQuestion =
           session.status === 'ACTIVE' && session.currentQuestion === null;
@@ -5784,6 +5922,7 @@ export const sessionRouter = router({
               currentQuestion: null,
               currentRound: 1,
               activeQuestionStartedAt: null,
+              pausedFromStatus: null,
               statusChangedAt: now,
               endedAt: now,
               questionProgress: serializeSessionQuestionProgress(progressAfterCurrent),
@@ -5835,6 +5974,7 @@ export const sessionRouter = router({
             quizStarted: true,
             statusChangedAt: now,
             activeQuestionStartedAt: newStatus === 'ACTIVE' ? now : null,
+            pausedFromStatus: null,
             questionProgress: serializeSessionQuestionProgress(nextProgress),
             lastSkippedQuestionId: null,
             lastQuestionSkippedAt: null,
@@ -6141,6 +6281,7 @@ export const sessionRouter = router({
               currentQuestion: null,
               currentRound: 1,
               activeQuestionStartedAt: null,
+              pausedFromStatus: null,
               statusChangedAt: now,
               endedAt: now,
               questionProgress: serializeSessionQuestionProgress(skippedProgress),
@@ -6203,6 +6344,7 @@ export const sessionRouter = router({
             quizStarted: true,
             statusChangedAt: now,
             activeQuestionStartedAt: nextStatus === 'ACTIVE' ? now : null,
+            pausedFromStatus: null,
             questionProgress: serializeSessionQuestionProgress(nextProgress),
             lastSkippedQuestionId: currentQuestion.id,
             lastQuestionSkippedAt: now,
@@ -7715,6 +7857,7 @@ export const sessionRouter = router({
             currentQuestion: null,
             currentRound: 1,
             activeQuestionStartedAt: null,
+            pausedFromStatus: null,
             statusChangedAt: now,
             endedAt: now,
             lastSkippedQuestionId: null,
@@ -8051,10 +8194,16 @@ export const sessionRouter = router({
       if (!session.quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
       }
-      if (!['RESULTS', 'FINISHED', 'DISCUSSION', 'PAUSED'].includes(session.status)) {
+      const activeQuestionPausedByHost =
+        session.status === 'PAUSED' &&
+        (session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE');
+      if (
+        !['RESULTS', 'FINISHED', 'DISCUSSION', 'PAUSED'].includes(session.status) ||
+        activeQuestionPausedByHost
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Scorecard nur bei RESULTS, DISCUSSION, PAUSED oder FINISHED verfügbar.',
+          message: 'Scorecard erst nach Freigabe der Ergebnisse verfügbar.',
         });
       }
 

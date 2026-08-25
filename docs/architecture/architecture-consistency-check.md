@@ -169,12 +169,12 @@ enum SessionStatus { LOBBY, ACTIVE, PAUSED, RESULTS, FINISHED }
 Zeigen nur `LOBBY → ACTIVE → RESULTS → FINISHED`. Der `PAUSED`-Status wird nirgends im Ablauf erwähnt.
 
 **Bewertung:**
-`PAUSED` ist vermutlich der Zustand zwischen zwei Fragen (nach `RESULTS`, bevor die nächste Frage mit `ACTIVE` beginnt). Dies ist aber in keinem Diagramm und keinem Backlog-Akzeptanzkriterium dokumentiert.
+Historische Annahme: `PAUSED` sei der Zustand zwischen zwei Fragen. Diese Annahme wurde mit der produktiven Quiz-Pause vom 2026-08-25 abgelöst.
 
 **Empfehlung:**
-Entweder den Status `PAUSED` im Aktivitäts- und Sequenzdiagramm integrieren (zwischen `RESULTS` und nächster Frage) oder im Handbook/Backlog den Verwendungszweck dokumentieren.
+Den Status `PAUSED` als zustandserhaltende Host-Unterbrechung von `QUESTION_OPEN` oder `ACTIVE` in Aktivitätsdiagramm, Sequenzdiagramm und Backlog konsistent dokumentieren.
 
-**Erledigt (2026-02-21):** `PAUSED`-Status in Aktivitäts- und Dozent-Sequenzdiagramm (`diagrams.md`) integriert.
+**Erledigt (2026-02-21), fachlich aktualisiert (2026-08-25):** `pausedFromStatus` hält die unterbrochene Phase; zwischen `RESULTS` und „Nächste Frage“ wird kein `PAUSED` mehr verwendet.
 
 ---
 

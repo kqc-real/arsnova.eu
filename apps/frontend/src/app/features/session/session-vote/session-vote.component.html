@@ -595,6 +595,14 @@
             <ng-container [ngTemplateOutlet]="timerAccommodationPanel" />
           }
         </div>
+      } @else if (isPaused()) {
+        <div class="vote-lobby vote-lobby--active" data-testid="vote-quiz-paused">
+          <mat-icon class="vote-lobby__icon" aria-hidden="true">pause</mat-icon>
+          <p class="vote-lobby__text" i18n="@@sessionVote.quizPausedTitle">Quiz pausiert</p>
+          <p class="vote-lobby__hint" i18n="@@sessionVote.quizPausedHint">
+            Gleich geht es mit derselben Frage weiter.
+          </p>
+        </div>
       } @else if (isActive() && isStandaloneQaSession()) {
         <div class="vote-lobby vote-lobby--active">
           <mat-icon class="vote-lobby__icon" aria-hidden="true">forum</mat-icon>
@@ -1181,7 +1189,7 @@
                 id="vote-discussion-ordering-heading"
                 i18n="@@sessionVote.discussionOrderingOptions"
               >
-                Elemente in neutraler Reihenfolge
+                Unsortierte Reihenfolge
               </h2>
               <ol class="vote-structured-preview__list" role="list">
                 @for (item of $any(q).orderingItems || []; track item.id; let idx = $index) {

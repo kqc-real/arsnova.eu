@@ -175,6 +175,17 @@ sequenceDiagram
         S-->>S: Antwort-Buttons + Countdown
     end
 
+    opt Host unterbricht die laufende Lese- oder Abstimmungsphase
+        D->>FE: Quiz pausieren
+        FE->>BE: session.pauseQuiz
+        BE->>PG: Status = PAUSED, pausedFromStatus = QUESTION_OPEN oder ACTIVE
+        BE-->>S: onStatusChanged PAUSED
+        S-->>S: Pause-Hinweis, Antworten gesperrt
+        D->>FE: Quiz fortsetzen
+        FE->>BE: session.resumeQuiz
+        BE->>PG: Vorherige Phase wiederherstellen, Timer-Anker verschieben
+    end
+
     Note over S,BE: Student votet
     S->>FE: Antwort auswählen oder Zahl schätzen
     FE->>BE: vote.submit
@@ -191,7 +202,7 @@ sequenceDiagram
     BE-->>S: tRPC Subscription onResultsRevealed - mit isCorrect
     S-->>S: Ergebnisse + Punkte
 
-    Note over D,S: Zwischen Fragen - PAUSED, dann erneut nextQuestion
+    Note over D,S: RESULTS bleibt bis „Nächste Frage“ oder Session-Ende bestehen
     D->>FE: Session beenden
     FE->>BE: session.end
     BE->>PG: Status FINISHED

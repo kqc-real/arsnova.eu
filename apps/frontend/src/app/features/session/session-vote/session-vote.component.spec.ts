@@ -4905,6 +4905,95 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt die Quiz-Pause und erhält einen noch nicht gesendeten Antwortentwurf', async () => {
+    const activeAt = '2026-08-25T12:00:00.000Z';
+    const resumedActiveAt = '2026-08-25T12:00:30.000Z';
+    let statusListener: ((data: unknown) => void) | null = null;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        statusListener = opts.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const question = {
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 0,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      timer: 60,
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'a1', text: 'Rot' },
+        { id: 'a2', text: 'Blau' },
+      ],
+      activeAt,
+      participantCount: 6,
+      totalVotes: 1,
+      currentRound: 1,
+    };
+    currentQuestionQueryMock
+      .mockResolvedValueOnce(question)
+      .mockResolvedValueOnce({ ...question, activeAt: resumedActiveAt });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(fixture.componentInstance.currentQuestion()).not.toBeNull());
+
+    fixture.componentInstance.toggleAnswer('a1');
+    expect(fixture.componentInstance.selectedAnswerIds().has('a1')).toBe(true);
+
+    statusListener?.({
+      status: 'PAUSED',
+      currentQuestion: 0,
+      currentRound: 1,
+      pausedFromStatus: 'ACTIVE',
+      serverTime: '2026-08-25T12:00:10.000Z',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isPaused()).toBe(true);
+    expect(fixture.componentInstance.selectedAnswerIds().has('a1')).toBe(true);
+    expect(currentQuestionQueryMock).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.querySelector('[data-testid="vote-quiz-paused"]')).not.toBeNull();
+    fixture.componentInstance.selectChannel('qa');
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+
+    statusListener?.({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      pausedFromStatus: null,
+      activeAt: resumedActiveAt,
+      timer: 60,
+      serverTime: '2026-08-25T12:00:40.000Z',
+    });
+    await vi.waitFor(() => expect(currentQuestionQueryMock).toHaveBeenCalledTimes(2));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isActive()).toBe(true);
+    expect(fixture.componentInstance.selectedAnswerIds().has('a1')).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="vote-quiz-paused"]')).toBeNull();
+    fixture.destroy();
+  });
+
   it('kündigt eine ausgelassene Frage visuell und über die höfliche Live-Region an', async () => {
     let statusListener: ((data: unknown) => void) | null = null;
     statusChangedSubscribeMock.mockImplementation(

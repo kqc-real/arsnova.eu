@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   LOCALE_ID,
@@ -32,6 +32,7 @@ import {
   feedbackResultOrder,
   feedbackTitle,
 } from '../../feedback/feedback.config';
+import { EMOJI_REACTIONS } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
@@ -96,6 +97,11 @@ type PackedLobbyIdentity = {
   title: string;
 };
 
+type PresenterEmojiReactions = {
+  reactions: Record<string, number>;
+  total: number;
+};
+
 const LOBBY_FOYER_LANE_COUNT = 3;
 const LOBBY_FOYER_MAX_ACTIVE_CHIPS = 6;
 const LOBBY_FOYER_CHIP_LIFETIME_MS = 1100;
@@ -132,6 +138,7 @@ type LobbyFoyerMotionProfile = {
     MatCard,
     MatCardContent,
     MatIcon,
+    NgTemplateOutlet,
     RouterLink,
     WordCloudComponent,
     SessionProjectionQuizComponent,
@@ -190,6 +197,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly hostQuestion = signal<HostCurrentQuestionDTO | null>(null);
   readonly hostVoteProgress = signal<HostVoteProgressDTO | null>(null);
+  readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
+  readonly emojiOrder = EMOJI_REACTIONS;
+  private emojiReactionScope: string | null = null;
   readonly joinQrDataUrl = signal('');
   readonly countdownSeconds = signal<number | null>(null);
   private currentQuestionSub: Unsubscribable | null = null;
@@ -201,6 +211,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly joinUrl = resolveLocalizedJoinUrl(this.code);
   readonly sessionCode = this.code;
   readonly showHomeCta = signal(false);
+  readonly connectionDegraded = signal(false);
+  readonly connectionStatusMessage = computed(() =>
+    this.session()
+      ? $localize`:@@sessionPresent.reconnectingWithSnapshot:Verbindung wird wiederhergestellt. Der letzte Stand bleibt sichtbar.`
+      : $localize`:@@sessionPresent.reconnecting:Verbindung wird wiederhergestellt …`,
+  );
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
@@ -213,7 +229,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly qaWordCloudTitle = $localize`:@@sessionQa.wordCloudTitle:Q&A-Wortwolke`;
   readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
-  readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
+  readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.`;
+  readonly presenterStandbyEyebrow = $localize`:@@sessionHost.presenterViewLabel:Presenter-Ansicht`;
+  readonly quizPausedTitle = $localize`:@@sessionPresent.quizPausedTitle:Quiz pausiert`;
+  readonly quizPausedMessage = $localize`:@@sessionPresent.quizPausedMessage:Gleich geht es mit derselben Frage weiter.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly lobbyParticipants = signal<LobbyParticipant[]>([]);
   readonly lobbyTeams = signal<LobbyTeam[]>([]);
@@ -306,9 +325,32 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return grouped;
   });
   readonly showSecondaryPresentSurfaces = computed(() => !this.showFinishProjection());
+  readonly showQuizPauseProjection = computed(
+    () =>
+      this.session()?.status === 'PAUSED' &&
+      (this.session()?.pausedFromStatus === 'QUESTION_OPEN' ||
+        this.session()?.pausedFromStatus === 'ACTIVE') &&
+      this.session()?.preferredChannel === 'quiz' &&
+      !this.showFinishProjection(),
+  );
+  readonly preferredSecondaryChannel = computed<'qa' | 'quickFeedback' | null>(() => {
+    if (!this.showSecondaryPresentSurfaces()) {
+      return null;
+    }
+    const preferred = this.session()?.preferredChannel;
+    return preferred === 'qa' || preferred === 'quickFeedback' ? preferred : null;
+  });
+  readonly preferredSecondaryChannelOpen = computed(() => {
+    const preferred = this.preferredSecondaryChannel();
+    if (!preferred) {
+      return false;
+    }
+    return this.session()?.channels?.[preferred].open !== false;
+  });
   readonly showQaProjection = computed(
     () =>
-      this.session()?.preferredChannel === 'qa' &&
+      this.preferredSecondaryChannel() === 'qa' &&
+      this.preferredSecondaryChannelOpen() &&
       this.presenterQaWordCloudQuestions().length > 0 &&
       this.showSecondaryPresentSurfaces(),
   );
@@ -324,7 +366,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.session()?.presenterSurface !== 'qaWordCloud' &&
       this.presenterQaQuestions().length > 0,
   );
-  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 6));
+  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 4));
+  readonly qaQueueIsDense = computed(
+    () =>
+      this.visibleQaQueueQuestions().length >= 4 ||
+      this.visibleQaQueueQuestions().some((question) => question.text.length > 120),
+  );
   readonly showQaWordCloud = computed(
     () => this.showQaProjection() && this.session()?.presenterSurface === 'qaWordCloud',
   );
@@ -377,15 +424,48 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly showQuickFeedbackCard = computed(
     () =>
-      this.session()?.preferredChannel === 'quickFeedback' &&
+      this.preferredSecondaryChannel() === 'quickFeedback' &&
+      this.preferredSecondaryChannelOpen() &&
       this.quickFeedbackResult() !== null &&
       this.showSecondaryPresentSurfaces(),
   );
+  readonly presenterStandbyChannel = computed<'qa' | 'quickFeedback' | null>(() => {
+    const preferred = this.preferredSecondaryChannel();
+    if (preferred === 'qa' && !this.showQaProjection()) {
+      return preferred;
+    }
+    if (preferred === 'quickFeedback' && !this.showQuickFeedbackCard()) {
+      return preferred;
+    }
+    return null;
+  });
+  readonly presenterStandbyState = computed<'closed' | 'empty'>(() =>
+    this.preferredSecondaryChannelOpen() ? 'empty' : 'closed',
+  );
+  readonly presenterStandbyTitle = computed(() => {
+    if (this.presenterStandbyChannel() === 'qa') {
+      return this.session()?.channels?.qa.title?.trim() || $localize`:@@sessionTabs.questions:Q&A`;
+    }
+    return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
+  });
+  readonly presenterStandbyMessage = computed(() => {
+    const channel = this.presenterStandbyChannel();
+    if (!this.preferredSecondaryChannelOpen()) {
+      return channel === 'qa'
+        ? $localize`:@@sessionPresent.qaClosed:Q&A ist geschlossen.`
+        : $localize`:@@sessionPresent.quickFeedbackClosed:Blitzlicht ist geschlossen.`;
+    }
+    return channel === 'qa'
+      ? $localize`:@@sessionPresent.qaStandby:Noch keine freigegebenen Fragen.`
+      : $localize`:@@sessionPresent.quickFeedbackStandby:Blitzlicht noch nicht gestartet.`;
+  });
   readonly showPresenterFreetextStage = computed(() => {
     if (
       !this.presenterFreetextActive() ||
       this.showFinishProjection() ||
-      this.showLobbyProjection()
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection() ||
+      this.presenterStandbyChannel() !== null
     ) {
       return false;
     }
@@ -404,6 +484,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   });
   readonly showFinishProjection = computed(() => this.session()?.status === 'FINISHED');
+  readonly hasFinishResults = computed(
+    () => this.personalLeaderboard().length > 0 || this.teamLeaderboard().length > 0,
+  );
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return (
@@ -416,21 +499,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () =>
       this.session()?.status === 'LOBBY' &&
       !this.showFinishProjection() &&
+      !this.showQuizPauseProjection() &&
       !this.showQaProjection() &&
-      !this.showQuickFeedbackCard(),
+      !this.showQuickFeedbackCard() &&
+      this.presenterStandbyChannel() === null,
   );
   readonly hasLobbyAudienceColumns = computed(
     () => this.lobbyTeamsView().length > 0 || this.lobbyPeople().length > 0,
   );
   readonly showQuizProjection = computed(() => {
-    if (this.showFinishProjection() || this.showLobbyProjection()) {
+    if (
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection()
+    ) {
       return false;
     }
     const session = this.session();
     if (!session || session.type === 'Q_AND_A') {
       return false;
     }
-    if (this.showQaProjection() || this.showQuickFeedbackCard()) {
+    if (
+      this.showQaProjection() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
       return false;
     }
     return this.hostQuestion() !== null;
@@ -525,6 +618,20 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const order = feedbackResultOrder(data.type);
     return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
   });
+  readonly quickFeedbackResultsVisible = computed(() => {
+    const result = this.quickFeedbackResult();
+    if (!result) {
+      return false;
+    }
+    return (
+      result.resultsVisible ??
+      result.showLiveResults ??
+      (result.locked || result.discussion === true)
+    );
+  });
+  readonly quickFeedbackShowsPercentages = computed(
+    () => this.quickFeedbackResultsVisible() && (this.quickFeedbackResult()?.totalVotes ?? 0) >= 5,
+  );
 
   async ngOnInit(): Promise<void> {
     if (typeof document !== 'undefined') {
@@ -600,6 +707,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     await this.refreshQaQuestions();
     await this.refreshQuickFeedbackResult();
     await this.refreshHostQuestion();
+    await this.refreshEmojiReactions();
     await this.refreshHostVoteProgress();
     await this.refreshLobbyAudience();
   }
@@ -738,6 +846,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return feedbackDisplayIcon(key, type);
   }
 
+  quickFeedbackIsNeutralEntry(key: string, type: string): boolean {
+    return (
+      (type === 'MOOD' && key === 'NEUTRAL') ||
+      (type === 'YESNO' && key === 'MAYBE') ||
+      (type === 'TRUEFALSE_UNKNOWN' && key === 'UNKNOWN') ||
+      (type === 'STARS' && key === '3') ||
+      (type === 'TEMPO' && key === 'FOLLOWING')
+    );
+  }
+
   quickFeedbackStatusLabel(): string | null {
     const result = this.quickFeedbackResult();
     if (!result) {
@@ -785,6 +903,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
       });
       recordServerTimeSample(session.serverTime, requestedAt);
+      this.connectionDegraded.set(false);
       this.showHomeCta.set(false);
       this.session.set(session);
       if (session.status === 'FINISHED') {
@@ -794,6 +913,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
+      if (!this.isDefinitiveSessionError(error)) {
+        this.connectionDegraded.set(true);
+        this.showHomeCta.set(false);
+        if (!this.session()) {
+          this.presenterInfo.set(this.connectionStatusMessage());
+        }
+        return;
+      }
+      this.connectionDegraded.set(false);
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
@@ -875,9 +1003,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.presenterInfo.set($localize`Noch keine aktive Frage.`);
       }
     } catch {
-      this.freetextQuestionId.set(null);
-      this.presenterFreetextActive.set(false);
-      this.presenterInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
+      this.connectionDegraded.set(true);
     }
   }
 
@@ -900,8 +1026,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.pinnedQaQuestion.set(pinned);
       this.presenterQaQuestions.set(queue);
     } catch {
-      this.pinnedQaQuestion.set(null);
-      this.presenterQaQuestions.set([]);
+      this.connectionDegraded.set(true);
     }
   }
 
@@ -917,8 +1042,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         sessionCode: this.code.toUpperCase(),
       });
       this.quickFeedbackResult.set(result);
-    } catch {
-      this.quickFeedbackResult.set(null);
+    } catch (error: unknown) {
+      if (this.errorCode(error) === 'NOT_FOUND') {
+        this.quickFeedbackResult.set(null);
+      } else {
+        this.connectionDegraded.set(true);
+      }
     }
   }
 
@@ -939,7 +1068,40 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.stopCountdown();
       }
     } catch {
-      this.hostQuestion.set(null);
+      this.connectionDegraded.set(true);
+    }
+  }
+
+  private async refreshEmojiReactions(): Promise<void> {
+    const session = this.session();
+    const question = this.hostQuestion();
+    if (
+      !session?.enableEmojiReactions ||
+      (session.status !== 'ACTIVE' && session.status !== 'RESULTS') ||
+      !question
+    ) {
+      this.emojiReactionScope = null;
+      this.emojiReactions.set(null);
+      return;
+    }
+
+    const round = question.currentRound ?? 1;
+    const scope = `${question.questionId}:r${round}`;
+    if (this.emojiReactionScope !== scope) {
+      this.emojiReactionScope = scope;
+      this.emojiReactions.set(null);
+    }
+
+    try {
+      this.emojiReactions.set(
+        await trpc.session.getReactions.query({
+          sessionId: session.id,
+          questionId: question.questionId,
+          round,
+        }),
+      );
+    } catch {
+      this.connectionDegraded.set(true);
     }
   }
 
@@ -953,7 +1115,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         await trpc.session.getHostVoteProgress.query({ code: this.code.toUpperCase() }),
       );
     } catch {
-      this.hostVoteProgress.set(null);
+      this.connectionDegraded.set(true);
     }
   }
 
@@ -967,6 +1129,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       {
         onData: (data) => this.hostQuestion.set(data),
         onError: () => {
+          this.connectionDegraded.set(true);
           this.currentQuestionSub?.unsubscribe();
           this.currentQuestionSub = null;
         },
@@ -977,6 +1140,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       {
         onData: (data) => this.hostVoteProgress.set(data),
         onError: () => {
+          this.connectionDegraded.set(true);
           this.voteProgressSub?.unsubscribe();
           this.voteProgressSub = null;
         },
@@ -995,6 +1159,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   ...current,
                   status: data.status as SessionInfoDTO['status'],
                   currentQuestion: data.currentQuestion,
+                  pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
                 }
@@ -1006,11 +1171,51 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           }
         },
         onError: () => {
+          this.connectionDegraded.set(true);
           this.statusSub?.unsubscribe();
           this.statusSub = null;
         },
       },
     );
+  }
+
+  private isDefinitiveSessionError(error: unknown): boolean {
+    const candidate = error as
+      | {
+          message?: unknown;
+          data?: { code?: unknown };
+          shape?: { data?: { code?: unknown } };
+        }
+      | null
+      | undefined;
+    const code = candidate?.data?.code ?? candidate?.shape?.data?.code;
+    if (code === 'NOT_FOUND' || code === 'UNAUTHORIZED') {
+      return true;
+    }
+    const message = typeof candidate?.message === 'string' ? candidate.message : '';
+    return (
+      message.startsWith('NOT_FOUND:') ||
+      message.startsWith('UNAUTHORIZED:') ||
+      message.includes('Session nicht gefunden.')
+    );
+  }
+
+  private errorCode(error: unknown): string | null {
+    const candidate = error as
+      | {
+          message?: unknown;
+          data?: { code?: unknown };
+          shape?: { data?: { code?: unknown } };
+        }
+      | null
+      | undefined;
+    const code = candidate?.data?.code ?? candidate?.shape?.data?.code;
+    if (typeof code === 'string') {
+      return code;
+    }
+    const message = typeof candidate?.message === 'string' ? candidate.message : '';
+    const match = /^([A-Z_]+):/.exec(message);
+    return match?.[1] ?? null;
   }
 
   private syncCountdownFromStatus(

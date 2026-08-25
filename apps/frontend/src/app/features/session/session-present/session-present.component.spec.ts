@@ -16,6 +16,7 @@ const {
   quickFeedbackResultsQueryMock,
   getCurrentQuestionForHostQueryMock,
   getHostVoteProgressQueryMock,
+  getReactionsQueryMock,
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
@@ -29,6 +30,7 @@ const {
   quickFeedbackResultsQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
+  getReactionsQueryMock: vi.fn(),
   subscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
 }));
 
@@ -65,6 +67,9 @@ vi.mock('../../../core/trpc.client', () => ({
       getHostVoteProgress: {
         query: getHostVoteProgressQueryMock,
       },
+      getReactions: {
+        query: getReactionsQueryMock,
+      },
       onCurrentQuestionForHostChanged: {
         subscribe: subscribeMock,
       },
@@ -89,6 +94,19 @@ vi.mock('../../../core/trpc.client', () => ({
 }));
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+
+function expectNoHostControls(root: HTMLElement): void {
+  const forbiddenSelectors = [
+    'app-session-host',
+    'app-feedback-host',
+    '.session-host',
+    '.session-channel-tabs',
+    '[data-testid^="host-"]',
+  ];
+  for (const selector of forbiddenSelectors) {
+    expect(root.querySelector(selector), `Unerlaubte Host-Steuerung: ${selector}`).toBeNull();
+  }
+}
 
 describe('SessionPresentComponent', () => {
   beforeEach(() => {
@@ -121,6 +139,7 @@ describe('SessionPresentComponent', () => {
     });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getHostVoteProgressQueryMock.mockResolvedValue(null);
+    getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
     subscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
     TestBed.configureTestingModule({
@@ -386,8 +405,40 @@ describe('SessionPresentComponent', () => {
     expect(finish?.querySelector(':scope > .session-present__finish-hero')).not.toBeNull();
     expect(finish?.querySelector(':scope > .session-present__board-card')).not.toBeNull();
     expect(finish?.querySelector(':scope > .session-present__team-board-card')).not.toBeNull();
+    expect(finish?.querySelector('.session-present__finish-home')).toBeNull();
+    expect(finish?.textContent).not.toContain('Zur Startseite');
     const teamTracks = fixture.nativeElement.querySelectorAll('.session-present__team-board-track');
     expect(teamTracks.length).toBe(2);
+    fixture.destroy();
+  });
+
+  it('zeigt ohne Beteiligung nur einen passiven Hinweis auf das Session-Ende', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Vorlesung',
+      title: null,
+      participantCount: 0,
+      teamMode: false,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const idle = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-finish-idle"]',
+    ) as HTMLElement | null;
+    expect(idle).not.toBeNull();
+    expect(idle?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Die Session ist beendet.');
+    expect(idle?.querySelector('a, button, mat-card')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Gesamtauswertung');
+    expect(fixture.nativeElement.textContent).not.toContain('Zur Startseite');
     fixture.destroy();
   });
 
@@ -501,6 +552,12 @@ describe('SessionPresentComponent', () => {
     expect(list?.classList.contains('session-present__board-list--overflow')).toBe(true);
     expect(list?.classList.contains('session-present__board-list--compact')).toBe(true);
     expect(list?.style.getPropertyValue('--board-cols').trim()).toBe('5');
+    const finish = fixture.nativeElement.querySelector(
+      '.session-present__finish',
+    ) as HTMLElement | null;
+    expect(finish?.querySelector('.session-present__finish-title')).toBeNull();
+    expect(finish?.hasAttribute('aria-labelledby')).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('Gesamtauswertung');
     fixture.destroy();
   });
 
@@ -576,6 +633,35 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('behält bei einem transienten Reconnect den letzten Presenter-Stand sichtbar', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const stableSession = fixture.componentInstance.session();
+    expect(stableSession).not.toBeNull();
+
+    getInfoQueryMock.mockRejectedValueOnce(new Error('Failed to fetch'));
+    await fixture.componentInstance['refreshSessionMeta']();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.session()).toEqual(stableSession);
+    expect(fixture.componentInstance.showHomeCta()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Der letzte Stand bleibt sichtbar.');
+
+    await fixture.componentInstance['refreshSessionMeta']();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
   it('zeigt eine angepinnte Frage prominent in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -617,6 +703,150 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Frage aus dem Publikum');
     expect(text).toContain('Wird gerade beantwortet');
     expect(text).toContain('Welche Themen sind heute besonders wichtig?');
+    fixture.destroy();
+  });
+
+  it('projiziert Emoji-Reaktionen der laufenden Quizfrage passiv', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      enableEmojiReactions: true,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Was hilft beim Lernen?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      showQuestionTypeIndicators: true,
+      currentRound: 2,
+      timer: 30,
+      answers: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          text: 'Üben',
+          isCorrect: true,
+        },
+      ],
+    });
+    getReactionsQueryMock.mockResolvedValue({
+      reactions: { '👏': 2, '🎉': 1 },
+      total: 3,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(getReactionsQueryMock).toHaveBeenCalledWith({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      questionId: '11111111-1111-4111-8111-111111111111',
+      round: 2,
+    });
+    const reactions = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-emoji-reactions"]',
+    ) as HTMLElement | null;
+    expect(reactions?.textContent).toContain('Reaktionen der Teilnehmenden');
+    expect(reactions?.textContent).toContain('👏');
+    expect(reactions?.textContent).toContain('2');
+    expect(reactions?.querySelector('button, a, input')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt während einer Quiz-Pause eine exklusive Pause-Bühne', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Diese Frage bleibt pausiert.',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      showQuestionTypeIndicators: true,
+      timer: 30,
+      answers: [],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]'),
+    ).not.toBeNull();
+    const statusHandlers = subscribeMock.mock.calls.at(-1)?.[1] as
+      | {
+          onData: (data: {
+            status: 'PAUSED';
+            currentQuestion: number;
+            pausedFromStatus: 'ACTIVE';
+            preferredChannel: 'quiz';
+            presenterSurface: 'default';
+          }) => void;
+        }
+      | undefined;
+    statusHandlers?.onData({
+      status: 'PAUSED',
+      currentQuestion: 0,
+      pausedFromStatus: 'ACTIVE',
+      preferredChannel: 'quiz',
+      presenterSurface: 'default',
+    });
+    fixture.detectChanges();
+
+    const paused = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-quiz-paused"]',
+    ) as HTMLElement | null;
+    expect(paused?.dataset['state']).toBe('paused');
+    expect(paused?.textContent).toContain('Quiz pausiert');
+    expect(paused?.textContent).toContain('Gleich geht es mit derselben Frage weiter.');
+    expect(paused?.textContent).toContain('ABC123');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Diese Frage bleibt pausiert.');
+
+    fixture.componentInstance.session.update((session) =>
+      session ? { ...session, status: 'ACTIVE' } : session,
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-paused"]')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]'),
+    ).not.toBeNull();
     fixture.destroy();
   });
 
@@ -681,7 +911,7 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('behält die Lobby bei, solange der ausgewählte Q&A-Kanal noch keine sichtbare Frage hat', async () => {
+  it('zeigt für einen leeren Q&A-Kanal eine Standby-Bühne mit Beitrittsdaten', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -707,8 +937,108 @@ describe('SessionPresentComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
+    const root = fixture.nativeElement.querySelector('.session-present') as HTMLElement;
+    const standby = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-channel-standby"]',
+    ) as HTMLElement | null;
+    expect(root.classList.contains('session-present--standby')).toBe(true);
+    expect(root.classList.contains('session-present--lobby')).toBe(false);
+    expect(standby?.dataset['channel']).toBe('qa');
+    expect(standby?.textContent).toContain('Presenter-Ansicht');
+    expect(standby?.textContent).toContain('Fragen');
+    expect(standby?.textContent).toContain('Noch keine freigegebenen Fragen.');
+    expect(standby?.textContent).toContain('ABC123');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-card')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-qr')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-audience')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
+
+    fixture.componentInstance.presenterQaQuestions.set([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Jetzt ist die Frage freigegeben.',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-08-25T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-channel-standby"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt für geschlossenes Q&A einen Hinweis statt vorhandener Fragen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.presenterQaQuestions.set([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Diese alte Frage darf geschlossen nicht sichtbar sein.',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-08-25T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const standby = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-channel-standby"]',
+    ) as HTMLElement | null;
+    expect(standby?.dataset['channel']).toBe('qa');
+    expect(standby?.dataset['state']).toBe('closed');
+    expect(standby?.textContent).toContain('Q&A ist geschlossen.');
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Diese alte Frage darf geschlossen nicht sichtbar sein.',
+    );
+    expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).toBeNull();
+
+    fixture.componentInstance.session.update((session) =>
+      session?.channels
+        ? {
+            ...session,
+            channels: {
+              ...session.channels,
+              qa: { ...session.channels.qa, open: true },
+            },
+          }
+        : session,
+    );
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-channel-standby"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -764,7 +1094,28 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Kommt Kapitel 4 in der Klausur vor?');
     expect(text).toContain('Kannst du das Beispiel noch einmal erklären?');
     expect(text).not.toContain('Q&A-Wortwolke');
+    expectNoHostControls(fixture.nativeElement as HTMLElement);
     fixture.destroy();
+  });
+
+  it('begrenzt die Q&A-Projektion auf vier kommende Fragen', () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.componentInstance.presenterQaQuestions.set(
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `00000000-0000-4000-8000-00000000000${index}`,
+        text: `Publikumsfrage ${index + 1}`,
+        upvoteCount: 6 - index,
+        status: 'ACTIVE' as const,
+        createdAt: `2026-03-13T12:0${index}:00.000Z`,
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      })),
+    );
+
+    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(4);
+    expect(fixture.componentInstance.visibleQaQueueQuestions()[3]?.text).toBe('Publikumsfrage 4');
+    expect(fixture.componentInstance.qaQueueIsDense()).toBe(true);
   });
 
   it('zeigt in der Presenter-Ansicht eine upvote-gewichtete Q&A-Word-Cloud', async () => {
@@ -826,6 +1177,120 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('Maximieren');
     expect(text).not.toContain('Als Nächstes im Raum');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
+    expectNoHostControls(fixture.nativeElement as HTMLElement);
+    fixture.destroy();
+  });
+
+  it('zeigt für Blitzlicht ohne gestartete Runde eine Standby-Bühne', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const standby = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-channel-standby"]',
+    ) as HTMLElement | null;
+    expect(standby?.dataset['channel']).toBe('quickFeedback');
+    expect(standby?.textContent).toContain('Blitzlicht');
+    expect(standby?.textContent).toContain('Blitzlicht noch nicht gestartet.');
+    expect(standby?.textContent).toContain('ABC123');
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
+
+    fixture.componentInstance.quickFeedbackResult.set({
+      type: 'YESNO',
+      locked: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-channel-standby"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-card')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt für geschlossenes Blitzlicht einen Hinweis statt alter Ergebnisse', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'YESNO',
+      locked: true,
+      totalVotes: 9,
+      distribution: { YES: 5, NO: 2, MAYBE: 2 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const standby = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-channel-standby"]',
+    ) as HTMLElement | null;
+    expect(standby?.dataset['channel']).toBe('quickFeedback');
+    expect(standby?.dataset['state']).toBe('closed');
+    expect(standby?.textContent).toContain('Blitzlicht ist geschlossen.');
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-card')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('9 Stimmen');
+
+    fixture.componentInstance.session.update((session) =>
+      session?.channels
+        ? {
+            ...session,
+            channels: {
+              ...session.channels,
+              quickFeedback: { ...session.channels.quickFeedback, open: true },
+            },
+          }
+        : session,
+    );
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-channel-standby"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-card')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -850,6 +1315,8 @@ describe('SessionPresentComponent', () => {
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
       locked: false,
+      showLiveResults: true,
+      resultsVisible: true,
       totalVotes: 9,
       distribution: { YES: 5, NO: 2, MAYBE: 2 },
       currentRound: 2,
@@ -866,7 +1333,68 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Ja · Nein · Vielleicht');
     expect(text).toContain('Runde 2 läuft');
     expect(text).toContain('9 Stimmen');
+    expectNoHostControls(fixture.nativeElement as HTMLElement);
     fixture.destroy();
+  });
+
+  it('zeigt bei verdeckten Blitzlicht-Ergebnissen nur die Beteiligung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 8,
+      teamMode: false,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'YESNO',
+      locked: false,
+      showLiveResults: false,
+      resultsVisible: false,
+      totalVotes: 3,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+    expect(text).toContain('3 Stimmen');
+    expect(text).toContain('Antworten werden gesammelt');
+    expect(text).toContain('Die Verteilung erscheint nach dem Pausieren oder Rundenende.');
+    expect(fixture.nativeElement.querySelector('.session-present__feedback-bars')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt Prozentwerte im Blitzlicht erst ab fünf Stimmen', () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.componentInstance.quickFeedbackResult.set({
+      type: 'YESNO',
+      locked: false,
+      showLiveResults: true,
+      resultsVisible: true,
+      totalVotes: 4,
+      distribution: { YES: 3, NO: 1, MAYBE: 0 },
+    });
+    expect(fixture.componentInstance.quickFeedbackShowsPercentages()).toBe(false);
+
+    fixture.componentInstance.quickFeedbackResult.update((result) =>
+      result ? { ...result, totalVotes: 5 } : result,
+    );
+    expect(fixture.componentInstance.quickFeedbackShowsPercentages()).toBe(true);
   });
 
   it('zeigt ausschließlich Blitzlicht, wenn Q&A-Daten weiterhin vorhanden sind', async () => {

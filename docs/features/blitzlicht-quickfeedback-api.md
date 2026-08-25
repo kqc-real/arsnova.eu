@@ -1,7 +1,7 @@
 # Blitzlicht · tRPC `quickFeedback` (API-Referenz)
 
 > **Zielgruppe:** Entwickler  
-> **Stand:** 2026-07-27 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts` und PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164)
+> **Stand:** 2026-08-25 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts`
 
 In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [BLITZLICHT-GUIDELINES](../ui/BLITZLICHT-GUIDELINES.md)). Technisch liegt die Domäne im tRPC-Router **`quickFeedback`** (kein Prisma; Zustand in **Redis**, TTL ca. 30 Min.).
 
@@ -20,7 +20,7 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 
 - **Session-gebundenes Blitzlicht:** host-only Mutationen erwarten das normale Session-Host-Token über `x-host-token`.
 - **Standalone-Blitzlicht:** host-only Mutationen erwarten ein eigenes **Feedback-Host-Token** über `x-feedback-host-token`.
-- **Teilnehmendenpfad:** `/feedback/:code/vote` bleibt ohne Host-Token nutzbar; geschützt werden nur host-only Aktionen wie `changeType`, `toggleLock`, `reset`, `end` oder `startSecondRound`.
+- **Teilnehmendenpfad:** `/feedback/:code/vote` bleibt ohne Host-Token nutzbar; geschützt werden nur host-only Aktionen wie `changeType`, `setLiveResults`, `toggleLock`, `reset`, `end` oder `startSecondRound`.
 - Die Architektur dazu ist in [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md) festgehalten.
 
 ---
@@ -31,6 +31,7 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 | ------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `create`           | Mutation     | Neue Runde; optional `sessionCode` für eingebettetes Blitzlicht                                                                                              |
 | `changeType`       | Mutation     | Formatwechsel im laufenden Code-Kontext; setzt Verteilung/Zähler zurück                                                                                      |
+| `setLiveResults`   | Mutation     | Ändert die öffentliche Live-Freigabe der Verteilung ohne Stimmen oder Runde zurückzusetzen                                                                   |
 | `reset`            | Mutation     | Stimmen und Runden-Metadaten zurücksetzen, Format bleibt                                                                                                     |
 | `end`              | Mutation     | Redis-Keys zum Code entfernen (Standalone-/Blitzlicht-Runde beenden; nicht identisch mit `session.end`)                                                      |
 | `toggleLock`       | Mutation     | Abstimmung sperren / entsperren (`locked`)                                                                                                                   |
@@ -47,6 +48,14 @@ Eingaben/Ausgaben: Zod-Schemas in `@arsnova/shared-types` (z. B. `QuickFeedbac
 Aktuelle Formate: `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`, `TEMPO`.
 
 **Abgrenzung zu UI-Presets:** Blitzlicht-Ergebnisse enthalten kein globales UI-Theme und kein UI-Preset. Host-, Vote- und Present-Clients behalten ihre lokalen Browserwerte aus `ThemePresetService`; das gilt sowohl für `/session/:code/vote` als auch für `/feedback/:code/vote`.
+
+### Öffentliche Ergebnisfreigabe
+
+- Der Redis-Snapshot trägt `showLiveResults`; `resultsVisible` beschreibt im öffentlichen DTO den tatsächlich sichtbaren Zustand.
+- `MOOD` und `TEMPO` starten mit sichtbarer Live-Verteilung. Bewertende Formate (`YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`) starten verdeckt, damit die Projektion laufende Antworten nicht beeinflusst.
+- Der Host kann `showLiveResults` während derselben Runde ändern. `setLiveResults` verändert weder Stimmen noch Rundennummer oder Sperrstatus.
+- Bei verdeckter laufender Runde liefern `results` und `onResults` weiterhin Typ, Beteiligungszahl und Status, aber eine genullte Verteilung sowie keine Vorher-/Nachher- oder Tendenzdetails. `hostResults` und `onHostResults` bleiben vollständig.
+- Sobald die Runde gesperrt oder eine Vergleichsdiskussion gestartet ist, wird die Verteilung unabhängig vom Live-Default öffentlich. Presenter und Vote-Ansicht erhalten damit denselben serverseitig autoritativen Freigabestand.
 
 ### Ablauf- und Tombstone-Semantik
 

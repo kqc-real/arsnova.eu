@@ -8,20 +8,78 @@
   [class.session-present--freetext]="showPresenterFreetextResultsStage()"
   [class.session-present--qa]="showQaProjection()"
   [class.session-present--feedback]="showQuickFeedbackCard()"
+  [class.session-present--standby]="presenterStandbyChannel() !== null || showQuizPauseProjection()"
 >
+  <ng-template #presenterJoinCard>
+    <mat-card appearance="outlined" class="session-present__lobby-card">
+      <mat-card-content class="session-present__lobby">
+        <div class="session-present__lobby-brand">
+          <svg
+            class="session-present__lobby-brand-icon"
+            viewBox="0 0 32 32"
+            preserveAspectRatio="xMidYMid meet"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="present-lobby-brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="var(--app-eu-blue)" />
+                <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="6" fill="url(#present-lobby-brand-eu-bg)" />
+            <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
+            <path
+              class="session-present__lobby-brand-star"
+              d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
+              fill="var(--app-eu-yellow)"
+            />
+          </svg>
+          <span class="session-present__lobby-brand-title">arsnova.eu</span>
+        </div>
+        <p class="session-present__lobby-code">{{ sessionCode }}</p>
+        @if (joinQrDataUrl()) {
+          <img
+            class="session-present__lobby-qr app-qr-image"
+            [src]="joinQrDataUrl()"
+            [alt]="joinUrl"
+            width="280"
+            height="280"
+          />
+        }
+      </mat-card-content>
+    </mat-card>
+  </ng-template>
+
+  @if (connectionDegraded()) {
+    <div
+      class="session-present__connection-status"
+      role="status"
+      aria-live="polite"
+      data-testid="presenter-reconnect-status"
+    >
+      <mat-icon aria-hidden="true">wifi_off</mat-icon>
+      <span>{{ connectionStatusMessage() }}</span>
+    </div>
+  }
+
   @if (showFinishProjection()) {
     <div
       class="session-present__finish"
       [class.session-present__finish--paged]="personalBoardPageCount() > 1"
-      aria-labelledby="session-present-finish-title"
+      [class.session-present__finish--empty]="!hasFinishResults()"
+      [attr.data-testid]="!hasFinishResults() ? 'presenter-finish-idle' : null"
+      [attr.aria-labelledby]="!hasFinishResults() ? 'session-present-finish-title' : null"
     >
-      <h1
-        class="session-present__finish-title"
-        id="session-present-finish-title"
-        i18n="@@sessionPresent.finishTitle"
-      >
-        Gesamtauswertung
-      </h1>
+      @if (!hasFinishResults()) {
+        <h1
+          class="session-present__finish-title"
+          id="session-present-finish-title"
+          i18n="@@sessionPresent.finishEmpty"
+        >
+          Die Session ist beendet.
+        </h1>
+      }
 
       @if (personalLeaderboardWinner() || showTeamFinish()) {
         <div
@@ -302,23 +360,40 @@
           </mat-card-content>
         </mat-card>
       }
-
-      @if (personalLeaderboard().length === 0 && teamLeaderboard().length === 0) {
-        <mat-card appearance="outlined" class="session-placeholder">
-          <mat-card-content>
-            <p class="session-placeholder__text" i18n="@@sessionPresent.finishEmpty">
-              Die Session ist beendet.
-            </p>
-          </mat-card-content>
-        </mat-card>
-      }
-
-      <a matButton="filled" [routerLink]="localizedPath('/')" class="session-present__finish-home">
-        <mat-icon>home</mat-icon>
-        <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
-      </a>
     </div>
   } @else {
+    @if (showQuizPauseProjection()) {
+      <section
+        class="session-present__standby-stage"
+        data-channel="quiz"
+        data-state="paused"
+        data-testid="presenter-quiz-paused"
+      >
+        <div class="session-present__standby-copy">
+          <p class="session-present__standby-eyebrow">{{ presenterStandbyEyebrow }}</p>
+          <h1 class="session-present__standby-title">{{ quizPausedTitle }}</h1>
+          <p class="session-present__standby-message">{{ quizPausedMessage }}</p>
+        </div>
+        <ng-container [ngTemplateOutlet]="presenterJoinCard" />
+      </section>
+    }
+
+    @if (presenterStandbyChannel(); as standbyChannel) {
+      <section
+        class="session-present__standby-stage"
+        [attr.data-channel]="standbyChannel"
+        [attr.data-state]="presenterStandbyState()"
+        data-testid="presenter-channel-standby"
+      >
+        <div class="session-present__standby-copy">
+          <p class="session-present__standby-eyebrow">{{ presenterStandbyEyebrow }}</p>
+          <h1 class="session-present__standby-title">{{ presenterStandbyTitle() }}</h1>
+          <p class="session-present__standby-message">{{ presenterStandbyMessage() }}</p>
+        </div>
+        <ng-container [ngTemplateOutlet]="presenterJoinCard" />
+      </section>
+    }
+
     @if (showLobbyProjection()) {
       <div
         class="session-present__lobby-stage"
@@ -342,44 +417,7 @@
               </figure>
             }
 
-            <mat-card appearance="outlined" class="session-present__lobby-card">
-              <mat-card-content class="session-present__lobby">
-                <div class="session-present__lobby-brand">
-                  <svg
-                    class="session-present__lobby-brand-icon"
-                    viewBox="0 0 32 32"
-                    preserveAspectRatio="xMidYMid meet"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                  >
-                    <defs>
-                      <linearGradient id="present-lobby-brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="var(--app-eu-blue)" />
-                        <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
-                      </linearGradient>
-                    </defs>
-                    <rect width="32" height="32" rx="6" fill="url(#present-lobby-brand-eu-bg)" />
-                    <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
-                    <path
-                      class="session-present__lobby-brand-star"
-                      d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
-                      fill="var(--app-eu-yellow)"
-                    />
-                  </svg>
-                  <span class="session-present__lobby-brand-title">arsnova.eu</span>
-                </div>
-                <p class="session-present__lobby-code">{{ sessionCode }}</p>
-                @if (joinQrDataUrl()) {
-                  <img
-                    class="session-present__lobby-qr app-qr-image"
-                    [src]="joinQrDataUrl()"
-                    [alt]="joinUrl"
-                    width="280"
-                    height="280"
-                  />
-                }
-              </mat-card-content>
-            </mat-card>
+            <ng-container [ngTemplateOutlet]="presenterJoinCard" />
           </div>
 
           <section
@@ -607,6 +645,7 @@
         [participantCount]="session()?.participantCount ?? 0"
         [countdownSeconds]="countdownSeconds()"
         [motifImageUrl]="session()?.quizMotifImageUrl ?? null"
+        [emojiReactions]="emojiReactions()"
       />
     }
 
@@ -654,7 +693,11 @@
                 </span>
               </div>
 
-              <div class="session-present__qa-list" role="list">
+              <div
+                class="session-present__qa-list"
+                [class.session-present__qa-list--dense]="qaQueueIsDense()"
+                role="list"
+              >
                 @for (question of visibleQaQueueQuestions(); track question.id) {
                   <article class="session-present__qa-list-item" role="listitem">
                     <div class="session-present__qa-list-votes">
@@ -718,49 +761,91 @@
             </div>
           </div>
 
-          <div class="session-present__feedback-bars">
-            @for (entry of quickFeedbackEntries(); track entry.key) {
-              <div class="session-present__feedback-row">
-                <span class="session-present__feedback-row-label">
-                  @if (quickFeedbackDisplayIcon(entry.key, quickFeedback.type); as icon) {
-                    @if (icon.kind === 'mat') {
-                      <mat-icon
-                        class="session-present__feedback-row-icon"
-                        [class.session-present__feedback-row-icon--positive]="
-                          icon.tone === 'positive'
-                        "
-                        [class.session-present__feedback-row-icon--negative]="
-                          icon.tone === 'negative'
-                        "
-                        [class.session-present__feedback-row-icon--neutral]="
-                          icon.tone === 'neutral'
-                        "
-                        aria-hidden="true"
-                      >
-                        {{ icon.value }}
-                      </mat-icon>
+          @if (quickFeedbackResultsVisible()) {
+            <div class="session-present__feedback-bars">
+              @for (entry of quickFeedbackEntries(); track entry.key) {
+                <div
+                  class="session-present__feedback-row"
+                  [class.session-present__feedback-row--neutral]="
+                    quickFeedbackIsNeutralEntry(entry.key, quickFeedback.type)
+                  "
+                >
+                  <span class="session-present__feedback-row-label">
+                    @if (quickFeedbackDisplayIcon(entry.key, quickFeedback.type); as icon) {
+                      @if (icon.kind === 'mat') {
+                        <mat-icon
+                          class="session-present__feedback-row-icon"
+                          [class.session-present__feedback-row-icon--positive]="
+                            icon.tone === 'positive'
+                          "
+                          [class.session-present__feedback-row-icon--negative]="
+                            icon.tone === 'negative'
+                          "
+                          [class.session-present__feedback-row-icon--neutral]="
+                            icon.tone === 'neutral'
+                          "
+                          aria-hidden="true"
+                        >
+                          {{ icon.value }}
+                        </mat-icon>
+                      } @else {
+                        <span
+                          [class.session-present__feedback-row-stars]="
+                            quickFeedback.type === 'STARS'
+                          "
+                          >{{ icon.value }}</span
+                        >
+                      }
                     } @else {
-                      <span
-                        [class.session-present__feedback-row-stars]="quickFeedback.type === 'STARS'"
-                        >{{ icon.value }}</span
-                      >
+                      {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}
                     }
-                  } @else {
-                    {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}
-                  }
-                </span>
-                <div class="session-present__feedback-track" aria-hidden="true">
-                  <div
-                    class="session-present__feedback-fill"
-                    [style.width]="quickFeedbackBarWidth(entry.value)"
-                  ></div>
+                  </span>
+                  <div class="session-present__feedback-track" aria-hidden="true">
+                    <div
+                      class="session-present__feedback-fill"
+                      [style.width]="quickFeedbackBarWidth(entry.value)"
+                    ></div>
+                  </div>
+                  <span class="session-present__feedback-row-value">
+                    {{ formatCount(entry.value) }}
+                    @if (quickFeedbackShowsPercentages()) {
+                      ({{ quickFeedbackPercentage(entry.value) }} %)
+                    }
+                  </span>
                 </div>
-                <span class="session-present__feedback-row-value">
-                  {{ formatCount(entry.value) }} ({{ quickFeedbackPercentage(entry.value) }} %)
+              }
+            </div>
+            @if (quickFeedback.opinionShift; as shift) {
+              <p class="session-present__feedback-shift" role="status">
+                <mat-icon aria-hidden="true">swap_horiz</mat-icon>
+                <span i18n="@@sessionPresent.quickFeedbackOpinionShift">
+                  {{ formatCount(shift.changedCount) }} von
+                  {{ formatCount(shift.bothRoundsCount) }} änderten ihre Einschätzung ({{
+                    formatCount(shift.changedPercentage)
+                  }}
+                  %).
                 </span>
-              </div>
+              </p>
             }
-          </div>
+          } @else {
+            <div class="session-present__feedback-hidden" role="status">
+              <mat-icon aria-hidden="true">how_to_vote</mat-icon>
+              <div>
+                <p
+                  class="session-present__feedback-hidden-title"
+                  i18n="@@sessionPresent.quickFeedbackCollecting"
+                >
+                  Antworten werden gesammelt
+                </p>
+                <p
+                  class="session-present__feedback-hidden-hint"
+                  i18n="@@sessionPresent.quickFeedbackRevealHint"
+                >
+                  Die Verteilung erscheint nach dem Pausieren oder Rundenende.
+                </p>
+              </div>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
     }
@@ -779,9 +864,11 @@
       />
     } @else if (
       !showQuizProjection() &&
+      !showQuizPauseProjection() &&
       !showLobbyProjection() &&
       !showQaProjection() &&
-      !showQuickFeedbackCard()
+      !showQuickFeedbackCard() &&
+      presenterStandbyChannel() === null
     ) {
       <mat-card appearance="outlined" class="session-placeholder">
         <mat-card-content>

@@ -76,6 +76,33 @@
   padding: var(--present-inset-block) var(--present-inset-inline);
 }
 
+.session-present__connection-status {
+  position: fixed;
+  z-index: 20;
+  inset-block-start: max(0.65rem, env(safe-area-inset-top, 0px));
+  inset-inline-start: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: min(calc(100vw - 2rem), 42rem);
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level2);
+  font: var(--mat-sys-label-large);
+  pointer-events: none;
+  transform: translateX(-50%);
+
+  mat-icon {
+    flex: 0 0 auto;
+    width: 1.15em;
+    height: 1.15em;
+    font-size: 1.15em;
+  }
+}
+
 .session-present--quiz,
 .session-present--freetext {
   width: 100%;
@@ -120,17 +147,65 @@ app-session-projection-quiz,
 
 .session-present--lobby,
 .session-present--qa,
-.session-present--feedback {
+.session-present--feedback,
+.session-present--standby {
   justify-content: center;
 }
 
 .session-present--qa,
-.session-present--feedback {
+.session-present--feedback,
+.session-present--standby {
   align-items: stretch;
   width: 100%;
   max-width: none;
   overflow: hidden;
   padding: clamp(0.8rem, 2vh, 1.4rem) clamp(0.9rem, 2vw, 1.8rem);
+}
+
+.session-present__standby-stage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  align-items: center;
+  justify-items: center;
+  gap: clamp(1.25rem, 5vmin, 4.5rem);
+  width: min(100%, 74rem);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.session-present__standby-copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(0.45rem, 1.5vmin, 0.9rem);
+  min-width: 0;
+  text-align: center;
+}
+
+.session-present__standby-eyebrow,
+.session-present__standby-title,
+.session-present__standby-message {
+  margin: 0;
+}
+
+.session-present__standby-eyebrow {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-medium);
+  letter-spacing: 0.04em;
+}
+
+.session-present__standby-title {
+  max-width: 18ch;
+  font: var(--mat-sys-display-medium);
+  overflow-wrap: anywhere;
+}
+
+.session-present__standby-message {
+  max-width: 34ch;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-headline-small);
 }
 
 .session-present--lobby {
@@ -213,7 +288,9 @@ app-session-projection-quiz,
   }
 }
 
-.session-present--lobby .session-present__lobby-card mat-card-content {
+:is(.session-present--lobby, .session-present--standby)
+  .session-present__lobby-card
+  mat-card-content {
   padding: 0 !important;
 }
 
@@ -256,7 +333,7 @@ app-session-projection-quiz,
   border-radius: 1.2rem;
 }
 
-.session-present--lobby .session-present__lobby-card {
+:is(.session-present--lobby, .session-present--standby) .session-present__lobby-card {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
@@ -282,6 +359,10 @@ app-session-projection-quiz,
   :is(.mat-mdc-card-content, mat-card-content) {
     overflow: visible;
   }
+}
+
+.session-present--standby .session-present__lobby-card {
+  --app-qr-size: min(16rem, 32vmin, 38dvh);
 }
 
 .session-present__lobby-brand {
@@ -810,7 +891,7 @@ app-session-projection-quiz,
 
 .session-present__qa-stage {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: 'pinned queue';
   gap: clamp(0.65rem, 1.5vmin, 1.15rem);
@@ -920,6 +1001,15 @@ app-session-projection-quiz,
   font-weight: 700;
 }
 
+.session-present__qa-list-votes {
+  min-height: 0;
+  padding: 0.2rem 0.35rem;
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+  font-weight: 600;
+}
+
 .session-present__qa-text,
 .session-present__qa-list-text {
   font-size: clamp(1.15rem, 2vw, 1.6rem);
@@ -929,6 +1019,20 @@ app-session-projection-quiz,
 .session-present__qa-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.session-present__qa-list--dense {
+  gap: clamp(0.4rem, 1vh, 0.65rem);
+
+  .session-present__qa-list-item {
+    gap: 0.55rem;
+    padding: clamp(0.55rem, 1.2vh, 0.75rem) clamp(0.65rem, 1.2vw, 0.9rem);
+  }
+
+  .session-present__qa-list-text {
+    font-size: clamp(0.95rem, 1.6vw, 1.3rem);
+    line-height: 1.3;
+  }
 }
 
 .session-present__qa-list-item {
@@ -978,6 +1082,15 @@ app-session-projection-quiz,
   align-items: center;
 }
 
+.session-present__feedback-row--neutral .session-present__feedback-track {
+  outline: 2px solid color-mix(in srgb, var(--mat-sys-secondary) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.session-present__feedback-row--neutral .session-present__feedback-fill {
+  background: var(--mat-sys-secondary);
+}
+
 .session-present__feedback-row-label {
   min-width: 2.75rem;
   text-align: center;
@@ -1021,6 +1134,54 @@ app-session-projection-quiz,
 .session-present__feedback-row-value {
   font-size: 1.1rem;
   font-variant-numeric: tabular-nums;
+}
+
+.session-present__feedback-hidden {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.8rem, 2vw, 1.25rem);
+  min-height: clamp(12rem, 38vh, 24rem);
+  padding: clamp(1.25rem, 4vmin, 2.5rem);
+  border-radius: 1.25rem;
+  background: var(--mat-sys-surface-container-low);
+  text-align: start;
+
+  > mat-icon {
+    flex: 0 0 auto;
+    width: 1.6em;
+    height: 1.6em;
+    color: var(--mat-sys-primary);
+    font-size: clamp(2.4rem, 7vmin, 4.5rem);
+  }
+}
+
+.session-present__feedback-hidden-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.4vmin, 2.5rem);
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.session-present__feedback-hidden-hint {
+  margin: 0.45rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(1rem, 2vmin, 1.35rem);
+  line-height: 1.4;
+}
+
+.session-present__feedback-shift {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  font-weight: 650;
 }
 
 .session-present__winner-card {
@@ -1074,13 +1235,11 @@ app-session-projection-quiz,
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    'title'
     'hero'
     'board'
-    'teams'
-    'home';
-  grid-template-rows: auto minmax(11rem, 1fr) minmax(0, max-content) minmax(0, max-content) auto;
-  gap: clamp(0.4rem, 1.1vmin, 0.75rem);
+    'teams';
+  grid-template-rows: minmax(13rem, 1fr) minmax(0, max-content) minmax(0, max-content);
+  gap: clamp(0.65rem, 1.5vmin, 1.1rem);
   width: 100%;
   max-width: none;
   min-height: 0;
@@ -1090,21 +1249,25 @@ app-session-projection-quiz,
 
 .session-present__finish:not(:has(.session-present__finish-hero)) {
   grid-template-areas:
-    'title'
     'board'
-    'teams'
-    'home';
-  grid-template-rows: auto minmax(0, 1fr) minmax(0, max-content) auto;
+    'teams';
+  grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
 }
 
 .session-present__finish--paged {
-  grid-template-rows: auto minmax(7rem, 1fr) minmax(0, max-content) minmax(0, max-content) auto;
+  grid-template-rows: minmax(9rem, 1fr) minmax(0, max-content) minmax(0, max-content);
+}
+
+.session-present__finish--empty {
+  grid-template-areas: 'title';
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
 }
 
 .session-present__finish-hero {
   display: grid;
   grid-area: hero;
-  gap: clamp(0.55rem, 1.3vmin, 0.9rem);
+  gap: clamp(0.9rem, 2vmin, 1.4rem);
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   min-height: 0;
@@ -1218,7 +1381,7 @@ app-session-projection-quiz,
 @media (max-width: 899px), (max-aspect-ratio: 4 / 3) {
   .session-present__qa-stage {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
     grid-template-areas:
       'pinned'
       'queue';
@@ -1235,6 +1398,27 @@ app-session-projection-quiz,
   }
 }
 
+@media (max-height: 700px) {
+  .session-present--qa,
+  .session-present--feedback {
+    --present-stack-gap: 0.5rem;
+    padding-block: 0.65rem;
+  }
+
+  .session-present--feedback .session-present__feedback-card mat-card-content {
+    gap: 0.85rem;
+    padding: 1rem 1.25rem !important;
+  }
+
+  .session-present--feedback .session-present__feedback-bars {
+    gap: 0.65rem;
+  }
+
+  .session-present__qa-list-item {
+    padding-block: 0.55rem;
+  }
+}
+
 .session-present__finish-title {
   grid-area: title;
   margin: 0;
@@ -1245,11 +1429,6 @@ app-session-projection-quiz,
   line-height: 1.08;
   color: var(--mat-sys-on-surface);
   text-wrap: balance;
-}
-
-.session-present__finish-home {
-  grid-area: home;
-  justify-self: center;
 }
 
 .session-present__winner-card {
@@ -1333,8 +1512,9 @@ app-session-projection-quiz,
 
 .session-present__finish .session-present__board-card mat-card-content,
 .session-present__finish .session-present__team-board-card mat-card-content {
-  padding: 0.4rem 0.75rem 0.45rem !important;
-  gap: 0.22rem;
+  padding: clamp(0.7rem, 1.5vmin, 1rem) clamp(0.9rem, 1.8vmin, 1.25rem)
+    clamp(0.65rem, 1.3vmin, 0.9rem) !important;
+  gap: 0.35rem;
 }
 
 .session-present__finish .session-placeholder {
@@ -1342,9 +1522,11 @@ app-session-projection-quiz,
 }
 
 .session-present__board-title {
-  margin: 0 0 0.35rem;
+  margin: 0 0 clamp(0.5rem, 1.1vmin, 0.75rem);
+  padding-block: 0.1rem;
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   font-weight: 700;
+  line-height: 1.25;
 }
 
 .session-present__board-hint {
@@ -1860,6 +2042,22 @@ app-session-projection-quiz,
 
   .session-present--lobby .session-present__lobby-card {
     --app-qr-size: min(12.5rem, 34vw, 32dvh);
+  }
+
+  .session-present--standby .session-present__lobby-card {
+    --app-qr-size: min(12.5rem, 30vmin, 30dvh);
+  }
+
+  .session-present__standby-stage {
+    gap: clamp(0.75rem, 2.5vmin, 1.5rem);
+  }
+
+  .session-present__standby-title {
+    font: var(--mat-sys-display-small);
+  }
+
+  .session-present__standby-message {
+    font: var(--mat-sys-title-large);
   }
 
   .session-present__lobby {

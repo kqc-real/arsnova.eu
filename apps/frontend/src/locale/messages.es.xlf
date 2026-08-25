@@ -15048,8 +15048,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.orderingNeutralOptions" datatype="html">
-        <source> Elemente in neutraler Reihenfolge </source>
-        <target>Elementos en orden neutral.</target>
+        <source> Unsortierte Reihenfolge </source>
+        <target>Orden sin clasificar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2337,2339</context>
@@ -18765,14 +18765,6 @@
           <context context-type="linenumber">40</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionPresent.finishTitle" datatype="html">
-        <source>Gesamtauswertung</source>
-        <target>Resultado final</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionPresent.leaderboardTitle" datatype="html">
         <source>Leaderboard</source>
         <target>Clasificación</target>
@@ -18820,6 +18812,22 @@
       <trans-unit id="sessionPresent.anonymousParticipantNumber" datatype="html">
         <source>Anonyme Person <x id="number" equiv-text="number"/></source>
         <target>Persona anónima <x id="number" equiv-text="number"/></target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaClosed" datatype="html">
+        <source>Q&amp;A ist geschlossen.</source>
+        <target>Q&amp;A está cerrado.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackClosed" datatype="html">
+        <source>Blitzlicht ist geschlossen.</source>
+        <target>El sondeo rápido está cerrado.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaStandby" datatype="html">
+        <source>Noch keine freigegebenen Fragen.</source>
+        <target>Todavía no hay preguntas aprobadas.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStandby" datatype="html">
+        <source>Blitzlicht noch nicht gestartet.</source>
+        <target>El sondeo rápido aún no ha comenzado.</target>
       </trans-unit>
       <trans-unit id="sessionPresent.qaLabel" datatype="html">
         <source> Frage aus dem Publikum </source>
@@ -18882,8 +18890,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.</source>
-        <target>Las palabras y frases grandes vienen de preguntas más frecuentes o con más apoyo.</target>
+        <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
+        <target>Las palabras y frases grandes vienen de preguntas más frecuentes o con más apoyo. Las grafías similares pueden agruparse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">129</context>
@@ -20881,8 +20889,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionOrderingOptions" datatype="html">
-        <source> Elemente in neutraler Reihenfolge </source>
-        <target>Elementos en orden neutral.</target>
+        <source> Unsortierte Reihenfolge </source>
+        <target>Orden sin clasificar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1053,1055</context>
@@ -24211,6 +24219,78 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">174</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.pauseQuiz" datatype="html">
+        <source>Quiz pausieren</source>
+        <target>Pausar el cuestionario</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.resumeQuiz" datatype="html">
+        <source>Quiz fortsetzen</source>
+        <target>Reanudar el cuestionario</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Cuestionario en pausa</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedHint" datatype="html">
+        <source>Antworten und Countdown sind angehalten.</source>
+        <target>Las respuestas y la cuenta atrás están en pausa.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Cuestionario en pausa</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedMessage" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+        <target>Enseguida continuaremos con la misma pregunta.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Cuestionario en pausa</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedHint" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+        <target>Enseguida continuaremos con la misma pregunta.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnectingWithSnapshot" datatype="html">
+        <source>Verbindung wird wiederhergestellt. Der letzte Stand bleibt sichtbar.</source>
+        <target>Restableciendo la conexión. El último estado permanece visible.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.reconnecting" datatype="html">
+        <source>Verbindung wird wiederhergestellt …</source>
+        <target>Restableciendo la conexión …</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResults" datatype="html">
+        <source>Ergebnisse während der Runde live zeigen</source>
+        <target>Mostrar los resultados en directo durante la ronda</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
+        <source>Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
+        <target>La distribución se muestra en el presentador durante la votación.</target>
+      </trans-unit>
+      <trans-unit id="feedback.showLiveResultsHintHidden" datatype="html">
+        <source>Bis zum Pausieren oder Rundenende zeigt der Presenter nur die Beteiligung.</source>
+        <target>Hasta pausar o terminar la ronda, el presentador solo muestra la participación.</target>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsUpdateFailed" datatype="html">
+        <source>Die Ergebnisanzeige konnte nicht geändert werden.</source>
+        <target>No se pudo cambiar la visualización de resultados.</target>
+      </trans-unit>
+      <trans-unit id="feedback.liveResultsClose" datatype="html">
+        <source>Schließen</source>
+        <target>Cerrar</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackOpinionShift" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ formatCount(shift.changedCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(shift.bothRoundsCount) }}"/> änderten ihre Einschätzung (<x id="INTERPOLATION_2" equiv-text="{{ formatCount(shift.changedPercentage) }}"/> %).</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ formatCount(shift.changedCount) }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ formatCount(shift.bothRoundsCount) }}"/> cambiaron su valoración (<x id="INTERPOLATION_2" equiv-text="{{ formatCount(shift.changedPercentage) }}"/> %).</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackCollecting" datatype="html">
+        <source>Antworten werden gesammelt</source>
+        <target>Recogiendo respuestas</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackRevealHint" datatype="html">
+        <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
+        <target>La distribución aparece al pausar o terminar la ronda.</target>
       </trans-unit>
     </body>
   </file>

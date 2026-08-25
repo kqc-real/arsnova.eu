@@ -45,6 +45,7 @@ vi.mock('../../core/trpc.client', () => ({
         }),
       },
       changeType: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
+      setLiveResults: { mutate: vi.fn().mockResolvedValue({ showLiveResults: true }) },
     },
   },
 }));
@@ -103,6 +104,49 @@ describe('FeedbackHostComponent', () => {
     expect(snackBarSpy).not.toHaveBeenCalled();
     expect(navigateSpy).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
+  });
+
+  it('verwendet typabhängige Voreinstellungen für Live-Ergebnisse', () => {
+    const comp = createComponent();
+    comp.result.set({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    expect(comp.showLiveResults()).toBe(true);
+
+    comp.result.set({
+      type: 'YESNO',
+      locked: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+    });
+    expect(comp.showLiveResults()).toBe(false);
+  });
+
+  it('ändert die Live-Ergebnisfreigabe ohne die Runde zurückzusetzen', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const comp = createComponent();
+    comp.result.set({
+      type: 'YESNO',
+      locked: false,
+      showLiveResults: false,
+      totalVotes: 3,
+      distribution: { YES: 2, NO: 1, MAYBE: 0 },
+    });
+
+    await comp.setLiveResults(true);
+
+    expect(trpc.quickFeedback.setLiveResults.mutate).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      showLiveResults: true,
+    });
+    expect(comp.result()).toMatchObject({
+      showLiveResults: true,
+      totalVotes: 3,
+      distribution: { YES: 2, NO: 1, MAYBE: 0 },
+    });
   });
 
   it('baut eingebettete Join-Links unter einem localized production base href', () => {

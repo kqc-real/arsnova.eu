@@ -588,7 +588,7 @@ erDiagram
 ```
 
 **Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (`QuestionRevealedDTO`). Bei `NUMERIC_ESTIMATE` werden während `ACTIVE` nur neutrale Fortschrittsdaten gezählt; Histogramm, Rohwerte, Statistik, Toleranztreffer und Lösungsnähe werden erst nach Ergebnisfreigabe ausgeliefert. Der Host erhält laufende Vote-Zähler über `HostVoteProgressDTO`; `HostCurrentQuestionDTO` wird bei Vote-Spitzen nicht pro Vote neu emittiert.
-**Session-Status:** `LOBBY → QUESTION_OPEN` (Lesephase, nur Fragenstamm) → `ACTIVE` → `RESULTS` → `PAUSED` oder `DISCUSSION` → … → `FINISHED`. Optional überspringbar: bei `readingPhaseEnabled=false` geht „Nächste Frage" direkt zu `ACTIVE`.
+**Session-Status:** `LOBBY → QUESTION_OPEN` (Lesephase, nur Fragenstamm) → `ACTIVE` → `RESULTS` → nächste Frage oder optional `DISCUSSION` → … → `FINISHED`. `PAUSED` unterbricht ausschließlich dieselbe `QUESTION_OPEN`- oder `ACTIVE`-Phase und setzt sie mit gleicher Frage, Runde und Restzeit fort. Optional überspringbar: bei `readingPhaseEnabled=false` geht „Nächste Frage" direkt zu `ACTIVE`.
 
 ---
 
@@ -689,7 +689,7 @@ sequenceDiagram
     end
     BE->>FE: onResultsRevealed
     FE->>D: Ergebnis-Diagramm auf Beamer
-    BE->>PG: Status = PAUSED (zwischen Fragen)
+    Note over D,BE: RESULTS bleibt bis „Nächste Frage“ oder Session-Ende bestehen
 ```
 
 ### 4.3 Session-Ende, Bonus und Export
@@ -906,6 +906,8 @@ flowchart LR
         D4[Session-Code + QR anzeigen]
         D5[Nächste Frage klicken]
         D5b[Antworten freigeben - optional bei Lesephase]
+        D5p[Quiz pausieren]
+        D5r[Quiz fortsetzen]
         D6[Ergebnis zeigen]
         D7[Live-Balken aktualisieren]
         D8[Quiz beenden]
@@ -917,11 +919,11 @@ flowchart LR
         S2["Session anlegen, Code generieren"]
         S3a["Status QUESTION_OPEN, QuestionPreviewDTO - Lesephase"]
         S3b["Status ACTIVE, QuestionStudentDTO ohne isCorrect"]
+        SP["Status PAUSED, pausedFromStatus hält die unterbrochene Phase"]
         S4["Vote speichern, Scoring, HostVoteProgressDTO"]
         S4n["ACTIVE: kleiner Progress-Kanal; keine Full-Question-Invalidierung"]
         S5["Status RESULTS, QuestionRevealedDTO mit isCorrect"]
         S5n["NUMERIC_ESTIMATE RESULTS: Histogramm, Statistik, Paarvergleich"]
-        S5b["Status PAUSED - zwischen Fragen"]
         S6["Status FINISHED, ggf. BonusToken generieren"]
     end
 
@@ -930,6 +932,7 @@ flowchart LR
         ST2["Nickname wählen, session.join"]
         ST3a[Fragenstamm anzeigen - Lesephase]
         ST3b[Antwort-Buttons + Countdown anzeigen]
+        STP[Pause-Hinweis - Antworten und Timer angehalten]
         ST4[Abstimmung vote.submit]
         ST4n[Zahl schätzen - numericValue]
         ST5[Ergebnis + Scorecard anzeigen]
@@ -947,6 +950,11 @@ flowchart LR
     S3a --> ST3a
     ST3a --> D5b
     D5b --> S3b
+    S3a -.-> D5p
+    S3b -.-> D5p
+    D5p --> SP --> STP --> D5r
+    D5r -.->|pausedFromStatus = QUESTION_OPEN| S3a
+    D5r -.->|pausedFromStatus = ACTIVE| S3b
     S3b --> ST3b --> ST4
     ST3b --> ST4n
     ST4 --> S4
@@ -957,8 +965,7 @@ flowchart LR
     S5 --> S5n
     S5n --> ST5
     S5 --> ST5
-    ST5 --> S5b
-    S5b --> D5
+    ST5 --> D5
     D8 --> S6
     S6 --> ST6
     ST6 --> D9
@@ -997,7 +1004,7 @@ flowchart LR
 - **QuestionPreviewDTO (Story 2.6):** In der Lesephase (`QUESTION_OPEN`) nur Fragenstamm, keine Antwortoptionen.
 - **QuestionStudentDTO:** `isCorrect` wird serverseitig entfernt (Story 2.4).
 - **QuestionRevealedDTO:** `isCorrect` erst nach expliziter Auflösung (`RESULTS`).
-- **PAUSED:** Zwischenzustand nach Ergebnis-Anzeige, bevor die nächste Frage gestartet wird.
+- **PAUSED:** Autoritative Host-Unterbrechung derselben Lese- oder Abstimmungsphase. `pausedFromStatus` hält `QUESTION_OPEN` beziehungsweise `ACTIVE`; beim Fortsetzen wird der Timer-Anker um die Pausendauer verschoben.
 - **Lesephase:** Bei `readingPhaseEnabled=false` wird `QUESTION_OPEN` übersprungen — „Nächste Frage" wechselt direkt zu `ACTIVE` (D5 → S3b, D5b/ST3a entfallen).
 - **Bonus-Token (Story 4.6):** Nur für Top-X, individuell per `onPersonalResult`.
 - **Admin (Epic 9):** Eigener Ablauf; Zugriff nur mit Admin-Credentials (ADMIN_SECRET → Session-Token). Route `/admin`; Inspektion, Löschen, Auszug für Behörden; Audit-Log für Lösch- und Export-Aktionen. Siehe ADR-0006.

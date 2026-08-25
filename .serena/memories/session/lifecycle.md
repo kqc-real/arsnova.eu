@@ -1,6 +1,7 @@
 # Session Lifecycle
 
-- Session status flow: `LOBBY` -> optional `QUESTION_OPEN` -> `ACTIVE` -> `RESULTS` -> optional `DISCUSSION`/`PAUSED` -> next question or `FINISHED`.
+- Session status flow: `LOBBY` -> optional `QUESTION_OPEN` -> `ACTIVE` -> `RESULTS` -> optional `DISCUSSION` -> next question or `FINISHED`.
+- `PAUSED` is an interrupt state for the same `QUESTION_OPEN` or `ACTIVE` phase, not a between-question phase. Persist `pausedFromStatus`; reject votes while paused; on resume shift `activeQuestionStartedAt` by the pause duration so room and personal timers retain their exact remaining time.
 - Reading phase: when `readingPhaseEnabled=true`, host action for next question first enters `QUESTION_OPEN` and only shows the question stem. Host then reveals answers to enter `ACTIVE`.
 - Without reading phase, next question can enter `ACTIVE` directly.
 - Important live events/subscriptions include question revealed, answers revealed, results revealed, status changed, participant joined, and personal result/scorecard updates.
