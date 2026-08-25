@@ -857,6 +857,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
+  private presenterSurfaceSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
   private lastFreetextWordCloudSemanticRequestKey: string | null = null;
@@ -7635,7 +7636,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async syncPresenterSurface(surface: SessionPresenterSurface): Promise<void> {
+  private syncPresenterSurface(surface: SessionPresenterSurface): Promise<void> {
+    return this.enqueuePresenterSurfaceSync(() => this.syncPresenterSurfaceNow(surface));
+  }
+
+  private async syncPresenterSurfaceNow(surface: SessionPresenterSurface): Promise<void> {
     if (!this.code || this.session()?.presenterSurface === surface) {
       return;
     }
@@ -7656,8 +7661,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     surface: SessionPresenterSurface,
     channel: SessionChannelTab,
   ): Promise<void> {
-    await this.syncPreferredLiveChannel(channel);
-    await this.syncPresenterSurface(surface);
+    await this.enqueuePresenterSurfaceSync(async () => {
+      await this.syncPreferredLiveChannel(channel);
+      await this.syncPresenterSurfaceNow(surface);
+    });
+  }
+
+  private enqueuePresenterSurfaceSync(operation: () => Promise<void>): Promise<void> {
+    const queued = this.presenterSurfaceSyncQueue.then(operation, operation);
+    this.presenterSurfaceSyncQueue = queued;
+    return queued;
   }
 
   private isPresenterChannelReady(channel: SessionChannelTab): boolean {

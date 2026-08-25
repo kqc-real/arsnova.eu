@@ -2430,6 +2430,56 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('serialisiert schnelles Oeffnen und Schliessen der Presenter-Wortwolke', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quiz',
+      presenterSurface: 'default',
+    });
+
+    let releaseActivation!: () => void;
+    const activationPending = new Promise<void>((resolve) => {
+      releaseActivation = resolve;
+    });
+    setPresenterSurfaceMutateMock
+      .mockImplementationOnce(
+        async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => {
+          await activationPending;
+          return { presenterSurface: surface };
+        },
+      )
+      .mockImplementation(
+        async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => ({
+          presenterSurface: surface,
+        }),
+      );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    component.maximizeFreetextWordCloud();
+    component.closeFreetextWordCloudMaximize();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 1);
+    expect(setPresenterSurfaceMutateMock).toHaveBeenNthCalledWith(1, {
+      code: 'ABC123',
+      surface: 'freetextWordCloud',
+    });
+
+    releaseActivation();
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 2);
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenNthCalledWith(2, {
+      code: 'ABC123',
+      surface: 'default',
+    });
+    expect(component.session()?.presenterSurface).toBe('default');
+    fixture.destroy();
+  });
+
   it('schliesst die Freitext-Vollansicht beim Wechsel des Live-Kanals', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

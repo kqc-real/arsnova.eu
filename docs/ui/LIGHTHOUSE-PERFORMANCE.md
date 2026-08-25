@@ -63,7 +63,7 @@ Wenn der Server **nicht** aus **`dist/browser`** bedient wird, liefert die SPA b
 | **Selbst gehostete Material Icons** | `material-icons.woff2` liegt unter `assets/fonts/`; Icons laden vom eigenen Server mit `font-display: swap`. |
 | **Keine Font-Preconnects**          | Keine `preconnect`-Einträge zu Google-Font-Domains mehr notwendig.                                           |
 | **Lazy Loading**                    | Alle Routen (Home, Quiz, Session, Legal) laden ihre Komponenten per `loadComponent()` (Code-Splitting).      |
-| **Bundle-Budgets**                  | `angular.json`: initial max. 1.70 MB (Warning), 1.85 MB (Error).                                             |
+| **Bundle-Budgets**                  | `angular.json`: initial max. 1.70 MB (Warning), 1.86 MB (Error).                                             |
 | **Service Worker**                  | PWA/ngsw für Production – Caching bei wiederholten Besuchen.                                                 |
 
 ## DoD-Checks: 320px & Accessibility

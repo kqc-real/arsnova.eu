@@ -215,7 +215,7 @@ Diese Smokes sind **kein** Ersatz für einen vollständigen 500er-Lauf, aber wic
 **Projektbezug:**
 
 - [`docs/ui/LIGHTHOUSE-PERFORMANCE.md`](../ui/LIGHTHOUSE-PERFORMANCE.md)
-- Bundle-Budgets in `angular.json` (initial max. 1,70 / 1,85 MB)
+- Bundle-Budgets in `angular.json` (initial max. 1,70 / 1,86 MB)
 - `npm run lighthouse:a11y -w @arsnova/frontend`
 
 **Merke:** Lighthouse immer gegen einen **Production-Build** messen, nicht gegen `ng serve`.
