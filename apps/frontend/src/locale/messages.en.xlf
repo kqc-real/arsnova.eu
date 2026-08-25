@@ -18877,6 +18877,22 @@
         <source>Anonyme Person <x id="number" equiv-text="number"/></source>
         <target>Anonymous participant <x id="number" equiv-text="number"/></target>
       </trans-unit>
+      <trans-unit id="sessionPresent.qaClosed" datatype="html">
+        <source>Q&amp;A ist geschlossen.</source>
+        <target>Q&amp;A is closed.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackClosed" datatype="html">
+        <source>Blitzlicht ist geschlossen.</source>
+        <target>Pulse check is closed.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaStandby" datatype="html">
+        <source>Noch keine freigegebenen Fragen.</source>
+        <target>No approved questions yet.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStandby" datatype="html">
+        <source>Blitzlicht noch nicht gestartet.</source>
+        <target>Pulse check has not started yet.</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaLabel" datatype="html">
         <source> Frage aus dem Publikum </source>
         <target>Question from the audience</target>
@@ -24268,6 +24284,38 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">174</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.pauseQuiz" datatype="html">
+        <source>Quiz pausieren</source>
+        <target>Pause quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.resumeQuiz" datatype="html">
+        <source>Quiz fortsetzen</source>
+        <target>Resume quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Quiz paused</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPausedHint" datatype="html">
+        <source>Antworten und Countdown sind angehalten.</source>
+        <target>Answers and countdown are paused.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Quiz paused</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPausedMessage" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+        <target>We will continue with the same question shortly.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedTitle" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Quiz paused</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.quizPausedHint" datatype="html">
+        <source>Gleich geht es mit derselben Frage weiter.</source>
+        <target>We will continue with the same question shortly.</target>
       </trans-unit>
     </body>
   </file>

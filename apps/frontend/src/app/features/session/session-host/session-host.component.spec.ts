@@ -52,6 +52,8 @@ const {
   enableQuickFeedbackChannelMutateMock,
   setPreferredLiveChannelMutateMock,
   setPresenterSurfaceMutateMock,
+  pauseQuizMutateMock,
+  resumeQuizMutateMock,
   closeQaChannelMutateMock,
   reopenQaChannelMutateMock,
   closeQuickFeedbackChannelMutateMock,
@@ -99,6 +101,8 @@ const {
   enableQuickFeedbackChannelMutateMock: vi.fn(),
   setPreferredLiveChannelMutateMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
+  pauseQuizMutateMock: vi.fn(),
+  resumeQuizMutateMock: vi.fn(),
   closeQaChannelMutateMock: vi.fn(),
   reopenQaChannelMutateMock: vi.fn(),
   closeQuickFeedbackChannelMutateMock: vi.fn(),
@@ -145,6 +149,8 @@ vi.mock('../../../core/trpc.client', () => ({
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
       setPreferredLiveChannel: { mutate: setPreferredLiveChannelMutateMock },
       setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
+      pauseQuiz: { mutate: pauseQuizMutateMock },
+      resumeQuiz: { mutate: resumeQuizMutateMock },
       closeQaChannel: { mutate: closeQaChannelMutateMock },
       reopenQaChannel: { mutate: reopenQaChannelMutateMock },
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
@@ -412,6 +418,20 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         presenterSurface: surface,
       }),
     );
+    pauseQuizMutateMock.mockResolvedValue({
+      status: 'PAUSED',
+      currentQuestion: 0,
+      currentRound: 1,
+      pausedFromStatus: 'ACTIVE',
+    });
+    resumeQuizMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      pausedFromStatus: null,
+      activeAt: '2026-03-24T12:00:20.000Z',
+      timer: 30,
+    });
     closeQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: true, open: false, title: 'Fragen', moderationMode: true },
@@ -936,6 +956,57 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('bietet die Presenter-Ansicht in einer reinen aktiven Q&A-Session an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('bietet die Presenter-Ansicht in einem reinen aktiven Blitzlicht-Kanal an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      quizName: null,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('blendet die Presenter-Ansicht auf Mobilgeräten aus', async () => {
     vi.stubGlobal(
       'matchMedia',
@@ -1136,7 +1207,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('behält die laufende Projektion beim Wechsel auf einen noch leeren Q&A-Kanal bei', async () => {
+  it('projiziert einen geöffneten Q&A-Kanal auch ohne sichtbare Fragen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       preferredChannel: 'quiz',
@@ -1156,8 +1227,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     await fixture.componentInstance.selectChannel('qa');
 
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
-    expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.session()?.preferredChannel).toBe('quiz');
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledTimes(1);
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      channel: 'qa',
+    });
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('qa');
 
     qaListQueryMock.mockResolvedValue([
       {
@@ -1177,10 +1252,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       }
     ).refreshQaQuestions();
 
-    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
-      code: 'ABC123',
-      channel: 'qa',
-    });
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledTimes(1);
     expect(fixture.componentInstance.session()?.preferredChannel).toBe('qa');
     fixture.destroy();
   });
@@ -1211,6 +1283,59 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.componentInstance.qaQuestions.set([visibleQuestion]);
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await fixture.componentInstance.selectChannel('qa');
+
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      channel: 'qa',
+    });
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('qa');
+    fixture.destroy();
+  });
+
+  it('projiziert einen geöffneten Blitzlicht-Kanal auch ohne gestartete Runde', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.quickFeedbackResult.set(null);
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await fixture.componentInstance.selectChannel('quickFeedback');
+
+    expect(setPreferredLiveChannelMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      channel: 'quickFeedback',
+    });
+    expect(fixture.componentInstance.session()?.preferredChannel).toBe('quickFeedback');
+    fixture.destroy();
+  });
+
+  it('behält einen aktivierten geschlossenen Nebenkanal als Presenter-Ziel', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
     setPreferredLiveChannelMutateMock.mockClear();
 
     await fixture.componentInstance.selectChannel('qa');
@@ -1266,6 +1391,51 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.session()?.quizName).toBe('Quiz Sammlung');
     fixture.destroy();
   });
+
+  it.each([
+    ['qa', 'Q&A'],
+    ['quickFeedback', 'Blitzlicht'],
+  ] as const)(
+    'setzt den Kanalschalter nach abgebrochener Quiz-Aktivierung auf %s zurück',
+    async (sourceChannel, sourceLabel) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        quizName: null,
+        preferredChannel: sourceChannel,
+        channels: {
+          quiz: { enabled: false },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.activeChannel.set(sourceChannel);
+      fixture.detectChanges();
+      dialogOpenMock.mockClear();
+
+      const toggles = Array.from(
+        fixture.nativeElement.querySelectorAll('mat-button-toggle'),
+      ) as HTMLElement[];
+      const quizToggle = toggles.find((toggle) => toggle.textContent?.includes('Quiz'));
+      (quizToggle?.querySelector('button') as HTMLButtonElement | null)?.click();
+
+      await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.activeChannel()).toBe(sourceChannel);
+      const checkedToggle = fixture.nativeElement.querySelector(
+        'mat-button-toggle.mat-button-toggle-checked',
+      ) as HTMLElement | null;
+      expect(checkedToggle?.textContent).toContain(sourceLabel);
+      expect(quizUploadMutateMock).not.toHaveBeenCalled();
+      fixture.destroy();
+    },
+  );
 
   it('zeigt vor dem ersten Quizstart nur kompatible Quizze zum Wechsel an', async () => {
     getInfoQueryMock
@@ -1324,6 +1494,54 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
     });
+    fixture.destroy();
+  });
+
+  it('pausiert und setzt eine aktive Quizfrage über die Kanalaktion fort', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      showQuestionTypeIndicators: true,
+      timer: 30,
+      answers: [],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Quiz pausieren');
+    expect(fixture.componentInstance.activeChannelVisibilityIcon()).toBe('pause');
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(pauseQuizMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.effectiveStatus()).toBe('PAUSED');
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Quiz fortsetzen');
+    expect(fixture.nativeElement.querySelector('[data-testid="host-quiz-paused"]')).not.toBeNull();
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(resumeQuizMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Quiz pausieren');
     fixture.destroy();
   });
 

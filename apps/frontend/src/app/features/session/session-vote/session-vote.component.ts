@@ -936,6 +936,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   readonly isActive = computed(() => this.status() === 'ACTIVE');
   readonly isQuestionOpen = computed(() => this.status() === 'QUESTION_OPEN');
+  readonly isPaused = computed(
+    () =>
+      this.status() === 'PAUSED' &&
+      (this.sessionSettings().pausedFromStatus === 'QUESTION_OPEN' ||
+        this.sessionSettings().pausedFromStatus === 'ACTIVE'),
+  );
   readonly isDiscussion = computed(() => this.status() === 'DISCUSSION');
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
@@ -3161,6 +3167,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           activeAt?: string;
           timer?: number | null;
           currentRound?: number;
+          pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
           channels?: SessionChannelsDTO;
           preferredChannel?: SessionLiveChannel;
           serverTime?: string;
@@ -3174,6 +3181,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          if (data.pausedFromStatus !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              pausedFromStatus: data.pausedFromStatus,
+            }));
+          }
           this.handleQuestionSkippedTransition(data);
           let channelStateChanged = false;
           if (data.channels) {
@@ -3692,14 +3705,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /**
    * Teilnehmende sollen Q&A und Blitzlicht parallel zum Quiz nutzen können (ADR-0009).
-   * Sperre nur: Lesephase (QUESTION_OPEN); Abstimmung (ACTIVE) solange die Antwort noch nicht
-   * gesendet wurde (`voteSent`). Danach z. B. Blitzlicht oder Q&A während laufendem Timer.
+   * Sperre nur: Lesephase (QUESTION_OPEN), Host-Pause derselben Frage (PAUSED) sowie Abstimmung
+   * (ACTIVE), solange die Antwort noch nicht gesendet wurde (`voteSent`). Danach z. B. Blitzlicht
+   * oder Q&A während laufendem Timer.
    */
   private quizChannelLocksStudentNavigation(): boolean {
+    const s = this.status();
+    if (this.isPaused()) {
+      return true;
+    }
     if (this.currentQuestion() === null) {
       return false;
     }
-    const s = this.status();
     if (s === 'QUESTION_OPEN') {
       return true;
     }
@@ -4101,6 +4118,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQuestion(): Promise<void> {
+    if (this.isPaused()) {
+      return;
+    }
     try {
       const q = await trpc.session.getCurrentQuestionForStudent.query({
         code: this.code,

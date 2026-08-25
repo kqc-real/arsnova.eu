@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   LOCALE_ID,
@@ -132,6 +132,7 @@ type LobbyFoyerMotionProfile = {
     MatCard,
     MatCardContent,
     MatIcon,
+    NgTemplateOutlet,
     RouterLink,
     WordCloudComponent,
     SessionProjectionQuizComponent,
@@ -214,6 +215,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
+  readonly presenterStandbyEyebrow = $localize`:@@sessionHost.presenterViewLabel:Presenter-Ansicht`;
+  readonly quizPausedTitle = $localize`:@@sessionPresent.quizPausedTitle:Quiz pausiert`;
+  readonly quizPausedMessage = $localize`:@@sessionPresent.quizPausedMessage:Gleich geht es mit derselben Frage weiter.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly lobbyParticipants = signal<LobbyParticipant[]>([]);
   readonly lobbyTeams = signal<LobbyTeam[]>([]);
@@ -306,9 +310,32 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return grouped;
   });
   readonly showSecondaryPresentSurfaces = computed(() => !this.showFinishProjection());
+  readonly showQuizPauseProjection = computed(
+    () =>
+      this.session()?.status === 'PAUSED' &&
+      (this.session()?.pausedFromStatus === 'QUESTION_OPEN' ||
+        this.session()?.pausedFromStatus === 'ACTIVE') &&
+      this.session()?.preferredChannel === 'quiz' &&
+      !this.showFinishProjection(),
+  );
+  readonly preferredSecondaryChannel = computed<'qa' | 'quickFeedback' | null>(() => {
+    if (!this.showSecondaryPresentSurfaces()) {
+      return null;
+    }
+    const preferred = this.session()?.preferredChannel;
+    return preferred === 'qa' || preferred === 'quickFeedback' ? preferred : null;
+  });
+  readonly preferredSecondaryChannelOpen = computed(() => {
+    const preferred = this.preferredSecondaryChannel();
+    if (!preferred) {
+      return false;
+    }
+    return this.session()?.channels?.[preferred].open !== false;
+  });
   readonly showQaProjection = computed(
     () =>
-      this.session()?.preferredChannel === 'qa' &&
+      this.preferredSecondaryChannel() === 'qa' &&
+      this.preferredSecondaryChannelOpen() &&
       this.presenterQaWordCloudQuestions().length > 0 &&
       this.showSecondaryPresentSurfaces(),
   );
@@ -377,15 +404,48 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly showQuickFeedbackCard = computed(
     () =>
-      this.session()?.preferredChannel === 'quickFeedback' &&
+      this.preferredSecondaryChannel() === 'quickFeedback' &&
+      this.preferredSecondaryChannelOpen() &&
       this.quickFeedbackResult() !== null &&
       this.showSecondaryPresentSurfaces(),
   );
+  readonly presenterStandbyChannel = computed<'qa' | 'quickFeedback' | null>(() => {
+    const preferred = this.preferredSecondaryChannel();
+    if (preferred === 'qa' && !this.showQaProjection()) {
+      return preferred;
+    }
+    if (preferred === 'quickFeedback' && !this.showQuickFeedbackCard()) {
+      return preferred;
+    }
+    return null;
+  });
+  readonly presenterStandbyState = computed<'closed' | 'empty'>(() =>
+    this.preferredSecondaryChannelOpen() ? 'empty' : 'closed',
+  );
+  readonly presenterStandbyTitle = computed(() => {
+    if (this.presenterStandbyChannel() === 'qa') {
+      return this.session()?.channels?.qa.title?.trim() || $localize`:@@sessionTabs.questions:Q&A`;
+    }
+    return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
+  });
+  readonly presenterStandbyMessage = computed(() => {
+    const channel = this.presenterStandbyChannel();
+    if (!this.preferredSecondaryChannelOpen()) {
+      return channel === 'qa'
+        ? $localize`:@@sessionPresent.qaClosed:Q&A ist geschlossen.`
+        : $localize`:@@sessionPresent.quickFeedbackClosed:Blitzlicht ist geschlossen.`;
+    }
+    return channel === 'qa'
+      ? $localize`:@@sessionPresent.qaStandby:Noch keine freigegebenen Fragen.`
+      : $localize`:@@sessionPresent.quickFeedbackStandby:Blitzlicht noch nicht gestartet.`;
+  });
   readonly showPresenterFreetextStage = computed(() => {
     if (
       !this.presenterFreetextActive() ||
       this.showFinishProjection() ||
-      this.showLobbyProjection()
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection() ||
+      this.presenterStandbyChannel() !== null
     ) {
       return false;
     }
@@ -416,21 +476,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () =>
       this.session()?.status === 'LOBBY' &&
       !this.showFinishProjection() &&
+      !this.showQuizPauseProjection() &&
       !this.showQaProjection() &&
-      !this.showQuickFeedbackCard(),
+      !this.showQuickFeedbackCard() &&
+      this.presenterStandbyChannel() === null,
   );
   readonly hasLobbyAudienceColumns = computed(
     () => this.lobbyTeamsView().length > 0 || this.lobbyPeople().length > 0,
   );
   readonly showQuizProjection = computed(() => {
-    if (this.showFinishProjection() || this.showLobbyProjection()) {
+    if (
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection()
+    ) {
       return false;
     }
     const session = this.session();
     if (!session || session.type === 'Q_AND_A') {
       return false;
     }
-    if (this.showQaProjection() || this.showQuickFeedbackCard()) {
+    if (
+      this.showQaProjection() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
       return false;
     }
     return this.hostQuestion() !== null;

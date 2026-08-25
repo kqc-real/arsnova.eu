@@ -37,7 +37,7 @@
 ### 1.5 Aktivitätsdiagramm
 
 - Dozent/Student/Server-Phasen korrekt abgebildet.
-- **`PAUSED`-Status:** In diagrams.md (Aktivitäts- und Dozent-Sequenzdiagramm) integriert — siehe §7.1 (Erledigt 2026-02-21).
+- **`PAUSED`-Status:** In diagrams.md und architecture-overview.md als Host-Unterbrechung derselben Lese- oder Abstimmungsphase integriert — siehe §7.1.
 
 ---
 
@@ -228,7 +228,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 ### 7.1 `PAUSED`-Status (Historie)
 
-**Erledigt (2026-02-21):** `PAUSED` ist im Prisma-Enum `SessionStatus` und in **diagrams.md** (Aktivitätsdiagramm sowie Dozent-Sequenz) im Übergang zwischen Fragen abgebildet; architecture-overview Datenfluss enthält eine FINISHED/PAUSED-Note. Bei neuen Session-Phasen beide Dateien prüfen.
+**Erledigt (2026-02-21), fachlich aktualisiert (2026-08-25):** `PAUSED` war zunächst als Übergang zwischen Fragen dokumentiert. Produktiv bezeichnet es nun ausschließlich eine Host-Unterbrechung derselben `QUESTION_OPEN`- oder `ACTIVE`-Phase; `pausedFromStatus` bestimmt das exakte Fortsetzungsziel. Zwischen Ergebnis und nächster Frage bleibt die Session in `RESULTS`.
 
 ### 7.2 Server-Status und Sequenzdiagramme in Architektur-Diagrammen
 
@@ -275,4 +275,4 @@ Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Mode
 | **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                         |
 | **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) plus optionale spaCy-/NLP-/Summary-Pfade                                            |
 
-**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der PAUSED-Status ist in diagrams.md und im Datenfluss in architecture-overview.md berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
+**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der `PAUSED`-Status ist dort als zustandserhaltende Host-Unterbrechung berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.

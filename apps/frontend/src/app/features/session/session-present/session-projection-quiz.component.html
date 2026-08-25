@@ -10,6 +10,7 @@
     [class.session-projection-quiz--results]="isResults()"
     [class.session-projection-quiz--discussion]="isDiscussion()"
     [class.session-projection-quiz--fingers]="showFingerCountdown()"
+    [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
   >
     @if (isDiscussion()) {
       <p class="session-projection-quiz__discussion" role="status">
@@ -147,8 +148,18 @@
             <div class="session-projection-quiz__rating">
               @if (q.ratingLabelMin || q.ratingLabelMax) {
                 <p class="session-projection-quiz__rating-labels">
-                  <span>{{ q.ratingLabelMin }}</span>
-                  <span>{{ q.ratingLabelMax }}</span>
+                  <span class="session-projection-quiz__rating-axis">
+                    <span class="session-projection-quiz__rating-pole">
+                      <mat-icon aria-hidden="true">first_page</mat-icon>
+                      <span>{{ q.ratingLabelMin }}</span>
+                    </span>
+                    <span
+                      class="session-projection-quiz__rating-pole session-projection-quiz__rating-pole--max"
+                    >
+                      <span>{{ q.ratingLabelMax }}</span>
+                      <mat-icon aria-hidden="true">last_page</mat-icon>
+                    </span>
+                  </span>
                 </p>
               }
               @for (value of ratingValues(); track value) {

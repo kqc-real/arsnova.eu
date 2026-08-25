@@ -120,17 +120,65 @@ app-session-projection-quiz,
 
 .session-present--lobby,
 .session-present--qa,
-.session-present--feedback {
+.session-present--feedback,
+.session-present--standby {
   justify-content: center;
 }
 
 .session-present--qa,
-.session-present--feedback {
+.session-present--feedback,
+.session-present--standby {
   align-items: stretch;
   width: 100%;
   max-width: none;
   overflow: hidden;
   padding: clamp(0.8rem, 2vh, 1.4rem) clamp(0.9rem, 2vw, 1.8rem);
+}
+
+.session-present__standby-stage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  align-items: center;
+  justify-items: center;
+  gap: clamp(1.25rem, 5vmin, 4.5rem);
+  width: min(100%, 74rem);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.session-present__standby-copy {
+  display: grid;
+  justify-items: center;
+  gap: clamp(0.45rem, 1.5vmin, 0.9rem);
+  min-width: 0;
+  text-align: center;
+}
+
+.session-present__standby-eyebrow,
+.session-present__standby-title,
+.session-present__standby-message {
+  margin: 0;
+}
+
+.session-present__standby-eyebrow {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-medium);
+  letter-spacing: 0.04em;
+}
+
+.session-present__standby-title {
+  max-width: 18ch;
+  font: var(--mat-sys-display-medium);
+  overflow-wrap: anywhere;
+}
+
+.session-present__standby-message {
+  max-width: 34ch;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-headline-small);
 }
 
 .session-present--lobby {
@@ -213,7 +261,9 @@ app-session-projection-quiz,
   }
 }
 
-.session-present--lobby .session-present__lobby-card mat-card-content {
+:is(.session-present--lobby, .session-present--standby)
+  .session-present__lobby-card
+  mat-card-content {
   padding: 0 !important;
 }
 
@@ -256,7 +306,7 @@ app-session-projection-quiz,
   border-radius: 1.2rem;
 }
 
-.session-present--lobby .session-present__lobby-card {
+:is(.session-present--lobby, .session-present--standby) .session-present__lobby-card {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
@@ -282,6 +332,10 @@ app-session-projection-quiz,
   :is(.mat-mdc-card-content, mat-card-content) {
     overflow: visible;
   }
+}
+
+.session-present--standby .session-present__lobby-card {
+  --app-qr-size: min(16rem, 32vmin, 38dvh);
 }
 
 .session-present__lobby-brand {
@@ -1860,6 +1914,22 @@ app-session-projection-quiz,
 
   .session-present--lobby .session-present__lobby-card {
     --app-qr-size: min(12.5rem, 34vw, 32dvh);
+  }
+
+  .session-present--standby .session-present__lobby-card {
+    --app-qr-size: min(12.5rem, 30vmin, 30dvh);
+  }
+
+  .session-present__standby-stage {
+    gap: clamp(0.75rem, 2.5vmin, 1.5rem);
+  }
+
+  .session-present__standby-title {
+    font: var(--mat-sys-display-small);
+  }
+
+  .session-present__standby-message {
+    font: var(--mat-sys-title-large);
   }
 
   .session-present__lobby {

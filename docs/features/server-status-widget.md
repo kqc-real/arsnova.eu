@@ -198,10 +198,13 @@ stateDiagram-v2
   state "Aktiv (in Kennzahlen)" as active {
     LOBBY --> QUESTION_OPEN : openQuestion()
     QUESTION_OPEN --> ACTIVE : startAnswering()
-    ACTIVE --> PAUSED : pause()
-    PAUSED --> QUESTION_OPEN : resume()
+    QUESTION_OPEN --> PAUSED : pauseQuiz()
+    ACTIVE --> PAUSED : pauseQuiz()
+    PAUSED --> QUESTION_OPEN : resumeQuiz() [pausedFromStatus=QUESTION_OPEN]
+    PAUSED --> ACTIVE : resumeQuiz() [pausedFromStatus=ACTIVE]
     ACTIVE --> RESULTS : timeout / allAnswered
     RESULTS --> DISCUSSION : startDiscussion()
+    RESULTS --> QUESTION_OPEN : nextQuestion()
     DISCUSSION --> QUESTION_OPEN : nextQuestion()
   }
 

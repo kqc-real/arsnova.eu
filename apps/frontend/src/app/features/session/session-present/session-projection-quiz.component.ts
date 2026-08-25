@@ -68,16 +68,6 @@ export class SessionProjectionQuizComponent {
   readonly participantCount = input(0);
   readonly countdownSeconds = input<number | null>(null);
 
-  readonly showFingerCountdown = computed(() => {
-    const seconds = this.countdownSeconds();
-    return (
-      this.isActive() &&
-      seconds !== null &&
-      seconds >= 0 &&
-      seconds <= 5 &&
-      this.themePreset.preset() === 'spielerisch'
-    );
-  });
   readonly motifImageUrl = input<string | null>(null);
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
@@ -139,6 +129,14 @@ export class SessionProjectionQuizComponent {
       return false;
     }
     return question.answers.length > 0;
+  });
+  readonly hasDenseAnswerCopy = computed(() => {
+    const answers = this.question()?.answers ?? [];
+    if (answers.length < 4) {
+      return false;
+    }
+    const lengths = answers.map((answer) => answer.text.trim().length);
+    return Math.max(...lengths, 0) > 36 || lengths.reduce((sum, length) => sum + length, 0) > 120;
   });
 
   readonly showRoundComparison = computed(() => {
@@ -246,6 +244,17 @@ export class SessionProjectionQuizComponent {
   readonly hasQuestionCode = computed(
     () => presenterQuestionCodeBlocks(this.question()?.text ?? '').length > 0,
   );
+  readonly showFingerCountdown = computed(() => {
+    const seconds = this.countdownSeconds();
+    return (
+      this.isActive() &&
+      !this.hasQuestionCode() &&
+      seconds !== null &&
+      seconds >= 0 &&
+      seconds <= 5 &&
+      this.themePreset.preset() === 'spielerisch'
+    );
+  });
 
   readonly questionCodeColumnMarkdown = computed(() =>
     presenterQuestionCodeColumnMarkdown(this.question()?.text ?? ''),

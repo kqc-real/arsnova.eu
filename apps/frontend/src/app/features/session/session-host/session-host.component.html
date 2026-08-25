@@ -56,9 +56,10 @@
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
         <mat-button-toggle-group
+          #channelTabs="matButtonToggleGroup"
           class="session-channel-tabs"
           [value]="activeChannel()"
-          (valueChange)="selectChannel($event)"
+          (valueChange)="onChannelToggleChange($event, channelTabs)"
           [disabled]="channelActivationPending() !== null"
           i18n-aria-label="@@sessionTabs.hostAria"
           aria-label="Live-Bereich wählen"
@@ -375,6 +376,22 @@
                 </button>
                 @if (showHostViewControls() && !showChannelTabs()) {
                   <div class="session-host__view-controls session-host__view-controls--meta">
+                    @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
+                      <button
+                        mat-button
+                        type="button"
+                        class="session-host__channel-visibility-action"
+                        [disabled]="channelVisibilityPending() !== null"
+                        (click)="toggleActiveChannelOpen()"
+                        [attr.aria-label]="visibilityActionLabel"
+                      >
+                        <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
+                        <span class="session-host__channel-visibility-label">{{
+                          visibilityActionLabel
+                        }}</span>
+                      </button>
+                    }
+
                     <button
                       mat-icon-button
                       type="button"
@@ -1491,6 +1508,33 @@
                   <p class="session-host__discussion-banner-next" i18n>
                     Zweite Abstimmung folgt gleich.
                   </p>
+                </div>
+              }
+
+              @if (isQuizPausedByHost()) {
+                <div
+                  class="session-host__discussion-banner"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="host-quiz-paused"
+                >
+                  <mat-icon class="session-host__discussion-banner-icon" aria-hidden="true"
+                    >pause</mat-icon
+                  >
+                  <div>
+                    <p
+                      class="session-host__discussion-banner-title"
+                      i18n="@@sessionHost.quizPausedTitle"
+                    >
+                      Quiz pausiert
+                    </p>
+                    <p
+                      class="session-host__discussion-banner-sub"
+                      i18n="@@sessionHost.quizPausedHint"
+                    >
+                      Antworten und Countdown sind angehalten.
+                    </p>
+                  </div>
                 </div>
               }
 
@@ -4246,14 +4290,7 @@
         [class.session-host__exit-anchor--fixed]="showChannelTabs()"
         [class.session-host__exit-anchor--with-primary]="
           showQuickFeedbackAnchorAction() ||
-          (showQuizAnchorActions() &&
-            (effectiveStatus() === 'QUESTION_OPEN' ||
-              effectiveStatus() === 'DISCUSSION' ||
-              ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
-                (canOpenFollowingQuestion() || showFinishEvaluationAnchor())) ||
-              (effectiveStatus() === 'ACTIVE' &&
-                !quizStartQuestionPending() &&
-                hasCurrentQuizQuestionForHost())))
+          (showQuizAnchorActions() && showQuizPrimaryAnchorAction())
         "
         (wheel)="onExitAnchorWheel($event)"
         (touchstart)="onExitAnchorTouchStart($event)"
@@ -4443,9 +4480,7 @@
           }
         }
         @if (
-          showQuizAnchorActions() &&
-          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
-          canOpenFollowingQuestion()
+          showQuizAnchorActions() && showsQuizProgressionActions() && canOpenFollowingQuestion()
         ) {
           <button
             mat-flat-button
@@ -4460,9 +4495,7 @@
           </button>
         }
         @if (
-          showQuizAnchorActions() &&
-          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
-          showFinishEvaluationAnchor()
+          showQuizAnchorActions() && showsQuizProgressionActions() && showFinishEvaluationAnchor()
         ) {
           <button
             mat-flat-button

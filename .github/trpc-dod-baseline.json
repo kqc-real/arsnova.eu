@@ -329,12 +329,12 @@
     },
     "session.closeQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:ff30f4f4a67bf73fc8031fdaed166a508ee09a0eb68b71d867302adb7a90170e",
+      "fingerprint": "sha256:04165eda095cf14b8015406c7889d89e7872f1c72fc329c296a2ace5990cfca9",
       "missing": []
     },
     "session.closeQuickFeedbackChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:a08e37aef40fa629b630ea41fd3245b0d7568b47b3ce6a95db3864c969f5ba43",
+      "fingerprint": "sha256:ab97a3a8635a6d0add0f0ab170ae8353609cd7ae0345603ec97cf816df9e1920",
       "missing": []
     },
     "session.confirmReadingReady": {
@@ -354,17 +354,17 @@
     },
     "session.enableQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:15ce87a26618d59003d3c17ab98c3b95b5a80b8e346a8be65e48a3559cb761c6",
+      "fingerprint": "sha256:20e4271dd9d6a5a49a837c417161f1ebf155d295fcb0e1565c7833c53f199a76",
       "missing": []
     },
     "session.enableQuickFeedbackChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:b0e3be8f8a79e8d1a4ed32259344c736c3788d295615f277ed4f688867162375",
+      "fingerprint": "sha256:6f059ca36f49a48595c2ee042c4e00b0ca33e5619a7d8fd6474b9c84e892bc3c",
       "missing": []
     },
     "session.end": {
       "kind": "mutation",
-      "fingerprint": "sha256:18018bdd76b2477bcc5061f3d2ea1f8a14c376e49e8582f94fff0d5690f5dbb9",
+      "fingerprint": "sha256:960af5ecaa11f64aebf30d9464779eaeafa3c84bad9fed846833976ac2a7ff4b",
       "missing": []
     },
     "session.getActiveQuizIds": {
@@ -519,7 +519,7 @@
     },
     "session.nextQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:8106b7bb5bc134975f9c1d85d05281f5ca91e1ee543407c3b2bfb33734137716",
+      "fingerprint": "sha256:68a1a3bae9ffc64a22e3985273da3f94df759463f81323b7f20ad400d4ce3ad3",
       "missing": []
     },
     "session.onCurrentQuestionForHostChanged": {
@@ -542,6 +542,11 @@
       "fingerprint": "sha256:22d8ebdec783e89d025d4cd1eb6084e4a7409e291493ca14b70f97ba4a6ccd63",
       "missing": []
     },
+    "session.pauseQuiz": {
+      "kind": "mutation",
+      "fingerprint": "sha256:047b051725b61fe4b3b4a0d7dba5399aaaf6bef5edd841837b62860016d4a26a",
+      "missing": []
+    },
     "session.prevQuestion": {
       "kind": "mutation",
       "fingerprint": "sha256:9de46f82f3f5a5415e4c48ebc11e7e2095405bcfc8ed14915a7fce569b7fc9c3",
@@ -554,12 +559,17 @@
     },
     "session.reopenQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:fea0db9ac47427593a3ab21cc262cb502972843a1d27c1661bd74778b0162f46",
+      "fingerprint": "sha256:47d926c0ee5de75f28f5e9904466597a389e97bd2d35b9332ef2cb88ebe4b625",
       "missing": []
     },
     "session.reopenQuickFeedbackChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:919acfea0c2bad5e3351b79616cead7576148950f4899aca06247701931af989",
+      "fingerprint": "sha256:315c093a4c36a7e9140fbf2a2f27e263c3b6513d2abf47fafec4a724b7ed0a26",
+      "missing": []
+    },
+    "session.resumeQuiz": {
+      "kind": "mutation",
+      "fingerprint": "sha256:fc6f658a800ffdcf2a401b1fa58bbbb6a7926a88179d52e2268e8dd36abc82bc",
       "missing": []
     },
     "session.revealAnswers": {
@@ -574,7 +584,7 @@
     },
     "session.setPreferredLiveChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:be3299109fe397b11fc9613f2d01d4190a9dbf3933173e3e542a4885973b9a20",
+      "fingerprint": "sha256:0b654042e5ab09dacd5801f42fc11dd90bff3c5f0645a90356dc195b510b5192",
       "missing": []
     },
     "session.setPresenterSurface": {
@@ -589,7 +599,7 @@
     },
     "session.skipQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:786c1da9f7b142caaf6ba873b5a0acfca2e4d4abf0cb49673e7fa2b1d96ce3a6",
+      "fingerprint": "sha256:d9c3124c7081aa832316414d21f6587d586f4637898892430411f0074b4eaf0c",
       "missing": []
     },
     "session.startDiscussion": {

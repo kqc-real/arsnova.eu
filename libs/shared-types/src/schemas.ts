@@ -2939,11 +2939,14 @@ export const SessionPresenterSurfaceSchema = z.enum([
   'freetextWordCloud',
 ]);
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
+export const SessionPausedFromStatusSchema = z.enum(['QUESTION_OPEN', 'ACTIVE']);
+export type SessionPausedFromStatus = z.infer<typeof SessionPausedFromStatusSchema>;
 
 /** Output: Status-Update nach nextQuestion / revealAnswers / revealResults (Story 2.3, 3.5). */
 export const SessionStatusUpdateSchema = z.object({
   status: SessionStatusEnum,
   currentQuestion: z.number().int().min(0).nullable(),
+  pausedFromStatus: SessionPausedFromStatusSchema.nullable().optional(),
   /** Server-Zeitstempel bei Wechsel zu ACTIVE (ISO-8601). Für Countdown-Synchronisation (Story 3.5). */
   activeAt: z.string().optional(),
   /** Effektiver Timer der aktiven Frage nach Default- und Difficulty-Regeln. */
@@ -3595,6 +3598,7 @@ export const SessionInfoDTOSchema = z.object({
   code: z.string(),
   type: SessionTypeEnum,
   status: SessionStatusEnum,
+  pausedFromStatus: SessionPausedFromStatusSchema.nullable().optional(),
   /**
    * Neutraler Quiz-Fortschritt fuer Reload/Reconnect. Enthält keine Antwort-,
    * Korrektheits- oder Ergebnisdaten.

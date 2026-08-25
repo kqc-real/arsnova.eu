@@ -64,6 +64,72 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).not.toContain('check_circle');
   });
 
+  it('verdichtet vier lange Antwortoptionen für eine überlauffreie Presenter-Bühne', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'MULTIPLE_CHOICE',
+        answers: [
+          {
+            id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            text: 'Vorwissen zu Beginn einer Stunde aktivieren',
+            isCorrect: true,
+          },
+          {
+            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            text: 'Prüfungsnoten ohne Identitätsnachweis erheben',
+            isCorrect: false,
+          },
+          {
+            id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+            text: 'Ziel anhand einer einzigen Abstimmung abschließend bewerten',
+            isCorrect: false,
+          },
+          {
+            id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+            text: 'Missverständnisse mitten in der Stunde sichtbar machen',
+            isCorrect: true,
+          },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const stage = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-quiz-stage"]',
+    ) as HTMLElement;
+    expect(stage.classList.contains('session-projection-quiz--dense-answers')).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('.session-projection-quiz__answer')).toHaveLength(
+      4,
+    );
+  });
+
+  it('kennzeichnet die beiden Pole einer Bewertungsskala wie in der Hostansicht', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'RATING',
+        answers: [],
+        ratingMin: 1,
+        ratingMax: 5,
+        ratingLabelMin: 'Sehr unwahrscheinlich',
+        ratingLabelMax: 'Sehr wahrscheinlich',
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const poles = fixture.nativeElement.querySelectorAll(
+      '.session-projection-quiz__rating-pole',
+    ) as NodeListOf<HTMLElement>;
+    expect(poles).toHaveLength(2);
+    expect(poles[0]?.textContent).toContain('first_page');
+    expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
+    expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
+    expect(poles[1]?.textContent).toContain('last_page');
+  });
+
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {
     fixture.componentRef.setInput(
       'question',
@@ -417,6 +483,7 @@ describe('SessionProjectionQuizComponent', () => {
   });
 
   it('legt Codefragen dreispaltig an: Frage, Code, Antworten', () => {
+    TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -428,6 +495,7 @@ describe('SessionProjectionQuizComponent', () => {
       }),
     );
     fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('countdownSeconds', 2);
     fixture.detectChanges();
 
     const stage = fixture.nativeElement.querySelector(
@@ -435,6 +503,9 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement;
     expect(stage.classList.contains('session-projection-quiz--code')).toBe(true);
     expect(stage.classList.contains('session-projection-quiz--split')).toBe(true);
+    expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(false);
+    expect(stage.querySelector('app-countdown-fingers')).toBeNull();
+    expect(stage.querySelector('.session-projection-quiz__countdown')?.textContent).toContain('2');
     const title = stage.querySelector('.session-projection-quiz__title') as HTMLElement;
     const code = stage.querySelector('.session-projection-quiz__code') as HTMLElement;
     expect(title.textContent).toContain('Creative-Coding-Umgebung');

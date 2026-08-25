@@ -858,6 +858,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
+  private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
   private lastFreetextWordCloudSemanticRequestKey: string | null = null;
@@ -943,10 +944,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** true ab 7 Sek. vor Countdown-Ende → Musik aus, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
-  readonly channelVisibilityPending = signal<Extract<
-    SessionChannelTab,
-    'qa' | 'quickFeedback'
-  > | null>(null);
+  readonly channelVisibilityPending = signal<SessionChannelTab | null>(null);
   readonly Math = Math;
   /** ARIA für sichtbaren Session-Code (Lokalisation wie Blitzlicht-Teilnehmeransicht). */
   sessionCodeDisplayAria(code: string): string {
@@ -4952,6 +4950,35 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return su?.status ?? s?.status ?? null;
   }
 
+  isQuizPausedByHost(): boolean {
+    const pausedFromStatus =
+      this.statusUpdate()?.pausedFromStatus ?? this.session()?.pausedFromStatus ?? null;
+    return (
+      this.effectiveStatus() === 'PAUSED' &&
+      (pausedFromStatus === 'QUESTION_OPEN' || pausedFromStatus === 'ACTIVE')
+    );
+  }
+
+  showsQuizProgressionActions(): boolean {
+    const status = this.effectiveStatus();
+    return status === 'RESULTS' || (status === 'PAUSED' && !this.isQuizPausedByHost());
+  }
+
+  showQuizPrimaryAnchorAction(): boolean {
+    const status = this.effectiveStatus();
+    if (status === 'QUESTION_OPEN' || status === 'DISCUSSION') {
+      return true;
+    }
+    if (this.showsQuizProgressionActions()) {
+      return this.canOpenFollowingQuestion() || this.showFinishEvaluationAnchor();
+    }
+    return (
+      status === 'ACTIVE' &&
+      !this.quizStartQuestionPending() &&
+      this.hasCurrentQuizQuestionForHost()
+    );
+  }
+
   private clearFoyerArrivalStateWhenLeavingLobby(nextStatus: SessionInfoDTO['status']): void {
     if (this.effectiveStatus() === 'LOBBY' && nextStatus !== 'LOBBY') {
       this.clearFoyerArrivalState();
@@ -5625,6 +5652,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (
       status !== 'QUESTION_OPEN' &&
       status !== 'ACTIVE' &&
+      status !== 'PAUSED' &&
       status !== 'RESULTS' &&
       status !== 'DISCUSSION'
     ) {
@@ -7441,6 +7469,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  async onChannelToggleChange(channel: string, group: MatButtonToggleGroup): Promise<void> {
+    if (this.channelToggleSyncing) {
+      return;
+    }
+    await this.selectChannel(channel);
+    if (group.value === this.activeChannel()) {
+      return;
+    }
+    this.channelToggleSyncing = true;
+    try {
+      group.writeValue(this.activeChannel());
+    } finally {
+      this.channelToggleSyncing = false;
+    }
+  }
+
   private async activateQuizChannel(): Promise<void> {
     if (this.channelActivationPending() || !this.code) {
       return;
@@ -7616,7 +7660,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async syncPreferredLiveChannelNow(channel: SessionChannelTab): Promise<void> {
     if (
       !this.code ||
-      !this.isPresenterChannelReady(channel) ||
+      !this.isPresenterChannelSelectable(channel) ||
       this.session()?.preferredChannel === channel
     ) {
       return;
@@ -7677,38 +7721,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return queued;
   }
 
-  private isPresenterChannelReady(channel: SessionChannelTab): boolean {
-    if (!this.isChannelEnabled(channel)) {
-      return false;
-    }
-    if (channel === 'quiz') {
-      return true;
-    }
-    if (!this.isChannelOpen(channel)) {
-      return false;
-    }
-    if (channel === 'qa') {
-      return this.qaQuestions().some(
-        (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
-      );
-    }
-    return this.quickFeedbackResult() !== null;
+  private isPresenterChannelSelectable(channel: SessionChannelTab): boolean {
+    return this.isChannelEnabled(channel);
   }
 
   private async reconcilePresentedChannel(): Promise<void> {
     const active = this.activeChannel();
-    if (this.isPresenterChannelReady(active)) {
+    if (this.isPresenterChannelSelectable(active)) {
       await this.syncPreferredLiveChannel(active);
       return;
     }
 
     const preferred = this.session()?.preferredChannel;
-    if (preferred && this.isPresenterChannelReady(preferred)) {
+    if (preferred && this.isPresenterChannelSelectable(preferred)) {
       return;
     }
 
     const fallback = (['quiz', 'qa', 'quickFeedback'] as const).find((channel) =>
-      this.isPresenterChannelReady(channel),
+      this.isPresenterChannelSelectable(channel),
     );
     if (fallback) {
       await this.syncPreferredLiveChannel(fallback);
@@ -7721,6 +7751,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   activeChannelVisibilityActionLabel(): string | null {
     const active = this.activeChannel();
+    if (active === 'quiz') {
+      const status = this.effectiveStatus();
+      if (this.isQuizPausedByHost()) {
+        return $localize`:@@sessionHost.resumeQuiz:Quiz fortsetzen`;
+      }
+      if (status === 'QUESTION_OPEN' || status === 'ACTIVE') {
+        return $localize`:@@sessionHost.pauseQuiz:Quiz pausieren`;
+      }
+      return null;
+    }
     if (active !== 'qa' && active !== 'quickFeedback') {
       return null;
     }
@@ -7734,6 +7774,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   activeChannelVisibilityIcon(): string {
     const active = this.activeChannel();
+    if (active === 'quiz') {
+      return this.isQuizPausedByHost() ? 'play_arrow' : 'pause';
+    }
     if (active !== 'qa' && active !== 'quickFeedback') {
       return 'visibility';
     }
@@ -7742,6 +7785,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async toggleActiveChannelOpen(): Promise<void> {
     const active = this.activeChannel();
+    if (active === 'quiz') {
+      await this.toggleQuizPause();
+      return;
+    }
     if (active !== 'qa' && active !== 'quickFeedback') {
       return;
     }
@@ -7770,6 +7817,35 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.toggleActiveChannelOpen());
+    } finally {
+      this.channelVisibilityPending.set(null);
+    }
+  }
+
+  private async toggleQuizPause(): Promise<void> {
+    const status = this.effectiveStatus();
+    if (
+      this.channelVisibilityPending() ||
+      !this.isChannelEnabled('quiz') ||
+      !this.code ||
+      (status !== 'QUESTION_OPEN' && status !== 'ACTIVE' && !this.isQuizPausedByHost())
+    ) {
+      return;
+    }
+
+    this.channelVisibilityPending.set('quiz');
+    try {
+      const result =
+        status === 'PAUSED'
+          ? await trpc.session.resumeQuiz.mutate({ code: this.code.toUpperCase() })
+          : await trpc.session.pauseQuiz.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      this.syncCountdownFromStatusUpdate(result);
+      await this.refreshCurrentQuestionForHost();
+      this.syncMusic();
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.toggleQuizPause());
     } finally {
       this.channelVisibilityPending.set(null);
     }

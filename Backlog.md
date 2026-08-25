@@ -1080,8 +1080,11 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 2.3 (Präsentations-Steuerung):** 🔴 Als Lehrperson möchte ich den Ablauf steuern (Frage öffnen, Antworten freigeben, Ergebnisse auflösen).
   - **Akzeptanzkriterien:**
     - Buttons: "Nächste Frage" → "Antworten freigeben" → "Ergebnis zeigen".
-    - Session-Status-Wechsel: `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → PAUSED → …` (Details siehe Story 2.6).
+    - Session-Status-Wechsel: `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → QUESTION_OPEN → …` (Details siehe Story 2.6).
     - Wenn `readingPhaseEnabled=false`: Der Status `QUESTION_OPEN` wird übersprungen — "Nächste Frage" wechselt direkt zu `ACTIVE` (bisheriges Verhalten).
+    - Während `QUESTION_OPEN` oder `ACTIVE` kann der Host das Quiz pausieren und fortsetzen. `PAUSED` ist dabei ausschließlich ein unterbrechender Zustand derselben Frage, kein regulärer Zwischenzustand vor der nächsten Frage.
+    - Beim Pausieren werden Raumtimer, persönliche Zusatzzeiten und Antwortannahme serverseitig angehalten. Beim Fortsetzen wird exakt die vorherige Lese- oder Abstimmungsphase mit derselben Frage, Runde und Restzeit wiederhergestellt; Reload, Reconnect und ein künftiger Paired Host sehen denselben autoritativen Zustand.
+    - Host, Presenter und Teilnehmende erhalten einen eindeutigen, barrierefrei angekündigten Pause-Hinweis. Die Host-Aktion verwendet Pause-/Play-Symbol und die Begriffe „Quiz pausieren“ beziehungsweise „Quiz fortsetzen“.
     - Alle verbundenen Clients werden via Subscription über Statuswechsel informiert.
 - **Story 2.4 (Security / Data-Stripping):** 🔴 Als Lehrperson möchte ich absolut sicher sein, dass die `isCorrect`-Lösungsflags _während der Frage-Phase_ nicht an die Browser der Teilnehmenden gesendet werden.
   - **Akzeptanzkriterien:**
@@ -1105,8 +1108,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 2.6 (Zwei-Phasen-Frageanzeige / Lesephase):** 🟡 Als Lehrperson möchte ich, dass beim Freigeben einer Frage zunächst nur der Fragenstamm angezeigt wird (Lesephase), damit die Teilnehmenden die Frage in Ruhe und vollständig lesen können, bevor die Antwortoptionen erscheinen und der Countdown beginnt.
   - **Didaktische Begründung:** In klassischen Quiz-Apps erscheinen Frage und Antworten gleichzeitig. Teilnehmende springen dann oft direkt zu den Antworten, ohne die Frage gründlich zu lesen — insbesondere bei komplexen Fragen mit Formeln oder längeren Texten. Die Zwei-Phasen-Anzeige fördert **kognitives Processing** und reduziert impulsives Raten.
   - **Akzeptanzkriterien:**
-    - Neuer Session-Status `QUESTION_OPEN` zwischen `LOBBY`/`PAUSED` und `ACTIVE`.
-    - **Status-Flow (erweitert):** `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → PAUSED → QUESTION_OPEN → … → FINISHED`.
+    - Neuer Session-Status `QUESTION_OPEN` zwischen `LOBBY`/`RESULTS` und `ACTIVE`.
+    - **Status-Flow (erweitert):** `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → QUESTION_OPEN → … → FINISHED`; eine Host-Pause kann `QUESTION_OPEN` oder `ACTIVE` vorübergehend unterbrechen und setzt danach genau diese Phase fort.
     - **Phase 1 (`QUESTION_OPEN`):**
       - Auf Beamer und Teilnehmenden-Geräten wird **nur der Fragenstamm** angezeigt (Markdown/KaTeX gerendert), ohne Antwortoptionen.
       - Kein Countdown läuft. Abstimmung ist nicht möglich.
