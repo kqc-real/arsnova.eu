@@ -999,7 +999,7 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
   sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
-- delegierte Q&A-Moderation und weitere Q&A-Erweiterungen
+- Paired Hosts für eigene Zweitgeräte und vertrauenswürdige Tutor:innen oder Moderator:innen
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

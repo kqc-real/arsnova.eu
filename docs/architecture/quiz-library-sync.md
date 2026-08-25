@@ -688,7 +688,7 @@ Deshalb gilt als Leitregel:
 
 Für arsnova.eu bedeutet das konkret:
 
-- Bei Host-/Moderatorzugängen hat **serverseitig prüfbare Autorisierung** Vorrang vor maximaler Bequemlichkeit.
+- Bei Host- und Paired-Host-Zugängen hat **serverseitig prüfbare Autorisierung** Vorrang vor maximaler Bequemlichkeit.
 - Bei der Quiz-Sammlung hat **Local-First mit nachvollziehbarem Vertrauensmodell** Vorrang vor maximal aggressiver Optimierung.
 - Performance-Maßnahmen sind bevorzugt dort sinnvoll, wo sie **keine** Autorisierung, Widerrufbarkeit oder Transparenz abbauen.
 

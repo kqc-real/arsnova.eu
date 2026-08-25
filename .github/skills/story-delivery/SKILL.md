@@ -1,7 +1,7 @@
 ---
 name: story-delivery
 description: 'Implement backlog stories in arsnova.eu. Use when a user references a story or epic from Backlog.md, asks to implement, fix, or complete a backlog item, or wants the repo-specific delivery workflow from story scope to validation.'
-argument-hint: 'Story id or scope, for example: 0.7, 1.6c, 8.5, or "implement Story 1.2d numerische Schaetzfrage"'
+argument-hint: 'Story id or scope, for example: 0.7, 1.6c, 2.10, or "implement Story 1.2d numerische Schaetzfrage"'
 user-invocable: true
 ---
 
@@ -33,7 +33,7 @@ This skill exists to make agents follow the repo's real delivery order instead o
    - If it spans backend and frontend, still change the contract first, then backend, then frontend.
 
 3. **Apply repo-specific guardrails while coding.**
-   - Never infer host or moderator rights from routes or client flags alone; use validated backend token checks.
+   - Never infer host or paired-host rights from routes or client flags alone; use validated backend token checks.
    - Preserve DTO stripping for participant-facing data.
    - In Angular UI code, use standalone components and Signals; do not introduce `BehaviorSubject` for ordinary UI state.
    - For user-facing copy changes, keep locales in sync: `de`, `en`, `fr`, `es`, `it`.

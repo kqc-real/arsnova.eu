@@ -32,7 +32,7 @@ ADR-0025 behandelt KI- und Inferenzfunktionen standardmaessig als performance-kr
 
 ## Entscheidung
 
-Wir fuehren keine synchrone "Analyse jeder eingehenden Frage" im Q&A-Request-Pfad ein. Stattdessen wird eine optionale, asynchrone NLP-Kaskade als Nebenkomponente fuer Host-/Moderator-Signale vorgesehen.
+Wir fuehren keine synchrone "Analyse jeder eingehenden Frage" im Q&A-Request-Pfad ein. Stattdessen wird eine optionale, asynchrone NLP-Kaskade als Nebenkomponente fuer Host-Signale vorgesehen.
 
 ### 1. Pfadtyp und Hotpath-Grenze
 
@@ -167,7 +167,7 @@ Ironie, Sarkasmus und doppelte Verneinungen gelten nicht als garantiert geloest.
 
 ### Positiv
 
-- Q&A kann um semantische Host-/Moderator-Signale erweitert werden, ohne den Teilnehmerfluss von der Inferenz abhaengig zu machen.
+- Q&A kann um semantische Host-Signale erweitert werden, ohne den Teilnehmerfluss von der Inferenz abhaengig zu machen.
 - Lokale Inferenz vermeidet Drittanbieteruebertragung und passt besser zu selbsthostbaren Hochschulinstallationen.
 - Die Kaskade erlaubt eine wirtschaftliche CPU-first-Strategie: schnelle Standardfaelle zuerst, teurere semantische Pruefung nur bei Unsicherheit.
 - Modellversionen, Schwellenwerte und Degradation werden explizite Betriebsartefakte statt versteckter Annahmen.
@@ -197,7 +197,7 @@ Ironie, Sarkasmus und doppelte Verneinungen gelten nicht als garantiert geloest.
 
 - Neue Persistenzfelder fuer NLP-Ergebnisse muessen in `libs/shared-types` und Prisma schema-first modelliert werden.
 - Bestehende Q&A-DTOs duerfen Teilnehmern keine internen Moderations- oder Analyseartefakte ausliefern.
-- Host-/Moderator-UI muss `pending`, `uncertain`, `disabled` und `failed` ruhig darstellen koennen.
+- Die Host-UI muss `pending`, `uncertain`, `disabled` und `failed` ruhig darstellen koennen.
 - Produktive Aktivierung erfolgt erst nach Last- und Qualitaetsmessung, nicht allein nach erfolgreichem Modellstart.
 - Die Funktion muss jederzeit abschaltbar sein, ohne bestehende Q&A-Flows zu beeintraechtigen.
 

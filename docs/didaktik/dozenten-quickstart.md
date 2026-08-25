@@ -49,7 +49,7 @@ Für **eine einzelne Person** im Rahmen von ca. **40 Stunden** ist die vollstän
 
 Pragmatische Default-Regel:
 
-- **Einstieg / sichtbarer Produktausbau:** `1.14a`, `8.5`
+- **Einstieg / sichtbarer Produktausbau:** `1.14a`, `2.10`
 - **Vertiefung nach Betreuungsauswahl:** `1.2ec`, `1.2ed`, `2.9`; die abgeschlossene Schätzfrage `1.2d`, die strukturierten Fragentypen `1.2g–1.2h` und `1.2j` sowie Confidence `1.2i` eignen sich als Referenzbeispiele. **1.2f** (Hotspot) ist aus A11y-Gründen geschlossen — siehe [`docs/features/numeric-estimate.md`](../features/numeric-estimate.md).
 - **Nur mit enger Betreuung / Pair-Review:** `0.7`, `1.6c`, `1.6d`, `6.5` (**0.8** ist geschlossen / nicht weiterverfolgt)
 

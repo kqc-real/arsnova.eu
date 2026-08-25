@@ -8,7 +8,7 @@ applyTo:
 # Backend Instructions
 
 - Keep the contract in [libs/shared-types](../../libs/shared-types) authoritative. If the change affects tRPC input or output, update the shared Zod schema first.
-- Host-only or moderator-only behavior must be protected server-side. Never trust `/session/:code/...`, `moderatorView`, or similar client input as the permission proof by itself.
+- Host-only behavior, including future Paired-Host access, must be protected server-side. Never trust `/session/:code/...`, `moderatorView`, or similar client input as the permission proof by itself; `moderatorView` is only a host-side data-view flag.
 - Preserve data stripping for participant-facing payloads. During active question phases, do not leak fields such as `isCorrect`.
 - Treat standalone feedback and live-session host access as separate ownership contexts; do not reuse one token model implicitly for the other.
 - Keep public payloads minimal. Owner-bound history or analytics endpoints must not become enumerable through IDs alone.

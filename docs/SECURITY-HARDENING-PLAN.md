@@ -130,14 +130,14 @@ Kernsatz:
 
 Aus 500er-Lasttests und gezielter Reconnect-Messung ableiten; grobe Planung:
 
-| Größe                                             | Richtwert                              |
-| ------------------------------------------------- | -------------------------------------- |
-| Registrierte Teilnehmer / Session                 | 600–650                                |
-| Gleichzeitige WS (Burst)                          | ≥ 800                                  |
-| Reconnect-Welle                                   | ~500 Geräte, **jittered**              |
-| Vote-Burst                                        | 500 Votes in wenigen Sekunden          |
-| Zusätzliche Host-/Present-/Moderator-Verbindungen | einplanen                              |
-| PDF parallel                                      | z. B. 2 (nur Host; Hörsaal-irrelevant) |
+| Größe                                               | Richtwert                              |
+| --------------------------------------------------- | -------------------------------------- |
+| Registrierte Teilnehmer / Session                   | 600–650                                |
+| Gleichzeitige WS (Burst)                            | ≥ 800                                  |
+| Reconnect-Welle                                     | ~500 Geräte, **jittered**              |
+| Vote-Burst                                          | 500 Votes in wenigen Sekunden          |
+| Zusätzliche Host-/Present-/Paired-Host-Verbindungen | einplanen                              |
+| PDF parallel                                        | z. B. 2 (nur Host; Hörsaal-irrelevant) |
 
 Produkt-SLOs (Latenz/Fehlerquote Join/Vote/WS) **vor** dem formalen Abnahmelasttest festlegen und in Abschnitt 6.5 spiegeln.
 

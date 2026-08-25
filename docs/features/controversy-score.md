@@ -13,11 +13,11 @@ Live-Events haben eine **begrenzte Teilnehmerzahl** (typisch 10–200). Gesucht 
 
 Die aktuelle Q&A-Implementierung in arsnova.eu hat bereits **bidirektionales Voting** (`UP` / `DOWN`) und speichert pro Frage einen **Netto-Score** in `QaQuestion.upvoteCount`; die einzelnen Stimmen liegen in `QaUpvote.direction`. Daraus folgen für Story 8.6 und 8.7 verbindliche Produktentscheidungen:
 
-1. **8.6 und 8.7 sind im heutigen Produkt optionale Sortiermodi für den Host; später können sie auf Moderator:innen erweitert werden.** Sie sind keine neuen globalen Standardsortierungen für alle Clients.
+1. **8.6 und 8.7 sind im heutigen Produkt optionale Sortiermodi für den Host.** Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten sie künftig über die vollständige Host-Ansicht eines Paired Hosts aus Story 2.10. Sie sind keine neuen globalen Standardsortierungen für alle Clients.
 2. **Teilnehmende behalten die heutige, leicht verständliche Standardsortierung**; die neuen Modi sind ein Werkzeug für Moderation, nicht das neue Default-Ranking der Teilnehmendenansicht.
 3. **Host-Ranking bleibt metrisch ehrlich.** In den Host-Sortiermodi werden `ACTIVE`- und `PINNED`-Fragen gemeinsam nach der gewählten Metrik sortiert; angeheftete Fragen bleiben sichtbar markiert, aber überstimmen das Ranking nicht. `PENDING`, `ARCHIVED` und `DELETED` folgen danach als eigene Statusgruppen. Die Teilnehmendenansicht behält `PINNED` weiter oben, weil dort die gerade beantwortete Frage Vorrang hat.
 4. **`QaQuestion.upvoteCount` ist im Ist-Stand ein Netto-Score, nicht die Zahl der Upvotes.** Für 8.6 und 8.7 müssen `U` und `D` aus den Einzelstimmen (`QaUpvote.direction`) aggregiert werden; der Netto-Score allein reicht fachlich nicht.
-5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Meist unterstützt`, `Umstritten`, `Beste Fragen`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 für den Host und später auch Moderator:innen nicht nachvollziehbar.
+5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Meist unterstützt`, `Umstritten`, `Beste Fragen`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 für Hosts nicht nachvollziehbar.
 
 ## Implementierungsstand (Stand 2026-05-15)
 
@@ -40,7 +40,7 @@ Die Umsetzung nutzt die heutigen Q&A-Tabellen weiterhin, erweitert aber die DTO-
 - `positiveVoteCount`: Zahl positiver Stimmen `U`
 - `negativeVoteCount`: Zahl negativer Stimmen `D`
 - `voteCount`: Gesamtzahl `U + D`
-- optional `controversyScore` und `bestScore` im Host-Kontext; bei späterer 8.5-Erweiterung auch im Moderator-Kontext
+- optional `controversyScore` und `bestScore` im Host-Kontext
 
 Die Einführung erfolgte **kompatibel**: Bestehende Clients brechen nicht implizit. Das Feld `upvoteCount` bleibt aus Kompatibilitätsgründen erhalten, ist aber im heutigen Produkt semantisch weiter ein **Score**. Mittelfristig ist ein API-Feldname wie `score` die sauberere Wahl.
 
@@ -86,7 +86,7 @@ Damit Host/Moderation **nachvollziehen**, warum eine Frage oben steht, kann ein 
 
 ### Badge und Kennzeichnung
 
-Für Story 8.6 ist eine bloße Umsortierung ohne sichtbare Erklärung im heutigen Produkt **nicht ausreichend**. Mindestens in der Host-Ansicht muss erkennbar sein, warum eine Frage trotz mittlerem oder neutralem Netto-Score weit oben steht. Bei späterer 8.5-Erweiterung gilt dasselbe für Moderator:innen.
+Für Story 8.6 ist eine bloße Umsortierung ohne sichtbare Erklärung im heutigen Produkt **nicht ausreichend**. In der Host-Ansicht muss erkennbar sein, warum eine Frage trotz mittlerem oder neutralem Netto-Score weit oben steht.
 
 Anzeige nur wenn **beides** gilt:
 
@@ -103,7 +103,7 @@ Die aktuelle Host-UI ergänzt diese Kennzeichnung durch eine sortierabhaengige Q
 
 ### Sortier-UI
 
-Die Sortierauswahl sitzt im heutigen Produkt in der Host-Ansicht in unmittelbarer Nähe zur Q&A-Liste, nicht in der Teilnehmeransicht. Bei späterer 8.5-Erweiterung kann dieselbe Steuerung auch im Moderatorzugang erscheinen. Referenzoptionen:
+Die Sortierauswahl sitzt in der Host-Ansicht in unmittelbarer Nähe zur Q&A-Liste, nicht in der Teilnehmeransicht. Ein Paired Host verwendet dieselbe Steuerung. Referenzoptionen:
 
 - `Meist unterstützt` — heutige Standardsortierung nach positiven Stimmen
 - `Umstritten` — Story 8.6
@@ -111,7 +111,7 @@ Die Sortierauswahl sitzt im heutigen Produkt in der Host-Ansicht in unmittelbare
 
 Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Umstritten` `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke bleiben bei `Beste Fragen`.
 
-Der aktive Modus bleibt während einer Session stabil, bis der Host ihn bewusst ändert. Bei späterer Moderator-Erweiterung ist ein konsistentes Berechtigungsmodell mit dem Host festzulegen.
+Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 
 Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nach Netto-Score, `Beste Fragen` nach Wilson-Score und `Umstritten` nach Kontroversität. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
 
@@ -121,7 +121,7 @@ Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nac
 - [x] **AC 2:** \(C\) wird **pro Event/Session** aus der gewählten Definition von \(N\) abgeleitet (kleinerer Raum → kleineres \(C\) als bei großem Raum, bei gleicher Formel).
 - [x] **AC 3:** Gleicher Score → eindeutige Reihenfolge über `U`, dann Netto-Score, dann `created_at`, dann `id`.
 - [x] **AC 4:** Kein Absturz bei 0 Stimmen oder \(N = 0\); keine Division durch Null.
-- [x] **AC 5:** Fragen oberhalb der Badge-Schwellen werden in der Host-Ansicht sichtbar als kontrovers/umstritten gekennzeichnet (siehe Abschnitt UI); bei späterer 8.5-Erweiterung gilt dies ebenso für Moderator:innen.
+- [x] **AC 5:** Fragen oberhalb der Badge-Schwellen werden in der Host-Ansicht sichtbar als kontrovers/umstritten gekennzeichnet (siehe Abschnitt UI).
 - [x] **AC 6:** `PINNED`-Fragen bleiben sichtbar markiert, werden in den Host-Sortiermodi aber gemeinsam mit `ACTIVE` nach der gewaehlten Metrik einsortiert.
 - [x] **AC 7:** Teilnehmende behalten die Standardsortierung; Story 8.6 ist kein globaler Default-Wechsel.
 
@@ -257,7 +257,7 @@ Kleine Stichproben werden **stark** abgestraft (hohe Unsicherheit); große, fast
 
 Post B gewinnt zu Recht gegen Post A.
 
-**Hinweis:** Abgrenzung zu Story **8.6** (Kontroversität). Story 8.7 ist im aktuellen Produkt ebenfalls als **optionaler Host-Sortiermodus** zu verstehen, nicht als Ersatz der Standardsortierung für Teilnehmende. Eine spätere Erweiterung auf Moderator:innen bleibt möglich.
+**Hinweis:** Abgrenzung zu Story **8.6** (Kontroversität). Story 8.7 ist ebenfalls als **optionaler Host-Sortiermodus** zu verstehen, nicht als Ersatz der Standardsortierung für Teilnehmende. Vertrauenswürdige Co-Hosts erhalten ihn über Story 2.10.
 
 ---
 

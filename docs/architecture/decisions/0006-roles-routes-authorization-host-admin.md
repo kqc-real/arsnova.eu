@@ -23,7 +23,7 @@ Die App ist für Lehrende und Teilnehmende **accountfrei**; Sessions und Quiz-Da
 - **Host-Modell:** Das Host-Token-Zielbild ist im Repo jetzt weitgehend umgesetzt: `session.create` liefert ein Host-Token, Host-only-Endpunkte laufen über `hostProcedure`, und Host-/Present-Routen sind clientseitig tokengebunden.
 - **`/session/:code` ohne Segment:** Der Router entscheidet kontextabhängig zwischen Host-Ansicht (mit Token) und Join-Pfad (ohne Token).
 - **Standalone-Blitzlicht:** `/feedback/:code` verwendet einen separaten Feedback-Host-Token statt des Session-Host-Tokens.
-- **Moderator-Route:** Als Zielbild beschrieben, aber im aktuellen Frontend-Router weiterhin nicht als eigene Route vorhanden. Q&A-Moderation laeuft im Ist-Stand ueber die Host-Ansicht und `qa.moderate` als `hostProcedure`, nicht ueber ein eigenes Moderator-Token.
+- **Delegierte Host-Nutzung:** Q&A-Moderation läuft über die Host-Ansicht und `qa.moderate` als `hostProcedure`. Vertrauenswürdige Tutor:innen oder Moderator:innen sollen künftig als separat widerrufbare Paired Hosts dieselbe Host-Route nutzen.
 
 Die konkrete Härtung des Ist-Stands ist in [ADR-0019](./0019-host-hardening-and-owner-bound-session-access.md) beschrieben.
 
@@ -31,14 +31,13 @@ Die konkrete Härtung des Ist-Stands ist in [ADR-0019](./0019-host-hardening-and
 
 ### 1. Rollen und Routen (URL-Struktur)
 
-| Rolle         | URL-Segment(e)            | Bedeutung                                                                                            |
-| ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Host**      | `/session/:code/host`     | Lehrperson: Steuerung, Lobby                                                                         |
-| **Present**   | `/session/:code/present`  | Lehrperson: Beamer/Projektion                                                                        |
-| **Moderator** | `/session/:code/moderate` | Delegierte Live-Moderation mit eingeschränkten Rechten (Zielbild; aktuell nicht als Route umgesetzt) |
-| **Join**      | `/join/:code`             | Teilnehmende: Einstieg (QR-Ziel), Nickname, dann Redirect auf Vote                                   |
-| **Vote**      | `/session/:code/vote`     | Teilnehmende: Abstimmung, Scorecard                                                                  |
-| **Admin**     | `/admin`                  | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export                               |
+| Rolle       | URL-Segment(e)           | Bedeutung                                                              |
+| ----------- | ------------------------ | ---------------------------------------------------------------------- |
+| **Host**    | `/session/:code/host`    | Lehrperson: Steuerung, Lobby                                           |
+| **Present** | `/session/:code/present` | Lehrperson: Beamer/Projektion                                          |
+| **Join**    | `/join/:code`            | Teilnehmende: Einstieg (QR-Ziel), Nickname, dann Redirect auf Vote     |
+| **Vote**    | `/session/:code/vote`    | Teilnehmende: Abstimmung, Scorecard                                    |
+| **Admin**   | `/admin`                 | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export |
 
 - **`/session/:code`** ohne Segment: Redirect auf `.../host` (wenn Host-Token) oder `/join/:code` (wenn unklar), damit keine mehrdeutige URL bleibt.
 - QR-Code (Story 2.1b) verweist auf **`/join/:code`**.
@@ -51,13 +50,13 @@ Die konkrete Härtung des Ist-Stands ist in [ADR-0019](./0019-host-hardening-and
 - **Jede Host-only-Prozedur** (nextQuestion, revealResults, end, getBonusTokens, getExportData usw.) erwartet das Host-Token (Header oder Input); das Backend prüft gegen einen gespeicherten Hash (z. B. Redis `host:${sessionId}`). Ungültig/fehlend → `UNAUTHORIZED`.
 - Aufruf von `/session/:code/host` oder `.../present` **ohne** gültiges Token → Frontend zeigt „Zugriff verweigert“ oder Redirect; Backend liefert bei Host-API-Aufrufen ohne Token keine Daten.
 
-### 2a. Delegierte Live-Rollen bauen auf dieser Basis auf
+### 2a. Delegierte Live-Zugänge bauen auf dieser Basis auf
 
-Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf derselben Grundregel auf:
+**Presenter** und künftig **Paired Hosts** bauen auf derselben Grundregel auf:
 
 - Rechte werden **nie** durch die URL oder durch den Session-Code verliehen.
-- Zusätzliche Live-Rollen benötigen eigene Tokens und serverseitige Prüfpfade.
-- Die konkrete Ausgestaltung der delegierten Moderatorrolle ist in **ADR-0011** festgelegt.
+- Zusätzliche Live-Zugänge benötigen eigene Tokens und serverseitige Prüfpfade.
+- Paired Hosts verwenden die Host-Route mit einem eigenen, sessiongebundenen und widerrufbaren Token; die konkrete Entscheidung ist in **ADR-0011** festgehalten.
 
 ### 3. Admin-Rolle und -Credentials
 
@@ -85,7 +84,7 @@ Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf der
 
 - Klare Trennung der Rollen in der URL; keine Rechtevergabe durch bloßes Aufrufen einer Adresse.
 - Admin-Zugriff ist tokenbasiert und serverseitig prüfbar; für den Host gilt dies als Zielbild derselben Architektur.
-- Presenter- und Moderator-Delegation werden möglich, ohne Vollzugriff auf die Session preiszugeben.
+- Presenter bleibt read-only; vertrauenswürdige Paired Hosts erhalten bewusst reguläre Host-Rechte, ohne den ursprünglichen Host-Token zu teilen.
 - Admin-Rolle passt zur accountfreien Architektur: ein gemeinsamer Schlüssel in der Server-Config, keine Nutzerdatenbank für Admins.
 - Einheitliche, englische und kurze Routen; gute Orientierung für Entwicklung und Nutzung.
 
@@ -103,4 +102,4 @@ Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf der
 
 ---
 
-**Referenzen:** Backlog Epic 9 (Admin), [docs/ROUTES_AND_STORIES.md](../../ROUTES_AND_STORIES.md) (Routen, Host-/Admin-Autorisierung, Absicherung), [ADR-0011: Delegierbare Moderatorrolle für Live-Sessions](./0011-delegated-moderator-role-for-live-sessions.md), [ADR-0019: Host-Härtung und besitzgebundene Session-Zugriffe ohne Accounts](./0019-host-hardening-and-owner-bound-session-access.md).
+**Referenzen:** Backlog Story 2.10 und Epic 9 (Admin), [docs/ROUTES_AND_STORIES.md](../../ROUTES_AND_STORIES.md) (Routen, Host-/Admin-Autorisierung, Absicherung), [ADR-0011: Delegation über vertrauenswürdige Paired Hosts](./0011-delegation-via-trusted-paired-hosts.md), [ADR-0019: Host-Härtung und besitzgebundene Session-Zugriffe ohne Accounts](./0019-host-hardening-and-owner-bound-session-access.md).
