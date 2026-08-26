@@ -105,9 +105,17 @@ describe('SessionTokenStorageService', () => {
     setHostToken('ABC123', 'tab-token');
     const service = TestBed.inject(SessionTokenStorageService);
 
-    await service.persistCurrentHostToken('abc123');
+    await expect(service.persistCurrentHostToken('abc123')).resolves.toBe(true);
 
     expect(await service.getHostToken('ABC123')).toBe('tab-token');
+  });
+
+  it('meldet Persist-Fehler wenn IndexedDB fehlt', async () => {
+    setHostToken('ABC123', 'tab-token');
+    vi.stubGlobal('indexedDB', undefined);
+    const service = TestBed.inject(SessionTokenStorageService);
+
+    await expect(service.persistCurrentHostToken('ABC123')).resolves.toBe(false);
   });
 
   it('entfernt den gespeicherten Token', async () => {

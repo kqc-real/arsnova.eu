@@ -100,15 +100,16 @@ export class SessionTokenStorageService {
     }
   }
 
-  async persistCurrentHostToken(sessionCode: string): Promise<void> {
+  async persistCurrentHostToken(sessionCode: string): Promise<boolean> {
     const token = getHostToken(sessionCode);
     if (!token) {
-      return;
+      return false;
     }
     try {
       await this.setHostToken(sessionCode, token);
+      return true;
     } catch {
-      // Presenter-Tab kann dann nur über sessionStorage (Desktop) fortfahren.
+      return false;
     }
   }
 }

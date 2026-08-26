@@ -121,7 +121,7 @@ const {
   onHostVoteProgressChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   clearHostTokenMock: vi.fn(),
   dialogOpenMock: vi.fn(),
-  persistCurrentHostTokenMock: vi.fn(async () => undefined),
+  persistCurrentHostTokenMock: vi.fn(async () => true),
   clearStoredHostTokenMock: vi.fn(async () => undefined),
 }));
 

@@ -9,8 +9,8 @@ import {
   shouldOpenPresenterInUnnamedTab,
 } from './presenter-window.util';
 
-function persistMock() {
-  return { persistCurrentHostToken: vi.fn(async () => undefined) };
+function persistMock(result = true) {
+  return { persistCurrentHostToken: vi.fn(async () => result) };
 }
 
 describe('presenter-window.util', () => {
@@ -86,6 +86,7 @@ describe('presenter-window.util', () => {
       location: { pathname: 'blank', replace },
       sessionStorage: openedStorage,
       focus: vi.fn(),
+      close: vi.fn(),
     };
     const callOrder: string[] = [];
     const open = vi.fn(() => {
@@ -100,6 +101,7 @@ describe('presenter-window.util', () => {
     const tokenStorage = {
       persistCurrentHostToken: vi.fn(async () => {
         callOrder.push('persist');
+        return true;
       }),
     };
 
@@ -108,7 +110,35 @@ describe('presenter-window.util', () => {
     expect(open).toHaveBeenCalledWith('about:blank', '_blank');
     expect(callOrder).toEqual(['open', 'persist']);
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'));
-    expect(openedStorage.setItem).not.toHaveBeenCalled();
+    expect(opened.close).not.toHaveBeenCalled();
+  });
+
+  it('bricht auf Touch ab wenn IndexedDB und sessionStorage-Handoff scheitern', async () => {
+    setHostToken('XY9K2P', 'host-token-xyz');
+    const replace = vi.fn();
+    const close = vi.fn();
+    const opened = {
+      closed: false,
+      location: { pathname: 'blank', replace },
+      sessionStorage: {
+        setItem: vi.fn(() => {
+          throw new Error('quota');
+        }),
+      },
+      focus: vi.fn(),
+      close,
+    };
+    const win = {
+      open: vi.fn(() => opened),
+      navigator: { maxTouchPoints: 5 },
+      matchMedia: () => ({ matches: true }),
+    } as unknown as Window;
+
+    const result = await openPresenterViewWindow(win, 'xy9k2p', persistMock(false));
+
+    expect(result).toBeNull();
+    expect(close).toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it('schreibt den Token auch dann nach IndexedDB, wenn das Popup blockiert wird', async () => {

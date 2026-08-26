@@ -18,7 +18,8 @@ export const PRESENTER_VIEW_OFFERED_MEDIA = '(min-width: 600px) and (min-height:
 
 /** Schreibt den aktuellen Host-Token origin-weit, bevor der Presenter-Tab öffnet. */
 export type PresenterHostTokenPersister = {
-  persistCurrentHostToken(sessionCode: string): Promise<void>;
+  /** `true`, wenn der Token in IndexedDB landete. */
+  persistCurrentHostToken(sessionCode: string): Promise<boolean>;
 };
 
 /**
@@ -149,14 +150,24 @@ export async function openPresenterViewWindow(
   }
 
   // Persist vor der Present-Navigation, damit der Guard IndexedDB schon vorfindet.
-  await tokenStorage.persistCurrentHostToken(sessionCode);
+  const persisted = await tokenStorage.persistCurrentHostToken(sessionCode);
+  let copied = false;
+  try {
+    // Auch auf Touch versuchen: same-origin about:blank erlaubt oft Schreibzugriff,
+    // auch wenn der Browser sessionStorage beim Open nicht klont.
+    copied = copyHostTokenToOpenedSessionStorage(opened.sessionStorage, sessionCode);
+  } catch {
+    // Quota/Restricted: nur IndexedDB zählt dann.
+  }
 
-  if (!touch) {
+  if (!persisted && !copied) {
+    // Ohne Token landet der Present-Guard auf Join — Blank-Tab wieder schließen.
     try {
-      copyHostTokenToOpenedSessionStorage(opened.sessionStorage, sessionCode);
+      opened.close();
     } catch {
-      // Cross-origin oder fehlendes sessionStorage: der Guard liest IndexedDB.
+      // Ignore.
     }
+    return null;
   }
 
   try {
