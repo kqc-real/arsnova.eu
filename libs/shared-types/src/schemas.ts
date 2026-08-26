@@ -5111,6 +5111,12 @@ export const SC_FORMAT_PRESETS: Record<ScFormat, { label: string; answers: strin
   ABCD: { label: 'A / B / C / D', answers: ['A', 'B', 'C', 'D'] },
 };
 
+/**
+ * Stabile ID des Showcase-Demo-Quiz (lokale Bibliothek + `historyScopeId` nach Upload).
+ * Ermöglicht Session-Sonderregeln (z. B. Team-Bootstrap auf teamlose Sessions).
+ */
+export const DEMO_QUIZ_HISTORY_SCOPE_ID = 'de500000-0000-4000-a000-000000000001';
+
 /** Preset-Konfigurationen (Story 1.11) — clientseitig angewandt */
 export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
   PLAYFUL: {

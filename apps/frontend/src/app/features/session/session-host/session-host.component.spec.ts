@@ -16,7 +16,7 @@ import { SessionHostComponent } from './session-host.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
-import { QuizStoreService } from '../../quiz/data/quiz-store.service';
+import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { resetServerClockSkew } from '../session-server-clock';
 
 const unsubscribeMock = vi.fn();
@@ -303,10 +303,41 @@ const quizStoreMock = {
             },
             questions: [],
           }
-        : null,
+        : id === DEMO_QUIZ_ID
+          ? {
+              id: DEMO_QUIZ_ID,
+              name: 'Demo Quiz',
+              description: 'Showcase',
+              motifImageUrl: null,
+              createdAt: '2026-03-21T12:00:00.000Z',
+              updatedAt: '2026-03-25T12:00:00.000Z',
+              settings: {
+                showLeaderboard: true,
+                allowCustomNicknames: false,
+                defaultTimer: 30,
+                enableSoundEffects: true,
+                enableRewardEffects: true,
+                enableMotivationMessages: true,
+                enableEmojiReactions: true,
+                showQuestionTypeIndicators: true,
+                anonymousMode: false,
+                teamMode: true,
+                teamCount: 2,
+                teamAssignment: 'AUTO',
+                teamNames: ['Team 🍎', 'Team 🍐'],
+                backgroundMusic: null,
+                nicknameTheme: 'KINDERGARTEN',
+                bonusTokenCount: 3,
+                readingPhaseEnabled: true,
+                preset: 'PLAYFUL',
+              },
+              questions: [],
+            }
+          : null,
   ),
   getUploadPayload: vi.fn(),
   setLastServerUploadAccess: vi.fn(),
+  ensureDemoQuiz: vi.fn(() => true),
 };
 
 describe('SessionHostComponent', { timeout: 30_000 }, () => {
@@ -1510,6 +1541,94 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
     });
+    fixture.destroy();
+  });
+
+  it('bietet das Demo-Quiz in teamlosen Sessions trotz teamMode an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: null,
+      teamNames: [],
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    quizStoreMock.quizzes.set([
+      {
+        id: 'local-quiz-1',
+        name: 'Quiz Sammlung',
+        description: 'Mitgebrachte Fragen',
+        createdAt: '2026-03-20T12:00:00.000Z',
+        updatedAt: '2026-03-24T12:00:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: DEMO_QUIZ_ID,
+        name: 'Demo Quiz',
+        description: 'Showcase',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 13,
+        teamMode: true,
+        hasBonus: true,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: 'local-quiz-incompatible',
+        name: 'Team Quiz',
+        description: 'Nur für Teams',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 2,
+        teamMode: true,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const toggles = Array.from(
+      fixture.nativeElement.querySelectorAll('mat-button-toggle'),
+    ) as HTMLElement[];
+    const quizToggle = toggles.find((toggle) => toggle.textContent?.includes('Quiz'));
+    (quizToggle?.querySelector('button') as HTMLButtonElement | null)?.click();
+
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1);
+
+    expect(quizStoreMock.ensureDemoQuiz).toHaveBeenCalled();
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          quizzes: expect.arrayContaining([
+            expect.objectContaining({ id: 'local-quiz-1' }),
+            expect.objectContaining({ id: DEMO_QUIZ_ID }),
+          ]),
+        }),
+      }),
+    );
+    const offeredIds = (
+      dialogOpenMock.mock.calls[0]?.[1] as { data: { quizzes: Array<{ id: string }> } }
+    ).data.quizzes.map((quiz) => quiz.id);
+    expect(offeredIds).not.toContain('local-quiz-incompatible');
     fixture.destroy();
   });
 

@@ -97,6 +97,7 @@ import {
   SendEmojiReactionInputSchema,
   EMOJI_REACTIONS,
   DEFAULT_TEAM_COUNT,
+  DEMO_QUIZ_HISTORY_SCOPE_ID,
   NicknameThemeEnum,
   SHORT_TEXT_DEFAULT_EVALUATION_MODE,
   SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
@@ -2840,6 +2841,20 @@ function areSessionOnboardingProfilesCompatible(
   return sessionProfile.teamMode === quizProfile.teamMode;
 }
 
+/** Showcase-Demo-Quiz: teamlose Session darf Teams (Apfel/Birne) per AUTO nachziehen. */
+function canBootstrapDemoQuizTeamsOntoTeamlessSession(
+  sessionProfile: SessionOnboardingProfile,
+  quizProfile: SessionOnboardingProfile,
+  quiz: { historyScopeId?: string | null },
+): boolean {
+  return (
+    quiz.historyScopeId === DEMO_QUIZ_HISTORY_SCOPE_ID &&
+    !sessionProfile.teamMode &&
+    quizProfile.teamMode &&
+    quizProfile.teamAssignment === 'AUTO'
+  );
+}
+
 async function ensureSessionTeams(
   sessionId: string,
   requestedTeamCount: number,
@@ -4912,6 +4927,7 @@ export const sessionRouter = router({
         where: { id: input.quizId },
         select: {
           id: true,
+          historyScopeId: true,
           nicknameTheme: true,
           allowCustomNicknames: true,
           anonymousMode: true,
@@ -4927,9 +4943,15 @@ export const sessionRouter = router({
 
       const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
       const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
+      const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
+        sessionOnboardingProfile,
+        quizOnboardingProfile,
+        quiz,
+      );
       if (
         session._count.participants > 0 &&
-        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile)
+        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
+        !bootstrapDemoTeams
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -4953,6 +4975,18 @@ export const sessionRouter = router({
         });
       }
 
+      const onboardingForUpdate = bootstrapDemoTeams
+        ? {
+            ...sessionOnboardingProfile,
+            teamMode: true,
+            teamCount: quizOnboardingProfile.teamCount,
+            teamAssignment: quizOnboardingProfile.teamAssignment,
+            teamNames: quizOnboardingProfile.teamNames,
+          }
+        : hasStoredSessionOnboardingProfile(session)
+          ? sessionOnboardingProfile
+          : quizOnboardingProfile;
+
       const updated = await prisma.session.update({
         where: { id: session.id },
         data: {
@@ -4961,11 +4995,7 @@ export const sessionRouter = router({
           currentQuestion: null,
           currentRound: 1,
           answerDisplayOrder: Prisma.JsonNull,
-          ...buildSessionOnboardingUpdate(
-            hasStoredSessionOnboardingProfile(session)
-              ? sessionOnboardingProfile
-              : quizOnboardingProfile,
-          ),
+          ...buildSessionOnboardingUpdate(onboardingForUpdate),
         },
         select: {
           id: true,

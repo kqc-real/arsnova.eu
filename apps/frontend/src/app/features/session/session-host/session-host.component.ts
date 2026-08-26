@@ -190,7 +190,7 @@ import {
   tempoTrendEmoji,
   tempoTrendLabel,
 } from '../../feedback/feedback.config';
-import { QuizStoreService } from '../../quiz/data/quiz-store.service';
+import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import {
   buildQaQuestionsCsvFilename,
   buildSessionResultsCsvFilename,
@@ -7570,6 +7570,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {
+    this.quizStore.ensureDemoQuiz();
     const quizzes = this.quizStore
       .quizzes()
       .filter((quiz) => this.isLocalQuizCompatibleWithSession(quiz.id));
@@ -7600,7 +7601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!quiz) {
       return false;
     }
-    return this.areOnboardingProfilesCompatible(sessionProfile, {
+    const quizProfile = {
       nicknameTheme: quiz.settings.nicknameTheme,
       allowCustomNicknames: quiz.settings.allowCustomNicknames,
       anonymousMode: quiz.settings.anonymousMode,
@@ -7608,7 +7609,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       teamCount: quiz.settings.teamMode ? quiz.settings.teamCount : null,
       teamAssignment: quiz.settings.teamMode ? quiz.settings.teamAssignment : 'AUTO',
       teamNames: quiz.settings.teamMode ? quiz.settings.teamNames : [],
-    });
+    };
+    if (
+      localQuizId === DEMO_QUIZ_ID &&
+      !sessionProfile.teamMode &&
+      quizProfile.teamMode &&
+      quizProfile.teamAssignment === 'AUTO'
+    ) {
+      return true;
+    }
+    return this.areOnboardingProfilesCompatible(sessionProfile, quizProfile);
   }
 
   private getSessionOnboardingProfile(): SessionOnboardingProfile | null {
