@@ -38,7 +38,7 @@ ADR-Grundlage: `docs/architecture/decisions/0005-use-angular-material-design.md`
 ## DoD Quick Check (UI)
 
 - Kein Tailwind; Tokens statt hardcoded Farben/Typo/Shape/Elevation
-- Keine fragilen Material-DOM-Overrides
+- Kein `::ng-deep`; keine fragilen Material-DOM-Overrides
 - Light/Dark, Fokus/Hover/Disabled/Error geprüft
 - 320px ohne horizontales Scrollen: `npm run check:viewport` (apps/frontend)
 - A11y-Gates passend zur Änderung: Template-Lint, statisches/dynamisches axe,

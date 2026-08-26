@@ -952,7 +952,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
     expect(presenterButton?.textContent).toContain('Presenter-Ansicht');
-    expect(presenterButton?.querySelector('svg.session-host__view-toggle-icon')).not.toBeNull();
+    expect(
+      presenterButton?.querySelector(':scope > svg.session-host__view-toggle-icon'),
+    ).not.toBeNull();
+    expect(presenterButton?.querySelector('.session-host__view-toggle-content')).toBeNull();
+    expect(getComputedStyle(presenterButton!).alignItems).toBe('center');
     fixture.destroy();
   });
 
@@ -4113,6 +4117,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
 
     expect(styles).not.toMatch(/session-qa-sort-toggle[\s\S]{0,800}::ng-deep/);
+    expect(styles).not.toMatch(/view-toggle--labeled[\s\S]{0,1200}::ng-deep/);
+    expect(styles).toMatch(
+      /\.session-host__view-toggle\.session-host__view-toggle--labeled \{[^}]*align-items:\s*center/,
+    );
     expect(styles).toMatch(/\.session-host \{[^}]*min-width:\s*0/);
     expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*flex-wrap:\s*wrap/);
     expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*min-width:\s*0/);

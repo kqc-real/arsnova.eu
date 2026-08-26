@@ -33,6 +33,7 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 - Eigenkomponenten sind erlaubt, wenn Material funktional nicht reicht.
 - Eigene Komponenten müssen dieselben Tokens verwenden wie Material-Komponenten.
 - Keine CSS-Selektoren gegen interne Material-DOM-Strukturen.
+- `::ng-deep` nicht verwenden (deprecated). Weder neu einführen noch bestehende Vorkommen erweitern.
 - Komponentenanpassungen nur über offizielle Override-APIs.
 - Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Server-Status-Hilfe, Markdown-Bild-Lightbox und Word-Cloud-Fullscreen-Dialoge.
 

@@ -9,6 +9,7 @@
 - Locale subpaths reload the app. Avoid accidental loss of unsaved edit state; quiz edit/new flows are the high-risk language-switch cases.
 - UI must handle 320px/mobile and longer localized strings. Reduced-motion-sensitive micro-interactions belong in `@media (prefers-reduced-motion: no-preference)`.
 - UI implementation follows Angular Material 3 tokens and docs under `docs/ui/`.
+- Do not use `::ng-deep` (deprecated).
 
 ## Verwandte Memories:
 
