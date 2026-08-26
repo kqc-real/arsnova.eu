@@ -291,12 +291,26 @@ describe('HomeComponent', () => {
 
       expect(hero).not.toBeNull();
       expect(hero.textContent).toMatch(/Quiz/);
+      expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
       expect(cardTitles).toEqual(
         expect.arrayContaining([
           'Mitmachen',
           'Live mit einem Klick',
           'Quiz vorbereiten oder starten',
         ]),
+      );
+    });
+
+    it('blendet den Hero-Divider per CSS nur ab 600px ein', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+
+      expect(scss).toMatch(/\.home-hero-divider\s*\{[^}]*display:\s*none/);
+      expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[^}]*\.home-hero-divider\s*\{[^}]*display:\s*inline/,
       );
     });
   });
