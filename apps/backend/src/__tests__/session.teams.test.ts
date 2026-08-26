@@ -115,6 +115,7 @@ describe('session team mode (Story 7.1)', () => {
           { sessionId: SESSION_ID, name: 'Rot', color: '#1E88E5' },
           { sessionId: SESSION_ID, name: 'Blau', color: '#43A047' },
         ],
+        skipDuplicates: true,
       });
     },
   );

@@ -470,6 +470,87 @@ describe('session.attachQuizToSession', () => {
     });
   });
 
+  it('weist trotz konkurrierender Team-Anlage (Unique-Konflikt) weiter Teilnehmende zu', async () => {
+    const { DEMO_QUIZ_HISTORY_SCOPE_ID } = await import('@arsnova/shared-types');
+    const { Prisma } = await import('@prisma/client');
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      currentQuestion: null,
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      onboardingProfileConfigured: true,
+      onboardingAllowCustomNicknames: false,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: false,
+      onboardingTeamCount: null,
+      onboardingTeamAssignment: 'AUTO',
+      onboardingTeamNames: [],
+      onboardingNicknameTheme: 'HIGH_SCHOOL',
+      _count: { participants: 2 },
+    });
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: DEMO_QUIZ_HISTORY_SCOPE_ID,
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: true,
+      teamCount: 2,
+      teamAssignment: 'AUTO',
+      teamNames: ['Team 🍎', 'Team 🍐'],
+    });
+    prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      { id: TEAM_A, name: 'Team 🍎', color: '#1E88E5', _count: { participants: 0 } },
+      { id: TEAM_B, name: 'Team 🍐', color: '#43A047', _count: { participants: 0 } },
+    ]);
+    prismaMock.team.createMany.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+    prismaMock.participant.findMany.mockResolvedValue([
+      { id: 'p-1', teamId: null },
+      { id: 'p-2', teamId: null },
+    ]);
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await caller.attachQuizToSession({ code: 'ABC123', quizId: QUIZ_ID });
+
+    expect(prismaMock.team.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skipDuplicates: true }),
+    );
+    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(1, {
+      where: { id: 'p-1' },
+      data: { teamId: TEAM_A },
+    });
+    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(2, {
+      where: { id: 'p-2' },
+      data: { teamId: TEAM_B },
+    });
+  });
+
   it('lehnt ein gewöhnliches Team-Quiz an teamlosen Sessions mit Teilnehmenden weiter ab', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

@@ -2871,13 +2871,21 @@ async function ensureSessionTeams(
     return existing;
   }
 
-  await prisma.team.createMany({
-    data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
-      sessionId,
-      name: teamNames[index] ?? buildDefaultTeamName(index),
-      color: TEAM_COLORS[index] ?? null,
-    })),
-  });
+  try {
+    await prisma.team.createMany({
+      data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
+        sessionId,
+        name: teamNames[index] ?? buildDefaultTeamName(index),
+        color: TEAM_COLORS[index] ?? null,
+      })),
+      // Parallel Join/Attach: Unique (sessionId, name) — Verlierer überspringt, liest danach die Teams.
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+      throw error;
+    }
+  }
 
   return prisma.team.findMany({
     where: { sessionId },

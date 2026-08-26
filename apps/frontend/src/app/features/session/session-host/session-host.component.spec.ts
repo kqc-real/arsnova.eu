@@ -1632,6 +1632,71 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('holt Session-Info nach transientem getInfo-Fehler im Hintergrund nach (ohne WLAN-Callout)', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Team 🍎', color: '#1E88E5', participantCount: 1 },
+        { id: 'team-b', name: 'Team 🍐', color: '#43A047', participantCount: 0 },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    getInfoQueryMock.mockRejectedValueOnce(new Error('network')).mockResolvedValue({
+      ...defaultSession,
+      quizName: 'Quiz Sammlung',
+      teamMode: true,
+      teamCount: 2,
+      teamAssignment: 'AUTO',
+      teamNames: ['Team 🍎', 'Team 🍐'],
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    await fixture.componentInstance.selectChannel('quiz');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    expect(fixture.componentInstance.channels().quiz).toBe(true);
+    expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+    expect(fixture.componentInstance.session()?.teamMode).toBe(false);
+
+    await vi.waitUntil(() => fixture.componentInstance.session()?.teamMode === true, {
+      timeout: 2000,
+      interval: 50,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.lobbyTeams().map((team) => team.name)).toEqual([
+      'Team 🍎',
+      'Team 🍐',
+    ]);
+    expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+    fixture.destroy();
+  });
+
   it('pausiert und setzt eine aktive Quizfrage über die Kanalaktion fort', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
