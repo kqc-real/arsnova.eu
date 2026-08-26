@@ -916,47 +916,6 @@ describe('HomeComponent', () => {
       expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
     });
 
-    it('leitet ein Presenter-Token-Handoff von der Startseite in die Presenter-Ansicht um', async () => {
-      const { setHostToken, clearHostToken } = await import('../../core/host-session-token');
-      const { stageHostTokenHandoff } = await import('../../core/host-session-token-handoff');
-      setHostToken('ABC123', 'host-token-present');
-      stageHostTokenHandoff('ABC123');
-      clearHostToken('ABC123');
-
-      const router = TestBed.inject(Router);
-      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      const fixture = createHomeFixture();
-      fixture.detectChanges();
-      vi.runOnlyPendingTimers();
-      await vi.waitUntil(() => navSpy.mock.calls.length === 1, {
-        timeout: 1000,
-        interval: 10,
-      });
-
-      expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'present'], { replaceUrl: true });
-    });
-
-    it('verbraucht kein Presenter-Handoff wenn der Tab schon ein Host-Token hat', async () => {
-      const { setHostToken } = await import('../../core/host-session-token');
-      const { stageHostTokenHandoff } = await import('../../core/host-session-token-handoff');
-      setHostToken('ABC123', 'host-token-present');
-      stageHostTokenHandoff('ABC123');
-
-      const router = TestBed.inject(Router);
-      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      const fixture = createHomeFixture();
-      fixture.detectChanges();
-      vi.runOnlyPendingTimers();
-      await Promise.resolve();
-
-      expect(navSpy).not.toHaveBeenCalled();
-      expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain(
-        'host-token-present',
-      );
-    });
-
     it('unterbindet bei join-Query das Onboarding für bereits beendete Sessions', async () => {
       setRouteQueryParams({ join: 'abc123' });
       const { trpc } = await import('../../core/trpc.client');

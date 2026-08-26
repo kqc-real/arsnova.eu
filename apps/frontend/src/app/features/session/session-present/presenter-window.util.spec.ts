@@ -9,6 +9,10 @@ import {
   shouldOpenPresenterInUnnamedTab,
 } from './presenter-window.util';
 
+function persistMock() {
+  return { persistCurrentHostToken: vi.fn(async () => undefined) };
+}
+
 describe('presenter-window.util', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -20,7 +24,7 @@ describe('presenter-window.util', () => {
     expect(presenterViewPath('abc123')).toContain('/session/ABC123/present');
   });
 
-  it('öffnet die Presenter-Ansicht in einem benannten Fenster', () => {
+  it('öffnet die Presenter-Ansicht in einem benannten Fenster', async () => {
     const replace = vi.fn();
     const opened = {
       closed: false,
@@ -33,9 +37,11 @@ describe('presenter-window.util', () => {
       navigator: { maxTouchPoints: 0 },
       matchMedia: () => ({ matches: false }),
     } as unknown as Window;
+    const tokenStorage = persistMock();
 
-    const result = openPresenterViewWindow(win, 'xy9k2p');
+    const result = await openPresenterViewWindow(win, 'xy9k2p', tokenStorage);
 
+    expect(tokenStorage.persistCurrentHostToken).toHaveBeenCalledWith('xy9k2p');
     expect(open).toHaveBeenCalledWith(
       expect.stringContaining('/session/XY9K2P/present'),
       presenterViewWindowName('xy9k2p'),
@@ -44,7 +50,7 @@ describe('presenter-window.util', () => {
     expect(result).toBe(opened);
   });
 
-  it('öffnet auf Touch-Geräten _blank und uebergibt das Host-Token nur per Handoff', () => {
+  it('öffnet auf Touch-Geräten _blank direkt auf /present und kopiert kein sessionStorage', async () => {
     setHostToken('XY9K2P', 'host-token-xyz');
     const replace = vi.fn();
     const openedStorage = { setItem: vi.fn() };
@@ -59,28 +65,40 @@ describe('presenter-window.util', () => {
       navigator: { maxTouchPoints: 5 },
       matchMedia: () => ({ matches: true }),
     } as unknown as Window;
+    const callOrder: string[] = [];
+    const tokenStorage = {
+      persistCurrentHostToken: vi.fn(async () => {
+        callOrder.push('persist');
+      }),
+    };
+    open.mockImplementation(() => {
+      callOrder.push('open');
+      return opened;
+    });
 
-    openPresenterViewWindow(win, 'xy9k2p');
+    await openPresenterViewWindow(win, 'xy9k2p', tokenStorage);
 
-    expect(open).toHaveBeenCalledWith(expect.not.stringContaining('/session/'), '_blank');
-    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toContain('host-token-xyz');
+    expect(tokenStorage.persistCurrentHostToken).toHaveBeenCalledWith('xy9k2p');
+    expect(callOrder).toEqual(['persist', 'open']);
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'), '_blank');
     expect(openedStorage.setItem).not.toHaveBeenCalled();
     expect(replace).toHaveBeenCalled();
+    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
   });
 
-  it('entfernt das Touch-Handoff wenn das Popup blockiert wird', () => {
-    setHostToken('XY9K2P', 'host-token-xyz');
+  it('schreibt den Token auch dann nach IndexedDB, wenn das Popup blockiert wird', async () => {
+    const tokenStorage = persistMock();
     const win = {
       open: vi.fn(() => null),
       navigator: { maxTouchPoints: 5 },
       matchMedia: () => ({ matches: true }),
     } as unknown as Window;
 
-    expect(openPresenterViewWindow(win, 'xy9k2p')).toBeNull();
-    expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
+    expect(await openPresenterViewWindow(win, 'xy9k2p', tokenStorage)).toBeNull();
+    expect(tokenStorage.persistCurrentHostToken).toHaveBeenCalledWith('xy9k2p');
   });
 
-  it('legt auf Desktop kein Handoff in localStorage', () => {
+  it('legt auf Desktop kein localStorage-Handoff an', async () => {
     setHostToken('XY9K2P', 'host-token-xyz');
     const opened = {
       closed: false,
@@ -93,7 +111,7 @@ describe('presenter-window.util', () => {
       matchMedia: () => ({ matches: false }),
     } as unknown as Window;
 
-    openPresenterViewWindow(win, 'xy9k2p');
+    await openPresenterViewWindow(win, 'xy9k2p', persistMock());
 
     expect(window.localStorage.getItem('arsnova-host-token-handoff')).toBeNull();
     expect(opened.sessionStorage.setItem).toHaveBeenCalled();
@@ -119,8 +137,8 @@ describe('presenter-window.util', () => {
     expect(presenterViewWindowName('abc123')).not.toBe(presenterViewWindowName('xyz789'));
   });
 
-  it('gibt null zurück, wenn kein Window vorhanden ist', () => {
-    expect(openPresenterViewWindow(null, 'ABC123')).toBeNull();
+  it('gibt null zurück, wenn kein Window vorhanden ist', async () => {
+    expect(await openPresenterViewWindow(null, 'ABC123', persistMock())).toBeNull();
   });
 
   it('bietet die Presenter-Ansicht ohne matchMedia als Desktop an', () => {

@@ -43,6 +43,7 @@ import type {
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
+import { readSessionCodeFromActivatedRoute } from '../session-route-code';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { formatLocaleCount, formatLocalePercent } from '../../../core/locale-number.util';
 import {
@@ -171,7 +172,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly foyerChipLifetimeMs = isDevMode()
     ? LOBBY_FOYER_CHIP_DEV_LIFETIME_MS
     : LOBBY_FOYER_CHIP_LIFETIME_MS;
-  private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
+  private readonly code = readSessionCodeFromActivatedRoute(this.route);
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {

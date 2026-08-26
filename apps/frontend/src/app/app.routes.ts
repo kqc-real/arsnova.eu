@@ -12,15 +12,10 @@ import {
   getPreferredJoinLocale,
 } from './core/locale-from-path';
 import { hasFeedbackHostToken, normalizeFeedbackCode } from './core/feedback-host-token';
-import {
-  clearHostToken,
-  getSessionEntryCommands,
-  hasHostToken,
-  normalizeHostSessionCode,
-} from './core/host-session-token';
+import { getSessionEntryCommands } from './core/host-session-token';
 import { localizeCommands } from './core/locale-router';
-import { trpc } from './core/trpc.client';
 import type { SessionHostComponent } from './features/session/session-host/session-host.component';
+import { requireHostToken } from './features/session/session-host.guard';
 import type { QuizEditComponent } from './features/quiz/quiz-edit/quiz-edit.component';
 import type { QuizNewComponent } from './features/quiz/quiz-new/quiz-new.component';
 import type { QuizPreviewComponent } from './features/quiz/quiz-preview/quiz-preview.component';
@@ -104,32 +99,6 @@ const redirectJoinToPreferredLocale: CanActivateFn = (route) => {
     queryParams: route.queryParams,
     fragment: route.fragment ?? undefined,
   });
-};
-
-const requireHostToken: CanActivateFn = (route) => {
-  const router = inject(Router);
-  const codeParam = getCodeParamFromRoute(route);
-  if (!codeParam) {
-    return router.createUrlTree(localizeCommands(['']));
-  }
-
-  const code = normalizeHostSessionCode(codeParam);
-  if (!hasHostToken(code)) {
-    return router.createUrlTree(localizeCommands(['join', code]));
-  }
-
-  return trpc.session.getParticipants
-    .query({ code })
-    .then(() => true)
-    .catch((error: unknown) => {
-      const message =
-        error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
-      if (message.startsWith('UNAUTHORIZED:') || message.startsWith('NOT_FOUND:')) {
-        clearHostToken(code);
-        return router.createUrlTree(localizeCommands(['join', code]));
-      }
-      return true;
-    });
 };
 
 const requireFeedbackHostToken: CanActivateFn = (route) => {
@@ -228,11 +197,8 @@ const mainRoutes: Routes = [
       },
       {
         path: 'present',
-        loadComponent: () =>
-          import('./features/session/session-present/session-present.component').then(
-            (m) => m.SessionPresentComponent,
-          ),
-        canActivate: [requireHostToken],
+        loadChildren: () =>
+          import('./features/session/session-present/present.routes').then((m) => m.PRESENT_ROUTES),
       },
       {
         path: 'vote',
