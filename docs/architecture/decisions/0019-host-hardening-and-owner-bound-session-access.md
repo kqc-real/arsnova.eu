@@ -35,7 +35,7 @@ Die Architektur bleibt bewusst **accountfrei** und **local-first**. Daraus folgt
 - `/session/:code` ohne Segment entscheidet **kontextabhängig**:
   - mit Host-Token → `/session/:code/host`
   - ohne Host-Token → `/join/:code`
-- Tablets klonen `sessionStorage` bei `window.open` nicht. Deshalb persistiert die Host-Ansicht denselben Token origin-gebunden in IndexedDB; der Present-Guard im lazy Feature-Chunk stellt ihn im neuen Tab wieder in `sessionStorage` her. Es gibt keinen `AuthService`. IndexedDB ist kein zusätzlicher Berechtigungsnachweis.
+- Tablets klonen `sessionStorage` bei `window.open` nicht. Deshalb persistiert die Host-Ansicht denselben Token kurzlebig (TTL) in IndexedDB, wenn die Presenter-Ansicht geöffnet wird; der Present-Guard im lazy Feature-Chunk stellt ihn im neuen Tab wieder in `sessionStorage` her und konsumiert den IndexedDB-Eintrag. Es gibt keinen `AuthService`. IndexedDB ist kein zusätzlicher Berechtigungsnachweis.
 - Diese Frontend-Prüfung ist **nur UX-/Navigationsschutz**; maßgeblich bleibt die serverseitige `hostProcedure`.
 
 ### 3. Standalone-Blitzlicht erhält ein eigenes Besitzer-Token

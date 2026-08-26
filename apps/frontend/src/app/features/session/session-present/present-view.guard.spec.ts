@@ -85,10 +85,11 @@ describe('presentViewGuard', () => {
 
     await expect(runGuard()).resolves.toBe(true);
     expect(getStoredHostTokenMock).not.toHaveBeenCalled();
+    expect(clearStoredHostTokenMock).not.toHaveBeenCalled();
     expect(getParticipantsQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
   });
 
-  it('stellt den Host-Token aus IndexedDB wieder her und erlaubt den Present-Tab', async () => {
+  it('stellt den Host-Token aus IndexedDB wieder her und konsumiert den Handoff', async () => {
     hasHostTokenMock.mockReturnValueOnce(false).mockReturnValue(true);
     getStoredHostTokenMock.mockResolvedValue('stored-host-token');
 
@@ -96,6 +97,7 @@ describe('presentViewGuard', () => {
     expect(getStoredHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(setHostTokenMock).toHaveBeenCalledWith('ABC123', 'stored-host-token');
     expect(getParticipantsQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearStoredHostTokenMock).toHaveBeenCalledWith('ABC123');
   });
 
   it('leitet ohne Tab-Token und ohne IndexedDB-Token auf Join um', async () => {

@@ -3,12 +3,18 @@ import { getHostToken, normalizeHostSessionCode } from '../../../core/host-sessi
 
 /** Eigene DB, getrennt von Yjs/`y-indexeddb` der Quiz-Sammlung. */
 export const HOST_TOKEN_INDEXED_DB_NAME = 'arsnova-host-tokens';
+/**
+ * Kurzlebiger Presenter-Handoff (nicht die volle serverseitige Host-Token-TTL).
+ * Begrenzt das Fenster auf geteilten Geräten nach Host-Tab-Schließung.
+ */
+export const HOST_TOKEN_INDEXED_DB_TTL_MS = 30 * 60 * 1000;
 const HOST_TOKEN_STORE_NAME = 'tokens';
 const HOST_TOKEN_DB_VERSION = 1;
 
 type HostTokenRecord = {
   code: string;
   token: string;
+  expiresAt: number;
 };
 
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
@@ -64,6 +70,7 @@ async function withHostTokenStore<T>(
 /**
  * Origin-gebundener Host-Token-Speicher für den Presenter-Tab auf Tablets.
  * Nur im Session-Feature importieren — nicht in Core, Home oder app.routes.
+ * Einträge haben TTL und werden nach erfolgreichem Present-Restore konsumiert.
  */
 @Injectable({ providedIn: 'root' })
 export class SessionTokenStorageService {
@@ -74,7 +81,17 @@ export class SessionTokenStorageService {
         store.get(code),
       );
       const token = record?.token?.trim() ?? '';
-      return token || null;
+      if (!token || typeof record?.expiresAt !== 'number') {
+        if (record) {
+          await this.clearHostToken(code);
+        }
+        return null;
+      }
+      if (record.expiresAt < Date.now()) {
+        await this.clearHostToken(code);
+        return null;
+      }
+      return token;
     } catch {
       return null;
     }
@@ -87,7 +104,11 @@ export class SessionTokenStorageService {
       return;
     }
     await withHostTokenStore('readwrite', (store) =>
-      store.put({ code, token: normalizedToken } satisfies HostTokenRecord),
+      store.put({
+        code,
+        token: normalizedToken,
+        expiresAt: Date.now() + HOST_TOKEN_INDEXED_DB_TTL_MS,
+      } satisfies HostTokenRecord),
     );
   }
 

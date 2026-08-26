@@ -3884,7 +3884,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
-    void this.sessionTokenStorage.persistCurrentHostToken(this.code);
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }

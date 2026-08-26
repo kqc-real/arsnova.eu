@@ -25,11 +25,13 @@ export const presentViewGuard: CanActivateFn = (route, state) => {
   const code = codeParam ? normalizeHostSessionCode(codeParam) : '';
 
   return (async (): Promise<GuardResult> => {
+    let restoredFromIndexedDb = false;
     if (code && !hasHostToken(code)) {
       try {
         const savedToken = await tokenStorage.getHostToken(code);
         if (savedToken) {
           setHostToken(code, savedToken);
+          restoredFromIndexedDb = true;
         }
       } catch {
         // IndexedDB fehlt oder ist gesperrt: requireHostToken leitet auf Join um.
@@ -42,7 +44,8 @@ export const presentViewGuard: CanActivateFn = (route, state) => {
         () => requireHostToken(route, state) as GuardResult | Promise<GuardResult>,
       ),
     );
-    if (result !== true && code) {
+    if (code && (result !== true || restoredFromIndexedDb)) {
+      // Fehlschlag: aufräumen. Erfolg nach IDB-Restore: Einmal-Handoff konsumieren.
       await tokenStorage.clearHostToken(code);
     }
     return result;
