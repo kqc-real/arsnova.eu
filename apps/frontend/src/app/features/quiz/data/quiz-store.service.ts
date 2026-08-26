@@ -48,6 +48,7 @@ import {
   type TeamAssignment,
   type ToleranceLevel,
   type MatchingPairInput,
+  DEMO_QUIZ_HISTORY_SCOPE_ID,
   type OrderingItemInput,
   type CategorizationCategoryInput,
   type CategorizationItemInput,
@@ -977,7 +978,7 @@ const DEFAULT_QUIZ_SETTINGS: QuizSettings = parseQuizSettings({});
 type SyncConnectionState = 'connected' | 'connecting' | 'disconnected';
 export type LibrarySharingMode = 'local' | 'shared';
 
-export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
+export const DEMO_QUIZ_ID = DEMO_QUIZ_HISTORY_SCOPE_ID;
 
 /**
  * Erwarteter Demo-Seed aus Showcase-JSON (Locale + Version + Payload-Hash). Alte Keys

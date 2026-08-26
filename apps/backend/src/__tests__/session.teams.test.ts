@@ -16,6 +16,7 @@ const { prismaMock, hostAuthMocks, joinAdmissionMocks, invalidSessionCodeMock } 
         create: vi.fn(),
         count: vi.fn(),
         findMany: vi.fn(),
+        update: vi.fn(),
       },
       vote: {
         findMany: vi.fn(),
@@ -23,6 +24,7 @@ const { prismaMock, hostAuthMocks, joinAdmissionMocks, invalidSessionCodeMock } 
       qaQuestion: {
         findMany: vi.fn(),
       },
+      $transaction: vi.fn(),
       $executeRaw: vi.fn().mockResolvedValue(1),
     },
     hostAuthMocks: {
@@ -80,6 +82,9 @@ describe('session team mode (Story 7.1)', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
     prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 

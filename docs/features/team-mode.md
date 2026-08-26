@@ -82,6 +82,7 @@ Besonderheiten:
 - `Participant.teamId` ist optional (`onDelete: SetNull`)
 - `Team.color` ist eine feste Hex-Farbe aus einer Palette von 8 Farben
 - Beim Session-Start kann ein **Session-Onboarding-Profil** die Quiz-Werte spiegeln; die laufende Session nutzt dann die `onboarding*`-Felder, damit spätere Quiz-Edits die Live-Session nicht nachträglich verändern.
+- **Sonderfall Showcase-Demo-Quiz** (`DEMO_QUIZ_HISTORY_SCOPE_ID`): Darf an eine **teamlose** Session mit Teilnehmenden angehängt werden. Pseudonyme bleiben (Session-Theme). Die Session aktiviert danach `teamMode` mit den Demo-Teams (Apfel/Birne, AUTO); Teilnehmende ohne `teamId` werden round-robin zugewiesen. Andere Team-Quizzes bleiben an die `teamMode`-Kompatibilität gebunden. Attach und Join serialisieren den Team-Bootstrap über einen Session-Row-Lock; Joins ohne Team holen AUTO-Zuweisung nach dem Create nach.
 
 ---
 

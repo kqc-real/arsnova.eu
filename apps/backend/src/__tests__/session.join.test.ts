@@ -23,7 +23,14 @@ const {
       findFirst: vi.fn(),
       create: vi.fn(),
       count: vi.fn(),
+      update: vi.fn(),
     },
+    team: {
+      findMany: vi.fn(),
+      createMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
+    $executeRaw: vi.fn().mockResolvedValue(1),
   },
   rateLimitMocks: {
     checkSessionCreateRate: vi.fn(),
@@ -130,6 +137,9 @@ describe('session.join', () => {
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
     prismaMock.session.findUnique.mockResolvedValue(buildSession());
     prismaMock.participant.count.mockResolvedValue(3);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   it('verwendet einen bestehenden Teilnehmer per rejoinToken erneut', async () => {
@@ -207,6 +217,58 @@ describe('session.join', () => {
       expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
     },
   );
+
+  it('weist nach Create ein AUTO-Team zu, wenn Attach parallel Teams aktiviert hat', async () => {
+    const TEAM_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const TEAM_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    prismaMock.participant.create.mockResolvedValue({
+      id: PARTICIPANT_ID,
+    });
+    prismaMock.participant.count.mockResolvedValue(1);
+    prismaMock.session.findUnique.mockResolvedValueOnce(buildSession()).mockResolvedValueOnce({
+      ...buildSession(),
+      onboardingProfileConfigured: true,
+      onboardingTeamMode: true,
+      onboardingTeamCount: 2,
+      onboardingTeamAssignment: 'AUTO',
+      onboardingTeamNames: ['Team 🍎', 'Team 🍐'],
+      onboardingNicknameTheme: 'HIGH_SCHOOL',
+      quiz: {
+        ...buildSession().quiz,
+        teamMode: true,
+        teamCount: 2,
+        teamAssignment: 'AUTO',
+        teamNames: ['Team 🍎', 'Team 🍐'],
+      },
+      _count: { participants: 1 },
+    });
+    prismaMock.team.findMany.mockResolvedValue([
+      { id: TEAM_A, name: 'Team 🍎', color: '#1E88E5', _count: { participants: 0 } },
+      { id: TEAM_B, name: 'Team 🍐', color: '#43A047', _count: { participants: 0 } },
+    ]);
+
+    const result = await caller.join({
+      code: 'ABC123',
+      nickname: 'Late Joiner',
+      anonymousClientId: CLIENT_ID,
+    });
+
+    expect(prismaMock.participant.create).toHaveBeenCalledWith({
+      data: {
+        sessionId: SESSION_ID,
+        nickname: 'Late Joiner',
+        teamId: undefined,
+      },
+    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalled();
+    expect(prismaMock.participant.update).toHaveBeenCalledWith({
+      where: { id: PARTICIPANT_ID },
+      data: { teamId: TEAM_A },
+    });
+    expect(result.teamId).toBe(TEAM_A);
+    expect(result.teamName).toBe('Team 🍎');
+    expect(result.teamMode).toBe(true);
+  });
 
   it('lässt Rejoins auch bei ausgefallenem oder ausgeschöpftem Globalbudget unverzögert', async () => {
     invalidSessionCodeMocks.rejectInvalidSessionCode.mockRejectedValue(

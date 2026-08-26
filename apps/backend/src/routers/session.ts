@@ -97,6 +97,7 @@ import {
   SendEmojiReactionInputSchema,
   EMOJI_REACTIONS,
   DEFAULT_TEAM_COUNT,
+  DEMO_QUIZ_HISTORY_SCOPE_ID,
   NicknameThemeEnum,
   SHORT_TEXT_DEFAULT_EVALUATION_MODE,
   SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
@@ -2840,6 +2841,20 @@ function areSessionOnboardingProfilesCompatible(
   return sessionProfile.teamMode === quizProfile.teamMode;
 }
 
+/** Showcase-Demo-Quiz: teamlose Session darf Teams (Apfel/Birne) per AUTO nachziehen. */
+function canBootstrapDemoQuizTeamsOntoTeamlessSession(
+  sessionProfile: SessionOnboardingProfile,
+  quizProfile: SessionOnboardingProfile,
+  quiz: { historyScopeId?: string | null },
+): boolean {
+  return (
+    quiz.historyScopeId === DEMO_QUIZ_HISTORY_SCOPE_ID &&
+    !sessionProfile.teamMode &&
+    quizProfile.teamMode &&
+    quizProfile.teamAssignment === 'AUTO'
+  );
+}
+
 async function ensureSessionTeams(
   sessionId: string,
   requestedTeamCount: number,
@@ -3013,6 +3028,98 @@ async function assignExistingParticipantsToTeams(
       data: { teamId },
     });
   }
+}
+
+const SESSION_ONBOARDING_LOCK_SELECT = {
+  onboardingProfileConfigured: true,
+  onboardingNicknameTheme: true,
+  onboardingAllowCustomNicknames: true,
+  onboardingAnonymousMode: true,
+  onboardingTeamMode: true,
+  onboardingTeamCount: true,
+  onboardingTeamAssignment: true,
+  onboardingTeamNames: true,
+  quiz: {
+    select: {
+      nicknameTheme: true,
+      allowCustomNicknames: true,
+      anonymousMode: true,
+      teamMode: true,
+      teamCount: true,
+      teamAssignment: true,
+      teamNames: true,
+    },
+  },
+  _count: { select: { participants: true } },
+} as const;
+
+/**
+ * Schließt die Race „Join liest teamlos → Attach aktiviert Teams → Create ohne teamId“.
+ * Unter Session-Row-Lock wird das aktuelle Profil gelesen und AUTO-Teams nachgezogen.
+ */
+async function reconcileParticipantAutoTeamUnderSessionLock(input: {
+  sessionId: string;
+  participantId: string;
+  teamId: string | null;
+  teamName: string | null;
+  fallbackProfile: SessionOnboardingProfile;
+}): Promise<{
+  teamId: string | null;
+  teamName: string | null;
+  profile: SessionOnboardingProfile;
+}> {
+  return prisma.$transaction(async (tx) => {
+    await lockSessionRow(tx, input.sessionId);
+    const lockedSession = await tx.session.findUnique({
+      where: { id: input.sessionId },
+      select: SESSION_ONBOARDING_LOCK_SELECT,
+    });
+    if (!lockedSession) {
+      return {
+        teamId: input.teamId,
+        teamName: input.teamName,
+        profile: input.fallbackProfile,
+      };
+    }
+
+    const profile = resolveSessionOnboardingProfile(lockedSession, lockedSession.quiz);
+    if (!profile.teamMode || profile.teamAssignment !== 'AUTO') {
+      return {
+        teamId: input.teamId,
+        teamName: input.teamName,
+        profile,
+      };
+    }
+
+    if (input.teamId) {
+      return {
+        teamId: input.teamId,
+        teamName: input.teamName,
+        profile,
+      };
+    }
+
+    const teams = await ensureSessionTeams(
+      input.sessionId,
+      profile.teamCount ?? DEFAULT_TEAM_COUNT,
+      profile.teamNames,
+    );
+    if (teams.length === 0) {
+      return { teamId: null, teamName: null, profile };
+    }
+
+    const participantIndex = Math.max(0, lockedSession._count.participants - 1);
+    const team = teams[participantIndex % teams.length]!;
+    await tx.participant.update({
+      where: { id: input.participantId },
+      data: { teamId: team.id },
+    });
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      profile,
+    };
+  });
 }
 
 function buildSessionChannels(session: {
@@ -4912,6 +5019,7 @@ export const sessionRouter = router({
         where: { id: input.quizId },
         select: {
           id: true,
+          historyScopeId: true,
           nicknameTheme: true,
           allowCustomNicknames: true,
           anonymousMode: true,
@@ -4927,9 +5035,15 @@ export const sessionRouter = router({
 
       const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
       const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
+      const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
+        sessionOnboardingProfile,
+        quizOnboardingProfile,
+        quiz,
+      );
       if (
         session._count.participants > 0 &&
-        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile)
+        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
+        !bootstrapDemoTeams
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -4953,48 +5067,61 @@ export const sessionRouter = router({
         });
       }
 
-      const updated = await prisma.session.update({
-        where: { id: session.id },
-        data: {
-          type: 'QUIZ',
-          quizId: quiz.id,
-          currentQuestion: null,
-          currentRound: 1,
-          answerDisplayOrder: Prisma.JsonNull,
-          ...buildSessionOnboardingUpdate(
-            hasStoredSessionOnboardingProfile(session)
-              ? sessionOnboardingProfile
-              : quizOnboardingProfile,
-          ),
-        },
-        select: {
-          id: true,
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
-      });
+      const onboardingForUpdate = bootstrapDemoTeams
+        ? {
+            ...sessionOnboardingProfile,
+            teamMode: true,
+            teamCount: quizOnboardingProfile.teamCount,
+            teamAssignment: quizOnboardingProfile.teamAssignment,
+            teamNames: quizOnboardingProfile.teamNames,
+          }
+        : hasStoredSessionOnboardingProfile(session)
+          ? sessionOnboardingProfile
+          : quizOnboardingProfile;
 
-      if (quizOnboardingProfile.teamMode) {
-        const teams = await ensureSessionTeams(
-          session.id,
-          quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
-          quizOnboardingProfile.teamNames,
-        );
-        if (quizOnboardingProfile.teamAssignment === 'AUTO' && session._count.participants > 0) {
-          await assignExistingParticipantsToTeams(
+      const updated = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, session.id);
+        const next = await tx.session.update({
+          where: { id: session.id },
+          data: {
+            type: 'QUIZ',
+            quizId: quiz.id,
+            currentQuestion: null,
+            currentRound: 1,
+            answerDisplayOrder: Prisma.JsonNull,
+            ...buildSessionOnboardingUpdate(onboardingForUpdate),
+          },
+          select: {
+            id: true,
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+
+        if (quizOnboardingProfile.teamMode) {
+          const teams = await ensureSessionTeams(
             session.id,
-            teams.map((team) => team.id),
+            quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+            quizOnboardingProfile.teamNames,
           );
+          if (quizOnboardingProfile.teamAssignment === 'AUTO') {
+            await assignExistingParticipantsToTeams(
+              session.id,
+              teams.map((team) => team.id),
+            );
+          }
         }
-      }
+
+        return next;
+      });
 
       invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
@@ -7590,6 +7717,17 @@ export const sessionRouter = router({
         });
       }
 
+      const reconciled = await reconcileParticipantAutoTeamUnderSessionLock({
+        sessionId: session.id,
+        participantId,
+        teamId: assignedTeamId ?? null,
+        teamName: assignedTeamName,
+        fallbackProfile: onboardingProfile,
+      });
+      assignedTeamId = reconciled.teamId ?? undefined;
+      assignedTeamName = reconciled.teamName;
+      const responseProfile = reconciled.profile;
+
       // Nach Create zählen (nicht _count+1): bei gleichzeitigen Joins ist der Anfangssnapshot sonst zu niedrig — Rekord/Response falsch.
       const newParticipantCount = await prisma.participant.count({
         where: { sessionId: session.id },
@@ -7614,13 +7752,13 @@ export const sessionRouter = router({
         preferredChannel,
         presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
         participantCount: newParticipantCount,
-        nicknameTheme: onboardingProfile.nicknameTheme,
-        allowCustomNicknames: onboardingProfile.allowCustomNicknames,
-        anonymousMode: onboardingProfile.anonymousMode,
-        teamMode: onboardingProfile.teamMode,
-        teamCount: onboardingProfile.teamCount,
-        teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
-        teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
+        nicknameTheme: responseProfile.nicknameTheme,
+        allowCustomNicknames: responseProfile.allowCustomNicknames,
+        anonymousMode: responseProfile.anonymousMode,
+        teamMode: responseProfile.teamMode,
+        teamCount: responseProfile.teamCount,
+        teamAssignment: responseProfile.teamMode ? responseProfile.teamAssignment : null,
+        teamNames: responseProfile.teamMode ? buildEffectiveTeamNames(responseProfile) : [],
         participantId,
         rejoinToken: participantId,
         teamId: assignedTeamId ?? null,

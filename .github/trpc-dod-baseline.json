@@ -324,7 +324,7 @@
     },
     "session.attachQuizToSession": {
       "kind": "mutation",
-      "fingerprint": "sha256:d92fbe295dcd1cab389e1eeff18f30b7d17075999c08ebec37727001074b2a4b",
+      "fingerprint": "sha256:d4ec8a94e91a05809c2d256f461cd8f36913f9ecc42ac37a2b4035b1e6a90497",
       "missing": []
     },
     "session.bindQuizHistoryScope": {
@@ -514,7 +514,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:bd5a3e6dbf2fddb402b76e485d853e39d63efde4b65bb4776678d42b684bf643",
+      "fingerprint": "sha256:eb5874f721640ebac6c90d15cc500a1761b56df6a6be5d560cc6530924d2a26a",
       "missing": []
     },
     "session.markParticipantOffline": {
