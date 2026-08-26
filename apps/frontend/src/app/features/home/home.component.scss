@@ -166,6 +166,18 @@
   vertical-align: baseline;
 }
 
+/* Hide dash on narrow viewports: subtitle already acts as the second line. */
+.home-hero-divider {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .home-hero-divider {
+    display: inline;
+    margin-inline: 0.15rem;
+  }
+}
+
 .home-hero-break-mobile {
   display: inline;
 }
