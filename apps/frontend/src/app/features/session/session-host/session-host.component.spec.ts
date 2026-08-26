@@ -14,6 +14,7 @@ import {
 } from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import { resetServerClockSkew } from '../session-server-clock';
@@ -69,6 +70,8 @@ const {
   onHostVoteProgressChangedSubscribeMock,
   clearHostTokenMock,
   dialogOpenMock,
+  persistCurrentHostTokenMock,
+  clearStoredHostTokenMock,
 } = vi.hoisted(() => ({
   healthCheckQueryMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
@@ -118,6 +121,8 @@ const {
   onHostVoteProgressChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   clearHostTokenMock: vi.fn(),
   dialogOpenMock: vi.fn(),
+  persistCurrentHostTokenMock: vi.fn(async () => true),
+  clearStoredHostTokenMock: vi.fn(async () => undefined),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -568,6 +573,13 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         { provide: MatDialog, useValue: { open: dialogOpenMock } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: QuizStoreService, useValue: quizStoreMock },
+        {
+          provide: SessionTokenStorageService,
+          useValue: {
+            persistCurrentHostToken: persistCurrentHostTokenMock,
+            clearHostToken: clearStoredHostTokenMock,
+          },
+        },
         {
           provide: ActivatedRoute,
           useValue: {

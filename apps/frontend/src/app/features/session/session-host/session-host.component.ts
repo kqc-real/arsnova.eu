@@ -52,6 +52,7 @@ import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
 import { clearHostToken } from '../../../core/host-session-token';
+import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import {
   getEffectiveLocale,
   localeIdToSupported,
@@ -660,6 +661,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly sessionResultsExport = inject(SessionResultsExportService);
   private readonly quizStore = inject(QuizStoreService);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
+  private readonly sessionTokenStorage = inject(SessionTokenStorageService);
+  private presenterWindowOpenInFlight = false;
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
@@ -4280,17 +4283,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
   }
 
-  openPresenterView(): void {
-    if (!this.showPresenterViewButton()) {
+  async openPresenterView(): Promise<void> {
+    if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
       return;
     }
-    const opened = openPresenterViewWindow(this.document.defaultView, this.code);
-    if (!opened) {
-      this.snackBar.open(
-        $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
-        '',
-        { duration: 6000 },
+    this.presenterWindowOpenInFlight = true;
+    try {
+      const opened = await openPresenterViewWindow(
+        this.document.defaultView,
+        this.code,
+        this.sessionTokenStorage,
       );
+      if (!opened) {
+        this.snackBar.open(
+          $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
+          '',
+          { duration: 6000 },
+        );
+      }
+    } finally {
+      this.presenterWindowOpenInFlight = false;
     }
   }
 
@@ -4409,6 +4421,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     clearHostToken(this.code);
     clearFeedbackHostToken(this.code);
+    void this.sessionTokenStorage.clearHostToken(this.code);
   }
 
   private markSessionUnavailable(): void {

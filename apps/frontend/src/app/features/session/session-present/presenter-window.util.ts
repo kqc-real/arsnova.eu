@@ -1,10 +1,5 @@
 import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
-import { normalizeHostSessionCode } from '../../../core/host-session-token';
-import {
-  copyHostTokenToSessionStorage,
-  clearHostTokenHandoff,
-  stageHostTokenHandoff,
-} from '../../../core/host-session-token-handoff';
+import { getHostToken, normalizeHostSessionCode } from '../../../core/host-session-token';
 
 /**
  * Presenter ab Tablet, nicht auf Smartphones.
@@ -20,6 +15,12 @@ import {
  * HDMI ist im Browser nicht erkennbar.
  */
 export const PRESENTER_VIEW_OFFERED_MEDIA = '(min-width: 600px) and (min-height: 500px)';
+
+/** Schreibt den aktuellen Host-Token origin-weit, bevor der Presenter-Tab öffnet. */
+export type PresenterHostTokenPersister = {
+  /** `true`, wenn der Token in IndexedDB landete. */
+  persistCurrentHostToken(sessionCode: string): Promise<boolean>;
+};
 
 /**
  * Presenter/Beamer auf Tablets und Desktop anbieten, nicht auf schmalen Smartphones.
@@ -51,7 +52,7 @@ export function presenterViewWindowName(sessionCode: string): string {
 
 /**
  * Tablets (iPadOS, Chrome/Android) klonen sessionStorage bei `window.open` nicht
- * und ignorieren benannte Fenster oft: der neue Tab bleibt auf der Startseite.
+ * und ignorieren benannte Fenster oft.
  */
 export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined): boolean {
   if (!win) {
@@ -67,49 +68,117 @@ export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined):
   }
 }
 
+function copyHostTokenToOpenedSessionStorage(storage: Storage, sessionCode: string): boolean {
+  const token = getHostToken(sessionCode);
+  if (!token) {
+    return false;
+  }
+  try {
+    storage.setItem(`arsnova-host-token:${normalizeHostSessionCode(sessionCode)}`, token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isPresenterLocation(opened: Window, sessionCode: string): boolean {
+  try {
+    const code = normalizeHostSessionCode(sessionCode);
+    return opened.location.pathname.includes(`/session/${code}/present`);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Öffnet die Presenter-Ansicht aus dem Host-Tab.
- * Desktop kopiert sessionStorage in das benannte Fenster.
- * Tablets bekommen `_blank` auf die Startseite und nur das kurzlebige
- * localStorage-Handoff — ein direkter sessionStorage-Copy würde Home
- * `hostTabHasToken()` wahr machen und die Weiterleitung nach /present verhindern.
+ *
+ * - Bestehendes Desktop-Fenster auf `/present` nur fokussieren (kein Reload → kein Home-/Reconnect-Flash).
+ * - Sonst synchron `about:blank` öffnen (User-Gesture + alte Startseite sofort weg), Token persistieren,
+ *   danach auf `/present` navigieren.
  */
-export function openPresenterViewWindow(
+export async function openPresenterViewWindow(
   win: Window | null | undefined,
   sessionCode: string,
-): Window | null {
+  tokenStorage: PresenterHostTokenPersister,
+): Promise<Window | null> {
   if (!win) {
     return null;
   }
 
   const touch = shouldOpenPresenterInUnnamedTab(win);
-  if (touch) {
-    stageHostTokenHandoff(sessionCode);
-  }
-  const url = touch ? resolveLocalizedAppUrl('/') : presenterViewUrl(sessionCode);
   const target = touch ? '_blank' : presenterViewWindowName(sessionCode);
-  const opened = win.open(url, target);
-  if (!opened || opened.closed) {
-    if (touch) {
-      clearHostTokenHandoff();
+  const url = presenterViewUrl(sessionCode);
+
+  if (!touch) {
+    try {
+      const existing = win.open('', target);
+      if (
+        existing &&
+        !existing.closed &&
+        existing !== win &&
+        isPresenterLocation(existing, sessionCode)
+      ) {
+        existing.focus();
+        try {
+          copyHostTokenToOpenedSessionStorage(existing.sessionStorage, sessionCode);
+        } catch {
+          // Restricted sessionStorage: IndexedDB-Fallback bleibt.
+        }
+        void tokenStorage.persistCurrentHostToken(sessionCode);
+        return existing;
+      }
+    } catch {
+      // Handle gesperrt: neuer Blank-Pfad.
     }
+  }
+
+  // Synchron im Klick-Kontext: leert ggf. alte Home-/PWA-Shell im benannten Fenster.
+  const opened = win.open('about:blank', target);
+  if (!opened || opened.closed) {
+    await tokenStorage.persistCurrentHostToken(sessionCode);
     return null;
   }
   if (opened === win) {
+    await tokenStorage.persistCurrentHostToken(sessionCode);
+    try {
+      win.location.assign(url);
+    } catch {
+      // Same-tab-Navigation gesperrt.
+    }
     return opened;
+  }
+
+  // Persist vor der Present-Navigation, damit der Guard IndexedDB schon vorfindet.
+  const persisted = await tokenStorage.persistCurrentHostToken(sessionCode);
+  let copied = false;
+  try {
+    // Auch auf Touch versuchen: same-origin about:blank erlaubt oft Schreibzugriff,
+    // auch wenn der Browser sessionStorage beim Open nicht klont.
+    copied = copyHostTokenToOpenedSessionStorage(opened.sessionStorage, sessionCode);
+  } catch {
+    // Quota/Restricted: nur IndexedDB zählt dann.
+  }
+
+  if (!persisted && !copied) {
+    // Ohne Token landet der Present-Guard auf Join — Blank-Tab wieder schließen.
+    try {
+      opened.close();
+    } catch {
+      // Ignore.
+    }
+    return null;
   }
 
   try {
     opened.location.replace(url);
   } catch {
-    // iOS kann den Handle sperren; Handoff und die ursprüngliche open-URL bleiben.
+    // iOS kann den Handle sperren; IndexedDB und manuelles Öffnen bleiben.
   }
-  if (!touch) {
-    try {
-      copyHostTokenToSessionStorage(opened.sessionStorage, sessionCode);
-    } catch {
-      // Cross-origin oder fehlendes sessionStorage: Desktop öffnet /present direkt.
-    }
+  try {
+    opened.focus();
+  } catch {
+    // Fokus optional.
   }
   return opened;
 }

@@ -193,6 +193,13 @@ describe('app routes', () => {
     expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
   });
 
+  it('lädt die Present-Route lazy und hält den Guard aus dem App-Routing', () => {
+    const present = findChildRoute('session/:code', 'present');
+    expect(present.canActivate).toBeUndefined();
+    expect(present.loadComponent).toBeUndefined();
+    expect(typeof present.loadChildren).toBe('function');
+  });
+
   it('leitet nackte Join-Links auf die bevorzugte Locale um', () => {
     getPreferredJoinLocaleMock.mockReturnValue('fr');
     const guard = findRoute('join/:code').canActivate?.[0] as CanActivateFn;
