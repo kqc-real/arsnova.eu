@@ -80,12 +80,21 @@ function copyHostTokenToOpenedSessionStorage(storage: Storage, sessionCode: stri
   }
 }
 
+function isPresenterLocation(opened: Window, sessionCode: string): boolean {
+  try {
+    const code = normalizeHostSessionCode(sessionCode);
+    return opened.location.pathname.includes(`/session/${code}/present`);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Öffnet die Presenter-Ansicht aus dem Host-Tab.
- * `persistCurrentHostToken` wird bewusst vor `window.open` awaited, damit der Presenter-Tab
- * auf Tablets den IndexedDB-Eintrag schon vorfinden kann (kein Race mit dem lazy Guard).
- * Desktop kopiert zusätzlich sessionStorage in das benannte Fenster. Touch öffnet `_blank`
- * direkt auf `/present`.
+ *
+ * - Bestehendes Desktop-Fenster auf `/present` nur fokussieren (kein Reload → kein Home-/Reconnect-Flash).
+ * - Sonst synchron `about:blank` öffnen (User-Gesture + alte Startseite sofort weg), Token persistieren,
+ *   danach auf `/present` navigieren.
  */
 export async function openPresenterViewWindow(
   win: Window | null | undefined,
@@ -96,31 +105,69 @@ export async function openPresenterViewWindow(
     return null;
   }
 
-  // Reihenfolge: Persist muss fertig sein, bevor der neue Tab den Present-Guard lädt.
-  await tokenStorage.persistCurrentHostToken(sessionCode);
-
   const touch = shouldOpenPresenterInUnnamedTab(win);
-  const url = presenterViewUrl(sessionCode);
   const target = touch ? '_blank' : presenterViewWindowName(sessionCode);
-  const opened = win.open(url, target);
+  const url = presenterViewUrl(sessionCode);
+
+  if (!touch) {
+    try {
+      const existing = win.open('', target);
+      if (
+        existing &&
+        !existing.closed &&
+        existing !== win &&
+        isPresenterLocation(existing, sessionCode)
+      ) {
+        existing.focus();
+        try {
+          copyHostTokenToOpenedSessionStorage(existing.sessionStorage, sessionCode);
+        } catch {
+          // Restricted sessionStorage: IndexedDB-Fallback bleibt.
+        }
+        void tokenStorage.persistCurrentHostToken(sessionCode);
+        return existing;
+      }
+    } catch {
+      // Handle gesperrt: neuer Blank-Pfad.
+    }
+  }
+
+  // Synchron im Klick-Kontext: leert ggf. alte Home-/PWA-Shell im benannten Fenster.
+  const opened = win.open('about:blank', target);
   if (!opened || opened.closed) {
+    await tokenStorage.persistCurrentHostToken(sessionCode);
     return null;
   }
   if (opened === win) {
+    await tokenStorage.persistCurrentHostToken(sessionCode);
+    try {
+      win.location.assign(url);
+    } catch {
+      // Same-tab-Navigation gesperrt.
+    }
     return opened;
   }
 
-  try {
-    opened.location.replace(url);
-  } catch {
-    // iOS kann den Handle sperren; IndexedDB und die ursprüngliche open-URL bleiben.
-  }
+  // Persist vor der Present-Navigation, damit der Guard IndexedDB schon vorfindet.
+  await tokenStorage.persistCurrentHostToken(sessionCode);
+
   if (!touch) {
     try {
       copyHostTokenToOpenedSessionStorage(opened.sessionStorage, sessionCode);
     } catch {
       // Cross-origin oder fehlendes sessionStorage: der Guard liest IndexedDB.
     }
+  }
+
+  try {
+    opened.location.replace(url);
+  } catch {
+    // iOS kann den Handle sperren; IndexedDB und manuelles Öffnen bleiben.
+  }
+  try {
+    opened.focus();
+  } catch {
+    // Fokus optional.
   }
   return opened;
 }
