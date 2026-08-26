@@ -22,6 +22,8 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     vote: {
       count: vi.fn(),
     },
+    $transaction: vi.fn(),
+    $executeRaw: vi.fn().mockResolvedValue(1),
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -68,6 +70,9 @@ describe('session.attachQuizToSession', () => {
     ]);
     prismaMock.participant.findMany.mockResolvedValue([]);
     prismaMock.vote.count.mockResolvedValue(0);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   trpcDodIt(
