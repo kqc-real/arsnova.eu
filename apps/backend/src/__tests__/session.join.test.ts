@@ -260,7 +260,6 @@ describe('session.join', () => {
         teamId: undefined,
       },
     });
-    expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.update).toHaveBeenCalledWith({
       where: { id: PARTICIPANT_ID },
       data: { teamId: TEAM_A },

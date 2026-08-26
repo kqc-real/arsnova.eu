@@ -244,6 +244,8 @@ const FOYER_NON_TEAM_DELAY_STEP_MS = 920;
 const QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP = 28;
 const HOST_QUESTION_DETAILS_RETRY_MS = 250;
 const HOST_QUESTION_DETAILS_RETRY_LIMIT = 8;
+const QUIZ_ATTACH_SESSION_INFO_RETRY_MS = 300;
+const QUIZ_ATTACH_SESSION_INFO_RETRY_LIMIT = 5;
 const FOYER_NON_TEAM_PRESENTATION_BUFFER_MS = 240;
 const FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
 const TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD = 100;
@@ -631,6 +633,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private foyerGlobalLaneCursor = 0;
   private hostQuestionDetailsRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private hostQuestionDetailsRetryCount = 0;
+  private quizAttachSessionInfoRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private quizAttachSessionInfoRetryCount = 0;
   private readonly foyerTeamLaneCursor = new Map<string, number>();
   private readonly foyerArrivalTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly foyerTeamPulseTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -4220,6 +4224,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.freetextWordCloudLemmaAnalysisRunId += 1;
     this.freetextWordCloudSemanticAnalysisRunId += 1;
     this.clearHostQuestionDetailsRetry();
+    this.clearQuizAttachSessionInfoRetry();
     this.clearHostRealtimeSubscriptionRetry();
     this.stopHostPolling();
     this.clearFoyerArrivalState();
@@ -7542,11 +7547,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async attachUploadedQuizToSession(uploadedQuizId: string): Promise<void> {
     let attached = false;
     try {
-      await trpc.session.attachQuizToSession.mutate({
+      const channels = await trpc.session.attachQuizToSession.mutate({
         code: this.code.toUpperCase(),
         quizId: uploadedQuizId,
       });
       attached = true;
+      // Kanal sofort lokal aktivieren, bevor Folge-Refreshes (getInfo/Teams/…) durchlaufen.
+      this.patchSessionChannels(channels);
+      this.activeChannel.set('quiz');
+      this.ensureActiveChannel();
       await this.finalizeQuizChannelActivation();
       this.dismissHostSteeringCallout();
     } catch {
@@ -7558,15 +7567,94 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async finalizeQuizChannelActivation(): Promise<void> {
-    await this.reloadSessionInfo();
-    await this.refreshParticipantsPayload();
-    await this.refreshLobbyTeams();
-    await this.refreshCurrentQuestionForHost();
-    await this.refreshQaQuestions();
-    await this.refreshQuickFeedbackResult();
+    let sessionReloaded = false;
+    try {
+      await this.reloadSessionInfo();
+      sessionReloaded = true;
+      this.clearQuizAttachSessionInfoRetry();
+    } catch {
+      // Attach hat den Kanal schon gesetzt; getInfo kann kurz scheitern – UI bleibt auf Quiz.
+      this.scheduleQuizAttachSessionInfoRetry();
+    }
+    if (!this.channels().quiz) {
+      this.patchSessionChannels({
+        quiz: { enabled: true },
+        qa: this.session()?.channels?.qa ?? {
+          enabled: false,
+          open: false,
+          title: null,
+          moderationMode: false,
+        },
+        quickFeedback: this.session()?.channels?.quickFeedback ?? {
+          enabled: false,
+          open: false,
+        },
+      });
+    }
     this.activeChannel.set('quiz');
     this.ensureActiveChannel();
+
+    await Promise.all([
+      this.refreshParticipantsPayload(),
+      this.refreshLobbyTeams(),
+      this.refreshCurrentQuestionForHost(),
+      this.refreshQuickFeedbackResult(),
+      this.refreshQaQuestionsForChannelActivation(),
+    ]);
     await this.syncPreferredLiveChannel('quiz');
+    if (!sessionReloaded && this.quizAttachSessionInfoRetryTimer === null) {
+      this.scheduleQuizAttachSessionInfoRetry();
+    }
+  }
+
+  private scheduleQuizAttachSessionInfoRetry(): void {
+    if (this.quizAttachSessionInfoRetryTimer) {
+      return;
+    }
+    if (this.quizAttachSessionInfoRetryCount >= QUIZ_ATTACH_SESSION_INFO_RETRY_LIMIT) {
+      this.clearQuizAttachSessionInfoRetry();
+      return;
+    }
+    this.quizAttachSessionInfoRetryCount += 1;
+    this.quizAttachSessionInfoRetryTimer = setTimeout(() => {
+      this.quizAttachSessionInfoRetryTimer = null;
+      void this.reloadSessionInfo()
+        .then(async () => {
+          this.clearQuizAttachSessionInfoRetry();
+          await Promise.all([this.refreshParticipantsPayload(), this.refreshLobbyTeams()]);
+        })
+        .catch(() => {
+          this.scheduleQuizAttachSessionInfoRetry();
+        });
+    }, QUIZ_ATTACH_SESSION_INFO_RETRY_MS * this.quizAttachSessionInfoRetryCount);
+  }
+
+  private clearQuizAttachSessionInfoRetry(): void {
+    if (this.quizAttachSessionInfoRetryTimer) {
+      clearTimeout(this.quizAttachSessionInfoRetryTimer);
+      this.quizAttachSessionInfoRetryTimer = null;
+    }
+    this.quizAttachSessionInfoRetryCount = 0;
+  }
+
+  /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
+  private async refreshQaQuestionsForChannelActivation(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId || !this.channels().qa) {
+      this.qaQuestions.set([]);
+      return;
+    }
+    try {
+      const questions = await trpc.qa.list.query({
+        sessionId,
+        moderatorView: true,
+        sort: this.qaSortMode(),
+      });
+      this.qaQuestions.set(questions);
+      await this.reconcilePresentedChannel();
+    } catch {
+      // Aktivierung nicht wegen Q&A-Listenfehler abbrechen.
+    }
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {

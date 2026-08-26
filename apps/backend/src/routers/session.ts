@@ -2871,13 +2871,21 @@ async function ensureSessionTeams(
     return existing;
   }
 
-  await prisma.team.createMany({
-    data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
-      sessionId,
-      name: teamNames[index] ?? buildDefaultTeamName(index),
-      color: TEAM_COLORS[index] ?? null,
-    })),
-  });
+  try {
+    await prisma.team.createMany({
+      data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
+        sessionId,
+        name: teamNames[index] ?? buildDefaultTeamName(index),
+        color: TEAM_COLORS[index] ?? null,
+      })),
+      // Parallel Join/Attach: Unique (sessionId, name) — Verlierer überspringt, liest danach die Teams.
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+      throw error;
+    }
+  }
 
   return prisma.team.findMany({
     where: { sessionId },
@@ -3030,7 +3038,7 @@ async function assignExistingParticipantsToTeams(
   }
 }
 
-const SESSION_ONBOARDING_LOCK_SELECT = {
+const SESSION_ONBOARDING_RECONCILE_SELECT = {
   onboardingProfileConfigured: true,
   onboardingNicknameTheme: true,
   onboardingAllowCustomNicknames: true,
@@ -3054,10 +3062,11 @@ const SESSION_ONBOARDING_LOCK_SELECT = {
 } as const;
 
 /**
- * Schließt die Race „Join liest teamlos → Attach aktiviert Teams → Create ohne teamId“.
- * Unter Session-Row-Lock wird das aktuelle Profil gelesen und AUTO-Teams nachgezogen.
+ * Schließt die Race „Join erzeugt teamlos, Attach aktiviert danach Teams“.
+ * Liest das aktuelle Onboarding erneut und weist bei AUTO fehlende Teams zu —
+ * ohne Session-Row-Lock (vermeidet Timeouts/Deadlocks unter Join-Last).
  */
-async function reconcileParticipantAutoTeamUnderSessionLock(input: {
+async function reconcileParticipantAutoTeamAssignment(input: {
   sessionId: string;
   participantId: string;
   teamId: string | null;
@@ -3068,58 +3077,55 @@ async function reconcileParticipantAutoTeamUnderSessionLock(input: {
   teamName: string | null;
   profile: SessionOnboardingProfile;
 }> {
-  return prisma.$transaction(async (tx) => {
-    await lockSessionRow(tx, input.sessionId);
-    const lockedSession = await tx.session.findUnique({
-      where: { id: input.sessionId },
-      select: SESSION_ONBOARDING_LOCK_SELECT,
-    });
-    if (!lockedSession) {
-      return {
-        teamId: input.teamId,
-        teamName: input.teamName,
-        profile: input.fallbackProfile,
-      };
-    }
-
-    const profile = resolveSessionOnboardingProfile(lockedSession, lockedSession.quiz);
-    if (!profile.teamMode || profile.teamAssignment !== 'AUTO') {
-      return {
-        teamId: input.teamId,
-        teamName: input.teamName,
-        profile,
-      };
-    }
-
-    if (input.teamId) {
-      return {
-        teamId: input.teamId,
-        teamName: input.teamName,
-        profile,
-      };
-    }
-
-    const teams = await ensureSessionTeams(
-      input.sessionId,
-      profile.teamCount ?? DEFAULT_TEAM_COUNT,
-      profile.teamNames,
-    );
-    if (teams.length === 0) {
-      return { teamId: null, teamName: null, profile };
-    }
-
-    const participantIndex = Math.max(0, lockedSession._count.participants - 1);
-    const team = teams[participantIndex % teams.length]!;
-    await tx.participant.update({
-      where: { id: input.participantId },
-      data: { teamId: team.id },
-    });
+  const latestSession = await prisma.session.findUnique({
+    where: { id: input.sessionId },
+    select: SESSION_ONBOARDING_RECONCILE_SELECT,
+  });
+  if (!latestSession) {
     return {
-      teamId: team.id,
-      teamName: team.name,
+      teamId: input.teamId,
+      teamName: input.teamName,
+      profile: input.fallbackProfile,
+    };
+  }
+
+  const profile = resolveSessionOnboardingProfile(latestSession, latestSession.quiz);
+  if (!profile.teamMode || profile.teamAssignment !== 'AUTO') {
+    return {
+      teamId: input.teamId,
+      teamName: input.teamName,
       profile,
     };
+  }
+
+  if (input.teamId) {
+    return {
+      teamId: input.teamId,
+      teamName: input.teamName,
+      profile,
+    };
+  }
+
+  const teams = await ensureSessionTeams(
+    input.sessionId,
+    profile.teamCount ?? DEFAULT_TEAM_COUNT,
+    profile.teamNames,
+  );
+  if (teams.length === 0) {
+    return { teamId: null, teamName: null, profile };
+  }
+
+  const participantIndex = Math.max(0, latestSession._count.participants - 1);
+  const team = teams[participantIndex % teams.length]!;
+  await prisma.participant.update({
+    where: { id: input.participantId },
+    data: { teamId: team.id },
   });
+  return {
+    teamId: team.id,
+    teamName: team.name,
+    profile,
+  };
 }
 
 function buildSessionChannels(session: {
@@ -5079,49 +5085,44 @@ export const sessionRouter = router({
           ? sessionOnboardingProfile
           : quizOnboardingProfile;
 
-      const updated = await prisma.$transaction(async (tx) => {
-        await lockSessionRow(tx, session.id);
-        const next = await tx.session.update({
-          where: { id: session.id },
-          data: {
-            type: 'QUIZ',
-            quizId: quiz.id,
-            currentQuestion: null,
-            currentRound: 1,
-            answerDisplayOrder: Prisma.JsonNull,
-            ...buildSessionOnboardingUpdate(onboardingForUpdate),
-          },
-          select: {
-            id: true,
-            type: true,
-            quizId: true,
-            qaEnabled: true,
-            qaOpen: true,
-            qaTitle: true,
-            qaModerationMode: true,
-            title: true,
-            moderationMode: true,
-            quickFeedbackEnabled: true,
-            quickFeedbackOpen: true,
-          },
-        });
-
-        if (quizOnboardingProfile.teamMode) {
-          const teams = await ensureSessionTeams(
-            session.id,
-            quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
-            quizOnboardingProfile.teamNames,
-          );
-          if (quizOnboardingProfile.teamAssignment === 'AUTO') {
-            await assignExistingParticipantsToTeams(
-              session.id,
-              teams.map((team) => team.id),
-            );
-          }
-        }
-
-        return next;
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: {
+          type: 'QUIZ',
+          quizId: quiz.id,
+          currentQuestion: null,
+          currentRound: 1,
+          answerDisplayOrder: Prisma.JsonNull,
+          ...buildSessionOnboardingUpdate(onboardingForUpdate),
+        },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
       });
+
+      if (quizOnboardingProfile.teamMode) {
+        const teams = await ensureSessionTeams(
+          session.id,
+          quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+          quizOnboardingProfile.teamNames,
+        );
+        if (quizOnboardingProfile.teamAssignment === 'AUTO') {
+          await assignExistingParticipantsToTeams(
+            session.id,
+            teams.map((team) => team.id),
+          );
+        }
+      }
 
       invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
@@ -7717,7 +7718,7 @@ export const sessionRouter = router({
         });
       }
 
-      const reconciled = await reconcileParticipantAutoTeamUnderSessionLock({
+      const reconciled = await reconcileParticipantAutoTeamAssignment({
         sessionId: session.id,
         participantId,
         teamId: assignedTeamId ?? null,
