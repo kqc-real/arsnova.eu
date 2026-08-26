@@ -9,6 +9,7 @@
   - Angular standalone components and Signals for UI state.
   - RxJS is for async streams/operators, not default local component stores; do not introduce `BehaviorSubject` for ordinary UI state.
   - Use Angular Material 3 and project tokens; no Tailwind in `apps/frontend`.
+  - Do not use `::ng-deep` (deprecated). Style host-owned elements, Material override mixins, or scoped `panelClass`/global rules instead.
   - Keep specs colocated as `<name>.spec.ts`; update nearest specs for changed behavior.
   - UI/copy changes sync all locales (`de`, `en`, `fr`, `es`, `it`), including ARIA, placeholders, validation, and legal text when relevant.
   - Treat 320px/mobile and localized string length as first-class UI constraints.

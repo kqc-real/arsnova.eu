@@ -2,7 +2,7 @@
 
 Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpflichtend.
 
-**Stand:** 2026-05-31 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
+**Stand:** 2026-08-26 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
 
 ## 1) Design-System-Konformität
 
@@ -23,7 +23,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 
 - [ ] Anpassungen an Material-Komponenten erfolgen über `mat.theme-overrides(...)` oder `<component>-overrides(...)`.
 - [ ] Keine fragilen Overrides gegen interne Material-DOM-Strukturen.
-- [ ] Kein neues `::ng-deep`.
+- [ ] Kein `::ng-deep` (deprecated).
 - [ ] Globale Overlay-Regeln sind über enge `panelClass` / `backdropClass` begrenzt.
 - [ ] Standard-Dialoge nutzen `dialog-title-header`; Fullscreen-Tools (Word Cloud, Bild-Lightbox) sind als Ausnahme begründet und separat auf Fokus/Close/Scroll geprüft.
 

@@ -103,7 +103,7 @@ Preset-Umschaltung läuft über die CSS-Klasse `html.preset-playful`.
 
 - hardcoded Hex-/RGB-Farben in Feature-SCSS für Standard-UI-Semantik
 - direkte Material-DOM-Overrides mit fragilen Selektoren
-- `::ng-deep` für neue Feature-Styles
+- `::ng-deep` (deprecated; nicht verwenden, auch nicht für Material-Interna)
 - Token-Bypass durch ad-hoc Inline-Styles
 - neue globale Tokens ohne Dokumentation in dieser Datei
 
