@@ -7542,11 +7542,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async attachUploadedQuizToSession(uploadedQuizId: string): Promise<void> {
     let attached = false;
     try {
-      await trpc.session.attachQuizToSession.mutate({
+      const channels = await trpc.session.attachQuizToSession.mutate({
         code: this.code.toUpperCase(),
         quizId: uploadedQuizId,
       });
       attached = true;
+      // Kanal sofort lokal aktivieren, bevor Folge-Refreshes (getInfo/Teams/…) durchlaufen.
+      this.patchSessionChannels(channels);
+      this.activeChannel.set('quiz');
+      this.ensureActiveChannel();
       await this.finalizeQuizChannelActivation();
       this.dismissHostSteeringCallout();
     } catch {
@@ -7558,15 +7562,57 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async finalizeQuizChannelActivation(): Promise<void> {
-    await this.reloadSessionInfo();
-    await this.refreshParticipantsPayload();
-    await this.refreshLobbyTeams();
-    await this.refreshCurrentQuestionForHost();
-    await this.refreshQaQuestions();
-    await this.refreshQuickFeedbackResult();
+    try {
+      await this.reloadSessionInfo();
+    } catch {
+      // Attach hat den Kanal schon gesetzt; getInfo kann kurz scheitern – UI bleibt auf Quiz.
+    }
+    if (!this.channels().quiz) {
+      this.patchSessionChannels({
+        quiz: { enabled: true },
+        qa: this.session()?.channels?.qa ?? {
+          enabled: false,
+          open: false,
+          title: null,
+          moderationMode: false,
+        },
+        quickFeedback: this.session()?.channels?.quickFeedback ?? {
+          enabled: false,
+          open: false,
+        },
+      });
+    }
     this.activeChannel.set('quiz');
     this.ensureActiveChannel();
+
+    await Promise.all([
+      this.refreshParticipantsPayload(),
+      this.refreshLobbyTeams(),
+      this.refreshCurrentQuestionForHost(),
+      this.refreshQuickFeedbackResult(),
+      this.refreshQaQuestionsForChannelActivation(),
+    ]);
     await this.syncPreferredLiveChannel('quiz');
+  }
+
+  /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
+  private async refreshQaQuestionsForChannelActivation(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId || !this.channels().qa) {
+      this.qaQuestions.set([]);
+      return;
+    }
+    try {
+      const questions = await trpc.qa.list.query({
+        sessionId,
+        moderatorView: true,
+        sort: this.qaSortMode(),
+      });
+      this.qaQuestions.set(questions);
+      await this.reconcilePresentedChannel();
+    } catch {
+      // Aktivierung nicht wegen Q&A-Listenfehler abbrechen.
+    }
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {

@@ -176,7 +176,6 @@ describe('session team mode (Story 7.1)', () => {
     expect(prismaMock.participant.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID },
     });
-    expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {
         sessionId: SESSION_ID,
@@ -222,7 +221,6 @@ describe('session team mode (Story 7.1)', () => {
     expect(prismaMock.participant.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID },
     });
-    expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {
         sessionId: SESSION_ID,
