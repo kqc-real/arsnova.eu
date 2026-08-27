@@ -78,8 +78,9 @@ export async function renderSessionResultsPdfHtmlLocally(
     browser = await chromium.launch(resolveChromiumLaunchOptions());
     const page = await browser.newPage();
     await page.route(/^(?:https?|file):/i, (route) => route.abort('blockedbyclient'));
-    // `load` statt `networkidle`: fehlende Asset-URLs sollen den PDF-Export nicht hängen lassen.
-    await page.setContent(request.html, { waitUntil: 'load', timeout: 60_000 });
+    // `domcontentloaded` statt `load`/`networkidle`: abgebrochene Subresources (SSRF-Sperre)
+    // und Coverage-Last dürfen den PDF-Export nicht bis zum Timeout blockieren.
+    await page.setContent(request.html, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     return Buffer.from(await page.pdf(request.pdfOptions));
   } finally {
     await browser?.close();
