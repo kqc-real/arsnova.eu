@@ -7,7 +7,7 @@ Folgende Grenzen blockieren die CI:
 
 - Performance-Score mindestens **60 %**
 - Accessibility mindestens **90 %**
-- Largest Contentful Paint höchstens **4 s**
+- Largest Contentful Paint höchstens **5 s** (CI-Runner; lokaler Prod-Serve typ. ~3,7–3,8 s)
 - Cumulative Layout Shift höchstens **0,1**
 - Total Blocking Time höchstens **850 ms**
 
