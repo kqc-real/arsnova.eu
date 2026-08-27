@@ -47,6 +47,7 @@ vi.mock('playwright', () => ({
       newPage: vi.fn(async () => ({
         route: mocks.route,
         setContent: mocks.setContent,
+        evaluate: vi.fn(async () => undefined),
         pdf: vi.fn(async (options?: { displayHeaderFooter?: boolean }) => {
           expect(options?.displayHeaderFooter).toBe(true);
           return Buffer.from('%PDF-1.4\n% test');

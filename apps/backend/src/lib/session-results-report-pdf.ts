@@ -38,6 +38,8 @@ export const PDF_MAX_EXTERNAL_IMAGE_BYTES_PER_IMAGE = PDF_IMAGE_NORMALIZER_MAX_I
 export const PDF_MAX_INLINED_IMAGE_BYTES = 24 * 1024 * 1024;
 export const PDF_MAX_EXTERNAL_IMAGE_PIXELS = 40_000_000;
 export const PDF_IMAGE_INLINE_DEADLINE_MS = 30_000;
+/** Obere Wartezeit nach DOM-Ready, bis inlinierte Bilder decodiert sind. */
+export const PDF_INLINE_IMAGE_DECODE_TIMEOUT_MS = 5_000;
 
 function resolveExportAssetBaseUrl(): string {
   return (
@@ -78,8 +80,33 @@ export async function renderSessionResultsPdfHtmlLocally(
     browser = await chromium.launch(resolveChromiumLaunchOptions());
     const page = await browser.newPage();
     await page.route(/^(?:https?|file):/i, (route) => route.abort('blockedbyclient'));
-    // `load` statt `networkidle`: fehlende Asset-URLs sollen den PDF-Export nicht hängen lassen.
-    await page.setContent(request.html, { waitUntil: 'load', timeout: 60_000 });
+    // `domcontentloaded` statt `load`/`networkidle`: abgebrochene Subresources (SSRF-Sperre)
+    // und Coverage-Last dürfen den PDF-Export nicht bis zum Timeout blockieren.
+    await page.setContent(request.html, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    // Inlinierte data:-Bilder (decoding=async) vor dem Druck explizit abwarten — ohne Netz-Warten.
+    // String-Form: Backend-tsconfig ohne DOM-Lib; Code läuft nur im Chromium-Kontext.
+    await Promise.race([
+      page.evaluate(`(async () => {
+        await Promise.all(
+          Array.from(document.images).map(async (img) => {
+            if (!img.complete) {
+              await new Promise((resolve) => {
+                img.addEventListener('load', resolve, { once: true });
+                img.addEventListener('error', resolve, { once: true });
+              });
+            }
+            try {
+              await img.decode();
+            } catch {
+              // Platzhalter/defekte Bilder sollen den Export nicht blockieren.
+            }
+          }),
+        );
+      })()`),
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, PDF_INLINE_IMAGE_DECODE_TIMEOUT_MS);
+      }),
+    ]);
     return Buffer.from(await page.pdf(request.pdfOptions));
   } finally {
     await browser?.close();
