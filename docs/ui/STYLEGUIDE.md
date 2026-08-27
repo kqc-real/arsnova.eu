@@ -355,7 +355,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 - **Fonts:** Material Icons nutzen `font-display: swap`, damit Lighthouse keine unsichtbare Textphase meldet und die Icons nach dem Font-Load regulär ersetzen. Kein Preload im Index, um Ladepfade nicht zu stören.
 - **Aktueller Mobile-Nachweis:** Der CI-nahe lokale Lauf vom 2026-07-10
   erreichte fuer `/de/` und `/en/` reproduzierbar nur **55 % Performance** und
-  rund **11,1 s LCP**. Damit sind die verbindlichen Gates von 60 % und 4 s
+  rund **11,1 s LCP**. Damit sind die verbindlichen Gates von 60 % und 5 s
   derzeit nicht erfuellt. Die App liefert rund 386 kB Initial-JS
   (Framework, Router, Material) plus Home-Chunk; diese Kosten und der konkrete
   LCP-Kandidat muessen profiliert werden. Ein theoretisch vorhandenes

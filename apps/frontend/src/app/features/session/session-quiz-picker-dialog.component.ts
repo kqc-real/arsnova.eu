@@ -61,8 +61,8 @@ export class SessionQuizPickerDialogComponent {
 
   private teamModeLabel(profile: SessionQuizPickerProfile): string {
     if (!profile.teamMode) {
-      return $localize`:@@sessionQuizPicker.teamsDisabled:Teams sind nicht möglich.`;
+      return $localize`:@@sessionQuizPicker.teamsDisabled:Keine aktiven Teams. Du siehst nur Einzelspieler-Quizze. (Ausnahme Demo-Quiz: Hier werden alle automatisch in 2 Teams aufgeteilt.)`;
     }
-    return $localize`:@@sessionQuizPicker.teamModeHint:Teams sind aktiv.`;
+    return $localize`:@@sessionQuizPicker.teamModeHint:Aktive Teams. Du siehst nur Team-Quizze. Eure aktuelle Teamstruktur und alle Pseudonyme werden nahtlos ins Quiz übernommen.`;
   }
 }

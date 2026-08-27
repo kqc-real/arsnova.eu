@@ -19441,24 +19441,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.intro" datatype="html">
-        <source> Wähle ein Quiz, das zur aktuellen Teamsituation deiner Teilnehmenden passt: </source>
-        <target>Choose a quiz from your collection that matches your participants&apos; current onboarding profile:</target>
+        <source> Wähle ein Quiz, das zur aktuellen Teambindung deiner Teilnehmenden passt: </source>
+        <target>Choose a quiz that matches your participants&apos; current team setup:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.html</context>
           <context context-type="linenumber">9,11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.profileHeading" datatype="html">
-        <source> Aktuelle Teamsituation der Teilnehmenden </source>
-        <target>Current participant onboarding profile</target>
+        <source> Aktuelle Teambindung </source>
+        <target>Current team setup</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.html</context>
           <context context-type="linenumber">20,22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.empty" datatype="html">
-        <source> Zur aktuellen Teamsituation deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung. </source>
-        <target>No quiz in your collection currently matches your participants&apos; current onboarding profile.</target>
+        <source> Zur aktuellen Teambindung deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung. </source>
+        <target>No quiz in your collection currently matches your participants&apos; current team setup.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.html</context>
           <context context-type="linenumber">32,35</context>
@@ -19489,16 +19489,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamsDisabled" datatype="html">
-        <source>Teams sind nicht möglich.</source>
-        <target>Teams are not possible.</target>
+        <source>Keine aktiven Teams. Du siehst nur Einzelspieler-Quizze. (Ausnahme Demo-Quiz: Hier werden alle automatisch in 2 Teams aufgeteilt.)</source>
+        <target>No active teams. You only see single-player quizzes. (Exception: Demo Quiz, where everyone is automatically split into 2 teams.)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
           <context context-type="linenumber">64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
-        <source>Teams sind aktiv.</source>
-        <target>Teams are active.</target>
+        <source>Aktive Teams. Du siehst nur Team-Quizze. Eure aktuelle Teamstruktur und alle Pseudonyme werden nahtlos ins Quiz übernommen.</source>
+        <target>Active teams. You only see team quizzes. Your current team structure and all pseudonyms are seamlessly transferred to the quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
           <context context-type="linenumber">66</context>

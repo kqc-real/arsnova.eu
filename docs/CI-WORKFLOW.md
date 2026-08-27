@@ -221,9 +221,10 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 ### 4.8 lighthouse
 
 - **Was?** Lighthouse CI prüft Home DE/EN mit drei Läufen je URL auf
-  Performance, LCP, CLS und TBT. Ein separater Accessibility-Lauf prüft Home
-  DE/EN, Quiz-Liste, Hilfe und Datenschutz. Dort blockieren sowohl der
-  Kategorien-Score als auch jedes fehlgeschlagene gewichtete Einzelaudit.
+  Performance, LCP (höchstens 5 s), CLS und TBT. Ein separater
+  Accessibility-Lauf prüft Home DE/EN, Quiz-Liste, Hilfe und Datenschutz.
+  Dort blockieren sowohl der Kategorien-Score als auch jedes fehlgeschlagene
+  gewichtete Einzelaudit.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
   Regeln in [../.lighthouserc.cjs](../.lighthouserc.cjs) und
   [../.lighthouserc-a11y.cjs](../.lighthouserc-a11y.cjs).

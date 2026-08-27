@@ -64,10 +64,55 @@ describe('SessionQuizPickerDialogComponent', () => {
     expect(title).toBeTruthy();
     expect(host.textContent).toContain('Quiz auswählen');
     expect(host.textContent).toContain(
-      'Wähle ein Quiz, das zur aktuellen Teamsituation deiner Teilnehmenden passt:',
+      'Wähle ein Quiz, das zur aktuellen Teambindung deiner Teilnehmenden passt:',
     );
-    expect(host.textContent).toContain('Aktuelle Teamsituation der Teilnehmenden');
-    expect(host.textContent).toContain('Teams sind nicht möglich.');
+    expect(host.textContent).toContain('Aktuelle Teambindung');
+    expect(host.textContent).toContain(
+      'Keine aktiven Teams. Du siehst nur Einzelspieler-Quizze. (Ausnahme Demo-Quiz: Hier werden alle automatisch in 2 Teams aufgeteilt.)',
+    );
+  });
+
+  it('zeigt bei aktiver Teambindung den Team-Hinweis', () => {
+    const close = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [SessionQuizPickerDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            sessionProfile: {
+              teamMode: true,
+            },
+            quizzes: [
+              {
+                id: 'team-quiz',
+                name: 'Team Quiz',
+                description: 'Kurzbeschreibung.',
+                createdAt: '2026-04-01T10:00:00.000Z',
+                updatedAt: '2026-04-03T10:00:00.000Z',
+                questionCount: 5,
+                teamMode: true,
+                hasBonus: false,
+                lastServerQuizId: null,
+                lastServerQuizAccessProof: null,
+              },
+            ],
+          },
+        },
+        {
+          provide: MatDialogRef,
+          useValue: { close },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionQuizPickerDialogComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.textContent).toContain(
+      'Aktive Teams. Du siehst nur Team-Quizze. Eure aktuelle Teamstruktur und alle Pseudonyme werden nahtlos ins Quiz übernommen.',
+    );
   });
 
   it('sorts quizzes by updatedAt descending and closes with the selected id', () => {
@@ -109,7 +154,7 @@ describe('SessionQuizPickerDialogComponent', () => {
 
     expect(host.querySelector('.session-quiz-picker__empty-state')).toBeTruthy();
     expect(host.textContent).toContain(
-      'Zur aktuellen Teamsituation deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.',
+      'Zur aktuellen Teambindung deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.',
     );
   });
 });
