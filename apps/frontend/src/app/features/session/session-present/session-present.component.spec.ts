@@ -435,7 +435,13 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-finish-idle"]',
     ) as HTMLElement | null;
     expect(idle).not.toBeNull();
-    expect(idle?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Die Session ist beendet.');
+    const idleText = idle?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    expect(idleText).toContain('arsnova.eu');
+    expect(idleText).toContain('Die Session ist beendet.');
+    expect(idle?.querySelector('.session-present__finish-brand')).toBeTruthy();
+    expect(idle?.querySelector('.session-present__finish-brand-title')?.textContent?.trim()).toBe(
+      'arsnova.eu',
+    );
     expect(idle?.querySelector('a, button, mat-card')).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('Gesamtauswertung');
     expect(fixture.nativeElement.textContent).not.toContain('Zur Startseite');
