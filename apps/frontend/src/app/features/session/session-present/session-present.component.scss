@@ -1259,9 +1259,58 @@ app-session-projection-quiz,
 }
 
 .session-present__finish--empty {
-  grid-template-areas: 'title';
+  grid-template-areas: 'idle';
   grid-template-rows: minmax(0, 1fr);
   place-items: center;
+}
+
+.session-present__finish-idle {
+  grid-area: idle;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 96vw);
+  height: 100%;
+  padding-inline: clamp(0.75rem, 2.5vw, 2rem);
+  /* Optisch etwas über die Mitte: Beamer-Exit soll nicht im unteren Drittel sitzen. */
+  padding-bottom: clamp(4rem, 14vh, 11rem);
+}
+
+.session-present__finish-brand {
+  --app-eu-blue: #002395;
+  --app-eu-blue-dark: #001a75;
+  --app-eu-yellow: #ffcc00;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.85rem, 2.8vmin, 1.8rem);
+  max-width: 100%;
+  color: var(--mat-sys-on-surface);
+}
+
+.session-present__finish-brand-icon {
+  width: clamp(6.5rem, 22vmin, 14rem);
+  height: clamp(6.5rem, 22vmin, 14rem);
+  flex-shrink: 0;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+}
+
+.session-present__finish-brand-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(1.75rem, 5.5vmin, 3.5rem);
+  min-width: 0;
+}
+
+.session-present__finish-brand-title {
+  font-size: clamp(4rem, 18vmin, 11rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .session-present__finish-hero {
@@ -1420,15 +1469,19 @@ app-session-projection-quiz,
 }
 
 .session-present__finish-title {
-  grid-area: title;
   margin: 0;
-  text-align: center;
-  font-size: clamp(2rem, 4.8vmin, 3.4rem);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.08;
-  color: var(--mat-sys-on-surface);
+  text-align: right;
+  font-size: clamp(1.35rem, 3.4vmin, 2.35rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: var(--mat-sys-on-surface-variant);
   text-wrap: balance;
+}
+
+.session-present__finish--empty .session-present__finish-title {
+  max-width: none;
+  width: 100%;
 }
 
 .session-present__winner-card {
