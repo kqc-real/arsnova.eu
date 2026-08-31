@@ -297,7 +297,8 @@
   overflow: visible;
 }
 
-.app-footer__links > .app-footer__primary {
+.app-footer__links > .app-footer__primary,
+.app-footer__links > .app-footer__more-cluster {
   grid-column: span 1;
   justify-self: stretch;
 }
@@ -318,7 +319,8 @@
  * und nicht Material-48px-Touch als Layout-Höhe. Zweizeilige Labels dürfen wachsen.
  * Touch-Target: styles.scss (ohne Host-_ngcontent), zentriert, ohne Leisten-Aufblähung.
  */
-.app-footer__links > .app-footer__primary.mat-mdc-button-base {
+.app-footer__links > .app-footer__primary.mat-mdc-button-base,
+.app-footer__more-cluster > .app-footer__primary.mat-mdc-button-base {
   display: inline-flex !important;
   box-sizing: border-box;
   width: 100%;
@@ -441,6 +443,50 @@
   color: var(--mat-sys-outline-variant);
 }
 
+.app-footer__more-cluster {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  gap: 0.1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-footer__more-cluster > .app-footer__primary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-footer__status-shortcut {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  --mat-icon-button-state-layer-size: 2.75rem;
+}
+
+.app-footer__status-shortcut .app-footer__status-dot {
+  margin: 0;
+  font-size: 1.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-footer__status-shortcut:focus-visible {
+  outline: none;
+}
+
 .app-footer__link--offline {
   opacity: 0.72;
 }
@@ -478,7 +524,8 @@
     grid-template-columns: none;
   }
 
-  .app-footer__links > .app-footer__primary.mat-mdc-button-base {
+  .app-footer__links > .app-footer__primary.mat-mdc-button-base,
+  .app-footer__more-cluster > .app-footer__primary.mat-mdc-button-base {
     display: inline-flex;
     flex: 0 0 auto;
     width: auto;
@@ -488,6 +535,22 @@
     white-space: nowrap;
     --mat-button-text-container-height: 2.75rem;
     --mat-button-text-horizontal-padding: 1.1rem;
+  }
+
+  .app-footer__more-cluster {
+    width: auto;
+    gap: 0.15rem;
+    align-self: center;
+  }
+
+  .app-footer__more-cluster > .app-footer__primary {
+    flex: 0 0 auto;
+  }
+
+  .app-footer__status-shortcut {
+    width: 2.75rem;
+    height: 2.75rem;
+    --mat-icon-button-state-layer-size: 2.75rem;
   }
 
   .app-footer__links .app-footer__primary.mat-mdc-button-base .mdc-button__label {

@@ -679,6 +679,27 @@ describe('AppComponent', () => {
     expect(footer.querySelector('.app-footer__link--news-archive')).toBeNull();
     expect(footer.querySelector('app-server-status-widget')).toBeNull();
     expect(footer.querySelector('a[href*="/legal/imprint"]')).toBeNull();
+    expect(footer.querySelector('button.app-footer__status-shortcut')).toBeTruthy();
+
+    fixture.destroy();
+  });
+
+  it('oeffnet den Betriebsstatus-Dialog ueber den sichtbaren Status-Dot neben Mehr', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    const openSpy = vi.spyOn(component, 'openServerStatusHelp').mockResolvedValue();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const shortcut = (fixture.nativeElement as HTMLElement).querySelector(
+      'button.app-footer__status-shortcut',
+    ) as HTMLButtonElement | null;
+    expect(shortcut).toBeTruthy();
+    expect(shortcut?.getAttribute('aria-label')).toContain('Betriebsstatus');
+    shortcut!.click();
+    expect(openSpy).toHaveBeenCalledOnce();
 
     fixture.destroy();
   });
@@ -862,6 +883,48 @@ describe('AppComponent', () => {
     await fixture.whenStable();
 
     expect(document.activeElement).toBe(moreButton);
+    fixture.destroy();
+  });
+
+  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf den Status-Dot', async () => {
+    const { dialog, close } = createCloseableDialogMock();
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: MatDialog, useValue: dialog },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: false,
+            versionUpdates: { subscribe: swVersionUpdatesSubscribeMock },
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+            activateUpdate: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const shortcut = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[data-footer-focus="footer-status"]',
+    ) as HTMLButtonElement;
+    expect(shortcut).toBeTruthy();
+    shortcut.focus();
+
+    await component.openServerStatusFromShortcut();
+    expect(dialog.open).toHaveBeenCalled();
+
+    close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(shortcut);
     fixture.destroy();
   });
 

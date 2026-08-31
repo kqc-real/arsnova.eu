@@ -25,10 +25,11 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatTooltip } from '@angular/material/tooltip';
 import { SwUpdate } from '@angular/service-worker';
 import { ThemePresetService } from './core/theme-preset.service';
 import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service';
@@ -92,10 +93,12 @@ class ConnectionBannerHostDirective {
     RouterOutlet,
     RouterLink,
     MatButton,
+    MatIconButton,
     MatIcon,
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    MatTooltip,
     TopToolbarComponent,
     PresetToastHostDirective,
     ConnectionBannerHostDirective,
@@ -145,6 +148,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private footerMoreFocusGraceTimer: number | null = null;
   /** Escape hat das Footer-Mehr-Menü geschlossen → Fokus muss auf den Auslöser. */
   private footerMoreClosedByEscape = false;
+  /** Wohin der Fokus nach dem Betriebsstatus-Dialog zurück soll. */
+  private statusDialogFocusReturn: 'more' | 'shortcut' = 'more';
   private readonly footerMoreEscapeCapture = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.footerMoreTrigger?.menuOpen) {
       this.footerMoreClosedByEscape = true;
@@ -909,8 +914,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */
   openServerStatusFromMore(): void {
+    this.statusDialogFocusReturn = 'more';
     this.footerMoreTrigger?.closeMenu();
     void this.openServerStatusHelp();
+  }
+
+  /** Betriebsstatus-Dot neben Mehr: Dialog öffnen, Fokus zum Dot zurück. */
+  openServerStatusFromShortcut(): Promise<void> {
+    this.statusDialogFocusReturn = 'shortcut';
+    return this.openServerStatusHelp();
   }
 
   async openServerStatusHelp(): Promise<void> {
@@ -936,31 +948,44 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Fokus nach Betriebsstatus-Dialog nur auf ein noch lebendiges Mehr-Target.
+   * Fokus nach Betriebsstatus-Dialog auf den auslösenden Footer-Trigger.
    * Bei Navigation weg vom Footer (Feedback/immersiv) kein Fokus auf detached Nodes.
    */
   private focusFooterMoreAfterStatusDialog(): void {
     if (typeof document === 'undefined') return;
-    const more = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');
-    // footerVisible deckt Feedback-/immersive Host-Routen ab; isConnected/inert den Detach-Fall.
-    const usable =
-      !!more &&
-      more.isConnected &&
-      !more.closest('[inert]') &&
-      this.footerVisible() &&
-      getComputedStyle(more).visibility !== 'hidden' &&
-      getComputedStyle(more).display !== 'none';
-    if (usable && more) {
+    const preferredSelector =
+      this.statusDialogFocusReturn === 'shortcut'
+        ? 'button[data-footer-focus="footer-status"]'
+        : 'button[data-footer-focus="footer-more"]';
+    const preferred = document.querySelector<HTMLElement>(preferredSelector);
+    const fallback = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');
+    const target = this.isUsableFooterFocusTarget(preferred)
+      ? preferred
+      : this.isUsableFooterFocusTarget(fallback)
+        ? fallback
+        : null;
+    if (target) {
       try {
-        more.focus({ preventScroll: true });
+        target.focus({ preventScroll: true });
       } catch {
-        more.focus();
+        target.focus();
       }
       return;
     }
     if (!this.isContentOverlayRoute()) {
       this.focusPrimaryContent();
     }
+  }
+
+  private isUsableFooterFocusTarget(el: HTMLElement | null): el is HTMLElement {
+    return (
+      !!el &&
+      el.isConnected &&
+      !el.closest('[inert]') &&
+      this.footerVisible() &&
+      getComputedStyle(el).visibility !== 'hidden' &&
+      getComputedStyle(el).display !== 'none'
+    );
   }
 
   onPresetChanged(): void {

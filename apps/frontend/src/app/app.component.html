@@ -196,24 +196,51 @@
                 >
               </span>
             </a>
-            <button
-              matButton
-              type="button"
-              class="app-footer__primary"
-              #footerMoreButton
-              #footerMoreTrigger="matMenuTrigger"
-              [matMenuTriggerFor]="footerMoreMenu"
-              (menuClosed)="onFooterMoreMenuClosed()"
-              data-footer-focus="footer-more"
-              i18n-aria-label="@@app.footer.moreOpenAria"
-              aria-label="Mehr"
-            >
-              <span class="app-footer__primary-stack">
-                <!-- more_vert: projektweit etabliertes More-Icon (Menu-Trigger); nicht more_horiz -->
-                <mat-icon class="app-footer__icon" aria-hidden="true">more_vert</mat-icon>
-                <span class="app-footer__link-text" i18n="@@app.footer.more">Mehr</span>
-              </span>
-            </button>
+            <div class="app-footer__more-cluster">
+              <button
+                matButton
+                type="button"
+                class="app-footer__primary"
+                #footerMoreButton
+                #footerMoreTrigger="matMenuTrigger"
+                [matMenuTriggerFor]="footerMoreMenu"
+                (menuClosed)="onFooterMoreMenuClosed()"
+                data-footer-focus="footer-more"
+                i18n-aria-label="@@app.footer.moreOpenAria"
+                aria-label="Mehr"
+              >
+                <span class="app-footer__primary-stack">
+                  <!-- more_vert: projektweit etabliertes More-Icon (Menu-Trigger); nicht more_horiz -->
+                  <mat-icon class="app-footer__icon" aria-hidden="true">more_vert</mat-icon>
+                  <span class="app-footer__link-text" i18n="@@app.footer.more">Mehr</span>
+                </span>
+              </button>
+              @if (serverStatusWidgetVisible()) {
+                <button
+                  matIconButton
+                  type="button"
+                  class="app-footer__status-shortcut"
+                  data-footer-focus="footer-status"
+                  (click)="openServerStatusFromShortcut()"
+                  i18n-aria-label="@@app.footer.statusHelpTriggerAria"
+                  aria-label="Betriebsstatus öffnen: Statusanzeige und Systemlast-Indikatoren"
+                  i18n-matTooltip="@@app.footer.statusHelpTriggerTooltip"
+                  matTooltip="Betriebsstatus und Systemlast-Indikatoren anzeigen"
+                  matTooltipPosition="above"
+                >
+                  <mat-icon
+                    class="app-footer__status-dot"
+                    [class.app-footer__status-dot--healthy]="footerStatusColor() === 'green'"
+                    [class.app-footer__status-dot--busy]="footerStatusColor() === 'yellow'"
+                    [class.app-footer__status-dot--overloaded]="footerStatusColor() === 'red'"
+                    [class.app-footer__status-dot--unknown]="footerStatusColor() === 'gray'"
+                    [style.color]="footerStatusDotCssColor()"
+                    aria-hidden="true"
+                    >lens</mat-icon
+                  >
+                </button>
+              }
+            </div>
             @if (footerShowApiOffline()) {
               <button
                 matButton
