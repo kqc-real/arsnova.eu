@@ -92,6 +92,29 @@ describe('LegalPageComponent', () => {
     expect(spy).toHaveBeenCalledOnce();
   });
 
+  it('bietet einen zweiten Zurück-Button am Seitenende', async () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    fixture.detectChanges();
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/imprint.de.md'));
+    req.flush('# Titel\n\nText.');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const backNavs = fixture.nativeElement.querySelectorAll('nav.legal-back');
+    expect(backNavs).toHaveLength(2);
+    expect(backNavs[0]?.getAttribute('aria-label')).toBe('Navigation');
+    expect(backNavs[1]?.getAttribute('aria-label')).toBe('Navigation am Seitenende');
+    const bottomBack = fixture.nativeElement.querySelector(
+      'nav.legal-back--bottom button',
+    ) as HTMLButtonElement | null;
+    expect(bottomBack).toBeTruthy();
+    bottomBack!.click();
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
   it('behält den Dialogtitel im Lade- und Fehlerzustand', async () => {
     const fixture = TestBed.createComponent(LegalPageComponent);
     fixture.detectChanges();

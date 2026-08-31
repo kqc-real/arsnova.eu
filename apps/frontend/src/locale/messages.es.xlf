@@ -6377,6 +6377,22 @@
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="contentPage.navigationBottomAria" datatype="html">
+        <source>Navigation am Seitenende</source>
+        <target>Navegación al final de la página</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">473</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/legal-page.component.html</context>
+          <context context-type="linenumber">64</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.html</context>
+          <context context-type="linenumber">173</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="contentPage.backAria" datatype="html">
         <source>Zurück zur vorherigen Seite</source>
         <target>Volver a la página anterior</target>
