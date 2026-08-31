@@ -2,6 +2,7 @@
   class="app-layout"
   [class.app-layout--immersive-host]="hideAppChrome()"
   [class.app-layout--offline]="!isOnline()"
+  [class.app-layout--service-degraded]="serviceStatusBannerVisible()"
   [style.--app-footer-visible-offset.px]="footerVisibleOffset()"
 >
   @if (!isOnline()) {
@@ -111,6 +112,26 @@
       [toolbarHidden]="toolbarHidden()"
       (focusin)="showToolbarForFocus()"
     />
+  }
+  @if (serviceStatusBannerVisible()) {
+    <div
+      class="app-service-status-banner"
+      role="status"
+      [class.app-service-status-banner--busy]="footerStatusColor() === 'yellow'"
+      [class.app-service-status-banner--critical]="footerStatusColor() === 'red'"
+    >
+      <span class="app-service-status-banner__text" i18n="@@app.serviceStatusBanner.text"
+        >⚠️ Mögliche Verzögerungen.</span
+      >
+      <button
+        type="button"
+        class="app-service-status-banner__link"
+        (click)="openServerStatusFromBanner()"
+        i18n="@@app.serviceStatusBanner.learnMore"
+      >
+        Mehr erfahren
+      </button>
+    </div>
   }
 
   <main

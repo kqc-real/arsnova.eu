@@ -74,6 +74,8 @@ interface BeforeInstallPromptEvent extends Event {
 type AppDevWindow = Window & {
   __triggerPwaInstallHint?: () => void;
   __triggerUpdateBanner?: () => void;
+  /** DevTools: window.__triggerServiceStatusBanner('yellow'|'red'|'off') */
+  __triggerServiceStatusBanner?: (level: 'yellow' | 'red' | 'off') => void;
 };
 
 @Directive({ selector: '[presetToastHost]', standalone: true })
@@ -233,6 +235,14 @@ export class AppComponent implements OnInit, OnDestroy {
   serverStatusWidgetVisible = computed(
     () => this.footerVisible() && !this.footerStatusPollingSuppressedRoute(),
   );
+  /** Schmales Warnbanner nur bei yellow/red (Wartung/Störung), nicht bei Grün/Grau. */
+  serviceStatusBannerVisible = computed(() => {
+    if (!this.serverStatusWidgetVisible() || this.hideAppChrome() || this.isContentOverlayRoute()) {
+      return false;
+    }
+    const color = this.footerStatusColor();
+    return color === 'yellow' || color === 'red';
+  });
   footerVisibleOffset = signal(0);
 
   /**
@@ -509,6 +519,7 @@ export class AppComponent implements OnInit, OnDestroy {
         window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
         delete (window as AppDevWindow).__triggerPwaInstallHint;
         delete (window as AppDevWindow).__triggerUpdateBanner;
+        delete (window as AppDevWindow).__triggerServiceStatusBanner;
       }
     }
   }
@@ -596,6 +607,20 @@ export class AppComponent implements OnInit, OnDestroy {
       /** In DevTools-Konsole ausführen: window.__triggerUpdateBanner() – zeigt den Update-Banner zum Testen. */
       (window as AppDevWindow).__triggerUpdateBanner = () =>
         window.dispatchEvent(new CustomEvent('pwa-update-test'));
+      /** In DevTools-Konsole: window.__triggerServiceStatusBanner('yellow'|'red'|'off') – Warnbanner testen. */
+      (window as AppDevWindow).__triggerServiceStatusBanner = (level) => {
+        this.footerHealthCheckDone.set(true);
+        this.apiStatus.set('ok');
+        if (level === 'off') {
+          this.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+          return;
+        }
+        if (level === 'yellow') {
+          this.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+          return;
+        }
+        this.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+      };
     }
   }
 
@@ -913,7 +938,12 @@ export class AppComponent implements OnInit, OnDestroy {
     void this.openServerStatusHelp();
   }
 
-  async openServerStatusHelp(): Promise<void> {
+  /** Betriebsstatus-Banner unter der Toolbar: Dialog öffnen, Fokus zum Banner-Link. */
+  openServerStatusFromBanner(): void {
+    void this.openServerStatusHelp('banner');
+  }
+
+  async openServerStatusHelp(focusReturn: 'more' | 'banner' = 'more'): Promise<void> {
     const { ServerStatusHelpDialogComponent } =
       await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
 
@@ -930,37 +960,50 @@ export class AppComponent implements OnInit, OnDestroy {
       maxWidth: '100vw',
     });
     ref.afterClosed().subscribe(() => {
-      this.focusFooterMoreAfterStatusDialog();
+      this.focusFooterMoreAfterStatusDialog(focusReturn);
     });
     void this.loadFooterStats({ forceFresh: true });
   }
 
   /**
-   * Fokus nach Betriebsstatus-Dialog nur auf ein noch lebendiges Mehr-Target.
+   * Fokus nach Betriebsstatus-Dialog auf den auslösenden Trigger.
    * Bei Navigation weg vom Footer (Feedback/immersiv) kein Fokus auf detached Nodes.
    */
-  private focusFooterMoreAfterStatusDialog(): void {
+  private focusFooterMoreAfterStatusDialog(focusReturn: 'more' | 'banner' = 'more'): void {
     if (typeof document === 'undefined') return;
-    const more = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');
-    // footerVisible deckt Feedback-/immersive Host-Routen ab; isConnected/inert den Detach-Fall.
-    const usable =
-      !!more &&
-      more.isConnected &&
-      !more.closest('[inert]') &&
-      this.footerVisible() &&
-      getComputedStyle(more).visibility !== 'hidden' &&
-      getComputedStyle(more).display !== 'none';
-    if (usable && more) {
+    const preferredSelector =
+      focusReturn === 'banner'
+        ? 'button.app-service-status-banner__link'
+        : 'button[data-footer-focus="footer-more"]';
+    const preferred = document.querySelector<HTMLElement>(preferredSelector);
+    const fallback = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');
+    const target = this.isUsableFooterFocusTarget(preferred)
+      ? preferred
+      : this.isUsableFooterFocusTarget(fallback)
+        ? fallback
+        : null;
+    if (target) {
       try {
-        more.focus({ preventScroll: true });
+        target.focus({ preventScroll: true });
       } catch {
-        more.focus();
+        target.focus();
       }
       return;
     }
     if (!this.isContentOverlayRoute()) {
       this.focusPrimaryContent();
     }
+  }
+
+  private isUsableFooterFocusTarget(el: HTMLElement | null): el is HTMLElement {
+    return (
+      !!el &&
+      el.isConnected &&
+      !el.closest('[inert]') &&
+      this.footerVisible() &&
+      getComputedStyle(el).visibility !== 'hidden' &&
+      getComputedStyle(el).display !== 'none'
+    );
   }
 
   onPresetChanged(): void {

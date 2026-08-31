@@ -210,6 +210,22 @@
           <context context-type="linenumber">281</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.serviceStatusBanner.text" datatype="html">
+        <source>⚠️ Mögliche Verzögerungen.</source>
+        <target>⚠️ Posibles retrasos.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.serviceStatusBanner.learnMore" datatype="html">
+        <source>Mehr erfahren</source>
+        <target>Más info</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">128</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.snackbar.presetSerious" datatype="html">
         <source>Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.</source>
         <target>Modo profesional activado – tranquilo, claro y centrado en el contenido.</target>
@@ -6867,12 +6883,20 @@
           <context context-type="linenumber">12</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4642582109589985725" datatype="html">
-        <source>Für Schulen, Unis, Events &amp; Business</source>
-        <target>Para escuelas, universidades, eventos y business</target>
+      <trans-unit id="homeHero.uspAudienceMobile" datatype="html">
+        <source> Für Gruppen bis zu 500 Personen. </source>
+        <target>Para grupos de hasta 500 personas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">15,17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHero.uspAudience" datatype="html">
+        <source> Für Schulen, Unis &amp; Events – bis zu 500 Personen. </source>
+        <target>Para escuelas, universidades y eventos – hasta 500 personas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">18,20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.uspTrust" datatype="html">
@@ -6880,7 +6904,7 @@
         <target>Gratis. Open Source. Sin registro.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">16,18</context>
+          <context context-type="linenumber">21,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.sloganFeatures" datatype="html">
@@ -6888,7 +6912,7 @@
         <target>Gratis. Open Source. Sin registro. Made in Europe.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">22,24</context>
+          <context context-type="linenumber">26,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="home.presetBandAria" datatype="html">
