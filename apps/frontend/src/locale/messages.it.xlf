@@ -6861,10 +6861,18 @@
       </trans-unit>
       <trans-unit id="homeHero.uspTrust" datatype="html">
         <source> Kostenlos. Open Source. Ohne Anmeldung. </source>
-        <target>Gratis. Open source. Senza registrazione.</target>
+        <target>Gratis. Open Source. Senza registrazione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">15,17</context>
+          <context context-type="linenumber">16,18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHero.sloganFeatures" datatype="html">
+        <source> Kostenlos. Open Source. Ohne Anmeldung. Made in Europe. </source>
+        <target>Gratis. Open Source. Senza registrazione. Made in Europe.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">22,24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="home.presetBandAria" datatype="html">
