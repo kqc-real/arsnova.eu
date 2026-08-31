@@ -6,6 +6,10 @@
 
 .app-layout {
   --app-offline-banner-height: 0px;
+  --app-service-status-banner-height: 0px;
+  /* Zusätzlicher Abstand, damit das Warnbanner unter der floating Toolbar sitzt
+     (Toolbar: top+margin-top + Chrome ≈ 5.25rem/6.25rem/6.75rem). */
+  --app-service-status-banner-gap: 0px;
   position: relative;
   height: 100%;
   min-height: 100%;
@@ -18,6 +22,18 @@
   --app-offline-banner-height: 3rem;
 }
 
+.app-layout--service-degraded {
+  --app-service-status-banner-height: 2.25rem;
+  /* 1.25rem Clearance + ~0.5rem Schatten/Abstand unter floating Toolbar */
+  --app-service-status-banner-gap: 1.75rem;
+}
+
+@media (min-width: 600px) {
+  .app-layout--service-degraded {
+    --app-service-status-banner-gap: 2.25rem;
+  }
+}
+
 .app-main {
   flex: 1 1 auto;
   min-height: 0;
@@ -27,8 +43,13 @@
 
 /* Platz für fixierte Toolbar (Top-Inset 0.5rem/0.75rem/1rem + Toolbar-Höhe). */
 .app-main--toolbar-fixed {
-  padding-top: 4rem;
-  --vote-channel-tabs-desktop-top: 6.75rem;
+  padding-top: calc(
+    4rem + var(--app-service-status-banner-gap, 0px) + var(--app-service-status-banner-height, 0px)
+  );
+  --vote-channel-tabs-desktop-top: calc(
+    6.75rem + var(--app-service-status-banner-gap, 0px) +
+      var(--app-service-status-banner-height, 0px)
+  );
   /* Sticky-top sitzt in der Content-Box von .app-main. padding-top bleibt als
      Scrollport-Inset stehen, deshalb kleben die Tabs auch nach dem Scrollen
      unter der Toolbar. Dieselben 4rem in sticky-top zu addieren schiebt sie
@@ -42,14 +63,26 @@
 
 @media (min-width: 600px) {
   .app-main--toolbar-fixed {
-    padding-top: 4.5rem;
-    --vote-channel-tabs-desktop-top: 7.25rem;
+    padding-top: calc(
+      4.5rem + var(--app-service-status-banner-gap, 0px) +
+        var(--app-service-status-banner-height, 0px)
+    );
+    --vote-channel-tabs-desktop-top: calc(
+      7.25rem + var(--app-service-status-banner-gap, 0px) +
+        var(--app-service-status-banner-height, 0px)
+    );
   }
 }
 @media (min-width: 840px) {
   .app-main--toolbar-fixed {
-    padding-top: 5rem;
-    --vote-channel-tabs-desktop-top: 7.75rem;
+    padding-top: calc(
+      5rem + var(--app-service-status-banner-gap, 0px) +
+        var(--app-service-status-banner-height, 0px)
+    );
+    --vote-channel-tabs-desktop-top: calc(
+      7.75rem + var(--app-service-status-banner-gap, 0px) +
+        var(--app-service-status-banner-height, 0px)
+    );
   }
 }
 
@@ -153,6 +186,82 @@
 .app-offline-banner__retry {
   margin-left: 0.5rem;
   color: var(--mat-sys-on-error-container);
+}
+
+.app-service-status-banner {
+  position: fixed;
+  /* Unter der Toolbar (z-index 20), aber vollständig darunter positioniert. */
+  z-index: 19;
+  left: 0;
+  right: 0;
+  top: calc(
+    4rem + var(--app-service-status-banner-gap, 0px) + var(--app-offline-banner-height, 0px)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  box-sizing: border-box;
+  min-height: var(--app-service-status-banner-height);
+  padding: 0.35rem 0.75rem;
+  font: var(--mat-sys-label-medium);
+  line-height: 1.25;
+  text-align: center;
+}
+
+@media (min-width: 600px) {
+  .app-service-status-banner {
+    top: calc(
+      4.5rem + var(--app-service-status-banner-gap, 0px) + var(--app-offline-banner-height, 0px)
+    );
+  }
+}
+
+@media (min-width: 840px) {
+  .app-service-status-banner {
+    top: calc(
+      5rem + var(--app-service-status-banner-gap, 0px) + var(--app-offline-banner-height, 0px)
+    );
+  }
+}
+
+.app-service-status-banner--busy {
+  /* Ampel-Gelb: dokumentierte --app-status-busy-Ausnahme (TOKENS.md), auf Surface-Container. */
+  background: color-mix(in srgb, var(--app-status-busy) 20%, var(--mat-sys-surface-container-high));
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-service-status-banner--critical {
+  /* MD3 Error-Rollen / App-Danger-Tokens. */
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+}
+
+.app-service-status-banner__text {
+  margin: 0;
+}
+
+.app-service-status-banner__link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  cursor: pointer;
+}
+
+.app-service-status-banner__link:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small);
 }
 
 .app-update-banner {
@@ -297,8 +406,7 @@
   overflow: visible;
 }
 
-.app-footer__links > .app-footer__primary,
-.app-footer__links > .app-footer__more-cluster {
+.app-footer__links > .app-footer__primary {
   grid-column: span 1;
   justify-self: stretch;
 }
@@ -319,8 +427,7 @@
  * und nicht Material-48px-Touch als Layout-Höhe. Zweizeilige Labels dürfen wachsen.
  * Touch-Target: styles.scss (ohne Host-_ngcontent), zentriert, ohne Leisten-Aufblähung.
  */
-.app-footer__links > .app-footer__primary.mat-mdc-button-base,
-.app-footer__more-cluster > .app-footer__primary.mat-mdc-button-base {
+.app-footer__links > .app-footer__primary.mat-mdc-button-base {
   display: inline-flex !important;
   box-sizing: border-box;
   width: 100%;
@@ -443,50 +550,6 @@
   color: var(--mat-sys-outline-variant);
 }
 
-.app-footer__more-cluster {
-  display: flex;
-  align-items: center;
-  align-self: stretch;
-  justify-content: center;
-  gap: 0.1rem;
-  width: 100%;
-  min-width: 0;
-}
-
-.app-footer__more-cluster > .app-footer__primary {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.app-footer__status-shortcut {
-  flex: 0 0 auto;
-  align-self: center;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  margin: 0;
-  color: var(--mat-sys-on-surface-variant);
-  --mat-icon-button-state-layer-size: 2.75rem;
-}
-
-.app-footer__status-shortcut .app-footer__status-dot {
-  margin: 0;
-  font-size: 1.35rem;
-  width: 1.35rem;
-  height: 1.35rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.app-footer__status-shortcut:focus-visible {
-  outline: none;
-}
-
 .app-footer__link--offline {
   opacity: 0.72;
 }
@@ -524,8 +587,7 @@
     grid-template-columns: none;
   }
 
-  .app-footer__links > .app-footer__primary.mat-mdc-button-base,
-  .app-footer__more-cluster > .app-footer__primary.mat-mdc-button-base {
+  .app-footer__links > .app-footer__primary.mat-mdc-button-base {
     display: inline-flex;
     flex: 0 0 auto;
     width: auto;
@@ -535,22 +597,6 @@
     white-space: nowrap;
     --mat-button-text-container-height: 2.75rem;
     --mat-button-text-horizontal-padding: 1.1rem;
-  }
-
-  .app-footer__more-cluster {
-    width: auto;
-    gap: 0.15rem;
-    align-self: center;
-  }
-
-  .app-footer__more-cluster > .app-footer__primary {
-    flex: 0 0 auto;
-  }
-
-  .app-footer__status-shortcut {
-    width: 2.75rem;
-    height: 2.75rem;
-    --mat-icon-button-state-layer-size: 2.75rem;
   }
 
   .app-footer__links .app-footer__primary.mat-mdc-button-base .mdc-button__label {

@@ -679,27 +679,45 @@ describe('AppComponent', () => {
     expect(footer.querySelector('.app-footer__link--news-archive')).toBeNull();
     expect(footer.querySelector('app-server-status-widget')).toBeNull();
     expect(footer.querySelector('a[href*="/legal/imprint"]')).toBeNull();
-    expect(footer.querySelector('button.app-footer__status-shortcut')).toBeTruthy();
+    expect(footer.querySelector('button.app-footer__status-shortcut')).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.app-service-status-banner'),
+    ).toBeNull();
 
     fixture.destroy();
   });
 
-  it('oeffnet den Betriebsstatus-Dialog ueber den sichtbaren Status-Dot neben Mehr', async () => {
+  it('zeigt bei yellow/red ein Service-Status-Banner unter der Toolbar', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     const component = fixture.componentInstance;
     const openSpy = vi.spyOn(component, 'openServerStatusHelp').mockResolvedValue();
     fixture.detectChanges();
     await fixture.whenStable();
+
+    component.footerHealthCheckDone.set(true);
+    component.apiStatus.set('ok');
+    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
     fixture.detectChanges();
 
-    const shortcut = (fixture.nativeElement as HTMLElement).querySelector(
-      'button.app-footer__status-shortcut',
+    const banner = (fixture.nativeElement as HTMLElement).querySelector(
+      '.app-service-status-banner',
+    ) as HTMLElement | null;
+    expect(banner).toBeTruthy();
+    expect(banner?.classList.contains('app-service-status-banner--busy')).toBe(true);
+    expect(banner?.textContent).toContain('Mögliche Verzögerungen');
+    const link = banner?.querySelector(
+      'button.app-service-status-banner__link',
     ) as HTMLButtonElement | null;
-    expect(shortcut).toBeTruthy();
-    expect(shortcut?.getAttribute('aria-label')).toContain('Betriebsstatus');
-    shortcut!.click();
-    expect(openSpy).toHaveBeenCalledOnce();
+    expect(link?.textContent?.trim()).toBe('Mehr erfahren');
+    link!.click();
+    expect(openSpy).toHaveBeenCalledWith('banner');
+
+    component.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.app-service-status-banner'),
+    ).toBeNull();
 
     fixture.destroy();
   });
@@ -886,7 +904,7 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf den Status-Dot', async () => {
+  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf den Banner-Link', async () => {
     const { dialog, close } = createCloseableDialogMock();
     TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -911,20 +929,25 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const shortcut = (fixture.nativeElement as HTMLElement).querySelector(
-      'button[data-footer-focus="footer-status"]',
-    ) as HTMLButtonElement;
-    expect(shortcut).toBeTruthy();
-    shortcut.focus();
+    component.footerHealthCheckDone.set(true);
+    component.apiStatus.set('ok');
+    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    fixture.detectChanges();
 
-    await component.openServerStatusFromShortcut();
+    const bannerLink = (fixture.nativeElement as HTMLElement).querySelector(
+      'button.app-service-status-banner__link',
+    ) as HTMLButtonElement;
+    expect(bannerLink).toBeTruthy();
+    bannerLink.focus();
+
+    await component.openServerStatusHelp('banner');
     expect(dialog.open).toHaveBeenCalled();
 
     close();
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(document.activeElement).toBe(shortcut);
+    expect(document.activeElement).toBe(bannerLink);
     fixture.destroy();
   });
 

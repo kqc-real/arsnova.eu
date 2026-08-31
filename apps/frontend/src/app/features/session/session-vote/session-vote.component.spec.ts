@@ -4020,7 +4020,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(mobileTabs).toContain('z-index: 8');
     expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 0.5rem)');
     expect(mobileTabs).not.toContain('z-index: 10');
-    expect(toolbarFixedBlock).toContain('padding-top: 4rem');
+    expect(toolbarFixedBlock).toMatch(/padding-top:\s*calc\(/);
+    expect(toolbarFixedBlock).toContain('4rem');
+    expect(toolbarFixedBlock).toContain('var(--app-service-status-banner-height, 0px)');
+    expect(toolbarFixedBlock).toContain('var(--app-service-status-banner-gap, 0px)');
     expect(toolbarFixedStickyTop).toBe('var(--host-mobile-toolbar-gap, 0.5rem)');
     expect(toolbarFixedStickyTop).not.toContain('4rem');
   });

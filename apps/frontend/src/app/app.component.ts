@@ -25,11 +25,10 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { MatTooltip } from '@angular/material/tooltip';
 import { SwUpdate } from '@angular/service-worker';
 import { ThemePresetService } from './core/theme-preset.service';
 import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service';
@@ -75,6 +74,8 @@ interface BeforeInstallPromptEvent extends Event {
 type AppDevWindow = Window & {
   __triggerPwaInstallHint?: () => void;
   __triggerUpdateBanner?: () => void;
+  /** DevTools: window.__triggerServiceStatusBanner('yellow'|'red'|'off') */
+  __triggerServiceStatusBanner?: (level: 'yellow' | 'red' | 'off') => void;
 };
 
 @Directive({ selector: '[presetToastHost]', standalone: true })
@@ -93,12 +94,10 @@ class ConnectionBannerHostDirective {
     RouterOutlet,
     RouterLink,
     MatButton,
-    MatIconButton,
     MatIcon,
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
-    MatTooltip,
     TopToolbarComponent,
     PresetToastHostDirective,
     ConnectionBannerHostDirective,
@@ -148,8 +147,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private footerMoreFocusGraceTimer: number | null = null;
   /** Escape hat das Footer-Mehr-Menü geschlossen → Fokus muss auf den Auslöser. */
   private footerMoreClosedByEscape = false;
-  /** Wohin der Fokus nach dem Betriebsstatus-Dialog zurück soll. */
-  private statusDialogFocusReturn: 'more' | 'shortcut' = 'more';
   private readonly footerMoreEscapeCapture = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.footerMoreTrigger?.menuOpen) {
       this.footerMoreClosedByEscape = true;
@@ -238,6 +235,14 @@ export class AppComponent implements OnInit, OnDestroy {
   serverStatusWidgetVisible = computed(
     () => this.footerVisible() && !this.footerStatusPollingSuppressedRoute(),
   );
+  /** Schmales Warnbanner nur bei yellow/red (Wartung/Störung), nicht bei Grün/Grau. */
+  serviceStatusBannerVisible = computed(() => {
+    if (!this.serverStatusWidgetVisible() || this.hideAppChrome() || this.isContentOverlayRoute()) {
+      return false;
+    }
+    const color = this.footerStatusColor();
+    return color === 'yellow' || color === 'red';
+  });
   footerVisibleOffset = signal(0);
 
   /**
@@ -514,6 +519,7 @@ export class AppComponent implements OnInit, OnDestroy {
         window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
         delete (window as AppDevWindow).__triggerPwaInstallHint;
         delete (window as AppDevWindow).__triggerUpdateBanner;
+        delete (window as AppDevWindow).__triggerServiceStatusBanner;
       }
     }
   }
@@ -601,6 +607,20 @@ export class AppComponent implements OnInit, OnDestroy {
       /** In DevTools-Konsole ausführen: window.__triggerUpdateBanner() – zeigt den Update-Banner zum Testen. */
       (window as AppDevWindow).__triggerUpdateBanner = () =>
         window.dispatchEvent(new CustomEvent('pwa-update-test'));
+      /** In DevTools-Konsole: window.__triggerServiceStatusBanner('yellow'|'red'|'off') – Warnbanner testen. */
+      (window as AppDevWindow).__triggerServiceStatusBanner = (level) => {
+        this.footerHealthCheckDone.set(true);
+        this.apiStatus.set('ok');
+        if (level === 'off') {
+          this.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+          return;
+        }
+        if (level === 'yellow') {
+          this.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+          return;
+        }
+        this.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+      };
     }
   }
 
@@ -914,18 +934,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /** Betriebsstatus aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */
   openServerStatusFromMore(): void {
-    this.statusDialogFocusReturn = 'more';
     this.footerMoreTrigger?.closeMenu();
     void this.openServerStatusHelp();
   }
 
-  /** Betriebsstatus-Dot neben Mehr: Dialog öffnen, Fokus zum Dot zurück. */
-  openServerStatusFromShortcut(): Promise<void> {
-    this.statusDialogFocusReturn = 'shortcut';
-    return this.openServerStatusHelp();
+  /** Betriebsstatus-Banner unter der Toolbar: Dialog öffnen, Fokus zum Banner-Link. */
+  openServerStatusFromBanner(): void {
+    void this.openServerStatusHelp('banner');
   }
 
-  async openServerStatusHelp(): Promise<void> {
+  async openServerStatusHelp(focusReturn: 'more' | 'banner' = 'more'): Promise<void> {
     const { ServerStatusHelpDialogComponent } =
       await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
 
@@ -942,20 +960,20 @@ export class AppComponent implements OnInit, OnDestroy {
       maxWidth: '100vw',
     });
     ref.afterClosed().subscribe(() => {
-      this.focusFooterMoreAfterStatusDialog();
+      this.focusFooterMoreAfterStatusDialog(focusReturn);
     });
     void this.loadFooterStats({ forceFresh: true });
   }
 
   /**
-   * Fokus nach Betriebsstatus-Dialog auf den auslösenden Footer-Trigger.
+   * Fokus nach Betriebsstatus-Dialog auf den auslösenden Trigger.
    * Bei Navigation weg vom Footer (Feedback/immersiv) kein Fokus auf detached Nodes.
    */
-  private focusFooterMoreAfterStatusDialog(): void {
+  private focusFooterMoreAfterStatusDialog(focusReturn: 'more' | 'banner' = 'more'): void {
     if (typeof document === 'undefined') return;
     const preferredSelector =
-      this.statusDialogFocusReturn === 'shortcut'
-        ? 'button[data-footer-focus="footer-status"]'
+      focusReturn === 'banner'
+        ? 'button.app-service-status-banner__link'
         : 'button[data-footer-focus="footer-more"]';
     const preferred = document.querySelector<HTMLElement>(preferredSelector);
     const fallback = document.querySelector<HTMLElement>('button[data-footer-focus="footer-more"]');

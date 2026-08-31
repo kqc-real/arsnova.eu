@@ -1,18 +1,22 @@
 # Server-Status-Widget (Story 0.4)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-07-27 (Abgleich mit `health.ts` `stats`/`footerBundle` inkl. `PlatformStatistic`, `DailyStatistic`, SLO-/Lastsignalen, `server-status-widget.component.ts`, `server-status-help-dialog.component.ts`, `app.component.html` / `app.component.ts` und Blitzlicht-Tombstones aus PR #164)
+> **Stand:** 2026-08-31 (Warnbanner unter Header bei yellow/red; Footer-Status-Dot neben Mehr entfernt; Abgleich mit `health.ts` `stats`/`footerBundle`, `app.component.html` / `app.component.ts`)
 
 ## Was zeigt das Widget?
 
-Der Betriebsstatus ist im **globalen App-Footer** sichtbar: farbiger Status-Dot
-direkt neben dem Menü **Mehr**, und zusätzlich unter **Mehr → Betriebsstatus**
-(`app.component.html`). Beide Einstiege öffnen denselben Betriebsstatus-Dialog.
-Im Menüeintrag werden Label und farbiger Status-Dot angezeigt; die Kennzahlen
-stehen im **Hilfe-Dialog**. Der Footer (und damit der Status-Einstieg) wird
-**nicht** angezeigt auf der **Standalone-Blitzlicht-Route** (`/feedback/...`) und
-in der **immersiven Host-Ansicht** (`isImmersiveHostView`). Auf Join- und
-Session-Live-Routen bleibt der Status-Einstieg ausgeblendet (Polling unterdrückt).
+Der Betriebsstatus ist im **globalen App-Footer** unter **Mehr → Betriebsstatus**
+erreichbar (`app.component.html`) und öffnet den Betriebsstatus-Dialog. Im Menüeintrag
+werden Label und farbiger Status-Dot angezeigt; die Kennzahlen stehen im **Hilfe-Dialog**.
+
+Bei **gelbem oder rotem** Betriebsstatus (`limited` / `critical`) erscheint zusätzlich
+ein schmales Warnbanner **unterhalb der Header-Leiste** mit Kurztext und Link
+„Mehr erfahren“ auf denselben Dialog. Bei Grün oder Grau bleibt das Banner ausgeblendet.
+
+Der Footer (und damit Status-Einstieg sowie Banner) wird **nicht** angezeigt auf der
+**Standalone-Blitzlicht-Route** (`/feedback/...`) und in der **immersiven Host-Ansicht**
+(`isImmersiveHostView`). Auf Join- und Session-Live-Routen bleibt der Status-Einstieg
+ausgeblendet (Polling unterdrückt).
 
 | Kennzahl                 | Icon            | Bedeutung                                                                                                 |
 | ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------- |
@@ -286,10 +290,10 @@ flowchart TD
 
 ## Darstellung
 
-Der Betriebsstatus hat zwei Einstiege im globalen App-Footer:
+Der Betriebsstatus hat diese Einstiege in der App-Shell:
 
-1. farbiger Status-Dot direkt neben **Mehr**
-2. **Mehr → Betriebsstatus**
+1. **Warnbanner unter dem Header** – nur bei gelb/rot (`limited` / `critical`)
+2. **Mehr → Betriebsstatus** – immer im Footer-Menü (wenn Footer sichtbar)
 
 Beide öffnen denselben Dialog; alle Kennzahlen liegen dort.
 Die Ampelfarbe kommt aus der gemeinsamen Helper-Quelle
@@ -297,21 +301,31 @@ Die Ampelfarbe kommt aus der gemeinsamen Helper-Quelle
 (`footer-status-color.ts`), die auch `ServerStatusWidgetComponent` nutzt
 (Widget selbst ist nicht mehr als eigener Primärbutton in der App-Shell eingebunden).
 
-| Element               | Verwendung                        | Darstellung                                    |
-| --------------------- | --------------------------------- | ---------------------------------------------- |
-| Status-Dot neben Mehr | globaler App-Footer, neben „Mehr“ | farbiger Ampel-Dot                             |
-| Mehr-Menüeintrag      | globaler App-Footer → Menü „Mehr“ | Status-Dot + Label „Betriebsstatus“            |
-| Detaildialog          | Auswahl „Betriebsstatus“ / Dot    | Kennzahlen, SLO-/Laststatus und 100-Tage-Chart |
+| Element          | Verwendung                          | Darstellung                                     |
+| ---------------- | ----------------------------------- | ----------------------------------------------- |
+| Warnbanner       | unter Header, nur yellow/red        | schmales farbiges Banner + Link „Mehr erfahren“ |
+| Mehr-Menüeintrag | globaler App-Footer → Menü „Mehr“   | Status-Dot + Label „Betriebsstatus“             |
+| Detaildialog     | Banner-Link / Menü „Betriebsstatus“ | Kennzahlen, SLO-/Laststatus und 100-Tage-Chart  |
 
 ```html
-<button
-  matIconButton
-  type="button"
-  class="app-footer__status-shortcut"
-  (click)="openServerStatusHelp()"
+@if (serviceStatusBannerVisible()) {
+<div
+  class="app-service-status-banner"
+  [class.app-service-status-banner--busy]="footerStatusColor() === 'yellow'"
+  [class.app-service-status-banner--critical]="footerStatusColor() === 'red'"
+  role="status"
 >
-  <mat-icon class="app-footer__status-dot" [style.color]="footerStatusDotCssColor()">lens</mat-icon>
-</button>
+  <span i18n="@@app.serviceStatusBanner.text">⚠️ Mögliche Verzögerungen.</span>
+  <button
+    type="button"
+    class="app-service-status-banner__link"
+    (click)="openServerStatusFromBanner()"
+    i18n="@@app.serviceStatusBanner.learnMore"
+  >
+    Mehr erfahren
+  </button>
+</div>
+}
 <button mat-menu-item type="button" (click)="openServerStatusFromMore()">
   <mat-icon class="app-footer__status-dot" [style.color]="footerStatusDotCssColor()">lens</mat-icon>
   <span i18n="@@app.footer.serverHelpLabel">Betriebsstatus</span>
@@ -319,8 +333,8 @@ Die Ampelfarbe kommt aus der gemeinsamen Helper-Quelle
 ```
 
 Der **Hilfe-Dialog** (`ServerStatusHelpDialogComponent`) wird lazy geladen und ruft dann `health.stats` ab.
-Nach dem Schließen liegt der Fokus wieder auf dem auslösenden Footer-Trigger
-(**Mehr** bzw. Status-Dot neben Mehr).
+Nach dem Schließen liegt der Fokus wieder auf dem auslösenden Trigger
+(**Mehr** bzw. Banner-Link „Mehr erfahren“).
 
 ---
 

@@ -210,6 +210,22 @@
           <context context-type="linenumber">281</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.serviceStatusBanner.text" datatype="html">
+        <source>⚠️ Mögliche Verzögerungen.</source>
+        <target>⚠️ Possibili rallentamenti.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.serviceStatusBanner.learnMore" datatype="html">
+        <source>Mehr erfahren</source>
+        <target>Scopri di più</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">128</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.snackbar.presetSerious" datatype="html">
         <source>Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.</source>
         <target>Modalità professionale attivata – sobria, chiara e incentrata sui contenuti.</target>
