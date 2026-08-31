@@ -55,23 +55,23 @@
     "@angular/platform-server": "^21.2.19",
     "@angular/router": "^21.2.19",
     "@angular/service-worker": "^21.2.19",
-    "@angular/ssr": "^21.2.19",
+    "@angular/ssr": "^21.2.22",
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
     "@trpc/client": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "chart.js": "^4.5.1",
-    "dompurify": "^3.4.13",
+    "dompurify": "^3.4.14",
     "express": "^5.2.1",
-    "highlight.js": "^11.11.1",
-    "katex": "^0.18.1",
-    "marked": "^18.0.7",
+    "highlight.js": "^11.12.0",
+    "katex": "^0.18.4",
+    "marked": "^18.0.11",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
     "stopword": "^3.1.5",
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
-    "y-websocket": "^3.0.0",
+    "y-websocket": "^3.1.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {
@@ -90,11 +90,11 @@
     "autoprefixer": "^10.5.4",
     "d3-cloud": "^1.2.9",
     "jsdom": "^26.1.0",
-    "playwright": "^1.62.0",
+    "playwright": "^1.62.1",
     "postcss": "^8.5.23",
     "sharp-ico": "^0.1.5",
     "typescript": "~5.9.0",
     "vitest": "^4.0.18",
-    "ws": "^8.21.1"
+    "ws": "^8.21.3"
   }
 }
