@@ -160,15 +160,16 @@
 }
 
 .top-toolbar__brand-icon {
-  width: 1.75rem;
-  height: 1.75rem;
+  display: block;
+  width: 2.25rem;
+  height: 2.25rem;
   flex-shrink: 0;
   border-radius: var(--mat-sys-corner-small);
 }
 
 .top-toolbar__brand-title {
   font-size: 1.375rem;
-  line-height: 1.25;
+  line-height: 1;
   white-space: nowrap;
 }
 

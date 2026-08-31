@@ -293,12 +293,22 @@ describe('HomeComponent', () => {
       expect(hero.textContent).toMatch(/Quiz/);
       expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
       expect(cardTitles).toEqual(
-        expect.arrayContaining([
-          'Mitmachen',
-          'Live mit einem Klick',
-          'Quiz vorbereiten oder starten',
-        ]),
+        expect.arrayContaining(['Mitmachen', 'Live mit einem Klick', 'Quiz vorbereiten']),
       );
+      const headings = Array.from(
+        fixture.nativeElement.querySelectorAll('.home-card__heading'),
+      ) as HTMLElement[];
+      expect(headings).toHaveLength(3);
+      for (const heading of headings) {
+        const icon = heading.querySelector('.home-card__icon-wrap');
+        const title = heading.querySelector('.home-card__title');
+        expect(icon).not.toBeNull();
+        expect(title).not.toBeNull();
+        expect(
+          icon && title && icon.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+      expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
     it('blendet den Hero-Divider per CSS nur ab 600px ein', async () => {
@@ -427,6 +437,147 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(/\.home-hero-preset-toggle\s*\{[^}]*flex-wrap:\s*wrap/);
       expect(scss).toMatch(/\.home-hero-preset-toggle__btn\s*\{[^}]*flex:\s*1 0 max-content/);
       expect(scss).not.toContain('@media (max-width: 359px)');
+    });
+
+    it('ordnet Spielerisch ab 960px im selben 3-Spalten-Raster wie Seriös', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+
+      expect(scss).toMatch(
+        /:host\.route-home \.l-page:first-child[\s\S]*@media \(min-width:\s*840px\)\s*\{[^}]*margin-top:\s*2\.5rem/,
+      );
+      expect(scss).toMatch(
+        /:host\.route-home \.l-page:first-child[\s\S]*@media \(min-width:\s*960px\)\s*\{[^}]*max-width:\s*78rem/,
+      );
+      expect(playful).toMatch(
+        /@media \(min-width:\s*600px\) and \(max-width:\s*959\.98px\)\s*\{[\s\S]*?\.home-card#participant-entry\.home-card--stage-main\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/,
+      );
+      expect(playful).toMatch(
+        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-main\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(0,\s*1\.4fr\)\s*minmax\(0,\s*1fr\)/,
+      );
+      expect(playful).toMatch(
+        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card#participant-entry\.home-card--stage-main[\s\S]*?grid-column:\s*auto/,
+      );
+      expect(playful).not.toMatch(
+        /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+      );
+    });
+
+    it('hebt Mitmachen nicht mit einem linken Akzentstreifen hervor', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+      const stageMain = playful.slice(
+        playful.indexOf('.home-card--stage-main#participant-entry {'),
+      );
+      const stageMainRule = stageMain.slice(0, stageMain.indexOf('  .home-card--stage-main'));
+
+      expect(playful).not.toMatch(/inset\s+5px\s+0\s+0/);
+      expect(playful).not.toMatch(/--app-shadow-cta-glow/);
+      expect(playful).toMatch(
+        /\.home-card:not\(\.home-card--create\) mat-card-actions > \.home-cta:first-child\s*\{[^}]*box-shadow:\s*none/,
+      );
+      expect(stageMainRule).not.toMatch(/inset\s+\d+px\s+0\s+0/);
+      expect(stageMainRule).toMatch(/inset 0 0 0 1px color-mix\(in srgb, var\(--mat-sys-primary\)/);
+    });
+
+    it('hält die drei Karten ab 960px auf gleicher Höhe, Host-CTAs mittig und Blitzlicht kompakt', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const desktop = scss.slice(scss.indexOf('@media (min-width: 960px)'));
+
+      expect(desktop).toMatch(
+        /\.home-card#participant-entry,\s*\.home-card\.home-card--create,\s*\.home-card\.home-card--feedback\s*\{[^}]*min-height:\s*25rem/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card#participant-entry mat-card-content\s*\{[^}]*flex:\s*1 1 auto/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card#participant-entry \.home-code-entry\s*\{[^}]*margin-block:\s*auto/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card#participant-entry mat-card-actions\s*\{[^}]*padding-bottom:\s*1\.5rem/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card#participant-entry \.home-cta\s*\{[^}]*min-height:\s*3\.75rem/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card--create \.home-card__cta-stack\s*\{[^}]*justify-content:\s*center/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card--create mat-card-actions\s*\{[^}]*padding-bottom:\s*1\.5rem/,
+      );
+      expect(desktop).toMatch(
+        /\.home-card--create \.home-card__tertiary\s*\{[^}]*min-height:\s*3\.75rem/,
+      );
+      expect(desktop).toMatch(
+        /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+      );
+      expect(desktop).toMatch(/\.home-feedback-chip\s*\{[^}]*overflow:\s*hidden/);
+      expect(desktop).toMatch(/\.home-feedback-chip\s*\{[^}]*min-height:\s*3\.75rem/);
+      expect(desktop).not.toMatch(/\.home-feedback-chip__body\s*\{[^}]*flex-direction:\s*row/);
+      expect(desktop).toMatch(/\.home-feedback-chip__icons\s*\{[^}]*flex-wrap:\s*nowrap/);
+      expect(desktop).toMatch(/\.home-feedback-chip__icons--rating\s*\{[^}]*flex-wrap:\s*nowrap/);
+      expect(desktop).not.toMatch(/\.home-card\.home-card--feedback\s*\{[^}]*height:\s*18rem/);
+    });
+
+    it('hält Session-Code-Zellen in beiden Presets quadratisch und volle Breite', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+      const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
+      const sharedSegment = shared.slice(shared.indexOf('.home-code-segment {'));
+
+      expect(sharedSegment).toMatch(/flex:\s*1 1 0/);
+      expect(sharedSegment).toMatch(/aspect-ratio:\s*1/);
+      expect(sharedSegment).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
+      expect(shared).toMatch(/\.home-code-entry\s*\{[^}]*max-width:\s*20\.5rem/);
+      expect(sharedSegment).not.toMatch(/height:\s*3(\.5)?rem/);
+      expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*max-width:\s*2\.5rem/);
+      expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*width:\s*3rem/);
+      expect(scss).not.toContain('home-spotlight-panel');
+      expect(sharedSegment).toMatch(/border:\s*2px solid var\(--mat-sys-outline\)/);
+      expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*border-color:\s*color-mix/);
+    });
+
+    it('hält Mitmachen-CTA bei Fehleingabe volle Breite und Button-Padding', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+
+      expect(scss).toMatch(/\.home-cta\s*\{[^}]*padding-block:\s*0\.625rem/);
+      expect(scss).toMatch(/\.home-cta\s*\{[^}]*white-space:\s*nowrap/);
+      expect(scss).toMatch(/\.home-card--create \.home-cta\s*\{[^}]*white-space:\s*normal/);
+      expect(scss).toMatch(
+        /\.home-card#participant-entry mat-card-actions\.l-stack\s*\{[^}]*flex-direction:\s*column/,
+      );
+      expect(scss).toMatch(/\.home-card__heading\s*\{[^}]*align-items:\s*center/);
+      expect(scss).toMatch(/\.home-card \.mat-mdc-card-header\s*\{[^}]*padding-inline:\s*1rem/);
+      expect(scss).toMatch(
+        /\.home-card \.mat-mdc-card-content,\s*\.home-card \.mat-mdc-card-actions\s*\{[^}]*padding-inline:\s*1rem/,
+      );
+      expect(scss).toMatch(/\.home-card__header-with-action\s*\{[^}]*gap:\s*0/);
+      expect(scss).not.toMatch(
+        /#participant-entry \.mat-mdc-card-header\s*\{[^}]*padding-inline:\s*0\.65rem/,
+      );
+      expect(scss).not.toMatch(
+        /#participant-entry \.home-card__icon-wrap\s*\{[^}]*width:\s*2\.75rem/,
+      );
     });
   });
 

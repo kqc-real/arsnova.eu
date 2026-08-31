@@ -83,6 +83,51 @@ html.light {
   color-scheme: light;
 }
 
+/* Seriös + Light: gefüllte CTAs = Europa-Blau statt Azure-Cyan. */
+@mixin _serious-light-eu-primary {
+  @include mat.theme-overrides(
+    (
+      primary: var(--app-eu-blue),
+      on-primary: var(--app-eu-on-primary),
+      inverse-primary: var(--app-eu-blue-on-dark),
+    )
+  );
+}
+
+/* Seriös + Dark: Azure-Cyan weicht vom Brand-SVG (#002395) ab.
+   Primary-Container (Karten-Icon-Kacheln) = Europa-Blau; Primary (Toolbar-Icons) = helle EU-Variante. */
+@mixin _serious-dark-eu-primary {
+  @include mat.theme-overrides(
+    (
+      primary: var(--app-eu-blue-on-dark),
+      on-primary: var(--app-eu-blue-dark),
+      primary-container: var(--app-eu-blue),
+      on-primary-container: #dce1ff,
+      inverse-primary: var(--app-eu-blue),
+    )
+  );
+}
+
+html.light:not(.preset-playful) {
+  @include _serious-light-eu-primary;
+}
+
+html.dark:not(.preset-playful) {
+  @include _serious-dark-eu-primary;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not(.dark):not(.preset-playful) {
+    @include _serious-light-eu-primary;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light):not(.preset-playful) {
+    @include _serious-dark-eu-primary;
+  }
+}
+
 // Playful preset – nur Palette + Formen, gleiche Schrift wie Seriös (System-UI)
 html.preset-playful {
   @include mat.theme(
@@ -149,6 +194,15 @@ html {
   --app-color-warning-fg: var(--mat-sys-on-surface-variant);
   /** Sterne/Rating (Story 4.8) – semantisch amber, unabhängig von Primary-Palette */
   --app-rating-star: light-dark(#f59e0b, #fbbf24);
+
+  /** Brand-SVG (EU-Flaggen-Anlehnung) – TOKENS.md Brand-Farben */
+  --app-eu-blue: #002395;
+  --app-eu-blue-dark: #001a75;
+  --app-eu-yellow: #ffcc00;
+  /** Text/Icon auf EU-Blau-CTAs (Seriös + Light) */
+  --app-eu-on-primary: #ffffff;
+  /** Helles EU-Blau für Primary/Icons auf dunklem Grund (Seriös + Dark) */
+  --app-eu-blue-on-dark: #b4c4ff;
 
   --app-bg-root: var(--mat-sys-surface);
   --app-shadow-accent: none;

@@ -27,37 +27,42 @@ Dieses Dokument beschreibt, wie Tokens in arsnova.eu definiert, genutzt und erwe
 
 Aktuell globale Tokens in `styles.scss`:
 
-| Token                          | Zweck                                                 | Quelle / Regel                                                       |
-| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------- |
-| `--app-color-success-bg`       | Erfolgshintergrund                                    | `--mat-sys-secondary-container`                                      |
-| `--app-color-success-fg`       | Text/Icon auf Erfolgshintergrund                      | `--mat-sys-on-secondary-container`                                   |
-| `--app-color-danger-bg`        | Fehler-/Gefahrhintergrund                             | `--mat-sys-error-container`                                          |
-| `--app-color-danger-fg`        | Text/Icon auf Fehler-/Gefahrhintergrund               | `--mat-sys-on-error-container`                                       |
-| `--app-color-info-bg`          | Infofläche                                            | `--mat-sys-tertiary-container`                                       |
-| `--app-color-info-fg`          | Text/Icon auf Infofläche                              | `--mat-sys-on-tertiary-container`                                    |
-| `--app-color-warning-bg`       | Warn-/Hinweisfläche                                   | `--mat-sys-surface-variant`                                          |
-| `--app-color-warning-fg`       | Text/Icon auf Warn-/Hinweisfläche                     | `--mat-sys-on-surface-variant`                                       |
-| `--app-status-healthy`         | Grüner Betriebsstatus                                 | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--app-status-busy`            | Gelb/Amber für Last-/Busy-Zustand                     | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--app-rating-star`            | Bewertungssterne                                      | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--arsnova-bar-correct`        | Richtig-/Erfolgsbalken in Auswertungen                | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--arsnova-bar-correct-on`     | Kontrasttext auf `--arsnova-bar-correct`              | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--arsnova-bar-wrong`          | Falsch-/Fehlerbalken in Auswertungen                  | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--app-bg-root`                | App-Hintergrund, im Spielerisch-Preset Verlauf        | Standard `--mat-sys-surface`, Preset-Verlauf aus Systemtokens/Mixins |
-| `--app-shadow-accent`          | Akzent-Schatten, z. B. Spielerisch                    | Standard `none`, Preset via `color-mix(... --mat-sys-primary ...)`   |
-| `--app-shadow-card-playful`    | Zusatzschatten für Spielerisch-Karten                 | nur `html.preset-playful`                                            |
-| `--app-shadow-cta-glow`        | dezenter Glow für Spielerisch-CTA                     | nur `html.preset-playful`                                            |
-| `--app-corner-playful`         | stärker gerundete Spielerisch-Flächen                 | nur `html.preset-playful`                                            |
-| `--app-toolbar-max-width`      | maximale Toolbar-/Shell-Breite                        | Layout-Konstante, derzeit `56rem`                                    |
-| `--app-live-channel-max-width` | maximale Breite von Host-/Vote-/Feedback-Live-Kanälen | Layout-Konstante, derzeit `36rem`                                    |
-| `--app-live-channel-inline`    | Inline-Padding für Live-Kanäle                        | Layout-Konstante                                                     |
-| `--host-mobile-inline`         | Mobile-Inline-Abstand für Host/Vote/Feedback/Join     | Layout-Konstante                                                     |
-| `--host-mobile-stack-gap`      | Mobile Stack-Gap in Live-Ansichten                    | Layout-Konstante                                                     |
-| `--host-mobile-card-padding`   | Mobile Card-Padding in Live-Ansichten                 | Layout-Konstante                                                     |
-| `--host-mobile-toolbar-gap`    | Mobile Abstand zu Toolbar-/Bottom-Actions             | Layout-Konstante                                                     |
-| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions            | `env(safe-area-inset-bottom)`                                        |
-| `--app-qr-size`                | Standardgröße für QR-Flächen                          | Layout-Konstante                                                     |
-| `--app-qr-size-compact`        | kompakte QR-Größe                                     | Layout-Konstante                                                     |
+| Token                          | Zweck                                                     | Quelle / Regel                                                       |
+| ------------------------------ | --------------------------------------------------------- | -------------------------------------------------------------------- |
+| `--app-color-success-bg`       | Erfolgshintergrund                                        | `--mat-sys-secondary-container`                                      |
+| `--app-color-success-fg`       | Text/Icon auf Erfolgshintergrund                          | `--mat-sys-on-secondary-container`                                   |
+| `--app-color-danger-bg`        | Fehler-/Gefahrhintergrund                                 | `--mat-sys-error-container`                                          |
+| `--app-color-danger-fg`        | Text/Icon auf Fehler-/Gefahrhintergrund                   | `--mat-sys-on-error-container`                                       |
+| `--app-color-info-bg`          | Infofläche                                                | `--mat-sys-tertiary-container`                                       |
+| `--app-color-info-fg`          | Text/Icon auf Infofläche                                  | `--mat-sys-on-tertiary-container`                                    |
+| `--app-color-warning-bg`       | Warn-/Hinweisfläche                                       | `--mat-sys-surface-variant`                                          |
+| `--app-color-warning-fg`       | Text/Icon auf Warn-/Hinweisfläche                         | `--mat-sys-on-surface-variant`                                       |
+| `--app-status-healthy`         | Grüner Betriebsstatus                                     | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-status-busy`            | Gelb/Amber für Last-/Busy-Zustand                         | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-rating-star`            | Bewertungssterne                                          | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-eu-blue`                | Brand-SVG Europa-Blau                                     | `#002395`, Brand-Ausnahme                                            |
+| `--app-eu-blue-dark`           | dunkleres Brand-Blau                                      | `#001a75`, Brand-Ausnahme                                            |
+| `--app-eu-yellow`              | Brand-SVG Stern                                           | `#ffcc00`, Brand-Ausnahme                                            |
+| `--app-eu-on-primary`          | Text/Icon auf EU-Blau-CTAs                                | `#ffffff`, nur Seriös + Light                                        |
+| `--app-eu-blue-on-dark`        | helles EU-Blau für Icons auf Dark                         | `#b4c4ff`, nur Seriös + Dark                                         |
+| `--arsnova-bar-correct`        | Richtig-/Erfolgsbalken in Auswertungen                    | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--arsnova-bar-correct-on`     | Kontrasttext auf `--arsnova-bar-correct`                  | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--arsnova-bar-wrong`          | Falsch-/Fehlerbalken in Auswertungen                      | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-bg-root`                | App-Hintergrund, im Spielerisch-Preset Verlauf            | Standard `--mat-sys-surface`, Preset-Verlauf aus Systemtokens/Mixins |
+| `--app-shadow-accent`          | Akzent-Schatten, z. B. Spielerisch                        | Standard `none`, Preset via `color-mix(... --mat-sys-primary ...)`   |
+| `--app-shadow-card-playful`    | Zusatzschatten für Spielerisch-Karten                     | nur `html.preset-playful`                                            |
+| `--app-shadow-cta-glow`        | dezenter Glow für Spielerisch-CTA (Token, Home ungenutzt) | nur `html.preset-playful`                                            |
+| `--app-corner-playful`         | stärker gerundete Spielerisch-Flächen                     | nur `html.preset-playful`                                            |
+| `--app-toolbar-max-width`      | maximale Toolbar-/Shell-Breite                            | Layout-Konstante, derzeit `56rem`                                    |
+| `--app-live-channel-max-width` | maximale Breite von Host-/Vote-/Feedback-Live-Kanälen     | Layout-Konstante, derzeit `36rem`                                    |
+| `--app-live-channel-inline`    | Inline-Padding für Live-Kanäle                            | Layout-Konstante                                                     |
+| `--host-mobile-inline`         | Mobile-Inline-Abstand für Host/Vote/Feedback/Join         | Layout-Konstante                                                     |
+| `--host-mobile-stack-gap`      | Mobile Stack-Gap in Live-Ansichten                        | Layout-Konstante                                                     |
+| `--host-mobile-card-padding`   | Mobile Card-Padding in Live-Ansichten                     | Layout-Konstante                                                     |
+| `--host-mobile-toolbar-gap`    | Mobile Abstand zu Toolbar-/Bottom-Actions                 | Layout-Konstante                                                     |
+| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions                | `env(safe-area-inset-bottom)`                                        |
+| `--app-qr-size`                | Standardgröße für QR-Flächen                              | Layout-Konstante                                                     |
+| `--app-qr-size-compact`        | kompakte QR-Größe                                         | Layout-Konstante                                                     |
 
 Komponentenspezifische Tokens:
 
@@ -171,7 +176,9 @@ Diese Ausnahme ist technisch bedingt und dokumentiert in ADR 0005.
 
 ### Brand-Farben
 
-`--app-eu-blue`, `--app-eu-blue-dark` und `--app-eu-yellow` sind produktsemantische Markenfarben im Brand-SVG (Home und Top-Toolbar). Sie dürfen nicht als allgemeine UI-Farben wiederverwendet werden.
+`--app-eu-blue`, `--app-eu-blue-dark` und `--app-eu-yellow` sind produktsemantische Markenfarben im Brand-SVG (Home und Top-Toolbar).
+
+**Ausnahme Seriös:** Azure-Primary wirkt cyan-stichig neben dem Logo. Deshalb überschreibt `html.light:not(.preset-playful)` (und System-Light ohne `.dark`) Primary auf `--app-eu-blue` und On-Primary auf `--app-eu-on-primary`, damit gefüllte CTAs zur Brand-Farbe passen. In Dark setzt `html.dark:not(.preset-playful)` (und System-Dark ohne `.light`) Primary-Container auf `--app-eu-blue` und Primary auf `--app-eu-blue-on-dark` (`#b4c4ff`), damit Karten-Icon-Kacheln und Toolbar-Icons zur Brand-Farbe passen. Spielerisch bleibt unverändert.
 
 ## Responsive Breakpoints (Material Design 3)
 

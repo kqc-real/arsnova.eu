@@ -25,7 +25,6 @@ import {
   MatCardActions,
   MatCardContent,
   MatCardHeader,
-  MatCardSubtitle,
   MatCardTitle,
 } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -91,7 +90,6 @@ type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
     MatCardActions,
     MatCardContent,
     MatCardHeader,
-    MatCardSubtitle,
     MatCardTitle,
     MatIcon,
     MatIconButton,
@@ -107,7 +105,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
   readonly infoLandingWorkflowAnchor = INFO_LANDING_ANCHORS.workflow;
-  readonly infoLandingWorkflowLabel = $localize`:@@homeHostCard.infoLanding:Einsatzmöglichkeiten entdecken`;
+  readonly infoLandingWorkflowLabel = $localize`:@@homeHostCard.infoLanding:Einsatzmöglichkeiten`;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);

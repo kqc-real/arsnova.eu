@@ -12,7 +12,7 @@ import { InfoLandingLinkComponent } from './info-landing-link.component';
 })
 class InfoLandingLinkHostComponent {
   anchor = INFO_LANDING_ANCHORS.workflow;
-  label = 'Einsatzmöglichkeiten entdecken';
+  label = 'Einsatzmöglichkeiten';
 }
 
 describe('InfoLandingLinkComponent', () => {
