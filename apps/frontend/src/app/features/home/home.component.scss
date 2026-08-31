@@ -206,9 +206,34 @@
   max-width: 26rem;
 }
 
+.home-hero-usp.mobile-only,
+.home-hero-usp.desktop-only {
+  display: none;
+}
+
+/* Kurz-Slogan ohne „Made in Europe“ nur auf schmalen Smartphones im Hochformat. */
+@media (max-width: 599px) and (orientation: portrait) {
+  .home-hero-usp.mobile-only {
+    display: block;
+  }
+}
+
+/* Seltenes schmales Querformat: voller Slogan, wenn genug Breite fehlt für Tablet-Layout. */
+@media (max-width: 599px) and (orientation: landscape) {
+  .home-hero-usp--secondary.desktop-only {
+    display: block;
+    max-width: 44rem;
+  }
+}
+
 @media (min-width: 600px) {
   .home-hero-usp--secondary {
     max-width: 38rem;
+  }
+
+  .home-hero-usp--secondary.desktop-only {
+    display: block;
+    max-width: 44rem;
   }
 }
 
