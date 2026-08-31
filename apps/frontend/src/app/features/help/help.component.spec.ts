@@ -89,8 +89,25 @@ describe('HelpComponent', () => {
   it('benennt Navigations-Landmarks lokalisierbar', async () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('nav.content-back')?.getAttribute('aria-label')).toBe('Navigation');
+    const backNavs = root.querySelectorAll('nav.content-back');
+    expect(backNavs).toHaveLength(2);
+    expect(backNavs[0]?.getAttribute('aria-label')).toBe('Navigation');
+    expect(backNavs[1]?.getAttribute('aria-label')).toBe('Navigation am Seitenende');
+    expect(backNavs[1]?.classList.contains('content-back--bottom')).toBe(true);
     expect(root.querySelector('nav.help-role-nav')?.getAttribute('aria-label')).toBe('Rollenwahl');
+  });
+
+  it('schließt über den Zurück-Button am Seitenende', async () => {
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = await createFixture();
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    const bottomBack = fixture.nativeElement.querySelector(
+      'nav.content-back--bottom button',
+    ) as HTMLButtonElement | null;
+    expect(bottomBack).toBeTruthy();
+    bottomBack!.click();
+    expect(spy).toHaveBeenCalledOnce();
   });
 
   it('rendert beide Rollenkarten mit locale-sicheren Ankerzielen', async () => {
