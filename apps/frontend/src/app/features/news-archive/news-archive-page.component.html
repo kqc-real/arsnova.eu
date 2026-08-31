@@ -167,6 +167,22 @@
           }
         }
       </article>
+      <nav
+        class="news-archive-page__back news-archive-page__back--bottom"
+        i18n-aria-label="@@contentPage.navigationBottomAria"
+        aria-label="Navigation am Seitenende"
+      >
+        <button
+          mat-button
+          type="button"
+          (click)="back()"
+          i18n-aria-label="@@contentPage.backAria"
+          aria-label="Zurück zur vorherigen Seite"
+        >
+          <mat-icon>arrow_back</mat-icon>
+          <span i18n="@@contentPage.back">Zurück</span>
+        </button>
+      </nav>
     </div>
   </div>
   <div class="content-page-backdrop-rail" aria-hidden="true" (click)="back()"></div>

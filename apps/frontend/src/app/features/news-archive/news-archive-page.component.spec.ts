@@ -463,6 +463,49 @@ describe('NewsArchivePageComponent', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it('bietet einen zweiten Zurück-Button am Seitenende', () => {
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                newsArchive: emptyResolved,
+              },
+            },
+          },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: { decrementArchiveUnreadCount: vi.fn(), setArchiveUnreadCount: vi.fn() },
+        },
+      ],
+    }).compileComponents();
+
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    const location = TestBed.inject(Location);
+    const spy = vi.spyOn(location, 'back');
+    fixture.detectChanges();
+
+    const backNavs = fixture.nativeElement.querySelectorAll('nav.news-archive-page__back');
+    expect(backNavs).toHaveLength(2);
+    expect(backNavs[1]?.getAttribute('aria-label')).toBe('Navigation am Seitenende');
+    const bottomBack = fixture.nativeElement.querySelector(
+      'nav.news-archive-page__back--bottom button',
+    ) as HTMLButtonElement | null;
+    expect(bottomBack).toBeTruthy();
+    bottomBack!.click();
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
   it('markArchiveItemRead senkt den Zähler um 1 und zeigt den Gelesen-Status', () => {
     const itemId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const withItems: NewsArchiveInitialModel = {
