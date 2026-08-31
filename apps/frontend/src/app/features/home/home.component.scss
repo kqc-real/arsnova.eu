@@ -221,7 +221,7 @@
 /* Seltenes schmales Querformat: voller Slogan, wenn genug Breite fehlt für Tablet-Layout. */
 @media (max-width: 599px) and (orientation: landscape) {
   .home-hero-usp--secondary.desktop-only {
-    display: block;
+    display: block !important;
     max-width: 44rem;
   }
 }
