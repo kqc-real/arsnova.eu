@@ -191,6 +191,23 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
+  it('hält Logo, App-Namen und Toolbar-Zeile auf einer vertikalen Mitte', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'top-toolbar.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+
+    expect(scss).toMatch(/\.top-toolbar__brand\s*\{[^}]*align-items:\s*center/);
+    expect(scss).toMatch(/\.top-toolbar__start\s*\{[^}]*align-items:\s*center/);
+    expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*display:\s*block/);
+    expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*width:\s*2\.25rem/);
+    expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*height:\s*2\.25rem/);
+    expect(scss).toMatch(/\.top-toolbar__brand-title\s*\{[^}]*line-height:\s*1/);
+    expect(scss).not.toMatch(/\.top-toolbar__brand-title\s*\{[^}]*translate:/);
+    expect(scss).not.toMatch(/\.top-toolbar__brand-title\s*\{[^}]*height:\s*1\.75rem/);
+  });
+
   it('blendet den MOTD-Zähler vollständig aus, wenn keine ungelesenen Meldungen da sind', () => {
     const motdHeader = TestBed.inject(MotdHeaderStateService);
     motdHeader.motdToolbarIcon.set(true);
@@ -232,6 +249,26 @@ describe('TopToolbarComponent', () => {
     expect(styles).not.toMatch(
       /\.top-toolbar__motd-btn\.mat-badge \.mat-badge-content\s*\{[^}]*display:\s*inline-flex\s*!important/,
     );
+  });
+
+  it('färbt Seriös-Primary nach Europa-Blau in Light und Dark', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const stylesPath = join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    expect(styles).toMatch(/--app-eu-blue:\s*#002395/);
+    expect(styles).toMatch(/--app-eu-on-primary:\s*#ffffff/);
+    expect(styles).toMatch(/--app-eu-blue-on-dark:\s*#b4c4ff/);
+    expect(styles).toMatch(
+      /html\.light:not\(\.preset-playful\)\s*\{[\s\S]*?_serious-light-eu-primary/,
+    );
+    expect(styles).toMatch(/primary:\s*var\(--app-eu-blue\)/);
+    expect(styles).toMatch(/on-primary:\s*var\(--app-eu-on-primary\)/);
+    expect(styles).toMatch(
+      /html\.dark:not\(\.preset-playful\)\s*\{[\s\S]*?_serious-dark-eu-primary/,
+    );
+    expect(styles).toMatch(/primary-container:\s*var\(--app-eu-blue\)/);
   });
 
   it('stilisiert Fokus direkt am Toggle-Button', async () => {

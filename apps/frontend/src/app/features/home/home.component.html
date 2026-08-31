@@ -109,17 +109,17 @@
 
     <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
       <mat-card-header>
-        <mat-card-subtitle>
+        <div class="home-card__heading">
           <span class="home-card__icon-wrap">
             <mat-icon class="home-card__icon">group_add</mat-icon>
           </span>
-        </mat-card-subtitle>
-        <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">Mitmachen</h2>
+          <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">Mitmachen</h2>
+        </div>
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">
         @if (recentSessionCodes().length > 0) {
-          <div class="home-recent-panel home-spotlight-panel">
+          <div class="home-recent-panel">
             <p class="home-recent-label" i18n>Letzte Sessions</p>
             <div class="home-recent-codes">
               @for (item of recentSessionCodes(); track item.code) {
@@ -149,7 +149,7 @@
           </div>
         }
 
-        <div class="home-code-entry home-spotlight-panel">
+        <div class="home-code-entry">
           <div
             class="home-code-segments"
             role="presentation"
@@ -236,15 +236,14 @@
       class="home-card home-card--feedback home-card--stage-side"
     >
       <mat-card-header>
-        <mat-card-subtitle>
+        <div class="home-card__heading">
           <span class="home-card__icon-wrap">
             <mat-icon class="home-card__icon">bolt</mat-icon>
           </span>
-          <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
-        </mat-card-subtitle>
-        <h2 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
-          Live mit einem Klick
-        </h2>
+          <h2 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
+            Live mit einem Klick
+          </h2>
+        </div>
       </mat-card-header>
 
       <mat-card-content class="l-stack l-stack--sm">
@@ -259,30 +258,32 @@
               [attr.aria-busy]="quickFeedbackStarting() === chip.type"
               [attr.aria-label]="chip.label"
             >
-              <span
-                class="home-feedback-chip__icons"
-                [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
-                aria-hidden="true"
-              >
-                @for (icon of chip.icons; track icon) {
-                  @if (icon.kind === 'mat') {
-                    <mat-icon
-                      class="home-feedback-chip__icon"
-                      [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
-                      [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
-                      [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
-                      [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
-                    >
-                      {{ icon.value }}
-                    </mat-icon>
-                  } @else {
-                    <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+              <span class="home-feedback-chip__body">
+                <span
+                  class="home-feedback-chip__icons"
+                  [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
+                  aria-hidden="true"
+                >
+                  @for (icon of chip.icons; track icon) {
+                    @if (icon.kind === 'mat') {
+                      <mat-icon
+                        class="home-feedback-chip__icon"
+                        [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
+                        [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
+                        [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
+                        [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
+                      >
+                        {{ icon.value }}
+                      </mat-icon>
+                    } @else {
+                      <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+                    }
                   }
+                </span>
+                @if (chip.showLabel !== false) {
+                  <span class="home-feedback-chip__label">{{ chip.label }}</span>
                 }
               </span>
-              @if (chip.showLabel !== false) {
-                <span class="home-feedback-chip__label">{{ chip.label }}</span>
-              }
               @if (quickFeedbackStarting() === chip.type) {
                 <mat-icon class="home-feedback-chip__busy home-spin">sync</mat-icon>
               }
@@ -300,15 +301,12 @@
 
     <mat-card appearance="raised" class="home-card home-card--create home-card--stage-side">
       <mat-card-header class="home-card__header-with-action">
-        <div class="home-card__header-text">
-          <mat-card-subtitle>
-            <span class="home-card__icon-wrap">
-              <mat-icon class="home-card__icon">event</mat-icon>
-            </span>
-            <span i18n>Veranstalten</span>
-          </mat-card-subtitle>
+        <div class="home-card__heading">
+          <span class="home-card__icon-wrap">
+            <mat-icon class="home-card__icon">event</mat-icon>
+          </span>
           <h2 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
-            Quiz vorbereiten oder starten
+            Quiz vorbereiten
           </h2>
         </div>
         <button
@@ -329,39 +327,41 @@
       </mat-card-header>
 
       <mat-card-actions class="l-stack l-stack--sm">
-        @if (hasHostedQuiz()) {
+        <div class="home-card__cta-stack">
+          @if (hasHostedQuiz()) {
+            <a
+              matButton="filled"
+              [routerLink]="localizedPath('/quiz')"
+              [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
+              class="home-cta"
+              (mouseenter)="preloadQuiz()"
+            >
+              <mat-icon class="home-cta__icon">play_circle</mat-icon>
+              <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
+            </a>
+          }
           <a
             matButton="filled"
-            [routerLink]="localizedPath('/quiz')"
-            [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
+            [routerLink]="localizedPath('/quiz/new')"
             class="home-cta"
             (mouseenter)="preloadQuiz()"
           >
-            <mat-icon class="home-cta__icon">play_circle</mat-icon>
-            <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
+            <mat-icon class="home-cta__icon">add_circle</mat-icon>
+            <span i18n="@@homeHostCard.createQuizCta">Neues Quiz erstellen</span>
           </a>
-        }
-        <a
-          matButton="filled"
-          [routerLink]="localizedPath('/quiz/new')"
-          class="home-cta"
-          (mouseenter)="preloadQuiz()"
-        >
-          <mat-icon class="home-cta__icon">add_circle</mat-icon>
-          <span i18n="@@homeHostCard.createQuizCta">Neues Quiz erstellen</span>
-        </a>
-        <div class="home-cta-row">
-          <a
-            matButton="tonal"
-            [routerLink]="localizedPath('/quiz')"
-            class="home-cta home-cta--secondary"
-            (mouseenter)="preloadQuiz()"
-            [matBadge]="quizCountBadgeText()"
-            [matBadgeHidden]="quizCount() === 0"
-          >
-            <mat-icon class="home-cta__icon">library_books</mat-icon>
-            <span i18n="@@homeHostCard.libraryCta">Quiz-Sammlung öffnen</span>
-          </a>
+          <div class="home-cta-row">
+            <a
+              matButton="tonal"
+              [routerLink]="localizedPath('/quiz')"
+              class="home-cta home-cta--secondary"
+              (mouseenter)="preloadQuiz()"
+              [matBadge]="quizCountBadgeText()"
+              [matBadgeHidden]="quizCount() === 0"
+            >
+              <mat-icon class="home-cta__icon">library_books</mat-icon>
+              <span i18n="@@homeHostCard.libraryCta">Quiz-Sammlung öffnen</span>
+            </a>
+          </div>
         </div>
         <div class="home-card__tertiary">
           <app-info-landing-link

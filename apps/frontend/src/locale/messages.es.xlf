@@ -7095,17 +7095,9 @@
           <context context-type="linenumber">233,235</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8280611929840985852" datatype="html">
-        <source>Veranstalten</source>
-        <target>Organizar</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">296</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source> Quiz vorbereiten oder starten </source>
-        <target>Preparar o iniciar un quiz</target>
+        <source> Quiz vorbereiten </source>
+        <target>Preparar un quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">298,300</context>
@@ -7292,8 +7284,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.infoLanding" datatype="html">
-        <source>Einsatzmöglichkeiten entdecken</source>
-        <target>Explorar casos de uso</target>
+        <source>Einsatzmöglichkeiten</source>
+        <target>Casos de uso</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">110</context>

@@ -14,7 +14,7 @@
 | **Farben**           | ✅     | Keine Hardcoded-Hex; Surface-Container für Header/Cards, Primary für Akzente                                     |
 | **Shape**            | ✅     | corner-extra-large (Cards), corner-large (Toast), corner-small (Icon)                                            |
 | **Elevation**        | ✅     | level1 (Header), level3 (Toast), level4 (Cards) – M3-konform                                                     |
-| **Layout**           | ✅     | l-page (max-width 56rem), Grid für Main/Grid, responsive Breakpoints                                             |
+| **Layout**           | ✅     | l-page (56rem, Startseite ab 960px 78rem), Grid für Main/Grid, responsive Breakpoints                            |
 | **A11y**             | ✅     | strong-focus-indicators, prefers-reduced-motion, semantisches HTML                                               |
 | **State**            | ✅     | Buttons/Toggles mit Material-State-Layers; Disabled/Error-States                                                 |
 
