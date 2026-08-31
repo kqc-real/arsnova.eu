@@ -562,6 +562,7 @@ describe('HomeComponent', () => {
 
       expect(scss).toMatch(/\.home-cta\s*\{[^}]*padding-block:\s*0\.625rem/);
       expect(scss).toMatch(/\.home-cta\s*\{[^}]*white-space:\s*nowrap/);
+      expect(scss).toMatch(/\.home-card--create \.home-cta\s*\{[^}]*white-space:\s*normal/);
       expect(scss).toMatch(
         /\.home-card#participant-entry mat-card-actions\.l-stack\s*\{[^}]*flex-direction:\s*column/,
       );

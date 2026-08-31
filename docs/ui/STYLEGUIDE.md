@@ -236,6 +236,7 @@ Tokenbasierte Card-Flaeche:
 - **Beschriftung** unter den Segments: zentriert **Session-Code** (`label-medium`, on-surface-variant). Laenge und Beispiel entfallen in der Zeile; Screenreader: `aria-label` am Eingabefeld („Session-Code, 6 Zeichen“).
 - **Geometrie (beide Presets identisch):** Echte Quadrate (`aspect-ratio: 1`, `corner-medium`). Die Reihe fuellt die Karte bis **max. 20,5 rem** (6 x 3 rem plus Luecken), zentriert – nicht die volle Tablet-Buehnenbreite. Schrift skaliert mit der Reihenbreite (`cqi`). Keine Preset-eigenen Groessen, Kapsel-Radien oder Spotlight-Polsterung.
 - **Fehleingabe:** Der Mitmachen-CTA bleibt **volle Kartenbreite** (Actions immer Spalte), **nowrap**, **padding-block 0,625 rem**, damit „Los geht's“ neben der Fehlermeldung nicht umbricht und das Button-Padding verliert.
+- **Host-CTAs:** Auf der Quiz-vorbereiten-Karte dürfen CTA-Labels umbrechen (`white-space: normal`), damit längere Übersetzungen in der Dreier-Spalte nicht aus der Karte laufen.
 - **Dedizierter Einstieg:** Der codefreie Pfad `/join` verwendet dieselbe Startseiten-Komponente und darf die Code-Eingabe auf Geräten ohne groben Primärzeiger fokussieren. Bei primärer Touch-Eingabe bleibt der Fokus unverändert, damit ein direkter Link nicht ungefragt die Bildschirmtastatur öffnet; ein bewusster Klick auf „Code eingeben“ fokussiert weiterhin.
 
 ## Startseite: Hero und Onboarding

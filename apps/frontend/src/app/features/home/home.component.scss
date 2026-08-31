@@ -947,6 +947,19 @@ mat-card-actions.l-stack {
   white-space: nowrap;
 }
 
+/* Host-Karte: längere Locales (z. B. FR „Ouvrir la collection de quiz“)
+   dürfen umbrechen; Material lässt Labels sonst aus der Karte laufen.
+   Mitmachen-CTA bleibt nowrap. */
+.home-card--create .home-cta {
+  white-space: normal;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.home-card--create .home-cta .mdc-button__label {
+  white-space: inherit;
+}
+
 .home-cta-row {
   display: flex;
   gap: 0.5rem;
