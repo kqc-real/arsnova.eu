@@ -57,6 +57,7 @@ ENV NODE_ENV=production
 # Chromium für Server-PDF (Playwright nutzt System-Binary, kein Browser-Download).
 # libssh explizit auf >=0.12.1-r0 (CVE-2026-59851), falls Chromium eine ältere Transitivversion zieht.
 # libcrypto3/libssl3 explizit auf >=3.5.8-r0 (CVE-2026-14456); erzwingt Patch trotz Build-Cache.
+# libexpat explizit auf >=2.8.4-r0 (CVE-2026-66046, CVE-2026-76641); erzwingt Patch trotz Build-Cache.
 RUN apk upgrade --no-cache \
     && apk add --no-cache \
       chromium \
@@ -68,7 +69,8 @@ RUN apk upgrade --no-cache \
       font-noto \
       'libssh>=0.12.1-r0' \
       'libcrypto3>=3.5.8-r0' \
-      'libssl3>=3.5.8-r0'
+      'libssl3>=3.5.8-r0' \
+      'libexpat>=2.8.4-r0'
 
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
