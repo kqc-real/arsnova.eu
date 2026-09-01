@@ -245,6 +245,8 @@ export class NewsArchivePageComponent {
   }
 
   markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
     if (!this.isArchiveItemUnread(item)) {
       return;
     }

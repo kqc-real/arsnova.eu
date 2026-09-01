@@ -124,7 +124,7 @@
                   @if (itemUnread) {
                     <div class="news-archive-page__item-actions">
                       <button
-                        mat-stroked-button
+                        matButton="text"
                         type="button"
                         class="news-archive-page__mark-read"
                         i18n-aria-label="@@motd.archiveMarkItemReadAria"
@@ -132,7 +132,7 @@
                         (click)="markArchiveItemRead(it, $event)"
                       >
                         <mat-icon aria-hidden="true">done</mat-icon>
-                        <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                        <span i18n="@@motd.archiveMarkItemReadAction">Als gelesen markieren</span>
                       </button>
                     </div>
                   }

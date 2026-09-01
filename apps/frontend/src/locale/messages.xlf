@@ -7028,6 +7028,17 @@
           <context context-type="linenumber">119</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="motd.archiveMarkItemReadAction" datatype="html">
+        <source>Als gelesen markieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.html</context>
+          <context context-type="linenumber">135</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/motd-archive-dialog/motd-archive-dialog.component.html</context>
+          <context context-type="linenumber">114</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="motd.archiveMarkItemReadAria" datatype="html">
         <source>Diese Meldung als gelesen markieren</source>
         <context-group purpose="location">

@@ -56,54 +56,55 @@
             @let archiveMeta = formatArchiveDate(it.startsAt);
             @let titleDisplay = archiveItemTitleDisplay(it.id);
             @let itemUnread = isArchiveItemUnread(it);
-            <mat-expansion-panel
-              #archivePanel
-              class="motd-archive__panel"
-              [class.motd-archive__panel--read]="!itemUnread"
-            >
-              <mat-expansion-panel-header>
-                <mat-panel-title class="motd-archive__panel-title">
-                  @if (titleDisplay.decorativeEmoji) {
-                    <span class="motd-archive__decorative-emoji" aria-hidden="true">{{
-                      titleDisplay.decorativeEmoji
-                    }}</span>
-                  }
-                  <span class="motd-archive__panel-title-text" [attr.title]="titleDisplay.title">{{
-                    titleDisplay.title
-                  }}</span>
-                </mat-panel-title>
-                <mat-panel-description class="motd-archive__panel-meta">
-                  <span
-                    class="motd-archive__read-state"
-                    [class.motd-archive__read-state--unread]="itemUnread"
-                  >
-                    @if (itemUnread) {
-                      <span class="motd-archive__unread-dot" aria-hidden="true"></span>
-                      <span class="sr-only" i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
-                    } @else {
-                      <mat-icon aria-hidden="true">done</mat-icon>
-                      <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
-                    }
-                  </span>
-                  @if (archiveMeta) {
-                    <span class="motd-archive__panel-meta-text">{{ archiveMeta }}</span>
-                  }
-                </mat-panel-description>
-              </mat-expansion-panel-header>
-              @if (htmlById()[it.id]; as safe) {
-                <div
-                  class="motd-archive__body markdown-body"
-                  [attr.inert]="archivePanel.expanded ? null : ''"
-                  [innerHTML]="safe"
-                ></div>
-              }
-              <div
-                class="motd-archive__item-actions"
-                [attr.inert]="archivePanel.expanded ? null : ''"
+            <div class="motd-archive__item" [class.motd-archive__item--read]="!itemUnread">
+              <mat-expansion-panel
+                #archivePanel
+                class="motd-archive__panel"
+                [class.motd-archive__panel--read]="!itemUnread"
               >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="motd-archive__panel-title">
+                    @if (titleDisplay.decorativeEmoji) {
+                      <span class="motd-archive__decorative-emoji" aria-hidden="true">{{
+                        titleDisplay.decorativeEmoji
+                      }}</span>
+                    }
+                    <span
+                      class="motd-archive__panel-title-text"
+                      [attr.title]="titleDisplay.title"
+                      >{{ titleDisplay.title }}</span
+                    >
+                  </mat-panel-title>
+                  <mat-panel-description class="motd-archive__panel-meta">
+                    @if (archiveMeta) {
+                      <span class="motd-archive__panel-meta-text">{{ archiveMeta }}</span>
+                    }
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                @if (htmlById()[it.id]; as safe) {
+                  <div
+                    class="motd-archive__body markdown-body"
+                    [attr.inert]="archivePanel.expanded ? null : ''"
+                    [innerHTML]="safe"
+                  ></div>
+                }
+              </mat-expansion-panel>
+              <div class="motd-archive__item-footer">
+                <span
+                  class="motd-archive__read-state"
+                  [class.motd-archive__read-state--unread]="itemUnread"
+                >
+                  @if (itemUnread) {
+                    <span class="motd-archive__unread-dot" aria-hidden="true"></span>
+                    <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
+                  } @else {
+                    <mat-icon aria-hidden="true">done</mat-icon>
+                    <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                  }
+                </span>
                 @if (itemUnread) {
                   <button
-                    mat-stroked-button
+                    matButton="text"
                     type="button"
                     class="motd-archive__mark-read"
                     i18n-aria-label="@@motd.archiveMarkItemReadAria"
@@ -111,16 +112,11 @@
                     (click)="markArchiveItemRead(it, $event)"
                   >
                     <mat-icon aria-hidden="true">done</mat-icon>
-                    <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                    <span i18n="@@motd.archiveMarkItemReadAction">Als gelesen markieren</span>
                   </button>
-                } @else {
-                  <p class="motd-archive__read-state motd-archive__read-state--confirmed">
-                    <mat-icon aria-hidden="true">done</mat-icon>
-                    <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
-                  </p>
                 }
               </div>
-            </mat-expansion-panel>
+            </div>
           }
         </mat-accordion>
       }

@@ -554,13 +554,16 @@ describe('NewsArchivePageComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeTruthy();
     expect(
+      fixture.nativeElement.querySelector('.news-archive-page__mark-read')?.textContent,
+    ).toContain('Als gelesen markieren');
+    expect(
       fixture.nativeElement.querySelector('.news-archive-page__read-state--unread'),
     ).toBeTruthy();
 
-    const item = fixture.componentInstance.items()[0]!;
-    fixture.componentInstance.markArchiveItemRead(item, {
-      currentTarget: document.createElement('button'),
-    } as unknown as Event);
+    const markBtn = fixture.nativeElement.querySelector(
+      '.news-archive-page__mark-read',
+    ) as HTMLButtonElement;
+    markBtn.click();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(0);

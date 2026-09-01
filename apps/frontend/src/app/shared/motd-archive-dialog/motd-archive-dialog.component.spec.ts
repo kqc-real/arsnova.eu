@@ -282,13 +282,23 @@ describe('MotdArchiveDialogComponent', () => {
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
     fixture.detectChanges();
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const items = [...root.querySelectorAll('.motd-archive__item')];
+    expect(items).toHaveLength(2);
+    expect(items[0]!.querySelector('.motd-archive__read-state--unread')?.textContent).toContain(
+      'Ungelesen',
+    );
+
+    const markBtn = items[0]!.querySelector<HTMLButtonElement>('.motd-archive__mark-read');
+    expect(markBtn).toBeTruthy();
+    expect(markBtn!.textContent).toContain('Als gelesen markieren');
+    markBtn!.click();
+    fixture.detectChanges();
 
     const newer = fixture.componentInstance.items().find((item) => item.id === newerId);
     expect(newer).toBeTruthy();
-    fixture.componentInstance.markArchiveItemRead(newer!, {
-      currentTarget: document.createElement('button'),
-    } as unknown as Event);
-
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
     expect(fixture.componentInstance.isArchiveItemUnread(newer!)).toBe(false);
     const stored = JSON.parse(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)!);
@@ -297,14 +307,14 @@ describe('MotdArchiveDialogComponent', () => {
     expect(motdHeaderStateMock.decrementArchiveUnreadCount).toHaveBeenCalledTimes(1);
     expect(notifySpy).toHaveBeenCalled();
 
-    fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
     const panels = [...root.querySelectorAll('.motd-archive__panel')];
     expect(panels).toHaveLength(2);
+    expect(items[0]!.classList.contains('motd-archive__item--read')).toBe(true);
     expect(panels[0]!.classList.contains('motd-archive__panel--read')).toBe(true);
     expect(panels[1]!.classList.contains('motd-archive__panel--read')).toBe(false);
-    expect(panels[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
-    expect(panels[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
+    expect(items[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
+    expect(items[0]!.querySelector('.motd-archive__mark-read')).toBeNull();
+    expect(items[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
   });
 
   it('setzt inert auf zugeklappte Panel-Inhalte, damit Tab die Header erreicht', async () => {
@@ -350,5 +360,51 @@ describe('MotdArchiveDialogComponent', () => {
     fixture.detectChanges();
 
     expect(body!.hasAttribute('inert')).toBe(false);
+  });
+
+  it('Klick auf den Lesestatus klappt das Panel nicht um', async () => {
+    getHeaderStateQuery.mockResolvedValue({
+      ...defaultHeaderState,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 1,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: '# Titel\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    configureDialog();
+    const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const header = root.querySelector<HTMLElement>('.mat-expansion-panel-header');
+    const status = root.querySelector<HTMLElement>('.motd-archive__read-state');
+    expect(header).toBeTruthy();
+    expect(status).toBeTruthy();
+    expect(header!.contains(status!)).toBe(false);
+    expect(header!.getAttribute('aria-expanded')).toBe('false');
+
+    status!.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    status!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(header!.getAttribute('aria-expanded')).toBe('false');
   });
 });

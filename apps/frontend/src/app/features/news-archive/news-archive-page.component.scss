@@ -141,6 +141,8 @@
   gap: 0.25rem;
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-on-surface-variant);
+  pointer-events: none;
+  cursor: default;
 }
 
 .news-archive-page__read-state--unread {
@@ -177,6 +179,8 @@
 
 .news-archive-page__mark-read {
   min-height: 2.5rem;
+  white-space: normal;
+  max-width: 100%;
 }
 
 /* Markdown-Rumpf: gleiche Lesespur wie .legal-article :deep in legal-page */
