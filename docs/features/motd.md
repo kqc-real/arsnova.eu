@@ -70,10 +70,11 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   `contentVersion`; dadurch kann eine dauerhafte Meldung mit spätem `endsAt` später
   veröffentlichte Meldungen nicht versehentlich als bereits gelesen markieren.
   Zusätzlich speichert der Client **einzeln gelesene** Archiv-MOTDs (`archiveReadItems`,
-  max. 64 Paare `motdId` + `contentVersion`). So senkt der Button **Gelesen** den
+  max. 64 Paare `motdId` + `contentVersion`). So senkt **Als gelesen markieren** den
   Toolbar-Zähler um 1, ohne ältere ungelesene Einträge mitzuziehen.
   Gelesene Meldungen bleiben in Archiv-Dialog und Archiv-Seite mit Status **Gelesen**
-  erkennbar (Häkchen); ungelesene tragen einen Ungelesen-Hinweis.
+  erkennbar (Häkchen); ungelesene tragen den Status **Ungelesen**. Der Status selbst
+  ist nicht klickbar.
   **Alles als gelesen markieren** setzt den Cursor auf den neuesten Eintrag und leert
   die Einzelliste.
 - **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).
@@ -82,12 +83,12 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 ### 3.7 Nutzerinteraktionen (getrennte Dimensionen)
 
-| Dimension         | Bedeutung                                                       | Umsetzungshinweis                                                                                         |
-| ----------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Dismiss**       | Overlay geschlossen (X, Swipe, Backdrop)                        | Im aktuellen Frontend lokal gespeichert und zusätzlich per `recordInteraction` aggregierbar               |
-| **Kenntnisnahme** | Expliziter Button (Overlay: „Alles klar!“; Archiv: **Gelesen**) | Overlay: lokal + optionale Mutation. Archiv: lokal (`archiveReadItems` bzw. Wasserlinie) + Header-Refresh |
-| **Alles gelesen** | Archiv-Aktion für alle sichtbaren Meldungen                     | Setzt den publikationsbasierten Cursor auf das neueste Item; Badge wird 0                                 |
-| **Feedback**      | Daumen hoch/runter                                              | Optional; **ein Vote pro MOTD-Version pro Browser** über localStorage erzwingbar; Server nur aggregiert   |
+| Dimension         | Bedeutung                                                                     | Umsetzungshinweis                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Dismiss**       | Overlay geschlossen (X, Swipe, Backdrop)                                      | Im aktuellen Frontend lokal gespeichert und zusätzlich per `recordInteraction` aggregierbar               |
+| **Kenntnisnahme** | Expliziter Button (Overlay: „Alles klar!“; Archiv: **Als gelesen markieren**) | Overlay: lokal + optionale Mutation. Archiv: lokal (`archiveReadItems` bzw. Wasserlinie) + Header-Refresh |
+| **Alles gelesen** | Archiv-Aktion für alle sichtbaren Meldungen                                   | Setzt den publikationsbasierten Cursor auf das neueste Item; Badge wird 0                                 |
+| **Feedback**      | Daumen hoch/runter                                                            | Optional; **ein Vote pro MOTD-Version pro Browser** über localStorage erzwingbar; Server nur aggregiert   |
 
 **Semantik:** Dismiss ≠ Kenntnisnahme — beides getrennt auswertbar, falls Analytics gewünscht.
 
@@ -173,3 +174,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-08-17 | Abschnitte 3.5/3.6/9: Auto-Overlay höchstens einmal pro Sitzung; nächste andere MOTD nach Dismiss nur noch über Badge/Archiv, nicht bei Reload.                                                                                    |
 | 2026-08-17 | Abschnitt 3.8: Toolbar-Zähler bei null ungelesenen MOTDs vollständig ausblenden.                                                                                                                                                   |
 | 2026-08-19 | Abschnitte 3.6/3.7/4.1: Pro-MOTD-Button **Gelesen**; `archiveReadItems` ergänzt den Wasserlinien-Cursor (Badge −1); gelesene Meldungen bleiben in der Liste als **Gelesen** erkennbar.                                             |
+| 2026-09-01 | Abschnitte 3.6/3.7: Archiv-Aktion **Als gelesen markieren** (Text-Button, kein CTA); **Gelesen**/**Ungelesen** nur als Status.                                                                                                     |

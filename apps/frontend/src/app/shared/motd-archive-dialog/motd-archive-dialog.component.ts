@@ -94,7 +94,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   /** Ungelesen relativ zum Client-Wasserzeichen und einzeln gelesenen Einträgen. */
   readonly archiveUnreadCount = signal(0);
-  /** Lokal einzeln als gelesen markierte MOTDs (für den Gelesen-Button). */
+  /** Lokal einzeln als gelesen markierte MOTDs (für den Als-gelesen-Button). */
   readonly archiveReadItems = signal(getMotdArchiveReadItems());
 
   /** motd id → Anzeige-Titel (Markdown-Überschrift oder Fallback) */
@@ -147,6 +147,8 @@ export class MotdArchiveDialogComponent implements OnInit {
   }
 
   markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
     if (!this.isArchiveItemUnread(item)) {
       return;
     }
@@ -163,7 +165,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   private focusArchivePanelHeader(event: Event): void {
     const current = event.currentTarget as HTMLElement | null;
     current
-      ?.closest('.mat-expansion-panel')
+      ?.closest('.motd-archive__item')
       ?.querySelector<HTMLElement>('.mat-expansion-panel-header')
       ?.focus();
   }

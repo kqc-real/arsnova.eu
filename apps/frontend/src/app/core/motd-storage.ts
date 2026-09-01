@@ -37,7 +37,7 @@ export type MotdClientStorageV1 = {
   archiveSeenUpToCursor?: MotdArchiveReadCursor;
   /**
    * Einzeln gelesene Archiv-MOTDs. Ergänzt den Wasserlinien-Cursor, damit
-   * „Gelesen“ auf einem Eintrag den Badge um 1 senkt, ohne ältere ungelesene
+   * „Als gelesen markieren“ auf einem Eintrag den Badge um 1 senkt, ohne ältere ungelesene
    * mitzuziehen.
    */
   archiveReadItems?: MotdArchiveReadItem[];

@@ -771,13 +771,13 @@ Nutzende sehen:
 - Archiv-Dialog im Header
 - Archiv-Seite unter `/news-archive`
 - Ungelesen-Zähler in der Toolbar nur bei ungelesenen Meldungen
-- **Gelesen**-Button pro Archiv-Meldung (Zähler sinkt um 1); gelesene Einträge bleiben als **Gelesen** sichtbar
+- **Als gelesen markieren** pro ungelesener Archiv-Meldung (Zähler sinkt um 1); gelesene Einträge bleiben als Status **Gelesen** sichtbar
 
 ### 9.2 Interaktionen
 
 Für MOTDs existieren getrennte Interaktionsarten:
 
-- Kenntnisnahme (Overlay) bzw. **Gelesen** (Archiv, einzeln oder alle)
+- Kenntnisnahme (Overlay) bzw. **Als gelesen markieren** (Archiv, einzeln) / **Alles als gelesen markieren**
 - Daumen hoch
 - Daumen runter
 - Schließen per Button

@@ -282,13 +282,23 @@ describe('MotdArchiveDialogComponent', () => {
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
     fixture.detectChanges();
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const items = [...root.querySelectorAll('.motd-archive__item')];
+    expect(items).toHaveLength(2);
+    expect(items[0]!.querySelector('.motd-archive__read-state--unread')?.textContent).toContain(
+      'Ungelesen',
+    );
+
+    const markBtn = items[0]!.querySelector<HTMLButtonElement>('.motd-archive__mark-read');
+    expect(markBtn).toBeTruthy();
+    expect(markBtn!.textContent).toContain('Als gelesen markieren');
+    markBtn!.click();
+    fixture.detectChanges();
 
     const newer = fixture.componentInstance.items().find((item) => item.id === newerId);
     expect(newer).toBeTruthy();
-    fixture.componentInstance.markArchiveItemRead(newer!, {
-      currentTarget: document.createElement('button'),
-    } as unknown as Event);
-
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
     expect(fixture.componentInstance.isArchiveItemUnread(newer!)).toBe(false);
     const stored = JSON.parse(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)!);
@@ -297,14 +307,14 @@ describe('MotdArchiveDialogComponent', () => {
     expect(motdHeaderStateMock.decrementArchiveUnreadCount).toHaveBeenCalledTimes(1);
     expect(notifySpy).toHaveBeenCalled();
 
-    fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
     const panels = [...root.querySelectorAll('.motd-archive__panel')];
     expect(panels).toHaveLength(2);
+    expect(items[0]!.classList.contains('motd-archive__item--read')).toBe(true);
     expect(panels[0]!.classList.contains('motd-archive__panel--read')).toBe(true);
     expect(panels[1]!.classList.contains('motd-archive__panel--read')).toBe(false);
-    expect(panels[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
-    expect(panels[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
+    expect(items[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
+    expect(items[0]!.querySelector('.motd-archive__mark-read')).toBeNull();
+    expect(items[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
   });
 
   it('setzt inert auf zugeklappte Panel-Inhalte, damit Tab die Header erreicht', async () => {
