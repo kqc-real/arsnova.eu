@@ -23805,14 +23805,6 @@
           <context context-type="linenumber">69,71</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusSloVsLoadHint" datatype="html">
-        <source> Die Ampel unten zeigt, wie stabil das System gerade läuft. </source>
-        <target>The indicator below shows how stable the system is right now.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">76,78</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.loadStatusLabel" datatype="html">
         <source>Systemlast:</source>
         <target>System load:</target>
@@ -24110,8 +24102,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
-        <source> Die Statusanzeige zeigt, wie stabil Live-Quizze gerade laufen. </source>
-        <target>The status indicator shows how stable live quizzes are right now.</target>
+        <source> Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze gerade laufen. </source>
+        <target>You’ll find the status indicator in the footer menu “More”. It shows how stable live quizzes are right now.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">360,362</context>

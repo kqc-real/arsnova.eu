@@ -70,12 +70,6 @@ export interface ServerStatusHelpDialogData {
               Systemlast-Indikatoren
             </h3>
           </div>
-          <p
-            class="status-help-dialog__copy status-help-dialog__copy--compact"
-            i18n="@@app.footer.statusSloVsLoadHint"
-          >
-            Die Ampel unten zeigt, wie stabil das System gerade läuft.
-          </p>
           <p class="status-help-dialog__copy status-help-dialog__copy--compact">
             <span i18n="@@app.footer.loadStatusLabel">Systemlast:</span>&nbsp;
             <strong class="status-help-dialog__status-badge-wrapper">
@@ -358,7 +352,8 @@ export interface ServerStatusHelpDialogData {
             class="status-help-dialog__copy status-help-dialog__copy--compact"
             i18n="@@app.footer.statusHelpDot"
           >
-            Die Statusanzeige zeigt, wie stabil Live-Quizze gerade laufen.
+            Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze
+            gerade laufen.
           </p>
         </div>
         <ul class="status-help-dialog__legend" role="list">
