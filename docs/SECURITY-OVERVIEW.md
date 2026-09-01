@@ -206,7 +206,7 @@ Kontrollierte Aktualisierung des gepinnten Digests:
 Die lokale Build-, Test-, Audit-, Image- und Runtime-Abnahme ist in [W0.3-W1.1-NODE-24-ABNAHME.md](implementation/W0.3-W1.1-NODE-24-ABNAHME.md) dokumentiert.
 
 Zusätzlich pinnt das Produktionsimage kritische Alpine-Pakete explizit
-(`libssh`, `libcrypto3`/`libssl3`), damit Security-Patches auch bei Docker-Layer-Cache
+(`libssh`, `libcrypto3`/`libssl3`, `libexpat`), damit Security-Patches auch bei Docker-Layer-Cache
 nicht hinter einem veralteten `apk upgrade`-Layer hängen bleiben.
 
 Der Produktions-App-Container läuft als unprivilegierter `node`-User, ohne
