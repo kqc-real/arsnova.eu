@@ -76,18 +76,6 @@
                     >
                   </mat-panel-title>
                   <mat-panel-description class="motd-archive__panel-meta">
-                    <span
-                      class="motd-archive__read-state"
-                      [class.motd-archive__read-state--unread]="itemUnread"
-                    >
-                      @if (itemUnread) {
-                        <span class="motd-archive__unread-dot" aria-hidden="true"></span>
-                        <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
-                      } @else {
-                        <mat-icon aria-hidden="true">done</mat-icon>
-                        <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
-                      }
-                    </span>
                     @if (archiveMeta) {
                       <span class="motd-archive__panel-meta-text">{{ archiveMeta }}</span>
                     }
@@ -101,8 +89,20 @@
                   ></div>
                 }
               </mat-expansion-panel>
-              @if (itemUnread) {
-                <div class="motd-archive__item-actions">
+              <div class="motd-archive__item-footer">
+                <span
+                  class="motd-archive__read-state"
+                  [class.motd-archive__read-state--unread]="itemUnread"
+                >
+                  @if (itemUnread) {
+                    <span class="motd-archive__unread-dot" aria-hidden="true"></span>
+                    <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
+                  } @else {
+                    <mat-icon aria-hidden="true">done</mat-icon>
+                    <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
+                  }
+                </span>
+                @if (itemUnread) {
                   <button
                     matButton="text"
                     type="button"
@@ -114,8 +114,8 @@
                     <mat-icon aria-hidden="true">done</mat-icon>
                     <span i18n="@@motd.archiveMarkItemReadAction">Als gelesen markieren</span>
                   </button>
-                </div>
-              }
+                }
+              </div>
             </div>
           }
         </mat-accordion>

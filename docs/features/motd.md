@@ -73,8 +73,8 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   max. 64 Paare `motdId` + `contentVersion`). So senkt **Als gelesen markieren** den
   Toolbar-Zähler um 1, ohne ältere ungelesene Einträge mitzuziehen.
   Gelesene Meldungen bleiben in Archiv-Dialog und Archiv-Seite mit Status **Gelesen**
-  erkennbar (Häkchen); ungelesene tragen den Status **Ungelesen**. Der Status selbst
-  ist nicht klickbar.
+  erkennbar (Häkchen); ungelesene tragen den Status **Ungelesen**. Im Archiv-Dialog
+  stehen Status und **Als gelesen markieren** außerhalb des Expansion-Headers.
   **Alles als gelesen markieren** setzt den Cursor auf den neuesten Eintrag und leert
   die Einzelliste.
 - **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).

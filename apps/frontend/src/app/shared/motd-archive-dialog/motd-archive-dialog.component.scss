@@ -187,7 +187,6 @@
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-on-surface-variant);
   white-space: nowrap;
-  pointer-events: none;
   cursor: default;
 }
 
@@ -241,7 +240,7 @@
   line-height: 1.3;
 }
 
-.motd-archive__item-actions {
+.motd-archive__item-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;

@@ -361,4 +361,50 @@ describe('MotdArchiveDialogComponent', () => {
 
     expect(body!.hasAttribute('inert')).toBe(false);
   });
+
+  it('Klick auf den Lesestatus klappt das Panel nicht um', async () => {
+    getHeaderStateQuery.mockResolvedValue({
+      ...defaultHeaderState,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 1,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: '# Titel\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    configureDialog();
+    const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const header = root.querySelector<HTMLElement>('.mat-expansion-panel-header');
+    const status = root.querySelector<HTMLElement>('.motd-archive__read-state');
+    expect(header).toBeTruthy();
+    expect(status).toBeTruthy();
+    expect(header!.contains(status!)).toBe(false);
+    expect(header!.getAttribute('aria-expanded')).toBe('false');
+
+    status!.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    status!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(header!.getAttribute('aria-expanded')).toBe('false');
+  });
 });
