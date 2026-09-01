@@ -511,6 +511,7 @@ describe('HomeComponent', () => {
       expect(desktop).toMatch(
         /\.home-card#participant-entry \.home-cta\s*\{[^}]*min-height:\s*3\.75rem/,
       );
+      expect(scss).toMatch(/\.home-card--create \.home-card__cta-stack\s*\{[^}]*gap:\s*1rem/);
       expect(desktop).toMatch(
         /\.home-card--create \.home-card__cta-stack\s*\{[^}]*justify-content:\s*center/,
       );
@@ -566,6 +567,7 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /\.home-card#participant-entry mat-card-actions\.l-stack\s*\{[^}]*flex-direction:\s*column/,
       );
+      expect(scss).toMatch(/\.home-error\s*\{[^}]*justify-content:\s*center/);
       expect(scss).toMatch(/\.home-card__heading\s*\{[^}]*align-items:\s*center/);
       expect(scss).toMatch(/\.home-card \.mat-mdc-card-header\s*\{[^}]*padding-inline:\s*1rem/);
       expect(scss).toMatch(
@@ -2025,15 +2027,42 @@ describe('HomeComponent', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
-      const filled = fixture.nativeElement.querySelector(
+      const filled = fixture.nativeElement.querySelectorAll(
         '.home-card--create .mat-mdc-unelevated-button',
-      ) as HTMLAnchorElement | null;
-      expect(filled?.textContent).toContain('Neues Quiz erstellen');
+      );
+      expect(filled).toHaveLength(1);
+      expect(filled[0]?.textContent).toContain('Neues Quiz erstellen');
+      expect(fixture.nativeElement.textContent).not.toContain('Letztes Quiz starten');
 
       const secondary = fixture.nativeElement.querySelector(
         '.home-card--create .home-cta--secondary',
       ) as HTMLAnchorElement | null;
       expect(secondary?.textContent).toContain('Quiz-Sammlung öffnen');
+    });
+
+    it('zeigt mit eigenem Quiz beide Buttons, aber nur Starten als gefuellten CTA', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.createQuiz({ name: 'Live-Quiz', description: '' });
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const card = fixture.nativeElement.querySelector('.home-card--create') as HTMLElement;
+
+      const filled = card.querySelectorAll('.mat-mdc-unelevated-button');
+      expect(filled).toHaveLength(1);
+      expect(filled[0]?.textContent).toContain('Letztes Quiz starten');
+      expect(card.textContent).toContain('Neues Quiz erstellen');
+
+      const create = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+        el.textContent?.includes('Neues Quiz erstellen'),
+      ) as HTMLAnchorElement | undefined;
+      expect(create?.classList.contains('home-cta--secondary')).toBe(true);
+      expect(create?.classList.contains('mat-mdc-unelevated-button')).toBe(false);
+      expect(
+        Array.from(card.querySelectorAll('.home-cta--secondary')).some((el) =>
+          el.textContent?.includes('Quiz-Sammlung öffnen'),
+        ),
+      ).toBe(true);
     });
   });
 });

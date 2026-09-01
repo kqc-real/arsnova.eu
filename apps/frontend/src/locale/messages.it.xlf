@@ -23736,14 +23736,6 @@
           <context context-type="linenumber">69,71</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusSloVsLoadHint" datatype="html">
-        <source> Die Ampel unten zeigt, wie stabil das System gerade läuft. </source>
-        <target>L’indicatore qui sotto mostra quanto il sistema sia stabile in questo momento.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">76,78</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.loadStatusLabel" datatype="html">
         <source>Systemlast:</source>
         <target>Carico del sistema:</target>
@@ -24041,8 +24033,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
-        <source> Die Statusanzeige zeigt, wie stabil Live-Quizze gerade laufen. </source>
-        <target>L’indicatore di stato mostra quanto sono stabili i quiz live in questo momento.</target>
+        <source> Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze gerade laufen. </source>
+        <target>L’indicatore di stato si trova nel menu «Altro» in fondo alla pagina. Mostra quanto sono stabili i quiz live in questo momento.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">360,362</context>

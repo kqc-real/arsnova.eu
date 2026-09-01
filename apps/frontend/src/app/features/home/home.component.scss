@@ -549,6 +549,17 @@
   flex-direction: column;
 }
 
+.home-card--create .home-card__cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.home-card--create .home-card__cta-stack .home-cta-row {
+  margin-top: 0;
+}
+
 @media (min-width: 960px) {
   .home-card#participant-entry mat-card-content {
     flex: 1 1 auto;
@@ -577,17 +588,9 @@
   }
 
   .home-card--create .home-card__cta-stack {
-    display: flex;
-    flex-direction: column;
     justify-content: center;
-    gap: 1rem;
-    width: 100%;
     flex: 1 1 auto;
     min-height: 0;
-  }
-
-  .home-card--create .home-card__cta-stack .home-cta-row {
-    margin-top: 0;
   }
 
   .home-card--create .home-card__tertiary {
@@ -977,6 +980,11 @@ mat-card-actions.l-stack {
   min-width: 0;
   width: auto;
   /* Sekundärer Quiz-Sammlungs-CTA: Schatten per !important gegen M3-Defaults */
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.home-card--create .home-card__cta-stack > .home-cta--secondary {
   box-shadow: none !important;
   filter: none !important;
 }
@@ -1382,7 +1390,8 @@ mat-card-actions.l-stack {
 .home-error {
   margin: 0;
   display: flex;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   gap: 0.45rem;
   padding: 0.6rem 0.7rem;
   border-radius: var(--mat-sys-corner-medium);
@@ -1397,7 +1406,6 @@ mat-card-actions.l-stack {
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  margin-top: 0.12rem;
   flex-shrink: 0;
 }
 
@@ -1544,7 +1552,9 @@ mat-card-actions.l-stack {
     filter: none;
   }
   .home-card--create .home-cta-row .home-cta--secondary,
-  .home-card--create .home-cta-row .home-cta--secondary:hover {
+  .home-card--create .home-cta-row .home-cta--secondary:hover,
+  .home-card--create .home-cta--secondary,
+  .home-card--create .home-cta--secondary:hover {
     box-shadow: none !important;
     filter: none !important;
   }

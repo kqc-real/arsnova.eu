@@ -341,9 +341,10 @@
             </a>
           }
           <a
-            matButton="filled"
+            [matButton]="hasHostedQuiz() ? 'tonal' : 'filled'"
             [routerLink]="localizedPath('/quiz/new')"
             class="home-cta"
+            [class.home-cta--secondary]="hasHostedQuiz()"
             (mouseenter)="preloadQuiz()"
           >
             <mat-icon class="home-cta__icon">add_circle</mat-icon>
