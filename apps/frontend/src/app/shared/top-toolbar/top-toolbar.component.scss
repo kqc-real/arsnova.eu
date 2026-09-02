@@ -3,15 +3,13 @@
   z-index: 20;
 }
 
-/* Standard: sticky; mit --fixed (position: fixed) für Hide-on-Scroll. Fluchtlinien wie .l-page (Karten). */
+/* Fixiert über dem App-Shell-Scrollcontainer. Fluchtlinien wie .l-page (Karten). */
 .top-toolbar {
   --top-toolbar-inline: 1rem;
   --top-toolbar-width: min(
     var(--app-toolbar-max-width),
     calc(100vw - (2 * var(--top-toolbar-inline)))
   );
-  position: sticky;
-  top: 0;
   z-index: 10;
   box-sizing: border-box;
   margin-top: 0.5rem;
@@ -42,20 +40,12 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .top-toolbar--fixed {
-    transition:
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
-  }
-}
-
 /* Stärkerer Schatten nach Scroll (Elevation, Material/Apple-konform). */
 .top-toolbar--scrolled {
   box-shadow: var(--mat-sys-level2);
 }
 
-/* Fixiert für Hide-on-Scroll; gleiche Breite/Flucht wie .l-page (56rem zentriert, gleicher Inset). */
+/* Gleiche Breite/Flucht wie .l-page (56rem zentriert, gleicher Inset). */
 .top-toolbar--fixed {
   position: fixed;
   top: calc(0.5rem + var(--app-offline-banner-height, 0px));
@@ -72,16 +62,6 @@
   @media (min-width: 840px) {
     top: calc(1rem + var(--app-offline-banner-height, 0px));
   }
-}
-
-/* Vollständig aus dem Viewport: über Oberkante schieben (inkl. Top-Inset + Puffer). */
-.top-toolbar--fixed.top-toolbar--hidden {
-  transform: translate(-50%, -100vh);
-}
-
-/* Tastaturfokus macht die Toolbar sofort sichtbar, noch bevor der Parent den Hidden-State löscht. */
-.top-toolbar--fixed.top-toolbar--hidden:focus-within {
-  transform: translateX(-50%);
 }
 
 @media (max-width: 599px) {

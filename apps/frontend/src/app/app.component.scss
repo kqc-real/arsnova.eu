@@ -86,23 +86,6 @@
   }
 }
 
-.app-main--toolbar-hidden {
-  --vote-channel-tabs-desktop-top: 0.5rem;
-  --vote-channel-tabs-sticky-top: calc(0.35rem + env(safe-area-inset-top, 0px));
-}
-
-@media (min-width: 600px) {
-  .app-main--toolbar-hidden {
-    --vote-channel-tabs-desktop-top: 0.75rem;
-  }
-}
-
-@media (min-width: 840px) {
-  .app-main--toolbar-hidden {
-    --vote-channel-tabs-desktop-top: 1rem;
-  }
-}
-
 .app-main--toolbar-fixed.app-main--immersive-host {
   padding-top: 0;
 }

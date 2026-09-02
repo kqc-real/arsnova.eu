@@ -108,9 +108,6 @@
     <app-top-toolbar
       [attr.inert]="isContentOverlayRoute() ? '' : null"
       [scrolled]="hasScrolled()"
-      [hideOnScroll]="true"
-      [toolbarHidden]="toolbarHidden()"
-      (focusin)="showToolbarForFocus()"
     />
   }
   @if (serviceStatusBannerVisible()) {
@@ -139,9 +136,9 @@
     class="app-main app-main--toolbar-fixed"
     [class.app-main--immersive-host]="hideAppChrome()"
     [class.app-main--present]="isPresentRoute()"
-    [class.app-main--toolbar-hidden]="toolbarHidden() && !hideAppChrome()"
     role="main"
     tabindex="0"
+    (scroll)="onPrimaryScroll($event)"
   >
     <div
       class="app-main__content"

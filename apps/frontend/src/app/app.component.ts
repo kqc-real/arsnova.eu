@@ -181,10 +181,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private footerResizeObserver: ResizeObserver | null = null;
   private observedFooterElement: HTMLElement | null = null;
 
-  /** true wenn gescrollt wurde (für stärkeren Schatten, Elevation). */
+  /** true wenn #main-content gescrollt wurde (stärkerer Toolbar-Schatten). */
   hasScrolled = signal(false);
-  /** Toolbar beim Runterscrollen ausblenden, beim Hochscrollen einblenden (UX-Empfehlung, alle Seiten). */
-  toolbarHidden = signal(false);
   isFeedbackRoute = signal(
     typeof window !== 'undefined' &&
       (window.location.pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith(
@@ -205,8 +203,6 @@ export class AppComponent implements OnInit, OnDestroy {
   isContentOverlayRoute = signal(
     typeof window !== 'undefined' && isContentOverlayPath(window.location.pathname),
   );
-  private lastScrollY = 0;
-  private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
   /** Erstes NavigationEnd = Bootstrap; kein Scroll-Reset — sonst kurzer Sprung „richtig → nach oben“ nach dem ersten Layout. */
   private pendingInitialNavigationEnd = true;
 
@@ -298,7 +294,6 @@ export class AppComponent implements OnInit, OnDestroy {
         }
         // Mehr-Menü liegt im CDK-Overlay (nicht inert) — bei Navigation schließen.
         this.footerMoreTrigger?.closeMenu();
-        this.toolbarHidden.set(false);
         this.updateRouteFlags();
         this.refreshFooterStatusPollingState({ immediate: true });
         queueMicrotask(() => this.syncFooterOffsetObserver());
@@ -366,6 +361,7 @@ export class AppComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    this.hasScrolled.set(false);
   }
 
   skipToMainContent(event: Event): void {
@@ -375,6 +371,7 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
     main.scrollTop = 0;
+    this.hasScrolled.set(false);
     main.focus({ preventScroll: true });
   }
 
@@ -431,10 +428,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     this.cdr.detectChanges();
     return focusFooterContentReturn(target);
-  }
-
-  showToolbarForFocus(): void {
-    this.toolbarHidden.set(false);
   }
 
   /**
@@ -524,17 +517,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const y = window.scrollY;
-    this.hasScrolled.set(y > 0);
-    if (y > this.lastScrollY && y > AppComponent.HIDE_SCROLL_THRESHOLD_PX) {
-      this.toolbarHidden.set(true);
-    } else if (y < this.lastScrollY) {
-      this.toolbarHidden.set(false);
-    }
-    this.lastScrollY = y;
+  onPrimaryScroll(event: Event): void {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLElement)) return;
+    this.hasScrolled.set(target.scrollTop > 0);
   }
 
   private checkForUpdates(): void {
