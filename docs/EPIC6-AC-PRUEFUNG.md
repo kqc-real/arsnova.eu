@@ -6,15 +6,15 @@ Stand: Abschlussprüfung der Stories 6.1–6.4 gegen Codebase. Story 6.5 (Barrie
 
 ## Story 6.1 — Dark/Light/System-Theme
 
-| Kriterium                                                       | Status | Nachweis                                                                                                                                                                  |
-| --------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Theme-Umschalter in Nav mit Light, Dark, System                 | ✅     | `top-toolbar.component.html`: `mat-button-toggle-group` mit `system`/`dark`/`light`, Icons `contrast`, `dark_mode`, `light_mode`                                          |
-| System (default) folgt `prefers-color-scheme`                   | ✅     | `theme-preset.service.ts`: Default `theme = signal('system')`; bei System keine Klasse auf `html` → `:root { color-scheme: light dark }` in `styles.scss` steuert Anzeige |
-| Wechsel sofort ohne Reload (Klasse auf `<html>`)                | ✅     | `applyTheme()` setzt/entfernt `dark`/`light` auf `document.documentElement`                                                                                               |
-| Auswahl in localStorage persistiert                             | ✅     | `STORAGE_THEME = 'home-theme'`, `setTheme()`/`initFromStorage()`                                                                                                          |
-| UI nutzt MD3 Theme-Tokens                                       | ✅     | `styles.scss`: `--mat-sys-*`, `light-dark()`, ADR 0005; Komponenten nutzen Tokens                                                                                         |
-| Countdown, Leaderboard, Lobby, Beamer unterstützen beide Themes | ✅     | Gemeinsame Theme-Steuerung über `html.dark`/`html.light` bzw. `color-scheme`                                                                                              |
-| Kontrast WCAG 2.2 AA (≥ 4.5:1)                                  | ⚠️     | M3-Tokens und automatisierte axe-/Lighthouse-Gates decken prüfbare Zustände ab; die vollständige Theme-/OS-Matrix bleibt manuell abzunehmen.                              |
+| Kriterium                                                       | Status | Nachweis                                                                                                                                                             |
+| --------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Theme-Umschalter in Nav mit Light, Dark, System                 | ✅     | `top-toolbar.component.html`: `mat-button-toggle-group` mit `system`/`dark`/`light`, Icons `contrast`, `dark_mode`, `light_mode`                                     |
+| Dark (default); System folgt `prefers-color-scheme`             | ✅     | `theme-preset.service.ts`: Default `theme = signal('dark')` + `html.dark`; bei System keine Klasse auf `html` → `html { color-scheme: light dark }` in `styles.scss` |
+| Wechsel sofort ohne Reload (Klasse auf `<html>`)                | ✅     | `applyTheme()` setzt/entfernt `dark`/`light` auf `document.documentElement`                                                                                          |
+| Auswahl in localStorage persistiert                             | ✅     | `STORAGE_THEME = 'home-theme'`, `setTheme()`/`initFromStorage()`                                                                                                     |
+| UI nutzt MD3 Theme-Tokens                                       | ✅     | `styles.scss`: `--mat-sys-*`, `light-dark()`, ADR 0005; Komponenten nutzen Tokens                                                                                    |
+| Countdown, Leaderboard, Lobby, Beamer unterstützen beide Themes | ✅     | Gemeinsame Theme-Steuerung über `html.dark`/`html.light` bzw. `color-scheme`                                                                                         |
+| Kontrast WCAG 2.2 AA (≥ 4.5:1)                                  | ⚠️     | M3-Tokens und automatisierte axe-/Lighthouse-Gates decken prüfbare Zustände ab; die vollständige Theme-/OS-Matrix bleibt manuell abzunehmen.                         |
 
 **Fazit:** Alle technischen Akzeptanzkriterien erfüllt. Kontrast als Design-Annahme.
 

@@ -173,7 +173,7 @@ Alle Preset-Toast-Einstellungen werden **pro Preset** im jeweiligen Browser gesp
 | `home-preset`                     | Aktives Preset (`serious` \| `spielerisch`; Legacy `serioes` wird beim Lesen zu `serious` migriert, siehe `ThemePresetService`) |
 | `home-preset-options-serious`     | JSON gemäß `PresetStorageEntrySchema`                                                                                           |
 | `home-preset-options-spielerisch` | JSON gemäß `PresetStorageEntrySchema`                                                                                           |
-| `home-theme`                      | UI-Theme (`system` \| `dark` \| `light`)                                                                                        |
+| `home-theme`                      | UI-Theme (`system` \| `dark` \| `light`; Default ohne gespeicherten Wert: `dark`)                                               |
 
 **Zusätzlich (Yjs):** Für die **Quiz-Sammlung** synchronisiert `QuizStoreService` u. a. `home-presets` / gespiegelte Preset-Keys über CRDT — das ist die Multi-Device-Spiegelung der Startseiten-Presets, nicht identisch mit den rein lokalen Keys bevor Sync aktiv ist.
 

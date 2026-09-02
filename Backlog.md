@@ -1569,7 +1569,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**
     - Ein Theme-Umschalter (Icon-Button) in der Navigationsleiste bietet drei Optionen: Light, Dark, System.
-    - **System** (default) übernimmt die Betriebssystem-Einstellung via `prefers-color-scheme` Media-Query.
+    - **Dark** (default). **System** übernimmt die Betriebssystem-Einstellung via `prefers-color-scheme` Media-Query.
     - Theme-Wechsel erfolgt sofort ohne Seitenreload (CSS-Klasse `dark` auf `<html>`).
     - Die Auswahl wird im `localStorage` persistiert und beim nächsten Besuch wiederhergestellt.
     - Alle UI-Komponenten nutzen Material Design 3 Theme-Tokens für Farben, Hintergründe und Kontraste (ADR 0005).

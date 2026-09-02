@@ -331,7 +331,7 @@ describe('HelpComponent', () => {
 
     const link = infoAside!.querySelector<HTMLAnchorElement>('a.info-landing-link');
     expect(link).toBeTruthy();
-    expect(link!.getAttribute('href')).toBe(infoLandingUrl('features', undefined, 'system'));
+    expect(link!.getAttribute('href')).toBe(infoLandingUrl('features', undefined, 'dark'));
     expect(link!.getAttribute('target')).toBe('_blank');
     expect(link!.getAttribute('rel')).toBe('noopener noreferrer');
     expect(link!.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');

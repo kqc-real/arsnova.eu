@@ -143,8 +143,9 @@ const jsonLd = {
         try {
           stored = localStorage.getItem(KEY);
         } catch (_e) {}
+        // Default Dark, analog zur App; gespeicherte Werte und ?theme= haben Vorrang.
         var preference =
-          stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+          stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'dark';
         // Cross-Origin-Übergabe von arsnova.eu (Issue #207): gültiges ?theme= hat Vorrang.
         var transferred = null;
         try {
@@ -174,7 +175,7 @@ const jsonLd = {
         window.__arsnovaLandingTheme = {
           key: KEY,
           get: function () {
-            return root.getAttribute('data-landing-color-scheme') || 'system';
+            return root.getAttribute('data-landing-color-scheme') || 'dark';
           },
           set: function (value) {
             if (value !== 'light' && value !== 'dark' && value !== 'system') return;
@@ -399,7 +400,7 @@ const jsonLd = {
 
         function syncThemeOptions(root) {
           var api = window.__arsnovaLandingTheme;
-          var current = api ? api.get() : 'system';
+          var current = api ? api.get() : 'dark';
           root.querySelectorAll('[data-theme-option]').forEach(function (option) {
             var active = option.getAttribute('data-theme-option') === current;
             option.setAttribute('aria-pressed', active ? 'true' : 'false');

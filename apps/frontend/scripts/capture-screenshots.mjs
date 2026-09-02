@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
  * Erzeugt PWA-Manifest-Screenshots: Startseite plus Innenansichten aus dem
- * Praxis-Showcase-Demo-Quiz (Host-Beamer, Teilnehmenden-Abstimmung, Wortwolke).
+ * Praxis-Showcase-Demo-Quiz (Lobby, Host, Beamer, Wortwolke, Q&A, Blitzlicht,
+ * Rangliste) — 8 Wide in 1920×1080 (Desktop/1080p) und 5 Narrow in 440×956
+ * (iPhone 16 Pro). Komposition zielt auf die USPs: drei Kanäle in einer App,
+ * ohne Anmeldung, Beamer+QR, Teams/Nicknames, Wortwolke, Blitzlicht.
  *
  * Voraussetzung: Frontend unter SCREENSHOT_URL und tRPC unter TRPC_URL.
  * - Dev:  npm run dev:de  →  Defaults http://localhost:4200/ und http://localhost:4200/trpc
@@ -25,7 +28,7 @@ const distBrowser = join(__dirname, '..', 'dist', 'browser');
 const DEMO_QUIZ_JSON = join(__dirname, '../src/assets/demo/quiz-demo-showcase.de.json');
 const DEMO_QUIZ_HISTORY_SCOPE_ID = 'de500000-0000-4000-a000-000000000001';
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
-const PARTICIPANT_COUNT = 12;
+const PARTICIPANT_COUNT = 20;
 const FREETEXT_RESPONSES = [
   'Praxis',
   'Beispiele',
@@ -35,7 +38,20 @@ const FREETEXT_RESPONSES = [
   'Übung',
   'Klarheit',
   'Wiederholen',
+  'Diskussion',
+  'Anonym',
 ];
+const QA_QUESTIONS = [
+  'Kommt Kapitel 4 in der Klausur vor?',
+  'Könnt ihr das Beispiel noch einmal erklären?',
+  'Gibt es die Folien zum Download?',
+  'Wie lange bleibt der Session-Code gültig?',
+  'Wird die Wortwolke live aktualisiert?',
+  'Kann ich anonym mitmachen?',
+  'Brauche ich einen Account?',
+  'Geht das auch ohne App-Store?',
+];
+const MOOD_VOTES = ['POSITIVE', 'POSITIVE', 'POSITIVE', 'NEUTRAL', 'NEUTRAL', 'NEGATIVE'];
 
 const BASE_URL = (process.env.SCREENSHOT_URL || 'http://localhost:4200/').replace(/\/+$/, '') + '/';
 const HOME_ONLY = ['1', 'true', 'yes'].includes(
@@ -47,13 +63,19 @@ const origin = new URL(BASE_URL).origin;
 const appBase = `${origin}${new URL(BASE_URL).pathname.replace(/\/+$/, '')}`;
 const TRPC_URL = (process.env.TRPC_URL || `${origin}/trpc`).replace(/\/+$/, '');
 
-const WIDE = { width: 1280, height: 720 };
-const NARROW = { width: 390, height: 844 };
+const WIDE = { width: 1920, height: 1080 };
+const NARROW = { width: 440, height: 956 };
 
 const SCREENSHOT_CHROME_CSS = `
   .top-toolbar__motd-btn { display: none !important; }
   .home-motd-layer { display: none !important; }
   .app-footer, footer.app-footer { display: none !important; }
+  .cdk-overlay-container .mat-mdc-snack-bar-container { display: none !important; }
+  .vote-live-banner { display: none !important; }
+`;
+const SCREENSHOT_LIVE_CHROME_CSS = `
+  ${SCREENSHOT_CHROME_CSS}
+  .top-toolbar { display: none !important; }
 `;
 
 function sleep(ms) {
@@ -202,6 +224,45 @@ async function submitVotes(publicTrpc, participants, question) {
   }
 }
 
+async function submitQaQuestions(publicTrpc, participants) {
+  const settled = await Promise.allSettled(
+    QA_QUESTIONS.map((text, index) => {
+      const participant = participants[index % participants.length];
+      return publicTrpc.qa.submit.mutate({
+        sessionId: participant.id,
+        participantId: participant.participantId,
+        text,
+      });
+    }),
+  );
+  const failed = settled.filter((result) => result.status === 'rejected');
+  if (failed.length > 0) {
+    const message = failed[0].reason?.message ?? String(failed[0].reason);
+    throw new Error(
+      `${failed.length}/${QA_QUESTIONS.length} Q&A-Fragen fehlgeschlagen: ${message}`,
+    );
+  }
+}
+
+async function submitMoodVotes(publicTrpc, participants, code) {
+  const settled = await Promise.allSettled(
+    participants.map((participant, index) =>
+      publicTrpc.quickFeedback.vote.mutate({
+        sessionCode: code,
+        voterId: participant.participantId,
+        value: MOOD_VOTES[index % MOOD_VOTES.length],
+      }),
+    ),
+  );
+  const failed = settled.filter((result) => result.status === 'rejected');
+  if (failed.length > 0) {
+    const message = failed[0].reason?.message ?? String(failed[0].reason);
+    throw new Error(
+      `${failed.length}/${participants.length} Blitzlicht-Stimmen fehlgeschlagen: ${message}`,
+    );
+  }
+}
+
 async function preparePage(page) {
   await page.addInitScript(() => {
     try {
@@ -221,8 +282,10 @@ async function applyScreenshotTheme(page) {
   });
 }
 
-async function hideEnvironmentChrome(page) {
-  await page.addStyleTag({ content: SCREENSHOT_CHROME_CSS });
+async function hideEnvironmentChrome(page, { hideAppToolbar = false } = {}) {
+  await page.addStyleTag({
+    content: hideAppToolbar ? SCREENSHOT_LIVE_CHROME_CSS : SCREENSHOT_CHROME_CSS,
+  });
 }
 
 async function dismissMotdIfPresent(page) {
@@ -241,9 +304,10 @@ async function waitForHome(page) {
   await page.waitForTimeout(800);
 }
 
-async function captureViewport(page, filename) {
+async function captureViewport(page, filename, { hideAppToolbar = false } = {}) {
   await applyScreenshotTheme(page);
-  await hideEnvironmentChrome(page);
+  await hideEnvironmentChrome(page, { hideAppToolbar });
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(400);
   await page.screenshot({
     path: join(iconsDir, filename),
@@ -288,10 +352,50 @@ async function gotoSession(page, path, { hostToken, code } = {}) {
   await page.goto(`${appBase}${path}`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 }
 
+async function clickChannelTab(page, index) {
+  const labels = page.locator('.session-channel-tabs .session-channel-tabs__label');
+  await labels.nth(index).waitFor({ state: 'visible', timeout: 15_000 });
+  await labels.nth(index).evaluate((element) => {
+    const clickable = element.closest('button, [role="radio"], [role="button"]');
+    if (clickable instanceof HTMLElement) {
+      clickable.click();
+      return;
+    }
+    if (element instanceof HTMLElement) {
+      element.click();
+    }
+  });
+  await page.waitForTimeout(700);
+}
+
+async function waitForChannelTabs(page, expected = 3) {
+  await page.waitForFunction(
+    (minimum) =>
+      document.querySelectorAll('.session-channel-tabs .session-channel-tabs__label').length >=
+      minimum,
+    expected,
+    { timeout: 15_000 },
+  );
+}
+
+async function openPreparedPage(browser, viewport) {
+  const page = await browser.newPage();
+  await page.setViewportSize(viewport);
+  await preparePage(page);
+  return page;
+}
+
 async function captureLiveViews(browser, publicTrpc) {
   const payload = await loadDemoQuizUploadPayload();
   const uploadResult = await publicTrpc.quiz.upload.mutate(payload);
-  const sessionResult = await publicTrpc.session.create.mutate({ quizId: uploadResult.quizId });
+  const sessionResult = await publicTrpc.session.create.mutate({
+    quizId: uploadResult.quizId,
+    type: 'QUIZ',
+    qaEnabled: true,
+    qaModerationMode: false,
+    moderationMode: false,
+    quickFeedbackEnabled: true,
+  });
   const code = String(sessionResult.code).toUpperCase();
   const hostToken = sessionResult.hostToken;
   const hostTrpc = createTrpcClient(hostToken);
@@ -299,10 +403,93 @@ async function captureLiveViews(browser, publicTrpc) {
 
   const participants = await joinParticipants(publicTrpc, code, PARTICIPANT_COUNT);
 
+  const hostPage = await openPreparedPage(browser, WIDE);
+  await gotoSession(hostPage, `/session/${code}/host`, { hostToken, code });
+  await waitForChannelTabs(hostPage);
+
+  const presentPage = await openPreparedPage(browser, WIDE);
+  await gotoSession(presentPage, `/session/${code}/present`, { hostToken, code });
+  await presentPage
+    .locator('.session-present__lobby-stage, .session-present__lobby-code')
+    .first()
+    .waitFor({ state: 'visible', timeout: 20_000 });
+  await presentPage.waitForTimeout(800);
+  await captureViewport(presentPage, 'screenshot-wide-lobby.png', { hideAppToolbar: true });
+
+  await submitQaQuestions(publicTrpc, participants);
+  await clickChannelTab(hostPage, 1);
+  await presentPage
+    .locator(
+      '.session-present__qa-stage, .session-present__qa-card, .session-present__qa-list-card',
+    )
+    .first()
+    .waitFor({ state: 'visible', timeout: 20_000 })
+    .catch(async () => {
+      await hostPage.locator('.session-qa-list, .session-qa-card').first().waitFor({
+        state: 'visible',
+        timeout: 10_000,
+      });
+    });
+  const qaPresentVisible = await presentPage
+    .locator(
+      '.session-present__qa-stage, .session-present__qa-card, .session-present__qa-list-card',
+    )
+    .first()
+    .isVisible()
+    .catch(() => false);
+  await (qaPresentVisible ? presentPage : hostPage).waitForTimeout(800);
+  await captureViewport(qaPresentVisible ? presentPage : hostPage, 'screenshot-wide-qa.png', {
+    hideAppToolbar: true,
+  });
+
+  const voteQaPage = await openPreparedPage(browser, NARROW);
+  await gotoSession(voteQaPage, `/session/${code}/vote`);
+  await waitForChannelTabs(voteQaPage);
+  await clickChannelTab(voteQaPage, 1);
+  await voteQaPage.locator('#qa-draft').waitFor({ state: 'visible', timeout: 20_000 });
+  await voteQaPage.waitForTimeout(500);
+  await captureViewport(voteQaPage, 'screenshot-narrow-qa.png');
+  await voteQaPage.close();
+
+  await hostTrpc.quickFeedback.create.mutate({ type: 'MOOD', sessionCode: code });
+  await submitMoodVotes(publicTrpc, participants, code);
+  await clickChannelTab(hostPage, 2);
+  await presentPage
+    .locator('.session-present__feedback-card')
+    .waitFor({ state: 'visible', timeout: 20_000 })
+    .catch(async () => {
+      await hostPage
+        .locator('.feedback-host__results, .feedback-host__bar-count')
+        .first()
+        .waitFor({ state: 'visible', timeout: 10_000 });
+    });
+  const feedbackPresentVisible = await presentPage
+    .locator('.session-present__feedback-card')
+    .isVisible()
+    .catch(() => false);
+  await (feedbackPresentVisible ? presentPage : hostPage).waitForTimeout(800);
+  await captureViewport(
+    feedbackPresentVisible ? presentPage : hostPage,
+    'screenshot-wide-feedback.png',
+    { hideAppToolbar: true },
+  );
+
+  const voteFeedbackPage = await openPreparedPage(browser, NARROW);
+  await gotoSession(voteFeedbackPage, `/session/${code}/vote`);
+  await waitForChannelTabs(voteFeedbackPage);
+  await clickChannelTab(voteFeedbackPage, 2);
+  await voteFeedbackPage
+    .locator('.feedback-vote__mood-btn, .feedback-vote__abcd-btn, .feedback-vote__star-btn')
+    .first()
+    .waitFor({ state: 'visible', timeout: 20_000 });
+  await voteFeedbackPage.waitForTimeout(500);
+  await captureViewport(voteFeedbackPage, 'screenshot-narrow-feedback.png');
+  await voteFeedbackPage.close();
+
+  await clickChannelTab(hostPage, 0);
+
   const freetext = await skipUntilType(hostTrpc, publicTrpc, code, 'FREETEXT');
-  const voteCloudPage = await browser.newPage();
-  await voteCloudPage.setViewportSize(NARROW);
-  await preparePage(voteCloudPage);
+  const voteCloudPage = await openPreparedPage(browser, NARROW);
   await gotoSession(voteCloudPage, `/session/${code}/vote`);
   await voteCloudPage
     .locator('#vote-freetext-input')
@@ -314,22 +501,16 @@ async function captureLiveViews(browser, publicTrpc) {
   await submitVotes(publicTrpc, participants, freetext);
   await hostTrpc.session.revealResults.mutate({ code });
 
-  const presentPage = await browser.newPage();
-  await presentPage.setViewportSize(WIDE);
-  await preparePage(presentPage);
-  await gotoSession(presentPage, `/session/${code}/present`, { hostToken, code });
+  await presentPage.reload({ waitUntil: 'domcontentloaded' });
   await presentPage
     .locator('.word-cloud__word')
     .first()
     .waitFor({ state: 'visible', timeout: 30_000 });
   await presentPage.waitForTimeout(1200);
-  await captureViewport(presentPage, 'screenshot-wide-cloud.png');
-  await presentPage.close();
+  await captureViewport(presentPage, 'screenshot-wide-cloud.png', { hideAppToolbar: true });
 
   const quizQuestion = await skipUntilType(hostTrpc, publicTrpc, code, 'SINGLE_CHOICE');
-  const voteQuizPage = await browser.newPage();
-  await voteQuizPage.setViewportSize(NARROW);
-  await preparePage(voteQuizPage);
+  const voteQuizPage = await openPreparedPage(browser, NARROW);
   await gotoSession(voteQuizPage, `/session/${code}/vote`);
   await voteQuizPage.locator('.vote-answers').waitFor({ state: 'visible', timeout: 20_000 });
   await voteQuizPage
@@ -344,10 +525,8 @@ async function captureLiveViews(browser, publicTrpc) {
   await submitVotes(publicTrpc, participants, quizQuestion);
   await hostTrpc.session.revealResults.mutate({ code });
 
-  const hostPage = await browser.newPage();
-  await hostPage.setViewportSize(WIDE);
-  await preparePage(hostPage);
-  await gotoSession(hostPage, `/session/${code}/host`, { hostToken, code });
+  await hostPage.reload({ waitUntil: 'domcontentloaded' });
+  await waitForChannelTabs(hostPage);
   await hostPage
     .locator('.session-host__results-card')
     .waitFor({ state: 'visible', timeout: 20_000 });
@@ -356,13 +535,51 @@ async function captureLiveViews(browser, publicTrpc) {
     .first()
     .waitFor({ state: 'visible', timeout: 15_000 })
     .catch(() => {});
-  const questionCard = hostPage.locator('.session-host__question-card').first();
-  if (await questionCard.count()) {
-    await questionCard.scrollIntoViewIfNeeded().catch(() => {});
-  }
+  await hostPage
+    .locator('.session-host__interim-leaderboard')
+    .first()
+    .waitFor({ state: 'visible', timeout: 8_000 })
+    .catch(() => {});
   await hostPage.waitForTimeout(800);
-  await captureViewport(hostPage, 'screenshot-wide-quiz.png');
+  await captureViewport(hostPage, 'screenshot-wide-quiz.png', { hideAppToolbar: true });
+
+  await presentPage.reload({ waitUntil: 'domcontentloaded' });
+  await presentPage
+    .locator(
+      '.session-present__question, .session-projection-quiz, img[src*="Bettgestell"], img[src*="Dachspitze"]',
+    )
+    .first()
+    .waitFor({ state: 'visible', timeout: 20_000 })
+    .catch(() => {});
+  await presentPage.waitForTimeout(800);
+  await captureViewport(presentPage, 'screenshot-wide-present.png', { hideAppToolbar: true });
+
+  await hostTrpc.session.end.mutate({ code });
+  await presentPage.waitForTimeout(400);
+  await presentPage.reload({ waitUntil: 'domcontentloaded' });
+  const presentFinish = presentPage
+    .locator('.session-present__winner-card, .session-present__finish-hero')
+    .first();
+  const presentFinishVisible = await presentFinish
+    .waitFor({ state: 'visible', timeout: 20_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (presentFinishVisible) {
+    await presentPage.waitForTimeout(900);
+    await captureViewport(presentPage, 'screenshot-wide-leaderboard.png', { hideAppToolbar: true });
+  } else {
+    await hostPage.reload({ waitUntil: 'domcontentloaded' });
+    const hostBoard = hostPage
+      .locator('.session-host__leaderboard-card, .session-host__interim-leaderboard')
+      .first();
+    await hostBoard.waitFor({ state: 'visible', timeout: 20_000 });
+    await hostBoard.scrollIntoViewIfNeeded().catch(() => {});
+    await hostPage.waitForTimeout(600);
+    await captureViewport(hostPage, 'screenshot-wide-leaderboard.png', { hideAppToolbar: true });
+  }
+
   await hostPage.close();
+  await presentPage.close();
 }
 
 async function main() {

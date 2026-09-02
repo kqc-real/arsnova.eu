@@ -13,55 +13,61 @@
   "lang": "de",
   "icons": [
     {
-      "src": "/assets/icons/icon-72x72.png?v=2",
+      "src": "/assets/icons/icon-72x72.png?v=5",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-96x96.png?v=2",
+      "src": "/assets/icons/icon-96x96.png?v=5",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-128x128.png?v=2",
+      "src": "/assets/icons/icon-128x128.png?v=5",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-144x144.png?v=2",
+      "src": "/assets/icons/icon-144x144.png?v=5",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-152x152.png?v=2",
+      "src": "/assets/icons/icon-152x152.png?v=5",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-192x192.png?v=2",
+      "src": "/assets/icons/icon-192x192.png?v=5",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-384x384.png?v=2",
+      "src": "/assets/icons/icon-384x384.png?v=5",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-512x512.png?v=2",
+      "src": "/assets/icons/icon-512x512.png?v=5",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-maskable-512x512.png?v=2",
+      "src": "/assets/icons/icon-maskable-192x192.png?v=5",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512x512.png?v=5",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -69,46 +75,149 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/icons/screenshot-wide.png?v=7",
-      "sizes": "1280x720",
+      "src": "/assets/icons/screenshot-wide.png?v=10",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "arsnova.eu – Startseite"
+      "label": "Quiz, Q&A und Blitzlicht – ohne Anmeldung"
     },
     {
-      "src": "/assets/icons/screenshot-wide-quiz.png?v=7",
-      "sizes": "1280x720",
+      "src": "/assets/icons/screenshot-wide-lobby.png?v=10",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "arsnova.eu – Live-Quiz aus dem Demo"
+      "label": "Beitritt per QR-Code – ohne Account"
     },
     {
-      "src": "/assets/icons/screenshot-wide-cloud.png?v=7",
-      "sizes": "1280x720",
+      "src": "/assets/icons/screenshot-wide-quiz.png?v=10",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "arsnova.eu – Wortwolke aus dem Demo-Quiz"
+      "label": "Live-Quiz, Q&A und Blitzlicht in einer Session"
     },
     {
-      "src": "/assets/icons/screenshot-narrow.png?v=7",
-      "sizes": "390x844",
+      "src": "/assets/icons/screenshot-wide-present.png?v=10",
+      "sizes": "1920x1080",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "arsnova.eu – Startseite am Handy"
+      "form_factor": "wide",
+      "label": "Beamer-Ansicht für Hörsaal und Workshop"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-quiz.png?v=7",
-      "sizes": "390x844",
+      "src": "/assets/icons/screenshot-wide-cloud.png?v=10",
+      "sizes": "1920x1080",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "arsnova.eu – Abstimmung im Demo-Quiz"
+      "form_factor": "wide",
+      "label": "Wortwolke live aus dem Publikum"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-cloud.png?v=7",
-      "sizes": "390x844",
+      "src": "/assets/icons/screenshot-wide-qa.png?v=10",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Fragen aus dem Publikum – ohne Login"
+    },
+    {
+      "src": "/assets/icons/screenshot-wide-feedback.png?v=10",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Blitzlicht: Stimmung in Sekunden"
+    },
+    {
+      "src": "/assets/icons/screenshot-wide-leaderboard.png?v=10",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Rangliste mit Teams und Nicknames"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow.png?v=10",
+      "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "arsnova.eu – Freitext im Demo-Quiz"
+      "label": "Ohne Anmeldung live mitmachen"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-quiz.png?v=10",
+      "sizes": "440x956",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Abstimmen am Handy – ohne Account"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-cloud.png?v=10",
+      "sizes": "440x956",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Freitext wird zur Wortwolke"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-qa.png?v=10",
+      "sizes": "440x956",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Anonym Fragen stellen"
+    },
+    {
+      "src": "/assets/icons/screenshot-narrow-feedback.png?v=10",
+      "sizes": "440x956",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Stimmungsbild mit einem Tipp"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Code eingeben",
+      "short_name": "Code",
+      "description": "Session-Code eingeben und ohne Anmeldung mitmachen",
+      "url": "/join?homescreen=1",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-join.png?v=3",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz erstellen",
+      "short_name": "Quiz",
+      "description": "Neues Quiz vorbereiten, lokal im Browser",
+      "url": "/quiz/new?homescreen=1",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-quiz.png?v=3",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Q&A öffnen",
+      "short_name": "Q&A",
+      "description": "Fragen aus dem Publikum sammeln",
+      "url": "/?homescreen=1&host=qa",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-qa.png?v=3",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Blitzlicht starten",
+      "short_name": "Blitzlicht",
+      "description": "Stimmung oder Tempo in Sekunden abfragen",
+      "url": "/?homescreen=1&host=quickFeedback",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-feedback.png?v=3",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
