@@ -53,8 +53,9 @@ export const INFO_LANDING_THEME_BRIDGE_FRONTEND = [
 
 /**
  * Pure Prüfung: unzulässige Theme-/Frontend-Vermischung?
- * Style-Scope + jedes Frontend = Verstoß.
- * BaseLayout + nur Info-Landing-Bridge-Frontend = erlaubt (Issue #207).
+ * Style-Scope + jedes Frontend = Verstoß (Issue #199, keine Token-Vermischung).
+ * BaseLayout-FOUC ohne Style-Dateien darf mit App-Frontend zusammenliegen
+ * (Default-Theme muss in App und Landing gleich sein).
  * @param {string[]} changedPaths relative Repo-Pfade aus git diff --name-only
  */
 export function frontendIsolationViolation(changedPaths) {
@@ -65,12 +66,7 @@ export function frontendIsolationViolation(changedPaths) {
   if (frontendPaths.length === 0) return false;
 
   const styleTouched = paths.some((path) => LANDING_THEME_STYLE_SCOPE.includes(path));
-  if (styleTouched) return true;
-
-  const themeTouched = paths.some((path) => LANDING_THEME_SCOPE.includes(path));
-  if (!themeTouched) return false;
-
-  return frontendPaths.some((path) => !INFO_LANDING_THEME_BRIDGE_FRONTEND.includes(path));
+  return styleTouched;
 }
 
 function walk(dir, files = []) {

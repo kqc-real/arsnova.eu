@@ -165,6 +165,7 @@
     "ip-address": "$ip-address",
     "js-yaml": "$js-yaml",
     "minimatch": "^10.2.1",
+    "mysql2": "^3.22.0",
     "nanoid": "3.3.18",
     "postcss": "8.5.23",
     "sharp": "^0.35.0",

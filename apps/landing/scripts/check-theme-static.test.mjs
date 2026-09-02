@@ -57,13 +57,14 @@ test('BaseLayout + Info-Landing-Bridge-Frontend ist für Issue #207 erlaubt', ()
   );
 });
 
-test('BaseLayout + fremdes Frontend bleibt verboten', () => {
+test('BaseLayout-FOUC + App-Frontend ist erlaubt', () => {
   assert.equal(
     frontendIsolationViolation([
       'apps/landing/src/layouts/BaseLayout.astro',
       'apps/frontend/src/app/features/home/home.component.ts',
+      'apps/frontend/src/app/core/theme-preset.service.ts',
     ]),
-    true,
+    false,
   );
 });
 
