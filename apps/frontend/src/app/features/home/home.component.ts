@@ -636,13 +636,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return recentHostCode;
     }
 
-    if (/^[A-Z0-9]{6}$/.test(inputCode)) {
-      return inputCode;
-    }
-
-    return (
-      this.recentSessionCodes().find((entry) => /^[A-Z0-9]{6}$/.test(entry.code))?.code ?? null
-    );
+    return null;
   }
 
   private isHeroTabAvailableForSession(

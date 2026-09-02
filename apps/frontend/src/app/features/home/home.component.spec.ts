@@ -7,6 +7,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
+import { clearHostToken, setHostToken } from '../../core/host-session-token';
 
 const { setFeedbackHostTokenMock } = vi.hoisted(() => ({
   setFeedbackHostTokenMock: vi.fn(),
@@ -145,6 +146,8 @@ describe('HomeComponent', () => {
     TestBed.resetTestingModule();
     localStorage.clear();
     sessionStorage.clear();
+    clearHostToken('TEST01');
+    clearHostToken('PART01');
   });
 
   describe('Accessibility', () => {
@@ -872,6 +875,7 @@ describe('HomeComponent', () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.getInfo.query).mockClear();
       vi.mocked(trpc.session.getInfoForReconnect.query).mockClear();
+      setHostToken('TEST01', 'host-token-test01');
       const comp = createHomeComponent();
       comp.sessionCode.set('TEST01');
       vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -883,6 +887,26 @@ describe('HomeComponent', () => {
         anonymousClientId: expect.any(String),
       });
       expect(trpc.session.getInfo.query).not.toHaveBeenCalled();
+      clearHostToken('TEST01');
+    });
+
+    it('startet eine neue Host-Session wenn nur ein Teilnehmer-Code ohne Host-Token bekannt ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa-new',
+        code: 'QA0001',
+        hostToken: 'qa-new-token',
+      });
+      const comp = createHomeComponent();
+      comp.sessionCode.set('PART01');
+      comp.recentSessionCodes.set([{ code: 'PART01', usedAt: Date.now() }]);
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA0001/host?tab=qa');
     });
 
     it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
@@ -1046,6 +1070,37 @@ describe('HomeComponent', () => {
         expect.objectContaining({ qaEnabled: true }),
       );
       expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa');
+    });
+
+    it('erstellt bei PWA-Shortcut eine neue Session trotz bekanntem Teilnehmer-Code ohne Host-Token', async () => {
+      localStorage.setItem(
+        'home-recent-sessions',
+        JSON.stringify([{ code: 'PART01', usedAt: Date.now() }]),
+      );
+      setRouteQueryParams({ host: 'qa', homescreen: '1' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa-shortcut-part',
+        code: 'QA8888',
+        hostToken: 'qa-shortcut-part-token',
+      });
+      const router = TestBed.inject(Router);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navigateSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ qaEnabled: true }),
+      );
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA8888/host?tab=qa');
+      expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('PART01'));
     });
 
     it('startet Blitzlicht aus ?host=quickFeedback über denselben Host-Flow wie der Hero-Chip', async () => {

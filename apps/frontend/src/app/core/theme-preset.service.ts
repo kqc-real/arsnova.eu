@@ -10,6 +10,8 @@ const STORAGE_THEME = 'home-theme';
 const STORAGE_PRESET = 'home-preset';
 const PRESET_UPDATED_EVENT = 'arsnova:preset-updated';
 const DEFAULT_THEME: ThemeValue = 'dark';
+const THEME_COLOR_LIGHT = '#f5f5f5';
+const THEME_COLOR_DARK = '#1c1b1f';
 
 @Injectable({ providedIn: 'root' })
 export class ThemePresetService {
@@ -83,6 +85,28 @@ export class ThemePresetService {
       root.classList.add('dark');
     } else if (selected === 'light') {
       root.classList.add('light');
+    }
+    this.applyThemeColor(selected);
+  }
+
+  private applyThemeColor(selected: ThemeValue): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    const metas = Array.from(this.doc.querySelectorAll('meta[name="theme-color"]'));
+    if (metas.length === 0) {
+      return;
+    }
+    if (selected === 'system') {
+      for (const meta of metas) {
+        const media = meta.getAttribute('media') ?? '';
+        meta.setAttribute('content', media.includes('dark') ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+      }
+      return;
+    }
+    const color = selected === 'light' ? THEME_COLOR_LIGHT : THEME_COLOR_DARK;
+    for (const meta of metas) {
+      meta.setAttribute('content', color);
     }
   }
 

@@ -1,10 +1,30 @@
 import { TestBed } from '@angular/core/testing';
 import { ThemePresetService } from './theme-preset.service';
 
+function ensureThemeColorMetas(): void {
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.remove());
+  const light = document.createElement('meta');
+  light.setAttribute('name', 'theme-color');
+  light.setAttribute('media', '(prefers-color-scheme: light)');
+  light.setAttribute('content', '#f5f5f5');
+  const dark = document.createElement('meta');
+  dark.setAttribute('name', 'theme-color');
+  dark.setAttribute('media', '(prefers-color-scheme: dark)');
+  dark.setAttribute('content', '#1c1b1f');
+  document.head.append(light, dark);
+}
+
+function themeColors(): string[] {
+  return [...document.querySelectorAll('meta[name="theme-color"]')].map(
+    (meta) => meta.getAttribute('content') ?? '',
+  );
+}
+
 describe('ThemePresetService', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('dark', 'light', 'preset-playful');
+    ensureThemeColorMetas();
     TestBed.resetTestingModule();
   });
 
@@ -20,6 +40,7 @@ describe('ThemePresetService', () => {
     expect(localStorage.getItem('home-theme')).toBeNull();
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.classList.contains('light')).toBe(false);
+    expect(themeColors()).toEqual(['#1c1b1f', '#1c1b1f']);
   });
 
   it('respektiert gespeichertes System-Theme ohne html.dark oder html.light', () => {
@@ -29,6 +50,7 @@ describe('ThemePresetService', () => {
     expect(service.theme()).toBe('system');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(document.documentElement.classList.contains('light')).toBe(false);
+    expect(themeColors()).toEqual(['#f5f5f5', '#1c1b1f']);
   });
 
   it('schreibt das Theme bei unverändertem Wert nicht erneut ins DOM', () => {
@@ -43,6 +65,7 @@ describe('ThemePresetService', () => {
       service.setTheme('light');
       expect(domEvents).toBe(1);
       expect(document.documentElement.classList.contains('light')).toBe(true);
+      expect(themeColors()).toEqual(['#f5f5f5', '#f5f5f5']);
 
       domEvents = 0;
       service.setTheme('light');

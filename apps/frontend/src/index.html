@@ -3,13 +3,38 @@
   <head>
     <meta charset="utf-8" />
     <base href="/" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f5" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1b1f" />
     <!-- Vor erstem Paint: Klassen wie ThemePresetService (localStorage). Default Dark, sonst Flash. -->
     <script>
       (function () {
+        var LIGHT = '#f5f5f5';
+        var DARK = '#1c1b1f';
+        function syncThemeColor(theme) {
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          if (theme === 'system') {
+            metas.forEach(function (meta) {
+              var media = meta.getAttribute('media') || '';
+              meta.setAttribute('content', media.indexOf('dark') !== -1 ? DARK : LIGHT);
+            });
+            return;
+          }
+          var color = theme === 'light' ? LIGHT : DARK;
+          metas.forEach(function (meta) {
+            meta.setAttribute('content', color);
+          });
+        }
         try {
           var t = localStorage.getItem('home-theme');
-          if (t === 'light') document.documentElement.classList.add('light');
-          else if (t !== 'system') document.documentElement.classList.add('dark');
+          if (t === 'light') {
+            document.documentElement.classList.add('light');
+            syncThemeColor('light');
+          } else if (t === 'system') {
+            syncThemeColor('system');
+          } else {
+            document.documentElement.classList.add('dark');
+            syncThemeColor('dark');
+          }
           var p = localStorage.getItem('home-preset');
           if (p === 'serioes') p = 'serious';
           if (p === 'serious') {
@@ -19,6 +44,7 @@
           }
         } catch (_e) {
           document.documentElement.classList.add('dark', 'preset-playful');
+          syncThemeColor('dark');
         }
       })();
     </script>
@@ -31,12 +57,10 @@
       i18n-content="@@seo.descHome"
       content="Interaktive Sessions, Quiz &amp; Feedback – Made in Europe. Seit 2012 die DSGVO-konforme Lösung für Schule, Uni &amp; Business. Jetzt arsnova.eu entdecken!"
     />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f5" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1b1f" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="arsnova.eu" />
-    <meta name="format-detection" content="telephone=no" />
     <!-- Open Graph / Twitter: Basis; og:url, og:title, … aktualisiert SeoService pro Route -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="arsnova.eu" />
