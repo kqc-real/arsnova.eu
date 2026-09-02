@@ -118,12 +118,8 @@ export class TopToolbarComponent {
   /** true wenn URL-Locale ≠ de, aber nur ein Build (z. B. Dev) → Hinweis anzeigen. */
   showSingleLocaleHint = signal(false);
 
-  /** true wenn gescrollt wurde (stärkerer Schatten). */
+  /** true wenn der App-Shell-Container gescrollt wurde (stärkerer Schatten). */
   @Input() scrolled = false;
-  /** Help/Legal: Toolbar fixiert, kann beim Runterscrollen ausgeblendet werden. */
-  @Input() hideOnScroll = false;
-  /** Bei hideOnScroll: Toolbar ausgeblendet (translateY -100%). */
-  @Input() toolbarHidden = false;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {

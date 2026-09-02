@@ -302,22 +302,22 @@ ebenfalls zum Nutzungskontext.
 
 #### Auswirkungen der bisher umgesetzten Änderungen
 
-| Änderung                                      | Auswirkung auf die bisherige UX                                         | Allgemeiner Nutzen                                                      | Zu prüfendes Risiko                                                     |
-| --------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| sichtbare Labels für Freitext und Kurzantwort | etwas mehr vertikaler Platz; teilweise Wiederholung des Placeholders    | Feldzweck bleibt während der Eingabe sichtbar                           | Dichte und Textwiederholung auf kleinen Viewports                       |
-| Vote-Submit bei `click` statt `pointerdown`   | wenige Millisekunden spätere Auslösung                                  | Aktion kann vor dem Loslassen abgebrochen werden; weniger Fehlbedienung | Verhalten exakt am Timerende                                            |
-| Sterne als Radiogruppe                        | Maus und Optik bleiben gleich; pro Gruppe nur noch ein Tabstopp         | kürzere Tab-Reihenfolge und erwartbare Pfeiltastenbedienung             | Tastaturmuster und Fokusdarstellung                                     |
-| nur ein Tabstopp am Session-Code              | kein visueller Unterschied                                              | weniger unnötige Tastaturschritte                                       | Click auf den visuellen Wrapper muss weiter das Eingabefeld fokussieren |
-| Markdown-Felder mit echten Labels             | kein visueller Unterschied, da vorhandene Labels wiederverwendet werden | größere Click-Fläche und verständlicher Feldname                        | eindeutige IDs bei dynamischen Antwortfeldern                           |
-| Fokus nach SPA-Navigation                     | für Mausbedienung meist unsichtbar; eventuell sichtbarer Fokusrahmen    | neuer Seitenanfang ist sofort auffindbar und wird angekündigt           | überraschender Fokuswechsel oder konkurrierender Autofokus              |
-| Toolbar erscheint bei Tastaturfokus           | beim Durchtabben wird die ausgeblendete Toolbar wieder sichtbar         | fokussierte Controls bleiben sichtbar und bedienbar                     | unerwartete Bewegung; Reduced Motion beachten                           |
-| Focus Traps in modalen Overlays               | Optik bleibt gleich; Initialfokus kann als Fokusrahmen sichtbar sein    | Tab bleibt im Dialog; Hintergrundbedienung wird verhindert              | unerwarteter Initialfokus oder nicht erreichbarer Schließen-Button      |
-| Fokus-Rückgabe nach Dialogende                | normalerweise unsichtbar                                                | Arbeit wird am auslösenden Control fortgesetzt                          | Auslöser kann während des Dialogs aus dem DOM verschwinden              |
-| inerte Hintergründe bei MOTD und Tempo-Hilfe  | Hintergrund reagiert während des Dialogs nicht                          | verhindert versehentliche Eingaben und unklare Fokuswechsel             | Overlay muss auf allen Viewports zuverlässig schließbar bleiben         |
-| persönliche Zeitanpassung                     | Disclosure in der Vote-Ansicht (Lobby aufgeklappt, Abstimmung zu)       | individuelle Bedienzeit ohne Änderung des gemeinsamen Quizablaufs       | Verständlichkeit, Platzbedarf und Screenreader-Ausgabe                  |
-| lokale Punktvorschau                          | sichtbare Zahl neben dem Countdown                                      | zeitabhängige Wertung wird vor der Abgabe transparent                   | keine irreführende Aussage in der Nachlaufzeit oder Live-Region-Spam    |
-| Host-Hinweis auf offene Zeitfenster           | zusätzliche Statuskarte oberhalb der Ergebnisaktion                     | Host trifft eine informierte Entscheidung über das Ende der Eingabe     | Aktionsleiste darf bei Zoom und Mobile nicht verdeckt werden            |
-| Offline-Banner verschiebt fixe Toolbar        | Toolbar liegt bei Offline-Zustand etwas tiefer                          | Logo, Einstellungen und Fokus bleiben sichtbar                          | dynamische Bannerhöhe und lange Übersetzungen                           |
+| Änderung                                      | Auswirkung auf die bisherige UX                                                                                             | Allgemeiner Nutzen                                                      | Zu prüfendes Risiko                                                     |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| sichtbare Labels für Freitext und Kurzantwort | etwas mehr vertikaler Platz; teilweise Wiederholung des Placeholders                                                        | Feldzweck bleibt während der Eingabe sichtbar                           | Dichte und Textwiederholung auf kleinen Viewports                       |
+| Vote-Submit bei `click` statt `pointerdown`   | wenige Millisekunden spätere Auslösung                                                                                      | Aktion kann vor dem Loslassen abgebrochen werden; weniger Fehlbedienung | Verhalten exakt am Timerende                                            |
+| Sterne als Radiogruppe                        | Maus und Optik bleiben gleich; pro Gruppe nur noch ein Tabstopp                                                             | kürzere Tab-Reihenfolge und erwartbare Pfeiltastenbedienung             | Tastaturmuster und Fokusdarstellung                                     |
+| nur ein Tabstopp am Session-Code              | kein visueller Unterschied                                                                                                  | weniger unnötige Tastaturschritte                                       | Click auf den visuellen Wrapper muss weiter das Eingabefeld fokussieren |
+| Markdown-Felder mit echten Labels             | kein visueller Unterschied, da vorhandene Labels wiederverwendet werden                                                     | größere Click-Fläche und verständlicher Feldname                        | eindeutige IDs bei dynamischen Antwortfeldern                           |
+| Fokus nach SPA-Navigation                     | für Mausbedienung meist unsichtbar; eventuell sichtbarer Fokusrahmen                                                        | neuer Seitenanfang ist sofort auffindbar und wird angekündigt           | überraschender Fokuswechsel oder konkurrierender Autofokus              |
+| Toolbar erscheint bei Tastaturfokus           | historisch bei Hide-on-Scroll: Toolbar wurde beim Durchtabben wieder sichtbar; seit 2026-09-02 bleibt die Toolbar angepinnt | fokussierte Controls bleiben sichtbar und bedienbar                     | entfallen, solange die Toolbar nicht mehr ausblendet                    |
+| Focus Traps in modalen Overlays               | Optik bleibt gleich; Initialfokus kann als Fokusrahmen sichtbar sein                                                        | Tab bleibt im Dialog; Hintergrundbedienung wird verhindert              | unerwarteter Initialfokus oder nicht erreichbarer Schließen-Button      |
+| Fokus-Rückgabe nach Dialogende                | normalerweise unsichtbar                                                                                                    | Arbeit wird am auslösenden Control fortgesetzt                          | Auslöser kann während des Dialogs aus dem DOM verschwinden              |
+| inerte Hintergründe bei MOTD und Tempo-Hilfe  | Hintergrund reagiert während des Dialogs nicht                                                                              | verhindert versehentliche Eingaben und unklare Fokuswechsel             | Overlay muss auf allen Viewports zuverlässig schließbar bleiben         |
+| persönliche Zeitanpassung                     | Disclosure in der Vote-Ansicht (Lobby aufgeklappt, Abstimmung zu)                                                           | individuelle Bedienzeit ohne Änderung des gemeinsamen Quizablaufs       | Verständlichkeit, Platzbedarf und Screenreader-Ausgabe                  |
+| lokale Punktvorschau                          | sichtbare Zahl neben dem Countdown                                                                                          | zeitabhängige Wertung wird vor der Abgabe transparent                   | keine irreführende Aussage in der Nachlaufzeit oder Live-Region-Spam    |
+| Host-Hinweis auf offene Zeitfenster           | zusätzliche Statuskarte oberhalb der Ergebnisaktion                                                                         | Host trifft eine informierte Entscheidung über das Ende der Eingabe     | Aktionsleiste darf bei Zoom und Mobile nicht verdeckt werden            |
+| Offline-Banner verschiebt fixe Toolbar        | Toolbar liegt bei Offline-Zustand etwas tiefer                                                                              | Logo, Einstellungen und Fokus bleiben sichtbar                          | dynamische Bannerhöhe und lange Übersetzungen                           |
 
 Der lokalisierte Build und Unit-Tests sichern Semantik und Verhalten ab,
 ersetzen aber keine visuelle Freigabe. Die sichtbaren Vote-Labels und das
@@ -571,11 +571,16 @@ gestaffelt.
 setzt den Hidden-State im App-Shell zurück; `:focus-within` macht die Toolbar
 bereits im selben Rendering-Zyklus sichtbar.
 
+**Umsetzungsstand 2026-09-02:** Hide-on-Scroll ist entfernt. Die Toolbar bleibt
+über dem App-Shell-Scrollcontainer sichtbar; der Fokus-Workaround aus PR #89
+entfällt damit. WCAG 2.4.11 gilt für diesen Pfad nicht mehr.
+
 **Ausgangsbefund:** Die ausgeblendete Toolbar wurde per `transform` vollständig aus dem Viewport
 geschoben. Ihre Controls bleiben grundsätzlich Bestandteil der
 Tab-Reihenfolge.
 
-**Umgesetzt:** Die Toolbar wird bei `focusin` sofort eingeblendet.
+**Umgesetzt (PR #89):** Die Toolbar wurde bei `focusin` sofort eingeblendet.
+Seit 2026-09-02 bleibt sie dauerhaft sichtbar.
 
 ### 5.11 Drag-and-drop ohne Ein-Zeiger-Alternative
 

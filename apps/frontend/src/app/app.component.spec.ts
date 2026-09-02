@@ -330,19 +330,23 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('blendet eine versteckte Toolbar ein, sobald ein enthaltenes Element Fokus erhält', () => {
+  it('setzt die Toolbar-Elevation, sobald #main-content gescrollt wird', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    fixture.componentInstance.toolbarHidden.set(true);
-    fixture.detectChanges();
-    const brand = fixture.nativeElement.querySelector(
-      'app-top-toolbar .top-toolbar__brand',
-    ) as HTMLAnchorElement;
+    const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
+    expect(fixture.componentInstance.hasScrolled()).toBe(false);
 
-    brand.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    Object.defineProperty(main, 'scrollTop', { configurable: true, value: 48 });
+    main.dispatchEvent(new Event('scroll'));
 
-    expect(fixture.componentInstance.toolbarHidden()).toBe(false);
+    expect(fixture.componentInstance.hasScrolled()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.top-toolbar--fixed')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.top-toolbar--hidden')).toBeNull();
+
+    Object.defineProperty(main, 'scrollTop', { configurable: true, value: 0 });
+    main.dispatchEvent(new Event('scroll'));
+    expect(fixture.componentInstance.hasScrolled()).toBe(false);
     fixture.destroy();
   });
 

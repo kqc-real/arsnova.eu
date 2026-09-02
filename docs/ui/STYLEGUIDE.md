@@ -2,7 +2,7 @@
 
 # UI Styleguide (Angular Material 3)
 
-**Stand:** 2026-07-05 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
+**Stand:** 2026-09-02 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
 
 ## Ziel und Geltungsbereich
 
@@ -259,12 +259,11 @@ Tokenbasierte Card-Flaeche:
 ## Top-Toolbar und Scroll-Verhalten (seitenuebergreifend)
 
 - **Inhalt:** Logo (Link zur Startseite). **Desktop:** Preset-Umschalter (Serioes/Spielerisch), Theme-Umschalter (System/Dark/Light), Sprachauswahl. **Mobile (Hamburger):** Theme und Sprache in **einer Zeile**, gleichmäßig verteilt; Preset liegt auf der Startseite im Hero (`home-hero-preset-mobile`). Die Toolbar erscheint auf **allen** Seiten (Startseite, Quiz, Session, Help, Legal).
-- **Position:** Die Toolbar ist **fixiert** (position: fixed), damit Hide-on-Scroll funktioniert. Der Hauptinhalt (`main`) erhaelt `padding-top: 3.5rem`, damit nichts unter der Toolbar verschwindet.
-- **Hide-on-Scroll (UX-Empfehlung):** Entsprechend Material Design und UX-Research (Hybrid-Pattern) gilt auf **allen** Seiten: Beim **Runterscrollen** (ab ca. 80 px) wird die Toolbar ausgeblendet (transform translateY(-100%)), beim **Hochscrollen** erscheint sie wieder. So bleibt mehr Platz fuer Inhalt beim Lesen, die Navigation ist beim Hochscrollen sofort wieder da. Animation der Ein-/Ausblendung nur bei `prefers-reduced-motion: no-preference`.
-- **Scroll-Elevation:** Sobald gescrollt wurde (scrollY > 0), erhaelt die Toolbar einen staerkeren Schatten (`--mat-sys-level2`) zur Abhebung vom Inhalt (Material/Apple-konform).
+- **Position:** Die Toolbar ist **fixiert** (`position: fixed`) über dem App-Shell-Scrollcontainer (`#main-content` / `.app-main`). Der Hauptinhalt erhaelt oben Padding (`.app-main--toolbar-fixed`), damit nichts unter der Toolbar verschwindet. Home, MOTD und Einstellungen bleiben damit auf allen Viewports erreichbar; Hide-on-Scroll entfaellt, weil arsnova eine Werkzeug-UI ist (Material-3-Pinned-Bar, Apple Navigation Bar) und der Inhalt nicht im Fenster, sondern in `#main-content` scrollt.
+- **Scroll-Elevation:** Sobald `#main-content` gescrollt wurde (`scrollTop > 0`), erhaelt die Toolbar einen staerkeren Schatten (`--mat-sys-level2`) zur Abhebung vom Inhalt (Material/Apple-konform). Nach Navigation an den Seitenanfang entfaellt die Elevation wieder.
 - **Preset Spielerisch:** Die Top-Toolbar nutzt **dieselbe visuelle Sprache** wie Startseiten-Bühne/Hero: **Primary-/Tertiary-Verlauf** auf `surface-container`, **Primary-Rand**, **`--app-shadow-accent`**, **Innenlicht** (`inset`), dezent **radialer Highlight** oben rechts (nur bei `prefers-reduced-motion: no-preference`). **Gescrollt:** zusaetzlicher **Primary-Tiefenschatten**. **Brand-SVG:** leichtes **Pulsieren** (`home-playful-brand-pulse`), Preset-Toggle **checked** mit **primary-container**-Flaeche; **Spielerisch-Icon** in Primary. **Mobile-Ausklappbereich:** Trennlinie primary-getoent; **Locale-Hinweis** (Dev) mit leicht getoenter Fläche und Rand.
 - **Mobile:** Kompakte Hoehe (min-height 48 px, reduziertes Padding 0.5 rem / 0.75 rem), damit die Toolbar wenig Platz wegnimmt.
-- **Bei Navigation:** Beim Seitenwechsel (NavigationEnd) wird die Toolbar wieder eingeblendet (sichtbar beim Landen auf einer neuen Seite).
+- **Bei Navigation:** Beim Seitenwechsel wird `#main-content` an den Anfang gesetzt; die Toolbar bleibt sichtbar, die Scroll-Elevation entfaellt.
 - **Fokus-Steuerung:** Beim Anzeigen der Preset-Snackbar oder des Preset-Toasts wird das fokussierte Eingabefeld (z. B. Session-Code auf der Startseite) geblurt, damit die virtuelle Tastatur auf Mobile schliesst und Snackbar/Toast nicht ueberdeckt. Beim Schliessen wird optional wieder fokussiert (PresetSnackbarFocusService). Startseite registriert den Session-Code-Input; Toolbar ruft nach Sprach-/Theme-Wechsel refocusInput auf.
 
 ## Wording: Anrede und Typografie

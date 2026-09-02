@@ -281,6 +281,11 @@ Beim Durchtabben kann die zuvor ausgeblendete Toolbar wieder erscheinen. Diese
 Bewegung ist funktional notwendig, darf aber nicht überraschend animiert sein.
 Die bestehende Reduced-Motion-Regel bleibt wirksam.
 
+**Aktueller Stand 2026-09-02**
+
+Hide-on-Scroll wurde entfernt. Die Toolbar bleibt angepinnt; `focusin` und
+`:focus-within` für die Wiederanzeige entfallen.
+
 ### 3. Prüfung fixierter Aktionsleisten
 
 Die fixierten Vote- und Host-Aktionsleisten besitzen bereits
