@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <base href="/" />
-    <!-- Vor erstem Paint: Klassen wie ThemePresetService (localStorage), sonst kurzer Light-Flash bei OS hell + Theme dunkel. -->
+    <!-- Vor erstem Paint: Klassen wie ThemePresetService (localStorage). Default Dark, sonst Flash. -->
     <script>
       (function () {
         try {
           var t = localStorage.getItem('home-theme');
-          if (t === 'dark') document.documentElement.classList.add('dark');
-          else if (t === 'light') document.documentElement.classList.add('light');
+          if (t === 'light') document.documentElement.classList.add('light');
+          else if (t !== 'system') document.documentElement.classList.add('dark');
           var p = localStorage.getItem('home-preset');
           if (p === 'serioes') p = 'serious';
           if (p === 'serious') {
@@ -18,7 +18,7 @@
             document.documentElement.classList.add('preset-playful');
           }
         } catch (_e) {
-          document.documentElement.classList.add('preset-playful');
+          document.documentElement.classList.add('dark', 'preset-playful');
         }
       })();
     </script>

@@ -89,7 +89,8 @@ Das globale Theme in `styles.scss` nutzt `mat.theme()` mit:
 
 Light/Dark wird über `color-scheme` gesteuert:
 
-- `html` (default): `color-scheme: light dark` (folgt Systemeinstellung)
+- Default der App ohne gespeicherte Präferenz: Dark (`html.dark`)
+- `html` ohne Klasse (Option **System**): `color-scheme: light dark` (folgt Systemeinstellung)
 - `html.dark`: `color-scheme: dark`
 - `html.light`: `color-scheme: light`
 

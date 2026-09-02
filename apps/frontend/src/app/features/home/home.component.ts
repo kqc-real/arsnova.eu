@@ -332,6 +332,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
       // nicht direkt von einem Overlay unterbrochen wird.
       this.scheduleIdleWork(() => void this.loadMotdOverlay(), 2400, 1600);
+      this.launchHostShortcutIfRequested();
     }
   }
 
@@ -345,6 +346,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       void this.handlePendingJoinFromQuery(queryJoin);
     }, 0);
     return true;
+  }
+
+  /** PWA-Homescreen-Shortcuts: `?host=qa` / `?host=quickFeedback`. */
+  private launchHostShortcutIfRequested(): void {
+    const host = (this.route.snapshot.queryParamMap.get('host') ?? '').trim();
+    if (host !== 'qa' && host !== 'quickFeedback') {
+      return;
+    }
+    this.markJoinIntentForMotd();
+    this.scheduleTimeout(() => {
+      void this.launchHostShortcut(host);
+    }, 0);
+  }
+
+  private async launchHostShortcut(host: 'qa' | 'quickFeedback'): Promise<void> {
+    try {
+      await this.router.navigate([], {
+        queryParams: { host: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    } catch {
+      /* Query nur für den einmaligen Shortcut-Start; Navigation zum Host folgt trotzdem. */
+    }
+    await this.openHeroHostTab(host);
   }
 
   private async handlePendingJoinFromQuery(code: string): Promise<void> {

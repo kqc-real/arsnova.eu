@@ -13,6 +13,24 @@ describe('ThemePresetService', () => {
     document.documentElement.classList.remove('dark', 'light', 'preset-playful');
   });
 
+  it('nutzt Dark als Default und setzt html.dark ohne gespeicherten Wert', () => {
+    const service = TestBed.inject(ThemePresetService);
+
+    expect(service.theme()).toBe('dark');
+    expect(localStorage.getItem('home-theme')).toBeNull();
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.classList.contains('light')).toBe(false);
+  });
+
+  it('respektiert gespeichertes System-Theme ohne html.dark oder html.light', () => {
+    localStorage.setItem('home-theme', 'system');
+    const service = TestBed.inject(ThemePresetService);
+
+    expect(service.theme()).toBe('system');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.classList.contains('light')).toBe(false);
+  });
+
   it('schreibt das Theme bei unverändertem Wert nicht erneut ins DOM', () => {
     const service = TestBed.inject(ThemePresetService);
     let domEvents = 0;

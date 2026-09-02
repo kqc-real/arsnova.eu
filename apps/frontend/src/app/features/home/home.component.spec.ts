@@ -1021,6 +1021,75 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('PWA-Homescreen-Shortcuts', () => {
+    it('öffnet Q&A aus ?host=qa über denselben Host-Flow wie der Hero-Chip', async () => {
+      setRouteQueryParams({ host: 'qa', homescreen: '1' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa-shortcut',
+        code: 'QA9999',
+        hostToken: 'qa-shortcut-token',
+      });
+      const router = TestBed.inject(Router);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navigateSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ qaEnabled: true }),
+      );
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa');
+    });
+
+    it('startet Blitzlicht aus ?host=quickFeedback über denselben Host-Flow wie der Hero-Chip', async () => {
+      setRouteQueryParams({ host: 'quickFeedback', homescreen: '1' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf-shortcut',
+        code: 'QF9999',
+        hostToken: 'qf-shortcut-token',
+      });
+      const router = TestBed.inject(Router);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navigateSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ quickFeedbackEnabled: true }),
+      );
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF9999/host?tab=quickFeedback');
+    });
+
+    it('startet keine Session bei unbekanntem host-Query', async () => {
+      setRouteQueryParams({ host: 'quiz' });
+      const { trpc } = await import('../../core/trpc.client');
+      const router = TestBed.inject(Router);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+
+      expect(trpc.session.create.mutate).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('MOTD overlay', () => {
     it('unterdrückt MOTD auf Mobilgeräten beim ersten Startseiten-Besuch inklusive Reload', async () => {
       vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));

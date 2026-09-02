@@ -39,6 +39,7 @@
     "sync-i18n": "node scripts/sync-i18n-locales.mjs",
     "demo-quiz:locales": "node scripts/apply-demo-quiz-locale-strings.mjs",
     "screenshots": "node scripts/capture-screenshots.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "benchmark:word-cloud": "node scripts/benchmark-word-cloud.mjs",
     "serve:ssr:frontend": "node dist/server/server.mjs"
   },

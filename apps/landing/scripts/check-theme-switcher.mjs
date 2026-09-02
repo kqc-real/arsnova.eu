@@ -290,12 +290,24 @@ async function assertFallbackWithoutStoredValue(browser) {
     const attr = await page.evaluate(() =>
       document.documentElement.getAttribute('data-landing-color-scheme'),
     );
-    if (attr !== 'system') {
+    if (attr !== 'dark') {
       throw new Error(
-        `fallback without stored value: expected data-landing-color-scheme=system, got ${attr}`,
+        `fallback without stored value: expected data-landing-color-scheme=dark, got ${attr}`,
       );
     }
-    // Must not require set/apply first — FOUC path alone establishes system default.
+    const htmlClass = await page.evaluate(() => document.documentElement.className);
+    if (!htmlClass.includes('dark')) {
+      throw new Error(`fallback without stored value: expected html.dark, got ${htmlClass}`);
+    }
+    const colorScheme = await page.evaluate(
+      () => getComputedStyle(document.documentElement).colorScheme,
+    );
+    if (!colorScheme.includes('dark')) {
+      throw new Error(
+        `fallback without stored value: expected dark color-scheme under OS light, got ${colorScheme}`,
+      );
+    }
+    // Must not require set/apply first — FOUC path alone establishes dark default.
     const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
     if (stored != null) {
       throw new Error(`fallback without stored value: localStorage unexpectedly set to ${stored}`);

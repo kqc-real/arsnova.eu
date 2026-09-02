@@ -1,8 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- EU-Flaggen-Favicon: blaues Quadrat, 5-zackiger EU-Stern (Mittelpunkt auf Diagonale, eine Zacke 12 Uhr) -->
+  <!--
+    EU-Blau + gelber Stern. Derselbe Markenstern wie in der Toolbar, um
+    (-3,-3) versetzt, damit alle Zacken im Maskable-Kreis liegen
+    (Mittelpunkt 16,16, Radius 12,8). purpose any/maskable bleiben
+    getrennte Manifest-Einträge; die Rastergrafiken kommen aus dieser Datei.
+  -->
   <rect width="32" height="32" fill="#003399"/>
-  <polygon
-    points="24,20 23,22.62 20.2,22.76 22.38,24.53 21.65,27.24 24,25.7 26.35,27.24 25.62,24.53 27.8,22.76 25,22.62"
-    fill="#FFCC00"
-  />
+  <g transform="translate(-3 -3)">
+    <path
+      fill="#FFCC00"
+      d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
+    />
+  </g>
 </svg>

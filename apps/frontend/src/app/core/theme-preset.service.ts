@@ -2,18 +2,19 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
+export type ThemeValue = 'system' | 'dark' | 'light';
+export type PresetValue = 'serious' | 'spielerisch';
+
 /** Muss mit dem Inline-Skript in `index.html` übereinstimmen (FOUC vermeiden). */
 const STORAGE_THEME = 'home-theme';
 const STORAGE_PRESET = 'home-preset';
 const PRESET_UPDATED_EVENT = 'arsnova:preset-updated';
-
-export type ThemeValue = 'system' | 'dark' | 'light';
-export type PresetValue = 'serious' | 'spielerisch';
+const DEFAULT_THEME: ThemeValue = 'dark';
 
 @Injectable({ providedIn: 'root' })
 export class ThemePresetService {
-  /** System als Default: folgt der OS-Einstellung (Apple/UX-Best-Practice), Fallback-Verhalten bei fehlender Preference bleibt light. */
-  readonly theme = signal<ThemeValue>('system');
+  /** Dark als Default; Option System folgt weiterhin der OS-Einstellung. */
+  readonly theme = signal<ThemeValue>(DEFAULT_THEME);
   readonly preset = signal<PresetValue>('spielerisch');
 
   /** Wird bei echten Preset-Wechseln ausgelöst, damit die App z. B. die Preset-Snackbar anzeigen kann. */
