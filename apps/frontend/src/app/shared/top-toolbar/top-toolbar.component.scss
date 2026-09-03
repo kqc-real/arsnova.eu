@@ -362,6 +362,13 @@
     overflow: visible;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .top-toolbar__brand-icon {
+      transform-origin: center center;
+      animation: home-playful-brand-pulse 2s ease-in-out infinite;
+    }
+  }
+
   .top-toolbar__preset-icon-playful {
     color: var(--mat-sys-primary);
   }

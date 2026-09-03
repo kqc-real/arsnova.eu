@@ -14,36 +14,10 @@
   box-sizing: border-box;
 }
 
-/* Ohne ::ng-deep greifen Regeln für .mat-content nicht (liegt im Mat-Header, kein Host-_ngcontent). */
-:host ::ng-deep .quiz-edit__meta-expansion-panel.mat-expansion-panel {
+.quiz-edit__meta-expansion-panel.mat-expansion-panel {
   box-shadow: none;
   background: transparent;
   border-radius: 0;
-
-  .mat-expansion-panel-header {
-    padding-inline: 1.25rem !important;
-    /* Abstand zwischen Titelzeile (Icon + Text + Quiz-Name) und Auf/Zu-Chevron */
-    gap: 1rem;
-  }
-
-  .mat-expansion-panel-header .mat-expansion-indicator {
-    flex-shrink: 0;
-  }
-
-  .mat-expansion-panel-header .mat-content {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    align-items: center;
-  }
-
-  /* Nur noch eine Spalte (Titel inkl. Quiz-Name); Material-Margin entfernen */
-  .mat-expansion-panel-header .mat-expansion-panel-header-title {
-    margin-right: 0 !important;
-    margin-left: 0 !important;
-    min-width: 0;
-    align-items: center;
-  }
 }
 
 .quiz-edit__meta-expansion-body {
@@ -383,17 +357,6 @@
   line-height: 1;
 }
 
-/* MDC setzt das Label teils als Block/Flex-Spalte — Icon + Text bleiben eine Zeile */
-:host ::ng-deep mat-form-field:has(.quiz-edit-form__rating-boundary-inner) {
-  .mat-mdc-floating-label,
-  .mdc-floating-label {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    max-width: calc(100% - 1.5rem);
-  }
-}
-
 .quiz-edit-form__confidence-field {
   display: flex;
   flex-direction: column;
@@ -504,7 +467,7 @@
 
 .quiz-edit-form__numeric-preset-label {
   font: var(--mat-sys-label-large);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .quiz-edit-form__numeric-preset-hint {
@@ -542,7 +505,7 @@
   h3 {
     color: var(--mat-sys-on-surface);
     font: var(--mat-sys-title-small);
-    font-weight: 800;
+    font-weight: 700;
   }
 
   p {
@@ -564,7 +527,7 @@
   inset-inline: 0;
   bottom: 1.2rem;
   height: 2px;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent);
 }
 
@@ -575,7 +538,7 @@
   z-index: 1;
   min-width: 0.6rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 72%, transparent);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-tertiary-container) 48%, transparent);
 }
 
@@ -618,7 +581,7 @@
     min-height: 1.7rem;
     padding: 0.2rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 58%, transparent);
-    border-radius: 999px;
+    border-radius: var(--mat-sys-corner-full);
     background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 68%, transparent);
     color: var(--mat-sys-on-surface-variant);
     font: var(--mat-sys-label-small);
@@ -1601,4 +1564,40 @@
   .quiz-edit__meta-actions {
     justify-content: flex-end;
   }
+}
+
+/* Material Expansion/Label: ViewEncapsulation.None (kein Piercing-Selektor). */
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header {
+  padding-inline: 1.25rem !important;
+  gap: 1rem;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-indicator {
+  flex-shrink: 0;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  align-items: center;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-panel-header-title {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  min-width: 0;
+  align-items: center;
+}
+
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mat-mdc-floating-label,
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mdc-floating-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  max-width: calc(100% - 1.5rem);
 }

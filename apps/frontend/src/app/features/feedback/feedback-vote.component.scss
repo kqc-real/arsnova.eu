@@ -60,21 +60,15 @@
 .feedback-vote--embedded .feedback-vote__discussion {
   width: 100%;
   max-width: none;
-  border-radius: 1.25rem;
+  border-radius: var(--mat-sys-corner-extra-large, 1.25rem);
 }
 
 .feedback-vote--embedded .feedback-vote__panel {
   padding: clamp(0.95rem, 2.2vw, 1.2rem);
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 82%, transparent);
-}
-
-.feedback-vote--embedded .feedback-vote__card {
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 82%, transparent);
 }
 
 .feedback-vote--embedded .feedback-vote__discussion {
   padding: 1.5rem 1rem;
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 82%, transparent);
 }
 
 .feedback-vote--embedded .feedback-vote__heading {
@@ -116,14 +110,18 @@
 }
 
 .session-channel-card--quick-feedback {
+  text-align: left;
+}
+
+.session-channel-card__content {
   display: grid;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  text-align: center;
+}
+
+.session-channel-card__content--blitz-head {
   text-align: left;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-large);
-  background: var(--mat-sys-surface-container-low);
-  box-sizing: border-box;
 }
 
 .session-channel-card__header {
@@ -193,7 +191,7 @@
   width: min(100%, 38rem);
   padding: 0.85rem 1rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 76%, transparent);
-  border-radius: 1.25rem;
+  border-radius: var(--mat-sys-corner-extra-large);
   background:
     linear-gradient(
       135deg,
@@ -265,7 +263,7 @@
   min-width: 0;
   max-width: 15rem;
   padding: 0.38rem 0.55rem;
-  border-radius: 0.8rem;
+  border-radius: var(--mat-sys-corner-medium);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 78%, transparent);
   color: var(--mat-sys-on-surface);
 }
@@ -303,7 +301,7 @@
   width: clamp(5.75rem, 18vw, 8.25rem);
   height: clamp(5.75rem, 18vw, 8.25rem);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 24%, transparent);
-  border-radius: 1.65rem;
+  border-radius: var(--mat-sys-corner-extra-large);
   background:
     radial-gradient(
       circle at 32% 24%,
@@ -332,7 +330,7 @@
   max-width: calc(100% - 0.5rem);
   height: 1.35rem;
   padding: 0 0.32rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   font: var(--mat-sys-label-medium);
@@ -352,7 +350,7 @@
 .feedback-vote__card,
 .feedback-vote__discussion {
   width: min(100%, 38rem);
-  border-radius: 1.35rem;
+  border-radius: var(--mat-sys-corner-extra-large);
 }
 
 .feedback-vote__panel {
@@ -375,9 +373,6 @@
   max-width: 38rem;
   text-align: center;
   overflow: visible;
-  border: 0;
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, transparent);
-  box-shadow: none;
 }
 
 .feedback-vote__done {
@@ -412,7 +407,7 @@
   width: 4.15rem;
   height: 4.15rem;
   overflow: visible;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
   color: var(--mat-sys-on-surface-variant);
 
@@ -435,7 +430,7 @@
   width: min(100%, 28rem);
   margin: 0 auto;
   padding: 1.6rem 1.3rem;
-  border-radius: 1.25rem;
+  border-radius: var(--mat-sys-corner-extra-large);
   background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, transparent);
   text-align: center;
   box-sizing: border-box;
@@ -501,7 +496,7 @@
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: transparent;
   color: color-mix(in srgb, var(--app-rating-star) 45%, var(--mat-sys-outline));
   cursor: pointer;
@@ -553,7 +548,7 @@
   min-height: 10.5rem;
   padding: 1.25rem 1rem;
   border: 2px solid var(--mat-sys-outline-variant);
-  border-radius: 1.35rem;
+  border-radius: var(--mat-sys-corner-extra-large);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--mat-sys-surface) 96%, transparent),
@@ -624,11 +619,11 @@
 }
 
 .feedback-vote__mood-icon--positive {
-  color: var(--arsnova-bar-correct, #2e7d32);
+  color: var(--arsnova-bar-correct);
 }
 
 .feedback-vote__mood-icon--negative {
-  color: var(--arsnova-bar-wrong, #c62828);
+  color: var(--arsnova-bar-wrong);
 }
 
 .feedback-vote__mood-icon--neutral {
@@ -704,12 +699,6 @@
   line-height: 1.45;
 }
 
-.feedback-vote__discussion-next {
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-  margin: 0.25rem 0 0;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   @keyframes fb-discussion-pulse {
     0%,
@@ -755,7 +744,7 @@
   font-weight: 600;
   padding: 0.15rem 0.6rem;
   margin-left: 0.5rem;
-  border-radius: 1rem;
+  border-radius: var(--mat-sys-corner-large);
   background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
   color: var(--mat-sys-primary);
   vertical-align: middle;
@@ -858,7 +847,7 @@
     min-height: 8.25rem;
     padding: 1rem 0.75rem;
     min-width: 0;
-    border-radius: 1.15rem;
+    border-radius: var(--mat-sys-corner-extra-large);
   }
 
   .feedback-vote__options--tempo .feedback-vote__mood-btn {
@@ -913,7 +902,7 @@
     padding: 0.95rem 1rem;
     text-align: left;
     border-width: 1.5px;
-    border-radius: 1.1rem;
+    border-radius: var(--mat-sys-corner-extra-large);
   }
 
   .feedback-vote__options--three.feedback-vote__options--mood .feedback-vote__mood-label {

@@ -369,13 +369,13 @@
                 <mat-checkbox formControlName="enableSoundEffects" i18n>Action Sounds</mat-checkbox>
               </fieldset>
 
-              <fieldset class="quiz-edit-form__fieldset">
-                <legend class="quiz-edit-form__legend" i18n>Belohnung</legend>
+              <fieldset class="quiz-form__fieldset">
+                <legend class="quiz-form__legend" i18n>Belohnung</legend>
                 <mat-checkbox formControlName="bonusEnabled" i18n>
                   Bonus-Codes vergeben
                 </mat-checkbox>
                 @if (isBonusEnabled()) {
-                  <p class="quiz-edit-form__fieldset-hint" i18n="@@quiz.bonusCodesHint">
+                  <p class="quiz-form__fieldset-hint" i18n="@@quiz.bonusCodesHint">
                     Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie
                     freiwillig bei dir einreichen können.
                   </p>

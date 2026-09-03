@@ -156,7 +156,7 @@
   align-items: center;
   min-height: 2.15rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary-container) 38%, var(--mat-sys-surface));
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-medium);
@@ -288,7 +288,7 @@
   min-height: 2.8rem;
   padding-block: clamp(0.5rem, 0.32em, 0.9rem);
   padding-inline: 1rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
   background: linear-gradient(
     180deg,

@@ -173,6 +173,92 @@ html {
   );
 }
 
+/* Vote: Timer-A11y Toggle – Material-Internals ohne ::ng-deep (enge Scope-Klassen). */
+.vote-timer-a11y__option .mat-button-toggle-button {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 44px;
+}
+
+.vote-timer-a11y__option .mat-button-toggle-label-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 0.55rem;
+  box-sizing: border-box;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Content-Page Markdown-Rumpf (Legal/News): innerHTML ohne Encapsulation. */
+.content-page-prose h2 {
+  font: var(--mat-sys-title-large);
+  color: var(--mat-sys-on-surface);
+  margin: 2rem 0 0.5rem;
+}
+
+.content-page-prose h2:first-of-type {
+  margin-top: 0;
+}
+
+.content-page-prose p {
+  margin: 0 0 1rem;
+}
+
+.content-page-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.content-page-prose ul {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.content-page-prose li {
+  margin-bottom: 0.5rem;
+}
+
+.content-page-prose li::marker {
+  color: var(--mat-sys-primary);
+}
+
+.content-page-prose hr {
+  border: none;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin: 2rem 0;
+}
+
+.content-page-prose strong {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.content-page-prose a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.content-page-prose a:hover {
+  text-decoration: underline;
+}
+
+.content-page-prose a:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.25rem;
+}
+
+.content-page-prose.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.content-page-prose.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
 // ---------------------------------------------------------------------------
 // 2) App-Semantic Tokens – TOKENS.md §2
 // ---------------------------------------------------------------------------
@@ -321,7 +407,7 @@ html {
   border-radius: 0.125rem;
 }
 
-// Keyframes für Preset Spielerisch (Startseite) – global, damit Animationen sicher laufen
+// Keyframes für Preset Spielerisch (Top-Toolbar-Brand) – global, damit Animationen sicher laufen
 @media (prefers-reduced-motion: no-preference) {
   @keyframes home-playful-brand-pulse {
     0%,
@@ -331,6 +417,27 @@ html {
     50% {
       transform: scale(1.1);
     }
+  }
+}
+
+/* Fehler-Alert-Pulse: einmal global (Home, Join, Vote, Quiz-Sammlung, …). */
+@keyframes important-error-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  }
+}
+
+@keyframes important-error-pulse-mobile {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.13rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
   }
 }
 
@@ -777,7 +884,7 @@ html {
   inset-inline-end: 0.55rem;
   z-index: 1;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level1);
@@ -1161,6 +1268,7 @@ html {
 .home-motd-sheet__body.markdown-body a,
 .motd-archive__body.markdown-body a,
 .news-archive-page__md.markdown-body a,
+.legal-page__md.markdown-body a,
 .markdown-body a.markdown-inline-link {
   color: var(--mat-sys-primary);
   text-decoration: underline;
@@ -1171,6 +1279,7 @@ html {
 .home-motd-sheet__body.markdown-body a:hover,
 .motd-archive__body.markdown-body a:hover,
 .news-archive-page__md.markdown-body a:hover,
+.legal-page__md.markdown-body a:hover,
 .markdown-body a.markdown-inline-link:hover {
   text-decoration-thickness: 0.12em;
 }
@@ -1336,6 +1445,41 @@ html.dark .app-qr-image {
 
 .app-status-help-dialog-panel .mat-mdc-dialog-content {
   max-height: min(84dvh, 42rem);
+  /* Padding hier statt !important in der Komponente – schlägt MDC-Default per Spezifität. */
+  padding: 0 1rem 0.5rem;
+}
+
+.app-status-help-dialog-panel .mat-mdc-dialog-actions {
+  padding: 0 1rem 1rem;
+}
+
+@media (max-width: 599px) {
+  .app-status-help-dialog-panel .mat-mdc-dialog-content {
+    padding: 0 0.875rem 0.5rem;
+  }
+}
+
+html.preset-playful .app-status-help-dialog-panel .mat-mdc-dialog-surface {
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 46%, var(--mat-sys-primary) 28%);
+  background:
+    radial-gradient(
+      ellipse 100% 70% at 100% 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 22%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, var(--mat-sys-tertiary) 5%) 100%
+    );
+  box-shadow:
+    var(--mat-sys-level3),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
 }
 
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {
@@ -1364,7 +1508,7 @@ html.dark .app-qr-image {
 
 .feedback-compare-round-snackbar .mat-mdc-snack-bar-action {
   align-self: center;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-primary-container);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   color: var(--mat-sys-on-primary-container);
@@ -1718,17 +1862,13 @@ $markdown-katex-flow-hosts:
   border-radius: var(--mat-sys-corner-small);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 12%, transparent);
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
-  font-size: 0.625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125em;
   line-height: 1.38;
 }
 
 .quiz-list__ai-prompt-markdown code {
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.92em;
 }
 
@@ -1736,7 +1876,7 @@ $markdown-katex-flow-hosts:
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
-  font-size: 0.625rem;
+  font-size: inherit;
   line-height: inherit;
   background: none;
   padding: 0;
@@ -1758,7 +1898,7 @@ $markdown-katex-flow-hosts:
 }
 
 .quiz-list__ai-prompt-markdown strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .quiz-list__ai-prompt-markdown hr {

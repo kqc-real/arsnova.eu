@@ -70,7 +70,7 @@
   inset: -20% auto auto 10%;
   width: min(18rem, 42vw);
   height: 11rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: radial-gradient(
     circle,
     color-mix(in srgb, var(--mat-sys-primary) 24%, transparent) 0%,

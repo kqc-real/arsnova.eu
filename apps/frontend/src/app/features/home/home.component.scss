@@ -19,70 +19,6 @@
   }
 }
 
-.home-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  margin-bottom: 1.5rem;
-  border-radius: var(--mat-sys-corner-extra-large);
-  background: var(--mat-sys-surface-container);
-  padding: 1.25rem 1.25rem;
-  box-shadow: var(--mat-sys-level1);
-  font-size: 0.875rem;
-}
-
-.home-header__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-}
-
-@media (min-width: 600px) {
-  .home-header__row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 1.25rem;
-  }
-  .home-brand {
-    justify-self: start;
-  }
-  .home-controls {
-    grid-column: 2 / -1;
-    display: flex;
-    justify-content: space-evenly;
-    justify-self: stretch;
-  }
-}
-
-.home-brand {
-  --app-eu-blue: #002395;
-  --app-eu-blue-dark: #001a75;
-  --app-eu-yellow: #ffcc00;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.home-brand__star {
-  /* Einziger Stern (Anlehnung EU), kein offizielles Emblem */
-}
-
-.home-brand__icon {
-  width: 1.75rem;
-  height: 1.75rem;
-  flex-shrink: 0;
-  border-radius: var(--mat-sys-corner-small);
-}
-
-.home-brand__title {
-  margin: 0;
-  font-size: 1.375rem;
-  line-height: 1.25;
-  font-weight: 500;
-  font-family: inherit;
-}
-
 .mobile-only {
   display: inline-flex;
 }
@@ -101,54 +37,6 @@
   .desktop-only {
     display: inline-flex;
   }
-}
-
-.home-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.home-icon-toggles {
-  border: none;
-  background: transparent;
-}
-.home-icon-toggles .mat-button-toggle {
-  border: none !important;
-  background: transparent;
-}
-.home-icon-toggles .mat-button-toggle-checked {
-  border: none !important;
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
-}
-.home-icon-toggles .mat-button-toggle-checked .mat-icon {
-  color: var(--mat-sys-primary);
-}
-.home-icon-toggles--full {
-  width: 100%;
-}
-.home-icon-toggles--full .mat-button-toggle {
-  flex: 1;
-}
-
-.home-controls-mobile {
-  margin-top: 1rem;
-  border-top: 1px solid var(--mat-sys-outline-variant);
-  padding-top: 1rem;
-  align-items: flex-end;
-}
-
-.home-controls-mobile__lang-row {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.home-preset-toggle--full {
-  width: 100%;
-}
-.home-preset-toggle--full mat-button-toggle {
-  flex: 1;
 }
 
 .home-hero {
@@ -616,8 +504,9 @@
   }
 }
 
+/* Nur seriös: spielerisch nutzt die volle Bühnen-Border-Sprache (kein Top-Streifen). */
 @media (max-width: 599px) {
-  .home-card#participant-entry {
+  :host-context(html:not(.preset-playful)) .home-card#participant-entry {
     border-top: 3px solid var(--mat-sys-primary);
   }
 }
@@ -719,11 +608,11 @@
 }
 
 .home-feedback-chip mat-icon.home-feedback-chip__icon--positive {
-  color: var(--arsnova-bar-correct, #2e7d32) !important;
+  color: var(--arsnova-bar-correct) !important;
 }
 
 .home-feedback-chip mat-icon.home-feedback-chip__icon--negative {
-  color: var(--arsnova-bar-wrong, #c62828) !important;
+  color: var(--arsnova-bar-wrong) !important;
 }
 
 .home-feedback-chip mat-icon.home-feedback-chip__icon--neutral {
@@ -1427,26 +1316,6 @@ mat-card-actions.l-stack {
   }
 }
 
-@keyframes important-error-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
-  }
-}
-
-@keyframes important-error-pulse-mobile {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 0.13rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
-  }
-}
-
 .home-error-link {
   display: inline-flex;
   align-items: center;
@@ -1501,25 +1370,6 @@ mat-card-actions.l-stack {
 }
 
 :host-context(html.preset-playful) {
-  .home-header {
-    background: linear-gradient(
-      135deg,
-      var(--mat-sys-surface-container),
-      var(--mat-sys-tertiary-container)
-    );
-    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
-    box-shadow: var(--app-shadow-accent);
-  }
-  .home-brand__icon {
-    border-radius: 0.5rem;
-    overflow: visible;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .home-brand__icon {
-      transform-origin: center center;
-      animation: home-playful-brand-pulse 2s ease-in-out infinite;
-    }
-  }
   .home-card__icon,
   .home-preset-icon--playful {
     color: var(--mat-sys-primary);
@@ -1542,12 +1392,8 @@ mat-card-actions.l-stack {
   .home-card--create mat-card-actions .home-cta:first-child:hover {
     box-shadow: var(--mat-sys-level2);
   }
-  /* Mitmachen-Karte: gefüllter CTA ohne Glow-Rand und ohne Elevation-Glanz */
-  .home-card:not(.home-card--create) mat-card-actions > .home-cta:first-child {
-    box-shadow: none;
-    filter: none;
-  }
-  .home-card:not(.home-card--create) mat-card-actions > .home-cta:first-child:hover {
+  /* Mitmachen-CTA: kein Glow/Elevation (gefüllt); Hover ebenfalls flach halten */
+  .home-card#participant-entry mat-card-actions > .home-cta:first-child:hover {
     box-shadow: none;
     filter: none;
   }
@@ -1558,30 +1404,16 @@ mat-card-actions.l-stack {
     box-shadow: none !important;
     filter: none !important;
   }
-  .home-card {
-    box-shadow: var(--mat-sys-level2), var(--app-shadow-card-playful);
-  }
-  .home-card--create.home-card {
-    box-shadow: var(--mat-sys-level2);
-  }
   @media (prefers-reduced-motion: no-preference) {
     /* Kein perspective auf .home-main: WebKit/Safari kann Grid-Inhalt nach Compositing „ausblenden“
-       (nur Toolbar/Footer sichtbar, kurzer Flash). Hover-Transforms sind 2D und brauchen das nicht. */
+       (nur Toolbar/Footer sichtbar, kurzer Flash). Hover-Transforms sind 2D und brauchen das nicht.
+       Schatten/Lift: nur die stage-*-Hover-Regeln unten – generisches .home-card:hover würde
+       von ID-/Mehrklassen-Ruhezuständen überschrieben (Lehrfall: Spezifität). */
     .home-card {
       transition:
         transform 0.25s ease,
         box-shadow 0.25s ease;
       transform-origin: center center;
-    }
-    .home-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow:
-        var(--mat-sys-level3),
-        var(--app-shadow-card-playful),
-        0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
-    }
-    .home-card--create.home-card:hover {
-      box-shadow: var(--mat-sys-level3);
     }
   }
 
@@ -1676,20 +1508,13 @@ mat-card-actions.l-stack {
       inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
   }
 
-  .home-card--stage-main#participant-entry .home-card__title,
-  .home-card--stage-side .home-card__title {
-    font: var(--mat-sys-headline-small);
-    white-space: normal;
-    text-wrap: balance;
+  .home-card--stage-main#participant-entry .mat-mdc-card-header {
+    padding-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
   }
 
   @media (min-width: 960px) {
-    .home-card--stage-main#participant-entry .mat-mdc-card-header {
-      padding-bottom: 0.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
     .home-card--stage-main#participant-entry mat-card-content {
       position: relative;
       z-index: 1;
@@ -1794,6 +1619,8 @@ mat-card-actions.l-stack {
     z-index: 1;
   }
 
+  /* Icon-Ringe: alle drei Bühnenkarten, Primary für Mitmachen/Blitzlicht, Tertiary für Quiz */
+  .home-card--stage-main#participant-entry .home-card__icon-wrap,
   .home-card.home-card--feedback.home-card--stage-side .home-card__icon-wrap {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   }
@@ -1803,6 +1630,16 @@ mat-card-actions.l-stack {
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    /* Hauptbühne hebt etwas stärker als Side Acts; Spezifität muss ID-Ruhezustand schlagen. */
+    .home-card--stage-main#participant-entry.home-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow:
+        var(--mat-sys-level3),
+        0 14px 40px -8px color-mix(in srgb, var(--mat-sys-primary) 42%, transparent),
+        0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+    }
+
     .home-card.home-card--feedback.home-card--stage-side.home-card:hover {
       transform: translateY(-5px) scale(1.014);
       box-shadow:
@@ -1822,7 +1659,7 @@ mat-card-actions.l-stack {
     }
   }
 
-  /* Tablet: Mitmachen als Hauptbühne, Side Acts darunter. Desktop ≥960px: 3 Spalten wie Seriös. */
+  /* Tablet: Mitmachen als Hauptbühne, Side Acts darunter. Desktop ≥960px: shared 3-Spalten-Raster. */
   @media (min-width: 600px) and (max-width: 959.98px) {
     .home-card#participant-entry.home-card--stage-main {
       grid-column: 1 / -1;
@@ -1840,22 +1677,6 @@ mat-card-actions.l-stack {
       grid-column: 2;
       grid-row: 3;
       align-self: start;
-    }
-  }
-
-  @media (min-width: 960px) {
-    .home-main {
-      /* Blitzlicht braucht mehr Breite für Chip-Icons; Mitmachen und Quiz vorbereiten teilen den Rest. */
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
-      max-width: 78rem;
-      justify-content: center;
-    }
-
-    .home-card#participant-entry.home-card--stage-main,
-    .home-card.home-card--feedback.home-card--stage-side,
-    .home-card.home-card--create.home-card--stage-side {
-      grid-column: auto;
-      grid-row: auto;
     }
   }
 

@@ -168,4 +168,68 @@ describe('ServerStatusHelpDialogComponent', () => {
     globalThis.dispatchEvent(new Event('arsnova:preset-updated'));
     expect(syncChartSpy).toHaveBeenCalledTimes(2);
   });
+
+  it('hält Ampel-Badges, Legend-Borders und Panel-Padding konsistent', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const scss = readFileSync(join(dir, 'server-status-help-dialog.component.scss'), 'utf8');
+    const styles = readFileSync(join(dir, '../../../styles.scss'), 'utf8');
+
+    expect(scss).toMatch(
+      /\.status-help-dialog__status-badge--healthy\s*\{[^}]*--app-status-healthy/,
+    );
+    expect(scss).toMatch(/\.status-help-dialog__status-badge--busy\s*\{[^}]*--app-status-busy/);
+    expect(scss).toMatch(
+      /\.status-help-dialog__legend-item\s*\{[^}]*border:\s*1px solid transparent/,
+    );
+    expect(scss).toMatch(
+      /\.status-help-dialog__legend-item--healthy\s*\{[^}]*border-color:\s*color-mix\([^)]*--app-status-healthy/,
+    );
+    expect(scss).not.toContain('status-help-dialog__status-badge-wrapper');
+    expect(scss).not.toMatch(/\.status-help-dialog__legend li\s*\{/);
+    expect(scss).not.toContain('!important');
+    expect(styles).toMatch(
+      /\.app-status-help-dialog-panel \.mat-mdc-dialog-content\s*\{[^}]*padding:\s*0 1rem 0\.5rem/,
+    );
+    expect(styles).toMatch(
+      /html\.preset-playful \.app-status-help-dialog-panel \.mat-mdc-dialog-surface\s*\{/,
+    );
+
+    TestBed.configureTestingModule({
+      imports: [ServerStatusHelpDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            connectionOk: signal(true),
+            loading: signal(false),
+            stats: signal({
+              openSessions: 1,
+              activeSessions: 1,
+              totalParticipants: 2,
+              votesLastMinute: 0,
+              sessionTransitionsLastMinute: 0,
+              activeCountdownSessions: 0,
+              completedSessions: 0,
+              activeBlitzRounds: 0,
+              maxParticipantsSingleSession: 2,
+              dailyHighscores: buildDailyHighscores(),
+              dailyHighscoresStatistics: { median: 1, standardDeviation: 0, max: 2 },
+              maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
+              serviceStatus: 'stable',
+              loadStatus: 'healthy',
+            }),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.status-help-dialog__legend-label')).toBeTruthy();
+    expect(root.querySelector('.status-help-dialog__status-badge--healthy')).toBeTruthy();
+    expect(root.querySelector('.status-help-dialog__status-badge-wrapper')).toBeNull();
+  });
 });

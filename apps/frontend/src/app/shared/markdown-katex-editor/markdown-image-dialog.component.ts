@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +26,7 @@ export interface MarkdownImageDialogResult {
   ],
   templateUrl: './markdown-image-dialog.component.html',
   styleUrls: ['../styles/dialog-title-header.scss', './markdown-image-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class MarkdownImageDialogComponent {
   private readonly dialogRef = inject(

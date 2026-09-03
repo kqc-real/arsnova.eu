@@ -7,6 +7,7 @@ import {
   inject,
   PLATFORM_ID,
   signal,
+  ViewEncapsulation,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
@@ -46,8 +47,10 @@ type HelpRoleSectionId = 'help-host' | 'help-participant';
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
     '../../shared/styles/content-page-backdrop.scss',
+    '../../shared/styles/content-page-article.scss',
     'help.component.scss',
   ],
+  encapsulation: ViewEncapsulation.None,
 })
 export class HelpComponent implements AfterViewInit {
   private readonly location = inject(Location);

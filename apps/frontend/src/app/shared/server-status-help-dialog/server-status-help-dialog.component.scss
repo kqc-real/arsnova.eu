@@ -1,6 +1,5 @@
 .status-help-dialog__content {
   margin: 0;
-  padding: 0 1rem 0.5rem !important;
   display: grid;
   gap: 0.95rem;
   overflow: visible;
@@ -8,7 +7,6 @@
 }
 
 mat-dialog-actions {
-  padding: 0 1rem 1rem;
   margin: 0;
 }
 
@@ -160,10 +158,6 @@ mat-dialog-actions {
   color: var(--mat-sys-primary);
 }
 
-.status-help-dialog__status-badge-wrapper {
-  font-weight: 600;
-}
-
 .status-help-dialog__status-badge {
   display: inline-flex;
   align-items: center;
@@ -173,21 +167,26 @@ mat-dialog-actions {
   font: var(--mat-sys-label-medium);
   font-weight: 600;
   letter-spacing: 0.01em;
+  /* Ampel wie Dots/Footer: Status-Tokens, nicht Primary/Secondary-Container. */
+  box-shadow: inset 0 0 0 1px transparent;
 }
 
 .status-help-dialog__status-badge--healthy {
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
+  color: color-mix(in srgb, var(--app-status-healthy) 72%, var(--mat-sys-on-surface));
+  background: color-mix(in srgb, var(--app-status-healthy) 18%, var(--mat-sys-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-status-healthy) 32%, transparent);
 }
 
 .status-help-dialog__status-badge--busy {
-  color: var(--mat-sys-on-secondary-container);
-  background: var(--mat-sys-secondary-container);
+  color: color-mix(in srgb, var(--app-status-busy) 68%, var(--mat-sys-on-surface));
+  background: color-mix(in srgb, var(--app-status-busy) 20%, var(--mat-sys-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-status-busy) 34%, transparent);
 }
 
 .status-help-dialog__status-badge--overloaded {
   color: var(--mat-sys-on-error-container);
   background: var(--mat-sys-error-container);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-error) 22%, transparent);
 }
 
 .status-help-dialog__metric strong {
@@ -245,13 +244,8 @@ mat-dialog-actions {
 .status-help-dialog__record-hint,
 .status-help-dialog__record-dev-demo {
   margin: 0.3rem 0 0;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.status-help-dialog__record-asof,
-.status-help-dialog__record-dev-demo,
-.status-help-dialog__record-hint {
   font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .status-help-dialog__record-dev-demo {
@@ -327,7 +321,7 @@ mat-dialog-actions {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.status-help-dialog__legend li {
+.status-help-dialog__legend-item {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -335,29 +329,31 @@ mat-dialog-actions {
   min-height: 2rem;
   padding: 0.35rem 0.5rem;
   border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid transparent;
   background: var(--mat-sys-surface);
 }
 
 .status-help-dialog__legend-item--healthy {
-  background: color-mix(in srgb, var(--mat-sys-primary-container) 88%, var(--mat-sys-surface));
-  border-color: color-mix(in srgb, var(--app-status-healthy) 16%, transparent);
+  background: color-mix(in srgb, var(--app-status-healthy) 14%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--app-status-healthy) 28%, transparent);
 }
 
 .status-help-dialog__legend-item--busy {
-  background: color-mix(in srgb, var(--mat-sys-secondary-container) 88%, var(--mat-sys-surface));
-  border-color: color-mix(in srgb, var(--app-status-busy) 18%, transparent);
+  background: color-mix(in srgb, var(--app-status-busy) 16%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--app-status-busy) 30%, transparent);
 }
 
 .status-help-dialog__legend-item--overloaded {
   background: color-mix(in srgb, var(--mat-sys-error-container) 90%, var(--mat-sys-surface));
-  border-color: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-error) 22%, transparent);
 }
 
 .status-help-dialog__legend-item--unknown {
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
 }
 
-.status-help-dialog__legend li span:last-child {
+.status-help-dialog__legend-label {
   line-height: 1.15;
 }
 
@@ -408,7 +404,6 @@ mat-dialog-actions {
 
 @media (max-width: 599px) {
   .status-help-dialog__content {
-    padding: 0 0.875rem 0.5rem !important;
     gap: 0.8rem;
   }
 
@@ -485,7 +480,7 @@ mat-dialog-actions {
     gap: 0.3rem;
   }
 
-  .status-help-dialog__legend li {
+  .status-help-dialog__legend-item {
     column-gap: 0.4rem;
     min-height: 1.85rem;
     padding: 0.3rem 0.4rem;

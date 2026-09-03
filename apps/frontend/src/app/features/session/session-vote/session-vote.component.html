@@ -326,6 +326,7 @@
     [class.vote-page--with-bottom-actions]="showBottomActionBar()"
     [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
     [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
+    [class.vote-page--qa]="activeChannel() === 'qa'"
   >
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
@@ -1383,7 +1384,7 @@
             </div>
           }
 
-          @if (timeoutMessage() && !voteSent()) {
+          @if (isActive() && timeoutMessage() && !voteSent()) {
             <div class="vote-timeout" role="status" aria-live="polite">
               <mat-icon>timer_off</mat-icon>
               <span>{{ timeoutMessage() }}</span>
@@ -1471,18 +1472,12 @@
                 [disabled]="voteInteractionLocked()"
               ></textarea>
             </div>
-          } @else if ($any(q).type === 'FREETEXT' && isResults()) {
+          } @else if ($any(q).type === 'FREETEXT' && isResults() && voteSent() && freeTextValue()) {
             <div class="vote-freetext vote-freetext--result">
-              @if (voteSent() && freeTextValue()) {
-                <p class="vote-freetext__own">
-                  {{ vpc.voteFreetextOwnPrefix(isPlayfulPreset()) }}
-                  <strong>{{ freeTextValue() }}</strong>
-                </p>
-              } @else {
-                <p class="vote-freetext__own vote-freetext__own--empty">
-                  {{ vpc.voteFreetextEmpty(isPlayfulPreset()) }}
-                </p>
-              }
+              <p class="vote-freetext__own">
+                {{ vpc.voteFreetextOwnPrefix(isPlayfulPreset()) }}
+                <strong>{{ freeTextValue() }}</strong>
+              </p>
             </div>
           } @else if ($any(q).type === 'SHORT_TEXT' && isActive()) {
             <div class="vote-freetext vote-freetext--short">
@@ -1528,10 +1523,6 @@
                 @if (shortTextResultDetail()) {
                   <p class="vote-freetext__result-detail">{{ shortTextResultDetail() }}</p>
                 }
-              } @else {
-                <p class="vote-freetext__own vote-freetext__own--empty">
-                  {{ vpc.voteFreetextEmpty(isPlayfulPreset()) }}
-                </p>
               }
 
               @if (shortTextSolutions().length > 0) {

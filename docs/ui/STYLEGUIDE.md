@@ -2,7 +2,7 @@
 
 # UI Styleguide (Angular Material 3)
 
-**Stand:** 2026-09-02 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
+**Stand:** 2026-09-03 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
 
 ## Ziel und Geltungsbereich
 
@@ -32,8 +32,10 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 - Neue Features verwenden zuerst Angular-Material-Komponenten.
 - Eigenkomponenten sind erlaubt, wenn Material funktional nicht reicht.
 - Eigene Komponenten müssen dieselben Tokens verwenden wie Material-Komponenten.
-- Keine CSS-Selektoren gegen interne Material-DOM-Strukturen.
-- `::ng-deep` nicht verwenden (deprecated). Weder neu einführen noch bestehende Vorkommen erweitern.
+- Keine CSS-Selektoren gegen interne Material-DOM-Strukturen in Feature-SCSS.
+- `::ng-deep` und `:deep(...)` nicht verwenden (deprecated bzw. Piercing). Weder neu einführen noch bestehende Vorkommen erweitern.
+- Material-Internals (Expansion-Header, Tab-Body, MDC-Label, Form-Field-Infix, `innerHTML`-Markdown) nur über **enge globale Scope-Klassen** in `styles.scss` oder offizielle Override-Mixins.
+- Shell-/Layout-Regeln außerhalb von `:host` (z. B. Present-Vollfläche) gehören in die App-Shell (`app.component.scss` mit Route-Klasse), nicht in Feature-`::ng-deep`.
 - Komponentenanpassungen nur über offizielle Override-APIs.
 - Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Server-Status-Hilfe, Markdown-Bild-Lightbox und Word-Cloud-Fullscreen-Dialoge.
 
@@ -62,9 +64,13 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 
 ## Shape, Elevation, Borders
 
-- Border-Radius erfolgt ueber Shape-Tokens (z. B. `--mat-sys-corner-*`).
-- Schatten/Elevation erfolgt ueber Elevation-Tokens (`--mat-sys-level*`).
+- Border-Radius erfolgt ueber Shape-Tokens (`--mat-sys-corner-small|medium|large|extra-large|full`).
+- Kapseln/Pills/Progress: `--mat-sys-corner-full` – **kein** `999px` (Ausnahme: Histogram-Stab `999px 999px 2px 2px`).
+- Harte Rem-Radii (`1.25rem`, `1.35rem`, …) fuer Panels/Buttons/Chips sind nicht erlaubt; Kreis-Dots duerfen `50%` bleiben.
+- Schriftgewicht fuer UI-Hierarchie: maximal **700** (kein `font-weight: 800`).
+- Schatten/Elevation erfolgt ueber Elevation-Tokens (`--mat-sys-level*`) bzw. dokumentierte Playful-Schatten.
 - Linien/Outlines nutzen `--mat-sys-outline` oder `--mat-sys-outline-variant`.
+- Produktsemantik wie `--arsnova-bar-*` in Feature-SCSS **ohne Hex-Fallbacks** (`var(--arsnova-bar-correct)`, nicht `var(--arsnova-bar-correct, #2e7d32)`); Fallbacks nur zentral in Token-Definition.
 
 ## Layout-Patterns (SCSS)
 
@@ -162,7 +168,7 @@ Regeln:
 
 ## Markdown/KaTeX Styling (MUSS)
 
-- **`innerHTML`-Content:** Styles fuer gerendertes Markdown/KaTeX werden global und klar gescoped definiert (z. B. `.quiz-preview-*`, `.quiz-edit-*`), nicht ueber `::ng-deep`.
+- **`innerHTML`-Content:** Styles fuer gerendertes Markdown/KaTeX werden global und klar gescoped definiert (z. B. `.quiz-preview-*`, `.quiz-edit-*`, `.session-projection-quiz`, `.admin-question__text`), nicht ueber `::ng-deep` oder `:deep(...)`.
 - **Fehlerdarstellung:** `.markdown-katex-error` nutzt Error-Tokens und `body-small`.
 - **Typografie:** Absatz-, Listen-, Heading- und Blockquote-Abstaende fuer gerenderten Content sind explizit definiert.
 - **Bilder:** Markdown-Bilder mit Lightbox nutzen die shared Directive/Fullscreen-Dialoge. Fullscreen-Surfaces sind bewusst transparent und global über `markdown-image-lightbox-dialog-panel` begrenzt.
@@ -199,6 +205,63 @@ Tokenbasierte Card-Flaeche:
 }
 ```
 
+## Style-Vertraege fuer Erweiterungen (MUSS)
+
+Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder geänderten Surfaces** gelten diese Verträge verbindlich – nicht nur die historische Wellen-Liste unten.
+
+### Dual-Layer: Seriös-Basis + Playful-Chrome
+
+- Feature-SCSS liefert die **Seriös-Basis** (Border, Surface, Layout, A11y).
+- `playful-inner-chrome.scss` überschreibt **nur** unter `html.preset-playful` (Mixins `primary` / `nested` / `muted` / Channel-Shells).
+- Keine Flatten-Kämpfe (`!important`, Gegen-Overrides) auf denselben Selektoren zwischen Feature und Playful.
+- Seriös darf keine Regeln aus `playful-inner-chrome.scss` übernehmen.
+
+### Shape, Gewicht, Semantik-Tokens
+
+- Radii: `--mat-sys-corner-*` (inkl. `full` für Kapseln). Ausnahme Histogram-Stab und echte Kreise (`50%`).
+- `font-weight` in UI/Display: maximal **700**.
+- `--arsnova-bar-*` und vergleichbare App-Tokens ohne Hex-Fallback in Feature-SCSS.
+- Tote Selektoren und ungenutzte Chrome-Klassen entfernen statt „mitwandern“.
+
+### Material-Internals und Encapsulation
+
+1. Offizielle Material-Override-Mixins, falls vorhanden.
+2. Sonst eng gescopte Regeln unter Feature-Host-Klassen:
+   - bevorzugt in der **lazy** Feature-SCSS mit `ViewEncapsulation.None` (Vorbild: Help-/MOTD-Expansion, Admin-Tabs, Quiz-Edit-Meta, Projection-`innerHTML`), oder
+   - global in `styles.scss`, wenn die Styles früh/überall nötig sind (Vorbild: `.vote-timer-a11y__option`).
+3. Layout außerhalb von `:host`: Route-/Shell-Klasse in `app.component` (Vorbild: `.app-main--present`).
+4. Overlays: `panelClass` / `backdropClass`.
+5. **Verboten** in Feature-SCSS: `::ng-deep`, `:deep(...)`.
+
+### Floating-Bottom-Contract
+
+| Muster                     | Wann                                                                                                | Verhalten                                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Solo-Primary-CTA           | Ein sichtbarer Primary (Vote-Submit, Q&amp;A „Frage stellen“, Join-Submit, Session-Ende `--single`) | `width: fit-content`, zentriert inkl. Safe-Area; **kein** Glas-/Surface-Prospekt um den Button |
+| Multi-Action-Tray          | 2–3 Aktionen (Session-Ende)                                                                         | opake Kapsel, Grid, begrenzte Breite                                                           |
+| Blitzlicht-Host-Standalone | Host-Standalone-Bottom                                                                              | Buttons ohne Tray (wie etabliert)                                                              |
+| Quiz-Edit-Leiste           | Editor speichern/verwerfen                                                                          | **eigener** Editor-Chrome – nicht in den Vote-Floating-Contract zwingen                        |
+
+### Live-Kanal-Breite (Session-Shell)
+
+- `.session-page-shell.l-section` als Flex-Kind braucht **`width: min(100%, …)`**, nicht nur `max-width` (sonst shrink-to-fit).
+- Standard-Kanalbreite folgt `--app-live-channel-max-width` (36rem); Teilnehmer-Q&amp;A: Shell + `--app-live-channel-max-width` auf **48rem** via `:has(.vote-page--qa)`.
+
+### Bewusste Ausnahmen (nicht „fixen“)
+
+- Foyer-Einflug: Keyframes / `animation-*`-Longhands / `ViewEncapsulation.None` (Prod-Flug).
+- Live-Banner: Host/Vote dürfen bühnenhafter bleiben als flaches Blitzlicht-Standalone-Join.
+- Ankunfts-/Confetti-/Reward-Keyframes und Medaillenfarben nicht ohne Produktgrund antasten.
+
+### Checkliste bei Style-PRs
+
+- [ ] Seriös und Spielerisch geprüft; Dual-Layer nicht gebrochen
+- [ ] Keine neuen `::ng-deep` / `:deep` / `999px` / `font-weight: 800` / Hex-Token-Fallbacks
+- [ ] Material-Internals global oder per Mixin; Markdown/`innerHTML` global gescoped
+- [ ] Floating-Bottom-Muster eingehalten oder Ausnahme dokumentiert
+- [ ] Mobile, längere Locales, Fokus/Kontrast nicht regressiert
+- [ ] Nächster Spec-Check auf Token-/Piercing-Regression, wo sinnvoll
+
 ## Preset Spielerisch (Startseite)
 
 - **Hintergrund:** Verlauf mit Primary-/Tertiary-Container (Token `--app-bg-root`).
@@ -213,14 +276,15 @@ Tokenbasierte Card-Flaeche:
 
 ### Innere Ansichten (Preset Spielerisch, schrittweise)
 
-- **Welle 1** (`src/styles/playful-inner-chrome.scss`, per `@import` in `styles.scss`): **Quiz-Sammlung** (`.quiz-list-page`) – **Willkommen**-Leerbereich (`.quiz-empty-state--lead`), **Quiz-Karten** (`.quiz-list-item`), **KI-Import-Karte** (`.quiz-list__ai-card`); **Join** (`.join-page`) – **Session-Karten** ohne Fehlerzustand (`mat-card.join-card:not(.join-card--error)`), **Session-Info** in der Lobby (`.join-card--lobby .join-card__session`) als kompaktes Spotlight-innenaehnlich zu Home. **Fehler-Karte** Join bleibt sachlich ohne diese Fläche.
-- **Welle 2:** **Neues Quiz** (`mat-card.quiz-form-card`) und **Quiz bearbeiten** (`.quiz-edit`: `.quiz-edit__meta-card`, `.quiz-edit__settings-card`, `.quiz-edit__form-card`, `.quiz-edit-list__empty-card`, `.quiz-edit-question`, `.quiz-edit__not-found`) mit gemeinsamem Mixin **„primary“** (wie Listen-Karten); **verschachtelte** Karten (**Einstellungen** in Neu-Quiz, **Gesamtvorschau** in Bearbeiten) mit schwächerem Mixin **„nested“** (weniger Schatten, kein `--app-shadow-card-playful`).
+- **Welle 1** (`src/styles/playful-inner-chrome.scss`, per `@import` in `styles.scss`): **Quiz-Sammlung** (`.quiz-list-page`) – **Willkommen**-Leerbereich (`.quiz-empty-state--lead`), **Demo-/Sync-Callouts** (muted Panel), **Quiz-Karten** mit **primary**-Mixin und eigener **Hover-Elevation** (Ruheschatten der Mixin-Regel sonst ohne Lift); **KI-Import-Karte** (Arbeitsfläche) mit **muted** Panel-Chrome **ohne** Hover-Lift, Schritte als ruhige Insets; **Join** (`.join-page`) – **Session-Karten** ohne Fehlerzustand (`mat-card.join-card:not(.join-card--error)`), **Session-Info** in der Lobby (`.join-card--lobby .join-card__session`) als kompaktes Spotlight-innenaehnlich zu Home. **Fehler-Karte** Join bleibt sachlich ohne diese Fläche.
+- **Welle 2:** **Neues Quiz** (`mat-card.quiz-form-card`) und **Quiz bearbeiten** (`.quiz-edit`: `.quiz-edit__meta-card`, `.quiz-edit__settings-card`, `.quiz-edit__form-card`, `.quiz-edit-list__empty-card`, `.quiz-edit-question`, `.quiz-edit__not-found`) mit gemeinsamem Mixin **„primary“** (wie Listen-Karten); **verschachtelte** Karten (**Einstellungen** in Neu-Quiz als `.quiz-form__settings-card`, **Gesamtvorschau** in Bearbeiten) mit schwächerem Mixin **„nested“** (weniger Schatten, kein `--app-shadow-card-playful`); Fieldsets/Preset-Hinweis/Team-Vorschau in Neu-Quiz als ruhige Insets.
 - **Welle 3:** **Quiz-Vorschau** – Leer-Karte, Editor-Karte, Validierungs-Karte (`mat-card`), Folien-Fläche **`.quiz-preview-question`** (Rand + Schatten/Bühnen-Glow); **Quiz-Sync** (`mat-card.quiz-sync-card`) mit **primary**-Mixin.
-- **Welle 4:** **Session Vote (Teilnehmer)** – **`.vote-live-banner`**, **Bonus-** und **Feedback-Karten** mit Panel-Mixin **`app-playful-inner-panel-channel`**; **„seriöse“** Feedback-Karte im UI-Preset Spielerisch mit **nested**; **Lobby-Warteblock** (`.vote-lobby__wait`), **Lese-Banner**, **Abschluss-Hero**, **Feedback-erledigt** und **Channel-Tabs** mit Primary-Tint / Zusatzschatten; Medaillen-Varianten des Heroes behalten ihre Farben, erhalten zusätzlich **`--app-shadow-card-playful`**. **Team-Belohnung** **`.vote-team-reward`**: Shell-Mixins **`app-playful-vote-team-reward-shell`** / **`-leader`**; Kopfzeile, Team-Chip, Stat-Kacheln und Rangliste (Medaillen-Streifen, `--own`). **Ergänzend (Teilnehmeransicht):** **`section.session-channel-card`** (Q&amp;A-Tab, kein `mat-card`), gesamte **`.vote-lobby`**, **`.vote-player-badge`**, **Countdown** (nicht urgent), **`.vote-scorecard`**, **Frage** / **Diskussionsphase** / **Runden-2-Banner**, **Antwort-Buttons** (neutral + ausgewählt), **Freitext** / **Bewertung** / **„Antwort gesendet“**, **Emoji-Leiste**, **Q&amp;A-Karten** (inkl. **pinned**), **leerer Q&amp;A-Zustand**, **Moderations-Hinweis**, **Q&amp;A-Textarea**.
-- **Welle 5:** **Session Present** – Sieger-, Team-Board-, Q&amp;A-, Feedback-**`mat-card`** mit **primary**; **Word-Cloud**-Sektion als Panel; **`session-placeholder`** mit **nested**. **Session Host** – Frage-/Ergebnis-/Q&amp;A-Karten und **`session-channel-card`** mit **nested** (ruhiger als Present); Placeholder wie Present.
-- **Welle 6:** **Blitzlicht** – eingebettete/Standalone **`session-channel-card`** mit **nested**, **`feedback-host__error`** mit **muted**-Panel; **Teilnehmer-Blitzlicht** (`mat-card.feedback-vote__card`) **primary**; **Hilfe** und **Legal** – **`.legal-article`** im Seiten-Root mit dezentem Bühnen-Hintergrund und Rand; **Admin** (`mat-card.admin-card`) **primary**.
-- **Seriös:** keine Regeln aus dieser Datei (Selektoren nur unter `html.preset-playful`).
-- **Erweiterung:** Weitere Routen über dieselbe Datei oder thematische Partials anbinden; dicht belegte Host-Ansichten nur dezent tinten.
+- **Welle 4:** **Session Vote (Teilnehmer)** – **`.vote-live-banner`**, **Bonus-** und **Feedback-Karten** mit Panel-Mixin **`app-playful-inner-panel-channel`**; **„seriöse“** Feedback-Karte im UI-Preset Spielerisch mit **nested**; **Lobby-Warteblock** (`.vote-lobby__wait`), **Lese-Banner**, **Abschluss-Hero**, **Feedback-erledigt** und **Channel-Tabs** mit Primary-Tint / Zusatzschatten; Medaillen-Varianten des Heroes behalten ihre Farben, erhalten zusätzlich **`--app-shadow-card-playful`**. **Team-Belohnung** **`.vote-team-reward`**: Shell-Mixins **`app-playful-vote-team-reward-shell`** / **`-leader`**; Kopfzeile, Team-Chip, Stat-Kacheln und Rangliste (Medaillen-Streifen, `--own`). **Ergänzend (Teilnehmeransicht):** **`section.session-channel-card`** (Q&amp;A-Tab, kein `mat-card`), gesamte **`.vote-lobby`**, **`.vote-player-badge`**, **Countdown** (nicht urgent), **`.vote-scorecard`**, **Frage** / **Diskussionsphase** / **Runden-2-Banner**, **Antwort-Buttons** (neutral + ausgewählt), **Freitext** / **Bewertung** / **„Antwort gesendet“**, **Emoji-Leiste**, **Q&amp;A-Karten** (inkl. **pinned**), **leerer Q&amp;A-Zustand**, **Moderations-Hinweis**, **Q&amp;A-Textarea**. Token-Radii statt `999px`; Timer-A11y-Toggle-Styles global unter `.vote-timer-a11y__option` (kein `::ng-deep`); Ankunfts-/Confetti-/Reward-Keyframes nicht antasten.
+- **Welle 5:** **Session Present** – Sieger-, Team-Board-, Q&amp;A-, Feedback-**`mat-card`** mit **primary**; **Word-Cloud**-Sektion als Panel; **`session-placeholder`** mit **nested**. **Session Host** – Frage-/Ergebnis-/Q&amp;A-Karten und **`session-channel-card`** mit **nested** (ruhiger als Present); Placeholder wie Present. **Foyer-Einflug** (`foyer-entrance-layer`): Keyframes/`animation-*`-Longhands und `ViewEncapsulation.None` nicht antasten (Prod-Flug); nur Token-Radii/`999px` und toter CSS erlaubt.
+- **Welle 6:** **Blitzlicht** – eingebettete/Standalone **`mat-card.session-channel-card`** mit **nested** (Host-Placeholder und Teilnehmer-Placeholder in `feedback-vote`); geschlossener Blitzlicht-Kanal in der Vote-Shell bleibt **`section.session-channel-card`** (wie Q&amp;A, Chrome ueber `.vote-page section…`); **`feedback-host__error`** mit **muted**-Panel; **Teilnehmer-Blitzlicht** (`mat-card.feedback-vote__card`) **primary** – **ohne** Embedded-Flatten der Flaeche; Standalone-Join ist flache Live-Leiste (kein toter Buehnen-Rahmen/`!important`); Token-Radii statt `999px`, Gewicht 700 statt 800; **Hilfe / Legal / News-Archiv** – Bühnen-Chrome auf **`.content-page-panel`** (nicht als zweite Karte um den Artikel); Lesespur shared über **`content-page-article.scss`**; **Betriebsstatus-Dialog** (`.app-status-help-dialog-panel`) mit dezentem Panel-Chrome; **Admin** (`mat-card.admin-card`) **primary**.
+- **Welle 7:** **Q&amp;A** – Host-Kanal-`mat-card` mit **`app-live-channel-shell`** (nested wie Blitzlicht); Host-Innenkarten **`.session-host .session-qa-card`** nested (ohne Override von highlight/compass-focus); Vote-Form/Notice/Card und Present-Votes/List-Items auf Token-Radii; totes **`.session-qa-cloud*`** entfernt; Wortwolken-Dialog Progress auf `corner-full`. Teilnehmer-Q&amp;A: **`.session-page-shell:has(.vote-page--qa)`** erzwingt **48rem** Breite (Flex+`margin-inline:auto` sonst shrink-to-fit unter der Inhaltsbreite; `max-width` allein wirkungslos).
+- **Welle 8 (abgeschlossen, Token-Nachzug):** Operative Regeln stehen unter **Style-Vertraege fuer Erweiterungen**. Historisch: Bar-Tokens ohne Hex-Fallbacks; `999px` → `corner-full`; Gewicht 800 → 700; Present-Shell und Material-Internals ohne Piercing; Blitzlicht-Host/Vote-Radii auf Corner-Tokens; Floating-Bottom- und Dual-Layer-Vertrag.
+- **Wellen-Status:** Playful-Chrome und Token-Nachzug fuer die inneren Views gelten als **fertig**. Neue Surfaces erweitern die Vertraege oben, statt eine „Welle 9“-Liste fortzuschreiben – ausser bei bewusst abgegrenzten Gross-Batches.
 
 ## Startseite: Buttons, Snackbar und Toast
 
@@ -314,7 +378,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 - **Stil wechseln:** Als Pill-Button (corner-full, Outline, swap_horiz-Icon), nicht als Text-Link. Hover: Primary-Border und -Text.
 - **Kategorien:** Jede Kategorie als eigene Karte (surface-container-low, Border, border-radius medium), klare Labels (title-small, font-weight 600).
 - **Chips:** Leichter Active-State (scale 0.98) bei `:active`, nur wenn reduced-motion aus.
-- **Spielerisch-Variant:** Modal mit `--app-corner-playful`, Primary-getoenter Border und dezentem Glow-Schatten.
+- **Spielerisch-Variant:** Modal mit `--app-corner-playful`, Primary-getöntem Border, Panel-Verlauf und Glow über `--app-shadow-card-playful` (Klasse `.preset-toast--playful`). Kategorien als ruhige Insets. Countdown-GIF ohne `!important`, Höhe per `clamp`.
 
 ## Preset-Snackbar (Startseite): Design
 
@@ -347,8 +411,10 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 ## Nicht erlaubt
 
 - Tailwind-Klassen im Repository.
-- Direkte Überschreibung interner Material-Klassen.
-- Hardcoded Hex/RGB-Farben fuer Standard-UI-Semantik.
+- Direkte Überschreibung interner Material-Klassen in Feature-SCSS (`::ng-deep`, `:deep(...)`, fragile MDC-Selektoren ohne globale Scope-Klasse).
+- Hardcoded Hex/RGB-Farben fuer Standard-UI-Semantik; Hex-Fallbacks an `--arsnova-*`/`--app-*` in Feature-SCSS.
+- `999px`-Radii (außer dokumentiertem Histogram-Stab) und `font-weight: 800`.
+- Glas-/Surface-Prospekt um Solo-Floating-CTAs entgegen dem Floating-Bottom-Contract.
 - Wildwuchs an einmaligen Layout-Hacks pro Feature.
 
 ## Performance (Lighthouse)

@@ -11,7 +11,7 @@
       aria-labelledby="legal-page-title"
     >
       <nav
-        class="legal-back"
+        class="content-back"
         i18n-aria-label="@@contentPage.navigationAria"
         aria-label="Navigation"
       >
@@ -27,8 +27,8 @@
           <span i18n="@@contentPage.back">Zurück</span>
         </button>
       </nav>
-      <article class="legal-article">
-        <header class="dialog-title-header dialog-title-header--page legal-page__hero">
+      <article class="content-page-article">
+        <header class="dialog-title-header dialog-title-header--page content-page-hero">
           <span class="dialog-title-header__icon" aria-hidden="true">
             @if (slug() === 'imprint') {
               <mat-icon>gavel</mat-icon>
@@ -55,11 +55,14 @@
         } @else if (error()) {
           <p class="legal-error" role="alert">{{ error() }}</p>
         } @else if (content(); as legalHtml) {
-          <div class="legal-page__md" [innerHTML]="legalHtml"></div>
+          <div
+            class="legal-page__md content-page-prose markdown-body"
+            [innerHTML]="legalHtml"
+          ></div>
         }
       </article>
       <nav
-        class="legal-back legal-back--bottom"
+        class="content-back content-back--bottom"
         i18n-aria-label="@@contentPage.navigationBottomAria"
         aria-label="Navigation am Seitenende"
       >

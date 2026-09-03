@@ -5271,7 +5271,14 @@
           <context context-type="linenumber">2623,2626</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="feedback.voteMissing" datatype="html">
+            <trans-unit id="feedback.voteFailed" datatype="html">
+        <source>Abstimmung fehlgeschlagen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
+          <context context-type="linenumber">480</context>
+        </context-group>
+      </trans-unit>
+<trans-unit id="feedback.voteMissing" datatype="html">
         <source>Feedback-Runde nicht gefunden oder abgelaufen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>

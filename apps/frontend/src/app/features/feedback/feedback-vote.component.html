@@ -86,23 +86,32 @@
       </mat-card-content>
     </mat-card>
   } @else if (embeddedInSession() && !feedbackType() && !loading()) {
-    <section
+    <mat-card
+      appearance="outlined"
       class="session-channel-card session-channel-card--quick-feedback app-live-channel-shell"
       [class.session-channel-card--embedded-feedback]="embeddedInSession()"
     >
-      <div class="session-channel-card__header">
-        <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true">bolt</mat-icon>
-        <div class="session-channel-card__header-main">
-          <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">Blitzlicht</p>
-          <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackVoteTitle">
-            Beim Blitzlicht mitmachen
-          </h2>
+      <mat-card-content
+        class="session-channel-card__content session-channel-card__content--blitz-head"
+      >
+        <div class="session-channel-card__header">
+          <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true"
+            >bolt</mat-icon
+          >
+          <div class="session-channel-card__header-main">
+            <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">
+              Blitzlicht
+            </p>
+            <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackVoteTitle">
+              Beim Blitzlicht mitmachen
+            </h2>
+          </div>
         </div>
-      </div>
-      <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackVotePlaceholder">
-        Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.
-      </p>
-    </section>
+        <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackVotePlaceholder">
+          Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.
+        </p>
+      </mat-card-content>
+    </mat-card>
   } @else if (voted() && !isTempoFeedback()) {
     <mat-card
       appearance="outlined"
@@ -134,7 +143,6 @@
       <p class="feedback-vote__discussion-hint" i18n="@@feedback.compareRoundVoteHint">
         Gleich kannst du dein zweites Blitzlicht abgeben.
       </p>
-      <p class="feedback-vote__discussion-next" i18n>Zweite Abstimmung folgt gleich…</p>
     </div>
   } @else if (locked()) {
     <mat-card

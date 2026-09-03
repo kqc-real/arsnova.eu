@@ -1,0 +1,45 @@
+/**
+ * Gemeinsame Lesespur für Help / Legal / News-Archiv (Content-Overlay-Seiten).
+ * Ein Maß, eine Prose, eine Zurück-Nav – kein Drift zwischen den drei Seiten.
+ *
+ * Markdown-Nachfahren (`.content-page-prose …`) liegen in `styles.scss`, weil
+ * `[innerHTML]` keine Encapsulation-Attribute trägt.
+ */
+
+.content-back {
+  margin-bottom: 2rem;
+}
+
+.content-back--bottom {
+  margin-top: 2.5rem;
+  margin-bottom: 0;
+}
+
+.content-page-hero {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  margin-bottom: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.content-page-article {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface);
+  line-height: 1.7;
+  max-inline-size: min(65ch, 100%);
+  margin-inline: auto;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Template-Absätze direkt im Artikel (z. B. Hilfe-Intro). */
+.content-page-article > p {
+  margin: 0 0 1rem;
+}
+
+.content-page-prose {
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+  min-width: 0;
+  max-width: 100%;
+}

@@ -1266,4 +1266,38 @@ Viel Erfolg beim Import.`);
       }),
     );
   });
+
+  it('gibt Quiz-Karten im spielerischen Preset eine Hover-Elevation trotz Mixin-Ruheschatten', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const scss = readFileSync(join(dir, 'quiz-list.component.scss'), 'utf8');
+    const html = readFileSync(join(dir, 'quiz-list.component.html'), 'utf8');
+    const playful = readFileSync(join(dir, '../../../../styles/playful-inner-chrome.scss'), 'utf8');
+    const styles = readFileSync(join(dir, '../../../../styles.scss'), 'utf8');
+
+    expect(scss).toMatch(
+      /:host-context\(html:not\(\.preset-playful\)\) \.quiz-list-item:hover\s*\{/,
+    );
+    expect(scss).toMatch(/border-radius:\s*var\(--mat-sys-corner-full\)/);
+    expect(scss).not.toContain('999px');
+    expect(scss).not.toContain('@keyframes important-error-pulse');
+    expect(scss).toMatch(/\.quiz-list__ai-hint\s*\{[^}]*font:\s*var\(--mat-sys-body-medium\)/);
+    expect(html).not.toMatch(/dialog-title-header__sub[^"]*quiz-list__ai-hint/);
+    expect(playful).toMatch(
+      /\.quiz-list-page mat-card\.quiz-list-item:hover[\s\S]*?box-shadow:\s*[\s\S]*?--app-shadow-card-playful/,
+    );
+    expect(playful).toMatch(
+      /\.quiz-list-page mat-card\.quiz-list__ai-card\s*\{[\s\S]*?app-playful-inner-panel-muted/,
+    );
+    expect(playful).not.toMatch(/quiz-list__ai-card:hover/);
+    expect(playful).toMatch(/\.quiz-list-page \.quiz-list__sync-callout/);
+    expect(playful).toMatch(/\.quiz-list-page \.quiz-list__lead-demo/);
+    const aiMarkdown = styles.slice(styles.indexOf('.quiz-list__ai-prompt-markdown'));
+    expect(aiMarkdown).toMatch(
+      /\.quiz-list__ai-prompt-markdown pre\s*\{[\s\S]*?font-size:\s*0\.8125em/,
+    );
+    expect(aiMarkdown).not.toContain('0.625rem');
+  });
 });

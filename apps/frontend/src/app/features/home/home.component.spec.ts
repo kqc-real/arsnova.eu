@@ -449,6 +449,7 @@ describe('HomeComponent', () => {
       const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
       const scss = readFileSync(scssPath, 'utf8');
       const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+      const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
 
       expect(scss).toMatch(
         /:host\.route-home \.l-page:first-child[\s\S]*@media \(min-width:\s*840px\)\s*\{[^}]*margin-top:\s*2\.5rem/,
@@ -459,11 +460,15 @@ describe('HomeComponent', () => {
       expect(playful).toMatch(
         /@media \(min-width:\s*600px\) and \(max-width:\s*959\.98px\)\s*\{[\s\S]*?\.home-card#participant-entry\.home-card--stage-main\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/,
       );
-      expect(playful).toMatch(
+      /* Desktop-Raster einmal shared – kein zweites, auseinanderlaufendes playful-Duplikat. */
+      expect(shared).toMatch(
         /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-main\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(0,\s*1\.4fr\)\s*minmax\(0,\s*1fr\)/,
       );
-      expect(playful).toMatch(
-        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card#participant-entry\.home-card--stage-main[\s\S]*?grid-column:\s*auto/,
+      expect(shared).toMatch(
+        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card#participant-entry[\s\S]*?grid-column:\s*auto/,
+      );
+      expect(playful).not.toMatch(
+        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-main\s*\{[^}]*grid-template-columns:/,
       );
       expect(playful).not.toMatch(
         /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
@@ -485,10 +490,61 @@ describe('HomeComponent', () => {
       expect(playful).not.toMatch(/inset\s+5px\s+0\s+0/);
       expect(playful).not.toMatch(/--app-shadow-cta-glow/);
       expect(playful).toMatch(
-        /\.home-card:not\(\.home-card--create\) mat-card-actions > \.home-cta:first-child\s*\{[^}]*box-shadow:\s*none/,
+        /\.home-card#participant-entry mat-card-actions > \.home-cta:first-child:hover\s*\{[^}]*box-shadow:\s*none/,
       );
       expect(stageMainRule).not.toMatch(/inset\s+\d+px\s+0\s+0/);
       expect(stageMainRule).toMatch(/inset 0 0 0 1px color-mix\(in srgb, var\(--mat-sys-primary\)/);
+    });
+
+    it('gibt Mitmachen im spielerischen Preset einen Hover-Schatten trotz ID-Ruhezustand', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+
+      expect(playful).toMatch(
+        /\.home-card--stage-main#participant-entry\.home-card:hover\s*\{[^}]*box-shadow:\s*[\s\S]*?0 14px 40px -8px/,
+      );
+      /* Keine tote generische Hover-Schicht neben den stage-*-Regeln. */
+      expect(playful).not.toMatch(/(?<![\w-])\.home-card:hover\s*\{/);
+      expect(playful).not.toMatch(/\.home-card--create\.home-card:hover\s*\{/);
+    });
+
+    it('hält spielerische Bühnenkarten in Titel, Header-Padding und Icon-Ring konsistent', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+      const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
+
+      /* Titel-Font nur shared (headline-medium ab 960px), nicht per ID auf small gepinnt. */
+      expect(playful).not.toMatch(
+        /\.home-card--stage-main#participant-entry \.home-card__title[\s\S]*?font:\s*var\(--mat-sys-headline-small\)/,
+      );
+      expect(shared).toMatch(
+        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card__title\s*\{[^}]*font:\s*var\(--mat-sys-headline-medium\)/,
+      );
+      expect(playful).toMatch(
+        /\.home-card--stage-main#participant-entry \.mat-mdc-card-header\s*\{[^}]*padding-bottom:\s*0\.5rem/,
+      );
+      expect(playful).toMatch(
+        /\.home-card\.home-card--stage-side \.mat-mdc-card-header\s*\{[^}]*padding-bottom:\s*0\.5rem/,
+      );
+      expect(playful).toMatch(
+        /\.home-card--stage-main#participant-entry \.home-card__icon-wrap[\s\S]*?box-shadow:\s*0 0 0 1px/,
+      );
+      /* Mobiler Top-Streifen nur seriös – sonst überschreibt playful border: die Absicht. */
+      expect(shared).toMatch(
+        /:host-context\(html:not\(\.preset-playful\)\) \.home-card#participant-entry\s*\{[^}]*border-top:\s*3px solid var\(--mat-sys-primary\)/,
+      );
+      expect(scss).not.toContain('.home-header');
+      expect(scss).not.toContain('.home-brand');
+      expect(scss).not.toContain('.home-icon-toggles');
+      expect(scss).not.toContain('.home-controls-mobile');
     });
 
     it('hält die drei Karten ab 960px auf gleicher Höhe, Host-CTAs mittig und Blitzlicht kompakt', async () => {

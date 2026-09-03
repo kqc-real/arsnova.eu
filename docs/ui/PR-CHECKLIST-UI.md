@@ -2,7 +2,7 @@
 
 Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpflichtend.
 
-**Stand:** 2026-08-26 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
+**Stand:** 2026-09-03 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
 
 ## 1) Design-System-Konformität
 
@@ -13,19 +13,21 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 
 ## 2) Theming und Tokens
 
-- [ ] Farben, Typografie, Shape und Elevation kommen aus Tokens.
-- [ ] Keine hardcoded Hex-/RGB-Werte für Standard-UI-Semantik.
+- [ ] Farben, Typografie, Shape und Elevation kommen aus Tokens (`--mat-sys-corner-*`, kein `999px` außer Histogram-Stab; kein `font-weight: 800`).
+- [ ] Keine hardcoded Hex-/RGB-Werte für Standard-UI-Semantik; keine Hex-Fallbacks an `--app-*`/`--arsnova-*` in Feature-SCSS.
 - [ ] App-Semantik-Tokens (`--app-*`, `--arsnova-*`) sind in [TOKENS.md](TOKENS.md) dokumentiert oder bewusst komponentenspezifisch scoped.
 - [ ] Neue Token-Bedarfe sind begründet, möglichst eng gescoped und in Light/Dark sowie Spielerisch/Seriös geprüft.
 - [ ] Status-, Bewertungs- und Chart-Farben nutzen die dokumentierten Ausnahmen statt neuer Einzelfarben.
+- [ ] Dual-Layer eingehalten: Feature = Seriös-Basis, Playful nur unter `html.preset-playful` ([STYLEGUIDE.md](STYLEGUIDE.md) Style-Vertraege).
 
 ## 3) Angular-Material-Overrides und Overlays
 
 - [ ] Anpassungen an Material-Komponenten erfolgen über `mat.theme-overrides(...)` oder `<component>-overrides(...)`.
-- [ ] Keine fragilen Overrides gegen interne Material-DOM-Strukturen.
-- [ ] Kein `::ng-deep` (deprecated).
+- [ ] Keine fragilen Overrides gegen interne Material-DOM-Strukturen in Feature-SCSS.
+- [ ] Kein `::ng-deep` und kein `:deep(...)`; Material-Internals / `innerHTML`-Markdown nur global gescoped in `styles.scss` oder per Shell-Klasse.
 - [ ] Globale Overlay-Regeln sind über enge `panelClass` / `backdropClass` begrenzt.
 - [ ] Standard-Dialoge nutzen `dialog-title-header`; Fullscreen-Tools (Word Cloud, Bild-Lightbox) sind als Ausnahme begründet und separat auf Fokus/Close/Scroll geprüft.
+- [ ] Floating-Bottom-Contract eingehalten (Solo-CTA ohne Glas-Prospekt; Multi-Tray nur bei 2+ Aktionen) oder Ausnahme dokumentiert.
 
 ## 4) Layout und SCSS-Patterns
 

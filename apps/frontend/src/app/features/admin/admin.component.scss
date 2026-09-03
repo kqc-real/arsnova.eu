@@ -100,11 +100,6 @@
   width: 100%;
 }
 
-/* Tab-Inhalt: Luft zum Seitenkopf und unten */
-.admin-tabs ::ng-deep .mat-mdc-tab-body-content {
-  padding-block: 1rem 2rem;
-}
-
 .admin-card {
   width: 100%;
 }
@@ -375,14 +370,6 @@
   min-width: 0;
 }
 
-.admin-question__text.markdown-body :deep(p) {
-  margin: 0 0 0.4rem;
-}
-
-.admin-question__text.markdown-body :deep(p:last-child) {
-  margin-bottom: 0;
-}
-
 .admin-question__answers {
   margin: 0;
   padding-left: 1.2rem;
@@ -407,14 +394,6 @@
   min-width: 0;
   font: var(--mat-sys-body-small);
   line-height: 1.45;
-}
-
-.admin-answer-text.markdown-body :deep(p) {
-  margin: 0;
-}
-
-.admin-answer-text.markdown-body :deep(p + p) {
-  margin-top: 0.35rem;
 }
 
 .admin-answer__correct {
@@ -498,13 +477,6 @@
   gap: 0.4rem;
 }
 
-:host ::ng-deep .admin-card .mdc-button__label {
-  white-space: normal;
-  line-height: 1.25;
-  text-align: left;
-  overflow-wrap: break-word;
-}
-
 @media (max-width: 640px) {
   .admin-page {
     padding-top: 2.15rem;
@@ -544,4 +516,32 @@
   .admin-question {
     padding: 0.75rem 0.8rem;
   }
+}
+
+/* Material Tab/Button/Markdown: ViewEncapsulation.None (kein Piercing-Selektor). */
+.admin-tabs .mat-mdc-tab-body-content {
+  padding-block: 1rem 2rem;
+}
+
+.admin-card .mdc-button__label {
+  white-space: normal;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.admin-question__text.markdown-body p {
+  margin: 0 0 0.4rem;
+}
+
+.admin-question__text.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.admin-answer-text.markdown-body p {
+  margin: 0;
+}
+
+.admin-answer-text.markdown-body p + p {
+  margin-top: 0.35rem;
 }

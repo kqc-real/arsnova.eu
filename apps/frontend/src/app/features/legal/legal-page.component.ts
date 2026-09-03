@@ -38,6 +38,7 @@ export function stripLeadingMarkdownTitle(html: string): string {
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
     '../../shared/styles/content-page-backdrop.scss',
+    '../../shared/styles/content-page-article.scss',
     './legal-page.component.scss',
   ],
 })

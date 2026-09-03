@@ -3,6 +3,8 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet, withInMemoryScrolling } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLocaleFromPath } from '../../core/locale-from-path';
 import { infoLandingUrl } from '../../core/info-landing-url';
@@ -545,5 +547,17 @@ describe('HelpComponent', () => {
     expect(text).not.toContain('Moderationskompass');
     expect(text).not.toContain('asynchrone Q&A-NLP-Signale');
     expect(text).not.toMatch(/Rekordteilnahme/i);
+  });
+
+  it('hält Expansion-Header-Styles ohne ::ng-deep', () => {
+    const helpStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/help/help.component.scss'),
+      'utf8',
+    );
+
+    expect(helpStyles).not.toContain('::ng-deep');
+    expect(helpStyles).toMatch(
+      /\.help-panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
+    );
   });
 });

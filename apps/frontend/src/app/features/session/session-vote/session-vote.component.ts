@@ -2635,6 +2635,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.isResults() || this.voteSent() || !this.currentQuestion()) {
       return null;
     }
+    const question = this.currentQuestion()!;
+    // Strukturierte Typen haben schon „Keine Antwort abgegeben.“ unter „Deine Antwort“.
+    if (
+      (question.type === 'ORDERING' ||
+        question.type === 'MATCHING' ||
+        question.type === 'CATEGORIZATION') &&
+      !this.hasStructuredParticipantAnswer(question)
+    ) {
+      return null;
+    }
     return this.timeoutMessage() ?? vpc.voteMissedResultsMessage(this.isPlayfulPreset());
   }
 

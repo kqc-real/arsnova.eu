@@ -72,31 +72,29 @@ export interface ServerStatusHelpDialogData {
           </div>
           <p class="status-help-dialog__copy status-help-dialog__copy--compact">
             <span i18n="@@app.footer.loadStatusLabel">Systemlast:</span>&nbsp;
-            <strong class="status-help-dialog__status-badge-wrapper">
-              @switch (s.loadStatus) {
-                @case ('healthy') {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
-                    i18n="@@app.footer.loadStatusHealthy"
-                    >niedrig</span
-                  >
-                }
-                @case ('busy') {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
-                    i18n="@@app.footer.loadStatusBusy"
-                    >mittel</span
-                  >
-                }
-                @default {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
-                    i18n="@@app.footer.loadStatusOverloaded"
-                    >hoch</span
-                  >
-                }
+            @switch (s.loadStatus) {
+              @case ('healthy') {
+                <span
+                  class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
+                  i18n="@@app.footer.loadStatusHealthy"
+                  >niedrig</span
+                >
               }
-            </strong>
+              @case ('busy') {
+                <span
+                  class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
+                  i18n="@@app.footer.loadStatusBusy"
+                  >mittel</span
+                >
+              }
+              @default {
+                <span
+                  class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
+                  i18n="@@app.footer.loadStatusOverloaded"
+                  >hoch</span
+                >
+              }
+            }
           </p>
           <div class="status-help-dialog__metric-groups" aria-live="polite">
             <section
@@ -362,28 +360,38 @@ export interface ServerStatusHelpDialogData {
               class="status-help-dialog__dot status-help-dialog__dot--healthy"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendHealthy">Stabil</span>
+            <span class="status-help-dialog__legend-label" i18n="@@app.footer.statusLegendHealthy"
+              >Stabil</span
+            >
           </li>
           <li class="status-help-dialog__legend-item status-help-dialog__legend-item--busy">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--busy"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendBusy">Eingeschränkt</span>
+            <span class="status-help-dialog__legend-label" i18n="@@app.footer.statusLegendBusy"
+              >Eingeschränkt</span
+            >
           </li>
           <li class="status-help-dialog__legend-item status-help-dialog__legend-item--overloaded">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--overloaded"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendOverloaded">Kritisch</span>
+            <span
+              class="status-help-dialog__legend-label"
+              i18n="@@app.footer.statusLegendOverloaded"
+              >Kritisch</span
+            >
           </li>
           <li class="status-help-dialog__legend-item status-help-dialog__legend-item--unknown">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--unknown"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendUnknown">Keine Live-Daten</span>
+            <span class="status-help-dialog__legend-label" i18n="@@app.footer.statusLegendUnknown"
+              >Keine Live-Daten</span
+            >
           </li>
         </ul>
       </section>

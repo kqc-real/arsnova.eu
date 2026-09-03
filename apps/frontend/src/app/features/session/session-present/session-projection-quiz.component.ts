@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, input, LOCALE_ID } from '@angular/core';
+import { Component, ViewEncapsulation, computed, inject, input, LOCALE_ID } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -62,6 +62,7 @@ type PresenterEmojiReactions = {
   ],
   templateUrl: './session-projection-quiz.component.html',
   styleUrl: './session-projection-quiz.component.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class SessionProjectionQuizComponent {
   private readonly sanitizer = inject(DomSanitizer);

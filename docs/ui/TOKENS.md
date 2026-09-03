@@ -1,6 +1,6 @@
 # Token-Konventionen (Angular Material 3)
 
-**Stand:** 2026-05-31 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss` und Angular Material 21.2.
+**Stand:** 2026-09-03 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
 
 ## Ziel
 
@@ -37,8 +37,8 @@ Aktuell globale Tokens in `styles.scss`:
 | `--app-color-info-fg`          | Text/Icon auf Infofläche                                  | `--mat-sys-on-tertiary-container`                                    |
 | `--app-color-warning-bg`       | Warn-/Hinweisfläche                                       | `--mat-sys-surface-variant`                                          |
 | `--app-color-warning-fg`       | Text/Icon auf Warn-/Hinweisfläche                         | `--mat-sys-on-surface-variant`                                       |
-| `--app-status-healthy`         | Grüner Betriebsstatus                                     | dokumentierte `light-dark(...)`-Ausnahme                             |
-| `--app-status-busy`            | Gelb/Amber für Last-/Busy-Zustand                         | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-status-healthy`         | Grüner Betriebsstatus (Dots, Legend, Last-Badge)          | dokumentierte `light-dark(...)`-Ausnahme                             |
+| `--app-status-busy`            | Gelb/Amber für Last-/Busy-Zustand (Dots, Legend, Badge)   | dokumentierte `light-dark(...)`-Ausnahme                             |
 | `--app-rating-star`            | Bewertungssterne                                          | dokumentierte `light-dark(...)`-Ausnahme                             |
 | `--app-eu-blue`                | Brand-SVG Europa-Blau                                     | `#002395`, Brand-Ausnahme                                            |
 | `--app-eu-blue-dark`           | dunkleres Brand-Blau                                      | `#001a75`, Brand-Ausnahme                                            |
@@ -108,8 +108,10 @@ Preset-Umschaltung läuft über die CSS-Klasse `html.preset-playful`.
 ## Nicht erlaubt
 
 - hardcoded Hex-/RGB-Farben in Feature-SCSS für Standard-UI-Semantik
-- direkte Material-DOM-Overrides mit fragilen Selektoren
-- `::ng-deep` (deprecated; nicht verwenden, auch nicht für Material-Interna)
+- Hex-Fallbacks an `--app-*` / `--arsnova-*` in Feature-SCSS (Token-Definition bleibt zentral)
+- direkte Material-DOM-Overrides mit fragilen Selektoren in Feature-SCSS
+- `::ng-deep` und `:deep(...)` (deprecated bzw. Piercing; Material-Internals global gescoped, siehe STYLEGUIDE Style-Vertraege)
+- `999px`-Radii außer dem dokumentierten Histogram-Stab; `font-weight: 800`
 - Token-Bypass durch ad-hoc Inline-Styles
 - neue globale Tokens ohne Dokumentation in dieser Datei
 

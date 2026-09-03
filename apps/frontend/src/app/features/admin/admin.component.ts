@@ -1,4 +1,12 @@
-import { Component, LOCALE_ID, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  LOCALE_ID,
+  OnInit,
+  ViewEncapsulation,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   MatCard,
@@ -73,6 +81,7 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class AdminComponent implements OnInit {
   private readonly locale = inject(LOCALE_ID);

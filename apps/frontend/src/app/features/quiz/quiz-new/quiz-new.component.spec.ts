@@ -405,4 +405,33 @@ describe('QuizNewComponent', () => {
     expect(component.form.dirty).toBe(false);
     expect(matDialogMock.open).not.toHaveBeenCalled();
   });
+
+  it('hält Bonus-Fieldset, Tokens und Playful-Chrome der Erstell-Seite konsistent', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const html = readFileSync(join(dir, 'quiz-new.component.html'), 'utf8');
+    const scss = readFileSync(join(dir, 'quiz-new.component.scss'), 'utf8');
+    const playful = readFileSync(join(dir, '../../../../styles/playful-inner-chrome.scss'), 'utf8');
+
+    expect(html).not.toContain('quiz-edit-form__');
+    expect(html).toMatch(/class="quiz-form__fieldset"[\s\S]*?Belohnung/);
+    expect(html).toContain('quiz-form__fieldset-hint');
+    expect(scss).toMatch(/\.quiz-form__fieldset-hint\s*\{/);
+    expect(scss).toMatch(
+      /\.quiz-form__markdown-hints\s*\{[^}]*font:\s*var\(--mat-sys-label-small\)/,
+    );
+    expect(scss).not.toContain('font-size: 0.85rem');
+    expect(scss).not.toContain('.quiz-form__ai-import');
+    expect(scss).not.toContain('.quiz-form-card__header');
+    expect(scss).not.toContain('.quiz-form__preset-badge');
+    expect(scss).toMatch(/\.quiz-form__preset-apply\s*\{[^}]*gap:\s*0\.5rem/);
+    expect(playful).toMatch(
+      /mat-card\.quiz-form-card mat-card\.quiz-form__settings-card[\s\S]*?app-playful-inner-card-nested/,
+    );
+    expect(playful).toMatch(
+      /mat-card\.quiz-form-card \.quiz-form__fieldset[\s\S]*?inset 0 0 0 1px/,
+    );
+  });
 });

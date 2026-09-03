@@ -36,21 +36,32 @@
   min-height: 100%;
 }
 
+/**
+ * Panel-Shell: Padding und Clip einmal hier – nicht dreimal in Legal/Help/News.
+ * Preset Spielerisch: Bühnen-Chrome liegt auf dem Panel (`playful-inner-chrome`), nicht auf dem Artikel.
+ */
 .content-page-panel {
   position: relative;
   z-index: 2;
   isolation: isolate;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  padding-bottom: 3rem;
+  padding-inline: 1.5rem;
   background: var(--mat-sys-surface);
   pointer-events: auto;
 }
 
-/**
- * Preset Spielerisch (playful-inner-chrome): Karten-Rahmen auf Help/Legal/News-Archiv flach ins Panel.
- */
-:host-context(html.preset-playful) .content-page-panel .legal-article,
-:host-context(html.preset-playful) .content-page-panel .news-archive-page__article-root {
-  border: none;
-  box-shadow: none;
-  background: transparent;
-  border-radius: 0;
+@media (min-width: 600px) {
+  .content-page-panel {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 840px) {
+  .content-page-panel {
+    padding-inline: 2.5rem;
+  }
 }

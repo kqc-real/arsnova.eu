@@ -6,6 +6,7 @@ import {
   LOCALE_ID,
   OnDestroy,
   ViewChild,
+  ViewEncapsulation,
   computed,
   effect,
   inject,
@@ -367,6 +368,7 @@ type QuizMetadataComparable = {
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class QuizEditComponent implements OnDestroy {
   readonly infoLandingEstimateAnchor = INFO_LANDING_ANCHORS.numericEstimate;

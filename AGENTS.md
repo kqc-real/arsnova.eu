@@ -19,8 +19,11 @@ Critical instructions for AI coding agents working in arsnova.eu.
 - In `apps/frontend`, use Angular standalone components, Signals, and Angular
   Material 3 tokens. Do not introduce `BehaviorSubject` or RxJS-only state
   stores for ordinary UI state. Do not add Tailwind CSS. Do not use
-  `::ng-deep`; it is deprecated. Style host-owned elements, official Material
-  override mixins, or tightly scoped global/`panelClass` rules instead.
+  `::ng-deep` or `:deep(...)`; they are deprecated/piercing. Style host-owned
+  elements, official Material override mixins, or tightly scoped
+  global/`panelClass` rules instead. For UI/style changes follow
+  `docs/ui/STYLEGUIDE.md` (especially **Style-Vertraege fuer Erweiterungen**),
+  `docs/ui/TOKENS.md`, and `docs/ui/PR-CHECKLIST-UI.md`.
 - Keep all user-facing text synchronized across `de`, `en`, `fr`, `es`, and
   `it`.
 - Preserve the established WCAG 2.2 AA accessibility level. UI changes must
@@ -40,6 +43,9 @@ Critical instructions for AI coding agents working in arsnova.eu.
 
 ## Working Rules
 
+- For frontend UI/SCSS/theme/preset work, read `docs/ui/STYLEGUIDE.md` Style
+  contracts before editing and complete applicable items in
+  `docs/ui/PR-CHECKLIST-UI.md`.
 - Read relevant documentation, nearby tests, and analogous implementations
   before editing.
 - Check `git status` before editing and preserve unrelated local changes.
