@@ -100,10 +100,7 @@
   width: 100%;
 }
 
-/* Tab-Inhalt: Luft zum Seitenkopf und unten */
-.admin-tabs ::ng-deep .mat-mdc-tab-body-content {
-  padding-block: 1rem 2rem;
-}
+/* Tab-Inhalt: Padding global unter `.admin-tabs` in styles.scss . */
 
 .admin-card {
   width: 100%;
@@ -375,13 +372,7 @@
   min-width: 0;
 }
 
-.admin-question__text.markdown-body :deep(p) {
-  margin: 0 0 0.4rem;
-}
-
-.admin-question__text.markdown-body :deep(p:last-child) {
-  margin-bottom: 0;
-}
+/* Markdown-Absätze: globale Scope-Regeln in styles.scss. */
 
 .admin-question__answers {
   margin: 0;
@@ -409,13 +400,7 @@
   line-height: 1.45;
 }
 
-.admin-answer-text.markdown-body :deep(p) {
-  margin: 0;
-}
-
-.admin-answer-text.markdown-body :deep(p + p) {
-  margin-top: 0.35rem;
-}
+/* Markdown-Absätze: globale Scope-Regeln in styles.scss. */
 
 .admin-answer__correct {
   flex-shrink: 0;
@@ -498,12 +483,7 @@
   gap: 0.4rem;
 }
 
-:host ::ng-deep .admin-card .mdc-button__label {
-  white-space: normal;
-  line-height: 1.25;
-  text-align: left;
-  overflow-wrap: break-word;
-}
+/* Button-Label-Wrap: global unter `.admin-card` in styles.scss . */
 
 @media (max-width: 640px) {
   .admin-page {

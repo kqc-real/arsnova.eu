@@ -48,7 +48,7 @@
   min-height: 3.2rem;
   padding: 0.45rem clamp(0.75rem, 1.5vw, 1.1rem);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 94%, transparent);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level2);
@@ -407,7 +407,7 @@
   align-items: center;
   gap: 0.28em;
   padding: 0.22rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   font-size: 0.86em;
   letter-spacing: 0.02em;
@@ -440,7 +440,7 @@
   min-width: 2.2rem;
   text-align: center;
   font-size: clamp(1.8rem, 5vmin, 2.9rem);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -635,7 +635,7 @@
   margin-left: auto;
   flex-shrink: 0;
   align-self: center;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -862,7 +862,7 @@
   height: clamp(1.5rem, 3vmin, 2rem);
   max-height: 2rem;
   margin-top: var(--pq-space-sm);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
   overflow: hidden;
 }
@@ -880,7 +880,7 @@
 }
 
 .session-projection-quiz__bar-fill--correct {
-  background: var(--arsnova-bar-correct, #66bb6a);
+  background: var(--arsnova-bar-correct);
 }
 
 .session-projection-quiz__bar-value {
@@ -891,7 +891,7 @@
   place-items: center;
   color: var(--mat-sys-on-surface);
   font-size: clamp(0.95rem, 1.8vmin, 1.25rem);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   text-shadow:
@@ -996,7 +996,7 @@
 
 .session-projection-quiz__insight-value {
   font-size: 1.15em;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
 }
@@ -1023,7 +1023,7 @@
 .session-projection-quiz__numeric-facts li {
   max-width: 100%;
   padding: 0.7rem 1.05rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container);
   font-size: clamp(1.25rem, 2.8vmin, 1.85rem);
   font-weight: 650;
@@ -1139,7 +1139,7 @@
 }
 
 .session-projection-quiz__pair-score {
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--mat-sys-primary);
   white-space: nowrap;
@@ -1271,117 +1271,5 @@
 @media (min-width: 720px) {
   .session-projection-quiz--code .session-projection-quiz__answers:has(> :nth-child(4)) {
     grid-template-columns: 1fr;
-  }
-}
-
-:host ::ng-deep {
-  /* Presenter: innerHTML-Markdown liegt außerhalb der Component-Encapsulation. */
-  .session-projection-quiz__answer-head
-    .markdown-body
-    .session-projection-quiz__answer-leading-emoji {
-    display: inline-block;
-    font-size: 1.12em;
-    line-height: 1;
-    vertical-align: -0.1em;
-  }
-
-  .session-projection-quiz .markdown-body img {
-    width: auto !important;
-    max-width: min(100%, 52rem) !important;
-    max-height: min(28rem, 38vh) !important;
-    margin-inline: auto;
-    object-fit: contain;
-  }
-
-  .session-projection-quiz:not(.session-projection-quiz--reading) .markdown-body img {
-    max-height: min(28rem, 42vh) !important;
-  }
-
-  .session-projection-quiz--split .session-projection-quiz__title img {
-    max-height: 100% !important;
-  }
-
-  .session-projection-quiz__visual img {
-    width: auto !important;
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: 100% !important;
-    object-fit: contain;
-  }
-
-  .session-projection-quiz--reading .markdown-code-block pre {
-    max-height: none;
-  }
-
-  .session-projection-quiz:not(.session-projection-quiz--reading) .katex-display {
-    margin: 0.4rem 0;
-    font-size: 0.92em;
-  }
-
-  .session-projection-quiz--reading .markdown-body img {
-    max-height: min(34rem, 48vh) !important;
-  }
-
-  .session-projection-quiz .markdown-code-block__copy {
-    display: none;
-  }
-
-  .session-projection-quiz .markdown-code-block pre code.hljs {
-    padding: 1.05rem 1.3rem;
-    font-size: clamp(1.2rem, 2.6vmin, 1.65rem);
-    line-height: 1.45;
-  }
-
-  .session-projection-quiz--reading .markdown-body :is(h1, h2, h3, h4, p) {
-    margin-block: 0 var(--pq-space-md, 0.85rem);
-  }
-
-  .session-projection-quiz__pair
-    :is(.session-projection-quiz__pair-from, .session-projection-quiz__pair-to)
-    > :is(p, h1, h2, h3, h4) {
-    width: 100%;
-    margin: 0;
-  }
-
-  .session-projection-quiz__option-chip > :is(p, h1, h2, h3, h4) {
-    width: 100%;
-    margin: 0;
-  }
-
-  .session-projection-quiz--reading .markdown-body .markdown-code-block {
-    margin: 0.85rem 0 0;
-  }
-
-  .session-projection-quiz:not(.session-projection-quiz--reading):not(
-      .session-projection-quiz--code
-    )
-    .markdown-code-block
-    pre {
-    max-height: min(14vh, 9.5rem);
-    overflow: auto;
-  }
-
-  .session-projection-quiz--code .session-projection-quiz__code .markdown-code-block pre {
-    max-height: none;
-    height: 100%;
-    overflow: auto;
-  }
-
-  .session-projection-quiz--code .session-projection-quiz__code .markdown-code-block pre code.hljs {
-    display: block;
-    box-sizing: border-box;
-    width: max-content;
-    min-width: 100%;
-    height: auto;
-    padding: 0.35rem 0.4rem;
-    font-size: clamp(0.92rem, 1.55vmin, 1.22rem);
-    line-height: 1.38;
-    column-count: 1;
-    hyphens: none;
-    -webkit-hyphens: none;
-    tab-size: 2;
-    white-space: pre;
-    overflow-wrap: normal;
-    word-break: keep-all;
   }
 }

@@ -103,12 +103,12 @@ describe('LegalPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const backNavs = fixture.nativeElement.querySelectorAll('nav.legal-back');
+    const backNavs = fixture.nativeElement.querySelectorAll('nav.content-back');
     expect(backNavs).toHaveLength(2);
     expect(backNavs[0]?.getAttribute('aria-label')).toBe('Navigation');
     expect(backNavs[1]?.getAttribute('aria-label')).toBe('Navigation am Seitenende');
     const bottomBack = fixture.nativeElement.querySelector(
-      'nav.legal-back--bottom button',
+      'nav.content-back--bottom button',
     ) as HTMLButtonElement | null;
     expect(bottomBack).toBeTruthy();
     bottomBack!.click();
@@ -221,5 +221,51 @@ describe('LegalPageComponent', () => {
     expect(md?.querySelector('h1, h2')?.textContent?.trim()).not.toBe('Barrierefreiheit');
     expect(md?.querySelector('h2')?.textContent?.trim()).toBe('Was du nutzen kannst');
     expect(root.querySelectorAll('h1').length).toBe(1);
+  });
+
+  it('nutzt die shared Content-Page-Lesespur (Artikel, Prose, Zurück-Nav)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const sharedDir = join(dirname(fileURLToPath(import.meta.url)), '../../shared/styles');
+    const articleScss = readFileSync(join(sharedDir, 'content-page-article.scss'), 'utf8');
+    const backdropScss = readFileSync(join(sharedDir, 'content-page-backdrop.scss'), 'utf8');
+    const playfulChrome = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+    const legalScss = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'legal-page.component.scss'),
+      'utf8',
+    );
+
+    expect(articleScss).toMatch(
+      /\.content-page-article\s*\{[^}]*max-inline-size:\s*min\(65ch,\s*100%\)/,
+    );
+    expect(articleScss).toMatch(/\.content-page-prose :deep\(h2\)\s*\{/);
+    expect(articleScss).toMatch(/\.content-back--bottom\s*\{/);
+    expect(backdropScss).toMatch(/\.content-page-panel\s*\{[^}]*padding-inline:\s*1\.5rem/);
+    expect(backdropScss).not.toMatch(/border:\s*none/);
+    expect(playfulChrome).toMatch(
+      /\.content-page-panel\s*\{[\s\S]*?box-shadow:\s*[\s\S]*?--mat-sys-level1/,
+    );
+    expect(playfulChrome).not.toMatch(/\.legal-page \.legal-article/);
+    expect(playfulChrome).not.toMatch(/\.help-page \.legal-article/);
+    expect(legalScss).not.toContain('.legal-article');
+    expect(legalScss).not.toContain('.legal-back');
+
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/imprint.de.md'));
+    req.flush('# Titel\n\nText.');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('article.content-page-article')).toBeTruthy();
+    expect(root.querySelector('.content-page-hero')).toBeTruthy();
+    const md = root.querySelector('.legal-page__md');
+    expect(md?.classList.contains('content-page-prose')).toBe(true);
+    expect(md?.classList.contains('markdown-body')).toBe(true);
   });
 });

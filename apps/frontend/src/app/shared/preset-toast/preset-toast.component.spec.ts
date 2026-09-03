@@ -442,6 +442,28 @@ describe('PresetToastComponent', () => {
       expect(comp.toastTitle()).toBe('Spielerisch');
       expect(comp.toastIcon()).toBe('celebration');
     });
+
+    it('hält Playful-Chrome, Tokens und Countdown-Styles konsistent', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const dir = dirname(fileURLToPath(import.meta.url));
+      const scss = readFileSync(join(dir, 'preset-toast.component.scss'), 'utf8');
+      const html = readFileSync(join(dir, 'preset-toast.component.html'), 'utf8');
+
+      expect(scss).not.toContain('!important');
+      expect(scss).not.toContain('.preset-toast__hint');
+      expect(scss).not.toContain(':host-context(html.preset-playful)');
+      expect(scss).toMatch(/\.preset-toast--playful\s*\{[\s\S]*?--app-corner-playful/);
+      expect(scss).toMatch(/\.preset-toast--playful\s*\{[\s\S]*?--app-shadow-card-playful/);
+      expect(scss).toMatch(
+        /\.preset-toast__head-countdown-wrap\s*\{[\s\S]*?height:\s*clamp\(7\.5rem/,
+      );
+      expect(scss).toMatch(/\.preset-toast__chip-state--on\s*\{[^}]*--app-status-healthy/);
+      expect(html).toContain('matButton="filled"');
+      expect(html).not.toContain('mat-flat-button');
+      expect(html).toMatch(/preset-toast__actions[\s\S]*preset-toast__import-export-status/);
+    });
   });
 
   describe('switchPreset', () => {

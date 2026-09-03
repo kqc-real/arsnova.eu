@@ -27,15 +27,27 @@
   bottom: calc(var(--join-bottom-action-bottom) + var(--app-footer-visible-offset, 0px));
   transform: translateX(-50%);
   z-index: 30;
-  width: min(var(--join-page-max-width), calc(100vw - (2 * var(--join-page-inline-padding))));
-  max-width: calc(100vw - (2 * var(--join-page-inline-padding)));
+  /* Solo-CTA: kein Glas-Prospekt (wie Vote-Floating mit einem Button). */
+  width: fit-content;
+  max-width: min(
+    var(--join-page-max-width),
+    calc(
+      100vw -
+        (2 * var(--join-page-inline-padding)) - env(safe-area-inset-left, 0px) - env(
+          safe-area-inset-right,
+          0px
+        )
+    )
+  );
   box-sizing: border-box;
-  padding: 0.75rem;
-  border-radius: var(--mat-sys-corner-extra-large, 1.5rem);
-  background: color-mix(in srgb, var(--mat-sys-surface) 90%, transparent);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
-  box-shadow: var(--mat-sys-level3);
-  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .join-card {
@@ -225,7 +237,7 @@
   &__team-card-dot {
     width: 0.85rem;
     height: 0.85rem;
-    border-radius: 999px;
+    border-radius: var(--mat-sys-corner-full);
     flex-shrink: 0;
   }
 
@@ -404,26 +416,6 @@
   }
 }
 
-@keyframes important-error-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 0.28rem color-mix(in srgb, var(--mat-sys-error) 20%, transparent);
-  }
-}
-
-@keyframes important-error-pulse-mobile {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 0.17rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
-  }
-}
-
 @media (max-width: 599px) {
   .join-page {
     --join-page-inline-padding: var(--host-mobile-inline);
@@ -435,11 +427,17 @@
   }
 
   .join-page__bottom-action {
-    left: var(--join-page-inline-padding);
-    right: var(--join-page-inline-padding);
-    width: auto;
-    max-width: none;
-    transform: none;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: fit-content;
+    max-width: calc(
+      100vw -
+        (2 * var(--join-page-inline-padding)) - env(safe-area-inset-left, 0px) - env(
+          safe-area-inset-right,
+          0px
+        )
+    );
   }
 }
 

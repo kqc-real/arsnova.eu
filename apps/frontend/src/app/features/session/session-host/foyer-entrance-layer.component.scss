@@ -155,7 +155,7 @@
   inset-inline-start: 0.95rem;
   inline-size: clamp(3rem, 18vw, 5.5rem);
   block-size: 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: linear-gradient(
     90deg,
     transparent 0%,
@@ -273,7 +273,7 @@
   inset-inline-start: 50%;
   inline-size: 6rem;
   block-size: 6rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: radial-gradient(
     circle,
     color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface)) 0%,
@@ -303,7 +303,7 @@
   min-height: 2.5rem;
   max-width: min(9.5rem, calc(100vw - 2rem));
   padding: 0.5rem 0.8rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--foyer-accent-surface);
   border: 1px solid var(--foyer-accent-outline);
   box-shadow:
@@ -421,7 +421,7 @@
 
 .foyer-entrance-layer__chip--summary .foyer-entrance-layer__chip-text {
   letter-spacing: 0.03em;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .foyer-entrance-layer--compact .foyer-entrance-layer__chip-text {
@@ -463,7 +463,7 @@
   align-items: center;
   max-inline-size: min(15rem, 42vw);
   padding: 0.48rem 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--foyer-name-badge-surface);
   border: 1px solid var(--foyer-name-badge-outline);
   box-shadow:
@@ -574,23 +574,6 @@
 
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes foyer-overlay-label-pop {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-0.4rem) scale(0.88);
-  }
-
-  24% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-0.15rem) scale(1.02);
   }
 }
 

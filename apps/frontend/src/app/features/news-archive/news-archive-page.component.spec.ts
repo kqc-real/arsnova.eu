@@ -495,11 +495,11 @@ describe('NewsArchivePageComponent', () => {
     const spy = vi.spyOn(location, 'back');
     fixture.detectChanges();
 
-    const backNavs = fixture.nativeElement.querySelectorAll('nav.news-archive-page__back');
+    const backNavs = fixture.nativeElement.querySelectorAll('nav.content-back');
     expect(backNavs).toHaveLength(2);
     expect(backNavs[1]?.getAttribute('aria-label')).toBe('Navigation am Seitenende');
     const bottomBack = fixture.nativeElement.querySelector(
-      'nav.news-archive-page__back--bottom button',
+      'nav.content-back--bottom button',
     ) as HTMLButtonElement | null;
     expect(bottomBack).toBeTruthy();
     bottomBack!.click();

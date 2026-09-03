@@ -46,6 +46,7 @@ type HelpRoleSectionId = 'help-host' | 'help-participant';
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
     '../../shared/styles/content-page-backdrop.scss',
+    '../../shared/styles/content-page-article.scss',
     'help.component.scss',
   ],
 })

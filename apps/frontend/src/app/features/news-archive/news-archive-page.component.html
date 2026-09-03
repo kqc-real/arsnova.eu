@@ -12,7 +12,7 @@
       aria-labelledby="news-archive-page-title"
     >
       <nav
-        class="news-archive-page__back"
+        class="content-back"
         i18n-aria-label="@@contentPage.navigationAria"
         aria-label="Navigation"
       >
@@ -29,8 +29,8 @@
         </button>
       </nav>
 
-      <article class="news-archive-page__article-root">
-        <header class="dialog-title-header dialog-title-header--page news-archive-page__hero">
+      <article class="content-page-article">
+        <header class="dialog-title-header dialog-title-header--page content-page-hero">
           <span class="dialog-title-header__icon" aria-hidden="true">
             <mat-icon>newspaper</mat-icon>
           </span>
@@ -117,7 +117,7 @@
                   </p>
                   @if (htmlById()[it.id]; as safe) {
                     <div
-                      class="news-archive-page__md motd-archive__body markdown-body"
+                      class="news-archive-page__md content-page-prose motd-archive__body markdown-body"
                       [innerHTML]="safe"
                     ></div>
                   }
@@ -168,7 +168,7 @@
         }
       </article>
       <nav
-        class="news-archive-page__back news-archive-page__back--bottom"
+        class="content-back content-back--bottom"
         i18n-aria-label="@@contentPage.navigationBottomAria"
         aria-label="Navigation am Seitenende"
       >

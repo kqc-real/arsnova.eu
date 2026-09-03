@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackVoteComponent } from './feedback-vote.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -754,5 +756,16 @@ describe('FeedbackVoteComponent', () => {
         .pollTimer,
     ).toBeNull();
     fixture.destroy();
+  });
+
+  it('hält Panel-Radii auf Material-Corner-Tokens', () => {
+    const styles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/feedback/feedback-vote.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).not.toMatch(/border-radius:\s*1\.(1|15|25|35|65)rem/);
+    expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-extra-large\)/);
+    expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
   });
 });

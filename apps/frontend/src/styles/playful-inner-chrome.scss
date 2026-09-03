@@ -169,9 +169,51 @@ html.preset-playful {
       inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
   }
 
-  .quiz-list-page mat-card.quiz-list-item,
-  .quiz-list-page mat-card.quiz-list__ai-card {
+  .quiz-list-page .quiz-list__lead-demo,
+  .quiz-list-page .quiz-list__sync-callout {
+    @include app-playful-inner-panel-muted;
+  }
+
+  .quiz-list-page mat-card.quiz-list-item {
     @include app-playful-inner-card-primary;
+    transition:
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /* Hover muss die Mixin-Ruheschatten schlagen (gleiche Spezifitätsklasse wie Home-Bühne). */
+  @media (prefers-reduced-motion: no-preference) {
+    .quiz-list-page mat-card.quiz-list-item:hover {
+      border-color: color-mix(
+        in srgb,
+        var(--mat-sys-outline-variant) 34%,
+        var(--mat-sys-primary) 42%
+      );
+      box-shadow:
+        var(--mat-sys-level3),
+        var(--app-shadow-card-playful),
+        0 12px 36px -8px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+    }
+  }
+
+  /* KI-Import: Arbeitsfläche wie Dialog – Panel-Chrome, kein Listen-Hover-Lift. */
+  .quiz-list-page mat-card.quiz-list__ai-card {
+    @include app-playful-inner-panel-muted;
+  }
+
+  .quiz-list-page .quiz-list__ai-step {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 48%,
+      var(--mat-sys-primary) 16%
+    );
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-low) 70%,
+      var(--mat-sys-surface)
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
   }
 
   mat-card.quiz-form-card,
@@ -184,9 +226,21 @@ html.preset-playful {
     @include app-playful-inner-card-primary;
   }
 
-  mat-card.quiz-form-card mat-card,
+  mat-card.quiz-form-card mat-card.quiz-form__settings-card,
   .quiz-edit mat-card.quiz-edit__form-card mat-card.quiz-edit-form__preview {
     @include app-playful-inner-card-nested;
+  }
+
+  /* Insets in der Erstell-Arbeitsfläche: kein zweiter Karten-Kampf gegen nested Settings. */
+  mat-card.quiz-form-card .quiz-form__fieldset,
+  mat-card.quiz-form-card .quiz-form__preset-note,
+  mat-card.quiz-form-card .quiz-form__team-preview {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 48%,
+      var(--mat-sys-primary) 16%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
   }
 
   .join-page mat-card.join-card:not(.join-card--error) {
@@ -353,7 +407,7 @@ html.preset-playful {
 
   .vote-page .vote-team-reward__stat-value {
     color: var(--mat-sys-primary);
-    font-weight: 800;
+    font-weight: 700;
   }
 
   .vote-page .vote-team-reward__board {
@@ -679,6 +733,30 @@ html.preset-playful {
     box-shadow: inset 0 1px 2px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
   }
 
+  // Host-Q&A-Innenkarten (Kanal-Shell: mat-card.session-channel-card.app-live-channel-shell)
+  .session-host
+    .session-qa-card:not(.session-qa-card--highlight):not(.session-qa-card--compass-focus) {
+    @include app-playful-inner-card-nested;
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 50%, var(--mat-sys-primary) 28%);
+    box-shadow:
+      var(--mat-sys-level1),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
+  }
+
+  .session-host
+    .session-qa-card--pinned:not(.session-qa-card--highlight):not(.session-qa-card--compass-focus) {
+    border-color: color-mix(in srgb, var(--mat-sys-tertiary) 42%, var(--mat-sys-outline-variant));
+    box-shadow:
+      var(--mat-sys-level1),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+  }
+
+  .session-host .session-qa-empty {
+    @include app-playful-inner-card-nested;
+    border-radius: var(--mat-sys-corner-large);
+  }
+
   // --- Welle 5: Present / Host ---
   .session-present mat-card.session-present__winner-card,
   .session-present mat-card.session-present__team-board-card,
@@ -716,11 +794,11 @@ html.preset-playful {
     @include app-playful-inner-card-primary;
   }
 
-  .help-page .legal-article,
-  .legal-page .legal-article,
-  .news-archive-page .news-archive-page__article-root {
-    padding: clamp(1.15rem, 3vw, 1.75rem);
-    border-radius: var(--mat-sys-corner-extra-large);
+  /*
+   * Content-Overlay (Help / Legal / News): Bühne am Panel.
+   * Kein zweiter Kartenrahmen um `.content-page-article` – sonst Card-in-Card + Flatten-Kampf.
+   */
+  .content-page-panel {
     border: 1px solid
       color-mix(in srgb, var(--mat-sys-outline-variant) 46%, var(--mat-sys-primary) 28%);
     background:

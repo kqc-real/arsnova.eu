@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
@@ -2364,6 +2366,20 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
           },
         ],
       }),
+    );
+  });
+
+  it('hält Meta-Expansion und Tokens ohne ::ng-deep / font-weight 800', () => {
+    const styles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/quiz/quiz-edit/quiz-edit.component.scss'),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(styles).not.toContain('::ng-deep');
+    expect(styles).not.toContain('font-weight: 800');
+    expect(globalStyles).toMatch(
+      /\.quiz-edit__meta-expansion-panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
     );
   });
 });

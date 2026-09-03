@@ -94,6 +94,7 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
     '../../shared/styles/content-page-backdrop.scss',
+    '../../shared/styles/content-page-article.scss',
     './news-archive-page.component.scss',
   ],
 })

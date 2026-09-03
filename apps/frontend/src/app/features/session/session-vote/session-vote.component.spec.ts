@@ -1497,6 +1497,57 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt Timeout-/Missed-Hinweis in RESULTS nur einmal, nicht parallel zum Live-Banner', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'mc-results-timeout-once',
+      text: 'Was hilft?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      order: 1,
+      totalQuestions: 3,
+      answers: [],
+      totalVotes: 0,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.voteSent.set(false);
+    component.freeTextValue.set('');
+    component.timeoutMessage.set('Knapp verpasst – nächste Runde! ⏱️');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-timeout')).toBeNull();
+    expect(host.querySelectorAll('#vote-result-message')).toHaveLength(1);
+    expect(host.textContent?.match(/Knapp verpasst – nächste Runde! ⏱️/g)).toHaveLength(1);
+    expect(host.textContent).not.toContain('Diese Runde ohne Text');
+    expect(host.textContent).not.toContain('Leider verpasst');
+    fixture.destroy();
+  });
+
   it('behandelt eine serverseitig gespeicherte falsche Antwort nicht als Timeout', async () => {
     getPersonalScorecardQueryMock.mockResolvedValueOnce({
       questionOrder: 1,
@@ -2881,7 +2932,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Knapp verpasst – nächste Runde! ⏱️');
-    expect(host.textContent).toContain('Diese Runde ohne Text');
+    expect(host.textContent).not.toContain('Diese Runde ohne Text');
+    expect(host.textContent?.match(/Knapp verpasst – nächste Runde! ⏱️/g)).toHaveLength(1);
+    expect(host.querySelector('.vote-timeout')).toBeNull();
+    expect(host.querySelector('#vote-result-message')?.textContent).toContain(
+      'Knapp verpasst – nächste Runde!',
+    );
     expect(host.textContent).toContain('Musterlösungen');
     expect(host.textContent).not.toContain('Du sagst:');
     expect(host.textContent).not.toContain('Voll gewertet');
@@ -3553,6 +3609,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('#vote-top')?.classList.contains('vote-page--qa')).toBe(true);
     expect(host.querySelector('#qa-draft')).not.toBeNull();
     expect(host.querySelector('.session-qa-form__meta .session-qa-form__submit')).toBeNull();
     expect(
@@ -4026,6 +4083,29 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(toolbarFixedBlock).toContain('var(--app-service-status-banner-gap, 0px)');
     expect(toolbarFixedStickyTop).toBe('var(--host-mobile-toolbar-gap, 0.5rem)');
     expect(toolbarFixedStickyTop).not.toContain('4rem');
+  });
+
+  it('hält Vote-Tokens und Timer-Styles ohne ::ng-deep / 999px', () => {
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(voteStyles).not.toContain('999px');
+    expect(voteStyles).not.toContain('::ng-deep');
+    expect(voteStyles).not.toContain('font-weight: 800');
+    expect(voteStyles).not.toContain('rgba(0, 0, 0');
+    expect(voteStyles).toMatch(/border-radius:\s*var\(--mat-sys-corner-full\)/);
+    expect(voteStyles).toMatch(/\.vote-countdown[^{]*\{[\s\S]*?&--urgent\s*\{[^}]*--mat-sys-error/);
+    expect(voteStyles).toContain('@keyframes vote-player-badge-arrive');
+    expect(voteStyles).toContain('animation: important-error-pulse');
+    expect(voteStyles).not.toMatch(/@keyframes important-error-pulse\s*\{/);
+    expect(globalStyles).toMatch(/@keyframes important-error-pulse\s*\{/);
+    expect(globalStyles).toMatch(/\.vote-timer-a11y__option \.mat-button-toggle-button\s*\{/);
+    expect(globalStyles).toMatch(
+      /\.vote-timer-a11y__option \.mat-button-toggle-label-content\s*\{/,
+    );
   });
 
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {
@@ -5700,11 +5780,22 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
     }
 
-    const blocks = fixture.nativeElement.querySelectorAll('.structured-result-block');
+    const host = fixture.nativeElement as HTMLElement;
+    const component = fixture.componentInstance;
+    component.timeoutMessage.set('Knapp verpasst – nächste Runde! ⏱️');
+    fixture.detectChanges();
+
+    const blocks = host.querySelectorAll('.structured-result-block');
     expect(blocks[0]?.textContent).toContain('Keine Antwort abgegeben');
     expect(blocks[0]?.textContent).not.toContain('Kanonisch zuerst');
     expect(blocks[1]?.textContent).toContain('Kanonisch zuerst');
-    expect(fixture.nativeElement.querySelector('.structured-result-summary')).toBeNull();
+    expect(host.querySelector('.structured-result-summary')).toBeNull();
+    // Keine zweite Missed-/Timeout-Zeile unter „Deine Antwort“.
+    expect(component.unansweredResultsMessage()).toBeNull();
+    expect(host.querySelector('#vote-result-message')).toBeNull();
+    expect(host.querySelector('.vote-timeout')).toBeNull();
+    expect(host.textContent?.match(/Knapp verpasst – nächste Runde! ⏱️/g)).toBeNull();
+    expect(host.textContent?.match(/Keine Antwort abgegeben/g)).toHaveLength(1);
     fixture.destroy();
   });
 

@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach } from 'vitest';
 import type { HostCurrentQuestionDTO } from '@arsnova/shared-types';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -778,5 +780,20 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Toleranzband');
     expect(text).toContain('Referenz');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__insights')).toBeTruthy();
+  });
+
+  it('hält Markdown-/Token-Styles ohne ::ng-deep / font-weight 800', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-projection-quiz.component.scss',
+      ),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(styles).not.toContain('::ng-deep');
+    expect(styles).not.toContain('font-weight: 800');
+    expect(globalStyles).toMatch(/\.session-projection-quiz \.markdown-body img\s*\{/);
   });
 });

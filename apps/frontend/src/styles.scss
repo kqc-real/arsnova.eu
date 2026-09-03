@@ -173,6 +173,279 @@ html {
   );
 }
 
+/* Vote: Timer-A11y Toggle – Material-Internals ohne ::ng-deep (enge Scope-Klassen). */
+.vote-timer-a11y__option .mat-button-toggle-button {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 44px;
+}
+
+.vote-timer-a11y__option .mat-button-toggle-label-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 0.55rem;
+  box-sizing: border-box;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Material-Internals ohne ::ng-deep – enge Host-/Scope-Klassen. */
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header {
+  height: auto;
+  min-height: 3.5rem;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  align-items: center;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: visible;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header .mat-expansion-panel-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 0.75rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-body {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 1rem 1rem;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+}
+
+.motd-archive__panel.mat-expansion-panel .mat-expansion-panel-header {
+  height: auto;
+  min-height: 3.25rem;
+  padding-inline: 1rem !important;
+  padding-block: 0.75rem;
+}
+
+.motd-archive__panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.motd-archive__panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-panel-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.motd-archive__panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-panel-header-description {
+  flex: 0 0 auto;
+  min-width: auto;
+  max-width: none;
+}
+
+.motd-archive__panel.mat-expansion-panel .mat-expansion-panel-body {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-inline: 1rem !important;
+  padding-block-end: 1rem;
+}
+
+.admin-tabs .mat-mdc-tab-body-content {
+  padding-block: 1rem 2rem;
+}
+
+.admin-card .mdc-button__label {
+  white-space: normal;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.admin-question__text.markdown-body p {
+  margin: 0 0 0.4rem;
+}
+
+.admin-question__text.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.admin-answer-text.markdown-body p {
+  margin: 0;
+}
+
+.admin-answer-text.markdown-body p + p {
+  margin-top: 0.35rem;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header {
+  padding-inline: 1.25rem !important;
+  gap: 1rem;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-indicator {
+  flex-shrink: 0;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  align-items: center;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-panel-header-title {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  min-width: 0;
+  align-items: center;
+}
+
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mat-mdc-floating-label,
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mdc-floating-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  max-width: calc(100% - 1.5rem);
+}
+
+.md-markdown-insert-dialog__form .mat-mdc-form-field-infix {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Presenter: innerHTML-Markdown liegt außerhalb der Component-Encapsulation. */
+.session-projection-quiz__answer-head
+  .markdown-body
+  .session-projection-quiz__answer-leading-emoji {
+  display: inline-block;
+  font-size: 1.12em;
+  line-height: 1;
+  vertical-align: -0.1em;
+}
+
+.session-projection-quiz .markdown-body img {
+  width: auto !important;
+  max-width: min(100%, 52rem) !important;
+  max-height: min(28rem, 38vh) !important;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+.session-projection-quiz:not(.session-projection-quiz--reading) .markdown-body img {
+  max-height: min(28rem, 42vh) !important;
+}
+
+.session-projection-quiz--split .session-projection-quiz__title img {
+  max-height: 100% !important;
+}
+
+.session-projection-quiz__visual img {
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
+  object-fit: contain;
+}
+
+.session-projection-quiz--reading .markdown-code-block pre {
+  max-height: none;
+}
+
+.session-projection-quiz:not(.session-projection-quiz--reading) .katex-display {
+  margin: 0.4rem 0;
+  font-size: 0.92em;
+}
+
+.session-projection-quiz--reading .markdown-body img {
+  max-height: min(34rem, 48vh) !important;
+}
+
+.session-projection-quiz .markdown-code-block__copy {
+  display: none;
+}
+
+.session-projection-quiz .markdown-code-block pre code.hljs {
+  padding: 1.05rem 1.3rem;
+  font-size: clamp(1.2rem, 2.6vmin, 1.65rem);
+  line-height: 1.45;
+}
+
+.session-projection-quiz--reading .markdown-body :is(h1, h2, h3, h4, p) {
+  margin-block: 0 var(--pq-space-md, 0.85rem);
+}
+
+.session-projection-quiz__pair
+  :is(.session-projection-quiz__pair-from, .session-projection-quiz__pair-to)
+  > :is(p, h1, h2, h3, h4) {
+  width: 100%;
+  margin: 0;
+}
+
+.session-projection-quiz__option-chip > :is(p, h1, h2, h3, h4) {
+  width: 100%;
+  margin: 0;
+}
+
+.session-projection-quiz--reading .markdown-body .markdown-code-block {
+  margin: 0.85rem 0 0;
+}
+
+.session-projection-quiz:not(.session-projection-quiz--reading):not(.session-projection-quiz--code)
+  .markdown-code-block
+  pre {
+  max-height: min(14vh, 9.5rem);
+  overflow: auto;
+}
+
+.session-projection-quiz--code .session-projection-quiz__code .markdown-code-block pre {
+  max-height: none;
+  height: 100%;
+  overflow: auto;
+}
+
+.session-projection-quiz--code .session-projection-quiz__code .markdown-code-block pre code.hljs {
+  display: block;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  height: auto;
+  padding: 0.35rem 0.4rem;
+  font-size: clamp(0.92rem, 1.55vmin, 1.22rem);
+  line-height: 1.38;
+  column-count: 1;
+  hyphens: none;
+  -webkit-hyphens: none;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
 // ---------------------------------------------------------------------------
 // 2) App-Semantic Tokens – TOKENS.md §2
 // ---------------------------------------------------------------------------
@@ -321,7 +594,7 @@ html {
   border-radius: 0.125rem;
 }
 
-// Keyframes für Preset Spielerisch (Startseite) – global, damit Animationen sicher laufen
+// Keyframes für Preset Spielerisch (Top-Toolbar-Brand) – global, damit Animationen sicher laufen
 @media (prefers-reduced-motion: no-preference) {
   @keyframes home-playful-brand-pulse {
     0%,
@@ -331,6 +604,27 @@ html {
     50% {
       transform: scale(1.1);
     }
+  }
+}
+
+/* Fehler-Alert-Pulse: einmal global (Home, Join, Vote, Quiz-Sammlung, …). */
+@keyframes important-error-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  }
+}
+
+@keyframes important-error-pulse-mobile {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.13rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
   }
 }
 
@@ -777,7 +1071,7 @@ html {
   inset-inline-end: 0.55rem;
   z-index: 1;
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level1);
@@ -1161,6 +1455,7 @@ html {
 .home-motd-sheet__body.markdown-body a,
 .motd-archive__body.markdown-body a,
 .news-archive-page__md.markdown-body a,
+.legal-page__md.markdown-body a,
 .markdown-body a.markdown-inline-link {
   color: var(--mat-sys-primary);
   text-decoration: underline;
@@ -1171,6 +1466,7 @@ html {
 .home-motd-sheet__body.markdown-body a:hover,
 .motd-archive__body.markdown-body a:hover,
 .news-archive-page__md.markdown-body a:hover,
+.legal-page__md.markdown-body a:hover,
 .markdown-body a.markdown-inline-link:hover {
   text-decoration-thickness: 0.12em;
 }
@@ -1336,6 +1632,41 @@ html.dark .app-qr-image {
 
 .app-status-help-dialog-panel .mat-mdc-dialog-content {
   max-height: min(84dvh, 42rem);
+  /* Padding hier statt !important in der Komponente – schlägt MDC-Default per Spezifität. */
+  padding: 0 1rem 0.5rem;
+}
+
+.app-status-help-dialog-panel .mat-mdc-dialog-actions {
+  padding: 0 1rem 1rem;
+}
+
+@media (max-width: 599px) {
+  .app-status-help-dialog-panel .mat-mdc-dialog-content {
+    padding: 0 0.875rem 0.5rem;
+  }
+}
+
+html.preset-playful .app-status-help-dialog-panel .mat-mdc-dialog-surface {
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 46%, var(--mat-sys-primary) 28%);
+  background:
+    radial-gradient(
+      ellipse 100% 70% at 100% 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 22%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, var(--mat-sys-tertiary) 5%) 100%
+    );
+  box-shadow:
+    var(--mat-sys-level3),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
 }
 
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {
@@ -1364,7 +1695,7 @@ html.dark .app-qr-image {
 
 .feedback-compare-round-snackbar .mat-mdc-snack-bar-action {
   align-self: center;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-primary-container);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   color: var(--mat-sys-on-primary-container);
@@ -1718,17 +2049,13 @@ $markdown-katex-flow-hosts:
   border-radius: var(--mat-sys-corner-small);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 12%, transparent);
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
-  font-size: 0.625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125em;
   line-height: 1.38;
 }
 
 .quiz-list__ai-prompt-markdown code {
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.92em;
 }
 
@@ -1736,7 +2063,7 @@ $markdown-katex-flow-hosts:
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
-  font-size: 0.625rem;
+  font-size: inherit;
   line-height: inherit;
   background: none;
   padding: 0;
@@ -1758,7 +2085,7 @@ $markdown-katex-flow-hosts:
 }
 
 .quiz-list__ai-prompt-markdown strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .quiz-list__ai-prompt-markdown hr {

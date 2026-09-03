@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MotdArchiveDialogComponent } from './motd-archive-dialog.component';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
@@ -406,5 +408,21 @@ describe('MotdArchiveDialogComponent', () => {
     await fixture.whenStable();
 
     expect(header!.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('hält Expansion-Header-Styles ohne ::ng-deep', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/shared/motd-archive-dialog/motd-archive-dialog.component.scss',
+      ),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(styles).not.toContain('::ng-deep');
+    expect(globalStyles).toMatch(
+      /\.motd-archive__panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
+    );
   });
 });

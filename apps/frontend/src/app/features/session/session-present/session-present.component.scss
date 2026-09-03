@@ -1,31 +1,3 @@
-::ng-deep .app-main--present {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-::ng-deep .app-main--present .app-main__content {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  height: auto;
-  min-height: 0;
-}
-
-::ng-deep .app-main--present router-outlet {
-  display: none;
-  flex: 0 0 auto;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-::ng-deep .app-main--present .app-main__content > :not(router-outlet) {
-  flex: 1 1 auto;
-  min-height: 0;
-  height: auto;
-}
-
 :host {
   display: flex;
   flex-direction: column;
@@ -87,7 +59,7 @@
   max-width: min(calc(100vw - 2rem), 42rem);
   padding: 0.45rem 0.8rem;
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level2);
@@ -397,7 +369,7 @@ app-session-projection-quiz,
   margin: 0;
   max-width: 100%;
   font-size: clamp(1.7rem, 5.4vw, 3.4rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   line-height: 1;
   white-space: nowrap;
@@ -585,7 +557,7 @@ app-session-projection-quiz,
   width: 0.85rem;
   height: 0.85rem;
   margin-top: 0.38em;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--team-accent, var(--mat-sys-primary));
 }
 
@@ -653,7 +625,7 @@ app-session-projection-quiz,
   min-height: 0;
   overflow: hidden;
   padding: 0.18rem 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(
     in srgb,
     var(--mat-sys-surface-container-high) 82%,
@@ -884,7 +856,7 @@ app-session-projection-quiz,
   border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--mat-sys-primary-container) 48%, white),
+    color-mix(in srgb, var(--mat-sys-primary-container) 48%, var(--mat-sys-surface)),
     var(--mat-sys-surface)
   );
 }
@@ -994,7 +966,7 @@ app-session-projection-quiz,
   gap: 0.4rem;
   min-height: 2.4rem;
   padding: 0.3rem 0.8rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
   color: var(--mat-sys-primary);
   font-size: clamp(1.05rem, 1.6vw, 1.35rem);
@@ -1040,7 +1012,7 @@ app-session-projection-quiz,
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
   padding: 0.85rem 1rem;
-  border-radius: 1rem;
+  border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
 }
@@ -1056,7 +1028,7 @@ app-session-projection-quiz,
   display: inline-flex;
   align-items: center;
   padding: 0.28rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -1110,16 +1082,16 @@ app-session-projection-quiz,
 }
 
 .session-present__feedback-row-icon--positive {
-  color: var(--arsnova-bar-correct, #2e7d32);
+  color: var(--arsnova-bar-correct);
 }
 
 .session-present__feedback-row-icon--negative {
-  color: var(--arsnova-bar-wrong, #c62828);
+  color: var(--arsnova-bar-wrong);
 }
 
 .session-present__feedback-track {
   height: 1.1rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container-high);
   overflow: hidden;
 }
@@ -1199,7 +1171,7 @@ app-session-projection-quiz,
   align-items: center;
   gap: 0.35rem;
   padding: 0.15rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
 }
 
@@ -1307,7 +1279,7 @@ app-session-projection-quiz,
 
 .session-present__finish-brand-title {
   font-size: clamp(4rem, 18vmin, 11rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -1375,7 +1347,7 @@ app-session-projection-quiz,
 
 .session-present__finish-hero .session-present__winner-label {
   font-size: clamp(0.78rem, 3cqh, 1.2rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.12em;
 }
 
@@ -1383,7 +1355,7 @@ app-session-projection-quiz,
   margin: 0;
   flex-shrink: 0;
   font-size: clamp(1rem, min(5.2cqh, 4.2cqw), 1.85rem);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .session-present__finish-hero .session-present__winner-name--champion {
@@ -1510,7 +1482,7 @@ app-session-projection-quiz,
   gap: 0.55rem;
   margin: 0.15rem 0 0;
   font-size: clamp(2.8rem, 8vw, 5rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.15;
 }
 
@@ -1664,7 +1636,7 @@ app-session-projection-quiz,
   align-items: center;
   justify-content: center;
   font-size: clamp(1.25rem, 2.2vw, 1.85rem);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -1697,7 +1669,7 @@ app-session-projection-quiz,
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: clamp(1.05rem, 1.85vw, 1.5rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -1726,7 +1698,7 @@ app-session-projection-quiz,
 .session-present__participant-team-dot {
   width: 0.95rem;
   height: 0.95rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent);
 }
 
@@ -1755,7 +1727,7 @@ app-session-projection-quiz,
 
 .session-present__board-score {
   font-variant-numeric: tabular-nums;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -1849,7 +1821,7 @@ app-session-projection-quiz,
 .session-present__team-board-dot {
   width: 1.1rem;
   height: 1.1rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   flex-shrink: 0;
 }
 
@@ -1946,7 +1918,7 @@ app-session-projection-quiz,
   align-self: stretch;
   margin-top: auto;
   height: 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container-high);
   overflow: hidden;
 }
@@ -1976,7 +1948,7 @@ app-session-projection-quiz,
   left: calc(10% + (var(--i) * 10%));
   width: var(--size);
   height: calc(var(--size) * 1.6);
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: hsl(calc(var(--i) * 42deg), 90%, 60%);
 }
 

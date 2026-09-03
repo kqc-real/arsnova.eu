@@ -533,6 +533,19 @@ describe('FeedbackHostComponent', () => {
     );
   });
 
+  it('hält Host-Radii auf Material-Corner-Tokens', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'feedback-host.component.scss'), 'utf8');
+
+    expect(styles).not.toMatch(/border-radius:\s*(0\.(75|85|9)|1(\.25)?)rem/);
+    expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-extra-large\)/);
+    expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-large\)/);
+    expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
+  });
+
   it('rendert im eingebetteten Session-Host keine eigene Bottom-Leiste mit "Session beenden"', () => {
     window.history.replaceState({}, '', '/session/ABC123/host');
     const fixture = TestBed.createComponent(FeedbackHostComponent);

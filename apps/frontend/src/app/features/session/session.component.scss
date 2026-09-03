@@ -5,7 +5,23 @@
   min-height: 0;
 }
 
-.session-page-shell--projection {
+/*
+ * Vote-Shell: `l-section` setzt nur max-width + margin-inline:auto.
+ * Als Flex-Kind von :host schrumpft das auf Inhaltsbreite (shrink-to-fit) —
+ * die max-width wird nie ausgeschöpft. Explizite width erzwingt die Spalte.
+ */
+.session-page-shell.l-section {
+  width: min(100%, 42rem);
+  box-sizing: border-box;
+}
+
+/* Teilnehmer-Q&A: Texteingabe braucht mehr als die 42rem-Lesespalte. */
+.session-page-shell:has(.vote-page--qa) {
+  width: min(100%, 48rem);
+  max-width: 48rem;
+}
+
+.session-page-shell--presentation {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -16,7 +32,7 @@
   min-height: 0;
 }
 
-.session-page-shell--projection > :not(router-outlet) {
+.session-page-shell--presentation > :not(router-outlet) {
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;

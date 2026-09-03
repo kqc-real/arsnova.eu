@@ -9,7 +9,8 @@
 - Dev proxy: `/trpc` -> `127.0.0.1:3000`; `/trpc-ws` -> `127.0.0.1:3001`; `/yjs-ws` -> `127.0.0.1:3002`.
 - Scripts: `start:de`, `start:en`, `build`, `build:localize`, `serve:localize:api`, `check:viewport`, smoke scripts, `test`, `typecheck`, `sync-i18n`.
 - UI state convention: Signals for component/app UI state; RxJS only for real streams/operators, not default local state stores.
-- Tailwind is not part of this app; use Angular Material 3 tokens and existing SCSS patterns. Do not use `::ng-deep`.
+- Tailwind is not part of this app; use Angular Material 3 tokens and existing SCSS patterns. Do not use `::ng-deep` or `:deep(...)`.
+- UI/style source of truth: `docs/ui/STYLEGUIDE.md` (**Style-Vertraege fuer Erweiterungen**: Dual-Layer Base+Playful, corner tokens / max font-weight 700, Floating-Bottom-Contract, Material-Internals only via global scope or Shell/`panelClass`), `docs/ui/TOKENS.md`, `docs/ui/PR-CHECKLIST-UI.md`. Playful chrome: `apps/frontend/src/styles/playful-inner-chrome.scss`.
 - Word-cloud host UX: Freitext maximize in-place on `app-word-cloud`; Q&A uses a separate dialog. Optional smoothing is host-only (`mem:session/word-cloud-spacy`).
 
 ## Verwandte Memories:

@@ -357,4 +357,26 @@ describe('FoyerEntranceLayerComponent', () => {
       vi.useRealTimers();
     }
   });
+
+  it('bewahrt Prod-sichere Animation-Longhands und Token-Radii', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const scss = readFileSync(join(dir, 'foyer-entrance-layer.component.scss'), 'utf8');
+    const ts = readFileSync(join(dir, 'foyer-entrance-layer.component.ts'), 'utf8');
+
+    expect(ts).toContain('ViewEncapsulation.None');
+    expect(scss).not.toContain('999px');
+    expect(scss).not.toContain('foyer-overlay-label-pop');
+    expect(scss).toMatch(/border-radius:\s*var\(--mat-sys-corner-full\)/);
+    expect(scss).toMatch(
+      /\.foyer-entrance-layer__chip-shell\s*\{[\s\S]*?animation-name:\s*foyer-chip-arrive-transform/,
+    );
+    expect(scss).toMatch(
+      /\.foyer-entrance-layer--overlay \.foyer-entrance-layer__chip-shell\s*\{[\s\S]*?animation-name:\s*foyer-overlay-chip-arrive-transform/,
+    );
+    expect(scss).toMatch(/animation-duration:\s*var\(--foyer-arrive-duration\)/);
+    expect(scss).toMatch(/animation-fill-mode:\s*both/);
+  });
 });

@@ -99,43 +99,7 @@
   box-shadow: none !important;
   outline: none;
   background: transparent;
-
-  ::ng-deep .mat-expansion-panel-header {
-    height: auto;
-    min-height: 3.25rem;
-    padding-inline: 1rem !important;
-    padding-block: 0.75rem;
-  }
-
-  /* Flex-Shrink erlauben, damit Titel/Beschreibung wirklich ellipsis nutzen */
-  ::ng-deep .mat-expansion-panel-header .mat-content {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  ::ng-deep .mat-expansion-panel-header .mat-expansion-panel-header-title {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  /* Datum immer vollständig: nicht schrumpfen, kein Ellipsis */
-  ::ng-deep .mat-expansion-panel-header .mat-expansion-panel-header-description {
-    flex: 0 0 auto;
-    min-width: auto;
-    max-width: none;
-  }
-
-  /* Panel-Inhalt: gleiches Flex-Schrumpfen wie MOTD-Sheet, damit Markdown-Bilder skalieren */
-  ::ng-deep .mat-expansion-panel-body {
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding-inline: 1rem !important;
-    padding-block-end: 1rem;
-  }
+  /* Material-Header/Body: globale Scope-Regeln in styles.scss. */
 }
 
 .motd-archive__panel-title {

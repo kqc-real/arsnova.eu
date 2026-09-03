@@ -32,6 +32,7 @@
   - Naming conventions: `mem:conventions/naming`.
   - Definition of Done and workflow: `mem:quality/dod`, `mem:quality/workflow`.
 - Canonical files still matter: `AGENTS.md` for critical rules, `.cursorrules` for minimal Cursor stack/path facts, `docs/README.md` as docs map, `Backlog.md` as story/DoD source, focused docs for security/deploy/testing/i18n/UI, and root/app JSON manifests when changing workspace behavior.
+- Frontend UI/style source of truth: `docs/ui/STYLEGUIDE.md` (operative **Style-Vertraege fuer Erweiterungen** after Waves 1–8), plus `docs/ui/TOKENS.md` and `docs/ui/PR-CHECKLIST-UI.md`. Pointed from `AGENTS.md` Always-On/Working Rules; Serena: `mem:modules/frontend`, `mem:frontend/i18n-ui`.
 - Do not store task-local notes, secrets, volatile line-level facts, or full Backlog copies in memories.
 
 ## Related Memories

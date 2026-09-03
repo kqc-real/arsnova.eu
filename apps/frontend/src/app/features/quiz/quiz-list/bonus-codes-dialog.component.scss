@@ -99,7 +99,7 @@
   width: fit-content;
   align-items: center;
   padding: 0.18rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
   color: var(--mat-sys-primary);
   font: var(--mat-sys-label-medium);

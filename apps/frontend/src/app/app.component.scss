@@ -61,6 +61,35 @@
   padding-top: 0;
 }
 
+/* Present-Vollfläche: Klasse kommt von app.component (`isPresentRoute`). */
+.app-main--present {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-main--present .app-main__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.app-main--present router-outlet {
+  display: none;
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.app-main--present .app-main__content > :not(router-outlet) {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
 @media (min-width: 600px) {
   .app-main--toolbar-fixed {
     padding-top: calc(
@@ -282,7 +311,7 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 999px;
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
   color: var(--mat-sys-primary);
   flex-shrink: 0;
@@ -303,7 +332,7 @@
 
 .app-update-banner__title {
   font: var(--mat-sys-title-small);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 

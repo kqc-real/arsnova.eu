@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -2218,5 +2220,17 @@ describe('SessionPresentComponent', () => {
     expect(root.classList.contains('l-stack--sm')).toBe(false);
     expect(getComputedStyle(root).maxWidth).not.toBe('none');
     fixture.destroy();
+  });
+
+  it('hält Present-Display-Gewicht ohne font-weight 800', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.scss',
+      ),
+      'utf8',
+    );
+    expect(styles).not.toContain('font-weight: 800');
+    expect(styles).not.toContain('::ng-deep');
   });
 });

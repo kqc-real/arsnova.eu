@@ -477,7 +477,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
           /* private browsing */
         }
       } else {
-        this.error.set('Abstimmung fehlgeschlagen.');
+        this.error.set($localize`:@@feedback.voteFailed:Abstimmung fehlgeschlagen.`);
       }
     } finally {
       this.submitting.set(false);

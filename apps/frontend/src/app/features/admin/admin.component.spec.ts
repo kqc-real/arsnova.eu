@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminComponent } from './admin.component';
 
@@ -68,5 +70,20 @@ describe('AdminComponent', () => {
 
     expect(second).toBe(first);
     expect(differentLevel).not.toBe(first);
+  });
+
+  it('hält Tab-, Button- und Markdown-Overrides ohne Piercing-Selektoren', () => {
+    const styles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/admin/admin.component.scss'),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(styles).not.toContain('::ng-deep');
+    expect(styles).not.toContain(':deep(');
+    expect(globalStyles).toMatch(/\.admin-tabs \.mat-mdc-tab-body-content\s*\{/);
+    expect(globalStyles).toMatch(/\.admin-card \.mdc-button__label\s*\{/);
+    expect(globalStyles).toMatch(/\.admin-question__text\.markdown-body p\s*\{/);
+    expect(globalStyles).toMatch(/\.admin-answer-text\.markdown-body p\s*\{/);
   });
 });
