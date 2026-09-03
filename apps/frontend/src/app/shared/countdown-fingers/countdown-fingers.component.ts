@@ -73,7 +73,9 @@ const FINGER_IMAGES: Record<number, string> = {
 
       .countdown-fingers__img {
         display: block;
+        /* Assets sind einheitlich 142×348, Inhalt unten bündig. */
         object-fit: contain;
+        object-position: bottom center;
       }
 
       .countdown-fingers--large {
@@ -81,8 +83,9 @@ const FINGER_IMAGES: Record<number, string> = {
         background: transparent;
 
         .countdown-fingers__img {
+          /* Feste Box: gleicher Wechsel ohne Höhensprung (Asset-Seitenverhältnis 142/348). */
           width: 120px;
-          height: auto;
+          height: calc(120px * 348 / 142);
           image-rendering: auto;
         }
       }
@@ -94,7 +97,7 @@ const FINGER_IMAGES: Record<number, string> = {
         .countdown-fingers__img {
           /* Kompakt unten links; Asset unten bündig am Content. */
           width: 48px;
-          height: auto;
+          height: calc(48px * 348 / 142);
         }
       }
 
@@ -112,7 +115,9 @@ const FINGER_IMAGES: Record<number, string> = {
           height: auto;
           max-width: 100%;
           max-height: 100%;
+          aspect-ratio: 142 / 348;
           object-fit: contain;
+          object-position: bottom center;
         }
       }
 
