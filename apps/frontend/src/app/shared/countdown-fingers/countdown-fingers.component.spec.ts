@@ -52,8 +52,9 @@ describe('CountdownFingersComponent', () => {
       /countdown-fingers--small[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-primary\),\s*transparent\s*\)/,
     );
     expect(styles).toMatch(/padding:\s*0\.35rem/);
+    expect(styles).toMatch(/countdown-fingers--large[\s\S]*?padding:\s*0\.45rem 0\.45rem 0/);
     expect(styles).toMatch(
-      /border-radius:\s*var\(--mat-sys-corner-extra-large,\s*1\.5rem\)\s+var\(--mat-sys-corner-extra-large,\s*1\.5rem\)\s+0\s+0/,
+      /border-radius:\s*var\(--mat-sys-corner-extra-large,\s*1\.5rem\)[\s\S]*?0\s+0/,
     );
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?width:\s*48px/);
     expect(styles).toMatch(

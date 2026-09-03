@@ -77,7 +77,7 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--large {
-        padding: 0.45rem;
+        padding: 0.45rem 0.45rem 0;
         border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
           var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
         /* Host/Present: Light braucht Kontrast hinter der weißen Hand (Theme-Primary). */
@@ -110,7 +110,7 @@ const FINGER_IMAGES: Record<number, string> = {
         max-width: 100%;
         max-height: 100%;
         min-height: 0;
-        padding: clamp(0.45rem, 1.4vmin, 0.9rem);
+        padding: clamp(0.45rem, 1.4vmin, 0.9rem) clamp(0.45rem, 1.4vmin, 0.9rem) 0;
         border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
           var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
         background: light-dark(var(--mat-sys-primary), transparent);
