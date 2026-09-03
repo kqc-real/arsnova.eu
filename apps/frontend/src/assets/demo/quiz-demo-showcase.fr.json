@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Cliquer pour agrandir.*",
+        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Cliquer pour agrandir.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
