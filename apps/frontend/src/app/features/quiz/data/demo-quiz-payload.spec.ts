@@ -12,6 +12,17 @@ describe('getDemoQuizSeedFingerprint', () => {
     expect(de.split('|').length).toBeGreaterThanOrEqual(5);
   });
 
+  it('nennt die Bildquelle unter dem Emotionsbild der ersten Frage', () => {
+    for (const locale of ['de', 'en', 'fr', 'es', 'it'] as const) {
+      const payload = getDemoQuizPayload(locale) as {
+        quiz?: { questions?: Array<{ text?: string }> };
+      };
+      expect(payload.quiz?.questions?.[0]?.text).toContain(
+        'Pass / Le Brun (1821), via Wikimedia Commons',
+      );
+    }
+  });
+
   it('unterscheidet Locales', () => {
     expect(getDemoQuizSeedFingerprint('de')).not.toBe(getDemoQuizSeedFingerprint('en'));
   });

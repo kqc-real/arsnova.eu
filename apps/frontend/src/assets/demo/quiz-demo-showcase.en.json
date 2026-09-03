@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### How is the room feeling right now?\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Click for full view.*",
+        "text": "### How is the room feeling right now?\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Click for full view.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",

@@ -916,6 +916,25 @@ html {
   box-sizing: border-box;
 }
 
+/* Kursiv-Zeile direkt unter einem alleinstehenden Bild = Bildnachweis */
+.markdown-body p:has(> img:only-child):has(+ p:has(> em:only-child)) {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body p:has(> img:only-child) + p:has(> em:only-child) {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.markdown-body p:has(> img:only-child) + p:has(> em:only-child) > em {
+  font-style: italic;
+  font-weight: 400;
+}
+
 .vote-answer__text,
 .session-host__answer-text,
 .session-host__vote-dist-text,
