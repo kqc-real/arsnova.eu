@@ -154,6 +154,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly tempoHelpCloseLabel = $localize`:@@feedback.tempoHelpClose:Verstanden`;
   readonly tempoHelpOpen = signal(false);
 
+  private readonly endSessionRetryMessage = $localize`:@@feedback.endSessionRetryHint:Beenden oder Presenter-Umschaltung haben gerade nicht geklappt. Bitte in ein paar Sekunden erneut versuchen.`;
+
   sessionCodeDisplayAria(code: string): string {
     return i18nSessionCodeAria(code);
   }
@@ -762,15 +764,21 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   private async confirmEndSession(code: string): Promise<void> {
     try {
-      await trpc.session.end.mutate({ code });
-    } catch {
-      /* Serverfehler: Nutzer wollte beenden → trotzdem zur Startseite */
-    } finally {
+      try {
+        await trpc.session.end.mutate({ code });
+      } catch (error) {
+        if (!(error instanceof Error) || !error.message.includes('Session ist bereits beendet.')) {
+          throw error;
+        }
+      }
+      await trpc.session.dismissFinishProjection.mutate({ code });
       clearHostToken(code);
       clearFeedbackHostToken(code);
       await this.ngZone.run(async () => {
         await this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
       });
+    } catch {
+      this.snackBar.open(this.endSessionRetryMessage, '', { duration: 7000 });
     }
   }
 

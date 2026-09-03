@@ -407,19 +407,6 @@ html {
   border-radius: 0.125rem;
 }
 
-// Keyframes für Preset Spielerisch (Top-Toolbar-Brand) – global, damit Animationen sicher laufen
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes home-playful-brand-pulse {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.1);
-    }
-  }
-}
-
 /* Fehler-Alert-Pulse: einmal global (Home, Join, Vote, Quiz-Sammlung, …). */
 @keyframes important-error-pulse {
   0%,
