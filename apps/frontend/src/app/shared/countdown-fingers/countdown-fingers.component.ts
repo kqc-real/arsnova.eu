@@ -77,7 +77,10 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--large {
-        padding: 0;
+        padding: 0.45rem;
+        border-radius: var(--mat-sys-corner-small, 8px);
+        /* Host/Present: Light braucht Kontrast hinter der weißen Hand (Vote-small hat eigene Fläche). */
+        background: light-dark(var(--mat-sys-inverse-surface), transparent);
 
         .countdown-fingers__img {
           width: 120px;
@@ -100,10 +103,14 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--present {
-        width: 100%;
-        height: 100%;
+        width: fit-content;
+        height: fit-content;
+        max-width: 100%;
+        max-height: 100%;
         min-height: 0;
-        padding: 0;
+        padding: clamp(0.45rem, 1.4vmin, 0.9rem);
+        border-radius: var(--mat-sys-corner-small, 8px);
+        background: light-dark(var(--mat-sys-inverse-surface), transparent);
 
         .countdown-fingers__img {
           width: auto;
