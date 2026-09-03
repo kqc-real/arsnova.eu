@@ -10,6 +10,7 @@ import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
+import { disconnectDatabase } from './db';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
 import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
@@ -233,6 +234,7 @@ async function shutdown(): Promise<void> {
     shutdownPdfTelemetry(),
   ]);
   await closeRedis();
+  await disconnectDatabase();
   process.exit(0);
 }
 
