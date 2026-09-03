@@ -335,6 +335,8 @@ Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Trit
 
 ![Emotionen im Überblick](${EMOTION_IMAGE_URL})
 
+*Pass / Le Brun (1821), via Wikimedia Commons*
+
 *Für die Vollansicht anklicken.*`,
         answers: [
           { text: ':smile: Bereit loszulegen', isCorrect: false },
@@ -594,6 +596,8 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
 
 ![Overview of emotions](${EMOTION_IMAGE_URL})
 
+*Pass / Le Brun (1821), via Wikimedia Commons*
+
 *Click for full view.*`,
         answers: [
           { text: ':smile: Ready to dive in', isCorrect: false },
@@ -849,6 +853,8 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
 > **Piste pédagogique :** utilisez cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
 
 ![Aperçu des émotions](${EMOTION_IMAGE_URL})
+
+*Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Cliquer pour agrandir.*`,
         answers: [
@@ -1106,6 +1112,8 @@ Los temporizadores, los equipos, la clasificación y los códigos de bonificaci�
 
 ![Resumen de emociones](${EMOTION_IMAGE_URL})
 
+*Pass / Le Brun (1821), via Wikimedia Commons*
+
 *Haz clic para ampliar.*`,
         answers: [
           { text: ':smile: Con ganas de empezar', isCorrect: false },
@@ -1361,6 +1369,8 @@ Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo d
 > **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.
 
 ![Panoramica delle emozioni](${EMOTION_IMAGE_URL})
+
+*Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Clicca per ingrandire.*`,
         answers: [
