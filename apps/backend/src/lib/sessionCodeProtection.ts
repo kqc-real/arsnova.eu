@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import { getRedis } from '../redis';
 import { logger } from './logger';
 
-const KEY_PREFIX = 'security:session-code:';
 const SOFT_CAP_START_PERCENT = 80;
 
 function boundedPositiveIntegerEnv(name: string, maximum: number): number {
@@ -40,6 +39,9 @@ export const SESSION_CODE_PROTECTION_LIMITS = {
   ),
 } as const;
 
+/** Policy-scoped prefix so Redis buckets from older window/limit configs expire independently. */
+const KEY_PREFIX = `security:session-code:w${SESSION_CODE_PROTECTION_LIMITS.windowSeconds}-f${SESSION_CODE_PROTECTION_LIMITS.clientFailuresPerWindow}:`;
+
 const SESSION_CODE_FAILURE_LUA = `
 local globalKey = KEYS[1]
 local clientKey = KEYS[2]
@@ -61,6 +63,7 @@ if hasClientId then
   if clientCount >= clientLimit then
     local retryAfter = redis.call('TTL', clientKey)
     if retryAfter < 1 then retryAfter = windowSeconds end
+    if retryAfter > windowSeconds then retryAfter = windowSeconds end
     local utilization = math.min(100, math.floor((globalCount * 100) / globalSoftCap))
     return {0, 0, utilization, retryAfter}
   end
@@ -78,9 +81,16 @@ globalCount = redis.call('INCR', globalKey)
 if hasClientId then clientCount = redis.call('INCR', clientKey) end
 codeCount = redis.call('INCR', codeKey)
 
-if globalCount == 1 then redis.call('EXPIRE', globalKey, windowSeconds) end
-if hasClientId and clientCount == 1 then redis.call('EXPIRE', clientKey, windowSeconds) end
-if codeCount == 1 then redis.call('EXPIRE', codeKey, windowSeconds) end
+local function ensureWindowExpiry(key)
+  local ttl = redis.call('TTL', key)
+  if ttl < 0 or ttl > windowSeconds then
+    redis.call('EXPIRE', key, windowSeconds)
+  end
+end
+
+ensureWindowExpiry(globalKey)
+if hasClientId then ensureWindowExpiry(clientKey) end
+ensureWindowExpiry(codeKey)
 
 local globalUtilization = math.min(100, math.floor((globalCount * 100) / globalSoftCap))
 local codeUtilization = math.min(100, math.floor((codeCount * 100) / codeSoftCap))
