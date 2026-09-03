@@ -25,7 +25,6 @@ describe('localizeKnownServerError', () => {
   it('lokalisiert Admin-Login-Drosselungen mit expliziter Wartezeit', () => {
     loadTranslations({
       'errors.adminLoginRateLimit': 'Too many admin login attempts. Please try again later.',
-      'errors.rateLimitAttention': 'IMPORTANT:',
       'errors.rateLimitRetryAfter': 'Please try again in {$seconds} seconds.',
     });
     try {
@@ -39,7 +38,7 @@ describe('localizeKnownServerError', () => {
           'Login failed.',
         ),
       ).toBe(
-        'IMPORTANT: Too many admin login attempts. Please try again later.\n' +
+        'Too many admin login attempts. Please try again later.\n' +
           'Please try again in 17 seconds.',
       );
     } finally {
@@ -57,7 +56,7 @@ describe('localizeKnownServerError', () => {
     };
 
     expect(localizeKnownServerError(error, 'Session konnte nicht gestartet werden.')).toBe(
-      'WICHTIG: Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
+      'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
         'Bitte in 13 Sekunden erneut versuchen.',
     );
   });
@@ -76,6 +75,28 @@ describe('localizeKnownServerError', () => {
     expect(localizeKnownServerError(error, 'Session konnte nicht gestartet werden.')).toContain(
       'Bitte in 7 Sekunden erneut versuchen.',
     );
+  });
+
+  it('lokalisiert den Session-Code-429 (zu viele Fehlversuche) und hängt retryAfterSeconds-Hinweis an', () => {
+    loadTranslations({
+      'errors.sessionCodeTooManyFailures': 'Zu viele falsche Codes – kurz warten.',
+      'errors.rateLimitRetryAfter': 'Please try again in {$seconds} seconds.',
+    });
+
+    try {
+      expect(
+        localizeKnownServerError(
+          {
+            message:
+              'TOO_MANY_REQUESTS: Ungültiger Code. Zu viele Fehlversuche – bitte warten Sie vor dem nächsten Versuch.',
+            data: { retryAfterSeconds: 13 },
+          },
+          'Beitritt fehlgeschlagen.',
+        ),
+      ).toBe('Zu viele falsche Codes – kurz warten.\n' + 'Please try again in 13 seconds.');
+    } finally {
+      clearTranslations();
+    }
   });
 
   it('zeigt ohne validiertes Datenfeld nur die generische Fehlermeldung', () => {

@@ -7,7 +7,7 @@ import {
 } from './sessionCodeProtection';
 
 const RUN_REDIS = process.env['RUN_REDIS_SESSION_CODE_TESTS'] === '1';
-const KEY_PREFIX = 'security:session-code:';
+const KEY_PREFIX = 'security:session-code:w30-f3:';
 const CLIENT_A = '11111111-1111-4111-8111-111111111111';
 const CLIENT_B = '22222222-2222-4222-8222-222222222222';
 const CODE = 'ZZZ999';

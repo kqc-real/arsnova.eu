@@ -35,8 +35,8 @@ describe('Session-Code-Fehlbudgets', () => {
 
   it('nutzt großzügige, statisch begrenzte Defaults für 500er-NAT', () => {
     expect(SESSION_CODE_PROTECTION_LIMITS).toEqual({
-      windowSeconds: 300,
-      clientFailuresPerWindow: 20,
+      windowSeconds: 60,
+      clientFailuresPerWindow: 5,
       codeSoftCapPerWindow: 600,
       globalSoftCapPerWindow: 5_000,
       delayBaseMs: 100,
@@ -59,9 +59,9 @@ describe('Session-Code-Fehlbudgets', () => {
     expect(script).toContain("redis.call('INCR', clientKey)");
     expect(script).toContain("redis.call('INCR', codeKey)");
     expect(keyCount).toBe(3);
-    expect(globalKey).toBe('security:session-code:global');
-    expect(clientKey).toMatch(/^security:session-code:client:[0-9a-f]{64}$/);
-    expect(codeKey).toMatch(/^security:session-code:code:[0-9a-f]{64}$/);
+    expect(globalKey).toBe('security:session-code:w60-f5:global');
+    expect(clientKey).toMatch(/^security:session-code:w60-f5:client:[0-9a-f]{64}$/);
+    expect(codeKey).toMatch(/^security:session-code:w60-f5:code:[0-9a-f]{64}$/);
     expect(JSON.stringify(mocks.eval.mock.calls[0])).not.toContain(CLIENT_A);
     expect(JSON.stringify(mocks.eval.mock.calls[0])).not.toContain('203.0.113.');
     expect(mocks.eval.mock.calls[0]!.at(-1)).toBe('1');
@@ -71,7 +71,7 @@ describe('Session-Code-Fehlbudgets', () => {
     await checkInvalidSessionCodeFailure(undefined, 'ABC123');
 
     const call = mocks.eval.mock.calls[0]!;
-    expect(call[3]).toBe('security:session-code:client:legacy-compat');
+    expect(call[3]).toBe('security:session-code:w60-f5:client:legacy-compat');
     expect(call.at(-1)).toBe('0');
     expect(String(call[0])).toContain(
       "if hasClientId then clientCount = redis.call('INCR', clientKey) end",
@@ -128,6 +128,14 @@ describe('Session-Code-Fehlbudgets', () => {
       Array.from({ length: SESSION_CODE_PROTECTION_LIMITS.maxConcurrentDelays }, () => true),
     );
     expect(sessionCodeDelaySnapshot().active).toBe(0);
+  });
+
+  it('versioniert Redis-Buckets nach Fenster/Limit und begrenzt TTL im Lua-Skript', async () => {
+    await checkInvalidSessionCodeFailure(CLIENT_A, 'ABC123');
+
+    const script = String(mocks.eval.mock.calls[0]![0]);
+    expect(script).toContain('if retryAfter > windowSeconds then retryAfter = windowSeconds end');
+    expect(script).toContain('ensureWindowExpiry(globalKey)');
   });
 
   it('begrenzt Key-Kardinalität nach ausgeschöpftem Globalbudget im Lua-Pfad', async () => {
