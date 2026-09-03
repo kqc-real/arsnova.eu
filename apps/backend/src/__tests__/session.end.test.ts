@@ -30,8 +30,19 @@ const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = v
   },
 }));
 
+const { redisMock } = vi.hoisted(() => ({
+  redisMock: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
+
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../redis', () => ({
+  getRedis: vi.fn(() => redisMock),
 }));
 
 vi.mock('../lib/loadSignal', () => ({
@@ -54,16 +65,19 @@ vi.mock('../lib/hostAuth', async () => {
   });
 });
 
-import { sessionRouter } from '../routers/session';
+import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 
 describe('session.end', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSessionReadCachesForTests();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    redisMock.get.mockResolvedValue(null);
+    redisMock.set.mockResolvedValue('OK');
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
@@ -195,3 +209,63 @@ trpcDodIt(
     await expect(caller.end({ code: 'ABC123' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   },
 );
+
+describe('session.dismissFinishProjection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionReadCachesForTests();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    redisMock.get.mockResolvedValue(null);
+    redisMock.set.mockResolvedValue('OK');
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.dismissFinishProjection',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt die Presenter-Abschlussprojektion auf Idle',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+
+      await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
+        finishProjection: 'idle',
+      });
+      expect(redisMock.set).toHaveBeenCalledWith(
+        'session:finishProjection:ABC123',
+        'idle',
+        'EX',
+        24 * 60 * 60,
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.dismissFinishProjection',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Dismiss ab, wenn die Session noch nicht beendet ist',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({ status: 'RESULTS' });
+
+      await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+    },
+  );
+
+  it('bestätigt Dismiss nicht, wenn Redis die Idle-Projektion nicht persistieren kann', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+    redisMock.set.mockRejectedValueOnce(new Error('redis down'));
+
+    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+    });
+  });
+});

@@ -450,6 +450,128 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet das Leaderboard aus, wenn der Host die Abschlussprojektion dismissed', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Vorlesung',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      finishProjection: 'idle',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 42,
+        correctCount: 4,
+        totalQuestions: 5,
+        totalResponseTimeMs: 1200,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const idle = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-finish-idle"]',
+    ) as HTMLElement | null;
+    expect(idle).not.toBeNull();
+    expect(idle?.textContent).toContain('Die Session ist beendet.');
+    expect(idle?.textContent).toContain('arsnova.eu');
+    expect(fixture.nativeElement.querySelector('.session-present__board-item')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__finish-hero')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt Leaderboard nur bei finishProjection leaderboard, sonst Exit-Branding', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Vorlesung',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 42,
+        correctCount: 4,
+        totalQuestions: 5,
+        totalResponseTimeMs: 1200,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.session-present__board-item')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('wechselt live vom Leaderboard auf Idle, wenn finishProjection idle wird', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Vorlesung',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 42,
+        correctCount: 4,
+        totalQuestions: 5,
+        totalResponseTimeMs: 1200,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.session-present__board-item')).not.toBeNull();
+
+    fixture.componentInstance.session.update((current) =>
+      current ? { ...current, finishProjection: 'idle' } : current,
+    );
+    fixture.detectChanges();
+
+    const idle = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-finish-idle"]',
+    ) as HTMLElement | null;
+    expect(idle).not.toBeNull();
+    expect(idle?.textContent).toContain('Die Session ist beendet.');
+    expect(fixture.nativeElement.querySelector('.session-present__board-item')).toBeNull();
+    fixture.destroy();
+  });
+
   it('schneidet das Presenter-Leaderboard bei FINISHED nicht auf Top-Platzierungen zusammen', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

@@ -485,14 +485,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   });
   readonly showFinishProjection = computed(() => this.session()?.status === 'FINISHED');
-  readonly hasFinishResults = computed(
-    () => this.personalLeaderboard().length > 0 || this.teamLeaderboard().length > 0,
-  );
+  /** Verhindert Idle-Flash, solange Leaderboards für die Abschlussprojektion noch laden. */
+  readonly finishBoardsResolved = signal(false);
+  readonly hasFinishResults = computed(() => {
+    if (this.session()?.finishProjection === 'idle') {
+      return false;
+    }
+    if (!this.finishBoardsResolved()) {
+      // Noch kein Idle: leere Ergebnisseite statt Branding-Flash.
+      return true;
+    }
+    return this.personalLeaderboard().length > 0 || this.teamLeaderboard().length > 0;
+  });
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return (
       session?.teamMode === true &&
       session.status === 'FINISHED' &&
+      session.finishProjection !== 'idle' &&
+      this.finishBoardsResolved() &&
       this.teamLeaderboard().length > 0
     );
   });
@@ -700,7 +711,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.showFinishProjection()) {
+      if (this.session()?.finishProjection === 'idle') {
+        this.personalLeaderboard.set([]);
+        this.teamLeaderboard.set([]);
+        this.finishBoardsResolved.set(true);
+        this.syncBoardPageTimer();
+        return;
+      }
       await this.loadFinishLeaderboards();
+      this.finishBoardsResolved.set(true);
       return;
     }
     this.stopBoardPageTimer();
@@ -908,9 +927,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.showHomeCta.set(false);
       this.session.set(session);
       if (session.status === 'FINISHED') {
+        if (session.finishProjection === 'idle') {
+          this.personalLeaderboard.set([]);
+          this.teamLeaderboard.set([]);
+          this.finishBoardsResolved.set(true);
+          this.syncBoardPageTimer();
+          return;
+        }
+        this.finishBoardsResolved.set(false);
         await this.loadFinishLeaderboards();
+        this.finishBoardsResolved.set(true);
         return;
       }
+      this.finishBoardsResolved.set(false);
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
@@ -928,6 +957,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
+      this.finishBoardsResolved.set(true);
       this.clearLobbyAudience();
     }
   }
@@ -940,8 +970,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         trpc.session.getLeaderboard.query({ code, anonymousClientId }),
         trpc.session.getTeamLeaderboard.query({ code, anonymousClientId }),
       ]);
-      this.personalLeaderboard.set(personal);
-      this.teamLeaderboard.set(teams);
+      if (this.session()?.finishProjection === 'idle') {
+        this.personalLeaderboard.set([]);
+        this.teamLeaderboard.set([]);
+      } else {
+        this.personalLeaderboard.set(personal);
+        this.teamLeaderboard.set(teams);
+      }
     } catch {
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
@@ -1163,12 +1198,26 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
+                  finishProjection:
+                    data.status === 'FINISHED'
+                      ? (data.finishProjection ?? current.finishProjection ?? 'leaderboard')
+                      : undefined,
                 }
               : current,
           );
           this.syncCountdownFromStatus(data.timer, data.activeAt);
           if (data.status === 'FINISHED') {
-            void this.loadFinishLeaderboards();
+            if (data.finishProjection === 'idle') {
+              this.personalLeaderboard.set([]);
+              this.teamLeaderboard.set([]);
+              this.finishBoardsResolved.set(true);
+              this.syncBoardPageTimer();
+            } else {
+              this.finishBoardsResolved.set(false);
+              void this.loadFinishLeaderboards().finally(() => {
+                this.finishBoardsResolved.set(true);
+              });
+            }
           }
         },
         onError: () => {
