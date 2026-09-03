@@ -60,6 +60,7 @@ const {
   closeQuickFeedbackChannelMutateMock,
   reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
+  dismissFinishProjectionMutateMock,
   quickFeedbackHostResultsQueryMock,
   quickFeedbackToggleLockMutateMock,
   updateQaTitleMutateMock,
@@ -111,6 +112,7 @@ const {
   closeQuickFeedbackChannelMutateMock: vi.fn(),
   reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  dismissFinishProjectionMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackToggleLockMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
@@ -161,6 +163,7 @@ vi.mock('../../../core/trpc.client', () => ({
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
       reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
+      dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
@@ -571,6 +574,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       status: 'FINISHED',
       currentQuestion: null,
       activeAt: null,
+    });
+    dismissFinishProjectionMutateMock.mockResolvedValue({
+      finishProjection: 'idle',
     });
     updateQaTitleMutateMock.mockResolvedValue({
       title: 'Titel',
@@ -11540,6 +11546,43 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         anonymousClientId: '11111111-1111-4111-8111-111111111111',
       }),
     );
+    fixture.destroy();
+  });
+
+  it('dismissed die Presenter-Abschlussprojektion beim Wechsel zur Startseite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      teamMode: false,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'FINISHED', currentQuestion: null });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 42,
+        correctCount: 3,
+        totalQuestions: 4,
+        totalResponseTimeMs: 5000,
+      },
+    ]);
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    await fixture.componentInstance.navigateHomeFromFinishedSession();
+
+    expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(navSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });
 

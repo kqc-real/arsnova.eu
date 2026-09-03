@@ -36,6 +36,7 @@ import {
   SessionChannelsDTOSchema,
   SessionLiveChannelSchema,
   SessionPresenterSurfaceSchema,
+  SessionFinishProjectionSchema,
   SessionTeamsPayloadSchema,
   SessionStatusUpdateSchema,
   HostCurrentQuestionDTOSchema,
@@ -264,6 +265,7 @@ import {
 } from '../lib/session-results-report-pdf';
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
+import { getRedis } from '../redis';
 import { createHostSessionToken } from '../lib/hostAuth';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import {
@@ -312,6 +314,7 @@ type StatusSnapshotPayload = {
   channels?: z.infer<typeof SessionChannelsDTOSchema>;
   preferredChannel?: z.infer<typeof SessionLiveChannelSchema>;
   presenterSurface?: z.infer<typeof SessionPresenterSurfaceSchema>;
+  finishProjection?: z.infer<typeof SessionFinishProjectionSchema>;
   skippedQuestionId?: string;
   questionSkippedAt?: string;
 };
@@ -341,6 +344,7 @@ const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
 const preferredLiveChannelByCode = new Map<string, z.infer<typeof SessionLiveChannelSchema>>();
 const presenterSurfaceByCode = new Map<string, z.infer<typeof SessionPresenterSurfaceSchema>>();
+const finishProjectionByCode = new Map<string, z.infer<typeof SessionFinishProjectionSchema>>();
 const sessionInfoInFlight = new Map<
   string,
   Promise<Omit<z.infer<typeof SessionInfoDTOSchema>, 'serverTime'>>
@@ -466,6 +470,9 @@ function clearSessionReadCaches(code?: string): void {
 
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
+  preferredLiveChannelByCode.clear();
+  presenterSurfaceByCode.clear();
+  finishProjectionByCode.clear();
   sessionStatusVersions.clear();
   sessionParticipantVersions.clear();
   sessionCurrentQuestionVersions.clear();
@@ -814,6 +821,9 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
         channels,
         preferredChannel,
         presenterSurface: resolvePresenterSurface(code, preferredChannel),
+        ...(session.status === 'FINISHED' && {
+          finishProjection: await resolveFinishProjection(code, session.status),
+        }),
         ...(session.lastSkippedQuestionId &&
           session.lastQuestionSkippedAt && {
             skippedQuestionId: session.lastSkippedQuestionId,
@@ -3196,6 +3206,53 @@ function resolvePresenterSurface(
   return 'default';
 }
 
+const FINISH_PROJECTION_TTL_SECONDS = 24 * 60 * 60;
+
+function finishProjectionRedisKey(code: string): string {
+  return `session:finishProjection:${code.toUpperCase()}`;
+}
+
+async function resolveFinishProjection(
+  code: string,
+  status: string,
+): Promise<z.infer<typeof SessionFinishProjectionSchema> | undefined> {
+  if (status !== 'FINISHED') {
+    return undefined;
+  }
+  const normalized = code.toUpperCase();
+  const cached = finishProjectionByCode.get(normalized);
+  if (cached) {
+    return cached;
+  }
+  try {
+    const raw = await getRedis().get(finishProjectionRedisKey(normalized));
+    if (raw === 'idle' || raw === 'leaderboard') {
+      finishProjectionByCode.set(normalized, raw);
+      return raw;
+    }
+  } catch {
+    // Redis optional – Default unten.
+  }
+  // Tote/ältere FINISHED-Sessions ohne Markierung: Exit-Branding statt Leaderboard.
+  return 'idle';
+}
+
+function markFinishProjectionLeaderboard(code: string): void {
+  const normalized = code.toUpperCase();
+  finishProjectionByCode.set(normalized, 'leaderboard');
+  void getRedis()
+    .set(finishProjectionRedisKey(normalized), 'leaderboard', 'EX', FINISH_PROJECTION_TTL_SECONDS)
+    .catch(() => undefined);
+}
+
+function markFinishProjectionIdle(code: string): void {
+  const normalized = code.toUpperCase();
+  finishProjectionByCode.set(normalized, 'idle');
+  void getRedis()
+    .set(finishProjectionRedisKey(normalized), 'idle', 'EX', FINISH_PROJECTION_TTL_SECONDS)
+    .catch(() => undefined);
+}
+
 /** Bewertete Fragetypen, bei denen Runde 2 vom Peer-Instruction-Fenster abhaengt. */
 function usesPeerInstructionCorrectnessWindow(questionType: QuestionType): boolean {
   return (
@@ -4628,6 +4685,9 @@ async function resolvePublicSessionInfo(
         channels,
         preferredChannel,
         presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
+        ...(session.status === 'FINISHED' && {
+          finishProjection: await resolveFinishProjection(session.code, session.status),
+        }),
         participantCount: session._count.participants,
         nicknameTheme: onboardingProfile.nicknameTheme,
         allowCustomNicknames: onboardingProfile.allowCustomNicknames,
@@ -5796,6 +5856,34 @@ export const sessionRouter = router({
       return { presenterSurface: input.surface };
     }),
 
+  /** Presenter-Exit: Leaderboard ausblenden, Branding „Session ist beendet.“ zeigen. */
+  dismissFinishProjection: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(
+      z.object({
+        finishProjection: SessionFinishProjectionSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: { status: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'FINISHED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Abschlussprojektion kann nur bei beendeter Session gewechselt werden.',
+        });
+      }
+      markFinishProjectionIdle(code);
+      invalidateSessionStatusCachesForCode(code);
+      return { finishProjection: 'idle' as const };
+    }),
+
   pauseQuiz: hostProcedure
     .input(GetSessionInfoInputSchema)
     .output(SessionStatusUpdateSchema)
@@ -6063,7 +6151,12 @@ export const sessionRouter = router({
             finished: true as const,
             sessionId: session.id,
             currentQuestionIdToClear: currentQuestionId,
-            update: { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 },
+            update: {
+              status: 'FINISHED' as const,
+              currentQuestion: null,
+              currentRound: 1,
+              finishProjection: 'leaderboard' as const,
+            },
           };
         }
 
@@ -6129,6 +6222,7 @@ export const sessionRouter = router({
         await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
       }
       if (outcome.finished) {
+        markFinishProjectionLeaderboard(code);
         await incrementCompletedSessionsTotal();
       } else {
         void markCountdownSessionActive(outcome.sessionId);
@@ -6429,6 +6523,7 @@ export const sessionRouter = router({
               status: 'FINISHED' as const,
               currentQuestion: null,
               currentRound: 1,
+              finishProjection: 'leaderboard' as const,
               skippedQuestionId: currentQuestion.id,
               questionSkippedAt: now.toISOString(),
             },
@@ -6505,6 +6600,7 @@ export const sessionRouter = router({
       }
       if (outcome.transitioned) {
         if (outcome.finished) {
+          markFinishProjectionLeaderboard(code);
           await incrementCompletedSessionsTotal();
         } else {
           void markCountdownSessionActive(outcome.sessionId);
@@ -8006,11 +8102,17 @@ export const sessionRouter = router({
         await generateBonusTokens(session, tx);
       });
 
+      markFinishProjectionLeaderboard(code);
       await incrementCompletedSessionsTotal();
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
 
-      return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
+      return {
+        status: 'FINISHED' as const,
+        currentQuestion: null,
+        currentRound: 1,
+        finishProjection: 'leaderboard' as const,
+      };
     }),
 
   /** Bonus-Codes für Dozent abrufen (Story 4.6). Nur bei FINISHED. */

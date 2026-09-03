@@ -4653,6 +4653,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async canDeactivate(): Promise<boolean> {
     if (!this.isSessionActive()) {
       if (this.effectiveStatus() === 'FINISHED' && this.code) {
+        await this.dismissFinishProjectionQuietly();
         this.clearSessionTokens();
       }
       return true;
@@ -4756,11 +4757,35 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     await trpc.session.end.mutate({ code: this.code.toUpperCase() });
+    await this.dismissFinishProjectionQuietly();
     this.markSessionUnavailable();
     await this.exitFullscreenBeforeHomeNavigation();
     await this.ngZone.run(async () => {
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
     });
+  }
+
+  /** Beendet die Presenter-Leaderboard-Ansicht und wechselt zur Startseite. */
+  async navigateHomeFromFinishedSession(): Promise<void> {
+    if (!this.code) {
+      return;
+    }
+    await this.dismissFinishProjectionQuietly();
+    await this.exitFullscreenBeforeHomeNavigation();
+    await this.ngZone.run(async () => {
+      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
+  }
+
+  private async dismissFinishProjectionQuietly(): Promise<void> {
+    if (!this.code) {
+      return;
+    }
+    try {
+      await trpc.session.dismissFinishProjection.mutate({ code: this.code.toUpperCase() });
+    } catch {
+      // Navigation trotzdem erlauben – Presenter bleibt sonst ggf. auf dem Leaderboard.
+    }
   }
 
   private async exitFullscreenBeforeHomeNavigation(): Promise<void> {

@@ -2939,6 +2939,9 @@ export const SessionPresenterSurfaceSchema = z.enum([
   'freetextWordCloud',
 ]);
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
+/** Beamer-Abschluss: Leaderboard nach FINISHED, Idle nach Host-Dismiss (Startseite). */
+export const SessionFinishProjectionSchema = z.enum(['leaderboard', 'idle']);
+export type SessionFinishProjection = z.infer<typeof SessionFinishProjectionSchema>;
 export const SessionPausedFromStatusSchema = z.enum(['QUESTION_OPEN', 'ACTIVE']);
 export type SessionPausedFromStatus = z.infer<typeof SessionPausedFromStatusSchema>;
 
@@ -2959,6 +2962,8 @@ export const SessionStatusUpdateSchema = z.object({
   channels: z.lazy(() => SessionChannelsDTOSchema).optional(),
   preferredChannel: SessionLiveChannelSchema.optional(),
   presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  /** Nur bei FINISHED: Leaderboard vs. Exit-Branding auf dem Presenter. */
+  finishProjection: SessionFinishProjectionSchema.optional(),
   /** Nur beim atomaren Übergang nach „Frage auslassen“ gesetzt. */
   skippedQuestionId: z.string().uuid().optional(),
   /** ISO-8601-Zeitpunkt des Auslassens; dient Clients als idempotenter Ereignisschlüssel. */
@@ -3618,6 +3623,8 @@ export const SessionInfoDTOSchema = z.object({
   channels: SessionChannelsDTOSchema.optional(), // ADR-0009: Übergangsweise optional für schrittweise Migration
   preferredChannel: SessionLiveChannelSchema.optional(),
   presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  /** Nur bei FINISHED: Leaderboard vs. Exit-Branding auf dem Presenter. */
+  finishProjection: SessionFinishProjectionSchema.optional(),
   participantCount: z.number(),
   nicknameTheme: NicknameThemeEnum.optional(),
   allowCustomNicknames: z.boolean().optional(),

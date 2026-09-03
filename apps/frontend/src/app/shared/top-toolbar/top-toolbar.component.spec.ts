@@ -207,9 +207,8 @@ describe('TopToolbarComponent', () => {
     expect(scss).not.toMatch(/\.top-toolbar__brand-title\s*\{[^}]*translate:/);
     expect(scss).not.toMatch(/\.top-toolbar__brand-title\s*\{[^}]*height:\s*1\.75rem/);
     const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
-    expect(playful).toMatch(
-      /\.top-toolbar__brand-icon\s*\{[^}]*animation:\s*home-playful-brand-pulse/,
-    );
+    // Kein Brand-Pulse: transform-Animation auf dem SVG verfälscht in Firefox die Logo-Farbe.
+    expect(playful).not.toMatch(/home-playful-brand-pulse/);
   });
 
   it('blendet den MOTD-Zähler vollständig aus, wenn keine ungelesenen Meldungen da sind', () => {

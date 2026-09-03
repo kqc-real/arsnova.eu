@@ -54,13 +54,14 @@ vi.mock('../lib/hostAuth', async () => {
   });
 });
 
-import { sessionRouter } from '../routers/session';
+import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 
 describe('session.end', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSessionReadCachesForTests();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -195,3 +196,29 @@ trpcDodIt(
     await expect(caller.end({ code: 'ABC123' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   },
 );
+
+describe('session.dismissFinishProjection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionReadCachesForTests();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+  });
+
+  it('setzt die Presenter-Abschlussprojektion auf Idle', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+
+    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
+      finishProjection: 'idle',
+    });
+  });
+
+  it('lehnt Dismiss ab, wenn die Session noch nicht beendet ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({ status: 'RESULTS' });
+
+    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  });
+});
