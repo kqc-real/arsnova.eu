@@ -21897,8 +21897,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.numericFormatInteger" datatype="html">
-        <source>Gib eine ganze Zahl ohne Nachkommastellen ein.</source>
-        <target>Entrez un nombre entier sans décimales.</target>
+        <source>Gib eine Zahl ohne Nachkommastellen ein.</source>
+        <target>Entrez un nombre sans décimales.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2050</context>

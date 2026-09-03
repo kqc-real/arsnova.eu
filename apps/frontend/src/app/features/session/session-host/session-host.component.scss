@@ -279,6 +279,7 @@
   .session-host__run {
     gap: var(--host-mobile-stack-gap);
     padding-bottom: var(--host-mobile-safe-bottom);
+    --session-host-finger-to-card-gap: var(--host-mobile-stack-gap);
   }
 
   .session-host--with-channel-tabs .session-host__channel-panel {
@@ -2865,6 +2866,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  --session-host-finger-to-card-gap: 0px;
 }
 
 .session-host__meta-sound-control {
@@ -5149,7 +5151,22 @@ button.session-host__btn-discussion {
 .session-host__finger-countdown {
   display: flex;
   justify-content: center;
+  align-items: flex-end;
   margin: 0;
+  /* Bündig an die folgende Fragekarte; hebt den Run-Stack-Gap darunter auf. */
+  margin-bottom: calc(-1 * var(--session-host-finger-to-card-gap, 0px));
+  line-height: 0;
+}
+
+.session-host__finger-countdown + .session-host__question-card,
+.session-host__finger-countdown + .session-host__qa-card {
+  margin-top: 0;
+}
+
+/* Falls zwischen Finger und Karte noch ein Banner steht: Gap nur zur Karte schließen. */
+.session-host__finger-countdown + .session-host__discussion-banner + .session-host__question-card,
+.session-host__finger-countdown + .session-host__discussion-banner + .session-host__qa-card {
+  margin-top: 0;
 }
 
 .session-host__rating {

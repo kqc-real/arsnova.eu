@@ -48,8 +48,8 @@ const FINGER_IMAGES: Record<number, string> = {
       :host.countdown-fingers-host--viewport {
         display: block;
         position: fixed;
-        /* Fallback ohne Anchor-API (Footer-Höhe variiert) */
-        bottom: max(5.5rem, env(safe-area-inset-bottom, 0px));
+        /* Bündig am unteren Viewport-Rand, kein Footer-/Safe-Area-Abstand */
+        bottom: 0;
         /* Linke Flucht wie .vote-page-Inhalt (zentrierte Spalte + horizontales Padding), nicht Viewport-Kante */
         left: calc(
           (100vw - min(100vw, var(--vote-page-max-width, 36rem))) / 2 +
@@ -59,23 +59,14 @@ const FINGER_IMAGES: Record<number, string> = {
         pointer-events: none;
       }
 
-      @supports (position-anchor: --_) {
-        :host.countdown-fingers-host--viewport {
-          position-anchor: --app-footer-anchor;
-          bottom: anchor(top);
-        }
-      }
-
       .countdown-fingers {
         display: flex;
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-        border-radius: 0.8rem;
-        background-color: light-dark(
-          var(--mat-sys-primary),
-          var(--mat-sys-surface-container-highest)
-        );
+        width: fit-content;
+        max-width: max-content;
+        background: transparent;
         pointer-events: none;
         user-select: none;
       }
@@ -86,7 +77,8 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--large {
-        padding: 0.45rem;
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
           width: 120px;
@@ -96,19 +88,24 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--small {
-        padding: 0.3rem;
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
-          width: 56px;
+          /* Kompakt unten links; Asset unten bündig am Content. */
+          width: 48px;
           height: auto;
         }
       }
 
       .countdown-fingers--present {
-        width: 100%;
-        height: 100%;
+        width: fit-content;
+        height: fit-content;
+        max-width: 100%;
+        max-height: 100%;
         min-height: 0;
-        padding: clamp(0.45rem, 1.4vmin, 0.9rem);
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
           width: auto;

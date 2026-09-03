@@ -356,6 +356,11 @@ describe('FeedbackHostComponent', () => {
     expect(fixture.componentInstance.feedbackJoinPopoverOpen()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('1 Stimme');
     expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.feedback-host__join-menu-head .dialog-title-header__icon',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 

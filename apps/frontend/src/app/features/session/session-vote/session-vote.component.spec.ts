@@ -3108,7 +3108,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     );
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Ganzzahl');
-    expect(host.textContent).toContain('Gib eine ganze Zahl ohne Nachkommastellen ein');
+    expect(host.textContent).toContain('Gib eine Zahl ohne Nachkommastellen ein');
     expect(host.textContent).toContain('Erlaubte Eingabe: 0 bis 100');
 
     component.numericInputValue.set('3.14');
