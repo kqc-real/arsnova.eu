@@ -28,7 +28,7 @@ import {
   effect,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -531,7 +531,6 @@ function musicTracksForPhase(
     DecimalPipe,
     MatButton,
     MatIconButton,
-    RouterLink,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatCard,
