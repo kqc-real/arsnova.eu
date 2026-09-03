@@ -54,6 +54,8 @@ describe('CountdownFingersComponent', () => {
     expect(styles).not.toMatch(/background:\s*var\(--mat-sys-primary\)/);
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?padding:\s*0/);
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?width:\s*48px/);
+    expect(styles).toMatch(/countdown-fingers--small[\s\S]*?height:\s*calc\(48px \* 348 \/ 142\)/);
+    expect(styles).toMatch(/countdown-fingers--large[\s\S]*?height:\s*calc\(120px \* 348 \/ 142\)/);
     expect(styles).toMatch(/countdown-fingers--present[\s\S]*?width:\s*fit-content/);
   });
 });
