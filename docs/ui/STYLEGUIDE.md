@@ -226,7 +226,9 @@ Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder ge�
 ### Material-Internals und Encapsulation
 
 1. Offizielle Material-Override-Mixins, falls vorhanden.
-2. Sonst **globale**, eng gescopte Klassen in `styles.scss` (Vorbild: `.vote-timer-a11y__option`, `.help-panel.mat-expansion-panel …`, `.session-projection-quiz .markdown-body …`).
+2. Sonst eng gescopte Regeln unter Feature-Host-Klassen:
+   - bevorzugt in der **lazy** Feature-SCSS mit `ViewEncapsulation.None` (Vorbild: Help-/MOTD-Expansion, Admin-Tabs, Quiz-Edit-Meta, Projection-`innerHTML`), oder
+   - global in `styles.scss`, wenn die Styles früh/überall nötig sind (Vorbild: `.vote-timer-a11y__option`).
 3. Layout außerhalb von `:host`: Route-/Shell-Klasse in `app.component` (Vorbild: `.app-main--present`).
 4. Overlays: `panelClass` / `backdropClass`.
 5. **Verboten** in Feature-SCSS: `::ng-deep`, `:deep(...)`.

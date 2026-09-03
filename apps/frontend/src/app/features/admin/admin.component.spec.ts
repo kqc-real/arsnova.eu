@@ -77,13 +77,12 @@ describe('AdminComponent', () => {
       resolve(process.cwd(), 'src/app/features/admin/admin.component.scss'),
       'utf8',
     );
-    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
 
     expect(styles).not.toContain('::ng-deep');
     expect(styles).not.toContain(':deep(');
-    expect(globalStyles).toMatch(/\.admin-tabs \.mat-mdc-tab-body-content\s*\{/);
-    expect(globalStyles).toMatch(/\.admin-card \.mdc-button__label\s*\{/);
-    expect(globalStyles).toMatch(/\.admin-question__text\.markdown-body p\s*\{/);
-    expect(globalStyles).toMatch(/\.admin-answer-text\.markdown-body p\s*\{/);
+    expect(styles).toMatch(/\.admin-tabs \.mat-mdc-tab-body-content\s*\{/);
+    expect(styles).toMatch(/\.admin-card \.mdc-button__label\s*\{/);
+    expect(styles).toMatch(/\.admin-question__text\.markdown-body p\s*\{/);
+    expect(styles).toMatch(/\.admin-answer-text\.markdown-body p\s*\{/);
   });
 });

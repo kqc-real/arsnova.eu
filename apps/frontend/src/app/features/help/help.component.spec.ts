@@ -554,10 +554,9 @@ describe('HelpComponent', () => {
       resolve(process.cwd(), 'src/app/features/help/help.component.scss'),
       'utf8',
     );
-    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
 
     expect(helpStyles).not.toContain('::ng-deep');
-    expect(globalStyles).toMatch(
+    expect(helpStyles).toMatch(
       /\.help-panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
     );
   });

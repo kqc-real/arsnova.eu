@@ -11,4 +11,8 @@
   width: 100%;
 }
 
-/* MDC-Infix: global unter `.md-markdown-insert-dialog__form` in styles.scss. */
+/* MDC Infix: ViewEncapsulation.None (kein Piercing-Selektor). */
+.md-markdown-insert-dialog__form .mat-mdc-form-field-infix {
+  width: 100%;
+  min-width: 0;
+}

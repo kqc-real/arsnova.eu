@@ -418,10 +418,9 @@ describe('MotdArchiveDialogComponent', () => {
       ),
       'utf8',
     );
-    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
 
     expect(styles).not.toContain('::ng-deep');
-    expect(globalStyles).toMatch(
+    expect(styles).toMatch(
       /\.motd-archive__panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
     );
   });

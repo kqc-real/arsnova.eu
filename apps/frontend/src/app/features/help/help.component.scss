@@ -126,7 +126,6 @@
   outline: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
   outline-offset: -1px;
   background: var(--mat-sys-surface-container-low);
-  /* Material-Header/Body: globale Scope-Regeln in styles.scss. */
 }
 
 .help-panel__body {
@@ -158,4 +157,43 @@
   margin: 0 0 0.75rem;
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
+}
+
+/* Material Expansion-Header: ViewEncapsulation.None (kein Piercing-Selektor). */
+.help-panel.mat-expansion-panel .mat-expansion-panel-header {
+  height: auto;
+  min-height: 3.5rem;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  align-items: center;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: visible;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header .mat-expansion-panel-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 0.75rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-body {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 1rem 1rem;
+}
+
+.help-panel.mat-expansion-panel .mat-expansion-panel-header:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
 }

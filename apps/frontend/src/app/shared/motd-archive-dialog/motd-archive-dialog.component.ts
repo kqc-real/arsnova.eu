@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogClose,
@@ -75,6 +75,7 @@ const ARCHIVE_DATE_LOCALE: Record<AppLocale, string> = {
   ],
   templateUrl: './motd-archive-dialog.component.html',
   styleUrls: ['../styles/dialog-title-header.scss', './motd-archive-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class MotdArchiveDialogComponent implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);

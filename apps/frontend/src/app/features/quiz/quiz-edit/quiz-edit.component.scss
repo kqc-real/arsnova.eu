@@ -18,7 +18,6 @@
   box-shadow: none;
   background: transparent;
   border-radius: 0;
-  /* Header/Content: globale Scope-Regeln in styles.scss . */
 }
 
 .quiz-edit__meta-expansion-body {
@@ -357,8 +356,6 @@
   height: 1.125rem;
   line-height: 1;
 }
-
-/* Floating-Label-Zeile: global unter Rating-Boundary in styles.scss . */
 
 .quiz-edit-form__confidence-field {
   display: flex;
@@ -1567,4 +1564,40 @@
   .quiz-edit__meta-actions {
     justify-content: flex-end;
   }
+}
+
+/* Material Expansion/Label: ViewEncapsulation.None (kein Piercing-Selektor). */
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header {
+  padding-inline: 1.25rem !important;
+  gap: 1rem;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-indicator {
+  flex-shrink: 0;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel .mat-expansion-panel-header .mat-content {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  align-items: center;
+}
+
+.quiz-edit__meta-expansion-panel.mat-expansion-panel
+  .mat-expansion-panel-header
+  .mat-expansion-panel-header-title {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  min-width: 0;
+  align-items: center;
+}
+
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mat-mdc-floating-label,
+mat-form-field:has(.quiz-edit-form__rating-boundary-inner) .mdc-floating-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  max-width: calc(100% - 1.5rem);
 }

@@ -2374,11 +2374,10 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       resolve(process.cwd(), 'src/app/features/quiz/quiz-edit/quiz-edit.component.scss'),
       'utf8',
     );
-    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
 
     expect(styles).not.toContain('::ng-deep');
     expect(styles).not.toContain('font-weight: 800');
-    expect(globalStyles).toMatch(
+    expect(styles).toMatch(
       /\.quiz-edit__meta-expansion-panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
     );
   });

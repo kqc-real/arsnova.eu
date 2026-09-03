@@ -790,10 +790,9 @@ describe('SessionProjectionQuizComponent', () => {
       ),
       'utf8',
     );
-    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
 
     expect(styles).not.toContain('::ng-deep');
     expect(styles).not.toContain('font-weight: 800');
-    expect(globalStyles).toMatch(/\.session-projection-quiz \.markdown-body img\s*\{/);
+    expect(styles).toMatch(/\.session-projection-quiz \.markdown-body img\s*\{/);
   });
 });
