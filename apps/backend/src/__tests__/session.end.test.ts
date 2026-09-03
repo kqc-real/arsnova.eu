@@ -206,19 +206,36 @@ describe('session.dismissFinishProjection', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
-  it('setzt die Presenter-Abschlussprojektion auf Idle', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+  trpcDodIt(
+    {
+      procedure: 'session.dismissFinishProjection',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt die Presenter-Abschlussprojektion auf Idle',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
 
-    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
-      finishProjection: 'idle',
-    });
-  });
+      await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
+        finishProjection: 'idle',
+      });
+    },
+  );
 
-  it('lehnt Dismiss ab, wenn die Session noch nicht beendet ist', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({ status: 'RESULTS' });
+  trpcDodIt(
+    {
+      procedure: 'session.dismissFinishProjection',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Dismiss ab, wenn die Session noch nicht beendet ist',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({ status: 'RESULTS' });
 
-    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
-  });
+      await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+    },
+  );
 });
