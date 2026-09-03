@@ -49,15 +49,15 @@ describe('CountdownFingersComponent', () => {
     expect(styles).toMatch(/countdown-fingers-host--viewport[\s\S]*?left:\s*calc\(/);
     expect(styles).toMatch(/width:\s*fit-content/);
     expect(styles).toMatch(
-      /countdown-fingers--small[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-inverse-surface\),\s*transparent\s*\)/,
+      /countdown-fingers--small[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-primary\),\s*transparent\s*\)/,
     );
     expect(styles).toMatch(/padding:\s*0\.2rem 0\.3rem 0/);
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?width:\s*48px/);
     expect(styles).toMatch(
-      /countdown-fingers--large[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-inverse-surface\),\s*transparent\s*\)/,
+      /countdown-fingers--large[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-primary\),\s*transparent\s*\)/,
     );
     expect(styles).toMatch(
-      /countdown-fingers--present[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-inverse-surface\),\s*transparent\s*\)/,
+      /countdown-fingers--present[\s\S]*?background:\s*light-dark\(\s*var\(--mat-sys-primary\),\s*transparent\s*\)/,
     );
     expect(styles).toMatch(/countdown-fingers--present[\s\S]*?width:\s*fit-content/);
   });

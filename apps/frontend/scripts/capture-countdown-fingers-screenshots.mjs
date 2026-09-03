@@ -132,7 +132,7 @@ function pageHtml(mode, fingerSrc) {
     .countdown-fingers--small {
       padding: 0.2rem 0.3rem 0;
       border-radius: 8px 8px 0 0;
-      background: light-dark(var(--mat-sys-inverse-surface, #322f35), transparent);
+      background: light-dark(var(--mat-sys-primary), transparent);
     }
     .countdown-fingers--small .countdown-fingers__img {
       display: block;
