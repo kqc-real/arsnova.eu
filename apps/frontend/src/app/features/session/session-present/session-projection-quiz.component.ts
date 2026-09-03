@@ -437,7 +437,7 @@ export class SessionProjectionQuizComponent {
       return null;
     }
     if (question.numericInputType === 'INTEGER') {
-      return $localize`:@@sessionVote.numericFormatInteger:Gib eine ganze Zahl ohne Nachkommastellen ein.`;
+      return $localize`:@@sessionVote.numericFormatInteger:Gib eine Zahl ohne Nachkommastellen ein.`;
     }
     const maxDecimalPlaces = question.numericDecimalPlaces;
     if (maxDecimalPlaces !== undefined && maxDecimalPlaces !== null) {

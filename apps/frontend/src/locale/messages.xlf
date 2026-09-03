@@ -17065,7 +17065,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.numericFormatInteger" datatype="html">
-        <source>Gib eine ganze Zahl ohne Nachkommastellen ein.</source>
+        <source>Gib eine Zahl ohne Nachkommastellen ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.ts</context>
           <context context-type="linenumber">298</context>

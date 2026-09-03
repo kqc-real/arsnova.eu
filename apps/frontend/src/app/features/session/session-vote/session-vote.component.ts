@@ -2072,7 +2072,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   numericInputFormatHint(): string {
     if (this.numericIsInteger()) {
-      return $localize`:@@sessionVote.numericFormatInteger:Gib eine ganze Zahl ohne Nachkommastellen ein.`;
+      return $localize`:@@sessionVote.numericFormatInteger:Gib eine Zahl ohne Nachkommastellen ein.`;
     }
     const maxDecimalPlaces = this.numericQuestionMaxDecimalPlaces();
     if (maxDecimalPlaces !== null) {
