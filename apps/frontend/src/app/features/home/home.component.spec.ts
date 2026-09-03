@@ -1006,7 +1006,7 @@ describe('HomeComponent', () => {
       await comp.openHeroHostTab('qa');
 
       expect(comp.joinError()).toBe(
-        'WICHTIG: Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
+        'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
           'Bitte in 23 Sekunden erneut versuchen.',
       );
     });

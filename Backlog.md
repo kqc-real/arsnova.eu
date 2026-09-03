@@ -263,7 +263,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] Backend- und Frontend-Tests decken mindestens den API-Vertrag sowie die Darstellung des Hilfe-Dialogs mit und ohne Verlauf ab.
 - **Story 0.5 (Rate-Limiting & Brute-Force-Schutz):** 🔴 Als System möchte ich Missbrauch durch automatisierte Anfragen verhindern, damit die Plattform stabil und fair bleibt.
   - **Akzeptanzkriterien:**
-    - [x] **Session-Code-Eingabe (Story 3.1):** Maximal 5 Fehlversuche pro IP-Adresse innerhalb von 5 Minuten. Nach Überschreitung wird eine 60-Sekunden-Sperre verhängt mit Hinweismeldung.
+    - [x] **Session-Code-Eingabe (Story 3.1):** Maximal 5 Fehlversuche pro anonymer Browser-Client-ID innerhalb von 60 Sekunden. Nach Überschreitung wird eine 60-Sekunden-Sperre verhängt mit Hinweismeldung.
     - [x] **Vote-Submit (Story 3.3b):** Maximal 1 Request pro Sekunde pro Participant (Token-Bucket). Überschüssige Requests erhalten HTTP 429 mit `Retry-After`-Header.
     - [x] **Session-Erstellung (Story 2.1a):** Maximal 10 Sessions pro IP pro Stunde.
     - [x] Rate-Limits werden über Redis (`ioredis`) mit Sliding-Window-Algorithmus umgesetzt (abhängig von Story 0.1).
