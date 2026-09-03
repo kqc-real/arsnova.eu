@@ -78,7 +78,8 @@ const FINGER_IMAGES: Record<number, string> = {
 
       .countdown-fingers--large {
         padding: 0.45rem;
-        border-radius: var(--mat-sys-corner-small, 8px);
+        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
+          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
         /* Host/Present: Light braucht Kontrast hinter der weißen Hand (Theme-Primary). */
         background: light-dark(var(--mat-sys-primary), transparent);
 
@@ -92,7 +93,8 @@ const FINGER_IMAGES: Record<number, string> = {
       .countdown-fingers--small {
         /* Schmale Kontrastfläche nur um die Hand, ringsum gleiches Padding */
         padding: 0.35rem;
-        border-radius: var(--mat-sys-corner-small, 8px);
+        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
+          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
         background: light-dark(var(--mat-sys-primary), transparent);
 
         .countdown-fingers__img {
@@ -109,7 +111,8 @@ const FINGER_IMAGES: Record<number, string> = {
         max-height: 100%;
         min-height: 0;
         padding: clamp(0.45rem, 1.4vmin, 0.9rem);
-        border-radius: var(--mat-sys-corner-small, 8px);
+        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
+          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
         background: light-dark(var(--mat-sys-primary), transparent);
 
         .countdown-fingers__img {

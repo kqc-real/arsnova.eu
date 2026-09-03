@@ -131,7 +131,7 @@ function pageHtml(mode, fingerSrc) {
     }
     .countdown-fingers--small {
       padding: 0.35rem;
-      border-radius: 8px;
+      border-radius: 1.5rem 1.5rem 0 0;
       background: light-dark(var(--mat-sys-primary), transparent);
     }
     .countdown-fingers--small .countdown-fingers__img {
