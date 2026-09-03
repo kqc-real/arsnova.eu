@@ -1224,7 +1224,7 @@ describe('QuizPreviewComponent', () => {
     await component['startLiveSession']('full');
 
     expect(component.liveStartError()).toBe(
-      'WICHTIG: Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
+      'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
         'Bitte in 31 Sekunden erneut versuchen.',
     );
     expect(sessionCreateMutationMock).toHaveBeenCalledOnce();

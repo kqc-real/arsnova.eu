@@ -5,6 +5,8 @@
 const SESSION_NOT_FOUND_DE = 'Session nicht gefunden.';
 const SESSION_CREATE_RATE_LIMIT_DE =
   'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
+const SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX = 'Ungültiger Code.';
+const SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS = 'Zu viele Fehlversuche';
 const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
   'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
   'Zu viele gleichzeitige Admin-Login-Versuche.',
@@ -76,6 +78,12 @@ export function localizeKnownServerMessage(message: string): string {
   if (normalized === SESSION_CREATE_RATE_LIMIT_DE) {
     return sessionCreateRateLimitUiMessage();
   }
+  if (
+    normalized.startsWith(SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX) &&
+    normalized.includes(SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS)
+  ) {
+    return $localize`:@@errors.sessionCodeTooManyFailures:Zu viele falsche Codes – kurz warten.`;
+  }
   if (ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE.has(normalized)) {
     return adminLoginRateLimitUiMessage();
   }
@@ -102,7 +110,6 @@ export function localizeKnownServerError(error: unknown, fallbackMessage: string
     return localizedMessage;
   }
 
-  const emphasis = $localize`:@@errors.rateLimitAttention:WICHTIG:`;
   const retryHint = $localize`:@@errors.rateLimitRetryAfter:Bitte in ${retryAfterSeconds}:seconds: Sekunden erneut versuchen.`;
-  return `${emphasis} ${localizedMessage}\n${retryHint}`;
+  return `${localizedMessage}\n${retryHint}`;
 }

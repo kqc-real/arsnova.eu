@@ -16,10 +16,10 @@ const configuredDelayMaxMs = boundedPositiveIntegerEnv(
 );
 
 export const SESSION_CODE_PROTECTION_LIMITS = {
-  windowSeconds: boundedPositiveIntegerEnv('RATE_LIMIT_SESSION_CODE_WINDOW_SECONDS', 300),
+  windowSeconds: boundedPositiveIntegerEnv('RATE_LIMIT_SESSION_CODE_WINDOW_SECONDS', 60),
   clientFailuresPerWindow: boundedPositiveIntegerEnv(
     'RATE_LIMIT_SESSION_CODE_CLIENT_FAILURES_PER_WINDOW',
-    20,
+    5,
   ),
   codeSoftCapPerWindow: boundedPositiveIntegerEnv(
     'RATE_LIMIT_SESSION_CODE_CODE_SOFT_CAP_PER_WINDOW',

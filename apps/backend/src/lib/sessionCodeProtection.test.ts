@@ -35,8 +35,8 @@ describe('Session-Code-Fehlbudgets', () => {
 
   it('nutzt großzügige, statisch begrenzte Defaults für 500er-NAT', () => {
     expect(SESSION_CODE_PROTECTION_LIMITS).toEqual({
-      windowSeconds: 300,
-      clientFailuresPerWindow: 20,
+      windowSeconds: 60,
+      clientFailuresPerWindow: 5,
       codeSoftCapPerWindow: 600,
       globalSoftCapPerWindow: 5_000,
       delayBaseMs: 100,
