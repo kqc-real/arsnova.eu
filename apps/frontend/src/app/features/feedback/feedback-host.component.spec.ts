@@ -26,6 +26,7 @@ vi.mock('../../core/trpc.client', () => ({
   trpc: {
     session: {
       end: { mutate: vi.fn().mockResolvedValue({ status: 'FINISHED' }) },
+      dismissFinishProjection: { mutate: vi.fn().mockResolvedValue({ finishProjection: 'idle' }) },
     },
     quickFeedback: {
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
@@ -383,6 +384,9 @@ describe('FeedbackHostComponent', () => {
 
     comp.endSession();
     await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    });
 
     expect(snackBarSpy).toHaveBeenCalledWith(
       'Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.',
@@ -390,10 +394,48 @@ describe('FeedbackHostComponent', () => {
       { duration: 7000 },
     );
     expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(trpc.session.dismissFinishProjection.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(clearFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(onActionSubscribe).toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('bleibt im eingebetteten Host stehen, wenn der Presenter-Dismiss fehlschlägt', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const snackBar = TestBed.inject(MatSnackBar);
+    const openSpy = vi.spyOn(snackBar, 'open');
+    const onActionSubscribe = vi.fn((callback: () => void) => {
+      callback();
+      return { unsubscribe: vi.fn() };
+    });
+    vi.spyOn(snackBar, 'open').mockReturnValueOnce({
+      onAction: () => ({ subscribe: onActionSubscribe }),
+    } as never);
+    vi.mocked(trpc.session.dismissFinishProjection.mutate).mockRejectedValueOnce(
+      new Error('network'),
+    );
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.detectChanges();
+
+    fixture.componentInstance.endSession();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(trpc.session.dismissFinishProjection.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearHostTokenMock).not.toHaveBeenCalled();
+    expect(clearFeedbackHostTokenMock).not.toHaveBeenCalled();
+    expect(navigateByUrlSpy).not.toHaveBeenCalled();
+    expect(openSpy).toHaveBeenLastCalledWith(
+      'Beenden oder Presenter-Umschaltung haben gerade nicht geklappt. Bitte in ein paar Sekunden erneut versuchen.',
+      '',
+      { duration: 7000 },
+    );
     fixture.destroy();
   });
 

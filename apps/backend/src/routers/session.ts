@@ -3245,12 +3245,25 @@ function markFinishProjectionLeaderboard(code: string): void {
     .catch(() => undefined);
 }
 
-function markFinishProjectionIdle(code: string): void {
+async function markFinishProjectionIdle(code: string): Promise<void> {
   const normalized = code.toUpperCase();
+  const previous = finishProjectionByCode.get(normalized);
   finishProjectionByCode.set(normalized, 'idle');
-  void getRedis()
-    .set(finishProjectionRedisKey(normalized), 'idle', 'EX', FINISH_PROJECTION_TTL_SECONDS)
-    .catch(() => undefined);
+  try {
+    await getRedis().set(
+      finishProjectionRedisKey(normalized),
+      'idle',
+      'EX',
+      FINISH_PROJECTION_TTL_SECONDS,
+    );
+  } catch (error) {
+    if (previous) {
+      finishProjectionByCode.set(normalized, previous);
+    } else {
+      finishProjectionByCode.delete(normalized);
+    }
+    throw error;
+  }
 }
 
 /** Bewertete Fragetypen, bei denen Runde 2 vom Peer-Instruction-Fenster abhaengt. */
@@ -5879,7 +5892,7 @@ export const sessionRouter = router({
           message: 'Die Abschlussprojektion kann nur bei beendeter Session gewechselt werden.',
         });
       }
-      markFinishProjectionIdle(code);
+      await markFinishProjectionIdle(code);
       invalidateSessionStatusCachesForCode(code);
       return { finishProjection: 'idle' as const };
     }),

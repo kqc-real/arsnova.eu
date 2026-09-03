@@ -4402,6 +4402,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return error instanceof Error && error.message.includes(SESSION_NOT_FOUND_MESSAGE);
   }
 
+  private isSessionAlreadyFinishedError(error: unknown): boolean {
+    return error instanceof Error && error.message.includes('Session ist bereits beendet.');
+  }
+
   private shouldWarnOnBeforeUnload(): boolean {
     if (!this.unloadWarningEnabled || !this.isSessionActive()) {
       return false;
@@ -4441,6 +4445,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.session.update((session) => (session ? { ...session, status: 'FINISHED' } : session));
     this.dismissHostSteeringCallout();
     this.clearSessionTokens();
+  }
+
+  private markSessionFinishedLocally(): void {
+    this.stopCountdown();
+    this.countdownSeconds.set(null);
+    this.syncCurrentQuestionForHost(null);
+    this.statusUpdate.set({
+      status: 'FINISHED',
+      currentQuestion: null,
+      activeAt: undefined,
+    });
+    this.session.update((session) => (session ? { ...session, status: 'FINISHED' } : session));
   }
 
   private async navigateHomeAfterSessionUnavailable(): Promise<void> {
@@ -4492,10 +4508,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async retryEndSessionAndNavigateHome(): Promise<void> {
     if (!this.code) return;
     try {
-      await trpc.session.end.mutate({ code: this.code.toUpperCase() });
-      this.markSessionUnavailable();
-      await this.exitFullscreenBeforeHomeNavigation();
-      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+      await this.endSessionAndNavigateHome();
       this.dismissHostSteeringCallout();
     } catch (error) {
       if (this.isSessionNotFoundError(error)) {
@@ -4652,8 +4665,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async canDeactivate(): Promise<boolean> {
     if (!this.isSessionActive()) {
       if (this.effectiveStatus() === 'FINISHED' && this.code) {
-        await this.dismissFinishProjectionQuietly();
-        this.clearSessionTokens();
+        try {
+          await this.dismissFinishProjection();
+          this.clearSessionTokens();
+        } catch {
+          // Token behalten, damit die Person den Dismiss nach Navigation/Relaunch erneut auslösen kann.
+        }
       }
       return true;
     }
@@ -4755,8 +4772,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.code) {
       return;
     }
-    await trpc.session.end.mutate({ code: this.code.toUpperCase() });
-    await this.dismissFinishProjectionQuietly();
+    try {
+      await trpc.session.end.mutate({ code: this.code.toUpperCase() });
+    } catch (error) {
+      if (!this.isSessionAlreadyFinishedError(error)) {
+        throw error;
+      }
+    }
+    this.markSessionFinishedLocally();
+    await this.dismissFinishProjection();
     this.markSessionUnavailable();
     await this.exitFullscreenBeforeHomeNavigation();
     await this.ngZone.run(async () => {
@@ -4769,22 +4793,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.code) {
       return;
     }
-    await this.dismissFinishProjectionQuietly();
-    await this.exitFullscreenBeforeHomeNavigation();
-    await this.ngZone.run(async () => {
-      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
-    });
+    try {
+      await this.dismissFinishProjection();
+      this.markSessionUnavailable();
+      await this.exitFullscreenBeforeHomeNavigation();
+      await this.ngZone.run(async () => {
+        await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+      });
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.navigateHomeFromFinishedSession(),
+      );
+    }
   }
 
-  private async dismissFinishProjectionQuietly(): Promise<void> {
+  private async dismissFinishProjection(): Promise<void> {
     if (!this.code) {
       return;
     }
-    try {
-      await trpc.session.dismissFinishProjection.mutate({ code: this.code.toUpperCase() });
-    } catch {
-      // Navigation trotzdem erlauben – Presenter bleibt sonst ggf. auf dem Leaderboard.
-    }
+    await trpc.session.dismissFinishProjection.mutate({ code: this.code.toUpperCase() });
   }
 
   private async exitFullscreenBeforeHomeNavigation(): Promise<void> {

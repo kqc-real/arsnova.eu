@@ -11586,6 +11586,56 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält Host-Tokens, wenn der Dismiss beim Verlassen einer beendeten Session fehlschlägt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      teamMode: false,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'FINISHED', currentQuestion: null });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    dismissFinishProjectionMutateMock.mockRejectedValueOnce(new Error('network'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const canLeave = await fixture.componentInstance.canDeactivate();
+
+    expect(canLeave).toBe(true);
+    expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearHostTokenMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('dismissed beim Retry einer schon beendeten Session trotzdem noch die Abschlussprojektion', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    endMutateMock.mockRejectedValueOnce(new Error('Session ist bereits beendet.'));
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    await (
+      fixture.componentInstance as SessionHostComponent & {
+        retryEndSessionAndNavigateHome: () => Promise<void>;
+      }
+    ).retryEndSessionAndNavigateHome();
+
+    expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(navSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
   it('zeigt im finalen Leaderboard eine Sieger-Copy statt Zwischenstand', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

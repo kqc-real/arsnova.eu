@@ -30,8 +30,19 @@ const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = v
   },
 }));
 
+const { redisMock } = vi.hoisted(() => ({
+  redisMock: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
+
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../redis', () => ({
+  getRedis: vi.fn(() => redisMock),
 }));
 
 vi.mock('../lib/loadSignal', () => ({
@@ -65,6 +76,8 @@ describe('session.end', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    redisMock.get.mockResolvedValue(null);
+    redisMock.set.mockResolvedValue('OK');
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
@@ -204,6 +217,8 @@ describe('session.dismissFinishProjection', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    redisMock.get.mockResolvedValue(null);
+    redisMock.set.mockResolvedValue('OK');
   });
 
   trpcDodIt(
@@ -219,6 +234,12 @@ describe('session.dismissFinishProjection', () => {
       await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
         finishProjection: 'idle',
       });
+      expect(redisMock.set).toHaveBeenCalledWith(
+        'session:finishProjection:ABC123',
+        'idle',
+        'EX',
+        24 * 60 * 60,
+      );
     },
   );
 
@@ -238,4 +259,13 @@ describe('session.dismissFinishProjection', () => {
       });
     },
   );
+
+  it('bestätigt Dismiss nicht, wenn Redis die Idle-Projektion nicht persistieren kann', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+    redisMock.set.mockRejectedValueOnce(new Error('redis down'));
+
+    await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+    });
+  });
 });

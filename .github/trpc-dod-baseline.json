@@ -359,7 +359,7 @@
     },
     "session.dismissFinishProjection": {
       "kind": "mutation",
-      "fingerprint": "sha256:5caf03228b15e2c6998b0e9e6d4f127ebab617a5f97534d7a5f2e4862ef803d5",
+      "fingerprint": "sha256:f2748ea414dfab630cccf0b4d934be21735d909aa9e9e63ae0f6d1172554dd72",
       "missing": []
     },
     "session.enableQaChannel": {
