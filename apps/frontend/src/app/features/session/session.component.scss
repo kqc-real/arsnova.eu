@@ -21,7 +21,7 @@
   max-width: 48rem;
 }
 
-.session-page-shell--presentation {
+.session-page-shell--presenter {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -32,7 +32,7 @@
   min-height: 0;
 }
 
-.session-page-shell--presentation > :not(router-outlet) {
+.session-page-shell--presenter > :not(router-outlet) {
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;

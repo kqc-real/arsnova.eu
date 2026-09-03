@@ -1,6 +1,9 @@
 /**
  * Gemeinsame Lesespur für Help / Legal / News-Archiv (Content-Overlay-Seiten).
  * Ein Maß, eine Prose, eine Zurück-Nav – kein Drift zwischen den drei Seiten.
+ *
+ * Markdown-Nachfahren (`.content-page-prose …`) liegen in `styles.scss`, weil
+ * `[innerHTML]` keine Encapsulation-Attribute trägt.
  */
 
 .content-back {
@@ -28,84 +31,15 @@
   word-break: break-word;
 }
 
-/* Template-Absätze direkt im Artikel (z. B. Hilfe-Intro), ohne :deep. */
+/* Template-Absätze direkt im Artikel (z. B. Hilfe-Intro). */
 .content-page-article > p {
   margin: 0 0 1rem;
 }
 
-/**
- * Markdown-Rumpf (Legal `.legal-page__md`, News `.news-archive-page__md`).
- * :deep nötig, weil innerHTML keine Component-Encapsulation-Attribute trägt.
- */
 .content-page-prose {
   font: inherit;
   line-height: inherit;
   color: inherit;
   min-width: 0;
   max-width: 100%;
-}
-
-.content-page-prose :deep(h2) {
-  font: var(--mat-sys-title-large);
-  color: var(--mat-sys-on-surface);
-  margin: 2rem 0 0.5rem;
-}
-
-.content-page-prose :deep(h2:first-of-type) {
-  margin-top: 0;
-}
-
-.content-page-prose :deep(p) {
-  margin: 0 0 1rem;
-}
-
-.content-page-prose :deep(p:last-child) {
-  margin-bottom: 0;
-}
-
-.content-page-prose :deep(ul) {
-  margin: 0 0 1rem;
-  padding-left: 1.5rem;
-}
-
-.content-page-prose :deep(li) {
-  margin-bottom: 0.5rem;
-}
-
-.content-page-prose :deep(li::marker) {
-  color: var(--mat-sys-primary);
-}
-
-.content-page-prose :deep(hr) {
-  border: none;
-  border-top: 1px solid var(--mat-sys-outline-variant);
-  margin: 2rem 0;
-}
-
-.content-page-prose :deep(strong) {
-  font-weight: 600;
-  color: var(--mat-sys-on-surface);
-}
-
-.content-page-prose :deep(a) {
-  color: var(--mat-sys-primary);
-  text-decoration: none;
-  border-radius: 2px;
-}
-
-.content-page-prose :deep(a:hover) {
-  text-decoration: underline;
-}
-
-.content-page-prose :deep(a:focus-visible) {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 0.25rem;
-}
-
-.content-page-prose.markdown-body > :first-child {
-  margin-top: 0;
-}
-
-.content-page-prose.markdown-body > :last-child {
-  margin-bottom: 0;
 }

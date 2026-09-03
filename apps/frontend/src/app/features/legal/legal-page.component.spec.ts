@@ -242,8 +242,15 @@ describe('LegalPageComponent', () => {
     expect(articleScss).toMatch(
       /\.content-page-article\s*\{[^}]*max-inline-size:\s*min\(65ch,\s*100%\)/,
     );
-    expect(articleScss).toMatch(/\.content-page-prose :deep\(h2\)\s*\{/);
+    expect(articleScss).not.toContain(':deep(');
+    expect(articleScss).toMatch(/\.content-page-prose\s*\{/);
     expect(articleScss).toMatch(/\.content-back--bottom\s*\{/);
+    const globalStyles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss'),
+      'utf8',
+    );
+    expect(globalStyles).toMatch(/\.content-page-prose h2\s*\{/);
+    expect(globalStyles).not.toMatch(/\.content-page-prose :deep\(/);
     expect(backdropScss).toMatch(/\.content-page-panel\s*\{[^}]*padding-inline:\s*1\.5rem/);
     expect(backdropScss).not.toMatch(/border:\s*none/);
     expect(playfulChrome).toMatch(

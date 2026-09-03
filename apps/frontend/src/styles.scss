@@ -193,6 +193,72 @@ html {
   line-height: 1.2;
 }
 
+/* Content-Page Markdown-Rumpf (Legal/News): innerHTML ohne Encapsulation. */
+.content-page-prose h2 {
+  font: var(--mat-sys-title-large);
+  color: var(--mat-sys-on-surface);
+  margin: 2rem 0 0.5rem;
+}
+
+.content-page-prose h2:first-of-type {
+  margin-top: 0;
+}
+
+.content-page-prose p {
+  margin: 0 0 1rem;
+}
+
+.content-page-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.content-page-prose ul {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.content-page-prose li {
+  margin-bottom: 0.5rem;
+}
+
+.content-page-prose li::marker {
+  color: var(--mat-sys-primary);
+}
+
+.content-page-prose hr {
+  border: none;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin: 2rem 0;
+}
+
+.content-page-prose strong {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.content-page-prose a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.content-page-prose a:hover {
+  text-decoration: underline;
+}
+
+.content-page-prose a:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.25rem;
+}
+
+.content-page-prose.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.content-page-prose.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
 // ---------------------------------------------------------------------------
 // 2) App-Semantic Tokens – TOKENS.md §2
 // ---------------------------------------------------------------------------
