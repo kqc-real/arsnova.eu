@@ -533,6 +533,17 @@ describe('SessionProjectionQuizComponent', () => {
     expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(true);
     expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__countdown')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__fingers')).toBeTruthy();
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-projection-quiz.component.scss',
+      ),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__fingers\s*\{[\s\S]*?light-dark\(\s*var\(--mat-sys-primary\)/,
+    );
   });
 
   it('legt Codefragen dreispaltig an: Frage, Code, Antworten', () => {

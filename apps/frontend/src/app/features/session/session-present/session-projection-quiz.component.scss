@@ -1178,6 +1178,16 @@
   min-height: 0;
 }
 
+/* Presenter Light: Finger-Spalte in Theme-Primary (Playful-Kontrast der Hand). */
+.session-projection-quiz__fingers {
+  --mat-card-outlined-container-color: light-dark(var(--mat-sys-primary), var(--mat-sys-surface));
+  background: light-dark(var(--mat-sys-primary), var(--mat-sys-surface));
+  border-color: light-dark(
+    color-mix(in srgb, var(--mat-sys-primary) 82%, var(--mat-sys-outline)),
+    var(--mat-sys-outline-variant)
+  );
+}
+
 .session-projection-quiz__code {
   overflow: hidden;
 }
