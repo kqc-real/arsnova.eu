@@ -130,9 +130,8 @@ function pageHtml(mode, fingerSrc) {
       user-select: none;
     }
     .countdown-fingers--small {
-      padding: 0.35rem 0.35rem 0;
-      border-radius: 1.5rem 1.5rem 0 0;
-      background: var(--mat-sys-primary);
+      padding: 0;
+      background: transparent;
     }
     .countdown-fingers--small .countdown-fingers__img {
       display: block;

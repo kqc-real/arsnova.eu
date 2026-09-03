@@ -28,7 +28,7 @@ describe('CountdownFingersComponent', () => {
     );
   });
 
-  it('hält Vote-Fingers schmal, light-only Kontrast und bündig unten links', () => {
+  it('hält Vote-Fingers transparent, bündig unten links', () => {
     const fixture = TestBed.createComponent(CountdownFingersComponent);
     fixture.componentRef.setInput('seconds', 4);
     fixture.componentRef.setInput('size', 'small');
@@ -48,21 +48,12 @@ describe('CountdownFingersComponent', () => {
     expect(styles).not.toMatch(/position-anchor:\s*--app-footer-anchor/);
     expect(styles).toMatch(/countdown-fingers-host--viewport[\s\S]*?left:\s*calc\(/);
     expect(styles).toMatch(/width:\s*fit-content/);
-    expect(styles).toMatch(
-      /countdown-fingers--small[\s\S]*?background:\s*var\(--mat-sys-primary\)/,
-    );
-    expect(styles).toMatch(/padding:\s*0\.35rem 0\.35rem 0/);
-    expect(styles).toMatch(/countdown-fingers--large[\s\S]*?padding:\s*0\.45rem 0\.45rem 0/);
-    expect(styles).toMatch(
-      /border-radius:\s*var\(--mat-sys-corner-extra-large,\s*1\.5rem\)[\s\S]*?0\s+0/,
-    );
+    expect(styles).toMatch(/countdown-fingers--small[\s\S]*?background:\s*transparent/);
+    expect(styles).toMatch(/countdown-fingers--large[\s\S]*?background:\s*transparent/);
+    expect(styles).toMatch(/countdown-fingers--present[\s\S]*?background:\s*transparent/);
+    expect(styles).not.toMatch(/background:\s*var\(--mat-sys-primary\)/);
+    expect(styles).toMatch(/countdown-fingers--small[\s\S]*?padding:\s*0/);
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?width:\s*48px/);
-    expect(styles).toMatch(
-      /countdown-fingers--large[\s\S]*?background:\s*var\(--mat-sys-primary\)/,
-    );
-    expect(styles).toMatch(
-      /countdown-fingers--present[\s\S]*?background:\s*var\(--mat-sys-primary\)/,
-    );
     expect(styles).toMatch(/countdown-fingers--present[\s\S]*?width:\s*fit-content/);
   });
 });

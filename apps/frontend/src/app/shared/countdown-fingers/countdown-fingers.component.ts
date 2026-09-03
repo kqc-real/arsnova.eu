@@ -77,11 +77,8 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--large {
-        padding: 0.45rem 0.45rem 0;
-        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
-          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
-        /* Theme-Primary in Light und Dark; unten ohne Padding → bündig an die Folge-Karte. */
-        background: var(--mat-sys-primary);
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
           width: 120px;
@@ -91,14 +88,11 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--small {
-        /* Schmale Fläche; unten ohne Padding → bündig am Footer-/Viewport-Unterrand. */
-        padding: 0.35rem 0.35rem 0;
-        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
-          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
-        background: var(--mat-sys-primary);
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
-          /* Kompakt unten links; Assets sind auf Content + gleiches Padding zugeschnitten. */
+          /* Kompakt unten links; Asset unten bündig am Content. */
           width: 48px;
           height: auto;
         }
@@ -110,10 +104,8 @@ const FINGER_IMAGES: Record<number, string> = {
         max-width: 100%;
         max-height: 100%;
         min-height: 0;
-        padding: clamp(0.45rem, 1.4vmin, 0.9rem) clamp(0.45rem, 1.4vmin, 0.9rem) 0;
-        border-radius: var(--mat-sys-corner-extra-large, 1.5rem)
-          var(--mat-sys-corner-extra-large, 1.5rem) 0 0;
-        background: var(--mat-sys-primary);
+        padding: 0;
+        background: transparent;
 
         .countdown-fingers__img {
           width: auto;
