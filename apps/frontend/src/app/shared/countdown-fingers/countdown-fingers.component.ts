@@ -90,13 +90,13 @@ const FINGER_IMAGES: Record<number, string> = {
       }
 
       .countdown-fingers--small {
-        /* Schmale Kontrastfläche nur um die Hand, nicht volle Viewport-/Spaltenbreite */
-        padding: 0.2rem 0.3rem 0;
-        border-radius: var(--mat-sys-corner-small, 8px) var(--mat-sys-corner-small, 8px) 0 0;
+        /* Schmale Kontrastfläche nur um die Hand, ringsum gleiches Padding */
+        padding: 0.35rem;
+        border-radius: var(--mat-sys-corner-small, 8px);
         background: light-dark(var(--mat-sys-primary), transparent);
 
         .countdown-fingers__img {
-          /* Kompakt unten links; Höhe folgt dem hohen PNG-Aspect (≈3.15:1). */
+          /* Kompakt unten links; Assets sind auf Content + gleiches Padding zugeschnitten. */
           width: 48px;
           height: auto;
         }
