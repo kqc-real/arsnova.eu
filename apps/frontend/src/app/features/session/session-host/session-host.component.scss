@@ -289,6 +289,15 @@
     padding-bottom: calc(var(--host-mobile-safe-bottom) + 13.5rem);
   }
 
+  .session-host:has(.session-host__emoji-reactions) {
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 13rem);
+  }
+
+  .session-host:has(.session-host__exit-anchor--with-primary):has(.session-host__emoji-reactions) {
+    /* Primäraktionen + Reaktionszeile + Session beenden. */
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 15.5rem);
+  }
+
   .session-host__run {
     gap: var(--host-mobile-stack-gap);
     padding-bottom: var(--host-mobile-safe-bottom);
