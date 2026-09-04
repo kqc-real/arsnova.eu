@@ -4339,7 +4339,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     const toolbar = active.closest('.session-host__view-controls');
     const fallback = toolbar?.querySelector<HTMLElement>(
-      '.session-host__view-toggle--fullscreen, .session-host__view-toggle:not(.session-host__view-toggle--presenter)',
+      '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
     );
     if (fallback?.isConnected && fallback !== active) {
       try {
