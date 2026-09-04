@@ -18,7 +18,7 @@ describe('getDemoQuizSeedFingerprint', () => {
         quiz?: { questions?: Array<{ text?: string }> };
       };
       expect(payload.quiz?.questions?.[0]?.text).toContain(
-        'Pass / Le Brun (1821), via Wikimedia Commons',
+        '[credit] Pass / Le Brun (1821), via Wikimedia Commons',
       );
     }
   });

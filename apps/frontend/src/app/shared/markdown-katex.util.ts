@@ -453,11 +453,24 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+/**
+ * Markiert explizite Bildnachweise: kursives `*[credit] …*` direkt unter einem
+ * alleinstehenden Bild erhält `class="md-image-credit"` (Marker wird entfernt).
+ * Beliebige andere Kursivzeilen unter Bildern bleiben unberührt.
+ */
+export function markMarkdownImageCredits(html: string): string {
+  return String(html ?? '').replace(
+    /(<p>\s*<img\b[^>]*>\s*<\/p>)\s*<p>(\s*<em>)(?:\s*)\[credit]\s*/gi,
+    '$1<p class="md-image-credit">$2',
+  );
+}
+
 function sanitizeMarkdownHtml(html: string): string {
+  const withImageCredits = markMarkdownImageCredits(html);
   // SSR: Auf dem Server existiert kein DOM. Unsere Render-Pipeline escaped inline HTML (renderer.html)
   // und erzwingt URL-Policies für Links/Bilder; DOMPurify wird daher nur im Browser angewendet.
-  if (typeof window === 'undefined') return html;
-  return DOMPurify.sanitize(html, {
+  if (typeof window === 'undefined') return withImageCredits;
+  return DOMPurify.sanitize(withImageCredits, {
     ALLOWED_TAGS: [
       'p',
       'br',

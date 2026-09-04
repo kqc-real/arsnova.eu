@@ -93,6 +93,9 @@
                 referrerpolicy="strict-origin-when-cross-origin"
                 (error)="onQuestionVisualError($event)"
               />
+              @if (visual.credit) {
+                <p class="session-projection-quiz__visual-credit">{{ visual.credit }}</p>
+              }
             </div>
           }
 

@@ -427,6 +427,24 @@ describe('SessionProjectionQuizComponent', () => {
     expect(stage.classList.contains('session-projection-quiz--with-visual')).toBe(true);
   });
 
+  it('zeigt den [credit]-Bildnachweis unter dem extrahierten Presenter-Bild', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        text: '### Titel\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Pass / Le Brun*\n\n*Hinweis*',
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const credit = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__visual-credit',
+    ) as HTMLElement | null;
+    expect(credit?.textContent?.trim()).toBe('Pass / Le Brun');
+    expect(fixture.nativeElement.textContent).not.toContain('[credit]');
+    expect(fixture.nativeElement.textContent).not.toContain('Hinweis');
+  });
+
   it('zeigt Matching-Ergebnisse als Paarliste statt als Matrix', () => {
     fixture.componentRef.setInput(
       'question',
