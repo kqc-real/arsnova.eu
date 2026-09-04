@@ -725,6 +725,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return neutral;
   }
 
+  hostNeutralMatchingRows(
+    question: HostCurrentQuestionDTO | null | undefined,
+  ): Array<{ left: { id: string; text: string }; right: { id: string; text: string } }> {
+    const left = this.hostNeutralMatchingLeftOptions(question);
+    const right = this.hostNeutralMatchingRightOptions(question);
+    const rowCount = Math.max(left.length, right.length);
+    return Array.from({ length: rowCount }, (_, index) => ({
+      left: left[index] ?? { id: `missing-left-${index}`, text: '' },
+      right: right[index] ?? { id: `missing-right-${index}`, text: '' },
+    }));
+  }
+
   hostNeutralCategories(
     question: HostCurrentQuestionDTO | null | undefined,
   ): Array<{ id: string; name: string }> {

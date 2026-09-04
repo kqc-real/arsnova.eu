@@ -3417,25 +3417,6 @@
   }
 }
 
-.vote-structured-preview__number {
-  flex: 0 0 auto;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-large);
-  font-variant-numeric: tabular-nums;
-}
-
-.vote-structured-preview__text {
-  min-width: 0;
-
-  > :first-child {
-    margin-top: 0;
-  }
-
-  > :last-child {
-    margin-bottom: 0;
-  }
-}
-
 .vote-ordering,
 .vote-matching,
 .vote-categorization {

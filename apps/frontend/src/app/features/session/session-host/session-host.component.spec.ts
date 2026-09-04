@@ -6963,6 +6963,15 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Single Choice');
     expect(text).toContain('Schwer');
+    const questionMeta = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__question-meta--header',
+    );
+    expect(questionMeta?.closest('.session-host__question-subtitle')).toBeTruthy();
+    expect(
+      questionMeta?.compareDocumentPosition(
+        (fixture.nativeElement as HTMLElement).querySelector('.session-host__question-title')!,
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     fixture.destroy();
   });
 
@@ -7085,11 +7094,22 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const answerText = fixture.nativeElement.querySelector(
       '.session-host__answer-text',
     ) as HTMLElement | null;
+    const questionPhase = fixture.nativeElement.querySelector(
+      '.session-host__question-phase',
+    ) as HTMLElement | null;
 
     expect(questionText?.classList.contains('markdown-body')).toBe(true);
     expect(questionText?.closest('h1.session-host__question-title')).toBeTruthy();
     expect(questionText?.closest('[role="heading"][aria-level="1"]')).toBeNull();
     expect(answerText?.classList.contains('markdown-body')).toBe(true);
+    expect(answerText?.closest('li.session-host__answer')).toBeTruthy();
+    expect(answerText?.closest('button, [role="button"]')).toBeNull();
+    expect(questionPhase).toBeTruthy();
+    expect(questionPhase?.closest('.session-host__question-subtitle')).toBeNull();
+    expect(
+      questionPhase?.querySelector('.session-host__question-phase-icon')?.textContent,
+    ).toContain('info');
+
     fixture.destroy();
   });
 
@@ -8560,7 +8580,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         '.session-host__neutral-space',
       ) as HTMLElement | null;
       const text = neutral?.textContent ?? '';
-      expect(text).toContain('Begriffe und Gegenstücke');
+      expect(text).toContain('Zuordnen');
       expect(text).toContain('Alpha');
       expect(text).toContain('Beta');
       expect(text).toContain('Eins');
@@ -8568,16 +8588,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(text).not.toContain('Korrekte Paare');
       expect(text).not.toContain('Vollständig korrekt');
 
-      const columns = neutral?.querySelectorAll('section > .session-host__neutral-list');
-      expect(columns).toHaveLength(2);
-      const leftIds = Array.from(columns?.[0]?.children ?? [], (element) =>
-        element.textContent?.trim(),
-      );
-      const rightIds = Array.from(columns?.[1]?.children ?? [], (element) =>
-        element.textContent?.trim(),
-      );
-      expect(leftIds).toEqual(['Alpha', 'Beta']);
-      expect(rightIds).toEqual(['Zwei', 'Eins']);
+      const grid = neutral?.querySelector(
+        '.session-host__neutral-matching-grid',
+      ) as HTMLElement | null;
+      expect(grid).not.toBeNull();
+      const cells = Array.from(
+        grid?.querySelectorAll(':scope > .session-host__neutral-item') ?? [],
+      ).map((element) => element.textContent?.trim() ?? '');
+      expect(cells).toEqual(['Alpha', 'Zwei', 'Beta', 'Eins']);
       fixture.destroy();
     },
   );
@@ -8657,6 +8675,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       for (const term of expected) expect(text).toContain(term);
       expect(text).not.toContain(forbidden);
       expect(text).not.toContain('Vollständig korrekt');
+      if (type === 'ORDERING') {
+        expect(neutral.querySelector('.session-host__neutral-number')).toBeNull();
+        expect(neutral.querySelector('ol')).toBeNull();
+      }
       if (type === 'CATEGORIZATION') {
         expect(text).not.toContain('Element A → Kategorie A');
         expect(

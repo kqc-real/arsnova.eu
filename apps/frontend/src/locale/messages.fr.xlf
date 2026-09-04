@@ -14916,8 +14916,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationNote" datatype="html">
-        <source> Teilnehmende können ihre persönliche Frist bei Bedarf verlängern oder abschalten. </source>
-        <target>Les participants peuvent prolonger ou désactiver leur délai personnel si nécessaire.</target>
+        <source>Persönliche Antwortzeit erlaubt</source>
+        <target>Temps de réponse individuel autorisé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1524,1527</context>
@@ -15196,24 +15196,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingNeutralOptions" datatype="html">
-        <source> Begriffe und Gegenstücke </source>
-        <target>Conditions et contreparties</target>
+        <source>Zuordnen</source>
+        <target>Associer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2466,2468</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingLeftOptions" datatype="html">
-        <source> Begriffe </source>
-        <target>Termes</target>
+        <source>Links</source>
+        <target>Gauche</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2475,2477</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingRightOptions" datatype="html">
-        <source> Gegenstücke </source>
-        <target>homologues</target>
+        <source>Rechts</source>
+        <target>Droite</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2495,2497</context>
@@ -15476,8 +15476,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.emojiReactionsTitle" datatype="html">
-        <source>Reaktionen der Teilnehmenden</source>
-        <target>Réactions des participantes et participants</target>
+        <source>Reaktionen:</source>
+        <target>Réactions :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3323</context>
@@ -15499,9 +15499,9 @@
           <context context-type="linenumber">3337</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4887698567767977129" datatype="html">
-        <source>Noch keine Reaktionen.</source>
-        <target>Aucune réaction pour l&apos;instant.</target>
+      <trans-unit id="sessionHost.emojiReactionsEmpty" datatype="html">
+        <source>noch keine</source>
+        <target>aucune pour l&apos;instant</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3360</context>
@@ -20973,24 +20973,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionMatchingOptions" datatype="html">
-        <source> Begriffe und Gegenstücke </source>
-        <target>Conditions et contreparties</target>
+        <source>Zuordnen</source>
+        <target>Associer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1079,1081</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingLeftOptions" datatype="html">
-        <source> Begriffe </source>
-        <target>Termes</target>
+        <source>Links</source>
+        <target>Gauche</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1088,1090</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingRightOptions" datatype="html">
-        <source> Gegenstücke </source>
-        <target>homologues</target>
+        <source>Rechts</source>
+        <target>Droite</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1105,1107</context>

@@ -1192,19 +1192,14 @@
               >
                 Unsortierte Reihenfolge
               </h2>
-              <ol class="vote-structured-preview__list" role="list">
-                @for (item of $any(q).orderingItems || []; track item.id; let idx = $index) {
-                  <li class="vote-structured-preview__item">
-                    <span class="vote-structured-preview__number" aria-hidden="true">{{
-                      idx + 1
-                    }}</span>
-                    <span
-                      class="vote-structured-preview__text markdown-body"
-                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
-                    ></span>
-                  </li>
+              <ul class="vote-structured-preview__list" role="list">
+                @for (item of $any(q).orderingItems || []; track item.id) {
+                  <li
+                    class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
+                    [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                  ></li>
                 }
-              </ol>
+              </ul>
             </section>
           } @else if (q.type === 'MATCHING') {
             <section
@@ -1216,7 +1211,7 @@
                 id="vote-discussion-matching-heading"
                 i18n="@@sessionVote.discussionMatchingOptions"
               >
-                Begriffe und Gegenstücke
+                Zuordnen
               </h2>
               <div class="vote-structured-preview__columns">
                 <section aria-labelledby="vote-discussion-matching-left-heading">
@@ -1225,7 +1220,7 @@
                     id="vote-discussion-matching-left-heading"
                     i18n="@@sessionVote.matchingLeftOptions"
                   >
-                    Begriffe
+                    Links
                   </h3>
                   <ul class="vote-structured-preview__list" role="list">
                     @for (item of $any(q).matchingLeftOptions || []; track item.id) {
@@ -1242,7 +1237,7 @@
                     id="vote-discussion-matching-right-heading"
                     i18n="@@sessionVote.matchingRightOptions"
                   >
-                    Gegenstücke
+                    Rechts
                   </h3>
                   <ul class="vote-structured-preview__list" role="list">
                     @for (item of $any(q).matchingRightOptions || []; track item.id) {

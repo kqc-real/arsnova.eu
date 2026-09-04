@@ -1599,9 +1599,27 @@
                           >Letzte Frage</span
                         >
                       }
-                      <span class="session-host__question-phase">
-                        {{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}
-                      </span>
+                      <div
+                        class="session-host__question-meta session-host__question-meta--header"
+                        i18n-aria-label="@@session.questionMetadataAria"
+                        aria-label="Frage-Metadaten"
+                      >
+                        @if (showQuestionTypeIndicators(q)) {
+                          <span class="session-host__question-badge">
+                            {{ hostQuestionTypeLabel(q.type) }}
+                          </span>
+                        }
+                        @if (hostQuestionTypeShowsDifficulty(q.type) && q.difficulty) {
+                          <span
+                            class="session-host__question-badge session-host__question-badge--difficulty"
+                          >
+                            <mat-icon class="session-host__question-badge-icon" aria-hidden="true"
+                              >fitness_center</mat-icon
+                            >
+                            {{ hostDifficultyLabel(q.difficulty) }}
+                          </span>
+                        }
+                      </div>
                       @if (liveVoteProgress(); as voteProgress) {
                         <span
                           class="session-host__vote-progress"
@@ -1639,6 +1657,36 @@
                           <span i18n>Alle haben abgestimmt</span>
                         </span>
                       }
+                    </mat-card-subtitle>
+                    <h1 mat-card-title class="session-host__question-title">
+                      <span
+                        class="session-host__question-title-inner markdown-body"
+                        [innerHTML]="renderMarkdown(q.text)"
+                      ></span>
+                    </h1>
+                    <div class="session-host__question-status-row">
+                      <div class="session-host__question-phase">
+                        <mat-icon class="session-host__question-phase-icon" aria-hidden="true"
+                          >info</mat-icon
+                        >
+                        <span>{{
+                          phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded())
+                        }}</span>
+                      </div>
+                      @if (
+                        countdownSeconds() !== null &&
+                        effectiveStatus() === 'ACTIVE' &&
+                        (displayedCurrentQuestionForHost()?.timer ?? 0) > 0
+                      ) {
+                        <p class="session-host__timer-a11y-note">
+                          <mat-icon class="session-host__timer-a11y-note-icon" aria-hidden="true"
+                            >timer</mat-icon
+                          >
+                          <span i18n="@@sessionHost.timerAccommodationNote"
+                            >Persönliche Antwortzeit erlaubt</span
+                          >
+                        </p>
+                      }
                       @if (countdownSeconds() !== null && effectiveStatus() === 'ACTIVE') {
                         <span
                           class="session-host__countdown"
@@ -1647,46 +1695,6 @@
                           [attr.aria-label]="countdownAriaLabel()"
                         >
                           {{ countdownSeconds() }}
-                        </span>
-                      }
-                      @if (
-                        countdownSeconds() !== null &&
-                        effectiveStatus() === 'ACTIVE' &&
-                        (displayedCurrentQuestionForHost()?.timer ?? 0) > 0
-                      ) {
-                        <p
-                          class="session-host__timer-a11y-note"
-                          i18n="@@sessionHost.timerAccommodationNote"
-                        >
-                          Teilnehmende können ihre persönliche Frist bei Bedarf verlängern oder
-                          abschalten.
-                        </p>
-                      }
-                    </mat-card-subtitle>
-                    <h1 mat-card-title class="session-host__question-title">
-                      <span
-                        class="session-host__question-title-inner markdown-body"
-                        [innerHTML]="renderMarkdown(q.text)"
-                      ></span>
-                    </h1>
-                    <div
-                      class="session-host__question-meta"
-                      i18n-aria-label="@@session.questionMetadataAria"
-                      aria-label="Frage-Metadaten"
-                    >
-                      @if (showQuestionTypeIndicators(q)) {
-                        <span class="session-host__question-badge">
-                          {{ hostQuestionTypeLabel(q.type) }}
-                        </span>
-                      }
-                      @if (hostQuestionTypeShowsDifficulty(q.type) && q.difficulty) {
-                        <span
-                          class="session-host__question-badge session-host__question-badge--difficulty"
-                        >
-                          <mat-icon class="session-host__question-badge-icon" aria-hidden="true"
-                            >fitness_center</mat-icon
-                          >
-                          {{ hostDifficultyLabel(q.difficulty) }}
                         </span>
                       }
                     </div>
@@ -2473,25 +2481,14 @@
                                 >
                                   Unsortierte Reihenfolge
                                 </h3>
-                                <ol class="session-host__neutral-list" role="list">
-                                  @for (
-                                    item of hostNeutralOrderingItems(q);
-                                    track item.id;
-                                    let idx = $index
-                                  ) {
-                                    <li class="session-host__neutral-item">
-                                      <span
-                                        class="session-host__neutral-number"
-                                        aria-hidden="true"
-                                        >{{ idx + 1 }}</span
-                                      >
-                                      <span
-                                        class="session-host__neutral-text markdown-body"
-                                        [innerHTML]="renderOrderingItemMarkdown(item.text)"
-                                      ></span>
-                                    </li>
+                                <ul class="session-host__neutral-list" role="list">
+                                  @for (item of hostNeutralOrderingItems(q); track item.id) {
+                                    <li
+                                      class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                      [innerHTML]="renderOrderingItemMarkdown(item.text)"
+                                    ></li>
                                   }
-                                </ol>
+                                </ul>
                               </section>
                               <p
                                 class="session-host__ordering-waiting"
@@ -2600,49 +2597,40 @@
                                   id="host-matching-options-heading"
                                   i18n="@@sessionHost.matchingNeutralOptions"
                                 >
-                                  Begriffe und Gegenstücke
+                                  Zuordnen
                                 </h3>
-                                <div class="session-host__neutral-columns">
-                                  <section aria-labelledby="host-matching-left-heading">
-                                    <h4
-                                      class="session-host__neutral-subtitle"
-                                      id="host-matching-left-heading"
-                                      i18n="@@sessionHost.matchingLeftOptions"
-                                    >
-                                      Begriffe
-                                    </h4>
-                                    <ul class="session-host__neutral-list" role="list">
-                                      @for (
-                                        option of hostNeutralMatchingLeftOptions(q);
-                                        track option.id
-                                      ) {
-                                        <li
-                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
-                                          [innerHTML]="renderMarkdown(option.text, 4)"
-                                        ></li>
-                                      }
-                                    </ul>
-                                  </section>
-                                  <section aria-labelledby="host-matching-right-heading">
-                                    <h4
-                                      class="session-host__neutral-subtitle"
-                                      id="host-matching-right-heading"
-                                      i18n="@@sessionHost.matchingRightOptions"
-                                    >
-                                      Gegenstücke
-                                    </h4>
-                                    <ul class="session-host__neutral-list" role="list">
-                                      @for (
-                                        option of hostNeutralMatchingRightOptions(q);
-                                        track option.id
-                                      ) {
-                                        <li
-                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
-                                          [innerHTML]="renderMarkdown(option.text, 4)"
-                                        ></li>
-                                      }
-                                    </ul>
-                                  </section>
+                                <div
+                                  class="session-host__neutral-matching-grid"
+                                  role="group"
+                                  aria-labelledby="host-matching-left-heading host-matching-right-heading"
+                                >
+                                  <h4
+                                    class="session-host__neutral-subtitle session-host__neutral-matching-grid-header"
+                                    id="host-matching-left-heading"
+                                    i18n="@@sessionHost.matchingLeftOptions"
+                                  >
+                                    Links
+                                  </h4>
+                                  <h4
+                                    class="session-host__neutral-subtitle session-host__neutral-matching-grid-header"
+                                    id="host-matching-right-heading"
+                                    i18n="@@sessionHost.matchingRightOptions"
+                                  >
+                                    Rechts
+                                  </h4>
+                                  @for (
+                                    row of hostNeutralMatchingRows(q);
+                                    track row.left.id + ':' + row.right.id
+                                  ) {
+                                    <div
+                                      class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                      [innerHTML]="renderMarkdown(row.left.text, 4)"
+                                    ></div>
+                                    <div
+                                      class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                      [innerHTML]="renderMarkdown(row.right.text, 4)"
+                                    ></div>
+                                  }
                                 </div>
                               </section>
                               <p
@@ -2804,7 +2792,7 @@
                                         track category.id
                                       ) {
                                         <li
-                                          class="session-host__neutral-item session-host__neutral-item--plain"
+                                          class="session-host__neutral-item session-host__neutral-item--plain session-host__neutral-item--compact"
                                         >
                                           {{ category.name }}
                                         </li>
@@ -2825,7 +2813,7 @@
                                         track item.id
                                       ) {
                                         <li
-                                          class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
+                                          class="session-host__neutral-item session-host__neutral-item--plain session-host__neutral-item--compact markdown-body"
                                           [innerHTML]="renderMarkdown(item.text, 4)"
                                         ></li>
                                       }
@@ -3440,62 +3428,6 @@
                     Keine Frage aktiv.
                   </p>
                 }
-              }
-
-              @if (
-                (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'ACTIVE') &&
-                  session()?.enableEmojiReactions &&
-                  emojiReactions();
-                as reactions
-              ) {
-                <div
-                  class="session-host__emoji-reactions"
-                  [class.session-host__emoji-reactions--round2]="hostQuizVoteRound() === 2"
-                  aria-labelledby="emoji-reactions-heading"
-                >
-                  <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
-                    <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
-                    <span i18n="@@sessionHost.emojiReactionsTitle"
-                      >Reaktionen der Teilnehmenden</span
-                    >
-                    @if (hostQuizVoteRound() === 2) {
-                      <span
-                        class="session-host__emoji-round-badge session-host__emoji-round-badge--round2"
-                        i18n="@@sessionHost.emojiReactionsRound2"
-                        >2. Runde</span
-                      >
-                    }
-                    @if (emojiNewCount() > 0) {
-                      <span
-                        class="session-host__emoji-new-badge"
-                        [class.session-host__emoji-new-badge--pulse]="emojiBadgePulse()"
-                      >
-                        +{{ emojiNewCount() }} <span i18n="@@sessionHost.emojiBadgeNew">neu</span>
-                      </span>
-                    }
-                  </p>
-                  @if (reactions.total > 0) {
-                    <div class="session-host__emoji-reactions-list" role="list">
-                      @for (emoji of emojiOrder; track emoji) {
-                        @if (reactions.reactions[emoji] > 0) {
-                          <span class="session-host__emoji-item" role="listitem">
-                            <span class="session-host__emoji-icon" aria-hidden="true">{{
-                              emoji
-                            }}</span>
-                            <span class="session-host__emoji-count">{{
-                              reactions.reactions[emoji]
-                            }}</span>
-                          </span>
-                        }
-                      }
-                    </div>
-                    <p class="session-host__emoji-reactions-total">
-                      {{ emojiReactionsTotalLabel(reactions.total) }}
-                    </p>
-                  } @else {
-                    <p class="session-host__emoji-reactions-empty" i18n>Noch keine Reaktionen.</p>
-                  }
-                </div>
               }
 
               @if (
@@ -4360,6 +4292,61 @@
               >Letztes Ergebnis</span
             >
           </button>
+        }
+        @if (
+          showQuizAnchorActions() &&
+            (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'ACTIVE') &&
+            session()?.enableEmojiReactions &&
+            emojiReactions();
+          as reactions
+        ) {
+          <div
+            class="session-host__emoji-reactions"
+            [class.session-host__emoji-reactions--round2]="hostQuizVoteRound() === 2"
+            [class.session-host__emoji-reactions--empty]="reactions.total === 0"
+            aria-labelledby="emoji-reactions-heading"
+          >
+            <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
+              <span class="session-host__emoji-reactions-title-icon" aria-hidden="true">🙂</span>
+              <span i18n="@@sessionHost.emojiReactionsTitle">Reaktionen:</span>
+              @if (hostQuizVoteRound() === 2) {
+                <span
+                  class="session-host__emoji-round-badge session-host__emoji-round-badge--round2"
+                  i18n="@@sessionHost.emojiReactionsRound2"
+                  >2. Runde</span
+                >
+              }
+              @if (emojiNewCount() > 0) {
+                <span
+                  class="session-host__emoji-new-badge"
+                  [class.session-host__emoji-new-badge--pulse]="emojiBadgePulse()"
+                >
+                  +{{ emojiNewCount() }} <span i18n="@@sessionHost.emojiBadgeNew">neu</span>
+                </span>
+              }
+            </p>
+            @if (reactions.total > 0) {
+              <div class="session-host__emoji-reactions-list" role="list">
+                @for (emoji of emojiOrder; track emoji) {
+                  @if (reactions.reactions[emoji] > 0) {
+                    <span class="session-host__emoji-item" role="listitem">
+                      <span class="session-host__emoji-icon" aria-hidden="true">{{ emoji }}</span>
+                      <span class="session-host__emoji-count">{{
+                        reactions.reactions[emoji]
+                      }}</span>
+                    </span>
+                  }
+                }
+              </div>
+            } @else {
+              <p
+                class="session-host__emoji-reactions-empty"
+                i18n="@@sessionHost.emojiReactionsEmpty"
+              >
+                noch keine
+              </p>
+            }
+          </div>
         }
         @if (showQuickFeedbackAnchorAction()) {
           <button

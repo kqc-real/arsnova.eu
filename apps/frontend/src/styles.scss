@@ -935,6 +935,30 @@ html {
   font-weight: 400;
 }
 
+.session-host__neutral-item.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.session-host__neutral-item.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.session-host__neutral-item.markdown-body p {
+  margin: 0;
+}
+
+.session-host__category-item.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.session-host__category-item.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.session-host__category-item.markdown-body p {
+  margin: 0;
+}
+
 .vote-answer__text,
 .session-host__answer-text,
 .session-host__vote-dist-text,
