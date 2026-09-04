@@ -257,22 +257,34 @@ async function assertHostNeutralOptions(host, question, label, phase, hardFailur
   }
 
   if (question.type === 'ORDERING') {
-    const displayed = await neutral.locator('.session-host__neutral-text').allTextContents();
+    const displayed = await neutral.locator('.session-host__neutral-item').allTextContents();
     const canonical = question.orderingItems.map((item) => item.text);
-    if (JSON.stringify(displayed) === JSON.stringify(canonical)) {
+    if (
+      displayed.length !== canonical.length ||
+      JSON.stringify(displayed.map((text) => text.trim())) === JSON.stringify(canonical)
+    ) {
       hardFailures.push(`Host ${phase} exposes canonical ORDERING sequence before RESULTS.`);
       logStep(false, `Host ${phase} non-canonical ORDERING`);
       return false;
     }
   } else if (question.type === 'MATCHING') {
-    const lists = neutral.locator('.session-host__neutral-columns > section');
-    const left = await lists.nth(0).locator('.session-host__neutral-item').allTextContents();
-    const right = await lists.nth(1).locator('.session-host__neutral-item').allTextContents();
+    const sections = await neutral.locator('.session-host__neutral-columns > section').all();
+    if (sections.length !== 2) {
+      hardFailures.push(`Host ${phase} does not separate MATCHING left/right options.`);
+      logStep(false, `Host ${phase} independent MATCHING sets`);
+      return false;
+    }
+    const left = (await sections[0].locator('.session-host__neutral-item').allTextContents()).map(
+      (text) => text.trim(),
+    );
+    const right = (await sections[1].locator('.session-host__neutral-item').allTextContents()).map(
+      (text) => text.trim(),
+    );
     const correctByLeft = new Map(question.matchingPairs.map((pair) => [pair.left, pair.right]));
     if (
       left.length !== question.matchingPairs.length ||
       right.length !== question.matchingPairs.length ||
-      left.some((term, index) => correctByLeft.get(term.trim()) === right[index]?.trim())
+      left.some((term, index) => correctByLeft.get(term) === right[index])
     ) {
       hardFailures.push(`Host ${phase} exposes an implicit MATCHING row pairing.`);
       logStep(false, `Host ${phase} independent MATCHING sets`);

@@ -283,8 +283,8 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Deutschland');
     expect(text).toContain('Paris');
     expect(text).toContain('Frankreich');
-    expect(text).toContain('Begriffe');
-    expect(text).toContain('Gegenstücke');
+    expect(text).toContain('Links');
+    expect(text).toContain('Rechts');
   });
 
   it('behält Datumsangaben in Matching-Chips und nummeriert sie nicht in 1. um', () => {

@@ -14916,8 +14916,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationNote" datatype="html">
-        <source> Teilnehmende können ihre persönliche Frist bei Bedarf verlängern oder abschalten. </source>
-        <target>I partecipanti possono prolungare o disattivare la loro scadenza personale, se necessario.</target>
+        <source>Persönliche Antwortzeit erlaubt</source>
+        <target>Tempo di risposta personale consentito</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1524,1527</context>
@@ -15196,24 +15196,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingNeutralOptions" datatype="html">
-        <source> Begriffe und Gegenstücke </source>
-        <target>Termini e contropartite</target>
+        <source>Zuordnen</source>
+        <target>Abbina</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2466,2468</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingLeftOptions" datatype="html">
-        <source> Begriffe </source>
-        <target>Termini</target>
+        <source>Links</source>
+        <target>Sinistra</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2475,2477</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.matchingRightOptions" datatype="html">
-        <source> Gegenstücke </source>
-        <target>controparti</target>
+        <source>Rechts</source>
+        <target>Destra</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2495,2497</context>
@@ -15476,8 +15476,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.emojiReactionsTitle" datatype="html">
-        <source>Reaktionen der Teilnehmenden</source>
-        <target>Reazioni delle persone partecipanti</target>
+        <source>Reaktionen:</source>
+        <target>Reazioni:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3323</context>
@@ -15499,9 +15499,9 @@
           <context context-type="linenumber">3337</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4887698567767977129" datatype="html">
-        <source>Noch keine Reaktionen.</source>
-        <target>Nessuna reazione ancora.</target>
+      <trans-unit id="sessionHost.emojiReactionsEmpty" datatype="html">
+        <source>noch keine</source>
+        <target>ancora nessuna</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3360</context>
@@ -20973,24 +20973,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionMatchingOptions" datatype="html">
-        <source> Begriffe und Gegenstücke </source>
-        <target>Termini e contropartite</target>
+        <source>Zuordnen</source>
+        <target>Abbina</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1079,1081</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingLeftOptions" datatype="html">
-        <source> Begriffe </source>
-        <target>Termini</target>
+        <source>Links</source>
+        <target>Sinistra</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1088,1090</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingRightOptions" datatype="html">
-        <source> Gegenstücke </source>
-        <target>controparti</target>
+        <source>Rechts</source>
+        <target>Destra</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1105,1107</context>

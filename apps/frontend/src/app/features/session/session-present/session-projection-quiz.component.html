@@ -311,7 +311,7 @@
             } @else if (matchingLeftOptions().length) {
               <div class="session-projection-quiz__option-board">
                 <section>
-                  <h2 i18n="@@sessionVote.matchingLeftOptions">Begriffe</h2>
+                  <h2 i18n="@@sessionVote.matchingLeftOptions">Links</h2>
                   <ul>
                     @for (item of matchingLeftOptions(); track item.id) {
                       <li
@@ -322,7 +322,7 @@
                   </ul>
                 </section>
                 <section>
-                  <h2 i18n="@@sessionVote.matchingRightOptions">Gegenstücke</h2>
+                  <h2 i18n="@@sessionVote.matchingRightOptions">Rechts</h2>
                   <ul>
                     @for (item of matchingRightOptions(); track item.id) {
                       <li

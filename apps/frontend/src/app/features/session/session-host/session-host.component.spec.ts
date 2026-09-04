@@ -1247,6 +1247,72 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     vi.unstubAllGlobals();
   });
 
+  it('legt den Fokus auf ein sichtbares Host-Control wenn View-Toggles ausgeblendet sind', async () => {
+    let changeHandler: ((event: { matches: boolean }) => void) | undefined;
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query.includes('min-width: 600px'),
+        media: query,
+        addEventListener: vi.fn((_type: string, handler: (event: { matches: boolean }) => void) => {
+          if (query.includes('min-width: 600px') && query.includes('min-height: 500px')) {
+            changeHandler = handler;
+          }
+        }),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    const viewControls = fixture.nativeElement.querySelector(
+      '.session-host__view-controls--inline',
+    ) as HTMLElement | null;
+    const hiddenToggles = Array.from(
+      viewControls?.querySelectorAll<HTMLElement>(
+        '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
+      ) ?? [],
+    );
+    for (const toggle of hiddenToggles) {
+      toggle.style.display = 'none';
+    }
+    const visibleFallback = fixture.nativeElement.querySelector(
+      '.session-host__channel-visibility-action, .session-channel-tabs button',
+    ) as HTMLElement | null;
+
+    expect(presenterButton).not.toBeNull();
+    expect(visibleFallback).not.toBeNull();
+    presenterButton?.focus();
+    expect(document.activeElement).toBe(presenterButton);
+
+    changeHandler?.({ matches: false });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    expect(document.activeElement).toBe(visibleFallback);
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
   it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -6963,6 +7029,15 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Single Choice');
     expect(text).toContain('Schwer');
+    const questionMeta = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__question-meta--header',
+    );
+    expect(questionMeta?.closest('.session-host__question-subtitle')).toBeTruthy();
+    expect(
+      questionMeta?.compareDocumentPosition(
+        (fixture.nativeElement as HTMLElement).querySelector('.session-host__question-title')!,
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     fixture.destroy();
   });
 
@@ -7085,11 +7160,22 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const answerText = fixture.nativeElement.querySelector(
       '.session-host__answer-text',
     ) as HTMLElement | null;
+    const questionPhase = fixture.nativeElement.querySelector(
+      '.session-host__question-phase',
+    ) as HTMLElement | null;
 
     expect(questionText?.classList.contains('markdown-body')).toBe(true);
     expect(questionText?.closest('h1.session-host__question-title')).toBeTruthy();
     expect(questionText?.closest('[role="heading"][aria-level="1"]')).toBeNull();
     expect(answerText?.classList.contains('markdown-body')).toBe(true);
+    expect(answerText?.closest('li.session-host__answer')).toBeTruthy();
+    expect(answerText?.closest('button, [role="button"]')).toBeNull();
+    expect(questionPhase).toBeTruthy();
+    expect(questionPhase?.closest('.session-host__question-subtitle')).toBeNull();
+    expect(
+      questionPhase?.querySelector('.session-host__question-phase-icon')?.textContent,
+    ).toContain('info');
+
     fixture.destroy();
   });
 
@@ -8560,7 +8646,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         '.session-host__neutral-space',
       ) as HTMLElement | null;
       const text = neutral?.textContent ?? '';
-      expect(text).toContain('Begriffe und Gegenstücke');
+      expect(text).toContain('Zuordnen');
       expect(text).toContain('Alpha');
       expect(text).toContain('Beta');
       expect(text).toContain('Eins');
@@ -8568,16 +8654,18 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(text).not.toContain('Korrekte Paare');
       expect(text).not.toContain('Vollständig korrekt');
 
-      const columns = neutral?.querySelectorAll('section > .session-host__neutral-list');
-      expect(columns).toHaveLength(2);
-      const leftIds = Array.from(columns?.[0]?.children ?? [], (element) =>
-        element.textContent?.trim(),
-      );
-      const rightIds = Array.from(columns?.[1]?.children ?? [], (element) =>
-        element.textContent?.trim(),
-      );
-      expect(leftIds).toEqual(['Alpha', 'Beta']);
-      expect(rightIds).toEqual(['Zwei', 'Eins']);
+      const grid = neutral?.querySelector('.session-host__neutral-columns') as HTMLElement | null;
+      expect(grid).not.toBeNull();
+      const sections = Array.from(grid?.querySelectorAll(':scope > section') ?? []);
+      expect(sections).toHaveLength(2);
+      const left = Array.from(
+        sections[0]?.querySelectorAll('.session-host__neutral-item') ?? [],
+      ).map((element) => element.textContent?.trim() ?? '');
+      const right = Array.from(
+        sections[1]?.querySelectorAll('.session-host__neutral-item') ?? [],
+      ).map((element) => element.textContent?.trim() ?? '');
+      expect(left).toEqual(['Alpha', 'Beta']);
+      expect(right).toEqual(['Zwei', 'Eins']);
       fixture.destroy();
     },
   );
@@ -8657,6 +8745,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       for (const term of expected) expect(text).toContain(term);
       expect(text).not.toContain(forbidden);
       expect(text).not.toContain('Vollständig korrekt');
+      if (type === 'ORDERING') {
+        expect(neutral.querySelector('.session-host__neutral-number')).toBeNull();
+        expect(neutral.querySelector('ol')).toBeNull();
+      }
       if (type === 'CATEGORIZATION') {
         expect(text).not.toContain('Element A → Kategorie A');
         expect(
