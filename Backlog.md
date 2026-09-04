@@ -2123,29 +2123,29 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 >
 > **Ziel:** Zwei komplementäre, accountfreie Rückkanäle ersetzen den Medienbruch über E-Mail oder externe Formulare: ein rollenspezifisches Zwei-Klick-Feedback unmittelbar nach tatsächlich genutzten Sessions und ein jederzeit erreichbares „arsnova.eu verbessern“. Beide Wege liefern bereits ohne Freitext auswertbare, kontextbezogene Signale.
 >
-> **Verbindliche Abgrenzung:** Die neue technische und fachliche Domäne heißt \`ProductFeedback\`. Sie ist strikt getrennt von \`SessionFeedback\` aus Story 4.8 (Bewertung des Quiz bzw. der Veranstaltung durch Teilnehmende, aggregiert für Host/Beamer/Export) und \`quickFeedback\`/Blitzlicht (Live-Rückmeldung innerhalb einer Session). Produktfeedback bewertet ausschließlich Bedienbarkeit und Nutzen von arsnova.eu, ist nur für berechtigte Plattform-Admins sichtbar und erscheint weder in Sessionergebnissen noch auf dem Beamer oder in Sessionexporten.
+> **Verbindliche Abgrenzung:** Die neue technische und fachliche Domäne heißt `ProductFeedback`. Sie ist strikt getrennt von `SessionFeedback` aus Story 4.8 (Bewertung des Quiz bzw. der Veranstaltung durch Teilnehmende, aggregiert für Host/Beamer/Export) und `quickFeedback`/Blitzlicht (Live-Rückmeldung innerhalb einer Session). Produktfeedback bewertet ausschließlich Bedienbarkeit und Nutzen von arsnova.eu, ist nur für berechtigte Plattform-Admins sichtbar und erscheint weder in Sessionergebnissen noch auf dem Beamer oder in Sessionexporten.
 >
-> **Gemeinsame Leitplanken:** Kein Login und keine E-Mail-Adresse erforderlich; zwei Klicks ergeben immer einen vollständigen Datensatz; Freitext bleibt freiwillig; keine personenbezogenen oder fachlichen Sessioninhalte; selbst gehostete, datensparsame Verarbeitung; vollständige UI-i18n in \`de\`, \`en\`, \`fr\`, \`es\`, \`it\`; WCAG 2.2 AA; kein Blockieren oder Verändern des synchronen Sessionablaufs; Shared-NAT und mindestens 500 gleichzeitige Hörsaal-Clients bleiben unterstützt.
+> **Gemeinsame Leitplanken:** Kein Login und keine E-Mail-Adresse erforderlich; zwei Klicks ergeben immer einen vollständigen Datensatz; Freitext bleibt freiwillig; keine personenbezogenen oder fachlichen Sessioninhalte; selbst gehostete, datensparsame Verarbeitung; vollständige UI-i18n in `de`, `en`, `fr`, `es`, `it`; WCAG 2.2 AA; kein Blockieren oder Verändern des synchronen Sessionablaufs; Shared-NAT und mindestens 500 gleichzeitige Hörsaal-Clients bleiben unterstützt.
 
 ### Empfohlene Implementierungsreihenfolge
 
-1. **12.1** — gemeinsame \`ProductFeedback\`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende.
+1. **12.1** — gemeinsame `ProductFeedback`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende.
 2. **12.2** — jederzeit erreichbarer In-App-Kanal, Offline-Postausgang, Missbrauchsschutz und Admin-Triage auf derselben Domäne.
 
 ---
 
 - **Story 12.1 (Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende):** 🟡 Als Host oder teilnehmende Person möchte ich nach einer tatsächlich genutzten Session mit zwei kurzen Auswahlen anonym mitteilen können, wie einfach und hilfreich arsnova.eu für meine jeweilige Aufgabe war, damit der Betreiber kontinuierlich vergleichbare Produktsignale erhält, ohne mich zu einer E-Mail oder längeren Texteingabe zu zwingen.
   - **Fachliche Trennung und Sichtbarkeit:**
-    - Es entsteht eine eigene Domäne \`ProductFeedback\` mit eigener Persistenz, Shared-Zod-Schemas, DTOs und tRPC-Prozeduren; vorhandene Modelle, Router und UI-Begriffe für \`SessionFeedback\` und \`quickFeedback\` werden nicht semantisch überladen.
+    - Es entsteht eine eigene Domäne `ProductFeedback` mit eigener Persistenz, Shared-Zod-Schemas, DTOs und tRPC-Prozeduren; vorhandene Modelle, Router und UI-Begriffe für `SessionFeedback` und `quickFeedback` werden nicht semantisch überladen.
     - Die Oberfläche bezeichnet die Abfrage klar als **„Eine Frage zu arsnova.eu“** beziehungsweise **„arsnova.eu verbessern“**, nicht nur als „Feedback“.
     - Produktfeedback ist ausschließlich in einer autorisierten Adminauswertung sichtbar. Es wird nicht dem Session-Host offengelegt, nicht auf Teilnehmer- oder Beameransichten aggregiert und nicht in CSV-/PDF-Sessionexporte übernommen.
     - Story 4.8 bleibt unverändert fachlich wirksam: „Wie hat dir das Quiz gefallen?“, Fragenqualität und Wiederholungswunsch bewerten die Session beziehungsweise das Quiz, nicht das Produkt.
   - **Erster Klick – alternierende, getrennt auswertbare Fragen:**
     - Jede eingeladene Person erhält genau eine versionierte Fragefamilie; Bedienbarkeit und Nutzen werden niemals zu einem gemeinsamen Score vermischt.
-    - **Teilnehmende, Bedienbarkeit (\`POST_SESSION_EASE_PARTICIPANT_V1\`):** „Wie einfach war die Teilnahme mit arsnova.eu heute?“ mit den Antworten **„Einfach“**, **„Mit kleinen Hürden“**, **„Schwierig“**.
-    - **Teilnehmende, Nutzen (\`POST_SESSION_VALUE_PARTICIPANT_V1\`):** „Hat arsnova.eu dir geholfen, dich aktiv an der Session zu beteiligen?“ mit **„Ja“**, **„Teilweise“**, **„Nein“**.
-    - **Hosts, Bedienbarkeit (\`POST_SESSION_EASE_HOST_V1\`):** „Wie einfach war es heute, die Session mit arsnova.eu durchzuführen?“ mit **„Einfach“**, **„Mit kleinen Hürden“**, **„Schwierig“**.
-    - **Hosts, Nutzen (\`POST_SESSION_VALUE_HOST_V1\`):** „Hat arsnova.eu dir geholfen, deine Gruppe einzubeziehen und einzuschätzen?“ mit **„Ja“**, **„Teilweise“**, **„Nein“**.
+    - **Teilnehmende, Bedienbarkeit (`POST_SESSION_EASE_PARTICIPANT_V1`):** „Wie einfach war die Teilnahme mit arsnova.eu heute?“ mit den Antworten **„Einfach“**, **„Mit kleinen Hürden“**, **„Schwierig“**.
+    - **Teilnehmende, Nutzen (`POST_SESSION_VALUE_PARTICIPANT_V1`):** „Hat arsnova.eu dir geholfen, dich aktiv an der Session zu beteiligen?“ mit **„Ja“**, **„Teilweise“**, **„Nein“**.
+    - **Hosts, Bedienbarkeit (`POST_SESSION_EASE_HOST_V1`):** „Wie einfach war es heute, die Session mit arsnova.eu durchzuführen?“ mit **„Einfach“**, **„Mit kleinen Hürden“**, **„Schwierig“**.
+    - **Hosts, Nutzen (`POST_SESSION_VALUE_HOST_V1`):** „Hat arsnova.eu dir geholfen, deine Gruppe einzubeziehen und einzuschätzen?“ mit **„Ja“**, **„Teilweise“**, **„Nein“**.
     - Auswahl, Reihenfolge und Version der Fragefamilien sind serverseitig beziehungsweise über eine dokumentierte deterministische Zuweisung steuerbar; die Adminauswertung vergleicht nur Antworten derselben Frageversion.
   - **Zweiter Klick – größter Einflussbereich:**
     - Nach **„Mit kleinen Hürden“**, **„Schwierig“**, **„Teilweise“** oder **„Nein“** lautet die Anschlussfrage **„Wo lag die größte Hürde?“**.
@@ -2156,12 +2156,12 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
   - **Freiwillige Ergänzung:**
     - Nach erfolgreichem Speichern erscheint: **„Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.“**
     - **„Anmerkung ergänzen“** öffnet ein optionales Plaintext-Feld mit Zeichenzähler und maximal 300 Zeichen; **„Fertig“** beendet den Ablauf unmittelbar.
-    - Die initiale Speichermutation gibt nach der erfolgreichen strukturierten Zwei-Klick-Antwort eine opake, an genau diesen Feedbackdatensatz gebundene `followUpCapability` zurück. Sie ist höchstens 15 Minuten gültig, erlaubt ausschließlich einen idempotenten Aufruf zum Ergänzen von `message` und – soweit für die Frage vorgesehen – `impact`, gewährt keinen Lesezugriff und kann Primärantwort, Bereich oder Kontext nicht ändern. Sie wird serverseitig nur gehasht gespeichert und nach erfolgreicher Ergänzung oder Ablauf ungültig.
+    - Die initiale Speichermutation gibt nach der erfolgreichen strukturierten Zwei-Klick-Antwort eine opake, an genau diesen Feedbackdatensatz gebundene `followUpCapability` zurück. Sie ist höchstens 15 Minuten gültig, erlaubt ausschließlich einen idempotenten Aufruf zum Ergänzen von `message`, gewährt keinen Lesezugriff und kann Primärantwort, Bereich oder Kontext nicht ändern. Sie wird serverseitig nur gehasht gespeichert und nach erfolgreicher Ergänzung oder Ablauf ungültig.
     - Optionale Angaben werden gesammelt mit einem Aufruf übertragen; Wiederholungen desselben Aufrufs verwenden einen Idempotency-Key und erzeugen weder Duplikate noch abweichende Werte. Die öffentliche Datensatz-ID allein verleiht keine Schreibberechtigung.
     - Die strukturierte Zwei-Klick-Antwort bleibt auch dann gespeichert, wenn die optionale Ergänzung geschlossen, verworfen, nach Ablauf der Folgefähigkeit versucht oder technisch nicht übertragen wird.
     - Vor dem Textfeld steht der sichtbare Hinweis, keine Namen, Sessioncodes oder personenbezogenen beziehungsweise fachlichen Sessioninhalte einzugeben.
   - **Teilnehmer-Trigger und Stichprobe:**
-    - Die Einladung ist erst bei serverseitig bestätigtem Status \`FINISHED\` zulässig und nur, wenn die Person in dieser Session mindestens eine relevante Aktion ausgeführt hat, etwa eine Antwort, Q&A-Frage/-Bewertung oder Blitzlicht-Interaktion.
+    - Die Einladung ist erst bei serverseitig bestätigtem Status `FINISHED` zulässig und nur, wenn die Person in dieser Session mindestens eine relevante Aktion ausgeführt hat, etwa eine Antwort, Q&A-Frage/-Bewertung oder Blitzlicht-Interaktion.
     - Pro Session werden ungefähr 10 % der geeigneten Teilnehmenden, höchstens 25 Personen, eingeladen; bei Sessions ab drei geeigneten Teilnehmenden wird mindestens eine Einladung vergeben. Die serverseitige Stichprobe verhindert, dass Großveranstaltungen die Gesamtauswertung unverhältnismäßig dominieren.
     - Die Einladung erscheint auf der Session-Ende-Ansicht als kompakter, klar von Story 4.8 abgegrenzter Bereich. Bonus-Code, bestehende Session-Bewertung und **„Zur Startseite“** behalten Vorrang und bleiben jederzeit erreichbar.
     - Produktfeedback darf den Wechsel zur Startseite niemals abfangen, verzögern oder zur Voraussetzung machen.
@@ -2171,9 +2171,10 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Die Einladung erscheint erst nach erfolgreicher Sessionbeendigung und Navigation zur Startseite als nichtmodale Karte beziehungsweise mobiles Bottom Sheet. Sie überlagert keine laufende Hoststeuerung.
     - Standard-Cooldown: höchstens eine Host-Einladung je 14 Tage und Gerät; eine neue, ausdrücklich versionierte Fragefamilie darf den alten Cooldown zurücksetzen.
   - **Einmal-Berechtigung, Datenminimierung und API:**
+    - Für beide Rollen sind Eignungsprüfung, deterministische Stichprobe beziehungsweise Zuweisung und Token-Ausstellung atomarer Bestandteil der serverseitigen Session-End-Transition. Der dafür erforderliche minimale Snapshot und ausschließlich gehashte Tokenzustand werden vor dem Redis-Cleanup aus Story 4.2 in einem kurzlebigen, vom Session-Redis unabhängigen Store abgelegt; die höchstens 24 Stunden gültige Antwortberechtigung überdauert damit den Session-Cleanup und darf nicht aus bereits gelöschten Session-Keys rekonstruiert werden müssen.
     - Das Backend stellt geeigneten Hosts beziehungsweise Teilnehmenden ein opakes, kurzlebiges, genau einmal verwendbares Produktfeedback-Token aus. Der Token berechtigt nur zum Abruf der zugewiesenen Frage und zu genau einer strukturierten Antwort; Wiederholung wird idempotent behandelt oder mit einem typisierten Fehler abgelehnt.
-    - Nach erfolgreichem Absenden wird keine Host-, Participant-, Nickname-, Session-ID oder kein Sessioncode in \`ProductFeedback\` persistiert.
-    - Zulässiger strukturierter Kontext: \`source\`, \`role\`, \`surveyKey\`, \`surveyVersion\`, Primärantwort, Bereich, Locale, App-Version, grobe Sessionart, aktiv genutzte Funktionsbereiche, Größenklasse der Session und grobe Geräteklasse.
+    - Nach erfolgreichem Absenden werden weder Host-, Participant-, Nickname- oder Session-ID noch ein Sessioncode in `ProductFeedback` persistiert.
+    - Zulässiger strukturierter Kontext: `source`, `role`, `surveyKey`, `surveyVersion`, Primärantwort, Bereich, Locale, App-Version, grobe Sessionart, aktiv genutzte Funktionsbereiche, Größenklasse der Session und grobe Geräteklasse.
     - Unzulässig sind insbesondere Quizname, Fragen-/Antworttexte, Q&A-Inhalte, Nicknames, Bonus-Codes, Sessioncode, vollständige URL, Local-Storage-Inhalte, Screenshots und IP-Adresse als Analysemerkmal.
     - Öffentliche tRPC-Prozeduren nutzen Shared-Zod-Verträge, minimale DTOs, Origin-Prüfung und Token-/Capability-basierte Begrenzung. Ein enges IP-Limit ist wegen Shared-NAT und Hörsaallast ausdrücklich unzulässig; globale Schutzgrenzen gegen Missbrauch bleiben bestehen.
   - **Persistenz, Bereinigung und Adminaggregation:**
@@ -2186,15 +2187,16 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Eine fehlgeschlagene Feedbackübertragung blockiert keine Navigation und verändert keine Session-, Ergebnis-, Bonus-, Punkte- oder Retentionlogik.
     - Ein minimaler lokaler Postausgang darf einen ausstehenden, bereits transparent dargestellten Feedbackpayload bis zu sieben Tage vorhalten und bei Wiederverbindung erneut senden; nach Erfolg oder Ablauf wird er gelöscht. Doppelte Übertragung erzeugt keinen zweiten Datensatz.
   - **Barrierefreiheit und UX:**
-    - Native Buttons beziehungsweise semantisch korrekte Auswahlgruppen, sichtbare Fokusindikatoren, logische Überschriften, verständliche zugängliche Namen, zuverlässige Fokusrückgabe und \`aria-live="polite"\` für Übertragungsstatus.
+    - Native Buttons beziehungsweise semantisch korrekte Auswahlgruppen, sichtbare Fokusindikatoren, logische Überschriften, verständliche zugängliche Namen, zuverlässige Fokusrückgabe und `aria-live="polite"` für Übertragungsstatus.
     - Bedeutung niemals ausschließlich durch Emoji, Stern, Farbe oder Position; sichtbare Beschriftung und Accessible Name stimmen überein.
-    - Touch-Ziele mindestens 44 × 44 CSS-Pixel; vollständiger Reflow ab 320 px sowie bei 200 %/400 % Zoom; Hochkontrast und \`prefers-reduced-motion\` berücksichtigt.
+    - Touch-Ziele mindestens 44 × 44 CSS-Pixel; vollständiger Reflow ab 320 px sowie bei 200 %/400 % Zoom; Hochkontrast und `prefers-reduced-motion` berücksichtigt.
     - Kein automatisches Öffnen während einer laufenden Session und keine Unterbrechung persönlicher Zeitverlängerungen.
   - **Tests und Dokumentation:**
-    - Shared-Schema-, Backend-Contract- und Persistenztests für Berechtigung, Einmaligkeit/Idempotenz, abgelaufene/ungültige Tokens, erlaubte und verworfene Kontextfelder, Aggregation, Mindestgruppengröße und Cleanup.
+    - Shared-Schema-, Backend-Contract- und Persistenztests für Berechtigung, Einmaligkeit/Idempotenz, abgelaufene/ungültige Tokens, eng begrenzte `followUpCapability`, erlaubte und verworfene Kontextfelder, Aggregation, Mindestgruppengröße und Cleanup.
+    - Ein Backend-Integrationstest beendet eine genutzte Session, weist Eignung und Stichprobe vor dem Redis-Cleanup nach und verwendet das ausgestellte Token erst nach diesem Cleanup erfolgreich; nicht ausgewählte, abgelaufene und bereits verbrauchte Tokens werden typisiert abgelehnt.
     - Frontendtests für beide Rollen und Fragefamilien, positives/negatives Branching, exakt zwei Pflichtauswahlen, optionalen Freitext, Cooldown/Abwahl, Fehler/Retry, Fokus, Tastatur, Screenreaderstatus und 320-px-Reflow.
     - Echter Zwei-Client-E2E-Pfad: Host beendet eine genutzte Session; geeignete teilnehmende Person sieht eine nichtblockierende Einladung; Bonus/Story 4.8 und Heimnavigation bleiben funktionsfähig; Produktfeedback erscheint weder im Hostresultat noch im Sessionexport.
-    - Datenschutzinformationen, Admin-/Betriebsdokumentation, Routen-/Story-Zuordnung und \`ProductFeedback\`-Glossareintrag werden synchron aktualisiert.
+    - Datenschutzinformationen, Admin-/Betriebsdokumentation, Routen-/Story-Zuordnung und `ProductFeedback`-Glossareintrag werden synchron aktualisiert.
   - **Abhängigkeiten:** Story 4.2 (Sessionende/Cleanup), Story 4.8 (fachliche Abgrenzung), Epic 9 (Adminautorisierung), Story 10.6 (Vorbild für anonyme aggregierte Interaktionssignale), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
 
 ---
@@ -2204,7 +2206,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Der sichtbare, lokalisierte Aktionsname lautet überall **„arsnova.eu verbessern“**; ein alleinstehendes generisches Feedback-Icon ist nicht ausreichend.
     - Auf normalen Desktopansichten ist die Aktion im globalen Footer beziehungsweise in der globalen Hilfe erreichbar.
     - Die bestehende persistente Footer-Navigation bleibt mit genau drei primären Einträgen erhalten: **„Was arsnova.eu kann“**, **„So funktioniert’s“** und **„Mehr“**. Es wird kein vierter primärer Footer-Eintrag eingeführt.
-    - **„arsnova.eu verbessern“** steht auf der ersten sichtbaren Ebene der bestehenden Hilfe unter **„So funktioniert’s“** (`/help`) als prominente, beschriftete Aktion; dafür wird kein zusätzlicher Unterdialog benötigt.
+    - **„arsnova.eu verbessern“** steht auf der ersten sichtbaren Ebene der bestehenden Hilfe unter **„So funktioniert’s“** (`/help`) als prominente, beschriftete Aktion unmittelbar über oder neben den vorhandenen Rollenkarten; die Aktion darf weder innerhalb einer Rollenkarte noch in einem Akkordeon verborgen werden und benötigt keinen zusätzlichen Unterdialog.
     - Das bestehende **Mehr**-Menü bleibt unverändert auf seine vier Einträge **Impressum**, **Datenschutz**, **Barrierefreiheit** und **Betriebsstatus** begrenzt; Produktfeedback wird dort nicht ergänzt.
     - In persönlichen Ansichten, in denen der globale Footer ausgeblendet ist – insbesondere in der immersiven Hostansicht und den eigenständigen Blitzlichtansichten –, wird eine gleichwertige sichtbare und beschriftete Hilfeaktion im jeweiligen lokalen Chrome beziehungsweise im Bereich der sekundären Aktionen bereitgestellt. Von dort ist **„arsnova.eu verbessern“** mit höchstens einem weiteren Navigationsschritt erreichbar; der Footer wird dafür nicht eingeblendet.
     - Die reine Beamer-/Presenteransicht zeigt keinen Produktfeedback-CTA; sie ist keine persönliche Bedienoberfläche und darf nicht visuell belastet werden.
@@ -2222,11 +2224,13 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Nach strukturierter Speicherung erscheint eine Bestätigung und die freiwillige Aktion **„Noch einen Hinweis ergänzen“**.
     - Bei **„Etwas funktioniert nicht“** kann zusätzlich ohne Text gewählt werden: **„Ich konnte weitermachen“**, **„Ich musste es erneut versuchen“**, **„Ich konnte die Aufgabe nicht abschließen“**.
     - Optionales Plaintext-Feld: **„Was ist passiert oder was hättest du erwartet?“**, maximal 500 Zeichen, mit Zeichenzähler und sichtbarem Hinweis, keine Namen, Sessioncodes, Quiz-/Q&A-Inhalte oder personenbezogenen Daten einzugeben.
+    - Die initiale Speichermutation gibt nach der erfolgreichen strukturierten Zwei-Klick-Antwort eine opake, an genau diesen Feedbackdatensatz gebundene `followUpCapability` zurück. Sie ist höchstens 15 Minuten gültig, erlaubt ausschließlich einen idempotenten Aufruf zum gemeinsamen Ergänzen von `message` und – nur bei **„Etwas funktioniert nicht“** – `impact`, gewährt keinen Lesezugriff und kann Feedbackart, Produktbereich oder Kontext nicht ändern. Sie wird serverseitig nur gehasht gespeichert und nach erfolgreicher Ergänzung oder Ablauf ungültig; eine öffentliche Datensatz-ID oder ein Idempotency-Key allein verleiht keine Schreibberechtigung.
+    - Optionale Angaben werden gemeinsam mit einem Aufruf übertragen. Wiederholungen desselben Aufrufs erzeugen weder Duplikate noch abweichende Werte; die bereits gespeicherte strukturierte Rückmeldung bleibt bei Schließen, Ablauf oder Übertragungsfehler unverändert erhalten.
     - **„Ohne Anmerkung abschließen“** bleibt jederzeit verfügbar. Es gibt im MVP keine Datei-, Audio-, Video- oder Screenshot-Uploads.
     - Eine Kontaktmöglichkeit darf später nur als separat informierte, ausdrückliche Opt-in-Erweiterung umgesetzt werden; E-Mail ist weder Pflicht noch Bestandteil dieser Story.
   - **Transparent automatisch erfasster Kontext:**
     - Vor dem zweiten Klick wird kompakt angezeigt: **„Mitgesendet werden App-Version, Sprache, Browsertyp, Geräteklasse und aktueller Bereich – keine Namen oder Sessioninhalte.“**
-    - Zulässige Whitelist: Quelle \`IN_APP\`, Rolle, Feedbackart, Produktbereich, Auswirkung, Locale, App-Version, \`routeGroup\` ohne Parameter, grobe Sessionphase, aktivierter Kanal, Geräteklasse, Browserfamilie plus Hauptversion, Betriebssystemfamilie, Online-/Offlinezustand sowie eine bereits vorhandene typisierte Fehler-/Request-ID.
+    - Zulässige Whitelist: Quelle `IN_APP`, Rolle, Feedbackart, Produktbereich, Auswirkung, Locale, App-Version, `routeGroup` ohne Parameter, grobe Sessionphase, aktivierter Kanal, Geräteklasse, Browserfamilie plus Hauptversion, Betriebssystemfamilie, Online-/Offlinezustand sowie eine bereits vorhandene typisierte Fehler-/Request-ID.
     - Nicht übertragen werden vollständige URLs, Sessioncode/-ID, Quiz- oder Frageninhalt, Antworten, Q&A-Text, Nickname, Bonus-Code, Local-Storage-Inhalte, Zwischenablage, Screenshot oder IP-Adresse als Feedbackattribut.
     - Die übermittelten Felder sind in UI und Datenschutzdokumentation vollständig und verständlich offengelegt; unbekannte Zusatzfelder werden serverseitig durch das Shared-Zod-Schema verworfen.
   - **Verhalten in laufenden Sessions:**
@@ -2239,7 +2243,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Der lokale Postausgang enthält ausschließlich den zuvor transparent dargestellten, begrenzten Payload, versucht bei Wiederverbindung erneut zu senden und löscht ihn nach Erfolg beziehungsweise spätestens nach sieben Tagen.
     - Nutzer können vorgemerkte Rückmeldungen einsehen und löschen. Wiederholung/Reload/Reconnect führen durch einen Idempotency-Key nicht zu Duplikaten.
   - **Öffentliche API und Missbrauchsschutz:**
-    - Die Story verwendet die Shared-\`ProductFeedback\`-Verträge und Persistenz aus 12.1; keine ad-hoc REST-API und keine parallele DTO-Definition.
+    - Die Story verwendet die Shared-`ProductFeedback`-Verträge und Persistenz aus 12.1; keine ad-hoc REST-API und keine parallele DTO-Definition.
     - Die öffentliche Mutation erzwingt Origin-Prüfung, serverseitige Enum-/Längenvalidierung, Plaintextbehandlung, kurzlebige Challenge beziehungsweise Idempotency-Key, globale Mengenbegrenzung und eine Quarantäne für auffälligen Freitext.
     - IP-basierte Grenzen sind nur großzügige zusätzliche Schutzschichten und dürfen legitime Nutzung mit mindestens 500 Clients hinter gemeinsamer NAT-Adresse nicht blockieren.
     - Rohtexte werden nie automatisch gerendert, als Markdown interpretiert, öffentlich angezeigt oder ungeprüft in ein GitHub Issue übertragen.
@@ -2249,7 +2253,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Statusworkflow: **Neu**, **Geprüft**, **Geplant**, **Gelöst**, **Verworfen**. Statusänderungen und Verknüpfungen werden mit Admin-Audit-Metadaten protokolliert, ohne unnötige Volltextkopien im Audit-Log.
     - Gleichartige Rückmeldungen können als Duplikate gebündelt werden; die Anzahl bleibt als Häufigkeit sichtbar.
     - Ein Admin kann eine Rückmeldung mit einem bestehenden GitHub Issue verknüpfen oder aus bereinigten, nicht personenbezogenen Angaben einen Issue-Entwurf erzeugen. Veröffentlichung auf GitHub erfolgt ausschließlich als bewusste Adminaktion nach Vorschau; der originale Freitext wird nicht automatisch übernommen.
-    - Für gelöste Rückmeldungen können \`resolvedInVersion\` und ein öffentlicher News-/MOTD-Link hinterlegt werden, damit später ein „Ihr habt gemeldet – wir haben verbessert“-Rückkanal möglich ist.
+    - Für gelöste Rückmeldungen können `resolvedInVersion` und ein öffentlicher News-/MOTD-Link hinterlegt werden, damit später ein „Ihr habt gemeldet – wir haben verbessert“-Rückkanal möglich ist.
   - **Auswertung und Kennzahlen:**
     - Dashboard zeigt Volumen und Anteil je Feedbackart/Bereich, blockierende Meldungen, häufigste Hürden und Stärken sowie Trends nach App-Version.
     - Wo ein belastbarer Nenner aus anonym aggregierten Produktinteraktionen verfügbar ist, wird zusätzlich **Problemmeldungen je 1.000 erfolgreiche Interaktionen** dargestellt; absolute Meldezahlen allein werden nicht als Qualitätsverschlechterung interpretiert.
@@ -2260,13 +2264,13 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Datenschutztexte werden in allen fünf Sprachen ergänzt und unterscheiden Produktfeedback klar von Sessionfeedback, Betriebslogs und MOTD-Interaktionszählern.
     - Es entstehen keine persistenten Nutzerprofile, keine geräteübergreifende Wiedererkennung, kein Drittanbieter-Analytics-Skript und keine Werbe-/Tracking-Cookies.
   - **Barrierefreiheit und UX:**
-    - Dialog/Bottom Sheet besitzt semantische Überschrift, verständliche Gruppenbeschriftungen, native Bedienelemente, sichtbare Fokusführung, Escape-/Schließen-Pfad, Fokusrückgabe und lokalisierte Statusmeldungen über \`aria-live="polite"\`.
+    - Dialog/Bottom Sheet besitzt semantische Überschrift, verständliche Gruppenbeschriftungen, native Bedienelemente, sichtbare Fokusführung, Escape-/Schließen-Pfad, Fokusrückgabe und lokalisierte Statusmeldungen über `aria-live="polite"`.
     - Keine Bedeutung ausschließlich über Icons oder Farbe; beschriftete Touch-Ziele mindestens 44 × 44 CSS-Pixel; 320-px-Reflow, 200 %/400 % Zoom, Screenreader, Tastatur, Forced Colors und Reduced Motion werden geprüft.
     - Öffnen, Pending, Erfolg, Fehler, Offline-Vormerkung, Retry, Löschen und Schließen besitzen jeweils ein sichtbares, nicht verdecktes und fachlich sinnvolles Fokusziel.
   - **Tests und Dokumentation:**
-    - Backendtests für Auth-/Admin-Grenzen, erlaubte/verbotene Kontextfelder, Eingabelimits, Idempotenz, Shared-NAT-taugliches Rate-Limiting, Quarantäne, Filter, Statusübergänge, Audit, Retention und endgültige Löschung.
+    - Backendtests für Auth-/Admin-Grenzen, erlaubte/verbotene Kontextfelder, Eingabelimits, Idempotenz und die erlaubten wie abgelehnten Grenzen der `followUpCapability`, Shared-NAT-taugliches Rate-Limiting, Quarantäne, Filter, Statusübergänge, Audit, Retention und endgültige Löschung.
     - Frontendtests für alle Einstiegspfade und Rollen, kontextabhängige Bereiche, zwei Klicks ohne Schreibpflicht, optionalen Text/Auswirkung, aktive Session ohne Zustandsänderung, Offline/Retry/Reload, Fokusrückgabe und lokalisierte Texte.
     - Zwei-Client-E2E-Regressionspfad während einer aktiven Session: Teilnehmende Person öffnet **„arsnova.eu verbessern“**, sendet beziehungsweise schließt den Dialog und kann anschließend unverändert abstimmen; Hoststeuerung und Realtime-Synchronisation bleiben intakt.
     - E2E-Pfade für Desktop-Footer, mobile Hilfe, Host/Vote/Join/Blitzlicht sowie Negativnachweis, dass die Presenteransicht keinen CTA enthält.
     - Dokumentation umfasst Datenfluss, erlaubte Kontext-Whitelist, Aufbewahrung, Admin-Triage, Missbrauchsschutz, Offline-Lifecycle, Abgrenzung der drei Feedbackdomänen und Messdefinitionen.
-  - **Abhängigkeiten:** Story 12.1 (\`ProductFeedback\`-Fundament), Epic 9 (Adminautorisierung und Auditmuster), Story 10.6 (anonyme Aggregationsmuster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG), bestehende Hilfe-/Footer-Informationsarchitektur.
+  - **Abhängigkeiten:** Story 12.1 (`ProductFeedback`-Fundament), Epic 9 (Adminautorisierung und Auditmuster), Story 10.6 (anonyme Aggregationsmuster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG), bestehende Hilfe-/Footer-Informationsarchitektur.
