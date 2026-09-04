@@ -80,6 +80,11 @@ describe('session-projection-quiz.util', () => {
     });
     expect(
       presenterQuestionImage(
+        '### KI-Bild\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Photo_by_User / Wikimedia*\n',
+      )?.credit,
+    ).toBe('Photo_by_User / Wikimedia');
+    expect(
+      presenterQuestionImage(
         '### KI-Bild\n\n![Dach](/assets/demo/bett.png)\n\n_Bitte genau hinsehen._',
       ),
     ).toEqual({

@@ -244,13 +244,11 @@ export type PresenterQuestionVisual = {
 };
 
 const IMAGE_MARKDOWN_RE = /!\[([^\]]*)]\(\s*<?([^)\s>]+)[^)]*\)/;
-const IMAGE_CREDIT_AFTER_IMAGE_RE = new RegExp(
-  String.raw`^\s*[*_]\s*` +
-    PRESENTER_IMAGE_CREDIT_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
-    String.raw`\s*([^*_\n][^*_]*)[*_]`,
-  'i',
-);
 
+/**
+ * Liest den Bildnachweis nach dem Bild. Der schließende Hervorhebungs-Delimiter
+ * muss dem öffnenden entsprechen (`*` bzw. `_`); Unterstriche im Text zählen nicht.
+ */
 export function presenterQuestionImageCredit(markdown: string): string | null {
   const text = String(markdown ?? '');
   const imageMatch = text.match(IMAGE_MARKDOWN_RE);
@@ -258,8 +256,11 @@ export function presenterQuestionImageCredit(markdown: string): string | null {
     return null;
   }
   const afterImage = text.slice(imageMatch.index + imageMatch[0].length);
-  const creditMatch = afterImage.match(IMAGE_CREDIT_AFTER_IMAGE_RE);
-  const credit = creditMatch?.[1]?.trim();
+  const marker = PRESENTER_IMAGE_CREDIT_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const creditMatch = afterImage.match(
+    new RegExp(String.raw`^\s*(\*|_)` + marker + String.raw`\s*(.+)\1\s*(?:\n|$)`, 'i'),
+  );
+  const credit = creditMatch?.[2]?.trim();
   return credit || null;
 }
 
