@@ -1247,6 +1247,72 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     vi.unstubAllGlobals();
   });
 
+  it('legt den Fokus auf ein sichtbares Host-Control wenn View-Toggles ausgeblendet sind', async () => {
+    let changeHandler: ((event: { matches: boolean }) => void) | undefined;
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query.includes('min-width: 600px'),
+        media: query,
+        addEventListener: vi.fn((_type: string, handler: (event: { matches: boolean }) => void) => {
+          if (query.includes('min-width: 600px') && query.includes('min-height: 500px')) {
+            changeHandler = handler;
+          }
+        }),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    const viewControls = fixture.nativeElement.querySelector(
+      '.session-host__view-controls--inline',
+    ) as HTMLElement | null;
+    const hiddenToggles = Array.from(
+      viewControls?.querySelectorAll<HTMLElement>(
+        '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
+      ) ?? [],
+    );
+    for (const toggle of hiddenToggles) {
+      toggle.style.display = 'none';
+    }
+    const visibleFallback = fixture.nativeElement.querySelector(
+      '.session-host__channel-visibility-action, .session-channel-tabs button',
+    ) as HTMLElement | null;
+
+    expect(presenterButton).not.toBeNull();
+    expect(visibleFallback).not.toBeNull();
+    presenterButton?.focus();
+    expect(document.activeElement).toBe(presenterButton);
+
+    changeHandler?.({ matches: false });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    expect(document.activeElement).toBe(visibleFallback);
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
   it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8588,14 +8654,18 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect(text).not.toContain('Korrekte Paare');
       expect(text).not.toContain('Vollständig korrekt');
 
-      const grid = neutral?.querySelector(
-        '.session-host__neutral-matching-grid',
-      ) as HTMLElement | null;
+      const grid = neutral?.querySelector('.session-host__neutral-columns') as HTMLElement | null;
       expect(grid).not.toBeNull();
-      const cells = Array.from(
-        grid?.querySelectorAll(':scope > .session-host__neutral-item') ?? [],
+      const sections = Array.from(grid?.querySelectorAll(':scope > section') ?? []);
+      expect(sections).toHaveLength(2);
+      const left = Array.from(
+        sections[0]?.querySelectorAll('.session-host__neutral-item') ?? [],
       ).map((element) => element.textContent?.trim() ?? '');
-      expect(cells).toEqual(['Alpha', 'Zwei', 'Beta', 'Eins']);
+      const right = Array.from(
+        sections[1]?.querySelectorAll('.session-host__neutral-item') ?? [],
+      ).map((element) => element.textContent?.trim() ?? '');
+      expect(left).toEqual(['Alpha', 'Beta']);
+      expect(right).toEqual(['Zwei', 'Eins']);
       fixture.destroy();
     },
   );

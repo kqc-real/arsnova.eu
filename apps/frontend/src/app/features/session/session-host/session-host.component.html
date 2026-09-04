@@ -2599,38 +2599,47 @@
                                 >
                                   Zuordnen
                                 </h3>
-                                <div
-                                  class="session-host__neutral-matching-grid"
-                                  role="group"
-                                  aria-labelledby="host-matching-left-heading host-matching-right-heading"
-                                >
-                                  <h4
-                                    class="session-host__neutral-subtitle session-host__neutral-matching-grid-header"
-                                    id="host-matching-left-heading"
-                                    i18n="@@sessionHost.matchingLeftOptions"
-                                  >
-                                    Links
-                                  </h4>
-                                  <h4
-                                    class="session-host__neutral-subtitle session-host__neutral-matching-grid-header"
-                                    id="host-matching-right-heading"
-                                    i18n="@@sessionHost.matchingRightOptions"
-                                  >
-                                    Rechts
-                                  </h4>
-                                  @for (
-                                    row of hostNeutralMatchingRows(q);
-                                    track row.left.id + ':' + row.right.id
-                                  ) {
-                                    <div
-                                      class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
-                                      [innerHTML]="renderMarkdown(row.left.text, 4)"
-                                    ></div>
-                                    <div
-                                      class="session-host__neutral-item session-host__neutral-item--plain markdown-body"
-                                      [innerHTML]="renderMarkdown(row.right.text, 4)"
-                                    ></div>
-                                  }
+                                <div class="session-host__neutral-columns">
+                                  <section aria-labelledby="host-matching-left-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-matching-left-heading"
+                                      i18n="@@sessionHost.matchingLeftOptions"
+                                    >
+                                      Links
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        item of hostNeutralMatchingLeftOptions(q);
+                                        track item.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain session-host__neutral-item--compact markdown-body"
+                                          [innerHTML]="renderMarkdown(item.text, 4)"
+                                        ></li>
+                                      }
+                                    </ul>
+                                  </section>
+                                  <section aria-labelledby="host-matching-right-heading">
+                                    <h4
+                                      class="session-host__neutral-subtitle"
+                                      id="host-matching-right-heading"
+                                      i18n="@@sessionHost.matchingRightOptions"
+                                    >
+                                      Rechts
+                                    </h4>
+                                    <ul class="session-host__neutral-list" role="list">
+                                      @for (
+                                        item of hostNeutralMatchingRightOptions(q);
+                                        track item.id
+                                      ) {
+                                        <li
+                                          class="session-host__neutral-item session-host__neutral-item--plain session-host__neutral-item--compact markdown-body"
+                                          [innerHTML]="renderMarkdown(item.text, 4)"
+                                        ></li>
+                                      }
+                                    </ul>
+                                  </section>
                                 </div>
                               </section>
                               <p

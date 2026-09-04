@@ -745,9 +745,10 @@
     font: var(--mat-sys-label-medium);
   }
 
+  /* Rahmen-Umschaltung bleibt sichtbar als Fokus-Fallback,
+     wenn Presenter/Fullscreen unter 600px ausgeblendet werden. */
   .session-host__view-toggle--fullscreen,
-  .session-host__view-toggle--presenter,
-  .session-host__view-toggle--frame {
+  .session-host__view-toggle--presenter {
     display: none;
   }
 }
@@ -7440,25 +7441,13 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   box-sizing: border-box;
 }
 
-.session-host__neutral-matching-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.3rem 0.6rem;
-  align-items: stretch;
+.session-host__matching .session-host__neutral-columns {
+  gap: 0.6rem;
+  align-items: start;
 }
 
-.session-host__neutral-matching-grid-header {
-  margin-bottom: 0;
-}
-
-.session-host__neutral-matching-grid > .session-host__neutral-item {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 0.3rem 0.55rem;
-  line-height: 1.3;
+.session-host__matching .session-host__neutral-list {
+  gap: 0.3rem;
 }
 
 .session-host__neutral-list {
@@ -7816,9 +7805,9 @@ $round2-color: var(--mat-sys-primary, #1565c0);
     grid-template-columns: 1fr;
   }
 
-  .session-host__neutral-matching-grid {
+  .session-host__matching .session-host__neutral-columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem 0.4rem;
+    gap: 0.4rem;
   }
 
   .session-host__categorization-grid,

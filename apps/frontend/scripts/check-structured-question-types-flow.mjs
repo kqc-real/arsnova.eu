@@ -268,15 +268,18 @@ async function assertHostNeutralOptions(host, question, label, phase, hardFailur
       return false;
     }
   } else if (question.type === 'MATCHING') {
-    const cells = await neutral
-      .locator('.session-host__neutral-matching-grid > .session-host__neutral-item')
-      .allTextContents();
-    const left = [];
-    const right = [];
-    for (let index = 0; index < cells.length; index += 2) {
-      left.push((cells[index] ?? '').trim());
-      right.push((cells[index + 1] ?? '').trim());
+    const sections = await neutral.locator('.session-host__neutral-columns > section').all();
+    if (sections.length !== 2) {
+      hardFailures.push(`Host ${phase} does not separate MATCHING left/right options.`);
+      logStep(false, `Host ${phase} independent MATCHING sets`);
+      return false;
     }
+    const left = (await sections[0].locator('.session-host__neutral-item').allTextContents()).map(
+      (text) => text.trim(),
+    );
+    const right = (await sections[1].locator('.session-host__neutral-item').allTextContents()).map(
+      (text) => text.trim(),
+    );
     const correctByLeft = new Map(question.matchingPairs.map((pair) => [pair.left, pair.right]));
     if (
       left.length !== question.matchingPairs.length ||

@@ -725,18 +725,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return neutral;
   }
 
-  hostNeutralMatchingRows(
-    question: HostCurrentQuestionDTO | null | undefined,
-  ): Array<{ left: { id: string; text: string }; right: { id: string; text: string } }> {
-    const left = this.hostNeutralMatchingLeftOptions(question);
-    const right = this.hostNeutralMatchingRightOptions(question);
-    const rowCount = Math.max(left.length, right.length);
-    return Array.from({ length: rowCount }, (_, index) => ({
-      left: left[index] ?? { id: `missing-left-${index}`, text: '' },
-      right: right[index] ?? { id: `missing-right-${index}`, text: '' },
-    }));
-  }
-
   hostNeutralCategories(
     question: HostCurrentQuestionDTO | null | undefined,
   ): Array<{ id: string; name: string }> {
@@ -4350,16 +4338,69 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     const toolbar = active.closest('.session-host__view-controls');
-    const fallback = toolbar?.querySelector<HTMLElement>(
-      '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
+    const scope = toolbar?.parentElement ?? active.closest('.session-host') ?? this.document.body;
+    const preferred = Array.from(
+      (toolbar ?? scope).querySelectorAll<HTMLElement>(
+        '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
+      ),
     );
-    if (fallback?.isConnected && fallback !== active) {
+    const broader = Array.from(
+      scope.querySelectorAll<HTMLElement>(
+        [
+          '.session-host__channel-visibility-action',
+          '.session-channel-tabs button',
+          '.session-host__live-actions button',
+          'button',
+          '[href]',
+          'input',
+          'select',
+          'textarea',
+          '[tabindex]:not([tabindex="-1"])',
+        ].join(', '),
+      ),
+    );
+    const fallback = [...preferred, ...broader].find(
+      (candidate) =>
+        candidate !== active &&
+        !candidate.closest('[data-testid="open-presenter-view"]') &&
+        this.isElementVisibleForFocus(candidate),
+    );
+    if (!fallback) {
+      return;
+    }
+    try {
+      fallback.focus({ preventScroll: true });
+    } catch {
+      /* Fokusziel darf das Ausblenden nicht blockieren */
+    }
+  }
+
+  private isElementVisibleForFocus(element: HTMLElement): boolean {
+    if (!element.isConnected || element.hasAttribute('disabled')) {
+      return false;
+    }
+    if (element.getAttribute('aria-hidden') === 'true') {
+      return false;
+    }
+    if (typeof element.checkVisibility === 'function') {
       try {
-        fallback.focus({ preventScroll: true });
+        return element.checkVisibility({
+          checkOpacity: true,
+          checkVisibilityCSS: true,
+        });
       } catch {
-        /* Fokusziel darf das Ausblenden nicht blockieren */
+        /* Fallback auf computed styles */
       }
     }
+    const style = this.document.defaultView?.getComputedStyle(element);
+    if (!style) {
+      return true;
+    }
+    return (
+      style.display !== 'none' &&
+      style.visibility !== 'hidden' &&
+      style.contentVisibility !== 'hidden'
+    );
   }
 
   private unbindPresenterDesktopMedia(): void {
