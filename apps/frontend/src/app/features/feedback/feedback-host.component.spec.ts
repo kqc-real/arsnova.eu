@@ -365,6 +365,30 @@ describe('FeedbackHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt im Beitritts-Overlay Host und Code im Kopf sowie Link kopieren', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', false);
+    fixture.componentInstance.result.set({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    fixture.componentInstance.feedbackJoinPopoverOpen.set(true);
+    fixture.detectChanges();
+
+    const overlay = fixture.nativeElement.querySelector(
+      '.feedback-host__join-viewport-overlay',
+    ) as HTMLElement | null;
+    expect(overlay).not.toBeNull();
+    expect(overlay?.querySelector('.feedback-host__join-menu-origin--code')?.textContent).toContain(
+      'ABC123',
+    );
+    expect(overlay?.textContent).toContain('Link kopieren');
+    expect(overlay?.textContent).not.toContain('Session-Link kopieren');
+    fixture.destroy();
+  });
+
   it('beendet die eingebettete Session und navigiert zur Startseite', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const router = TestBed.inject(Router);

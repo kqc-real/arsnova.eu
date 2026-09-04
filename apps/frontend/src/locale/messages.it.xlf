@@ -5223,7 +5223,7 @@
           <context context-type="linenumber">129</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5229710408819956324" datatype="html">
+      <trans-unit id="feedback.copyJoinLinkCopied" datatype="html">
         <source>Kopiert</source>
         <target>Copiato</target>
         <context-group purpose="location">
@@ -5231,12 +5231,28 @@
           <context context-type="linenumber">133</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8287983445032156515" datatype="html">
+      <trans-unit id="feedback.copyJoinLinkButton" datatype="html">
         <source>Link kopieren</source>
         <target>Copia collegamento</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">135</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="feedback.copyJoinLinkSuccess" datatype="html">
+        <source>Link kopiert.</source>
+        <target>Link copiato.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
+          <context context-type="linenumber">240</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="feedback.copyJoinLinkFailed" datatype="html">
+        <source>Kopieren fehlgeschlagen. Bitte versuche es noch einmal.</source>
+        <target>Copia non riuscita. Riprova.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
+          <context context-type="linenumber">245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.resetResultsAria" datatype="html">
@@ -5625,10 +5641,6 @@
         <source>Session-Link kopiert.</source>
         <target>Link della sessione copiato.</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
-          <context context-type="linenumber">225</context>
-        </context-group>
-        <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3778</context>
         </context-group>
@@ -5636,10 +5648,6 @@
       <trans-unit id="sessionHost.copyJoinLinkFailed" datatype="html">
         <source>Kopieren fehlgeschlagen. Bitte versuche es noch einmal.</source>
         <target>Copia non riuscita. Riprova.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
-          <context context-type="linenumber">230</context>
-        </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3783</context>

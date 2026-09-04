@@ -130,9 +130,9 @@
       >
         <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
         @if (copied()) {
-          <span i18n>Kopiert</span>
+          <span i18n="@@feedback.copyJoinLinkCopied">Kopiert</span>
         } @else {
-          <span i18n>Link kopieren</span>
+          <span i18n="@@feedback.copyJoinLinkButton">Link kopieren</span>
         }
       </button>
       <button
@@ -338,7 +338,17 @@
                   >
                     <div class="dialog-title-header__copy feedback-host__join-menu-title-copy">
                       <p id="feedback-host-join-origin" class="feedback-host__join-menu-origin">
-                        {{ joinOriginForMenu() }}
+                        <strong class="feedback-host__join-menu-origin-text">
+                          {{ joinOriginForMenu() }}
+                        </strong>
+                      </p>
+                      <p
+                        class="feedback-host__join-menu-origin feedback-host__join-menu-origin--code"
+                        [attr.aria-label]="sessionCodeDisplayAria(code())"
+                      >
+                        <strong class="feedback-host__join-menu-origin-text">
+                          {{ code() }}
+                        </strong>
                       </p>
                     </div>
                   </div>
@@ -360,18 +370,12 @@
                     type="button"
                     class="feedback-host__join-menu-copy-link"
                     (click)="copyJoinLinkToClipboard($event)"
-                    i18n-aria-label="@@sessionHost.copyJoinLinkAria"
-                    aria-label="Session-Link kopieren"
+                    i18n-aria-label="@@feedback.copyJoinLinkAria"
+                    aria-label="Beitrittslink kopieren"
                   >
                     <mat-icon aria-hidden="true">content_copy</mat-icon>
-                    <span i18n="@@sessionHost.copyJoinLinkButton">Session-Link kopieren</span>
+                    <span i18n="@@feedback.copyJoinLinkButton">Link kopieren</span>
                   </button>
-                  <p
-                    class="feedback-host__join-menu-origin feedback-host__join-menu-origin--code"
-                    [attr.aria-label]="sessionCodeDisplayAria(code())"
-                  >
-                    {{ code() }}
-                  </p>
                 </div>
               </div>
             }
