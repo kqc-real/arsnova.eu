@@ -2115,7 +2115,6 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Ein **Gesamt-Export aller Quizdaten je Redaktionsaccount** ist möglich.
     - Der Gesamt-Export ist mindestens **manuell** möglich; eine **Schnittstelle** ist als optionale Ausprägung gesondert festzulegen.
 
-
 ---
 
 ## Epic 12: Kontinuierliches Produktfeedback
@@ -2157,7 +2156,9 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
   - **Freiwillige Ergänzung:**
     - Nach erfolgreichem Speichern erscheint: **„Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.“**
     - **„Anmerkung ergänzen“** öffnet ein optionales Plaintext-Feld mit Zeichenzähler und maximal 300 Zeichen; **„Fertig“** beendet den Ablauf unmittelbar.
-    - Die strukturierte Zwei-Klick-Antwort bleibt auch dann gespeichert, wenn die optionale Ergänzung geschlossen, verworfen oder technisch nicht übertragen wird.
+    - Die initiale Speichermutation gibt nach der erfolgreichen strukturierten Zwei-Klick-Antwort eine opake, an genau diesen Feedbackdatensatz gebundene `followUpCapability` zurück. Sie ist höchstens 15 Minuten gültig, erlaubt ausschließlich einen idempotenten Aufruf zum Ergänzen von `message` und – soweit für die Frage vorgesehen – `impact`, gewährt keinen Lesezugriff und kann Primärantwort, Bereich oder Kontext nicht ändern. Sie wird serverseitig nur gehasht gespeichert und nach erfolgreicher Ergänzung oder Ablauf ungültig.
+    - Optionale Angaben werden gesammelt mit einem Aufruf übertragen; Wiederholungen desselben Aufrufs verwenden einen Idempotency-Key und erzeugen weder Duplikate noch abweichende Werte. Die öffentliche Datensatz-ID allein verleiht keine Schreibberechtigung.
+    - Die strukturierte Zwei-Klick-Antwort bleibt auch dann gespeichert, wenn die optionale Ergänzung geschlossen, verworfen, nach Ablauf der Folgefähigkeit versucht oder technisch nicht übertragen wird.
     - Vor dem Textfeld steht der sichtbare Hinweis, keine Namen, Sessioncodes oder personenbezogenen beziehungsweise fachlichen Sessioninhalte einzugeben.
   - **Teilnehmer-Trigger und Stichprobe:**
     - Die Einladung ist erst bei serverseitig bestätigtem Status \`FINISHED\` zulässig und nur, wenn die Person in dieser Session mindestens eine relevante Aktion ausgeführt hat, etwa eine Antwort, Q&A-Frage/-Bewertung oder Blitzlicht-Interaktion.
@@ -2202,8 +2203,10 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
   - **Auffindbarkeit und Informationsarchitektur:**
     - Der sichtbare, lokalisierte Aktionsname lautet überall **„arsnova.eu verbessern“**; ein alleinstehendes generisches Feedback-Icon ist nicht ausreichend.
     - Auf normalen Desktopansichten ist die Aktion im globalen Footer beziehungsweise in der globalen Hilfe erreichbar.
-    - Mobil bleibt die etablierte Hauptnavigation **Start · Quiz-Sammlung · Hilfe · Mehr** unverändert. Die Aktion steht prominent auf der ersten Ebene der Hilfe; die unter **Mehr** gebündelten Einträge Impressum, Datenschutz, Barrierefreiheit und Betriebsstatus werden nicht erneut verschachtelt oder verdrängt.
-    - In persönlichen immersiven Host-, Vote-, Join- und Blitzlichtansichten ist die Aktion über die jederzeit erreichbare Hilfe mit höchstens zwei Navigationsschritten verfügbar.
+    - Die bestehende persistente Footer-Navigation bleibt mit genau drei primären Einträgen erhalten: **„Was arsnova.eu kann“**, **„So funktioniert’s“** und **„Mehr“**. Es wird kein vierter primärer Footer-Eintrag eingeführt.
+    - **„arsnova.eu verbessern“** steht auf der ersten sichtbaren Ebene der bestehenden Hilfe unter **„So funktioniert’s“** (`/help`) als prominente, beschriftete Aktion; dafür wird kein zusätzlicher Unterdialog benötigt.
+    - Das bestehende **Mehr**-Menü bleibt unverändert auf seine vier Einträge **Impressum**, **Datenschutz**, **Barrierefreiheit** und **Betriebsstatus** begrenzt; Produktfeedback wird dort nicht ergänzt.
+    - In persönlichen Ansichten, in denen der globale Footer ausgeblendet ist – insbesondere in der immersiven Hostansicht und den eigenständigen Blitzlichtansichten –, wird eine gleichwertige sichtbare und beschriftete Hilfeaktion im jeweiligen lokalen Chrome beziehungsweise im Bereich der sekundären Aktionen bereitgestellt. Von dort ist **„arsnova.eu verbessern“** mit höchstens einem weiteren Navigationsschritt erreichbar; der Footer wird dafür nicht eingeblendet.
     - Die reine Beamer-/Presenteransicht zeigt keinen Produktfeedback-CTA; sie ist keine persönliche Bedienoberfläche und darf nicht visuell belastet werden.
   - **Erster Klick – Art der Rückmeldung:**
     - Nach Öffnen lautet die Frage: **„Was möchtest du uns mitteilen? Du kannst deine Rückmeldung anonym und ohne E-Mail-Adresse senden.“**
@@ -2253,7 +2256,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Freitext fließt nicht ungeprüft in automatische semantische oder generative Auswertungen ein. Eine spätere KI-Auswertung benötigt eine eigene Story mit Datenminimierung, nachvollziehbarer Qualität und deaktivierbarem Fallback.
     - Fein segmentierte Kombinationen mit weniger als fünf Rückmeldungen werden nicht dargestellt.
   - **Aufbewahrung, Löschung und Datenschutz:**
-    - Für strukturierte Daten, Freitext und lokale Warteschlange gelten mindestens die in 12.1 definierten Fristen und Cleanup-Verträge; Admins können einzelne Rückmeldungen vorzeitig endgültig löschen.
+    - Für strukturierte Daten, Freitext und lokale Warteschlange gelten die in 12.1 definierten **Höchstfristen** und Cleanup-Verträge: strukturierte Produktfeedbackdaten höchstens 13 Monate, optionale Freitexte höchstens 90 Tage und lokal vorgemerkte Payloads höchstens sieben Tage. Admins können einzelne Rückmeldungen vorzeitig endgültig löschen.
     - Datenschutztexte werden in allen fünf Sprachen ergänzt und unterscheiden Produktfeedback klar von Sessionfeedback, Betriebslogs und MOTD-Interaktionszählern.
     - Es entstehen keine persistenten Nutzerprofile, keine geräteübergreifende Wiedererkennung, kein Drittanbieter-Analytics-Skript und keine Werbe-/Tracking-Cookies.
   - **Barrierefreiheit und UX:**
