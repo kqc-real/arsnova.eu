@@ -1056,6 +1056,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(toggles.at(-1)?.classList.contains('session-host__view-toggle--frame')).toBe(true);
     expect(styles).toMatch(/\.session-channel-tabs \{[^}]*overflow:\s*hidden/);
     expect(styles).toMatch(
+      /@media \(max-width: 839\.98px\)[\s\S]*?session-channel-tabs \{[^}]*overflow-x:\s*auto/,
+    );
+    expect(styles).toMatch(
       /@media \(max-width: 839\.98px\)[\s\S]*?session-channel-tabs \{[^}]*width:\s*fit-content/,
     );
     expect(styles).toMatch(
@@ -10952,10 +10955,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--primary\s*\{[^}]*grid-column:\s*2[^}]*grid-row:\s*1/,
     );
     expect(styles).toMatch(
-      /session-host__exit-anchor--with-primary:has\(\.session-host__exit-anchor-button--skip\)[\s\S]*?>\s*\.session-host__exit-anchor-button--end \{[^}]*grid-row:\s*2/,
+      /session-host__exit-anchor--with-primary\s*>\s*\.session-host__exit-anchor-button--end \{[^}]*grid-row:\s*2/,
     );
     expect(styles).toMatch(
-      /session-host__exit-anchor--with-primary:has\(\.session-host__exit-anchor-button--skip\)[\s\S]*?>\s*\.session-host__exit-anchor-button--end \{[^}]*background:\s*transparent/,
+      /session-host__exit-anchor--with-primary\s*>\s*\.session-host__exit-anchor-button--end \{[^}]*background:\s*transparent/,
     );
     expect(styles).toMatch(
       /\.session-host__exit-anchor \{[^}]*surface-container-highest[^}]*primary-container/,

@@ -376,12 +376,18 @@
     order: 1;
   }
 
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--skip)
-    > .session-host__exit-anchor-button--end,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--previous)
-    > .session-host__exit-anchor-button--end,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-action-pair)
-    > .session-host__exit-anchor-button--end {
+  /* Solo-Primary (Blitzlicht, erste Ergebnis-Frage ohne Zurück): volle Breite oben. */
+  .session-host__exit-anchor--with-primary:not(:has(.session-host__exit-anchor-button--skip)):not(
+      :has(.session-host__exit-anchor-button--previous)
+    ):not(:has(.session-host__exit-anchor-action-pair))
+    > .session-host__exit-anchor-button--primary {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    order: 1;
+  }
+
+  /* Mit Primary immer: Session beenden darunter als ruhiger Text-Link. */
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end {
     grid-column: 1 / -1;
     grid-row: 2;
     order: 3;
@@ -397,18 +403,8 @@
     font-weight: 600;
   }
 
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--skip)
-    > .session-host__exit-anchor-button--end:hover,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--previous)
-    > .session-host__exit-anchor-button--end:hover,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-action-pair)
-    > .session-host__exit-anchor-button--end:hover,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--skip)
-    > .session-host__exit-anchor-button--end:focus-visible,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--previous)
-    > .session-host__exit-anchor-button--end:focus-visible,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-action-pair)
-    > .session-host__exit-anchor-button--end:focus-visible {
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end:hover,
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end:focus-visible {
     background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
     border-color: color-mix(in srgb, var(--mat-sys-error) 28%, var(--mat-sys-outline-variant));
   }
@@ -633,8 +629,15 @@
     width: fit-content;
     min-width: 0;
     max-width: 100%;
-    /* Kein overflow-x:auto — sonst wirken die ersten Toggle-Ecken eckig. */
-    overflow: hidden;
+    /* Horizontal scrollen, wenn Tabs + Pause die Zeile sprengen; Rundung bleibt am Container. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .session-channel-tabs mat-button-toggle {
