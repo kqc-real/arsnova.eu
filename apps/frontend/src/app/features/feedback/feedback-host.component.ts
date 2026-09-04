@@ -237,12 +237,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
         throw new Error('clipboard unavailable');
       }
       await clipboard.writeText(url);
-      this.snackBar.open($localize`:@@sessionHost.copyJoinLinkSuccess:Session-Link kopiert.`, '', {
+      this.snackBar.open($localize`:@@feedback.copyJoinLinkSuccess:Link kopiert.`, '', {
         duration: 2500,
       });
     } catch {
       this.snackBar.open(
-        $localize`:@@sessionHost.copyJoinLinkFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
+        $localize`:@@feedback.copyJoinLinkFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
         '',
         { duration: 4000 },
       );
