@@ -1009,6 +1009,61 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('gruppiert Kanal-Navigation mit Pause und View-Controls Presenter zuerst', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const channelNav = fixture.nativeElement.querySelector(
+      '.session-host__channel-nav',
+    ) as HTMLElement | null;
+    const pauseAction = fixture.nativeElement.querySelector(
+      '[data-testid="channel-visibility-action"]',
+    ) as HTMLButtonElement | null;
+    const viewControls = fixture.nativeElement.querySelector(
+      '.session-host__view-controls--inline',
+    ) as HTMLElement | null;
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'session-host.component.scss'),
+      'utf8',
+    );
+
+    expect(channelNav).not.toBeNull();
+    expect(channelNav?.querySelector('.session-channel-tabs')).not.toBeNull();
+    expect(pauseAction).not.toBeNull();
+    expect(pauseAction?.textContent).toContain('Quiz pausieren');
+    expect(channelNav?.contains(pauseAction)).toBe(true);
+    expect(viewControls).not.toBeNull();
+
+    const toggles = Array.from(
+      viewControls?.querySelectorAll('.session-host__view-toggle') ?? [],
+    ) as HTMLElement[];
+    expect(toggles[0]?.classList.contains('session-host__view-toggle--presenter')).toBe(true);
+    expect(toggles.at(-1)?.classList.contains('session-host__view-toggle--frame')).toBe(true);
+    expect(styles).toMatch(/\.session-channel-tabs \{[^}]*overflow:\s*hidden/);
+    expect(styles).toMatch(
+      /@media \(max-width: 839\.98px\)[\s\S]*?session-channel-tabs \{[^}]*width:\s*fit-content/,
+    );
+    expect(styles).toMatch(
+      /\.session-channel-tabs__badge\.session-channel-tabs__badge--inactive \{\s*display:\s*none/,
+    );
+    fixture.destroy();
+  });
+
   it('bietet die Presenter-Ansicht in einer reinen aktiven Q&A-Session an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1169,11 +1224,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const presenterButton = fixture.nativeElement.querySelector(
       '[data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
-    const frameToggle = fixture.nativeElement.querySelector(
-      '.session-host__view-toggle:not(.session-host__view-toggle--presenter)',
+    const viewControls = fixture.nativeElement.querySelector(
+      '.session-host__view-controls--inline',
+    ) as HTMLElement | null;
+    const focusFallback = viewControls?.querySelector(
+      '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
-    expect(frameToggle).not.toBeNull();
+    expect(focusFallback).not.toBeNull();
     presenterButton?.focus();
     expect(document.activeElement).toBe(presenterButton);
 
@@ -1181,7 +1239,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
-    expect(document.activeElement).toBe(frameToggle);
+    expect(document.activeElement).toBe(focusFallback);
     fixture.destroy();
     vi.unstubAllGlobals();
   });
@@ -4330,9 +4388,33 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(styles).toMatch(
       /\.session-qa-sort-hint \{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/,
     );
-    expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*align-self:\s*flex-start/);
+    expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*align-self:\s*start/);
+    expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*justify-self:\s*end/);
+    expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*min-width:\s*5\.35rem/);
+    expect(styles).toMatch(
+      /\.session-host__live-shell-row \{[^}]*width:\s*var\(--session-host-shell-width\)/,
+    );
+    expect(styles).toMatch(/\.session-host__live-shell-row \{[^}]*padding-inline:\s*0/);
+    expect(styles).toMatch(
+      /\.session-host__live-shell-row \{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/,
+    );
+    expect(styles).toMatch(/\.session-host__live-banner \{[^}]*grid-column:\s*1/);
+    expect(styles).toMatch(/\.session-host__live-banner \{[^}]*justify-self:\s*start/);
+    expect(styles).toMatch(/\.session-host__live-banner \{[^}]*width:\s*max-content/);
+    expect(styles).toMatch(/\.session-host__live-banner \{[^}]*max-width:\s*100%/);
+    expect(styles).toMatch(
+      /\.session-host__live-access \{[^}]*grid-template-columns:\s*auto\s+minmax\(0,\s*1fr\)\s+auto/,
+    );
+    expect(styles).toMatch(/\.session-host__live-code \{[^}]*white-space:\s*nowrap/);
+    expect(styles).toMatch(/\.session-host__live-actions \{[^}]*min-width:\s*max-content/);
+    expect(styles).toMatch(
+      /\.session-host__live-sound-label \{[^}]*max-width:\s*none[^}]*overflow:\s*visible/,
+    );
     expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*flex:\s*0 0 auto/);
-    expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*min-height:\s*44px/);
+    expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*min-height:\s*3\.4rem/);
+    expect(styles).toMatch(
+      /\.session-host__moderation-control \{[^}]*border-radius:\s*var\(--mat-sys-corner-large\)/,
+    );
   });
 
   it('oeffnet die Q&A-Wortwolke im Vollbild mit Sortierzustand des Hosts', async () => {
@@ -8004,6 +8086,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
+    await vi.waitUntil(
+      () =>
+        (fixture.nativeElement.textContent ?? '').includes('Ergebnis zeigen') &&
+        fixture.nativeElement.querySelector('.session-host__exit-anchor--with-primary') !== null,
+      { timeout: 5000, interval: 25 },
+    );
     fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
@@ -8015,6 +8103,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual(['Session beenden', 'skip_nextFrage auslassen', 'Ergebnis zeigen']);
+    expect(exitAnchor.querySelector('.session-host__exit-anchor-button--skip')).not.toBeNull();
+    expect(exitAnchor.querySelector('.session-host__exit-anchor-button--primary')).not.toBeNull();
     fixture.componentInstance.hostVoteProgress.set({
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       questionOrder: 0,
@@ -10860,6 +10950,18 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(styles).toMatch(
       /session-host__exit-anchor-action-pair\s*>\s*\.session-host__exit-anchor-button--primary\s*\{[^}]*grid-column:\s*2[^}]*grid-row:\s*1/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor--with-primary:has\(\.session-host__exit-anchor-button--skip\)[\s\S]*?>\s*\.session-host__exit-anchor-button--end \{[^}]*grid-row:\s*2/,
+    );
+    expect(styles).toMatch(
+      /session-host__exit-anchor--with-primary:has\(\.session-host__exit-anchor-button--skip\)[\s\S]*?>\s*\.session-host__exit-anchor-button--end \{[^}]*background:\s*transparent/,
+    );
+    expect(styles).toMatch(
+      /\.session-host__exit-anchor \{[^}]*surface-container-highest[^}]*primary-container/,
+    );
+    expect(styles).toMatch(
+      /\.session-host__exit-anchor-button--skip,\s*\.session-host__exit-anchor-button--previous/,
     );
 
     for (const [fileName, expectedLabel] of translations) {

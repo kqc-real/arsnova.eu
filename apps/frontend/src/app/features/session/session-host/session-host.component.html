@@ -55,94 +55,90 @@
     }
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
-        <mat-button-toggle-group
-          #channelTabs="matButtonToggleGroup"
-          class="session-channel-tabs"
-          [value]="activeChannel()"
-          (valueChange)="onChannelToggleChange($event, channelTabs)"
-          [disabled]="channelActivationPending() !== null"
-          i18n-aria-label="@@sessionTabs.hostAria"
-          aria-label="Live-Bereich wählen"
-        >
-          @for (channel of availableChannels(); track channel) {
-            <mat-button-toggle
-              [value]="channel"
-              [class.session-channel-tabs__toggle--inactive]="!isChannelEnabled(channel)"
-              [class.session-channel-tabs__toggle--pending]="channelActivationPending() === channel"
-            >
-              <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
-              @if (channelTempoIndicator(channel); as tempoIndicator) {
-                <span
-                  class="session-channel-tabs__tempo-indicator"
-                  [class.session-channel-tabs__tempo-indicator--neutral]="
-                    tempoIndicator.tone === 'neutral'
-                  "
-                  [class.session-channel-tabs__tempo-indicator--good]="
-                    tempoIndicator.tone === 'good'
-                  "
-                  [class.session-channel-tabs__tempo-indicator--caution]="
-                    tempoIndicator.tone === 'caution'
-                  "
-                  [class.session-channel-tabs__tempo-indicator--alert]="
-                    tempoIndicator.tone === 'alert'
-                  "
-                  [class.session-channel-tabs__tempo-indicator--compound]="tempoIndicator.compound"
-                  role="img"
-                  [attr.aria-label]="tempoIndicator.label"
-                  [attr.title]="tempoIndicator.label"
-                >
-                  {{ tempoIndicator.icon }}
-                </span>
-              }
-              @if (channelTabMetaLabel(channel); as metaLabel) {
-                <span
-                  class="session-channel-tabs__badge"
-                  [class.session-channel-tabs__badge--inactive]="!isChannelEnabled(channel)"
-                  [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
-                  [class.session-channel-tabs__badge--status]="
-                    isChannelEnabled(channel) &&
-                    channel === 'quickFeedback' &&
-                    !isChannelBadgeAlert(channel)
-                  "
-                >
-                  {{ metaLabel }}
-                </span>
-              }
-            </mat-button-toggle>
-          }
-        </mat-button-toggle-group>
-
-        @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
-          <button
-            mat-button
-            type="button"
-            class="session-host__channel-visibility-action"
-            [disabled]="channelVisibilityPending() !== null"
-            (click)="toggleActiveChannelOpen()"
-            [attr.aria-label]="visibilityActionLabel"
+        <div class="session-host__channel-nav">
+          <mat-button-toggle-group
+            #channelTabs="matButtonToggleGroup"
+            class="session-channel-tabs"
+            [value]="activeChannel()"
+            (valueChange)="onChannelToggleChange($event, channelTabs)"
+            [disabled]="channelActivationPending() !== null"
+            i18n-aria-label="@@sessionTabs.hostAria"
+            aria-label="Live-Bereich wählen"
           >
-            <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
-            <span class="session-host__channel-visibility-label">{{ visibilityActionLabel }}</span>
-          </button>
-        }
+            @for (channel of availableChannels(); track channel) {
+              <mat-button-toggle
+                [value]="channel"
+                [class.session-channel-tabs__toggle--inactive]="!isChannelEnabled(channel)"
+                [class.session-channel-tabs__toggle--pending]="
+                  channelActivationPending() === channel
+                "
+              >
+                <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
+                @if (channelTempoIndicator(channel); as tempoIndicator) {
+                  <span
+                    class="session-channel-tabs__tempo-indicator"
+                    [class.session-channel-tabs__tempo-indicator--neutral]="
+                      tempoIndicator.tone === 'neutral'
+                    "
+                    [class.session-channel-tabs__tempo-indicator--good]="
+                      tempoIndicator.tone === 'good'
+                    "
+                    [class.session-channel-tabs__tempo-indicator--caution]="
+                      tempoIndicator.tone === 'caution'
+                    "
+                    [class.session-channel-tabs__tempo-indicator--alert]="
+                      tempoIndicator.tone === 'alert'
+                    "
+                    [class.session-channel-tabs__tempo-indicator--compound]="
+                      tempoIndicator.compound
+                    "
+                    role="img"
+                    [attr.aria-label]="tempoIndicator.label"
+                    [attr.title]="tempoIndicator.label"
+                  >
+                    {{ tempoIndicator.icon }}
+                  </span>
+                }
+                @if (channelTabMetaLabel(channel); as metaLabel) {
+                  <span
+                    class="session-channel-tabs__badge"
+                    [class.session-channel-tabs__badge--inactive]="!isChannelEnabled(channel)"
+                    [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
+                    [class.session-channel-tabs__badge--status]="
+                      isChannelEnabled(channel) &&
+                      channel === 'quickFeedback' &&
+                      !isChannelBadgeAlert(channel)
+                    "
+                  >
+                    {{ metaLabel }}
+                  </span>
+                }
+              </mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+
+          @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
+            <button
+              mat-button
+              type="button"
+              class="session-host__channel-visibility-action"
+              data-testid="channel-visibility-action"
+              [disabled]="channelVisibilityPending() !== null"
+              (click)="toggleActiveChannelOpen()"
+              [attr.aria-label]="visibilityActionLabel"
+              [matTooltip]="visibilityActionLabel"
+              matTooltipTouchGestures="off"
+            >
+              <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
+              <span class="session-host__channel-visibility-label">{{
+                visibilityActionLabel
+              }}</span>
+            </button>
+          }
+        </div>
 
         @if (showHostViewControls()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
-            <button
-              mat-icon-button
-              type="button"
-              class="session-host__view-toggle"
-              [class.session-host__view-toggle--active]="!isImmersiveMode()"
-              (click)="toggleHostFrameMode()"
-              i18n-aria-label="@@sessionHost.frameToggleAria"
-              aria-label="App-Rahmen umschalten"
-              [attr.aria-pressed]="!isImmersiveMode()"
-            >
-              <mat-icon aria-hidden="true">{{
-                isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
-              }}</mat-icon>
-            </button>
-
             @if (showPresenterViewButton()) {
               <button
                 mat-button
@@ -185,6 +181,9 @@
                 (click)="toggleFullscreen()"
                 i18n-aria-label="@@sessionHost.fullscreenToggleAria"
                 aria-label="Vollbild umschalten"
+                i18n-matTooltip="@@sessionHost.fullscreenToggleAria"
+                matTooltip="Vollbild umschalten"
+                matTooltipTouchGestures="off"
                 [attr.aria-pressed]="isFullscreenActive()"
               >
                 <mat-icon aria-hidden="true">{{
@@ -192,6 +191,24 @@
                 }}</mat-icon>
               </button>
             }
+
+            <button
+              mat-icon-button
+              type="button"
+              class="session-host__view-toggle session-host__view-toggle--frame"
+              [class.session-host__view-toggle--active]="!isImmersiveMode()"
+              (click)="toggleHostFrameMode()"
+              i18n-aria-label="@@sessionHost.frameToggleAria"
+              aria-label="App-Rahmen umschalten"
+              i18n-matTooltip="@@sessionHost.frameToggleAria"
+              matTooltip="App-Rahmen umschalten"
+              matTooltipTouchGestures="off"
+              [attr.aria-pressed]="!isImmersiveMode()"
+            >
+              <mat-icon aria-hidden="true">{{
+                isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
+              }}</mat-icon>
+            </button>
           </div>
         }
       </div>
@@ -380,9 +397,12 @@
                         mat-button
                         type="button"
                         class="session-host__channel-visibility-action"
+                        data-testid="channel-visibility-action"
                         [disabled]="channelVisibilityPending() !== null"
                         (click)="toggleActiveChannelOpen()"
                         [attr.aria-label]="visibilityActionLabel"
+                        [matTooltip]="visibilityActionLabel"
+                        matTooltipTouchGestures="off"
                       >
                         <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
                         <span class="session-host__channel-visibility-label">{{
@@ -390,21 +410,6 @@
                         }}</span>
                       </button>
                     }
-
-                    <button
-                      mat-icon-button
-                      type="button"
-                      class="session-host__view-toggle"
-                      [class.session-host__view-toggle--active]="!isImmersiveMode()"
-                      (click)="toggleHostFrameMode()"
-                      i18n-aria-label="@@sessionHost.frameToggleAria"
-                      aria-label="App-Rahmen umschalten"
-                      [attr.aria-pressed]="!isImmersiveMode()"
-                    >
-                      <mat-icon aria-hidden="true">{{
-                        isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
-                      }}</mat-icon>
-                    </button>
 
                     @if (showPresenterViewButton()) {
                       <button
@@ -448,6 +453,9 @@
                         (click)="toggleFullscreen()"
                         i18n-aria-label="@@sessionHost.fullscreenToggleAria"
                         aria-label="Vollbild umschalten"
+                        i18n-matTooltip="@@sessionHost.fullscreenToggleAria"
+                        matTooltip="Vollbild umschalten"
+                        matTooltipTouchGestures="off"
                         [attr.aria-pressed]="isFullscreenActive()"
                       >
                         <mat-icon aria-hidden="true">{{
@@ -455,6 +463,24 @@
                         }}</mat-icon>
                       </button>
                     }
+
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="session-host__view-toggle session-host__view-toggle--frame"
+                      [class.session-host__view-toggle--active]="!isImmersiveMode()"
+                      (click)="toggleHostFrameMode()"
+                      i18n-aria-label="@@sessionHost.frameToggleAria"
+                      aria-label="App-Rahmen umschalten"
+                      i18n-matTooltip="@@sessionHost.frameToggleAria"
+                      matTooltip="App-Rahmen umschalten"
+                      matTooltipTouchGestures="off"
+                      [attr.aria-pressed]="!isImmersiveMode()"
+                    >
+                      <mat-icon aria-hidden="true">{{
+                        isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
+                      }}</mat-icon>
+                    </button>
                   </div>
                 }
               </div>
@@ -4300,7 +4326,7 @@
         (touchcancel)="onExitAnchorTouchEnd()"
       >
         <button
-          matButton="tonal"
+          mat-button
           type="button"
           class="session-host__exit-anchor-button session-host__exit-anchor-button--end"
           (click)="onSessionEndAnchorClick()"
@@ -4357,7 +4383,7 @@
           <button
             matButton="tonal"
             type="button"
-            class="session-host__exit-anchor-button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--skip"
             [disabled]="controlPending()"
             (click)="skipQuestion()"
             i18n-aria-label="@@sessionHost.skipQuestionAria"
