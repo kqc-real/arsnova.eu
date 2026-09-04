@@ -233,13 +233,48 @@ export function presenterQuestionHeading(markdown: string): string {
   return first.replace(/^[_*]+|[_*]+$/g, '').trim();
 }
 
-export function presenterQuestionImage(markdown: string): { url: string; alt: string } | null {
-  const match = String(markdown ?? '').match(/!\[([^\]]*)]\(\s*<?([^)\s>]+)/);
+/** Expliziter Bildnachweis-Marker in kursivem Markdown: `*[credit] Quelle*` */
+export const PRESENTER_IMAGE_CREDIT_MARKER = '[credit]';
+
+export type PresenterQuestionVisual = {
+  url: string;
+  alt: string;
+  /** Bereinigter Nachweis ohne `[credit]`-Präfix; null wenn keiner gesetzt. */
+  credit: string | null;
+};
+
+const IMAGE_MARKDOWN_RE = /!\[([^\]]*)]\(\s*<?([^)\s>]+)[^)]*\)/;
+const IMAGE_CREDIT_AFTER_IMAGE_RE = new RegExp(
+  String.raw`^\s*[*_]\s*` +
+    PRESENTER_IMAGE_CREDIT_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+    String.raw`\s*([^*_\n][^*_]*)[*_]`,
+  'i',
+);
+
+export function presenterQuestionImageCredit(markdown: string): string | null {
+  const text = String(markdown ?? '');
+  const imageMatch = text.match(IMAGE_MARKDOWN_RE);
+  if (!imageMatch || imageMatch.index === undefined) {
+    return null;
+  }
+  const afterImage = text.slice(imageMatch.index + imageMatch[0].length);
+  const creditMatch = afterImage.match(IMAGE_CREDIT_AFTER_IMAGE_RE);
+  const credit = creditMatch?.[1]?.trim();
+  return credit || null;
+}
+
+export function presenterQuestionImage(markdown: string): PresenterQuestionVisual | null {
+  const text = String(markdown ?? '');
+  const match = text.match(IMAGE_MARKDOWN_RE);
   const url = match?.[2]?.trim();
   if (!url) {
     return null;
   }
-  return { alt: (match?.[1] ?? '').trim(), url };
+  return {
+    alt: (match?.[1] ?? '').trim(),
+    url,
+    credit: presenterQuestionImageCredit(text),
+  };
 }
 
 export function presenterCompactMarkdown(markdown: string): string {

@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### ¿Cómo está el grupo ahora mismo?\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Haz clic para ampliar.*",
+        "text": "### ¿Cómo está el grupo ahora mismo?\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Haz clic para ampliar.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",

@@ -322,6 +322,7 @@ export class SessionProjectionQuizComponent {
     return {
       url: motif,
       alt: $localize`:@@sessionHost.quizMotifImageAlt:Motivbild zum Quiz`,
+      credit: null,
     };
   });
 
