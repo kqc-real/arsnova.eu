@@ -335,7 +335,7 @@ Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Trit
 
 ![Emotionen im Überblick](${EMOTION_IMAGE_URL})
 
-*Pass / Le Brun (1821), via Wikimedia Commons*
+*[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Für die Vollansicht anklicken.*`,
         answers: [
@@ -596,7 +596,7 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
 
 ![Overview of emotions](${EMOTION_IMAGE_URL})
 
-*Pass / Le Brun (1821), via Wikimedia Commons*
+*[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Click for full view.*`,
         answers: [
@@ -854,7 +854,7 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
 
 ![Aperçu des émotions](${EMOTION_IMAGE_URL})
 
-*Pass / Le Brun (1821), via Wikimedia Commons*
+*[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Cliquer pour agrandir.*`,
         answers: [
@@ -1112,7 +1112,7 @@ Los temporizadores, los equipos, la clasificación y los códigos de bonificaci�
 
 ![Resumen de emociones](${EMOTION_IMAGE_URL})
 
-*Pass / Le Brun (1821), via Wikimedia Commons*
+*[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Haz clic para ampliar.*`,
         answers: [
@@ -1370,7 +1370,7 @@ Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo d
 
 ![Panoramica delle emozioni](${EMOTION_IMAGE_URL})
 
-*Pass / Le Brun (1821), via Wikimedia Commons*
+*[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
 *Clicca per ingrandire.*`,
         answers: [

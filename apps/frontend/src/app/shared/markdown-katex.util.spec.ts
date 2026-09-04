@@ -185,6 +185,27 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('src="/assets/demo/x.svg"');
   });
 
+  it('markiert nur explizite [credit]-Zeilen unter Bildern als Bildnachweis', () => {
+    const credited = renderMarkdownWithKatex(
+      '![Demo](https://example.org/a.png)\n\n*[credit] Pass / Le Brun*\n\n*Bitte genau hinsehen.*',
+      { imagePolicy: 'external-https-only' },
+    );
+    expect(credited.html).toContain('class="md-image-credit"');
+    expect(credited.html).toContain('<p class="md-image-credit"><em>Pass / Le Brun</em></p>');
+    expect(credited.html).not.toContain('[credit]');
+    expect(credited.html).toContain('<em>Bitte genau hinsehen.</em>');
+    expect(credited.html).not.toContain(
+      '<p class="md-image-credit"><em>Bitte genau hinsehen.</em></p>',
+    );
+
+    const instructional = renderMarkdownWithKatex(
+      '![Demo](https://example.org/a.png)\n\n*Bitte genau hinsehen.*',
+      { imagePolicy: 'external-https-only' },
+    );
+    expect(instructional.html).not.toContain('md-image-credit');
+    expect(instructional.html).toContain('<em>Bitte genau hinsehen.</em>');
+  });
+
   it('blockiert andere relative Bildquellen im Session-Asset-Modus', () => {
     const result = renderMarkdownWithKatex('![Demo](/trpc/health.check)', {
       imagePolicy: 'external-https-and-app-assets',

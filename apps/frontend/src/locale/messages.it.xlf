@@ -23196,6 +23196,14 @@
           <context context-type="linenumber">256,258</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="mdEditor.helpImageCredit" datatype="html">
+        <source> Bildnachweis direkt unter dem Bild mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>*[credit] …*<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> kennzeichnen – auch in der Beamer-Ansicht sichtbar. </source>
+        <target> Indica la fonte dell’immagine subito sotto con <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>*[credit] …*<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> – visibile anche nella vista presentatore. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">259,262</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="mdEditor.helpMath" datatype="html">
         <source>KaTeX</source>
         <target>KaTeX</target>

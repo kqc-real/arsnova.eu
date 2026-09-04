@@ -254,5 +254,7 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(text).toContain('Ctrl/Cmd');
     expect(text).toContain('Ein-/Ausrücken');
     expect(text).toContain('https://example.org');
+    expect(text).toContain('*[credit] Bildnachweis*');
+    expect(text).toContain('Bildnachweis direkt unter dem Bild');
   });
 });

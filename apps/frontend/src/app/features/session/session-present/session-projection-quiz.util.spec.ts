@@ -67,14 +67,30 @@ describe('session-projection-quiz.util', () => {
 
   it('zieht für die Beamer-Abstimmung nur die Überschrift, das Bild separat', () => {
     const markdown =
-      '### KI-Bild oder echtes Foto?\n\n![Dach](/assets/demo/bett.png "Bett")\n\n_Bitte genau hinsehen._';
+      '### KI-Bild oder echtes Foto?\n\n![Dach](/assets/demo/bett.png "Bett")\n\n*[credit] Pass / Le Brun (1821)*\n\n_Bitte genau hinsehen._';
     expect(presenterQuestionHeading(markdown)).toBe('KI-Bild oder echtes Foto?');
     expect(presenterCompactMarkdown(markdown)).toBe('### KI-Bild oder echtes Foto?');
     expect(presenterCompactMarkdown(markdown)).not.toContain('/assets/demo/bett.png');
     expect(presenterCompactMarkdown(markdown)).not.toContain('Bitte genau hinsehen');
+    expect(presenterCompactMarkdown(markdown)).not.toContain('Pass / Le Brun');
     expect(presenterQuestionImage(markdown)).toEqual({
       alt: 'Dach',
       url: '/assets/demo/bett.png',
+      credit: 'Pass / Le Brun (1821)',
+    });
+    expect(
+      presenterQuestionImage(
+        '### KI-Bild\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Photo_by_User / Wikimedia*\n',
+      )?.credit,
+    ).toBe('Photo_by_User / Wikimedia');
+    expect(
+      presenterQuestionImage(
+        '### KI-Bild\n\n![Dach](/assets/demo/bett.png)\n\n_Bitte genau hinsehen._',
+      ),
+    ).toEqual({
+      alt: 'Dach',
+      url: '/assets/demo/bett.png',
+      credit: null,
     });
     expect(presenterQuestionImage('### Nur Text')).toBeNull();
   });

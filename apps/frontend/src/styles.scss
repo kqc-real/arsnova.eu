@@ -916,12 +916,12 @@ html {
   box-sizing: border-box;
 }
 
-/* Kursiv-Zeile direkt unter einem alleinstehenden Bild = Bildnachweis */
-.markdown-body p:has(> img:only-child):has(+ p:has(> em:only-child)) {
+/* Expliziter Bildnachweis: `*[credit] …*` → `<p class="md-image-credit"><em>…</em></p>` */
+.markdown-body p:has(> img:only-child):has(+ p.md-image-credit) {
   margin-bottom: 0.25rem;
 }
 
-.markdown-body p:has(> img:only-child) + p:has(> em:only-child) {
+.markdown-body p.md-image-credit {
   margin-top: 0;
   margin-bottom: 0.75rem;
   text-align: center;
@@ -930,7 +930,7 @@ html {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.markdown-body p:has(> img:only-child) + p:has(> em:only-child) > em {
+.markdown-body p.md-image-credit > em {
   font-style: italic;
   font-weight: 400;
 }
