@@ -13,6 +13,7 @@
 ## Verwandte Memories:
 
 - `mem:core`
+- `mem:quality/agents`
 - `mem:quality/workflow`
 - `mem:testing/core`
 - `mem:security/auth`
