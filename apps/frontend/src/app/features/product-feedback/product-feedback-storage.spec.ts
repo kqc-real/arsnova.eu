@@ -1,6 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  enqueueProductFeedbackOutbox,
+  flushProductFeedbackOutbox,
   isProductFeedbackInCooldown,
+  loadProductFeedbackOutbox,
   markProductFeedbackCooldown,
   rememberPendingHostInvite,
   consumePendingHostInvite,
@@ -26,5 +29,28 @@ describe('product-feedback-storage', () => {
     const first = consumePendingHostInvite();
     expect(first?.sessionCode).toBe('ABC123');
     expect(consumePendingHostInvite()).toBeNull();
+  });
+
+  it('flusht Outbox und behält fehlgeschlagene Einträge', async () => {
+    enqueueProductFeedbackOutbox({
+      id: 'ok-1',
+      kind: 'submit',
+      payload: { a: 1 },
+      createdAt: Date.now(),
+    });
+    enqueueProductFeedbackOutbox({
+      id: 'fail-1',
+      kind: 'followUp',
+      payload: { b: 2 },
+      createdAt: Date.now(),
+    });
+    const submit = vi.fn().mockResolvedValue({ ok: true });
+    const followUp = vi.fn().mockRejectedValue(new Error('offline'));
+    await flushProductFeedbackOutbox({ submit, followUp });
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(followUp).toHaveBeenCalledTimes(1);
+    const left = loadProductFeedbackOutbox();
+    expect(left).toHaveLength(1);
+    expect(left[0]?.id).toBe('fail-1');
   });
 });

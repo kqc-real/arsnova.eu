@@ -131,6 +131,32 @@ export function removeProductFeedbackOutboxItem(id: string): void {
   saveProductFeedbackOutbox(loadProductFeedbackOutbox().filter((i) => i.id !== id));
 }
 
+export type ProductFeedbackOutboxSender = {
+  submit: (payload: Record<string, unknown>) => Promise<unknown>;
+  followUp: (payload: Record<string, unknown>) => Promise<unknown>;
+};
+
+/** Sendet vorgemerkte Payloads erneut; erfolgreiche Einträge werden entfernt. */
+export async function flushProductFeedbackOutbox(
+  sender: ProductFeedbackOutboxSender,
+): Promise<void> {
+  const items = loadProductFeedbackOutbox();
+  if (items.length === 0) return;
+  const remaining: ProductFeedbackOutboxItem[] = [];
+  for (const item of items) {
+    try {
+      if (item.kind === 'submit') {
+        await sender.submit(item.payload);
+      } else {
+        await sender.followUp(item.payload);
+      }
+    } catch {
+      remaining.push(item);
+    }
+  }
+  saveProductFeedbackOutbox(remaining);
+}
+
 export function detectProductFeedbackDeviceClass(): ProductFeedbackDeviceClass {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
     return 'UNKNOWN';

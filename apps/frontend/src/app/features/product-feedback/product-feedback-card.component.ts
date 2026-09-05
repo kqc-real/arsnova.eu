@@ -1,5 +1,8 @@
 import {
+  afterNextRender,
   Component,
+  ElementRef,
+  Injector,
   LOCALE_ID,
   OnDestroy,
   OnInit,
@@ -27,6 +30,7 @@ import {
   PRODUCT_FEEDBACK_PARTICIPANT_COOLDOWN_MS,
   detectProductFeedbackDeviceClass,
   enqueueProductFeedbackOutbox,
+  flushProductFeedbackOutbox,
   isProductFeedbackInCooldown,
   markProductFeedbackCooldown,
   newIdempotencyKey,
@@ -46,6 +50,8 @@ type Step = 'idle' | 'primary' | 'area' | 'thanks' | 'message' | 'done' | 'hidde
 })
 export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   private readonly localeId = inject(LOCALE_ID);
+  private readonly hostEl = inject(ElementRef<HTMLElement>);
+  private readonly injector = inject(Injector);
 
   /** HOST | PARTICIPANT */
   readonly feedbackRole = input.required<ProductFeedbackRole>();
@@ -82,6 +88,12 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     this.step.set('idle');
     this.busy.set(true);
     try {
+      await flushProductFeedbackOutbox({
+        submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
+        followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
+      });
+      if (this.destroyed) return;
+
       const claimed = await trpc.productFeedback.claimInvite.query({
         sessionCode: this.sessionCode().toUpperCase(),
         role: this.feedbackRole(),
@@ -106,6 +118,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.inviteToken.set(claimed.inviteToken);
       this.survey.set(claimed.survey);
       this.step.set('primary');
+      this.moveFocusForStep();
     } catch {
       if (!this.destroyed) this.step.set('hidden');
     } finally {
@@ -136,7 +149,10 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       ORIENTATION: $localize`:@@productFeedback.area.orientation:Orientierung in der App`,
       ANSWER: $localize`:@@productFeedback.area.answer:Antwort abgeben`,
       QA_OR_QUICKFEEDBACK: $localize`:@@productFeedback.area.qaOrQf:Q&A oder Blitzlicht`,
-      RESULTS: $localize`:@@productFeedback.area.results:Ergebnisse verstehen`,
+      RESULTS:
+        this.feedbackRole() === 'HOST'
+          ? $localize`:@@productFeedback.area.resultsHost:Ergebnisse auswerten`
+          : $localize`:@@productFeedback.area.results:Ergebnisse verstehen`,
       TECH: $localize`:@@productFeedback.area.tech:Technik oder Verbindung`,
       ACCESSIBILITY: $localize`:@@productFeedback.area.a11y:Barrierefreiheit`,
       OTHER: $localize`:@@productFeedback.area.other:Etwas anderes`,
@@ -176,6 +192,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     this.areaPromptKind.set(resolveProductFeedbackAreaPromptKind(answer));
     this.step.set('area');
     this.statusMessage.set('');
+    this.moveFocusForStep();
   }
 
   async selectArea(area: ProductFeedbackArea): Promise<void> {
@@ -208,6 +225,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         $localize`:@@productFeedback.status.saved:Danke! Deine Rückmeldung ist gespeichert.`,
       );
       this.completed.emit();
+      this.moveFocusForStep();
     } catch {
       if (this.destroyed) return;
       enqueueProductFeedbackOutbox({
@@ -222,6 +240,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         $localize`:@@productFeedback.status.queued:Deine Rückmeldung ist auf diesem Gerät vorgemerkt und wird erneut gesendet, sobald arsnova.eu erreichbar ist.`,
       );
       this.completed.emit();
+      this.moveFocusForStep();
     } finally {
       if (!this.destroyed) this.busy.set(false);
     }
@@ -230,6 +249,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   openMessage(): void {
     this.step.set('message');
     this.statusMessage.set('');
+    this.moveFocusForStep();
   }
 
   onMessageInput(value: string): void {
@@ -258,6 +278,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         $localize`:@@productFeedback.status.messageSaved:Anmerkung gespeichert.`,
       );
       this.step.set('done');
+      this.moveFocusForStep();
+      this.scheduleDismissAfterDone();
     } catch {
       if (this.destroyed) return;
       enqueueProductFeedbackOutbox({
@@ -270,6 +292,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         $localize`:@@productFeedback.status.messageQueued:Anmerkung vorgemerkt – wird bei Verbindung nachgereicht.`,
       );
       this.step.set('done');
+      this.moveFocusForStep();
+      this.scheduleDismissAfterDone();
     } finally {
       if (!this.destroyed) this.busy.set(false);
     }
@@ -277,6 +301,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
 
   finish(): void {
     this.step.set('done');
+    this.moveFocusForStep();
     this.dismissed.emit();
   }
 
@@ -297,6 +322,63 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   visible(): boolean {
     const s = this.step();
     return s !== 'hidden' && s !== 'idle';
+  }
+
+  /**
+   * Nach @if-Schrittwechseln: Fokus auf erstes sinnvolles Ziel legen,
+   * damit Tastatur-/SR-Nutzer nicht auf einem entfernten Button hängen bleiben.
+   */
+  private moveFocusForStep(): void {
+    afterNextRender(
+      () => {
+        if (this.destroyed) return;
+        const root = this.hostEl.nativeElement;
+        const step = this.step();
+        let target: HTMLElement | null = null;
+        if (step === 'primary' || step === 'area') {
+          target = root.querySelector(
+            '.product-feedback-card__choice:not([disabled])',
+          ) as HTMLElement | null;
+        } else if (step === 'thanks') {
+          target = root.querySelector(
+            '.product-feedback-card__actions button',
+          ) as HTMLElement | null;
+        } else if (step === 'message') {
+          target = root.querySelector('#product-feedback-message') as HTMLElement | null;
+        } else if (step === 'done') {
+          target = root.querySelector('.product-feedback-card__done') as HTMLElement | null;
+        }
+        if (!target) {
+          target = root.querySelector('#product-feedback-heading') as HTMLElement | null;
+        }
+        if (!target || !target.isConnected) return;
+        if (
+          !target.hasAttribute('tabindex') &&
+          target.tagName !== 'BUTTON' &&
+          target.tagName !== 'TEXTAREA'
+        ) {
+          target.tabIndex = -1;
+        }
+        target.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** Kurz „done“ belassen, damit aria-live den Status noch ausgeben kann (Host-Sheet). */
+  private scheduleDismissAfterDone(): void {
+    afterNextRender(
+      () => {
+        if (this.destroyed || typeof globalThis.setTimeout !== 'function') {
+          if (!this.destroyed) this.dismissed.emit();
+          return;
+        }
+        globalThis.setTimeout(() => {
+          if (!this.destroyed) this.dismissed.emit();
+        }, 700);
+      },
+      { injector: this.injector },
+    );
   }
 
   private resolveLocale(): ProductFeedbackLocale {

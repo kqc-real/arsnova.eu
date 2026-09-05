@@ -38,6 +38,14 @@
   font: var(--mat-sys-title-medium);
   font-weight: 700;
   color: var(--mat-sys-on-surface);
+  outline: none;
+}
+
+.product-feedback-card__title:focus-visible,
+.product-feedback-card__done:focus-visible,
+.product-feedback-card__choice:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
 }
 
 .product-feedback-card__lead {

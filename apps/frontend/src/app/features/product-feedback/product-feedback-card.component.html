@@ -13,6 +13,7 @@
         <h2
           id="product-feedback-heading"
           class="product-feedback-card__title"
+          tabindex="-1"
           i18n="@@productFeedback.title"
         >
           Eine Frage zu arsnova.eu
@@ -148,7 +149,7 @@
     }
 
     @if (step() === 'done') {
-      <p class="product-feedback-card__done" i18n="@@productFeedback.allDone">
+      <p class="product-feedback-card__done" tabindex="-1" i18n="@@productFeedback.allDone">
         Alles klar – danke dir!
       </p>
     }

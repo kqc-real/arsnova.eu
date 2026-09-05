@@ -4429,7 +4429,7 @@
         <target>Actualiser</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">4,6</context>
+          <context context-type="linenumber">10,12</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.totals" datatype="html">
@@ -4437,7 +4437,7 @@
         <target>Réponses totales</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byPrimary" datatype="html">
@@ -4445,7 +4445,7 @@
         <target>Réponses principales</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">26</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byArea" datatype="html">
@@ -4453,7 +4453,7 @@
         <target>domaines</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">38</context>
+          <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySurvey" datatype="html">
@@ -4461,7 +4461,7 @@
         <target>Familles de questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.fine" datatype="html">
@@ -4469,7 +4469,7 @@
         <target>Segments fins (≥5)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">65</context>
+          <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.errorLoad" datatype="html">
@@ -8140,7 +8140,7 @@
         <target>Une question sur arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">13,15</context>
+          <context context-type="linenumber">18,20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.lead" datatype="html">
@@ -8148,7 +8148,7 @@
         <target>Deux courtes sélections nous aident à améliorer l&apos;application - de manière anonyme et sans e-mail.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">16,18</context>
+          <context context-type="linenumber">21,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.dismissAria" datatype="html">
@@ -8156,7 +8156,7 @@
         <target>Fermer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.thanks" datatype="html">
@@ -8164,7 +8164,7 @@
         <target>Merci! Souhaitez-vous ajouter autre chose ? Une phrase suffit.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">84,86</context>
+          <context context-type="linenumber">92,94</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.privacyHint" datatype="html">
@@ -8172,7 +8172,7 @@
         <target>Veuillez ne pas saisir de noms, de codes de session ou de contenu de session personnel ou technique.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">87,90</context>
+          <context context-type="linenumber">95,98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.addNote" datatype="html">
@@ -8180,15 +8180,15 @@
         <target>Ajouter une remarque</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">92,94</context>
+          <context context-type="linenumber">105,107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.done" datatype="html">
-        <source>Fertig</source>
+        <source> Fertig</source>
         <target>Prêt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">95</context>
+          <context context-type="linenumber">108,110</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.messageLabel" datatype="html">
@@ -8196,7 +8196,7 @@
         <target>Votre commentaire (facultatif)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">103</context>
+          <context context-type="linenumber">118</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.sendNote" datatype="html">
@@ -8204,7 +8204,7 @@
         <target>Envoyer une note</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">121,123</context>
+          <context context-type="linenumber">136,138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.skipNote" datatype="html">
@@ -8212,15 +8212,15 @@
         <target>Compléter sans commentaire</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">124,126</context>
+          <context context-type="linenumber">144,146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.allDone" datatype="html">
-        <source>Alles klar – danke dir!</source>
+        <source> Alles klar – danke dir!</source>
         <target>Très bien – merci !</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">132</context>
+          <context context-type="linenumber">156,158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.neverAsk" datatype="html">
@@ -8228,7 +8228,7 @@
         <target>Ne demandez plus pour cette enquête</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
-          <context context-type="linenumber">146,148</context>
+          <context context-type="linenumber">172,174</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.easy" datatype="html">
@@ -8236,7 +8236,7 @@
         <target>Simplement</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">119</context>
+          <context context-type="linenumber">134</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.minorFriction" datatype="html">
@@ -8244,7 +8244,7 @@
         <target>Avec de petits obstacles</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">121</context>
+          <context context-type="linenumber">136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.hard" datatype="html">
@@ -8252,7 +8252,7 @@
         <target>Difficile</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.yes" datatype="html">
@@ -8260,7 +8260,7 @@
         <target>Oui</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">125</context>
+          <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.partial" datatype="html">
@@ -8268,7 +8268,7 @@
         <target>Partiellement</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.no" datatype="html">
@@ -8276,7 +8276,7 @@
         <target>Non</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">129</context>
+          <context context-type="linenumber">144</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.join" datatype="html">
@@ -8284,7 +8284,7 @@
         <target>Rejoindre la session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">135</context>
+          <context context-type="linenumber">150</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.orientation" datatype="html">
@@ -8292,7 +8292,7 @@
         <target>Orientation dans l&apos;application</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">136</context>
+          <context context-type="linenumber">151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.answer" datatype="html">
@@ -8300,7 +8300,7 @@
         <target>Soumettre une réponse</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">137</context>
+          <context context-type="linenumber">152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.qaOrQf" datatype="html">
@@ -8308,7 +8308,15 @@
         <target>Questions et réponses ou lampe de poche</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">138</context>
+          <context context-type="linenumber">153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="productFeedback.area.resultsHost" datatype="html">
+        <source>Ergebnisse auswerten</source>
+        <target>Évaluer les résultats</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
+          <context context-type="linenumber">156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.results" datatype="html">
@@ -8316,7 +8324,7 @@
         <target>Comprendre les résultats</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">139</context>
+          <context context-type="linenumber">157</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.tech" datatype="html">
@@ -8324,7 +8332,7 @@
         <target>Technologie ou connexion</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">140</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.a11y" datatype="html">
@@ -8332,7 +8340,7 @@
         <target>Accessibilité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.other" datatype="html">
@@ -8340,7 +8348,7 @@
         <target>Quelque chose d&apos;autre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">160</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.prepareQuiz" datatype="html">
@@ -8348,7 +8356,7 @@
         <target>Préparer un quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.startSession" datatype="html">
@@ -8356,7 +8364,7 @@
         <target>Démarrer la session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.invite" datatype="html">
@@ -8364,7 +8372,7 @@
         <target>Inviter des participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.liveControl" datatype="html">
@@ -8372,7 +8380,7 @@
         <target>Contrôler la session en direct</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.pdfExport" datatype="html">
@@ -8380,7 +8388,7 @@
         <target>PDF ou exporter</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">147</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.ease.participant" datatype="html">
@@ -8388,7 +8396,7 @@
         <target>A-t-il été facile de participer avec arsnova.eu aujourd&apos;hui ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">174</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.value.participant" datatype="html">
@@ -8396,7 +8404,7 @@
         <target>arsnova.eu vous a-t-il aidé à participer activement à la session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.ease.host" datatype="html">
@@ -8404,7 +8412,7 @@
         <target>Dans quelle mesure a-t-il été facile de mener la session avec arsnova.eu aujourd&apos;hui ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">160</context>
+          <context context-type="linenumber">178</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.value.host" datatype="html">
@@ -8412,7 +8420,7 @@
         <target>arsnova.eu vous a-t-il aidé à impliquer et à évaluer votre groupe ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">162</context>
+          <context context-type="linenumber">180</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.fallback" datatype="html">
@@ -8420,7 +8428,7 @@
         <target>Une question sur arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">182</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.strength" datatype="html">
@@ -8428,7 +8436,7 @@
         <target>Qu’est-ce qui a particulièrement bien fonctionné aujourd’hui ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">170</context>
+          <context context-type="linenumber">188</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.hurdle" datatype="html">
@@ -8436,7 +8444,7 @@
         <target>Quel a été le plus gros obstacle ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">171</context>
+          <context context-type="linenumber">189</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.sending" datatype="html">
@@ -8444,7 +8452,7 @@
         <target>Sera envoyé...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">188</context>
+          <context context-type="linenumber">207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.saved" datatype="html">
@@ -8452,7 +8460,7 @@
         <target>Merci! Vos commentaires sont enregistrés.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">207</context>
+          <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.queued" datatype="html">
@@ -8460,7 +8468,7 @@
         <target>Vos commentaires sont enregistrés sur cet appareil et seront renvoyés dès que arsnova.eu sera disponible.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">220</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.messageSaved" datatype="html">
@@ -8468,7 +8476,7 @@
         <target>Remarque enregistrée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">255</context>
+          <context context-type="linenumber">280</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.messageQueued" datatype="html">
@@ -8476,7 +8484,7 @@
         <target>Remarque notée – sera ajoutée lors de la connexion.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
-          <context context-type="linenumber">266</context>
+          <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizImport.confidenceMappedMessage" datatype="html">
