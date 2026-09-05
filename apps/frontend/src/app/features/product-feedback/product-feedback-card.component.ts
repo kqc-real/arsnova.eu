@@ -37,6 +37,33 @@ import {
   suppressProductFeedbackSurvey,
 } from './product-feedback-storage';
 
+/** Netzwerk/Timeout → Outbox; typisierte Ablehnung → sichtbarer Fehler mit Retry. */
+function isRetriableProductFeedbackError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return true;
+  const anyErr = err as {
+    data?: { code?: string; httpStatus?: number };
+    shape?: { data?: { code?: string } };
+    message?: string;
+  };
+  const code = anyErr.data?.code ?? anyErr.shape?.data?.code;
+  if (
+    code === 'BAD_REQUEST' ||
+    code === 'UNAUTHORIZED' ||
+    code === 'FORBIDDEN' ||
+    code === 'NOT_FOUND' ||
+    code === 'CONFLICT' ||
+    code === 'PRECONDITION_FAILED'
+  ) {
+    return false;
+  }
+  const msg = String(anyErr.message ?? '').toLowerCase();
+  if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout')) {
+    return true;
+  }
+  // Unbekannt / HTTP 5xx / Abort: Outbox-fähig behandeln
+  return true;
+}
+
 type Step = 'idle' | 'primary' | 'area' | 'thanks' | 'message' | 'done' | 'hidden' | 'error';
 
 @Component({
@@ -75,6 +102,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   readonly messageLen = signal(0);
 
   private destroyed = false;
+  private pendingArea: ProductFeedbackArea | null = null;
+  private pendingMessage = false;
 
   ngOnInit(): void {
     void this.bootstrap();
@@ -200,6 +229,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         return $localize`:@@productFeedback.thanks:Noch einen Satz dazu?`;
       case 'message':
         return $localize`:@@productFeedback.messageHeading:Optionaler Satz`;
+      case 'error':
+        return $localize`:@@productFeedback.errorHeading:Das hat nicht geklappt`;
       case 'done':
         return $localize`:@@productFeedback.allDone:Gespeichert.`;
       default:
@@ -266,21 +297,30 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.statusMessage.set($localize`:@@productFeedback.status.saved:Gespeichert.`);
       this.completed.emit();
       this.moveFocusForStep();
-    } catch {
+    } catch (err) {
       if (this.destroyed) return;
-      enqueueProductFeedbackOutbox({
-        id: idempotencyKey,
-        kind: 'submit',
-        payload,
-        createdAt: Date.now(),
-      });
-      markProductFeedbackCooldown(survey.surveyKey);
-      this.step.set('thanks');
-      this.statusMessage.set(
-        $localize`:@@productFeedback.status.queued:Vorgemerkt auf diesem Gerät – senden wir, sobald die Verbindung wieder da ist.`,
-      );
-      this.completed.emit();
-      this.moveFocusForStep();
+      if (isRetriableProductFeedbackError(err)) {
+        enqueueProductFeedbackOutbox({
+          id: idempotencyKey,
+          kind: 'submit',
+          payload,
+          createdAt: Date.now(),
+        });
+        markProductFeedbackCooldown(survey.surveyKey);
+        this.step.set('thanks');
+        this.statusMessage.set(
+          $localize`:@@productFeedback.status.queued:Vorgemerkt auf diesem Gerät – senden wir, sobald die Verbindung wieder da ist.`,
+        );
+        this.completed.emit();
+        this.moveFocusForStep();
+      } else {
+        this.pendingArea = area;
+        this.step.set('error');
+        this.statusMessage.set(
+          $localize`:@@productFeedback.status.rejected:Das hat nicht geklappt. Bitte erneut versuchen oder schließen.`,
+        );
+        this.moveFocusForStep();
+      }
     } finally {
       if (!this.destroyed) this.busy.set(false);
     }
@@ -328,20 +368,29 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.step.set('done');
       this.moveFocusForStep();
       this.scheduleDismissAfterDone();
-    } catch {
+    } catch (err) {
       if (this.destroyed) return;
-      enqueueProductFeedbackOutbox({
-        id: idempotencyKey,
-        kind: 'followUp',
-        payload: { followUpCapability: capability, message, idempotencyKey },
-        createdAt: Date.now(),
-      });
-      this.statusMessage.set(
-        $localize`:@@productFeedback.status.messageQueued:Notiz vorgemerkt – kommt nach, sobald die Verbindung wieder da ist.`,
-      );
-      this.step.set('done');
-      this.moveFocusForStep();
-      this.scheduleDismissAfterDone();
+      if (isRetriableProductFeedbackError(err)) {
+        enqueueProductFeedbackOutbox({
+          id: idempotencyKey,
+          kind: 'followUp',
+          payload: { followUpCapability: capability, message, idempotencyKey },
+          createdAt: Date.now(),
+        });
+        this.statusMessage.set(
+          $localize`:@@productFeedback.status.messageQueued:Notiz vorgemerkt – kommt nach, sobald die Verbindung wieder da ist.`,
+        );
+        this.step.set('done');
+        this.moveFocusForStep();
+        this.scheduleDismissAfterDone();
+      } else {
+        this.pendingMessage = true;
+        this.step.set('error');
+        this.statusMessage.set(
+          $localize`:@@productFeedback.status.messageRejected:Die Notiz konnte nicht gesendet werden. Bitte erneut versuchen oder schließen.`,
+        );
+        this.moveFocusForStep();
+      }
     } finally {
       if (!this.destroyed) this.busy.set(false);
     }
@@ -356,6 +405,33 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   dismiss(): void {
     const survey = this.survey();
     if (survey) markProductFeedbackCooldown(survey.surveyKey);
+    this.step.set('hidden');
+    this.dismissed.emit();
+  }
+
+  retryLastAction(): void {
+    if (this.pendingMessage) {
+      this.pendingMessage = false;
+      this.step.set('message');
+      this.statusMessage.set('');
+      void this.submitMessage();
+      return;
+    }
+    if (this.pendingArea) {
+      const area = this.pendingArea;
+      this.pendingArea = null;
+      this.step.set('area');
+      this.statusMessage.set('');
+      void this.selectArea(area);
+      return;
+    }
+    this.step.set('hidden');
+    this.dismissed.emit();
+  }
+
+  dismissError(): void {
+    this.pendingArea = null;
+    this.pendingMessage = false;
     this.step.set('hidden');
     this.dismissed.emit();
   }
@@ -397,6 +473,10 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
           ) as HTMLElement | null;
         } else if (step === 'message') {
           target = root.querySelector('#product-feedback-message') as HTMLElement | null;
+        } else if (step === 'error') {
+          target = root.querySelector(
+            '.product-feedback-card__actions button',
+          ) as HTMLElement | null;
         } else if (step === 'done') {
           target = root.querySelector('#product-feedback-heading') as HTMLElement | null;
         }

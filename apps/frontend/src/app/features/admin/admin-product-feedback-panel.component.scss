@@ -41,3 +41,15 @@
   margin: 0;
   padding-inline-start: 1.1rem;
 }
+
+.admin-pf__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-block: 0.75rem 1rem;
+}
+
+.admin-pf__grid--kpi {
+  margin-bottom: 1rem;
+}

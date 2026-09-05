@@ -7,7 +7,10 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { logger } from './logger';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
-import { issueProductFeedbackInvitesAfterFinish } from './productFeedbackInvite';
+import {
+  issueProductFeedbackInvitesAfterFinish,
+  retryPendingProductFeedbackInviteJobs,
+} from './productFeedbackInvite';
 import {
   cleanupProductFeedbackMessages,
   cleanupProductFeedbackRecords,
@@ -335,6 +338,9 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupExpiredSessionFeedback().catch((err) => {
     logger.warn('SessionFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await retryPendingProductFeedbackInviteJobs().catch((err) => {
+    logger.warn('ProductFeedback-Invite-Job-Retry fehlgeschlagen:', (err as Error).message);
   });
   await cleanupProductFeedbackMessages().catch((err) => {
     logger.warn('ProductFeedback-Message-Cleanup fehlgeschlagen:', (err as Error).message);

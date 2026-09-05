@@ -37,6 +37,18 @@ export async function buildProductFeedbackAdminStats(
       : {}),
   };
 
+  const ledgerWhere: Prisma.ProductFeedbackInviteLedgerWhereInput = {
+    ...(input.role ? { role: input.role } : {}),
+    ...(input.from || input.to
+      ? {
+          day: {
+            ...(input.from ? { gte: new Date(input.from) } : {}),
+            ...(input.to ? { lte: new Date(input.to) } : {}),
+          },
+        }
+      : {}),
+  };
+
   const [
     totals,
     byPrimaryAnswer,
@@ -46,6 +58,10 @@ export async function buildProductFeedbackAdminStats(
     bySessionSizeClass,
     byDeviceClass,
     fineRows,
+    byRole,
+    bySurveyVersion,
+    byAppVersion,
+    inviteAgg,
   ] = await Promise.all([
     prisma.productFeedback.count({ where }),
     prisma.productFeedback.groupBy({
@@ -83,6 +99,25 @@ export async function buildProductFeedbackAdminStats(
       where,
       _count: { _all: true },
     }),
+    prisma.productFeedback.groupBy({
+      by: ['role'],
+      where,
+      _count: { _all: true },
+    }),
+    prisma.productFeedback.groupBy({
+      by: ['surveyVersion'],
+      where,
+      _count: { _all: true },
+    }),
+    prisma.productFeedback.groupBy({
+      by: ['appVersion'],
+      where,
+      _count: { _all: true },
+    }),
+    prisma.productFeedbackInviteLedger.aggregate({
+      where: ledgerWhere,
+      _sum: { count: true },
+    }),
   ]);
 
   const bySurveyAndPrimary = fineRows
@@ -93,6 +128,10 @@ export async function buildProductFeedbackAdminStats(
     }))
     .filter((r) => r.count >= PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT)
     .sort((a, b) => b.count - a.count);
+
+  const invitationsIssued = inviteAgg._sum.count ?? 0;
+  const invitationCompletionRate =
+    invitationsIssued > 0 ? Math.min(1, totals / invitationsIssued) : null;
 
   return {
     totals,
@@ -114,8 +153,15 @@ export async function buildProductFeedbackAdminStats(
       PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
     ),
     bySurveyAndPrimary,
-    // Historische Einladungszahlen werden nicht dauerhaft in PG gespeichert.
-    invitationsIssued: null,
-    invitationCompletionRate: null,
+    byRole: toBuckets(byRole.map((r) => ({ key: r.role, count: r._count._all }))),
+    bySurveyVersion: toBuckets(
+      bySurveyVersion.map((r) => ({ key: String(r.surveyVersion), count: r._count._all })),
+    ),
+    byAppVersion: toBuckets(
+      byAppVersion.map((r) => ({ key: r.appVersion, count: r._count._all })),
+      PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
+    ),
+    invitationsIssued,
+    invitationCompletionRate,
   };
 }

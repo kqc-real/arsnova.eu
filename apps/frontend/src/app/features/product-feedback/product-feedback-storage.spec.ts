@@ -54,3 +54,20 @@ describe('product-feedback-storage', () => {
     expect(left[0]?.id).toBe('fail-1');
   });
 });
+
+it('entfernt abgelaufene Outbox-Einträge aus localStorage', () => {
+  const old = Date.now() - 8 * 24 * 60 * 60 * 1000;
+  localStorage.setItem(
+    'productFeedback:outbox:v1',
+    JSON.stringify([
+      { id: 'aged', kind: 'submit', payload: {}, createdAt: old },
+      { id: 'fresh', kind: 'submit', payload: {}, createdAt: Date.now() },
+    ]),
+  );
+  const left = loadProductFeedbackOutbox();
+  expect(left).toHaveLength(1);
+  expect(left[0]?.id).toBe('fresh');
+  const raw = JSON.parse(localStorage.getItem('productFeedback:outbox:v1')!);
+  expect(raw).toHaveLength(1);
+  expect(raw[0]?.id).toBe('fresh');
+});

@@ -43,7 +43,13 @@
       {{ headingText() }}
     </h2>
 
-    <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    <p
+      class="product-feedback-card__status"
+      [class.product-feedback-card__status--visible]="!!statusMessage()"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       {{ statusMessage() }}
     </p>
 
@@ -93,6 +99,27 @@
               {{ areaLabel(area) }}
             </button>
           }
+        </div>
+      }
+
+      @if (step() === 'error') {
+        <div class="product-feedback-card__actions">
+          <button
+            type="button"
+            matButton="filled"
+            (click)="retryLastAction()"
+            i18n="@@productFeedback.retry"
+          >
+            Erneut versuchen
+          </button>
+          <button
+            type="button"
+            matButton="text"
+            (click)="dismissError()"
+            i18n="@@productFeedback.dismissError"
+          >
+            Schließen
+          </button>
         </div>
       }
 

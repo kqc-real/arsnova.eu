@@ -240,3 +240,14 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Lösch- und Exportaktionen werden auditiert.
 - Token lebt bewusst nur in `sessionStorage` (tab-/sitzungsgebunden).
 - Admin-Flow ersetzt keinen formalen Datenschutz-/Legal-Prozess; Betreiber müssen Zuständigkeiten, Aufbewahrung, Exportfreigabe und Incident-Kommunikation außerhalb der App festlegen.
+
+## ProductFeedback-Statistik (Story 12.1)
+
+- UI-Tab im Admin-Dashboard: aggregierte Post-Session-Produktsignale.
+- tRPC: `admin.productFeedback.getStats` (nur `adminProcedure`).
+- Filter: optional Zeitraum (`from`/`to`), Rolle (`HOST`/`PARTICIPANT`), Fragefamilie.
+- Kennzahlen: Antwortanzahl, Einladungen (Ledger), Abschlussquote, Verteilungen
+  nach Primärantwort, Bereich, Fragefamilie/-version, Rolle, Locale, App-Version,
+  Sessiongröße und Geräteklasse. Feine Segmente erst ab ≥5 Antworten.
+- **Kein Freitext** und keine Session-/Personen-IDs in dieser Ansicht.
+- Fachdoku: [docs/features/product-feedback.md](../features/product-feedback.md).

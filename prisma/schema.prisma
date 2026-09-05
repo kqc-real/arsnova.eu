@@ -378,6 +378,30 @@ model ProductFeedback {
   @@index([area, createdAt])
 }
 
+
+/// Tägliche Invite-Zähler für Admin-Abschlussquote (Story 12.1). Keine Session-/Personen-IDs.
+model ProductFeedbackInviteLedger {
+  id    String               @id @default(cuid())
+  day   DateTime             @db.Date
+  role  ProductFeedbackRole
+  count Int                  @default(0)
+
+  @@unique([day, role])
+  @@index([day])
+}
+
+/// Idempotente Nacharbeit der Invite-Ausstellung nach FINISHED (Crash-Fenster schließen).
+model ProductFeedbackInviteJob {
+  sessionId   String    @id
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+
+  @@index([completedAt, createdAt])
+}
+
+
 // ─── Q&A-Modus (Epic 8) ────────────────────────────────────────────────────
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)

@@ -323,6 +323,9 @@ export const AdminProductFeedbackStatsDTOSchema = z.object({
       count: z.number().int().nonnegative(),
     }),
   ),
+  byRole: z.array(AdminProductFeedbackCountBucketSchema),
+  bySurveyVersion: z.array(AdminProductFeedbackCountBucketSchema),
+  byAppVersion: z.array(AdminProductFeedbackCountBucketSchema),
   invitationsIssued: z.number().int().nonnegative().nullable(),
   invitationCompletionRate: z.number().min(0).max(1).nullable(),
 });

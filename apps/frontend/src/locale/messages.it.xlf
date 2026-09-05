@@ -25317,6 +25317,82 @@
           <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="productFeedback.errorHeading" datatype="html">
+        <source>Das hat nicht geklappt</source>
+        <target state="translated">Non ha funzionato</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.rejected" datatype="html">
+        <source>Das hat nicht geklappt. Bitte erneut versuchen oder schließen.</source>
+        <target state="translated">Non ha funzionato. Riprova o chiudi.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.messageRejected" datatype="html">
+        <source>Die Notiz konnte nicht gesendet werden. Bitte erneut versuchen oder schließen.</source>
+        <target state="translated">Non è stato possibile inviare la nota. Riprova o chiudi.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.retry" datatype="html">
+        <source>Erneut versuchen</source>
+        <target state="translated">Riprova</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.dismissError" datatype="html">
+        <source>Schließen</source>
+        <target state="translated">Chiudi</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filterRole" datatype="html">
+        <source>Rolle</source>
+        <target state="translated">Ruolo</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filterSurvey" datatype="html">
+        <source>Fragefamilie</source>
+        <target state="translated">Famiglia di domande</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filterAll" datatype="html">
+        <source>Alle</source>
+        <target state="translated">Tutti</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filterFrom" datatype="html">
+        <source>Von</source>
+        <target state="translated">Da</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filterTo" datatype="html">
+        <source>Bis</source>
+        <target state="translated">A</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.applyFilters" datatype="html">
+        <source>Filter anwenden</source>
+        <target state="translated">Applica filtri</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.invites" datatype="html">
+        <source>Einladungen</source>
+        <target state="translated">Inviti</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.completion" datatype="html">
+        <source>Abschlussquote</source>
+        <target state="translated">Tasso di completamento</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byRole" datatype="html">
+        <source>Rollen</source>
+        <target state="translated">Ruoli</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.bySurveyVersion" datatype="html">
+        <source>Survey-Version</source>
+        <target state="translated">Versione del sondaggio</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byAppVersion" datatype="html">
+        <source>App-Version</source>
+        <target state="translated">Versione dell'app</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byLocale" datatype="html">
+        <source>Locale (≥5)</source>
+        <target state="translated">Locale (≥5)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.bySize" datatype="html">
+        <source>Sessiongröße (≥5)</source>
+        <target state="translated">Dimensione sessione (≥5)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byDevice" datatype="html">
+        <source>Geräteklasse (≥5)</source>
+        <target state="translated">Classe dispositivo (≥5)</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

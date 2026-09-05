@@ -110,7 +110,12 @@ export function loadProductFeedbackOutbox(): ProductFeedbackOutboxItem[] {
     if (!raw) return [];
     const items = JSON.parse(raw) as ProductFeedbackOutboxItem[];
     const now = Date.now();
-    return items.filter((i) => now - i.createdAt < PRODUCT_FEEDBACK_OUTBOX_MAX_AGE_MS);
+    const fresh = items.filter((i) => now - i.createdAt < PRODUCT_FEEDBACK_OUTBOX_MAX_AGE_MS);
+    // Abgelaufene Einträge aus localStorage entfernen (nicht nur aus dem Rückgabewert).
+    if (fresh.length !== items.length) {
+      saveProductFeedbackOutbox(fresh);
+    }
+    return fresh;
   } catch {
     return [];
   }

@@ -193,6 +193,37 @@ function resolveSessionKind(input: {
  * Nach FINISHED: Eignung, Stichprobe, Eignungs-Slots (pipelined Redis).
  * Best-effort bzgl. Fehlerbehandlung beim Aufrufer — Session-Ende darf nicht fehlschlagen.
  */
+
+async function recordProductFeedbackInviteIssuance(input: {
+  participantInvites: number;
+  hostInvite: boolean;
+}): Promise<void> {
+  const total = input.participantInvites + (input.hostInvite ? 1 : 0);
+  if (total <= 0) return;
+  const day = new Date();
+  day.setUTCHours(0, 0, 0, 0);
+  const ops = [];
+  if (input.hostInvite) {
+    ops.push(
+      prisma.productFeedbackInviteLedger.upsert({
+        where: { day_role: { day, role: 'HOST' } },
+        create: { day, role: 'HOST', count: 1 },
+        update: { count: { increment: 1 } },
+      }),
+    );
+  }
+  if (input.participantInvites > 0) {
+    ops.push(
+      prisma.productFeedbackInviteLedger.upsert({
+        where: { day_role: { day, role: 'PARTICIPANT' } },
+        create: { day, role: 'PARTICIPANT', count: input.participantInvites },
+        update: { count: { increment: input.participantInvites } },
+      }),
+    );
+  }
+  await Promise.all(ops);
+}
+
 export async function createInviteTokensForSession(
   sessionId: string,
 ): Promise<{ participantInvites: number; hostInvite: boolean }> {
@@ -290,6 +321,11 @@ export async function createInviteTokensForSession(
     ttl,
   );
   await pipe.exec();
+
+  // Nur neu gesetzte Slots zählen (NX-Skip oben lässt Zähler bei 0).
+  await recordProductFeedbackInviteIssuance({ participantInvites, hostInvite }).catch(
+    () => undefined,
+  );
 
   return { participantInvites, hostInvite };
 }

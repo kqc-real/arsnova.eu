@@ -28,6 +28,15 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         groupBy: vi.fn(),
         findMany: vi.fn(),
       },
+      productFeedbackInviteLedger: {
+        upsert: vi.fn(async () => ({})),
+        aggregate: vi.fn(async () => ({ _sum: { count: 0 } })),
+      },
+      productFeedbackInviteJob: {
+        upsert: vi.fn(async () => ({})),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findMany: vi.fn(async () => []),
+      },
       $queryRaw: vi.fn(),
     },
     redisMock: {
@@ -502,5 +511,92 @@ describe('admin productFeedback stats', () => {
     const out = await buildProductFeedbackAdminStats({});
     expect(out.totals).toBe(0);
     expect(out.byPrimaryAnswer).toEqual([]);
+  });
+});
+
+describe('Invite nach Session-Cleanup', () => {
+  beforeEach(() => {
+    redisStore.clear();
+    vi.clearAllMocks();
+  });
+
+  it('Token überlebt Session-Redis-Cleanup und bleibt claim-/submitfähig', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      code: 'ABC123',
+      status: 'FINISHED',
+      quizStarted: true,
+      _count: { participants: 5 },
+    });
+    prismaMock.$queryRaw.mockResolvedValue([{ participantId: 'p1', source: 'vote' }]);
+
+    await createInviteTokensForSession('sess-1');
+    const token = await claimProductFeedbackInvite({
+      sessionId: 'sess-1',
+      role: 'HOST',
+      subjectId: 'host',
+    });
+    expect(token).toBeTruthy();
+
+    // Simuliert Session-Redis-Cleanup: nur Session-/QF-Keys, nicht productFeedback:*
+    for (const key of [...redisStore.keys()]) {
+      if (!key.startsWith('productFeedback:')) redisStore.delete(key);
+    }
+
+    const { getInvitePayloadByToken, markInviteUsed } =
+      await import('../lib/productFeedbackTokens');
+    const payload = await getInvitePayloadByToken(token!);
+    expect(payload?.sessionId).toBe('sess-1');
+    expect(payload?.used).toBe(false);
+
+    const used = await markInviteUsed(token!);
+    expect(used?.payload.sessionId).toBe('sess-1');
+    expect(await getInvitePayloadByToken(token!)).toBeNull();
+  });
+
+  it('lehnt abgelaufene und bereits verbrauchte Tokens typisiert ab', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      code: 'ABC123',
+      status: 'FINISHED',
+      quizStarted: true,
+      _count: { participants: 3 },
+    });
+    prismaMock.$queryRaw.mockResolvedValue([{ participantId: 'p1', source: 'vote' }]);
+    await createInviteTokensForSession('sess-1');
+    const token = await claimProductFeedbackInvite({
+      sessionId: 'sess-1',
+      role: 'HOST',
+      subjectId: 'host',
+    });
+    expect(token).toBeTruthy();
+
+    // verbrauchen
+    const { markInviteUsed } = await import('../lib/productFeedbackTokens');
+    await markInviteUsed(token!);
+
+    await expect(
+      publicCaller.submit({
+        inviteToken: token!,
+        primaryAnswer: 'EASY',
+        area: 'PREPARE_QUIZ',
+        locale: 'de',
+        appVersion: '0.1.0',
+        deviceClass: 'DESKTOP',
+        idempotencyKey: crypto.randomUUID(),
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    await expect(
+      publicCaller.submit({
+        inviteToken: 'expired-or-unknown-token',
+        primaryAnswer: 'EASY',
+        area: 'PREPARE_QUIZ',
+        locale: 'de',
+        appVersion: '0.1.0',
+        deviceClass: 'DESKTOP',
+        idempotencyKey: crypto.randomUUID(),
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 });
