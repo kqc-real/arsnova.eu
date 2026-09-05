@@ -4551,9 +4551,15 @@
   scroll-margin-top: var(--session-host-toolbar-clearance);
   min-width: 0;
   border-radius: var(--mat-sys-corner-large);
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container-low);
-  box-shadow: var(--mat-sys-level1);
+  /*
+   * MD3-Fokusfläche: volles primary-container (Light/Dark/Paletten automatisch).
+   * Antwortoptionen bleiben auf neutralen surface-container-lowest – chromatisch
+   * getrennt, nicht nur eine Stufe auf der Grau-Leiter.
+   */
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  box-shadow: var(--mat-sys-level2);
   position: relative;
   z-index: 1;
   overflow: hidden;
@@ -4576,6 +4582,69 @@
     min-width: 0;
     padding: 0 var(--session-host-shell-inline) 1.25rem;
   }
+
+  .session-host__question-subtitle {
+    color: color-mix(in srgb, var(--mat-sys-on-primary-container) 82%, transparent);
+  }
+
+  .session-host__question-title,
+  .session-host__question-title-inner {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-badge {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 16%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-badge--difficulty {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-last-badge {
+    color: var(--mat-sys-on-primary-container);
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+  }
+
+  .session-host__question-phase {
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+    color: var(--mat-sys-on-surface);
+  }
+
+  .session-host__question-phase-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  /* Lese-Banner und Fortschritt brauchen Kontrast *innerhalb* der Fokusfläche. */
+  .session-host__reading-banner {
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
+  }
+
+  .session-host__reading-banner-icon,
+  .session-host__reading-banner-title {
+    color: var(--mat-sys-primary);
+  }
+
+  .session-host__reading-banner-hint {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .session-host__vote-progress {
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface)) 0,
+      color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface))
+        var(--session-host-vote-progress-fill),
+      var(--mat-sys-surface) var(--session-host-vote-progress-fill),
+      var(--mat-sys-surface) 100%
+    );
+    color: var(--mat-sys-on-surface);
+  }
 }
 
 .session-host__results-wrap {
@@ -4596,7 +4665,7 @@
   box-sizing: border-box;
   border-radius: var(--mat-sys-corner-large);
   border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container);
+  background: var(--mat-sys-surface-container-low);
   box-shadow: var(--mat-sys-level1);
 
   .mat-mdc-card-content {
@@ -4732,7 +4801,7 @@
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--mat-sys-corner-small);
-  background: var(--mat-sys-surface-container-high);
+  background: var(--mat-sys-surface-container-lowest);
   font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -7493,7 +7562,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-low);
+  background: var(--mat-sys-surface-container-lowest);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   line-height: 1.45;

@@ -7184,6 +7184,31 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('trennt Frage und Antwortoptionen über MD3 primary-container vs. surface-container', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
+    const playful = readFileSync(
+      join(componentDir, '../../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-host__question-card\s*\{[^}]*background:\s*var\(--mat-sys-primary-container\)/s,
+    );
+    expect(styles).toMatch(/\.session-host__answer\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(/\.session-host__neutral-item\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(/\.session-host__results-card\s*\{[^}]*surface-container-low/s);
+    expect(playful).toMatch(
+      /\.session-host mat-card\.session-host__question-card\s*\{[^}]*primary-container/s,
+    );
+    expect(playful).toMatch(
+      /\.session-host mat-card\.session-host__results-card\s*\{[^}]*app-playful-inner-panel-muted/s,
+    );
+  });
+
   it('empfiehlt bei passendem Korridor eine zweite Runde statt aktiver Ergebnisanzeige', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
