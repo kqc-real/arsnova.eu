@@ -10,6 +10,38 @@
   [class.session-present--feedback]="showQuickFeedbackCard()"
   [class.session-present--standby]="presenterStandbyChannel() !== null || showQuizPauseProjection()"
 >
+  @if (needsFullscreenGate()) {
+    <div
+      class="session-present__fullscreen-gate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="session-present-fullscreen-title"
+      data-testid="presenter-fullscreen-gate"
+    >
+      <div class="session-present__fullscreen-gate-card">
+        <mat-icon class="session-present__fullscreen-gate-icon" aria-hidden="true"
+          >fullscreen</mat-icon
+        >
+        <h2 id="session-present-fullscreen-title" i18n="@@sessionPresent.fullscreenGateTitle">
+          Vollbild für Beamer
+        </h2>
+        <p i18n="@@sessionPresent.fullscreenGateHint">
+          Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.
+        </p>
+        <button
+          matButton="filled"
+          type="button"
+          class="session-present__fullscreen-gate-button"
+          data-testid="presenter-fullscreen-enter"
+          (click)="enterPresenterFullscreen()"
+          i18n="@@sessionPresent.fullscreenGateAction"
+        >
+          Vollbild starten
+        </button>
+      </div>
+    </div>
+  }
+
   <ng-template #presenterJoinCard>
     <mat-card appearance="outlined" class="session-present__lobby-card">
       <mat-card-content class="session-present__lobby">

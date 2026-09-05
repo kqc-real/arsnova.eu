@@ -21612,6 +21612,15 @@
       <trans-unit id="sessionPresent.quickFeedbackRevealHint" datatype="html">
         <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
       </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
+        <source>Vollbild für Beamer</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
+        <source>Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
+        <source>Vollbild starten</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

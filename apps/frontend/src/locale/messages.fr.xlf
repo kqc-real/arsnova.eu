@@ -24384,6 +24384,18 @@
         <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
         <target>La répartition apparaît lorsque le tour est mis en pause ou terminé.</target>
       </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
+        <source>Vollbild für Beamer</source>
+        <target state="translated">Plein écran pour le projecteur</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
+        <source>Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
+        <target state="translated">Les navigateurs n’autorisent le plein écran qu’après un clic dans la fenêtre de présentation.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
+        <source>Vollbild starten</source>
+        <target state="translated">Passer en plein écran</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

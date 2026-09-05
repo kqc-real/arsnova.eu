@@ -24384,6 +24384,18 @@
         <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
         <target>La distribuzione appare quando il turno viene messo in pausa o termina.</target>
       </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
+        <source>Vollbild für Beamer</source>
+        <target state="translated">Schermo intero per il proiettore</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
+        <source>Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
+        <target state="translated">I browser consentono lo schermo intero solo dopo un clic nella finestra del presentatore.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
+        <source>Vollbild starten</source>
+        <target state="translated">Avvia schermo intero</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

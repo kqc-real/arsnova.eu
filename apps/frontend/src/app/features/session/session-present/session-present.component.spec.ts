@@ -163,6 +163,53 @@ describe('SessionPresentComponent', () => {
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
   });
 
+  it('zeigt den Vollbild-Gate und startet Vollbild per Klick', async () => {
+    const { DOCUMENT } = await import('@angular/common');
+    const documentRef = TestBed.inject(DOCUMENT);
+    const requestFullscreenSpy = vi.fn(() => Promise.resolve());
+    const previousDescriptor = Object.getOwnPropertyDescriptor(
+      documentRef.documentElement,
+      'requestFullscreen',
+    );
+    Object.defineProperty(documentRef.documentElement, 'requestFullscreen', {
+      configurable: true,
+      value: requestFullscreenSpy,
+    });
+    Object.defineProperty(documentRef, 'fullscreenEnabled', {
+      configurable: true,
+      value: true,
+    });
+    Object.defineProperty(documentRef, 'fullscreenElement', {
+      configurable: true,
+      get: () => null,
+    });
+
+    try {
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const gate = fixture.nativeElement.querySelector(
+        '[data-testid="presenter-fullscreen-gate"]',
+      ) as HTMLElement | null;
+      expect(gate).toBeTruthy();
+      const button = fixture.nativeElement.querySelector(
+        '[data-testid="presenter-fullscreen-enter"]',
+      ) as HTMLButtonElement | null;
+      expect(button?.textContent).toContain('Vollbild starten');
+      button?.click();
+      expect(requestFullscreenSpy).toHaveBeenCalled();
+      fixture.destroy();
+    } finally {
+      if (previousDescriptor) {
+        Object.defineProperty(documentRef.documentElement, 'requestFullscreen', previousDescriptor);
+      } else {
+        delete (documentRef.documentElement as Partial<HTMLElement>).requestFullscreen;
+      }
+    }
+  });
+
   it('rendert die Word-Cloud in der Presenter-Ansicht mit Live-Hinweis', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();

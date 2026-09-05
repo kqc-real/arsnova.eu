@@ -33,6 +33,30 @@ describe('SessionProjectionQuizComponent', () => {
     fixture = TestBed.createComponent(SessionProjectionQuizComponent);
   });
 
+  it('trennt Frage und Antwortoptionen über MD3 primary-container vs. surface-container', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    const playful = readFileSync(
+      resolve(__dirname, '../../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(/\.session-projection-quiz__question\s*\{[^}]*primary-container/s);
+    expect(styles).toMatch(/\.session-projection-quiz__stage\s*\{[^}]*surface-container-low/s);
+    expect(styles).toMatch(/\.session-projection-quiz__answer\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__option-chip\s*\{[^}]*surface-container-lowest/s,
+    );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-projection-quiz__question\s*\{[^}]*primary-container/s,
+    );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-projection-quiz__stage[\s\S]*?app-playful-inner-panel-muted/,
+    );
+  });
+
   it('zeigt in der Lesephase den Fragetext ohne Antwortoptionen', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');

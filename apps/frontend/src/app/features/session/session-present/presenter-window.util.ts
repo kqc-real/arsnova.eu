@@ -1,5 +1,6 @@
 import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
 import { getHostToken, normalizeHostSessionCode } from '../../../core/host-session-token';
+import { tryAutoRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 
 /**
  * Presenter ab Tablet, nicht auf Smartphones.
@@ -68,6 +69,39 @@ export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined):
   }
 }
 
+/**
+ * Bildschirmfüllende Popup-Features.
+ *
+ * Chromium verbraucht die User-Geste bei `window.open` — danach scheitert
+ * `requestFullscreen` im Kindfenster. Deshalb: Fläche sofort maximieren und
+ * zusätzlich `fullscreen` (Chrome mit window-management) mitschicken.
+ */
+export function presenterWindowOpenFeatures(win: Window): string {
+  const screen = win.screen;
+  const width = Math.max(
+    1,
+    Math.floor(Number(screen?.availWidth || screen?.width || win.innerWidth) || 1280),
+  );
+  const height = Math.max(
+    1,
+    Math.floor(Number(screen?.availHeight || screen?.height || win.innerHeight) || 720),
+  );
+  const left = Math.floor(
+    Number((screen as (Screen & { availLeft?: number }) | null)?.availLeft) || 0,
+  );
+  const top = Math.floor(
+    Number((screen as (Screen & { availTop?: number }) | null)?.availTop) || 0,
+  );
+  return [
+    'popup=yes',
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    'fullscreen',
+  ].join(',');
+}
+
 function copyHostTokenToOpenedSessionStorage(storage: Storage, sessionCode: string): boolean {
   const token = getHostToken(sessionCode);
   if (!token) {
@@ -91,11 +125,27 @@ function isPresenterLocation(opened: Window, sessionCode: string): boolean {
 }
 
 /**
+ * Best-effort Vollbild im Kindfenster. Nach `window.open` oft blockiert —
+ * Present-Seite zeigt dann einen expliziten Gate-Button.
+ */
+function tryEnterPresenterFullscreen(opened: Window): void {
+  try {
+    const doc = opened.document;
+    if (doc) {
+      tryAutoRequestDocumentFullscreen(doc);
+    }
+  } catch {
+    // Cross-origin / restricted document.
+  }
+}
+
+/**
  * Öffnet die Presenter-Ansicht aus dem Host-Tab.
  *
  * - Bestehendes Desktop-Fenster auf `/present` nur fokussieren (kein Reload → kein Home-/Reconnect-Flash).
- * - Sonst synchron `about:blank` öffnen (User-Gesture + alte Startseite sofort weg), Token persistieren,
+ * - Sonst synchron `about:blank` öffnen (User-Geste + alte Startseite sofort weg), Token persistieren,
  *   danach auf `/present` navigieren.
+ * - Fenster bildschirmfüllend (+ `fullscreen`-Feature, wo der Browser es erlaubt).
  */
 export async function openPresenterViewWindow(
   win: Window | null | undefined,
@@ -109,6 +159,7 @@ export async function openPresenterViewWindow(
   const touch = shouldOpenPresenterInUnnamedTab(win);
   const target = touch ? '_blank' : presenterViewWindowName(sessionCode);
   const url = presenterViewUrl(sessionCode);
+  const features = presenterWindowOpenFeatures(win);
 
   if (!touch) {
     try {
@@ -120,6 +171,16 @@ export async function openPresenterViewWindow(
         isPresenterLocation(existing, sessionCode)
       ) {
         existing.focus();
+        try {
+          existing.moveTo?.(0, 0);
+          existing.resizeTo?.(
+            Math.floor(win.screen?.availWidth || win.innerWidth || 1280),
+            Math.floor(win.screen?.availHeight || win.innerHeight || 720),
+          );
+        } catch {
+          // moveTo/resizeTo oft gesperrt.
+        }
+        tryEnterPresenterFullscreen(existing);
         try {
           copyHostTokenToOpenedSessionStorage(existing.sessionStorage, sessionCode);
         } catch {
@@ -134,12 +195,13 @@ export async function openPresenterViewWindow(
   }
 
   // Synchron im Klick-Kontext: leert ggf. alte Home-/PWA-Shell im benannten Fenster.
-  const opened = win.open('about:blank', target);
+  const opened = win.open('about:blank', target, features);
   if (!opened || opened.closed) {
     await tokenStorage.persistCurrentHostToken(sessionCode);
     return null;
   }
   if (opened === win) {
+    tryEnterPresenterFullscreen(opened);
     await tokenStorage.persistCurrentHostToken(sessionCode);
     try {
       win.location.assign(url);
@@ -148,6 +210,8 @@ export async function openPresenterViewWindow(
     }
     return opened;
   }
+
+  tryEnterPresenterFullscreen(opened);
 
   // Persist vor der Present-Navigation, damit der Guard IndexedDB schon vorfindet.
   const persisted = await tokenStorage.persistCurrentHostToken(sessionCode);
@@ -180,5 +244,6 @@ export async function openPresenterViewWindow(
   } catch {
     // Fokus optional.
   }
+  tryEnterPresenterFullscreen(opened);
   return opened;
 }

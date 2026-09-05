@@ -813,6 +813,40 @@ html.preset-playful {
       inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
   }
 
+  /* Presenter-Quiz: gleiche chromatische Trennung Frage vs. Options-/Ergebnisfläche. */
+  .session-present mat-card.session-projection-quiz__question {
+    isolation: isolate;
+    --mat-card-outlined-container-color: var(--mat-sys-primary-container);
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 34%,
+      var(--mat-sys-primary) 44%
+    );
+    background:
+      radial-gradient(
+        ellipse 96% 66% at 100% 4%,
+        color-mix(in srgb, var(--mat-sys-primary) 20%, transparent),
+        transparent 56%
+      ),
+      linear-gradient(
+        168deg,
+        var(--mat-sys-primary-container) 0%,
+        color-mix(in srgb, var(--mat-sys-primary-container) 88%, var(--mat-sys-tertiary-container))
+          100%
+      );
+    color: var(--mat-sys-on-primary-container);
+    box-shadow:
+      var(--mat-sys-level2),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  }
+
+  .session-present mat-card.session-projection-quiz__stage,
+  .session-present mat-card.session-projection-quiz__code {
+    @include app-playful-inner-panel-muted;
+    --mat-card-outlined-container-color: transparent;
+  }
+
   // --- Welle 6: Feedback (Standalone / eingebettet), Help, Legal, News-Archiv, Admin ---
   mat-card.session-channel-card.app-live-channel-shell {
     @include app-playful-inner-card-nested;
