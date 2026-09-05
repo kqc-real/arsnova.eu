@@ -8756,9 +8756,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       }
       if (type === 'CATEGORIZATION') {
         expect(text).not.toContain('Element A → Kategorie A');
-        expect(
-          neutral.querySelectorAll(':scope > .session-host__neutral-columns > section'),
-        ).toHaveLength(2);
+        const sections = neutral.querySelectorAll(
+          ':scope > .session-host__neutral-columns > section',
+        );
+        expect(sections).toHaveLength(2);
+        expect(sections[0]?.textContent ?? '').toContain('Elemente');
+        expect(sections[0]?.textContent ?? '').toContain('Element A');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorien');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorie A');
       }
       fixture.destroy();
     },

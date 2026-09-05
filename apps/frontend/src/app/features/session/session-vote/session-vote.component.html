@@ -1263,6 +1263,23 @@
                 Kategorien und Elemente
               </h2>
               <div class="vote-structured-preview__columns">
+                <section aria-labelledby="vote-discussion-category-items-heading">
+                  <h3
+                    class="vote-structured-preview__subtitle"
+                    id="vote-discussion-category-items-heading"
+                    i18n="@@sessionVote.categorizationItemsLabel"
+                  >
+                    Elemente
+                  </h3>
+                  <ul class="vote-structured-preview__list" role="list">
+                    @for (item of $any(q).categorizationItems || []; track item.id) {
+                      <li
+                        class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
+                        [innerHTML]="renderMarkdown(item.text, 4)"
+                      ></li>
+                    }
+                  </ul>
+                </section>
                 <section aria-labelledby="vote-discussion-categories-heading">
                   <h3
                     class="vote-structured-preview__subtitle"
@@ -1278,23 +1295,6 @@
                       >
                         {{ category.name }}
                       </li>
-                    }
-                  </ul>
-                </section>
-                <section aria-labelledby="vote-discussion-category-items-heading">
-                  <h3
-                    class="vote-structured-preview__subtitle"
-                    id="vote-discussion-category-items-heading"
-                    i18n="@@sessionVote.categorizationItemsLabel"
-                  >
-                    Elemente
-                  </h3>
-                  <ul class="vote-structured-preview__list" role="list">
-                    @for (item of $any(q).categorizationItems || []; track item.id) {
-                      <li
-                        class="vote-structured-preview__item vote-structured-preview__item--plain markdown-body"
-                        [innerHTML]="renderMarkdown(item.text, 4)"
-                      ></li>
                     }
                   </ul>
                 </section>

@@ -398,14 +398,6 @@
             } @else if (categorizationPreviewItems().length) {
               <div class="session-projection-quiz__option-board">
                 <section>
-                  <h2 i18n="@@sessionVote.categoriesLabel">Kategorien</h2>
-                  <ul>
-                    @for (category of categorizationPreviewCategories(); track category.id) {
-                      <li class="session-projection-quiz__option-chip">{{ category.name }}</li>
-                    }
-                  </ul>
-                </section>
-                <section>
                   <h2 i18n="@@sessionVote.categorizationItemsLabel">Elemente</h2>
                   <ul>
                     @for (item of categorizationPreviewItems(); track item.id) {
@@ -413,6 +405,14 @@
                         class="session-projection-quiz__option-chip markdown-body"
                         [innerHTML]="renderMarkdown(item.text, 4)"
                       ></li>
+                    }
+                  </ul>
+                </section>
+                <section>
+                  <h2 i18n="@@sessionVote.categoriesLabel">Kategorien</h2>
+                  <ul>
+                    @for (category of categorizationPreviewCategories(); track category.id) {
+                      <li class="session-projection-quiz__option-chip">{{ category.name }}</li>
                     }
                   </ul>
                 </section>

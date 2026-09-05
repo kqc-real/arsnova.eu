@@ -5598,6 +5598,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       for (const term of expected) expect(text).toContain(term);
       expect(preview.querySelector('button, input, select, mat-select')).toBeNull();
       expect(text).not.toMatch(/Richtige Lösung|Richtig|Falsch/);
+      if (type === 'CATEGORIZATION') {
+        const sections = preview.querySelectorAll('.vote-structured-preview__columns > section');
+        expect(sections).toHaveLength(2);
+        expect(sections[0]?.textContent ?? '').toContain('Elemente');
+        expect(sections[0]?.textContent ?? '').toContain('Element A');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorien');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorie A');
+      }
       fixture.destroy();
     },
   );

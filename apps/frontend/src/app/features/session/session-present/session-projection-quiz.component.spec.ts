@@ -362,6 +362,14 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Vögel');
     expect(text).toContain('Delfin');
     expect(text).toContain('Adler');
+    const categorizationSections = fixture.nativeElement.querySelectorAll(
+      '.session-projection-quiz__option-board > section',
+    ) as NodeListOf<HTMLElement>;
+    expect(categorizationSections).toHaveLength(2);
+    expect(categorizationSections[0]?.querySelector('h2')?.textContent ?? '').toContain('Elemente');
+    expect(categorizationSections[1]?.querySelector('h2')?.textContent ?? '').toContain(
+      'Kategorien',
+    );
   });
 
   it('zeigt Schwierigkeit und Letzte-Frage-Hinweis wie in der Abstimmung', () => {
