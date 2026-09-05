@@ -426,6 +426,41 @@ describe('AppComponent', () => {
     }
   });
 
+  it('stellt in Dev den Install-Hinweis auch nach Dismiss per __triggerPwaInstallHint bereit', () => {
+    localStorage.setItem('pwa-install-dismissed', String(Date.now()));
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+
+    try {
+      fixture.detectChanges();
+      const trigger = (window as Window & { __triggerPwaInstallHint?: () => void })
+        .__triggerPwaInstallHint;
+      expect(trigger).toEqual(expect.any(Function));
+      trigger?.();
+      fixture.detectChanges();
+
+      expect(localStorage.getItem('pwa-install-dismissed')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.app-install-snackbar')).toBeTruthy();
+    } finally {
+      fixture.destroy();
+      localStorage.removeItem('pwa-install-dismissed');
+    }
+  });
+
+  it('positioniert den Install-Hinweis ueber dem Footer und hält ihn inhaltsbreit', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'app.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(/\.app-install-snackbar\s*\{[^}]*app-footer-visible-offset/s);
+    expect(styles).toMatch(/\.app-install-snackbar\s*\{[^}]*width:\s*max-content/s);
+    expect(styles).toMatch(/\.app-install-snackbar__action\s*\{[^}]*white-space:\s*nowrap/s);
+  });
+
   it('rendert den Update-Banner als auffaelliges Callout mit primaerer CTA', async () => {
     TestBed.configureTestingModule({
       imports: [AppComponent],

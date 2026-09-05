@@ -581,19 +581,28 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private setupPwaInstallPrompt(): void {
     if (this.isStandalone()) return;
-    if (this.wasInstallDismissedRecently()) return;
-    window.addEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
-    window.addEventListener('appinstalled', this.appInstalledListener);
+
+    if (!this.wasInstallDismissedRecently()) {
+      window.addEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
+      window.addEventListener('appinstalled', this.appInstalledListener);
+    }
+
     if (isDevMode()) {
       window.addEventListener('pwa-install-test', this.pwaInstallTestListener);
       window.addEventListener('pwa-update-test', this.pwaUpdateTestListener);
-      /** In DevTools-Konsole ausführen: window.__triggerPwaInstallHint() – zeigt die PWA-Install-Snackbar zum Testen. */
-      (window as AppDevWindow).__triggerPwaInstallHint = () =>
+      /** In DevTools-Konsole: window.__triggerPwaInstallHint() – zeigt die PWA-Install-Snackbar. */
+      (window as AppDevWindow).__triggerPwaInstallHint = () => {
+        try {
+          localStorage.removeItem(STORAGE_PWA_INSTALL_DISMISSED);
+        } catch {
+          /* ignore */
+        }
         window.dispatchEvent(new CustomEvent('pwa-install-test'));
-      /** In DevTools-Konsole ausführen: window.__triggerUpdateBanner() – zeigt den Update-Banner zum Testen. */
+      };
+      /** In DevTools-Konsole: window.__triggerUpdateBanner() – zeigt den Update-Banner. */
       (window as AppDevWindow).__triggerUpdateBanner = () =>
         window.dispatchEvent(new CustomEvent('pwa-update-test'));
-      /** In DevTools-Konsole: window.__triggerServiceStatusBanner('yellow'|'red'|'off') – Warnbanner testen. */
+      /** In DevTools-Konsole: window.__triggerServiceStatusBanner('yellow'|'red'|'off') */
       (window as AppDevWindow).__triggerServiceStatusBanner = (level) => {
         this.footerHealthCheckDone.set(true);
         this.apiStatus.set('ok');
@@ -607,6 +616,15 @@ export class AppComponent implements OnInit, OnDestroy {
         }
         this.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
       };
+
+      // Dev-Server: ?pwaInstallHint=1 zeigt den Hinweis ohne echten beforeinstallprompt.
+      try {
+        if (new URLSearchParams(window.location.search).has('pwaInstallHint')) {
+          queueMicrotask(() => (window as AppDevWindow).__triggerPwaInstallHint?.());
+        }
+      } catch {
+        /* ignore */
+      }
     }
   }
 
