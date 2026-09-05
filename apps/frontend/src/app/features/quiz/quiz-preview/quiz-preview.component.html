@@ -544,7 +544,7 @@
                       <div class="quiz-preview-editor__answer-input">
                         <app-markdown-katex-editor
                           [fieldId]="'quiz-preview-ordering-' + i"
-                          [value]="orderingDraftTexts()[i] ?? item.text"
+                          [value]="orderingDraftTexts()[i]"
                           (valueChange)="onOrderingDraftChanged(i, $event)"
                           [rows]="2"
                           [compact]="true"
@@ -620,7 +620,7 @@
                           matInput
                           class="quiz-preview-editor__plain-input"
                           [id]="'quiz-preview-category-' + i"
-                          [value]="categoryDraftNames()[i] ?? category.name"
+                          [value]="categoryDraftNames()[i]"
                           (input)="onCategoryDraftChanged(i, $any($event.target).value)"
                           maxlength="200"
                         />
